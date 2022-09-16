@@ -1485,21 +1485,21 @@ class Program
 
             var expectedUpdatedDiagnostics = new DiagnosticDescription[]
             {
-                // (8,37): error CS8166: Cannot return a parameter by reference 'r' because it is not a ref parameter
+                // (8,37): error CS9075: Cannot return a parameter by reference 'r' because it is scoped to the current method
                 //     static ref R F3(ref R r) => ref r; // 1
-                Diagnostic(ErrorCode.ERR_RefReturnParameter, "r").WithArguments("r").WithLocation(8, 37),
-                // (11,45): error CS8166: Cannot return a parameter by reference 'r' because it is not a ref parameter
+                Diagnostic(ErrorCode.ERR_RefReturnScopedParameter, "r").WithArguments("r").WithLocation(8, 37),
+                // (11,45): error CS9075: Cannot return a parameter by reference 'r' because it is scoped to the current method
                 //     static ref readonly R F6(in R r) => ref r; // 2
-                Diagnostic(ErrorCode.ERR_RefReturnParameter, "r").WithArguments("r").WithLocation(11, 45),
-                // (12,56): error CS8166: Cannot return a parameter by reference 'c' because it is not a ref parameter
+                Diagnostic(ErrorCode.ERR_RefReturnScopedParameter, "r").WithArguments("r").WithLocation(11, 45),
+                // (12,56): error CS9075: Cannot return a parameter by reference 'c' because it is scoped to the current method
                 //     static ref C F7(out C c) { c = default; return ref c; } // 3
-                Diagnostic(ErrorCode.ERR_RefReturnParameter, "c").WithArguments("c").WithLocation(12, 56),
-                // (13,56): error CS8166: Cannot return a parameter by reference 's' because it is not a ref parameter
+                Diagnostic(ErrorCode.ERR_RefReturnScopedParameter, "c").WithArguments("c").WithLocation(12, 56),
+                // (13,56): error CS9075: Cannot return a parameter by reference 's' because it is scoped to the current method
                 //     static ref S F8(out S s) { s = default; return ref s; } // 4
-                Diagnostic(ErrorCode.ERR_RefReturnParameter, "s").WithArguments("s").WithLocation(13, 56),
-                // (14,56): error CS8166: Cannot return a parameter by reference 'r' because it is not a ref parameter
+                Diagnostic(ErrorCode.ERR_RefReturnScopedParameter, "s").WithArguments("s").WithLocation(13, 56),
+                // (14,56): error CS9075: Cannot return a parameter by reference 'r' because it is scoped to the current method
                 //     static ref R F9(out R r) { r = default; return ref r; } // 5
-                Diagnostic(ErrorCode.ERR_RefReturnParameter, "r").WithArguments("r").WithLocation(14, 56)
+                Diagnostic(ErrorCode.ERR_RefReturnScopedParameter, "r").WithArguments("r").WithLocation(14, 56)
             };
 
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular10);
@@ -1611,21 +1611,21 @@ class Program
                 // (24,75): error CS8347: Cannot use a result of 'S.F1<T>(ref T)' in this context because it may expose variables referenced by parameter 't' outside of their declaration scope
                 //     static ref T F31<T>(out T t) { S s = default; t = default; return ref s.F1(ref t); } // 4
                 Diagnostic(ErrorCode.ERR_EscapeCall, "s.F1(ref t)").WithArguments("S.F1<T>(ref T)", "t").WithLocation(24, 75),
-                // (24,84): error CS8166: Cannot return a parameter by reference 't' because it is not a ref parameter
+                // (24,84): error CS9075: Cannot return a parameter by reference 't' because it is scoped to the current method
                 //     static ref T F31<T>(out T t) { S s = default; t = default; return ref s.F1(ref t); } // 4
-                Diagnostic(ErrorCode.ERR_RefReturnParameter, "t").WithArguments("t").WithLocation(24, 84),
+                Diagnostic(ErrorCode.ERR_RefReturnScopedParameter, "t").WithArguments("t").WithLocation(24, 84),
                 // (25,75): error CS8347: Cannot use a result of 'S.F2<T>(in T)' in this context because it may expose variables referenced by parameter 't' outside of their declaration scope
                 //     static ref T F32<T>(out T t) { S s = default; t = default; return ref s.F2(in t); } // 5
                 Diagnostic(ErrorCode.ERR_EscapeCall, "s.F2(in t)").WithArguments("S.F2<T>(in T)", "t").WithLocation(25, 75),
-                // (25,83): error CS8166: Cannot return a parameter by reference 't' because it is not a ref parameter
+                // (25,83): error CS9075: Cannot return a parameter by reference 't' because it is scoped to the current method
                 //     static ref T F32<T>(out T t) { S s = default; t = default; return ref s.F2(in t); } // 5
-                Diagnostic(ErrorCode.ERR_RefReturnParameter, "t").WithArguments("t").WithLocation(25, 83),
+                Diagnostic(ErrorCode.ERR_RefReturnScopedParameter, "t").WithArguments("t").WithLocation(25, 83),
                 // (26,75): error CS8347: Cannot use a result of 'S.F2<T>(in T)' in this context because it may expose variables referenced by parameter 't' outside of their declaration scope
                 //     static ref T F33<T>(out T t) { S s = default; t = default; return ref s.F2(t); } // 6
                 Diagnostic(ErrorCode.ERR_EscapeCall, "s.F2(t)").WithArguments("S.F2<T>(in T)", "t").WithLocation(26, 75),
-                // (26,80): error CS8166: Cannot return a parameter by reference 't' because it is not a ref parameter
+                // (26,80): error CS9075: Cannot return a parameter by reference 't' because it is scoped to the current method
                 //     static ref T F33<T>(out T t) { S s = default; t = default; return ref s.F2(t); } // 6
-                Diagnostic(ErrorCode.ERR_RefReturnParameter, "t").WithArguments("t").WithLocation(26, 80),
+                Diagnostic(ErrorCode.ERR_RefReturnScopedParameter, "t").WithArguments("t").WithLocation(26, 80),
                 // (29,61): error CS8347: Cannot use a result of 'S.F1<T>(ref T)' in this context because it may expose variables referenced by parameter 't' outside of their declaration scope
                 //     static ref T F42<T>(in S s) { T t = default; return ref s.F1(ref t); } // 7
                 Diagnostic(ErrorCode.ERR_EscapeCall, "s.F1(ref t)").WithArguments("S.F1<T>(ref T)", "t").WithLocation(29, 61),
@@ -1729,21 +1729,21 @@ class Program
                 // (22,53): error CS8347: Cannot use a result of 'C.F1<T>(ref T)' in this context because it may expose variables referenced by parameter 't' outside of their declaration scope
                 //     ref T F31<T>(out T t) { t = default; return ref F1(ref t); } // 4
                 Diagnostic(ErrorCode.ERR_EscapeCall, "F1(ref t)").WithArguments("C.F1<T>(ref T)", "t").WithLocation(22, 53),
-                // (22,60): error CS8166: Cannot return a parameter by reference 't' because it is not a ref parameter
+                // (22,60): error CS9075: Cannot return a parameter by reference 't' because it is scoped to the current method
                 //     ref T F31<T>(out T t) { t = default; return ref F1(ref t); } // 4
-                Diagnostic(ErrorCode.ERR_RefReturnParameter, "t").WithArguments("t").WithLocation(22, 60),
+                Diagnostic(ErrorCode.ERR_RefReturnScopedParameter, "t").WithArguments("t").WithLocation(22, 60),
                 // (23,53): error CS8347: Cannot use a result of 'C.F2<T>(in T)' in this context because it may expose variables referenced by parameter 't' outside of their declaration scope
                 //     ref T F32<T>(out T t) { t = default; return ref F2(in t); } // 5
                 Diagnostic(ErrorCode.ERR_EscapeCall, "F2(in t)").WithArguments("C.F2<T>(in T)", "t").WithLocation(23, 53),
-                // (23,59): error CS8166: Cannot return a parameter by reference 't' because it is not a ref parameter
+                // (23,59): error CS9075: Cannot return a parameter by reference 't' because it is scoped to the current method
                 //     ref T F32<T>(out T t) { t = default; return ref F2(in t); } // 5
-                Diagnostic(ErrorCode.ERR_RefReturnParameter, "t").WithArguments("t").WithLocation(23, 59),
+                Diagnostic(ErrorCode.ERR_RefReturnScopedParameter, "t").WithArguments("t").WithLocation(23, 59),
                 // (24,53): error CS8347: Cannot use a result of 'C.F2<T>(in T)' in this context because it may expose variables referenced by parameter 't' outside of their declaration scope
                 //     ref T F33<T>(out T t) { t = default; return ref F2(t); } // 6
                 Diagnostic(ErrorCode.ERR_EscapeCall, "F2(t)").WithArguments("C.F2<T>(in T)", "t").WithLocation(24, 53),
-                // (24,56): error CS8166: Cannot return a parameter by reference 't' because it is not a ref parameter
+                // (24,56): error CS9075: Cannot return a parameter by reference 't' because it is scoped to the current method
                 //     ref T F33<T>(out T t) { t = default; return ref F2(t); } // 6
-                Diagnostic(ErrorCode.ERR_RefReturnParameter, "t").WithArguments("t").WithLocation(24, 56)
+                Diagnostic(ErrorCode.ERR_RefReturnScopedParameter, "t").WithArguments("t").WithLocation(24, 56)
             };
 
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular10);
@@ -2305,21 +2305,21 @@ class Program
                 // (27,70): error CS8347: Cannot use a result of 'S.F1<T>(ref T)' in this context because it may expose variables referenced by parameter 't' outside of their declaration scope
                 //     static R<T> F31<T>(out T t) { S s = default; t = default; return s.F1(ref t); } // 4
                 Diagnostic(ErrorCode.ERR_EscapeCall, "s.F1(ref t)").WithArguments("S.F1<T>(ref T)", "t").WithLocation(27, 70),
-                // (27,79): error CS8166: Cannot return a parameter by reference 't' because it is not a ref parameter
+                // (27,79): error CS9075: Cannot return a parameter by reference 't' because it is scoped to the current method
                 //     static R<T> F31<T>(out T t) { S s = default; t = default; return s.F1(ref t); } // 4
-                Diagnostic(ErrorCode.ERR_RefReturnParameter, "t").WithArguments("t").WithLocation(27, 79),
+                Diagnostic(ErrorCode.ERR_RefReturnScopedParameter, "t").WithArguments("t").WithLocation(27, 79),
                 // (28,70): error CS8347: Cannot use a result of 'S.F2<T>(in T)' in this context because it may expose variables referenced by parameter 't' outside of their declaration scope
                 //     static R<T> F32<T>(out T t) { S s = default; t = default; return s.F2(in t); } // 5
                 Diagnostic(ErrorCode.ERR_EscapeCall, "s.F2(in t)").WithArguments("S.F2<T>(in T)", "t").WithLocation(28, 70),
-                // (28,78): error CS8166: Cannot return a parameter by reference 't' because it is not a ref parameter
+                // (28,78): error CS9075: Cannot return a parameter by reference 't' because it is scoped to the current method
                 //     static R<T> F32<T>(out T t) { S s = default; t = default; return s.F2(in t); } // 5
-                Diagnostic(ErrorCode.ERR_RefReturnParameter, "t").WithArguments("t").WithLocation(28, 78),
+                Diagnostic(ErrorCode.ERR_RefReturnScopedParameter, "t").WithArguments("t").WithLocation(28, 78),
                 // (29,70): error CS8347: Cannot use a result of 'S.F2<T>(in T)' in this context because it may expose variables referenced by parameter 't' outside of their declaration scope
                 //     static R<T> F33<T>(out T t) { S s = default; t = default; return s.F2(t); } // 6
                 Diagnostic(ErrorCode.ERR_EscapeCall, "s.F2(t)").WithArguments("S.F2<T>(in T)", "t").WithLocation(29, 70),
-                // (29,75): error CS8166: Cannot return a parameter by reference 't' because it is not a ref parameter
+                // (29,75): error CS9075: Cannot return a parameter by reference 't' because it is scoped to the current method
                 //     static R<T> F33<T>(out T t) { S s = default; t = default; return s.F2(t); } // 6
-                Diagnostic(ErrorCode.ERR_RefReturnParameter, "t").WithArguments("t").WithLocation(29, 75),
+                Diagnostic(ErrorCode.ERR_RefReturnScopedParameter, "t").WithArguments("t").WithLocation(29, 75),
                 // (32,56): error CS8347: Cannot use a result of 'S.F1<T>(ref T)' in this context because it may expose variables referenced by parameter 't' outside of their declaration scope
                 //     static R<T> F41<T>(in S s) { T t = default; return s.F1(ref t); } // 7
                 Diagnostic(ErrorCode.ERR_EscapeCall, "s.F1(ref t)").WithArguments("S.F1<T>(ref T)", "t").WithLocation(32, 56),
@@ -2408,21 +2408,21 @@ class C
                 // (25,45): error CS8347: Cannot use a result of 'C.F1<T>(ref T)' in this context because it may expose variables referenced by parameter 't' outside of their declaration scope
                 //     R F31<T>(out T t) { t = default; return F1(ref t); } // 4
                 Diagnostic(ErrorCode.ERR_EscapeCall, "F1(ref t)").WithArguments("C.F1<T>(ref T)", "t").WithLocation(25, 45),
-                // (25,52): error CS8166: Cannot return a parameter by reference 't' because it is not a ref parameter
+                // (25,52): error CS9075: Cannot return a parameter by reference 't' because it is scoped to the current method
                 //     R F31<T>(out T t) { t = default; return F1(ref t); } // 4
-                Diagnostic(ErrorCode.ERR_RefReturnParameter, "t").WithArguments("t").WithLocation(25, 52),
+                Diagnostic(ErrorCode.ERR_RefReturnScopedParameter, "t").WithArguments("t").WithLocation(25, 52),
                 // (26,45): error CS8347: Cannot use a result of 'C.F2<T>(in T)' in this context because it may expose variables referenced by parameter 't' outside of their declaration scope
                 //     R F32<T>(out T t) { t = default; return F2(in t); } // 5
                 Diagnostic(ErrorCode.ERR_EscapeCall, "F2(in t)").WithArguments("C.F2<T>(in T)", "t").WithLocation(26, 45),
-                // (26,51): error CS8166: Cannot return a parameter by reference 't' because it is not a ref parameter
+                // (26,51): error CS9075: Cannot return a parameter by reference 't' because it is scoped to the current method
                 //     R F32<T>(out T t) { t = default; return F2(in t); } // 5
-                Diagnostic(ErrorCode.ERR_RefReturnParameter, "t").WithArguments("t").WithLocation(26, 51),
+                Diagnostic(ErrorCode.ERR_RefReturnScopedParameter, "t").WithArguments("t").WithLocation(26, 51),
                 // (27,45): error CS8347: Cannot use a result of 'C.F2<T>(in T)' in this context because it may expose variables referenced by parameter 't' outside of their declaration scope
                 //     R F33<T>(out T t) { t = default; return F2(t); } // 6
                 Diagnostic(ErrorCode.ERR_EscapeCall, "F2(t)").WithArguments("C.F2<T>(in T)", "t").WithLocation(27, 45),
-                // (27,48): error CS8166: Cannot return a parameter by reference 't' because it is not a ref parameter
+                // (27,48): error CS9075: Cannot return a parameter by reference 't' because it is scoped to the current method
                 //     R F33<T>(out T t) { t = default; return F2(t); } // 6
-                Diagnostic(ErrorCode.ERR_RefReturnParameter, "t").WithArguments("t").WithLocation(27, 48)
+                Diagnostic(ErrorCode.ERR_RefReturnScopedParameter, "t").WithArguments("t").WithLocation(27, 48)
             };
 
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular10);
@@ -2651,15 +2651,15 @@ ref struct R<T> { }
                 // (13,68): error CS8347: Cannot use a result of 'Program.F0<T>(ref R<T>, ref R<T>)' in this context because it may expose variables referenced by parameter 'x' outside of their declaration scope
                 //     static ref T F20<T>(ref R<T> x) { R<T> y = default; return ref F0(ref x, ref y); } // 2
                 Diagnostic(ErrorCode.ERR_EscapeCall, "F0(ref x, ref y)").WithArguments("Program.F0<T>(ref R<T>, ref R<T>)", "x").WithLocation(13, 68),
-                // (13,75): error CS8166: Cannot return a parameter by reference 'x' because it is not a ref parameter
+                // (13,75): error CS9075: Cannot return a parameter by reference 'x' because it is scoped to the current method
                 //     static ref T F20<T>(ref R<T> x) { R<T> y = default; return ref F0(ref x, ref y); } // 2
-                Diagnostic(ErrorCode.ERR_RefReturnParameter, "x").WithArguments("x").WithLocation(13, 75),
+                Diagnostic(ErrorCode.ERR_RefReturnScopedParameter, "x").WithArguments("x").WithLocation(13, 75),
                 // (14,68): error CS8347: Cannot use a result of 'Program.F2<T>(ref R<T>, ref R<T>)' in this context because it may expose variables referenced by parameter 'x' outside of their declaration scope
                 //     static ref T F22<T>(ref R<T> x) { R<T> y = default; return ref F2(ref x, ref y); } // 3 
                 Diagnostic(ErrorCode.ERR_EscapeCall, "F2(ref x, ref y)").WithArguments("Program.F2<T>(ref R<T>, ref R<T>)", "x").WithLocation(14, 68),
-                // (14,75): error CS8166: Cannot return a parameter by reference 'x' because it is not a ref parameter
+                // (14,75): error CS9075: Cannot return a parameter by reference 'x' because it is scoped to the current method
                 //     static ref T F22<T>(ref R<T> x) { R<T> y = default; return ref F2(ref x, ref y); } // 3 
-                Diagnostic(ErrorCode.ERR_RefReturnParameter, "x").WithArguments("x").WithLocation(14, 75)
+                Diagnostic(ErrorCode.ERR_RefReturnScopedParameter, "x").WithArguments("x").WithLocation(14, 75)
             );
         }
 
@@ -2944,39 +2944,39 @@ class Program
                 // (7,41): error CS8350: This combination of arguments to 'Program.F0(__arglist)' is disallowed because it may expose variables referenced by parameter '__arglist' outside of their declaration scope
                 //     static void F00(ref R x, ref R y) { F0(__arglist(ref x, ref y)); } // 1
                 Diagnostic(ErrorCode.ERR_CallArgMixing, "F0(__arglist(ref x, ref y))").WithArguments("Program.F0(__arglist)", "__arglist").WithLocation(7, 41),
-                // (7,58): error CS8166: Cannot return a parameter by reference 'x' because it is not a ref parameter
+                // (7,58): error CS9075: Cannot return a parameter by reference 'x' because it is scoped to the current method
                 //     static void F00(ref R x, ref R y) { F0(__arglist(ref x, ref y)); } // 1
-                Diagnostic(ErrorCode.ERR_RefReturnParameter, "x").WithArguments("x").WithLocation(7, 58),
+                Diagnostic(ErrorCode.ERR_RefReturnScopedParameter, "x").WithArguments("x").WithLocation(7, 58),
                 // (8,41): error CS8350: This combination of arguments to 'Program.F1(ref R, __arglist)' is disallowed because it may expose variables referenced by parameter '__arglist' outside of their declaration scope
                 //     static void F01(ref R x, ref R y) { F1(ref x, __arglist(ref y)); } // 2
                 Diagnostic(ErrorCode.ERR_CallArgMixing, "F1(ref x, __arglist(ref y))").WithArguments("Program.F1(ref R, __arglist)", "__arglist").WithLocation(8, 41),
-                // (8,65): error CS8166: Cannot return a parameter by reference 'y' because it is not a ref parameter
+                // (8,65): error CS9075: Cannot return a parameter by reference 'y' because it is scoped to the current method
                 //     static void F01(ref R x, ref R y) { F1(ref x, __arglist(ref y)); } // 2
-                Diagnostic(ErrorCode.ERR_RefReturnParameter, "y").WithArguments("y").WithLocation(8, 65),
+                Diagnostic(ErrorCode.ERR_RefReturnScopedParameter, "y").WithArguments("y").WithLocation(8, 65),
                 // (9,48): error CS8350: This combination of arguments to 'Program.F0(__arglist)' is disallowed because it may expose variables referenced by parameter '__arglist' outside of their declaration scope
                 //     static void F20(ref R x, scoped ref R y) { F0(__arglist(ref x, ref y)); } // 3
                 Diagnostic(ErrorCode.ERR_CallArgMixing, "F0(__arglist(ref x, ref y))").WithArguments("Program.F0(__arglist)", "__arglist").WithLocation(9, 48),
-                // (9,65): error CS8166: Cannot return a parameter by reference 'x' because it is not a ref parameter
+                // (9,65): error CS9075: Cannot return a parameter by reference 'x' because it is scoped to the current method
                 //     static void F20(ref R x, scoped ref R y) { F0(__arglist(ref x, ref y)); } // 3
-                Diagnostic(ErrorCode.ERR_RefReturnParameter, "x").WithArguments("x").WithLocation(9, 65),
+                Diagnostic(ErrorCode.ERR_RefReturnScopedParameter, "x").WithArguments("x").WithLocation(9, 65),
                 // (10,48): error CS8350: This combination of arguments to 'Program.F1(ref R, __arglist)' is disallowed because it may expose variables referenced by parameter '__arglist' outside of their declaration scope
                 //     static void F21(ref R x, scoped ref R y) { F1(ref x, __arglist(ref y)); } // 4
                 Diagnostic(ErrorCode.ERR_CallArgMixing, "F1(ref x, __arglist(ref y))").WithArguments("Program.F1(ref R, __arglist)", "__arglist").WithLocation(10, 48),
-                // (10,72): error CS8166: Cannot return a parameter by reference 'y' because it is not a ref parameter
+                // (10,72): error CS9075: Cannot return a parameter by reference 'y' because it is scoped to the current method
                 //     static void F21(ref R x, scoped ref R y) { F1(ref x, __arglist(ref y)); } // 4
-                Diagnostic(ErrorCode.ERR_RefReturnParameter, "y").WithArguments("y").WithLocation(10, 72),
+                Diagnostic(ErrorCode.ERR_RefReturnScopedParameter, "y").WithArguments("y").WithLocation(10, 72),
                 // (11,55): error CS8350: This combination of arguments to 'Program.F0(__arglist)' is disallowed because it may expose variables referenced by parameter '__arglist' outside of their declaration scope
                 //     static void F50(scoped ref R x, scoped ref R y) { F0(__arglist(ref x, ref y)); } // 5
                 Diagnostic(ErrorCode.ERR_CallArgMixing, "F0(__arglist(ref x, ref y))").WithArguments("Program.F0(__arglist)", "__arglist").WithLocation(11, 55),
-                // (11,72): error CS8166: Cannot return a parameter by reference 'x' because it is not a ref parameter
+                // (11,72): error CS9075: Cannot return a parameter by reference 'x' because it is scoped to the current method
                 //     static void F50(scoped ref R x, scoped ref R y) { F0(__arglist(ref x, ref y)); } // 5
-                Diagnostic(ErrorCode.ERR_RefReturnParameter, "x").WithArguments("x").WithLocation(11, 72),
+                Diagnostic(ErrorCode.ERR_RefReturnScopedParameter, "x").WithArguments("x").WithLocation(11, 72),
                 // (12,55): error CS8350: This combination of arguments to 'Program.F1(ref R, __arglist)' is disallowed because it may expose variables referenced by parameter '__arglist' outside of their declaration scope
                 //     static void F51(scoped ref R x, scoped ref R y) { F1(ref x, __arglist(ref y)); } // 6
                 Diagnostic(ErrorCode.ERR_CallArgMixing, "F1(ref x, __arglist(ref y))").WithArguments("Program.F1(ref R, __arglist)", "__arglist").WithLocation(12, 55),
-                // (12,79): error CS8166: Cannot return a parameter by reference 'y' because it is not a ref parameter
+                // (12,79): error CS9075: Cannot return a parameter by reference 'y' because it is scoped to the current method
                 //     static void F51(scoped ref R x, scoped ref R y) { F1(ref x, __arglist(ref y)); } // 6
-                Diagnostic(ErrorCode.ERR_RefReturnParameter, "y").WithArguments("y").WithLocation(12, 79));
+                Diagnostic(ErrorCode.ERR_RefReturnScopedParameter, "y").WithArguments("y").WithLocation(12, 79));
         }
 
         [Fact]
@@ -3002,21 +3002,21 @@ class Program
                 // (8,41): error CS8350: This combination of arguments to 'Program.F0(__arglist)' is disallowed because it may expose variables referenced by parameter '__arglist' outside of their declaration scope
                 //     static void F00(ref R x, ref R y) { F0(__arglist(ref x, ref y)); } // 1
                 Diagnostic(ErrorCode.ERR_CallArgMixing, "F0(__arglist(ref x, ref y))").WithArguments("Program.F0(__arglist)", "__arglist").WithLocation(8, 41),
-                // (8,58): error CS8166: Cannot return a parameter by reference 'x' because it is not a ref parameter
+                // (8,58): error CS9075: Cannot return a parameter by reference 'x' because it is scoped to the current method
                 //     static void F00(ref R x, ref R y) { F0(__arglist(ref x, ref y)); } // 1
-                Diagnostic(ErrorCode.ERR_RefReturnParameter, "x").WithArguments("x").WithLocation(8, 58),
+                Diagnostic(ErrorCode.ERR_RefReturnScopedParameter, "x").WithArguments("x").WithLocation(8, 58),
                 // (9,41): error CS8350: This combination of arguments to 'Program.F1(ref R, __arglist)' is disallowed because it may expose variables referenced by parameter '__arglist' outside of their declaration scope
                 //     static void F01(ref R x, ref R y) { F1(ref x, __arglist(ref y)); } // 2
                 Diagnostic(ErrorCode.ERR_CallArgMixing, "F1(ref x, __arglist(ref y))").WithArguments("Program.F1(ref R, __arglist)", "__arglist").WithLocation(9, 41),
-                // (9,65): error CS8166: Cannot return a parameter by reference 'y' because it is not a ref parameter
+                // (9,65): error CS9075: Cannot return a parameter by reference 'y' because it is scoped to the current method
                 //     static void F01(ref R x, ref R y) { F1(ref x, __arglist(ref y)); } // 2
-                Diagnostic(ErrorCode.ERR_RefReturnParameter, "y").WithArguments("y").WithLocation(9, 65),
+                Diagnostic(ErrorCode.ERR_RefReturnScopedParameter, "y").WithArguments("y").WithLocation(9, 65),
                 // (10,55): error CS8350: This combination of arguments to 'Program.F0(__arglist)' is disallowed because it may expose variables referenced by parameter '__arglist' outside of their declaration scope
                 //     static void F20(ref R x, [UnscopedRef] ref R y) { F0(__arglist(ref x, ref y)); } // 3
                 Diagnostic(ErrorCode.ERR_CallArgMixing, "F0(__arglist(ref x, ref y))").WithArguments("Program.F0(__arglist)", "__arglist").WithLocation(10, 55),
-                // (10,72): error CS8166: Cannot return a parameter by reference 'x' because it is not a ref parameter
+                // (10,72): error CS9075: Cannot return a parameter by reference 'x' because it is scoped to the current method
                 //     static void F20(ref R x, [UnscopedRef] ref R y) { F0(__arglist(ref x, ref y)); } // 3
-                Diagnostic(ErrorCode.ERR_RefReturnParameter, "x").WithArguments("x").WithLocation(10, 72));
+                Diagnostic(ErrorCode.ERR_RefReturnScopedParameter, "x").WithArguments("x").WithLocation(10, 72));
         }
 
         /// <summary>
@@ -5583,18 +5583,18 @@ class Program
                 // (3,36): error CS8166: Cannot return a parameter by reference 't' because it is not a ref parameter
                 //     static ref T F1<T>(T t) => ref t; // 1
                 Diagnostic(ErrorCode.ERR_RefReturnParameter, "t").WithArguments("t").WithLocation(3, 36),
-                // (5,59): error CS8166: Cannot return a parameter by reference 't' because it is not a ref parameter
+                // (5,59): error CS9075: Cannot return a parameter by reference 't' because it is scoped to the current method
                 //     static ref T F3<T>(out T t) { t = default; return ref t; } // 2
-                Diagnostic(ErrorCode.ERR_RefReturnParameter, "t").WithArguments("t").WithLocation(5, 59),
+                Diagnostic(ErrorCode.ERR_RefReturnScopedParameter, "t").WithArguments("t").WithLocation(5, 59),
                 // (6,39): error CS8333: Cannot return variable 'in T' by writable reference because it is a readonly variable
                 //     static ref T F4<T>(in T t) => ref t; // 3
                 Diagnostic(ErrorCode.ERR_RefReturnReadonlyNotField, "t").WithArguments("variable", "in T").WithLocation(6, 39),
                 // (7,45): error CS8166: Cannot return a parameter by reference 't' because it is not a ref parameter
                 //     static ref readonly T F5<T>(T t) => ref t; // 4
                 Diagnostic(ErrorCode.ERR_RefReturnParameter, "t").WithArguments("t").WithLocation(7, 45),
-                // (9,68): error CS8166: Cannot return a parameter by reference 't' because it is not a ref parameter
+                // (9,68): error CS9075: Cannot return a parameter by reference 't' because it is scoped to the current method
                 //     static ref readonly T F7<T>(out T t) { t = default; return ref t; } // 5
-                Diagnostic(ErrorCode.ERR_RefReturnParameter, "t").WithArguments("t").WithLocation(9, 68));
+                Diagnostic(ErrorCode.ERR_RefReturnScopedParameter, "t").WithArguments("t").WithLocation(9, 68));
         }
 
         [Fact]
@@ -7427,9 +7427,9 @@ class Program
 
             comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (6,20): error CS8166: Cannot return a parameter by reference 't' because it is not a ref parameter
+                // (6,20): error CS9075: Cannot return a parameter by reference 't' because it is scoped to the current method
                 //         return ref t;
-                Diagnostic(ErrorCode.ERR_RefReturnParameter, "t").WithArguments("t").WithLocation(6, 20));
+                Diagnostic(ErrorCode.ERR_RefReturnScopedParameter, "t").WithArguments("t").WithLocation(6, 20));
         }
 
         // Breaking change in C#11: Instance method on ref struct instance may capture unscoped ref or in arguments.
@@ -9273,30 +9273,30 @@ class Program
                 // (11,17): error CS8986: The 'scoped' modifier of parameter 'y' doesn't match target 'D2'.
                 //         D2 d2 = (R x, R y) => x; // 1
                 Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfTarget, "(R x, R y) => x").WithArguments("y", "D2").WithLocation(11, 17),
-                // (12,50): error CS8166: Cannot return a parameter by reference 'x' because it is not a ref parameter
+                // (12,50): error CS9075: Cannot return a parameter by reference 'x' because it is scoped to the current method
                 //         D3 d3 = (ref R x, scoped ref R y) => ref x;
-                Diagnostic(ErrorCode.ERR_RefReturnParameter, "x").WithArguments("x").WithLocation(12, 50),
-                // (13,43): error CS8166: Cannot return a parameter by reference 'x' because it is not a ref parameter
+                Diagnostic(ErrorCode.ERR_RefReturnScopedParameter, "x").WithArguments("x").WithLocation(12, 50),
+                // (13,43): error CS9075: Cannot return a parameter by reference 'x' because it is scoped to the current method
                 //         D5 d5 = (ref R x, ref R y) => ref x;
-                Diagnostic(ErrorCode.ERR_RefReturnParameter, "x").WithArguments("x").WithLocation(13, 43),
+                Diagnostic(ErrorCode.ERR_RefReturnScopedParameter, "x").WithArguments("x").WithLocation(13, 43),
                 // (18,18): error CS8986: The 'scoped' modifier of parameter 'y' doesn't match target 'D2'.
                 //         var d2 = (D2)((R x, R y) => x); // 2
                 Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfTarget, "(D2)((R x, R y) => x)").WithArguments("y", "D2").WithLocation(18, 18),
-                // (19,56): error CS8166: Cannot return a parameter by reference 'x' because it is not a ref parameter
+                // (19,56): error CS9075: Cannot return a parameter by reference 'x' because it is scoped to the current method
                 //         var d3 = (D3)((ref R x, scoped ref R y) => ref x);
-                Diagnostic(ErrorCode.ERR_RefReturnParameter, "x").WithArguments("x").WithLocation(19, 56),
-                // (20,49): error CS8166: Cannot return a parameter by reference 'x' because it is not a ref parameter
+                Diagnostic(ErrorCode.ERR_RefReturnScopedParameter, "x").WithArguments("x").WithLocation(19, 56),
+                // (20,49): error CS9075: Cannot return a parameter by reference 'x' because it is scoped to the current method
                 //         var d5 = (D5)((ref R x, ref R y) => ref x);
-                Diagnostic(ErrorCode.ERR_RefReturnParameter, "x").WithArguments("x").WithLocation(20, 49),
+                Diagnostic(ErrorCode.ERR_RefReturnScopedParameter, "x").WithArguments("x").WithLocation(20, 49),
                 // (25,25): error CS8986: The 'scoped' modifier of parameter 'y' doesn't match target 'D2'.
                 //         var d2 = new D2((R x, R y) => x); // 3
                 Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfTarget, "(R x, R y) => x").WithArguments("y", "D2").WithLocation(25, 25),
-                // (26,58): error CS8166: Cannot return a parameter by reference 'x' because it is not a ref parameter
+                // (26,58): error CS9075: Cannot return a parameter by reference 'x' because it is scoped to the current method
                 //         var d3 = new D3((ref R x, scoped ref R y) => ref x);
-                Diagnostic(ErrorCode.ERR_RefReturnParameter, "x").WithArguments("x").WithLocation(26, 58),
-                // (27,51): error CS8166: Cannot return a parameter by reference 'x' because it is not a ref parameter
+                Diagnostic(ErrorCode.ERR_RefReturnScopedParameter, "x").WithArguments("x").WithLocation(26, 58),
+                // (27,51): error CS9075: Cannot return a parameter by reference 'x' because it is scoped to the current method
                 //         var d5 = new D5((ref R x, ref R y) => ref x);
-                Diagnostic(ErrorCode.ERR_RefReturnParameter, "x").WithArguments("x").WithLocation(27, 51));
+                Diagnostic(ErrorCode.ERR_RefReturnScopedParameter, "x").WithArguments("x").WithLocation(27, 51));
         }
 
         [Fact]
@@ -9338,12 +9338,12 @@ class Program
 }";
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (10,46): error CS8166: Cannot return a parameter by reference 'x' because it is not a ref parameter
+                // (10,46): error CS9075: Cannot return a parameter by reference 'x' because it is scoped to the current method
                 //     static ref R M3(ref R x, ref R y) => ref x;
-                Diagnostic(ErrorCode.ERR_RefReturnParameter, "x").WithArguments("x").WithLocation(10, 46),
-                // (11,53): error CS8166: Cannot return a parameter by reference 'x' because it is not a ref parameter
+                Diagnostic(ErrorCode.ERR_RefReturnScopedParameter, "x").WithArguments("x").WithLocation(10, 46),
+                // (11,53): error CS9075: Cannot return a parameter by reference 'x' because it is scoped to the current method
                 //     static ref R M5(ref R x, scoped ref R y) => ref x;
-                Diagnostic(ErrorCode.ERR_RefReturnParameter, "x").WithArguments("x").WithLocation(11, 53),
+                Diagnostic(ErrorCode.ERR_RefReturnScopedParameter, "x").WithArguments("x").WithLocation(11, 53),
                 // (15,17): error CS8986: The 'scoped' modifier of parameter 'y' doesn't match target 'D2'.
                 //         D2 d2 = M1; // 1
                 Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfTarget, "M1").WithArguments("y", "D2").WithLocation(15, 17),
@@ -9479,30 +9479,30 @@ class Program
                 // (11,17): error CS8986: The 'scoped' modifier of parameter 'y' doesn't match target 'D2'.
                 //         D2 d2 = delegate(R x, R y) { return x; }; // 1
                 Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfTarget, "delegate(R x, R y) { return x; }").WithArguments("y", "D2").WithLocation(11, 17),
-                // (12,64): error CS8166: Cannot return a parameter by reference 'x' because it is not a ref parameter
+                // (12,64): error CS9075: Cannot return a parameter by reference 'x' because it is scoped to the current method
                 //         D3 d3 = delegate(ref R x, scoped ref R y) { return ref x; };
-                Diagnostic(ErrorCode.ERR_RefReturnParameter, "x").WithArguments("x").WithLocation(12, 64),
-                // (13,57): error CS8166: Cannot return a parameter by reference 'x' because it is not a ref parameter
+                Diagnostic(ErrorCode.ERR_RefReturnScopedParameter, "x").WithArguments("x").WithLocation(12, 64),
+                // (13,57): error CS9075: Cannot return a parameter by reference 'x' because it is scoped to the current method
                 //         D5 d5 = delegate(ref R x, ref R y) { return ref x; };
-                Diagnostic(ErrorCode.ERR_RefReturnParameter, "x").WithArguments("x").WithLocation(13, 57),
+                Diagnostic(ErrorCode.ERR_RefReturnScopedParameter, "x").WithArguments("x").WithLocation(13, 57),
                 // (18,18): error CS8986: The 'scoped' modifier of parameter 'y' doesn't match target 'D2'.
                 //         var d2 = (D2)(delegate(R x, R y) { return x; }); // 2
                 Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfTarget, "(D2)(delegate(R x, R y) { return x; })").WithArguments("y", "D2").WithLocation(18, 18),
-                // (19,70): error CS8166: Cannot return a parameter by reference 'x' because it is not a ref parameter
+                // (19,70): error CS9075: Cannot return a parameter by reference 'x' because it is scoped to the current method
                 //         var d3 = (D3)(delegate(ref R x, scoped ref R y) { return ref x; });
-                Diagnostic(ErrorCode.ERR_RefReturnParameter, "x").WithArguments("x").WithLocation(19, 70),
-                // (20,63): error CS8166: Cannot return a parameter by reference 'x' because it is not a ref parameter
+                Diagnostic(ErrorCode.ERR_RefReturnScopedParameter, "x").WithArguments("x").WithLocation(19, 70),
+                // (20,63): error CS9075: Cannot return a parameter by reference 'x' because it is scoped to the current method
                 //         var d5 = (D5)(delegate(ref R x, ref R y) { return ref x; });
-                Diagnostic(ErrorCode.ERR_RefReturnParameter, "x").WithArguments("x").WithLocation(20, 63),
+                Diagnostic(ErrorCode.ERR_RefReturnScopedParameter, "x").WithArguments("x").WithLocation(20, 63),
                 // (25,25): error CS8986: The 'scoped' modifier of parameter 'y' doesn't match target 'D2'.
                 //         var d2 = new D2(delegate(R x, R y) { return x; }); // 3
                 Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfTarget, "delegate(R x, R y) { return x; }").WithArguments("y", "D2").WithLocation(25, 25),
-                // (26,72): error CS8166: Cannot return a parameter by reference 'x' because it is not a ref parameter
+                // (26,72): error CS9075: Cannot return a parameter by reference 'x' because it is scoped to the current method
                 //         var d3 = new D3(delegate(ref R x, scoped ref R y) { return ref x; });
-                Diagnostic(ErrorCode.ERR_RefReturnParameter, "x").WithArguments("x").WithLocation(26, 72),
-                // (27,65): error CS8166: Cannot return a parameter by reference 'x' because it is not a ref parameter
+                Diagnostic(ErrorCode.ERR_RefReturnScopedParameter, "x").WithArguments("x").WithLocation(26, 72),
+                // (27,65): error CS9075: Cannot return a parameter by reference 'x' because it is scoped to the current method
                 //         var d5 = new D5(delegate(ref R x, ref R y) { return ref x; });
-                Diagnostic(ErrorCode.ERR_RefReturnParameter, "x").WithArguments("x").WithLocation(27, 65));
+                Diagnostic(ErrorCode.ERR_RefReturnScopedParameter, "x").WithArguments("x").WithLocation(27, 65));
         }
 
         [Fact]
@@ -10808,12 +10808,12 @@ class Program
 }";
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (3,75): error CS8166: Cannot return a parameter by reference 'x' because it is not a ref parameter
+                // (3,75): error CS9075: Cannot return a parameter by reference 'x' because it is scoped to the current method
                 //     static ref int F1(bool b, scoped ref int x, ref int y) => ref b ? ref x : ref y;
-                Diagnostic(ErrorCode.ERR_RefReturnParameter, "x").WithArguments("x").WithLocation(3, 75),
-                // (4,83): error CS8166: Cannot return a parameter by reference 'x' because it is not a ref parameter
+                Diagnostic(ErrorCode.ERR_RefReturnScopedParameter, "x").WithArguments("x").WithLocation(3, 75),
+                // (4,83): error CS9075: Cannot return a parameter by reference 'x' because it is scoped to the current method
                 //     static ref int F2(bool b, scoped ref int x, ref int y) => ref b ? ref y : ref x;
-                Diagnostic(ErrorCode.ERR_RefReturnParameter, "x").WithArguments("x").WithLocation(4, 83));
+                Diagnostic(ErrorCode.ERR_RefReturnScopedParameter, "x").WithArguments("x").WithLocation(4, 83));
         }
 
         [Fact]
@@ -11256,12 +11256,12 @@ class Program
                 // (5,51): error CS8166: Cannot return a parameter by reference 'r1' because it is not a ref parameter
                 //     static ref R<int> F1(scoped R<int> r1) => ref r1; // 2
                 Diagnostic(ErrorCode.ERR_RefReturnParameter, "r1").WithArguments("r1").WithLocation(5, 51),
-                // (6,48): error CS8166: Cannot return a parameter by reference 'r2' because it is not a ref parameter
+                // (6,48): error CS9075: Cannot return a parameter by reference 'r2' because it is scoped to the current method
                 //     static ref R<int> F2(ref R<int> r2) => ref r2;
-                Diagnostic(ErrorCode.ERR_RefReturnParameter, "r2").WithArguments("r2").WithLocation(6, 48),
-                // (7,55): error CS8166: Cannot return a parameter by reference 'r3' because it is not a ref parameter
+                Diagnostic(ErrorCode.ERR_RefReturnScopedParameter, "r2").WithArguments("r2").WithLocation(6, 48),
+                // (7,55): error CS9075: Cannot return a parameter by reference 'r3' because it is scoped to the current method
                 //     static ref R<int> F3(scoped ref R<int> r3) => ref r3; // 3
-                Diagnostic(ErrorCode.ERR_RefReturnParameter, "r3").WithArguments("r3").WithLocation(7, 55));
+                Diagnostic(ErrorCode.ERR_RefReturnScopedParameter, "r3").WithArguments("r3").WithLocation(7, 55));
 
             // https://github.com/dotnet/roslyn/issues/62780: Test additional cases with [UnscopedRef].
         }
@@ -11709,12 +11709,12 @@ class Program
                 // (8,47): error CS8167: Cannot return by reference a member of parameter 'r1' because it is not a ref or out parameter
                 //     static ref T F1<T>(scoped R<T> r1) => ref r1.F; // 2
                 Diagnostic(ErrorCode.ERR_RefReturnParameter2, "r1").WithArguments("r1").WithLocation(8, 47),
-                // (9,44): error CS8167: Cannot return by reference a member of parameter 'r2' because it is not a ref or out parameter
+                // (9,44): error CS9076: Cannot return by reference a member of parameter 'r2' because it is scoped to the current method
                 //     static ref T F2<T>(ref R<T> r2) => ref r2.F;
-                Diagnostic(ErrorCode.ERR_RefReturnParameter2, "r2").WithArguments("r2").WithLocation(9, 44),
-                // (10,51): error CS8167: Cannot return by reference a member of parameter 'r3' because it is not a ref or out parameter
+                Diagnostic(ErrorCode.ERR_RefReturnScopedParameter2, "r2").WithArguments("r2").WithLocation(9, 44),
+                // (10,51): error CS9076: Cannot return by reference a member of parameter 'r3' because it is scoped to the current method
                 //     static ref T F3<T>(scoped ref R<T> r3) => ref r3.F; // 3
-                Diagnostic(ErrorCode.ERR_RefReturnParameter2, "r3").WithArguments("r3").WithLocation(10, 51));
+                Diagnostic(ErrorCode.ERR_RefReturnScopedParameter2, "r3").WithArguments("r3").WithLocation(10, 51));
 
             // https://github.com/dotnet/roslyn/issues/62780: Test additional cases with [UnscopedRef].
         }
@@ -11805,9 +11805,9 @@ class Program
                 // (16,14): error CS8347: Cannot use a result of 'R<T>.R(ref T)' in this context because it may expose variables referenced by parameter 't' outside of their declaration scope
                 //         r2 = new R<T>(ref t); // 2
                 Diagnostic(ErrorCode.ERR_EscapeCall, "new R<T>(ref t)").WithArguments("R<T>.R(ref T)", "t").WithLocation(16, 14),
-                // (16,27): error CS8166: Cannot return a parameter by reference 't' because it is not a ref parameter
+                // (16,27): error CS9075: Cannot return a parameter by reference 't' because it is scoped to the current method
                 //         r2 = new R<T>(ref t); // 2
-                Diagnostic(ErrorCode.ERR_RefReturnParameter, "t").WithArguments("t").WithLocation(16, 27));
+                Diagnostic(ErrorCode.ERR_RefReturnScopedParameter, "t").WithArguments("t").WithLocation(16, 27));
         }
 
         [Fact]
@@ -11863,21 +11863,21 @@ class Program
                 // (9,63): error CS8347: Cannot use a result of 'R<T>.R(ref T)' in this context because it may expose variables referenced by parameter 't' outside of their declaration scope
                 //     static R<T> F2<T>(out T t, T tValue) { t = tValue; return new R<T>(ref t); } // 1
                 Diagnostic(ErrorCode.ERR_EscapeCall, "new R<T>(ref t)").WithArguments("R<T>.R(ref T)", "t").WithLocation(9, 63),
-                // (9,76): error CS8166: Cannot return a parameter by reference 't' because it is not a ref parameter
+                // (9,76): error CS9075: Cannot return a parameter by reference 't' because it is scoped to the current method
                 //     static R<T> F2<T>(out T t, T tValue) { t = tValue; return new R<T>(ref t); } // 1
-                Diagnostic(ErrorCode.ERR_RefReturnParameter, "t").WithArguments("t").WithLocation(9, 76),
+                Diagnostic(ErrorCode.ERR_RefReturnScopedParameter, "t").WithArguments("t").WithLocation(9, 76),
                 // (10,42): error CS8347: Cannot use a result of 'R<T>.R(ref T)' in this context because it may expose variables referenced by parameter 't' outside of their declaration scope
                 //     static R<T> F3<T>(scoped ref T t) => new R<T>(ref t); // 2
                 Diagnostic(ErrorCode.ERR_EscapeCall, "new R<T>(ref t)").WithArguments("R<T>.R(ref T)", "t").WithLocation(10, 42),
-                // (10,55): error CS8166: Cannot return a parameter by reference 't' because it is not a ref parameter
+                // (10,55): error CS9075: Cannot return a parameter by reference 't' because it is scoped to the current method
                 //     static R<T> F3<T>(scoped ref T t) => new R<T>(ref t); // 2
-                Diagnostic(ErrorCode.ERR_RefReturnParameter, "t").WithArguments("t").WithLocation(10, 55),
+                Diagnostic(ErrorCode.ERR_RefReturnScopedParameter, "t").WithArguments("t").WithLocation(10, 55),
                 // (11,70): error CS8347: Cannot use a result of 'R<T>.R(ref T)' in this context because it may expose variables referenced by parameter 't' outside of their declaration scope
                 //     static R<T> F4<T>(scoped out T t, T tValue) { t = tValue; return new R<T>(ref t); } // 3
                 Diagnostic(ErrorCode.ERR_EscapeCall, "new R<T>(ref t)").WithArguments("R<T>.R(ref T)", "t").WithLocation(11, 70),
-                // (11,83): error CS8166: Cannot return a parameter by reference 't' because it is not a ref parameter
+                // (11,83): error CS9075: Cannot return a parameter by reference 't' because it is scoped to the current method
                 //     static R<T> F4<T>(scoped out T t, T tValue) { t = tValue; return new R<T>(ref t); } // 3
-                Diagnostic(ErrorCode.ERR_RefReturnParameter, "t").WithArguments("t").WithLocation(11, 83));
+                Diagnostic(ErrorCode.ERR_RefReturnScopedParameter, "t").WithArguments("t").WithLocation(11, 83));
         }
 
         [Fact]
@@ -11937,12 +11937,12 @@ class Program
                 // (14,52): error CS8167: Cannot return by reference a member of parameter 'r1' because it is not a ref or out parameter
                 //     static ref R0<T> F1<T>(scoped R1<T> r1) => ref r1.F1; // 2
                 Diagnostic(ErrorCode.ERR_RefReturnParameter2, "r1").WithArguments("r1").WithLocation(14, 52),
-                // (15,49): error CS8167: Cannot return by reference a member of parameter 'r2' because it is not a ref or out parameter
+                // (15,49): error CS9076: Cannot return by reference a member of parameter 'r2' because it is scoped to the current method
                 //     static ref R0<T> F2<T>(ref R1<T> r2) => ref r2.F1;
-                Diagnostic(ErrorCode.ERR_RefReturnParameter2, "r2").WithArguments("r2").WithLocation(15, 49),
-                // (16,56): error CS8167: Cannot return by reference a member of parameter 'r3' because it is not a ref or out parameter
+                Diagnostic(ErrorCode.ERR_RefReturnScopedParameter2, "r2").WithArguments("r2").WithLocation(15, 49),
+                // (16,56): error CS9076: Cannot return by reference a member of parameter 'r3' because it is scoped to the current method
                 //     static ref R0<T> F3<T>(scoped ref R1<T> r3) => ref r3.F1; // 3
-                Diagnostic(ErrorCode.ERR_RefReturnParameter2, "r3").WithArguments("r3").WithLocation(16, 56));
+                Diagnostic(ErrorCode.ERR_RefReturnScopedParameter2, "r3").WithArguments("r3").WithLocation(16, 56));
 
             // https://github.com/dotnet/roslyn/issues/62780: Test additional cases with [UnscopedRef].
         }
@@ -12738,9 +12738,9 @@ class Program
                 // (13,16): error CS8347: Cannot use a result of 'R<T>.R(ref T)' in this context because it may expose variables referenced by parameter 't' outside of their declaration scope
                 //         this = new R<T>(ref t2);
                 Diagnostic(ErrorCode.ERR_EscapeCall, "new R<T>(ref t2)").WithArguments("R<T>.R(ref T)", "t").WithLocation(13, 16),
-                // (13,29): error CS8166: Cannot return a parameter by reference 't2' because it is not a ref parameter
+                // (13,29): error CS9075: Cannot return a parameter by reference 't2' because it is scoped to the current method
                 //         this = new R<T>(ref t2);
-                Diagnostic(ErrorCode.ERR_RefReturnParameter, "t2").WithArguments("t2").WithLocation(13, 29));
+                Diagnostic(ErrorCode.ERR_RefReturnScopedParameter, "t2").WithArguments("t2").WithLocation(13, 29));
         }
 
         [Fact]
@@ -15588,9 +15588,9 @@ class Program
 }";
             var comp = CreateCompilation(new[] { source, UnscopedRefAttributeDefinition });
             comp.VerifyDiagnostics(
-                // (8,24): error CS8166: Cannot return a parameter by reference 'x' because it is not a ref parameter
+                // (8,24): error CS9075: Cannot return a parameter by reference 'x' because it is scoped to the current method
                 //             return ref x; // 1
-                Diagnostic(ErrorCode.ERR_RefReturnParameter, "x").WithArguments("x").WithLocation(8, 24));
+                Diagnostic(ErrorCode.ERR_RefReturnScopedParameter, "x").WithArguments("x").WithLocation(8, 24));
 
             var parameters = comp.GetMember<MethodSymbol>("Program.ReturnRefStructRef").Parameters;
             VerifyParameterSymbol(parameters[1], "ref R x", RefKind.Ref, DeclarationScope.RefScoped);
@@ -15878,9 +15878,9 @@ class Program
 }";
             var comp = CreateCompilation(new[] { source, UnscopedRefAttributeDefinition });
             comp.VerifyDiagnostics(
-                // (9,24): error CS8166: Cannot return a parameter by reference 'x' because it is not a ref parameter
+                // (9,24): error CS9075: Cannot return a parameter by reference 'x' because it is scoped to the current method
                 //             return ref x; // 1
-                Diagnostic(ErrorCode.ERR_RefReturnParameter, "x").WithArguments("x").WithLocation(9, 24));
+                Diagnostic(ErrorCode.ERR_RefReturnScopedParameter, "x").WithArguments("x").WithLocation(9, 24));
 
             var parameters = comp.GetMember<MethodSymbol>("Program.ReturnOut").Parameters;
             VerifyParameterSymbol(parameters[1], "out System.Int32 x", RefKind.Out, DeclarationScope.RefScoped);
@@ -16587,9 +16587,9 @@ class Program
                 // (4,24): error CS7036: There is no argument given that corresponds to the required parameter 'b' of 'UnscopedRefAttribute.UnscopedRefAttribute(bool)'
                 //     static ref int F1([UnscopedRef] out int i1)
                 Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "UnscopedRef").WithArguments("b", "System.Diagnostics.CodeAnalysis.UnscopedRefAttribute.UnscopedRefAttribute(bool)").WithLocation(4, 24),
-                // (12,20): error CS8166: Cannot return a parameter by reference 'i2' because it is not a ref parameter
+                // (12,20): error CS9075: Cannot return a parameter by reference 'i2' because it is scoped to the current method
                 //         return ref i2;
-                Diagnostic(ErrorCode.ERR_RefReturnParameter, "i2").WithArguments("i2").WithLocation(12, 20),
+                Diagnostic(ErrorCode.ERR_RefReturnScopedParameter, "i2").WithArguments("i2").WithLocation(12, 20),
                 // (17,20): error CS8347: Cannot use a result of 'Program.F1(out int)' in this context because it may expose variables referenced by parameter 'i1' outside of their declaration scope
                 //         return ref F1(out i3);
                 Diagnostic(ErrorCode.ERR_EscapeCall, "F1(out i3)").WithArguments("Program.F1(out int)", "i1").WithLocation(17, 20),
@@ -16628,9 +16628,9 @@ class Program
                 // (8,36): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
                 //     static ref int F2([UnscopedRef(F1())] out int i)
                 Diagnostic(ErrorCode.ERR_BadAttributeArgument, "F1()").WithLocation(8, 36),
-                // (11,20): error CS8166: Cannot return a parameter by reference 'i' because it is not a ref parameter
+                // (11,20): error CS9075: Cannot return a parameter by reference 'i' because it is scoped to the current method
                 //         return ref i;
-                Diagnostic(ErrorCode.ERR_RefReturnParameter, "i").WithArguments("i").WithLocation(11, 20));
+                Diagnostic(ErrorCode.ERR_RefReturnScopedParameter, "i").WithArguments("i").WithLocation(11, 20));
         }
 
         [Fact]
@@ -17842,12 +17842,12 @@ public class C1
 
             var comp = CreateCompilation(new[] { source, UnscopedRefAttributeDefinition }, runtimeFeature: RuntimeFlag.ByRefFields);
             comp.VerifyDiagnostics(
-                // (64,12): error CS8166: Cannot return a parameter by reference 'bc' because it is not a ref parameter
+                // (64,12): error CS9075: Cannot return a parameter by reference 'bc' because it is scoped to the current method
                 //         => bc.ByteRef;
-                Diagnostic(ErrorCode.ERR_RefReturnParameter, "bc").WithArguments("bc").WithLocation(64, 12),
-                // (68,12): error CS8166: Cannot return a parameter by reference 'bc' because it is not a ref parameter
+                Diagnostic(ErrorCode.ERR_RefReturnScopedParameter, "bc").WithArguments("bc").WithLocation(64, 12),
+                // (68,12): error CS9075: Cannot return a parameter by reference 'bc' because it is scoped to the current method
                 //         => bc.GetByteRef();
-                Diagnostic(ErrorCode.ERR_RefReturnParameter, "bc").WithArguments("bc").WithLocation(68, 12));
+                Diagnostic(ErrorCode.ERR_RefReturnScopedParameter, "bc").WithArguments("bc").WithLocation(68, 12));
         }
     }
 }
