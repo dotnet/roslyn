@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -62,6 +63,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
             private readonly DiagnosticIncrementalAnalyzer _owner;
             private readonly Document _document;
+            private readonly SourceText _text;
 
             private readonly IEnumerable<StateSet> _stateSets;
             private readonly CompilationWithAnalyzers? _compilationWithAnalyzers;
@@ -88,6 +90,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                  Func<string, bool>? shouldIncludeDiagnostic,
                  CancellationToken cancellationToken)
             {
+                var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
                 var stateSets = owner._stateManager
                                      .GetOrCreateStateSets(document.Project).Where(s => DocumentAnalysisExecutor.IsAnalyzerEnabledForProject(s.Analyzer, document.Project, owner.GlobalOptions));
 
@@ -96,7 +99,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 var compilationWithAnalyzers = await GetOrCreateCompilationWithAnalyzersAsync(document.Project, ideOptions, stateSets, includeSuppressedDiagnostics, cancellationToken).ConfigureAwait(false);
 
                 return new LatestDiagnosticsForSpanGetter(
-                    owner, compilationWithAnalyzers, document, stateSets, shouldIncludeDiagnostic, includeCompilerDiagnostics,
+                    owner, compilationWithAnalyzers, document, text, stateSets, shouldIncludeDiagnostic, includeCompilerDiagnostics,
                     range, blockForData, addOperationScope, includeSuppressedDiagnostics, priority);
             }
 
@@ -130,6 +133,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 DiagnosticIncrementalAnalyzer owner,
                 CompilationWithAnalyzers? compilationWithAnalyzers,
                 Document document,
+                SourceText text,
                 IEnumerable<StateSet> stateSets,
                 Func<string, bool>? shouldIncludeDiagnostic,
                 bool includeCompilerDiagnostics,
@@ -142,6 +146,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 _owner = owner;
                 _compilationWithAnalyzers = compilationWithAnalyzers;
                 _document = document;
+                _text = text;
                 _stateSets = stateSets;
                 _shouldIncludeDiagnostic = shouldIncludeDiagnostic;
                 _includeCompilerDiagnostics = includeCompilerDiagnostics;
@@ -385,7 +390,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             private bool ShouldInclude(DiagnosticData diagnostic)
             {
                 return diagnostic.DocumentId == _document.Id &&
-                    (_range == null || _range.Value.IntersectsWith(diagnostic.GetTextSpan()))
+                    (_range == null || _range.Value.IntersectsWith(diagnostic.DataLocation.UnmappedFileSpan.GetClampedTextSpan(_text)))
                     && (_includeSuppressedDiagnostics || !diagnostic.IsSuppressed)
                     && (_includeCompilerDiagnostics || !diagnostic.CustomTags.Any(static t => t is WellKnownDiagnosticTags.Compiler))
                     && (_shouldIncludeDiagnostic == null || _shouldIncludeDiagnostic(diagnostic.Id));
