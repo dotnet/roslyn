@@ -47,13 +47,14 @@ namespace Metalama.Compiler
             return annotation;
         }
 
-        public static SyntaxAnnotation GetAnnotationForNodeToBeModified(SyntaxNode node)
+        public static SyntaxAnnotation? GetAnnotationForNodeToBeModified(SyntaxNode node)
         {
             var trackedNode = TrackIfNeeded(node);
             if (!trackedNode.TryGetAnnotationFast(MetalamaCompilerAnnotations.OriginalLocationAnnotationKind,
                     out var oldAnnotation))
             {
-                Debug.Fail("Cannot get the annotation.");
+                // The node is not in original source code.
+                return null;
             }
 
             if (oldAnnotation.Data == ExcludeDescendantsData)

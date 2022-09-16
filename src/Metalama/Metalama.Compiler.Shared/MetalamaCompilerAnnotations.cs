@@ -41,7 +41,14 @@ public static class MetalamaCompilerAnnotations
         return node;
 #else
         var annotation = TreeTracker.GetAnnotationForNodeToBeModified(originalNode);
-        return node.WithAdditionalAnnotations(annotation);
+        if (annotation == null)
+        {
+            return node;
+        }
+        else
+        {
+            return node.WithAdditionalAnnotations(annotation);
+        }
 #endif
     }
 

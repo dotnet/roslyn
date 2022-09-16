@@ -59,18 +59,20 @@ namespace Metalama.Compiler.UnitTests
 
             var transformedStatement = modifiedBlock.DescendantNodes().OfType<ExpressionStatementSyntax>().Single();
             var assignment = (AssignmentExpressionSyntax)transformedStatement.Expression;
-            
+
 
             Assert.Same(originalStatement, TreeTracker.GetSourceSyntaxNode(transformedStatement));
-            
-            var transformedExpression = assignment.Right;
-            
-            Assert.Same(originalExpression, TreeTracker.GetSourceSyntaxNode(transformedExpression));
-            
-            Assert.Null( TreeTracker.GetSourceSyntaxNode(assignment.Left));
-            
 
-            // Check that rewriting of trivia still works.
+            var transformedExpression = assignment.Right;
+
+            Assert.Same(originalExpression, TreeTracker.GetSourceSyntaxNode(transformedExpression));
+
+            Assert.Null( TreeTracker.GetSourceSyntaxNode(assignment.Left));
+
+            Assert.Null(TreeTracker.GetAnnotationForNodeToBeModified(assignment.Left));
+
+
+            // Check that rewriting of trivia still works. This caused an error in a dependent repo.
             _ = modifiedBlock.NormalizeWhitespace();
         }
 
@@ -89,7 +91,6 @@ namespace Metalama.Compiler.UnitTests
             }
         }
 
-        // TODO: #31076.
         [Fact]
         public void CopyOriginalLocationTwice()
         {
