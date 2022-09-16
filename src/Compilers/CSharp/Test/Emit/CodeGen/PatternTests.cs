@@ -96,7 +96,7 @@ static class C {
     public static bool M() => ((object)123) is int i;
 }
 ";
-            var compilation = CreateEmptyCompilation(source, options: TestOptions.ReleaseDll);
+            var compilation = CreateEmptyCompilation(source, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), options: TestOptions.ReleaseDll);
             compilation.GetDiagnostics().Verify();
             compilation.GetEmitDiagnostics().Verify(
                 // warning CS8021: No value for RuntimeMetadataVersion found. No assembly containing System.Object was found nor was a value for RuntimeMetadataVersion specified through options.
@@ -119,7 +119,7 @@ static class C {
     public static bool M() => ((object)123) is int i;
 }
 ";
-            var compilation = CreateEmptyCompilation(source, options: TestOptions.UnsafeReleaseDll);
+            var compilation = CreateEmptyCompilation(source, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), options: TestOptions.UnsafeReleaseDll);
             compilation.GetDiagnostics().Verify();
             compilation.GetEmitDiagnostics().Verify(
                 // warning CS8021: No value for RuntimeMetadataVersion found. No assembly containing System.Object was found nor was a value for RuntimeMetadataVersion specified through options.
@@ -149,7 +149,7 @@ static class C {
     static bool M2(int? x) => x is int i;
 }
 ";
-            var compilation = CreateEmptyCompilation(source, options: TestOptions.UnsafeReleaseDll);
+            var compilation = CreateEmptyCompilation(source, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), options: TestOptions.UnsafeReleaseDll);
             compilation.GetDiagnostics().Verify();
             compilation.GetEmitDiagnostics().Verify(
                 // warning CS8021: No value for RuntimeMetadataVersion found. No assembly containing System.Object was found nor was a value for RuntimeMetadataVersion specified through options.
@@ -197,7 +197,7 @@ static class C {
     static bool M2(int? x) => x is int i;
 }
 ";
-            var compilation = CreateEmptyCompilation(source, options: TestOptions.UnsafeReleaseDll);
+            var compilation = CreateEmptyCompilation(source, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), options: TestOptions.UnsafeReleaseDll);
             compilation.GetDiagnostics().Verify();
             compilation.GetEmitDiagnostics().Verify(
                 // warning CS8021: No value for RuntimeMetadataVersion found. No assembly containing System.Object was found nor was a value for RuntimeMetadataVersion specified through options.
@@ -3312,7 +3312,7 @@ static class C {
     public static bool M(int i) => i switch { 1 => true };
 }
 ";
-            var compilation = CreateEmptyCompilation(source, options: TestOptions.ReleaseDll);
+            var compilation = CreateEmptyCompilation(source, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), options: TestOptions.ReleaseDll);
             compilation.GetDiagnostics().Verify(
                 // (9,38): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '0' is not covered.
                 //     public static bool M(int i) => i switch { 1 => true };

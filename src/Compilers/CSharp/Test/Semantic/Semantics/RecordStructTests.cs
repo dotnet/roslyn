@@ -4531,7 +4531,7 @@ namespace System.Text
     }
 }
 ";
-            var comp = CreateEmptyCompilation(src, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateEmptyCompilation(src, parseOptions: TestOptions.RegularPreview.WithNoRefSafetyRulesAttribute());
 
             comp.VerifyEmitDiagnostics(
                 // warning CS8021: No value for RuntimeMetadataVersion found. No assembly containing System.Object was found nor was a value for RuntimeMetadataVersion specified through options.
@@ -4808,7 +4808,7 @@ namespace System.Text
     }
 }
 ";
-            var comp = CreateEmptyCompilation(src, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateEmptyCompilation(src, parseOptions: TestOptions.RegularPreview.WithNoRefSafetyRulesAttribute());
 
             comp.VerifyEmitDiagnostics(
                 // warning CS8021: No value for RuntimeMetadataVersion found. No assembly containing System.Object was found nor was a value for RuntimeMetadataVersion specified through options.
