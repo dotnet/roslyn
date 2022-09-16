@@ -299,13 +299,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                             continue;
                         }
 
-                        var tree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+                        var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
                         var linePosition = new LinePosition(line, 0);
                         var linePositionSpan = new LinePositionSpan(start: linePosition, end: linePosition);
-                        var textSpan = (await tree.GetTextAsync(cancellationToken).ConfigureAwait(false)).Lines.GetTextSpan(linePositionSpan);
-                        var location = new DiagnosticDataLocation(filePath, document.Id, textSpan,
-                            originalStartLine: linePosition.Line, originalStartColumn: linePosition.Character,
-                            originalEndLine: linePosition.Line, originalEndColumn: linePosition.Character);
+                        var textSpan = text.Lines.GetTextSpan(linePositionSpan);
+                        var location = new DiagnosticDataLocation(
+                            new FileLinePositionSpan(filePath, linePositionSpan), document.Id, textSpan, mappedFileSpan: null);
 
                         Contract.ThrowIfNull(project);
 

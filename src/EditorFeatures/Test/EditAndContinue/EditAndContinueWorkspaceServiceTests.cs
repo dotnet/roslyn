@@ -98,7 +98,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             var projectId = ProjectId.CreateNewId();
 
             var project = solution.
-                AddProject(ProjectInfo.Create(projectId, VersionStamp.Create(), "proj", "proj", LanguageNames.CSharp).WithTelemetryId(s_defaultProjectTelemetryId)).GetProject(projectId).
+                AddProject(ProjectInfo.Create(projectId, VersionStamp.Create(), "proj", "proj", LanguageNames.CSharp, parseOptions: CSharpParseOptions.Default.WithNoRefSafetyRulesAttribute()).WithTelemetryId(s_defaultProjectTelemetryId)).GetProject(projectId).
                 WithMetadataReferences(TargetFrameworkUtil.GetReferences(DefaultTargetFramework));
 
             solution = project.Solution;
@@ -233,7 +233,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             => actual.Select(d => InspectDiagnostic(d));
 
         private static string InspectDiagnostic(DiagnosticData diagnostic)
-            => $"{(string.IsNullOrWhiteSpace(diagnostic.DataLocation.GetFilePath()) ? diagnostic.ProjectId.ToString() : diagnostic.DataLocation.GetFileLinePositionSpan().ToString())}: {diagnostic.Severity} {diagnostic.Id}: {diagnostic.Message}";
+            => $"{(string.IsNullOrWhiteSpace(diagnostic.DataLocation.MappedFileSpan.Path) ? diagnostic.ProjectId.ToString() : diagnostic.DataLocation.MappedFileSpan.ToString())}: {diagnostic.Severity} {diagnostic.Id}: {diagnostic.Message}";
 
         internal static Guid ReadModuleVersionId(Stream stream)
         {
@@ -279,7 +279,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
         {
             encoding ??= Encoding.UTF8;
 
-            var parseOptions = TestOptions.RegularPreview;
+            var parseOptions = TestOptions.RegularPreview.WithNoRefSafetyRulesAttribute();
 
             var trees = sources.Select(source =>
             {
@@ -2727,7 +2727,7 @@ class G
             var dir = Temp.CreateDirectory();
 
             var sourceV1 = "class C1 { void M1() { int a = 1; System.Console.WriteLine(a); } void M2() { System.Console.WriteLine(1); } }";
-            var compilationV1 = CSharpTestBase.CreateCompilation(sourceV1, options: TestOptions.DebugDll, targetFramework: DefaultTargetFramework, assemblyName: "lib");
+            var compilationV1 = CSharpTestBase.CreateCompilation(sourceV1, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), options: TestOptions.DebugDll, targetFramework: DefaultTargetFramework, assemblyName: "lib");
 
             var (peImage, pdbImage) = compilationV1.EmitToArrays(new EmitOptions(debugInformationFormat: DebugInformationFormat.PortablePdb));
             var moduleMetadata = ModuleMetadata.CreateFromImage(peImage);
@@ -4462,8 +4462,9 @@ class C
 
             using var workspace = CreateWorkspace(out var solution, out var encService);
 
+            var projectId = ProjectId.CreateNewId();
             var projectP = solution.
-                AddProject("P", "P", LanguageNames.CSharp).
+                AddProject(ProjectInfo.Create(projectId, VersionStamp.Create(), "P", "P", LanguageNames.CSharp, parseOptions: CSharpParseOptions.Default.WithNoRefSafetyRulesAttribute())).GetProject(projectId).
                 WithMetadataReferences(TargetFrameworkUtil.GetReferences(DefaultTargetFramework));
 
             solution = projectP.Solution;

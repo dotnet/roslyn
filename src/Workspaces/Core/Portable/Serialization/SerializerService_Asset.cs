@@ -21,28 +21,7 @@ namespace Microsoft.CodeAnalysis.Serialization
     {
         public void SerializeSourceText(SerializableSourceText text, ObjectWriter writer, SolutionReplicationContext context, CancellationToken cancellationToken)
         {
-            cancellationToken.ThrowIfCancellationRequested();
-            if (text.Storage is not null)
-            {
-                context.AddResource(text.Storage);
-
-                writer.WriteInt32((int)text.Storage.ChecksumAlgorithm);
-                writer.WriteEncoding(text.Storage.Encoding);
-
-                writer.WriteInt32((int)SerializationKinds.MemoryMapFile);
-                writer.WriteString(text.Storage.Name);
-                writer.WriteInt64(text.Storage.Offset);
-                writer.WriteInt64(text.Storage.Size);
-            }
-            else
-            {
-                RoslynDebug.AssertNotNull(text.Text);
-
-                writer.WriteInt32((int)text.Text.ChecksumAlgorithm);
-                writer.WriteEncoding(text.Text.Encoding);
-                writer.WriteInt32((int)SerializationKinds.Bits);
-                text.Text.WriteTo(writer, cancellationToken);
-            }
+            text.Serialize(writer, context, cancellationToken);
         }
 
         private SerializableSourceText DeserializeSerializableSourceText(ObjectReader reader, CancellationToken cancellationToken)
@@ -79,7 +58,7 @@ namespace Microsoft.CodeAnalysis.Serialization
         private SourceText DeserializeSourceText(ObjectReader reader, CancellationToken cancellationToken)
         {
             var serializableSourceText = DeserializeSerializableSourceText(reader, cancellationToken);
-            return serializableSourceText.Text ?? serializableSourceText.Storage!.ReadText(cancellationToken);
+            return serializableSourceText.GetText(cancellationToken);
         }
 
         public void SerializeCompilationOptions(CompilationOptions options, ObjectWriter writer, CancellationToken cancellationToken)

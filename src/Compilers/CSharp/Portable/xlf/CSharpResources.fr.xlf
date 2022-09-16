@@ -947,11 +947,6 @@
         <target state="translated">Mot clé 'record' inattendu. Vouliez-vous dire « struct d’enregistrement » ou « classe d’enregistrement » ?</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_MisplacedScoped">
-        <source>Unexpected contextual keyword 'scoped'. Did you mean 'scoped ref' or '@scoped'?</source>
-        <target state="translated">Mot clé contextuel inattendu 'scoped'. Vouliez-vous dire 'référence délimitée' ou '@scoped'?</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_MisplacedSlicePattern">
         <source>Slice patterns may only be used once and directly inside a list pattern.</source>
         <target state="translated">Les modèles de tranche ne peuvent être utilisés qu'une seule fois et directement à l'intérieur d'un modèle de liste.</target>
