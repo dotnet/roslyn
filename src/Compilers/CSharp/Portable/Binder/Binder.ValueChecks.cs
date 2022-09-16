@@ -839,15 +839,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return false;
                 }
 
+#pragma warning disable format
                 var (errorCode, syntax) = (checkingReceiver, isRefScoped, refSafeToEscape) switch
                 {
-                    (checkingReceiver: true, isRefScoped: true, _)                        => (ErrorCode.ERR_RefReturnScopedParameter2, parameter.Syntax),
-                    (checkingReceiver: true, isRefScoped: false, Binder.ReturnOnlyScope)  => (ErrorCode.ERR_RefReturnOnlyParameter, parameter.Syntax),
-                    (checkingReceiver: true, isRefScoped: false, _)                       => (ErrorCode.ERR_RefReturnParameter2, parameter.Syntax),
-                    (checkingReceiver: false, isRefScoped: true, _)                       => (ErrorCode.ERR_RefReturnScopedParameter, node),
-                    (checkingReceiver: false, isRefScoped: false, Binder.ReturnOnlyScope) => (ErrorCode.ERR_RefReturnOnlyParameter, node),
-                    (checkingReceiver: false, isRefScoped: false, _)                      => (ErrorCode.ERR_RefReturnParameter, node)
+                    (checkingReceiver: true,  isRefScoped: true,  _)                      => (ErrorCode.ERR_RefReturnScopedParameter2, parameter.Syntax),
+                    (checkingReceiver: true,  isRefScoped: false, Binder.ReturnOnlyScope) => (ErrorCode.ERR_RefReturnOnlyParameter,    parameter.Syntax),
+                    (checkingReceiver: true,  isRefScoped: false, _)                      => (ErrorCode.ERR_RefReturnParameter2,       parameter.Syntax),
+                    (checkingReceiver: false, isRefScoped: true,  _)                      => (ErrorCode.ERR_RefReturnScopedParameter,  node),
+                    (checkingReceiver: false, isRefScoped: false, Binder.ReturnOnlyScope) => (ErrorCode.ERR_RefReturnOnlyParameter,    node),
+                    (checkingReceiver: false, isRefScoped: false, _)                      => (ErrorCode.ERR_RefReturnParameter,        node)
                 };
+#pragma warning restore format
                 Error(diagnostics, errorCode, syntax, parameterSymbol.Name);
                 return false;
             }
