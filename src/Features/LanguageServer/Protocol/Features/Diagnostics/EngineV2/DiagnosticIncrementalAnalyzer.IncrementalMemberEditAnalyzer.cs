@@ -314,6 +314,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 var replaced = false;
                 foreach (var diagnostic in diagnostics)
                 {
+                    if (diagnostic.DocumentId is null)
+                    {
+                        resultBuilder.Add(diagnostic);
+                        continue;
+                    }
+
                     var diagnosticSpan = diagnostic.DataLocation.GetUnmappedTextSpan(text);
                     if (diagnosticSpan.Start < oldSpan.Start)
                     {
