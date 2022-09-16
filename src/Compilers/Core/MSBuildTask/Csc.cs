@@ -392,9 +392,10 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                             && isReferenceAssembly)
                         {
                             var originalItemSpec = reference.GetMetadata("OriginalItemSpec");
-                            if (!string.Equals(originalItemSpec, reference.ItemSpec, StringComparison.OrdinalIgnoreCase))
+                            if (!string.Equals(originalItemSpec, reference.ItemSpec, StringComparison.OrdinalIgnoreCase)
+                                && File.Exists(originalItemSpec))
                             {
-                                commandLine.AppendSwitchIfNotNull("@", reference.GetMetadata("OriginalItemSpec"));
+                                commandLine.AppendSwitchIfNotNull("@", originalItemSpec);
                             }
                             var copyUpToDateMarkerPath = reference.GetMetadata("CopyUpToDateMarker");
                             if (File.Exists(copyUpToDateMarkerPath))
