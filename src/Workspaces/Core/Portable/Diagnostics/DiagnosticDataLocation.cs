@@ -96,7 +96,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         public TextSpan GetUnmappedTextSpan(SourceText text)
         {
-            var linePositionSpan = this.GetClampedLinePositionSpan(text, useMapped: false);
+            var linePositionSpan = this.GetClampedLinePositionSpan(text);
 
             var span = text.Lines.GetTextSpan(linePositionSpan);
             return EnsureInBounds(TextSpan.FromBounds(Math.Max(span.Start, 0), Math.Max(span.End, 0)), text);
@@ -107,13 +107,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 Math.Min(textSpan.Start, text.Length),
                 Math.Min(textSpan.End, text.Length));
 
-        public LinePositionSpan GetClampedLinePositionSpan(SourceText text, bool useMapped)
+        public LinePositionSpan GetClampedLinePositionSpan(SourceText text)
         {
             var lines = text.Lines;
             if (lines.Count == 0)
                 return default;
 
-            var fileSpan = useMapped ? this.MappedFileSpan : this.UnmappedFileSpan;
+            var fileSpan = this.UnmappedFileSpan;
 
             var startLine = fileSpan.StartLinePosition.Line;
             var endLine = fileSpan.EndLinePosition.Line;

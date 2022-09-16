@@ -2,9 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript.Api
 {
@@ -29,7 +31,18 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript.Api
         public ImmutableArray<string> CustomTags
             => _data.CustomTags;
 
+        /// <summary>
+        /// Note: the <paramref name="useMapped"/> parameter is ignored.
+        /// </summary>
+        [Obsolete("Use overload that only takes a SourceText")]
         public LinePositionSpan GetLinePositionSpan(SourceText sourceText, bool useMapped)
-            => _data.DataLocation.GetClampedLinePositionSpan(sourceText, useMapped);
+        {
+            // TypeScript has no concept of mapped spans, so this should never be passed 'true'.
+            Contract.ThrowIfTrue(useMapped);
+            return DiagnosticData.GetUnmappedLinePositionSpan(_data.DataLocation, sourceText);
+        }
+
+        public LinePositionSpan GetLinePositionSpan(SourceText sourceText)
+            => DiagnosticData.GetUnmappedLinePositionSpan(_data.DataLocation, sourceText);
     }
 }
