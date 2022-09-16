@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     internal sealed class CSDiagnostic : DiagnosticWithInfo
     {
         // <Metalama>
-        static DiagnosticInfo GetPreTransformationInfo(DiagnosticInfo info)
+        static DiagnosticInfo GetSourceDiagnosticInfo(DiagnosticInfo info)
         {
             for (int i = 0; i < info.Arguments.Length; i++)
             {
@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal CSDiagnostic(DiagnosticInfo info, Location location, bool isSuppressed = false)
             // <Metalama> - Call GetPreTransformationInfo
-            : base(GetPreTransformationInfo(info), location, isSuppressed)
+            : base(GetSourceDiagnosticInfo(info), location, isSuppressed)
             // </Metalama>
         {
         }

@@ -40,11 +40,12 @@ public static class MetalamaCompilerAnnotations
 #if METALAMA_COMPILER_INTERFACE
         return node;
 #else
-        var trackedNode = TreeTracker.TrackIfNeeded(originalNode);
-        return node.WithAdditionalAnnotations(trackedNode.GetAnnotations(OriginalLocationAnnotationKind));
+        var annotation = TreeTracker.GetAnnotationForNodeToBeModified(originalNode);
+        return node.WithAdditionalAnnotations(annotation);
 #endif
     }
 
+    /*
     /// <summary>
     /// Adds a <see cref="SyntaxAnnotation"/> to a token that maps the token to the location of another token in source code.
     /// </summary>
@@ -63,6 +64,7 @@ public static class MetalamaCompilerAnnotations
         }
 #endif
     }
+    */
 
     /// <summary>
     /// Creates a <see cref="SyntaxAnnotation"/> that can be added to syntax nodes to mean that they have been

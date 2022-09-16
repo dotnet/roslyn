@@ -15,7 +15,7 @@ namespace Metalama.Compiler.UnitTests
 
             var omittedExpression = type.DescendantNodes().OfType<OmittedArraySizeExpressionSyntax>().Single();
 
-            Assert.Same(omittedExpression, type.FindNode<OmittedArraySizeExpressionSyntax>(omittedExpression.FullSpan, findInsideTrivia: false));
+            Assert.Same(omittedExpression, type.FindNode(omittedExpression.RawKind, omittedExpression.FullSpan, findInsideTrivia: false));
         }
 
         [Fact]
@@ -50,13 +50,27 @@ namespace Metalama.Compiler.UnitTests
         public void CopyOriginalLocation()
         {
             var originalBlock = (BlockSyntax)SyntaxFactory.ParseStatement("{ return 5; }");
+            var originalStatement = originalBlock.DescendantNodes().OfType<ReturnStatementSyntax>().Single();
+            var originalExpression = originalStatement.Expression;
 
             var annotatedBlock = TreeTracker.AnnotateNodeAndChildren(originalBlock);
 
             var modifiedBlock = new CopyOriginalLocationRewriter().Visit(annotatedBlock);
 
-            // TODO: I don't think the following is a correct test (see the test below that also replaces trivia and fails).
-            // Check that rewriting of trivias still works.
+            var transformedStatement = modifiedBlock.DescendantNodes().OfType<ExpressionStatementSyntax>().Single();
+            var assignment = (AssignmentExpressionSyntax)transformedStatement.Expression;
+            
+
+            Assert.Same(originalStatement, TreeTracker.GetSourceSyntaxNode(transformedStatement));
+            
+            var transformedExpression = assignment.Right;
+            
+            Assert.Same(originalExpression, TreeTracker.GetSourceSyntaxNode(transformedExpression));
+            
+            Assert.Null( TreeTracker.GetSourceSyntaxNode(assignment.Left));
+            
+
+            // Check that rewriting of trivia still works.
             _ = modifiedBlock.NormalizeWhitespace();
         }
 

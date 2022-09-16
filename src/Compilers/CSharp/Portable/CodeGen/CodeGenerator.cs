@@ -482,8 +482,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             {
                 // <Metalama>
                 // find the pre-transformation root that corresponds to the root node of the tree where the method is
-                var preTransformationRoot = TreeTracker.GetSourceSyntaxNode(_methodBodySyntaxOpt.SyntaxTree.GetRoot());
-                if (preTransformationRoot == null)
+                var sourceRoot = TreeTracker.GetSourceSyntaxNode(_methodBodySyntaxOpt.SyntaxTree.GetRoot());
+                if (sourceRoot == null)
                     return;
                 // </Metalama>
 
@@ -493,7 +493,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 // points, then the IL Builder will drop the sequence point for lack of a document.
                 // This negatively impacts the scenario where we insert hidden sequence points at
                 // the beginnings of methods so that step-into (F11) will handle them correctly.
-                _builder.SetInitialDebugDocument(preTransformationRoot.SyntaxTree);
+                _builder.SetInitialDebugDocument(sourceRoot.SyntaxTree);
             }
         }
 
