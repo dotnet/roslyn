@@ -1523,7 +1523,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_TypeReserved = 8336,
         ERR_RefExtensionMustBeValueTypeOrConstrainedToOne = 8337,
         ERR_InExtensionMustBeValueType = 8338,
-        ERR_BadParameterModifiersOrder = 8339,
+        // ERR_BadParameterModifiersOrder = 8339,
 
         ERR_FieldsInRoStruct = 8340,
         ERR_AutoPropsInRoStruct = 8341,
@@ -2120,7 +2120,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_FilePathCannotBeConvertedToUtf8 = 9069,
         ERR_ReadOnlyNotSuppAsParamModDidYouMeanIn = 9070,
         ERR_FileLocalDuplicateNameInNS = 9071,
-        ERR_ScopedNotBeforeType = 9072,
 
         #endregion
 
