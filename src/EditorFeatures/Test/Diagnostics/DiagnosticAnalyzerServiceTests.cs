@@ -713,7 +713,7 @@ dotnet_diagnostic.{NamedTypeAnalyzer.DiagnosticId}.severity = warning
                     else
                     {
                         var diagnostic = Assert.Single(applicableDiagnostics);
-                        Assert.Equal(diagnosticSpan, diagnostic.DataLocation.GetUnmappedTextSpan(text));
+                        Assert.Equal(diagnosticSpan, diagnostic.DataLocation.UnmappedFileSpan.GetClampedTextSpan(text));
                         diagnostics.Remove(diagnostic);
                     }
                 }
@@ -900,7 +900,7 @@ class A
                 diagnostics.AddRange(
                     e.GetPushDiagnostics(workspace.GlobalOptions, InternalDiagnosticsOptions.NormalDiagnosticMode)
                      .Where(d => d.Id == IDEDiagnosticIds.RemoveUnnecessarySuppressionDiagnosticId)
-                     .OrderBy(d => d.DataLocation.GetUnmappedTextSpan(text)));
+                     .OrderBy(d => d.DataLocation.UnmappedFileSpan.GetClampedTextSpan(text)));
             };
 
             var incrementalAnalyzer = (DiagnosticIncrementalAnalyzer)service.CreateIncrementalAnalyzer(workspace);
@@ -947,16 +947,16 @@ class A
                 Assert.Equal(2, diagnostics.Count);
                 if (testPragma)
                 {
-                    var pragma1 = root.FindTrivia(diagnostics[0].DataLocation.GetUnmappedTextSpan(text).Start).ToString();
+                    var pragma1 = root.FindTrivia(diagnostics[0].DataLocation.UnmappedFileSpan.GetClampedTextSpan(text).Start).ToString();
                     Assert.Equal($"#pragma warning disable {NamedTypeAnalyzer.DiagnosticId} // Unnecessary", pragma1);
-                    var pragma2 = root.FindTrivia(diagnostics[1].DataLocation.GetUnmappedTextSpan(text).Start).ToString();
+                    var pragma2 = root.FindTrivia(diagnostics[1].DataLocation.UnmappedFileSpan.GetClampedTextSpan(text).Start).ToString();
                     Assert.Equal($"#pragma warning disable CS0168 // Variable is declared but never used - Unnecessary", pragma2);
                 }
                 else
                 {
-                    var attribute1 = root.FindNode(diagnostics[0].DataLocation.GetUnmappedTextSpan(text)).ToString();
+                    var attribute1 = root.FindNode(diagnostics[0].DataLocation.UnmappedFileSpan.GetClampedTextSpan(text)).ToString();
                     Assert.Equal($@"System.Diagnostics.CodeAnalysis.SuppressMessage(""Category2"", ""{NamedTypeAnalyzer.DiagnosticId}"")", attribute1);
-                    var attribute2 = root.FindNode(diagnostics[1].DataLocation.GetUnmappedTextSpan(text)).ToString();
+                    var attribute2 = root.FindNode(diagnostics[1].DataLocation.UnmappedFileSpan.GetClampedTextSpan(text)).ToString();
                     Assert.Equal($@"System.Diagnostics.CodeAnalysis.SuppressMessage(""Category3"", ""CS0168"")", attribute2);
                 }
             }

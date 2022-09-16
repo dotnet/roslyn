@@ -1215,7 +1215,7 @@ public class B
                 Dim incrementalAnalyzer = diagnosticService.CreateIncrementalAnalyzer(workspace)
 
                 Dim diagnostics = (Await diagnosticService.GetDiagnosticsForSpanAsync(document, fullSpan)).
-                    OrderBy(Function(d) d.DataLocation.GetUnmappedTextSpan(text).Start).ToArray()
+                    OrderBy(Function(d) d.DataLocation.UnmappedFileSpan.getclampedTextSpan(text).Start).ToArray()
 
                 Assert.Equal(3, diagnostics.Count)
                 Assert.True(diagnostics.All(Function(d) d.Id = MethodSymbolAnalyzer.Descriptor.Id))
@@ -1331,7 +1331,7 @@ public class B
                 Dim incrementalAnalyzer = diagnosticService.CreateIncrementalAnalyzer(workspace)
                 Dim text = Await document.GetTextAsync()
                 Dim diagnostics = (Await diagnosticService.GetDiagnosticsForSpanAsync(document, fullSpan)).
-                    OrderBy(Function(d) d.DataLocation.GetUnmappedTextSpan(text).Start).
+                    OrderBy(Function(d) d.DataLocation.UnmappedFileSpan.GetClampedTextSpan(text).Start).
                     ToArray()
                 Assert.Equal(4, diagnostics.Length)
                 Assert.Equal(4, diagnostics.Where(Function(d) d.Id = FieldDeclarationAnalyzer.Descriptor1.Id).Count)
@@ -1379,11 +1379,11 @@ public class B
                 Dim incrementalAnalyzer = diagnosticService.CreateIncrementalAnalyzer(workspace)
                 Dim text = Await document.GetTextAsync()
                 Dim diagnostics = (Await diagnosticService.GetDiagnosticsForSpanAsync(document, fullSpan)).
-                    OrderBy(Function(d) d.DataLocation.GetUnmappedTextSpan(text).Start).
+                    OrderBy(Function(d) d.DataLocation.unmappedfilespan.getclampedTextSpan(text).Start).
                     ToArray()
 
                 For Each diagnostic In diagnostics
-                    Dim spanAtCaret = New TextSpan(diagnostic.DataLocation.GetUnmappedTextSpan(text).Start, 0)
+                    Dim spanAtCaret = New TextSpan(diagnostic.DataLocation.unmappedfilespan.getclampedtextspan(text).Start, 0)
                     Dim otherDiagnostics = (Await diagnosticService.GetDiagnosticsForSpanAsync(document, spanAtCaret)).ToArray()
 
                     Assert.Equal(1, otherDiagnostics.Length)

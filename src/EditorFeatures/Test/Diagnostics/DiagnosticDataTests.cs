@@ -129,7 +129,7 @@ namespace B
                 language: document.Project.Language);
 
             var text = await document.GetTextAsync();
-            var actual = data.DataLocation.GetUnmappedTextSpan(text);
+            var actual = data.DataLocation.UnmappedFileSpan.GetClampedTextSpan(text);
 
             Assert.Equal(span, actual);
         }
