@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.CSharp.AddImport
                     {
                         node = conditionalAccess.WhenNotNull;
                     }
-                    else if (node.IsKind(SyntaxKind.MemberBindingExpression, out MemberBindingExpressionSyntax memberBinding1))
+                    else if (node is MemberBindingExpressionSyntax memberBinding1)
                     {
                         node = memberBinding1.Name;
                     }

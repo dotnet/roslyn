@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertSwitchStatementToExpression
                 return true;
             }
 
-            if (node.IsKind(SyntaxKind.CasePatternSwitchLabel, out CasePatternSwitchLabelSyntax? @case))
+            if (node is CasePatternSwitchLabelSyntax @case)
             {
                 // case _:
                 if (@case.Pattern.IsKind(SyntaxKind.DiscardPattern))
