@@ -390,10 +390,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             // { Property1.Property2: ... }
             if (currentToken.IsKind(SyntaxKind.ColonToken))
             {
-                if (currentToken.Parent.Kind() is SyntaxKind.CaseSwitchLabel or SyntaxKind.CasePatternSwitchLabel or SyntaxKind.DefaultSwitchLabel or SyntaxKind.LabeledStatement or SyntaxKind.AttributeTargetSpecifier or SyntaxKind.NameColon or SyntaxKind.ExpressionColon or SyntaxKind.SwitchExpressionArm)
-                {
+                if (currentToken.Parent?.Kind() is SyntaxKind.CaseSwitchLabel or SyntaxKind.CasePatternSwitchLabel or SyntaxKind.DefaultSwitchLabel or SyntaxKind.LabeledStatement or SyntaxKind.AttributeTargetSpecifier or SyntaxKind.NameColon or SyntaxKind.ExpressionColon or SyntaxKind.SwitchExpressionArm)
                     return CreateAdjustSpacesOperation(0, AdjustSpacesOption.ForceSpacesIfOnSingleLine);
-                }
             }
 
             // [cast expression] * case
@@ -404,7 +402,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             }
 
             // generic name
-            if (previousToken.Parent.Kind() is SyntaxKind.TypeArgumentList or SyntaxKind.TypeParameterList or SyntaxKind.FunctionPointerType)
+            if (previousToken.Parent?.Kind() is SyntaxKind.TypeArgumentList or SyntaxKind.TypeParameterList or SyntaxKind.FunctionPointerType)
             {
                 // generic name < * 
                 if (previousToken.Kind() == SyntaxKind.LessThanToken)
@@ -421,7 +419,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
 
             // generic name * < or * >
             if ((currentToken.Kind() == SyntaxKind.LessThanToken || currentToken.Kind() == SyntaxKind.GreaterThanToken) &&
-                currentToken.Parent.Kind() is SyntaxKind.TypeArgumentList or SyntaxKind.TypeParameterList)
+                currentToken.Parent?.Kind() is SyntaxKind.TypeArgumentList or SyntaxKind.TypeParameterList)
             {
                 return CreateAdjustSpacesOperation(0, AdjustSpacesOption.ForceSpacesIfOnSingleLine);
             }
@@ -448,7 +446,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
 
             // nullable
             if (currentToken.Kind() == SyntaxKind.QuestionToken &&
-                currentToken.Parent.Kind() is SyntaxKind.NullableType or SyntaxKind.ClassConstraint)
+                currentToken.Parent?.Kind() is SyntaxKind.NullableType or SyntaxKind.ClassConstraint)
             {
                 return CreateAdjustSpacesOperation(0, AdjustSpacesOption.ForceSpacesIfOnSingleLine);
             }
@@ -463,13 +461,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             // suppress warning operator: null! or x! or x++! or x[i]! or (x)! or ...
             if (currentToken.Kind() == SyntaxKind.ExclamationToken &&
                 currentToken.Parent.IsKind(SyntaxKind.SuppressNullableWarningExpression))
-            {
-                return CreateAdjustSpacesOperation(0, AdjustSpacesOption.ForceSpacesIfOnSingleLine);
-            }
-
-            // paramName!!
-            if (currentToken.IsKind(SyntaxKind.ExclamationExclamationToken) &&
-                currentToken.Parent.IsKind(SyntaxKind.Parameter))
             {
                 return CreateAdjustSpacesOperation(0, AdjustSpacesOption.ForceSpacesIfOnSingleLine);
             }

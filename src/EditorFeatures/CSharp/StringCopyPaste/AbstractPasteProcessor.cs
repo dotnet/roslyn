@@ -2,7 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Immutable;
+using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
@@ -62,47 +64,30 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
         protected readonly ExpressionSyntax StringExpressionBeforePaste;
 
         /// <summary>
+        /// Information about the relevant pieces of <see cref="StringExpressionBeforePaste"/> (like where its
+        /// delimiters are).
+        /// </summary>
+        protected readonly StringInfo StringExpressionBeforePasteInfo;
+
+        /// <summary>
+        /// All the spans of <see cref="StringExpressionBeforePasteInfo"/>'s <see cref="StringInfo.ContentSpans"/>
+        /// mapped forward (<see cref="MapSpanForward(TextSpan)"/>) to <see cref="SnapshotAfterPaste"/> in an inclusive
+        /// manner. This can be used to determine what content exists post paste, and if that content requires the
+        /// literal to revised to be legal.  For example, if the text content in a raw-literal contains a longer
+        /// sequence of quotes after pasting, then the delimiters of the raw literal may need to be increased
+        /// accordingly.
+        /// </summary>
+        protected readonly ImmutableArray<TextSpan> TextContentsSpansAfterPaste;
+
+        /// <summary>
         /// User's desired new-line sequence if we need to add newlines to our text changes.
         /// </summary>
         protected readonly string NewLine;
 
         /// <summary>
-        /// Spans of text-content within <see cref="StringExpressionBeforePaste"/>.  These represent the spans where
-        /// text can go within a string literal/interpolation.  Note that these spans may be empty.  For example, this
-        /// happens for cases like the empty string <c>""</c>, or between interpolation holes like <c>$"x{a}{b}y"</c>.
-        /// These spans can be examined to determine if pasted content is only impacting the content portion of a
-        /// string, and not the delimiters or interpolation-holes.
+        /// Amount to indent content in a multi-line raw string literal.
         /// </summary>
-        protected readonly ImmutableArray<TextSpan> TextContentsSpansBeforePaste;
-
-        /// <summary>
-        /// All the spans of <see cref="TextContentsSpansBeforePaste"/> mapped forward (<see
-        /// cref="MapSpanForward(TextSpan)"/>) to <see cref="TextContentsSpansAfterPaste"/> in an inclusive manner. This
-        /// can be used to determine what content exists post paste, and if that content requires the literal to revised
-        /// to be legal.  For example, if the text content in a raw-literal contains a longer sequence of quotes after
-        /// pasting, then the delimiters of the raw literal may need to be increased accordingly.
-        /// </summary>
-        protected readonly ImmutableArray<TextSpan> TextContentsSpansAfterPaste;
-
-        protected readonly IndentationOptions IndentationOptions;
-
-        /// <summary>
-        /// Whether or not the string expression remained successfully parseable after the paste.  <see
-        /// cref="StringCopyPasteCommandHandler.PasteWasSuccessful"/>.  If it can still be successfully parsed subclasses
-        /// can adjust their view on which pieces of content need to be escaped or not.
-        /// </summary>
-        protected readonly bool PasteWasSuccessful;
-
-        /// <summary>
-        /// Number of quotes in the delimiter of the string being pasted into.  Given that the string should have no
-        /// errors in it, this quote count should be the same for the start and end delimiter.
-        /// </summary>
-        protected readonly int DelimiterQuoteCount;
-
-        /// <summary>
-        /// Number of dollar signs (<c>$</c>) in the starting delimiter of the string being pasted into.
-        /// </summary>
-        protected readonly int DelimiterDollarCount;
+        protected readonly string IndentationWhitespace;
 
         /// <summary>
         /// The set of <see cref="ITextChange"/>'s that produced <see cref="SnapshotAfterPaste"/> from <see
@@ -111,15 +96,17 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
         protected INormalizedTextChangeCollection Changes => SnapshotBeforePaste.Version.Changes;
 
         protected AbstractPasteProcessor(
+            string newLine,
+            string indentationWhitespace,
             ITextSnapshot snapshotBeforePaste,
             ITextSnapshot snapshotAfterPaste,
             Document documentBeforePaste,
             Document documentAfterPaste,
-            ExpressionSyntax stringExpressionBeforePaste,
-            string newLine,
-            IndentationOptions indentationOptions,
-            bool pasteWasSuccessful)
+            ExpressionSyntax stringExpressionBeforePaste)
         {
+            NewLine = newLine;
+            IndentationWhitespace = indentationWhitespace;
+
             SnapshotBeforePaste = snapshotBeforePaste;
             SnapshotAfterPaste = snapshotAfterPaste;
 
@@ -130,25 +117,59 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
             DocumentAfterPaste = documentAfterPaste;
 
             StringExpressionBeforePaste = stringExpressionBeforePaste;
-            NewLine = newLine;
+            StringExpressionBeforePasteInfo = StringInfo.GetStringInfo(TextBeforePaste, stringExpressionBeforePaste);
+            TextContentsSpansAfterPaste = StringExpressionBeforePasteInfo.ContentSpans.SelectAsArray(MapSpanForward);
 
-            IndentationOptions = indentationOptions;
-            PasteWasSuccessful = pasteWasSuccessful;
-
-            TextContentsSpansBeforePaste = GetTextContentSpans(TextBeforePaste, stringExpressionBeforePaste, out DelimiterQuoteCount, out DelimiterDollarCount);
-            TextContentsSpansAfterPaste = TextContentsSpansBeforePaste.SelectAsArray(MapSpanForward);
-
-            Contract.ThrowIfTrue(TextContentsSpansBeforePaste.IsEmpty);
+            Contract.ThrowIfTrue(StringExpressionBeforePasteInfo.ContentSpans.IsEmpty);
         }
+
+        /// <summary>
+        /// Determine the edits that should be made to smartly handle pasting hte data that is on the clipboard._selectionBeforePaste
+        /// </summary>
+        public abstract ImmutableArray<TextChange> GetEdits();
 
         /// <summary>
         /// Takes a span in <see cref="SnapshotBeforePaste"/> and maps it appropriately (in an <see
         /// cref="SpanTrackingMode.EdgeInclusive"/> manner) to <see cref="SnapshotAfterPaste"/>.
         /// </summary>
         protected TextSpan MapSpanForward(TextSpan span)
+            => MapSpan(span, SnapshotBeforePaste, SnapshotAfterPaste);
+
+        /// <summary>
+        /// Given an initial raw string literal, and the changes made to it by the paste, determines how many quotes to
+        /// add to the start and end to keep things parsing properly.
+        /// </summary>
+        protected string? GetQuotesToAddToRawString(
+            SourceText textAfterChange, ImmutableArray<TextSpan> textContentSpansAfterChange)
         {
-            var trackingSpan = SnapshotBeforePaste.CreateTrackingSpan(span.ToSpan(), SpanTrackingMode.EdgeInclusive);
-            return trackingSpan.GetSpan(SnapshotAfterPaste).Span.ToTextSpan();
+            Contract.ThrowIfFalse(IsAnyRawStringExpression(StringExpressionBeforePaste));
+
+            var longestQuoteSequence = textContentSpansAfterChange.Max(ts => GetLongestQuoteSequence(textAfterChange, ts));
+
+            var quotesToAddCount = (longestQuoteSequence - StringExpressionBeforePasteInfo.DelimiterQuoteCount) + 1;
+            return quotesToAddCount <= 0 ? null : new string('"', quotesToAddCount);
+        }
+
+        /// <summary>
+        /// Given an initial raw string literal, and the changes made to it by the paste, determines how many dollar
+        /// signs to add to the start to keep things parsing properly.
+        /// </summary>
+        protected string? GetDollarSignsToAddToRawString(
+            SourceText textAfterChange, ImmutableArray<TextSpan> textContentSpansAfterChange)
+        {
+            Contract.ThrowIfFalse(IsAnyRawStringExpression(StringExpressionBeforePaste));
+
+            // Only have to do this for interpolated strings.  Other strings never have a $ in their starting delimiter.
+            if (StringExpressionBeforePaste is not InterpolatedStringExpressionSyntax)
+                return null;
+
+            var longestBraceSequence = textContentSpansAfterChange.Max(
+                ts => Math.Max(
+                    GetLongestOpenBraceSequence(textAfterChange, ts),
+                    GetLongestCloseBraceSequence(textAfterChange, ts)));
+
+            var dollarsToAddCount = (longestBraceSequence - StringExpressionBeforePasteInfo.DelimiterDollarCount) + 1;
+            return dollarsToAddCount <= 0 ? null : new string('$', dollarsToAddCount);
         }
     }
 }

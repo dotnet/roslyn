@@ -100,7 +100,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
         private static bool IsTokenInArgumentListOrPositionalPattern(SyntaxToken token)
         {
             // Argument lists
-            if (token.Parent.Kind() is SyntaxKind.ArgumentList or SyntaxKind.AttributeArgumentList)
+            if (token.Parent?.Kind() is SyntaxKind.ArgumentList or SyntaxKind.AttributeArgumentList)
             {
                 return true;
             }
@@ -197,10 +197,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
         public static bool IsEmbeddedStatement([NotNullWhen(true)] this SyntaxNode? node)
         {
             SyntaxNode? statementOrElse = node as StatementSyntax;
-            if (statementOrElse == null)
-            {
-                statementOrElse = node as ElseClauseSyntax;
-            }
+            statementOrElse ??= node as ElseClauseSyntax;
 
             return statementOrElse != null
                 && statementOrElse.Parent != null
@@ -321,9 +318,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
         public static bool IsGenericGreaterThanToken(this SyntaxToken token)
         {
             if (token.Kind() == SyntaxKind.GreaterThanToken)
-            {
-                return token.Parent.Kind() is SyntaxKind.TypeParameterList or SyntaxKind.TypeArgumentList;
-            }
+                return token.Parent?.Kind() is SyntaxKind.TypeParameterList or SyntaxKind.TypeArgumentList;
 
             return false;
         }

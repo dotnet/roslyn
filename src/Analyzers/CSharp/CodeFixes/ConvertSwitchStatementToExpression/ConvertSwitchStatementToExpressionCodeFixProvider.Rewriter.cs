@@ -231,7 +231,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertSwitchStatementToExpression
                 if (allowMoveNextStatementToSwitchExpression)
                 {
                     var nextStatement = node.GetNextStatement();
-                    if (nextStatement.Kind() is SyntaxKind.ThrowStatement or SyntaxKind.ReturnStatement)
+                    if (nextStatement?.Kind() is SyntaxKind.ThrowStatement or SyntaxKind.ReturnStatement)
                     {
                         var armExpression = Visit(nextStatement);
                         Contract.ThrowIfNull(armExpression);

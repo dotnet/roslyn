@@ -157,7 +157,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
             Assert.Same(varI102, varC204.Interfaces()[1]);
         }
 
-        private void TestBaseTypeResolutionHelper3(AssemblySymbol[] assemblies)
+        /* private void TestBaseTypeResolutionHelper3(AssemblySymbol[] assemblies)
         {
             var module1 = assemblies[0].Modules[0];
             var module2 = assemblies[1].Modules[0];
@@ -172,7 +172,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
             {
                 Assert.IsAssignableFrom<MissingMetadataTypeSymbol>(arg);
             }
-        }
+        } */
 
         private void TestBaseTypeResolutionHelper4(AssemblySymbol[] assemblies)
         {

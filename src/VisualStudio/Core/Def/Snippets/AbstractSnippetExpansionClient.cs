@@ -23,7 +23,7 @@ using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Internal.Log;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -34,6 +34,7 @@ using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Editor;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Extensions;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
+using Microsoft.VisualStudio.LanguageServices.Implementation.Venus;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Editor.Commanding;
@@ -65,7 +66,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
         protected readonly Guid LanguageServiceGuid;
         protected readonly ITextView TextView;
         protected readonly ITextBuffer SubjectBuffer;
-        internal readonly IGlobalOptionService GlobalOptions;
+        internal readonly EditorOptionsService EditorOptionsService;
 
         private readonly ImmutableArray<Lazy<ArgumentProvider, OrderableLanguageMetadata>> _allArgumentProviders;
         private ImmutableArray<ArgumentProvider> _argumentProviders;
@@ -95,7 +96,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
             IEditorCommandHandlerServiceFactory editorCommandHandlerServiceFactory,
             IVsEditorAdaptersFactoryService editorAdaptersFactoryService,
             ImmutableArray<Lazy<ArgumentProvider, OrderableLanguageMetadata>> argumentProviders,
-            IGlobalOptionService globalOptions)
+            EditorOptionsService editorOptionsService)
             : base(threadingContext)
         {
             LanguageServiceGuid = languageServiceGuid;
@@ -104,8 +105,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
             _signatureHelpControllerProvider = signatureHelpControllerProvider;
             _editorCommandHandlerServiceFactory = editorCommandHandlerServiceFactory;
             EditorAdaptersFactoryService = editorAdaptersFactoryService;
+            EditorOptionsService = editorOptionsService;
             _allArgumentProviders = argumentProviders;
-            GlobalOptions = globalOptions;
         }
 
         /// <inheritdoc cref="State._expansionSession"/>
@@ -121,7 +122,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
             // TODO: Move this to ArgumentProviderService: https://github.com/dotnet/roslyn/issues/50897
             if (_argumentProviders.IsDefault)
             {
-                _argumentProviders = workspace.Services
+                _argumentProviders = workspace.Services.SolutionServices
                     .SelectMatchingExtensionValues(ExtensionOrderer.Order(_allArgumentProviders), SubjectBuffer.ContentType)
                     .ToImmutableArray();
             }
@@ -220,7 +221,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
 
             var formattingSpan = CommonFormattingHelpers.GetFormattingSpan(SubjectBuffer.CurrentSnapshot, snippetTrackingSpan.GetSpan(SubjectBuffer.CurrentSnapshot));
 
-            SubjectBuffer.CurrentSnapshot.FormatAndApplyToBuffer(formattingSpan, GlobalOptions, CancellationToken.None);
+            SubjectBuffer.FormatAndApplyToBuffer(formattingSpan, EditorOptionsService, CancellationToken.None);
 
             if (isFullSnippetFormat)
             {
@@ -287,17 +288,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
                 {
                     _indentCaretOnCommit = true;
 
-                    var document = this.SubjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
-                    if (document != null)
-                    {
-                        var documentOptions = document.GetOptionsAsync(CancellationToken.None).WaitAndGetResult(CancellationToken.None);
-                        _indentDepth = lineText.GetColumnFromLineOffset(lineText.Length, documentOptions.GetOption(FormattingOptions.TabSize));
-                    }
-                    else
-                    {
-                        // If we don't have a document, then just guess the typical default TabSize value.
-                        _indentDepth = lineText.GetColumnFromLineOffset(lineText.Length, tabSize: 4);
-                    }
+                    var formattingOptions = SubjectBuffer.GetLineFormattingOptions(EditorOptionsService, explicitFormat: false);
+                    _indentDepth = lineText.GetColumnFromLineOffset(lineText.Length, formattingOptions.TabSize);
 
                     SubjectBuffer.Delete(new Span(line.Start.Position, line.Length));
                     _ = SubjectBuffer.CurrentSnapshot.GetSpan(new Span(line.Start.Position, 0));
@@ -549,7 +541,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
                 return false;
             }
 
-            if (!(GlobalOptions.GetOption(CompletionViewOptions.EnableArgumentCompletionSnippets, document.Project.Language) ?? false))
+            if (!(EditorOptionsService.GlobalOptions.GetOption(CompletionViewOptions.EnableArgumentCompletionSnippets, document.Project.Language) ?? false))
             {
                 // Argument completion snippets are not enabled
                 return false;
@@ -772,7 +764,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
                 return ImmutableArray<ISymbol>.Empty;
             }
 
-            var semanticInfo = semanticModel.GetSemanticInfo(token, document.Project.Solution.Workspace.Services, cancellationToken);
+            var semanticInfo = semanticModel.GetSemanticInfo(token, document.Project.Solution.Services, cancellationToken);
             return semanticInfo.ReferencedSymbols;
         }
 
@@ -903,7 +895,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
             }
 
             // Now compute the new arguments for the new call
-            var options = document.GetOptionsAsync(cancellationToken).WaitAndGetResult(cancellationToken);
             var semanticModel = document.GetRequiredSemanticModelAsync(cancellationToken).AsTask().WaitAndGetResult(cancellationToken);
             var position = SubjectBuffer.CurrentSnapshot.GetPosition(adjustedTextSpan.iStartLine, adjustedTextSpan.iStartIndex);
 
@@ -913,7 +904,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
 
                 foreach (var provider in GetArgumentProviders(document.Project.Solution.Workspace))
                 {
-                    var context = new ArgumentContext(provider, options, semanticModel, position, parameter, value, cancellationToken);
+                    var context = new ArgumentContext(provider, semanticModel, position, parameter, value, cancellationToken);
                     ThreadingContext.JoinableTaskFactory.Run(() => provider.ProvideArgumentAsync(context));
 
                     if (context.DefaultValue is not null)
@@ -924,10 +915,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
                 }
 
                 // If we still have no value, fill in the default
-                if (value is null)
-                {
-                    value = FallbackDefaultLiteral;
-                }
+                value ??= FallbackDefaultLiteral;
 
                 newArguments = newArguments.SetItem(parameter.Name, value);
             }
@@ -1070,14 +1058,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
                 return;
             }
 
-            var documentWithImports = this.SubjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
+            var documentWithImports = SubjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
             if (documentWithImports == null)
             {
                 return;
             }
 
-            var addImportOptions = documentWithImports.GetAddImportPlacementOptionsAsync(GlobalOptions, cancellationToken).AsTask().WaitAndGetResult(cancellationToken);
-            var formattingOptions = documentWithImports.GetSyntaxFormattingOptionsAsync(GlobalOptions, cancellationToken).AsTask().WaitAndGetResult(cancellationToken);
+            var languageServices = documentWithImports.Project.Services;
+            var addImportOptions = SubjectBuffer.GetAddImportPlacementOptions(EditorOptionsService, languageServices, documentWithImports.AllowImportsInHiddenRegions());
+            var formattingOptions = SubjectBuffer.GetSyntaxFormattingOptions(EditorOptionsService, languageServices, explicitFormat: false);
 
             documentWithImports = AddImports(documentWithImports, addImportOptions, formattingOptions, position, snippetNode, cancellationToken);
             AddReferences(documentWithImports.Project, snippetNode);
@@ -1103,7 +1092,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
                 // Note: URL references are not supported
                 var assemblyElement = reference.Element(assemblyXmlName);
 
-                var assemblyName = assemblyElement != null ? assemblyElement.Value.Trim() : null;
+                var assemblyName = assemblyElement?.Value.Trim();
 
                 if (RoslynString.IsNullOrEmpty(assemblyName))
                 {
@@ -1130,12 +1119,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
 
         protected static bool TryAddImportsToContainedDocument(Document document, IEnumerable<string> memberImportsNamespaces)
         {
-            if (document.Project.Solution.Workspace is not VisualStudioWorkspaceImpl vsWorkspace)
-            {
-                return false;
-            }
-
-            var containedDocument = vsWorkspace.TryGetContainedDocument(document.Id);
+            var containedDocument = ContainedDocument.TryGetContainedDocument(document.Id);
             if (containedDocument == null)
             {
                 return false;

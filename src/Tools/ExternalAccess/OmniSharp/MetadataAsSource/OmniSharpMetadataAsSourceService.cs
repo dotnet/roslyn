@@ -5,6 +5,7 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeCleanup;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.Formatting;
@@ -33,10 +34,10 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.MetadataAsSource
         {
             var service = document.GetRequiredLanguageService<IMetadataAsSourceService>();
 
-            var cleanupOptions = await document.GetCodeCleanupOptionsAsync(fallbackOptions: null, cancellationToken).ConfigureAwait(false);
+            var cleanupOptions = await document.GetCodeCleanupOptionsAsync(CodeActionOptions.DefaultProvider, cancellationToken).ConfigureAwait(false);
 
             var options = new CleanCodeGenerationOptions(
-                GenerationOptions: CodeGenerationOptions.GetDefault(document.Project.LanguageServices),
+                GenerationOptions: CodeGenerationOptions.GetDefault(document.Project.Services),
                 CleanupOptions: cleanupOptions);
 
             return await service.AddSourceToAsync(document, symbolCompilation, symbol, options, cancellationToken).ConfigureAwait(false);
@@ -58,7 +59,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.MetadataAsSource
             var service = document.GetRequiredLanguageService<IMetadataAsSourceService>();
 
             var options = new CleanCodeGenerationOptions(
-                GenerationOptions: CodeGenerationOptions.GetDefault(document.Project.LanguageServices),
+                GenerationOptions: CodeGenerationOptions.GetDefault(document.Project.Services),
                 CleanupOptions: formattingOptions.CleanupOptions);
 
             return service.AddSourceToAsync(document, symbolCompilation, symbol, options, cancellationToken);

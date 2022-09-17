@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.AddImport
         public void ExecuteCommand(PasteCommandArgs args, Action nextCommandHandler, CommandExecutionContext executionContext)
         {
             // If the feature is not explicitly enabled we can exit early
-            if (_globalOptions.GetOption(FeatureOnOffOptions.AddImportsOnPaste, args.SubjectBuffer.GetLanguageName()) != true)
+            if (!_globalOptions.GetOption(FeatureOnOffOptions.AddImportsOnPaste, args.SubjectBuffer.GetLanguageName()))
             {
                 nextCommandHandler();
                 return;
@@ -139,7 +139,7 @@ namespace Microsoft.CodeAnalysis.AddImport
         {
             _threadingContext.ThrowIfNotOnUIThread();
 
-            var indicatorFactory = document.Project.Solution.Workspace.Services.GetRequiredService<IBackgroundWorkIndicatorFactory>();
+            var indicatorFactory = document.Project.Solution.Services.GetRequiredService<IBackgroundWorkIndicatorFactory>();
             using var backgroundWorkContext = indicatorFactory.Create(
                 textView,
                 snapshotSpan,

@@ -6,34 +6,21 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
+using Microsoft.CodeAnalysis.CodeCleanup;
 using Microsoft.CodeAnalysis.Host;
 
 namespace Microsoft.CodeAnalysis.Options
 {
     /// <summary>
-    /// Provides services for reading and writing options.
-    /// This will provide support for options at the global level (i.e. shared among
-    /// all workspaces/services).
-    /// 
-    /// In general you should not import this type directly, and should instead get an
-    /// <see cref="IOptionService"/> from <see cref="Workspace.Services"/>
+    /// Provides services for reading and writing global client (in-proc) options
+    /// shared across all workspaces.
     /// </summary>
     internal interface IGlobalOptionService
     {
         /// <summary>
         /// Gets the current value of the specific option.
         /// </summary>
-        T GetOption<T>(Option<T> option);
-
-        /// <summary>
-        /// Gets the current value of the specific option.
-        /// </summary>
         T GetOption<T>(Option2<T> option);
-
-        /// <summary>
-        /// Gets the current value of the specific option.
-        /// </summary>
-        T GetOption<T>(PerLanguageOption<T> option, string? languageName);
 
         /// <summary>
         /// Gets the current value of the specific option.
@@ -55,7 +42,7 @@ namespace Microsoft.CodeAnalysis.Options
         /// Applies a set of options.
         /// If any option changed its value invokes registered option persisters, updates current solutions of all registered workspaces and triggers <see cref="OptionChanged"/>.
         /// </summary>
-        void SetOptions(OptionSet optionSet);
+        void SetOptions(OptionSet optionSet, IEnumerable<OptionKey> optionKeys);
 
         /// <summary>
         /// Sets and persists the value of a global option.
@@ -72,33 +59,6 @@ namespace Microsoft.CodeAnalysis.Options
         /// Does not update any workspace (since this option is not a solution option).
         /// </summary>
         void SetGlobalOptions(ImmutableArray<OptionKey> optionKeys, ImmutableArray<object?> values);
-
-        /// <summary>
-        /// Gets force computed serializable options snapshot with prefetched values for the registered options applicable to the given <paramref name="languages"/> by quering the option persisters.
-        /// </summary>
-        SerializableOptionSet GetSerializableOptionsSnapshot(ImmutableHashSet<string> languages, IOptionService optionService);
-
-        /// <summary>
-        /// Returns the set of all registered options.
-        /// </summary>
-        IEnumerable<IOption> GetRegisteredOptions();
-
-        /// <summary>
-        /// Map an <strong>.editorconfig</strong> key to a corresponding <see cref="IEditorConfigStorageLocation2"/> and
-        /// <see cref="OptionKey"/> that can be used to read and write the value stored in an <see cref="OptionSet"/>.
-        /// </summary>
-        /// <param name="key">The <strong>.editorconfig</strong> key.</param>
-        /// <param name="language">The language to use for the <paramref name="optionKey"/>, if the matching option has
-        /// <see cref="IOption.IsPerLanguage"/> set.</param>
-        /// <param name="storageLocation">The <see cref="IEditorConfigStorageLocation2"/> for the key.</param>
-        /// <param name="optionKey">The <see cref="OptionKey"/> for the key and language.</param>
-        /// <returns><see langword="true"/> if a matching option was found; otherwise, <see langword="false"/>.</returns>
-        bool TryMapEditorConfigKeyToOption(string key, string? language, [NotNullWhen(true)] out IEditorConfigStorageLocation2? storageLocation, out OptionKey optionKey);
-
-        /// <summary>
-        /// Returns the set of all registered serializable options applicable for the given <paramref name="languages"/>.
-        /// </summary>
-        ImmutableHashSet<IOption> GetRegisteredSerializableOptions(ImmutableHashSet<string> languages);
 
         event EventHandler<OptionChangedEventArgs>? OptionChanged;
 

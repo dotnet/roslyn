@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessaryImports
         protected abstract ISyntaxFormatting GetSyntaxFormatting();
 
         public sealed override ImmutableArray<string> FixableDiagnosticIds
-            => ImmutableArray.Create(AbstractRemoveUnnecessaryImportsDiagnosticAnalyzer.DiagnosticFixableId);
+            => ImmutableArray.Create(RemoveUnnecessaryImportsConstants.DiagnosticFixableId);
 
         public sealed override FixAllProvider GetFixAllProvider()
             => WellKnownFixAllProviders.BatchFixer;
@@ -40,11 +40,13 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessaryImports
 
         private async Task<Document> RemoveUnnecessaryImportsAsync(
             Document document,
-            CodeActionOptionsProvider options,
+            CodeActionOptionsProvider fallbackOptions,
             CancellationToken cancellationToken)
         {
             var service = document.GetRequiredLanguageService<IRemoveUnnecessaryImportsService>();
-            var formattingOptions = await document.GetSyntaxFormattingOptionsAsync(GetSyntaxFormatting(), options, cancellationToken).ConfigureAwait(false);
+
+            var options = await document.GetCodeFixOptionsAsync(fallbackOptions, cancellationToken).ConfigureAwait(false);
+            var formattingOptions = options.GetFormattingOptions(GetSyntaxFormatting());
             return await service.RemoveUnnecessaryImportsAsync(document, formattingOptions, cancellationToken).ConfigureAwait(false);
         }
     }

@@ -179,7 +179,7 @@ $@"<Workspace>
     </Project>
 </Workspace>";
 
-            using var testLspServer = await CreateXmlTestLspServerAsync(workspaceXml, clientCapabilities: CapabilitiesWithVSExtensions);
+            using var testLspServer = await CreateXmlTestLspServerAsync(workspaceXml, initializationOptions: new InitializationOptions { ClientCapabilities = CapabilitiesWithVSExtensions });
             var location = testLspServer.GetLocations("caret").Single();
 
             foreach (var project in testLspServer.GetCurrentSolution().Projects)
@@ -262,7 +262,7 @@ Remarks&nbsp;are&nbsp;cool&nbsp;too\.
             var results = await RunGetHoverAsync(
                 testLspServer,
                 expectedLocation).ConfigureAwait(false);
-            Assert.Equal(expectedMarkdown, results.Contents.Third.Value);
+            Assert.Equal(expectedMarkdown, results.Contents.Value.Fourth.Value);
         }
 
         [Fact]
@@ -329,7 +329,7 @@ Remarks are cool too.
             var results = await RunGetHoverAsync(
                 testLspServer,
                 expectedLocation).ConfigureAwait(false);
-            Assert.Equal(expectedText, results.Contents.Third.Value);
+            Assert.Equal(expectedText, results.Contents.Value.Fourth.Value);
         }
 
         [Fact]
@@ -383,7 +383,7 @@ _italic\_&nbsp;\*\*text\*\*_
             var results = await RunGetHoverAsync(
                 testLspServer,
                 expectedLocation).ConfigureAwait(false);
-            Assert.Equal(expectedMarkdown, results.Contents.Third.Value);
+            Assert.Equal(expectedMarkdown, results.Contents.Value.Fourth.Value);
         }
 
         private static async Task<LSP.Hover> RunGetHoverAsync(
@@ -395,7 +395,7 @@ _italic\_&nbsp;\*\*text\*\*_
                 CreateTextDocumentPositionParams(caret, projectContext), CancellationToken.None);
         }
 
-        private void VerifyVSContent(LSP.Hover hover, string expectedContent)
+        private static void VerifyVSContent(LSP.Hover hover, string expectedContent)
         {
             var vsHover = Assert.IsType<LSP.VSInternalHover>(hover);
             var containerElement = (ContainerElement)vsHover.RawContent;
@@ -406,7 +406,7 @@ _italic\_&nbsp;\*\*text\*\*_
             Assert.Equal(expectedContent, content);
         }
 
-        private void GetClassifiedTextElements(ContainerElement container, ArrayBuilder<ClassifiedTextElement> classifiedTextElements)
+        private static void GetClassifiedTextElements(ContainerElement container, ArrayBuilder<ClassifiedTextElement> classifiedTextElements)
         {
             foreach (var element in container.Elements)
             {

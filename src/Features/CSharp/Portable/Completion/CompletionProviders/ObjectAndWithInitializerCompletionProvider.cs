@@ -14,7 +14,7 @@ using Microsoft.CodeAnalysis.Completion.Providers;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -149,7 +149,7 @@ token.Parent.Kind() is not (SyntaxKind.ObjectInitializerExpression or SyntaxKind
 
             // new() { $$
             // new Goo { $$
-            if (parent.Kind() is SyntaxKind.ObjectCreationExpression or SyntaxKind.ImplicitObjectCreationExpression)
+            if (parent?.Kind() is SyntaxKind.ObjectCreationExpression or SyntaxKind.ImplicitObjectCreationExpression)
             {
                 return semanticModel.GetTypeInfo(parent, cancellationToken).Type;
             }
@@ -199,7 +199,7 @@ token.Parent.Kind() is not (SyntaxKind.ObjectInitializerExpression or SyntaxKind
 
         protected override bool IsInitializable(ISymbol member, INamedTypeSymbol containingType)
         {
-            if (member is IPropertySymbol property && property.Parameters.Any(p => !p.IsOptional))
+            if (member is IPropertySymbol property && property.Parameters.Any(static p => !p.IsOptional))
             {
                 return false;
             }

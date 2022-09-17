@@ -20,7 +20,6 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         public FixAllContext.DiagnosticProvider DiagnosticProvider { get; }
 
         public ImmutableHashSet<string> DiagnosticIds { get; }
-        public CodeActionOptionsProvider CodeActionOptionsProvider { get; }
 
         // Note: DiagnosticSpan can be null from the back-compat public constructor of FixAllContext.
         public TextSpan? DiagnosticSpan { get; }
@@ -36,7 +35,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             IEnumerable<string> diagnosticIds,
             FixAllContext.DiagnosticProvider fixAllDiagnosticProvider,
             CodeActionOptionsProvider codeActionOptionsProvider)
-            : base(fixAllProvider, document, project, codeFixProvider, scope, codeActionEquivalenceKey)
+            : base(fixAllProvider, document, project, codeFixProvider, codeActionOptionsProvider, scope, codeActionEquivalenceKey)
         {
             // We need the trigger diagnostic span for span based fix all scopes, i.e. FixAllScope.ContainingMember and FixAllScope.ContainingType
             Debug.Assert(diagnosticSpan.HasValue || scope is not FixAllScope.ContainingMember or FixAllScope.ContainingType);
@@ -44,7 +43,6 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             DiagnosticSpan = diagnosticSpan;
             DiagnosticIds = ImmutableHashSet.CreateRange(diagnosticIds);
             DiagnosticProvider = fixAllDiagnosticProvider;
-            CodeActionOptionsProvider = codeActionOptionsProvider;
         }
 
         internal bool IsFixMultiple => DiagnosticProvider is FixMultipleDiagnosticProvider;

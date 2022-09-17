@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.AddImport;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.CodeRefactorings;
+using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -22,7 +23,7 @@ namespace Microsoft.CodeAnalysis.ConvertAutoPropertyToFullProperty
         where TTypeDeclarationNode : SyntaxNode
         where TCodeGenerationContextInfo : CodeGenerationContextInfo
     {
-        internal abstract Task<string> GetFieldNameAsync(Document document, IPropertySymbol propertySymbol, CancellationToken cancellationToken);
+        internal abstract Task<string> GetFieldNameAsync(Document document, IPropertySymbol propertySymbol, NamingStylePreferencesProvider fallbackOptions, CancellationToken cancellationToken);
         internal abstract (SyntaxNode newGetAccessor, SyntaxNode newSetAccessor) GetNewAccessors(
             TCodeGenerationContextInfo info, SyntaxNode property, string fieldName, SyntaxGenerator generator);
         internal abstract SyntaxNode GetPropertyWithoutInitializer(SyntaxNode property);
@@ -91,14 +92,14 @@ namespace Microsoft.CodeAnalysis.ConvertAutoPropertyToFullProperty
 
             var generator = SyntaxGenerator.GetGenerator(document);
             var codeGenerator = document.GetRequiredLanguageService<ICodeGenerationService>();
-            var services = document.Project.Solution.Workspace.Services;
+            var services = document.Project.Solution.Services;
 
             var options = await document.GetCodeGenerationOptionsAsync(fallbackOptions, cancellationToken).ConfigureAwait(false);
             var info = (TCodeGenerationContextInfo)options.GetInfo(CodeGenerationContext.Default, document.Project);
 
             // Create full property. If the auto property had an initial value
             // we need to remove it and later add it to the backing field
-            var fieldName = await GetFieldNameAsync(document, propertySymbol, cancellationToken).ConfigureAwait(false);
+            var fieldName = await GetFieldNameAsync(document, propertySymbol, fallbackOptions, cancellationToken).ConfigureAwait(false);
             var (newGetAccessor, newSetAccessor) = GetNewAccessors(info, property, fieldName, generator);
             var fullProperty = generator
                 .WithAccessorDeclarations(
@@ -108,7 +109,8 @@ namespace Microsoft.CodeAnalysis.ConvertAutoPropertyToFullProperty
                         : new SyntaxNode[] { newGetAccessor, newSetAccessor })
                 .WithLeadingTrivia(property.GetLeadingTrivia());
             fullProperty = ConvertPropertyToExpressionBodyIfDesired(info, fullProperty);
-            var editor = new SyntaxEditor(root, services);
+
+            var editor = new SyntaxEditor(root, document.Project.Solution.Services);
             editor.ReplaceNode(property, fullProperty.WithAdditionalAnnotations(Formatter.Annotation));
 
             // add backing field, plus initializer if it exists 

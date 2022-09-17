@@ -13,11 +13,12 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure
 {
+    [Trait(Traits.Feature, Traits.Features.Outlining)]
     public class AnonymousMethodExpressionTests : AbstractCSharpSyntaxNodeStructureTests<AnonymousMethodExpressionSyntax>
     {
         internal override AbstractSyntaxStructureProvider CreateProvider() => new AnonymousMethodExpressionStructureProvider();
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
+        [Fact]
         public async Task TestAnonymousMethod()
         {
             const string code = @"
@@ -35,7 +36,7 @@ class C
                 Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: false));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
+        [Fact]
         public async Task TestAnonymousMethodInForLoop()
         {
             const string code = @"
@@ -50,7 +51,7 @@ class C
             await VerifyNoBlockSpansAsync(code);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
+        [Fact]
         public async Task TestAnonymousMethodInMethodCall1()
         {
             const string code = @"
@@ -68,7 +69,7 @@ class C
                 Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: false));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
+        [Fact]
         public async Task TestAnonymousMethodInMethodCall2()
         {
             const string code = @"

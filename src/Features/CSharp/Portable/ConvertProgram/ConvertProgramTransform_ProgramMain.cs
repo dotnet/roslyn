@@ -7,6 +7,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -23,7 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertProgram
 
     internal static partial class ConvertProgramTransform
     {
-        public static async Task<Document> ConvertToProgramMainAsync(Document document, CancellationToken cancellationToken)
+        public static async Task<Document> ConvertToProgramMainAsync(Document document, AccessibilityModifiersRequired accessibilityModifiersRequired, CancellationToken cancellationToken)
         {
             // While the analyze and refactoring check ensure we're in a well formed state for their needs, the 'new
             // template' code just calls directly into this if the user prefers Program.Main.  So check and make sure
@@ -38,16 +39,22 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertProgram
                 {
                     if (programType.GetMembers(WellKnownMemberNames.TopLevelStatementsEntryPointMethodName).FirstOrDefault() is IMethodSymbol mainMethod)
                     {
+                        var oldClassDeclaration = root.Members.OfType<ClassDeclarationSyntax>().FirstOrDefault(IsProgramClass);
+
                         var classDeclaration = await GenerateProgramClassAsync(
-                            document, programType, mainMethod, cancellationToken).ConfigureAwait(false);
+                            document, oldClassDeclaration, programType, mainMethod, accessibilityModifiersRequired, cancellationToken).ConfigureAwait(false);
 
                         var newRoot = root.RemoveNodes(root.Members.OfType<GlobalStatementSyntax>().Skip(1), SyntaxGenerator.DefaultRemoveOptions);
+                        if (oldClassDeclaration is not null)
+                        {
+                            Contract.ThrowIfNull(newRoot);
+                            newRoot = newRoot.RemoveNode(oldClassDeclaration, SyntaxGenerator.DefaultRemoveOptions);
+                        }
+
                         Contract.ThrowIfNull(newRoot);
 
                         var firstGlobalStatement = newRoot.Members.OfType<GlobalStatementSyntax>().Single();
-                        newRoot = newRoot.ReplaceNode(
-                            firstGlobalStatement,
-                            FixupComments(classDeclaration.WithLeadingTrivia(firstGlobalStatement.GetLeadingTrivia())));
+                        newRoot = newRoot.ReplaceNode(firstGlobalStatement, classDeclaration);
 
                         return document.WithSyntaxRoot(newRoot);
                     }
@@ -57,55 +64,84 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertProgram
             return document;
         }
 
-        private static async Task<SyntaxNode> GenerateProgramClassAsync(
+        private static bool IsProgramClass(ClassDeclarationSyntax declaration)
+        {
+            return declaration.Identifier.ValueText == WellKnownMemberNames.TopLevelStatementsEntryPointTypeName &&
+                   declaration.Modifiers.Any(SyntaxKind.PartialKeyword);
+        }
+
+        private static async Task<ClassDeclarationSyntax> GenerateProgramClassAsync(
             Document document,
+            ClassDeclarationSyntax? oldClassDeclaration,
             INamedTypeSymbol programType,
             IMethodSymbol mainMethod,
+            AccessibilityModifiersRequired accessibilityModifiersRequired,
             CancellationToken cancellationToken)
         {
-            var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
-
             // Respect user settings on if they want explicit or implicit accessibility modifiers.
-            var option = options.GetOption(CodeStyleOptions2.RequireAccessibilityModifiers);
-            var accessibilityModifiersRequired = option.Value is AccessibilityModifiersRequired.ForNonInterfaceMembers or AccessibilityModifiersRequired.Always;
+            var useDeclaredAccessibity = accessibilityModifiersRequired is AccessibilityModifiersRequired.ForNonInterfaceMembers or AccessibilityModifiersRequired.Always;
 
             var root = (CompilationUnitSyntax)await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var generator = document.GetRequiredLanguageService<SyntaxGenerator>();
 
             // See if we have an existing part in another file.  If so, we'll have to generate our declaration as partial.
-            var hasExistingPart = programType.DeclaringSyntaxReferences.Any(d => d.GetSyntax(cancellationToken) is TypeDeclarationSyntax);
+            var hasExistingPart = programType.DeclaringSyntaxReferences.Any(static (d, cancellationToken) => d.GetSyntax(cancellationToken) is TypeDeclarationSyntax, cancellationToken);
 
             var method = (MethodDeclarationSyntax)generator.MethodDeclaration(
-                mainMethod, WellKnownMemberNames.EntryPointMethodName, GenerateProgramMainStatements(root));
+                mainMethod, WellKnownMemberNames.EntryPointMethodName,
+                GenerateProgramMainStatements(root, out var leadingTrivia));
             method = method.WithReturnType(method.ReturnType.WithAdditionalAnnotations(Simplifier.AddImportsAnnotation));
             method = (MethodDeclarationSyntax)generator.WithAccessibility(
-                method, accessibilityModifiersRequired ? mainMethod.DeclaredAccessibility : Accessibility.NotApplicable);
+                method, useDeclaredAccessibity ? mainMethod.DeclaredAccessibility : Accessibility.NotApplicable);
 
             // Workaround for simplification not being ready when we generate a new file.  Substitute System.String[]
             // with string[].
             if (method.ParameterList.Parameters.Count == 1 && method.ParameterList.Parameters[0].Type is ArrayTypeSyntax arrayType)
                 method = method.ReplaceNode(arrayType.ElementType, PredefinedType(Token(SyntaxKind.StringKeyword)));
 
-            return generator.ClassDeclaration(
-                WellKnownMemberNames.TopLevelStatementsEntryPointTypeName,
-                accessibility: accessibilityModifiersRequired ? programType.DeclaredAccessibility : Accessibility.NotApplicable,
-                modifiers: hasExistingPart ? DeclarationModifiers.Partial : DeclarationModifiers.None,
-                members: new[] { method });
+            if (oldClassDeclaration is null)
+            {
+                // If we dodn't have any suitable class declaration in the same file then generate it
+                return FixupComments((ClassDeclarationSyntax)generator.ClassDeclaration(
+                    WellKnownMemberNames.TopLevelStatementsEntryPointTypeName,
+                    accessibility: useDeclaredAccessibity ? programType.DeclaredAccessibility : Accessibility.NotApplicable,
+                    modifiers: hasExistingPart ? DeclarationModifiers.Partial : DeclarationModifiers.None,
+                    members: new[] { method }).WithLeadingTrivia(leadingTrivia));
+            }
+            else
+            {
+                // Otherwise just add new member and process leading trivia
+
+                // Old class declaration is below top-level statements and is probably separated from them with a blank line (or several ones).
+                // So we want to remove all leading line to make class declaration begin from the first line of the file after applying refactoring
+                var oldTriviaWithoutBlankLines = oldClassDeclaration.GetLeadingTrivia().WithoutLeadingBlankLines();
+                return oldClassDeclaration.WithMembers(oldClassDeclaration.Members.Add(method))
+                                          .WithLeadingTrivia(oldTriviaWithoutBlankLines.Union(leadingTrivia));
+            }
         }
 
-        private static ImmutableArray<StatementSyntax> GenerateProgramMainStatements(CompilationUnitSyntax root)
+        private static ImmutableArray<StatementSyntax> GenerateProgramMainStatements(
+            CompilationUnitSyntax root, out SyntaxTriviaList triviaToMove)
         {
             using var _ = ArrayBuilder<StatementSyntax>.GetInstance(out var statements);
 
+            triviaToMove = default;
             var first = true;
             foreach (var globalStatement in root.Members.OfType<GlobalStatementSyntax>())
             {
-                // Remove leading trivia from first statement.  We'll move it to the Program type.
+                // Remove leading trivia from first statement.  We'll move it to the Program type. Any directly attached
+                // comments though stay attached to the first statement.
                 var statement = globalStatement.Statement.WithAdditionalAnnotations(Formatter.Annotation);
                 if (first)
                 {
                     first = false;
-                    statements.Add(statement.WithoutLeadingTrivia());
+
+                    triviaToMove = statement.GetLeadingTrivia();
+                    while (triviaToMove is [.., SyntaxTrivia(SyntaxKind.SingleLineCommentTrivia), SyntaxTrivia(SyntaxKind.EndOfLineTrivia)])
+                        triviaToMove = TriviaList(triviaToMove.Take(triviaToMove.Count - 2));
+
+                    var commentsToPreserve = TriviaList(statement.GetLeadingTrivia().Skip(triviaToMove.Count));
+                    statements.Add(FixupComments(statement.WithLeadingTrivia(commentsToPreserve)));
                 }
                 else
                 {
@@ -116,23 +152,23 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertProgram
             return statements.ToImmutable();
         }
 
-        private static SyntaxNode FixupComments(SyntaxNode classDeclaration)
+        private static TSyntaxNode FixupComments<TSyntaxNode>(TSyntaxNode node) where TSyntaxNode : SyntaxNode
         {
             // Remove comment explaining top level statements as it isn't relevant if the user switches back to full
             // Program.Main form.
-            var leadingTrivia = classDeclaration.GetLeadingTrivia();
+            var leadingTrivia = node.GetLeadingTrivia();
             var comment = leadingTrivia.FirstOrNull(
                 c => c.Kind() is SyntaxKind.SingleLineCommentTrivia && c.ToString().Contains("https://aka.ms/new-console-template"));
             if (comment == null)
-                return classDeclaration;
+                return node;
 
             var commentIndex = leadingTrivia.IndexOf(comment.Value);
             leadingTrivia = leadingTrivia.RemoveAt(commentIndex);
 
-            if (commentIndex < leadingTrivia.Count && leadingTrivia[commentIndex].Kind() is SyntaxKind.EndOfLineTrivia)
+            while (commentIndex < leadingTrivia.Count && leadingTrivia[commentIndex].Kind() is SyntaxKind.EndOfLineTrivia)
                 leadingTrivia = leadingTrivia.RemoveAt(commentIndex);
 
-            return classDeclaration.WithLeadingTrivia(leadingTrivia);
+            return node.WithLeadingTrivia(leadingTrivia);
         }
     }
 }

@@ -89,7 +89,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestNormalizeSwitchExpressionRawStringsUTF8_01()
+        public void TestNormalizeSwitchExpressionRawStringsUtf8_01()
         {
             TestNormalizeStatement(
                 @"var x = (int)1 switch { 1 => """"""one""""""u8, 2 => """"""two""""""U8, 3 => """"""three""""""u8, {} => """""">= 4""""""U8 };",
@@ -126,7 +126,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [ConditionalFact(typeof(WindowsOnly))]
-        public void TestNormalizeSwitchExpressionRawStringsMultilineUTF8_01()
+        public void TestNormalizeSwitchExpressionRawStringsMultilineUtf8_01()
         {
             TestNormalizeStatement(
                 @"var x = (int)1 switch { 1 => """"""
@@ -148,7 +148,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestNormalizeSwitchExpressionStringsUTF8()
+        public void TestNormalizeSwitchExpressionStringsUtf8()
         {
             TestNormalizeStatement(
                 @"var x = (int)1 switch { 1 =>
@@ -1305,6 +1305,65 @@ class Derived : Base
             const string Expected = @"/// Prefix <b b=""y"" a=""x"">S_OK</b> suffix";
             const string Text = @"/// Prefix <b    b=""y""a=""x""	>S_OK</b> suffix";
             TestNormalizeDeclaration(Text, Expected);
+        }
+
+        [Fact]
+        public void TestRequiredKeywordNormalization()
+        {
+            const string Expected = @"public required partial int Field;";
+            const string Text = @"public  required  partial int Field;";
+            TestNormalizeDeclaration(Text, Expected);
+        }
+
+        [Fact]
+        [WorkItem(61518, "https://github.com/dotnet/roslyn/issues/61518")]
+        public void TestNormalizeNestedUsingStatements1()
+        {
+            TestNormalizeStatement("using(a)using(b)c;", "using (a)\r\nusing (b)\r\n  c;");
+            TestNormalizeStatement("using(a)using(b){c;}", "using (a)\r\nusing (b)\r\n{\r\n  c;\r\n}");
+            TestNormalizeStatement("using(a)using(b)using(c)d;", "using (a)\r\nusing (b)\r\nusing (c)\r\n  d;");
+            TestNormalizeStatement("using(a)using(b)using(c){d;}", "using (a)\r\nusing (b)\r\nusing (c)\r\n{\r\n  d;\r\n}");
+
+            TestNormalizeStatement("using(a){using(b)c;}", "using (a)\r\n{\r\n  using (b)\r\n    c;\r\n}");
+            TestNormalizeStatement("using(a){using(b)using(c)d;}", "using (a)\r\n{\r\n  using (b)\r\n  using (c)\r\n    d;\r\n}");
+            TestNormalizeStatement("using(a)using(b){using(c)d;}", "using (a)\r\nusing (b)\r\n{\r\n  using (c)\r\n    d;\r\n}");
+            TestNormalizeStatement("using(a){using(b){using(c)d;}}", "using (a)\r\n{\r\n  using (b)\r\n  {\r\n    using (c)\r\n      d;\r\n  }\r\n}");
+        }
+
+        [Fact]
+        [WorkItem(61518, "https://github.com/dotnet/roslyn/issues/61518")]
+        public void TestNormalizeNestedFixedStatements1()
+        {
+            TestNormalizeStatement("fixed(int* a = null)fixed(int* b = null)c;", "fixed (int* a = null)\r\nfixed (int* b = null)\r\n  c;");
+            TestNormalizeStatement("fixed(int* a = null)fixed(int* b = null){c;}", "fixed (int* a = null)\r\nfixed (int* b = null)\r\n{\r\n  c;\r\n}");
+            TestNormalizeStatement("fixed(int* a = null)fixed(int* b = null)fixed(int* c = null)d;", "fixed (int* a = null)\r\nfixed (int* b = null)\r\nfixed (int* c = null)\r\n  d;");
+            TestNormalizeStatement("fixed(int* a = null)fixed(int* b = null)fixed(int* c = null){d;}", "fixed (int* a = null)\r\nfixed (int* b = null)\r\nfixed (int* c = null)\r\n{\r\n  d;\r\n}");
+
+            TestNormalizeStatement("fixed(int* a = null){fixed(int* b = null)c;}", "fixed (int* a = null)\r\n{\r\n  fixed (int* b = null)\r\n    c;\r\n}");
+            TestNormalizeStatement("fixed(int* a = null){fixed(int* b = null)fixed(int* c = null)d;}", "fixed (int* a = null)\r\n{\r\n  fixed (int* b = null)\r\n  fixed (int* c = null)\r\n    d;\r\n}");
+            TestNormalizeStatement("fixed(int* a = null)fixed(int* b = null){fixed(int* c = null)d;}", "fixed (int* a = null)\r\nfixed (int* b = null)\r\n{\r\n  fixed (int* c = null)\r\n    d;\r\n}");
+            TestNormalizeStatement("fixed(int* a = null){fixed(int* b = null){fixed(int* c = null)d;}}", "fixed (int* a = null)\r\n{\r\n  fixed (int* b = null)\r\n  {\r\n    fixed (int* c = null)\r\n      d;\r\n  }\r\n}");
+        }
+
+        [Fact]
+        [WorkItem(61518, "https://github.com/dotnet/roslyn/issues/61518")]
+        public void TestNormalizeNestedFixedUsingStatements1()
+        {
+            TestNormalizeStatement("using(a)fixed(int* b = null)c;", "using (a)\r\n  fixed (int* b = null)\r\n    c;");
+            TestNormalizeStatement("fixed(int* b = null)using(a)c;", "fixed (int* b = null)\r\n  using (a)\r\n    c;");
+        }
+
+        [Fact]
+        public void TestNormalizeScopedParameters()
+        {
+            TestNormalizeStatement("static  void  F  (  scoped  R  x  ,  scoped  ref  R  y  ,  ref  scoped  R  z  )  {  }", "static void F(scoped R x, scoped ref R y, ref scoped R z)\r\n{\r\n}");
+        }
+
+        [Fact]
+        public void TestNormalizeScopedLocals()
+        {
+            TestNormalizeStatement("scoped  R  x  ;", "scoped R x;");
+            TestNormalizeStatement("scoped  ref  R  y  ;", "scoped ref R y;");
         }
     }
 }

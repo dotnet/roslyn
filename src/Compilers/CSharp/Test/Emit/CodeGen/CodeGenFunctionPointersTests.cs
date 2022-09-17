@@ -3753,6 +3753,34 @@ unsafe class C
             );
         }
 
+        [Fact, WorkItem(59454, "https://github.com/dotnet/roslyn/issues/59454")]
+        public void FunctionPointerInvocationInExpressionTree()
+        {
+            var comp = CreateCompilationWithFunctionPointers(@"
+using System;
+using System.Linq.Expressions;
+namespace test
+{
+    unsafe class Program
+    {
+        static double f() => 0;
+        static delegate*<double> fp() => &f;
+        static void Main()
+        {
+            Expression<Func<double>> h = static () => fp()();
+            Console.WriteLine(h);
+        }
+    }
+}
+");
+
+            comp.VerifyDiagnostics(
+                // (12,55): error CS1944: An expression tree may not contain an unsafe pointer operation
+                //             Expression<Func<double>> h = static () => fp()();
+                Diagnostic(ErrorCode.ERR_ExpressionTreeContainsPointerOp, "fp()()").WithLocation(12, 55)
+            );
+        }
+
         [Fact]
         public void AmbiguousApplicableMethodsAreFilteredForStatic()
         {
@@ -7511,7 +7539,7 @@ unsafe class C
     }
 }
 ";
-            var allInCoreLib = CreateEmptyCompilation(source1 + source2, parseOptions: TestOptions.Regular9, options: TestOptions.UnsafeReleaseDll);
+            var allInCoreLib = CreateEmptyCompilation(source1 + source2, parseOptions: TestOptions.Regular9.WithNoRefSafetyRulesAttribute(), options: TestOptions.UnsafeReleaseDll);
             allInCoreLib.VerifyDiagnostics(
                 // (23,29): error CS8891: Type 'CallConvTest' must be public to be used as a calling convention.
                 //         delegate* unmanaged[Test]<void> ptr = null;
@@ -7528,10 +7556,10 @@ unsafe class C
                 expectedType: "delegate* unmanaged[Test]<System.Void modopt(System.Runtime.CompilerServices.CallConvTest)>",
                 expectedSymbol: "delegate* unmanaged[Test]<System.Void modopt(System.Runtime.CompilerServices.CallConvTest)>");
 
-            var coreLib = CreateEmptyCompilation(source1);
+            var coreLib = CreateEmptyCompilation(source1, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute());
             coreLib.VerifyDiagnostics();
 
-            var comp1 = CreateEmptyCompilation(source2, references: new[] { coreLib.EmitToImageReference() }, parseOptions: TestOptions.Regular9, options: TestOptions.UnsafeReleaseDll);
+            var comp1 = CreateEmptyCompilation(source2, references: new[] { coreLib.EmitToImageReference() }, parseOptions: TestOptions.Regular9.WithNoRefSafetyRulesAttribute(), options: TestOptions.UnsafeReleaseDll);
             comp1.VerifyDiagnostics(
                 // (7,29): error CS8891: Type 'CallConvTest' must be public to be used as a calling convention.
                 //         delegate* unmanaged[Test]<void> ptr = null;
@@ -7580,7 +7608,7 @@ unsafe class C
     }
 }
 ";
-            var allInCoreLib = CreateEmptyCompilation(source1 + source2, parseOptions: TestOptions.Regular9, options: TestOptions.UnsafeReleaseDll);
+            var allInCoreLib = CreateEmptyCompilation(source1 + source2, parseOptions: TestOptions.Regular9.WithNoRefSafetyRulesAttribute(), options: TestOptions.UnsafeReleaseDll);
             allInCoreLib.VerifyDiagnostics(
                 // (23,29): error CS8890: Type 'CallConvTest' is not defined.
                 //         delegate* unmanaged[Test]<void> ptr = null;
@@ -7597,10 +7625,10 @@ unsafe class C
                 expectedType: "delegate* unmanaged[Test]<System.Void modopt(System.Runtime.CompilerServices.CallConvTest[missing])>",
                 expectedSymbol: "delegate* unmanaged[Test]<System.Void modopt(System.Runtime.CompilerServices.CallConvTest[missing])>");
 
-            var coreLib = CreateEmptyCompilation(source1);
+            var coreLib = CreateEmptyCompilation(source1, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute());
             coreLib.VerifyDiagnostics();
 
-            var comp1 = CreateEmptyCompilation(source2, references: new[] { coreLib.EmitToImageReference() }, parseOptions: TestOptions.Regular9, options: TestOptions.UnsafeReleaseDll);
+            var comp1 = CreateEmptyCompilation(source2, references: new[] { coreLib.EmitToImageReference() }, parseOptions: TestOptions.Regular9.WithNoRefSafetyRulesAttribute(), options: TestOptions.UnsafeReleaseDll);
             comp1.VerifyDiagnostics(
                 // (7,29): error CS8890: Type 'CallConvTest' is not defined.
                 //         delegate* unmanaged[Test]<void> ptr = null;
@@ -7788,10 +7816,10 @@ class C
 ", UnmanagedCallersOnlyAttribute });
 
             comp.VerifyDiagnostics(
-                // (6,6): error CS8896: 'UnmanagedCallersOnly' can only be applied to ordinary static non-abstract methods or static local functions.
+                // (6,6): error CS8896: 'UnmanagedCallersOnly' can only be applied to ordinary static non-abstract, non-virtual methods or static local functions.
                 //     [UnmanagedCallersOnly]
                 Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyRequiresStatic, "UnmanagedCallersOnly").WithLocation(6, 6),
-                // (11,10): error CS8896: 'UnmanagedCallersOnly' can only be applied to ordinary static non-abstract methods or static local functions.
+                // (11,10): error CS8896: 'UnmanagedCallersOnly' can only be applied to ordinary static non-abstract, non-virtual methods or static local functions.
                 //         [UnmanagedCallersOnly]
                 Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyRequiresStatic, "UnmanagedCallersOnly").WithLocation(11, 10)
             );
@@ -8807,10 +8835,10 @@ class Test
 ", UnmanagedCallersOnlyAttribute });
 
             comp.VerifyDiagnostics(
-                // (5,6): error CS8896: 'UnmanagedCallersOnly' can only be applied to ordinary static non-abstract methods or static local functions.
+                // (5,6): error CS8896: 'UnmanagedCallersOnly' can only be applied to ordinary static non-abstract, non-virtual methods or static local functions.
                 //     [UnmanagedCallersOnly]
                 Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyRequiresStatic, "UnmanagedCallersOnly").WithLocation(5, 6),
-                // (10,6): error CS8896: 'UnmanagedCallersOnly' can only be applied to ordinary static non-abstract methods or static local functions.
+                // (10,6): error CS8896: 'UnmanagedCallersOnly' can only be applied to ordinary static non-abstract, non-virtual methods or static local functions.
                 //     [UnmanagedCallersOnly]
                 Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyRequiresStatic, "UnmanagedCallersOnly").WithLocation(10, 6)
             );
@@ -8837,10 +8865,10 @@ class C
 ", UnmanagedCallersOnlyAttribute });
 
             comp.VerifyDiagnostics(
-                // (7,10): error CS8896: 'UnmanagedCallersOnly' can only be applied to ordinary static non-abstract methods or static local functions.
+                // (7,10): error CS8896: 'UnmanagedCallersOnly' can only be applied to ordinary static non-abstract, non-virtual methods or static local functions.
                 //         [UnmanagedCallersOnly] get => throw null;
                 Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyRequiresStatic, "UnmanagedCallersOnly").WithLocation(7, 10),
-                // (8,10): error CS8896: 'UnmanagedCallersOnly' can only be applied to ordinary static non-abstract methods or static local functions.
+                // (8,10): error CS8896: 'UnmanagedCallersOnly' can only be applied to ordinary static non-abstract, non-virtual methods or static local functions.
                 //         [UnmanagedCallersOnly] set => throw null;
                 Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyRequiresStatic, "UnmanagedCallersOnly").WithLocation(8, 10)
             );
@@ -8922,7 +8950,7 @@ class C
 ", UnmanagedCallersOnlyAttribute });
 
             comp.VerifyDiagnostics(
-                // (5,28): error CS8896: 'UnmanagedCallersOnly' can only be applied to ordinary static non-abstract methods or static local functions.
+                // (5,28): error CS8896: 'UnmanagedCallersOnly' can only be applied to ordinary static non-abstract, non-virtual methods or static local functions.
                 //     static int Prop { [UnmanagedCallersOnly] get {} }
                 Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyRequiresStatic, "UnmanagedCallersOnly").WithLocation(5, 28)
             );
@@ -9062,10 +9090,10 @@ class C
 ", UnmanagedCallersOnlyAttribute });
 
             comp.VerifyDiagnostics(
-                // (7,10): error CS8896: 'UnmanagedCallersOnly' can only be applied to ordinary static non-abstract methods or static local functions.
+                // (7,10): error CS8896: 'UnmanagedCallersOnly' can only be applied to ordinary static non-abstract, non-virtual methods or static local functions.
                 //         [UnmanagedCallersOnly] set => throw null;
                 Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyRequiresStatic, "UnmanagedCallersOnly").WithLocation(7, 10),
-                // (8,10): error CS8896: 'UnmanagedCallersOnly' can only be applied to ordinary static non-abstract methods or static local functions.
+                // (8,10): error CS8896: 'UnmanagedCallersOnly' can only be applied to ordinary static non-abstract, non-virtual methods or static local functions.
                 //         [UnmanagedCallersOnly] get => throw null;
                 Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyRequiresStatic, "UnmanagedCallersOnly").WithLocation(8, 10)
             );
@@ -9143,7 +9171,7 @@ class C
 ", UnmanagedCallersOnlyAttribute });
 
             comp.VerifyDiagnostics(
-                // (5,6): error CS8896: 'UnmanagedCallersOnly' can only be applied to ordinary static non-abstract methods or static local functions.
+                // (5,6): error CS8896: 'UnmanagedCallersOnly' can only be applied to ordinary static non-abstract, non-virtual methods or static local functions.
                 //     [UnmanagedCallersOnly]
                 Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyRequiresStatic, "UnmanagedCallersOnly").WithLocation(5, 6)
             );
@@ -9205,7 +9233,7 @@ class C
 ", UnmanagedCallersOnlyAttribute });
 
             comp.VerifyDiagnostics(
-                // (5,6): error CS8896: 'UnmanagedCallersOnly' can only be applied to ordinary static non-abstract methods or static local functions.
+                // (5,6): error CS8896: 'UnmanagedCallersOnly' can only be applied to ordinary static non-abstract, non-virtual methods or static local functions.
                 //     [UnmanagedCallersOnly]
                 Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyRequiresStatic, "UnmanagedCallersOnly").WithLocation(5, 6)
             );
@@ -9343,7 +9371,7 @@ public static class CExt
 ", UnmanagedCallersOnlyAttribute });
 
             comp.VerifyDiagnostics(
-                // (12,6): error CS8896: 'UnmanagedCallersOnly' can only be applied to ordinary static non-abstract methods or static local functions.
+                // (12,6): error CS8896: 'UnmanagedCallersOnly' can only be applied to ordinary static non-abstract, non-virtual methods or static local functions.
                 //     [UnmanagedCallersOnly]
                 Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyRequiresStatic, "UnmanagedCallersOnly").WithLocation(12, 6)
             );
@@ -9375,7 +9403,7 @@ public static class CExt
 ", UnmanagedCallersOnlyAttribute });
 
             comp.VerifyDiagnostics(
-                // (14,6): error CS8896: 'UnmanagedCallersOnly' can only be applied to ordinary static non-abstract methods or static local functions.
+                // (14,6): error CS8896: 'UnmanagedCallersOnly' can only be applied to ordinary static non-abstract, non-virtual methods or static local functions.
                 //     [UnmanagedCallersOnly]
                 Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyRequiresStatic, "UnmanagedCallersOnly").WithLocation(14, 6)
             );
@@ -9883,7 +9911,7 @@ namespace System.Runtime.InteropServices
                 // (7,10): error CS8893: 'UnmanagedCallersOnlyAttribute' is not a valid calling convention type for 'UnmanagedCallersOnly'.
                 //         [UnmanagedCallersOnly(CallConvs = new[] { typeof(UnmanagedCallersOnlyAttribute) })]
                 Diagnostic(ErrorCode.ERR_InvalidUnmanagedCallersOnlyCallConv, "UnmanagedCallersOnly(CallConvs = new[] { typeof(UnmanagedCallersOnlyAttribute) })").WithArguments("System.Runtime.InteropServices.UnmanagedCallersOnlyAttribute").WithLocation(7, 10),
-                // (7,10): error CS8896: 'UnmanagedCallersOnly' can only be applied to ordinary static non-abstract methods or static local functions.
+                // (7,10): error CS8896: 'UnmanagedCallersOnly' can only be applied to ordinary static non-abstract, non-virtual methods or static local functions.
                 //         [UnmanagedCallersOnly(CallConvs = new[] { typeof(UnmanagedCallersOnlyAttribute) })]
                 Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyRequiresStatic, "UnmanagedCallersOnly").WithLocation(7, 10)
             );
@@ -10883,10 +10911,11 @@ unsafe
             );
         }
 
-        [Fact, WorkItem(49315, "https://github.com/dotnet/roslyn/issues/49315")]
+        [WorkItem(49315, "https://github.com/dotnet/roslyn/issues/49315")]
+        [Fact]
         public void ReturnByRefFromRefReturningMethod_NotSafeToEscape()
         {
-            var comp = CreateCompilationWithSpan(@"
+            string source = @"
 using System;
 unsafe
 {
@@ -10898,9 +10927,10 @@ unsafe
         return ref ptr(ref span);
     }
 
-    static ref Span<int> ReturnByRef(ref Span<int> i) => ref i;
-}", options: TestOptions.UnsafeReleaseExe);
+    static ref Span<int> ReturnByRef(ref Span<int> i) => throw null;
+}";
 
+            var comp = CreateCompilationWithSpan(source, parseOptions: TestOptions.Regular10, options: TestOptions.UnsafeReleaseExe);
             comp.VerifyDiagnostics(
                 // (10,20): error CS8347: Cannot use a result of 'delegate*<ref Span<int>, ref Span<int>>' in this context because it may expose variables referenced by parameter '0' outside of their declaration scope
                 //         return ref ptr(ref span);
@@ -10909,12 +10939,23 @@ unsafe
                 //         return ref ptr(ref span);
                 Diagnostic(ErrorCode.ERR_RefReturnLocal, "span").WithArguments("span").WithLocation(10, 28)
             );
+
+            // delegate*<,> parameter is implicitly scoped ref in C#11.
+            comp = CreateCompilationWithSpan(source, options: TestOptions.UnsafeReleaseExe);
+            comp.VerifyDiagnostics(
+                // (10,20): error CS8347: Cannot use a result of 'delegate*<ref Span<int>, ref Span<int>>' in this context because it may expose variables referenced by parameter '0' outside of their declaration scope
+                //         return ref ptr(ref span);
+                Diagnostic(ErrorCode.ERR_EscapeCall, "ptr(ref span)").WithArguments("delegate*<ref System.Span<int>, ref System.Span<int>>", "0").WithLocation(10, 20),
+                // (10,28): error CS8352: Cannot use variable 'span' in this context because it may expose referenced variables outside of their declaration scope
+                //         return ref ptr(ref span);
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "span").WithArguments("span").WithLocation(10, 28)
+            );
         }
 
         [Fact, WorkItem(49315, "https://github.com/dotnet/roslyn/issues/49315")]
         public void ReturnByRefFromRefReturningMethod_SafeToEscape()
         {
-            var comp = CreateCompilationWithSpan(@"
+            string source = @"
 using System;
 unsafe
 {
@@ -10928,10 +10969,10 @@ unsafe
         => ref ptr(ref s);
 
     static ref Span<int> ReturnByRef(ref Span<int> i) => ref i;
-}", options: TestOptions.UnsafeReleaseExe);
+}";
 
+            var comp = CreateCompilationWithSpan(source, parseOptions: TestOptions.Regular10, options: TestOptions.UnsafeReleaseExe);
             var verifier = CompileAndVerify(comp, expectedOutput: "2", verify: Verification.Skipped);
-
             verifier.VerifyIL("Program.<<Main>$>g__ReturnPtrByRef|0_0(delegate*<ref System.Span<int>, ref System.Span<int>>, ref System.Span<int>)", @"
 {
   // Code size       10 (0xa)
@@ -10945,6 +10986,12 @@ unsafe
   IL_0009:  ret
 }
 ");
+
+            comp = CreateCompilationWithSpan(source, options: TestOptions.UnsafeReleaseExe);
+            comp.VerifyDiagnostics(
+                // (14,62): error CS9075: Cannot return a parameter by reference 'i' because it is scoped to the current method
+                //     static ref Span<int> ReturnByRef(ref Span<int> i) => ref i;
+                Diagnostic(ErrorCode.ERR_RefReturnScopedParameter, "i").WithArguments("i").WithLocation(14, 62));
         }
 
         [Fact, WorkItem(49315, "https://github.com/dotnet/roslyn/issues/49315")]
@@ -11214,9 +11261,9 @@ unsafe
                 // (10,16): error CS8347: Cannot use a result of 'delegate*<Span<int>, Span<int>>' in this context because it may expose variables referenced by parameter '0' outside of their declaration scope
                 //         return ptr(s);
                 Diagnostic(ErrorCode.ERR_EscapeCall, "ptr(s)").WithArguments("delegate*<System.Span<int>, System.Span<int>>", "0").WithLocation(10, 16),
-                // (10,20): error CS8352: Cannot use local 's' in this context because it may expose referenced variables outside of their declaration scope
+                // (10,20): error CS8352: Cannot use variable 's' in this context because it may expose referenced variables outside of their declaration scope
                 //         return ptr(s);
-                Diagnostic(ErrorCode.ERR_EscapeLocal, "s").WithArguments("s").WithLocation(10, 20)
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "s").WithArguments("s").WithLocation(10, 20)
             );
         }
 

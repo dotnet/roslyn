@@ -13,7 +13,7 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
@@ -118,7 +118,7 @@ namespace Microsoft.CodeAnalysis.SpellCheck
             // -    We believe spell-check should only compare what you have typed to what symbol would be offered here.
             var options = CompletionOptions.Default with
             {
-                HideAdvancedMembers = context.Options.GetOptions(document.Project.LanguageServices).HideAdvancedMembers,
+                HideAdvancedMembers = context.Options.GetOptions(document.Project.Services).HideAdvancedMembers,
                 SnippetsBehavior = SnippetsRule.NeverInclude,
                 ShowItemsFromUnimportedNamespaces = false,
                 TargetTypedCompletionFilter = false,
@@ -129,7 +129,7 @@ namespace Microsoft.CodeAnalysis.SpellCheck
 
             var completionList = await service.GetCompletionsAsync(
                 document, nameToken.SpanStart, options, passThroughOptions, cancellationToken: cancellationToken).ConfigureAwait(false);
-            if (completionList.Items.IsEmpty)
+            if (completionList.ItemsList.IsEmpty())
             {
                 return;
             }
@@ -158,7 +158,7 @@ namespace Microsoft.CodeAnalysis.SpellCheck
             var onlyConsiderGenerics = isGeneric;
             var results = new MultiDictionary<double, string>();
 
-            foreach (var item in completionList.Items)
+            foreach (var item in completionList.ItemsList)
             {
                 if (onlyConsiderGenerics && !IsGeneric(item))
                 {

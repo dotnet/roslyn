@@ -44,9 +44,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public DiagnosticAnalyzerService(
             IDiagnosticUpdateSourceRegistrationService registrationService,
             IAsynchronousOperationListenerProvider listenerProvider,
+            DiagnosticAnalyzerInfoCache.SharedGlobalCache globalCache,
             IGlobalOptionService globalOptions)
         {
-            AnalyzerInfoCache = new DiagnosticAnalyzerInfoCache();
+            AnalyzerInfoCache = globalCache.AnalyzerInfoCache;
             Listener = listenerProvider.GetListener(FeatureAttribute.DiagnosticService);
             GlobalOptions = globalOptions;
 
@@ -83,7 +84,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     using var _ = ArrayBuilder<DiagnosticData>.GetInstance(out var diagnostics);
                     var upToDate = await analyzer.TryAppendDiagnosticsForSpanAsync(
                         document, range, diagnostics, shouldIncludeDiagnostic,
-                        includeSuppressedDiagnostics, priority, blockForData: false,
+                        includeSuppressedDiagnostics, true, priority, blockForData: false,
                         addOperationScope: null, cancellationToken).ConfigureAwait(false);
                     return (diagnostics.ToImmutable(), upToDate);
                 }, cancellationToken);
@@ -96,6 +97,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             Document document,
             TextSpan? range,
             Func<string, bool>? shouldIncludeDiagnostic,
+            bool includeCompilerDiagnostics,
             bool includeSuppressedDiagnostics,
             CodeActionRequestPriority priority,
             Func<string, IDisposable?>? addOperationScope,
@@ -105,8 +107,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             {
                 // always make sure that analyzer is called on background thread.
                 return Task.Run(() => analyzer.GetDiagnosticsForSpanAsync(
-                    document, range, shouldIncludeDiagnostic, includeSuppressedDiagnostics, priority,
-                    blockForData: true, addOperationScope, cancellationToken), cancellationToken);
+                    document, range, shouldIncludeDiagnostic, includeSuppressedDiagnostics, includeCompilerDiagnostics,
+                    priority, blockForData: true, addOperationScope, cancellationToken), cancellationToken);
             }
 
             return SpecializedTasks.EmptyImmutableArray<DiagnosticData>();

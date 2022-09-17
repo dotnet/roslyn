@@ -33,33 +33,61 @@ namespace Microsoft.CodeAnalysis.CSharp.LineSeparators
         {
             var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            using var _ = ArrayBuilder<StringIndentationRegion>.GetInstance(out var result);
+            using var _1 = ArrayBuilder<(SyntaxNode node, int nextChild)>.GetInstance(out var nodeStack);
+            using var _2 = ArrayBuilder<StringIndentationRegion>.GetInstance(out var result);
 
-            Recurse(text, root, textSpan, result, cancellationToken);
+            nodeStack.Push((root, 0));
+            Recurse(text, nodeStack, textSpan, result, cancellationToken);
 
             return result.ToImmutable();
         }
 
-        private void Recurse(
-            SourceText text, SyntaxNode node, TextSpan textSpan, ArrayBuilder<StringIndentationRegion> result, CancellationToken cancellationToken)
+        private static void Recurse(
+            SourceText text, ArrayBuilder<(SyntaxNode node, int nextChild)> nodeStack, TextSpan textSpan, ArrayBuilder<StringIndentationRegion> result, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            if (!node.Span.IntersectsWith(textSpan))
-                return;
-
-            if (node.IsKind(SyntaxKind.InterpolatedStringExpression, out InterpolatedStringExpressionSyntax? interpolatedString) &&
-                interpolatedString.StringStartToken.IsKind(SyntaxKind.InterpolatedMultiLineRawStringStartToken))
+            while (nodeStack.TryPop(out var nextNode))
             {
-                ProcessInterpolatedStringExpression(text, interpolatedString, result, cancellationToken);
-            }
+                var (node, nextChild) = nextNode;
 
-            foreach (var child in node.ChildNodesAndTokens())
-            {
-                if (child.IsNode)
-                    Recurse(text, child.AsNode()!, textSpan, result, cancellationToken);
-                else if (child.IsKind(SyntaxKind.MultiLineRawStringLiteralToken))
-                    ProcessMultiLineRawStringLiteralToken(text, child.AsToken(), result, cancellationToken);
+                if (nextChild == 0)
+                {
+                    // This is the first time we are processing this node
+                    if (!node.Span.IntersectsWith(textSpan))
+                        continue;
+
+                    if (node.IsKind(SyntaxKind.InterpolatedStringExpression, out InterpolatedStringExpressionSyntax? interpolatedString) &&
+                        interpolatedString.StringStartToken.IsKind(SyntaxKind.InterpolatedMultiLineRawStringStartToken))
+                    {
+                        ProcessInterpolatedStringExpression(text, interpolatedString, result, cancellationToken);
+                    }
+                }
+
+                var childList = node.ChildNodesAndTokens();
+                for (var i = nextChild; i < childList.Count; i++)
+                {
+                    var child = childList[i];
+                    if (child.IsNode)
+                    {
+                        // If necessary, push the current node so we can pick back up after processing the child
+                        if (i < childList.Count - 1)
+                        {
+                            nodeStack.Push((node, i + 1));
+                        }
+
+                        // Push the child for immediate processing
+                        nodeStack.Push((child.AsNode()!, 0));
+
+                        // Break out of the 'for' loop, which effectively continues the containing 'while' loop
+                        break;
+                    }
+                    else if (child.IsKind(SyntaxKind.MultiLineRawStringLiteralToken) ||
+                             child.IsKind(SyntaxKind.Utf8MultiLineRawStringLiteralToken))
+                    {
+                        ProcessMultiLineRawStringLiteralToken(text, child.AsToken(), result, cancellationToken);
+                    }
+                }
             }
         }
 

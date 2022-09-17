@@ -27,6 +27,11 @@
         <target state="translated">未配置代码清理</target>
         <note />
       </trans-unit>
+      <trans-unit id="Computing_Encapsulate_Field_information">
+        <source>Computing 'Encapsulate Field' information</source>
+        <target state="translated">计算“封装字段”信息</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Configure_it_now">
         <source>Configure it now</source>
         <target state="translated">立即配置</target>
@@ -296,6 +301,11 @@
         <source>Rename _file (not allowed on partial types)</source>
         <target state="translated">重命名文件(不允许在分部类型上使用)(_F)</target>
         <note>Disabled text status for file rename</note>
+      </trans-unit>
+      <trans-unit id="Rename_operation_could_not_complete_due_to_external_change_to_workspace">
+        <source>Rename operation could not complete due to external change to workspace</source>
+        <target state="translated">由于工作区的外部更改，重命名操作无法完成</target>
+        <note />
       </trans-unit>
       <trans-unit id="Rename_symbols_file">
         <source>Rename symbol's _file</source>
@@ -599,7 +609,7 @@
       </trans-unit>
       <trans-unit id="_0_Esc_to_cancel">
         <source>{0} (Esc to cancel)</source>
-        <target state="new">{0} (Esc to cancel)</target>
+        <target state="translated">{0} (Esc 取消)</target>
         <note>Placeholder represents an operating that is happening.  Parenthesized expression indicates how you can cancel it.</note>
       </trans-unit>
       <trans-unit id="_0_conflict_s_will_be_resolved">

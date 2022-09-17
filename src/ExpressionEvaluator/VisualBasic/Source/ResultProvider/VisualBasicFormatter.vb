@@ -49,6 +49,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             Return RemoveLeadingAndTrailingWhitespace(expression)
         End Function
 
+        ' TODO https://github.com/dotnet/roslyn/issues/60581
+        Friend Overrides Function GetOriginalLocalVariableName(name As String) As String
+            Return name
+        End Function
+
+        ' TODO Implement this VB. https://github.com/dotnet/roslyn/issues/60581
+        Friend Overrides Function GetOriginalFieldName(name As String) As String
+            Return name
+        End Function
+
         Private Shared Function RemoveComments(expression As String) As String
             ' Workaround for https://dev.azure.com/devdiv/DevDiv/_workitems/edit/847849
             ' Do not remove any comments that might be in a string. 

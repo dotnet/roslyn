@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
     internal partial class AbstractSyntaxIndex<TIndex> : IObjectWritable
     {
         private static readonly string s_persistenceName = typeof(TIndex).Name;
-        private static readonly Checksum s_serializationFormatChecksum = Checksum.Create("29");
+        private static readonly Checksum s_serializationFormatChecksum = Checksum.Create("31");
 
         /// <summary>
         /// Cache of ParseOptions to a checksum for the <see cref="ParseOptions.PreprocessorSymbolNames"/> contained
@@ -30,9 +30,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
         public readonly Checksum? Checksum;
 
-        public static int PrecalculatedCount;
-        public static int ComputedCount;
-
         protected static async Task<TIndex?> LoadAsync(
             Document document,
             Checksum textChecksum,
@@ -40,7 +37,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             IndexReader read,
             CancellationToken cancellationToken)
         {
-            var storageService = document.Project.Solution.Workspace.Services.GetPersistentStorageService();
+            var storageService = document.Project.Solution.Services.GetPersistentStorageService();
             var documentKey = DocumentKey.ToDocumentKey(document);
             var stringTable = SyntaxTreeIndex.GetStringTable(document.Project);
 
@@ -127,7 +124,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             Document document, CancellationToken cancellationToken)
         {
             var solution = document.Project.Solution;
-            var persistentStorageService = solution.Workspace.Services.GetPersistentStorageService();
+            var persistentStorageService = solution.Services.GetPersistentStorageService();
 
             try
             {
@@ -142,63 +139,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
                 stream.Position = 0;
                 return await storage.WriteStreamAsync(document, s_persistenceName, stream, this.Checksum, cancellationToken).ConfigureAwait(false);
-            }
-            catch (Exception e) when (IOUtilities.IsNormalIOException(e))
-            {
-                // Storage APIs can throw arbitrary exceptions.
-            }
-
-            return false;
-        }
-
-        protected static async Task PrecalculateAsync(Document document, IndexCreator create, CancellationToken cancellationToken)
-        {
-            if (!document.SupportsSyntaxTree)
-                return;
-
-            using (Logger.LogBlock(FunctionId.SyntaxTreeIndex_Precalculate, cancellationToken))
-            {
-                Debug.Assert(document.IsFromPrimaryBranch());
-
-                var (textChecksum, textAndDirectivesChecksum) = await GetChecksumsAsync(document, cancellationToken).ConfigureAwait(false);
-
-                // Check if we've already created and persisted the index for this document.
-                if (await PrecalculatedAsync(document, textChecksum, textAndDirectivesChecksum, cancellationToken).ConfigureAwait(false))
-                {
-                    PrecalculatedCount++;
-                    return;
-                }
-
-                using (Logger.LogBlock(FunctionId.SyntaxTreeIndex_Precalculate_Create, cancellationToken))
-                {
-                    // If not, create and save the index.
-                    var data = await CreateIndexAsync(document, textChecksum, textAndDirectivesChecksum, create, cancellationToken).ConfigureAwait(false);
-                    await data.SaveAsync(document, cancellationToken).ConfigureAwait(false);
-                    ComputedCount++;
-                }
-            }
-        }
-
-        private static async Task<bool> PrecalculatedAsync(
-            Document document, Checksum textChecksum, Checksum textAndDirectivesChecksum, CancellationToken cancellationToken)
-        {
-            var solution = document.Project.Solution;
-            var persistentStorageService = solution.Workspace.Services.GetPersistentStorageService();
-
-            // check whether we already have info for this document
-            try
-            {
-                var storage = await persistentStorageService.GetStorageAsync(SolutionKey.ToSolutionKey(solution), cancellationToken).ConfigureAwait(false);
-                await using var _ = storage.ConfigureAwait(false);
-
-                // Check if we've already stored a checksum and it matches the checksum we expect.  If so, we're already
-                // precalculated and don't have to recompute this index.  Otherwise if we don't have a checksum, or the
-                // checksums don't match, go ahead and recompute it.
-                //
-                // Check with both checksums as we don't know at this reading point if the document has pp-directives in
-                // it or not, and we don't want parse the document to find out.
-                return await storage.ChecksumMatchesAsync(document, s_persistenceName, textChecksum, cancellationToken).ConfigureAwait(false) ||
-                       await storage.ChecksumMatchesAsync(document, s_persistenceName, textAndDirectivesChecksum, cancellationToken).ConfigureAwait(false);
             }
             catch (Exception e) when (IOUtilities.IsNormalIOException(e))
             {

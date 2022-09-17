@@ -9,9 +9,9 @@ Imports System.Threading
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.FindSymbols
 Imports Microsoft.CodeAnalysis.Host.Mef
-Imports Microsoft.CodeAnalysis.LanguageServices
+Imports Microsoft.CodeAnalysis.LanguageService
 Imports Microsoft.CodeAnalysis.PooledObjects
-Imports Microsoft.CodeAnalysis.VisualBasic.LanguageServices
+Imports Microsoft.CodeAnalysis.VisualBasic.LanguageService
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.FindSymbols
@@ -23,6 +23,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.FindSymbols
             NamespaceBlockSyntax,
             TypeBlockSyntax,
             EnumBlockSyntax,
+            DeclarationStatementSyntax,
             StatementSyntax,
             NameSyntax,
             QualifiedNameSyntax,
@@ -126,33 +127,75 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.FindSymbols
             Return VisualBasicSyntaxFacts.Instance.GetDisplayName(node, DisplayNameOptions.IncludeNamespaces, rootNamespace)
         End Function
 
+        Protected Overrides Sub AddLocalFunctionInfos(node As StatementSyntax, stringTable As StringTable, declaredSymbolInfos As ArrayBuilder(Of DeclaredSymbolInfo), containerDisplayName As String, fullyQualifiedContainerName As String, cancellationToken As CancellationToken)
+            ' VB doesn't have local functions.
+        End Sub
+
         Protected Overrides Sub AddSynthesizedDeclaredSymbolInfos(container As SyntaxNode, memberDeclaration As StatementSyntax, stringTable As StringTable, declaredSymbolInfos As ArrayBuilder(Of DeclaredSymbolInfo), containerDisplayName As String, fullyQualifiedContainerName As String, cancellationToken As CancellationToken)
             ' Nothing to do in VB.
         End Sub
 
-        Protected Overrides Sub AddDeclaredSymbolInfosWorker(
+        Protected Overrides Function GetTypeDeclarationInfo(
                 container As SyntaxNode,
-                node As StatementSyntax,
+                typeDeclaration As TypeBlockSyntax,
                 stringTable As StringTable,
-                declaredSymbolInfos As ArrayBuilder(Of DeclaredSymbolInfo),
-                aliases As Dictionary(Of String, String),
-                extensionMethodInfo As Dictionary(Of String, ArrayBuilder(Of Integer)),
                 containerDisplayName As String,
-                fullyQualifiedContainerName As String,
-                cancellationToken As CancellationToken)
+                fullyQualifiedContainerName As String) As DeclaredSymbolInfo?
 
             ' If this Is a part of partial type that only contains nested types, then we don't make an info type for it.
             ' That's because we effectively think of this as just being a virtual container just to hold the nested
             ' types, And Not something someone would want to explicitly navigate to itself.  Similar to how we think of
             ' namespaces.
-            Dim typeDecl = TryCast(node, TypeBlockSyntax)
-            If typeDecl IsNot Nothing AndAlso
-               typeDecl.BlockStatement.Modifiers.Any(SyntaxKind.PartialKeyword) AndAlso
-               typeDecl.Members.Any() AndAlso
-               typeDecl.Members.All(Function(m) TypeOf m Is TypeBlockSyntax) Then
+            If typeDeclaration.BlockStatement.Modifiers.Any(SyntaxKind.PartialKeyword) AndAlso
+               typeDeclaration.Members.Any() AndAlso
+               typeDeclaration.Members.All(Function(m) TypeOf m Is TypeBlockSyntax) Then
 
-                Return
+                Return Nothing
             End If
+
+            Return DeclaredSymbolInfo.Create(
+                stringTable,
+                typeDeclaration.BlockStatement.Identifier.ValueText,
+                GetTypeParameterSuffix(typeDeclaration.BlockStatement.TypeParameterList),
+                containerDisplayName,
+                fullyQualifiedContainerName,
+                typeDeclaration.BlockStatement.Modifiers.Any(SyntaxKind.PartialKeyword),
+                If(typeDeclaration.Kind() = SyntaxKind.ClassBlock, DeclaredSymbolInfoKind.Class,
+                   If(typeDeclaration.Kind() = SyntaxKind.InterfaceBlock, DeclaredSymbolInfoKind.Interface,
+                      If(typeDeclaration.Kind() = SyntaxKind.ModuleBlock, DeclaredSymbolInfoKind.Module, DeclaredSymbolInfoKind.Struct))),
+                GetAccessibility(container, typeDeclaration, typeDeclaration.BlockStatement.Modifiers),
+                typeDeclaration.BlockStatement.Identifier.Span,
+                GetInheritanceNames(stringTable, typeDeclaration),
+                IsNestedType(typeDeclaration))
+        End Function
+
+        Protected Overrides Function GetEnumDeclarationInfo(
+                container As SyntaxNode,
+                enumDeclaration As EnumBlockSyntax,
+                stringTable As StringTable,
+                containerDisplayName As String,
+                fullyQualifiedContainerName As String) As DeclaredSymbolInfo
+
+            Return DeclaredSymbolInfo.Create(
+                stringTable,
+                enumDeclaration.EnumStatement.Identifier.ValueText, Nothing,
+                containerDisplayName,
+                fullyQualifiedContainerName,
+                enumDeclaration.EnumStatement.Modifiers.Any(SyntaxKind.PartialKeyword),
+                DeclaredSymbolInfoKind.Enum,
+                GetAccessibility(container, enumDeclaration, enumDeclaration.EnumStatement.Modifiers),
+                enumDeclaration.EnumStatement.Identifier.Span,
+                ImmutableArray(Of String).Empty,
+                IsNestedType(enumDeclaration))
+        End Function
+
+        Protected Overrides Sub AddMemberDeclarationInfos(
+                container As SyntaxNode,
+                node As StatementSyntax,
+                stringTable As StringTable,
+                declaredSymbolInfos As ArrayBuilder(Of DeclaredSymbolInfo),
+                containerDisplayName As String,
+                fullyQualifiedContainerName As String)
 
             If node.Kind() = SyntaxKind.PropertyBlock Then
                 node = DirectCast(node, PropertyBlockSyntax).PropertyStatement
@@ -164,38 +207,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.FindSymbols
 
             Dim kind = node.Kind()
             Select Case kind
-                Case SyntaxKind.ClassBlock, SyntaxKind.InterfaceBlock, SyntaxKind.ModuleBlock, SyntaxKind.StructureBlock
-                    Dim typeBlock = CType(node, TypeBlockSyntax)
-                    declaredSymbolInfos.Add(DeclaredSymbolInfo.Create(
-                        stringTable,
-                        typeDecl.BlockStatement.Identifier.ValueText,
-                        GetTypeParameterSuffix(typeBlock.BlockStatement.TypeParameterList),
-                        containerDisplayName,
-                        fullyQualifiedContainerName,
-                        typeBlock.BlockStatement.Modifiers.Any(SyntaxKind.PartialKeyword),
-                        If(kind = SyntaxKind.ClassBlock, DeclaredSymbolInfoKind.Class,
-                        If(kind = SyntaxKind.InterfaceBlock, DeclaredSymbolInfoKind.Interface,
-                        If(kind = SyntaxKind.ModuleBlock, DeclaredSymbolInfoKind.Module,
-                        DeclaredSymbolInfoKind.Struct))),
-                        GetAccessibility(container, typeBlock, typeBlock.BlockStatement.Modifiers),
-                        typeBlock.BlockStatement.Identifier.Span,
-                        GetInheritanceNames(stringTable, typeBlock),
-                        IsNestedType(typeBlock)))
-                    Return
-                Case SyntaxKind.EnumBlock
-                    Dim enumDecl = DirectCast(node, EnumBlockSyntax)
-                    declaredSymbolInfos.Add(DeclaredSymbolInfo.Create(
-                        stringTable,
-                        enumDecl.EnumStatement.Identifier.ValueText, Nothing,
-                        containerDisplayName,
-                        fullyQualifiedContainerName,
-                        enumDecl.EnumStatement.Modifiers.Any(SyntaxKind.PartialKeyword),
-                        DeclaredSymbolInfoKind.Enum,
-                        GetAccessibility(container, enumDecl, enumDecl.EnumStatement.Modifiers),
-                        enumDecl.EnumStatement.Identifier.Span,
-                        ImmutableArray(Of String).Empty,
-                        IsNestedType(enumDecl)))
-                    Return
                 Case SyntaxKind.SubNewStatement
                     Dim constructor = DirectCast(node, SubNewStatementSyntax)
                     Dim typeBlock = TryCast(container, TypeBlockSyntax)
@@ -271,9 +282,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.FindSymbols
                         ImmutableArray(Of String).Empty,
                         parameterCount:=If(funcDecl.ParameterList?.Parameters.Count, 0),
                         typeParameterCount:=If(funcDecl.TypeParameterList?.Parameters.Count, 0)))
-                    If isExtension Then
-                        AddExtensionMethodInfo(funcDecl, aliases, declaredSymbolInfos.Count - 1, extensionMethodInfo)
-                    End If
 
                     Return
                 Case SyntaxKind.PropertyStatement
@@ -516,7 +524,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.FindSymbols
             Next
         End Sub
 
-        Protected Overrides Function GetReceiverTypeName(node As StatementSyntax) As String
+        Protected Overrides Function GetReceiverTypeName(node As DeclarationStatementSyntax) As String
+            node = If(TryCast(node, MethodBlockBaseSyntax)?.BlockStatement, node)
+
             Dim funcDecl = DirectCast(node, MethodStatementSyntax)
             Debug.Assert(IsExtensionMethod(funcDecl))
 

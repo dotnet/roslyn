@@ -9,7 +9,7 @@ using System.Diagnostics;
 using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeGeneration;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
 
@@ -181,12 +181,15 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             this IMethodSymbol method, ISymbol accessibleWithin,
             params INamedTypeSymbol[] removeAttributeTypes)
         {
-            var methodHasAttribute = method.GetAttributes().Any(shouldRemoveAttribute);
+            // Many static predicates use the same state argument in this method
+            var arg = (removeAttributeTypes, accessibleWithin);
+
+            var methodHasAttribute = method.GetAttributes().Any(shouldRemoveAttribute, arg);
 
             var someParameterHasAttribute = method.Parameters
-                .Any(m => m.GetAttributes().Any(shouldRemoveAttribute));
+                .Any(static (m, arg) => m.GetAttributes().Any(shouldRemoveAttribute, arg), arg);
 
-            var returnTypeHasAttribute = method.GetReturnTypeAttributes().Any(shouldRemoveAttribute);
+            var returnTypeHasAttribute = method.GetReturnTypeAttributes().Any(shouldRemoveAttribute, arg);
 
             if (!methodHasAttribute && !someParameterHasAttribute && !returnTypeHasAttribute)
             {
@@ -197,17 +200,17 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 method,
                 containingType: method.ContainingType,
                 explicitInterfaceImplementations: method.ExplicitInterfaceImplementations,
-                attributes: method.GetAttributes().WhereAsArray(a => !shouldRemoveAttribute(a)),
-                parameters: method.Parameters.SelectAsArray(p =>
+                attributes: method.GetAttributes().WhereAsArray(static (a, arg) => !shouldRemoveAttribute(a, arg), arg),
+                parameters: method.Parameters.SelectAsArray(static (p, arg) =>
                     CodeGenerationSymbolFactory.CreateParameterSymbol(
-                        p.GetAttributes().WhereAsArray(a => !shouldRemoveAttribute(a)),
+                        p.GetAttributes().WhereAsArray(static (a, arg) => !shouldRemoveAttribute(a, arg), arg),
                         p.RefKind, p.IsParams, p.Type, p.Name, p.IsOptional,
-                        p.HasExplicitDefaultValue, p.HasExplicitDefaultValue ? p.ExplicitDefaultValue : null)),
-                returnTypeAttributes: method.GetReturnTypeAttributes().WhereAsArray(a => !shouldRemoveAttribute(a)));
+                        p.HasExplicitDefaultValue, p.HasExplicitDefaultValue ? p.ExplicitDefaultValue : null), arg),
+                returnTypeAttributes: method.GetReturnTypeAttributes().WhereAsArray(static (a, arg) => !shouldRemoveAttribute(a, arg), arg));
 
-            bool shouldRemoveAttribute(AttributeData a) =>
-                removeAttributeTypes.Any(attr => attr.Equals(a.AttributeClass)) ||
-                a.AttributeClass?.IsAccessibleWithin(accessibleWithin) == false;
+            static bool shouldRemoveAttribute(AttributeData a, (INamedTypeSymbol[] removeAttributeTypes, ISymbol accessibleWithin) arg) =>
+                arg.removeAttributeTypes.Any(attr => attr.Equals(a.AttributeClass)) ||
+                a.AttributeClass?.IsAccessibleWithin(arg.accessibleWithin) == false;
         }
 
         public static bool? IsMoreSpecificThan(this IMethodSymbol method1, IMethodSymbol method2)

@@ -25,10 +25,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             MethodSymbol method,
             int methodOrdinal,
             AsyncStateMachine stateMachineType,
+            ArrayBuilder<StateMachineStateDebugInfo> stateMachineStateDebugInfoBuilder,
             VariableSlotAllocator slotAllocatorOpt,
             TypeCompilationState compilationState,
             BindingDiagnosticBag diagnostics)
-            : base(body, method, stateMachineType, slotAllocatorOpt, compilationState, diagnostics)
+            : base(body, method, stateMachineType, stateMachineStateDebugInfoBuilder, slotAllocatorOpt, compilationState, diagnostics)
         {
             _constructedSuccessfully = AsyncMethodBuilderMemberCollection.TryCreate(F, method, this.stateMachineType.TypeMap, out _asyncMethodBuilderMemberCollection);
             _methodOrdinal = methodOrdinal;
@@ -41,6 +42,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundStatement bodyWithAwaitLifted,
             MethodSymbol method,
             int methodOrdinal,
+            ArrayBuilder<StateMachineStateDebugInfo> stateMachineStateDebugInfoBuilder,
             VariableSlotAllocator slotAllocatorOpt,
             TypeCompilationState compilationState,
             BindingDiagnosticBag diagnostics,
@@ -73,8 +75,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             compilationState.ModuleBuilderOpt.CompilationState.SetStateMachineType(method, stateMachineType);
 
             AsyncRewriter rewriter = isAsyncEnumerableOrEnumerator
-                ? new AsyncIteratorRewriter(bodyWithAwaitLifted, method, methodOrdinal, stateMachineType, slotAllocatorOpt, compilationState, diagnostics)
-                : new AsyncRewriter(bodyWithAwaitLifted, method, methodOrdinal, stateMachineType, slotAllocatorOpt, compilationState, diagnostics);
+                ? new AsyncIteratorRewriter(bodyWithAwaitLifted, method, methodOrdinal, stateMachineType, stateMachineStateDebugInfoBuilder, slotAllocatorOpt, compilationState, diagnostics)
+                : new AsyncRewriter(bodyWithAwaitLifted, method, methodOrdinal, stateMachineType, stateMachineStateDebugInfoBuilder, slotAllocatorOpt, compilationState, diagnostics);
 
             if (!rewriter.VerifyPresenceOfRequiredAPIs())
             {
@@ -228,7 +230,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             bodyBuilder.Add(
                 F.Assignment(
                     F.Field(F.Local(stateMachineVariable), stateField.AsMember(frameType)),
-                    F.Literal(StateMachineStates.NotStartedStateMachine)));
+                    F.Literal(StateMachineState.NotStartedOrRunningState)));
 
             // local.$builder.Start(ref local) -- binding to the method AsyncTaskMethodBuilder<typeArgs>.Start()
             var startMethod = methodScopeAsyncMethodBuilderMemberCollection.Start.Construct(frameType);
@@ -265,6 +267,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 hoistedVariables: hoistedVariables,
                 nonReusableLocalProxies: nonReusableLocalProxies,
                 synthesizedLocalOrdinals: synthesizedLocalOrdinals,
+                stateMachineStateDebugInfoBuilder,
                 slotAllocatorOpt: slotAllocatorOpt,
                 nextFreeHoistedLocalSlot: nextFreeHoistedLocalSlot,
                 diagnostics: diagnostics);

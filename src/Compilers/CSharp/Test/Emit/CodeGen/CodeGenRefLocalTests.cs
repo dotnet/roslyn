@@ -3150,7 +3150,7 @@ class Program
         }
 
         [Fact]
-        private void RefLocalsAreValues()
+        public void RefLocalsAreValues()
         {
             var text = @"
 class Program
@@ -3709,6 +3709,283 @@ unsafe
                 verifier.VerifyDiagnostics();
                 verifier.VerifyIL("<top-level-statements-entry-point>", expectedIL);
             }
+        }
+
+        [Fact]
+        [WorkItem(60905, "https://github.com/dotnet/roslyn/issues/60905")]
+        public void ReadValueAndDiscard_01()
+        {
+            var source =
+@"struct S { }
+class Program
+{
+    static void Main()
+    {
+        F(new S[1]);
+    }
+    static void F(S[] a)
+    {
+        ref var b = ref a[0];
+        _ = b;
+    }
+}";
+            var verifier = CompileAndVerify(source, options: TestOptions.DebugExe, expectedOutput: "");
+            verifier.VerifyIL("Program.F", """
+{
+  // Code size       17 (0x11)
+  .maxstack  2
+  .locals init (S& V_0) //b
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  ldc.i4.0
+  IL_0003:  ldelema    "S"
+  IL_0008:  stloc.0
+  IL_0009:  ldloc.0
+  IL_000a:  ldobj      "S"
+  IL_000f:  pop
+  IL_0010:  ret
+}
+""");
+            verifier = CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: "");
+            verifier.VerifyIL("Program.F", """
+{
+  // Code size       14 (0xe)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.i4.0
+  IL_0002:  ldelema    "S"
+  IL_0007:  ldobj      "S"
+  IL_000c:  pop
+  IL_000d:  ret
+}
+""");
+        }
+
+        [Fact]
+        [WorkItem(60905, "https://github.com/dotnet/roslyn/issues/60905")]
+        public void ReadValueAndDiscard_02()
+        {
+            var source =
+@"struct S<T>
+{
+    public T F;
+}
+class Program
+{
+    static void Main()
+    {
+        F(new S<int>());
+    }
+    static void F<T>(S<T> s)
+    {
+        ref T t = ref s.F;
+        _ = t;
+    }
+}";
+            var verifier = CompileAndVerify(source, options: TestOptions.DebugExe, expectedOutput: "");
+            verifier.VerifyIL("Program.F<T>", """
+{
+  // Code size       17 (0x11)
+  .maxstack  1
+  .locals init (T& V_0) //t
+  IL_0000:  nop
+  IL_0001:  ldarga.s   V_0
+  IL_0003:  ldflda     "T S<T>.F"
+  IL_0008:  stloc.0
+  IL_0009:  ldloc.0
+  IL_000a:  ldobj      "T"
+  IL_000f:  pop
+  IL_0010:  ret
+}
+""");
+            verifier = CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: "");
+            verifier.VerifyIL("Program.F<T>", """
+{
+  // Code size       14 (0xe)
+  .maxstack  1
+  IL_0000:  ldarga.s   V_0
+  IL_0002:  ldflda     "T S<T>.F"
+  IL_0007:  ldobj      "T"
+  IL_000c:  pop
+  IL_000d:  ret
+}
+""");
+        }
+
+        [Fact]
+        [WorkItem(60905, "https://github.com/dotnet/roslyn/issues/60905")]
+        public void ReadValueAndDiscard_03()
+        {
+            var source =
+@"struct S<T>
+{
+    public T F;
+}
+class Program
+{
+    static void Main()
+    {
+        var s = new S<int>();
+        F(ref s);
+    }
+    static void F<T>(ref S<T> s)
+    {
+        ref T t = ref s.F;
+        _ = t;
+    }
+}";
+            var verifier = CompileAndVerify(source, options: TestOptions.DebugExe, expectedOutput: "");
+            verifier.VerifyIL("Program.F<T>", """
+{
+  // Code size       16 (0x10)
+  .maxstack  1
+  .locals init (T& V_0) //t
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  ldflda     "T S<T>.F"
+  IL_0007:  stloc.0
+  IL_0008:  ldloc.0
+  IL_0009:  ldobj      "T"
+  IL_000e:  pop
+  IL_000f:  ret
+}
+""");
+            verifier = CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: "");
+            verifier.VerifyIL("Program.F<T>", """
+{
+  // Code size       13 (0xd)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  ldflda     "T S<T>.F"
+  IL_0006:  ldobj      "T"
+  IL_000b:  pop
+  IL_000c:  ret
+}
+""");
+        }
+
+        [Fact]
+        [WorkItem(60905, "https://github.com/dotnet/roslyn/issues/60905")]
+        public void ReadValueAndDiscard_04()
+        {
+            var source =
+@"struct S<T>
+{
+    public T F;
+}
+class Program
+{
+    static void Main()
+    {
+        F(new S<int>());
+    }
+    static void F<T>(in S<T> s)
+    {
+        ref readonly T t = ref s.F;
+        _ = t;
+    }
+}";
+            var verifier = CompileAndVerify(source, options: TestOptions.DebugExe, expectedOutput: "");
+            verifier.VerifyIL("Program.F<T>", """
+{
+  // Code size       16 (0x10)
+  .maxstack  1
+  .locals init (T& V_0) //t
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  ldflda     "T S<T>.F"
+  IL_0007:  stloc.0
+  IL_0008:  ldloc.0
+  IL_0009:  ldobj      "T"
+  IL_000e:  pop
+  IL_000f:  ret
+}
+""");
+            verifier = CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: "");
+            verifier.VerifyIL("Program.F<T>", """
+{
+  // Code size       13 (0xd)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  ldflda     "T S<T>.F"
+  IL_0006:  ldobj      "T"
+  IL_000b:  pop
+  IL_000c:  ret
+}
+""");
+        }
+
+        [Fact]
+        public void ReadValueAndDiscard_05()
+        {
+            var source =
+@"struct S<T>
+{
+}
+class Program
+{
+    static void Main()
+    {
+        var s = new S<int>();
+        F(ref s);
+    }
+    static void F<T>(ref S<T> s)
+    {
+        _ = s;
+    }
+}";
+            var verifier = CompileAndVerify(source, options: TestOptions.DebugExe, expectedOutput: "");
+            verifier.VerifyIL("Program.F<T>",
+@"{
+  // Code size        3 (0x3)
+  .maxstack  0
+  IL_0000:  nop
+  IL_0001:  nop
+  IL_0002:  ret
+}");
+            verifier = CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: "");
+            verifier.VerifyIL("Program.F<T>",
+@"{
+  // Code size        1 (0x1)
+  .maxstack  0
+  IL_0000:  ret
+}");
+        }
+
+        [Fact]
+        public void ReadValueAndDiscard_06()
+        {
+            var source =
+@"struct S<T>
+{
+}
+class Program
+{
+    static void Main()
+    {
+        F(new S<int>());
+    }
+    static void F<T>(in S<T> s)
+    {
+        _ = s;
+    }
+}";
+            var verifier = CompileAndVerify(source, options: TestOptions.DebugExe, expectedOutput: "");
+            verifier.VerifyIL("Program.F<T>",
+@"{
+  // Code size        3 (0x3)
+  .maxstack  0
+  IL_0000:  nop
+  IL_0001:  nop
+  IL_0002:  ret
+}");
+            verifier = CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: "");
+            verifier.VerifyIL("Program.F<T>",
+@"{
+  // Code size        1 (0x1)
+  .maxstack  0
+  IL_0000:  ret
+}");
         }
     }
 }

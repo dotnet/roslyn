@@ -11,6 +11,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
+using Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.Completion;
 using Microsoft.CodeAnalysis.Options;
 using Roslyn.Test.Utilities;
@@ -350,8 +351,7 @@ class A
             Assert.Null(results);
         }
 
-        [Fact]
-        [WorkItem(50964, "https://github.com/dotnet/roslyn/issues/50964")]
+        [Fact, WorkItem(50964, "https://github.com/dotnet/roslyn/issues/50964")]
         public async Task TestGetRegexCompletionsAsync()
         {
             var markup =
@@ -388,8 +388,7 @@ class A
             Assert.Equal(defaultRange, results.ItemDefaults.EditRange);
         }
 
-        [Fact]
-        [WorkItem(50964, "https://github.com/dotnet/roslyn/issues/50964")]
+        [Fact, WorkItem(50964, "https://github.com/dotnet/roslyn/issues/50964")]
         public async Task TestGetRegexLiteralCompletionsAsync()
         {
             var markup =
@@ -426,8 +425,7 @@ class A
             Assert.Equal(defaultRange, results.ItemDefaults.EditRange);
         }
 
-        [Fact]
-        [WorkItem(50964, "https://github.com/dotnet/roslyn/issues/50964")]
+        [Fact, WorkItem(50964, "https://github.com/dotnet/roslyn/issues/50964")]
         public async Task TestGetRegexCompletionsReplaceTextAsync()
         {
             var markup =
@@ -464,8 +462,7 @@ class A
             Assert.Equal(defaultRange, results.ItemDefaults.EditRange);
         }
 
-        [Fact]
-        [WorkItem(50964, "https://github.com/dotnet/roslyn/issues/50964")]
+        [Fact, WorkItem(50964, "https://github.com/dotnet/roslyn/issues/50964")]
         public async Task TestGetRegexCompletionsWithoutItemDefaultSupportAsync()
         {
             var clientCapabilities = new LSP.VSInternalClientCapabilities
@@ -513,8 +510,7 @@ class A
             Assert.Null(results.ItemDefaults);
         }
 
-        [Fact]
-        [WorkItem(46694, "https://github.com/dotnet/roslyn/issues/46694")]
+        [Fact, WorkItem(46694, "https://github.com/dotnet/roslyn/issues/46694")]
         public async Task TestCompletionListCacheAsync()
         {
             var markup =
@@ -1369,10 +1365,8 @@ class A
 
         private static CompletionListCache GetCompletionListCache(TestLspServer testLspServer)
         {
-            var dispatchAccessor = testLspServer.GetDispatcherAccessor();
-            var handler = (CompletionHandler)dispatchAccessor.GetHandler<LSP.CompletionParams, LSP.CompletionList>(LSP.Methods.TextDocumentCompletionName);
-            Assert.NotNull(handler);
-            return handler.GetTestAccessor().GetCache();
+            var cache = testLspServer.GetRequiredLspService<CompletionListCache>();
+            return cache;
         }
     }
 }

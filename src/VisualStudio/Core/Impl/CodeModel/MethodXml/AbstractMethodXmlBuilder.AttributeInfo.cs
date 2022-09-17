@@ -8,7 +8,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Metho
 {
     internal abstract partial class AbstractMethodXmlBuilder
     {
-        private struct AttributeInfo
+        private readonly struct AttributeInfo
         {
             public static readonly AttributeInfo Empty = new AttributeInfo();
 

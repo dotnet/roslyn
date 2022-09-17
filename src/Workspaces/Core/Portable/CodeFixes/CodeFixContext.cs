@@ -208,7 +208,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                 throw new ArgumentException(WorkspacesResources.At_least_one_diagnostic_must_be_supplied, nameof(diagnostics));
             }
 
-            if (diagnostics.Any(d => d == null))
+            if (diagnostics.Any(static d => d == null))
             {
                 throw new ArgumentException(WorkspaceExtensionsResources.Supplied_diagnostic_cannot_be_null, nameof(diagnostics));
             }

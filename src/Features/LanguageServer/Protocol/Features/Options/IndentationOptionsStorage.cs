@@ -14,10 +14,12 @@ internal static class IndentationOptionsStorage
     public static async Task<IndentationOptions> GetIndentationOptionsAsync(this Document document, IGlobalOptionService globalOptions, CancellationToken cancellationToken)
     {
         var formattingOptions = await document.GetSyntaxFormattingOptionsAsync(globalOptions, cancellationToken).ConfigureAwait(false);
-        var autoFormattingOptions = globalOptions.GetAutoFormattingOptions(document.Project.Language);
-        var indentStyle = globalOptions.GetOption(SmartIndent, document.Project.Language);
 
-        return new(formattingOptions, autoFormattingOptions, indentStyle);
+        return new IndentationOptions(formattingOptions)
+        {
+            AutoFormattingOptions = globalOptions.GetAutoFormattingOptions(document.Project.Language),
+            IndentStyle = globalOptions.GetOption(SmartIndent, document.Project.Language)
+        };
     }
 
     public static PerLanguageOption2<FormattingOptions2.IndentStyle> SmartIndent => FormattingOptions2.SmartIndent;

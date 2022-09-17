@@ -21,6 +21,11 @@
     <Compile Include="$(MSBuildThisFileDirectory)ImmutableSegmentedDictionary`2+ValueCollection+Enumerator.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ImmutableSegmentedDictionary`2+ValueCollection.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ImmutableSegmentedDictionary`2.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ImmutableSegmentedHashSet.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ImmutableSegmentedHashSet`1+Builder.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ImmutableSegmentedHashSet`1+Enumerator.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ImmutableSegmentedHashSet`1+PrivateInterlocked.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ImmutableSegmentedHashSet`1.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ImmutableSegmentedList.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ImmutableSegmentedListExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ImmutableSegmentedList`1+Builder.cs" />
@@ -29,6 +34,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)ImmutableSegmentedList`1+ValueBuilder.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ImmutableSegmentedList`1.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Internal\ArraySortHelper.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Internal\BitHelper.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Internal\HashHelpers.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Internal\ICollectionCalls.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Internal\ICollectionCalls`1.cs" />
@@ -41,12 +47,14 @@
     <Compile Include="$(MSBuildThisFileDirectory)Internal\RoslynUnsafe.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Internal\SegmentedArrayHelper.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Internal\SegmentedArraySegment`1.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Internal\SegmentedHashSetEqualityComparer`1.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Internal\ThrowHelper.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)RoslynEnumerable.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)RoslynImmutableInterlocked.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)SegmentedArray.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)SegmentedArray`1.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)SegmentedDictionary`2.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)SegmentedHashSet`1.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)SegmentedList`1.cs" />
   </ItemGroup>
   <ItemGroup>

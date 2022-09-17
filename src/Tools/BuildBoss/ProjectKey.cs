@@ -13,7 +13,7 @@ using System.Threading.Tasks;
 
 namespace BuildBoss
 {
-    internal struct ProjectKey : IEquatable<ProjectKey>
+    internal readonly struct ProjectKey : IEquatable<ProjectKey>
     {
         internal string FilePath { get; }
 

@@ -10,6 +10,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.CodeFixes.FullyQualify
 Imports Microsoft.CodeAnalysis.VisualBasic.Diagnostics
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.FullyQualify
+    <Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)>
     Public Class FullyQualifyTests
         Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest
 
@@ -21,7 +22,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.FullyQ
             Return FlattenActions(actions)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)>
+        <Fact>
         Public Async Function TestParameterType() As Task
             Await TestInRegularAndScriptAsync(
 "Module Program
@@ -34,7 +35,7 @@ End Module",
 End Module")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)>
+        <Fact>
         Public Async Function TestSimpleQualifyFromSameFile() As Task
             Await TestInRegularAndScriptAsync(
 "Class Class1
@@ -53,7 +54,7 @@ Namespace SomeNamespace
 End Namespace")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)>
+        <Fact>
         Public Async Function TestOrdering() As Task
             Dim code = "
 namespace System.Windows.Controls
@@ -83,7 +84,7 @@ End Class"
                  "System.Windows.Forms.VisualStyles.VisualStyleElement.TextBox"})
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)>
+        <Fact>
         Public Async Function TestSimpleQualifyFromReference() As Task
             Await TestInRegularAndScriptAsync(
 "Class Class1
@@ -94,7 +95,7 @@ End Class",
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)>
+        <Fact>
         Public Async Function TestGenericClassDefinitionAsClause() As Task
             Await TestInRegularAndScriptAsync(
 "Namespace SomeNamespace
@@ -111,7 +112,7 @@ Class SomeClass(Of x As SomeNamespace.Base)
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)>
+        <Fact>
         Public Async Function TestGenericClassInstantiationOfClause() As Task
             Await TestInRegularAndScriptAsync(
 "Namespace SomeNamespace
@@ -138,7 +139,7 @@ Class Goo
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)>
+        <Fact>
         Public Async Function TestGenericMethodDefinitionAsClause() As Task
             Await TestInRegularAndScriptAsync(
 "Namespace SomeNamespace
@@ -159,7 +160,7 @@ Class Goo
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)>
+        <Fact>
         Public Async Function TestGenericMethodInvocationOfClause() As Task
             Await TestInRegularAndScriptAsync(
 "Namespace SomeNamespace
@@ -186,7 +187,7 @@ Class Goo
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)>
+        <Fact>
         Public Async Function TestAttributeApplication() As Task
             Await TestInRegularAndScriptAsync(
 "<[|Something|]()>
@@ -207,7 +208,7 @@ Namespace SomeNamespace
 End Namespace")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)>
+        <Fact>
         Public Async Function TestMultipleAttributeApplicationBelow() As Task
             Await TestInRegularAndScriptAsync(
 "Imports System
@@ -238,7 +239,7 @@ Namespace SomeNamespace
 End Namespace")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)>
+        <Fact>
         Public Async Function TestMultipleAttributeApplicationAbove() As Task
             Await TestInRegularAndScriptAsync(
 "<[|Something|]()>
@@ -267,7 +268,7 @@ Namespace SomeNamespace
 End Namespace")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)>
+        <Fact>
         Public Async Function TestQualifierIsEscapedWhenNamespaceMatchesKeyword() As Task
             Await TestInRegularAndScriptAsync(
 "Class SomeClass
@@ -286,8 +287,7 @@ Namespace [Namespace]
 End Namespace")
         End Function
 
-        <WorkItem(540559, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540559")>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)>
+        <Fact, WorkItem(540559, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540559")>
         Public Async Function TestQualifierIsNOTEscapedWhenNamespaceMatchesKeywordButIsNested() As Task
             Await TestInRegularAndScriptAsync(
 "Class SomeClass
@@ -310,8 +310,7 @@ Namespace Outer
 End Namespace")
         End Function
 
-        <WorkItem(540560, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540560")>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)>
+        <Fact, WorkItem(540560, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540560")>
         Public Async Function TestFullyQualifyInImportsStatement() As Task
             Await TestInRegularAndScriptAsync(
 "Imports [|InnerNamespace|]
@@ -330,7 +329,7 @@ Namespace SomeNamespace
 End Namespace")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)>
+        <Fact>
         Public Async Function TestFullyQualifyNotSuggestedForGenericTypeParametersOfClause() As Task
             Await TestMissingInRegularAndScriptAsync(
 "Class SomeClass
@@ -343,7 +342,7 @@ Namespace SomeNamespace
 End Namespace")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)>
+        <Fact>
         Public Async Function TestFullyQualifyNotSuggestedForGenericTypeParametersAsClause() As Task
             Await TestMissingInRegularAndScriptAsync(
 "Class SomeClass
@@ -356,8 +355,7 @@ Namespace SomeNamespace
 End Namespace")
         End Function
 
-        <WorkItem(540673, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540673")>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)>
+        <Fact, WorkItem(540673, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540673")>
         Public Async Function TestCaseSensitivityForNestedNamespace() As Task
             Await TestInRegularAndScriptAsync(
 "Class Goo
@@ -384,8 +382,7 @@ Namespace SomeNamespace
 End Namespace")
         End Function
 
-        <WorkItem(540543, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540543")>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)>
+        <Fact, WorkItem(540543, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540543")>
         Public Async Function TestCaseSensitivity1() As Task
             Await TestInRegularAndScriptAsync(
 "Class Goo
@@ -404,7 +401,7 @@ Namespace SomeNamespace
 End Namespace")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)>
+        <Fact>
         Public Async Function TestTypeFromMultipleNamespaces1() As Task
             Await TestInRegularAndScriptAsync(
 "Class Goo
@@ -417,7 +414,7 @@ End Class",
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)>
+        <Fact>
         Public Async Function TestTypeFromMultipleNamespaces2() As Task
             Await TestInRegularAndScriptAsync(
 "Class Goo
@@ -431,7 +428,7 @@ End Class",
 index:=1)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)>
+        <Fact>
         Public Async Function TestGenericWithNoArgs() As Task
             Await TestInRegularAndScriptAsync(
 "Class Goo
@@ -444,7 +441,7 @@ End Class",
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)>
+        <Fact>
         Public Async Function TestGenericWithCorrectArgs() As Task
             Await TestInRegularAndScriptAsync(
 "Class Goo
@@ -457,7 +454,7 @@ End Class",
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)>
+        <Fact>
         Public Async Function TestGenericWithWrongArgs() As Task
             Await TestMissingInRegularAndScriptAsync(
 "Class Goo
@@ -466,7 +463,7 @@ End Class")
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)>
+        <Fact>
         Public Async Function TestGenericInLocalDeclaration() As Task
             Await TestInRegularAndScriptAsync(
 "Class Goo
@@ -481,7 +478,7 @@ End Class",
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)>
+        <Fact>
         Public Async Function TestGenericItemType() As Task
             Await TestInRegularAndScriptAsync(
 "Class Goo
@@ -496,7 +493,7 @@ End Class",
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)>
+        <Fact>
         Public Async Function TestGenerateInNamespace() As Task
             Await TestInRegularAndScriptAsync(
 "Imports System
@@ -517,7 +514,7 @@ Namespace NS
 End Namespace")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)>
+        <Fact>
         Public Async Function TestMinimalQualify() As Task
             Await TestInRegularAndScriptAsync(
 "Imports System
@@ -530,8 +527,7 @@ Module Program
 End Module")
         End Function
 
-        <WorkItem(540559, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540559")>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)>
+        <Fact, WorkItem(540559, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540559")>
         Public Async Function TestEscaping1() As Task
             Await TestInRegularAndScriptAsync(
 "Class SomeClass
@@ -554,8 +550,7 @@ Namespace Outer
 End Namespace")
         End Function
 
-        <WorkItem(540559, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540559")>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)>
+        <Fact, WorkItem(540559, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540559")>
         Public Async Function TestEscaping2() As Task
             Await TestInRegularAndScriptAsync(
 "Class SomeClass
@@ -578,8 +573,7 @@ Namespace [Namespace]
 End Namespace")
         End Function
 
-        <WorkItem(540559, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540559")>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)>
+        <Fact, WorkItem(540559, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540559")>
         Public Async Function TestEscaping3() As Task
             Await TestInRegularAndScriptAsync(
 "Class SomeClass
@@ -602,8 +596,7 @@ Namespace Outer
 End Namespace")
         End Function
 
-        <WorkItem(540560, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540560")>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)>
+        <Fact, WorkItem(540560, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540560")>
         Public Async Function TestInImport() As Task
             Await TestInRegularAndScriptAsync(
 "Imports [|InnerNamespace|]
@@ -622,8 +615,7 @@ Namespace SomeNamespace
 End Namespace")
         End Function
 
-        <WorkItem(540673, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540673")>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)>
+        <Fact, WorkItem(540673, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540673")>
         Public Async Function TestCaseInsensitivity() As Task
             Await TestInRegularAndScriptAsync(
 "Class GOo
@@ -650,8 +642,7 @@ Namespace SomeNamespace
 End Namespace")
         End Function
 
-        <WorkItem(540706, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540706")>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)>
+        <Fact, WorkItem(540706, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540706")>
         Public Async Function TestStandaloneMethod() As Task
             Await TestInRegularAndScriptAsync(
 "'Class [Class] 
@@ -666,8 +657,7 @@ End Sub
 End Class")
         End Function
 
-        <WorkItem(540736, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540736")>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)>
+        <Fact, WorkItem(540736, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540736")>
         Public Async Function TestMissingOnBoundFieldType() As Task
             Await TestMissingInRegularAndScriptAsync(
 "Imports System.Collections.Generic
@@ -679,8 +669,7 @@ Class A
 End Class")
         End Function
 
-        <WorkItem(540736, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540736")>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)>
+        <Fact, WorkItem(540736, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540736")>
         Public Async Function TestMissingOnBoundLocalType() As Task
             Await TestMissingInRegularAndScriptAsync(
 "Imports System.Collections.Generic
@@ -692,8 +681,7 @@ Class A
 End Class")
         End Function
 
-        <WorkItem(540745, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540745")>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)>
+        <Fact, WorkItem(540745, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540745")>
         Public Async Function TestCaseSensitivity2() As Task
             Await TestInRegularAndScriptAsync(
 "Module Program
@@ -720,8 +708,7 @@ Namespace OUTER
 End Namespace")
         End Function
 
-        <WorkItem(821292, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/821292")>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)>
+        <Fact, WorkItem(821292, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/821292")>
         Public Async Function TestCaseSensitivity3() As Task
             Await TestInRegularAndScriptAsync(
 "Imports System
@@ -738,8 +725,7 @@ Module Program
 End Module")
         End Function
 
-        <WorkItem(545993, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545993")>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)>
+        <Fact, WorkItem(545993, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545993")>
         Public Async Function TestNotOnNamedArgument() As Task
             Await TestMissingInRegularAndScriptAsync(
 "Module Program
@@ -749,8 +735,7 @@ End Module")
 End Module")
         End Function
 
-        <WorkItem(546107, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546107")>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)>
+        <Fact, WorkItem(546107, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546107")>
         Public Async Function TestDoNotQualifyNestedTypeOfGenericType() As Task
             Await TestMissingInRegularAndScriptAsync(
 "Imports System
@@ -767,7 +752,7 @@ Class Program
 End Class")
         End Function
 
-        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)>
+        <Fact>
         Public Async Function TestFormattingInFullyQualify() As Task
             Await TestInRegularAndScriptAsync(
 <Text>Module Program
@@ -782,8 +767,7 @@ End Module</Text>.Value.Replace(vbLf, vbCrLf),
 End Module</Text>.Value.Replace(vbLf, vbCrLf))
         End Function
 
-        <WorkItem(775448, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/775448")>
-        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)>
+        <Fact, WorkItem(775448, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/775448")>
         Public Async Function TestShouldTriggerOnBC32045() As Task
             ' BC32045: 'A' has no type parameters and so cannot have type arguments.
             Await TestInRegularAndScriptAsync(
@@ -803,8 +787,7 @@ Module Program
 End Module</Text>.Value.Replace(vbLf, vbCrLf))
         End Function
 
-        <WorkItem(947579, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/947579")>
-        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)>
+        <Fact, WorkItem(947579, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/947579")>
         Public Async Function TestAmbiguousTypeFix() As Task
             Await TestInRegularAndScriptAsync(
 <Text>Imports N1
@@ -853,8 +836,8 @@ End Namespace</Text>.Value.Replace(vbLf, vbCrLf))
                         New VisualBasicFullyQualifyCodeFixProvider())
             End Function
 
-            <WorkItem(829970, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/829970")>
             <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)>
+            <WorkItem(829970, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/829970")>
             Public Async Function TestUnknownIdentifierInAttributeSyntaxWithoutTarget() As Task
                 Await TestInRegularAndScriptAsync(
 "Module Program

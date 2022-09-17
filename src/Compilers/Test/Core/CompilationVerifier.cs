@@ -13,6 +13,7 @@ using System.Reflection;
 using System.Reflection.Metadata;
 using System.Reflection.PortableExecutable;
 using System.Runtime.CompilerServices;
+using System.Text;
 using System.Xml.Linq;
 using ICSharpCode.Decompiler.Metadata;
 using Microsoft.CodeAnalysis;
@@ -434,7 +435,33 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             [CallerLineNumber] int callerLine = 0,
             string source = null)
         {
-            return VerifyILImpl(qualifiedMethodName, expectedIL, realIL, sequencePoints, callerPath, callerLine, escapeQuotes: true, source: source);
+            return VerifyILImpl(qualifiedMethodName, expectedIL, realIL, sequencePoints, callerPath, callerLine, escapeQuotes: false, source: source);
+        }
+
+        public void VerifyILMultiple(params string[] qualifiedMethodNamesAndExpectedIL)
+        {
+            var names = ArrayBuilder<string>.GetInstance();
+            var expected = ArrayBuilder<string>.GetInstance();
+            var actual = ArrayBuilder<string>.GetInstance();
+            for (int i = 0; i < qualifiedMethodNamesAndExpectedIL.Length;)
+            {
+                var qualifiedName = qualifiedMethodNamesAndExpectedIL[i++];
+                names.Add(qualifiedName);
+                actual.Add(AssertEx.NormalizeWhitespace(VisualizeIL(qualifiedName)));
+                expected.Add(AssertEx.NormalizeWhitespace(qualifiedMethodNamesAndExpectedIL[i++]));
+            }
+            if (!expected.SequenceEqual(actual))
+            {
+                var builder = new StringBuilder();
+                for (int i = 0; i < expected.Count; i++)
+                {
+                    builder.AppendLine(AssertEx.GetAssertMessage(expected[i], actual[i], prefix: names[i], escapeQuotes: true));
+                }
+                Assert.True(false, builder.ToString());
+            }
+            actual.Free();
+            expected.Free();
+            names.Free();
         }
 
         public CompilationVerifier VerifyMissing(

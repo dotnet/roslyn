@@ -10,10 +10,11 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Internal.Log;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Simplification;
@@ -452,6 +453,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
                     .GetRequiredSemanticModelAsync(CancellationToken.None).AsTask();
             });
 
+        internal CodeGenerationOptions GetDocumentOptions()
+            => State.ThreadingContext.JoinableTaskFactory.Run(() =>
+            {
+                return GetDocument()
+                    .GetCodeGenerationOptionsAsync(GlobalOptions, CancellationToken.None).AsTask();
+            });
+
         internal Compilation GetCompilation()
             => State.ThreadingContext.JoinableTaskFactory.Run(() =>
             {
@@ -648,10 +656,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
         {
             var codeElement = ComAggregate.TryGetManagedObject<AbstractCodeElement>(element);
 
-            if (codeElement == null)
-            {
-                codeElement = ComAggregate.TryGetManagedObject<AbstractCodeElement>(this.CodeElements.Item(element));
-            }
+            codeElement ??= ComAggregate.TryGetManagedObject<AbstractCodeElement>(this.CodeElements.Item(element));
 
             if (codeElement == null)
             {
@@ -832,10 +837,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
             if (_codeElementTable.TryGetValue(globalNodeKey.NodeKey, out var element))
             {
                 var keyedElement = ComAggregate.GetManagedObject<AbstractKeyedCodeElement>(element);
-                if (keyedElement != null)
-                {
-                    keyedElement.ReacquireNodeKey(globalNodeKey.Path, default);
-                }
+                keyedElement?.ReacquireNodeKey(globalNodeKey.Path, default);
             }
         }
     }

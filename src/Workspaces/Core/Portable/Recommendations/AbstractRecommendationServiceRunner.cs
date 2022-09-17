@@ -11,7 +11,7 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Threading;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
@@ -116,7 +116,7 @@ internal abstract partial class AbstractRecommendationService<TSyntaxContext>
 
         private ImmutableArray<ITypeSymbol> SubstituteTypeParameters(ImmutableArray<ITypeSymbol> parameterTypeSymbols, SyntaxNode invocationExpression)
         {
-            if (!parameterTypeSymbols.Any(t => t.IsKind(SymbolKind.TypeParameter)))
+            if (!parameterTypeSymbols.Any(static t => t.IsKind(SymbolKind.TypeParameter)))
             {
                 return parameterTypeSymbols;
             }
@@ -288,8 +288,8 @@ internal abstract partial class AbstractRecommendationService<TSyntaxContext>
             //
             return recommendationSymbol.IsNamespace() &&
                    recommendationSymbol.Locations.Any(
-                       candidateLocation => !(declarationSyntax.SyntaxTree == candidateLocation.SourceTree &&
-                                              declarationSyntax.Span.IntersectsWith(candidateLocation.SourceSpan)));
+                       static (candidateLocation, declarationSyntax) => !(declarationSyntax.SyntaxTree == candidateLocation.SourceTree &&
+                                              declarationSyntax.Span.IntersectsWith(candidateLocation.SourceSpan)), declarationSyntax);
         }
 
         protected ImmutableArray<ISymbol> GetMemberSymbols(

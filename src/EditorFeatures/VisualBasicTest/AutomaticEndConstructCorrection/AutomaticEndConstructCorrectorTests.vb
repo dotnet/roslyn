@@ -13,9 +13,9 @@ Imports Microsoft.VisualStudio.Utilities
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.AutomaticEndConstructCorrection
     <[UseExportProvider]>
+    <Trait(Traits.Feature, Traits.Features.AutomaticEndConstructCorrection)>
     Public Class AutomaticEndConstructCorrectorTests
         <WpfFact>
-        <Trait(Traits.Feature, Traits.Features.AutomaticEndConstructCorrection)>
         Public Sub TestStructureToInterface()
             Dim code = <code>[|Structure|] A
 End [|Structure|]</code>.Value
@@ -24,7 +24,6 @@ End [|Structure|]</code>.Value
         End Sub
 
         <WpfFact>
-        <Trait(Traits.Feature, Traits.Features.AutomaticEndConstructCorrection)>
         Public Sub TestEnumToInterface()
             Dim code = <code>[|Enum|] A
 End [|Enum|]</code>.Value
@@ -33,7 +32,6 @@ End [|Enum|]</code>.Value
         End Sub
 
         <WpfFact>
-        <Trait(Traits.Feature, Traits.Features.AutomaticEndConstructCorrection)>
         Public Sub TestInterfaceToEnum()
             Dim code = <code>[|Interface|] A
 End [|Interface|]</code>.Value
@@ -42,7 +40,6 @@ End [|Interface|]</code>.Value
         End Sub
 
         <WpfFact>
-        <Trait(Traits.Feature, Traits.Features.AutomaticEndConstructCorrection)>
         Public Sub TestClassToInterface()
             Dim code = <code>[|Class|] A
 End [|Class|]</code>.Value
@@ -51,7 +48,6 @@ End [|Class|]</code>.Value
         End Sub
 
         <WpfFact>
-        <Trait(Traits.Feature, Traits.Features.AutomaticEndConstructCorrection)>
         Public Sub TestModuleToInterface()
             Dim code = <code>[|Module|] A
 End [|Module|]</code>.Value
@@ -60,7 +56,6 @@ End [|Module|]</code>.Value
         End Sub
 
         <WpfFact>
-        <Trait(Traits.Feature, Traits.Features.AutomaticEndConstructCorrection)>
         Public Sub TestNamespaceToInterface()
             Dim code = <code>[|Namespace|] A
 End [|Namespace|]</code>.Value
@@ -69,7 +64,6 @@ End [|Namespace|]</code>.Value
         End Sub
 
         <WpfFact>
-        <Trait(Traits.Feature, Traits.Features.AutomaticEndConstructCorrection)>
         Public Sub TestSubToFunction()
             Dim code = <code>Class A
     [|Sub|] Test()
@@ -80,7 +74,6 @@ End Class</code>.Value
         End Sub
 
         <WpfFact>
-        <Trait(Traits.Feature, Traits.Features.AutomaticEndConstructCorrection)>
         Public Sub TestFunctionToSub()
             Dim code = <code>Class A
     [|Function|] Test() As Integer
@@ -91,7 +84,6 @@ End Class</code>.Value
         End Sub
 
         <WpfFact>
-        <Trait(Traits.Feature, Traits.Features.AutomaticEndConstructCorrection)>
         Public Sub TestModuleToInterface1()
             Dim code = <code>[|Module|] A : End [|Module|] : Module B : End Module</code>.Value
 
@@ -99,7 +91,6 @@ End Class</code>.Value
         End Sub
 
         <WpfFact>
-        <Trait(Traits.Feature, Traits.Features.AutomaticEndConstructCorrection)>
         Public Sub TestModuleToInterface2()
             Dim code = <code>Module A : End Module : [|Module|] B : End [|Module|]</code>.Value
 
@@ -107,7 +98,6 @@ End Class</code>.Value
         End Sub
 
         <WpfFact>
-        <Trait(Traits.Feature, Traits.Features.AutomaticEndConstructCorrection)>
         Public Sub TestModuleToInterface3()
             Dim code = <code>Module A : End Module:[|Module|] B : End [|Module|]</code>.Value
 
@@ -115,7 +105,6 @@ End Class</code>.Value
         End Sub
 
         <WpfFact>
-        <Trait(Traits.Feature, Traits.Features.AutomaticEndConstructCorrection)>
         Public Sub TestModuleToInterface4()
             Dim code = <code>[|Module|] A : End [|Module|]:Module B : End Module</code>.Value
 
@@ -123,7 +112,6 @@ End Class</code>.Value
         End Sub
 
         <WpfFact>
-        <Trait(Traits.Feature, Traits.Features.AutomaticEndConstructCorrection)>
         Public Sub TestErrorCaseMissingEndFunction()
             Dim code = <code>Class A
     [|Function|] Test() As Integer
@@ -135,7 +123,6 @@ End Class</code>.Value.Replace(vbLf, vbCrLf)
         End Sub
 
         <WpfFact>
-        <Trait(Traits.Feature, Traits.Features.AutomaticEndConstructCorrection)>
         Public Sub TestContinuousEditsOnFunctionToInterface()
             Dim code = <code>Class A
     [|$$Function|] Test() As Integer
@@ -146,7 +133,6 @@ End Class</code>.Value
         End Sub
 
         <WpfFact>
-        <Trait(Traits.Feature, Traits.Features.AutomaticEndConstructCorrection)>
         Public Sub TestContinuousEditsOnFunctionToInterfaceWithLeadingSpaces()
             Dim code = <code>Class A
     [|$$Function|] Test() As Integer
@@ -157,7 +143,6 @@ End Class</code>.Value
         End Sub
 
         <WpfFact>
-        <Trait(Traits.Feature, Traits.Features.AutomaticEndConstructCorrection)>
         Public Sub TestContinuousEditsOnFunctionToInterfaceWithTrailingSpaces()
             Dim code = <code>Class A
     [|$$Function|] Test() As Integer
@@ -168,7 +153,6 @@ End Class</code>.Value
         End Sub
 
         <WpfFact>
-        <Trait(Traits.Feature, Traits.Features.AutomaticEndConstructCorrection)>
         Public Sub TestContinuousEditsOnFunctionToInterfaceWithLeadingAndTrailingSpaces()
             Dim code = <code>Class A
     [|$$Function|] Test() As Integer
@@ -179,7 +163,6 @@ End Class</code>.Value
         End Sub
 
         <WpfFact>
-        <Trait(Traits.Feature, Traits.Features.AutomaticEndConstructCorrection)>
         Public Sub TestAddSharedModifierToFunction()
             Dim code = <code>Class A
     [|$$Function|] Test() As Integer
@@ -190,7 +173,6 @@ End Class</code>.Value
         End Sub
 
         <WpfFact>
-        <Trait(Traits.Feature, Traits.Features.AutomaticEndConstructCorrection)>
         Public Sub TestAddSharedModifierToFunction1()
             Dim code = <code>Class A
     [|Function$$|] Test() As Integer
@@ -201,7 +183,6 @@ End Class</code>.Value
         End Sub
 
         <WpfFact>
-        <Trait(Traits.Feature, Traits.Features.AutomaticEndConstructCorrection)>
         Public Sub TestAddTrailingSpaceToFunction()
             Dim code = <code>Class A
     [|Function$$|] Test() As Integer
@@ -212,7 +193,6 @@ End Class</code>.Value
         End Sub
 
         <WpfFact>
-        <Trait(Traits.Feature, Traits.Features.AutomaticEndConstructCorrection)>
         Public Sub TestAddLeadingSpaceToFunction()
             Dim code = <code>Class A
     [|$$Function|] Test() As Integer
@@ -223,7 +203,6 @@ End Class</code>.Value
         End Sub
 
         <WpfFact>
-        <Trait(Traits.Feature, Traits.Features.AutomaticEndConstructCorrection)>
         Public Sub TestAddSharedModifierToFunction2()
             Dim code = <code>Class A
     [|Function$$|] Test() As Integer
@@ -234,7 +213,7 @@ End Class</code>.Value
         End Sub
 
         <WorkItem(539362, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539362")>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticEndConstructCorrection)>
+        <WpfFact>
         Public Sub TestMultiLineLambdaSubToFunction()
             Dim code = <code>Class A
     Public Sub F()
@@ -250,7 +229,7 @@ End Class</code>.Value
         End Sub
 
         <WorkItem(539362, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539362")>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticEndConstructCorrection)>
+        <WpfFact>
         Public Sub TestMultiLineLambdaFunctionToSub()
             Dim code = <code>Class A
     Public Sub F()
@@ -265,7 +244,7 @@ End Class</code>.Value
         End Sub
 
         <WorkItem(539365, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539365")>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticEndConstructCorrection)>
+        <WpfFact>
         Public Sub BugFix5290()
             Dim code = <code>Public Class Class1
     Sub M()
@@ -279,7 +258,6 @@ End [|Class|]</code>.Value
 
         <WorkItem(539357, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539357")>
         <WpfFact>
-        <Trait(Traits.Feature, Traits.Features.AutomaticEndConstructCorrection)>
         Public Sub TestBugFix5276()
             Dim code = <code>Class A
     [|Func$$tion|] Test() As Integer
@@ -291,7 +269,6 @@ End Class</code>.Value
 
         <WorkItem(539360, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539360")>
         <WpfFact>
-        <Trait(Traits.Feature, Traits.Features.AutomaticEndConstructCorrection)>
         Public Sub TestBugFix5283()
             Dim code = <code>Class A
     [|$$Function|] Test() As Integer
@@ -301,9 +278,7 @@ End Class</code>.Value
             VerifyContinuousEdits(code, "Shared Sub", Function(s) If(s.Trim() = "Shared Sub", "Sub", "Function"), removeOriginalContent:=True)
         End Sub
 
-        <WpfFact>
-        <Trait(Traits.Feature, Traits.Features.AutomaticEndConstructCorrection)>
-        <WorkItem(539498, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539498")>
+        <WpfFact, WorkItem(539498, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539498")>
         Public Sub TestDontThrowDueToSingleLineDeletion()
             Dim code = <code>Class A
     [|$$Sub M() : End Sub|]
@@ -313,7 +288,6 @@ End Class</code>.Value
         End Sub
 
         <WpfFact>
-        <Trait(Traits.Feature, Traits.Features.AutomaticEndConstructCorrection)>
         Public Sub TestPropertySet()
             Dim code = <code>Class A
     Property Test
@@ -328,7 +302,6 @@ End Class</code>.Value
         End Sub
 
         <WpfFact>
-        <Trait(Traits.Feature, Traits.Features.AutomaticEndConstructCorrection)>
         Public Sub TestPropertyGet()
             Dim code = <code>Class A
     Property Test

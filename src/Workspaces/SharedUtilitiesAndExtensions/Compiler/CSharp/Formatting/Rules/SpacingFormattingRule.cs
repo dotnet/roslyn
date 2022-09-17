@@ -600,7 +600,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
         }
 
         private static bool HasFormattableBracketParent(SyntaxToken token)
-            => token.Parent.Kind() is SyntaxKind.ArrayRankSpecifier or SyntaxKind.BracketedArgumentList or SyntaxKind.BracketedParameterList or SyntaxKind.ImplicitArrayCreationExpression or SyntaxKind.ListPattern;
+            => token.Parent?.Kind() is SyntaxKind.ArrayRankSpecifier or SyntaxKind.BracketedArgumentList or SyntaxKind.BracketedParameterList or SyntaxKind.ImplicitArrayCreationExpression or SyntaxKind.ListPattern;
 
         private static bool IsFunctionLikeKeywordExpressionKind(SyntaxKind syntaxKind)
             => (syntaxKind is SyntaxKind.TypeOfExpression or SyntaxKind.DefaultExpression or SyntaxKind.SizeOfExpression);

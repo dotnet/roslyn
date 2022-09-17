@@ -8,6 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Xaml;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -15,9 +16,9 @@ using Microsoft.VisualStudio.LanguageServices.Xaml.Features.Structure;
 
 namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer.Handler
 {
-    [ExportXamlLspRequestHandlerProvider(typeof(FoldingRangesHandler)), Shared]
+    [ExportStatelessXamlLspService(typeof(FoldingRangesHandler)), Shared]
     [Method(Methods.TextDocumentFoldingRangeName)]
-    internal class FoldingRangesHandler : AbstractStatelessRequestHandler<FoldingRangeParams, FoldingRange[]>
+    internal class FoldingRangesHandler : IRequestHandler<FoldingRangeParams, FoldingRange[]>
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -25,12 +26,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer.Handler
         {
         }
 
-        public override bool MutatesSolutionState => false;
-        public override bool RequiresLSPSolution => true;
+        public bool MutatesSolutionState => false;
+        public bool RequiresLSPSolution => true;
 
-        public override TextDocumentIdentifier? GetTextDocumentIdentifier(FoldingRangeParams request) => request.TextDocument;
+        public TextDocumentIdentifier? GetTextDocumentIdentifier(FoldingRangeParams request) => request.TextDocument;
 
-        public override async Task<FoldingRange[]> HandleRequestAsync(FoldingRangeParams request, RequestContext context, CancellationToken cancellationToken)
+        public async Task<FoldingRange[]> HandleRequestAsync(FoldingRangeParams request, RequestContext context, CancellationToken cancellationToken)
         {
             var foldingRanges = ArrayBuilder<FoldingRange>.GetInstance();
 
@@ -40,7 +41,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer.Handler
                 return foldingRanges.ToArrayAndFree();
             }
 
-            var xamlStructureService = document.Project.LanguageServices.GetService<IXamlStructureService>();
+            var xamlStructureService = document.Project.Services.GetService<IXamlStructureService>();
             if (xamlStructureService == null)
             {
                 return foldingRanges.ToArrayAndFree();

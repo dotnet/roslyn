@@ -13,9 +13,9 @@ using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Extensibility.Testing;
-using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
 using Roslyn.Test.Utilities;
 using Roslyn.VisualStudio.IntegrationTests;
+using WindowsInput.Native;
 using Xunit;
 
 namespace Roslyn.VisualStudio.NewIntegrationTests.CSharp
@@ -492,7 +492,7 @@ public class Program
 
 public class P2 { }", HangMitigatingCancellationToken);
 
-            await TestServices.Input.SendAsync(VirtualKey.Backspace, VirtualKey.Backspace, "Stream");
+            await TestServices.Input.SendAsync(VirtualKeyCode.BACK, VirtualKeyCode.BACK, "Stream");
             await TestServices.Workspace.WaitForAllAsyncOperationsAsync(
                 new[]
                 {
@@ -538,7 +538,7 @@ public class P2 { }", HangMitigatingCancellationToken);
             await TestServices.EditorVerifier.TextContainsAsync("using System.IO;", cancellationToken: HangMitigatingCancellationToken);
         }
 
-        [IdeFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [IdeFact(Skip = "https://github.com/dotnet/roslyn/issues/57423"), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task GFUFuzzyMatchAfterRenameTrackingAndAfterGenerateType()
         {
             await SetUpEditorAsync(@"
@@ -557,7 +557,7 @@ namespace NS
         }
     }
 }", HangMitigatingCancellationToken);
-            await TestServices.Input.SendAsync(VirtualKey.Backspace, VirtualKey.Backspace,
+            await TestServices.Input.SendAsync(VirtualKeyCode.BACK, VirtualKeyCode.BACK,
                 "Foober");
             await TestServices.Workspace.WaitForAllAsyncOperationsAsync(
                 new[]
@@ -1171,45 +1171,49 @@ class OtherType2
             var markup = @"
 class C1
 {
-    void M(bool x, int a, int b)
+    void M()
     {
-        var c = $$x ? a : b;
-        var c2 = x ? a : b;
+        var singleLine1 = $$""a"";
+        var singleLine2 = @""goo""""bar"";
     }
 
-    void M2(bool x, int a, int b)
+    void M2()
     {
-        var c = x ? a : b;
+        var singleLine1 = ""a"";
+        var singleLine2 = @""goo""""bar"";
     }
 }
 
 class C2
 {
-    void M3(bool x, int a, int b)
+    void M3()
     {
-        var c = x ? a : b;
+        var singleLine1 = ""a"";
+        var singleLine2 = @""goo""""bar"";
     }
 }";
             var expectedText = @"
 class C1
 {
-    void M(bool x, int a, int b)
+    void M()
     {
-        var c = !x ? b : a;
-        var c2 = !x ? b : a;
+        var singleLine1 = """"""a"""""";
+        var singleLine2 = """"""goo""bar"""""";
     }
 
-    void M2(bool x, int a, int b)
+    void M2()
     {
-        var c = x ? a : b;
+        var singleLine1 = ""a"";
+        var singleLine2 = @""goo""""bar"";
     }
 }
 
 class C2
 {
-    void M3(bool x, int a, int b)
+    void M3()
     {
-        var c = x ? a : b;
+        var singleLine1 = ""a"";
+        var singleLine2 = @""goo""""bar"";
     }
 }";
 
@@ -1230,7 +1234,7 @@ class C2
             await TestServices.Editor.InvokeCodeActionListAsync(HangMitigatingCancellationToken);
 
             await TestServices.EditorVerifier.CodeActionAsync(
-                "Invert conditional",
+                "Convert to raw string",
                 applyFix: true,
                 fixAllScope: FixAllScope.ContainingMember,
                 cancellationToken: HangMitigatingCancellationToken);
@@ -1245,104 +1249,104 @@ class C2
             var markup1 = @"
 partial class C1
 {
-    void M(bool x, int a, int b)
+    void M()
     {
-        var c = $$x ? a : b;
-        var c2 = x ? a : b;
+        var singleLine1 = $$""a"";
+        var singleLine2 = @""goo""""bar"";
     }
 
-    void M2(bool x, int a, int b)
+    void M2()
     {
-        var c = x ? a : b;
-        var c2 = x ? a : b;
+        var singleLine1 = ""a"";
+        var singleLine2 = @""goo""""bar"";
     }
 }
 
 class C2
 {
-    void M3(bool x, int a, int b)
+    void M3()
     {
-        var c = x ? a : b;
-        var c2 = x ? a : b;
+        var singleLine1 = ""a"";
+        var singleLine2 = @""goo""""bar"";
     }
 }
 
 partial class C1
 {
-    void M4(bool x, int a, int b)
+    void M4()
     {
-        var c = x ? a : b;
-        var c2 = x ? a : b;
+        var singleLine1 = ""a"";
+        var singleLine2 = @""goo""""bar"";
     }
 }";
             var expectedText1 = @"
 partial class C1
 {
-    void M(bool x, int a, int b)
+    void M()
     {
-        var c = !x ? b : a;
-        var c2 = !x ? b : a;
+        var singleLine1 = """"""a"""""";
+        var singleLine2 = """"""goo""bar"""""";
     }
 
-    void M2(bool x, int a, int b)
+    void M2()
     {
-        var c = !x ? b : a;
-        var c2 = !x ? b : a;
+        var singleLine1 = """"""a"""""";
+        var singleLine2 = """"""goo""bar"""""";
     }
 }
 
 class C2
 {
-    void M3(bool x, int a, int b)
+    void M3()
     {
-        var c = x ? a : b;
-        var c2 = x ? a : b;
+        var singleLine1 = ""a"";
+        var singleLine2 = @""goo""""bar"";
     }
 }
 
 partial class C1
 {
-    void M4(bool x, int a, int b)
+    void M4()
     {
-        var c = !x ? b : a;
-        var c2 = !x ? b : a;
+        var singleLine1 = """"""a"""""";
+        var singleLine2 = """"""goo""bar"""""";
     }
 }";
 
             var markup2 = @"
 partial class C1
 {
-    void M5(bool x, int a, int b)
+    void M5()
     {
-        var c = x ? a : b;
-        var c2 = x ? a : b;
+        var singleLine1 = ""a"";
+        var singleLine2 = @""goo""""bar"";
     }
 }
 
 class C2
 {
-    void M6(bool x, int a, int b)
+    void M6()
     {
-        var c = x ? a : b;
-        var c2 = x ? a : b;
+        var singleLine1 = ""a"";
+        var singleLine2 = @""goo""""bar"";
     }
 }";
             var expectedText2 = @"
 partial class C1
 {
-    void M5(bool x, int a, int b)
+    void M5()
     {
-        var c = !x ? b : a;
-        var c2 = !x ? b : a;
+        var singleLine1 = """"""a"""""";
+        var singleLine2 = """"""goo""bar"""""";
     }
 }
 
 class C2
 {
-    void M6(bool x, int a, int b)
+    void M6()
     {
-        var c = x ? a : b;
-        var c2 = x ? a : b;
+        var singleLine1 = ""a"";
+        var singleLine2 = @""goo""""bar"";
     }
 }";
 
@@ -1364,7 +1368,7 @@ class C2
             await TestServices.Editor.InvokeCodeActionListAsync(HangMitigatingCancellationToken);
 
             await TestServices.EditorVerifier.CodeActionAsync(
-                "Invert conditional",
+                "Convert to raw string",
                 applyFix: true,
                 fixAllScope: FixAllScope.ContainingType,
                 cancellationToken: HangMitigatingCancellationToken);
@@ -1372,6 +1376,47 @@ class C2
             AssertEx.EqualOrDiff(expectedText1, await TestServices.Editor.GetTextAsync(HangMitigatingCancellationToken));
 
             AssertEx.EqualOrDiff(expectedText2, await TestServices.SolutionExplorer.GetFileContentsAsync(ProjectName, "Class2.cs", HangMitigatingCancellationToken));
+        }
+
+        [IdeFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
+        [WorkItem(61334, "https://github.com/dotnet/roslyn/issues/61334")]
+        public async Task UseExpressionBodyBeforeExtractBaseClass()
+        {
+            await SetUpEditorAsync(@"
+public class Program
+{
+    $$public void M()
+    {
+        System.Console.WriteLine(0);
+    }
+}
+", HangMitigatingCancellationToken);
+
+            await TestServices.Workspace.WaitForAllAsyncOperationsAsync(
+                new[]
+                {
+                    FeatureAttribute.Workspace,
+                    FeatureAttribute.EventHookup,
+                    FeatureAttribute.Rename,
+                    FeatureAttribute.RenameTracking,
+                    FeatureAttribute.SolutionCrawler,
+                    FeatureAttribute.DiagnosticService,
+                    FeatureAttribute.ErrorSquiggles,
+                },
+                HangMitigatingCancellationToken);
+
+            // Suspend file change notification during code action application, since spurious file change notifications
+            // can cause silent failure to apply the code action if they occur within this block.
+            await using var fileChangeRestorer = await TestServices.Shell.PauseFileChangesAsync(HangMitigatingCancellationToken);
+
+            await TestServices.Editor.InvokeCodeActionListAsync(HangMitigatingCancellationToken);
+            var expectedItems = new[]
+            {
+                "Use expression body for methods",
+                "Extract base class...",
+            };
+
+            await TestServices.EditorVerifier.CodeActionsAsync(expectedItems, ensureExpectedItemsAreOrdered: true, cancellationToken: HangMitigatingCancellationToken);
         }
     }
 }

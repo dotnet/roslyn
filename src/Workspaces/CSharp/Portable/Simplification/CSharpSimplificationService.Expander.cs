@@ -743,7 +743,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                     if (((IMethodSymbol)symbol).TypeArguments.Length != 0)
                     {
                         var typeArguments = ((IMethodSymbol)symbol).TypeArguments;
-                        if (!typeArguments.Any(t => t.ContainsAnonymousType()))
+                        if (!typeArguments.Any(static t => t.ContainsAnonymousType()))
                         {
                             var genericName = SyntaxFactory.GenericName(
                                             ((IdentifierNameSyntax)newNode).Identifier,

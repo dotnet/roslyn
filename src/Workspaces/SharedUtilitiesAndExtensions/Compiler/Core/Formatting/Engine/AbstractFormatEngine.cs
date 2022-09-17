@@ -9,7 +9,7 @@ using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Formatting.Rules;
 using Microsoft.CodeAnalysis.Internal.Log;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
@@ -146,21 +146,21 @@ namespace Microsoft.CodeAnalysis.Formatting
             List<IndentBlockOperation> indentBlockOperation;
             using (Logger.LogBlock(FunctionId.Formatting_CollectIndentBlock, cancellationToken))
             {
-                indentBlockOperation = AddOperations<IndentBlockOperation>(nodeIterator, (l, n) => _formattingRules.AddIndentBlockOperations(l, n), cancellationToken);
+                indentBlockOperation = AddOperations<IndentBlockOperation>(nodeIterator, _formattingRules.AddIndentBlockOperations, cancellationToken);
             }
 
             cancellationToken.ThrowIfCancellationRequested();
             List<SuppressOperation> suppressOperation;
             using (Logger.LogBlock(FunctionId.Formatting_CollectSuppressOperation, cancellationToken))
             {
-                suppressOperation = AddOperations<SuppressOperation>(nodeIterator, (l, n) => _formattingRules.AddSuppressOperations(l, n), cancellationToken);
+                suppressOperation = AddOperations<SuppressOperation>(nodeIterator, _formattingRules.AddSuppressOperations, cancellationToken);
             }
 
             cancellationToken.ThrowIfCancellationRequested();
             List<AlignTokensOperation> alignmentOperation;
             using (Logger.LogBlock(FunctionId.Formatting_CollectAlignOperation, cancellationToken))
             {
-                var operations = AddOperations<AlignTokensOperation>(nodeIterator, (l, n) => _formattingRules.AddAlignTokensOperations(l, n), cancellationToken);
+                var operations = AddOperations<AlignTokensOperation>(nodeIterator, _formattingRules.AddAlignTokensOperations, cancellationToken);
 
                 // make sure we order align operation from left to right
                 operations.Sort((o1, o2) => o1.BaseToken.Span.CompareTo(o2.BaseToken.Span));
@@ -172,7 +172,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             List<AnchorIndentationOperation> anchorIndentationOperations;
             using (Logger.LogBlock(FunctionId.Formatting_CollectAnchorOperation, cancellationToken))
             {
-                anchorIndentationOperations = AddOperations<AnchorIndentationOperation>(nodeIterator, (l, n) => _formattingRules.AddAnchorIndentationOperations(l, n), cancellationToken);
+                anchorIndentationOperations = AddOperations<AnchorIndentationOperation>(nodeIterator, _formattingRules.AddAnchorIndentationOperations, cancellationToken);
             }
 
             return new NodeOperations(indentBlockOperation, suppressOperation, anchorIndentationOperations, alignmentOperation);
@@ -308,7 +308,7 @@ namespace Microsoft.CodeAnalysis.Formatting
                 triviaInfo.Format(
                     ctx,
                     formattingRules,
-                    (tokenPairIndex1, ts, info) => RegularApplier(tokenPairIndex1, ts, info),
+                    RegularApplier,
                     ct,
                     tokenPairIndex);
             }

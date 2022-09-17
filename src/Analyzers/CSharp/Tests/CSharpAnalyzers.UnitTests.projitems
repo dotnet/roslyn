@@ -14,8 +14,12 @@
     <Compile Include="$(MSBuildThisFileDirectory)AddInheritdoc\AddInheritdocTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)AddObsoleteAttribute\AddObsoleteAttributeTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)AliasAmbiguousType\AliasAmbiguousTypeTests.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ConvertNamespace\ConvertToBlockScopedNamespaceAnalyzerTests.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ConvertNamespace\ConvertToFileScopedNamespaceAnalyzerTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)DisambiguateSameVariable\DisambiguateSameVariableTests.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)FixIncorrectConstraint\FixIncorrectConstraintTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)FixReturnType\FixReturnTypeTests.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ForEachCast\ForEachCastTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Formatting\FormattingAnalyzerTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)HideBase\HideBaseTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Iterator\AddYieldTests.cs" />
@@ -51,8 +55,12 @@
     <Compile Include="$(MSBuildThisFileDirectory)OrderModifiers\OrderModifiersTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)RemoveConfusingSuppression\RemoveConfusingSuppressionTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)RemoveRedundantEquality\RemoveRedundantEqualityTests.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)RemoveUnnecessaryLambdaExpression\RemoveUnnecessaryLambdaExpressionTests.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)RemoveUnnecessaryNullableDirective\CSharpRemoveRedundantNullableDirectiveTests.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)RemoveUnnecessaryNullableDirective\CSharpRemoveUnnecessaryNullableDirectiveTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)SimplifyLinqExpression\CSharpSimplifyLinqExpressionFixAllTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)SimplifyLinqExpression\CSharpSimplifyLinqExpressionTests.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)TransposeRecordKeyword\TransposeRecordKeywordTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UnsealClass\UnsealClassTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UpdateLegacySuppressions\UpdateLegacySuppressionsTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)RemoveUnnecessarySuppressions\RemoveUnnecessaryAttributeSuppressionsTests.cs" />
@@ -69,6 +77,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)UseConditionalExpression\UseConditionalExpressionForReturnTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseDeconstruction\UseDeconstructionTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseDefaultLiteral\UseDefaultLiteralTests.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)UseExpressionBodyForLambda\UseExpressionBodyForLambdasAnalyzerTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseExpressionBody\UseExpressionBodyForAccessorsAnalyzerTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseExpressionBody\UseExpressionBodyForConstructorsAnalyzerTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseExpressionBody\UseExpressionBodyForConversionOperatorsAnalyzerTests.cs" />
@@ -109,7 +118,6 @@
     <Compile Include="$(MSBuildThisFileDirectory)UseIsNullCheck\UseNullCheckOverTypeCheckDiagnosticAnalyzerTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseExplicitTupleName\UseExplicitTupleNameTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseImplicitObjectCreation\CSharpUseImplicitObjectCreationTests.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)UseParameterNullChecking\UseParameterNullCheckingTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseTupleSwap\UseTupleSwapTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseLocalFunction\UseLocalFunctionTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseNullPropagation\UseNullPropagationTests.cs" />
@@ -123,7 +131,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)UseSystemHashCode\UseSystemHashCodeTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseThrowExpression\UseThrowExpressionTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseThrowExpression\UseThrowExpressionTests_FixAllTests.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)UseUTF8StringLiteral\UseUTF8StringLiteralTests.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)UseUtf8StringLiteral\UseUtf8StringLiteralTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseVarTestExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ValidateFormatString\ValidateFormatStringTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)NewLines\EmbeddedStatementPlacement\EmbeddedStatementPlacementTests.cs" />

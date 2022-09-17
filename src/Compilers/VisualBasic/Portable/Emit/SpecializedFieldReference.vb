@@ -3,13 +3,9 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System
-Imports System.Collections.Generic
-Imports System.Linq
-Imports System.Text
+Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis.Emit
-Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
 
@@ -64,6 +60,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                 Return New Cci.ModifiedTypeReference(type, customModifiers.As(Of Cci.ICustomModifier))
             End If
         End Function
+
+        Private ReadOnly Property IFieldReferenceRefCustomModifiers As ImmutableArray(Of Cci.ICustomModifier) Implements Cci.IFieldReference.RefCustomModifiers
+            Get
+                Return ImmutableArray(Of Cci.ICustomModifier).Empty
+            End Get
+        End Property
+
+        Private ReadOnly Property IFieldReferenceIsByReference As Boolean Implements Cci.IFieldReference.IsByReference
+            Get
+                Return False
+            End Get
+        End Property
 
         Private Function IFieldReferenceGetResolvedField(context As EmitContext) As Cci.IFieldDefinition Implements Cci.IFieldReference.GetResolvedField
             Return Nothing

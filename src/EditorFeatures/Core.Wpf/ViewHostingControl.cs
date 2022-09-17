@@ -35,10 +35,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Utilities
 
         private void EnsureBufferCreated()
         {
-            if (_createdTextBuffer == null)
-            {
-                _createdTextBuffer = _createBuffer();
-            }
+            _createdTextBuffer ??= _createBuffer();
         }
 
         private void EnsureContentCreated()

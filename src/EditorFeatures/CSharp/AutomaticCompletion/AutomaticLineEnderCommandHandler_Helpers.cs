@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion
             SyntaxFormattingOptions formattingOptions,
             CancellationToken cancellationToken)
         {
-            var services = document.Project.Solution.Workspace.Services;
+            var services = document.Project.Solution.Services;
             var rootEditor = new SyntaxEditor(root, services);
 
             // 1. Insert the node before anchor node
@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion
             var formattedNewRoot = Formatter.Format(
                 newRoot,
                 newNodeAfterInsertion.Span,
-                document.Project.Solution.Workspace.Services,
+                document.Project.Solution.Services,
                 formattingOptions,
                 cancellationToken);
 
@@ -571,7 +571,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion
                     if (!otherAccessors.IsEmpty)
                     {
                         return !otherAccessors.Any(
-                            accessor => accessor.Body == null
+                            static accessor => accessor.Body == null
                                         && accessor.ExpressionBody == null
                                         && !accessor.SemicolonToken.IsMissing);
                     }
@@ -871,9 +871,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion
             {
                 BaseTypeDeclarationSyntax baseTypeDeclarationNode => WithBracesForBaseTypeDeclaration(baseTypeDeclarationNode, formattingOptions),
                 BaseObjectCreationExpressionSyntax objectCreationExpressionNode => GetObjectCreationExpressionWithInitializer(objectCreationExpressionNode, formattingOptions),
-                FieldDeclarationSyntax fieldDeclarationNode when fieldDeclarationNode.Declaration.Variables.IsSingle()
-                    => ConvertFieldDeclarationToPropertyDeclaration(fieldDeclarationNode, formattingOptions),
-                EventFieldDeclarationSyntax eventFieldDeclarationNode => ConvertEventFieldDeclarationToEventDeclaration(eventFieldDeclarationNode, formattingOptions),
                 BaseMethodDeclarationSyntax baseMethodDeclarationNode => AddBlockToBaseMethodDeclaration(baseMethodDeclarationNode, formattingOptions),
                 LocalFunctionStatementSyntax localFunctionStatementNode => AddBlockToLocalFunctionDeclaration(localFunctionStatementNode, formattingOptions),
                 AccessorDeclarationSyntax accessorDeclarationNode => AddBlockToAccessorDeclaration(accessorDeclarationNode, formattingOptions),
@@ -897,39 +894,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion
             BaseObjectCreationExpressionSyntax objectCreationExpressionNode,
             SyntaxFormattingOptions formattingOptions)
             => objectCreationExpressionNode.WithInitializer(GetInitializerExpressionNode(formattingOptions));
-
-        /// <summary>
-        /// Convert <param name="fieldDeclarationNode"/> to a property declarations.
-        /// </summary>
-        private static PropertyDeclarationSyntax ConvertFieldDeclarationToPropertyDeclaration(
-            FieldDeclarationSyntax fieldDeclarationNode,
-            SyntaxFormattingOptions formattingOptions)
-            => SyntaxFactory.PropertyDeclaration(
-                fieldDeclarationNode.AttributeLists,
-                fieldDeclarationNode.Modifiers,
-                fieldDeclarationNode.Declaration.Type,
-                explicitInterfaceSpecifier: null,
-                identifier: fieldDeclarationNode.Declaration.Variables[0].Identifier,
-                accessorList: GetAccessorListNode(formattingOptions),
-                expressionBody: null,
-                initializer: null,
-                semicolonToken: SyntaxFactory.Token(SyntaxKind.None)).WithTriviaFrom(fieldDeclarationNode);
-
-        /// <summary>
-        /// Convert <param name="eventFieldDeclarationNode"/> to an eventDeclaration node.
-        /// </summary>
-        private static EventDeclarationSyntax ConvertEventFieldDeclarationToEventDeclaration(
-            EventFieldDeclarationSyntax eventFieldDeclarationNode,
-            SyntaxFormattingOptions formattingOptions)
-            => SyntaxFactory.EventDeclaration(
-                eventFieldDeclarationNode.AttributeLists,
-                eventFieldDeclarationNode.Modifiers,
-                eventFieldDeclarationNode.EventKeyword,
-                eventFieldDeclarationNode.Declaration.Type,
-                explicitInterfaceSpecifier: null,
-                identifier: eventFieldDeclarationNode.Declaration.Variables[0].Identifier,
-                accessorList: GetAccessorListNode(formattingOptions),
-                semicolonToken: SyntaxFactory.Token(SyntaxKind.None)).WithTriviaFrom(eventFieldDeclarationNode);
 
         /// <summary>
         /// Add an empty block to <param name="baseMethodDeclarationNode"/>.

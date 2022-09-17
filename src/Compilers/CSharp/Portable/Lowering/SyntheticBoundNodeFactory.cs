@@ -125,7 +125,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private sealed class SyntheticBinderImpl : BuckStopsHereBinder
         {
             private readonly SyntheticBoundNodeFactory _factory;
-            internal SyntheticBinderImpl(SyntheticBoundNodeFactory factory) : base(factory.Compilation)
+            internal SyntheticBinderImpl(SyntheticBoundNodeFactory factory) : base(factory.Compilation, associatedFileIdentifier: null)
             {
                 _factory = factory;
             }
@@ -643,6 +643,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             return Binary(BinaryOperatorKind.IntSubtraction, SpecialType(CodeAnalysis.SpecialType.System_Int32), left, right);
         }
 
+        public BoundBinaryOperator IntMultiply(BoundExpression left, BoundExpression right)
+        {
+            return Binary(BinaryOperatorKind.IntMultiplication, SpecialType(CodeAnalysis.SpecialType.System_Int32), left, right);
+        }
+
         public BoundLiteral Literal(byte value)
         {
             return new BoundLiteral(Syntax, ConstantValue.Create(value), SpecialType(Microsoft.CodeAnalysis.SpecialType.System_Byte)) { WasCompilerGenerated = true };
@@ -652,6 +657,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             return new BoundLiteral(Syntax, ConstantValue.Create(value), SpecialType(Microsoft.CodeAnalysis.SpecialType.System_Int32)) { WasCompilerGenerated = true };
         }
+
+        public BoundLiteral Literal(StateMachineState value)
+            => Literal((int)value);
 
         public BoundLiteral Literal(uint value)
         {
@@ -949,26 +957,23 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// An internal helper class for building a switch statement.
         /// </summary>
-        internal class SyntheticSwitchSection
+        internal readonly struct SyntheticSwitchSection
         {
             public readonly ImmutableArray<int> Values;
             public readonly ImmutableArray<BoundStatement> Statements;
-            public SyntheticSwitchSection(ImmutableArray<int> Values, ImmutableArray<BoundStatement> Statements)
+
+            public SyntheticSwitchSection(ImmutableArray<int> values, ImmutableArray<BoundStatement> statements)
             {
-                this.Values = Values;
-                this.Statements = Statements;
+                Values = values;
+                Statements = statements;
             }
         }
 
         public SyntheticSwitchSection SwitchSection(int value, params BoundStatement[] statements)
-        {
-            return new SyntheticSwitchSection(ImmutableArray.Create(value), ImmutableArray.Create(statements));
-        }
+            => SwitchSection(ImmutableArray.Create(value), statements);
 
-        public SyntheticSwitchSection SwitchSection(List<int> values, params BoundStatement[] statements)
-        {
-            return new SyntheticSwitchSection(ImmutableArray.CreateRange(values), ImmutableArray.Create(statements));
-        }
+        public SyntheticSwitchSection SwitchSection(ImmutableArray<int> values, params BoundStatement[] statements)
+            => new(values, ImmutableArray.Create(statements));
 
         /// <summary>
         /// Produce an int switch.
@@ -983,7 +988,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             CheckSwitchSections(sections);
+
             GeneratedLabelSymbol breakLabel = new GeneratedLabelSymbol("break");
+
             var caseBuilder = ArrayBuilder<(ConstantValue Value, LabelSymbol label)>.GetInstance();
             var statements = ArrayBuilder<BoundStatement>.GetInstance();
             statements.Add(null!); // placeholder at statements[0] for the dispatch
@@ -1128,6 +1135,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         public BoundExpression Null(TypeSymbol type)
         {
             return Null(type, Syntax);
+        }
+
+        // Produce a ByRef null of given type, like `ref T Unsafe.NullRef<T>()`.
+        public BoundExpression NullRef(TypeWithAnnotations type)
+        {
+            // *default(T*)
+            return new BoundPointerIndirectionOperator(Syntax, Default(new PointerTypeSymbol(type)), refersToLocation: false, type.Type);
         }
 
         public static BoundExpression Null(TypeSymbol type, SyntaxNode syntax)
@@ -1298,7 +1312,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 #endif 
             Conversion c = Compilation.Conversions.ClassifyConversionFromExpression(arg, type, isChecked: false, ref useSiteInfo);
             Debug.Assert(c.Exists);
-            Debug.Assert(useSiteInfo.Diagnostics.IsNullOrEmpty());
+            // The use-site diagnostics should be reported earlier, and we shouldn't get to lowering if they're errors.
+            Debug.Assert(!useSiteInfo.HasErrors);
 
             return Convert(type, arg, c);
         }
@@ -1536,7 +1551,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal ImmutableArray<BoundExpression> MakeTempsForDiscardArguments(ImmutableArray<BoundExpression> arguments, ArrayBuilder<LocalSymbol> builder)
         {
-            var discardsPresent = arguments.Any(a => a.Kind == BoundKind.DiscardExpression);
+            var discardsPresent = arguments.Any(static a => a.Kind == BoundKind.DiscardExpression);
 
             if (discardsPresent)
             {

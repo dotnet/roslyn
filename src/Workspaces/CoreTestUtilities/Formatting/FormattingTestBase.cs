@@ -55,22 +55,22 @@ namespace Microsoft.CodeAnalysis.UnitTests.Formatting
 
                 var formattingService = document.GetRequiredLanguageService<ISyntaxFormattingService>();
                 var formattingOptions = changedOptionSet != null ?
-                    formattingService.GetFormattingOptions(changedOptionSet.ToAnalyzerConfigOptions(document.Project.LanguageServices), fallbackOptions: null) :
+                    formattingService.GetFormattingOptions(changedOptionSet.ToAnalyzerConfigOptions(document.Project.Services), fallbackOptions: null) :
                     formattingService.DefaultOptions;
 
                 var syntaxTree = await document.GetRequiredSyntaxTreeAsync(CancellationToken.None);
                 var root = await syntaxTree.GetRootAsync();
-                await AssertFormatAsync(workspace.Services, expected, root, spans.AsImmutable(), formattingOptions, await document.GetTextAsync());
+                await AssertFormatAsync(workspace.Services.SolutionServices, expected, root, spans.AsImmutable(), formattingOptions, await document.GetTextAsync());
 
                 // format with node and transform
-                AssertFormatWithTransformation(workspace.Services, expected, root, spans, formattingOptions, treeCompare, parseOptions);
+                AssertFormatWithTransformation(workspace.Services.SolutionServices, expected, root, spans, formattingOptions, treeCompare, parseOptions);
             }
         }
 
         protected abstract SyntaxNode ParseCompilation(string text, ParseOptions? parseOptions);
 
         internal void AssertFormatWithTransformation(
-            HostWorkspaceServices services, string expected, SyntaxNode root, IEnumerable<TextSpan> spans, SyntaxFormattingOptions options, bool treeCompare = true, ParseOptions? parseOptions = null)
+            SolutionServices services, string expected, SyntaxNode root, IEnumerable<TextSpan> spans, SyntaxFormattingOptions options, bool treeCompare = true, ParseOptions? parseOptions = null)
         {
             var newRootNode = Formatter.Format(root, spans, services, options, rules: null, CancellationToken.None);
 
@@ -86,7 +86,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Formatting
             }
         }
 
-        private static async Task AssertFormatAsync(HostWorkspaceServices services, string expected, SyntaxNode root, ImmutableArray<TextSpan> spans, SyntaxFormattingOptions options, SourceText sourceText)
+        private static async Task AssertFormatAsync(SolutionServices services, string expected, SyntaxNode root, ImmutableArray<TextSpan> spans, SyntaxFormattingOptions options, SourceText sourceText)
         {
             // Verify formatting the input code produces the expected result
             var result = Formatter.GetFormattedTextChanges(root, spans, services, options);

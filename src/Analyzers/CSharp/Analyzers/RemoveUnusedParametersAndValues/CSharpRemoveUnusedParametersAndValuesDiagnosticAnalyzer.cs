@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -12,12 +13,11 @@ using Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues;
 namespace Microsoft.CodeAnalysis.CSharp.RemoveUnusedParametersAndValues
 {
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
-    internal class CSharpRemoveUnusedParametersAndValuesDiagnosticAnalyzer : AbstractRemoveUnusedParametersAndValuesDiagnosticAnalyzer
+    internal sealed class CSharpRemoveUnusedParametersAndValuesDiagnosticAnalyzer : AbstractRemoveUnusedParametersAndValuesDiagnosticAnalyzer
     {
         public CSharpRemoveUnusedParametersAndValuesDiagnosticAnalyzer()
             : base(unusedValueExpressionStatementOption: CSharpCodeStyleOptions.UnusedValueExpressionStatement,
-                   unusedValueAssignmentOption: CSharpCodeStyleOptions.UnusedValueAssignment,
-                   LanguageNames.CSharp)
+                   unusedValueAssignmentOption: CSharpCodeStyleOptions.UnusedValueAssignment)
         {
         }
 
@@ -32,6 +32,12 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnusedParametersAndValues
 
         protected override bool IsIfConditionalDirective(SyntaxNode node)
             => node is IfDirectiveTriviaSyntax;
+
+        protected override CodeStyleOption2<UnusedValuePreference> GetUnusedValueExpressionStatementOption(AnalyzerOptionsProvider provider)
+            => ((CSharpAnalyzerOptionsProvider)provider).UnusedValueExpressionStatement;
+
+        protected override CodeStyleOption2<UnusedValuePreference> GetUnusedValueAssignmentOption(AnalyzerOptionsProvider provider)
+            => ((CSharpAnalyzerOptionsProvider)provider).UnusedValueAssignment;
 
         protected override bool ShouldBailOutFromRemovableAssignmentAnalysis(IOperation unusedSymbolWriteOperation)
         {

@@ -20,6 +20,9 @@ namespace Microsoft.CodeAnalysis.PopulateSwitch
 
         protected sealed override OperationKind OperationKind => OperationKind.SwitchExpression;
 
+        protected override bool IsSwitchTypeUnknown(ISwitchExpressionOperation operation)
+            => operation.Value.Type is null;
+
         protected sealed override ICollection<ISymbol> GetMissingEnumMembers(ISwitchExpressionOperation operation)
             => PopulateSwitchExpressionHelpers.GetMissingEnumMembers(operation);
 

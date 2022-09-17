@@ -10,27 +10,21 @@ using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Simplification;
 using Roslyn.Utilities;
 
-#if CODE_STYLE
-using OptionSet = Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigOptions;
-#endif
-
 namespace Microsoft.CodeAnalysis.QualifyMemberAccess
 {
     internal abstract class AbstractQualifyMemberAccessDiagnosticAnalyzer<
         TLanguageKindEnum,
         TExpressionSyntax,
-        TSimpleNameSyntax,
-        TSimplifierOptions>
+        TSimpleNameSyntax>
         : AbstractBuiltInCodeStyleDiagnosticAnalyzer
         where TLanguageKindEnum : struct
         where TExpressionSyntax : SyntaxNode
         where TSimpleNameSyntax : TExpressionSyntax
-        where TSimplifierOptions : SimplifierOptions
     {
         protected AbstractQualifyMemberAccessDiagnosticAnalyzer()
             : base(IDEDiagnosticIds.AddThisOrMeQualificationDiagnosticId,
                    EnforceOnBuildValues.AddQualification,
-                   options: ImmutableHashSet.Create<IPerLanguageOption>(CodeStyleOptions2.QualifyFieldAccess, CodeStyleOptions2.QualifyPropertyAccess, CodeStyleOptions2.QualifyMethodAccess, CodeStyleOptions2.QualifyEventAccess),
+                   options: ImmutableHashSet.Create<IOption2>(CodeStyleOptions2.QualifyFieldAccess, CodeStyleOptions2.QualifyPropertyAccess, CodeStyleOptions2.QualifyMethodAccess, CodeStyleOptions2.QualifyEventAccess),
                    new LocalizableResourceString(nameof(AnalyzersResources.Member_access_should_be_qualified), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)),
                    new LocalizableResourceString(nameof(AnalyzersResources.Add_this_or_Me_qualification), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)))
         {
@@ -48,8 +42,6 @@ namespace Microsoft.CodeAnalysis.QualifyMemberAccess
                  options.QualifyEventAccess.Notification.Severity is ReportDiagnostic.Warn or ReportDiagnostic.Error);
         }
 
-        protected abstract string GetLanguageName();
-
         /// <summary>
         /// Reports on whether the specified member is suitable for qualification. Some member
         /// access expressions cannot be qualified; for instance if they begin with <c>base.</c>,
@@ -64,7 +56,7 @@ namespace Microsoft.CodeAnalysis.QualifyMemberAccess
             => context.RegisterOperationAction(AnalyzeOperation, OperationKind.FieldReference, OperationKind.PropertyReference, OperationKind.MethodReference, OperationKind.Invocation);
 
         protected abstract Location GetLocation(IOperation operation);
-        protected abstract TSimplifierOptions GetSimplifierOptions(AnalyzerOptions options, SyntaxTree syntaxTree);
+        protected abstract ISimplification Simplification { get; }
 
         public override DiagnosticAnalyzerCategory GetAnalyzerCategory() => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
 
@@ -127,7 +119,7 @@ namespace Microsoft.CodeAnalysis.QualifyMemberAccess
                 _ => throw ExceptionUtilities.UnexpectedValue(operation),
             };
 
-            var simplifierOptions = GetSimplifierOptions(context.Options, context.Operation.Syntax.SyntaxTree);
+            var simplifierOptions = context.GetAnalyzerOptions().GetSimplifierOptions(Simplification);
             if (!simplifierOptions.TryGetQualifyMemberAccessOption(symbolKind, out var optionValue))
                 return;
 

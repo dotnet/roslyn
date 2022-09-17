@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Composition;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
@@ -12,6 +13,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Features.Workspaces;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 
@@ -26,7 +28,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
     /// Future work for this workspace includes supporting basic metadata references (mscorlib, System dlls, etc),
     /// but that is dependent on having a x-plat mechanism for retrieving those references from the framework / sdk.
     /// </summary>
-    internal class LspMiscellaneousFilesWorkspace : Workspace
+    internal class LspMiscellaneousFilesWorkspace : Workspace, ILspService
     {
         private static readonly LanguageInformation s_csharpLanguageInformation = new(LanguageNames.CSharp, ".csx");
         private static readonly LanguageInformation s_vbLanguageInformation = new(LanguageNames.VisualBasic, ".vbx");
@@ -39,11 +41,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             { ".vbx", s_vbLanguageInformation },
         };
 
-        private readonly ILspLogger _logger;
-
-        public LspMiscellaneousFilesWorkspace(ILspLogger logger) : base(MefHostServices.DefaultHost, WorkspaceKind.MiscellaneousFiles)
+        public LspMiscellaneousFilesWorkspace() : base(MefHostServices.DefaultHost, WorkspaceKind.MiscellaneousFiles)
         {
-            _logger = logger;
         }
 
         /// <summary>
@@ -52,19 +51,19 @@ namespace Microsoft.CodeAnalysis.LanguageServer
         /// Calls to this method and <see cref="TryRemoveMiscellaneousDocument(Uri)"/> are made
         /// from LSP text sync request handling which do not run concurrently.
         /// </summary>
-        public Document? AddMiscellaneousDocument(Uri uri, SourceText documentText)
+        public Document? AddMiscellaneousDocument(Uri uri, SourceText documentText, ILspLogger logger)
         {
             var uriAbsolutePath = uri.AbsolutePath;
             if (!s_extensionToLanguageInformation.TryGetValue(Path.GetExtension(uriAbsolutePath), out var languageInformation))
             {
                 // Only log here since throwing here could take down the LSP server.
-                _logger.TraceError($"Could not find language information for {uri} with absolute path {uriAbsolutePath}");
+                logger.TraceError($"Could not find language information for {uri} with absolute path {uriAbsolutePath}");
                 return null;
             }
 
             var sourceTextLoader = new SourceTextLoader(documentText, uriAbsolutePath);
 
-            var projectInfo = MiscellaneousFileUtilities.CreateMiscellaneousProjectInfoForDocument(uri.AbsolutePath, sourceTextLoader, languageInformation, Services, ImmutableArray<MetadataReference>.Empty);
+            var projectInfo = MiscellaneousFileUtilities.CreateMiscellaneousProjectInfoForDocument(uri.AbsolutePath, sourceTextLoader, languageInformation, Services.SolutionServices, ImmutableArray<MetadataReference>.Empty);
             OnProjectAdded(projectInfo);
 
             var id = projectInfo.Documents.Single().Id;
@@ -74,7 +73,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
         /// <summary>
         /// Removes a document with the matching file path from this workspace.
         /// 
-        /// Calls to this method and <see cref="AddMiscellaneousDocument(Uri, SourceText)"/> are made
+        /// Calls to this method and <see cref="AddMiscellaneousDocument(Uri, SourceText, ILspLogger)"/> are made
         /// from LSP text sync request handling which do not run concurrently.
         /// </summary>
         public void TryRemoveMiscellaneousDocument(Uri uri)

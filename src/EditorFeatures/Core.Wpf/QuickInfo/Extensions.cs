@@ -29,10 +29,10 @@ namespace Microsoft.CodeAnalysis.Editor.QuickInfo
         /// </summary>
         public static ITextBuffer CloneTextBuffer(this Document document, SourceText sourceText)
         {
-            var contentTypeService = document.Project.LanguageServices.GetService<IContentTypeLanguageService>();
+            var contentTypeService = document.Project.Services.GetService<IContentTypeLanguageService>();
             var contentType = contentTypeService.GetDefaultContentType();
 
-            var cloneService = document.Project.Solution.Workspace.Services.GetService<ITextBufferCloneService>();
+            var cloneService = document.Project.Solution.Services.GetService<ITextBufferCloneService>();
             return cloneService.Clone(sourceText, contentType);
         }
 

@@ -24,16 +24,16 @@ using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 {
-    [ExportRoslynLanguagesLspRequestHandlerProvider(typeof(OnAutoInsertHandler)), Shared]
+    [ExportCSharpVisualBasicStatelessLspService(typeof(OnAutoInsertHandler)), Shared]
     [Method(LSP.VSInternalMethods.OnAutoInsertName)]
-    internal sealed class OnAutoInsertHandler : AbstractStatelessRequestHandler<LSP.VSInternalDocumentOnAutoInsertParams, LSP.VSInternalDocumentOnAutoInsertResponseItem?>
+    internal sealed class OnAutoInsertHandler : IRequestHandler<LSP.VSInternalDocumentOnAutoInsertParams, LSP.VSInternalDocumentOnAutoInsertResponseItem?>
     {
         private readonly ImmutableArray<IBraceCompletionService> _csharpBraceCompletionServices;
         private readonly ImmutableArray<IBraceCompletionService> _visualBasicBraceCompletionServices;
         private readonly IGlobalOptionService _globalOptions;
 
-        public override bool MutatesSolutionState => false;
-        public override bool RequiresLSPSolution => true;
+        public bool MutatesSolutionState => false;
+        public bool RequiresLSPSolution => true;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -47,9 +47,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             _globalOptions = globalOptions;
         }
 
-        public override LSP.TextDocumentIdentifier? GetTextDocumentIdentifier(LSP.VSInternalDocumentOnAutoInsertParams request) => request.TextDocument;
+        public LSP.TextDocumentIdentifier? GetTextDocumentIdentifier(LSP.VSInternalDocumentOnAutoInsertParams request) => request.TextDocument;
 
-        public override async Task<LSP.VSInternalDocumentOnAutoInsertResponseItem?> HandleRequestAsync(
+        public async Task<LSP.VSInternalDocumentOnAutoInsertResponseItem?> HandleRequestAsync(
             LSP.VSInternalDocumentOnAutoInsertParams request,
             RequestContext context,
             CancellationToken cancellationToken)
@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             // The editor calls this handler for C# and VB comment characters, but we only need to process the one for the language that matches the document
             if (request.Character == "\n" || request.Character == service.DocumentationCommentCharacter)
             {
-                var docCommentOptions = _globalOptions.GetDocumentationCommentOptions(formattingOptions, document.Project.Language);
+                var docCommentOptions = _globalOptions.GetDocumentationCommentOptions(formattingOptions.LineFormatting, document.Project.Language);
 
                 var documentationCommentResponse = await GetDocumentationCommentResponseAsync(
                     request, document, service, docCommentOptions, cancellationToken).ConfigureAwait(false);
@@ -81,7 +81,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             // Once LSP supports overtype we can move all of brace completion to LSP.
             if (request.Character == "\n" && context.ServerKind == WellKnownLspServerKinds.RazorLspServer)
             {
-                var indentationOptions = new IndentationOptions(formattingOptions, _globalOptions.GetAutoFormattingOptions(document.Project.Language));
+                var indentationOptions = new IndentationOptions(formattingOptions)
+                {
+                    AutoFormattingOptions = _globalOptions.GetAutoFormattingOptions(document.Project.Language)
+                };
 
                 var braceCompletionAfterReturnResponse = await GetBraceCompletionAfterReturnResponseAsync(
                     request, document, indentationOptions, cancellationToken).ConfigureAwait(false);
@@ -143,7 +146,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             }
 
             var (service, context) = serviceAndContext.Value;
-            var postReturnEdit = await service.GetTextChangeAfterReturnAsync(context, options, cancellationToken).ConfigureAwait(false);
+            var postReturnEdit = service.GetTextChangeAfterReturn(context, options, cancellationToken);
             if (postReturnEdit == null)
             {
                 return null;
@@ -232,9 +235,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 _ => throw new ArgumentException($"Language {document.Project.Language} is not recognized for OnAutoInsert")
             };
 
+            var parsedDocument = await ParsedDocument.CreateAsync(document, cancellationToken).ConfigureAwait(false);
+
             foreach (var service in servicesForDocument)
             {
-                var context = await service.GetCompletedBraceContextAsync(document, caretLocation, cancellationToken).ConfigureAwait(false);
+                var context = service.GetCompletedBraceContext(parsedDocument, caretLocation);
                 if (context != null)
                 {
                     return (service, context.Value);

@@ -38,9 +38,10 @@ This document provides guidance for thinking about language interactions and tes
 # Type and members
 - Access modifiers (public, protected, internal, protected internal, private protected, private), static, ref
 - type declarations (class, record class/struct with or without positional members, struct, interface, type parameter)
+- file-local types
 - methods
-- fields
-- properties (including get/set/init accessors)
+- fields (required and not)
+- properties (including get/set/init accessors, required and not)
 - events (including add/remove accessors)
 - Parameter modifiers (ref, out, in, params)
 - Attributes (including generic attributes and security attributes)
@@ -93,6 +94,8 @@ This document provides guidance for thinking about language interactions and tes
     - Compound operators (`+=`, `/=`, etc ..) 
     - Assignment exprs
 - Ref return, ref readonly return, ref ternary, ref readonly local, ref local re-assignment, ref foreach
+- Ref fields
+- `scoped` parameters and locals
 - `this = e;` in `struct` .ctor
 - Stackalloc (including initializers)
 - Patterns (constant, declaration, `var`, positional, property and extended property, discard, parenthesized, type, relational, `and`/`or`/`not`, list, slice, constant `string` matching `Span<char>`)
@@ -110,6 +113,7 @@ This document provides guidance for thinking about language interactions and tes
 - pre-processing directives
 - COM interop
 - modopt and modreq
+- CompilerFeatureRequiredAttribute
 - ref assemblies
 - extern alias
 - UnmanagedCallersOnly

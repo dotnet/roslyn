@@ -414,7 +414,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 token = token.GetPreviousToken(includeSkipped: true, includeDirectives: true);
             }
 
-            if (token.Kind() is SyntaxKind.StringLiteralToken or SyntaxKind.SingleLineRawStringLiteralToken or SyntaxKind.MultiLineRawStringLiteralToken or SyntaxKind.UTF8StringLiteralToken or SyntaxKind.UTF8SingleLineRawStringLiteralToken or SyntaxKind.UTF8MultiLineRawStringLiteralToken)
+            if (token.Kind() is SyntaxKind.StringLiteralToken or
+                                SyntaxKind.SingleLineRawStringLiteralToken or
+                                SyntaxKind.MultiLineRawStringLiteralToken or
+                                SyntaxKind.Utf8StringLiteralToken or
+                                SyntaxKind.Utf8SingleLineRawStringLiteralToken or
+                                SyntaxKind.Utf8MultiLineRawStringLiteralToken)
             {
                 var span = token.Span;
 

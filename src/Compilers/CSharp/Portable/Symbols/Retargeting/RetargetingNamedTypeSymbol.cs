@@ -120,6 +120,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
             }
         }
 
+        internal override bool HasDeclaredRequiredMembers => _underlyingType.HasDeclaredRequiredMembers;
+
         public override ImmutableArray<Symbol> GetMembers()
         {
             return this.RetargetingTranslator.Retarget(_underlyingType.GetMembers());
@@ -372,6 +374,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
         {
             get { throw ExceptionUtilities.Unreachable; }
         }
+
+        internal override FileIdentifier? AssociatedFileIdentifier => _underlyingType.AssociatedFileIdentifier;
 
         internal sealed override NamedTypeSymbol AsNativeInteger() => throw ExceptionUtilities.Unreachable;
 

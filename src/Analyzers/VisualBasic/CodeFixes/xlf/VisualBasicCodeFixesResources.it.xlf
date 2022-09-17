@@ -9,12 +9,12 @@
       </trans-unit>
       <trans-unit id="Add_Obsolete">
         <source>Add &lt;Obsolete&gt;</source>
-        <target state="new">Add &lt;Obsolete&gt;</target>
+        <target state="translated">Aggiungi &lt;Obsolete&gt;</target>
         <note />
       </trans-unit>
       <trans-unit id="Convert_0_to_Iterator">
         <source>Convert {0} to Iterator</source>
-        <target state="new">Convert {0} to Iterator</target>
+        <target state="translated">Converti {0} in iteratore</target>
         <note />
       </trans-unit>
       <trans-unit id="Convert_GetType_to_NameOf">
@@ -24,7 +24,7 @@
       </trans-unit>
       <trans-unit id="Make_0_inheritable">
         <source>Make '{0}' inheritable</source>
-        <target state="new">Make '{0}' inheritable</target>
+        <target state="translated">Imposta '{0}' come ereditabile</target>
         <note />
       </trans-unit>
       <trans-unit id="Remove_Unnecessary_Imports">
@@ -34,7 +34,7 @@
       </trans-unit>
       <trans-unit id="Replace_Return_with_Yield">
         <source>Replace 'Return' with 'Yield</source>
-        <target state="new">Replace 'Return' with 'Yield</target>
+        <target state="translated">Sostituisci 'Return' con 'Yield'</target>
         <note />
       </trans-unit>
       <trans-unit id="Simplify_object_creation">

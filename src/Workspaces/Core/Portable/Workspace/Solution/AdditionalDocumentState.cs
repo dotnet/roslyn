@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis
         private readonly AdditionalText _additionalText;
 
         private AdditionalDocumentState(
-            SolutionServices solutionServices,
+            HostWorkspaceServices solutionServices,
             IDocumentServiceProvider documentServiceProvider,
             DocumentInfo.DocumentAttributes attributes,
             SourceText? sourceText,
@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis
 
         public AdditionalDocumentState(
             DocumentInfo documentInfo,
-            SolutionServices solutionServices)
+            HostWorkspaceServices solutionServices)
             : base(documentInfo, solutionServices)
         {
             _additionalText = new AdditionalTextWithState(this);

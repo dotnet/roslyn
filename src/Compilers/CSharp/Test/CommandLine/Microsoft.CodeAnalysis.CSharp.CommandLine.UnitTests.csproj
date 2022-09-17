@@ -13,7 +13,7 @@
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\..\Test\Core\Microsoft.CodeAnalysis.Test.Utilities.csproj" />
     <ProjectReference Include="..\..\..\Test\Utilities\CSharp\Microsoft.CodeAnalysis.CSharp.Test.Utilities.csproj" />
-    <ProjectReference Include="..\..\csc\csc.csproj" ReferenceOutputAssembly="false" OutputItemType="RoslynReferenceToDependencyDirectory" />
+    <ProjectReference Include="..\..\csc\AnyCpu\csc.csproj" ReferenceOutputAssembly="false" OutputItemType="RoslynReferenceToDependencyDirectory" />
     <ProjectReference Include="..\..\..\..\Interactive\csi\csi.csproj" ReferenceOutputAssembly="false" OutputItemType="CsiReferenceToDependencyDirectory" />
     <ProjectReference Include="..\..\..\Core\Portable\Microsoft.CodeAnalysis.csproj" />
     <ProjectReference Include="..\..\..\Test\Resources\Core\Microsoft.CodeAnalysis.Compiler.Test.Resources.csproj" />
@@ -23,7 +23,7 @@
     <PackageReference Include="Basic.Reference.Assemblies.NetStandard13" Version="$(BasicReferenceAssembliesNetStandard13Version)" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="..\..\CommandLine\csc.rsp" LogicalName="csc.rsp" />
+    <EmbeddedResource Include="..\..\csc\csc.rsp" LogicalName="csc.rsp" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Xunit.Combinatorial" Version="$(XunitCombinatorialVersion)" />

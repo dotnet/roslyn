@@ -2,6 +2,7 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
+Imports Microsoft.CodeAnalysis.CodeStyle
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Operations
 Imports Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
@@ -16,9 +17,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.RemoveUnusedParametersAndValues
 
         Public Sub New()
             MyBase.New(unusedValueExpressionStatementOption:=VisualBasicCodeStyleOptions.UnusedValueExpressionStatement,
-                       unusedValueAssignmentOption:=VisualBasicCodeStyleOptions.UnusedValueAssignment,
-                       LanguageNames.VisualBasic)
+                       unusedValueAssignmentOption:=VisualBasicCodeStyleOptions.UnusedValueAssignment)
         End Sub
+
+        Protected Overrides Function GetUnusedValueExpressionStatementOption(provider As AnalyzerOptionsProvider) As CodeStyleOption2(Of UnusedValuePreference)
+            Return CType(provider, VisualBasicAnalyzerOptionsProvider).UnusedValueExpressionStatement
+        End Function
+
+        Protected Overrides Function GetUnusedValueAssignmentOption(provider As AnalyzerOptionsProvider) As CodeStyleOption2(Of UnusedValuePreference)
+            Return CType(provider, VisualBasicAnalyzerOptionsProvider).UnusedValueAssignment
+        End Function
 
         Protected Overrides Function IsRecordDeclaration(node As SyntaxNode) As Boolean
             Return False

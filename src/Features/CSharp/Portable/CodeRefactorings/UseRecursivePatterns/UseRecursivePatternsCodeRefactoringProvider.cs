@@ -11,6 +11,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
+using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CSharp.CodeGeneration;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
@@ -21,6 +22,7 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Simplification;
+using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.UseRecursivePatterns
@@ -29,21 +31,23 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.UseRecursivePatterns
     using static SyntaxKind;
 
     [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = PredefinedCodeRefactoringProviderNames.UseRecursivePatterns), Shared]
-    internal sealed class UseRecursivePatternsCodeRefactoringProvider : CodeRefactoringProvider
+    internal sealed class UseRecursivePatternsCodeRefactoringProvider : SyntaxEditorBasedCodeRefactoringProvider
     {
         private static readonly PatternSyntax s_trueConstantPattern = ConstantPattern(LiteralExpression(TrueLiteralExpression));
         private static readonly PatternSyntax s_falseConstantPattern = ConstantPattern(LiteralExpression(FalseLiteralExpression));
 
         [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+        [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
         public UseRecursivePatternsCodeRefactoringProvider()
         {
         }
 
+        protected override ImmutableArray<FixAllScope> SupportedFixAllScopes => AllFixAllScopes;
+
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
             var (document, textSpan, cancellationToken) = context;
-            if (document.Project.Solution.Workspace.Kind == WorkspaceKind.MiscellaneousFiles)
+            if (document.Project.Solution.WorkspaceKind == WorkspaceKind.MiscellaneousFiles)
                 return;
 
             if (textSpan.Length > 0)
@@ -75,6 +79,17 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.UseRecursivePatterns
                 WhenClauseSyntax { Parent: CasePatternSwitchLabelSyntax switchLabel } whenClause => CombineWhenClauseCondition(switchLabel.Pattern, whenClause.Condition, model),
                 WhenClauseSyntax { Parent: SwitchExpressionArmSyntax switchArm } whenClause => CombineWhenClauseCondition(switchArm.Pattern, whenClause.Condition, model),
                 _ => null
+            };
+
+        private static bool IsFixableNode(SyntaxNode node)
+            => node switch
+            {
+                BinaryExpressionSyntax(LogicalAndExpression) => true,
+                CasePatternSwitchLabelSyntax { WhenClause: { } whenClause } => true,
+                SwitchExpressionArmSyntax { WhenClause: { } whenClause } => true,
+                WhenClauseSyntax { Parent: CasePatternSwitchLabelSyntax } => true,
+                WhenClauseSyntax { Parent: SwitchExpressionArmSyntax } => true,
+                _ => false
             };
 
         private static Func<SyntaxNode, SyntaxNode>? CombineLogicalAndOperands(BinaryExpressionSyntax logicalAnd, SemanticModel model)
@@ -502,6 +517,49 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.UseRecursivePatterns
                         return node;
                 }
             }
+        }
+
+        protected override async Task FixAllAsync(
+            Document document,
+            ImmutableArray<TextSpan> fixAllSpans,
+            SyntaxEditor editor,
+            CodeActionOptionsProvider optionsProvider,
+            string? equivalenceKey,
+            CancellationToken cancellationToken)
+        {
+            // Get all the descendant nodes to refactor.
+            // NOTE: We need to realize the nodes with 'ToArray' call here
+            // to ensure we strongly hold onto the nodes so that 'TrackNodes'
+            // invoked below, which does tracking based off a ConditionalWeakTable,
+            // tracks the nodes for the entire duration of this method.
+            var nodes = editor.OriginalRoot.DescendantNodes().Where(IsFixableNode).ToArray();
+
+            // We're going to be continually editing this tree. Track all the nodes we
+            // care about so we can find them across each edit.
+            document = document.WithSyntaxRoot(editor.OriginalRoot.TrackNodes(nodes));
+
+            // Process all nodes to refactor in reverse to ensure nested nodes
+            // are processed before the outer nodes to refactor.
+            foreach (var originalNode in nodes.Reverse())
+            {
+                // Only process nodes fully within a fixAllSpan
+                if (!fixAllSpans.Any(fixAllSpan => fixAllSpan.Contains(originalNode.Span)))
+                    continue;
+
+                // Get current root, current node to refactor and semantic model.
+                var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+                var currentNode = root.GetCurrentNodes(originalNode).SingleOrDefault();
+                var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+
+                var replacementFunc = GetReplacementFunc(currentNode, semanticModel);
+                if (replacementFunc == null)
+                    continue;
+
+                document = document.WithSyntaxRoot(replacementFunc(root));
+            }
+
+            var updatedRoot = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            editor.ReplaceNode(editor.OriginalRoot, updatedRoot);
         }
     }
 }

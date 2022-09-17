@@ -22,7 +22,7 @@ using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -285,7 +285,7 @@ namespace Microsoft.CodeAnalysis.CSharp.AddImport
         }
 
         protected override string GetDescription(IReadOnlyList<string> nameParts)
-            => $"using { string.Join(".", nameParts) };";
+            => $"using {string.Join(".", nameParts)};";
 
         protected override (string description, bool hasExistingImport) GetDescription(
             Document document,

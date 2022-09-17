@@ -23,13 +23,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
     /// 3. Naming Rule (points to Symbol Specification IDs)
     /// </summary>
     [DataContract]
-    internal sealed class NamingStylePreferences : IEquatable<NamingStylePreferences>, IObjectWritable
+    internal sealed class NamingStylePreferences : IEquatable<NamingStylePreferences>
     {
-        static NamingStylePreferences()
-        {
-            ObjectBinder.RegisterTypeReader(typeof(NamingStylePreferences), ReadFrom);
-        }
-
         private const int s_serializationVersion = 5;
 
         [DataMember(Order = 0)]
@@ -56,8 +51,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
         }
 
         public static NamingStylePreferences Default => FromXElement(XElement.Parse(DefaultNamingPreferencesString));
+        public static NamingStylePreferences Empty => new(ImmutableArray<SymbolSpecification>.Empty, ImmutableArray<NamingStyle>.Empty, ImmutableArray<SerializableNamingRule>.Empty);
 
         public static string DefaultNamingPreferencesString => _defaultNamingPreferencesString;
+
+        public bool IsEmpty
+            => SymbolSpecifications.IsEmpty && NamingStyles.IsEmpty && NamingRules.IsEmpty;
 
         internal NamingStyle GetNamingStyle(Guid namingStyleID)
             => NamingStyles.Single(s => s.ID == namingStyleID);
@@ -74,9 +73,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
         {
             return new XElement("NamingPreferencesInfo",
                 new XAttribute("SerializationVersion", s_serializationVersion),
-                new XElement(nameof(SymbolSpecifications), SymbolSpecifications.Select(s => s.CreateXElement())),
-                new XElement(nameof(NamingStyles), NamingStyles.Select(n => n.CreateXElement())),
-                new XElement(nameof(NamingRules), NamingRules.Select(n => n.CreateXElement())));
+                new XElement("SymbolSpecifications", SymbolSpecifications.Select(s => s.CreateXElement())),
+                new XElement("NamingStyles", NamingStyles.Select(n => n.CreateXElement())),
+                new XElement("NamingRules", NamingRules.Select(n => n.CreateXElement())));
         }
 
         internal static NamingStylePreferences FromXElement(XElement element)
@@ -84,29 +83,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
             element = GetUpgradedSerializationIfNecessary(element);
 
             return new NamingStylePreferences(
-                element.Element(nameof(SymbolSpecifications)).Elements(nameof(SymbolSpecification))
+                element.Element("SymbolSpecifications").Elements(nameof(SymbolSpecification))
                        .Select(SymbolSpecification.FromXElement).ToImmutableArray(),
-                element.Element(nameof(NamingStyles)).Elements(nameof(NamingStyle))
+                element.Element("NamingStyles").Elements(nameof(NamingStyle))
                        .Select(NamingStyle.FromXElement).ToImmutableArray(),
-                element.Element(nameof(NamingRules)).Elements(nameof(SerializableNamingRule))
+                element.Element("NamingRules").Elements(nameof(SerializableNamingRule))
                        .Select(SerializableNamingRule.FromXElement).ToImmutableArray());
-        }
-
-        public bool ShouldReuseInSerialization => false;
-
-        public void WriteTo(ObjectWriter writer)
-        {
-            writer.WriteArray(SymbolSpecifications, (w, v) => v.WriteTo(w));
-            writer.WriteArray(NamingStyles, (w, v) => v.WriteTo(w));
-            writer.WriteArray(NamingRules, (w, v) => v.WriteTo(w));
-        }
-
-        public static NamingStylePreferences ReadFrom(ObjectReader reader)
-        {
-            return new NamingStylePreferences(
-                reader.ReadArray(r => SymbolSpecification.ReadFrom(r)),
-                reader.ReadArray(r => NamingStyle.ReadFrom(r)),
-                reader.ReadArray(r => SerializableNamingRule.ReadFrom(r)));
         }
 
         public override bool Equals(object obj)

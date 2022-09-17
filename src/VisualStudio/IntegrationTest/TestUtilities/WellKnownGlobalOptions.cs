@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.CodeAnalysis.Completion;
+using Microsoft.CodeAnalysis.Editor.InlineRename;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.InlineRename;
 using Microsoft.CodeAnalysis.MetadataAsSource;
@@ -33,6 +34,8 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
         VisualStudioSyntaxTreeConfigurationService_EnableOpeningSourceGeneratedFilesInWorkspace,
         WorkspaceConfigurationOptions_EnableOpeningSourceGeneratedFilesInWorkspace,
         SolutionCrawlerOptions_BackgroundAnalysisScopeOption,
+        SolutionCrawlerOptions_CompilerDiagnosticsScopeOption,
+        InlineRenameSessionOptions_UseNewUI,
     }
 
     public static class WellKnownGlobalOptions
@@ -51,6 +54,8 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
                 WellKnownGlobalOption.MetadataAsSourceOptions_NavigateToDecompiledSources => MetadataAsSourceOptionsStorage.NavigateToDecompiledSources,
                 WellKnownGlobalOption.WorkspaceConfigurationOptions_EnableOpeningSourceGeneratedFilesInWorkspace => WorkspaceConfigurationOptionsStorage.EnableOpeningSourceGeneratedFilesInWorkspace,
                 WellKnownGlobalOption.SolutionCrawlerOptions_BackgroundAnalysisScopeOption => SolutionCrawlerOptionsStorage.BackgroundAnalysisScopeOption,
+                WellKnownGlobalOption.SolutionCrawlerOptions_CompilerDiagnosticsScopeOption => SolutionCrawlerOptionsStorage.CompilerDiagnosticsScopeOption,
+                WellKnownGlobalOption.InlineRenameSessionOptions_UseNewUI => InlineRenameUIOptions.UseInlineAdornment,
                 _ => throw ExceptionUtilities.Unreachable
             };
 

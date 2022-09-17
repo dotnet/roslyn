@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using static Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles.SymbolSpecification;
 
@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 {
     internal partial class DeclarationNameCompletionProvider
     {
-        internal struct NameDeclarationInfo
+        internal readonly struct NameDeclarationInfo
         {
             private static readonly ImmutableArray<SymbolKindOrTypeKind> s_parameterSyntaxKind =
                 ImmutableArray.Create(new SymbolKindOrTypeKind(SymbolKind.Parameter));

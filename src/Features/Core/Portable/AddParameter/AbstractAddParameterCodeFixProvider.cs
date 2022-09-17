@@ -11,7 +11,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Formatting;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
@@ -33,6 +33,8 @@ namespace Microsoft.CodeAnalysis.AddParameter
     {
         protected abstract ImmutableArray<string> TooManyArgumentsDiagnosticIds { get; }
         protected abstract ImmutableArray<string> CannotConvertDiagnosticIds { get; }
+
+        protected abstract ITypeSymbol GetArgumentType(SyntaxNode argumentNode, SemanticModel semanticModel, CancellationToken cancellationToken);
 
         public override FixAllProvider? GetFixAllProvider()
         {
@@ -223,7 +225,7 @@ namespace Microsoft.CodeAnalysis.AddParameter
         private static int NonParamsParameterCount(IMethodSymbol method)
             => method.IsParams() ? method.Parameters.Length - 1 : method.Parameters.Length;
 
-        private static void RegisterFixForMethodOverloads(
+        private void RegisterFixForMethodOverloads(
             CodeFixContext context,
             SeparatedSyntaxList<TArgumentSyntax> arguments,
             ImmutableArray<ArgumentInsertPositionData<TArgumentSyntax>> methodsAndArgumentsToAdd)
@@ -242,7 +244,7 @@ namespace Microsoft.CodeAnalysis.AddParameter
 
             ImmutableArray<CodeAction> NestByOverload()
             {
-                using var builderDisposer = ArrayBuilder<CodeAction>.GetInstance(codeFixData.Length, out var builder);
+                using var _ = ArrayBuilder<CodeAction>.GetInstance(codeFixData.Length, out var builder);
                 foreach (var data in codeFixData)
                 {
                     // We create the mandatory data.CreateChangedSolutionNonCascading fix first.
@@ -273,12 +275,12 @@ namespace Microsoft.CodeAnalysis.AddParameter
                     builder.Add(codeAction);
                 }
 
-                return builder.ToImmutable();
+                return builder.ToImmutableAndClear();
             }
 
             ImmutableArray<CodeAction> NestByCascading()
             {
-                using var builderDisposer = ArrayBuilder<CodeAction>.GetInstance(capacity: 2, out var builder);
+                using var _ = ArrayBuilder<CodeAction>.GetInstance(capacity: 2, out var builder);
 
                 var nonCascadingActions = codeFixData.SelectAsArray(data =>
                 {
@@ -313,12 +315,12 @@ namespace Microsoft.CodeAnalysis.AddParameter
             }
         }
 
-        private static ImmutableArray<CodeFixData> PrepareCreationOfCodeActions(
+        private ImmutableArray<CodeFixData> PrepareCreationOfCodeActions(
             Document document,
             SeparatedSyntaxList<TArgumentSyntax> arguments,
             ImmutableArray<ArgumentInsertPositionData<TArgumentSyntax>> methodsAndArgumentsToAdd)
         {
-            using var builderDisposer = ArrayBuilder<CodeFixData>.GetInstance(methodsAndArgumentsToAdd.Length, out var builder);
+            using var _ = ArrayBuilder<CodeFixData>.GetInstance(methodsAndArgumentsToAdd.Length, out var builder);
 
             // Order by the furthest argument index to the nearest argument index.  The ones with
             // larger argument indexes mean that we matched more earlier arguments (and thus are
@@ -359,7 +361,7 @@ namespace Microsoft.CodeAnalysis.AddParameter
             return title;
         }
 
-        private static async Task<Solution> FixAsync(
+        private async Task<Solution> FixAsync(
             Document invocationDocument,
             IMethodSymbol method,
             TArgumentSyntax argument,
@@ -386,13 +388,11 @@ namespace Microsoft.CodeAnalysis.AddParameter
                 cancellationToken).ConfigureAwait(false);
         }
 
-        private static async Task<(ITypeSymbol, RefKind)> GetArgumentTypeAndRefKindAsync(Document invocationDocument, TArgumentSyntax argument, CancellationToken cancellationToken)
+        private async Task<(ITypeSymbol, RefKind)> GetArgumentTypeAndRefKindAsync(Document invocationDocument, TArgumentSyntax argument, CancellationToken cancellationToken)
         {
             var syntaxFacts = invocationDocument.GetRequiredLanguageService<ISyntaxFactsService>();
             var semanticModel = await invocationDocument.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            var argumentExpression = syntaxFacts.GetExpressionOfArgument(argument);
-            Contract.ThrowIfNull(argumentExpression);
-            var argumentType = semanticModel.GetTypeInfo(argumentExpression, cancellationToken).Type ?? semanticModel.Compilation.ObjectType;
+            var argumentType = GetArgumentType(argument, semanticModel, cancellationToken);
             var refKind = syntaxFacts.GetRefKindOfArgument(argument);
             return (argumentType, refKind);
         }

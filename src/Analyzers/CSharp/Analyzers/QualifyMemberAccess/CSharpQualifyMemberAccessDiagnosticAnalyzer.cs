@@ -9,18 +9,16 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.QualifyMemberAccess;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Simplification;
 
 namespace Microsoft.CodeAnalysis.CSharp.QualifyMemberAccess
 {
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
     internal sealed class CSharpQualifyMemberAccessDiagnosticAnalyzer
-        : AbstractQualifyMemberAccessDiagnosticAnalyzer<SyntaxKind, ExpressionSyntax, SimpleNameSyntax, CSharpSimplifierOptions>
+        : AbstractQualifyMemberAccessDiagnosticAnalyzer<SyntaxKind, ExpressionSyntax, SimpleNameSyntax>
     {
-        protected override string GetLanguageName()
-            => LanguageNames.CSharp;
-
-        protected override CSharpSimplifierOptions GetSimplifierOptions(AnalyzerOptions options, SyntaxTree syntaxTree)
-            => options.GetCSharpSimplifierOptions(syntaxTree);
+        protected override ISimplification Simplification
+            => CSharpSimplification.Instance;
 
         protected override bool IsAlreadyQualifiedMemberAccess(ExpressionSyntax node)
             => node.IsKind(SyntaxKind.ThisExpression);

@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
+using System.Composition;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -9,6 +11,7 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.Commands;
 using Microsoft.CodeAnalysis.Options;
@@ -30,23 +33,23 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
     /// UI thread dependencies are resolved and <see cref="IThreadingContext"/> references are removed.
     /// See https://github.com/dotnet/roslyn/issues/55142
     /// </summary>
+    [ExportCSharpVisualBasicStatelessLspService(typeof(RunCodeActionHandler)), Shared]
     [Command(CodeActionsHandler.RunCodeActionCommandName)]
     internal class RunCodeActionHandler : AbstractExecuteWorkspaceCommandHandler
     {
-        private readonly CodeActionsCache _codeActionsCache;
         private readonly ICodeFixService _codeFixService;
         private readonly ICodeRefactoringService _codeRefactoringService;
         private readonly IGlobalOptionService _globalOptions;
         private readonly IThreadingContext _threadingContext;
 
+        [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public RunCodeActionHandler(
-            CodeActionsCache codeActionsCache,
             ICodeFixService codeFixService,
             ICodeRefactoringService codeRefactoringService,
             IGlobalOptionService globalOptions,
             IThreadingContext threadingContext)
         {
-            _codeActionsCache = codeActionsCache;
             _codeFixService = codeFixService;
             _codeRefactoringService = codeRefactoringService;
             _globalOptions = globalOptions;
@@ -76,8 +79,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
             var options = _globalOptions.GetCodeActionOptionsProvider();
 
+            var codeActionsCache = context.GetRequiredLspService<CodeActionsCache>();
             var codeActions = await CodeActionHelpers.GetCodeActionsAsync(
-                _codeActionsCache, document, runRequest.Range, options, _codeFixService, _codeRefactoringService, cancellationToken).ConfigureAwait(false);
+                codeActionsCache, document, runRequest.Range, options, _codeFixService, _codeRefactoringService, cancellationToken).ConfigureAwait(false);
 
             var actionToRun = CodeActionHelpers.GetCodeActionToResolve(runRequest.UniqueIdentifier, codeActions);
             Contract.ThrowIfNull(actionToRun);

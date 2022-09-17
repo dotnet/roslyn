@@ -13,7 +13,7 @@ using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
@@ -60,7 +60,6 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
             // feature to keep track of all the object creation nodes as we make edits to
             // the tree.  If we didn't do this, then we wouldn't be able to find the 
             // second object-creation-node after we make the edit for the first one.
-            var services = document.Project.Solution.Workspace.Services;
             var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
 
             var originalRoot = editor.OriginalRoot;
@@ -98,7 +97,7 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
                 var newStatement = GetNewStatement(statement, objectCreation, matches.Value)
                     .WithAdditionalAnnotations(Formatter.Annotation);
 
-                var subEditor = new SyntaxEditor(currentRoot, services);
+                var subEditor = new SyntaxEditor(currentRoot, document.Project.Solution.Services);
 
                 subEditor.ReplaceNode(statement, newStatement);
                 foreach (var match in matches)

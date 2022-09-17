@@ -15,19 +15,33 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.StringCopyPaste
         {
             TestPasteUnknownSource(
                 pasteText: "\n",
-                @"var x = @""[||]""",
+                """
+                var x = @"[||]"
+                """,
                 "var x = @\"\n[||]\"",
-                afterUndo: @"var x = @""[||]""");
+                afterUndo: """
+                var x = @"[||]"
+                """);
         }
 
         [WpfFact]
         public void TestNewLineIntoVerbatimString2()
         {
             TestPasteUnknownSource(
-                pasteText: "\r\n",
-                @"var x = @""[||]""",
-                "var x = @\"\r\n[||]\"",
-                afterUndo: @"var x = @""[||]""");
+                pasteText: """
+
+
+                """,
+                """
+                var x = @"[||]"
+                """,
+                """
+                var x = @"
+                [||]"
+                """,
+                afterUndo: """
+                var x = @"[||]"
+                """);
         }
 
         [WpfFact]
@@ -35,29 +49,47 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.StringCopyPaste
         {
             TestPasteUnknownSource(
                 pasteText: "\t",
-                @"var x = @""[||]""",
+                """
+                var x = @"[||]"
+                """,
                 "var x = @\"\t[||]\"",
-                afterUndo: @"var x = @""[||]""");
+                afterUndo: """
+                var x = @"[||]"
+                """);
         }
 
         [WpfFact]
         public void TestSingleQuoteIntoVerbatimString()
         {
             TestPasteUnknownSource(
-                pasteText: "'",
-                @"var x = @""[||]""",
-                @"var x = @""'[||]""",
-                afterUndo: @"var x = @""[||]""");
+                pasteText: """'""",
+                """
+                var x = @"[||]"
+                """,
+                """
+                var x = @"'[||]"
+                """,
+                afterUndo: """
+                var x = @"[||]"
+                """);
         }
 
         [WpfFact]
         public void TestDoubleQuoteIntoVerbatimString()
         {
             TestPasteUnknownSource(
-                pasteText: "\"",
-                @"var x = @""[||]""",
-                @"var x = @""""""[||]""",
-                afterUndo: @"var x = @""""[||]""");
+                pasteText: """
+                "
+                """,
+                """
+                var x = @"[||]"
+                """,
+                """"
+                var x = @"""[||]"
+                """",
+                afterUndo: """
+                var x = @""[||]"
+                """);
         }
 
         [WpfFact]
@@ -65,19 +97,56 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.StringCopyPaste
         {
             TestPasteUnknownSource(
                 pasteText: "\t\"\"\t",
-                @"var x = @""[||]""",
+                """
+                var x = @"[||]"
+                """,
                 "var x = @\"\t\"\"\t[||]\"",
-                afterUndo: @"var x = @""[||]""");
+                afterUndo: """
+                var x = @"[||]"
+                """);
         }
 
         [WpfFact]
         public void TestNormalTextIntoVerbatimString()
         {
             TestPasteUnknownSource(
-                pasteText: "abc",
-                @"var x = @""[||]""",
-                @"var x = @""abc[||]""",
-                afterUndo: @"var x = @""[||]""");
+                pasteText: """abc""",
+                """
+                var x = @"[||]"
+                """,
+                """
+                var x = @"abc[||]"
+                """,
+                afterUndo: """
+                var x = @"[||]"
+                """);
+        }
+
+        [WpfFact, WorkItem(62969, "https://github.com/dotnet/roslyn/issues/62969")]
+        public void TestNormalTextWithSomeQuotesToEscapeAndSomeToNotEscapeIntoVerbatimString()
+        {
+            // Because we're escaping the quotes in "CA2013", we should also escape teh `""`, even though `""` is legal
+            // to have in a verbatim string.
+            TestPasteUnknownSource(
+                pasteText: """
+                var lambda = [SuppressMessage("", "CA2013")] () => Object.ReferenceEquals(1, 2);
+                """,
+                """
+                string x = @"using System.Diagnostics.CodeAnalysis;
+
+                [||]";
+                """,
+                """"""
+                string x = @"using System.Diagnostics.CodeAnalysis;
+
+                var lambda = [SuppressMessage("""", ""CA2013"")] () => Object.ReferenceEquals(1, 2);[||]";
+                """""",
+                afterUndo:
+                """
+                string x = @"using System.Diagnostics.CodeAnalysis;
+
+                var lambda = [SuppressMessage("", "CA2013")] () => Object.ReferenceEquals(1, 2);[||]";
+                """);
         }
     }
 }

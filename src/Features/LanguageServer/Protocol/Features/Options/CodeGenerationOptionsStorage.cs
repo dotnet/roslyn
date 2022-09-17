@@ -6,6 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.AddImport;
 using Microsoft.CodeAnalysis.CodeCleanup;
+using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Options;
 using Roslyn.Utilities;
@@ -20,17 +21,23 @@ internal interface ICodeGenerationOptionsStorage : ILanguageService
 internal static class CodeGenerationOptionsStorage
 {
     public static ValueTask<CodeGenerationOptions> GetCodeGenerationOptionsAsync(this Document document, IGlobalOptionService globalOptions, CancellationToken cancellationToken)
-        => document.GetCodeGenerationOptionsAsync(globalOptions.GetCodeGenerationOptions(document.Project.LanguageServices), cancellationToken);
+        => document.GetCodeGenerationOptionsAsync(globalOptions.GetCodeGenerationOptions(document.Project.Services), cancellationToken);
 
     public static ValueTask<CleanCodeGenerationOptions> GetCleanCodeGenerationOptionsAsync(this Document document, IGlobalOptionService globalOptions, CancellationToken cancellationToken)
-        => document.GetCleanCodeGenerationOptionsAsync(globalOptions.GetCleanCodeGenerationOptions(document.Project.LanguageServices), cancellationToken);
+        => document.GetCleanCodeGenerationOptionsAsync(globalOptions.GetCleanCodeGenerationOptions(document.Project.Services), cancellationToken);
 
-    public static CodeGenerationOptions GetCodeGenerationOptions(this IGlobalOptionService globalOptions, HostLanguageServices languageServices)
+    public static CodeGenerationOptions.CommonOptions GetCommonCodeGenerationOptions(this IGlobalOptionService globalOptions, string language)
+        => new()
+        {
+            NamingStyle = globalOptions.GetNamingStylePreferences(language)
+        };
+
+    public static CodeGenerationOptions GetCodeGenerationOptions(this IGlobalOptionService globalOptions, LanguageServices languageServices)
         => languageServices.GetRequiredService<ICodeGenerationOptionsStorage>().GetOptions(globalOptions);
 
-    public static CodeAndImportGenerationOptions GetCodeAndImportGenerationOptions(this IGlobalOptionService globalOptions, HostLanguageServices languageServices)
+    public static CodeAndImportGenerationOptions GetCodeAndImportGenerationOptions(this IGlobalOptionService globalOptions, LanguageServices languageServices)
         => new(globalOptions.GetCodeGenerationOptions(languageServices), globalOptions.GetAddImportPlacementOptions(languageServices));
 
-    public static CleanCodeGenerationOptions GetCleanCodeGenerationOptions(this IGlobalOptionService globalOptions, HostLanguageServices languageServices)
+    public static CleanCodeGenerationOptions GetCleanCodeGenerationOptions(this IGlobalOptionService globalOptions, LanguageServices languageServices)
         => new(globalOptions.GetCodeGenerationOptions(languageServices), globalOptions.GetCodeCleanupOptions(languageServices));
 }

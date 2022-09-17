@@ -10,7 +10,7 @@ using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -34,6 +34,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.SplitComment
     {
         private readonly ITextUndoHistoryRegistry _undoHistoryRegistry;
         private readonly IEditorOperationsFactoryService _editorOperationsFactoryService;
+        private readonly EditorOptionsService _editorOptionsService;
+        private readonly IIndentationManagerService _indentationManager;
         private readonly IGlobalOptionService _globalOptions;
 
         [ImportingConstructor]
@@ -41,10 +43,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.SplitComment
         public SplitCommentCommandHandler(
             ITextUndoHistoryRegistry undoHistoryRegistry,
             IEditorOperationsFactoryService editorOperationsFactoryService,
+            EditorOptionsService editorOptionsService,
+            IIndentationManagerService indentationManager,
             IGlobalOptionService globalOptions)
         {
             _undoHistoryRegistry = undoHistoryRegistry;
             _editorOperationsFactoryService = editorOperationsFactoryService;
+            _editorOptionsService = editorOptionsService;
+            _indentationManager = indentationManager;
             _globalOptions = globalOptions;
         }
 
@@ -92,7 +98,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.SplitComment
             using (context.OperationContext.AddScope(allowCancellation: true, EditorFeaturesResources.Split_comment))
             {
                 var cancellationToken = context.OperationContext.UserCancellationToken;
-                var result = SplitCommentAsync(textView, document, new SnapshotSpan(snapshot, selectionSpan), cancellationToken).WaitAndGetResult(cancellationToken);
+                var parsedDocument = ParsedDocument.CreateSynchronously(document, cancellationToken);
+                var result = SplitComment(parsedDocument, textView, subjectBuffer, new SnapshotSpan(snapshot, selectionSpan));
                 if (result == null)
                     return false;
 
@@ -138,25 +145,24 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.SplitComment
             return true;
         }
 
-        private static async Task<(Span replacementSpan, string replacementText)?> SplitCommentAsync(
+        private (Span replacementSpan, string replacementText)? SplitComment(
+            ParsedDocument document,
             ITextView textView,
-            Document document,
-            SnapshotSpan selectionSpan,
-            CancellationToken cancellationToken)
+            ITextBuffer textBuffer,
+            SnapshotSpan selectionSpan)
         {
-            var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var syntaxKinds = document.GetRequiredLanguageService<ISyntaxKindsService>();
-            var trivia = root.FindTrivia(selectionSpan.Start);
+            var syntaxKinds = document.LanguageServices.GetRequiredService<ISyntaxKindsService>();
+            var trivia = document.Root.FindTrivia(selectionSpan.Start);
             if (syntaxKinds.SingleLineCommentTrivia != trivia.RawKind)
                 return null;
 
-            var splitCommentService = document.GetRequiredLanguageService<ISplitCommentService>();
+            var splitCommentService = document.LanguageServices.GetRequiredService<ISplitCommentService>();
 
             // if the user hits enter at `/$$/` we don't want to consider this a comment continuation.
             if (selectionSpan.Start < (trivia.SpanStart + splitCommentService.CommentStart.Length))
                 return null;
 
-            if (!splitCommentService.IsAllowed(root, trivia))
+            if (!splitCommentService.IsAllowed(document.Root, trivia))
                 return null;
 
             // If the user hits enter at:    // goo $$ // bar
@@ -169,7 +175,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.SplitComment
             var textSnapshot = selectionSpan.Snapshot;
             var triviaLine = textSnapshot.GetLineFromPosition(trivia.SpanStart);
 
-            var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
+            var options = textBuffer.GetLineFormattingOptions(_editorOptionsService, explicitFormat: false);
             var replacementSpan = GetReplacementSpan(triviaLine, selectionSpan);
             var replacementText = GetReplacementText(textView, options, triviaLine, trivia, selectionSpan.Start);
             return (replacementSpan, replacementText);
@@ -187,7 +193,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.SplitComment
         }
 
         private static string GetReplacementText(
-            ITextView textView, DocumentOptionSet options, ITextSnapshotLine triviaLine, SyntaxTrivia trivia, int position)
+            ITextView textView, LineFormattingOptions options, ITextSnapshotLine triviaLine, SyntaxTrivia trivia, int position)
         {
             // We're inside a comment.  Instead of inserting just a newline here, insert
             // 1. a newline
@@ -199,12 +205,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.SplitComment
 
             var commentStartColumn = triviaLine.GetColumnFromLineOffset(trivia.SpanStart - triviaLine.Start, textView.Options);
 
-            var useTabs = options.GetOption(FormattingOptions.UseTabs);
-            var tabSize = options.GetOption(FormattingOptions.TabSize);
-
             var prefix = GetCommentPrefix(triviaLine.Snapshot, trivia, position);
-            var replacementText = options.GetOption(FormattingOptions.NewLine) +
-                commentStartColumn.CreateIndentationString(useTabs, tabSize) +
+            var replacementText = options.NewLine +
+                commentStartColumn.CreateIndentationString(options.UseTabs, options.TabSize) +
                 prefix +
                 GetWhitespaceAfterCommentPrefix(trivia, triviaLine, prefix, position);
 

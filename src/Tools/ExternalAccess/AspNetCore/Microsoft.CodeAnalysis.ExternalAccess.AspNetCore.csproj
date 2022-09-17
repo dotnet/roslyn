@@ -12,6 +12,8 @@
       A supporting package for ASP.NET Core:
       https://github.com/dotnet/aspnetcore
     </PackageDescription>
+    <!-- Referenced by dotnet/aspnetcore and included in SDK. Requires source build -->
+    <ExcludeFromSourceBuild>false</ExcludeFromSourceBuild>
   </PropertyGroup>
 
   <ItemGroup>
@@ -24,8 +26,9 @@
     <!--
       ⚠ ONLY ASP.NET CORE ASSEMBLIES MAY BE ADDED HERE ⚠
     -->
-    <InternalsVisibleTo Include="Microsoft.AspNetCore.Analyzers" />
-    <InternalsVisibleTo Include="Microsoft.AspNetCore.App.Analyzers" />
+    <InternalsVisibleTo Include="Microsoft.AspNetCore.Analyzers" Key="$(AspNetCoreKey)" />
+    <InternalsVisibleTo Include="Microsoft.AspNetCore.App.Analyzers" Key="$(AspNetCoreKey)" />
+    <InternalsVisibleTo Include="Microsoft.AspNetCore.App.Analyzers.Test" Key="$(AspNetCoreKey)" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.ExternalAccess.AspNetCore.UnitTests" />
   </ItemGroup>
 
@@ -33,20 +36,11 @@
     <ProjectReference Include="..\..\..\Compilers\Core\Portable\Microsoft.CodeAnalysis.csproj" />
     <ProjectReference Include="..\..\..\Features\CSharp\Portable\Microsoft.CodeAnalysis.CSharp.Features.csproj" />
     <ProjectReference Include="..\..\..\Workspaces\Core\Portable\Microsoft.CodeAnalysis.Workspaces.csproj" />
-    <ProjectReference Include="..\..\..\Workspaces\Remote\Core\Microsoft.CodeAnalysis.Remote.Workspaces.csproj" />
   </ItemGroup>
 
   <ItemGroup>
     <PublicAPI Include="PublicAPI.Shipped.txt" />
     <PublicAPI Include="PublicAPI.Unshipped.txt" />
-  </ItemGroup>
-  
-  <ItemGroup>
-    <Compile Update="ExternalAccessAspNetCoreResources.Designer.cs">
-      <DesignTime>True</DesignTime>
-      <AutoGen>True</AutoGen>
-      <DependentUpon>ExternalAccessAspNetCoreResources.resx</DependentUpon>
-    </Compile>
   </ItemGroup>
 
   <ItemGroup>

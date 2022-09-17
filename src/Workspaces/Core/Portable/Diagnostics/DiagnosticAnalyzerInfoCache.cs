@@ -2,12 +2,15 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Composition;
 using System.Diagnostics;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 using Roslyn.Utilities;
@@ -44,6 +47,18 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 SupportedDescriptors = supportedDescriptors;
                 TelemetryAllowed = telemetryAllowed;
                 HasCompilationEndDescriptor = supportedDescriptors.Any(DiagnosticDescriptorExtensions.IsCompilationEnd);
+            }
+        }
+
+        [Export, Shared]
+        internal sealed class SharedGlobalCache
+        {
+            public readonly DiagnosticAnalyzerInfoCache AnalyzerInfoCache = new();
+
+            [ImportingConstructor]
+            [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+            public SharedGlobalCache()
+            {
             }
         }
 
@@ -86,7 +101,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private DiagnosticDescriptorsInfo GetOrCreateDescriptorsInfo(DiagnosticAnalyzer analyzer)
             => _descriptorsInfo.GetValue(analyzer, CalculateDescriptorsInfo);
 
-        private DiagnosticDescriptorsInfo CalculateDescriptorsInfo(DiagnosticAnalyzer analyzer)
+        private static DiagnosticDescriptorsInfo CalculateDescriptorsInfo(DiagnosticAnalyzer analyzer)
         {
             ImmutableArray<DiagnosticDescriptor> descriptors;
             try
@@ -108,6 +123,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private static bool IsTelemetryCollectionAllowed(DiagnosticAnalyzer analyzer, ImmutableArray<DiagnosticDescriptor> descriptors)
             => analyzer.IsCompilerAnalyzer() ||
                analyzer is IBuiltInAnalyzer ||
-               descriptors.Length > 0 && descriptors[0].ImmutableCustomTags().Any(t => t == WellKnownDiagnosticTags.Telemetry);
+               descriptors.Length > 0 && descriptors[0].ImmutableCustomTags().Any(static t => t == WellKnownDiagnosticTags.Telemetry);
     }
 }

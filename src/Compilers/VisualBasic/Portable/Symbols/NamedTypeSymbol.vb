@@ -159,7 +159,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 ' Therefore it is a good practice to avoid type names with dots.
                 Debug.Assert(Me.IsErrorType OrElse Not (TypeOf Me Is SourceNamedTypeSymbol) OrElse Not Name.Contains("."), "type name contains dots: " + Name)
 
-                Return If(MangleName, MetadataHelpers.ComposeAritySuffixedMetadataName(Name, Arity), Name)
+                Return If(MangleName, MetadataHelpers.ComposeAritySuffixedMetadataName(Name, Arity, associatedFileIdentifier:=Nothing), Name)
             End Get
         End Property
 
@@ -995,14 +995,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             ' Check definition.
             Dim definitionUseSiteInfo As UseSiteInfo(Of AssemblySymbol) = DeriveUseSiteInfoFromType(Me.OriginalDefinition)
 
-            If definitionUseSiteInfo.DiagnosticInfo?.Code = ERRID.ERR_UnsupportedType1 Then
+            If definitionUseSiteInfo.DiagnosticInfo IsNot Nothing AndAlso IsHighestPriorityUseSiteError(definitionUseSiteInfo.DiagnosticInfo.Code) Then
                 Return definitionUseSiteInfo
             End If
 
             ' Check type arguments.
             Dim argsUseSiteInfo As UseSiteInfo(Of AssemblySymbol) = DeriveUseSiteInfoFromTypeArguments()
 
-            Return MergeUseSiteInfo(definitionUseSiteInfo, argsUseSiteInfo)
+            MergeUseSiteInfo(definitionUseSiteInfo, argsUseSiteInfo)
+            Return definitionUseSiteInfo
         End Function
 
         Private Function DeriveUseSiteInfoFromTypeArguments() As UseSiteInfo(Of AssemblySymbol)
@@ -1011,14 +1012,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             Do
                 For Each arg As TypeSymbol In currentType.TypeArgumentsNoUseSiteDiagnostics
-                    If MergeUseSiteInfo(argsUseSiteInfo, DeriveUseSiteInfoFromType(arg), ERRID.ERR_UnsupportedType1) Then
+                    If MergeUseSiteInfo(argsUseSiteInfo, DeriveUseSiteInfoFromType(arg)) Then
                         Return argsUseSiteInfo
                     End If
                 Next
 
                 If currentType.HasTypeArgumentsCustomModifiers Then
                     For i As Integer = 0 To Me.Arity - 1
-                        If MergeUseSiteInfo(argsUseSiteInfo, DeriveUseSiteInfoFromCustomModifiers(Me.GetTypeArgumentCustomModifiers(i)), ERRID.ERR_UnsupportedType1) Then
+                        If MergeUseSiteInfo(argsUseSiteInfo, DeriveUseSiteInfoFromCustomModifiers(Me.GetTypeArgumentCustomModifiers(i))) Then
                             Return argsUseSiteInfo
                         End If
                     Next
@@ -1212,6 +1213,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Private ReadOnly Property INamedTypeSymbol_IsComImport As Boolean Implements INamedTypeSymbol.IsComImport
             Get
                 Return IsComImport
+            End Get
+        End Property
+
+        Private ReadOnly Property INamedTypeSymbol_IsFileLocal As Boolean Implements INamedTypeSymbol.IsFileLocal
+            Get
+                Return False
             End Get
         End Property
 

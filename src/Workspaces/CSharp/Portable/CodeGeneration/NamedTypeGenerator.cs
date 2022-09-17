@@ -116,7 +116,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 members = members.Remove(primaryConstructor);
 
                 // remove any fields/properties that were created by the primary constructor
-                members = members.WhereAsArray(m => m is not IPropertySymbol and not IFieldSymbol || !primaryConstructor.Parameters.Any(p => p.Name == m.Name));
+                members = members.WhereAsArray(m => m is not IPropertySymbol and not IFieldSymbol || !primaryConstructor.Parameters.Any(static (p, m) => p.Name == m.Name, m));
             }
 
             // remove any implicit overrides to generate.
@@ -267,11 +267,17 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         {
             var tokens = ArrayBuilder<SyntaxToken>.GetInstance();
 
-            var defaultAccessibility = destination is CodeGenerationDestination.CompilationUnit or CodeGenerationDestination.Namespace
-                ? Accessibility.Internal
-                : Accessibility.Private;
-
-            AddAccessibilityModifiers(namedType.DeclaredAccessibility, tokens, info, defaultAccessibility);
+            if (!namedType.IsFileLocal)
+            {
+                var defaultAccessibility = destination is CodeGenerationDestination.CompilationUnit or CodeGenerationDestination.Namespace
+                    ? Accessibility.Internal
+                    : Accessibility.Private;
+                AddAccessibilityModifiers(namedType.DeclaredAccessibility, tokens, info, defaultAccessibility);
+            }
+            else
+            {
+                tokens.Add(SyntaxFactory.Token(SyntaxKind.FileKeyword));
+            }
 
             if (namedType.IsStatic)
             {

@@ -2,10 +2,11 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
-Imports Microsoft.CodeAnalysis.LanguageServices
+Imports System.Collections.Immutable
+Imports Microsoft.CodeAnalysis.LanguageService
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
-Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
+Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageService
     Friend Class VisualBasicSelectedMembers
         Inherits AbstractSelectedMembers(Of
             StatementSyntax,
@@ -19,20 +20,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
         Private Sub New()
         End Sub
 
-        Protected Overrides Function GetAllDeclarators(field As FieldDeclarationSyntax) As IEnumerable(Of ModifiedIdentifierSyntax)
-            Return field.Declarators.SelectMany(Function(d) d.Names)
-        End Function
-
         Protected Overrides Function GetMembers(containingType As TypeBlockSyntax) As SyntaxList(Of StatementSyntax)
             Return containingType.Members
         End Function
 
-        Protected Overrides Function GetPropertyIdentifier(declarator As PropertyStatementSyntax) As SyntaxToken
-            Return declarator.Identifier
-        End Function
-
-        Protected Overrides Function GetVariableIdentifier(declarator As ModifiedIdentifierSyntax) As SyntaxToken
-            Return declarator.Identifier
+        Protected Overrides Function GetDeclaratorsAndIdentifiers(member As StatementSyntax) As ImmutableArray(Of (declarator As SyntaxNode, identifier As SyntaxToken))
+            If TypeOf member Is FieldDeclarationSyntax Then
+                Return DirectCast(member, FieldDeclarationSyntax).Declarators.
+                    SelectMany(Function(decl) decl.Names.
+                        Select(Function(name) (declarator:=DirectCast(name, SyntaxNode), identifier:=name.Identifier))).
+                    AsImmutable()
+            Else
+                Return ImmutableArray.Create((declaration:=DirectCast(member, SyntaxNode), identifier:=member.GetNameToken()))
+            End If
         End Function
     End Class
 End Namespace

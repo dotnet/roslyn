@@ -6,7 +6,7 @@ using System;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 
 namespace Microsoft.CodeAnalysis.UseCoalesceExpression
 {
@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.UseCoalesceExpression
 
             var cancellationToken = context.CancellationToken;
 
-            var option = context.GetOption(CodeStyleOptions2.PreferCoalesceExpression, conditionalExpression.Language);
+            var option = context.GetAnalyzerOptions().PreferCoalesceExpression;
             if (!option.Value)
             {
                 return;

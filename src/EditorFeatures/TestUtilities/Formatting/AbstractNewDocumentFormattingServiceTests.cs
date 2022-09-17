@@ -5,7 +5,9 @@
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeCleanup;
+using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Options;
@@ -20,59 +22,25 @@ namespace Microsoft.CodeAnalysis.Test.Utilities.Formatting
         protected abstract string Language { get; }
         protected abstract TestWorkspace CreateTestWorkspace(string testCode, ParseOptions? parseOptions);
 
-        internal Task TestAsync(string testCode, string expected)
+        internal async Task TestAsync(string testCode, string expected, OptionsCollection? options = null, ParseOptions? parseOptions = null)
         {
-            return TestCoreAsync<object>(testCode, expected, options: null, parseOptions: null);
-        }
+            using var workspace = CreateTestWorkspace(testCode, parseOptions);
+            options?.SetGlobalOptions(workspace.GlobalOptions);
 
-        internal Task TestAsync<T>(string testCode, string expected, (PerLanguageOption2<T>, T)[]? options = null, ParseOptions? parseOptions = null)
-        {
-            return TestCoreAsync<T>(testCode,
-                expected,
-                options.Select(o => (new OptionKey(o.Item1, Language), o.Item2)).ToArray(),
-                parseOptions);
-        }
+            var solution = workspace.CurrentSolution;
 
-        internal Task TestAsync<T>(string testCode, string expected, (Option2<T>, T)[]? options = null, ParseOptions? parseOptions = null)
-        {
-            return TestCoreAsync<T>(testCode,
-                expected,
-                options.Select(o => (new OptionKey(o.Item1), o.Item2)).ToArray(),
-                parseOptions);
-        }
+            var document = workspace.CurrentSolution.Projects.First().Documents.First();
+            var languageServices = document.Project.Services;
 
-        internal Task TestAsync(string testCode, string expected, (OptionKey, object)[]? options = null, ParseOptions? parseOptions = null)
-        {
-            return TestCoreAsync(testCode,
-                expected,
-                options,
-                parseOptions);
-        }
+            var cleanupOptions =
+                options?.ToAnalyzerConfigOptions(languageServices).GetCodeCleanupOptions(allowImportsInHiddenRegions: false, fallbackOptions: null, languageServices) ??
+                CodeCleanupOptions.GetDefault(languageServices);
 
-        private async Task TestCoreAsync<T>(string testCode, string expected, (OptionKey, T)[]? options, ParseOptions? parseOptions)
-        {
-            using (var workspace = CreateTestWorkspace(testCode, parseOptions))
-            {
-                if (options is not null)
-                {
-                    var workspaceOptions = workspace.Options;
-                    foreach (var option in options)
-                    {
-                        workspaceOptions = workspaceOptions.WithChangedOption(option.Item1, option.Item2);
-                    }
+            var formattingService = document.GetRequiredLanguageService<INewDocumentFormattingService>();
+            var formattedDocument = await formattingService.FormatNewDocumentAsync(document, hintDocument: null, cleanupOptions, CancellationToken.None);
 
-                    workspace.SetOptions(workspaceOptions);
-                }
-
-                var document = workspace.CurrentSolution.Projects.First().Documents.First();
-
-                var formattingService = document.GetRequiredLanguageService<INewDocumentFormattingService>();
-                var cleanupOptions = await document.GetCodeCleanupOptionsAsync(fallbackOptions: null, CancellationToken.None).ConfigureAwait(false);
-                var formattedDocument = await formattingService.FormatNewDocumentAsync(document, hintDocument: null, cleanupOptions, CancellationToken.None);
-
-                var actual = await formattedDocument.GetTextAsync();
-                AssertEx.EqualOrDiff(expected, actual.ToString());
-            }
+            var actual = await formattedDocument.GetTextAsync();
+            AssertEx.EqualOrDiff(expected, actual.ToString());
         }
     }
 }

@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Reflection.Metadata;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -79,5 +80,24 @@ namespace Microsoft.CodeAnalysis.CodeGen
         /// or lambda body syntax (<paramref name="isLambdaBody"/> is true).
         /// </summary>
         public abstract bool TryGetPreviousLambda(SyntaxNode lambdaOrLambdaBodySyntax, bool isLambdaBody, out DebugId lambdaId);
+
+        /// <summary>
+        /// State number to be used for next state of the state machine,
+        /// or <see langword="null"/> if none of the previous versions of the method was a state machine with an increasing state
+        /// </summary>
+        /// <param name="increasing">True if the state number increases with progress, false if it decreases (e.g. states for iterator try-finally blocks, or iterator states of async iterators).</param>
+        public abstract StateMachineState? GetFirstUnusedStateMachineState(bool increasing);
+
+        /// <summary>
+        /// For a given node associated with entering a state of a state machine in the new compilation,
+        /// returns the ordinal of the corresponding state in the previous version of the state machine.
+        /// </summary>
+        /// <returns>
+        /// True if there is a corresponding node in the previous code version that matches the given <paramref name="syntax"/>.
+        /// </returns>
+        /// <remarks>
+        /// <paramref name="syntax"/> is an await expression, yield return statement, or try block syntax node.
+        /// </remarks>
+        public abstract bool TryGetPreviousStateMachineState(SyntaxNode syntax, out StateMachineState state);
     }
 }

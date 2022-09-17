@@ -73,8 +73,6 @@ namespace Microsoft.CodeAnalysis.Remote
             var mismatch6 = await GetAssetFromAssetServiceAsync(allChecksumsFromRequest.Except(assetMapFromIncrementalSolution.Keys)).ConfigureAwait(false);
             AppendMismatch(mismatch6, "assets only in the request but not in incremental solution", sb);
 
-            AppendOptionSets();
-
             var result = sb.ToString();
             if (result.Length > 0)
             {
@@ -83,24 +81,6 @@ namespace Microsoft.CodeAnalysis.Remote
             }
 
             return;
-
-            void AppendOptionSets()
-            {
-                var seenChecksums = new HashSet<Checksum>();
-                foreach (var list in new[] { mismatch1, mismatch2, mismatch3, mismatch4, mismatch5, mismatch6 })
-                {
-                    foreach (var (checksum, val) in list)
-                    {
-                        if (seenChecksums.Add(checksum) && val is SerializableOptionSet optionSet)
-                        {
-                            sb.AppendLine($"Checksum: {checksum}");
-                            sb.AppendLine("Options:");
-                            sb.AppendLine(optionSet.GetDebugString());
-                            sb.AppendLine();
-                        }
-                    }
-                }
-            }
 
             static void AppendMismatch(List<KeyValuePair<Checksum, object>> items, string title, StringBuilder stringBuilder)
             {

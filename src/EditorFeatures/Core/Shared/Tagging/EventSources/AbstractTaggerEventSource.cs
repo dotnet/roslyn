@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
         protected void RaiseChanged()
         {
             if (!_paused)
-                this.Changed?.Invoke(this, new TaggerEventArgs());
+                this.Changed?.Invoke(this, TaggerEventArgs.Empty);
         }
 
         public void Pause()

@@ -3,12 +3,15 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Immutable;
 using System.ComponentModel.Composition;
+using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.Editor.StringCopyPaste;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Indentation;
 using Microsoft.CodeAnalysis.Options;
@@ -17,9 +20,11 @@ using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Commanding;
 using Microsoft.VisualStudio.Text;
+using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
 using Microsoft.VisualStudio.Text.Editor.OptionsExtensionMethods;
 using Microsoft.VisualStudio.Text.Operations;
+using Microsoft.VisualStudio.Utilities;
 using Roslyn.Utilities;
 using VSUtilities = Microsoft.VisualStudio.Utilities;
 
@@ -40,53 +45,53 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
     /// doesn't want the change we made, they can always undo to get the prior paste behavior.
     /// </remarks>
     [Export(typeof(ICommandHandler))]
-    [VSUtilities.ContentType(ContentTypeNames.CSharpContentType)]
-    [VSUtilities.Name(nameof(StringCopyPasteCommandHandler))]
-    internal partial class StringCopyPasteCommandHandler : IChainedCommandHandler<CopyCommandArgs>, IChainedCommandHandler<PasteCommandArgs>
+    [ContentType(ContentTypeNames.CSharpContentType)]
+    [Name(PredefinedCommandHandlerNames.StringCopyPaste)]
+    [Order(After = PredefinedCommandHandlerNames.FormatDocument)]
+    internal partial class StringCopyPasteCommandHandler :
+        IChainedCommandHandler<CutCommandArgs>,
+        IChainedCommandHandler<CopyCommandArgs>,
+        IChainedCommandHandler<PasteCommandArgs>
     {
+        private const string CopyId = "RoslynStringCopyPasteId";
+
+        private readonly IThreadingContext _threadingContext;
         private readonly ITextUndoHistoryRegistry _undoHistoryRegistry;
         private readonly IEditorOperationsFactoryService _editorOperationsFactoryService;
+        private readonly EditorOptionsService _editorOptionsService;
+        private readonly IIndentationManagerService _indentationManager;
         private readonly IGlobalOptionService _globalOptions;
-
-        private NormalizedSnapshotSpanCollection? _lastSelectedSpans;
+        private readonly ITextBufferFactoryService2 _textBufferFactoryService;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public StringCopyPasteCommandHandler(
+            IThreadingContext threadingContext,
             ITextUndoHistoryRegistry undoHistoryRegistry,
             IEditorOperationsFactoryService editorOperationsFactoryService,
-            IGlobalOptionService globalOptions)
+            IGlobalOptionService globalOptions,
+            ITextBufferFactoryService2 textBufferFactoryService,
+            EditorOptionsService editorOptionsService,
+            IIndentationManagerService indentationManager)
         {
+            _threadingContext = threadingContext;
             _undoHistoryRegistry = undoHistoryRegistry;
             _editorOperationsFactoryService = editorOperationsFactoryService;
             _globalOptions = globalOptions;
+            _textBufferFactoryService = textBufferFactoryService;
+            _editorOptionsService = editorOptionsService;
+            _indentationManager = indentationManager;
         }
 
         public string DisplayName => nameof(StringCopyPasteCommandHandler);
 
-        #region Copy
-
-        public CommandState GetCommandState(CopyCommandArgs args, Func<CommandState> nextCommandHandler)
-            => nextCommandHandler();
-
-        public void ExecuteCommand(CopyCommandArgs args, Action nextCommandHandler, CommandExecutionContext executionContext)
-        {
-            // Ensure that the copy always goes through all other handlers.
-            nextCommandHandler();
-
-            var textView = args.TextView;
-            var subjectBuffer = args.SubjectBuffer;
-
-            _lastSelectedSpans = textView.Selection.GetSnapshotSpansOnBuffer(subjectBuffer);
-        }
-
         public CommandState GetCommandState(PasteCommandArgs args, Func<CommandState> nextCommandHandler)
             => nextCommandHandler();
 
-        #endregion
-
         public void ExecuteCommand(PasteCommandArgs args, Action nextCommandHandler, CommandExecutionContext executionContext)
         {
+            Contract.ThrowIfFalse(_threadingContext.HasMainThread);
+
             var textView = args.TextView;
             var subjectBuffer = args.SubjectBuffer;
 
@@ -96,6 +101,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
             // Always let the real paste go through.  That way we always have a version of the document that doesn't
             // include our changes that we can undo back to.
             nextCommandHandler();
+
+            // If we don't even see any changes from the paste, there's nothing we can do.
+            if (snapshotBeforePaste.Version.Changes is null)
+                return;
 
             // If the user has the option off, then don't bother doing anything once we've sent the paste through.
             if (!_globalOptions.GetOption(FeatureOnOffOptions.AutomaticallyFixStringContentsOnPaste, LanguageNames.CSharp))
@@ -120,35 +129,24 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
                 return;
 
             var cancellationToken = executionContext.OperationContext.UserCancellationToken;
-
-            var rootBeforePaste = documentBeforePaste.GetRequiredSyntaxRootSynchronously(cancellationToken);
+            var parsedDocumentBeforePaste = ParsedDocument.CreateSynchronously(documentBeforePaste, cancellationToken);
 
             // When pasting, only do anything special if the user selections were entirely inside a single string
-            // literal token.  Otherwise, we have a multi-selection across token kinds which will be extremely 
+            // token/expression.  Otherwise, we have a multi-selection across token kinds which will be extremely
             // complex to try to reconcile.
-            var stringExpressionBeforePaste = TryGetCompatibleContainingStringExpression(
-                rootBeforePaste, snapshotBeforePaste.AsText(), selectionsBeforePaste);
+            var stringExpressionBeforePaste = TryGetCompatibleContainingStringExpression(parsedDocumentBeforePaste, selectionsBeforePaste);
             if (stringExpressionBeforePaste == null)
                 return;
 
-            // TODO: add support for pasting content that came from within the editor.  We can exactly know what that
-            // content meant, and how to insert it into our string expression.
+            // Also ensure that all the changes the editor actually applied were inside a single string
+            // token/expression. If the editor decided to make changes outside of the string, we definitely do not want
+            // to do anything here.
+            var stringExpressionBeforePasteFromChanges = TryGetCompatibleContainingStringExpression(
+                parsedDocumentBeforePaste, new NormalizedSnapshotSpanCollection(snapshotBeforePaste, snapshotBeforePaste.Version.Changes.Select(c => c.OldSpan)));
+            if (stringExpressionBeforePaste != stringExpressionBeforePasteFromChanges)
+                return;
 
-            var pasteWasSuccessful = PasteWasSuccessful(
-                snapshotBeforePaste, snapshotAfterPaste, documentAfterPaste, stringExpressionBeforePaste, cancellationToken);
-
-            var indentationOptions = documentBeforePaste.GetIndentationOptionsAsync(_globalOptions, cancellationToken).WaitAndGetResult(cancellationToken);
-            var processor = new UnknownSourcePasteProcessor(
-                snapshotBeforePaste,
-                snapshotAfterPaste,
-                documentBeforePaste,
-                documentAfterPaste,
-                stringExpressionBeforePaste,
-                textView.Options.GetNewLineCharacter(),
-                indentationOptions,
-                pasteWasSuccessful);
-
-            var textChanges = processor.GetEdits(cancellationToken);
+            var textChanges = GetEdits(cancellationToken);
 
             // If we didn't get any viable changes back, don't do anything.
             if (textChanges.IsDefaultOrEmpty)
@@ -194,6 +192,80 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
             }
 
             transaction.Complete();
+            return;
+
+            ImmutableArray<TextChange> GetEdits(CancellationToken cancellationToken)
+            {
+                var newLine = textView.Options.GetNewLineCharacter();
+                var indentationWhitespace = DetermineIndentationWhitespace(
+                    parsedDocumentBeforePaste, subjectBuffer, snapshotBeforePaste.AsText(), stringExpressionBeforePaste, cancellationToken);
+
+                // See if this is a paste of the last copy that we heard about.
+                var edits = TryGetEditsFromKnownCopySource(newLine, indentationWhitespace);
+                if (!edits.IsDefaultOrEmpty)
+                    return edits;
+
+                var pasteWasSuccessful = PasteWasSuccessful(
+                    snapshotBeforePaste, snapshotAfterPaste, documentAfterPaste, stringExpressionBeforePaste, cancellationToken);
+
+                // If not, then just go through the fallback code path that applies more heuristics.
+                var unknownPasteProcessor = new UnknownSourcePasteProcessor(
+                    newLine, indentationWhitespace,
+                    snapshotBeforePaste, snapshotAfterPaste,
+                    documentBeforePaste, documentAfterPaste,
+                    stringExpressionBeforePaste, pasteWasSuccessful);
+                return unknownPasteProcessor.GetEdits();
+            }
+
+            ImmutableArray<TextChange> TryGetEditsFromKnownCopySource(
+                string newLine, string indentationWhitespace)
+            {
+                // For simplicity, we only support smart copy/paste when we are pasting into a single contiguous region.
+                if (selectionsBeforePaste.Count != 1)
+                    return default;
+
+                var copyPasteService = documentBeforePaste.Project.Solution.Services.GetRequiredService<IStringCopyPasteService>();
+                var clipboardData = copyPasteService.TryGetClipboardData(KeyAndVersion);
+                var copyPasteData = StringCopyPasteData.FromJson(clipboardData);
+
+                if (copyPasteData == null)
+                    return default;
+
+                var knownProcessor = new KnownSourcePasteProcessor(
+                    newLine, indentationWhitespace,
+                    snapshotBeforePaste, snapshotAfterPaste,
+                    documentBeforePaste, documentAfterPaste,
+                    stringExpressionBeforePaste,
+                    selectionsBeforePaste[0].Span.ToTextSpan(),
+                    copyPasteData, _textBufferFactoryService);
+                return knownProcessor.GetEdits();
+            }
+        }
+
+        private string DetermineIndentationWhitespace(
+            ParsedDocument documentBeforePaste,
+            ITextBuffer textBuffer,
+            SourceText textBeforePaste,
+            ExpressionSyntax stringExpressionBeforePaste,
+            CancellationToken cancellationToken)
+        {
+            // Only raw strings care about indentation.  Don't bother computing if we don't need it.
+            if (!IsAnyRawStringExpression(stringExpressionBeforePaste))
+                return "";
+
+            if (IsAnyMultiLineRawStringExpression(stringExpressionBeforePaste))
+            {
+                // already have a multi-line raw string.  The indentation of it's end delimiter is the indentation all
+                // lines within it should have.
+                var lastLine = textBeforePaste.Lines.GetLineFromPosition(stringExpressionBeforePaste.Span.End);
+                var quotePosition = lastLine.GetFirstNonWhitespacePosition()!.Value;
+                return textBeforePaste.ToString(TextSpan.FromBounds(lastLine.Span.Start, quotePosition));
+            }
+
+            // Otherwise, we have a single-line raw string.  Determine the default indentation desired here.
+            // We'll use that if we have to convert this single-line raw string to a multi-line one.
+            var indentationOptions = textBuffer.GetIndentationOptions(_editorOptionsService, documentBeforePaste.LanguageServices, explicitFormat: false);
+            return stringExpressionBeforePaste.GetFirstToken().GetPreferredIndentation(documentBeforePaste, indentationOptions, cancellationToken);
         }
 
         /// <summary>
@@ -254,21 +326,23 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
         /// anything special as trying to correct in this scenario is too difficult.
         /// </summary>
         private static ExpressionSyntax? TryGetCompatibleContainingStringExpression(
-            SyntaxNode root,
-            SourceText text,
-            NormalizedSnapshotSpanCollection selectionsBeforePaste)
+            ParsedDocument document, NormalizedSnapshotSpanCollection spans)
         {
+            if (spans.Count == 0)
+                return null;
+
+            var snapshot = spans[0].Snapshot;
+
             // First, try to see if all the selections are at least contained within a single string literal expression.
-            var stringExpression = FindCommonContainingStringExpression(root, selectionsBeforePaste);
+            var stringExpression = FindCommonContainingStringExpression(document.Root, spans);
             if (stringExpression == null)
                 return null;
 
             // Now, given that string expression, find the inside 'text' spans of the expression.  These are the parts
             // of the literal between the quotes.  It does not include the interpolation holes in an interpolated
             // string.  These spans may be empty (for an empty string, or empty text gap between interpolations).
-            var contentSpans = GetTextContentSpans(text, stringExpression, out _, out _);
-
-            foreach (var snapshotSpan in selectionsBeforePaste)
+            var contentSpans = StringInfo.GetStringInfo(snapshot.AsText(), stringExpression).ContentSpans;
+            foreach (var snapshotSpan in spans)
             {
                 var startIndex = contentSpans.BinarySearch(snapshotSpan.Span.Start, FindIndex);
                 var endIndex = contentSpans.BinarySearch(snapshotSpan.Span.End, FindIndex);
@@ -290,41 +364,5 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
                 return 1;
             }
         }
-
-#if false
-            private bool PastedTextEqualsLastCopiedText(ITextBuffer subjectBuffer)
-        {
-            // If we have no history of any copied text, then there's nothing in the past we can compare to.
-            if (_lastSelectedSpans == null)
-                return false;
-
-            var copiedSpans = _lastSelectedSpans;
-            var pastedChanges = subjectBuffer.CurrentSnapshot.Version.Changes;
-
-            // If we don't have any actual changes to compare, we can't consider these the same.
-            if (copiedSpans.Count == 0 || pastedChanges.Count == 0)
-                return false;
-
-            // Both the copied and pasted data is normalized.  So we should be able to compare counts to see
-            // if they look the same.
-            if (copiedSpans.Count != pastedChanges.Count)
-                return false;
-
-            // Validate each copied span from the source matches what was pasted into the destination.
-            for (int i = 0, n = copiedSpans.Count; i < n; i++)
-            {
-                var copiedSpan = copiedSpans[i];
-                var pastedChange = pastedChanges[i];
-
-                if (copiedSpan.Length != pastedChange.NewLength)
-                    return false;
-
-                if (copiedSpan.GetText() != pastedChange.NewText)
-                    return false;
-            }
-
-            return true;
-        }
-#endif
     }
 }

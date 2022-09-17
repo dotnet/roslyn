@@ -23,12 +23,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Wrapping
         {
             NewLinesForBracesInObjectCollectionArrayInitializers = newLinesForBracesInObjectCollectionArrayInitializers;
         }
+    }
 
-        public static CSharpSyntaxWrappingOptions Create(AnalyzerConfigOptions options, CodeActionOptions ideOptions)
+    internal static class CSharpSyntaxWrappingOptionsProviders
+    {
+        public static CSharpSyntaxWrappingOptions GetCSharpSyntaxWrappingOptions(this AnalyzerConfigOptions options, CodeActionOptions fallbackOptions)
             => new(
-                CSharpSyntaxFormattingOptions.Create(options, (CSharpSyntaxFormattingOptions?)ideOptions.CleanupOptions?.FormattingOptions),
+                options.GetCSharpSyntaxFormattingOptions((CSharpSyntaxFormattingOptions)fallbackOptions.CleanupOptions.FormattingOptions),
                 operatorPlacement: options.GetOption(CodeStyleOptions2.OperatorPlacementWhenWrapping),
-                wrappingColumn: ideOptions.WrappingColumn,
+                wrappingColumn: fallbackOptions.WrappingColumn,
                 newLinesForBracesInObjectCollectionArrayInitializers: options.GetOption(CSharpFormattingOptions2.NewLinesForBracesInObjectCollectionArrayInitializers));
     }
 }

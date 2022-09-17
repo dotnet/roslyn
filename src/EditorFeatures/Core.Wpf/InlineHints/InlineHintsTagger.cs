@@ -151,19 +151,23 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
                 var selectedSpans = new List<ITagSpan<IntraTextAdornmentTag>>();
                 for (var i = 0; i < _cache.Count; i++)
                 {
-                    var tagSpan = _cache[i].mappingTagSpan.Span.GetSpans(snapshot)[0];
-                    if (spans.IntersectsWith(tagSpan))
+                    var tagSpans = _cache[i].mappingTagSpan.Span.GetSpans(snapshot);
+                    if (tagSpans.Count == 1)
                     {
-                        if (_cache[i].tagSpan is not { } hintTagSpan)
+                        var tagSpan = tagSpans[0];
+                        if (spans.IntersectsWith(tagSpan))
                         {
-                            var hintUITag = InlineHintsTag.Create(
-                                    _cache[i].mappingTagSpan.Tag.Hint, Format, _textView, tagSpan, _taggerProvider, _formatMap, classify);
+                            if (_cache[i].tagSpan is not { } hintTagSpan)
+                            {
+                                var hintUITag = InlineHintsTag.Create(
+                                        _cache[i].mappingTagSpan.Tag.Hint, Format, _textView, tagSpan, _taggerProvider, _formatMap, classify);
 
-                            hintTagSpan = new TagSpan<IntraTextAdornmentTag>(tagSpan, hintUITag);
-                            _cache[i] = (_cache[i].mappingTagSpan, hintTagSpan);
+                                hintTagSpan = new TagSpan<IntraTextAdornmentTag>(tagSpan, hintUITag);
+                                _cache[i] = (_cache[i].mappingTagSpan, hintTagSpan);
+                            }
+
+                            selectedSpans.Add(hintTagSpan);
                         }
-
-                        selectedSpans.Add(hintTagSpan);
                     }
                 }
 

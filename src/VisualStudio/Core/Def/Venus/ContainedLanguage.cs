@@ -3,10 +3,10 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Diagnostics;
 using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Formatting.Rules;
@@ -15,7 +15,6 @@ using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Editor;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
-using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Tagging;
 using Microsoft.VisualStudio.TextManager.Interop;
@@ -61,27 +60,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
         /// </summary>
         public ITextBuffer DataBuffer { get; }
 
-        // Set when a TextViewFIlter is set.  We hold onto this to keep our TagSource objects alive even if Venus
+        // Set when a TextViewFilter is set.  We hold onto this to keep our TagSource objects alive even if Venus
         // disconnects the subject buffer from the view temporarily (which they do frequently).  Otherwise, we have to
         // re-compute all of the tag data when they re-connect it, and this causes issues like classification
         // flickering.
         private readonly ITagAggregator<ITag> _bufferTagAggregator;
-
-        public static string GetFilePathFromHierarchyAndItemId(IVsHierarchy hierarchy, uint itemid)
-        {
-            if (!ErrorHandler.Succeeded(((IVsProject)hierarchy).GetMkDocument(itemid, out var filePath)))
-            {
-                // we couldn't look up the document moniker from an hierarchy for an itemid.
-                // Since we only use this moniker as a key, we could fall back to something else, like the document name.
-                Debug.Assert(false, "Could not get the document moniker for an item from its hierarchy.");
-                if (!hierarchy.TryGetItemName(itemid, out filePath!))
-                {
-                    FatalError.ReportAndPropagate(new InvalidOperationException("Failed to get document moniker for a contained document"));
-                }
-            }
-
-            return filePath;
-        }
 
         internal ContainedLanguage(
             IVsTextBufferCoordinator bufferCoordinator,
@@ -89,7 +72,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
             Workspace workspace,
             ProjectId projectId,
             VisualStudioProject? project,
-            string filePath,
             Guid languageServiceGuid,
             AbstractFormattingRule? vbHelperFormattingRule = null)
         {
@@ -115,13 +97,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
             var bufferTagAggregatorFactory = ComponentModel.GetService<IBufferTagAggregatorFactoryService>();
             _bufferTagAggregator = bufferTagAggregatorFactory.CreateTagAggregator<ITag>(SubjectBuffer);
 
+            var filePath = GetFilePathFromBuffers();
             DocumentId documentId;
 
             if (this.Project != null)
             {
                 documentId = this.Project.AddSourceTextContainer(
-                    SubjectBuffer.AsTextContainer(), filePath,
-                    sourceCodeKind: SourceCodeKind.Regular, folders: default,
+                    SubjectBuffer.AsTextContainer(),
+                    filePath,
+                    sourceCodeKind: SourceCodeKind.Regular,
+                    folders: default,
                     designTimeOnly: true,
                     documentServiceProvider: new ContainedDocument.DocumentServiceProvider(DataBuffer));
             }
@@ -134,21 +119,25 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
                 Workspace.OnDocumentOpened(documentId, SubjectBuffer.AsTextContainer());
             }
 
-            this.ContainedDocument = new ContainedDocument(
-                componentModel.GetService<IThreadingContext>(),
+            ContainedDocument = new ContainedDocument(
+                ComponentModel.GetService<IThreadingContext>(),
                 documentId,
                 subjectBuffer: SubjectBuffer,
                 dataBuffer: DataBuffer,
-                bufferCoordinator,
+                BufferCoordinator,
                 Workspace,
-                _diagnosticAnalyzerService.GlobalOptions,
-                project,
-                componentModel,
+                Project,
+                ComponentModel,
                 vbHelperFormattingRule);
+
+            // link subject buffer back to the ContainedDocument, so that we can find it given just the buffer:
+            SubjectBuffer.Properties.AddProperty(typeof(IContainedDocument), ContainedDocument);
 
             // TODO: Can contained documents be linked or shared?
             this.DataBuffer.Changed += OnDataBufferChanged;
         }
+
+        public IGlobalOptionService GlobalOptions => _diagnosticAnalyzerService.GlobalOptions;
 
         private void OnDisconnect()
         {
@@ -169,10 +158,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
 
             this.ContainedDocument.Dispose();
 
-            if (_bufferTagAggregator != null)
-            {
-                _bufferTagAggregator.Dispose();
-            }
+            _bufferTagAggregator?.Dispose();
         }
 
         private void OnDataBufferChanged(object sender, TextContentChangedEventArgs e)
@@ -180,6 +166,25 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
             // we don't actually care what has changed in primary buffer. we just want to re-analyze secondary buffer
             // when primary buffer has changed to update diagnostic positions.
             _diagnosticAnalyzerService.Reanalyze(this.Workspace, documentIds: SpecializedCollections.SingletonEnumerable(this.ContainedDocument.Id));
+        }
+
+        public string GetFilePathFromBuffers()
+        {
+            var textDocumentFactoryService = ComponentModel.GetService<ITextDocumentFactoryService>();
+
+            // Try to get the file path from the secondary buffer
+            if (!textDocumentFactoryService.TryGetTextDocument(SubjectBuffer, out var document))
+            {
+                // Fallback to the primary buffer
+                textDocumentFactoryService.TryGetTextDocument(DataBuffer, out document);
+            }
+
+            if (document == null)
+            {
+                FatalError.ReportAndPropagate(new InvalidOperationException("Failed to get an ITextDocument for a contained document"));
+            }
+
+            return document?.FilePath ?? string.Empty;
         }
     }
 }

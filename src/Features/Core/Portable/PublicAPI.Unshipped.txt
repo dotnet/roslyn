@@ -1,3 +1,1 @@
-*REMOVED*Microsoft.CodeAnalysis.QuickInfo.QuickInfoService.QuickInfoService() -> void
-*REMOVED*virtual Microsoft.CodeAnalysis.QuickInfo.QuickInfoService.GetQuickInfoAsync(Microsoft.CodeAnalysis.Document document, int position, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<Microsoft.CodeAnalysis.QuickInfo.QuickInfoItem>
-Microsoft.CodeAnalysis.QuickInfo.QuickInfoService.GetQuickInfoAsync(Microsoft.CodeAnalysis.Document document, int position, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<Microsoft.CodeAnalysis.QuickInfo.QuickInfoItem>
+Microsoft.CodeAnalysis.Completion.CompletionList.ItemsList.get -> System.Collections.Generic.IReadOnlyList<Microsoft.CodeAnalysis.Completion.CompletionItem>

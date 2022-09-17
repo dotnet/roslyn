@@ -9,22 +9,25 @@ namespace Microsoft.CodeAnalysis.Structure;
 internal static class BlockStructureOptionsStorage
 {
     public static BlockStructureOptions GetBlockStructureOptions(this IGlobalOptionService globalOptions, Project project)
-        => GetBlockStructureOptions(globalOptions, project.Language, isMetadataAsSource: project.Solution.Workspace.Kind == WorkspaceKind.MetadataAsSource);
+        => GetBlockStructureOptions(globalOptions, project.Language, isMetadataAsSource: project.Solution.WorkspaceKind == WorkspaceKind.MetadataAsSource);
 
     public static BlockStructureOptions GetBlockStructureOptions(this IGlobalOptionService globalOptions, string language, bool isMetadataAsSource)
-        => new(
-            ShowBlockStructureGuidesForCommentsAndPreprocessorRegions: globalOptions.GetOption(ShowBlockStructureGuidesForCommentsAndPreprocessorRegions, language),
-            ShowBlockStructureGuidesForDeclarationLevelConstructs: globalOptions.GetOption(ShowBlockStructureGuidesForDeclarationLevelConstructs, language),
-            ShowBlockStructureGuidesForCodeLevelConstructs: globalOptions.GetOption(ShowBlockStructureGuidesForCodeLevelConstructs, language),
-            ShowOutliningForCommentsAndPreprocessorRegions: globalOptions.GetOption(ShowOutliningForCommentsAndPreprocessorRegions, language),
-            ShowOutliningForDeclarationLevelConstructs: globalOptions.GetOption(ShowOutliningForDeclarationLevelConstructs, language),
-            ShowOutliningForCodeLevelConstructs: globalOptions.GetOption(ShowOutliningForCodeLevelConstructs, language),
-            CollapseRegionsWhenFirstOpened: globalOptions.GetOption(CollapseRegionsWhenFirstOpened, language),
-            CollapseImportsWhenFirstOpened: globalOptions.GetOption(CollapseImportsWhenFirstOpened, language),
-            CollapseMetadataImplementationsWhenFirstOpened: globalOptions.GetOption(CollapseMetadataImplementationsWhenFirstOpened, language),
-            CollapseRegionsWhenCollapsingToDefinitions: globalOptions.GetOption(CollapseRegionsWhenCollapsingToDefinitions, language),
-            MaximumBannerLength: globalOptions.GetOption(MaximumBannerLength, language),
-            IsMetadataAsSource: isMetadataAsSource);
+        => new()
+        {
+            ShowBlockStructureGuidesForCommentsAndPreprocessorRegions = globalOptions.GetOption(ShowBlockStructureGuidesForCommentsAndPreprocessorRegions, language),
+            ShowBlockStructureGuidesForDeclarationLevelConstructs = globalOptions.GetOption(ShowBlockStructureGuidesForDeclarationLevelConstructs, language),
+            ShowBlockStructureGuidesForCodeLevelConstructs = globalOptions.GetOption(ShowBlockStructureGuidesForCodeLevelConstructs, language),
+            ShowOutliningForCommentsAndPreprocessorRegions = globalOptions.GetOption(ShowOutliningForCommentsAndPreprocessorRegions, language),
+            ShowOutliningForDeclarationLevelConstructs = globalOptions.GetOption(ShowOutliningForDeclarationLevelConstructs, language),
+            ShowOutliningForCodeLevelConstructs = globalOptions.GetOption(ShowOutliningForCodeLevelConstructs, language),
+            CollapseRegionsWhenFirstOpened = globalOptions.GetOption(CollapseRegionsWhenFirstOpened, language),
+            CollapseImportsWhenFirstOpened = globalOptions.GetOption(CollapseImportsWhenFirstOpened, language),
+            CollapseMetadataImplementationsWhenFirstOpened = globalOptions.GetOption(CollapseSourceLinkEmbeddedDecompiledFilesWhenFirstOpened, language),
+            CollapseEmptyMetadataImplementationsWhenFirstOpened = globalOptions.GetOption(CollapseMetadataSignatureFilesWhenFirstOpened, language),
+            CollapseRegionsWhenCollapsingToDefinitions = globalOptions.GetOption(CollapseRegionsWhenCollapsingToDefinitions, language),
+            MaximumBannerLength = globalOptions.GetOption(MaximumBannerLength, language),
+            IsMetadataAsSource = isMetadataAsSource,
+        };
 
     private const string FeatureName = "BlockStructureOptions";
 
@@ -60,9 +63,12 @@ internal static class BlockStructureOptionsStorage
         FeatureName, "CollapseImportsWhenFirstOpened", BlockStructureOptions.Default.CollapseImportsWhenFirstOpened,
         storageLocation: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.CollapseImportsWhenFirstOpened"));
 
-    public static readonly PerLanguageOption2<bool> CollapseMetadataImplementationsWhenFirstOpened = new(
+    public static readonly PerLanguageOption2<bool> CollapseSourceLinkEmbeddedDecompiledFilesWhenFirstOpened = new(
         FeatureName, "CollapseMetadataImplementationsWhenFirstOpened", BlockStructureOptions.Default.CollapseMetadataImplementationsWhenFirstOpened,
         storageLocation: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.CollapseMetadataImplementationsWhenFirstOpened"));
+    public static readonly PerLanguageOption2<bool> CollapseMetadataSignatureFilesWhenFirstOpened = new(
+        FeatureName, "CollapseEmptyMetadataImplementationsWhenFirstOpened", BlockStructureOptions.Default.CollapseEmptyMetadataImplementationsWhenFirstOpened,
+        storageLocation: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.CollapseEmptyMetadataImplementationsWhenFirstOpened"));
 
     public static readonly PerLanguageOption2<bool> CollapseRegionsWhenCollapsingToDefinitions = new(
         FeatureName, "CollapseRegionsWhenCollapsingToDefinitions", BlockStructureOptions.Default.CollapseRegionsWhenCollapsingToDefinitions,

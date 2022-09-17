@@ -2,16 +2,16 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Linq;
 using System.Text;
 using Microsoft.CodeAnalysis.Syntax.InternalSyntax;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
+using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 {
@@ -82,7 +82,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         private readonly LexerCache _cache;
         private readonly bool _allowPreprocessorDirectives;
         private readonly bool _interpolationFollowedByColon;
-        private DocumentationCommentParser _xmlParser;
+        private DocumentationCommentParser? _xmlParser;
         private int _badTokenCount; // cumulative count of bad tokens produced
 
         internal struct TokenInfo
@@ -90,11 +90,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             // scanned values
             internal SyntaxKind Kind;
             internal SyntaxKind ContextualKind;
-            internal string Text;
+            internal string? Text;
             internal SpecialType ValueKind;
             internal bool RequiresTextForXmlEntity;
             internal bool HasIdentifierEscapeSequence;
-            internal string StringValue;
+            internal string? StringValue;
             internal char CharValue;
             internal int IntValue;
             internal uint UintValue;
@@ -283,7 +283,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         private SyntaxListBuilder _leadingTriviaCache = new SyntaxListBuilder(10);
         private SyntaxListBuilder _trailingTriviaCache = new SyntaxListBuilder(10);
 
-        private static int GetFullWidth(SyntaxListBuilder builder)
+        private static int GetFullWidth(SyntaxListBuilder? builder)
         {
             int width = 0;
 
@@ -291,7 +291,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 for (int i = 0; i < builder.Count; i++)
                 {
-                    width += builder[i].FullWidth;
+                    width += builder[i]!.FullWidth;
                 }
             }
 
@@ -314,7 +314,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             this.LexSyntaxTrivia(afterFirstToken: true, isTrailing: true, triviaList: ref _trailingTriviaCache);
             var trailing = _trailingTriviaCache;
 
-            return Create(ref tokenInfo, leading, trailing, errors);
+            return Create(in tokenInfo, leading, trailing, errors);
         }
 
         internal SyntaxTriviaList LexSyntaxLeadingTrivia()
@@ -333,7 +333,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 _trailingTriviaCache.ToListNode(), position: 0, index: 0);
         }
 
-        private SyntaxToken Create(ref TokenInfo info, SyntaxListBuilder leading, SyntaxListBuilder trailing, SyntaxDiagnosticInfo[] errors)
+        private SyntaxToken Create(in TokenInfo info, SyntaxListBuilder? leading, SyntaxListBuilder? trailing, SyntaxDiagnosticInfo[]? errors)
         {
             Debug.Assert(info.Kind != SyntaxKind.IdentifierToken || info.StringValue != null);
 
@@ -386,11 +386,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                         token = SyntaxFactory.Literal(leadingNode, info.Text, info.Kind, info.Text, trailingNode);
                         break;
                     case SyntaxKind.StringLiteralToken:
-                    case SyntaxKind.UTF8StringLiteralToken:
+                    case SyntaxKind.Utf8StringLiteralToken:
                     case SyntaxKind.SingleLineRawStringLiteralToken:
-                    case SyntaxKind.UTF8SingleLineRawStringLiteralToken:
+                    case SyntaxKind.Utf8SingleLineRawStringLiteralToken:
                     case SyntaxKind.MultiLineRawStringLiteralToken:
-                    case SyntaxKind.UTF8MultiLineRawStringLiteralToken:
+                    case SyntaxKind.Utf8MultiLineRawStringLiteralToken:
                         token = SyntaxFactory.Literal(leadingNode, info.Text, info.Kind, info.StringValue, trailingNode);
                         break;
                     case SyntaxKind.CharacterLiteralToken:
@@ -903,7 +903,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
                     if (isEscaped)
                     {
-                        SyntaxDiagnosticInfo error;
+                        SyntaxDiagnosticInfo? error;
                         TextWindow.NextCharOrUnicodeEscape(out surrogateCharacter, out error);
                         AddError(error);
                     }
@@ -986,7 +986,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             return false;
         }
 
-#nullable enable
         private void CheckFeatureAvailability(MessageID feature)
         {
             var info = feature.GetFeatureAvailabilityDiagnosticInfo(Options);
@@ -995,7 +994,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 AddError(info.Code, info.Arguments);
             }
         }
-#nullable disable
 
         private bool ScanInteger()
         {
@@ -1881,7 +1879,7 @@ top:
                                 {
                                     if (isEscaped)
                                     {
-                                        SyntaxDiagnosticInfo error;
+                                        SyntaxDiagnosticInfo? error;
                                         TextWindow.NextCharOrUnicodeEscape(out surrogateCharacter, out error);
                                         AddError(error);
                                     }
@@ -1905,7 +1903,7 @@ top:
 
                 if (isEscaped)
                 {
-                    SyntaxDiagnosticInfo error;
+                    SyntaxDiagnosticInfo? error;
                     TextWindow.NextCharOrUnicodeEscape(out surrogateCharacter, out error);
                     AddError(error);
                 }
@@ -2053,7 +2051,7 @@ top:
                             TextWindow.Reset(beforeConsumed);
                             // ^^^^^^^ otherwise \u005Cu1234 looks just like \u1234! (i.e. escape within escape)
                             isEscaped = true;
-                            SyntaxDiagnosticInfo error;
+                            SyntaxDiagnosticInfo? error;
                             consumedChar = TextWindow.NextUnicodeEscape(out consumedSurrogate, out error);
                             AddCrefError(error);
                             goto top;
@@ -2232,6 +2230,8 @@ LoopExit:
 
             if (this.ScanIdentifier(ref info))
             {
+                RoslynDebug.AssertNotNull(info.Text);
+
                 // check to see if it is an actual keyword
                 if (!info.IsVerbatim && !info.HasIdentifierEscapeSequence)
                 {
@@ -2372,7 +2372,9 @@ LoopExit:
                         return;
                     case '\r':
                     case '\n':
-                        this.AddTrivia(this.ScanEndOfLine(), ref triviaList);
+                        var endOfLine = this.ScanEndOfLine();
+                        RoslynDebug.AssertNotNull(endOfLine);
+                        this.AddTrivia(endOfLine, ref triviaList);
                         if (isTrailing)
                         {
                             return;
@@ -2397,6 +2399,7 @@ LoopExit:
                     // recognize >>>>>>> as we are scanning the trivia after a ======= marker 
                     // (which can never be part of legal code).
                     // case '>':
+                    case '|':
                     case '=':
                     case '<':
                         if (!isTrailing)
@@ -2427,7 +2430,7 @@ LoopExit:
             if (position == 0 || SyntaxFacts.IsNewLine(text[position - 1]))
             {
                 var firstCh = text[position];
-                Debug.Assert(firstCh == '<' || firstCh == '=' || firstCh == '>');
+                Debug.Assert(firstCh is '<' or '|' or '=' or '>');
 
                 if ((position + s_conflictMarkerLength) <= text.Length)
                 {
@@ -2439,7 +2442,7 @@ LoopExit:
                         }
                     }
 
-                    if (firstCh == '=')
+                    if (firstCh is '|' or '=')
                     {
                         return true;
                     }
@@ -2468,21 +2471,21 @@ LoopExit:
             // Now add the newlines as the next trivia.
             LexConflictMarkerEndOfLine(ref triviaList);
 
-            // Now, if it was an ======= marker, then also created a DisabledText trivia for
+            // Now, if it was an ||||||| or ======= marker, then also created a DisabledText trivia for
             // the contents of the file after it, up until the next >>>>>>> marker we see.
-            if (startCh == '=')
+            if (startCh is '|' or '=')
             {
-                LexConflictMarkerDisabledText(ref triviaList);
+                LexConflictMarkerDisabledText(startCh == '=', ref triviaList);
             }
         }
 
-        private SyntaxListBuilder LexConflictMarkerDisabledText(ref SyntaxListBuilder triviaList)
+        private SyntaxListBuilder LexConflictMarkerDisabledText(bool atSecondMiddleMarker, ref SyntaxListBuilder triviaList)
         {
-            // Consume everything from the start of the mid-conflict marker to the start of the next
-            // end-conflict marker.
+            // Consume everything from the end of the current mid-conflict marker to the start of the next
+            // end-conflict marker
             this.Start();
 
-            var hitEndConflictMarker = false;
+            var hitNextMarker = false;
             while (true)
             {
                 var ch = this.TextWindow.PeekChar();
@@ -2491,10 +2494,16 @@ LoopExit:
                     break;
                 }
 
+                if (!atSecondMiddleMarker && ch == '=' && IsConflictMarkerTrivia())
+                {
+                    hitNextMarker = true;
+                    break;
+                }
+
                 // If we hit the end-conflict marker, then lex it out at this point.
                 if (ch == '>' && IsConflictMarkerTrivia())
                 {
-                    hitEndConflictMarker = true;
+                    hitNextMarker = true;
                     break;
                 }
 
@@ -2506,7 +2515,7 @@ LoopExit:
                 this.AddTrivia(SyntaxFactory.DisabledText(TextWindow.GetText(false)), ref triviaList);
             }
 
-            if (hitEndConflictMarker)
+            if (hitNextMarker)
             {
                 LexConflictMarkerTrivia(ref triviaList);
             }
@@ -2544,7 +2553,7 @@ LoopExit:
             this.AddTrivia(SyntaxFactory.ConflictMarker(TextWindow.GetText(false)), ref triviaList);
         }
 
-        private void AddTrivia(CSharpSyntaxNode trivia, ref SyntaxListBuilder list)
+        private void AddTrivia(CSharpSyntaxNode trivia, [NotNull] ref SyntaxListBuilder? list)
         {
             if (this.HasErrors)
             {
@@ -2608,7 +2617,7 @@ LoopExit:
         /// Scans a new-line sequence (either a single new-line character or a CR-LF combo).
         /// </summary>
         /// <returns>A trivia node with the new-line text</returns>
-        private CSharpSyntaxNode ScanEndOfLine()
+        private CSharpSyntaxNode? ScanEndOfLine()
         {
             char ch;
             switch (ch = TextWindow.PeekChar())
@@ -2704,7 +2713,7 @@ top:
             }
         }
 
-        private Func<SyntaxTrivia> _createWhitespaceTriviaFunction;
+        private Func<SyntaxTrivia>? _createWhitespaceTriviaFunction;
 
         private SyntaxTrivia CreateWhitespaceTrivia()
         {
@@ -2783,7 +2792,7 @@ top:
         }
 
         // consume text up to the next directive
-        private CSharpSyntaxNode LexDisabledText(out bool followedByDirective)
+        private CSharpSyntaxNode? LexDisabledText(out bool followedByDirective)
         {
             this.Start();
 
@@ -2841,7 +2850,42 @@ top:
             this.ScanDirectiveToken(ref info);
             var errors = this.GetErrors(leadingTriviaWidth: 0);
             var trailing = this.LexDirectiveTrailingTrivia(info.Kind == SyntaxKind.EndOfDirectiveToken);
-            return Create(ref info, null, trailing, errors);
+            return Create(in info, null, trailing, errors);
+        }
+
+        public SyntaxToken LexEndOfDirectiveWithOptionalPreprocessingMessage()
+        {
+            PooledStringBuilder? builder = null;
+
+            // Skip the rest of the line until we hit a EOL or EOF.  This follows the PP_Message portion of the specification.
+            while (true)
+            {
+                var ch = this.TextWindow.PeekChar();
+                if (SyntaxFacts.IsNewLine(ch))
+                {
+                    // don't consume EOL characters here
+                    break;
+                }
+                else if (ch is SlidingTextWindow.InvalidCharacter && this.TextWindow.IsReallyAtEnd())
+                {
+                    // don't consume EOF characters here
+                    break;
+                }
+
+                builder ??= PooledStringBuilder.GetInstance();
+                builder.Builder.Append(ch);
+                this.TextWindow.AdvanceChar();
+            }
+
+            var leading = builder == null
+                ? null
+                : SyntaxFactory.PreprocessingMessage(builder.ToStringAndFree());
+
+            // now try to consume the EOL if there.
+            var trailing = this.LexDirectiveTrailingTrivia(includeEndOfLine: true)?.ToListNode();
+            var endOfDirective = SyntaxFactory.Token(leading, SyntaxKind.EndOfDirectiveToken, trailing);
+
+            return endOfDirective;
         }
 
         private bool ScanDirectiveToken(ref TokenInfo info)
@@ -2990,7 +3034,7 @@ top:
                         // unknown single character
                         if (isEscaped)
                         {
-                            SyntaxDiagnosticInfo error;
+                            SyntaxDiagnosticInfo? error;
                             TextWindow.NextCharOrUnicodeEscape(out surrogateCharacter, out error);
                             AddError(error);
                         }
@@ -3010,11 +3054,11 @@ top:
             return info.Kind != SyntaxKind.None;
         }
 
-        private SyntaxListBuilder LexDirectiveTrailingTrivia(bool includeEndOfLine)
+        private SyntaxListBuilder? LexDirectiveTrailingTrivia(bool includeEndOfLine)
         {
-            SyntaxListBuilder trivia = null;
+            SyntaxListBuilder? trivia = null;
 
-            CSharpSyntaxNode tr;
+            CSharpSyntaxNode? tr;
             while (true)
             {
                 var pos = TextWindow.Position;
@@ -3046,9 +3090,9 @@ top:
             return trivia;
         }
 
-        private CSharpSyntaxNode LexDirectiveTrivia()
+        private CSharpSyntaxNode? LexDirectiveTrivia()
         {
-            CSharpSyntaxNode trivia = null;
+            CSharpSyntaxNode? trivia = null;
 
             this.Start();
             char ch = TextWindow.PeekChar();
@@ -3135,14 +3179,14 @@ top:
         {
             TokenInfo xmlTokenInfo = default(TokenInfo);
 
-            SyntaxListBuilder leading = null;
+            SyntaxListBuilder? leading = null;
             this.LexXmlDocCommentLeadingTrivia(ref leading);
 
             this.Start();
             this.ScanXmlToken(ref xmlTokenInfo);
             var errors = this.GetErrors(GetFullWidth(leading));
 
-            return Create(ref xmlTokenInfo, leading, null, errors);
+            return Create(in xmlTokenInfo, leading, null, errors);
         }
 
         private bool ScanXmlToken(ref TokenInfo info)
@@ -3261,7 +3305,7 @@ top:
             TextWindow.AdvanceChar();
             _builder.Clear();
             XmlParseErrorCode? error = null;
-            object[] errorArgs = null;
+            object[]? errorArgs = null;
 
             char ch;
             if (IsXmlNameStartChar(ch = TextWindow.PeekChar()))
@@ -3491,7 +3535,7 @@ top:
         {
             TokenInfo tagInfo = default(TokenInfo);
 
-            SyntaxListBuilder leading = null;
+            SyntaxListBuilder? leading = null;
             this.LexXmlDocCommentLeadingTriviaWithWhitespace(ref leading);
 
             this.Start();
@@ -3501,14 +3545,15 @@ top:
             // PERF: De-dupe common XML element tags
             if (errors == null && tagInfo.ContextualKind == SyntaxKind.None && tagInfo.Kind == SyntaxKind.IdentifierToken)
             {
-                SyntaxToken token = DocumentationCommentXmlTokens.LookupToken(tagInfo.Text, leading);
+                RoslynDebug.AssertNotNull(tagInfo.Text);
+                SyntaxToken? token = DocumentationCommentXmlTokens.LookupToken(tagInfo.Text, leading);
                 if (token != null)
                 {
                     return token;
                 }
             }
 
-            return Create(ref tagInfo, leading, null, errors);
+            return Create(in tagInfo, leading, null, errors);
         }
 
         private bool ScanXmlElementTagToken(ref TokenInfo info)
@@ -3676,14 +3721,14 @@ top:
         {
             TokenInfo info = default(TokenInfo);
 
-            SyntaxListBuilder leading = null;
+            SyntaxListBuilder? leading = null;
             this.LexXmlDocCommentLeadingTrivia(ref leading);
 
             this.Start();
             this.ScanXmlAttributeTextToken(ref info);
             var errors = this.GetErrors(GetFullWidth(leading));
 
-            return Create(ref info, leading, null, errors);
+            return Create(in info, leading, null, errors);
         }
 
         private bool ScanXmlAttributeTextToken(ref TokenInfo info)
@@ -3830,14 +3875,14 @@ top:
             TokenInfo info = default(TokenInfo);
 
             //TODO: Dev11 allows C# comments and newlines in cref trivia (DevDiv #530523).
-            SyntaxListBuilder leading = null;
+            SyntaxListBuilder? leading = null;
             this.LexXmlDocCommentLeadingTriviaWithWhitespace(ref leading);
 
             this.Start();
             this.ScanXmlCharacter(ref info);
             var errors = this.GetErrors(GetFullWidth(leading));
 
-            return Create(ref info, leading, null, errors);
+            return Create(in info, leading, null, errors);
         }
 
         /// <summary>
@@ -3886,14 +3931,14 @@ top:
             TokenInfo info = default(TokenInfo);
 
             //TODO: Dev11 allows C# comments and newlines in cref trivia (DevDiv #530523).
-            SyntaxListBuilder leading = null;
+            SyntaxListBuilder? leading = null;
             this.LexXmlDocCommentLeadingTriviaWithWhitespace(ref leading);
 
             this.Start();
             this.ScanXmlCrefToken(ref info);
             var errors = this.GetErrors(GetFullWidth(leading));
 
-            return Create(ref info, leading, null, errors);
+            return Create(in info, leading, null, errors);
         }
 
         /// <summary>
@@ -4121,7 +4166,7 @@ top:
 
                 TextWindow.Reset(beforeConsumed);
 
-                if (this.ScanIdentifier(ref info) && info.Text.Length > 0)
+                if (this.ScanIdentifier(ref info) && info.Text!.Length > 0)
                 {
                     // ACASEY:  All valid identifier characters should be valid in XML attribute values,
                     // but I don't want to add an assert because XML character classification is expensive.
@@ -4168,6 +4213,7 @@ top:
                     else if (TextWindow.PeekChar() == '&')
                     {
                         this.ScanXmlEntity(ref info);
+                        RoslynDebug.AssertNotNull(info.Text);
                         info.Kind = SyntaxKind.XmlEntityLiteralToken;
                         this.AddCrefError(ErrorCode.ERR_UnexpectedCharacter, info.Text);
                     }
@@ -4282,7 +4328,7 @@ top:
         /// Diagnostics that occur within cref attributes need to be
         /// wrapped with ErrorCode.WRN_ErrorOverride.
         /// </summary>
-        private void AddCrefError(DiagnosticInfo info)
+        private void AddCrefError(DiagnosticInfo? info)
         {
             if (info != null)
             {
@@ -4297,14 +4343,14 @@ top:
         {
             TokenInfo info = default(TokenInfo);
 
-            SyntaxListBuilder leading = null;
+            SyntaxListBuilder? leading = null;
             this.LexXmlDocCommentLeadingTrivia(ref leading);
 
             this.Start();
             this.ScanXmlCDataSectionTextToken(ref info);
             var errors = this.GetErrors(GetFullWidth(leading));
 
-            return Create(ref info, leading, null, errors);
+            return Create(in info, leading, null, errors);
         }
 
         private bool ScanXmlCDataSectionTextToken(ref TokenInfo info)
@@ -4419,14 +4465,14 @@ top:
         {
             TokenInfo info = default(TokenInfo);
 
-            SyntaxListBuilder leading = null;
+            SyntaxListBuilder? leading = null;
             this.LexXmlDocCommentLeadingTrivia(ref leading);
 
             this.Start();
             this.ScanXmlCommentTextToken(ref info);
             var errors = this.GetErrors(GetFullWidth(leading));
 
-            return Create(ref info, leading, null, errors);
+            return Create(in info, leading, null, errors);
         }
 
         private bool ScanXmlCommentTextToken(ref TokenInfo info)
@@ -4549,14 +4595,14 @@ top:
         {
             TokenInfo info = default(TokenInfo);
 
-            SyntaxListBuilder leading = null;
+            SyntaxListBuilder? leading = null;
             this.LexXmlDocCommentLeadingTrivia(ref leading);
 
             this.Start();
             this.ScanXmlProcessingInstructionTextToken(ref info);
             var errors = this.GetErrors(GetFullWidth(leading));
 
-            return Create(ref info, leading, null, errors);
+            return Create(in info, leading, null, errors);
         }
 
         // CONSIDER: This could easily be merged with ScanXmlCDataSectionTextToken
@@ -4670,7 +4716,7 @@ top:
         /// Collects XML doc comment exterior trivia, and therefore is a no op unless we are in the Start or Exterior of an XML doc comment.
         /// </summary>
         /// <param name="trivia">List in which to collect the trivia</param>
-        private void LexXmlDocCommentLeadingTrivia(ref SyntaxListBuilder trivia)
+        private void LexXmlDocCommentLeadingTrivia(ref SyntaxListBuilder? trivia)
         {
             var start = TextWindow.Position;
             this.Start();
@@ -4800,7 +4846,7 @@ top:
             }
         }
 
-        private void LexXmlDocCommentLeadingTriviaWithWhitespace(ref SyntaxListBuilder trivia)
+        private void LexXmlDocCommentLeadingTriviaWithWhitespace(ref SyntaxListBuilder? trivia)
         {
             while (true)
             {
@@ -4823,7 +4869,7 @@ top:
         /// Collects whitespace and new line trivia for XML doc comments. Does not see XML doc comment exterior trivia, and is a no op unless we are in the interior.
         /// </summary>
         /// <param name="trivia">List in which to collect the trivia</param>
-        private void LexXmlWhitespaceAndNewLineTrivia(ref SyntaxListBuilder trivia)
+        private void LexXmlWhitespaceAndNewLineTrivia(ref SyntaxListBuilder? trivia)
         {
             this.Start();
             if (this.LocationIs(XmlDocCommentLocation.Interior))
@@ -4840,7 +4886,9 @@ top:
 
                     case '\r':
                     case '\n':
-                        this.AddTrivia(this.ScanEndOfLine(), ref trivia);
+                        var endOfLine = this.ScanEndOfLine();
+                        RoslynDebug.AssertNotNull(endOfLine);
+                        this.AddTrivia(endOfLine, ref trivia);
                         this.MutateLocation(XmlDocCommentLocation.Exterior);
                         return;
 

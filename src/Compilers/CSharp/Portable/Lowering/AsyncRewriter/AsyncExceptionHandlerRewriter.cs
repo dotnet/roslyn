@@ -135,13 +135,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var tryStatementSyntax = node.Syntax;
             // If you add a syntax kind to the assertion below, please also ensure
             // that the scenario has been tested with Edit-and-Continue.
-            Debug.Assert(
-                tryStatementSyntax.IsKind(SyntaxKind.TryStatement) ||
-                tryStatementSyntax.IsKind(SyntaxKind.UsingStatement) ||
-                tryStatementSyntax.IsKind(SyntaxKind.ForEachStatement) ||
-                tryStatementSyntax.IsKind(SyntaxKind.ForEachVariableStatement) ||
-                tryStatementSyntax.IsKind(SyntaxKind.LocalDeclarationStatement) ||
-                tryStatementSyntax.IsKind(SyntaxKind.LockStatement));
+            Debug.Assert(SyntaxBindingUtilities.BindsToTryStatement(tryStatementSyntax));
 
             BoundStatement finalizedRegion;
             BoundBlock rewrittenFinally;
@@ -711,7 +705,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private AwaitFinallyFrame PushFrame(BoundTryStatement statement)
         {
-            var newFrame = new AwaitFinallyFrame(_currentAwaitFinallyFrame, _analysis.Labels(statement), (StatementSyntax)statement.Syntax);
+            var newFrame = new AwaitFinallyFrame(_currentAwaitFinallyFrame, _analysis.Labels(statement), statement.Syntax);
             _currentAwaitFinallyFrame = newFrame;
             return newFrame;
         }
@@ -890,7 +884,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             public readonly HashSet<LabelSymbol> LabelsOpt;
 
             // the try or using-await statement the frame is associated with
-            private readonly StatementSyntax _statementSyntaxOpt;
+            private readonly SyntaxNode _syntaxOpt;
 
             // proxy labels for branches leaving the frame. 
             // we build this on demand once we encounter leaving branches.
@@ -909,20 +903,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // root frame
             }
 
-            public AwaitFinallyFrame(AwaitFinallyFrame parent, HashSet<LabelSymbol> labelsOpt, StatementSyntax statementSyntax)
+            public AwaitFinallyFrame(AwaitFinallyFrame parent, HashSet<LabelSymbol> labelsOpt, SyntaxNode syntax)
             {
                 Debug.Assert(parent != null);
-                Debug.Assert(statementSyntax != null);
+                Debug.Assert(syntax != null);
 
-                Debug.Assert(statementSyntax.Kind() == SyntaxKind.TryStatement ||
-                    (statementSyntax.Kind() == SyntaxKind.UsingStatement && ((UsingStatementSyntax)statementSyntax).AwaitKeyword != default) ||
-                    (statementSyntax.Kind() == SyntaxKind.ForEachStatement && ((CommonForEachStatementSyntax)statementSyntax).AwaitKeyword != default) ||
-                    (statementSyntax.Kind() == SyntaxKind.ForEachVariableStatement && ((CommonForEachStatementSyntax)statementSyntax).AwaitKeyword != default) ||
-                    (statementSyntax.Kind() == SyntaxKind.LocalDeclarationStatement && ((LocalDeclarationStatementSyntax)statementSyntax).AwaitKeyword != default));
+                Debug.Assert(SyntaxBindingUtilities.BindsToTryStatement(syntax));
 
                 this.ParentOpt = parent;
                 this.LabelsOpt = labelsOpt;
-                _statementSyntaxOpt = statementSyntax;
+                _syntaxOpt = syntax;
             }
 
             public bool IsRoot()
@@ -983,8 +973,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     returnValue = this.returnValue;
                     if (returnValue == null)
                     {
-                        Debug.Assert(_statementSyntaxOpt != null);
-                        this.returnValue = returnValue = new SynthesizedLocal(containingMethod, TypeWithAnnotations.Create(valueOpt.Type), SynthesizedLocalKind.AsyncMethodReturnValue, _statementSyntaxOpt);
+                        Debug.Assert(_syntaxOpt != null);
+                        this.returnValue = returnValue = new SynthesizedLocal(containingMethod, TypeWithAnnotations.Create(valueOpt.Type), SynthesizedLocalKind.AsyncMethodReturnValue, _syntaxOpt);
                     }
                 }
 

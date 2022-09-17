@@ -11,12 +11,6 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
-#if CODE_STYLE
-using OptionSet = Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigOptions;
-#else
-using OptionSet = Microsoft.CodeAnalysis.Options.OptionSet;
-#endif
-
 namespace Microsoft.CodeAnalysis.CSharp.Utilities
 {
     internal sealed class CSharpUseExplicitTypeHelper : CSharpTypeStyleHelper
@@ -89,7 +83,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
             }
 
             if (typeName.Parent.IsKind(SyntaxKind.VariableDeclaration, out VariableDeclarationSyntax? variableDeclaration) &&
-                typeName.Parent.Parent.Kind() is SyntaxKind.LocalDeclarationStatement or SyntaxKind.ForStatement or SyntaxKind.UsingStatement)
+                typeName.Parent.Parent?.Kind() is SyntaxKind.LocalDeclarationStatement or SyntaxKind.ForStatement or SyntaxKind.UsingStatement)
             {
                 // check assignment for variable declarations.
                 var variable = variableDeclaration.Variables.First();

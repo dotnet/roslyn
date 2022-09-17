@@ -1103,7 +1103,7 @@ namespace Baz
 }";
             var markup = CreateMarkupForSingleProject(file2, file1, LanguageNames.CSharp);
             var completionList = await GetCompletionListAsync(markup).ConfigureAwait(false);
-            AssertRelativeOrder(new List<string>() { "SomeType", "SomeTypeWithLongerName" }, completionList.Items);
+            AssertRelativeOrder(new List<string>() { "SomeType", "SomeTypeWithLongerName" }, completionList.ItemsList.ToImmutableArray());
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -1467,7 +1467,7 @@ namespace Foo
                 </Workspace> ";
 
             var completionList = await GetCompletionListAsync(markup, workspaceKind: WorkspaceKind.Interactive).ConfigureAwait(false);
-            Assert.NotEmpty(completionList.Items);
+            Assert.NotEmpty(completionList.ItemsList);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]

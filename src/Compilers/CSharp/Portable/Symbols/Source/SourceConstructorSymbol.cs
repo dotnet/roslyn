@@ -68,11 +68,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 CheckFeatureAvailabilityAndRuntimeSupport(syntax, location, hasBody, diagnostics);
             }
 
-            var info = ModifierUtils.CheckAccessibility(this.DeclarationModifiers, this, isExplicitInterfaceImplementation: false);
-            if (info != null)
-            {
-                diagnostics.Add(info, location);
-            }
+            ModifierUtils.CheckAccessibility(this.DeclarationModifiers, this, isExplicitInterfaceImplementation: false, diagnostics, location);
 
             if (!modifierErrors)
             {
@@ -110,7 +106,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 DeclarationModifiers.Extern |
                 DeclarationModifiers.Unsafe;
 
-            var mods = ModifierUtils.MakeAndCheckNontypeMemberModifiers(modifiers, defaultAccess, allowedModifiers, location, diagnostics, out modifierErrors);
+            bool isInterface = ContainingType.IsInterface;
+            var mods = ModifierUtils.MakeAndCheckNontypeMemberModifiers(isOrdinaryMethod: false, isForInterfaceMember: isInterface, modifiers, defaultAccess, allowedModifiers, location, diagnostics, out modifierErrors);
 
             this.CheckUnsafeModifier(mods, diagnostics);
 
@@ -129,7 +126,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 mods |= DeclarationModifiers.Private; // we mark static constructors private in the symbol table
 
-                if (this.ContainingType.IsInterface)
+                if (isInterface)
                 {
                     ModifierUtils.ReportDefaultInterfaceImplementationModifiers(hasBody, mods,
                                                                                 DeclarationModifiers.Extern,

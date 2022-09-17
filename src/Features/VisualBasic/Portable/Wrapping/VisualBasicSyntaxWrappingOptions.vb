@@ -23,7 +23,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Wrapping
 
         Public Shared Function Create(options As AnalyzerConfigOptions, ideOptions As CodeActionOptions) As VisualBasicSyntaxWrappingOptions
             Return New VisualBasicSyntaxWrappingOptions(
-                formattingOptions:=VisualBasicSyntaxFormattingOptions.Create(options, DirectCast(If(ideOptions.CleanupOptions?.FormattingOptions, VisualBasicSyntaxFormattingOptions.Default), VisualBasicSyntaxFormattingOptions)),
+                formattingOptions:=VisualBasicSyntaxFormattingOptions.Create(options, DirectCast(ideOptions.CleanupOptions.FormattingOptions, VisualBasicSyntaxFormattingOptions)),
                 operatorPlacement:=options.GetOption(CodeStyleOptions2.OperatorPlacementWhenWrapping),
                 wrappingColumn:=ideOptions.WrappingColumn)
         End Function

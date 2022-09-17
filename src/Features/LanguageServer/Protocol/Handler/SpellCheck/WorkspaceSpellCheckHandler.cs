@@ -2,10 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Immutable;
+using System.Composition;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor.Api;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Roslyn.Utilities;
@@ -37,7 +40,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SpellCheck
 
             var solution = context.Solution;
 
-            var documentTrackingService = solution.Workspace.Services.GetRequiredService<IDocumentTrackingService>();
+            var documentTrackingService = solution.Services.GetRequiredService<IDocumentTrackingService>();
 
             // Collect all the documents from the solution in the order we'd like to get spans for.  This will
             // prioritize the files from currently active projects, but then also include all other docs in all

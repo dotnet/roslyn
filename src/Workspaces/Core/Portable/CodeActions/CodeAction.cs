@@ -18,6 +18,7 @@ using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
@@ -314,8 +315,11 @@ namespace Microsoft.CodeAnalysis.CodeActions
         {
             if (document.SupportsSyntaxTree)
             {
-                // TODO: fallback options https://github.com/dotnet/roslyn/issues/60777
-                var options = await document.GetCodeCleanupOptionsAsync(fallbackOptions: null, cancellationToken).ConfigureAwait(false);
+                // TODO: avoid ILegacyGlobalOptionsWorkspaceService https://github.com/dotnet/roslyn/issues/60777
+                var globalOptions = document.Project.Solution.Services.GetService<ILegacyGlobalOptionsWorkspaceService>();
+                var fallbackOptions = globalOptions?.CleanCodeGenerationOptionsProvider ?? CodeActionOptions.DefaultProvider;
+
+                var options = await document.GetCodeCleanupOptionsAsync(fallbackOptions, cancellationToken).ConfigureAwait(false);
                 return await CleanupDocumentAsync(document, options, cancellationToken).ConfigureAwait(false);
             }
 
@@ -411,14 +415,23 @@ namespace Microsoft.CodeAnalysis.CodeActions
             return CodeActionWithNestedActions.Create(title, nestedActions, isInlinable);
         }
 
-        internal static CodeAction CreateWithPriority(CodeActionPriority priority, string title!!, Func<CancellationToken, Task<Document>> createChangedDocument!!, string equivalenceKey!!)
-            => DocumentChangeAction.Create(title, createChangedDocument, equivalenceKey, priority);
+        internal static CodeAction CreateWithPriority(CodeActionPriority priority, string title, Func<CancellationToken, Task<Document>> createChangedDocument, string equivalenceKey)
+            => DocumentChangeAction.Create(
+                title ?? throw new ArgumentNullException(nameof(title)),
+                createChangedDocument ?? throw new ArgumentNullException(nameof(createChangedDocument)),
+                equivalenceKey ?? throw new ArgumentNullException(nameof(equivalenceKey)),
+                priority);
 
-        internal static CodeAction CreateWithPriority(CodeActionPriority priority, string title!!, Func<CancellationToken, Task<Solution>> createChangedSolution!!, string equivalenceKey!!)
-            => SolutionChangeAction.Create(title, createChangedSolution, equivalenceKey, priority);
+        internal static CodeAction CreateWithPriority(CodeActionPriority priority, string title, Func<CancellationToken, Task<Solution>> createChangedSolution, string equivalenceKey)
+            => SolutionChangeAction.Create(
+                title ?? throw new ArgumentNullException(nameof(title)),
+                createChangedSolution ?? throw new ArgumentNullException(nameof(createChangedSolution)),
+                equivalenceKey ?? throw new ArgumentNullException(nameof(equivalenceKey)),
+                priority);
 
-        internal static CodeAction CreateWithPriority(CodeActionPriority priority, string title!!, ImmutableArray<CodeAction> nestedActions, bool isInlinable)
-            => CodeActionWithNestedActions.Create(title, nestedActions, isInlinable, priority);
+        internal static CodeAction CreateWithPriority(CodeActionPriority priority, string title, ImmutableArray<CodeAction> nestedActions, bool isInlinable)
+            => CodeActionWithNestedActions.Create(
+                title ?? throw new ArgumentNullException(nameof(title)), nestedActions, isInlinable, priority);
 
         internal abstract class SimpleCodeAction : CodeAction
         {
@@ -539,7 +552,7 @@ namespace Microsoft.CodeAnalysis.CodeActions
         {
             private readonly Func<CancellationToken, Task<Solution>> _createChangedSolution;
 
-            private SolutionChangeAction(
+            protected SolutionChangeAction(
                 string title,
                 Func<CancellationToken, Task<Solution>> createChangedSolution,
                 string? equivalenceKey,

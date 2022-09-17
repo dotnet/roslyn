@@ -11,11 +11,13 @@ namespace Microsoft.CodeAnalysis.ImplementType
     internal static class ImplementTypeOptionsStorage
     {
         public static ImplementTypeOptions GetImplementTypeOptions(this IGlobalOptionService globalOptions, string language)
-          => new(
-              InsertionBehavior: globalOptions.GetOption(InsertionBehavior, language),
-              PropertyGenerationBehavior: globalOptions.GetOption(PropertyGenerationBehavior, language));
+          => new()
+          {
+              InsertionBehavior = globalOptions.GetOption(InsertionBehavior, language),
+              PropertyGenerationBehavior = globalOptions.GetOption(PropertyGenerationBehavior, language)
+          };
 
-        public static ImplementTypeGenerationOptions GetImplementTypeGenerationOptions(this IGlobalOptionService globalOptions, HostLanguageServices languageServices)
+        public static ImplementTypeGenerationOptions GetImplementTypeGenerationOptions(this IGlobalOptionService globalOptions, LanguageServices languageServices)
           => new(globalOptions.GetImplementTypeOptions(languageServices.Language),
                  globalOptions.CreateProvider());
 

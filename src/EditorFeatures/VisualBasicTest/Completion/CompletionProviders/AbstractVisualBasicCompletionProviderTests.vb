@@ -19,7 +19,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.Complet
             Return TestWorkspace.CreateVisualBasic(fileContents, exportProvider:=ExportProvider)
         End Function
 
-        Friend Overrides Function GetCompletionService(project As Project) As CompletionServiceWithProviders
+        Friend Overrides Function GetCompletionService(project As Project) As CompletionService
             Return Assert.IsType(Of VisualBasicCompletionService)(MyBase.GetCompletionService(project))
         End Function
 
@@ -29,12 +29,12 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.Complet
                 sourceCodeKind As SourceCodeKind, usePreviousCharAsTrigger As Boolean,
                 checkForAbsence As Boolean, glyph As Integer?, matchPriority As Integer?,
                 hasSuggestionItem As Boolean?, displayTextSuffix As String, displayTextPrefix As String, inlineDescription As String,
-                isComplexTextEdit As Boolean?, matchingFilters As List(Of CompletionFilter), flags As CompletionItemFlags?, Optional skipSpeculation As Boolean = False) As Task
+                isComplexTextEdit As Boolean?, matchingFilters As List(Of CompletionFilter), flags As CompletionItemFlags?, options As CompletionOptions, Optional skipSpeculation As Boolean = False) As Task
             Return MyBase.VerifyWorkerAsync(
                 code, position, expectedItemOrNull, expectedDescriptionOrNull,
                 sourceCodeKind, usePreviousCharAsTrigger, checkForAbsence,
                 glyph, matchPriority, hasSuggestionItem, displayTextSuffix, displayTextPrefix, inlineDescription,
-                isComplexTextEdit, matchingFilters, flags, skipSpeculation)
+                isComplexTextEdit, matchingFilters, flags, options, skipSpeculation)
         End Function
 
         Private Protected Overrides Async Function VerifyWorkerAsync(
@@ -43,22 +43,22 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.Complet
                 sourceCodeKind As SourceCodeKind, usePreviousCharAsTrigger As Boolean,
                 checkForAbsence As Boolean, glyph As Integer?, matchPriority As Integer?,
                 hasSuggestionItem As Boolean?, displayTextSuffix As String, displayTextPrefix As String, inlineDescription As String,
-                isComplexTextEdit As Boolean?, matchingFilters As List(Of CompletionFilter), flags As CompletionItemFlags?, Optional skipSpeculation As Boolean = False) As Task
+                isComplexTextEdit As Boolean?, matchingFilters As List(Of CompletionFilter), flags As CompletionItemFlags?, options As CompletionOptions, Optional skipSpeculation As Boolean = False) As Task
             ' Script/interactive support removed for now.
             ' TODO: Re-enable these when interactive is back in the product.
-            If sourceCodeKind <> Microsoft.CodeAnalysis.SourceCodeKind.Regular Then
+            If sourceCodeKind <> SourceCodeKind.Regular Then
                 Return
             End If
 
             Await VerifyAtPositionAsync(
                 code, position, usePreviousCharAsTrigger, expectedItemOrNull, expectedDescriptionOrNull, sourceCodeKind,
                 checkForAbsence, glyph, matchPriority, hasSuggestionItem, displayTextSuffix, displayTextPrefix, inlineDescription,
-                isComplexTextEdit, matchingFilters, flags, skipSpeculation)
+                isComplexTextEdit, matchingFilters, flags, options, skipSpeculation)
 
             Await VerifyAtEndOfFileAsync(
                 code, position, usePreviousCharAsTrigger, expectedItemOrNull, expectedDescriptionOrNull, sourceCodeKind,
                 checkForAbsence, glyph, matchPriority, hasSuggestionItem, displayTextSuffix, displayTextPrefix, inlineDescription,
-                isComplexTextEdit, matchingFilters, flags)
+                isComplexTextEdit, matchingFilters, flags, options)
 
             ' Items cannot be partially written if we're checking for their absence,
             ' or if we're verifying that the list will show up (without specifying an actual item)
@@ -66,12 +66,12 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.Complet
                 Await VerifyAtPosition_ItemPartiallyWrittenAsync(
                     code, position, usePreviousCharAsTrigger, expectedItemOrNull, expectedDescriptionOrNull,
                     sourceCodeKind, checkForAbsence, glyph, matchPriority, hasSuggestionItem,
-                    displayTextSuffix, displayTextPrefix, inlineDescription, isComplexTextEdit, matchingFilters, skipSpeculation:=skipSpeculation)
+                    displayTextSuffix, displayTextPrefix, inlineDescription, isComplexTextEdit, matchingFilters, flags:=Nothing, options, skipSpeculation:=skipSpeculation)
 
                 Await VerifyAtEndOfFile_ItemPartiallyWrittenAsync(
                     code, position, usePreviousCharAsTrigger, expectedItemOrNull, expectedDescriptionOrNull,
                     sourceCodeKind, checkForAbsence, glyph, matchPriority, hasSuggestionItem,
-                    displayTextSuffix, displayTextPrefix, inlineDescription, isComplexTextEdit, matchingFilters)
+                    displayTextSuffix, displayTextPrefix, inlineDescription, isComplexTextEdit, matchingFilters, flags:=Nothing, options)
             End If
         End Function
 
@@ -120,7 +120,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.Complet
 
                 Dim service = GetCompletionService(document.Project)
                 Dim completionList = Await GetCompletionListAsync(service, document, position, RoslynCompletion.CompletionTrigger.Invoke)
-                Dim item = completionList.Items.First(Function(i) i.DisplayText.StartsWith(textTypedSoFar))
+                Dim item = completionList.ItemsList.First(Function(i) i.DisplayText.StartsWith(textTypedSoFar))
 
                 Assert.Equal(expected, CommitManager.SendEnterThroughToEditor(service.GetRules(CompletionOptions.Default), item, textTypedSoFar))
             End Using

@@ -8,14 +8,14 @@ Imports Microsoft.CodeAnalysis.CSharp.AddImport
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Host.Mef
-Imports Microsoft.CodeAnalysis.IncrementalCaches
+Imports Microsoft.CodeAnalysis.FindSymbols.SymbolTree
 Imports Microsoft.CodeAnalysis.SolutionCrawler
 Imports Microsoft.CodeAnalysis.Tags
 Imports Microsoft.CodeAnalysis.VisualBasic.AddImport
 Imports Roslyn.Utilities
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.AddImport
-
+    <Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)>
     Public Class AddImportCrossLanguageTests
         Inherits AbstractCrossLanguageUserDiagnosticTest
 
@@ -30,7 +30,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.AddImport
             Return (Nothing, fixer)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)>
+        <Fact>
         Public Async Function Test_CSharpToVisualBasic1() As Task
             Dim input =
                 <Workspace>
@@ -72,7 +72,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.AddImport
             Await TestAsync(input, expected)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)>
+        <Fact>
         Public Async Function Test_VisualBasicToCSharp1() As Task
             Dim input =
                 <Workspace>
@@ -112,8 +112,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.AddImport
             Await TestAsync(input, expected)
         End Function
 
-        <WorkItem(1083419, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1083419")>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)>
+        <Fact, WorkItem(1083419, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1083419")>
         Public Async Function TestExtensionMethods1() As Task
             Dim input =
                 <Workspace>
@@ -170,8 +169,7 @@ namespace CSAssembly1
             Await TestAsync(input, expected, codeActionIndex:=1)
         End Function
 
-        <WorkItem(1083419, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1083419")>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)>
+        <Fact, WorkItem(1083419, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1083419")>
         Public Async Function TestExtensionMethods2() As Task
             Dim input =
                 <Workspace>
@@ -224,7 +222,7 @@ End Namespace
             Await TestAsync(input, expected, codeActionIndex:=1)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)>
+        <WpfFact>
         Public Async Function AddProjectReference_CSharpToCSharp_Test() As Task
             Dim input =
                 <Workspace>
@@ -271,8 +269,7 @@ namespace CSAssembly2
                 glyphTags:=WellKnownTagArrays.CSharpProject, onAfterWorkspaceCreated:=AddressOf WaitForSolutionCrawler)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)>
-        <WorkItem(12169, "https://github.com/dotnet/roslyn/issues/12169")>
+        <Fact, WorkItem(12169, "https://github.com/dotnet/roslyn/issues/12169")>
         Public Async Function AddProjectReference_CSharpToCSharp_StaticField() As Task
             Dim input =
                 <Workspace>
@@ -305,7 +302,7 @@ namespace CSAssembly2
             Await TestMissing(input)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)>
+        <WpfFact>
         Public Async Function TestAddProjectReference_CSharpToCSharp_WithProjectRenamed() As Task
             Dim input =
                 <Workspace>
@@ -358,7 +355,7 @@ namespace CSAssembly2
                             End Sub)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)>
+        <WpfFact>
         Public Async Function TestAddProjectReference_VBToVB() As Task
             Dim input =
                 <Workspace>
@@ -401,14 +398,13 @@ End Namespace
         Private Sub WaitForSolutionCrawler(workspace As TestWorkspace)
             Dim solutionCrawler = DirectCast(workspace.Services.GetService(Of ISolutionCrawlerRegistrationService), SolutionCrawlerRegistrationService)
             solutionCrawler.Register(workspace)
-            Dim provider = DirectCast(workspace.ExportProvider.GetExports(Of IWorkspaceServiceFactory).First(
+            Dim provider = DirectCast(workspace.ExportProvider.GetExports(Of IIncrementalAnalyzerProvider).First(
                         Function(f) TypeOf f.Value Is SymbolTreeInfoIncrementalAnalyzerProvider).Value, SymbolTreeInfoIncrementalAnalyzerProvider)
             Dim analyzer = provider.CreateIncrementalAnalyzer(workspace)
             solutionCrawler.GetTestAccessor().WaitUntilCompletion(workspace, ImmutableArray.Create(analyzer))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)>
-        <WorkItem(8036, "https://github.com/dotnet/Roslyn/issues/8036")>
+        <Fact, WorkItem(8036, "https://github.com/dotnet/Roslyn/issues/8036")>
         Public Async Function TestAddProjectReference_CSharpToVB_ExtensionMethod() As Task
             Dim input =
                 <Workspace>
@@ -449,8 +445,7 @@ class C
             Await TestMissing(input)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)>
-        <WorkItem(16022, "https://github.com/dotnet/roslyn/issues/16022")>
+        <WpfFact, WorkItem(16022, "https://github.com/dotnet/roslyn/issues/16022")>
         Public Async Function TestAddProjectReference_EvenWithExistingUsing() As Task
             Dim input =
                 <Workspace>
@@ -479,7 +474,7 @@ namespace A
                             onAfterWorkspaceCreated:=AddressOf WaitForSolutionCrawler)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)>
+        <Fact>
         Public Async Function TestAddProjectReferenceMissingForCircularReference() As Task
             Dim input =
                 <Workspace>

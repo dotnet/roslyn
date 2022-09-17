@@ -6,10 +6,10 @@ using Microsoft.CodeAnalysis.Completion;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Completion
 {
-    internal abstract class FSharpCompletionServiceWithProviders : CompletionServiceWithProviders
+    internal abstract class FSharpCompletionServiceWithProviders : CompletionService
     {
         internal FSharpCompletionServiceWithProviders(Workspace workspace)
-            : base(workspace)
+            : base(workspace.Services.SolutionServices)
         {
         }
 

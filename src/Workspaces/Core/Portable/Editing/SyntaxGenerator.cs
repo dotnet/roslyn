@@ -11,7 +11,7 @@ using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Simplification;
@@ -36,6 +36,8 @@ namespace Microsoft.CodeAnalysis.Editing
 
         internal abstract SyntaxTrivia CarriageReturnLineFeed { get; }
         internal abstract SyntaxTrivia ElasticCarriageReturnLineFeed { get; }
+        internal abstract SyntaxTrivia ElasticMarker { get; }
+
         internal abstract bool RequiresExplicitImplementationForInterfaceMembers { get; }
         internal ISyntaxFacts SyntaxFacts => SyntaxGeneratorInternal.SyntaxFacts;
         internal abstract SyntaxGeneratorInternal SyntaxGeneratorInternal { get; }
@@ -50,12 +52,12 @@ namespace Microsoft.CodeAnalysis.Editing
         /// Gets the <see cref="SyntaxGenerator"/> for the specified language.
         /// </summary>
         public static SyntaxGenerator GetGenerator(Workspace workspace, string language)
-            => GetGenerator(workspace.Services, language);
+            => GetGenerator(workspace.Services.SolutionServices, language);
 
         /// <summary>
         /// Gets the <see cref="SyntaxGenerator"/> for the specified language.
         /// </summary>
-        internal static SyntaxGenerator GetGenerator(HostWorkspaceServices services, string language)
+        internal static SyntaxGenerator GetGenerator(SolutionServices services, string language)
             => services.GetLanguageServices(language).GetRequiredService<SyntaxGenerator>();
 
         /// <summary>
@@ -68,7 +70,7 @@ namespace Microsoft.CodeAnalysis.Editing
         /// Gets the <see cref="SyntaxGenerator"/> for the language corresponding to the project.
         /// </summary>
         public static SyntaxGenerator GetGenerator(Project project)
-            => project.LanguageServices.GetRequiredService<SyntaxGenerator>();
+            => project.Services.GetRequiredService<SyntaxGenerator>();
 
         #region Declarations
 
@@ -597,30 +599,30 @@ namespace Microsoft.CodeAnalysis.Editing
                                 accessibility: type.DeclaredAccessibility,
                                 modifiers: DeclarationModifiers.From(type),
                                 baseType: (type.BaseType != null) ? TypeExpression(type.BaseType) : null,
-                                interfaceTypes: type.Interfaces.Select(i => TypeExpression(i)),
-                                members: type.GetMembers().Where(CanBeDeclared).Select(m => Declaration(m)));
+                                interfaceTypes: type.Interfaces.Select(TypeExpression),
+                                members: type.GetMembers().Where(CanBeDeclared).Select(Declaration));
                             break;
                         case TypeKind.Struct:
                             declaration = StructDeclaration(
                                 type.Name,
                                 accessibility: type.DeclaredAccessibility,
                                 modifiers: DeclarationModifiers.From(type),
-                                interfaceTypes: type.Interfaces.Select(i => TypeExpression(i)),
-                                members: type.GetMembers().Where(CanBeDeclared).Select(m => Declaration(m)));
+                                interfaceTypes: type.Interfaces.Select(TypeExpression),
+                                members: type.GetMembers().Where(CanBeDeclared).Select(Declaration));
                             break;
                         case TypeKind.Interface:
                             declaration = InterfaceDeclaration(
                                 type.Name,
                                 accessibility: type.DeclaredAccessibility,
-                                interfaceTypes: type.Interfaces.Select(i => TypeExpression(i)),
-                                members: type.GetMembers().Where(CanBeDeclared).Select(m => Declaration(m)));
+                                interfaceTypes: type.Interfaces.Select(TypeExpression),
+                                members: type.GetMembers().Where(CanBeDeclared).Select(Declaration));
                             break;
                         case TypeKind.Enum:
                             declaration = EnumDeclaration(
                                 type.Name,
                                 underlyingType: (type.EnumUnderlyingType == null || type.EnumUnderlyingType.SpecialType == SpecialType.System_Int32) ? null : TypeExpression(type.EnumUnderlyingType.SpecialType),
                                 accessibility: type.DeclaredAccessibility,
-                                members: type.GetMembers().Where(s => s.Kind == SymbolKind.Field).Select(m => Declaration(m)));
+                                members: type.GetMembers().Where(s => s.Kind == SymbolKind.Field).Select(Declaration));
                             break;
                         case TypeKind.Delegate:
                             var invoke = type.GetMembers("Invoke").First() as IMethodSymbol;
@@ -702,7 +704,7 @@ namespace Microsoft.CodeAnalysis.Editing
                             kinds: (tp.HasConstructorConstraint ? SpecialTypeConstraintKind.Constructor : SpecialTypeConstraintKind.None)
                                    | (tp.HasReferenceTypeConstraint ? SpecialTypeConstraintKind.ReferenceType : SpecialTypeConstraintKind.None)
                                    | (tp.HasValueTypeConstraint ? SpecialTypeConstraintKind.ValueType : SpecialTypeConstraintKind.None),
-                            types: tp.ConstraintTypes.Select(t => TypeExpression(t)));
+                            types: tp.ConstraintTypes.Select(TypeExpression));
                     }
                 }
             }
@@ -1557,6 +1559,8 @@ namespace Microsoft.CodeAnalysis.Editing
         /// </summary>
         internal abstract SyntaxNode ScopeBlock(IEnumerable<SyntaxNode> statements);
 
+        internal abstract SyntaxNode GlobalStatement(SyntaxNode statement);
+
         #endregion
 
         #region Expressions
@@ -1643,7 +1647,7 @@ namespace Microsoft.CodeAnalysis.Editing
         /// Creates an expression that denotes a generic identifier name.
         /// </summary>
         public SyntaxNode GenericName(string identifier, IEnumerable<ITypeSymbol> typeArguments)
-            => GenericName(identifier, typeArguments.Select(ta => TypeExpression(ta)));
+            => GenericName(identifier, typeArguments.Select(TypeExpression));
 
         /// <summary>
         /// Creates an expression that denotes a generic identifier name.
@@ -1797,7 +1801,7 @@ namespace Microsoft.CodeAnalysis.Editing
                     throw new ArgumentException("The number of element names must match the cardinality of the tuple.", nameof(elementNames));
                 }
 
-                return TupleTypeExpression(elementTypes.Zip(elementNames, (type, name) => TupleElementExpression(type, name)));
+                return TupleTypeExpression(elementTypes.Zip(elementNames, TupleElementExpression));
             }
 
             return TupleTypeExpression(elementTypes.Select(type => TupleElementExpression(type, name: null)));

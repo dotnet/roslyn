@@ -8,8 +8,10 @@ using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
+using Microsoft.CodeAnalysis.InheritanceMargin;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Text;
@@ -23,6 +25,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
     {
         public static bool HasNewLine(TextLine line)
             => line.Span.End != line.SpanIncludingLineBreak.End;
+
+        /// <summary>
+        /// Gets the character at the requested position, or <c>\0</c> if out of bounds. 
+        /// </summary>
+        public static char SafeCharAt(SourceText text, int index)
+            => index >= 0 && index < text.Length ? text[index] : '\0';
 
         /// <summary>
         /// True if the string literal contains an error diagnostic that indicates a parsing problem with it. For
@@ -151,130 +159,23 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
                 ? IsRawStringLiteral(literal)
                 : IsRawStringLiteral((InterpolatedStringExpressionSyntax)expression);
 
+        public static bool IsAnyMultiLineRawStringExpression(ExpressionSyntax expression)
+            => expression is LiteralExpressionSyntax { Token.RawKind: (int)SyntaxKind.MultiLineRawStringLiteralToken } or
+                             InterpolatedStringExpressionSyntax { StringStartToken.RawKind: (int)SyntaxKind.InterpolatedMultiLineRawStringStartToken };
+
         public static bool IsRawStringLiteral(InterpolatedStringExpressionSyntax interpolatedString)
             => interpolatedString.StringStartToken.Kind() is SyntaxKind.InterpolatedSingleLineRawStringStartToken or SyntaxKind.InterpolatedMultiLineRawStringStartToken;
 
         public static bool IsRawStringLiteral(LiteralExpressionSyntax literal)
             => literal.Token.Kind() is SyntaxKind.SingleLineRawStringLiteralToken or SyntaxKind.MultiLineRawStringLiteralToken;
 
-        /// <summary>
-        /// Given a string literal or interpolated string, returns the subspans of those expressions that are actual
-        /// text content spans.  For a string literal, this is the span between the quotes.  For an interpolated string
-        /// this is the text regions between the holes.  Note that for interpolated strings the content spans may be
-        /// empty (for example, between two adjacent holes).  We still want to know about those empty spans so that if a
-        /// paste happens into that empty region that we still escape properly.
-        /// </summary>
-        public static ImmutableArray<TextSpan> GetTextContentSpans(
-            SourceText text, ExpressionSyntax stringExpression,
-            out int delimiterQuoteCount, out int delimiterDollarCount)
+        public static int SkipU8Suffix(SourceText text, int end)
         {
-            if (stringExpression is LiteralExpressionSyntax literal)
-            {
-                delimiterDollarCount = 0;
-                return ImmutableArray.Create(GetStringLiteralTextContentSpan(text, literal, out delimiterQuoteCount));
-            }
-            else if (stringExpression is InterpolatedStringExpressionSyntax interpolatedString)
-            {
-                return GetInterpolatedStringTextContentSpans(text, interpolatedString, out delimiterQuoteCount, out delimiterDollarCount);
-            }
-            else
-            {
-                throw ExceptionUtilities.UnexpectedValue(stringExpression);
-            }
-        }
-
-        private static int SkipU8Suffix(SourceText text, int start, int end)
-        {
-            if (end > start && text[end - 1] == '8')
+            if (SafeCharAt(text, end - 1) == '8')
                 end--;
-            if (end > start && text[end - 1] is 'u' or 'U')
+            if (SafeCharAt(text, end - 1) is 'u' or 'U')
                 end--;
             return end;
-        }
-
-        private static ImmutableArray<TextSpan> GetInterpolatedStringTextContentSpans(
-            SourceText text, InterpolatedStringExpressionSyntax interpolatedString,
-            out int delimiterQuoteCount, out int delimiterDollarCount)
-        {
-            // Interpolated string.  Normal, verbatim, or raw.
-            //
-            // Skip past the leading and trailing delimiters.
-            var start = interpolatedString.SpanStart;
-            while (start < text.Length && text[start] is '@' or '$')
-                start++;
-            delimiterDollarCount = start - interpolatedString.SpanStart;
-
-            var position = start;
-            while (start < interpolatedString.StringStartToken.Span.End && text[start] == '"')
-                start++;
-            delimiterQuoteCount = start - position;
-
-            var end = interpolatedString.Span.End;
-
-            end = SkipU8Suffix(text, start, end);
-            while (end > interpolatedString.StringEndToken.Span.Start && text[end - 1] == '"')
-                end--;
-
-            using var result = TemporaryArray<TextSpan>.Empty;
-            var currentPosition = start;
-            for (var i = 0; i < interpolatedString.Contents.Count; i++)
-            {
-                var content = interpolatedString.Contents[i];
-                if (content is InterpolationSyntax)
-                {
-                    result.Add(TextSpan.FromBounds(currentPosition, content.SpanStart));
-                    currentPosition = content.Span.End;
-                }
-            }
-
-            // Then, once through the body, add a final span from the end of the last interpolation to the end delimiter.
-            result.Add(TextSpan.FromBounds(currentPosition, end));
-            return result.ToImmutableAndClear();
-        }
-
-        private static TextSpan GetStringLiteralTextContentSpan(SourceText text, LiteralExpressionSyntax literal, out int delimiterQuoteCount)
-        {
-            // simple string literal (normal, verbatim or raw).
-            //
-            // Skip past the leading and trailing delimiters and add the span in between.
-            //
-            // The two cases look similar but are subtly different.  Ignoring the fact that raw strings don't start with
-            // '@', there's also the issue that normal strings just have a single starting/ending quote, where as
-            // raw-strings can have an unbounded number of them.
-            if (IsRawStringLiteral(literal))
-            {
-                var start = literal.SpanStart;
-                while (start < text.Length && text[start] == '"')
-                    start++;
-                delimiterQuoteCount = start - literal.SpanStart;
-
-                var end = literal.Span.End;
-
-                end = SkipU8Suffix(text, start, end);
-                while (end > start && text[end - 1] == '"')
-                    end--;
-
-                return TextSpan.FromBounds(start, end);
-            }
-            else
-            {
-                var start = literal.SpanStart;
-                if (start < text.Length && text[start] == '@')
-                    start++;
-
-                var position = start;
-                if (start < text.Length && text[start] == '"')
-                    start++;
-                delimiterQuoteCount = start - position;
-
-                var end = literal.Span.End;
-
-                end = SkipU8Suffix(text, start, end);
-                if (end > start && text[end - 1] == '"')
-                    end--;
-
-                return TextSpan.FromBounds(start, end);
-            }
         }
 
         /// <summary>
@@ -387,10 +288,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
             return false;
         }
 
-        public static string EscapeForNonRawStringLiteral(bool isVerbatim, bool isInterpolated, string value)
+        public static string EscapeForNonRawStringLiteral_DoNotCallDirectly(bool isVerbatim, bool isInterpolated, bool trySkipExistingEscapes, string value)
         {
             if (isVerbatim)
-                return EscapeForNonRawVerbatimStringLiteral(isInterpolated, value);
+                return EscapeForNonRawVerbatimStringLiteral(isInterpolated, trySkipExistingEscapes, value);
 
             // Standard strings have a much larger set of cases to consider.
             using var _ = PooledStringBuilder.GetInstance(out var builder);
@@ -435,7 +336,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
                     // Otherwise, if it's not already escaped, then escape it.
                     if (isInterpolated && ch is '{' or '}')
                     {
-                        if (nextCh == ch)
+                        if (trySkipExistingEscapes && nextCh == ch)
                             i++;
                         else
                             builder.Append(ch);
@@ -510,9 +411,21 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
             }
         }
 
-        private static string EscapeForNonRawVerbatimStringLiteral(bool isInterpolated, string value)
+        private static string EscapeForNonRawVerbatimStringLiteral(bool isInterpolated, bool trySkipExistingEscapes, string value)
         {
             using var _ = PooledStringBuilder.GetInstance(out var builder);
+
+            // First, go through and see if we're escaping *anything* in the original.  If so, then we'll escape
+            // everything.  In other words, say we're pasting `[SuppressMessage("", "CA2013")]`.  We technically don't
+            // need to escape the `""` (since that is legal in a verbatim string).  However, we will be escaping the
+            // quotes in teh `"CA2013"` to become `""CA2013""`.  Once we decide we're escaping some quotes, we should
+            // then realize that we *should* escape the `""` to `""""` to be consistent.
+
+            // So if we determine that we will be escaping all code, then just recurse, this time setting
+            // trySkipExistingEscapes to false.  That will prevent calling back into this check and it means whatever we
+            // run into we will escape.
+            if (trySkipExistingEscapes && WillEscapeAnyCharacters(isInterpolated, value))
+                return EscapeForNonRawVerbatimStringLiteral(isInterpolated, trySkipExistingEscapes: false, value);
 
             for (var i = 0; i < value.Length; i++)
             {
@@ -525,21 +438,55 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
                 // Otherwise, if it's not already escaped, then escape it.
                 if (ch == '"')
                 {
-                    if (nextCh == ch)
+                    builder.Append(ch);
+
+                    if (trySkipExistingEscapes && nextCh == ch)
                         i++;
-                    else
-                        builder.Append(ch);
                 }
                 else if (isInterpolated && ch is '{' or '}')
                 {
-                    if (nextCh == ch)
+                    builder.Append(ch);
+
+                    if (trySkipExistingEscapes && nextCh == ch)
                         i++;
-                    else
-                        builder.Append(ch);
                 }
             }
 
             return builder.ToString();
+
+            static bool WillEscapeAnyCharacters(bool isInterpolated, string value)
+            {
+                for (var i = 0; i < value.Length; i++)
+                {
+                    var ch = value[i];
+                    var nextCh = i == value.Length - 1 ? 0 : value[i + 1];
+
+                    if (ch == '"')
+                    {
+                        // we have an isolated quote.  we will need to escape it (and thus should escape everything in
+                        // the string.
+                        if (nextCh != ch)
+                            return true;
+
+                        // Quotes are paired.  This is already escaped fine.  Skip both quotes.
+                        i++;
+                    }
+                    else if (isInterpolated && ch is '{' or '}')
+                    {
+                        // we have an isolated brace.  we will need to escape it (and thus should escape everything in
+                        // the string.
+                        if (nextCh != ch)
+                            return true;
+
+                        // Braces are paired.  This is already escaped fine.  Skip both braces.
+                        i++;
+                    }
+
+                    // continue looking forward.
+                }
+
+                return false;
+            }
         }
 
         /// <summary>

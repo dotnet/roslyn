@@ -259,6 +259,19 @@ namespace Microsoft.Cci
         ITypeReference GetType(EmitContext context);
 
         /// <summary>
+        /// The list of custom modifiers, if any, associated with the ref modifier. 
+        /// </summary>
+        ImmutableArray<ICustomModifier> RefCustomModifiers
+        {
+            get;
+        }
+
+        /// <summary>
+        /// True if the field contains a managed pointer.
+        /// </summary>
+        bool IsByReference { get; }
+
+        /// <summary>
         /// The Field being referred to.
         /// </summary>
         IFieldDefinition? GetResolvedField(EmitContext context);
@@ -475,6 +488,7 @@ namespace Microsoft.Cci
 
         ImmutableArray<ClosureDebugInfo> ClosureDebugInfo { get; }
         ImmutableArray<LambdaDebugInfo> LambdaDebugInfo { get; }
+        StateMachineStatesDebugInfo StateMachineStatesDebugInfo { get; }
 
         DynamicAnalysisMethodBodyData DynamicAnalysisData { get; }
     }

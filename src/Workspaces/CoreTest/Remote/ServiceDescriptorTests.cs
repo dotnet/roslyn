@@ -16,9 +16,24 @@ using System.Threading;
 using System.Threading.Tasks;
 using MessagePack;
 using MessagePack.Formatters;
+using Microsoft.CodeAnalysis.AddImport;
+using Microsoft.CodeAnalysis.CodeActions;
+using Microsoft.CodeAnalysis.CodeCleanup;
+using Microsoft.CodeAnalysis.CodeGeneration;
+using Microsoft.CodeAnalysis.CodeStyle;
+using Microsoft.CodeAnalysis.CSharp.CodeGeneration;
+using Microsoft.CodeAnalysis.CSharp.Formatting;
+using Microsoft.CodeAnalysis.CSharp.Simplification;
 using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
+using Microsoft.CodeAnalysis.DocumentationComments;
+using Microsoft.CodeAnalysis.DocumentHighlighting;
+using Microsoft.CodeAnalysis.ExtractMethod;
+using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Indentation;
+using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.CodeAnalysis.VisualBasic.CodeStyle;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
@@ -128,16 +143,69 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
         }
 
         [Fact]
-        public void OptionsAreMessagePackSerializable()
+        public void OptionsAreMessagePackSerializable_LanguageAgnostic()
         {
             var messagePackOptions = MessagePackSerializerOptions.Standard.WithResolver(MessagePackFormatters.DefaultResolver);
+            var options = new object[]
+            {
+                ExtractMethodOptions.Default,
+                AddImportPlacementOptions.Default,
+                LineFormattingOptions.Default,
+                DocumentFormattingOptions.Default,
+                HighlightingOptions.Default,
+                DocumentationCommentOptions.Default
+            };
 
-            foreach (var original in new[] { NamingStylePreferences.Default })
+            foreach (var original in options)
             {
                 using var stream = new MemoryStream();
                 MessagePackSerializer.Serialize(stream, original, messagePackOptions);
                 stream.Position = 0;
-                Assert.Equal(original, MessagePackSerializer.Deserialize(original.GetType(), stream, messagePackOptions));
+
+                var deserialized = MessagePackSerializer.Deserialize(original.GetType(), stream, messagePackOptions);
+                Assert.Equal(original, deserialized);
+            }
+        }
+
+        [Theory]
+        [InlineData(LanguageNames.CSharp)]
+        [InlineData(LanguageNames.VisualBasic)]
+        public void OptionsAreMessagePackSerializable(string language)
+        {
+            var messagePackOptions = MessagePackSerializerOptions.Standard.WithResolver(MessagePackFormatters.DefaultResolver);
+
+            using var workspace = new AdhocWorkspace();
+            var languageServices = workspace.Services.SolutionServices.GetLanguageServices(language);
+
+            var options = new object[]
+            {
+                SimplifierOptions.GetDefault(languageServices),
+                SyntaxFormattingOptions.GetDefault(languageServices),
+                CodeCleanupOptions.GetDefault(languageServices),
+                CodeGenerationOptions.GetDefault(languageServices),
+                IdeCodeStyleOptions.GetDefault(languageServices),
+                CodeActionOptions.GetDefault(languageServices),
+                IndentationOptions.GetDefault(languageServices),
+                ExtractMethodGenerationOptions.GetDefault(languageServices),
+
+                // some non-default values:
+                new VisualBasicIdeCodeStyleOptions(
+                    new IdeCodeStyleOptions.CommonOptions()
+                    {
+                        AllowStatementImmediatelyAfterBlock = new CodeStyleOption2<bool>(false, NotificationOption2.Error)
+                    },
+                    PreferredModifierOrder: new CodeStyleOption2<string>("Public Private", NotificationOption2.Error))
+
+            };
+
+            foreach (var original in options)
+            {
+                using var stream = new MemoryStream();
+                MessagePackSerializer.Serialize(stream, original, messagePackOptions);
+                stream.Position = 0;
+
+                var deserialized = MessagePackSerializer.Deserialize(original.GetType(), stream, messagePackOptions);
+                Assert.Equal(original, deserialized);
             }
         }
 

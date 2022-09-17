@@ -4,15 +4,17 @@
 
 using System;
 using System.Diagnostics;
+using System.Linq;
 using System.Text;
 using Microsoft.CodeAnalysis.Collections;
-using Microsoft.CodeAnalysis.CSharp.LanguageServices;
+using Microsoft.CodeAnalysis.CSharp.LanguageService;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.Utilities;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.EmbeddedLanguages.VirtualChars
@@ -26,6 +28,17 @@ namespace Microsoft.CodeAnalysis.CSharp.EmbeddedLanguages.VirtualChars
         }
 
         protected override ISyntaxFacts SyntaxFacts => CSharpSyntaxFacts.Instance;
+
+        protected override bool IsMultiLineRawStringToken(SyntaxToken token)
+        {
+            if (token.Kind() is SyntaxKind.MultiLineRawStringLiteralToken or SyntaxKind.Utf8MultiLineRawStringLiteralToken)
+                return true;
+
+            if (token.Parent?.Parent is InterpolatedStringExpressionSyntax { StringStartToken.RawKind: (int)SyntaxKind.InterpolatedMultiLineRawStringStartToken })
+                return true;
+
+            return false;
+        }
 
         protected override VirtualCharSequence TryConvertToVirtualCharsWorker(SyntaxToken token)
         {
@@ -44,55 +57,57 @@ namespace Microsoft.CodeAnalysis.CSharp.EmbeddedLanguages.VirtualChars
 
             Debug.Assert(!token.ContainsDiagnostics);
 
-            if (token.Kind() == SyntaxKind.StringLiteralToken)
+            switch (token.Kind())
             {
-                return token.IsVerbatimStringLiteral()
-                    ? TryConvertVerbatimStringToVirtualChars(token, "@\"", "\"", escapeBraces: false)
-                    : TryConvertStringToVirtualChars(token, "\"", "\"", escapeBraces: false);
-            }
+                case SyntaxKind.CharacterLiteralToken:
+                    return TryConvertStringToVirtualChars(token, "'", "'", escapeBraces: false);
 
-            if (token.Kind() == SyntaxKind.UTF8StringLiteralToken)
-            {
-                return token.IsVerbatimStringLiteral()
-                    ? TryConvertVerbatimStringToVirtualChars(token, "@\"", "\"u8", escapeBraces: false)
-                    : TryConvertStringToVirtualChars(token, "\"", "\"u8", escapeBraces: false);
-            }
+                case SyntaxKind.StringLiteralToken:
+                    return token.IsVerbatimStringLiteral()
+                        ? TryConvertVerbatimStringToVirtualChars(token, "@\"", "\"", escapeBraces: false)
+                        : TryConvertStringToVirtualChars(token, "\"", "\"", escapeBraces: false);
 
-            if (token.Kind() == SyntaxKind.CharacterLiteralToken)
-                return TryConvertStringToVirtualChars(token, "'", "'", escapeBraces: false);
+                case SyntaxKind.Utf8StringLiteralToken:
+                    return token.IsVerbatimStringLiteral()
+                        ? TryConvertVerbatimStringToVirtualChars(token, "@\"", "\"u8", escapeBraces: false)
+                        : TryConvertStringToVirtualChars(token, "\"", "\"u8", escapeBraces: false);
 
-            if (IsAnyRawStringLiteralToken(token))
-                return TryConvertRawStringToVirtualChars(token);
+                case SyntaxKind.SingleLineRawStringLiteralToken:
+                case SyntaxKind.Utf8SingleLineRawStringLiteralToken:
+                    return TryConvertSingleLineRawStringToVirtualChars(token);
 
-            if (token.Kind() == SyntaxKind.InterpolatedStringTextToken)
-            {
-                var parent = token.GetRequiredParent();
-                if (parent is InterpolationFormatClauseSyntax)
-                    parent = parent.GetRequiredParent();
+                case SyntaxKind.MultiLineRawStringLiteralToken:
+                case SyntaxKind.Utf8MultiLineRawStringLiteralToken:
+                    return token.GetRequiredParent() is LiteralExpressionSyntax literalExpression
+                        ? TryConvertMultiLineRawStringToVirtualChars(token, literalExpression, tokenIncludeDelimiters: true)
+                        : default;
 
-                if (parent.Parent is InterpolatedStringExpressionSyntax interpolatedString)
-                {
-                    return interpolatedString.StringStartToken.Kind() switch
+                case SyntaxKind.InterpolatedStringTextToken:
                     {
-                        SyntaxKind.InterpolatedStringStartToken
-                            => TryConvertStringToVirtualChars(token, "", "", escapeBraces: true),
-                        SyntaxKind.InterpolatedVerbatimStringStartToken
-                            => TryConvertVerbatimStringToVirtualChars(token, "", "", escapeBraces: true),
-                        SyntaxKind.InterpolatedSingleLineRawStringStartToken or SyntaxKind.InterpolatedMultiLineRawStringStartToken
-                            => TryConvertRawStringToVirtualChars(token),
-                        _ => default,
-                    };
-                }
+                        var parent = token.GetRequiredParent();
+                        var isFormatClause = parent is InterpolationFormatClauseSyntax;
+                        if (isFormatClause)
+                            parent = parent.GetRequiredParent();
+
+                        var interpolatedString = (InterpolatedStringExpressionSyntax)parent.GetRequiredParent();
+
+                        return interpolatedString.StringStartToken.Kind() switch
+                        {
+                            SyntaxKind.InterpolatedStringStartToken => TryConvertStringToVirtualChars(token, "", "", escapeBraces: true),
+                            SyntaxKind.InterpolatedVerbatimStringStartToken => TryConvertVerbatimStringToVirtualChars(token, "", "", escapeBraces: true),
+                            SyntaxKind.InterpolatedSingleLineRawStringStartToken => TryConvertSingleLineRawStringToVirtualChars(token),
+                            SyntaxKind.InterpolatedMultiLineRawStringStartToken
+                                // Format clauses must be single line, even when in a multi-line interpolation.
+                                => isFormatClause
+                                    ? TryConvertSingleLineRawStringToVirtualChars(token)
+                                    : TryConvertMultiLineRawStringToVirtualChars(token, interpolatedString, tokenIncludeDelimiters: false),
+                            _ => default,
+                        };
+                    }
             }
 
             return default;
         }
-
-        private static bool IsAnyRawStringLiteralToken(SyntaxToken token)
-            => token.Kind() is SyntaxKind.SingleLineRawStringLiteralToken or
-                               SyntaxKind.MultiLineRawStringLiteralToken or
-                               SyntaxKind.UTF8SingleLineRawStringLiteralToken or
-                               SyntaxKind.UTF8MultiLineRawStringLiteralToken;
 
         private static bool IsInDirective(SyntaxNode? node)
         {
@@ -110,7 +125,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EmbeddedLanguages.VirtualChars
         private static VirtualCharSequence TryConvertVerbatimStringToVirtualChars(SyntaxToken token, string startDelimiter, string endDelimiter, bool escapeBraces)
             => TryConvertSimpleDoubleQuoteString(token, startDelimiter, endDelimiter, escapeBraces);
 
-        private static VirtualCharSequence TryConvertRawStringToVirtualChars(SyntaxToken token)
+        private static VirtualCharSequence TryConvertSingleLineRawStringToVirtualChars(SyntaxToken token)
         {
             var tokenText = token.Text;
             var offset = token.SpanStart;
@@ -120,15 +135,15 @@ namespace Microsoft.CodeAnalysis.CSharp.EmbeddedLanguages.VirtualChars
             var startIndexInclusive = 0;
             var endIndexExclusive = tokenText.Length;
 
-            if (IsAnyRawStringLiteralToken(token))
+            if (token.Kind() is SyntaxKind.Utf8SingleLineRawStringLiteralToken)
+            {
+                Contract.ThrowIfFalse(tokenText is [.., 'u' or 'U', '8']);
+                endIndexExclusive -= "u8".Length;
+            }
+
+            if (token.Kind() is SyntaxKind.SingleLineRawStringLiteralToken or SyntaxKind.Utf8SingleLineRawStringLiteralToken)
             {
                 Contract.ThrowIfFalse(tokenText[0] == '"');
-
-                if (token.Kind() is SyntaxKind.UTF8SingleLineRawStringLiteralToken or SyntaxKind.UTF8MultiLineRawStringLiteralToken)
-                {
-                    Contract.ThrowIfFalse(tokenText is [.., 'u' or 'U', '8']);
-                    endIndexExclusive -= "u8".Length;
-                }
 
                 while (tokenText[startIndexInclusive] == '"')
                 {
@@ -143,6 +158,72 @@ namespace Microsoft.CodeAnalysis.CSharp.EmbeddedLanguages.VirtualChars
                 index += ConvertTextAtIndexToRune(tokenText, index, result, offset);
 
             return CreateVirtualCharSequence(tokenText, offset, startIndexInclusive, endIndexExclusive, result);
+        }
+
+        /// <summary>
+        /// Creates the sequence for the <b>content</b> characters in this <paramref name="token"/>.  This will not
+        /// include indentation whitespace that the language specifies is not part of the content.
+        /// </summary>
+        /// <param name="parentExpression">The containing expression for this token.  This is needed so that we can
+        /// determine the indentation whitespace based on the last line of the containing multiline literal.</param>
+        /// <param name="tokenIncludeDelimiters">If this token includes the quote (<c>"</c>) characters for the
+        /// delimiters inside of it or not.  If so, then those quotes will need to be skipped when determining the
+        /// content</param>
+        private static VirtualCharSequence TryConvertMultiLineRawStringToVirtualChars(
+            SyntaxToken token, ExpressionSyntax parentExpression, bool tokenIncludeDelimiters)
+        {
+            // if this is the first text content chunk of the multi-line literal.  The first chunk contains the leading
+            // indentation of the line it's on (which thus must be trimmed), while all subsequent chunks do not (because
+            // they start right after some `{...}` interpolation
+            var isFirstChunk =
+                parentExpression is LiteralExpressionSyntax ||
+                (parentExpression is InterpolatedStringExpressionSyntax { Contents: var contents } && contents.First() == token.GetRequiredParent());
+
+            if (parentExpression.GetDiagnostics().Any(d => d.Severity == DiagnosticSeverity.Error))
+                return default;
+
+            // Use the parent multi-line expression to determine what whitespace to remove from the start of each line.
+            var parentSourceText = parentExpression.SyntaxTree.GetText();
+            var indentationLength = parentSourceText.Lines.GetLineFromPosition(parentExpression.Span.End).GetFirstNonWhitespaceOffset() ?? 0;
+
+            // Create a source-text view over the token.  This makes it very easy to treat the token as a set of lines
+            // that can be processed sensibly.
+            var tokenSourceText = SourceText.From(token.Text);
+
+            // If we're on the very first chunk of the multi-line raw string literal, then we want to start on line 1 so
+            // we skip the space and newline that follow the initial `"""`.
+            var startLineInclusive = tokenIncludeDelimiters ? 1 : 0;
+
+            // Similarly, if we're on the very last chunk of hte multi-line raw string literal, then we don't want to
+            // include the line contents for the line that has the final `    """` on it.
+            var lastLineExclusive = tokenIncludeDelimiters ? tokenSourceText.Lines.Count - 1 : tokenSourceText.Lines.Count;
+
+            var result = ImmutableSegmentedList.CreateBuilder<VirtualChar>();
+            for (var lineNumber = startLineInclusive; lineNumber < lastLineExclusive; lineNumber++)
+            {
+                var currentLine = tokenSourceText.Lines[lineNumber];
+                var lineSpan = currentLine.Span;
+                var lineStart = lineSpan.Start;
+
+                // If we're on the second line onwards, we want to trim the indentation if we have it.  We also always
+                // do this for the first line of the first chunk as that will contain the initial leading whitespace.
+                if (isFirstChunk || lineNumber > startLineInclusive)
+                {
+                    lineStart = lineSpan.Length > indentationLength
+                        ? lineSpan.Start + indentationLength
+                        : lineSpan.End;
+                }
+
+                // The last line of the last chunk does not include the final newline on the line.
+                var lineEnd = lineNumber == lastLineExclusive - 1 ? currentLine.End : currentLine.EndIncludingLineBreak;
+
+                // Now that we've found the start and end portions of that line, convert all the characters within to
+                // virtual chars and return.
+                for (var i = lineStart; i < lineEnd;)
+                    i += ConvertTextAtIndexToRune(tokenSourceText, i, result, token.SpanStart);
+            }
+
+            return VirtualCharSequence.Create(result.ToImmutable());
         }
 
         private static VirtualCharSequence TryConvertStringToVirtualChars(

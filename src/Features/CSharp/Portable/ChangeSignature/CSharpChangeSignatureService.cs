@@ -15,14 +15,14 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.ChangeSignature;
 using Microsoft.CodeAnalysis.CSharp.CodeGeneration;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
-using Microsoft.CodeAnalysis.CSharp.LanguageServices;
+using Microsoft.CodeAnalysis.CSharp.LanguageService;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Formatting.Rules;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
@@ -156,7 +156,18 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
             }
 
             var symbolInfo = semanticModel.GetSymbolInfo(matchingNode, cancellationToken);
-            return (symbolInfo.Symbol ?? symbolInfo.CandidateSymbols.FirstOrDefault(), 0);
+            var parameterIndex = 0;
+
+            // If we're being called on an invocation and not a definition we need to find the selected argument index based on the original definition.
+            var argumentList = matchingNode is ObjectCreationExpressionSyntax objCreation ? objCreation.ArgumentList
+                : matchingNode.GetAncestorOrThis<InvocationExpressionSyntax>()?.ArgumentList;
+            var argument = argumentList?.Arguments.FirstOrDefault(a => a.Span.Contains(position));
+            if (argument != null)
+            {
+                parameterIndex = GetParameterIndexFromInvocationArgument(argument, document, semanticModel, cancellationToken);
+            }
+
+            return (symbolInfo.Symbol ?? symbolInfo.CandidateSymbols.FirstOrDefault(), parameterIndex);
         }
 
         private static int TryGetSelectedIndexFromDeclaration(int position, SyntaxNode matchingNode)

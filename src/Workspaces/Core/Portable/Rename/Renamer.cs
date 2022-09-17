@@ -16,6 +16,8 @@ using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Remote;
+using Microsoft.CodeAnalysis.Rename.ConflictEngine;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Rename
@@ -52,14 +54,18 @@ namespace Microsoft.CodeAnalysis.Rename
             if (string.IsNullOrEmpty(newName))
                 throw new ArgumentException(WorkspacesResources._0_must_be_a_non_null_and_non_empty_string, nameof(newName));
 
-            var resolution = await RenameSymbolAsync(solution, symbol, newName, options, CodeActionOptions.DefaultProvider, nonConflictSymbols: null, cancellationToken).ConfigureAwait(false);
+            var resolution = await RenameSymbolAsync(solution, symbol, newName, options, CodeActionOptions.DefaultProvider, nonConflictSymbolKeys: default, cancellationToken).ConfigureAwait(false);
 
-            // This is a public entry-point.  So if rename failed to resolve conflicts, we report that back to caller as
-            // an exception.
-            if (resolution.ErrorMessage != null)
+            if (resolution.IsSuccessful)
+            {
+                return resolution.NewSolution;
+            }
+            else
+            {
+                // This is a public entry-point.  So if rename failed to resolve conflicts, we report that back to caller as
+                // an exception.
                 throw new ArgumentException(resolution.ErrorMessage);
-
-            return resolution.NewSolution;
+            }
         }
 
         [Obsolete("Use overload taking RenameOptions")]
@@ -93,13 +99,13 @@ namespace Microsoft.CodeAnalysis.Rename
         /// <param name="options">Options used to configure rename of a type contained in the document that matches the document's name.</param>
         /// <param name="newDocumentFolders">The new set of folders for the <see cref="TextDocument.Folders"/> property</param>
         public static Task<RenameDocumentActionSet> RenameDocumentAsync(
-            Document document!!,
+            Document document,
             DocumentRenameOptions options,
             string? newDocumentName,
             IReadOnlyList<string>? newDocumentFolders = null,
             CancellationToken cancellationToken = default)
         {
-            return RenameDocumentAsync(document, options, CodeActionOptions.DefaultProvider, newDocumentName, newDocumentFolders, cancellationToken);
+            return RenameDocumentAsync(document ?? throw new ArgumentNullException(nameof(document)), options, CodeActionOptions.DefaultProvider, newDocumentName, newDocumentFolders, cancellationToken);
         }
 
         internal static async Task<RenameDocumentActionSet> RenameDocumentAsync(
@@ -141,8 +147,9 @@ namespace Microsoft.CodeAnalysis.Rename
                 options);
         }
 
-        internal static Task<RenameLocations> FindRenameLocationsAsync(Solution solution, ISymbol symbol, SymbolRenameOptions options, CodeCleanupOptionsProvider fallbackOptions, CancellationToken cancellationToken)
-            => RenameLocations.FindLocationsAsync(symbol, solution, options, fallbackOptions, cancellationToken);
+        /// <inheritdoc cref="LightweightRenameLocations.FindRenameLocationsAsync"/>
+        internal static Task<LightweightRenameLocations> FindRenameLocationsAsync(Solution solution, ISymbol symbol, SymbolRenameOptions options, CodeCleanupOptionsProvider fallbackOptions, CancellationToken cancellationToken)
+            => LightweightRenameLocations.FindRenameLocationsAsync(symbol, solution, options, fallbackOptions, cancellationToken);
 
         internal static async Task<ConflictResolution> RenameSymbolAsync(
             Solution solution,
@@ -150,7 +157,7 @@ namespace Microsoft.CodeAnalysis.Rename
             string newName,
             SymbolRenameOptions options,
             CodeCleanupOptionsProvider fallbackOptions,
-            ImmutableHashSet<ISymbol>? nonConflictSymbols,
+            ImmutableArray<SymbolKey> nonConflictSymbolKeys,
             CancellationToken cancellationToken)
         {
             Contract.ThrowIfNull(solution);
@@ -163,11 +170,9 @@ namespace Microsoft.CodeAnalysis.Rename
             {
                 if (SerializableSymbolAndProjectId.TryCreate(symbol, solution, cancellationToken, out var serializedSymbol))
                 {
-                    var client = await RemoteHostClient.TryGetClientAsync(solution.Workspace, cancellationToken).ConfigureAwait(false);
+                    var client = await RemoteHostClient.TryGetClientAsync(solution.Services, cancellationToken).ConfigureAwait(false);
                     if (client != null)
                     {
-                        var nonConflictSymbolIds = nonConflictSymbols?.SelectAsArray(s => SerializableSymbolAndProjectId.Dehydrate(solution, s, cancellationToken)) ?? default;
-
                         var result = await client.TryInvokeAsync<IRemoteRenamerService, SerializableConflictResolution?>(
                             solution,
                             (service, solutionInfo, callbackId, cancellationToken) => service.RenameSymbolAsync(
@@ -176,9 +181,9 @@ namespace Microsoft.CodeAnalysis.Rename
                                 serializedSymbol,
                                 newName,
                                 options,
-                                nonConflictSymbolIds,
+                                nonConflictSymbolKeys,
                                 cancellationToken),
-                            callbackTarget: new RemoteOptionsProvider<CodeCleanupOptions>(solution.Workspace.Services, fallbackOptions),
+                            callbackTarget: new RemoteOptionsProvider<CodeCleanupOptions>(solution.Services, fallbackOptions),
                             cancellationToken).ConfigureAwait(false);
 
                         if (result.HasValue && result.Value != null)
@@ -191,7 +196,7 @@ namespace Microsoft.CodeAnalysis.Rename
 
             return await RenameSymbolInCurrentProcessAsync(
                 solution, symbol, newName, options, fallbackOptions,
-                nonConflictSymbols, cancellationToken).ConfigureAwait(false);
+                nonConflictSymbolKeys, cancellationToken).ConfigureAwait(false);
         }
 
         private static async Task<ConflictResolution> RenameSymbolInCurrentProcessAsync(
@@ -200,7 +205,7 @@ namespace Microsoft.CodeAnalysis.Rename
             string newName,
             SymbolRenameOptions options,
             CodeCleanupOptionsProvider cleanupOptions,
-            ImmutableHashSet<ISymbol>? nonConflictSymbols,
+            ImmutableArray<SymbolKey> nonConflictSymbolKeys,
             CancellationToken cancellationToken)
         {
             Contract.ThrowIfNull(solution);
@@ -209,8 +214,70 @@ namespace Microsoft.CodeAnalysis.Rename
 
             cancellationToken.ThrowIfCancellationRequested();
 
-            var renameLocations = await FindRenameLocationsAsync(solution, symbol, options, cleanupOptions, cancellationToken).ConfigureAwait(false);
-            return await renameLocations.ResolveConflictsAsync(newName, nonConflictSymbols, cancellationToken).ConfigureAwait(false);
+            // Since we know we're in the oop process, we know we won't need to make more OOP calls.  Since this is the
+            // rename entry-point that does the entire rename, we can directly use the heavyweight RenameLocations type,
+            // without having to go through any intermediary LightweightTypes.
+            var renameLocations = await SymbolicRenameLocations.FindLocationsInCurrentProcessAsync(symbol, solution, options, cleanupOptions, cancellationToken).ConfigureAwait(false);
+            return await ConflictResolver.ResolveSymbolicLocationConflictsInCurrentProcessAsync(renameLocations, newName, nonConflictSymbolKeys, cancellationToken).ConfigureAwait(false);
+        }
+
+        /// <summary>
+        /// Creates a session between the host and OOP, effectively pinning this <paramref name="solution"/> until <see
+        /// cref="IDisposable.Dispose"/> is called on it.  By pinning the solution we ensure that all calls to OOP for
+        /// the same solution during the life of this rename session do not need to resync the solution.  Nor do they
+        /// then need to rebuild any compilations they've already built due to the solution going away and then coming
+        /// back.
+        /// </summary>
+        internal static IRemoteRenameKeepAliveSession CreateRemoteKeepAliveSession(
+            Solution solution,
+            IAsynchronousOperationListener listener)
+        {
+            return new RemoteRenameKeepAliveSession(solution, listener);
+        }
+
+        private sealed class RemoteRenameKeepAliveSession : IRemoteRenameKeepAliveSession
+        {
+            private readonly CancellationTokenSource _cancellationTokenSource = new();
+
+            public RemoteRenameKeepAliveSession(Solution solution, IAsynchronousOperationListener listener)
+            {
+                var cancellationToken = _cancellationTokenSource.Token;
+                var token = listener.BeginAsyncOperation(nameof(RemoteRenameKeepAliveSession));
+
+                var task = CreateClientAndKeepAliveAsync();
+                task.CompletesAsyncOperation(token);
+
+                return;
+
+                async Task CreateClientAndKeepAliveAsync()
+                {
+                    var client = await RemoteHostClient.TryGetClientAsync(solution.Services, cancellationToken).ConfigureAwait(false);
+                    if (client is null)
+                        return;
+
+                    // Now kick off the keep-alive work.  We don't wait on this as this will stick on the OOP side until
+                    // the cancellation token triggers.
+                    var unused = client.TryInvokeAsync<IRemoteRenamerService>(
+                        solution,
+                        (service, solutionInfo, cancellationToken) => service.KeepAliveAsync(solutionInfo, cancellationToken),
+                        cancellationToken).AsTask();
+                }
+            }
+
+            ~RemoteRenameKeepAliveSession()
+            {
+                if (Environment.HasShutdownStarted)
+                    return;
+
+                Contract.Fail($@"Should have been disposed!");
+            }
+
+            public void Dispose()
+            {
+                GC.SuppressFinalize(this);
+                _cancellationTokenSource.Cancel();
+                _cancellationTokenSource.Dispose();
+            }
         }
     }
 }

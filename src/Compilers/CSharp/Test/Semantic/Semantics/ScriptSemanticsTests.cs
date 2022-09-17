@@ -139,7 +139,7 @@ namespace System.Threading.Tasks {
         {
             var script = CreateEmptyCompilation(
                 source: @"interface I {}",
-                parseOptions: TestOptions.Script,
+                parseOptions: TestOptions.Script.WithNoRefSafetyRulesAttribute(),
                 options: TestOptions.DebugExe.WithUsings("Hidden"),
                 references: new MetadataReference[] { TaskFacadeAssembly() });
             script.VerifyEmitDiagnostics(

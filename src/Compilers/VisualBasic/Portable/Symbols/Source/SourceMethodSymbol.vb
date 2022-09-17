@@ -10,6 +10,7 @@ Imports System.Threading
 Imports Microsoft.Cci
 Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Text
+Imports Microsoft.CodeAnalysis.VisualBasic.Emit
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports CallingConvention = Microsoft.Cci.CallingConvention ' to resolve ambiguity with System.Runtime.InteropServices.CallingConvention
@@ -1438,8 +1439,8 @@ lReportErrorOnTwoTokens:
             Return Me.GetAttributesBag().Attributes
         End Function
 
-        Friend Overrides Sub AddSynthesizedAttributes(compilationState As ModuleCompilationState, ByRef attributes As ArrayBuilder(Of SynthesizedAttributeData))
-            MyBase.AddSynthesizedAttributes(compilationState, attributes)
+        Friend Overrides Sub AddSynthesizedAttributes(moduleBuilder As PEModuleBuilder, ByRef attributes As ArrayBuilder(Of SynthesizedAttributeData))
+            MyBase.AddSynthesizedAttributes(moduleBuilder, attributes)
 
             ' Emit synthesized STAThreadAttribute for this method if both the following requirements are met:
             ' (a) This is the entry point method.
@@ -1651,7 +1652,7 @@ lReportErrorOnTwoTokens:
 
                 Dim moduleName As String = TryCast(attrData.CommonConstructorArguments(0).ValueInternal, String)
                 If Not MetadataHelpers.IsValidMetadataIdentifier(moduleName) Then
-                    diagnostics.Add(ERRID.ERR_BadAttribute1, arguments.AttributeSyntaxOpt.ArgumentList.Arguments(0).GetLocation(), attrData.AttributeClass)
+                    diagnostics.Add(ERRID.ERR_BadAttribute1, VisualBasicAttributeData.GetFirstArgumentLocation(arguments.AttributeSyntaxOpt), attrData.AttributeClass)
                 End If
 
                 ' Default value of charset is inherited from the module (only if specified).

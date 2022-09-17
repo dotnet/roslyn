@@ -1311,7 +1311,6 @@ class A
             CompileAndVerify(comp, expectedOutput: expectedOutput);
         }
 
-
         [Fact]
         public void DictionaryInitializerTestSideeffects001a()
         {

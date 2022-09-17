@@ -6,7 +6,7 @@ Imports System.Threading
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
-Imports Microsoft.CodeAnalysis.LanguageServices
+Imports Microsoft.CodeAnalysis.LanguageService
 Imports Microsoft.CodeAnalysis.Shared.Extensions
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.CommonControls
@@ -16,9 +16,10 @@ Imports Roslyn.Utilities
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CommonControls
 
     <[UseExportProvider]>
+    <Trait(Traits.Feature, Traits.Features.ExtractInterface)>
     Public Class NewTypeDestinationSelectionViewModelTests
 
-        <Fact, Trait(Traits.Feature, Traits.Features.ExtractInterface)>
+        <Fact>
         Public Async Function TypeNameIsSameAsPassedIn() As Task
             Dim markup = <Text><![CDATA[
 class $$MyClass
@@ -43,7 +44,7 @@ class $$MyClass
             monitor.Detach()
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.ExtractInterface)>
+        <Fact>
         Public Async Function FileNameHasExpectedExtension() As Task
             Dim markup = <Text><![CDATA[
 class $$MyClass
@@ -57,7 +58,7 @@ class $$MyClass
             Assert.Equal("IMyClass.cs", viewModel.FileName)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.ExtractInterface)>
+        <Fact>
         Public Async Function GeneratedNameInGlobalNamespace() As Task
             Dim markup = <Text><![CDATA[
 class $$MyClass
@@ -71,7 +72,7 @@ class $$MyClass
             Assert.Equal("IMyClass", viewModel.GeneratedName)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.ExtractInterface)>
+        <Fact>
         Public Async Function GeneratedNameInNestedNamespaces() As Task
             Dim markup = <Text><![CDATA[
 namespace Outer
@@ -91,7 +92,7 @@ namespace Outer
             Assert.Equal("Outer.Inner.IMyClass", viewModel.GeneratedName)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.ExtractInterface)>
+        <Fact>
         Public Async Function GeneratedNameWithTypeParameters() As Task
             Dim markup = <Text><![CDATA[
 namespace Outer
@@ -114,8 +115,7 @@ namespace Outer
             Assert.Equal("Outer.Inner.IMyClassChanged<X, Y>", viewModel.GeneratedName)
         End Function
 
-        <Fact>
-        <WorkItem(716122, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/716122"), Trait(Traits.Feature, Traits.Features.ExtractInterface)>
+        <Fact, WorkItem(716122, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/716122")>
         Public Async Function GeneratedNameIsGeneratedFromTrimmedTypeName() As Task
             Dim markup = <Text><![CDATA[
 namespace Ns
@@ -134,7 +134,7 @@ namespace Ns
             Assert.Equal("Ns.IC2", viewModel.GeneratedName)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.ExtractInterface)>
+        <Fact>
         Public Async Function TypeNameChangesUpdateGeneratedName() As Task
             Dim markup = <Text><![CDATA[
 class $$MyClass
@@ -155,7 +155,7 @@ class $$MyClass
             monitor.Detach()
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.ExtractInterface)>
+        <Fact>
         Public Async Function TypeNameChangesUpdateFileName() As Task
             Dim markup = <Text><![CDATA[
 class $$MyClass
@@ -176,8 +176,7 @@ class $$MyClass
             monitor.Detach()
         End Function
 
-        <Fact>
-        <WorkItem(716122, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/716122"), Trait(Traits.Feature, Traits.Features.ExtractInterface)>
+        <Fact, WorkItem(716122, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/716122")>
         Public Async Function FileNameIsGeneratedFromTrimmedTypeName() As Task
             Dim markup = <Text><![CDATA[
 public class C$$
@@ -190,7 +189,7 @@ public class C$$
             Assert.Equal("IC2.cs", viewModel.FileName)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.ExtractInterface)>
+        <Fact>
         Public Async Function FileNameChangesDoNotUpdateTypeName() As Task
             Dim markup = <Text><![CDATA[
 class $$MyClass
@@ -234,7 +233,7 @@ class $$MyClass
                 End If
 
                 Dim tree = Await workspaceDoc.GetSyntaxTreeAsync()
-                Dim token = Await tree.GetTouchingWordAsync(doc.CursorPosition.Value, workspaceDoc.Project.LanguageServices.GetService(Of ISyntaxFactsService)(), CancellationToken.None)
+                Dim token = Await tree.GetTouchingWordAsync(doc.CursorPosition.Value, workspaceDoc.Project.Services.GetService(Of ISyntaxFactsService)(), CancellationToken.None)
                 Dim symbol = (Await workspaceDoc.GetSemanticModelAsync()).GetDeclaredSymbol(token.Parent)
                 Dim extractableMembers = DirectCast(symbol, INamedTypeSymbol).GetMembers().Where(Function(s) Not (TypeOf s Is IMethodSymbol) OrElse DirectCast(s, IMethodSymbol).MethodKind <> MethodKind.Constructor)
 

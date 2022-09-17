@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.UseSystemHashCode
     /// Helper code to support both "UseSystemHashCodeCodeFixProvider" and
     /// <see cref="UseSystemHashCodeDiagnosticAnalyzer"/>.
     /// </summary>
-    internal partial struct Analyzer
+    internal readonly partial struct Analyzer
     {
         private readonly Compilation _compilation;
         private readonly IMethodSymbol _objectGetHashCodeMethod;

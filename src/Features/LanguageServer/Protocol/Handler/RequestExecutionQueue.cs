@@ -52,6 +52,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
     {
         private readonly WellKnownLspServerKinds _serverKind;
         private readonly ImmutableArray<string> _supportedLanguages;
+        private readonly ILspLogger _logger;
+        private readonly LspServices _lspServices;
 
         /// <summary>
         /// The queue containing the ordered LSP requests along with a combined cancellation token
@@ -59,12 +61,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         /// </summary>
         private readonly AsyncQueue<(IQueueItem queueItem, CancellationToken cancellationToken)> _queue = new();
         private readonly CancellationTokenSource _cancelSource = new();
-        private readonly RequestTelemetryLogger _requestTelemetryLogger;
-        private readonly IGlobalOptionService _globalOptions;
-
-        private readonly ILspLogger _logger;
-        private readonly LspWorkspaceManager _lspWorkspaceManager;
-        private readonly ILanguageServerNotificationManager _notificationManager;
 
         /// <summary>
         /// For test purposes only.
@@ -85,21 +81,14 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         public event EventHandler<RequestShutdownEventArgs>? RequestServerShutdown;
 
         public RequestExecutionQueue(
-            ILspLogger logger,
-            IGlobalOptionService globalOptions,
             ImmutableArray<string> supportedLanguages,
             WellKnownLspServerKinds serverKind,
-            RequestTelemetryLogger requestTelemetryLogger,
-            LspWorkspaceManager lspWorkspaceManager,
-            ILanguageServerNotificationManager notificationManager)
+            LspServices services)
         {
-            _logger = logger;
-            _globalOptions = globalOptions;
             _supportedLanguages = supportedLanguages;
             _serverKind = serverKind;
-            _requestTelemetryLogger = requestTelemetryLogger;
-            _lspWorkspaceManager = lspWorkspaceManager;
-            _notificationManager = notificationManager;
+            _lspServices = services;
+            _logger = _lspServices.GetRequiredService<ILspLogger>();
 
             // Start the queue processing
             _queueProcessingTask = ProcessQueueAsync();
@@ -165,7 +154,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 handler,
                 Trace.CorrelationManager.ActivityId,
                 _logger,
-                _requestTelemetryLogger,
+                _lspServices,
                 combinedCancellationToken);
 
             // Run a continuation to ensure the cts is disposed of.
@@ -259,23 +248,56 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
         private Task<RequestContext?> CreateRequestContextAsync(IQueueItem queueItem, CancellationToken cancellationToken)
         {
-            var trackerToUse = queueItem.MutatesSolutionState
-                ? (IDocumentChangeTracker)_lspWorkspaceManager
-                : new NonMutatingDocumentChangeTracker();
-
             return RequestContext.CreateAsync(
                 queueItem.RequiresLSPSolution,
+                queueItem.MutatesSolutionState,
                 queueItem.TextDocument,
                 _serverKind,
-                _logger,
                 queueItem.ClientCapabilities,
-                _lspWorkspaceManager,
-                _notificationManager,
-                trackerToUse,
                 _supportedLanguages,
-                _globalOptions,
+                _lspServices,
                 queueCancellationToken: this.CancellationToken,
                 requestCancellationToken: cancellationToken);
         }
+
+        #region Test Accessor
+        internal TestAccessor GetTestAccessor()
+            => new(this);
+
+        internal readonly struct TestAccessor
+        {
+            private readonly RequestExecutionQueue _queue;
+
+            public TestAccessor(RequestExecutionQueue queue)
+                => _queue = queue;
+
+            public bool IsComplete() => _queue._queue.IsCompleted && _queue._queue.IsEmpty;
+
+            public async Task WaitForProcessingToStopAsync()
+            {
+                await _queue._queueProcessingTask.ConfigureAwait(false);
+            }
+
+            /// <summary>
+            /// Test only method to validate that remaining items in the queue are cancelled.
+            /// This directly mutates the queue in an unsafe way, so ensure that all relevant queue operations
+            /// are done before calling.
+            /// </summary>
+            public async Task<bool> AreAllItemsCancelledUnsafeAsync()
+            {
+                while (!_queue._queue.IsEmpty)
+                {
+                    var (_, cancellationToken) = await _queue._queue.DequeueAsync().ConfigureAwait(false);
+                    if (!cancellationToken.IsCancellationRequested)
+                    {
+                        return false;
+                    }
+                }
+
+                return true;
+            }
+        }
+
+        #endregion
     }
 }

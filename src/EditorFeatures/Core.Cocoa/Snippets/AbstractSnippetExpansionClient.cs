@@ -8,9 +8,11 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Xml.Linq;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Formatting;
+using Microsoft.CodeAnalysis.Formatting.Rules;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -30,8 +32,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
         protected readonly IContentType LanguageServiceGuid;
         protected readonly ITextView TextView;
         protected readonly ITextBuffer SubjectBuffer;
-
-        public readonly IGlobalOptionService GlobalOptions;
+        public readonly EditorOptionsService EditorOptionsService;
 
         protected bool _indentCaretOnCommit;
         protected int _indentDepth;
@@ -39,13 +40,18 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
 
         public IExpansionSession? ExpansionSession { get; private set; }
 
-        public AbstractSnippetExpansionClient(IContentType languageServiceGuid, ITextView textView, ITextBuffer subjectBuffer, IExpansionServiceProvider expansionServiceProvider, IGlobalOptionService globalOptions)
+        public AbstractSnippetExpansionClient(
+            IContentType languageServiceGuid,
+            ITextView textView,
+            ITextBuffer subjectBuffer,
+            IExpansionServiceProvider expansionServiceProvider,
+            EditorOptionsService editorOptionsService)
         {
             LanguageServiceGuid = languageServiceGuid;
             TextView = textView;
             SubjectBuffer = subjectBuffer;
             ExpansionServiceProvider = expansionServiceProvider;
-            GlobalOptions = globalOptions;
+            EditorOptionsService = editorOptionsService;
         }
 
         public abstract IExpansionFunction? GetExpansionFunction(XElement xmlFunctionNode, string fieldName);
@@ -93,7 +99,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
 
             var formattingSpan = CommonFormattingHelpers.GetFormattingSpan(SubjectBuffer.CurrentSnapshot, snippetTrackingSpan.GetSpan(SubjectBuffer.CurrentSnapshot));
 
-            SubjectBuffer.CurrentSnapshot.FormatAndApplyToBuffer(formattingSpan, GlobalOptions, CancellationToken.None);
+            SubjectBuffer.FormatAndApplyToBuffer(formattingSpan, EditorOptionsService, CancellationToken.None);
 
             if (isFullSnippetFormat)
             {
@@ -147,8 +153,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
                     var document = this.SubjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
                     if (document != null)
                     {
-                        var documentOptions = document.GetOptionsAsync(CancellationToken.None).WaitAndGetResult(CancellationToken.None);
-                        _indentDepth = lineText.GetColumnFromLineOffset(lineText.Length, documentOptions.GetOption(FormattingOptions.TabSize));
+                        var lineFormattingOptions = SubjectBuffer.GetLineFormattingOptions(EditorOptionsService, explicitFormat: false);
+                        _indentDepth = lineText.GetColumnFromLineOffset(lineText.Length, lineFormattingOptions.TabSize);
                     }
                     else
                     {

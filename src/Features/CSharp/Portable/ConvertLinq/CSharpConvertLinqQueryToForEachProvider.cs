@@ -17,7 +17,7 @@ using Microsoft.CodeAnalysis.ConvertLinq;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Formatting;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Simplification;
@@ -71,9 +71,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq
             {
                 // Do not try refactoring queries with comments or conditional compilation in them.
                 // We can consider supporting queries with comments in the future.
-                if (_source.DescendantTrivia().Any(trivia => trivia.MatchesKind(
-                        SyntaxKind.SingleLineCommentTrivia,
-                        SyntaxKind.MultiLineCommentTrivia,
+                if (_source.DescendantTrivia().Any(trivia => trivia is SyntaxTrivia(
+                        SyntaxKind.SingleLineCommentTrivia or
+                        SyntaxKind.MultiLineCommentTrivia or
                         SyntaxKind.MultiLineDocumentationCommentTrivia) ||
                     _source.ContainsDirectives))
                 {
@@ -95,7 +95,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq
                 // https://github.com/dotnet/roslyn/issues/25639
                 if ((TryConvertInternal(queryExpressionProcessingInfo, out documentUpdateInfo) ||
                     TryReplaceWithLocalFunction(queryExpressionProcessingInfo, out documentUpdateInfo)) &&  // second attempt: at least to a local function
-                    !_semanticModel.GetDiagnostics(_source.Span, _cancellationToken).Any(diagnostic => diagnostic.DefaultSeverity == DiagnosticSeverity.Error))
+                    !_semanticModel.GetDiagnostics(_source.Span, _cancellationToken).Any(static diagnostic => diagnostic.DefaultSeverity == DiagnosticSeverity.Error))
                 {
                     if (!documentUpdateInfo.Source.IsParentKind(SyntaxKind.Block) &&
                         documentUpdateInfo.Destinations.Length > 1)

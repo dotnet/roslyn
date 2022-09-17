@@ -7,7 +7,11 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Globalization;
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.PatternMatching;
+using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery;
 using Microsoft.CodeAnalysis.Tags;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -28,14 +32,14 @@ namespace Microsoft.CodeAnalysis.Completion
 
         public static CompletionHelper GetHelper(Document document)
         {
-            return document.Project.Solution.Workspace.Services.GetRequiredService<ICompletionHelperService>()
+            return document.Project.Solution.Services.GetRequiredService<ICompletionHelperService>()
                 .GetCompletionHelper(document);
         }
 
         public ImmutableArray<TextSpan> GetHighlightedSpans(
-                string text, string pattern, CultureInfo culture)
+                CompletionItem item, string pattern, CultureInfo culture)
         {
-            var match = GetMatch(text, pattern, includeMatchSpans: true, culture: culture);
+            var match = GetMatch(item.GetEntireDisplayText(), pattern, includeMatchSpans: true, culture: culture);
             return match == null ? ImmutableArray<TextSpan>.Empty : match.Value.MatchedSpans;
         }
 
@@ -44,11 +48,31 @@ namespace Microsoft.CodeAnalysis.Completion
         /// if and only if the completion item matches and should be included in the filtered completion
         /// results, or false if it should not be.
         /// </summary>
-        public bool MatchesPattern(string text, string pattern, CultureInfo culture)
-            => GetMatch(text, pattern, includeMatchSpans: false, culture) != null;
+        public bool MatchesPattern(CompletionItem item, string pattern, CultureInfo culture)
+            => GetMatch(item, pattern, includeMatchSpans: false, culture) != null;
 
         public PatternMatch? GetMatch(
-            string completionItemText,
+            CompletionItem item,
+            string pattern,
+            bool includeMatchSpans,
+            CultureInfo culture)
+        {
+            var match = GetMatch(item.FilterText, pattern, includeMatchSpans, culture);
+            if (item.HasAdditionalFilterTexts)
+            {
+                foreach (var additionalFilterText in item.AdditionalFilterTexts)
+                {
+                    var additionalMatch = GetMatch(additionalFilterText, pattern, includeMatchSpans, culture);
+                    if (additionalMatch.HasValue && additionalMatch.Value.CompareTo(match, ignoreCase: false) < 0)
+                        match = additionalMatch;
+                }
+            }
+
+            return match;
+        }
+
+        private PatternMatch? GetMatch(
+            string text,
             string pattern,
             bool includeMatchSpans,
             CultureInfo culture)
@@ -59,11 +83,11 @@ namespace Microsoft.CodeAnalysis.Completion
             // better match as they'll both be prefix matches, and the latter will have a higher
             // priority.
 
-            var lastDotIndex = completionItemText.LastIndexOf('.');
+            var lastDotIndex = text.LastIndexOf('.');
             if (lastDotIndex >= 0)
             {
                 var afterDotPosition = lastDotIndex + 1;
-                var textAfterLastDot = completionItemText[afterDotPosition..];
+                var textAfterLastDot = text[afterDotPosition..];
 
                 var match = GetMatchWorker(textAfterLastDot, pattern, culture, includeMatchSpans);
                 if (match != null)
@@ -74,7 +98,7 @@ namespace Microsoft.CodeAnalysis.Completion
 
             // Didn't have a dot, or the user text didn't match the portion after the dot.
             // Just do a normal check against the entire completion item.
-            return GetMatchWorker(completionItemText, pattern, culture, includeMatchSpans);
+            return GetMatchWorker(text, pattern, culture, includeMatchSpans);
         }
 
         private static PatternMatch? AdjustMatchedSpans(PatternMatch value, int offset)
@@ -83,11 +107,11 @@ namespace Microsoft.CodeAnalysis.Completion
                 : value.WithMatchedSpans(value.MatchedSpans.SelectAsArray(s => new TextSpan(s.Start + offset, s.Length)));
 
         private PatternMatch? GetMatchWorker(
-            string completionItemText, string pattern,
+            string text, string pattern,
             CultureInfo culture, bool includeMatchSpans)
         {
             var patternMatcher = GetPatternMatcher(pattern, culture, includeMatchSpans);
-            var match = patternMatcher.GetFirstMatch(completionItemText);
+            var match = patternMatcher.GetFirstMatch(text);
 
             // We still have making checks for language having different to English capitalization,
             // for example, for Turkish with dotted and dotless i capitalization totally diferent from English.
@@ -102,7 +126,7 @@ namespace Microsoft.CodeAnalysis.Completion
             // Identifiers can be in user language.
             // Try to get matches for both and return the best of them.
             patternMatcher = GetPatternMatcher(pattern, EnUSCultureInfo, includeMatchSpans);
-            var enUSCultureMatch = patternMatcher.GetFirstMatch(completionItemText);
+            var enUSCultureMatch = patternMatcher.GetFirstMatch(text);
 
             if (match == null)
             {
@@ -138,18 +162,6 @@ namespace Microsoft.CodeAnalysis.Completion
 
         private PatternMatcher GetPatternMatcher(string pattern, CultureInfo culture, bool includeMatchedSpans)
             => GetPatternMatcher(pattern, culture, includeMatchedSpans, _patternMatcherMap);
-
-        /// <summary>
-        /// Returns true if item1 is a better completion item than item2 given the provided filter
-        /// text, or false if it is not better.
-        /// </summary>
-        public int CompareItems(CompletionItem item1, CompletionItem item2, string pattern, CultureInfo culture)
-        {
-            var match1 = GetMatch(item1.FilterText, pattern, includeMatchSpans: false, culture);
-            var match2 = GetMatch(item2.FilterText, pattern, includeMatchSpans: false, culture);
-
-            return CompareItems(item1, match1, item2, match2, out _);
-        }
 
         public int CompareItems(CompletionItem item1, PatternMatch? match1, CompletionItem item2, PatternMatch? match2, out bool onlyDifferInCaseSensitivity)
         {
@@ -378,10 +390,10 @@ namespace Microsoft.CodeAnalysis.Completion
             CompletionHelper completionHelper,
             CompletionItem item,
             T editorCompletionItem,
-            string filterText,
+            string pattern,
             CompletionTriggerKind initialTriggerKind,
             CompletionFilterReason filterReason,
-            ImmutableArray<string> recentItems,
+            bool isRecentItem,
             bool includeMatchSpans,
             int currentIndex,
             out MatchResult<T> matchResult)
@@ -392,23 +404,49 @@ namespace Microsoft.CodeAnalysis.Completion
             // against terms like "IList" and not IList<>.
             // Note that the check on filter text length is purely for efficiency, we should 
             // get the same result with or without it.
-            var patternMatch = filterText.Length > 0
-                ? completionHelper.GetMatch(item.FilterText, filterText, includeMatchSpans, CultureInfo.CurrentCulture)
+            var patternMatch = pattern.Length > 0
+                ? completionHelper.GetMatch(item.FilterText, pattern, includeMatchSpans, CultureInfo.CurrentCulture)
                 : null;
 
-            var matchedFilterText = MatchesFilterText(
-                item,
-                filterText,
+            string? matchedAdditionalFilterText = null;
+            var shouldBeConsideredMatchingFilterText = ShouldBeConsideredMatchingFilterText(
+                item.FilterText,
+                pattern,
+                item.Rules.MatchPriority,
                 initialTriggerKind,
                 filterReason,
-                recentItems,
+                isRecentItem,
                 patternMatch);
 
-            if (matchedFilterText || KeepAllItemsInTheList(initialTriggerKind, filterText))
+            if (pattern.Length > 0 && item.HasAdditionalFilterTexts)
+            {
+                foreach (var additionalFilterText in item.AdditionalFilterTexts)
+                {
+                    var additionalMatch = completionHelper.GetMatch(additionalFilterText, pattern, includeMatchSpans, CultureInfo.CurrentCulture);
+                    var additionalFlag = ShouldBeConsideredMatchingFilterText(
+                        additionalFilterText,
+                        pattern,
+                        item.Rules.MatchPriority,
+                        initialTriggerKind,
+                        filterReason,
+                        isRecentItem,
+                        additionalMatch);
+
+                    if (!shouldBeConsideredMatchingFilterText ||
+                        additionalFlag && additionalMatch.HasValue && additionalMatch.Value.CompareTo(patternMatch, ignoreCase: false) < 0)
+                    {
+                        matchedAdditionalFilterText = additionalFilterText;
+                        shouldBeConsideredMatchingFilterText = additionalFlag;
+                        patternMatch = additionalMatch;
+                    }
+                }
+            }
+
+            if (shouldBeConsideredMatchingFilterText || KeepAllItemsInTheList(initialTriggerKind, pattern))
             {
                 matchResult = new MatchResult<T>(
-                    item, editorCompletionItem, matchedFilterText: matchedFilterText,
-                    patternMatch: patternMatch, currentIndex);
+                    item, editorCompletionItem, shouldBeConsideredMatchingFilterText,
+                    patternMatch, currentIndex, matchedAdditionalFilterText);
 
                 return true;
             }
@@ -416,12 +454,13 @@ namespace Microsoft.CodeAnalysis.Completion
             matchResult = default;
             return false;
 
-            static bool MatchesFilterText(
-                CompletionItem item,
+            static bool ShouldBeConsideredMatchingFilterText(
                 string filterText,
+                string pattern,
+                int matchPriority,
                 CompletionTriggerKind initialTriggerKind,
                 CompletionFilterReason filterReason,
-                ImmutableArray<string> recentItems,
+                bool isRecentItem,
                 PatternMatch? patternMatch)
             {
                 // For the deletion we bake in the core logic for how matching should work.
@@ -434,32 +473,19 @@ namespace Microsoft.CodeAnalysis.Completion
                 if (filterReason == CompletionFilterReason.Deletion &&
                     initialTriggerKind == CompletionTriggerKind.Deletion)
                 {
-                    return item.FilterText.GetCaseInsensitivePrefixLength(filterText) > 0;
+                    return filterText.GetCaseInsensitivePrefixLength(pattern) > 0;
                 }
 
                 // If the user hasn't typed anything, and this item was preselected, or was in the
                 // MRU list, then we definitely want to include it.
-                if (filterText.Length == 0)
+                if (pattern.Length == 0)
                 {
-                    if (item.Rules.MatchPriority > MatchPriority.Default)
-                    {
+                    if (isRecentItem || matchPriority > MatchPriority.Default)
                         return true;
-                    }
-
-                    if (!recentItems.IsDefault && GetRecentItemIndex(recentItems, item) <= 0)
-                    {
-                        return true;
-                    }
                 }
 
                 // Otherwise, the item matches filter text if a pattern match is returned.
                 return patternMatch != null;
-            }
-
-            static int GetRecentItemIndex(ImmutableArray<string> recentItems, CompletionItem item)
-            {
-                var index = recentItems.IndexOf(item.FilterText);
-                return -index;
             }
 
             // If the item didn't match the filter text, we still keep it in the list
@@ -476,6 +502,15 @@ namespace Microsoft.CodeAnalysis.Completion
                     initialTriggerKind == CompletionTriggerKind.Invoke ||
                     initialTriggerKind == CompletionTriggerKind.Deletion;
             }
+        }
+
+        public static async Task<SyntaxContext> CreateSyntaxContextWithExistingSpeculativeModelAsync(Document document, int position, CancellationToken cancellationToken)
+        {
+            Contract.ThrowIfFalse(document.SupportsSemanticModel, "Should only be called from C#/VB providers.");
+            var semanticModel = await document.ReuseExistingSpeculativeModelAsync(position, cancellationToken).ConfigureAwait(false);
+
+            var service = document.GetRequiredLanguageService<ISyntaxContextService>();
+            return service.CreateContext(document, semanticModel, position, cancellationToken);
         }
     }
 }

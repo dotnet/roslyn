@@ -63,13 +63,26 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars
             _span = span;
         }
 
+        /// <summary>
+        /// Gets the number of elements contained in the <see cref="VirtualCharSequence"/>.
+        /// </summary>
         public int Length => _span.Length;
+
+        /// <summary>
+        /// Gets the <see cref="VirtualChar"/> at the specified index.
+        /// </summary>
         public VirtualChar this[int index] => _leafCharacters[_span.Start + index];
 
+        /// <summary>
+        /// Gets a value indicating whether the <see cref="VirtualCharSequence"/> was declared but not initialized.
+        /// </summary>
         public bool IsDefault => _leafCharacters == null;
         public bool IsEmpty => Length == 0;
         public bool IsDefaultOrEmpty => IsDefault || IsEmpty;
 
+        /// <summary>
+        /// Retreives a sub-sequence from this <see cref="VirtualCharSequence"/>.
+        /// </summary>
         public VirtualCharSequence GetSubSequence(TextSpan span)
            => new(_leafCharacters, new TextSpan(_span.Start + span.Start, span.Length));
 
@@ -101,6 +114,29 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars
             }
 
             return -1;
+        }
+
+        public VirtualChar? FirstOrNull(Func<VirtualChar, bool> predicate)
+        {
+            foreach (var ch in this)
+            {
+                if (predicate(ch))
+                    return ch;
+            }
+
+            return null;
+        }
+
+        public VirtualChar? LastOrNull(Func<VirtualChar, bool> predicate)
+        {
+            for (var i = this.Length - 1; i >= 0; i--)
+            {
+                var ch = this[i];
+                if (predicate(ch))
+                    return ch;
+            }
+
+            return null;
         }
 
         public bool Any(Func<VirtualChar, bool> predicate)
@@ -142,6 +178,9 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars
             return this.GetSubSequence(TextSpan.FromBounds(start, this.Length));
         }
 
+        /// <summary>
+        /// Create a <see cref="string"/> from the <see cref="VirtualCharSequence"/>.
+        /// </summary>
         public string CreateString()
         {
             using var _ = PooledStringBuilder.GetInstance(out var builder);

@@ -30,14 +30,14 @@ namespace Microsoft.CodeAnalysis.Serialization
 
             [Obsolete(MefConstruction.FactoryMethodMessage, error: true)]
             public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
-                => new SerializerService(workspaceServices);
+                => new SerializerService(workspaceServices.SolutionServices);
         }
 
         private static readonly Func<WellKnownSynchronizationKind, string> s_logKind = k => k.ToString();
 
-        private readonly HostWorkspaceServices _workspaceServices;
+        private readonly SolutionServices _workspaceServices;
 
-        private readonly ITemporaryStorageService _storageService;
+        private readonly ITemporaryStorageServiceInternal _storageService;
         private readonly ITextFactoryService _textService;
         private readonly IDocumentationProviderService? _documentationService;
         private readonly IAnalyzerAssemblyLoaderProvider _analyzerLoaderProvider;
@@ -45,11 +45,11 @@ namespace Microsoft.CodeAnalysis.Serialization
         private readonly ConcurrentDictionary<string, IOptionsSerializationService> _lazyLanguageSerializationService;
 
         [Obsolete(MefConstruction.FactoryMethodMessage, error: true)]
-        private protected SerializerService(HostWorkspaceServices workspaceServices)
+        private protected SerializerService(SolutionServices workspaceServices)
         {
             _workspaceServices = workspaceServices;
 
-            _storageService = workspaceServices.GetRequiredService<ITemporaryStorageService>();
+            _storageService = workspaceServices.GetRequiredService<ITemporaryStorageServiceInternal>();
             _textService = workspaceServices.GetRequiredService<ITextFactoryService>();
             _analyzerLoaderProvider = workspaceServices.GetRequiredService<IAnalyzerAssemblyLoaderProvider>();
             _documentationService = workspaceServices.GetService<IDocumentationProviderService>();
@@ -78,7 +78,6 @@ namespace Microsoft.CodeAnalysis.Serialization
                     case WellKnownSynchronizationKind.CompilationOptions:
                     case WellKnownSynchronizationKind.ParseOptions:
                     case WellKnownSynchronizationKind.ProjectReference:
-                    case WellKnownSynchronizationKind.OptionSet:
                     case WellKnownSynchronizationKind.SourceGeneratedDocumentIdentity:
                         return Checksum.Create(value, this);
 
@@ -158,10 +157,6 @@ namespace Microsoft.CodeAnalysis.Serialization
                         SerializeSourceText(new SerializableSourceText((SourceText)value), writer, context, cancellationToken);
                         return;
 
-                    case WellKnownSynchronizationKind.OptionSet:
-                        SerializeOptionSet((SerializableOptionSet)value, writer, cancellationToken);
-                        return;
-
                     default:
                         // object that is not part of solution is not supported since we don't know what inputs are required to
                         // serialize it
@@ -209,8 +204,6 @@ namespace Microsoft.CodeAnalysis.Serialization
                         return (T)(object)DeserializeSerializableSourceText(reader, cancellationToken);
                     case WellKnownSynchronizationKind.SourceText:
                         return (T)(object)DeserializeSourceText(reader, cancellationToken);
-                    case WellKnownSynchronizationKind.OptionSet:
-                        return (T)(object)DeserializeOptionSet(reader, cancellationToken);
 
                     default:
                         throw ExceptionUtilities.UnexpectedValue(kind);

@@ -10,6 +10,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
@@ -30,6 +31,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             TArgumentSyntax,
             TForEachStatementSyntax,
             TThrowStatementSyntax,
+            TInvocationExpressionSyntax,
             TConversion> : ISpeculationAnalyzer
         where TExpressionSyntax : SyntaxNode
         where TTypeSyntax : TExpressionSyntax
@@ -37,6 +39,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
         where TArgumentSyntax : SyntaxNode
         where TForEachStatementSyntax : SyntaxNode
         where TThrowStatementSyntax : SyntaxNode
+        where TInvocationExpressionSyntax : TExpressionSyntax
         where TConversion : struct
     {
         private readonly TExpressionSyntax _expression;
@@ -87,6 +90,9 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             _lazySemanticRootOfReplacedExpression = null;
             _lazySpeculativeSemanticModel = null;
         }
+
+        protected abstract ISyntaxFacts SyntaxFactsService { get; }
+        protected abstract bool CanAccessInstanceMemberThrough(TExpressionSyntax? expression);
 
         /// <summary>
         /// Original expression to be replaced.
@@ -507,7 +513,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             Debug.Assert(previousOriginalNode == null || previousOriginalNode.Parent == currentOriginalNode);
             Debug.Assert(previousReplacedNode == null || previousReplacedNode.Parent == currentReplacedNode);
 
-            if (!OperationsAreCompatible(currentOriginalNode, currentReplacedNode))
+            if (!InvocationsAreCompatible(currentOriginalNode as TInvocationExpressionSyntax, currentReplacedNode as TInvocationExpressionSyntax))
                 return true;
 
             if (ExpressionMightReferenceMember(currentOriginalNode))
@@ -565,20 +571,79 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             return false;
         }
 
-        private bool OperationsAreCompatible(SyntaxNode currentOriginalNode, SyntaxNode currentReplacedNode)
+        private bool MemberAccessesAreCompatible(TExpressionSyntax? originalExpression, TExpressionSyntax? newExpression)
         {
-            var originalOperation = this._semanticModel.GetOperation(currentOriginalNode, CancellationToken);
-            var currentOperation = this.SpeculativeSemanticModel.GetOperation(currentReplacedNode, CancellationToken);
+            // If not expressions, nothing to do here.
+            if (originalExpression is null && newExpression is null)
+                return true;
 
-            if (originalOperation is IInvocationOperation originalInvocation)
+            var syntaxFacts = this.SyntaxFactsService;
+
+            // it is legal to go from expr.X to X if expr is either used for static-lookup (e.g.
+            // `MyNs.MyType.MyStaticMember` -> `MyStaticMember`), or if it's used for instance lookup, but only if expr
+            // is `this` or `base`.  We will ensure that the 'X' binds to the same symbol.  If so, the static case is
+            // fine, as as long as the member is available without issue (e.g. accessibility etc.) then it doesn't
+            // change meaning when switching.  The same holds true for an instance method with this/base as that is
+            // allowed to be implicit if it binds to the same exact member.
+
+            if (syntaxFacts.IsSimpleMemberAccessExpression(originalExpression) &&
+                !syntaxFacts.IsSimpleMemberAccessExpression(newExpression))
+            {
+                // if we don't even have a name after simplification, this is never ok.
+                if (!syntaxFacts.IsSimpleName(newExpression))
+                    return false;
+
+                // The symbols before/after must be exactly the same (this also ensures that a base access of some
+                // overridden method will be preserved as otherwise the symbols are different).
+                if (!SymbolsAreCompatible(originalExpression, newExpression))
+                    return false;
+
+                // If static became instance or instance became static, consider that a change in semantics.  Note: this
+                // does mean a change from extension->instance call (or vice versa) will be seen as a change in
+                // semantics.  We could potentially support this, but we'd have to do the analysis the instance invoked
+                // on and the instance passed as the first parameter are identical.
+
+                var originalIsStaticAccess = IsStaticAccess(_semanticModel.GetSymbolInfo(originalExpression, CancellationToken).Symbol);
+                var replacedIsStaticAccess = IsStaticAccess(this.SpeculativeSemanticModel.GetSymbolInfo(newExpression, CancellationToken).Symbol);
+                if (originalIsStaticAccess != replacedIsStaticAccess)
+                    return false;
+
+                // When binding expr.A, if we didn't bind 'expr' binding to a type, namespace, or other static
+                // thing, then we bound to an instance symbol. It's then only ok to remove 'expr' if 'expr' is
+                // this/base.
+                if (!originalIsStaticAccess)
+                {
+                    var originalExpressionOfMemberAccess = syntaxFacts.GetExpressionOfMemberAccessExpression(originalExpression);
+                    if (!CanAccessInstanceMemberThrough((TExpressionSyntax?)originalExpressionOfMemberAccess))
+                        return false;
+                }
+            }
+
+            return true;
+        }
+
+        private static bool IsStaticAccess(ISymbol? symbol)
+            => symbol is INamespaceOrTypeSymbol or { IsStatic: true };
+
+        private bool InvocationsAreCompatible(TInvocationExpressionSyntax? originalInvocation, TInvocationExpressionSyntax? newInvocation)
+        {
+            // If not invocations, nothing to do here.
+            if (originalInvocation is null && newInvocation is null)
+                return true;
+
+            if (originalInvocation is not null)
             {
                 // Invocations must stay invocations after update.
-                if (currentOperation is not IInvocationOperation currentInvocation)
+                if (newInvocation is null)
                     return false;
 
-                // An instance call must stay an instance call (and a static call must stay a static call).
-                if (IsNullOrNone(originalInvocation.Instance) != IsNullOrNone(currentInvocation.Instance))
+                var syntaxFacts = this.SyntaxFactsService;
+                if (!MemberAccessesAreCompatible(
+                        syntaxFacts.GetExpressionOfInvocationExpression(originalInvocation) as TExpressionSyntax,
+                        syntaxFacts.GetExpressionOfInvocationExpression(newInvocation) as TExpressionSyntax))
+                {
                     return false;
+                }
 
                 // Add more invocation tests here.
             }
@@ -586,9 +651,6 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             // Add more operation tests here.
             return true;
         }
-
-        private static bool IsNullOrNone(IOperation? instance)
-            => instance is null || instance.Kind == OperationKind.None;
 
         /// <summary>
         /// Determine if removing the cast could cause the semantics of System.Object method call to change.

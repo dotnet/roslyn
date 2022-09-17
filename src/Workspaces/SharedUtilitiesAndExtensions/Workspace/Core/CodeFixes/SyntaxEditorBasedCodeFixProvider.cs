@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             CancellationToken cancellationToken)
         {
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var editor = new SyntaxEditor(root, document.Project.Solution.Workspace.Services);
+            var editor = new SyntaxEditor(root, document.Project.Solution.Services);
 
             await editAsync(editor).ConfigureAwait(false);
 
@@ -87,6 +87,12 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             return document.WithSyntaxRoot(newRoot);
         }
 
+        /// <summary>
+        /// Fixes all <paramref name="diagnostics"/> in the specified <paramref name="editor"/>.
+        /// The fixes are applied to the <paramref name="document"/>'s syntax tree via <paramref name="editor"/>.
+        /// The implementation may query options of any document in the <paramref name="document"/>'s solution
+        /// with <paramref name="fallbackOptions"/> providing default values for options not specified explicitly in the corresponding editorconfig.
+        /// </summary>
         protected abstract Task FixAllAsync(
             Document document, ImmutableArray<Diagnostic> diagnostics, SyntaxEditor editor, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken);
 

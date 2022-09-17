@@ -12,9 +12,9 @@ using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
-using Microsoft.CodeAnalysis.CSharp.LanguageServices;
+using Microsoft.CodeAnalysis.CSharp.LanguageService;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         // The token may be part of a larger name (for example, `int` in `public static operator int[](Goo g);`.
                         // So check if the symbol's location encompasses the span of the token we're asking about.
-                        if (symbol.Locations.Any(loc => loc.SourceTree == location.SourceTree && loc.SourceSpan.Contains(location.SourceSpan)))
+                        if (symbol.Locations.Any(static (loc, location) => loc.SourceTree == location.SourceTree && loc.SourceSpan.Contains(location.SourceSpan), location))
                             return symbol;
                     }
                     else
@@ -235,21 +235,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public bool IsPartial(ITypeSymbol typeSymbol, CancellationToken cancellationToken)
         {
             var syntaxRefs = typeSymbol.DeclaringSyntaxReferences;
-            return syntaxRefs.Any(n => ((BaseTypeDeclarationSyntax)n.GetSyntax(cancellationToken)).Modifiers.Any(SyntaxKind.PartialKeyword));
-        }
-
-        public bool IsNullChecked(IParameterSymbol parameterSymbol, CancellationToken cancellationToken)
-        {
-            foreach (var syntaxReference in parameterSymbol.DeclaringSyntaxReferences)
-            {
-                if (syntaxReference.GetSyntax(cancellationToken) is ParameterSyntax parameterSyntax
-                    && parameterSyntax.ExclamationExclamationToken.IsKind(SyntaxKind.ExclamationExclamationToken))
-                {
-                    return true;
-                }
-            }
-
-            return false;
+            return syntaxRefs.Any(static (n, cancellationToken) => ((BaseTypeDeclarationSyntax)n.GetSyntax(cancellationToken)).Modifiers.Any(SyntaxKind.PartialKeyword), cancellationToken);
         }
 
         public IEnumerable<ISymbol> GetDeclaredSymbols(
@@ -271,11 +257,20 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        public IParameterSymbol FindParameterForArgument(SemanticModel semanticModel, SyntaxNode argument, CancellationToken cancellationToken)
-            => ((ArgumentSyntax)argument).DetermineParameter(semanticModel, allowParams: false, cancellationToken);
+        public IParameterSymbol FindParameterForArgument(SemanticModel semanticModel, SyntaxNode argument, bool allowUncertainCandidates, CancellationToken cancellationToken)
+            => ((ArgumentSyntax)argument).DetermineParameter(semanticModel, allowUncertainCandidates, allowParams: false, cancellationToken);
 
-        public IParameterSymbol FindParameterForAttributeArgument(SemanticModel semanticModel, SyntaxNode argument, CancellationToken cancellationToken)
-            => ((AttributeArgumentSyntax)argument).DetermineParameter(semanticModel, allowParams: false, cancellationToken);
+        public IParameterSymbol FindParameterForAttributeArgument(SemanticModel semanticModel, SyntaxNode argument, bool allowUncertainCandidates, CancellationToken cancellationToken)
+            => ((AttributeArgumentSyntax)argument).DetermineParameter(semanticModel, allowUncertainCandidates, allowParams: false, cancellationToken);
+
+        // Normal arguments can't reference fields/properties in c#
+        public ISymbol FindFieldOrPropertyForArgument(SemanticModel semanticModel, SyntaxNode argument, CancellationToken cancellationToken)
+            => null;
+
+        public ISymbol FindFieldOrPropertyForAttributeArgument(SemanticModel semanticModel, SyntaxNode argument, CancellationToken cancellationToken)
+            => argument is AttributeArgumentSyntax { NameEquals.Name: var name }
+                ? semanticModel.GetSymbolInfo(name, cancellationToken).GetAnySymbol()
+                : null;
 
         public ImmutableArray<ISymbol> GetBestOrAllSymbols(SemanticModel semanticModel, SyntaxNode node, SyntaxToken token, CancellationToken cancellationToken)
         {

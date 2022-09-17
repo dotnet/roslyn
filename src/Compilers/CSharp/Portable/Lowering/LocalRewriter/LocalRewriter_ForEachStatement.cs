@@ -679,33 +679,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 statements: ImmutableArray.Create(iteratorVariableInitialization, rewrittenBody));
         }
 
-        private static BoundBlock CreateBlockDeclaringIterationVariables(
-            ImmutableArray<LocalSymbol> iterationVariables,
-            BoundStatement iteratorVariableInitialization,
-            BoundStatement checkAndBreak,
-            BoundStatement rewrittenBody,
-            LabelSymbol continueLabel,
-            CommonForEachStatementSyntax forEachSyntax)
-        {
-            // The scope of the iteration variable is the embedded statement syntax.
-            // However consider the following foreach statement:
-            //
-            //   await foreach (int x in ...) { int y = ...; F(() => x); F(() => y));
-            //
-            // We currently generate 2 closures. One containing variable x, the other variable y.
-            // The EnC source mapping infrastructure requires each closure within a method body
-            // to have a unique syntax offset. Hence we associate the bound block declaring the
-            // iteration variable with the foreach statement, not the embedded statement.
-            return new BoundBlock(
-                forEachSyntax,
-                locals: iterationVariables,
-                statements: ImmutableArray.Create(
-                    iteratorVariableInitialization,
-                    checkAndBreak,
-                    rewrittenBody,
-                    new BoundLabelStatement(forEachSyntax, continueLabel)));
-        }
-
         /// <summary>
         /// Lower a foreach loop that will enumerate a single-dimensional array.
         /// 
@@ -1104,36 +1077,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 result = _instrumenter.InstrumentForEachStatement(original, result);
             }
-        }
-
-        /// <summary>
-        /// Produce a while(true) loop
-        ///
-        /// <![CDATA[
-        /// still-true:
-        /// /* body */
-        /// goto still-true;
-        /// ]]> 
-        /// </summary>
-        private BoundStatement MakeWhileTrueLoop(BoundForEachStatement loop, BoundBlock body)
-        {
-            Debug.Assert(loop.EnumeratorInfoOpt is { IsAsync: true });
-            SyntaxNode syntax = loop.Syntax;
-            GeneratedLabelSymbol startLabel = new GeneratedLabelSymbol("still-true");
-            BoundStatement startLabelStatement = new BoundLabelStatement(syntax, startLabel);
-
-            if (this.Instrument)
-            {
-                startLabelStatement = BoundSequencePoint.CreateHidden(startLabelStatement);
-            }
-
-            // still-true:
-            // /* body */
-            // goto still-true;
-            return BoundStatementList.Synthesized(syntax, hasErrors: false,
-                 startLabelStatement,
-                 body,
-                 new BoundGotoStatement(syntax, startLabel));
         }
     }
 }

@@ -10,9 +10,9 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp.LanguageServices;
+using Microsoft.CodeAnalysis.CSharp.LanguageService;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -25,9 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             => ((CSharpParseOptions)node.SyntaxTree.Options).LanguageVersion;
 
         public static void Deconstruct(this SyntaxNode node, out SyntaxKind kind)
-        {
-            kind = node.Kind();
-        }
+            => kind = node.Kind();
 
         public static bool IsKind<TNode>([NotNullWhen(returnValue: true)] this SyntaxNode? node, SyntaxKind kind, [NotNullWhen(returnValue: true)] out TNode? result)
             where TNode : SyntaxNode
@@ -289,6 +287,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 AccessorDeclarationSyntax accessor => accessor.AttributeLists,
                 ParameterSyntax parameter => parameter.AttributeLists,
                 CompilationUnitSyntax compilationUnit => compilationUnit.AttributeLists,
+                StatementSyntax statementSyntax => statementSyntax.AttributeLists,
+                TypeParameterSyntax typeParameter => typeParameter.AttributeLists,
+                LambdaExpressionSyntax lambdaExpressionSyntax => lambdaExpressionSyntax.AttributeLists,
                 _ => default,
             };
 
@@ -315,10 +316,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             // Effectively, if we're on the RHS of the ? we have to walk up the RHS spine first until we hit the first
             // conditional access.
 
-            while (current.Kind(
-) is SyntaxKind.InvocationExpression or SyntaxKind.ElementAccessExpression or SyntaxKind.SimpleMemberAccessExpression or SyntaxKind.MemberBindingExpression or SyntaxKind.ElementBindingExpression or
-                // Optional exclamations might follow the conditional operation. For example: a.b?.$$c!!!!()
-                SyntaxKind.SuppressNullableWarningExpression&&
+            while (current?.Kind() is SyntaxKind.InvocationExpression or
+                                      SyntaxKind.ElementAccessExpression or
+                                      SyntaxKind.SimpleMemberAccessExpression or
+                                      SyntaxKind.MemberBindingExpression or
+                                      SyntaxKind.ElementBindingExpression or
+                                      // Optional exclamations might follow the conditional operation. For example: a.b?.$$c!!!!()
+                                      SyntaxKind.SuppressNullableWarningExpression &&
                 current.Parent is not ConditionalAccessExpressionSyntax)
             {
                 current = current.Parent;
@@ -725,7 +729,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             if (trivia.HasStructure)
             {
                 var structure = trivia.GetStructure()!;
-                if (trivia.GetStructure().Kind() is SyntaxKind.RegionDirectiveTrivia or SyntaxKind.EndRegionDirectiveTrivia or SyntaxKind.IfDirectiveTrivia or SyntaxKind.EndIfDirectiveTrivia)
+                if (trivia.GetStructure()?.Kind() is SyntaxKind.RegionDirectiveTrivia or SyntaxKind.EndRegionDirectiveTrivia or SyntaxKind.IfDirectiveTrivia or SyntaxKind.EndIfDirectiveTrivia)
                 {
                     var match = ((DirectiveTriviaSyntax)structure).GetMatchingDirective(cancellationToken);
                     if (match != null)
@@ -739,7 +743,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                         }
                     }
                 }
-                else if (trivia.GetStructure().Kind() is SyntaxKind.ElseDirectiveTrivia or SyntaxKind.ElifDirectiveTrivia)
+                else if (trivia.GetStructure()?.Kind() is SyntaxKind.ElseDirectiveTrivia or SyntaxKind.ElifDirectiveTrivia)
                 {
                     var directives = ((DirectiveTriviaSyntax)structure).GetMatchingConditionalDirectives(cancellationToken);
                     if (directives != null && directives.Count > 0)

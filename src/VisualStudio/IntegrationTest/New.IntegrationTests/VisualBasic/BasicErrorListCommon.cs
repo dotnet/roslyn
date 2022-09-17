@@ -6,9 +6,9 @@ using System;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
-using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
 using Roslyn.Test.Utilities;
 using Roslyn.VisualStudio.IntegrationTests;
+using WindowsInput.Native;
 using Xunit;
 
 namespace Roslyn.VisualStudio.NewIntegrationTests.VisualBasic
@@ -22,7 +22,7 @@ namespace Roslyn.VisualStudio.NewIntegrationTests.VisualBasic
 
         protected override string LanguageName => LanguageNames.VisualBasic;
 
-        [IdeFact]
+        [IdeFact(Skip = "https://github.com/dotnet/roslyn/issues/63041")]
         public virtual async Task ErrorList()
         {
             await TestServices.Editor.SetTextAsync(@"
@@ -60,7 +60,7 @@ End Module
                 string.Join(Environment.NewLine, actualContents));
         }
 
-        [IdeFact]
+        [IdeFact(Skip = "https://github.com/dotnet/roslyn/issues/63981 and https://github.com/dotnet/roslyn/issues/63982")]
         public virtual async Task ErrorsDuringMethodBodyEditing()
         {
             await TestServices.Editor.SetTextAsync(@"
@@ -98,7 +98,7 @@ End Namespace
 
             await TestServices.Editor.ActivateAsync(HangMitigatingCancellationToken);
             await TestServices.Editor.PlaceCaretAsync("FF = 0 ' Comment", charsOffset: -1, HangMitigatingCancellationToken);
-            await TestServices.Input.SendAsync(VirtualKey.Delete);
+            await TestServices.Input.SendAsync(VirtualKeyCode.DELETE);
             await TestServices.ErrorList.ShowErrorListAsync(HangMitigatingCancellationToken);
             expectedContents = Array.Empty<string>();
             await TestServices.Workspace.WaitForAllAsyncOperationsAsync(new[] { FeatureAttribute.Workspace, FeatureAttribute.SolutionCrawler, FeatureAttribute.DiagnosticService, FeatureAttribute.ErrorSquiggles, FeatureAttribute.ErrorList }, HangMitigatingCancellationToken);

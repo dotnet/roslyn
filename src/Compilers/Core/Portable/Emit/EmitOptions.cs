@@ -111,7 +111,7 @@ namespace Microsoft.CodeAnalysis.Emit
 
         /// <summary>
         /// If <see cref="DefaultSourceFileEncoding"/> is not specified, the encoding used to parse source files
-        /// that do not declare their encoding via Byte Order Mark and are not UTF8-encoded.
+        /// that do not declare their encoding via Byte Order Mark and are not UTF-8 encoded.
         /// </summary>
         public Encoding? FallbackSourceFileEncoding { get; private set; }
 

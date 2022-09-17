@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Linq;
 using System.Runtime.CompilerServices;
@@ -31,38 +29,50 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             s_symbolMapPool.Free(symbolMap);
         }
 
+        private static string GetSourceKeySuffix(Project project)
+            => "_Source_" + project.FilePath;
+
         public static Task<SymbolTreeInfo> GetInfoForSourceAssemblyAsync(
-            Project project, Checksum checksum, bool loadOnly, CancellationToken cancellationToken)
+            Project project, CancellationToken cancellationToken)
         {
             var solution = project.Solution;
-            var services = solution.Workspace.Services;
-            var solutionKey = SolutionKey.ToSolutionKey(solution);
-            var projectFilePath = project.FilePath;
 
-            var result = TryLoadOrCreateAsync(
-                services,
-                solutionKey,
-                checksum,
-                loadOnly,
-                createAsync: () => CreateSourceSymbolTreeInfoAsync(project, checksum, cancellationToken),
-                keySuffix: "_Source_" + project.FilePath,
-                tryReadObject: reader => TryReadSymbolTreeInfo(reader, checksum, nodes => GetSpellCheckerAsync(services, solutionKey, checksum, projectFilePath, nodes)),
-                cancellationToken: cancellationToken);
-            Contract.ThrowIfNull(result, "Result should never be null as we passed 'loadOnly: false'.");
-            return result;
+            return LoadOrCreateAsync(
+                solution.Services,
+                SolutionKey.ToSolutionKey(solution),
+                getChecksumAsync: async () => await GetSourceSymbolsChecksumAsync(project, cancellationToken).ConfigureAwait(false),
+                createAsync: checksum => CreateSourceSymbolTreeInfoAsync(project, checksum, cancellationToken),
+                keySuffix: GetSourceKeySuffix(project),
+                cancellationToken);
+        }
+
+        /// <summary>
+        /// Loads any info we have for this project from our persistence store.  Will succeed regardless of the
+        /// checksum of the <paramref name="project"/>.  Should only be used by clients that are ok with potentially
+        /// stale data.
+        /// </summary>
+        public static async Task<SymbolTreeInfo?> LoadAnyInfoForSourceAssemblyAsync(
+            Project project, CancellationToken cancellationToken)
+        {
+            return await LoadAsync(
+                project.Solution.Services,
+                SolutionKey.ToSolutionKey(project.Solution),
+                checksum: await GetSourceSymbolsChecksumAsync(project, cancellationToken).ConfigureAwait(false),
+                checksumMustMatch: false,
+                GetSourceKeySuffix(project),
+                cancellationToken).ConfigureAwait(false);
         }
 
         /// <summary>
         /// Cache of project to the checksum for it so that we don't have to expensively recompute
         /// this each time we get a project.
         /// </summary>
-        private static readonly ConditionalWeakTable<ProjectState, AsyncLazy<Checksum>> s_projectToSourceChecksum =
-            new();
+        private static readonly ConditionalWeakTable<ProjectState, AsyncLazy<Checksum>> s_projectToSourceChecksum = new();
 
         public static Task<Checksum> GetSourceSymbolsChecksumAsync(Project project, CancellationToken cancellationToken)
         {
             var lazy = s_projectToSourceChecksum.GetValue(
-                project.State, p => new AsyncLazy<Checksum>(c => ComputeSourceSymbolsChecksumAsync(p, c), cacheResult: true));
+                project.State, static p => new AsyncLazy<Checksum>(c => ComputeSourceSymbolsChecksumAsync(p, c), cacheResult: true));
 
             return lazy.GetValueAsync(cancellationToken);
         }
@@ -75,7 +85,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             // changed.  The only thing that can make those source-symbols change in that manner are if
             // the text of any document changes, or if options for the project change.  So we build our
             // checksum out of that data.
-            var serializer = projectState.LanguageServices.WorkspaceServices.GetService<ISerializerService>();
+            var serializer = projectState.LanguageServices.LanguageServices.SolutionServices.GetService<ISerializerService>();
             var projectStateChecksums = await projectState.GetStateChecksumsAsync(cancellationToken).ConfigureAwait(false);
 
             // Order the documents by FilePath.  Default ordering in the RemoteWorkspace is
@@ -104,29 +114,24 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             return Checksum.Create(allChecksums);
         }
 
-        internal static async Task<SymbolTreeInfo> CreateSourceSymbolTreeInfoAsync(
+        internal static async ValueTask<SymbolTreeInfo> CreateSourceSymbolTreeInfoAsync(
             Project project, Checksum checksum, CancellationToken cancellationToken)
         {
             var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
             var assembly = compilation?.Assembly;
             if (assembly == null)
-            {
                 return CreateEmpty(checksum);
-            }
 
             var unsortedNodes = ArrayBuilder<BuilderNode>.GetInstance();
             unsortedNodes.Add(new BuilderNode(assembly.GlobalNamespace.Name, RootNodeParentIndex));
 
             GenerateSourceNodes(assembly.GlobalNamespace, unsortedNodes, s_getMembersNoPrivate);
 
-            var solution = project.Solution;
-            var services = solution.Workspace.Services;
-            var solutionKey = SolutionKey.ToSolutionKey(solution);
-
             return CreateSymbolTreeInfo(
-                services, solutionKey, checksum, project.FilePath, unsortedNodes.ToImmutableAndFree(),
+                checksum,
+                unsortedNodes.ToImmutableAndFree(),
                 inheritanceMap: new OrderPreservingMultiDictionary<string, string>(),
-                simpleMethods: null);
+                receiverTypeNameToExtensionMethodMap: null);
         }
 
         // generate nodes for the global namespace an all descendants

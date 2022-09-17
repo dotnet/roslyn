@@ -160,7 +160,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             //   <see cref="M[x, ref |
             //   <see cref="M[x, out |
 
-            if (token.Parent.Kind() is not (SyntaxKind.CrefParameterList or SyntaxKind.CrefBracketedParameterList))
+            if (token.Parent?.Kind() is not (SyntaxKind.CrefParameterList or SyntaxKind.CrefBracketedParameterList))
             {
                 return false;
             }

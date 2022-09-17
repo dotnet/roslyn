@@ -7,10 +7,12 @@ using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.AddImport;
+using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Completion.Log;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -39,7 +41,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
         public override async Task ProvideCompletionsAsync(CompletionContext completionContext)
         {
-            if (!completionContext.CompletionOptions.ShouldShowItemsFromUnimportNamspaces())
+            if (!completionContext.CompletionOptions.ShouldShowItemsFromUnimportedNamespaces())
                 return;
 
             var cancellationToken = completionContext.CancellationToken;
@@ -128,8 +130,11 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             var generator = document.GetRequiredLanguageService<SyntaxGenerator>();
 
             // TODO: fallback options https://github.com/dotnet/roslyn/issues/60786
-            var addImportsOptions = await document.GetAddImportPlacementOptionsAsync(fallbackOptions: null, cancellationToken).ConfigureAwait(false);
-            var formattingOptions = await document.GetSyntaxFormattingOptionsAsync(fallbackOptions: null, cancellationToken).ConfigureAwait(false);
+            var globalOptions = document.Project.Solution.Services.GetService<ILegacyGlobalOptionsWorkspaceService>();
+            var fallbackOptions = globalOptions?.CleanCodeGenerationOptionsProvider ?? CodeActionOptions.DefaultProvider;
+
+            var addImportsOptions = await document.GetAddImportPlacementOptionsAsync(fallbackOptions, cancellationToken).ConfigureAwait(false);
+            var formattingOptions = await document.GetSyntaxFormattingOptionsAsync(fallbackOptions, cancellationToken).ConfigureAwait(false);
 
             var importNode = CreateImport(document, containingNamespace);
 
@@ -210,16 +215,16 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
         protected static bool IsAddingImportsSupported(Document document)
         {
-            var workspace = document.Project.Solution.Workspace;
+            var solution = document.Project.Solution;
 
             // Certain types of workspace don't support document change, e.g. DebuggerIntelliSenseWorkspace
-            if (!workspace.CanApplyChange(ApplyChangesKind.ChangeDocument))
+            if (!solution.CanApplyChange(ApplyChangesKind.ChangeDocument))
             {
                 return false;
             }
 
             // Certain documents, e.g. Razor document, don't support adding imports
-            var documentSupportsFeatureService = workspace.Services.GetRequiredService<IDocumentSupportsFeatureService>();
+            var documentSupportsFeatureService = solution.Services.GetRequiredService<IDocumentSupportsFeatureService>();
             if (!documentSupportsFeatureService.SupportsRefactorings(document))
             {
                 return false;

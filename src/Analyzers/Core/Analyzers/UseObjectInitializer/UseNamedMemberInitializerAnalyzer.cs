@@ -6,7 +6,7 @@
 
 using System.Collections.Immutable;
 using System.Threading;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.UseCollectionInitializer;
@@ -59,7 +59,17 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
 
         protected override void AddMatches(ArrayBuilder<Match<TExpressionSyntax, TStatementSyntax, TMemberAccessExpressionSyntax, TAssignmentStatementSyntax>> matches)
         {
-            var containingBlock = _containingStatement.Parent;
+            // If containing statement is inside a block (e.g. method), than we need to iterate through its child statements.
+            // If containing statement is in top-level code, than we need to iterate through child statements of containing compilation unit.
+            var containingBlockOrCompilationUnit = _containingStatement.Parent;
+
+            // In case of top-level code parent of the statement will be GlobalStatementSyntax,
+            // so we need to get its parent in order to get CompilationUnitSyntax
+            if (_syntaxFacts.IsGlobalStatement(containingBlockOrCompilationUnit))
+            {
+                containingBlockOrCompilationUnit = containingBlockOrCompilationUnit.Parent;
+            }
+
             var foundStatement = false;
 
             using var _1 = PooledHashSet<string>.GetInstance(out var seenNames);
@@ -77,11 +87,17 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
                 }
             }
 
-            foreach (var child in containingBlock.ChildNodesAndTokens())
+            foreach (var child in containingBlockOrCompilationUnit.ChildNodesAndTokens())
             {
+                if (child.IsToken)
+                    continue;
+
+                var childNode = child.AsNode();
+                var extractedChild = _syntaxFacts.IsGlobalStatement(childNode) ? _syntaxFacts.GetStatementOfGlobalStatement(childNode) : childNode;
+
                 if (!foundStatement)
                 {
-                    if (child == _containingStatement)
+                    if (extractedChild == _containingStatement)
                     {
                         foundStatement = true;
                         continue;
@@ -90,10 +106,7 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
                     continue;
                 }
 
-                if (child.IsToken)
-                    break;
-
-                if (child.AsNode() is not TAssignmentStatementSyntax statement)
+                if (extractedChild is not TAssignmentStatementSyntax statement)
                     break;
 
                 if (!_syntaxFacts.IsSimpleAssignmentStatement(statement))

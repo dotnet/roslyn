@@ -3,39 +3,39 @@
 ' See the LICENSE file in the project root for more information.
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.Statements
+    <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
     Public Class EndKeywordRecommenderTests
         Inherits RecommenderTests
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact>
         Public Sub EndInMethodBodyTest()
             ' It's always a statement (or at least for now)
             VerifyRecommendationsContain(<MethodBody>|</MethodBody>, "End")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact>
         Public Sub EndAfterStatementTest()
             VerifyRecommendationsContain(<MethodBody>
 Dim x 
 |</MethodBody>, "End")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact>
         Public Sub EndMissingInClassBlockTest()
             VerifyRecommendationsMissing(<ClassDeclaration>|</ClassDeclaration>, "End")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact>
         Public Sub EndInSingleLineLambdaTest()
             VerifyRecommendationsContain(<MethodBody>Dim x = Sub() |</MethodBody>, "End")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact>
         Public Sub EndNotInSingleLineFunctionLambdaTest()
             VerifyRecommendationsMissing(<MethodBody>Dim x = Function() |</MethodBody>, "End")
         End Sub
 
-        <WorkItem(530599, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530599")>
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact, WorkItem(530599, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530599")>
         Public Sub EndNotOutsideOfMethodBodyTest()
             VerifyRecommendationsMissing(<MethodBody>Class C
  |</MethodBody>, "End")

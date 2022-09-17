@@ -5,11 +5,15 @@
 #nullable disable
 
 using System.Collections.Immutable;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Text;
+using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
+using Roslyn.Utilities;
 using Xunit;
 using Xunit.Abstractions;
 using static Roslyn.Test.Utilities.TestHelpers;
@@ -21,20 +25,97 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     {
         public SyntaxTreeTests(ITestOutputHelper output) : base(output) { }
 
-        protected SyntaxTree UsingTree(string text, CSharpParseOptions options, params DiagnosticDescription[] expectedErrors)
+        public enum SyntaxTreeFactoryKind
         {
-            var tree = base.UsingTree(text, options);
+            Create,
+            Subclass,
+            ParseText,
+            SynthesizedSyntaxTree,
+            ParsedTreeWithPath,
+            ParsedTreeWithRootAndOptions,
+        }
 
-            var actualErrors = tree.GetDiagnostics();
-            actualErrors.Verify(expectedErrors);
+        [Theory]
+        [CombinatorialData]
+        public void SyntaxTreeCreationAndDirectiveParsing(SyntaxTreeFactoryKind factoryKind)
+        {
+            var source = """
+                #define U
 
-            return tree;
+                #if !Q
+                #undef U
+                #endif
+
+                #if U
+                #define X
+                #else
+                #define Y
+                #endif
+
+                using System.Diagnostics;
+
+                #if Y
+                class C
+                {
+                    [Conditional("Y")]
+                    public static void F1()
+                    {
+                    }
+
+                    [Conditional("U")]
+                    public static void F2()
+                    {
+                    }
+
+                    public static void Main()
+                    {
+                        F1();
+                        F2();
+                    }
+                }
+                #endif
+                """;
+
+            var parseOptions = CSharpParseOptions.Default;
+            var root = SyntaxFactory.ParseCompilationUnit(source, options: parseOptions);
+
+            var tree = factoryKind switch
+            {
+                SyntaxTreeFactoryKind.Create => CSharpSyntaxTree.Create(root, options: parseOptions, path: "", encoding: null),
+                SyntaxTreeFactoryKind.ParseText => CSharpSyntaxTree.ParseText(SourceText.From(source, Encoding.UTF8, SourceHashAlgorithm.Sha256), parseOptions),
+                SyntaxTreeFactoryKind.Subclass => new MockCSharpSyntaxTree(root, SourceText.From(source, Encoding.UTF8, SourceHashAlgorithm.Sha256), parseOptions),
+                SyntaxTreeFactoryKind.SynthesizedSyntaxTree => SyntaxNode.CloneNodeAsRoot(root, syntaxTree: null).SyntaxTree,
+                SyntaxTreeFactoryKind.ParsedTreeWithPath => WithInitializedDirectives(CSharpSyntaxTree.Create(root, options: parseOptions, path: "old path", Encoding.UTF8)).WithFilePath("new path"),
+                SyntaxTreeFactoryKind.ParsedTreeWithRootAndOptions => WithInitializedDirectives(SyntaxFactory.ParseSyntaxTree("", options: parseOptions)).WithRootAndOptions(root, parseOptions),
+                _ => throw ExceptionUtilities.UnexpectedValue(factoryKind)
+            };
+
+            Assert.Equal("#define U | #undef U | #define Y", ((CSharpSyntaxTree)tree).GetDirectives().GetDebuggerDisplay());
+
+            var compilation = CSharpCompilation.Create("test", new[] { tree }, TargetFrameworkUtil.GetReferences(TargetFramework.Standard), TestOptions.DebugDll);
+
+            CompileAndVerify(compilation).VerifyIL("C.Main", @"
+{
+  // Code size        8 (0x8)
+  .maxstack  0
+  IL_0000:  nop
+  IL_0001:  call       ""void C.F1()""
+  IL_0006:  nop
+  IL_0007:  ret
+}
+");
+
+            static SyntaxTree WithInitializedDirectives(SyntaxTree tree)
+            {
+                _ = ((CSharpSyntaxTree)tree).GetDirectives();
+                return tree;
+            }
         }
 
         // Diagnostic options on syntax trees are now obsolete
 #pragma warning disable CS0618
         [Fact]
-        public void CreateTreeWithDiagnostics()
+        public void Create_WithDiagnosticOptions()
         {
             var options = CreateImmutableDictionary(("CS0078", ReportDiagnostic.Suppress));
             var tree = CSharpSyntaxTree.Create(SyntaxFactory.ParseCompilationUnit(""),
@@ -271,7 +352,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void GlobalUsingDirective_02()
         {
             var test = "global using ns1;";
-
             UsingTree(test, TestOptions.Regular9,
                 // (1,1): error CS8773: Feature 'global using directive' is not available in C# 9.0. Please use language version 10.0 or greater.
                 // global using ns1;
