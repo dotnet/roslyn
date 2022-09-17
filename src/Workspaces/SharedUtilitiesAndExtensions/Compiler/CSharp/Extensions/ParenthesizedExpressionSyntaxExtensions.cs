@@ -89,7 +89,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             // Don't remove parentheses around `<` and `>` if there's a reasonable chance that it might
             // pair with the opposite form, causing them to be reinterpreted as generic syntax. See
             // https://github.com/dotnet/roslyn/issues/43934 for examples.
-            if (expression.Kind() is SyntaxKind.GreaterThanExpression or SyntaxKind.LessThanExpression&&
+            if (expression.Kind() is SyntaxKind.GreaterThanExpression or SyntaxKind.LessThanExpression &&
                 nodeParent is ArgumentSyntax)
             {
                 var opposite = expression.IsKind(SyntaxKind.GreaterThanExpression) ? SyntaxKind.LessThanExpression : SyntaxKind.GreaterThanExpression;
@@ -552,7 +552,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 //   {x < x, (x) > (1 + 2)}
 
                 if (node.Parent is BinaryExpressionSyntax binaryExpression &&
-                    binaryExpression.Kind() is SyntaxKind.LessThanExpression or SyntaxKind.GreaterThanExpression&&
+                    binaryExpression.Kind() is SyntaxKind.LessThanExpression or SyntaxKind.GreaterThanExpression &&
                     (binaryExpression.IsParentKind(SyntaxKind.Argument) || binaryExpression.Parent is InitializerExpressionSyntax))
                 {
                     if (binaryExpression.IsKind(SyntaxKind.LessThanExpression))
