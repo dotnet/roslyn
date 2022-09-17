@@ -41,7 +41,11 @@ namespace Microsoft.CodeAnalysis.CSharp.ImplementInterface
                     baseType.IsParentKind(SyntaxKind.BaseList) &&
                     baseType.Type == interfaceNode)
                 {
-                    if (interfaceNode.Parent.Parent.IsParentKind(SyntaxKind.ClassDeclaration, SyntaxKind.StructDeclaration, SyntaxKind.RecordDeclaration, SyntaxKind.RecordStructDeclaration))
+                    if (interfaceNode.Parent.Parent?.Parent.Kind() is
+                            SyntaxKind.ClassDeclaration or
+                            SyntaxKind.StructDeclaration or
+                            SyntaxKind.RecordDeclaration or
+                            SyntaxKind.RecordStructDeclaration)
                     {
                         var interfaceSymbolInfo = model.GetSymbolInfo(interfaceNode, cancellationToken);
                         if (interfaceSymbolInfo.CandidateReason != CandidateReason.WrongArity)
