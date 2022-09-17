@@ -15,6 +15,7 @@ parameters:
 - name: notes
   displayName: Notes to include in the SCA request
   type: string
+  default: ' ' # optional parameters require a non-empty default.
 - name: whatif
   displayName: Only simulate the request
   type: boolean
