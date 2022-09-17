@@ -113,8 +113,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineTemporary
                 if (argument.RefOrOutKeyword.Kind() != SyntaxKind.None)
                     return true;
             }
-            else if (identifierNode.Parent.Kind(
-) is SyntaxKind.PreDecrementExpression or SyntaxKind.PreIncrementExpression or SyntaxKind.PostDecrementExpression or SyntaxKind.PostIncrementExpression or SyntaxKind.AddressOfExpression)
+            else if (identifierNode.Parent.Kind() is SyntaxKind.PreDecrementExpression or
+                                                     SyntaxKind.PreIncrementExpression or
+                                                     SyntaxKind.PostDecrementExpression or
+                                                     SyntaxKind.PostIncrementExpression or
+                                                     SyntaxKind.AddressOfExpression)
             {
                 return true;
             }

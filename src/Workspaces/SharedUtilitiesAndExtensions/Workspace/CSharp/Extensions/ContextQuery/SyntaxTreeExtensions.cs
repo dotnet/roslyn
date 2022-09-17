@@ -2642,7 +2642,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             // List patterns
             // is [ |
             // is [ 0, |
-            if (token.Kind() is SyntaxKind.OpenBracketToken or SyntaxKind.CommaToken                && token.Parent.IsKind(SyntaxKind.ListPattern))
+            if (token.Kind() is SyntaxKind.OpenBracketToken or SyntaxKind.CommaToken &&
+                token.Parent.IsKind(SyntaxKind.ListPattern))
             {
                 return true;
             }

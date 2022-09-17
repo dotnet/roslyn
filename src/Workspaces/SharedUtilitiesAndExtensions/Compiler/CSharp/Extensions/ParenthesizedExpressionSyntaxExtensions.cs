@@ -495,8 +495,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
             if (node.IsParentKind(SyntaxKind.CastExpression, out CastExpressionSyntax? castExpression))
             {
-                if (castExpression.Type.Kind(
-) is SyntaxKind.PredefinedType or SyntaxKind.ArrayType or SyntaxKind.PointerType or SyntaxKind.NullableType)
+                if (castExpression.Type.Kind() is
+                        SyntaxKind.PredefinedType or
+                        SyntaxKind.ArrayType or
+                        SyntaxKind.PointerType or
+                        SyntaxKind.NullableType)
                 {
                     return false;
                 }

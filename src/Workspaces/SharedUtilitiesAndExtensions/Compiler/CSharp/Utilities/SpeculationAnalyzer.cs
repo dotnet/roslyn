@@ -565,10 +565,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
         }
 
         protected override bool ExpressionMightReferenceMember(SyntaxNode node)
-        {
-            return node.Kind(
-) is SyntaxKind.InvocationExpression or SyntaxKind.ElementAccessExpression or SyntaxKind.SimpleMemberAccessExpression or SyntaxKind.ImplicitElementAccess or SyntaxKind.ObjectCreationExpression;
-        }
+            => node.Kind() is
+                SyntaxKind.InvocationExpression or
+                SyntaxKind.ElementAccessExpression or
+                SyntaxKind.SimpleMemberAccessExpression or
+                SyntaxKind.ImplicitElementAccess or
+                SyntaxKind.ObjectCreationExpression;
 
         protected override ImmutableArray<ArgumentSyntax> GetArguments(ExpressionSyntax expression)
         {

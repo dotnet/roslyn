@@ -145,7 +145,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             //   <see cref="|
             //   <see cref='|
 
-            return token.Kind() is SyntaxKind.DoubleQuoteToken or SyntaxKind.SingleQuoteToken                && token.Parent.IsKind(SyntaxKind.XmlCrefAttribute);
+            return token.Kind() is SyntaxKind.DoubleQuoteToken or SyntaxKind.SingleQuoteToken &&
+                   token.Parent.IsKind(SyntaxKind.XmlCrefAttribute);
         }
 
         private static bool IsCrefParameterListContext(SyntaxToken token)

@@ -390,8 +390,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             // { Property1.Property2: ... }
             if (currentToken.IsKind(SyntaxKind.ColonToken))
             {
-                if (currentToken.Parent?.Kind() is SyntaxKind.CaseSwitchLabel or SyntaxKind.CasePatternSwitchLabel or SyntaxKind.DefaultSwitchLabel or SyntaxKind.LabeledStatement or SyntaxKind.AttributeTargetSpecifier or SyntaxKind.NameColon or SyntaxKind.ExpressionColon or SyntaxKind.SwitchExpressionArm)
+                if (currentToken.Parent?.Kind() is
+                        SyntaxKind.CaseSwitchLabel or
+                        SyntaxKind.CasePatternSwitchLabel or
+                        SyntaxKind.DefaultSwitchLabel or
+                        SyntaxKind.LabeledStatement or
+                        SyntaxKind.AttributeTargetSpecifier or
+                        SyntaxKind.NameColon or
+                        SyntaxKind.ExpressionColon or SyntaxKind.SwitchExpressionArm)
+                {
                     return CreateAdjustSpacesOperation(0, AdjustSpacesOption.ForceSpacesIfOnSingleLine);
+                }
             }
 
             // [cast expression] * case

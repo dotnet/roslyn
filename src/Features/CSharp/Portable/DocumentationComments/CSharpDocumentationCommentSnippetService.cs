@@ -122,8 +122,12 @@ namespace Microsoft.CodeAnalysis.CSharp.DocumentationComments
                 }
             }
 
-            if (member.Kind(
-) is SyntaxKind.MethodDeclaration or SyntaxKind.IndexerDeclaration or SyntaxKind.DelegateDeclaration or SyntaxKind.OperatorDeclaration or SyntaxKind.ConstructorDeclaration or SyntaxKind.DestructorDeclaration)
+            if (member.Kind() is SyntaxKind.MethodDeclaration or
+                                 SyntaxKind.IndexerDeclaration or
+                                 SyntaxKind.DelegateDeclaration or
+                                 SyntaxKind.OperatorDeclaration or
+                                 SyntaxKind.ConstructorDeclaration or
+                                 SyntaxKind.DestructorDeclaration)
             {
                 var returnType = member.GetMemberType();
                 if (returnType != null &&

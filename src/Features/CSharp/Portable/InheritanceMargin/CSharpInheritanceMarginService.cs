@@ -40,8 +40,12 @@ namespace Microsoft.CodeAnalysis.CSharp.InheritanceMargin
                 // 2. Add type members inside this type declaration.
                 foreach (var member in typeDeclarationNode.Members)
                 {
-                    if (member.Kind(
-) is SyntaxKind.MethodDeclaration or SyntaxKind.PropertyDeclaration or SyntaxKind.EventDeclaration or SyntaxKind.IndexerDeclaration or SyntaxKind.OperatorDeclaration or SyntaxKind.ConversionOperatorDeclaration)
+                    if (member.Kind() is SyntaxKind.MethodDeclaration or
+                                         SyntaxKind.PropertyDeclaration or
+                                         SyntaxKind.EventDeclaration or
+                                         SyntaxKind.IndexerDeclaration or
+                                         SyntaxKind.OperatorDeclaration or
+                                         SyntaxKind.ConversionOperatorDeclaration)
                     {
                         builder.Add(member);
                     }

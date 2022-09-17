@@ -353,8 +353,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
         private static bool AtEndOfIncompleteStringOrCharLiteral(SyntaxToken token, int position, char lastChar, CancellationToken cancellationToken)
         {
-            if (token.Kind(
-) is not (SyntaxKind.StringLiteralToken or SyntaxKind.CharacterLiteralToken or SyntaxKind.SingleLineRawStringLiteralToken or SyntaxKind.MultiLineRawStringLiteralToken))
+            if (token.Kind() is not (
+                    SyntaxKind.StringLiteralToken or
+                    SyntaxKind.CharacterLiteralToken or
+                    SyntaxKind.SingleLineRawStringLiteralToken or
+                    SyntaxKind.MultiLineRawStringLiteralToken))
             {
                 throw new ArgumentException(CSharpCompilerExtensionsResources.Expected_string_or_char_literal, nameof(token));
             }
@@ -414,12 +417,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 token = token.GetPreviousToken(includeSkipped: true, includeDirectives: true);
             }
 
-            if (token.Kind() is SyntaxKind.StringLiteralToken or
-                                SyntaxKind.SingleLineRawStringLiteralToken or
-                                SyntaxKind.MultiLineRawStringLiteralToken or
-                                SyntaxKind.Utf8StringLiteralToken or
-                                SyntaxKind.Utf8SingleLineRawStringLiteralToken or
-                                SyntaxKind.Utf8MultiLineRawStringLiteralToken)
+            if (token.Kind() is
+                    SyntaxKind.StringLiteralToken or
+                    SyntaxKind.SingleLineRawStringLiteralToken or
+                    SyntaxKind.MultiLineRawStringLiteralToken or
+                    SyntaxKind.Utf8StringLiteralToken or
+                    SyntaxKind.Utf8SingleLineRawStringLiteralToken or
+                    SyntaxKind.Utf8MultiLineRawStringLiteralToken)
             {
                 var span = token.Span;
 
@@ -430,8 +434,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                     || AtEndOfIncompleteStringOrCharLiteral(token, position, '"', cancellationToken);
             }
 
-            if (token.Kind(
-) is SyntaxKind.InterpolatedStringStartToken or SyntaxKind.InterpolatedStringTextToken or SyntaxKind.InterpolatedStringEndToken or SyntaxKind.InterpolatedRawStringEndToken or SyntaxKind.InterpolatedSingleLineRawStringStartToken or SyntaxKind.InterpolatedMultiLineRawStringStartToken)
+            if (token.Kind() is
+                    SyntaxKind.InterpolatedStringStartToken or
+                    SyntaxKind.InterpolatedStringTextToken or
+                    SyntaxKind.InterpolatedStringEndToken or
+                    SyntaxKind.InterpolatedRawStringEndToken or
+                    SyntaxKind.InterpolatedSingleLineRawStringStartToken or
+                    SyntaxKind.InterpolatedMultiLineRawStringStartToken)
             {
                 return token.SpanStart < position && token.Span.End > position;
             }

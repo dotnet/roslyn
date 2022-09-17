@@ -52,7 +52,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.EnableNullable
             if (token.IsKind(SyntaxKind.EndOfDirectiveToken))
                 token = root.FindToken(textSpan.Start - 1, findInsideTrivia: true);
 
-            if (token.Kind() is not (SyntaxKind.EnableKeyword or SyntaxKind.RestoreKeyword or SyntaxKind.DisableKeyword or SyntaxKind.NullableKeyword or SyntaxKind.HashToken) || !token.Parent.IsKind(SyntaxKind.NullableDirectiveTrivia, out NullableDirectiveTriviaSyntax? nullableDirectiveTrivia))
+            if (token.Kind() is not (SyntaxKind.EnableKeyword or SyntaxKind.RestoreKeyword or SyntaxKind.DisableKeyword or SyntaxKind.NullableKeyword or SyntaxKind.HashToken) ||
+                !token.Parent.IsKind(SyntaxKind.NullableDirectiveTrivia, out NullableDirectiveTriviaSyntax? nullableDirectiveTrivia))
             {
                 return;
             }

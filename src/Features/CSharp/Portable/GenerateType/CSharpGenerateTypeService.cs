@@ -164,8 +164,12 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateType
                 // If we're on the right side of a dot, then the left side better be a name (and
                 // not an arbitrary expression).
                 var leftSideExpression = simpleName.GetLeftSideOfDot();
-                if (leftSideExpression.Kind(
-) is not (SyntaxKind.QualifiedName or SyntaxKind.IdentifierName or SyntaxKind.AliasQualifiedName or SyntaxKind.GenericName or SyntaxKind.SimpleMemberAccessExpression))
+                if (leftSideExpression.Kind() is not (
+                        SyntaxKind.QualifiedName or
+                        SyntaxKind.IdentifierName or
+                        SyntaxKind.AliasQualifiedName or
+                        SyntaxKind.GenericName or
+                        SyntaxKind.SimpleMemberAccessExpression))
                 {
                     return false;
                 }

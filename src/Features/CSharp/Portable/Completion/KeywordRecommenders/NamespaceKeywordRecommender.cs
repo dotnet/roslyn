@@ -114,7 +114,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
             // |
             if (token.Kind() == SyntaxKind.SemicolonToken)
             {
-                if (token.Parent?.Kind() is SyntaxKind.ExternAliasDirective or SyntaxKind.UsingDirective                    && !token.Parent.Parent.IsKind(SyntaxKind.FileScopedNamespaceDeclaration))
+                if (token.Parent?.Kind() is SyntaxKind.ExternAliasDirective or SyntaxKind.UsingDirective &&
+                    !token.Parent.Parent.IsKind(SyntaxKind.FileScopedNamespaceDeclaration))
                 {
                     return true;
                 }

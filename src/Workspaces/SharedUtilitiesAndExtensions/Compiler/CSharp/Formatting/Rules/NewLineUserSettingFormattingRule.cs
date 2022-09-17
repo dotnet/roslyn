@@ -128,8 +128,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
 
             // new { - Object Initialization, or with { - Record with initializer, or is { - property pattern clauses
             if (currentToken.IsKind(SyntaxKind.OpenBraceToken) &&
-                currentToken.Parent.Kind(
-) is SyntaxKind.ObjectInitializerExpression or SyntaxKind.CollectionInitializerExpression or SyntaxKind.ArrayInitializerExpression or SyntaxKind.ImplicitArrayCreationExpression or SyntaxKind.WithInitializerExpression or SyntaxKind.PropertyPatternClause)
+                currentToken.Parent.Kind() is
+                    SyntaxKind.ObjectInitializerExpression or
+                    SyntaxKind.CollectionInitializerExpression or
+                    SyntaxKind.ArrayInitializerExpression or
+                    SyntaxKind.ImplicitArrayCreationExpression or
+                    SyntaxKind.WithInitializerExpression or
+                    SyntaxKind.PropertyPatternClause)
             {
                 if (!_options.NewLines.HasFlag(NewLinePlacement.BeforeOpenBraceInObjectCollectionArrayInitializers))
                 {

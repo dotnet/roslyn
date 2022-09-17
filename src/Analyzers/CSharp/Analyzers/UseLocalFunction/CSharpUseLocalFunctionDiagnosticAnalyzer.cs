@@ -330,7 +330,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UseLocalFunction
                         {
                             var variableDeclarator = localDeclaration.Declaration.Variables[0];
                             if (variableDeclarator.Initializer == null ||
-                                variableDeclarator.Initializer.Value.Kind() is SyntaxKind.NullLiteralExpression or SyntaxKind.DefaultLiteralExpression or SyntaxKind.DefaultExpression)
+                                variableDeclarator.Initializer.Value.Kind() is
+                                    SyntaxKind.NullLiteralExpression or
+                                    SyntaxKind.DefaultLiteralExpression or
+                                    SyntaxKind.DefaultExpression)
                             {
                                 var identifierName = (IdentifierNameSyntax)assignment.Left;
                                 if (variableDeclarator.Identifier.ValueText == identifierName.Identifier.ValueText)
