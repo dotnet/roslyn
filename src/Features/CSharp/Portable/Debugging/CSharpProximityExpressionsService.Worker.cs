@@ -117,9 +117,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Debugging
                 // the proximity expressions.
                 var block = GetImmediatelyContainingBlock();
 
-                if (block != null && block.Parent is MemberDeclarationSyntax)
+                if (block != null && block.Parent is MemberDeclarationSyntax memberDeclaration)
                 {
-                    var parameterList = ((MemberDeclarationSyntax)block.Parent).GetParameterList();
+                    var parameterList = memberDeclaration.GetParameterList();
                     AddParameters(parameterList);
                 }
                 else if (block is null
@@ -139,9 +139,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Debugging
                 if (block != null &&
                     block.Parent is AccessorDeclarationSyntax &&
                     block.Parent.Parent is AccessorListSyntax &&
-                    block.Parent.Parent.Parent is IndexerDeclarationSyntax)
+                    block.Parent.Parent.Parent is IndexerDeclarationSyntax indexerDeclaration)
                 {
-                    var parameterList = ((IndexerDeclarationSyntax)block.Parent.Parent.Parent).ParameterList;
+                    var parameterList = indexerDeclaration.ParameterList;
                     AddParameters(parameterList);
                 }
             }

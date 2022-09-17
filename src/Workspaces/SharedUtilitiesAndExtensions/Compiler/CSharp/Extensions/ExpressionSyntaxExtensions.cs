@@ -15,9 +15,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 {
     internal static partial class ExpressionSyntaxExtensions
     {
-        public static ExpressionSyntax WalkUpParentheses(this ExpressionSyntax expression)
+        [return: NotNullIfNotNull("expression")]
+        public static ExpressionSyntax? WalkUpParentheses(this ExpressionSyntax? expression)
         {
-            while (expression.Parent is ExpressionSyntax(SyntaxKind.ParenthesizedExpression) parentExpr)
+            while (expression?.Parent is ParenthesizedExpressionSyntax parentExpr)
                 expression = parentExpr;
 
             return expression;
