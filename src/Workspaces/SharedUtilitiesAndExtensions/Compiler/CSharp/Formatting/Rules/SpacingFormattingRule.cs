@@ -162,8 +162,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             }
 
             // For spacing between parenthesis and expression
-            if ((previousToken.Parent.Kind() is SyntaxKind.ParenthesizedExpression or SyntaxKind.ParenthesizedPattern&& previousKind == SyntaxKind.OpenParenToken) ||
-                (currentToken.Parent.Kind() is SyntaxKind.ParenthesizedExpression or SyntaxKind.ParenthesizedPattern&& currentKind == SyntaxKind.CloseParenToken))
+            if ((previousToken.Parent.Kind() is SyntaxKind.ParenthesizedExpression or SyntaxKind.ParenthesizedPattern && previousKind == SyntaxKind.OpenParenToken) ||
+                (currentToken.Parent.Kind() is SyntaxKind.ParenthesizedExpression or SyntaxKind.ParenthesizedPattern && currentKind == SyntaxKind.CloseParenToken))
             {
                 return AdjustSpacesOperationZeroOrOne(_options.Spacing.HasFlag(SpacePlacement.WithinExpressionParentheses));
             }
@@ -328,7 +328,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 previousToken.Parent is BinaryExpressionSyntax ||
                 currentToken.Parent is AssignmentExpressionSyntax ||
                 previousToken.Parent is AssignmentExpressionSyntax ||
-                currentToken.Parent.Kind() is SyntaxKind.AndPattern or SyntaxKind.OrPattern or SyntaxKind.RelationalPattern||
+                currentToken.Parent.Kind() is SyntaxKind.AndPattern or SyntaxKind.OrPattern or SyntaxKind.RelationalPattern ||
                 previousToken.Parent.Kind() is SyntaxKind.AndPattern or SyntaxKind.OrPattern or SyntaxKind.RelationalPattern)
             {
                 switch (_options.SpacingAroundBinaryOperator)
