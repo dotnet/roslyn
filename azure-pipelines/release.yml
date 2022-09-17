@@ -10,7 +10,7 @@ resources:
       - auto-release
 
 variables:
-- group: VS SDK feeds
+- group: VS SDK feeds # Expected to provide NuGetOrgApiKey
 
 jobs:
 - job: release
