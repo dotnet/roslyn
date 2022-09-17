@@ -38,9 +38,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         public static bool HasMatchingText(this SyntaxToken token, SyntaxKind kind)
             => token.ToString() == SyntaxFacts.GetText(kind);
 
-        public static bool IsKind(this SyntaxToken token, params SyntaxKind[] kinds)
-            => kinds.Contains(token.Kind());
-
         public static bool IsOpenBraceOrCommaOfObjectInitializer(this SyntaxToken token)
         {
             return (token.IsKind(SyntaxKind.OpenBraceToken) || token.IsKind(SyntaxKind.CommaToken)) &&
