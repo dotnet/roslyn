@@ -1001,7 +1001,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             // Might be an incomplete conditional expression or an incomplete declaration of a method returning a nullable type.
             // Bind T to see if it is a type. If it is we don't show signature help.
             if (name.IsParentKind(SyntaxKind.LessThanExpression) &&
-                name.Parent.IsParentKind(SyntaxKind.ConditionalExpression, out ConditionalExpressionSyntax? conditional) &&
+                name.Parent?.Parent is ConditionalExpressionSyntax(SyntaxKind.ConditionalExpression) conditional &&
                 conditional.IsParentKind(SyntaxKind.ExpressionStatement) &&
                 conditional.Parent.IsParentKind(SyntaxKind.GlobalStatement))
             {
@@ -1534,7 +1534,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
 
             // in script
             if (possibleCommaOrParen.Parent.IsKind(SyntaxKind.ParameterList) &&
-                possibleCommaOrParen.Parent.IsParentKind(SyntaxKind.ParenthesizedLambdaExpression, out ParenthesizedLambdaExpressionSyntax? parenthesizedLambda))
+                possibleCommaOrParen.Parent?.Parent is ParenthesizedLambdaExpressionSyntax(SyntaxKind.ParenthesizedLambdaExpression) parenthesizedLambda)
             {
                 if (parenthesizedLambda.ArrowToken.IsMissing)
                 {
@@ -1643,7 +1643,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
         {
             if (leftToken.Kind() is SyntaxKind.OpenParenToken or SyntaxKind.CommaToken&&
                 leftToken.Parent.IsKind(SyntaxKind.ArgumentList) &&
-                leftToken.Parent.IsParentKind(SyntaxKind.InvocationExpression, out InvocationExpressionSyntax? invocation))
+                leftToken.Parent?.Parent is InvocationExpressionSyntax(SyntaxKind.InvocationExpression) invocation)
             {
                 if (invocation.Expression is IdentifierNameSyntax identifierName &&
                     identifierName.Identifier.ValueText == "var")
@@ -1774,7 +1774,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                 if (parent?.Kind() is SyntaxKind.RefType or SyntaxKind.RefExpression or SyntaxKind.LocalDeclarationStatement)
                 {
                     if (parent.IsParentKind(SyntaxKind.VariableDeclaration) &&
-                        parent.Parent?.Parent.Kind() is
+                        parent.Parent?.Parent?.Kind() is
                             SyntaxKind.LocalDeclarationStatement or
                             SyntaxKind.ForStatement or
                             SyntaxKind.ForEachVariableStatement)
@@ -2288,7 +2288,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                     {
                         var type = previousToken.Parent as TypeSyntax;
                         if (type.IsParentKind(SyntaxKind.VariableDeclaration) &&
-                            type.Parent.IsParentKind(SyntaxKind.LocalDeclarationStatement, out LocalDeclarationStatementSyntax? declStatement))
+                            type.Parent?.Parent is LocalDeclarationStatementSyntax(SyntaxKind.LocalDeclarationStatement) declStatement)
                         {
                             // note, this doesn't apply for cases where we know it 
                             // absolutely is not multiplication or a conditional expression.
@@ -2444,7 +2444,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                     // can support a collection initializer. If not, this must be an object initializer
                     // and can't be an expression context.
                     if (semanticModelOpt != null &&
-                        token.Parent.IsParentKind(SyntaxKind.ObjectCreationExpression, out ObjectCreationExpressionSyntax? objectCreation))
+                        token.Parent?.Parent is ObjectCreationExpressionSyntax(SyntaxKind.ObjectCreationExpression) objectCreation)
                     {
                         var containingSymbol = semanticModelOpt.GetEnclosingNamedTypeOrAssembly(position, cancellationToken);
                         if (semanticModelOpt.GetSymbolInfo(objectCreation.Type, cancellationToken).Symbol is ITypeSymbol type && !type.CanSupportCollectionInitializer(containingSymbol))
@@ -2674,7 +2674,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
         }
 
         public static bool IsInvocationOfVarExpression(this SyntaxToken token)
-            => token.Parent.IsParentKind(SyntaxKind.InvocationExpression, out InvocationExpressionSyntax? invocation) &&
+            => token.Parent?.Parent is InvocationExpressionSyntax(SyntaxKind.InvocationExpression) invocation &&
                invocation.Expression.ToString() == "var";
 
         public static bool IsNameOfContext(this SyntaxTree syntaxTree, int position, SemanticModel? semanticModelOpt = null, CancellationToken cancellationToken = default)
@@ -2959,14 +2959,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                 leftHandBinding = semanticModel.GetSymbolInfo(memberAccess.Expression, cancellationToken);
             }
             else if (token.Parent is QualifiedNameSyntax qualifiedName &&
-                token.Parent.IsParentKind(SyntaxKind.IsExpression, out BinaryExpressionSyntax? binaryExpression) &&
+                token.Parent?.Parent is BinaryExpressionSyntax(SyntaxKind.IsExpression) binaryExpression &&
                 binaryExpression.Right == qualifiedName)
             {
                 // The right-hand side of an is expression could be an enum
                 leftHandBinding = semanticModel.GetSymbolInfo(qualifiedName.Left, cancellationToken);
             }
             else if (token.Parent is QualifiedNameSyntax qualifiedName1 &&
-                token.Parent.IsParentKind(SyntaxKind.DeclarationPattern, out DeclarationPatternSyntax? declarationExpression) &&
+                token.Parent?.Parent is DeclarationPatternSyntax(SyntaxKind.DeclarationPattern) declarationExpression &&
                 declarationExpression.Type == qualifiedName1)
             {
                 // The right-hand side of an is declaration expression could be an enum

@@ -72,7 +72,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Analyzers.RemoveUnnecessaryNullableDirec
             // Simplify syntax checks by walking up qualified names to an equivalent parent node.
             node = WalkUpCurrentQualifiedName(node);
 
-            if (node.IsParentKind(SyntaxKind.QualifiedName, out QualifiedNameSyntax? qualifiedName)
+            if (node?.Parent is QualifiedNameSyntax(SyntaxKind.QualifiedName) qualifiedName
                 && qualifiedName.Left == node)
             {
                 // Cannot dot off a nullable reference type
@@ -111,7 +111,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Analyzers.RemoveUnnecessaryNullableDirec
             // If this is Y in X.Y, walk up to X.Y
             static TypeSyntax WalkUpCurrentQualifiedName(TypeSyntax node)
             {
-                while (node.IsParentKind(SyntaxKind.QualifiedName, out QualifiedNameSyntax? qualifiedName)
+                while (node.Parent is QualifiedNameSyntax qualifiedName
                     && qualifiedName.Right == node)
                 {
                     node = qualifiedName;

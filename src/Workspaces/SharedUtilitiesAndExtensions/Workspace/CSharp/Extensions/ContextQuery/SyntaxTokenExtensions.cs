@@ -611,9 +611,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
         {
             if (node.IsKind(SyntaxKind.TypeParameterList))
             {
-                if (node.IsParentKind(SyntaxKind.InterfaceDeclaration, out TypeDeclarationSyntax? typeDecl))
+                if (node?.Parent is TypeDeclarationSyntax(SyntaxKind.InterfaceDeclaration) typeDecl)
                     return typeDecl.TypeParameterList == node;
-                else if (node.IsParentKind(SyntaxKind.DelegateDeclaration, out DelegateDeclarationSyntax? delegateDecl))
+                else if (node?.Parent is DelegateDeclarationSyntax(SyntaxKind.DelegateDeclaration) delegateDecl)
                     return delegateDecl.TypeParameterList == node;
             }
 

@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
             {
                 if (type.IsDelegateType() &&
                     argument.IsParentKind(SyntaxKind.ArgumentList) &&
-                    argument.Parent.IsParentKind(SyntaxKind.ObjectCreationExpression, out ObjectCreationExpressionSyntax objectCreationExpression))
+                    argument.Parent?.Parent is ObjectCreationExpressionSyntax(SyntaxKind.ObjectCreationExpression) objectCreationExpression)
                 {
                     var objectCreationType = _semanticModel.GetTypeInfo(objectCreationExpression).Type;
                     if (objectCreationType.Equals(type))

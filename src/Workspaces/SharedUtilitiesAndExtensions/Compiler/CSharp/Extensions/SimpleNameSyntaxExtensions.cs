@@ -49,14 +49,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             }
 
             // type names can't be invoked.
-            if (simpleName.IsParentKind(SyntaxKind.InvocationExpression, out InvocationExpressionSyntax invocation) &&
+            if (simpleName?.Parent is InvocationExpressionSyntax(SyntaxKind.InvocationExpression) invocation &&
                 invocation.Expression == simpleName)
             {
                 return false;
             }
 
             // type names can't be indexed into.
-            if (simpleName.IsParentKind(SyntaxKind.ElementAccessExpression, out ElementAccessExpressionSyntax elementAccess) &&
+            if (simpleName?.Parent is ElementAccessExpressionSyntax(SyntaxKind.ElementAccessExpression) elementAccess &&
                 elementAccess.Expression == simpleName)
             {
                 return false;

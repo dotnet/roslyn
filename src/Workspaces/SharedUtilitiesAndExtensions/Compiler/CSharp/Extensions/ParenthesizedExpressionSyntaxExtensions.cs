@@ -493,7 +493,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             //      (X?)(...)
             //      (global::X)(...)
 
-            if (node.IsParentKind(SyntaxKind.CastExpression, out CastExpressionSyntax? castExpression))
+            if (node?.Parent is CastExpressionSyntax(SyntaxKind.CastExpression) castExpression)
             {
                 if (castExpression.Type.Kind() is
                         SyntaxKind.PredefinedType or
@@ -605,7 +605,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         {
             ExpressionSyntax? previousExpression = null;
 
-            if (node.IsParentKind(SyntaxKind.Argument, out ArgumentSyntax? argument))
+            if (node.Parent is ArgumentSyntax argument)
             {
                 if (argument.Parent is ArgumentListSyntax argumentList)
                 {
@@ -640,7 +640,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         {
             ExpressionSyntax? nextExpression = null;
 
-            if (node.IsParentKind(SyntaxKind.Argument, out ArgumentSyntax? argument))
+            if (node.Parent is ArgumentSyntax argument)
             {
                 if (argument.Parent is ArgumentListSyntax argumentList)
                 {

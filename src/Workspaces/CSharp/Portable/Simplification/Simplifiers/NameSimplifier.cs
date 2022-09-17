@@ -645,7 +645,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
             // Can't simplify a type name in a cast expression if it would then cause the cast to be
             // parsed differently.  For example:  (Goo::Bar)+1  is a cast.  But if that simplifies to
             // (Bar)+1  then that's an arithmetic expression.
-            if (expression.IsParentKind(SyntaxKind.CastExpression, out CastExpressionSyntax castExpression) &&
+            if (expression?.Parent is CastExpressionSyntax(SyntaxKind.CastExpression) castExpression &&
                 castExpression.Type == expression)
             {
                 var newCastExpression = castExpression.ReplaceNode(castExpression.Type, simplifiedNode);
@@ -675,7 +675,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
                 name = (NameSyntax)name.Parent;
             }
 
-            if (name.IsParentKind(SyntaxKind.UsingDirective, out UsingDirectiveSyntax usingDirective) &&
+            if (name?.Parent is UsingDirectiveSyntax(SyntaxKind.UsingDirective) usingDirective &&
                 usingDirective.Alias == null)
             {
                 // We're a qualified name in a using.  We don't want to reduce this name as people like

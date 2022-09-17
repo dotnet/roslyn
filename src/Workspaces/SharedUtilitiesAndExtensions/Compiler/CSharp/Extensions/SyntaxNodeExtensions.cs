@@ -213,8 +213,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             //  5.      x?[y]               // element binding
             var current = node;
 
-            if ((current.IsParentKind(SyntaxKind.SimpleMemberAccessExpression, out MemberAccessExpressionSyntax? memberAccess) && memberAccess.Name == current) ||
-                (current.IsParentKind(SyntaxKind.MemberBindingExpression, out MemberBindingExpressionSyntax? memberBinding) && memberBinding.Name == current))
+            if ((current?.Parent is MemberAccessExpressionSyntax(SyntaxKind.SimpleMemberAccessExpression) memberAccess && memberAccess.Name == current) ||
+                (current?.Parent is MemberBindingExpressionSyntax memberBinding && memberBinding.Name == current))
             {
                 current = current.Parent;
             }
@@ -262,16 +262,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             //          <---
             //       <---
 
-            if (current.IsParentKind(SyntaxKind.ConditionalAccessExpression, out ConditionalAccessExpressionSyntax? conditional) &&
-                conditional.Expression == current)
+            if (current?.Parent is ConditionalAccessExpressionSyntax conditional1 &&
+                conditional1.Expression == current)
             {
-                current = conditional;
+                current = conditional1;
             }
 
-            if (current.IsParentKind(SyntaxKind.ConditionalAccessExpression, out conditional) &&
-                conditional.WhenNotNull == current)
+            if (current?.Parent is ConditionalAccessExpressionSyntax conditional2 &&
+                conditional2.WhenNotNull == current)
             {
-                current = conditional;
+                current = conditional2;
             }
 
             return current as ConditionalAccessExpressionSyntax;
@@ -288,7 +288,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             // sequence).
 
             var current = node.GetParentConditionalAccessExpression();
-            while (current.IsParentKind(SyntaxKind.ConditionalAccessExpression, out ConditionalAccessExpressionSyntax? conditional) &&
+            while (current?.Parent is ConditionalAccessExpressionSyntax(SyntaxKind.ConditionalAccessExpression) conditional &&
                 conditional.WhenNotNull == current)
             {
                 current = conditional;
@@ -355,7 +355,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         }
 
         public static bool IsLeftSideOfAssignExpression([NotNullWhen(returnValue: true)] this SyntaxNode? node)
-            => node.IsParentKind(SyntaxKind.SimpleAssignmentExpression, out AssignmentExpressionSyntax? assignment) &&
+            => node?.Parent is AssignmentExpressionSyntax(SyntaxKind.SimpleAssignmentExpression) assignment &&
                assignment.Left == node;
 
         public static bool IsLeftSideOfAnyAssignExpression([NotNullWhen(true)] this SyntaxNode? node)
@@ -758,7 +758,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             => CSharpFileBannerFacts.Instance.GetNodeWithoutLeadingBannerAndPreprocessorDirectives(node, out strippedTrivia);
 
         public static bool IsVariableDeclaratorValue(this SyntaxNode node)
-            => node.IsParentKind(SyntaxKind.EqualsValueClause, out EqualsValueClauseSyntax? equalsValue) &&
+            => node?.Parent is EqualsValueClauseSyntax(SyntaxKind.EqualsValueClause) equalsValue &&
                equalsValue.IsParentKind(SyntaxKind.VariableDeclarator) &&
                equalsValue.Value == node;
 

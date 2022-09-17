@@ -288,13 +288,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return InferTypeInConstructorInitializer(initializer, index, argument);
                     }
 
-                    if (argument.Parent.IsParentKind(SyntaxKind.InvocationExpression, out InvocationExpressionSyntax invocation))
+                    if (argument.Parent?.Parent is InvocationExpressionSyntax(SyntaxKind.InvocationExpression) invocation)
                     {
                         var index = invocation.ArgumentList.Arguments.IndexOf(argument);
                         return InferTypeInInvocationExpression(invocation, index, argument);
                     }
 
-                    if (argument.Parent.IsParentKind(SyntaxKind.ObjectCreationExpression, out ObjectCreationExpressionSyntax creation))
+                    if (argument.Parent?.Parent is ObjectCreationExpressionSyntax(SyntaxKind.ObjectCreationExpression) creation)
                     {
                         // new Outer(Goo());
                         //
@@ -305,7 +305,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return InferTypeInObjectCreationExpression(creation, index, argument);
                     }
 
-                    if (argument.Parent.IsParentKind(SyntaxKind.ElementAccessExpression, out ElementAccessExpressionSyntax elementAccess))
+                    if (argument.Parent?.Parent is ElementAccessExpressionSyntax(SyntaxKind.ElementAccessExpression) elementAccess)
                     {
                         // Outer[Goo()];
                         //
@@ -316,7 +316,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return InferTypeInElementAccessExpression(elementAccess, index, argument);
                     }
 
-                    if (argument.IsParentKind(SyntaxKind.TupleExpression, out TupleExpressionSyntax tupleExpression))
+                    if (argument?.Parent is TupleExpressionSyntax(SyntaxKind.TupleExpression) tupleExpression)
                     {
                         return InferTypeInTupleExpression(tupleExpression, argument);
                     }
@@ -325,7 +325,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (argument.Parent.IsParentKind(SyntaxKind.ImplicitElementAccess) &&
                     argument.Parent.Parent.IsParentKind(SyntaxKind.SimpleAssignmentExpression) &&
                     argument.Parent.Parent.Parent.IsParentKind(SyntaxKind.ObjectInitializerExpression) &&
-                    argument.Parent.Parent.Parent.Parent.IsParentKind(SyntaxKind.ObjectCreationExpression, out ObjectCreationExpressionSyntax objectCreation))
+                    argument.Parent.Parent.Parent.Parent?.Parent is ObjectCreationExpressionSyntax(SyntaxKind.ObjectCreationExpression) objectCreation)
                 {
                     var types = GetTypes(objectCreation).Select(t => t.InferredType);
 
@@ -1202,10 +1202,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (previousToken.HasValue && previousToken.Value != equalsValue.EqualsToken)
                     return SpecializedCollections.EmptyEnumerable<TypeInferenceInfo>();
 
-                if (equalsValue.IsParentKind(SyntaxKind.VariableDeclarator, out VariableDeclaratorSyntax varDecl))
+                if (equalsValue?.Parent is VariableDeclaratorSyntax(SyntaxKind.VariableDeclarator) varDecl)
                     return InferTypeInVariableDeclarator(varDecl);
 
-                if (equalsValue.IsParentKind(SyntaxKind.PropertyDeclaration, out PropertyDeclarationSyntax propertyDecl))
+                if (equalsValue?.Parent is PropertyDeclarationSyntax(SyntaxKind.PropertyDeclaration) propertyDecl)
                     return InferTypeInPropertyDeclaration(propertyDecl);
 
                 if (equalsValue.IsParentKind(SyntaxKind.Parameter) &&
@@ -1356,7 +1356,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 }
 
-                if (initializerExpression.IsParentKind(SyntaxKind.ImplicitArrayCreationExpression, out ImplicitArrayCreationExpressionSyntax implicitArray))
+                if (initializerExpression?.Parent is ImplicitArrayCreationExpressionSyntax(SyntaxKind.ImplicitArrayCreationExpression) implicitArray)
                 {
                     // new[] { 1, x }
 
@@ -1384,7 +1384,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                     }
                 }
-                else if (initializerExpression.IsParentKind(SyntaxKind.EqualsValueClause, out EqualsValueClauseSyntax equalsValueClause))
+                else if (initializerExpression?.Parent is EqualsValueClauseSyntax(SyntaxKind.EqualsValueClause) equalsValueClause)
                 {
                     // = { Goo() }
                     var types = InferTypeInEqualsValueClause(equalsValueClause).Select(t => t.InferredType);
@@ -1394,7 +1394,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return types.OfType<IArrayTypeSymbol>().Select(t => new TypeInferenceInfo(t.ElementType));
                     }
                 }
-                else if (initializerExpression.IsParentKind(SyntaxKind.ArrayCreationExpression, out ArrayCreationExpressionSyntax arrayCreation))
+                else if (initializerExpression?.Parent is ArrayCreationExpressionSyntax(SyntaxKind.ArrayCreationExpression) arrayCreation)
                 {
                     // new int[] { Goo() } 
                     var types = GetTypes(arrayCreation).Select(t => t.InferredType);
@@ -1404,7 +1404,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return types.OfType<IArrayTypeSymbol>().Select(t => new TypeInferenceInfo(t.ElementType));
                     }
                 }
-                else if (initializerExpression.IsParentKind(SyntaxKind.ObjectCreationExpression, out ObjectCreationExpressionSyntax objectCreation))
+                else if (initializerExpression?.Parent is ObjectCreationExpressionSyntax(SyntaxKind.ObjectCreationExpression) objectCreation)
                 {
                     // new List<T> { Goo() } 
                     var types = GetTypes(objectCreation).Select(t => t.InferredType);
@@ -1739,7 +1739,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // context.
                 var name = memberAccessExpression.Name.Identifier.Value;
                 if (name.Equals(nameof(Task<int>.ConfigureAwait)) &&
-                    memberAccessExpression.IsParentKind(SyntaxKind.InvocationExpression, out InvocationExpressionSyntax invocation) &&
+                    memberAccessExpression?.Parent is InvocationExpressionSyntax(SyntaxKind.InvocationExpression) invocation &&
                     memberAccessExpression.Parent.IsParentKind(SyntaxKind.AwaitExpression))
                 {
                     return InferTypes(invocation);

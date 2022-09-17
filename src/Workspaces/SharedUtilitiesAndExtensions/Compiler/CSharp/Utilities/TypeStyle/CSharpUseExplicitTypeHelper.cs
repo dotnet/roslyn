@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
         {
             // var (x, y) = e;
             // foreach (var (x, y) in e) ...
-            if (typeName.IsParentKind(SyntaxKind.DeclarationExpression, out DeclarationExpressionSyntax? declExpression) &&
+            if (typeName.Parent is DeclarationExpressionSyntax declExpression &&
                 declExpression.Designation.IsKind(SyntaxKind.ParenthesizedVariableDesignation))
             {
                 return true;

@@ -380,7 +380,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
         public static bool IsFirstFromKeywordInExpression(this SyntaxToken token)
         {
             return token.Kind() == SyntaxKind.FromKeyword &&
-                   token.Parent.IsParentKind(SyntaxKind.QueryExpression, out QueryExpressionSyntax? queryExpression) &&
+                   token.Parent?.Parent is QueryExpressionSyntax(SyntaxKind.QueryExpression) queryExpression &&
                    queryExpression.GetFirstToken().Equals(token);
         }
 

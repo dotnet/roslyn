@@ -3580,7 +3580,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
 
         private static bool IsExtensionMethod(MethodDeclarationSyntax methodDeclaration)
         {
-            if (!methodDeclaration.IsParentKind(SyntaxKind.ClassDeclaration, out ClassDeclarationSyntax? classDecl) ||
+            if (methodDeclaration?.Parent is not ClassDeclarationSyntax classDecl ||
                 !classDecl.Modifiers.Any(SyntaxKind.StaticKeyword))
             {
                 return false;

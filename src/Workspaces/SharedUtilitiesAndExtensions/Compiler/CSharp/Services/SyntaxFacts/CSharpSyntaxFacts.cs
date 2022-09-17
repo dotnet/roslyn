@@ -190,7 +190,7 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageService
             => node?.Kind() is SyntaxKind.ParameterList or SyntaxKind.BracketedParameterList;
 
         public bool IsUsingDirectiveName([NotNullWhen(true)] SyntaxNode? node)
-            => node.IsParentKind(SyntaxKind.UsingDirective, out UsingDirectiveSyntax? usingDirective) &&
+            => node?.Parent is UsingDirectiveSyntax(SyntaxKind.UsingDirective) usingDirective &&
                usingDirective.Name == node;
 
         public bool IsUsingAliasDirective([NotNullWhen(true)] SyntaxNode? node)
@@ -649,7 +649,7 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageService
                         initializedInstance = objectInitializer.Parent;
                         return true;
                     }
-                    else if (objectInitializer.IsParentKind(SyntaxKind.SimpleAssignmentExpression, out AssignmentExpressionSyntax? assignment))
+                    else if (objectInitializer?.Parent is AssignmentExpressionSyntax(SyntaxKind.SimpleAssignmentExpression) assignment)
                     {
                         initializedInstance = assignment.Left;
                         return true;

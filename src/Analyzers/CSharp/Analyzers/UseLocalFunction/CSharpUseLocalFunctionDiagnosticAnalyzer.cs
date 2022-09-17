@@ -315,9 +315,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UseLocalFunction
         {
             // Type t = null;
             // t = <anonymous function>
-            if (anonymousFunction.IsParentKind(SyntaxKind.SimpleAssignmentExpression, out AssignmentExpressionSyntax? assignment) &&
-                assignment.IsParentKind(SyntaxKind.ExpressionStatement, out ExpressionStatementSyntax? expressionStatement) &&
-                expressionStatement.IsParentKind(SyntaxKind.Block, out BlockSyntax? block))
+            if (anonymousFunction?.Parent is AssignmentExpressionSyntax(SyntaxKind.SimpleAssignmentExpression) assignment &&
+                assignment?.Parent is ExpressionStatementSyntax(SyntaxKind.ExpressionStatement) expressionStatement &&
+                expressionStatement?.Parent is BlockSyntax(SyntaxKind.Block) block)
             {
                 if (assignment.Left.IsKind(SyntaxKind.IdentifierName))
                 {

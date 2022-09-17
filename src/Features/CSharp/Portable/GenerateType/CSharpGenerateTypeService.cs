@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateType
             ExpressionSyntax expression,
             CancellationToken cancellationToken)
         {
-            if (expression is TypeSyntax && expression.IsParentKind(SyntaxKind.TypeArgumentList, out TypeArgumentListSyntax typeArgumentList))
+            if (expression is TypeSyntax && expression?.Parent is TypeArgumentListSyntax(SyntaxKind.TypeArgumentList) typeArgumentList)
             {
                 var symbolInfo = semanticModel.GetSymbolInfo(typeArgumentList.Parent, cancellationToken);
                 var symbol = symbolInfo.GetAnySymbol();
@@ -90,7 +90,7 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateType
         {
             if (expression is TypeSyntax &&
                 expression.Parent is BaseTypeSyntax baseType &&
-                baseType.IsParentKind(SyntaxKind.BaseList, out BaseListSyntax baseList) &&
+                baseType?.Parent is BaseListSyntax(SyntaxKind.BaseList) baseList &&
                 baseType.Type == expression)
             {
                 // If it's after the first item, then it's definitely an interface.
@@ -108,8 +108,8 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateType
             }
 
             if (expression is TypeSyntax &&
-                expression.IsParentKind(SyntaxKind.TypeConstraint, out TypeConstraintSyntax typeConstraint) &&
-                typeConstraint.IsParentKind(SyntaxKind.TypeParameterConstraintClause, out TypeParameterConstraintClauseSyntax constraintClause))
+                expression?.Parent is TypeConstraintSyntax(SyntaxKind.TypeConstraint) typeConstraint &&
+                typeConstraint?.Parent is TypeParameterConstraintClauseSyntax(SyntaxKind.TypeParameterConstraintClause) constraintClause)
             {
                 var index = constraintClause.Constraints.IndexOf(typeConstraint);
 

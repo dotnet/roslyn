@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateDefaultConstructors
             var node = semanticDocument.Root.FindToken(textSpan.Start).GetAncestor<TypeSyntax>();
             if (node != null)
             {
-                if (node.Parent is BaseTypeSyntax && node.Parent.IsParentKind(SyntaxKind.BaseList, out BaseListSyntax? baseList))
+                if (node.Parent is BaseTypeSyntax && node.Parent?.Parent is BaseListSyntax(SyntaxKind.BaseList) baseList)
                 {
                     if (baseList.Parent != null &&
                         baseList.Types.Count > 0 &&
