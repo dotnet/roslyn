@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                     // We associate the body of expression-bodied property/indexer with the ArrowExpressionClause
                     // since that's the syntax node associated with the getter symbol.
                     // The property/indexer itself is considered to not have a body unless the property has an initializer.
-                    result = node.Parent.Kind() is SyntaxKind.PropertyDeclaration or SyntaxKind.IndexerDeclaration?
+                    result = node.Parent.Kind() is SyntaxKind.PropertyDeclaration or SyntaxKind.IndexerDeclaration ?
                         ((ArrowExpressionClauseSyntax)node).Expression : null;
                     break;
 

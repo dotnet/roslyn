@@ -112,7 +112,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.UseType
             var typeNode = await context.TryGetRelevantNodeAsync<TypeSyntax>().ConfigureAwait(false);
             var typeNodeParent = typeNode?.Parent;
             if (typeNodeParent != null &&
-                (typeNodeParent.Kind() is SyntaxKind.DeclarationExpression or SyntaxKind.VariableDeclaration||
+                (typeNodeParent.Kind() is SyntaxKind.DeclarationExpression or SyntaxKind.VariableDeclaration ||
                 (typeNodeParent.IsKind(SyntaxKind.ForEachStatement) && !syntaxFacts.IsExpressionOfForeach(typeNode))))
             {
                 return typeNodeParent;
