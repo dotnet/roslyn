@@ -268,7 +268,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 attributeSyntax = xmlName;
             }
             else if (token.IsKind(SyntaxKind.XmlTextLiteralToken) &&
-                     token.Parent is XmlTextAttributeSyntax(SyntaxKind.XmlTextAttribute) xmlText)
+                     token.Parent is XmlTextAttributeSyntax xmlText)
             {
                 // Handle the other general text attributes: foo="bar$$
                 attributeSyntax = xmlText;

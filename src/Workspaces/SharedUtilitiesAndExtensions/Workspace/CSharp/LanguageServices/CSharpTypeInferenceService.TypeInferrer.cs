@@ -1834,7 +1834,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 string parameterName,
                 SyntaxNode node)
             {
-                if (node is IdentifierNameSyntax(SyntaxKind.IdentifierName) identifierName)
+                if (node is IdentifierNameSyntax identifierName)
                 {
                     if (identifierName.Identifier.ValueText.Equals(parameterName) &&
                         SemanticModel.GetSymbolInfo(identifierName.Identifier).Symbol?.Kind == SymbolKind.Parameter)
@@ -2204,11 +2204,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             private IEnumerable<TypeInferenceInfo> InferTypeInVariableComponentAssignment(ExpressionSyntax left)
             {
-                if (left is DeclarationExpressionSyntax(SyntaxKind.DeclarationExpression) declExpr)
+                if (left is DeclarationExpressionSyntax declExpr)
                 {
                     return GetTypes(declExpr.Type);
                 }
-                else if (left is TupleExpressionSyntax(SyntaxKind.TupleExpression) tupleExpression)
+                else if (left is TupleExpressionSyntax tupleExpression)
                 {
                     // We have something of the form:
                     //   (int a, int b) = ...
@@ -2252,11 +2252,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 foreach (var arg in arguments)
                 {
                     var expr = arg.Expression;
-                    if (expr is DeclarationExpressionSyntax(SyntaxKind.DeclarationExpression) declExpr)
+                    if (expr is DeclarationExpressionSyntax declExpr)
                     {
                         AddTypeAndName(declExpr, elementTypesBuilder, elementNamesBuilder);
                     }
-                    else if (expr is TupleExpressionSyntax(SyntaxKind.TupleExpression) tupleExpr)
+                    else if (expr is TupleExpressionSyntax tupleExpr)
                     {
                         AddTypeAndName(tupleExpr, elementTypesBuilder, elementNamesBuilder);
                     }
@@ -2290,7 +2290,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 elementTypesBuilder.Add(GetTypes(declaration.Type).FirstOrDefault().InferredType);
 
                 var designation = declaration.Designation;
-                if (designation is SingleVariableDesignationSyntax(SyntaxKind.SingleVariableDesignation) singleVariable)
+                if (designation is SingleVariableDesignationSyntax singleVariable)
                 {
                     var name = singleVariable.Identifier.ValueText;
 

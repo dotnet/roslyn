@@ -121,7 +121,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.AddBraces
         /// </summary>
         private static bool ContainsInterleavedDirective(SyntaxNode statement, StatementSyntax embeddedStatement, CancellationToken cancellationToken)
         {
-            if (statement is IfStatementSyntax(SyntaxKind.IfStatement) ifStatementNode)
+            if (statement is IfStatementSyntax ifStatementNode)
             {
                 var elseNode = ifStatementNode.Else;
                 if (elseNode != null && !embeddedStatement.IsMissing)

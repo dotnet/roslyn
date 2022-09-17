@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
             // We want to collect any labels and add them all at once for this scope
             foreach (var statement in node.Statements)
             {
-                if (statement is LabeledStatementSyntax(SyntaxKind.LabeledStatement) declarationStatement)
+                if (statement is LabeledStatementSyntax declarationStatement)
                 {
                     tokens.Add(declarationStatement.Identifier);
                 }

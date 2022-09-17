@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
 
             // Currently we are dealing with only the NameMemberCrefs
             if (options.PreferPredefinedTypeKeywordInMemberAccess.Value &&
-                memberCref is NameMemberCrefSyntax(SyntaxKind.NameMemberCref) nameMemberCref)
+                memberCref is NameMemberCrefSyntax nameMemberCref)
             {
                 var symbolInfo = semanticModel.GetSymbolInfo(nameMemberCref.Name, cancellationToken);
                 var symbol = symbolInfo.Symbol;

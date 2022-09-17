@@ -217,7 +217,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseLocalFunction
                     continue;
                 }
 
-                if (descendentNode is IdentifierNameSyntax(SyntaxKind.IdentifierName) identifierName)
+                if (descendentNode is IdentifierNameSyntax identifierName)
                 {
                     if (identifierName.Identifier.ValueText == local.Name &&
                         local.Equals(semanticModel.GetSymbolInfo(identifierName, cancellationToken).GetAnySymbol()))

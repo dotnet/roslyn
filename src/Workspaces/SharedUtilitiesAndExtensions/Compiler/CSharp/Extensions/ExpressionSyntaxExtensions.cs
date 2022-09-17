@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
         public static ExpressionSyntax WalkDownParentheses(this ExpressionSyntax expression)
         {
-            while (expression is ParenthesizedExpressionSyntax(SyntaxKind.ParenthesizedExpression) parenExpression)
+            while (expression is ParenthesizedExpressionSyntax parenExpression)
                 expression = parenExpression.Expression;
 
             return expression;
@@ -95,7 +95,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                (expression.Parent is MemberAccessExpressionSyntax memberAccess && memberAccess.Expression == expression);
 
         public static bool IsLeftSideOfQualifiedName(this ExpressionSyntax expression)
-            => (expression?.Parent) is QualifiedNameSyntax(SyntaxKind.QualifiedName) qualifiedName && qualifiedName.Left == expression;
+            => (expression?.Parent) is QualifiedNameSyntax qualifiedName && qualifiedName.Left == expression;
 
         public static bool IsLeftSideOfExplicitInterfaceSpecifier([NotNullWhen(true)] this NameSyntax? name)
             => name.IsParentKind(SyntaxKind.ExplicitInterfaceSpecifier);
@@ -128,7 +128,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
                 return AddSimpleName(memberAccess.Name, parts);
             }
-            else if (expression is QualifiedNameSyntax(SyntaxKind.QualifiedName) qualifiedName)
+            else if (expression is QualifiedNameSyntax qualifiedName)
             {
                 if (!TryGetNameParts(qualifiedName.Left, parts))
                 {
@@ -585,7 +585,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             }
 
             if (parentNonExpression != null &&
-                parentNonExpression is FromClauseSyntax(SyntaxKind.FromClause) fromClause &&
+                parentNonExpression is FromClauseSyntax fromClause &&
                 topExpression != null &&
                 fromClause.Type == topExpression)
             {
@@ -891,7 +891,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
         private static StatementSyntax ConvertToStatement(ExpressionSyntax expression, SyntaxToken semicolonToken, bool createReturnStatementForExpression)
         {
-            if (expression is ThrowExpressionSyntax(SyntaxKind.ThrowExpression) throwExpression)
+            if (expression is ThrowExpressionSyntax throwExpression)
             {
                 return SyntaxFactory.ThrowStatement(throwExpression.ThrowKeyword, throwExpression.Expression, semicolonToken);
             }

@@ -1157,7 +1157,7 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageService
             => ((AssignmentExpressionSyntax)node).Right;
 
         public bool IsInferredAnonymousObjectMemberDeclarator([NotNullWhen(true)] SyntaxNode? node)
-            => node is AnonymousObjectMemberDeclaratorSyntax(SyntaxKind.AnonymousObjectMemberDeclarator) anonObject &&
+            => node is AnonymousObjectMemberDeclaratorSyntax anonObject &&
                anonObject.NameEquals == null;
 
         public bool IsOperandOfIncrementExpression([NotNullWhen(true)] SyntaxNode? node)
@@ -1223,7 +1223,7 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageService
 
         private static bool IsGlobalAttribute([NotNullWhen(true)] SyntaxNode? node, SyntaxKind attributeTarget)
             => node.IsKind(SyntaxKind.Attribute) &&
-               node.Parent is AttributeListSyntax(SyntaxKind.AttributeList) attributeList &&
+               node.Parent is AttributeListSyntax attributeList &&
                attributeList.Target?.Identifier.Kind() == attributeTarget;
 
         public bool IsDeclaration(SyntaxNode? node)
@@ -1280,7 +1280,7 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageService
             => SyntaxFacts.IsTypeDeclaration(node.Kind());
 
         public bool IsSimpleAssignmentStatement([NotNullWhen(true)] SyntaxNode? statement)
-            => statement is ExpressionStatementSyntax(SyntaxKind.ExpressionStatement) exprStatement &&
+            => statement is ExpressionStatementSyntax exprStatement &&
                exprStatement.Expression.IsKind(SyntaxKind.SimpleAssignmentExpression);
 
         public void GetPartsOfAssignmentStatement(
@@ -1411,7 +1411,7 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageService
             => node.GetAttributeLists();
 
         public bool IsParameterNameXmlElementSyntax([NotNullWhen(true)] SyntaxNode? node)
-            => node is XmlElementSyntax(SyntaxKind.XmlElement) xmlElement &&
+            => node is XmlElementSyntax xmlElement &&
             xmlElement.StartTag.Name.LocalName.ValueText == DocumentationCommentXmlNames.ParameterElementName;
 
         public SyntaxList<SyntaxNode> GetContentFromDocumentationCommentTriviaSyntax(SyntaxTrivia trivia)

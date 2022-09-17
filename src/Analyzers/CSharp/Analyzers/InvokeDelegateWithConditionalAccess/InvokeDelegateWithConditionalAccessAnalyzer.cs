@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InvokeDelegateWithConditionalAccess
 
             // Check for both:  "if (...) { a(); }" and "if (...) a();"
             var innerStatement = ifStatement.Statement;
-            if (innerStatement is BlockSyntax(SyntaxKind.Block) block)
+            if (innerStatement is BlockSyntax block)
             {
                 if (block.Statements.Count != 1)
                 {

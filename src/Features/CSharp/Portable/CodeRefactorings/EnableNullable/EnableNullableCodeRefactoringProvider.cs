@@ -231,7 +231,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.EnableNullable
             // A leading nullable directive is a '#nullable' directive which precedes any conditional directives ('#if')
             // or code (non-trivia).
             var firstRelevantDirective = root.GetFirstDirective(static directive => directive.Kind() is SyntaxKind.NullableDirectiveTrivia or SyntaxKind.IfDirectiveTrivia);
-            if (firstRelevantDirective is NullableDirectiveTriviaSyntax(SyntaxKind.NullableDirectiveTrivia) nullableDirective
+            if (firstRelevantDirective is NullableDirectiveTriviaSyntax nullableDirective
                 && nullableDirective.TargetToken.IsKind(SyntaxKind.None))
             {
                 var firstSemanticToken = root.GetFirstToken();

@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             }
 
             // ex: `e is Type ( /* positional */ )`
-            if (node is RecursivePatternSyntax(SyntaxKind.RecursivePattern) recursivePattern)
+            if (node is RecursivePatternSyntax recursivePattern)
             {
                 var positional = recursivePattern.PositionalPatternClause;
                 var property = recursivePattern.PropertyPatternClause;

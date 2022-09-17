@@ -3156,7 +3156,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
                 {
                     // If a variable declarator was specified, make sure we return
                     // the index of the last variable declarator in the parenting field declaration.
-                    if (member is VariableDeclaratorSyntax(SyntaxKind.VariableDeclarator) variableDeclarator)
+                    if (member is VariableDeclaratorSyntax variableDeclarator)
                     {
                         var variableDeclaration = (VariableDeclarationSyntax)member.Parent!;
                         var indexOfDeclaratorInField = variableDeclaration.Variables.IndexOf(variableDeclarator);

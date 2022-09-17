@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.CSharp.AddImport
                 case CS0308:
                 case CS0428:
                 case CS1061:
-                    if (node is ConditionalAccessExpressionSyntax(SyntaxKind.ConditionalAccessExpression) conditionalAccess)
+                    if (node is ConditionalAccessExpressionSyntax conditionalAccess)
                     {
                         node = conditionalAccess.WhenNotNull;
                     }

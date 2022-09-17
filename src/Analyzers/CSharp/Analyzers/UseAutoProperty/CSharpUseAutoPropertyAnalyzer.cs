@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseAutoProperty
                 // If we have a class or struct, recurse inwards.
                 AnalyzeMembers(context, typeDeclaration.Members, analysisResults);
             }
-            else if (member is PropertyDeclarationSyntax(SyntaxKind.PropertyDeclaration) propertyDeclaration)
+            else if (member is PropertyDeclarationSyntax propertyDeclaration)
             {
                 AnalyzeProperty(context, propertyDeclaration, analysisResults);
             }

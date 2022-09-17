@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertSwitchStatementToExpression
 
                 // case var _:
                 // case var x:
-                if (@case.Pattern is VarPatternSyntax(SyntaxKind.VarPattern) varPattern &&
+                if (@case.Pattern is VarPatternSyntax varPattern &&
                     varPattern.Designation.Kind() is SyntaxKind.DiscardDesignation or SyntaxKind.SingleVariableDesignation)
                 {
                     return @case.WhenClause == null;

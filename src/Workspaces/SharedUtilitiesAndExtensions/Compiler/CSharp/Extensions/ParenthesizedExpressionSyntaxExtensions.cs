@@ -138,19 +138,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             //   lock ((x))             -> lock (x)
             //   using ((x))            -> using (x)
             //   catch when ((x))       -> catch when (x)
-            if ((nodeParent is EqualsValueClauseSyntax(SyntaxKind.EqualsValueClause) equalsValue && equalsValue.Value == node) ||
-                (nodeParent is IfStatementSyntax(SyntaxKind.IfStatement) ifStatement && ifStatement.Condition == node) ||
-                (nodeParent is ReturnStatementSyntax(SyntaxKind.ReturnStatement) returnStatement && returnStatement.Expression == node) ||
+            if ((nodeParent is EqualsValueClauseSyntax equalsValue && equalsValue.Value == node) ||
+                (nodeParent is IfStatementSyntax ifStatement && ifStatement.Condition == node) ||
+                (nodeParent is ReturnStatementSyntax returnStatement && returnStatement.Expression == node) ||
                 (nodeParent is YieldStatementSyntax(SyntaxKind.YieldReturnStatement) yieldStatement && yieldStatement.Expression == node) ||
-                (nodeParent is ThrowStatementSyntax(SyntaxKind.ThrowStatement) throwStatement && throwStatement.Expression == node) ||
-                (nodeParent is SwitchStatementSyntax(SyntaxKind.SwitchStatement) switchStatement && switchStatement.Expression == node) ||
-                (nodeParent is WhileStatementSyntax(SyntaxKind.WhileStatement) whileStatement && whileStatement.Condition == node) ||
-                (nodeParent is DoStatementSyntax(SyntaxKind.DoStatement) doStatement && doStatement.Condition == node) ||
-                (nodeParent is ForStatementSyntax(SyntaxKind.ForStatement) forStatement && forStatement.Condition == node) ||
-                (nodeParent.Kind() is SyntaxKind.ForEachStatement or SyntaxKind.ForEachVariableStatement&& ((CommonForEachStatementSyntax)node.GetRequiredParent()).Expression == node) ||
-                (nodeParent is LockStatementSyntax(SyntaxKind.LockStatement) lockStatement && lockStatement.Expression == node) ||
-                (nodeParent is UsingStatementSyntax(SyntaxKind.UsingStatement) usingStatement && usingStatement.Expression == node) ||
-                (nodeParent is CatchFilterClauseSyntax(SyntaxKind.CatchFilterClause) catchFilter && catchFilter.FilterExpression == node))
+                (nodeParent is ThrowStatementSyntax throwStatement && throwStatement.Expression == node) ||
+                (nodeParent is SwitchStatementSyntax switchStatement && switchStatement.Expression == node) ||
+                (nodeParent is WhileStatementSyntax whileStatement && whileStatement.Condition == node) ||
+                (nodeParent is DoStatementSyntax doStatement && doStatement.Condition == node) ||
+                (nodeParent is ForStatementSyntax forStatement && forStatement.Condition == node) ||
+                (nodeParent is CommonForEachStatementSyntax forEachStatement && forEachStatement.Expression == node) ||
+                (nodeParent is LockStatementSyntax lockStatement && lockStatement.Expression == node) ||
+                (nodeParent is UsingStatementSyntax usingStatement && usingStatement.Expression == node) ||
+                (nodeParent is CatchFilterClauseSyntax catchFilter && catchFilter.FilterExpression == node))
             {
                 return true;
             }
@@ -171,7 +171,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
             // Cases:
             //   y((x)) -> y(x)
-            if (nodeParent is ArgumentSyntax(SyntaxKind.Argument) argument && argument.Expression == node)
+            if (nodeParent is ArgumentSyntax argument && argument.Expression == node)
                 return true;
 
             // Cases:

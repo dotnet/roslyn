@@ -224,7 +224,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseLocalFunction
 
             var constraintClauses = default(SyntaxList<TypeParameterConstraintClauseSyntax>);
 
-            var body = anonymousFunction.Body is BlockSyntax(SyntaxKind.Block) block
+            var body = anonymousFunction.Body is BlockSyntax block
                 ? block
                 : null;
 

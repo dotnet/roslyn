@@ -609,7 +609,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
                 else
                 {
                     var parsedIdentifier = SyntaxFactory.ParseName(currentNewIdentifier);
-                    if (parsedIdentifier is IdentifierNameSyntax(SyntaxKind.IdentifierName) identifierName)
+                    if (parsedIdentifier is IdentifierNameSyntax identifierName)
                     {
                         valueText = identifierName.Identifier.ValueText;
                     }
@@ -1257,15 +1257,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
             var nodeToSpeculate = node.GetAncestorsOrThis(n => SpeculationAnalyzer.CanSpeculateOnNode(n)).LastOrDefault();
             if (nodeToSpeculate == null)
             {
-                if (node is NameMemberCrefSyntax(SyntaxKind.NameMemberCref) nameMember)
+                if (node is NameMemberCrefSyntax nameMember)
                 {
                     nodeToSpeculate = nameMember.Name;
                 }
-                else if (node is QualifiedCrefSyntax(SyntaxKind.QualifiedCref) qualifiedCref)
+                else if (node is QualifiedCrefSyntax qualifiedCref)
                 {
                     nodeToSpeculate = qualifiedCref.Container;
                 }
-                else if (node is TypeConstraintSyntax(SyntaxKind.TypeConstraint) typeConstraint)
+                else if (node is TypeConstraintSyntax typeConstraint)
                 {
                     nodeToSpeculate = typeConstraint.Type;
                 }

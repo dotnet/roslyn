@@ -479,7 +479,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                         return false;
                     }
 
-                    if (node is LockStatementSyntax(SyntaxKind.LockStatement) lockStatement)
+                    if (node is LockStatementSyntax lockStatement)
                     {
                         if (lockStatement.Statement != null &&
                             !lockStatement.Statement.IsMissing &&

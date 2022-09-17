@@ -164,7 +164,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             }
 
             // expr with { $$
-            if (parent is WithExpressionSyntax(SyntaxKind.WithExpression) withExpression)
+            if (parent is WithExpressionSyntax withExpression)
             {
                 return semanticModel.GetTypeInfo(withExpression.Expression, cancellationToken).Type;
             }

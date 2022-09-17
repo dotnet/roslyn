@@ -82,7 +82,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
                 return false;
             }
 
-            if (typeName.Parent is VariableDeclarationSyntax(SyntaxKind.VariableDeclaration) variableDeclaration &&
+            if (typeName.Parent is VariableDeclarationSyntax variableDeclaration &&
                 typeName.Parent.Parent?.Kind() is SyntaxKind.LocalDeclarationStatement or SyntaxKind.ForStatement or SyntaxKind.UsingStatement)
             {
                 // check assignment for variable declarations.

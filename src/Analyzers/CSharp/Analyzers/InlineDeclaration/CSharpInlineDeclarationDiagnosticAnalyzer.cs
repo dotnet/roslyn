@@ -349,7 +349,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
                     break;
                 }
 
-                if (descendentNode is IdentifierNameSyntax(SyntaxKind.IdentifierName) identifierName)
+                if (descendentNode is IdentifierNameSyntax identifierName)
                 {
                     // See if this looks like an accessor to the local variable syntactically.
                     if (identifierName.Identifier.ValueText == variableName)

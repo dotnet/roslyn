@@ -157,7 +157,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
         /// </returns>
         internal override SyntaxNode? TryGetDeclarationBody(SyntaxNode node)
         {
-            if (node is VariableDeclaratorSyntax(SyntaxKind.VariableDeclarator) variableDeclarator)
+            if (node is VariableDeclaratorSyntax variableDeclarator)
             {
                 return variableDeclarator.Initializer?.Value;
             }
@@ -278,7 +278,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
             var bodyTokens = SyntaxUtilities.TryGetMethodDeclarationBody(node)?.DescendantTokens();
 
-            if (node is ConstructorDeclarationSyntax(SyntaxKind.ConstructorDeclaration) ctor)
+            if (node is ConstructorDeclarationSyntax ctor)
             {
                 if (ctor.Initializer != null)
                 {
@@ -1014,9 +1014,9 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                     // closing brace of a using statement or a block that contains using local declarations:
                     if (statementPart == (int)BlockPart.CloseBrace)
                     {
-                        if (oldStatement.Parent is UsingStatementSyntax(SyntaxKind.UsingStatement) oldUsing)
+                        if (oldStatement.Parent is UsingStatementSyntax oldUsing)
                         {
-                            return newStatement.Parent is UsingStatementSyntax(SyntaxKind.UsingStatement) newUsing &&
+                            return newStatement.Parent is UsingStatementSyntax newUsing &&
                                 AreEquivalentActiveStatements(oldUsing, newUsing);
                         }
 
@@ -1157,7 +1157,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             => node is CompilationUnitSyntax ? null : node.Parent!.FirstAncestorOrSelf<BaseTypeDeclarationSyntax>();
 
         internal override bool HasBackingField(SyntaxNode propertyOrIndexerDeclaration)
-            => propertyOrIndexerDeclaration is PropertyDeclarationSyntax(SyntaxKind.PropertyDeclaration) propertyDecl &&
+            => propertyOrIndexerDeclaration is PropertyDeclarationSyntax propertyDecl &&
                SyntaxUtilities.HasBackingField(propertyDecl);
 
         internal override bool TryGetAssociatedMemberDeclaration(SyntaxNode node, EditKind editKind, [NotNullWhen(true)] out SyntaxNode? declaration)
@@ -2919,8 +2919,8 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
         private static bool AreLabelsEquivalent(SwitchLabelSyntax oldLabel, SwitchLabelSyntax newLabel)
         {
-            if (oldLabel is CasePatternSwitchLabelSyntax(SyntaxKind.CasePatternSwitchLabel) oldCasePatternLabel &&
-                newLabel is CasePatternSwitchLabelSyntax(SyntaxKind.CasePatternSwitchLabel) newCasePatternLabel)
+            if (oldLabel is CasePatternSwitchLabelSyntax oldCasePatternLabel &&
+                newLabel is CasePatternSwitchLabelSyntax newCasePatternLabel)
             {
                 // ignore the actual when expressions:
                 return SyntaxFactory.AreEquivalent(oldCasePatternLabel.Pattern, newCasePatternLabel.Pattern) &&
@@ -3014,7 +3014,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             ReportUnmatchedStatements<UsingStatementSyntax>(
                 diagnostics,
                 match,
-                n => n is UsingStatementSyntax(SyntaxKind.UsingStatement) usingStatement && usingStatement.Declaration is null,
+                n => n is UsingStatementSyntax usingStatement && usingStatement.Declaration is null,
                 oldActiveStatement,
                 newActiveStatement,
                 areEquivalent: AreEquivalentActiveStatements,

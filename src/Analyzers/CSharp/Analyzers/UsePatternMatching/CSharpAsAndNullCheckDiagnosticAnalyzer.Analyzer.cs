@@ -285,7 +285,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
                 // This is either an embedded statement or parented by a block.
                 // If we're parented by a block, then that block will be the scope
                 // of the new variable. Otherwise the scope is the statement itself.
-                if (statement.Parent is BlockSyntax(SyntaxKind.Block) block)
+                if (statement.Parent is BlockSyntax block)
                 {
                     // Check if the local is accessed before assignment 
                     // in the subsequent statements. If so, this can't
@@ -331,7 +331,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
                         continue;
                     }
 
-                    if (descendentNode is IdentifierNameSyntax(SyntaxKind.IdentifierName) identifierName &&
+                    if (descendentNode is IdentifierNameSyntax identifierName &&
                         identifierName.Identifier.ValueText == variableName &&
                         _localSymbol.Equals(_semanticModel.GetSymbolInfo(identifierName, _cancellationToken).Symbol))
                     {

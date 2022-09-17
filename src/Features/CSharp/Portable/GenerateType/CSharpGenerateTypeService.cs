@@ -420,7 +420,7 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateType
             if (generateTypeServiceStateOptions.IsDelegateAllowed)
             {
                 // MyD1 z1 = goo;
-                if (nameOrMemberAccessExpression.Parent is VariableDeclarationSyntax(SyntaxKind.VariableDeclaration) variableDeclaration &&
+                if (nameOrMemberAccessExpression.Parent is VariableDeclarationSyntax variableDeclaration &&
                     variableDeclaration.Variables.Count != 0)
                 {
                     var firstVarDeclWithInitializer = variableDeclaration.Variables.FirstOrDefault(var => var.Initializer != null && var.Initializer.Value != null);
@@ -431,7 +431,7 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateType
                 }
 
                 // var w1 = (MyD1)goo;
-                if (nameOrMemberAccessExpression.Parent is CastExpressionSyntax(SyntaxKind.CastExpression) castExpression &&
+                if (nameOrMemberAccessExpression.Parent is CastExpressionSyntax castExpression &&
                     castExpression.Expression != null)
                 {
                     generateTypeServiceStateOptions.DelegateCreationMethodSymbol = GetMethodSymbolIfPresent(semanticModel, castExpression.Expression, cancellationToken);

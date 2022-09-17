@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
             // before visiting nested statements
             foreach (var statement in statements)
             {
-                if (statement is LocalDeclarationStatementSyntax(SyntaxKind.LocalDeclarationStatement) declarationStatement)
+                if (statement is LocalDeclarationStatementSyntax declarationStatement)
                 {
                     foreach (var declarator in declarationStatement.Declaration.Variables)
                     {

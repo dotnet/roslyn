@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
             }
 
             var semanticModel = syntaxContext.SemanticModel;
-            if (operand is CastExpressionSyntax(SyntaxKind.CastExpression) castExpression)
+            if (operand is CastExpressionSyntax castExpression)
             {
                 // Unwrap object cast
                 var castType = semanticModel.GetTypeInfo(castExpression.Type).Type;
@@ -186,7 +186,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
                     break;
                 }
 
-                if (descendentNode is IdentifierNameSyntax(SyntaxKind.IdentifierName) identifierName)
+                if (descendentNode is IdentifierNameSyntax identifierName)
                 {
                     // Check if this is a 'write' to the asOperand.
                     if (identifierName.Identifier.ValueText == asOperand?.Name &&
@@ -307,7 +307,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
                 return left;
             }
 
-            if (right is PredefinedTypeSyntax(SyntaxKind.PredefinedType) predefinedType
+            if (right is PredefinedTypeSyntax predefinedType
                 && predefinedType.Keyword.IsKind(SyntaxKind.ObjectKeyword)
                 && comparisonKind == SyntaxKind.IsExpression)
             {
@@ -315,7 +315,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
                 return left;
             }
 
-            if (right is ConstantPatternSyntax(SyntaxKind.ConstantPattern) constantPattern
+            if (right is ConstantPatternSyntax constantPattern
                 && constantPattern.Expression.IsKind(SyntaxKind.NullLiteralExpression)
                 && comparisonKind == SyntaxKind.IsPatternExpression)
             {

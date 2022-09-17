@@ -98,7 +98,7 @@ namespace Microsoft.CodeAnalysis.CSharp.FindSymbols
                 {
                     ProcessUsings(aliasMaps, nsDecl.Usings);
                 }
-                else if (current is CompilationUnitSyntax(SyntaxKind.CompilationUnit) compilationUnit)
+                else if (current is CompilationUnitSyntax compilationUnit)
                 {
                     ProcessUsings(aliasMaps, compilationUnit.Usings);
                 }

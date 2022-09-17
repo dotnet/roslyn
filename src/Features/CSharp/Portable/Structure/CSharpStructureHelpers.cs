@@ -296,88 +296,32 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
             }
 
             static SyntaxToken GetEndToken(SyntaxNode node)
-            {
-                if (node is ConstructorDeclarationSyntax(SyntaxKind.ConstructorDeclaration) constructorDeclaration)
+                => node switch
                 {
-                    return constructorDeclaration.Modifiers.FirstOrNull() ?? constructorDeclaration.Identifier;
-                }
-                else if (node is ConversionOperatorDeclarationSyntax(SyntaxKind.ConversionOperatorDeclaration) conversionOperatorDeclaration)
-                {
-                    return conversionOperatorDeclaration.Modifiers.FirstOrNull() ?? conversionOperatorDeclaration.ImplicitOrExplicitKeyword;
-                }
-                else if (node is DelegateDeclarationSyntax(SyntaxKind.DelegateDeclaration) delegateDeclaration)
-                {
-                    return delegateDeclaration.Modifiers.FirstOrNull() ?? delegateDeclaration.DelegateKeyword;
-                }
-                else if (node is DestructorDeclarationSyntax(SyntaxKind.DestructorDeclaration) destructorDeclaration)
-                {
-                    return destructorDeclaration.TildeToken;
-                }
-                else if (node is EnumDeclarationSyntax(SyntaxKind.EnumDeclaration) enumDeclaration)
-                {
-                    return enumDeclaration.Modifiers.FirstOrNull() ?? enumDeclaration.EnumKeyword;
-                }
-                else if (node is EnumMemberDeclarationSyntax(SyntaxKind.EnumMemberDeclaration) enumMemberDeclaration)
-                {
-                    return enumMemberDeclaration.Identifier;
-                }
-                else if (node is EventDeclarationSyntax(SyntaxKind.EventDeclaration) eventDeclaration)
-                {
-                    return eventDeclaration.Modifiers.FirstOrNull() ?? eventDeclaration.EventKeyword;
-                }
-                else if (node is EventFieldDeclarationSyntax(SyntaxKind.EventFieldDeclaration) eventFieldDeclaration)
-                {
-                    return eventFieldDeclaration.Modifiers.FirstOrNull() ?? eventFieldDeclaration.EventKeyword;
-                }
-                else if (node is FieldDeclarationSyntax(SyntaxKind.FieldDeclaration) fieldDeclaration)
-                {
-                    return fieldDeclaration.Modifiers.FirstOrNull() ?? fieldDeclaration.Declaration.GetFirstToken();
-                }
-                else if (node is IndexerDeclarationSyntax(SyntaxKind.IndexerDeclaration) indexerDeclaration)
-                {
-                    return indexerDeclaration.Modifiers.FirstOrNull() ?? indexerDeclaration.Type.GetFirstToken();
-                }
-                else if (node is MethodDeclarationSyntax(SyntaxKind.MethodDeclaration) methodDeclaration)
-                {
-                    return methodDeclaration.Modifiers.FirstOrNull() ?? methodDeclaration.ReturnType.GetFirstToken();
-                }
-                else if (node is OperatorDeclarationSyntax(SyntaxKind.OperatorDeclaration) operatorDeclaration)
-                {
-                    return operatorDeclaration.Modifiers.FirstOrNull() ?? operatorDeclaration.ReturnType.GetFirstToken();
-                }
-                else if (node is PropertyDeclarationSyntax(SyntaxKind.PropertyDeclaration) propertyDeclaration)
-                {
-                    return propertyDeclaration.Modifiers.FirstOrNull() ?? propertyDeclaration.Type.GetFirstToken();
-                }
-                else if (node.Kind() is SyntaxKind.ClassDeclaration or SyntaxKind.RecordDeclaration or
-                    SyntaxKind.RecordStructDeclaration or SyntaxKind.StructDeclaration or SyntaxKind.InterfaceDeclaration)
-                {
-                    var typeDeclaration = (TypeDeclarationSyntax)node;
-                    return typeDeclaration.Modifiers.FirstOrNull() ?? typeDeclaration.Keyword;
-                }
-                else
-                {
-                    return default;
-                }
-            }
+                    ConstructorDeclarationSyntax constructorDeclaration => constructorDeclaration.Modifiers.FirstOrNull() ?? constructorDeclaration.Identifier,
+                    ConversionOperatorDeclarationSyntax conversionOperatorDeclaration => conversionOperatorDeclaration.Modifiers.FirstOrNull() ?? conversionOperatorDeclaration.ImplicitOrExplicitKeyword,
+                    DelegateDeclarationSyntax delegateDeclaration => delegateDeclaration.Modifiers.FirstOrNull() ?? delegateDeclaration.DelegateKeyword,
+                    DestructorDeclarationSyntax destructorDeclaration => destructorDeclaration.TildeToken,
+                    EnumDeclarationSyntax enumDeclaration => enumDeclaration.Modifiers.FirstOrNull() ?? enumDeclaration.EnumKeyword,
+                    EnumMemberDeclarationSyntax enumMemberDeclaration => enumMemberDeclaration.Identifier,
+                    EventDeclarationSyntax eventDeclaration => eventDeclaration.Modifiers.FirstOrNull() ?? eventDeclaration.EventKeyword,
+                    EventFieldDeclarationSyntax eventFieldDeclaration => eventFieldDeclaration.Modifiers.FirstOrNull() ?? eventFieldDeclaration.EventKeyword,
+                    FieldDeclarationSyntax fieldDeclaration => fieldDeclaration.Modifiers.FirstOrNull() ?? fieldDeclaration.Declaration.GetFirstToken(),
+                    IndexerDeclarationSyntax indexerDeclaration => indexerDeclaration.Modifiers.FirstOrNull() ?? indexerDeclaration.Type.GetFirstToken(),
+                    MethodDeclarationSyntax methodDeclaration => methodDeclaration.Modifiers.FirstOrNull() ?? methodDeclaration.ReturnType.GetFirstToken(),
+                    OperatorDeclarationSyntax operatorDeclaration => operatorDeclaration.Modifiers.FirstOrNull() ?? operatorDeclaration.ReturnType.GetFirstToken(),
+                    PropertyDeclarationSyntax propertyDeclaration => propertyDeclaration.Modifiers.FirstOrNull() ?? propertyDeclaration.Type.GetFirstToken(),
+                    TypeDeclarationSyntax typeDeclaration => typeDeclaration.Modifiers.FirstOrNull() ?? typeDeclaration.Keyword,
+                    _ => default
+                };
 
             static SyntaxToken GetHintTextEndToken(SyntaxNode node)
-            {
-                if (node is EnumDeclarationSyntax(SyntaxKind.EnumDeclaration) enumDeclaration)
+                => node switch
                 {
-                    return enumDeclaration.OpenBraceToken.GetPreviousToken();
-                }
-                else if (node.Kind() is SyntaxKind.ClassDeclaration or SyntaxKind.RecordDeclaration or
-                    SyntaxKind.RecordStructDeclaration or SyntaxKind.StructDeclaration or SyntaxKind.InterfaceDeclaration)
-                {
-                    var typeDeclaration = (TypeDeclarationSyntax)node;
-                    return typeDeclaration.OpenBraceToken.GetPreviousToken();
-                }
-                else
-                {
-                    return node.GetLastToken();
-                }
-            }
+                    EnumDeclarationSyntax enumDeclaration => enumDeclaration.OpenBraceToken.GetPreviousToken(),
+                    TypeDeclarationSyntax typeDeclaration => typeDeclaration.OpenBraceToken.GetPreviousToken(),
+                    _ => node.GetLastToken()
+                };
         }
 
         private static BlockSpan CreateBlockSpan(

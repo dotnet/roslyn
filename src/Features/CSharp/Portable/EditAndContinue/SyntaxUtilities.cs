@@ -194,12 +194,12 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
         public static SyntaxNode TryGetEffectiveGetterBody(SyntaxNode declaration)
         {
-            if (declaration is PropertyDeclarationSyntax(SyntaxKind.PropertyDeclaration) property)
+            if (declaration is PropertyDeclarationSyntax property)
             {
                 return TryGetEffectiveGetterBody(property.ExpressionBody, property.AccessorList);
             }
 
-            if (declaration is IndexerDeclarationSyntax(SyntaxKind.IndexerDeclaration) indexer)
+            if (declaration is IndexerDeclarationSyntax indexer)
             {
                 return TryGetEffectiveGetterBody(indexer.ExpressionBody, indexer.AccessorList);
             }
@@ -225,10 +225,10 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
         public static SyntaxTokenList? TryGetFieldOrPropertyModifiers(SyntaxNode node)
         {
-            if (node is FieldDeclarationSyntax(SyntaxKind.FieldDeclaration) fieldDecl)
+            if (node is FieldDeclarationSyntax fieldDecl)
                 return fieldDecl.Modifiers;
 
-            if (node is PropertyDeclarationSyntax(SyntaxKind.PropertyDeclaration) propertyDecl)
+            if (node is PropertyDeclarationSyntax propertyDecl)
                 return propertyDecl.Modifiers;
 
             return null;
