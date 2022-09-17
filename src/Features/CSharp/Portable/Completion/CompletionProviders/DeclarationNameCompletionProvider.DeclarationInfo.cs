@@ -391,7 +391,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
             private static bool IsTypeParameterDeclaration(SyntaxToken token, out NameDeclarationInfo result)
             {
-                if (token.Kind() is SyntaxKind.LessThanToken or SyntaxKind.CommaToken&&
+                if (token.Kind() is SyntaxKind.LessThanToken or SyntaxKind.CommaToken &&
                     token.Parent.IsKind(SyntaxKind.TypeParameterList))
                 {
                     result = new NameDeclarationInfo(

@@ -174,7 +174,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             // async lambda: 
             //    Goo(async($$
             //    Goo(async(p1, $$
-            if (token.Kind() is SyntaxKind.OpenParenToken or SyntaxKind.CommaToken&& token.Parent.IsKind(SyntaxKind.ArgumentList)
+            if (token.Kind() is SyntaxKind.OpenParenToken or SyntaxKind.CommaToken && token.Parent.IsKind(SyntaxKind.ArgumentList)
                 && token.Parent.Parent is InvocationExpressionSyntax invocation
                 && invocation.Expression is IdentifierNameSyntax identifier)
             {

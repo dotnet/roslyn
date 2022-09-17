@@ -411,7 +411,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
 
         private static bool IsInAStringOrCharacter(SyntaxNode currentNode, SnapshotPoint caret)
             // Check to see if caret is before or after string
-            => currentNode.Kind() is SyntaxKind.InterpolatedStringExpression or SyntaxKind.StringLiteralExpression or SyntaxKind.CharacterLiteralExpression                && caret.Position < currentNode.Span.End
+            => currentNode.Kind() is SyntaxKind.InterpolatedStringExpression or SyntaxKind.StringLiteralExpression or SyntaxKind.CharacterLiteralExpression && caret.Position < currentNode.Span.End
                 && caret.Position > currentNode.SpanStart;
 
         /// <summary>

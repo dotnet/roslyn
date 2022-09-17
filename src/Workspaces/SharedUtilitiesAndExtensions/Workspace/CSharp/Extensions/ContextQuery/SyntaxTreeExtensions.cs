@@ -1083,7 +1083,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                 return true;
             }
 
-            if (token.Kind() is SyntaxKind.RefKeyword or SyntaxKind.InKeyword or SyntaxKind.OutKeyword or SyntaxKind.ThisKeyword or SyntaxKind.ParamsKeyword&&
+            if (token.Kind() is SyntaxKind.RefKeyword or SyntaxKind.InKeyword or SyntaxKind.OutKeyword or SyntaxKind.ThisKeyword or SyntaxKind.ParamsKeyword &&
                 token.Parent is ParameterSyntax parameter3 &&
                 parameter3.Parent is ParameterListSyntax parameterList3 &&
                 parameterList3.IsDelegateOrConstructorOrLocalFunctionOrMethodOrOperatorParameterList(includeOperators))
@@ -1344,21 +1344,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
 
             // e switch { $$
             // e switch { ..., $$
-            if (leftToken.Kind() is SyntaxKind.OpenBraceToken or SyntaxKind.CommaToken&& leftToken.Parent.IsKind(SyntaxKind.SwitchExpression))
+            if (leftToken.Kind() is SyntaxKind.OpenBraceToken or SyntaxKind.CommaToken && leftToken.Parent.IsKind(SyntaxKind.SwitchExpression))
             {
                 return true;
             }
 
             // e is ($$
             // e is (..., $$
-            if (leftToken.Kind() is SyntaxKind.OpenParenToken or SyntaxKind.CommaToken&& leftToken.Parent.IsKind(SyntaxKind.PositionalPatternClause))
+            if (leftToken.Kind() is SyntaxKind.OpenParenToken or SyntaxKind.CommaToken && leftToken.Parent.IsKind(SyntaxKind.PositionalPatternClause))
             {
                 return true;
             }
 
             // e is [$$
             // e is [..., $$
-            if (leftToken.Kind() is SyntaxKind.OpenBracketToken or SyntaxKind.CommaToken&& leftToken.Parent.IsKind(SyntaxKind.ListPattern))
+            if (leftToken.Kind() is SyntaxKind.OpenBracketToken or SyntaxKind.CommaToken && leftToken.Parent.IsKind(SyntaxKind.ListPattern))
             {
                 return true;
             }
@@ -1400,7 +1400,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             // e is >= $$
             // e is < $$
             // e is <= $$
-            if (leftToken.Kind() is SyntaxKind.GreaterThanToken or SyntaxKind.GreaterThanEqualsToken or SyntaxKind.LessThanToken or SyntaxKind.LessThanEqualsToken&&
+            if (leftToken.Kind() is SyntaxKind.GreaterThanToken or SyntaxKind.GreaterThanEqualsToken or SyntaxKind.LessThanToken or SyntaxKind.LessThanEqualsToken &&
                 leftToken.Parent.IsKind(SyntaxKind.RelationalPattern))
             {
                 return true;
@@ -1589,7 +1589,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
 
             // var ((x, $$), y)
             // var (($$, x), y)
-            if (leftToken.Kind() is SyntaxKind.OpenParenToken or SyntaxKind.CommaToken&& leftToken.Parent.IsKind(SyntaxKind.TupleExpression))
+            if (leftToken.Kind() is SyntaxKind.OpenParenToken or SyntaxKind.CommaToken && leftToken.Parent.IsKind(SyntaxKind.TupleExpression))
             {
                 if (IsPossibleVarDeconstructionOpenParenOrComma(FindTokenOnLeftOfNode(leftToken.Parent)))
                 {
@@ -1641,7 +1641,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
 
         private static bool IsPossibleVarDeconstructionOpenParenOrComma(SyntaxToken leftToken)
         {
-            if (leftToken.Kind() is SyntaxKind.OpenParenToken or SyntaxKind.CommaToken&&
+            if (leftToken.Kind() is SyntaxKind.OpenParenToken or SyntaxKind.CommaToken &&
                 leftToken.Parent.IsKind(SyntaxKind.ArgumentList) &&
                 leftToken.Parent?.Parent is InvocationExpressionSyntax invocation)
             {
@@ -2346,7 +2346,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             // var(|
             // var(id, |
             // Those are more likely to be deconstruction-declarations being typed than invocations a method "var"
-            if (token.Kind() is SyntaxKind.OpenParenToken or SyntaxKind.CommaToken&&
+            if (token.Kind() is SyntaxKind.OpenParenToken or SyntaxKind.CommaToken &&
                 token.IsInvocationOfVarExpression())
             {
                 return false;
