@@ -101,7 +101,10 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateType
 
                 // If it's in the base list of an interface or struct, then it's definitely an
                 // interface.
-                return baseList.IsParentKind(SyntaxKind.InterfaceDeclaration, SyntaxKind.StructDeclaration, SyntaxKind.RecordStructDeclaration);
+                return baseList?.Parent.Kind() is
+                    SyntaxKind.InterfaceDeclaration or
+                    SyntaxKind.StructDeclaration or
+                    SyntaxKind.RecordStructDeclaration;
             }
 
             if (expression is TypeSyntax &&

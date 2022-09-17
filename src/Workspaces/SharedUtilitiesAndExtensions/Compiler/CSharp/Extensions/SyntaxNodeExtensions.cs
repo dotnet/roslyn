@@ -59,9 +59,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         public static bool IsParentKind([NotNullWhen(returnValue: true)] this SyntaxNode? node, SyntaxKind kind1, SyntaxKind kind2)
             => IsKind(node?.Parent, kind1, kind2);
 
-        public static bool IsParentKind([NotNullWhen(returnValue: true)] this SyntaxNode? node, SyntaxKind kind1, SyntaxKind kind2, SyntaxKind kind3)
-            => IsKind(node?.Parent, kind1, kind2, kind3);
-
         public static bool IsKind([NotNullWhen(returnValue: true)] this SyntaxNode? node, SyntaxKind kind1, SyntaxKind kind2)
         {
             if (node == null)
@@ -71,17 +68,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
             var csharpKind = node.Kind();
             return csharpKind == kind1 || csharpKind == kind2;
-        }
-
-        public static bool IsKind([NotNullWhen(returnValue: true)] this SyntaxNode? node, SyntaxKind kind1, SyntaxKind kind2, SyntaxKind kind3)
-        {
-            if (node == null)
-            {
-                return false;
-            }
-
-            var csharpKind = node.Kind();
-            return csharpKind == kind1 || csharpKind == kind2 || csharpKind == kind3;
         }
 
         public static IEnumerable<SyntaxTrivia> GetAllPrecedingTriviaToPreviousToken(

@@ -1774,7 +1774,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                 if (parent?.Kind() is SyntaxKind.RefType or SyntaxKind.RefExpression or SyntaxKind.LocalDeclarationStatement)
                 {
                     if (parent.IsParentKind(SyntaxKind.VariableDeclaration) &&
-                        parent.Parent.IsParentKind(SyntaxKind.LocalDeclarationStatement, SyntaxKind.ForStatement, SyntaxKind.ForEachVariableStatement))
+                        parent.Parent?.Parent.Kind() is
+                            SyntaxKind.LocalDeclarationStatement or
+                            SyntaxKind.ForStatement or
+                            SyntaxKind.ForEachVariableStatement)
                     {
                         return true;
                     }

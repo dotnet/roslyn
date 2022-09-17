@@ -104,7 +104,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
             }
 
             if (typeName.Parent is VariableDeclarationSyntax variableDeclaration &&
-                typeName.Parent.IsParentKind(SyntaxKind.LocalDeclarationStatement, SyntaxKind.ForStatement, SyntaxKind.UsingStatement))
+                typeName.Parent?.Parent.Kind() is
+                    SyntaxKind.LocalDeclarationStatement or
+                    SyntaxKind.ForStatement or
+                    SyntaxKind.UsingStatement)
             {
                 // implicitly typed variables cannot be constants.
                 if ((variableDeclaration.Parent as LocalDeclarationStatementSyntax)?.IsConst == true)

@@ -140,7 +140,10 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessaryNullableDirective
                     currentOptionsDirective = nullableDirectiveTrivia;
                     currentOptions = CSharpRemoveRedundantNullableDirectiveDiagnosticAnalyzer.GetNullableContextOptions(compilationOptions, currentOptions, nullableDirectiveTrivia);
                 }
-                else if (directive.IsKind(SyntaxKind.IfDirectiveTrivia, SyntaxKind.ElifDirectiveTrivia, SyntaxKind.ElseDirectiveTrivia))
+                else if (directive.Kind() is
+                    SyntaxKind.IfDirectiveTrivia or
+                    SyntaxKind.ElifDirectiveTrivia or
+                    SyntaxKind.ElseDirectiveTrivia)
                 {
                     possibleNullableImpactIntervalTree ??= new SimpleIntervalTree<TextSpan, TextSpanIntervalIntrospector>(new TextSpanIntervalIntrospector(), values: null);
                     possibleNullableImpactIntervalTree.AddIntervalInPlace(directive.Span);

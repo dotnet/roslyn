@@ -1164,13 +1164,20 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
         {
             if (node.Kind() is SyntaxKind.Parameter or SyntaxKind.TypeParameter)
             {
-                Contract.ThrowIfFalse(node.IsParentKind(SyntaxKind.ParameterList, SyntaxKind.TypeParameterList, SyntaxKind.BracketedParameterList));
+                Contract.ThrowIfFalse(node?.Parent.Kind() is
+                    SyntaxKind.ParameterList or
+                    SyntaxKind.TypeParameterList or
+                    SyntaxKind.BracketedParameterList);
                 declaration = node.Parent!.Parent!;
                 return true;
             }
 
             // For deletes, we don't associate accessors with their parents, as deleting accessors is allowed
-            if (editKind != EditKind.Delete && node.Parent.IsParentKind(SyntaxKind.PropertyDeclaration, SyntaxKind.IndexerDeclaration, SyntaxKind.EventDeclaration))
+            if (editKind != EditKind.Delete &&
+                node.Parent?.Parent.Kind() is
+                    SyntaxKind.PropertyDeclaration or
+                    SyntaxKind.IndexerDeclaration or
+                    SyntaxKind.EventDeclaration)
             {
                 declaration = node.Parent.Parent!;
                 return true;
