@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -61,10 +62,14 @@ namespace Microsoft.CodeAnalysis.TaskList
 
         private static ITaskListService? GetTaskListService(Document document)
         {
+#pragma warning disable CS0612 // Type or member is obsolete
+#pragma warning disable CS0618 // Type or member is obsolete
             // Legacy compat until TypeScript moves to EA pattern.
             var todoService = document.GetLanguageService<ITodoCommentService>();
             if (todoService != null)
                 return new TodoCommentServiceWrapper(todoService);
+#pragma warning restore CS0618 // Type or member is obsolete
+#pragma warning restore CS0612 // Type or member is obsolete
 
             var todoDataService = document.GetLanguageService<ITaskListService>();
             if (todoDataService != null)
@@ -104,6 +109,7 @@ namespace Microsoft.CodeAnalysis.TaskList
             await _listener.ReportTaskListItemsAsync(document.Id, items, cancellationToken).ConfigureAwait(false);
         }
 
+        [Obsolete]
         private sealed class TodoCommentServiceWrapper : ITaskListService
         {
             private readonly ITodoCommentService _todoService;
