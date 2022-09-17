@@ -288,7 +288,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             // sequence).
 
             var current = node.GetParentConditionalAccessExpression();
-            while (current?.Parent is ConditionalAccessExpressionSyntax(SyntaxKind.ConditionalAccessExpression) conditional &&
+            while (current?.Parent is ConditionalAccessExpressionSyntax conditional &&
                 conditional.WhenNotNull == current)
             {
                 current = conditional;
@@ -758,7 +758,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             => CSharpFileBannerFacts.Instance.GetNodeWithoutLeadingBannerAndPreprocessorDirectives(node, out strippedTrivia);
 
         public static bool IsVariableDeclaratorValue(this SyntaxNode node)
-            => node?.Parent is EqualsValueClauseSyntax(SyntaxKind.EqualsValueClause) equalsValue &&
+            => node?.Parent is EqualsValueClauseSyntax equalsValue &&
                equalsValue.IsParentKind(SyntaxKind.VariableDeclarator) &&
                equalsValue.Value == node;
 

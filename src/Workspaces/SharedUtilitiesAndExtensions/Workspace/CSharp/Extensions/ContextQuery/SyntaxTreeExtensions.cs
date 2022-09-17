@@ -1001,7 +1001,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             // Might be an incomplete conditional expression or an incomplete declaration of a method returning a nullable type.
             // Bind T to see if it is a type. If it is we don't show signature help.
             if (name.IsParentKind(SyntaxKind.LessThanExpression) &&
-                name.Parent?.Parent is ConditionalExpressionSyntax(SyntaxKind.ConditionalExpression) conditional &&
+                name.Parent?.Parent is ConditionalExpressionSyntax conditional &&
                 conditional.IsParentKind(SyntaxKind.ExpressionStatement) &&
                 conditional.Parent.IsParentKind(SyntaxKind.GlobalStatement))
             {
@@ -1534,7 +1534,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
 
             // in script
             if (possibleCommaOrParen.Parent.IsKind(SyntaxKind.ParameterList) &&
-                possibleCommaOrParen.Parent?.Parent is ParenthesizedLambdaExpressionSyntax(SyntaxKind.ParenthesizedLambdaExpression) parenthesizedLambda)
+                possibleCommaOrParen.Parent?.Parent is ParenthesizedLambdaExpressionSyntax parenthesizedLambda)
             {
                 if (parenthesizedLambda.ArrowToken.IsMissing)
                 {
@@ -1643,7 +1643,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
         {
             if (leftToken.Kind() is SyntaxKind.OpenParenToken or SyntaxKind.CommaToken&&
                 leftToken.Parent.IsKind(SyntaxKind.ArgumentList) &&
-                leftToken.Parent?.Parent is InvocationExpressionSyntax(SyntaxKind.InvocationExpression) invocation)
+                leftToken.Parent?.Parent is InvocationExpressionSyntax invocation)
             {
                 if (invocation.Expression is IdentifierNameSyntax identifierName &&
                     identifierName.Identifier.ValueText == "var")
@@ -2288,7 +2288,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                     {
                         var type = previousToken.Parent as TypeSyntax;
                         if (type.IsParentKind(SyntaxKind.VariableDeclaration) &&
-                            type.Parent?.Parent is LocalDeclarationStatementSyntax(SyntaxKind.LocalDeclarationStatement) declStatement)
+                            type.Parent?.Parent is LocalDeclarationStatementSyntax declStatement)
                         {
                             // note, this doesn't apply for cases where we know it 
                             // absolutely is not multiplication or a conditional expression.
@@ -2444,7 +2444,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                     // can support a collection initializer. If not, this must be an object initializer
                     // and can't be an expression context.
                     if (semanticModelOpt != null &&
-                        token.Parent?.Parent is ObjectCreationExpressionSyntax(SyntaxKind.ObjectCreationExpression) objectCreation)
+                        token.Parent?.Parent is ObjectCreationExpressionSyntax objectCreation)
                     {
                         var containingSymbol = semanticModelOpt.GetEnclosingNamedTypeOrAssembly(position, cancellationToken);
                         if (semanticModelOpt.GetSymbolInfo(objectCreation.Type, cancellationToken).Symbol is ITypeSymbol type && !type.CanSupportCollectionInitializer(containingSymbol))
@@ -2674,7 +2674,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
         }
 
         public static bool IsInvocationOfVarExpression(this SyntaxToken token)
-            => token.Parent?.Parent is InvocationExpressionSyntax(SyntaxKind.InvocationExpression) invocation &&
+            => token.Parent?.Parent is InvocationExpressionSyntax invocation &&
                invocation.Expression.ToString() == "var";
 
         public static bool IsNameOfContext(this SyntaxTree syntaxTree, int position, SemanticModel? semanticModelOpt = null, CancellationToken cancellationToken = default)
@@ -2966,7 +2966,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                 leftHandBinding = semanticModel.GetSymbolInfo(qualifiedName.Left, cancellationToken);
             }
             else if (token.Parent is QualifiedNameSyntax qualifiedName1 &&
-                token.Parent?.Parent is DeclarationPatternSyntax(SyntaxKind.DeclarationPattern) declarationExpression &&
+                token.Parent?.Parent is DeclarationPatternSyntax declarationExpression &&
                 declarationExpression.Type == qualifiedName1)
             {
                 // The right-hand side of an is declaration expression could be an enum

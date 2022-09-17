@@ -289,7 +289,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.DeclareAsNullable
             }
 
             // string x { get; set; } = null;
-            if (node.Parent?.Parent is PropertyDeclarationSyntax(SyntaxKind.PropertyDeclaration) propertyDeclaration)
+            if (node.Parent?.Parent is PropertyDeclarationSyntax propertyDeclaration)
             {
                 return propertyDeclaration.Type;
             }
@@ -310,7 +310,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.DeclareAsNullable
             }
 
             // void M(string x = null) { }
-            if (node.Parent?.Parent is ParameterSyntax(SyntaxKind.Parameter) optionalParameter)
+            if (node.Parent?.Parent is ParameterSyntax optionalParameter)
             {
                 var parameterSymbol = model.GetDeclaredSymbol(optionalParameter);
                 return TryGetParameterTypeSyntax(parameterSymbol);
@@ -318,7 +318,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.DeclareAsNullable
 
             // static string M() => null;
             if (node.IsParentKind(SyntaxKind.ArrowExpressionClause) &&
-                node.Parent?.Parent is MethodDeclarationSyntax(SyntaxKind.MethodDeclaration) arrowMethod)
+                node.Parent?.Parent is MethodDeclarationSyntax arrowMethod)
             {
                 return arrowMethod.ReturnType;
             }

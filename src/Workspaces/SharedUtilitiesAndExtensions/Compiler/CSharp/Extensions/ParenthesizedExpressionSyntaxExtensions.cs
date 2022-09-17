@@ -493,7 +493,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             //      (X?)(...)
             //      (global::X)(...)
 
-            if (node?.Parent is CastExpressionSyntax(SyntaxKind.CastExpression) castExpression)
+            if (node?.Parent is CastExpressionSyntax castExpression)
             {
                 if (castExpression.Type.Kind() is
                         SyntaxKind.PredefinedType or

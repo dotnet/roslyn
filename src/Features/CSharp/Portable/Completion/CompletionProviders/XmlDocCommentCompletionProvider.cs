@@ -262,7 +262,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         {
             XmlAttributeSyntax? attributeSyntax;
             if (token.Parent.IsKind(SyntaxKind.IdentifierName) &&
-                token.Parent?.Parent is XmlNameAttributeSyntax(SyntaxKind.XmlNameAttribute) xmlName)
+                token.Parent?.Parent is XmlNameAttributeSyntax xmlName)
             {
                 // Handle the special 'name' attributes: name="bar$$
                 attributeSyntax = xmlName;

@@ -190,7 +190,7 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageService
             => node?.Kind() is SyntaxKind.ParameterList or SyntaxKind.BracketedParameterList;
 
         public bool IsUsingDirectiveName([NotNullWhen(true)] SyntaxNode? node)
-            => node?.Parent is UsingDirectiveSyntax(SyntaxKind.UsingDirective) usingDirective &&
+            => node?.Parent is UsingDirectiveSyntax usingDirective &&
                usingDirective.Name == node;
 
         public bool IsUsingAliasDirective([NotNullWhen(true)] SyntaxNode? node)

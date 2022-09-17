@@ -49,14 +49,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         }
 
         public static bool IsMemberBindingExpressionName([NotNullWhen(true)] this ExpressionSyntax? expression)
-            => expression?.Parent is MemberBindingExpressionSyntax(SyntaxKind.MemberBindingExpression) memberBinding &&
+            => expression?.Parent is MemberBindingExpressionSyntax memberBinding &&
                memberBinding.Name == expression;
 
         public static bool IsRightSideOfQualifiedName([NotNullWhen(true)] this ExpressionSyntax? expression)
-            => expression?.Parent is QualifiedNameSyntax(SyntaxKind.QualifiedName) qualifiedName && qualifiedName.Right == expression;
+            => expression?.Parent is QualifiedNameSyntax qualifiedName && qualifiedName.Right == expression;
 
         public static bool IsRightSideOfColonColon(this ExpressionSyntax expression)
-            => expression?.Parent is AliasQualifiedNameSyntax(SyntaxKind.AliasQualifiedName) aliasName && aliasName.Name == expression;
+            => expression?.Parent is AliasQualifiedNameSyntax aliasName && aliasName.Name == expression;
 
         public static bool IsRightSideOfDot(this ExpressionSyntax name)
             => IsSimpleMemberAccessExpressionName(name) || IsMemberBindingExpressionName(name) || IsRightSideOfQualifiedName(name) || IsQualifiedCrefName(name);
@@ -101,7 +101,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             => name.IsParentKind(SyntaxKind.ExplicitInterfaceSpecifier);
 
         public static bool IsExpressionOfInvocation(this ExpressionSyntax expression)
-            => expression?.Parent is InvocationExpressionSyntax(SyntaxKind.InvocationExpression) invocation &&
+            => expression?.Parent is InvocationExpressionSyntax invocation &&
                invocation.Expression == expression;
 
         public static bool TryGetNameParts(this ExpressionSyntax expression, [NotNullWhen(true)] out IList<string>? parts)

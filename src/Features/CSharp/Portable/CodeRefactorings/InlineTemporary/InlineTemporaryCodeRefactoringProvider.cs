@@ -108,7 +108,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineTemporary
             if (IsInDeconstructionAssignmentLeft(identifierNode))
                 return true;
 
-            if (identifierNode?.Parent is ArgumentSyntax(SyntaxKind.Argument) argument)
+            if (identifierNode?.Parent is ArgumentSyntax argument)
             {
                 if (argument.RefOrOutKeyword.Kind() != SyntaxKind.None)
                     return true;
@@ -349,14 +349,14 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineTemporary
 
             // If the local is parented by a label statement, we can't remove this statement. Instead,
             // we'll replace the local declaration with an empty expression statement.
-            if (newLocalDeclaration?.Parent is LabeledStatementSyntax(SyntaxKind.LabeledStatement) labeledStatement)
+            if (newLocalDeclaration?.Parent is LabeledStatementSyntax labeledStatement)
             {
                 var newLabeledStatement = labeledStatement.ReplaceNode(newLocalDeclaration, SyntaxFactory.ParseStatement(""));
                 return newScope.ReplaceNode(labeledStatement, newLabeledStatement);
             }
 
             // If the local is parented by a global statement, we need to remove the parent global statement.
-            if (newLocalDeclaration?.Parent is GlobalStatementSyntax(SyntaxKind.GlobalStatement) globalStatement)
+            if (newLocalDeclaration?.Parent is GlobalStatementSyntax globalStatement)
             {
                 return newScope.RemoveNode(globalStatement, SyntaxRemoveOptions.KeepNoTrivia);
             }

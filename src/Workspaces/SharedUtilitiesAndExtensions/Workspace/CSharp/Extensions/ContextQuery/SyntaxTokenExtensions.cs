@@ -613,7 +613,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             {
                 if (node?.Parent is TypeDeclarationSyntax(SyntaxKind.InterfaceDeclaration) typeDecl)
                     return typeDecl.TypeParameterList == node;
-                else if (node?.Parent is DelegateDeclarationSyntax(SyntaxKind.DelegateDeclaration) delegateDecl)
+                else if (node?.Parent is DelegateDeclarationSyntax delegateDecl)
                     return delegateDecl.TypeParameterList == node;
             }
 

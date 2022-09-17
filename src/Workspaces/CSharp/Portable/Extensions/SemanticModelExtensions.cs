@@ -203,7 +203,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             SemanticModel semanticModel, ExpressionSyntax expression, CancellationToken cancellationToken)
         {
             var topExpression = expression.WalkUpParentheses();
-            if (topExpression?.Parent is ArgumentSyntax(SyntaxKind.Argument) argument)
+            if (topExpression?.Parent is ArgumentSyntax argument)
             {
                 if (argument.NameColon != null)
                 {

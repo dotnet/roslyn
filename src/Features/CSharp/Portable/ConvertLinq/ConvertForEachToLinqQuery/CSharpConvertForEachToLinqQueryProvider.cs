@@ -291,7 +291,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq.ConvertForEachToLinqQuery
                         .Where(statement => Equals(semanticModel.GetEnclosingSymbol(
                             statement.SpanStart, cancellationToken), memberDeclarationSymbol)).Count();
 
-                    if (forEachInfo.ForEachStatement?.Parent is BlockSyntax(SyntaxKind.Block) block &&
+                    if (forEachInfo.ForEachStatement?.Parent is BlockSyntax block &&
                         block.Parent == memberDeclarationSyntax)
                     {
                         // Check that 

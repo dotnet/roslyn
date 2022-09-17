@@ -65,11 +65,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.InlineRename
             if (parent.IsKind(SyntaxKind.IdentifierName))
             {
                 TypeSyntax? declaredType = null;
-                if (parent?.Parent is VariableDeclarationSyntax(SyntaxKind.VariableDeclaration) varDecl)
+                if (parent?.Parent is VariableDeclarationSyntax varDecl)
                 {
                     declaredType = varDecl.Type;
                 }
-                else if (parent?.Parent is FieldDeclarationSyntax(SyntaxKind.FieldDeclaration) fieldDecl)
+                else if (parent?.Parent is FieldDeclarationSyntax fieldDecl)
                 {
                     declaredType = fieldDecl.Declaration.Type;
                 }

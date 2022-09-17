@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         private static bool? CanReplaceWithDefaultLiteralFast(
             DefaultExpressionSyntax defaultExpression, SemanticModel semanticModel, CancellationToken cancellationToken)
         {
-            if (defaultExpression?.Parent is EqualsValueClauseSyntax(SyntaxKind.EqualsValueClause) equalsValueClause)
+            if (defaultExpression?.Parent is EqualsValueClauseSyntax equalsValueClause)
             {
                 var typeSyntax = GetTypeSyntax(equalsValueClause);
 
@@ -67,11 +67,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         private static TypeSyntax GetTypeSyntax(EqualsValueClauseSyntax equalsValueClause)
         {
             if (equalsValueClause.IsParentKind(SyntaxKind.VariableDeclarator) &&
-                equalsValueClause.Parent?.Parent is VariableDeclarationSyntax(SyntaxKind.VariableDeclaration) declaration)
+                equalsValueClause.Parent?.Parent is VariableDeclarationSyntax declaration)
             {
                 return declaration.Type;
             }
-            else if (equalsValueClause?.Parent is ParameterSyntax(SyntaxKind.Parameter) parameter)
+            else if (equalsValueClause?.Parent is ParameterSyntax parameter)
             {
                 return parameter.Type;
             }

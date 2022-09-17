@@ -72,7 +72,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Analyzers.RemoveUnnecessaryNullableDirec
             // Simplify syntax checks by walking up qualified names to an equivalent parent node.
             node = WalkUpCurrentQualifiedName(node);
 
-            if (node?.Parent is QualifiedNameSyntax(SyntaxKind.QualifiedName) qualifiedName
+            if (node?.Parent is QualifiedNameSyntax qualifiedName
                 && qualifiedName.Left == node)
             {
                 // Cannot dot off a nullable reference type

@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateType
             ExpressionSyntax expression,
             CancellationToken cancellationToken)
         {
-            if (expression is TypeSyntax && expression?.Parent is TypeArgumentListSyntax(SyntaxKind.TypeArgumentList) typeArgumentList)
+            if (expression is TypeSyntax typeSyntax && expression.Parent is TypeArgumentListSyntax typeArgumentList)
             {
                 var symbolInfo = semanticModel.GetSymbolInfo(typeArgumentList.Parent, cancellationToken);
                 var symbol = symbolInfo.GetAnySymbol();
@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateType
                     symbol = symbol.ContainingType;
                 }
 
-                var parameterIndex = typeArgumentList.Arguments.IndexOf((TypeSyntax)expression);
+                var parameterIndex = typeArgumentList.Arguments.IndexOf(typeSyntax);
                 if (symbol is INamedTypeSymbol type)
                 {
                     type = type.OriginalDefinition;
@@ -90,7 +90,7 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateType
         {
             if (expression is TypeSyntax &&
                 expression.Parent is BaseTypeSyntax baseType &&
-                baseType?.Parent is BaseListSyntax(SyntaxKind.BaseList) baseList &&
+                baseType.Parent is BaseListSyntax baseList &&
                 baseType.Type == expression)
             {
                 // If it's after the first item, then it's definitely an interface.
@@ -108,8 +108,8 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateType
             }
 
             if (expression is TypeSyntax &&
-                expression?.Parent is TypeConstraintSyntax(SyntaxKind.TypeConstraint) typeConstraint &&
-                typeConstraint?.Parent is TypeParameterConstraintClauseSyntax(SyntaxKind.TypeParameterConstraintClause) constraintClause)
+                expression.Parent is TypeConstraintSyntax typeConstraint &&
+                typeConstraint.Parent is TypeParameterConstraintClauseSyntax constraintClause)
             {
                 var index = constraintClause.Constraints.IndexOf(typeConstraint);
 
