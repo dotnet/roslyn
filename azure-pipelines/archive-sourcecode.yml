@@ -31,7 +31,7 @@ steps:
   clean: true
   fetchDepth: 0
 - powershell: tools/Install-DotNetSdk.ps1
-  displayName: Install .NET SDK
+  displayName: ⚙ Install .NET SDK
 - powershell: azure-pipelines/variables/_pipelines.ps1
   failOnStderr: true
   displayName: ⚙ Set pipeline variables based on source
@@ -47,4 +47,4 @@ steps:
     -Notes '${{ parameters.notes }}'
     -Verbose
     -WhatIf:$${{ parameters.whatif }}
-  displayName: Submit archival request
+  displayName: 🗃️ Submit archival request
