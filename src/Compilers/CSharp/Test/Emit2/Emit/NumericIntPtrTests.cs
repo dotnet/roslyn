@@ -312,6 +312,15 @@ class Program
         public string ToString(IFormatProvider provider) => default;
         public string ToString(string format, IFormatProvider provider) => default;
     }
+    public class Attribute { }
+    public class AttributeUsageAttribute : Attribute
+    {
+        public AttributeUsageAttribute(AttributeTargets t) { }
+        public bool AllowMultiple { get; set; }
+        public bool Inherited { get; set; }
+    }
+    public struct Enum { }
+    public enum AttributeTargets { }
 }
 " + RuntimeFeature_NumericIntPtr;
 
@@ -405,6 +414,15 @@ class Program
         public static bool operator==(UIntPtr x, UIntPtr y) => default;
         public static bool operator!=(UIntPtr x, UIntPtr y) => default;
     }
+    public class Attribute { }
+    public class AttributeUsageAttribute : Attribute
+    {
+        public AttributeUsageAttribute(AttributeTargets t) { }
+        public bool AllowMultiple { get; set; }
+        public bool Inherited { get; set; }
+    }
+    public struct Enum { }
+    public enum AttributeTargets { }
 }
 " + RuntimeFeature_NumericIntPtr;
             var comp = CreateEmptyCompilation(sourceA, options: TestOptions.UnsafeReleaseDll);
@@ -506,6 +524,15 @@ class Program
         public override int GetHashCode() => 0;
         public override bool Equals(object obj) => false;
     }
+    public class Attribute { }
+    public class AttributeUsageAttribute : Attribute
+    {
+        public AttributeUsageAttribute(AttributeTargets t) { }
+        public bool AllowMultiple { get; set; }
+        public bool Inherited { get; set; }
+    }
+    public struct Enum { }
+    public enum AttributeTargets { }
 }
 " + RuntimeFeature_NumericIntPtr;
 
@@ -582,6 +609,15 @@ class Program
         UIntPtr I<UIntPtr>.P => this;
         UIntPtr I<UIntPtr>.F() => this;
     }
+    public class Attribute { }
+    public class AttributeUsageAttribute : Attribute
+    {
+        public AttributeUsageAttribute(AttributeTargets t) { }
+        public bool AllowMultiple { get; set; }
+        public bool Inherited { get; set; }
+    }
+    public struct Enum { }
+    public enum AttributeTargets { }
 }
 " + RuntimeFeature_NumericIntPtr;
 
@@ -757,6 +793,15 @@ class Program
         internal UIntPtr F2() => default;
         public static UIntPtr F3() => default;
     }
+    public class Attribute { }
+    public class AttributeUsageAttribute : Attribute
+    {
+        public AttributeUsageAttribute(AttributeTargets t) { }
+        public bool AllowMultiple { get; set; }
+        public bool Inherited { get; set; }
+    }
+    public struct Enum { }
+    public enum AttributeTargets { }
 }
 " + RuntimeFeature_NumericIntPtr;
 
@@ -10095,7 +10140,7 @@ interface I
     void M(nint x1, System.IntPtr x2, nuint x3, System.UIntPtr x4);
 }
 ";
-            var parseOptions = useCSharp11 ? TestOptions.Regular11 : TestOptions.Regular10;
+            var parseOptions = (useCSharp11 ? TestOptions.Regular11 : TestOptions.Regular10).WithNoRefSafetyRulesAttribute();
 
             var comp = CreateEmptyCompilation(new[] { source, corlib_cs }, parseOptions: parseOptions);
             verify(comp);
@@ -10866,6 +10911,14 @@ namespace System
     public struct RuntimeTypeHandle { }
     public class MulticastDelegate : Delegate { }
     public class Attribute { }
+    public class AttributeUsageAttribute : Attribute
+    {
+        public AttributeUsageAttribute(AttributeTargets t) { }
+        public bool AllowMultiple { get; set; }
+        public bool Inherited { get; set; }
+    }
+    public class Enum { }
+    public enum AttributeTargets { }
 
     public delegate void Action();
 

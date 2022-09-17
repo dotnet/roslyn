@@ -1760,7 +1760,7 @@ class C
     }
 }
 ";
-            var comp = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.DebugExe);
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), options: TestOptions.DebugExe);
             comp.MakeTypeMissing(SpecialType.System_Int32);
             comp.VerifyDiagnostics();
             comp.VerifyEmitDiagnostics(

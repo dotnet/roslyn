@@ -124,9 +124,12 @@ namespace N
 
         <WpfFact>
         Public Sub TestSimpleContent_InlcudeNoPrivateNestedTypeOfMetaData()
-            Dim metaDatacode =
-<Code>
-namespace N
+            Dim workspace =
+                <Workspace>
+                    <Project Language="C#" CommonReferences="false" Features="noRefSafetyRulesAttribute">
+                        <Document></Document>
+                        <MetadataReferenceFromSource Language="C#" CommonReferences="true" Features="noRefSafetyRulesAttribute">
+                            <Document>namespace N
 {
     public class C
     {
@@ -134,11 +137,12 @@ namespace N
         private class PrivateClassTest { }
         private struct PrivateStructTest { }
     }
-}
-</Code>
-            Dim code = <Code></Code>
+}</Document>
+                        </MetadataReferenceFromSource>
+                    </Project>
+                </Workspace>
 
-            Using state = CreateLibraryManager(GetWorkspaceDefinition(code, metaDatacode, False))
+            Using state = CreateLibraryManager(workspace)
                 Dim library = state.GetLibrary()
                 Dim list = library.GetProjectList().GetReferenceList(0).GetNamespaceList(0).GetTypeList(0)
                 list.VerifyNames("C", "C.PublicEnumTest")

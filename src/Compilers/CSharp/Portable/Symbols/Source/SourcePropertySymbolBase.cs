@@ -1541,6 +1541,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 diagnostics.Add(ErrorCode.ERR_FieldAutoPropCantBeByRefLike, TypeLocation, type);
             }
+
+            if (type.IsStatic)
+            {
+                if (GetMethod is not null)
+                {
+                    // '{0}': static types cannot be used as return types
+                    diagnostics.Add(ErrorFacts.GetStaticClassReturnCode(ContainingType.IsInterfaceType()), TypeLocation, type);
+                }
+                else if (SetMethod is not null)
+                {
+                    // '{0}': static types cannot be used as parameters
+                    diagnostics.Add(ErrorFacts.GetStaticClassParameterCode(ContainingType.IsInterfaceType()), TypeLocation, type);
+                }
+            }
         }
 
         #endregion

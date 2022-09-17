@@ -691,18 +691,18 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundStatement BindDeclarationStatementParts(LocalDeclarationStatementSyntax node, BindingDiagnosticBag diagnostics)
         {
-            var typeSyntax = node.Declaration.Type.SkipRef(out _);
+            var typeSyntax = node.Declaration.Type;
             bool isConst = node.IsConst;
 
-            foreach (var modifier in node.Modifiers)
+            if (typeSyntax is ScopedTypeSyntax scopedType)
             {
-                // Check for support for 'scoped'. Duplicate modifiers are reported
-                // as errors in parsing rather than here.
-                if (modifier.Kind() == SyntaxKind.ScopedKeyword)
-                {
-                    ModifierUtils.CheckScopedModifierAvailability(node, modifier, diagnostics);
-                }
+                // Check for support for 'scoped'.
+                ModifierUtils.CheckScopedModifierAvailability(node, scopedType.ScopedKeyword, diagnostics);
+
+                typeSyntax = scopedType.Type;
             }
+
+            typeSyntax = typeSyntax.SkipRef(out _);
 
             bool isVar;
             AliasSymbol alias;
@@ -783,7 +783,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             // or it might not; if it is not then we do not want to report an error. If it is, then
             // we want to treat the declaration as an explicitly typed declaration.
 
-            TypeWithAnnotations declType = BindTypeOrVarKeyword(typeSyntax.SkipRef(out _), diagnostics, out isVar, out alias);
+            Debug.Assert(typeSyntax is not ScopedTypeSyntax);
+            TypeWithAnnotations declType = BindTypeOrVarKeyword(typeSyntax.SkipScoped(out _).SkipRef(out _), diagnostics, out isVar, out alias);
             Debug.Assert(declType.HasType || isVar);
 
             if (isVar)
@@ -1235,11 +1236,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     ContainingMemberOrLambda,
                     this,
                     allowRefKind: false, // do not allow ref
+                    allowScoped: false,
                     typeSyntax,
                     identifier,
                     kind,
-                    equalsValue,
-                    hasScopedModifier: false);
+                    equalsValue);
             }
 
             return localSymbol;
@@ -2685,6 +2686,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var typeSyntax = nodeOpt.Type;
+            Debug.Assert(nodeOpt.Type is not ScopedTypeSyntax);
+
             // Fixed and using variables are not allowed to be ref-like, but regular variables are
             if (localKind == LocalDeclarationKind.RegularVariable)
             {
