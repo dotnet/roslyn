@@ -1244,7 +1244,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
         {
             foreach (var child in block.ChildNodes())
             {
-                if (child.IsKind(SyntaxKind.LocalDeclarationStatement, out LocalDeclarationStatementSyntax? localDecl))
+                if (child is LocalDeclarationStatementSyntax(SyntaxKind.LocalDeclarationStatement) localDecl)
                 {
                     GetLocalNames(localDecl.Declaration, ref result);
                 }

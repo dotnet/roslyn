@@ -610,7 +610,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
 
         private static bool IsNotNullableReplaceable(NameSyntax name, TypeSyntax reducedName)
         {
-            if (reducedName.IsKind(SyntaxKind.NullableType, out NullableTypeSyntax nullableType))
+            if (reducedName is NullableTypeSyntax(SyntaxKind.NullableType) nullableType)
             {
                 if (nullableType.ElementType.Kind() == SyntaxKind.OmittedTypeArgument)
                     return true;

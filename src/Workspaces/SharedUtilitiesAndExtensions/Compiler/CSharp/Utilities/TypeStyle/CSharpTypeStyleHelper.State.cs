@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
                 this.TypeStylePreference = stylePreferences;
 
                 IsTypeApparentInContext =
-                        declaration.IsKind(SyntaxKind.VariableDeclaration, out VariableDeclarationSyntax? varDecl)
+                        declaration is VariableDeclarationSyntax(SyntaxKind.VariableDeclaration) varDecl
                      && IsTypeApparentInDeclaration(varDecl, semanticModel, TypeStylePreference, cancellationToken);
 
                 IsInIntrinsicTypeContext =

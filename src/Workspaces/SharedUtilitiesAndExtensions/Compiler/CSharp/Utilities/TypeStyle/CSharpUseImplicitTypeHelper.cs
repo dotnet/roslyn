@@ -103,7 +103,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
                 return false;
             }
 
-            if (typeName.Parent.IsKind(SyntaxKind.VariableDeclaration, out VariableDeclarationSyntax? variableDeclaration) &&
+            if (typeName.Parent is VariableDeclarationSyntax(SyntaxKind.VariableDeclaration) variableDeclaration &&
                 typeName.Parent.IsParentKind(SyntaxKind.LocalDeclarationStatement, SyntaxKind.ForStatement, SyntaxKind.UsingStatement))
             {
                 // implicitly typed variables cannot be constants.

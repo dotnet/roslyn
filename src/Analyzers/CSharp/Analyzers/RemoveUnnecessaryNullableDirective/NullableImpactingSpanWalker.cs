@@ -136,7 +136,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Analyzers.RemoveUnnecessaryNullableDirec
                 if (typeSyntax.IsVar)
                     return;
 
-                if (typeSyntax.IsKind(SyntaxKind.PredefinedType, out PredefinedTypeSyntax? predefinedType)
+                if (typeSyntax is PredefinedTypeSyntax(SyntaxKind.PredefinedType) predefinedType
                     && CSharpSyntaxFacts.Instance.TryGetPredefinedType(predefinedType.Keyword, out var type))
                 {
                     if (type is CodeAnalysis.LanguageService.PredefinedType.Object or CodeAnalysis.LanguageService.PredefinedType.String)

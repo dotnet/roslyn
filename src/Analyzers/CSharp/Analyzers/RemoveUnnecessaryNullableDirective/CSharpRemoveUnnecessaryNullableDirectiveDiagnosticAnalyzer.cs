@@ -115,7 +115,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessaryNullableDirective
             {
                 context.CancellationToken.ThrowIfCancellationRequested();
 
-                if (directive.IsKind(SyntaxKind.NullableDirectiveTrivia, out NullableDirectiveTriviaSyntax? nullableDirectiveTrivia))
+                if (directive is NullableDirectiveTriviaSyntax(SyntaxKind.NullableDirectiveTrivia) nullableDirectiveTrivia)
                 {
                     // Once we reach a new directive, check to see if we can remove the previous directive
                     var removedCurrent = false;
@@ -195,7 +195,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessaryNullableDirective
                 {
                     cancellationToken.ThrowIfCancellationRequested();
 
-                    if (directive.IsKind(SyntaxKind.NullableDirectiveTrivia, out NullableDirectiveTriviaSyntax? nullableDirectiveTrivia))
+                    if (directive is NullableDirectiveTriviaSyntax(SyntaxKind.NullableDirectiveTrivia) nullableDirectiveTrivia)
                     {
                         var newOptions = CSharpRemoveRedundantNullableDirectiveDiagnosticAnalyzer.GetNullableContextOptions(compilationOptions, currentOptions, nullableDirectiveTrivia);
                         if (IsReducing(currentOptions, newOptions))

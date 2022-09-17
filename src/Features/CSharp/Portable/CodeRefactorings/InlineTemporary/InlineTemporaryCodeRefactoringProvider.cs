@@ -384,7 +384,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineTemporary
                 var type = localSymbol.Type.GenerateTypeSyntax();
                 return SyntaxFactory.ObjectCreationExpression(implicitCreation.NewKeyword, type, implicitCreation.ArgumentList, implicitCreation.Initializer);
             }
-            else if (expression.IsKind(SyntaxKind.ArrayInitializerExpression, out InitializerExpressionSyntax arrayInitializer))
+            else if (expression is InitializerExpressionSyntax(SyntaxKind.ArrayInitializerExpression) arrayInitializer)
             {
                 // If this is an array initializer, we need to transform it into an array creation
                 // expression for inlining.

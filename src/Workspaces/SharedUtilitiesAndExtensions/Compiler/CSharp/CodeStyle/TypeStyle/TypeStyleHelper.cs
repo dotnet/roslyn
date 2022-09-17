@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle.TypeStyle
             CancellationToken cancellationToken)
         {
             // tuple literals
-            if (initializerExpression.IsKind(SyntaxKind.TupleExpression, out TupleExpressionSyntax? tuple))
+            if (initializerExpression is TupleExpressionSyntax(SyntaxKind.TupleExpression) tuple)
             {
                 if (typeInDeclaration == null || !typeInDeclaration.IsTupleType)
                 {

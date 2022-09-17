@@ -96,7 +96,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
             }
 
             SyntaxNode replacementSyntax;
-            if (node.IsKind(SyntaxKind.QualifiedCref, out QualifiedCrefSyntax? crefSyntax))
+            if (node is QualifiedCrefSyntax(SyntaxKind.QualifiedCref) crefSyntax)
             {
                 if (!QualifiedCrefSimplifier.Instance.TrySimplify(crefSyntax, model, options, out var replacement, out issueSpan, cancellationToken))
                     return false;

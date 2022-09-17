@@ -270,11 +270,11 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageService
             => ((ReturnStatementSyntax)node).Expression;
 
         public bool IsThisConstructorInitializer(SyntaxToken token)
-            => token.Parent.IsKind(SyntaxKind.ThisConstructorInitializer, out ConstructorInitializerSyntax? constructorInit) &&
+            => token.Parent is ConstructorInitializerSyntax(SyntaxKind.ThisConstructorInitializer) constructorInit &&
                constructorInit.ThisOrBaseKeyword == token;
 
         public bool IsBaseConstructorInitializer(SyntaxToken token)
-            => token.Parent.IsKind(SyntaxKind.BaseConstructorInitializer, out ConstructorInitializerSyntax? constructorInit) &&
+            => token.Parent is ConstructorInitializerSyntax(SyntaxKind.BaseConstructorInitializer) constructorInit &&
                constructorInit.ThisOrBaseKeyword == token;
 
         public bool IsQueryKeyword(SyntaxToken token)
@@ -1157,7 +1157,7 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageService
             => ((AssignmentExpressionSyntax)node).Right;
 
         public bool IsInferredAnonymousObjectMemberDeclarator([NotNullWhen(true)] SyntaxNode? node)
-            => node.IsKind(SyntaxKind.AnonymousObjectMemberDeclarator, out AnonymousObjectMemberDeclaratorSyntax? anonObject) &&
+            => node is AnonymousObjectMemberDeclaratorSyntax(SyntaxKind.AnonymousObjectMemberDeclarator) anonObject &&
                anonObject.NameEquals == null;
 
         public bool IsOperandOfIncrementExpression([NotNullWhen(true)] SyntaxNode? node)
@@ -1223,7 +1223,7 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageService
 
         private static bool IsGlobalAttribute([NotNullWhen(true)] SyntaxNode? node, SyntaxKind attributeTarget)
             => node.IsKind(SyntaxKind.Attribute) &&
-               node.Parent.IsKind(SyntaxKind.AttributeList, out AttributeListSyntax? attributeList) &&
+               node.Parent is AttributeListSyntax(SyntaxKind.AttributeList) attributeList &&
                attributeList.Target?.Identifier.Kind() == attributeTarget;
 
         public bool IsDeclaration(SyntaxNode? node)
@@ -1280,7 +1280,7 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageService
             => SyntaxFacts.IsTypeDeclaration(node.Kind());
 
         public bool IsSimpleAssignmentStatement([NotNullWhen(true)] SyntaxNode? statement)
-            => statement.IsKind(SyntaxKind.ExpressionStatement, out ExpressionStatementSyntax? exprStatement) &&
+            => statement is ExpressionStatementSyntax(SyntaxKind.ExpressionStatement) exprStatement &&
                exprStatement.Expression.IsKind(SyntaxKind.SimpleAssignmentExpression);
 
         public void GetPartsOfAssignmentStatement(
@@ -1411,7 +1411,7 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageService
             => node.GetAttributeLists();
 
         public bool IsParameterNameXmlElementSyntax([NotNullWhen(true)] SyntaxNode? node)
-            => node.IsKind(SyntaxKind.XmlElement, out XmlElementSyntax? xmlElement) &&
+            => node is XmlElementSyntax(SyntaxKind.XmlElement) xmlElement &&
             xmlElement.StartTag.Name.LocalName.ValueText == DocumentationCommentXmlNames.ParameterElementName;
 
         public SyntaxList<SyntaxNode> GetContentFromDocumentationCommentTriviaSyntax(SyntaxTrivia trivia)

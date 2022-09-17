@@ -132,7 +132,7 @@ namespace Microsoft.CodeAnalysis.CSharp.DocumentationComments
             {
                 var returnType = member.GetMemberType();
                 if (returnType != null &&
-                    !(returnType.IsKind(SyntaxKind.PredefinedType, out PredefinedTypeSyntax? predefinedType) && predefinedType.Keyword.IsKindOrHasMatchingText(SyntaxKind.VoidKeyword)))
+                    !(returnType is PredefinedTypeSyntax(SyntaxKind.PredefinedType) predefinedType && predefinedType.Keyword.IsKindOrHasMatchingText(SyntaxKind.VoidKeyword)))
                 {
                     list.Add("/// <returns></returns>");
                 }

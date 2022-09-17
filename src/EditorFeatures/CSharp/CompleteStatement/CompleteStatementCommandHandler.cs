@@ -282,7 +282,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
 
         private static bool IsInConditionOfDoStatement(SyntaxNode currentNode, SnapshotPoint caret)
         {
-            if (!currentNode.IsKind(SyntaxKind.DoStatement, out DoStatementSyntax? doStatement))
+            if (currentNode is not DoStatementSyntax doStatement)
             {
                 return false;
             }

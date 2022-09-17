@@ -346,7 +346,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
 
                 return false;
             }
-            else if (currentOriginalNode.IsKind(SyntaxKind.ConditionalExpression, out ConditionalExpressionSyntax originalExpression))
+            else if (currentOriginalNode is ConditionalExpressionSyntax(SyntaxKind.ConditionalExpression) originalExpression)
             {
                 var newExpression = (ConditionalExpressionSyntax)currentReplacedNode;
 
@@ -413,7 +413,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
                     }
                 }
             }
-            else if (currentOriginalNode.IsKind(SyntaxKind.CaseSwitchLabel, out CaseSwitchLabelSyntax originalCaseSwitchLabel))
+            else if (currentOriginalNode is CaseSwitchLabelSyntax(SyntaxKind.CaseSwitchLabel) originalCaseSwitchLabel)
             {
                 var newCaseSwitchLabel = (CaseSwitchLabelSyntax)currentReplacedNode;
 
@@ -441,7 +441,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
                 // (since originalCaseType != newCaseType)
                 return originalConversion == newConversion;
             }
-            else if (currentOriginalNode.IsKind(SyntaxKind.SwitchStatement, out SwitchStatementSyntax originalSwitchStatement) &&
+            else if (currentOriginalNode is SwitchStatementSyntax(SyntaxKind.SwitchStatement) originalSwitchStatement &&
                      originalSwitchStatement.Expression == previousOriginalNode)
             {
                 // Switch statement's expression changed, verify that the conversions from switch case labels to new switch
@@ -467,7 +467,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
                     }
                 }
             }
-            else if (currentOriginalNode.IsKind(SyntaxKind.SwitchExpression, out SwitchExpressionSyntax originalSwitchExpression) &&
+            else if (currentOriginalNode is SwitchExpressionSyntax(SyntaxKind.SwitchExpression) originalSwitchExpression &&
                      originalSwitchExpression.GoverningExpression == previousOriginalNode)
             {
                 var replacedSwitchExpression = (SwitchExpressionSyntax)currentReplacedNode;
@@ -481,7 +481,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
                 if (!Equals(originalExprType.Type, replacedExprType.Type))
                     return true;
             }
-            else if (currentOriginalNode.IsKind(SyntaxKind.IfStatement, out IfStatementSyntax originalIfStatement))
+            else if (currentOriginalNode is IfStatementSyntax(SyntaxKind.IfStatement) originalIfStatement)
             {
                 var newIfStatement = (IfStatementSyntax)currentReplacedNode;
 

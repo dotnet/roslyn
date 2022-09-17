@@ -1834,7 +1834,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 string parameterName,
                 SyntaxNode node)
             {
-                if (node.IsKind(SyntaxKind.IdentifierName, out IdentifierNameSyntax identifierName))
+                if (node is IdentifierNameSyntax(SyntaxKind.IdentifierName) identifierName)
                 {
                     if (identifierName.Identifier.ValueText.Equals(parameterName) &&
                         SemanticModel.GetSymbolInfo(identifierName.Identifier).Symbol?.Kind == SymbolKind.Parameter)
@@ -2204,11 +2204,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             private IEnumerable<TypeInferenceInfo> InferTypeInVariableComponentAssignment(ExpressionSyntax left)
             {
-                if (left.IsKind(SyntaxKind.DeclarationExpression, out DeclarationExpressionSyntax declExpr))
+                if (left is DeclarationExpressionSyntax(SyntaxKind.DeclarationExpression) declExpr)
                 {
                     return GetTypes(declExpr.Type);
                 }
-                else if (left.IsKind(SyntaxKind.TupleExpression, out TupleExpressionSyntax tupleExpression))
+                else if (left is TupleExpressionSyntax(SyntaxKind.TupleExpression) tupleExpression)
                 {
                     // We have something of the form:
                     //   (int a, int b) = ...
@@ -2252,11 +2252,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 foreach (var arg in arguments)
                 {
                     var expr = arg.Expression;
-                    if (expr.IsKind(SyntaxKind.DeclarationExpression, out DeclarationExpressionSyntax declExpr))
+                    if (expr is DeclarationExpressionSyntax(SyntaxKind.DeclarationExpression) declExpr)
                     {
                         AddTypeAndName(declExpr, elementTypesBuilder, elementNamesBuilder);
                     }
-                    else if (expr.IsKind(SyntaxKind.TupleExpression, out TupleExpressionSyntax tupleExpr))
+                    else if (expr is TupleExpressionSyntax(SyntaxKind.TupleExpression) tupleExpr)
                     {
                         AddTypeAndName(tupleExpr, elementTypesBuilder, elementNamesBuilder);
                     }
@@ -2290,7 +2290,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 elementTypesBuilder.Add(GetTypes(declaration.Type).FirstOrDefault().InferredType);
 
                 var designation = declaration.Designation;
-                if (designation.IsKind(SyntaxKind.SingleVariableDesignation, out SingleVariableDesignationSyntax singleVariable))
+                if (designation is SingleVariableDesignationSyntax(SyntaxKind.SingleVariableDesignation) singleVariable)
                 {
                     var name = singleVariable.Identifier.ValueText;
 

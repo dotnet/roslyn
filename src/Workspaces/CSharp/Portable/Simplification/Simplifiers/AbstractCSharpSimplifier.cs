@@ -178,7 +178,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
             static bool IsAliasReplaceableExpression(ExpressionSyntax expression)
             {
                 var current = expression;
-                while (current.IsKind(SyntaxKind.SimpleMemberAccessExpression, out MemberAccessExpressionSyntax currentMember))
+                while (current is MemberAccessExpressionSyntax(SyntaxKind.SimpleMemberAccessExpression) currentMember)
                 {
                     current = currentMember.Expression;
                     continue;

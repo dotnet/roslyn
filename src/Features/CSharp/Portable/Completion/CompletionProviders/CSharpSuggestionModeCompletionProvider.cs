@@ -139,7 +139,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             // For example, "(a, b" could be the start of either a tuple or lambda
             // But "(a: b, c" cannot be a lambda
             if (tree.IsPossibleTupleContext(token, position) &&
-                token.Parent.IsKind(SyntaxKind.TupleExpression, out TupleExpressionSyntax? tupleExpression) &&
+                token.Parent is TupleExpressionSyntax(SyntaxKind.TupleExpression) tupleExpression &&
                 !tupleExpression.HasNames())
             {
                 position = token.Parent.SpanStart;

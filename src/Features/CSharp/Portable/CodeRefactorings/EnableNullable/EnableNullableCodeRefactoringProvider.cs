@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.EnableNullable
                 token = root.FindToken(textSpan.Start - 1, findInsideTrivia: true);
 
             if (token.Kind() is not (SyntaxKind.EnableKeyword or SyntaxKind.RestoreKeyword or SyntaxKind.DisableKeyword or SyntaxKind.NullableKeyword or SyntaxKind.HashToken) ||
-                !token.Parent.IsKind(SyntaxKind.NullableDirectiveTrivia, out NullableDirectiveTriviaSyntax? nullableDirectiveTrivia))
+                token.Parent is not NullableDirectiveTriviaSyntax nullableDirectiveTrivia)
             {
                 return;
             }
@@ -231,7 +231,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.EnableNullable
             // A leading nullable directive is a '#nullable' directive which precedes any conditional directives ('#if')
             // or code (non-trivia).
             var firstRelevantDirective = root.GetFirstDirective(static directive => directive.Kind() is SyntaxKind.NullableDirectiveTrivia or SyntaxKind.IfDirectiveTrivia);
-            if (firstRelevantDirective.IsKind(SyntaxKind.NullableDirectiveTrivia, out NullableDirectiveTriviaSyntax? nullableDirective)
+            if (firstRelevantDirective is NullableDirectiveTriviaSyntax(SyntaxKind.NullableDirectiveTrivia) nullableDirective
                 && nullableDirective.TargetToken.IsKind(SyntaxKind.None))
             {
                 var firstSemanticToken = root.GetFirstToken();
