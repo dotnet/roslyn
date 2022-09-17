@@ -68,6 +68,7 @@ stages:
           This PR is for **validation purposes only** for !$(System.PullRequest.PullRequestId). **Do not complete**.
         CustomScriptExecutionCommand: src/VSSDK/NuGet/AllowUnstablePackages.ps1
         InsertionBuildPolicy: Request Perf DDRITs
+        InsertionReviewers: $(Build.RequestedForEmail)
         AutoCompletePR: false
     - powershell: |
         $insertionPRId = azure-pipelines/Get-InsertionPRId.ps1
