@@ -835,7 +835,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (parameter is BoundThisReference)
                 {
-                    Error(diagnostics, ErrorCode.ERR_RefReturnStructThis, parameter.Syntax);
+                    Error(diagnostics, ErrorCode.ERR_RefReturnStructThis, node);
                     return false;
                 }
 
