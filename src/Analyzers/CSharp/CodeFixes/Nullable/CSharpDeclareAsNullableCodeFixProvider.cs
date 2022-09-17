@@ -147,17 +147,18 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.DeclareAsNullable
             if (node.IsParentKind(SyntaxKind.ReturnStatement, SyntaxKind.YieldReturnStatement))
             {
                 var containingMember = node.GetAncestors().FirstOrDefault(
-                    a => a.Kind() is SyntaxKind.MethodDeclaration or
-                                     SyntaxKind.PropertyDeclaration or
-                                     SyntaxKind.ParenthesizedLambdaExpression or
-                                     SyntaxKind.SimpleLambdaExpression or
-                                     SyntaxKind.LocalFunctionStatement or
-                                     SyntaxKind.AnonymousMethodExpression or
-                                     SyntaxKind.ConstructorDeclaration or
-                                     SyntaxKind.DestructorDeclaration or
-                                     SyntaxKind.OperatorDeclaration or
-                                     SyntaxKind.IndexerDeclaration or
-                                     SyntaxKind.EventDeclaration);
+                    a => a.Kind() is
+                        SyntaxKind.MethodDeclaration or
+                        SyntaxKind.PropertyDeclaration or
+                        SyntaxKind.ParenthesizedLambdaExpression or
+                        SyntaxKind.SimpleLambdaExpression or
+                        SyntaxKind.LocalFunctionStatement or
+                        SyntaxKind.AnonymousMethodExpression or
+                        SyntaxKind.ConstructorDeclaration or
+                        SyntaxKind.DestructorDeclaration or
+                        SyntaxKind.OperatorDeclaration or
+                        SyntaxKind.IndexerDeclaration or
+                        SyntaxKind.EventDeclaration);
 
                 if (containingMember == null)
                 {
@@ -374,13 +375,14 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.DeclareAsNullable
         }
 
         private static bool IsExpressionSupported(SyntaxNode node)
-            => node.Kind() is SyntaxKind.NullLiteralExpression or
-                              SyntaxKind.AsExpression or
-                              SyntaxKind.DefaultExpression or
-                              SyntaxKind.DefaultLiteralExpression or
-                              SyntaxKind.ConditionalExpression or
-                              SyntaxKind.ConditionalAccessExpression or
-                              SyntaxKind.PropertyDeclaration or
-                              SyntaxKind.VariableDeclarator;
+            => node.Kind() is
+                SyntaxKind.NullLiteralExpression or
+                SyntaxKind.AsExpression or
+                SyntaxKind.DefaultExpression or
+                SyntaxKind.DefaultLiteralExpression or
+                SyntaxKind.ConditionalExpression or
+                SyntaxKind.ConditionalAccessExpression or
+                SyntaxKind.PropertyDeclaration or
+                SyntaxKind.VariableDeclarator;
     }
 }

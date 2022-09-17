@@ -105,10 +105,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.TextStructureNavigation
                 var span = new Span(position.Position, token.Span.End - position.Position);
                 return new TextExtent(new SnapshotSpan(position.Snapshot, span), isSignificant: true);
             }
-            else if (token.Kind() is SyntaxKind.SingleLineRawStringLiteralToken or
-                                     SyntaxKind.MultiLineRawStringLiteralToken or
-                                     SyntaxKind.Utf8SingleLineRawStringLiteralToken or
-                                     SyntaxKind.Utf8MultiLineRawStringLiteralToken)
+            else if (token.Kind() is
+                SyntaxKind.SingleLineRawStringLiteralToken or
+                SyntaxKind.MultiLineRawStringLiteralToken or
+                SyntaxKind.Utf8SingleLineRawStringLiteralToken or
+                SyntaxKind.Utf8MultiLineRawStringLiteralToken)
             {
                 var delimiterStart = GetStartOfRawStringLiteralEndDelimiter(token);
                 return new TextExtent(new SnapshotSpan(position.Snapshot, Span.FromBounds(delimiterStart, token.Span.End)), isSignificant: true);

@@ -316,13 +316,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             // Effectively, if we're on the RHS of the ? we have to walk up the RHS spine first until we hit the first
             // conditional access.
 
-            while (current?.Kind() is SyntaxKind.InvocationExpression or
-                                      SyntaxKind.ElementAccessExpression or
-                                      SyntaxKind.SimpleMemberAccessExpression or
-                                      SyntaxKind.MemberBindingExpression or
-                                      SyntaxKind.ElementBindingExpression or
-                                      // Optional exclamations might follow the conditional operation. For example: a.b?.$$c!!!!()
-                                      SyntaxKind.SuppressNullableWarningExpression &&
+            while (current?.Kind() is
+                SyntaxKind.InvocationExpression or
+                SyntaxKind.ElementAccessExpression or
+                SyntaxKind.SimpleMemberAccessExpression or
+                SyntaxKind.MemberBindingExpression or
+                SyntaxKind.ElementBindingExpression or
+                // Optional exclamations might follow the conditional operation. For example: a.b?.$$c!!!!()
+                SyntaxKind.SuppressNullableWarningExpression &&
                 current.Parent is not ConditionalAccessExpressionSyntax)
             {
                 current = current.Parent;

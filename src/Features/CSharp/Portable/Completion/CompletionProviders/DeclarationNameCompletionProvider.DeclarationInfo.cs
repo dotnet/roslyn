@@ -476,10 +476,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             }
 
             private static bool IsPossibleTypeToken(SyntaxToken token)
-                => token.Kind() is SyntaxKind.IdentifierToken or
-                                   SyntaxKind.GreaterThanToken or
-                                   SyntaxKind.CloseBracketToken or
-                                   SyntaxKind.QuestionToken ||
+                => token.Kind() is
+                     SyntaxKind.IdentifierToken or
+                     SyntaxKind.GreaterThanToken or
+                     SyntaxKind.CloseBracketToken or
+                     SyntaxKind.QuestionToken ||
                    token.Parent.IsKind(SyntaxKind.PredefinedType);
 
             private static ImmutableArray<SymbolKindOrTypeKind> GetPossibleMemberDeclarations(DeclarationModifiers modifiers)

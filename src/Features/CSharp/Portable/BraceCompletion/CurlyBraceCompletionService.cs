@@ -142,12 +142,13 @@ namespace Microsoft.CodeAnalysis.CSharp.BraceCompletion
                 // int[] arr = {
                 //           = new[] {
                 //           = new int[] {
-                if (currentToken.Parent?.Kind() is SyntaxKind.ObjectInitializerExpression or
-                                                   SyntaxKind.CollectionInitializerExpression or
-                                                   SyntaxKind.ArrayInitializerExpression or
-                                                   SyntaxKind.ImplicitArrayCreationExpression or
-                                                   SyntaxKind.WithInitializerExpression or
-                                                   SyntaxKind.PropertyPatternClause)
+                if (currentToken.Parent?.Kind() is
+                        SyntaxKind.ObjectInitializerExpression or
+                        SyntaxKind.CollectionInitializerExpression or
+                        SyntaxKind.ArrayInitializerExpression or
+                        SyntaxKind.ImplicitArrayCreationExpression or
+                        SyntaxKind.WithInitializerExpression or
+                        SyntaxKind.PropertyPatternClause)
                 {
                     return options.NewLines.HasFlag(NewLinePlacement.BeforeOpenBraceInObjectCollectionArrayInitializers);
                 }

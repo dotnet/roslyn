@@ -1274,9 +1274,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             // (..., (a, b) $$
             if (leftToken.IsKind(SyntaxKind.CloseParenToken))
             {
-                if (leftToken.Parent?.Kind() is SyntaxKind.ParenthesizedExpression or
-                                                SyntaxKind.TupleExpression or
-                                                SyntaxKind.TupleType)
+                if (leftToken.Parent?.Kind() is
+                        SyntaxKind.ParenthesizedExpression or
+                        SyntaxKind.TupleExpression or
+                        SyntaxKind.TupleType)
                 {
                     var possibleCommaOrParen = FindTokenOnLeftOfNode(leftToken.Parent);
                     if (IsPossibleTupleOpenParenOrComma(possibleCommaOrParen))
@@ -1521,10 +1522,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                 return false;
             }
 
-            if (possibleCommaOrParen.Parent?.Kind() is SyntaxKind.ParenthesizedExpression or
-                                                       SyntaxKind.TupleExpression or
-                                                       SyntaxKind.TupleType or
-                                                       SyntaxKind.CastExpression)
+            if (possibleCommaOrParen.Parent?.Kind() is
+                    SyntaxKind.ParenthesizedExpression or
+                    SyntaxKind.TupleExpression or
+                    SyntaxKind.TupleType or
+                    SyntaxKind.CastExpression)
             {
                 return true;
             }
@@ -2485,7 +2487,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             // join b in |
             if (token.IsKind(SyntaxKind.InKeyword))
             {
-                if (token.Parent?.Kind() is SyntaxKind.ForEachStatement or SyntaxKind.ForEachVariableStatement or SyntaxKind.FromClause or SyntaxKind.JoinClause)
+                if (token.Parent?.Kind() is
+                        SyntaxKind.ForEachStatement or
+                        SyntaxKind.ForEachVariableStatement or
+                        SyntaxKind.FromClause or
+                        SyntaxKind.JoinClause)
                 {
                     return true;
                 }
