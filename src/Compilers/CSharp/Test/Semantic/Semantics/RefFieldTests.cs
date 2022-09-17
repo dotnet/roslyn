@@ -9163,8 +9163,16 @@ ref struct S
             r0 = ref r1; // 1
         }
         {
+            ref S r2 = ref s0;
+            r0 = ref r2;
+        }
+        {
             scoped ref S r2 = ref r0;
             r0 = ref r2; // 2
+        }
+        {
+            ref S r4 = ref r0;
+            r0 = ref r4;
         }
     }
 }
@@ -9175,9 +9183,9 @@ ref struct S { }
                 // (9,13): error CS8374: Cannot ref-assign 'r1' to 'r0' because 'r1' has a narrower escape scope than 'r0'.
                 //             r0 = ref r1; // 1
                 Diagnostic(ErrorCode.ERR_RefAssignNarrower, "r0 = ref r1").WithArguments("r0", "r1").WithLocation(9, 13),
-                // (13,13): error CS8374: Cannot ref-assign 'r2' to 'r0' because 'r2' has a narrower escape scope than 'r0'.
+                // (17,13): error CS8374: Cannot ref-assign 'r2' to 'r0' because 'r2' has a narrower escape scope than 'r0'.
                 //             r0 = ref r2; // 2
-                Diagnostic(ErrorCode.ERR_RefAssignNarrower, "r0 = ref r2").WithArguments("r0", "r2").WithLocation(13, 13));
+                Diagnostic(ErrorCode.ERR_RefAssignNarrower, "r0 = ref r2").WithArguments("r0", "r2").WithLocation(17, 13));
         }
 
         [Fact]
@@ -9198,6 +9206,10 @@ ref struct S { }
         {
             scoped S s2 = s0;
             s0 = s2; // 2
+        }
+        {
+            S s2 = s0;
+            s0 = s2;
         }
     }
 }
