@@ -91,7 +91,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Analyzers.RemoveUnnecessaryNullableDirec
                 return true;
             }
 
-            if (node.IsParentKind(SyntaxKind.NamespaceDeclaration, SyntaxKind.FileScopedNamespaceDeclaration))
+            if (node?.Parent is BaseNamespaceDeclarationSyntax)
             {
                 // Namespace names cannot be nullable reference types
                 return true;

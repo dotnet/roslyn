@@ -1782,7 +1782,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                         return true;
                     }
 
-                    if (parent.IsParentKind(SyntaxKind.ForEachStatement, SyntaxKind.ForEachVariableStatement))
+                    if (parent.Parent?.Kind() is SyntaxKind.ForEachStatement or SyntaxKind.ForEachVariableStatement)
                     {
                         return true;
                     }

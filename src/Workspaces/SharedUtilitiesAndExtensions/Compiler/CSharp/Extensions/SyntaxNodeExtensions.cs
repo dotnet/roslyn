@@ -56,20 +56,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             return false;
         }
 
-        public static bool IsParentKind([NotNullWhen(returnValue: true)] this SyntaxNode? node, SyntaxKind kind1, SyntaxKind kind2)
-            => IsKind(node?.Parent, kind1, kind2);
-
-        public static bool IsKind([NotNullWhen(returnValue: true)] this SyntaxNode? node, SyntaxKind kind1, SyntaxKind kind2)
-        {
-            if (node == null)
-            {
-                return false;
-            }
-
-            var csharpKind = node.Kind();
-            return csharpKind == kind1 || csharpKind == kind2;
-        }
-
         public static IEnumerable<SyntaxTrivia> GetAllPrecedingTriviaToPreviousToken(
             this SyntaxNode node, SourceText? sourceText = null,
             bool includePreviousTokenTrailingTriviaOnlyIfOnSameLine = false)

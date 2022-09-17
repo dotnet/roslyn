@@ -1163,7 +1163,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
                 throw Exceptions.ThrowEFail();
             }
 
-            if (member.IsParentKind(SyntaxKind.InterfaceDeclaration, SyntaxKind.EnumDeclaration))
+            if (member.Parent?.Kind() is SyntaxKind.InterfaceDeclaration or SyntaxKind.EnumDeclaration)
             {
                 if (newAccess is EnvDTE.vsCMAccess.vsCMAccessDefault or
                     EnvDTE.vsCMAccess.vsCMAccessPublic)
