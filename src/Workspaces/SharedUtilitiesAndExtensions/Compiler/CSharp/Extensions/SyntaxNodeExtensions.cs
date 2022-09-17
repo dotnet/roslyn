@@ -98,17 +98,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             return csharpKind == kind1 || csharpKind == kind2 || csharpKind == kind3 || csharpKind == kind4;
         }
 
-        public static bool IsKind([NotNullWhen(returnValue: true)] this SyntaxNode? node, SyntaxKind kind1, SyntaxKind kind2, SyntaxKind kind3, SyntaxKind kind4, SyntaxKind kind5)
-        {
-            if (node == null)
-            {
-                return false;
-            }
-
-            var csharpKind = node.Kind();
-            return csharpKind == kind1 || csharpKind == kind2 || csharpKind == kind3 || csharpKind == kind4 || csharpKind == kind5;
-        }
-
         public static IEnumerable<SyntaxTrivia> GetAllPrecedingTriviaToPreviousToken(
             this SyntaxNode node, SourceText? sourceText = null,
             bool includePreviousTokenTrailingTriviaOnlyIfOnSameLine = false)
