@@ -63,12 +63,12 @@ namespace Microsoft.CodeAnalysis.TaskList
                 return;
 
             var registrationService = _services.GetRequiredService<ISolutionCrawlerRegistrationService>();
-            var analyzerProvider = new InProcTaskListIncrementalAnalyzerProvider(this);
+            var analyzerProvider = new TaskListIncrementalAnalyzerProvider(this);
 
             registrationService.AddAnalyzerProvider(
                 analyzerProvider,
                 new IncrementalAnalyzerProviderMetadata(
-                    nameof(InProcTaskListIncrementalAnalyzerProvider),
+                    nameof(TaskListIncrementalAnalyzerProvider),
                     highPriorityForActiveFile: false,
                     workspaceKinds: WorkspaceKind.Host));
         }
