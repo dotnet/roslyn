@@ -44,30 +44,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 || token.Kind() == kind2;
         }
 
-        public static bool IsKind(this SyntaxToken token, SyntaxKind kind1, SyntaxKind kind2, SyntaxKind kind3)
-        {
-            return token.Kind() == kind1
-                || token.Kind() == kind2
-                || token.Kind() == kind3;
-        }
-
-        public static bool IsKind(this SyntaxToken token, SyntaxKind kind1, SyntaxKind kind2, SyntaxKind kind3, SyntaxKind kind4)
-        {
-            return token.Kind() == kind1
-                || token.Kind() == kind2
-                || token.Kind() == kind3
-                || token.Kind() == kind4;
-        }
-
-        public static bool IsKind(this SyntaxToken token, SyntaxKind kind1, SyntaxKind kind2, SyntaxKind kind3, SyntaxKind kind4, SyntaxKind kind5)
-        {
-            return token.Kind() == kind1
-                || token.Kind() == kind2
-                || token.Kind() == kind3
-                || token.Kind() == kind4
-                || token.Kind() == kind5;
-        }
-
         public static bool IsKind(this SyntaxToken token, params SyntaxKind[] kinds)
             => kinds.Contains(token.Kind());
 
