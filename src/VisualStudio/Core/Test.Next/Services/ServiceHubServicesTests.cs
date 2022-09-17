@@ -127,14 +127,14 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
 
             var resultSource = new TaskCompletionSource<(DocumentId, ImmutableArray<TaskListItem>)>();
 
-            using var listener = new TaskListListener(
+            var listener = new TaskListListener(
                 workspace.GlobalOptions,
                 workspace.Services.SolutionServices,
                 workspace.GetService<IAsynchronousOperationListenerProvider>(),
                 onTaskListItemsUpdated: (documentId, _, newComments) => resultSource.SetResult((documentId, newComments)),
                 disposalToken: cancellationTokenSource.Token);
 
-            await listener.StartAsync();
+            listener.Start();
 
             var (documentId, items) = await resultSource.Task.WithTimeout(TimeSpan.FromMinutes(1));
             Assert.Equal(solution.Projects.Single().Documents.Single().Id, documentId);
