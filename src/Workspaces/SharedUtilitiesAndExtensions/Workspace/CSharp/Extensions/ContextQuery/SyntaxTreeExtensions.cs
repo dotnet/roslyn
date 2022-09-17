@@ -948,7 +948,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
         }
 
         public static bool IsGenericConstraintContext(this SyntaxTree syntaxTree, SyntaxToken targetToken)
-            => targetToken.Parent.IsKind(SyntaxKind.TypeParameterConstraintClause) && targetToken.IsKind(SyntaxKind.ColonToken, SyntaxKind.CommaToken);
+            => targetToken.Parent.IsKind(SyntaxKind.TypeParameterConstraintClause) &&
+               targetToken.Kind() is SyntaxKind.ColonToken or SyntaxKind.CommaToken;
 
         public static bool IsGenericTypeArgumentContext(
             this SyntaxTree syntaxTree,

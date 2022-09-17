@@ -38,12 +38,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         public static bool HasMatchingText(this SyntaxToken token, SyntaxKind kind)
             => token.ToString() == SyntaxFacts.GetText(kind);
 
-        public static bool IsKind(this SyntaxToken token, SyntaxKind kind1, SyntaxKind kind2)
-        {
-            return token.Kind() == kind1
-                || token.Kind() == kind2;
-        }
-
         public static bool IsKind(this SyntaxToken token, params SyntaxKind[] kinds)
             => kinds.Contains(token.Kind());
 
