@@ -755,6 +755,12 @@ End Class
                                        returnName),
                          symbol1.ToTestDisplayString())
 
+            Assert.Equal(String.Format("Public Shared Operator {0}(value As {1}) As {2}",
+                                       SyntaxFacts.GetText(OverloadResolution.GetOperatorTokenKind(op)),
+                                       symbol1.Parameters(0).Type.ToDisplayString(),
+                                       symbol1.ReturnType.ToDisplayString()),
+                         symbol1.ToDisplayString())
+
             Assert.Equal(MethodKind.BuiltinOperator, symbol1.MethodKind)
             Assert.True(symbol1.IsImplicitlyDeclared)
 
