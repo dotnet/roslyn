@@ -4135,7 +4135,7 @@ public static class Extensions
 }";
             CreateCompilation(source, parseOptions: TestOptions.Regular9)
                  .VerifyDiagnostics(
-                    // (7,27): error CS7036: There is no argument given that corresponds to the required formal parameter '__arglist' of 'Extensions.GetEnumerator(C, __arglist)'
+                    // (7,27): error CS7036: There is no argument given that corresponds to the required parameter '__arglist' of 'Extensions.GetEnumerator(C, __arglist)'
                     //         foreach (var i in new C())
                     Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "new C()").WithArguments("__arglist", "Extensions.GetEnumerator(C, __arglist)").WithLocation(7, 27),
                     // (7,27): error CS1579: foreach statement cannot operate on variables of type 'C' because 'C' does not contain a public instance or extension definition for 'GetEnumerator'

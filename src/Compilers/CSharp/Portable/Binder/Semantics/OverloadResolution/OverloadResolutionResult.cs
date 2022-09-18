@@ -887,7 +887,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 badParamName = parameters[badParamIndex].Name;
             }
 
-            // There is no argument given that corresponds to the required formal parameter '{0}' of '{1}'
+            // There is no argument given that corresponds to the required parameter '{0}' of '{1}'
 
             object obj = (object)delegateTypeBeingInvoked ?? badMember;
 

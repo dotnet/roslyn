@@ -60,7 +60,7 @@ End Module
                 string.Join(Environment.NewLine, actualContents));
         }
 
-        [IdeFact]
+        [IdeFact(Skip = "https://github.com/dotnet/roslyn/issues/63981 and https://github.com/dotnet/roslyn/issues/63982")]
         public virtual async Task ErrorsDuringMethodBodyEditing()
         {
             await TestServices.Editor.SetTextAsync(@"

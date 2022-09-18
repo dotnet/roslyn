@@ -17,32 +17,10 @@
              platformimaging:ImageThemingUtilities.ImageBackgroundColor="{StaticResource {x:Static vsshell:VsColors.ToolWindowBackgroundKey}}">
     <UserControl.Resources>
         <ResourceDictionary>
-            <Style TargetType="CheckBox" BasedOn="{StaticResource {x:Static vsshell:VsResourceKeys.ThemedDialogCheckBoxStyleKey}}" />
-            <Style TargetType="ComboBox" BasedOn="{StaticResource {x:Static vsshell:VsResourceKeys.ThemedDialogComboBoxStyleKey}}" />
-            <Style TargetType="TextBox" BasedOn="{StaticResource {x:Static vsshell:VsResourceKeys.ThemedDialogTextBoxStyleKey}}" />
-            <Style TargetType="Label" BasedOn="{StaticResource {x:Static vsshell:VsResourceKeys.ThemedDialogLabelStyleKey}}" />
-            <Style TargetType="RadioButton" BasedOn="{StaticResource {x:Static vsshell:VsResourceKeys.ThemedDialogRadioButtonStyleKey}}" />
-            <Style TargetType="Hyperlink" BasedOn="{StaticResource {x:Static vsshell:VsResourceKeys.ThemedDialogHyperlinkStyleKey}}" />
-            <Style TargetType="TreeView" BasedOn="{StaticResource {x:Static vsshell:VsResourceKeys.ThemedDialogTreeViewStyleKey}}" />
-            <Style TargetType="TreeViewItem" BasedOn="{StaticResource {x:Static vsshell:VsResourceKeys.ThemedDialogTreeViewItemStyleKey}}" />
-            <Style TargetType="GridViewColumnHeader" BasedOn="{StaticResource {x:Static vsshell:VsResourceKeys.ThemedDialogGridViewColumnHeaderStyleKey}}" />
-            <Style TargetType="ListBox" BasedOn="{StaticResource {x:Static vsshell:VsResourceKeys.ThemedDialogListBoxStyleKey}}" />
-            <Style TargetType="ListView" BasedOn="{StaticResource {x:Static vsshell:VsResourceKeys.ThemedDialogListViewStyleKey}}" />
-
-
             <Style TargetType="TabControl">
                 <Setter Property="Background" Value="{StaticResource {x:Static vsshell:VsBrushes.ToolWindowBackgroundKey}}" />
                 <Setter Property="BorderThickness" Value="0" />
                 <Setter Property="Padding" Value="0" />
-            </Style>
-
-            <Style TargetType="Button" BasedOn="{StaticResource {x:Static vsshell:VsResourceKeys.ThemedDialogButtonStyleKey}}">
-                <Setter Property="Background" Value="Transparent" />
-                <Style.Triggers>
-                    <Trigger Property="IsMouseOver" Value="True">
-                        <Setter Property="Background" Value="{DynamicResource {x:Static vsui:CommonControlsColors.ButtonHoverBrushKey}}" />
-                    </Trigger>
-                </Style.Triggers>
             </Style>
         </ResourceDictionary>
     </UserControl.Resources>
@@ -52,7 +30,7 @@
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
         <StackPanel Orientation="Horizontal" Grid.Row="0" MinHeight="20" MinWidth="20" Margin="5">
-            <Button Click="Clear_Click" x:Name="ClearButton" AutomationProperties.Name="{Binding ElementName=Root, Path=Clear_Text}">
+            <Button Click="Clear_Click" x:Name="ClearButton" AutomationProperties.Name="{Binding ElementName=Root, Path=Clear_Text}" KeyboardNavigation.TabIndex="0">
                 <Button.Content>
                     <StackPanel Orientation="Horizontal">
                         <imaging:CrispImage Moniker="{x:Static imagecatalog:KnownMonikers.ClearCollection}" Margin="0 0 5 0" />
@@ -87,7 +65,11 @@
                         <ContentPresenter x:Name="PART_SelectedContentHost"
                                       SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}"
                                       Margin="{TemplateBinding Padding}"
-                                      ContentSource="SelectedContent" Grid.Row="1"/>
+                                      ContentSource="SelectedContent" 
+                                      Grid.Row="1"
+                                      Focusable="True"
+                                      KeyboardNavigation.TabIndex="3"
+                                      AutomationProperties.Name="{Binding ElementName=Root, Path=StackTrace}" />
                     </Grid>
                 </ControlTemplate>
             </TabControl.Template>
@@ -118,14 +100,14 @@
                                         Grid.Row="0" 
                                         x:Name="contentPresenter" 
                                         ContentSource="Header" 
-                                        Focusable="False" 
+                                        Focusable="False"
                                         HorizontalAlignment="{Binding HorizontalContentAlignment, RelativeSource={RelativeSource AncestorType={x:Type ItemsControl}}}" 
                                         Margin="5 0 5 0" 
                                         RecognizesAccessKey="True" 
                                         SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" 
                                         VerticalAlignment="{Binding VerticalContentAlignment, RelativeSource={RelativeSource AncestorType={x:Type ItemsControl}}}"/>
 
-                                    <Button Grid.Row="0" Grid.Column="1" Command="{Binding CloseClick}" Margin="0" Padding="0" BorderThickness="0" Width="16" MinWidth="16" MinHeight="16" Height="16" AutomationProperties.Name="{Binding CloseTab}">
+                                    <Button Grid.Row="0" Grid.Column="1" Command="{Binding CloseClick}" Margin="0" Padding="0" BorderThickness="0" Width="16" MinWidth="16" MinHeight="16" Height="16" AutomationProperties.Name="{Binding CloseTab}" KeyboardNavigation.TabIndex="2">
                                         <Button.Template>
                                             <ControlTemplate>
                                                 <Grid Background="{TemplateBinding Background}">
@@ -145,6 +127,7 @@
                                         Visibility="Collapsed"
                                         Width="96"
                                         HorizontalAlignment="Center"
+                                        Focusable="False"
                                         Fill="{DynamicResource {x:Static vsui:CommonDocumentColors.InnerTabInactiveHoverTextBrushKey}}"/>
                                 </Grid>
                                 <ControlTemplate.Triggers>

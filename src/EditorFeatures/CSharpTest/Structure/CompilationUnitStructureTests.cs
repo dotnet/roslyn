@@ -14,11 +14,12 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure
 {
+    [Trait(Traits.Feature, Traits.Features.Outlining)]
     public class CompilationUnitStructureTests : AbstractCSharpSyntaxNodeStructureTests<CompilationUnitSyntax>
     {
         internal override AbstractSyntaxStructureProvider CreateProvider() => new CompilationUnitStructureProvider();
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
+        [Fact]
         public async Task TestUsings()
         {
             const string code = @"
@@ -29,7 +30,7 @@ using System.Core;|}|}";
                 Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
+        [Fact]
         public async Task TestUsingAliases()
         {
             const string code = @"
@@ -42,7 +43,7 @@ using linq = System.Linq;|}|}";
                 Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
+        [Fact]
         public async Task TestExternAliases()
         {
             const string code = @"
@@ -53,7 +54,7 @@ extern alias Bar;|}|}";
                 Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
+        [Fact]
         public async Task TestExternAliasesAndUsings()
         {
             const string code = @"
@@ -66,7 +67,7 @@ using System.Core;|}|}";
                 Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
+        [Fact]
         public async Task TestExternAliasesAndUsingsWithLeadingTrailingAndNestedComments()
         {
             const string code = @"
@@ -87,7 +88,7 @@ using System.Core;|}|}
                 Region("span3", "// Goo ...", autoCollapse: true));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
+        [Fact]
         public async Task TestUsingsWithComments()
         {
             const string code = @"
@@ -101,7 +102,7 @@ using System.Core;|}|}";
                 Region("textspan2", "hint2", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
+        [Fact]
         public async Task TestExternAliasesWithComments()
         {
             const string code = @"
@@ -115,7 +116,7 @@ extern alias Bar;|}|}";
                 Region("textspan2", "hint2", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
+        [Fact]
         public async Task TestWithComments()
         {
             const string code = @"
@@ -126,7 +127,7 @@ $${|span1:// Goo
                 Region("span1", "// Goo ...", autoCollapse: true));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
+        [Fact]
         public async Task TestWithCommentsAtEnd()
         {
             const string code = @"
@@ -139,8 +140,7 @@ $${|hint1:using {|textspan1:System;|}|}
                 Region("span2", "// Goo ...", autoCollapse: true));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
-        [WorkItem(539359, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539359")]
+        [Fact, WorkItem(539359, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539359")]
         public async Task TestUsingKeywordWithSpace()
         {
             const string code = @"
@@ -150,17 +150,7 @@ $${|hint:using|} {|textspan:|}";
                 Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
-        [WorkItem(16186, "https://github.com/dotnet/roslyn/issues/16186")]
-        public async Task TestInvalidComment()
-        {
-            const string code = @"$${|span:/*/|}";
-
-            await VerifyBlockSpansAsync(code,
-                Region("span", "/* / ...", autoCollapse: true));
-        }
-
-        [Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Outlining)]
+        [Theory, CombinatorialData]
         public async Task TestUsingsShouldBeCollapsedByDefault(bool collapseUsingsByDefault)
         {
             const string code = @"

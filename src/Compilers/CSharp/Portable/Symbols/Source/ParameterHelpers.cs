@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
     internal static class ParameterHelpers
     {
-        public static ImmutableArray<ParameterSymbol> MakeParameters(
+        public static ImmutableArray<SourceParameterSymbol> MakeParameters(
             Binder withTypeParametersBinder,
             Symbol owner,
             BaseParameterListSyntax syntax,
@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             bool allowThis,
             bool addRefReadOnlyModifier)
         {
-            return MakeParameters<ParameterSyntax, ParameterSymbol, Symbol>(
+            return MakeParameters<ParameterSyntax, SourceParameterSymbol, Symbol>(
                 withTypeParametersBinder,
                 owner,
                 syntax.Parameters,
@@ -306,7 +306,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             Debug.Assert(!parameter.IsThis);
 
-            var scope = parameter.DeclaredScope;
+            var scope = parameter.EffectiveScope;
             if (scope == DeclarationScope.Unscoped)
             {
                 return false;
@@ -340,14 +340,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 default:
                     return false;
             }
-        }
-
-        internal static DeclarationScope CalculateEffectiveScopeIgnoringAttributes(ParameterSymbol parameter)
-        {
-            var declaredScope = parameter.DeclaredScope;
-            return declaredScope == DeclarationScope.Unscoped && IsRefScopedByDefault(parameter) ?
-                DeclarationScope.RefScoped :
-                declaredScope;
         }
 
         internal static void EnsureScopedRefAttributeExists(PEModuleBuilder moduleBuilder, ImmutableArray<ParameterSymbol> parameters)
@@ -659,6 +651,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             int firstDefault,
             BindingDiagnosticBag diagnostics)
         {
+            Debug.Assert(parameter is FunctionPointerParameterSymbol or SourceParameterSymbol);
+
             // This method may be called early, before parameter.Type has been resolved,
             // so code below should use parameter.TypeWithAnnotations instead if unsure.
 
@@ -689,7 +683,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // error CS0721: '{0}': static types cannot be used as parameters
                 diagnostics.Add(
                     ErrorFacts.GetStaticClassParameterCode(parameter.ContainingSymbol.ContainingType?.IsInterfaceType() ?? false),
-                    owner.Locations.IsEmpty ? parameterSyntax.GetLocation() : owner.Locations[0],
+                    parameterSyntax.Type?.Location ?? parameterSyntax.GetLocation(),
                     parameter.Type);
             }
             else if (firstDefault != -1 && parameterIndex > firstDefault && !isDefault && !parameter.IsParams)
@@ -705,7 +699,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 diagnostics.Add(ErrorCode.ERR_MethodArgCantBeRefAny, parameterSyntax.Location, parameter.Type);
             }
 
-            if (parameter.DeclaredScope == DeclarationScope.ValueScoped && !parameter.TypeWithAnnotations.IsRefLikeType())
+            if (parameter is SourceParameterSymbol { DeclaredScope: DeclarationScope.ValueScoped } && !parameter.TypeWithAnnotations.IsRefLikeType())
             {
                 diagnostics.Add(ErrorCode.ERR_ScopedRefAndRefStructOnly, parameterSyntax.Location);
             }

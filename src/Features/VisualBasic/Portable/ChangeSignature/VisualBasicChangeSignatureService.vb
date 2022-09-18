@@ -135,7 +135,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeSignature
             End If
 
             Dim symbolInfo = semanticModel.GetSymbolInfo(matchingNode, cancellationToken)
-            Return (If(symbolInfo.Symbol, symbolInfo.CandidateSymbols.FirstOrDefault()), 0)
+            symbol = If(symbolInfo.Symbol, symbolInfo.CandidateSymbols.FirstOrDefault())
+            Dim parameterIndex = 0
+
+            ' If we're being called on an invocation and not a definition we need to find the selected argument index based on the original definition.
+            Dim invocation = matchingNode.GetAncestorOrThis(Of InvocationExpressionSyntax)
+            Dim argument = invocation?.ArgumentList?.Arguments.FirstOrDefault(Function(a) a.Span.Contains(position))
+            If (argument IsNot Nothing) Then
+                parameterIndex = GetParameterIndexFromInvocationArgument(argument, document, semanticModel, cancellationToken)
+            End If
+
+            Return (symbol, parameterIndex)
         End Function
 
         Private Shared Function TryGetSelectedIndexFromDeclaration(position As Integer, matchingNode As SyntaxNode) As Integer

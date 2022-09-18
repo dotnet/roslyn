@@ -21,65 +21,13 @@ namespace Microsoft.CodeAnalysis.Serialization
     {
         public void SerializeSourceText(SerializableSourceText text, ObjectWriter writer, SolutionReplicationContext context, CancellationToken cancellationToken)
         {
-            cancellationToken.ThrowIfCancellationRequested();
-            if (text.Storage is not null)
-            {
-                context.AddResource(text.Storage);
-
-                writer.WriteInt32((int)text.Storage.ChecksumAlgorithm);
-                writer.WriteEncoding(text.Storage.Encoding);
-
-                writer.WriteInt32((int)SerializationKinds.MemoryMapFile);
-                writer.WriteString(text.Storage.Name);
-                writer.WriteInt64(text.Storage.Offset);
-                writer.WriteInt64(text.Storage.Size);
-            }
-            else
-            {
-                RoslynDebug.AssertNotNull(text.Text);
-
-                writer.WriteInt32((int)text.Text.ChecksumAlgorithm);
-                writer.WriteEncoding(text.Text.Encoding);
-                writer.WriteInt32((int)SerializationKinds.Bits);
-                text.Text.WriteTo(writer, cancellationToken);
-            }
-        }
-
-        private SerializableSourceText DeserializeSerializableSourceText(ObjectReader reader, CancellationToken cancellationToken)
-        {
-            cancellationToken.ThrowIfCancellationRequested();
-
-            var checksumAlgorithm = (SourceHashAlgorithm)reader.ReadInt32();
-            var encoding = (Encoding)reader.ReadValue();
-
-            var kind = (SerializationKinds)reader.ReadInt32();
-            if (kind == SerializationKinds.MemoryMapFile)
-            {
-                var storage2 = (ITemporaryStorageService2)_storageService;
-
-                var name = reader.ReadString();
-                var offset = reader.ReadInt64();
-                var size = reader.ReadInt64();
-
-                var storage = storage2.AttachTemporaryTextStorage(name, offset, size, checksumAlgorithm, encoding);
-                if (storage is ITemporaryTextStorageWithName storageWithName)
-                {
-                    return new SerializableSourceText(storageWithName);
-                }
-                else
-                {
-                    return new SerializableSourceText(storage.ReadText(cancellationToken));
-                }
-            }
-
-            Contract.ThrowIfFalse(kind == SerializationKinds.Bits);
-            return new SerializableSourceText(SourceTextExtensions.ReadFrom(_textService, reader, encoding, cancellationToken));
+            text.Serialize(writer, context, cancellationToken);
         }
 
         private SourceText DeserializeSourceText(ObjectReader reader, CancellationToken cancellationToken)
         {
-            var serializableSourceText = DeserializeSerializableSourceText(reader, cancellationToken);
-            return serializableSourceText.Text ?? serializableSourceText.Storage!.ReadText(cancellationToken);
+            var serializableSourceText = SerializableSourceText.Deserialize(reader, _storageService, _textService, cancellationToken);
+            return serializableSourceText.GetText(cancellationToken);
         }
 
         public void SerializeCompilationOptions(CompilationOptions options, ObjectWriter writer, CancellationToken cancellationToken)

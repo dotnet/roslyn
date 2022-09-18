@@ -43,11 +43,6 @@ namespace Microsoft.CodeAnalysis.Snippets
         protected abstract Task<ImmutableArray<TextChange>> GenerateSnippetTextChangesAsync(Document document, int position, CancellationToken cancellationToken);
 
         /// <summary>
-        /// Method for each snippet to locate the inserted SyntaxNode to reformat.
-        /// </summary>
-        protected abstract Task<SyntaxNode> AnnotateNodesToReformatAsync(Document document, SyntaxAnnotation reformatAnnotation, SyntaxAnnotation cursorAnnotation, int position, CancellationToken cancellationToken);
-
-        /// <summary>
         /// Gets the position that we want the caret to be at after all of the indentation/formatting has been done.
         /// </summary>
         protected abstract int GetTargetCaretPosition(ISyntaxFactsService syntaxFacts, SyntaxNode caretTarget, SourceText sourceText);
@@ -218,6 +213,21 @@ namespace Microsoft.CodeAnalysis.Snippets
             var annotatedSnippetRoot = await AnnotateNodesToReformatAsync(document, _findSnippetAnnotation, _cursorAnnotation, position, cancellationToken).ConfigureAwait(false);
             document = document.WithSyntaxRoot(annotatedSnippetRoot);
             return document;
+        }
+
+        /// <summary>
+        /// Method to added formatting annotations to the created snippet.
+        /// </summary>
+        protected virtual async Task<SyntaxNode> AnnotateNodesToReformatAsync(Document document,
+            SyntaxAnnotation findSnippetAnnotation, SyntaxAnnotation cursorAnnotation, int position, CancellationToken cancellationToken)
+        {
+            var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
+            var snippetExpressionNode = FindAddedSnippetSyntaxNode(root, position, GetSnippetContainerFunction(syntaxFacts));
+            Contract.ThrowIfNull(snippetExpressionNode);
+
+            var reformatSnippetNode = snippetExpressionNode.WithAdditionalAnnotations(findSnippetAnnotation, cursorAnnotation, Simplifier.Annotation, Formatter.Annotation);
+            return root.ReplaceNode(snippetExpressionNode, reformatSnippetNode);
         }
 
         protected virtual SyntaxNode? FindAddedSnippetSyntaxNode(SyntaxNode root, int position, Func<SyntaxNode?, bool> isCorrectContainer)
