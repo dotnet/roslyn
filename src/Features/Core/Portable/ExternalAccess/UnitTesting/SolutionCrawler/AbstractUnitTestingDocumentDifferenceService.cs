@@ -13,7 +13,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
 {
-    internal abstract class AbstractDocumentDifferenceService : IDocumentDifferenceService
+    internal abstract class AbstractUnitTestingDocumentDifferenceService : IDocumentDifferenceService
     {
         public async Task<DocumentDifferenceResult?> GetDifferenceAsync(Document oldDocument, Document newDocument, CancellationToken cancellationToken)
         {
