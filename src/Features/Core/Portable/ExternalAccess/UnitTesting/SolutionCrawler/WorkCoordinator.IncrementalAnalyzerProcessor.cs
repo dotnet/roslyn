@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
 
                 public IncrementalAnalyzerProcessor(
                     IAsynchronousOperationListener listener,
-                    IEnumerable<Lazy<IIncrementalAnalyzerProvider, IncrementalAnalyzerProviderMetadata>> analyzerProviders,
+                    IEnumerable<Lazy<IUnitTestingIncrementalAnalyzerProvider, IncrementalAnalyzerProviderMetadata>> analyzerProviders,
                     bool initializeLazily,
                     Registration registration,
                     TimeSpan highBackOffTimeSpan,
@@ -87,7 +87,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                     _lowPriorityProcessor = new LowPriorityProcessor(listener, this, lazyAllAnalyzers, globalNotificationService, lowBackOffTimeSpan, shutdownToken);
                 }
 
-                private static IDiagnosticAnalyzerService? GetDiagnosticAnalyzerService(IEnumerable<Lazy<IIncrementalAnalyzerProvider, IncrementalAnalyzerProviderMetadata>> analyzerProviders)
+                private static IDiagnosticAnalyzerService? GetDiagnosticAnalyzerService(IEnumerable<Lazy<IUnitTestingIncrementalAnalyzerProvider, IncrementalAnalyzerProviderMetadata>> analyzerProviders)
                 {
                     // alternatively, we could just MEF import IDiagnosticAnalyzerService directly
                     // this can be null in test env.
@@ -397,10 +397,10 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
 
                 private class AnalyzersGetter
                 {
-                    private readonly List<Lazy<IIncrementalAnalyzerProvider, IncrementalAnalyzerProviderMetadata>> _analyzerProviders;
+                    private readonly List<Lazy<IUnitTestingIncrementalAnalyzerProvider, IncrementalAnalyzerProviderMetadata>> _analyzerProviders;
                     private readonly Dictionary<Workspace, ImmutableArray<(IUnitTestingIncrementalAnalyzer analyzer, bool highPriorityForActiveFile)>> _analyzerMap = new();
 
-                    public AnalyzersGetter(IEnumerable<Lazy<IIncrementalAnalyzerProvider, IncrementalAnalyzerProviderMetadata>> analyzerProviders)
+                    public AnalyzersGetter(IEnumerable<Lazy<IUnitTestingIncrementalAnalyzerProvider, IncrementalAnalyzerProviderMetadata>> analyzerProviders)
                     {
                         _analyzerProviders = analyzerProviders.ToList();
                     }

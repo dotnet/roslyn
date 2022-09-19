@@ -28,12 +28,12 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
         private readonly IAsynchronousOperationListener _listener;
         private readonly Dictionary<Workspace, WorkCoordinator> _documentWorkCoordinatorMap;
 
-        private ImmutableDictionary<string, ImmutableArray<Lazy<IIncrementalAnalyzerProvider, IncrementalAnalyzerProviderMetadata>>> _analyzerProviders;
+        private ImmutableDictionary<string, ImmutableArray<Lazy<IUnitTestingIncrementalAnalyzerProvider, IncrementalAnalyzerProviderMetadata>>> _analyzerProviders;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public SolutionCrawlerRegistrationService(
-            [ImportMany] IEnumerable<Lazy<IIncrementalAnalyzerProvider, IncrementalAnalyzerProviderMetadata>> analyzerProviders,
+            [ImportMany] IEnumerable<Lazy<IUnitTestingIncrementalAnalyzerProvider, IncrementalAnalyzerProviderMetadata>> analyzerProviders,
             IAsynchronousOperationListenerProvider listenerProvider)
         {
             _analyzerProviders = analyzerProviders.GroupBy(kv => kv.Metadata.Name).ToImmutableDictionary(g => g.Key, g => g.ToImmutableArray());
@@ -103,12 +103,12 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
             SolutionCrawlerLogger.LogUnregistration(coordinator.CorrelationId);
         }
 
-        public void AddAnalyzerProvider(IIncrementalAnalyzerProvider provider, IncrementalAnalyzerProviderMetadata metadata)
+        public void AddAnalyzerProvider(IUnitTestingIncrementalAnalyzerProvider provider, IncrementalAnalyzerProviderMetadata metadata)
         {
             // now update all existing work coordinator
             lock (_gate)
             {
-                var lazyProvider = new Lazy<IIncrementalAnalyzerProvider, IncrementalAnalyzerProviderMetadata>(() => provider, metadata);
+                var lazyProvider = new Lazy<IUnitTestingIncrementalAnalyzerProvider, IncrementalAnalyzerProviderMetadata>(() => provider, metadata);
 
                 // update existing map for future solution crawler registration - no need for interlock but this makes add or update easier
                 ImmutableInterlocked.AddOrUpdate(ref _analyzerProviders, metadata.Name, n => ImmutableArray.Create(lazyProvider), (n, v) => v.Add(lazyProvider));
@@ -160,7 +160,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
             }
         }
 
-        private IEnumerable<Lazy<IIncrementalAnalyzerProvider, IncrementalAnalyzerProviderMetadata>> GetAnalyzerProviders(string workspaceKind)
+        private IEnumerable<Lazy<IUnitTestingIncrementalAnalyzerProvider, IncrementalAnalyzerProviderMetadata>> GetAnalyzerProviders(string workspaceKind)
         {
             foreach (var (_, lazyProviders) in _analyzerProviders)
             {
@@ -181,8 +181,8 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
 
         private static bool TryGetProvider(
             string kind,
-            ImmutableArray<Lazy<IIncrementalAnalyzerProvider, IncrementalAnalyzerProviderMetadata>> lazyProviders,
-            [NotNullWhen(true)] out Lazy<IIncrementalAnalyzerProvider, IncrementalAnalyzerProviderMetadata>? lazyProvider)
+            ImmutableArray<Lazy<IUnitTestingIncrementalAnalyzerProvider, IncrementalAnalyzerProviderMetadata>> lazyProviders,
+            [NotNullWhen(true)] out Lazy<IUnitTestingIncrementalAnalyzerProvider, IncrementalAnalyzerProviderMetadata>? lazyProvider)
         {
             // set out param
             lazyProvider = null;
@@ -219,7 +219,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
 
         [Conditional("DEBUG")]
         private static void AssertAnalyzerProviders(
-            ImmutableDictionary<string, ImmutableArray<Lazy<IIncrementalAnalyzerProvider, IncrementalAnalyzerProviderMetadata>>> analyzerProviders)
+            ImmutableDictionary<string, ImmutableArray<Lazy<IUnitTestingIncrementalAnalyzerProvider, IncrementalAnalyzerProviderMetadata>>> analyzerProviders)
         {
 #if DEBUG
             // make sure there is duplicated provider defined for same workspace.
@@ -262,7 +262,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                 _solutionCrawlerRegistrationService = solutionCrawlerRegistrationService;
             }
 
-            internal ref ImmutableDictionary<string, ImmutableArray<Lazy<IIncrementalAnalyzerProvider, IncrementalAnalyzerProviderMetadata>>> AnalyzerProviders
+            internal ref ImmutableDictionary<string, ImmutableArray<Lazy<IUnitTestingIncrementalAnalyzerProvider, IncrementalAnalyzerProviderMetadata>>> AnalyzerProviders
                 => ref _solutionCrawlerRegistrationService._analyzerProviders;
 
             internal bool TryGetWorkCoordinator(Workspace workspace, [NotNullWhen(true)] out WorkCoordinator? coordinator)

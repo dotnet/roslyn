@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
 
             public WorkCoordinator(
                  IAsynchronousOperationListener listener,
-                 IEnumerable<Lazy<IIncrementalAnalyzerProvider, IncrementalAnalyzerProviderMetadata>> analyzerProviders,
+                 IEnumerable<Lazy<IUnitTestingIncrementalAnalyzerProvider, IncrementalAnalyzerProviderMetadata>> analyzerProviders,
                  bool initializeLazily,
                  Registration registration)
             {
