@@ -15,11 +15,11 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
     {
         internal partial class UnitTestingWorkCoordinator
         {
-            private sealed class AsyncProjectWorkItemQueue : AsyncWorkItemQueue<ProjectId>
+            private sealed class UnitTestingAsyncProjectWorkItemQueue : AsyncWorkItemQueue<ProjectId>
             {
                 private readonly Dictionary<ProjectId, WorkItem> _projectWorkQueue = new();
 
-                public AsyncProjectWorkItemQueue(UnitTestingSolutionCrawlerProgressReporter progressReporter, Workspace workspace)
+                public UnitTestingAsyncProjectWorkItemQueue(UnitTestingSolutionCrawlerProgressReporter progressReporter, Workspace workspace)
                     : base(progressReporter, workspace)
                 {
                 }

@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
             {
                 private sealed class LowPriorityProcessor : AbstractUnitTestingPriorityProcessor
                 {
-                    private readonly AsyncProjectWorkItemQueue _workItemQueue;
+                    private readonly UnitTestingAsyncProjectWorkItemQueue _workItemQueue;
 
                     public LowPriorityProcessor(
                         IAsynchronousOperationListener listener,
@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                         CancellationToken shutdownToken)
                         : base(listener, processor, lazyAnalyzers, globalOperationNotificationService, backOffTimeSpan, shutdownToken)
                     {
-                        _workItemQueue = new AsyncProjectWorkItemQueue(processor._registration.ProgressReporter, processor._registration.Workspace);
+                        _workItemQueue = new UnitTestingAsyncProjectWorkItemQueue(processor._registration.ProgressReporter, processor._registration.Workspace);
 
                         Start();
                     }
