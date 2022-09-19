@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
 
             // points to processor task
             private readonly UnitTestingIncrementalAnalyzerProcessor _documentAndProjectWorkerProcessor;
-            private readonly SemanticChangeProcessor _semanticChangeProcessor;
+            private readonly UnitTestingSemanticChangeProcessor _semanticChangeProcessor;
 
             public UnitTestingWorkCoordinator(
                  IAsynchronousOperationListener listener,
@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                 var semanticBackOffTimeSpan = UnitTestingSolutionCrawlerTimeSpan.SemanticChangeBackOff;
                 var projectBackOffTimeSpan = UnitTestingSolutionCrawlerTimeSpan.ProjectPropagationBackOff;
 
-                _semanticChangeProcessor = new SemanticChangeProcessor(listener, _registration, _documentAndProjectWorkerProcessor, semanticBackOffTimeSpan, projectBackOffTimeSpan, _shutdownToken);
+                _semanticChangeProcessor = new UnitTestingSemanticChangeProcessor(listener, _registration, _documentAndProjectWorkerProcessor, semanticBackOffTimeSpan, projectBackOffTimeSpan, _shutdownToken);
 
                 _registration.Workspace.WorkspaceChanged += OnWorkspaceChanged;
                 _registration.Workspace.TextDocumentOpened += OnTextDocumentOpened;

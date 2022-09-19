@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
 
         internal sealed partial class UnitTestingWorkCoordinator
         {
-            private sealed class SemanticChangeProcessor : UnitTestingIdleProcessor
+            private sealed class UnitTestingSemanticChangeProcessor : UnitTestingIdleProcessor
             {
                 private static readonly Func<int, DocumentId, bool, string> s_enqueueLogger = (tick, documentId, hint) => $"Tick:{tick}, {documentId}, {documentId.ProjectId}, hint:{hint}";
 
@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                 private readonly NonReentrantLock _workGate = new();
                 private readonly Dictionary<DocumentId, Data> _pendingWork = new();
 
-                public SemanticChangeProcessor(
+                public UnitTestingSemanticChangeProcessor(
                     IAsynchronousOperationListener listener,
                     Registration registration,
                     UnitTestingIncrementalAnalyzerProcessor documentWorkerProcessor,
