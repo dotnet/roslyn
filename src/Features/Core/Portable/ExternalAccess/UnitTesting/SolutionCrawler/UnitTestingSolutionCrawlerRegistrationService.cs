@@ -294,6 +294,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
         {
             public readonly int CorrelationId;
             public readonly Workspace Workspace;
+            public string? WorkspaceKind => Workspace.Kind;
             public readonly SolutionServices Services;
             public readonly UnitTestingSolutionCrawlerProgressReporter ProgressReporter;
 

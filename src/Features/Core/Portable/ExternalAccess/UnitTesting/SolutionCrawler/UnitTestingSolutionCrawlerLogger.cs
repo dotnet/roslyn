@@ -77,26 +77,26 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
             }));
         }
 
-        public static void LogAnalyzers(int correlationId, Workspace workspace, ImmutableArray<IUnitTestingIncrementalAnalyzer> reordered, bool onlyHighPriorityAnalyzer)
+        public static void LogAnalyzers(int correlationId, string? workspaceKind, ImmutableArray<IUnitTestingIncrementalAnalyzer> reordered, bool onlyHighPriorityAnalyzer)
         {
             if (onlyHighPriorityAnalyzer)
             {
                 LogAnalyzersWorker(
                     FunctionId.IncrementalAnalyzerProcessor_ActiveFileAnalyzers, FunctionId.IncrementalAnalyzerProcessor_ActiveFileAnalyzer,
-                    correlationId, workspace, reordered);
+                    correlationId, workspaceKind, reordered);
             }
             else
             {
                 LogAnalyzersWorker(
                     FunctionId.IncrementalAnalyzerProcessor_Analyzers, FunctionId.IncrementalAnalyzerProcessor_Analyzer,
-                    correlationId, workspace, reordered);
+                    correlationId, workspaceKind, reordered);
             }
         }
 
         private static void LogAnalyzersWorker(
-            FunctionId analyzersId, FunctionId analyzerId, int correlationId, Workspace workspace, ImmutableArray<IUnitTestingIncrementalAnalyzer> reordered)
+            FunctionId analyzersId, FunctionId analyzerId, int correlationId, string? workspaceKind, ImmutableArray<IUnitTestingIncrementalAnalyzer> reordered)
         {
-            if (workspace.Kind == WorkspaceKind.Preview)
+            if (workspaceKind == WorkspaceKind.Preview)
             {
                 return;
             }
