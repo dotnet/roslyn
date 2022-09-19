@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                 private readonly ProjectProcessor _processor;
 
                 private readonly NonReentrantLock _workGate = new();
-                private readonly Dictionary<DocumentId, Data> _pendingWork = new();
+                private readonly Dictionary<DocumentId, UnitTestingData> _pendingWork = new();
 
                 public UnitTestingSemanticChangeProcessor(
                     IAsynchronousOperationListener listener,
@@ -87,10 +87,10 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                     }
                 }
 
-                private Data Dequeue()
+                private UnitTestingData Dequeue()
                     => DequeueWorker(_workGate, _pendingWork, CancellationToken);
 
-                private async Task<bool> TryEnqueueFromHintAsync(Data data)
+                private async Task<bool> TryEnqueueFromHintAsync(UnitTestingData data)
                 {
                     var changedMember = data.ChangedMember;
                     if (changedMember == null)
@@ -251,11 +251,11 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                             var newAsyncToken = Listener.BeginAsyncOperation(nameof(Enqueue), tag: _registration.Workspace);
                             data.AsyncToken.Dispose();
 
-                            _pendingWork[documentId] = new Data(project, documentId, document, data.ChangedMember == changedMember ? changedMember : null, newAsyncToken);
+                            _pendingWork[documentId] = new UnitTestingData(project, documentId, document, data.ChangedMember == changedMember ? changedMember : null, newAsyncToken);
                             return;
                         }
 
-                        _pendingWork.Add(documentId, new Data(project, documentId, document, changedMember, Listener.BeginAsyncOperation(nameof(Enqueue), tag: _registration.Workspace)));
+                        _pendingWork.Add(documentId, new UnitTestingData(project, documentId, document, changedMember, Listener.BeginAsyncOperation(nameof(Enqueue), tag: _registration.Workspace)));
                         _gate.Release();
                     }
 
@@ -304,7 +304,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                     return graph.GetProjectsThatDirectlyDependOnThisProject(projectId).Concat(projectId);
                 }
 
-                private readonly struct Data
+                private readonly struct UnitTestingData
                 {
                     private readonly DocumentId _documentId;
                     private readonly Document? _document;
@@ -313,7 +313,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                     public readonly SyntaxPath? ChangedMember;
                     public readonly IAsyncToken AsyncToken;
 
-                    public Data(Project project, DocumentId documentId, Document? document, SyntaxPath? changedMember, IAsyncToken asyncToken)
+                    public UnitTestingData(Project project, DocumentId documentId, Document? document, SyntaxPath? changedMember, IAsyncToken asyncToken)
                     {
                         _documentId = documentId;
                         _document = document;
