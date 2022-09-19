@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
         {
             private sealed partial class IncrementalAnalyzerProcessor
             {
-                private abstract class AbstractPriorityProcessor : GlobalOperationAwareIdleProcessor
+                private abstract class AbstractPriorityProcessor : UnitTestingGlobalOperationAwareIdleProcessor
                 {
                     protected readonly IncrementalAnalyzerProcessor Processor;
 

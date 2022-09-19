@@ -11,11 +11,11 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
 {
-    internal abstract class GlobalOperationAwareIdleProcessor : IdleProcessor
+    internal abstract class UnitTestingGlobalOperationAwareIdleProcessor : IdleProcessor
     {
         private readonly IGlobalOperationNotificationService _globalOperationNotificationService;
 
-        public GlobalOperationAwareIdleProcessor(
+        public UnitTestingGlobalOperationAwareIdleProcessor(
             IAsynchronousOperationListener listener,
             IGlobalOperationNotificationService globalOperationNotificationService,
             TimeSpan backOffTimeSpan,
