@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
         {
             private sealed partial class UnitTestingIncrementalAnalyzerProcessor
             {
-                private sealed class HighPriorityProcessor : UnitTestingIdleProcessor
+                private sealed class UnitTestingHighPriorityProcessor : UnitTestingIdleProcessor
                 {
                     private readonly UnitTestingIncrementalAnalyzerProcessor _processor;
                     private readonly UnitTestingAsyncDocumentWorkItemQueue _workItemQueue;
@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                     // whether this processor is running or not
                     private Task _running;
 
-                    public HighPriorityProcessor(
+                    public UnitTestingHighPriorityProcessor(
                         IAsynchronousOperationListener listener,
                         UnitTestingIncrementalAnalyzerProcessor processor,
                         Lazy<ImmutableArray<IUnitTestingIncrementalAnalyzer>> lazyAnalyzers,
