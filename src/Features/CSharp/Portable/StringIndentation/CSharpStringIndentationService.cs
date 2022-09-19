@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.CSharp.LineSeparators
                     if (!node.Span.IntersectsWith(textSpan))
                         continue;
 
-                    if (node.IsKind(SyntaxKind.InterpolatedStringExpression, out InterpolatedStringExpressionSyntax? interpolatedString) &&
+                    if (node is InterpolatedStringExpressionSyntax interpolatedString &&
                         interpolatedString.StringStartToken.IsKind(SyntaxKind.InterpolatedMultiLineRawStringStartToken))
                     {
                         ProcessInterpolatedStringExpression(text, interpolatedString, result, cancellationToken);

@@ -103,17 +103,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 var directive = leftToken.GetAncestor<DirectiveTriviaSyntax>();
                 Contract.ThrowIfNull(directive);
 
-                if (!directive.DirectiveNameToken.IsKind(
-                        SyntaxKind.IfKeyword,
-                        SyntaxKind.RegionKeyword,
-                        SyntaxKind.ElseKeyword,
-                        SyntaxKind.ElifKeyword,
-                        SyntaxKind.ErrorKeyword,
-                        SyntaxKind.LineKeyword,
-                        SyntaxKind.PragmaKeyword,
-                        SyntaxKind.EndIfKeyword,
-                        SyntaxKind.UndefKeyword,
-                        SyntaxKind.EndRegionKeyword,
+                if (directive.DirectiveNameToken.Kind() is not (
+                        SyntaxKind.IfKeyword or
+                        SyntaxKind.RegionKeyword or
+                        SyntaxKind.ElseKeyword or
+                        SyntaxKind.ElifKeyword or
+                        SyntaxKind.ErrorKeyword or
+                        SyntaxKind.LineKeyword or
+                        SyntaxKind.PragmaKeyword or
+                        SyntaxKind.EndIfKeyword or
+                        SyntaxKind.UndefKeyword or
+                        SyntaxKind.EndRegionKeyword or
                         SyntaxKind.WarningKeyword))
                 {
                     return GetSnippetCompletionItems(

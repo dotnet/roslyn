@@ -205,9 +205,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 // <elem attr$$
                 (elementName, attributes) = GetElementNameAndAttributes(token.Parent.Parent!);
             }
-            else if (token.Parent.IsKind(SyntaxKind.XmlCrefAttribute, out XmlAttributeSyntax? attributeSyntax) ||
-                     token.Parent.IsKind(SyntaxKind.XmlNameAttribute, out attributeSyntax) ||
-                     token.Parent.IsKind(SyntaxKind.XmlTextAttribute, out attributeSyntax))
+            else if (token.Parent is XmlAttributeSyntax(
+                        SyntaxKind.XmlCrefAttribute or
+                        SyntaxKind.XmlNameAttribute or
+                        SyntaxKind.XmlTextAttribute) attributeSyntax)
             {
                 // In the following, 'attr1' may be a regular text attribute, or one of the special 'cref' or 'name' attributes
                 // <elem attr1="" $$
@@ -261,13 +262,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         {
             XmlAttributeSyntax? attributeSyntax;
             if (token.Parent.IsKind(SyntaxKind.IdentifierName) &&
-                token.Parent.IsParentKind(SyntaxKind.XmlNameAttribute, out XmlNameAttributeSyntax? xmlName))
+                token.Parent?.Parent is XmlNameAttributeSyntax xmlName)
             {
                 // Handle the special 'name' attributes: name="bar$$
                 attributeSyntax = xmlName;
             }
             else if (token.IsKind(SyntaxKind.XmlTextLiteralToken) &&
-                     token.Parent.IsKind(SyntaxKind.XmlTextAttribute, out XmlTextAttributeSyntax? xmlText))
+                     token.Parent is XmlTextAttributeSyntax xmlText)
             {
                 // Handle the other general text attributes: foo="bar$$
                 attributeSyntax = xmlText;

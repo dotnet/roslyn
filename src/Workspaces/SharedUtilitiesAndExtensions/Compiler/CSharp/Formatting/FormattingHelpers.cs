@@ -100,7 +100,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
         private static bool IsTokenInArgumentListOrPositionalPattern(SyntaxToken token)
         {
             // Argument lists
-            if (token.Parent.IsKind(SyntaxKind.ArgumentList, SyntaxKind.AttributeArgumentList))
+            if (token.Parent is (kind: SyntaxKind.ArgumentList or SyntaxKind.AttributeArgumentList))
             {
                 return true;
             }
@@ -318,9 +318,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
         public static bool IsGenericGreaterThanToken(this SyntaxToken token)
         {
             if (token.Kind() == SyntaxKind.GreaterThanToken)
-            {
-                return token.Parent.IsKind(SyntaxKind.TypeParameterList, SyntaxKind.TypeArgumentList);
-            }
+                return token.Parent is (kind: SyntaxKind.TypeParameterList or SyntaxKind.TypeArgumentList);
 
             return false;
         }
@@ -382,7 +380,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
         public static bool IsFirstFromKeywordInExpression(this SyntaxToken token)
         {
             return token.Kind() == SyntaxKind.FromKeyword &&
-                   token.Parent.IsParentKind(SyntaxKind.QueryExpression, out QueryExpressionSyntax? queryExpression) &&
+                   token.Parent?.Parent is QueryExpressionSyntax queryExpression &&
                    queryExpression.GetFirstToken().Equals(token);
         }
 

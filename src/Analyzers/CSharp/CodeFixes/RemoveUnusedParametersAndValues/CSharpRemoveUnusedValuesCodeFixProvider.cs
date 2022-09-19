@@ -82,7 +82,7 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnusedParametersAndValues
         protected override SyntaxNode TryUpdateParentOfUpdatedNode(SyntaxNode parent, SyntaxNode newNameNode, SyntaxEditor editor, ISyntaxFacts syntaxFacts)
         {
             if (newNameNode.IsKind(SyntaxKind.DiscardDesignation)
-                && parent.IsKind(SyntaxKind.DeclarationPattern, out DeclarationPatternSyntax declarationPattern)
+                && parent is DeclarationPatternSyntax declarationPattern
                 && parent.SyntaxTree.Options.LanguageVersion() >= LanguageVersion.CSharp9)
             {
                 var trailingTrivia = declarationPattern.Type.GetTrailingTrivia()

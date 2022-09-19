@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.CSharp.QuickInfo
         private static QuickInfoItem? BuildQuickInfoCloseBrace(SyntaxToken token)
         {
             // Don't show for interpolations
-            if (token.Parent.IsKind(SyntaxKind.Interpolation, out InterpolationSyntax? interpolation) &&
+            if (token.Parent is InterpolationSyntax interpolation &&
                 interpolation.CloseBraceToken == token)
             {
                 return null;

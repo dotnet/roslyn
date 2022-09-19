@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InvertIf
             => ifNode.Else == null;
 
         protected override bool CanInvert(IfStatementSyntax ifNode)
-            => ifNode.IsParentKind(SyntaxKind.Block, SyntaxKind.SwitchSection);
+            => ifNode?.Parent is (kind: SyntaxKind.Block or SyntaxKind.SwitchSection);
 
         protected override SyntaxNode GetCondition(IfStatementSyntax ifNode)
             => ifNode.Condition;
@@ -43,10 +43,10 @@ namespace Microsoft.CodeAnalysis.CSharp.InvertIf
             => new(ifNode.Statement, ifNode.Statement);
 
         protected override bool IsStatementContainer(SyntaxNode node)
-            => node.IsKind(SyntaxKind.Block, SyntaxKind.SwitchSection);
+            => node.Kind() is SyntaxKind.Block or SyntaxKind.SwitchSection;
 
         protected override bool IsNoOpSyntaxNode(SyntaxNode node)
-            => node.IsKind(SyntaxKind.Block, SyntaxKind.EmptyStatement);
+            => node.Kind() is SyntaxKind.Block or SyntaxKind.EmptyStatement;
 
         protected override bool IsExecutableStatement(SyntaxNode node)
             => node is StatementSyntax;

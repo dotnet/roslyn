@@ -121,7 +121,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.AddBraces
         /// </summary>
         private static bool ContainsInterleavedDirective(SyntaxNode statement, StatementSyntax embeddedStatement, CancellationToken cancellationToken)
         {
-            if (statement.IsKind(SyntaxKind.IfStatement, out IfStatementSyntax? ifStatementNode))
+            if (statement is IfStatementSyntax ifStatementNode)
             {
                 var elseNode = ifStatementNode.Else;
                 if (elseNode != null && !embeddedStatement.IsMissing)
@@ -234,7 +234,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.AddBraces
         /// </summary>
         private static bool RequiresBracesToMatchContext(SyntaxNode statement)
         {
-            if (!statement.IsKind(SyntaxKind.IfStatement, SyntaxKind.ElseClause))
+            if (statement.Kind() is not (SyntaxKind.IfStatement or SyntaxKind.ElseClause))
             {
                 // 'if' statements are the only statements that can have multiple embedded statements which are
                 // considered relative to each other.

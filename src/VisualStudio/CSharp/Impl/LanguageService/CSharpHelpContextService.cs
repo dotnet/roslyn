@@ -303,7 +303,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
                 return true;
             }
 
-            if (token.IsKind(SyntaxKind.LessThanToken, SyntaxKind.GreaterThanToken))
+            if (token.Kind() is SyntaxKind.LessThanToken or SyntaxKind.GreaterThanToken)
             {
                 if (token.Parent.IsKind(SyntaxKind.FunctionPointerParameterList))
                 {
@@ -324,7 +324,8 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
                 return true;
             }
 
-            if (token.IsKind(SyntaxKind.LessThanToken, SyntaxKind.GreaterThanToken) && token.Parent.IsKind(SyntaxKind.TypeParameterList, SyntaxKind.TypeArgumentList))
+            if (token.Kind() is SyntaxKind.LessThanToken or SyntaxKind.GreaterThanToken &&
+                token.Parent is (kind: SyntaxKind.TypeParameterList or SyntaxKind.TypeArgumentList))
             {
                 text = Keyword("generics");
                 return true;

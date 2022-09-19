@@ -463,7 +463,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                 var replacements = new Dictionary<SyntaxNode, SyntaxNode>();
 
                 var declarations = statement.DescendantNodes()
-                    .Where(n => n.IsKind(SyntaxKind.DeclarationExpression, SyntaxKind.DeclarationPattern));
+                    .Where(n => n.Kind() is SyntaxKind.DeclarationExpression or SyntaxKind.DeclarationPattern);
 
                 foreach (var node in declarations)
                 {

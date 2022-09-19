@@ -21,8 +21,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
         public int Compare(SyntaxToken x, SyntaxToken y)
         {
             if (_specialCaseSystem &&
-                x.GetPreviousToken(includeSkipped: true).IsKind(SyntaxKind.UsingKeyword, SyntaxKind.StaticKeyword) &&
-                y.GetPreviousToken(includeSkipped: true).IsKind(SyntaxKind.UsingKeyword, SyntaxKind.StaticKeyword))
+                x.GetPreviousToken(includeSkipped: true).Kind() is SyntaxKind.UsingKeyword or SyntaxKind.StaticKeyword &&
+                y.GetPreviousToken(includeSkipped: true).Kind() is SyntaxKind.UsingKeyword or SyntaxKind.StaticKeyword)
             {
                 var token1IsSystem = x.ValueText == nameof(System);
                 var token2IsSystem = y.ValueText == nameof(System);

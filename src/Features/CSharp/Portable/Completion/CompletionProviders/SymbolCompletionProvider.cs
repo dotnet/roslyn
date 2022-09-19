@@ -153,7 +153,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var token = root.FindToken(characterPosition);
 
-            if (!token.Parent.IsKind(SyntaxKind.ArgumentList, SyntaxKind.BracketedArgumentList, SyntaxKind.AttributeArgumentList, SyntaxKind.ArrayRankSpecifier))
+            if (token.Parent?.Kind() is not (SyntaxKind.ArgumentList or SyntaxKind.BracketedArgumentList or SyntaxKind.AttributeArgumentList or SyntaxKind.ArrayRankSpecifier))
             {
                 return false;
             }

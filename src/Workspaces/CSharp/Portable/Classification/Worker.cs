@@ -106,7 +106,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
                     {
                         AddClassification(span, ClassificationTypeNames.StaticSymbol);
                     }
-                    else if (token.IsKind(SyntaxKind.Utf8StringLiteralToken, SyntaxKind.Utf8SingleLineRawStringLiteralToken, SyntaxKind.Utf8MultiLineRawStringLiteralToken) && token.Text.EndsWith("u8", StringComparison.OrdinalIgnoreCase))
+                    else if (token.Kind() is
+                                SyntaxKind.Utf8StringLiteralToken or
+                                SyntaxKind.Utf8SingleLineRawStringLiteralToken or
+                                SyntaxKind.Utf8MultiLineRawStringLiteralToken &&
+                            token.Text.EndsWith("u8", StringComparison.OrdinalIgnoreCase))
                     {
                         AddClassification(new TextSpan(token.Span.End - "u8".Length, "u8".Length), ClassificationTypeNames.Keyword);
                     }

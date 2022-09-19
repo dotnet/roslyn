@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
             if (expression.ContainsInterleavedDirective(cancellationToken))
                 return false;
 
-            if (expression.IsKind(SyntaxKind.SimpleMemberAccessExpression, out MemberAccessExpressionSyntax memberAccess))
+            if (expression is MemberAccessExpressionSyntax(SyntaxKind.SimpleMemberAccessExpression) memberAccess)
                 return TryReduceMemberAccessExpression(memberAccess, semanticModel, out replacementNode, out issueSpan, options, cancellationToken);
 
             if (expression is NameSyntax name)
@@ -382,7 +382,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
         {
             var constructor = memberAccess.Ancestors().OfType<ConstructorDeclarationSyntax>().SingleOrDefault();
 
-            if (constructor == null || !constructor.Parent.IsKind(SyntaxKind.StructDeclaration, SyntaxKind.RecordStructDeclaration))
+            if (constructor == null || constructor.Parent.Kind() is not (SyntaxKind.StructDeclaration or SyntaxKind.RecordStructDeclaration))
             {
                 return false;
             }

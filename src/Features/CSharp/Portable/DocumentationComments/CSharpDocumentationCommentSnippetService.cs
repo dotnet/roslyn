@@ -122,17 +122,17 @@ namespace Microsoft.CodeAnalysis.CSharp.DocumentationComments
                 }
             }
 
-            if (member.IsKind(
-                    SyntaxKind.MethodDeclaration,
-                    SyntaxKind.IndexerDeclaration,
-                    SyntaxKind.DelegateDeclaration,
-                    SyntaxKind.OperatorDeclaration,
-                    SyntaxKind.ConstructorDeclaration,
-                    SyntaxKind.DestructorDeclaration))
+            if (member.Kind() is
+                    SyntaxKind.MethodDeclaration or
+                    SyntaxKind.IndexerDeclaration or
+                    SyntaxKind.DelegateDeclaration or
+                    SyntaxKind.OperatorDeclaration or
+                    SyntaxKind.ConstructorDeclaration or
+                    SyntaxKind.DestructorDeclaration)
             {
                 var returnType = member.GetMemberType();
                 if (returnType != null &&
-                    !(returnType.IsKind(SyntaxKind.PredefinedType, out PredefinedTypeSyntax? predefinedType) && predefinedType.Keyword.IsKindOrHasMatchingText(SyntaxKind.VoidKeyword)))
+                    !(returnType is PredefinedTypeSyntax predefinedType && predefinedType.Keyword.IsKindOrHasMatchingText(SyntaxKind.VoidKeyword)))
                 {
                     list.Add("/// <returns></returns>");
                 }
@@ -148,7 +148,7 @@ namespace Microsoft.CodeAnalysis.CSharp.DocumentationComments
 
         private static IEnumerable<string> GetExceptions(SyntaxNode member)
         {
-            var throwExpressionsAndStatements = member.DescendantNodes().Where(n => n.IsKind(SyntaxKind.ThrowExpression, SyntaxKind.ThrowStatement));
+            var throwExpressionsAndStatements = member.DescendantNodes().Where(n => n.Kind() is SyntaxKind.ThrowExpression or SyntaxKind.ThrowStatement);
 
             var usings = member.GetEnclosingUsingDirectives();
             var hasUsingSystem = usings.Any(u => u.Name is IdentifierNameSyntax { Identifier.ValueText: nameof(System) });

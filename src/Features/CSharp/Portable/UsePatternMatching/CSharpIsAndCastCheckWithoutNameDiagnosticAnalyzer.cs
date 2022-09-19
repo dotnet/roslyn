@@ -250,7 +250,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
             // Don't bother recursing down nodes that are before the type in the is-expression.
             if (node.Span.End >= type.Span.End)
             {
-                if (node.IsKind(SyntaxKind.CastExpression, out CastExpressionSyntax? castExpression))
+                if (node is CastExpressionSyntax castExpression)
                 {
                     if (SyntaxFactory.AreEquivalent(castExpression.Type, type) &&
                         SyntaxFactory.AreEquivalent(castExpression.Expression.WalkDownParentheses(), expr))
