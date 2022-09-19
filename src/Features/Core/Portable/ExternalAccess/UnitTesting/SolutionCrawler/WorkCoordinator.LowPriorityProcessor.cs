@@ -21,11 +21,11 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
         {
             private sealed partial class UnitTestingIncrementalAnalyzerProcessor
             {
-                private sealed class LowPriorityProcessor : AbstractUnitTestingPriorityProcessor
+                private sealed class UnitTestingLowPriorityProcessor : AbstractUnitTestingPriorityProcessor
                 {
                     private readonly UnitTestingAsyncProjectWorkItemQueue _workItemQueue;
 
-                    public LowPriorityProcessor(
+                    public UnitTestingLowPriorityProcessor(
                         IAsynchronousOperationListener listener,
                         UnitTestingIncrementalAnalyzerProcessor processor,
                         Lazy<ImmutableArray<IUnitTestingIncrementalAnalyzer>> lazyAnalyzers,
@@ -204,9 +204,9 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
 
                     internal readonly struct TestAccessor
                     {
-                        private readonly LowPriorityProcessor _lowPriorityProcessor;
+                        private readonly UnitTestingLowPriorityProcessor _lowPriorityProcessor;
 
-                        internal TestAccessor(LowPriorityProcessor lowPriorityProcessor)
+                        internal TestAccessor(UnitTestingLowPriorityProcessor lowPriorityProcessor)
                         {
                             _lowPriorityProcessor = lowPriorityProcessor;
                         }

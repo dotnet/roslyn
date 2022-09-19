@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
 
                 private readonly UnitTestingHighPriorityProcessor _highPriorityProcessor;
                 private readonly NormalPriorityProcessor _normalPriorityProcessor;
-                private readonly LowPriorityProcessor _lowPriorityProcessor;
+                private readonly UnitTestingLowPriorityProcessor _lowPriorityProcessor;
 
                 // NOTE: IDiagnosticAnalyzerService can be null in test environment.
                 private readonly Lazy<IDiagnosticAnalyzerService?> _lazyDiagnosticAnalyzerService;
@@ -84,7 +84,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
 
                     _highPriorityProcessor = new UnitTestingHighPriorityProcessor(listener, this, lazyActiveFileAnalyzers, highBackOffTimeSpan, shutdownToken);
                     _normalPriorityProcessor = new NormalPriorityProcessor(listener, this, lazyAllAnalyzers, globalNotificationService, normalBackOffTimeSpan, shutdownToken);
-                    _lowPriorityProcessor = new LowPriorityProcessor(listener, this, lazyAllAnalyzers, globalNotificationService, lowBackOffTimeSpan, shutdownToken);
+                    _lowPriorityProcessor = new UnitTestingLowPriorityProcessor(listener, this, lazyAllAnalyzers, globalNotificationService, lowBackOffTimeSpan, shutdownToken);
                 }
 
                 private static IDiagnosticAnalyzerService? GetDiagnosticAnalyzerService(IEnumerable<Lazy<IUnitTestingIncrementalAnalyzerProvider, UnitTestingIncrementalAnalyzerProviderMetadata>> analyzerProviders)
