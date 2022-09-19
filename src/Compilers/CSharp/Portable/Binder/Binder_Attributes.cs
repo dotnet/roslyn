@@ -54,19 +54,22 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var boundType = binder.BindType(attributeToBind.Name, diagnostics);
                     var boundTypeSymbol = (NamedTypeSymbol)boundType.Type;
 
-                    // Check that there are no type vars.
-                    var location = attributeToBind.GetLocation();
-                    for (var type = boundTypeSymbol; type is not null; type = type.ContainingType)
+                    // Check type arguments inside the attribute type (unless the attribute type is already an error).
+                    if (boundTypeSymbol.TypeKind != TypeKind.Error)
                     {
-                        foreach (var typeArg in type.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics)
+                        var location = attributeToBind.GetLocation();
+                        for (var type = boundTypeSymbol; type is not null; type = type.ContainingType)
                         {
-                            if (typeArg.Type.IsUnboundGenericType() || typeArg.Type.ContainsTypeParameter())
+                            foreach (var typeArg in type.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics)
                             {
-                                diagnostics.Add(ErrorCode.ERR_AttrTypeArgCannotBeTypeVar, location, typeArg.ToDisplayString(SymbolDisplayFormat.CSharpErrorMessageFormat));
-                            }
-                            else
-                            {
-                                binder.CheckDisallowedAttributeDependentType(typeArg, location, diagnostics);
+                                if (typeArg.Type.IsUnboundGenericType() || typeArg.Type.ContainsTypeParameter())
+                                {
+                                    diagnostics.Add(ErrorCode.ERR_AttrTypeArgCannotBeTypeVar, location, typeArg.ToDisplayString(SymbolDisplayFormat.CSharpErrorMessageFormat));
+                                }
+                                else
+                                {
+                                    binder.CheckDisallowedAttributeDependentType(typeArg, location, diagnostics);
+                                }
                             }
                         }
                     }
