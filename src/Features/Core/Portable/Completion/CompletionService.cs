@@ -289,24 +289,17 @@ namespace Microsoft.CodeAnalysis.Completion
             // i.e. when everything else is equal, then if item1 is a better case-sensitive match but item2 has higher 
             // MatchPriority, we consider them equally good match, so the controller will later have a chance to
             // decide which is the best one to select.
-            var filterTextContainsNoUpperLetters = true;
+            var filterTextIsLowerCaseOnly = true;
             for (var i = 0; i < filterText.Length; ++i)
             {
                 if (char.IsUpper(filterText[i]))
                 {
-                    filterTextContainsNoUpperLetters = false;
+                    filterTextIsLowerCaseOnly = false;
                     break;
                 }
             }
 
-            // Keep track the highest MatchPriority of all items in the best list.
-            var highestMatchPriorityInBest = int.MinValue;
             var bestItems = s_listOfItemMatchPairPool.Allocate();
-
-            // This contains a list of items that are considered equally good match as bestItems except casing,
-            // and they have higher MatchPriority than the ones in bestItems (although as a perf optimization we don't
-            // actually guarantee this during the process, instead we check the MatchPriority again after the loop.)
-            var itemsWithCasingMismatchButHigherMatchPriority = s_listOfItemMatchPairPool.Allocate();
 
             try
             {
@@ -316,63 +309,22 @@ namespace Microsoft.CodeAnalysis.Completion
                     {
                         // We've found no good items yet.  So this is the best item currently.
                         bestItems.Add(pair);
-                        highestMatchPriorityInBest = pair.item.Rules.MatchPriority;
                         continue;
                     }
 
                     var (bestItem, bestItemMatch) = bestItems[0];
-                    var comparison = completionHelper.CompareItems(
-                        pair.item, pair.match, bestItem, bestItemMatch, out var onlyDifferInCaseSensitivity);
+                    var comparison = completionHelper.CompareItems(pair.item, pair.match, bestItem, bestItemMatch, filterTextIsLowerCaseOnly);
 
                     if (comparison == 0)
                     {
                         // This item is as good as the items we've been collecting.  We'll return it and let the controller
                         // decide what to do.  (For example, it will pick the one that has the best MRU index).
-                        // Also there's no need to remove items with lower MatchPriority from similarItemsWithHigerMatchPriority
-                        // list, we will only add ones with higher value at the end.
                         bestItems.Add(pair);
-                        highestMatchPriorityInBest = Math.Max(highestMatchPriorityInBest, pair.item.Rules.MatchPriority);
                     }
                     else if (comparison < 0)
                     {
                         // This item is strictly better than the best items we've found so far.
-
-                        // Switch the references to the two lists to avoid potential of copying multiple elements around.
-                        // Now itemsWithCasingMismatchButHigherMatchPriority contains prior best items.
-                        (bestItems, itemsWithCasingMismatchButHigherMatchPriority) = (itemsWithCasingMismatchButHigherMatchPriority, bestItems);
-
-                        // However, if this item only better in terms of case-sensitivity, and its MatchPriority is lower than prior best items,
-                        // we'd like to save prior best items and consider their MatchPriority later. Otherwise, no need to keep track the prior best items.
-                        if (!filterTextContainsNoUpperLetters ||
-                            !onlyDifferInCaseSensitivity ||
-                            highestMatchPriorityInBest <= pair.item.Rules.MatchPriority)
-                        {
-                            itemsWithCasingMismatchButHigherMatchPriority.Clear();
-                        }
-
                         bestItems.Clear();
-                        bestItems.Add(pair);
-                        highestMatchPriorityInBest = pair.item.Rules.MatchPriority;
-                    }
-                    else
-                    {
-                        // This item is strictly worse than the ones we've been collecting.
-                        // However, if it's only worse in terms of case-sensitivity, and has higher MatchPriority
-                        // than all current best items, we'd like to save it and consider its MatchPriority later.
-                        if (filterTextContainsNoUpperLetters &&
-                            onlyDifferInCaseSensitivity &&
-                            pair.item.Rules.MatchPriority > highestMatchPriorityInBest)
-                        {
-                            itemsWithCasingMismatchButHigherMatchPriority.Add(pair);
-                        }
-                    }
-                }
-
-                // Include those similar items (only worse in terms of case-sensitivity) that have better MatchPriority.
-                foreach (var pair in itemsWithCasingMismatchButHigherMatchPriority)
-                {
-                    if (pair.item.Rules.MatchPriority > highestMatchPriorityInBest)
-                    {
                         bestItems.Add(pair);
                     }
                 }
@@ -383,9 +335,7 @@ namespace Microsoft.CodeAnalysis.Completion
             {
                 // Don't call ClearAndFree, which resets the capacity to a default value.
                 bestItems.Clear();
-                itemsWithCasingMismatchButHigherMatchPriority.Clear();
                 s_listOfItemMatchPairPool.Free(bestItems);
-                s_listOfItemMatchPairPool.Free(itemsWithCasingMismatchButHigherMatchPriority);
             }
         }
 
