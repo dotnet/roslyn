@@ -336,7 +336,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                     private readonly UnitTestingIncrementalAnalyzerProcessor _processor;
 
                     private readonly NonReentrantLock _workGate = new();
-                    private readonly Dictionary<ProjectId, Data> _pendingWork = new();
+                    private readonly Dictionary<ProjectId, UnitTestingData> _pendingWork = new();
 
                     public ProjectProcessor(
                         IAsynchronousOperationListener listener,
@@ -378,7 +378,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                                 return;
                             }
 
-                            var data = new Data(projectId, needDependencyTracking, Listener.BeginAsyncOperation(nameof(Enqueue), tag: _registration.Workspace));
+                            var data = new UnitTestingData(projectId, needDependencyTracking, Listener.BeginAsyncOperation(nameof(Enqueue), tag: _registration.Workspace));
 
                             _pendingWork.Add(projectId, data);
                             _gate.Release();
@@ -432,7 +432,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                         }
                     }
 
-                    private Data Dequeue()
+                    private UnitTestingData Dequeue()
                         => DequeueWorker(_workGate, _pendingWork, CancellationToken);
 
                     private async Task EnqueueWorkItemAsync(Project? project)
@@ -444,13 +444,13 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                             await EnqueueWorkItemAsync(project, documentId, document: null).ConfigureAwait(false);
                     }
 
-                    private readonly struct Data
+                    private readonly struct UnitTestingData
                     {
                         public readonly IAsyncToken AsyncToken;
                         public readonly ProjectId ProjectId;
                         public readonly bool NeedDependencyTracking;
 
-                        public Data(ProjectId projectId, bool needDependencyTracking, IAsyncToken asyncToken)
+                        public UnitTestingData(ProjectId projectId, bool needDependencyTracking, IAsyncToken asyncToken)
                         {
                             AsyncToken = asyncToken;
                             ProjectId = projectId;
