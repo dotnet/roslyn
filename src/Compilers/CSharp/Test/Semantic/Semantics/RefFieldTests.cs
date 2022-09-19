@@ -3071,8 +3071,9 @@ class Program
     static R F4([UnscopedRef] ref R y) { return F0(__arglist(ref y)); } // 5
 }";
             // __refvalue operators can only ref-escape to current method.
-            // __arglist operators essentially assume that anything can escape into anything else, including a ref into its referenced variable.
-            // this means we error on both declaration and usage of `F0` here. Ideally we would only error on one of the two, but not a big deal when __arglist is so niche as it is.
+            // The __arglist operator here assumes that `F0` could do `y.RB = ref y`.
+            // These assumptions are contradictory, but it just ends up being more strict in both directions.
+            // Tracking in https://github.com/dotnet/roslyn/issues/64130
             var comp = CreateCompilation(new[] { source, UnscopedRefAttributeDefinition }, runtimeFeature: RuntimeFlag.ByRefFields);
             comp.VerifyEmitDiagnostics(
                 // (17,9): error CS8374: Cannot ref-assign 'r.B' to 'RB' because 'r.B' has a narrower escape scope than 'RB'.
@@ -3102,6 +3103,36 @@ class Program
                 // (25,49): error CS8350: This combination of arguments to 'Program.F0(__arglist)' is disallowed because it may expose variables referenced by parameter '__arglist' outside of their declaration scope
                 //     static R F4([UnscopedRef] ref R y) { return F0(__arglist(ref y)); } // 5
                 Diagnostic(ErrorCode.ERR_CallArgMixing, "F0(__arglist(ref y))").WithArguments("Program.F0(__arglist)", "__arglist").WithLocation(25, 49));
+        }
+
+        [Fact]
+        public void MethodArgumentsMustMatch_07_3()
+        {
+            // demonstrate the non-ref-fields behavior.
+            var source =
+@"
+using System;
+
+class Program
+{
+    static ref int F0(__arglist)
+    {
+        var args = new ArgIterator(__arglist);
+        ref int r = ref __refvalue(args.GetNextArg(), int);
+        return ref r; // 1
+    }
+
+    static void F1(scoped ref int y) { F0(__arglist(ref y)); }
+    static void F2(ref int y) { F0(__arglist(ref y)); }
+
+    static ref int F3(scoped ref int y) { return ref F0(__arglist(ref y)); }
+    static ref int F4(ref int y) { return ref F0(__arglist(ref y)); }
+}";
+            var comp = CreateCompilation(new[] { source, UnscopedRefAttributeDefinition }, runtimeFeature: RuntimeFlag.ByRefFields);
+            comp.VerifyEmitDiagnostics(
+                // (10,20): error CS8157: Cannot return 'r' by reference because it was initialized to a value that cannot be returned by reference
+                //         return ref r; // 1
+                Diagnostic(ErrorCode.ERR_RefReturnNonreturnableLocal, "r").WithArguments("r").WithLocation(10, 20));
         }
 
         /// <summary>
