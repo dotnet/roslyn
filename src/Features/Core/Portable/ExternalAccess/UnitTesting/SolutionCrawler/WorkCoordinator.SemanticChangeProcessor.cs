@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
 
         internal sealed partial class WorkCoordinator
         {
-            private sealed class SemanticChangeProcessor : IdleProcessor
+            private sealed class SemanticChangeProcessor : UnitTestingIdleProcessor
             {
                 private static readonly Func<int, DocumentId, bool, string> s_enqueueLogger = (tick, documentId, hint) => $"Tick:{tick}, {documentId}, {documentId.ProjectId}, hint:{hint}";
 
@@ -326,7 +326,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                         => WorkCoordinator.GetRequiredDocument(Project, _documentId, _document);
                 }
 
-                private class ProjectProcessor : IdleProcessor
+                private class ProjectProcessor : UnitTestingIdleProcessor
                 {
                     private static readonly Func<int, ProjectId, string> s_enqueueLogger = (t, i) => string.Format("[{0}] {1}", t, i.ToString());
 

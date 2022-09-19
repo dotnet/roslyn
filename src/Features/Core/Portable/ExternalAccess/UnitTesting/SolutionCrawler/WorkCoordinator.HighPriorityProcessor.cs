@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
         {
             private sealed partial class IncrementalAnalyzerProcessor
             {
-                private sealed class HighPriorityProcessor : IdleProcessor
+                private sealed class HighPriorityProcessor : UnitTestingIdleProcessor
                 {
                     private readonly IncrementalAnalyzerProcessor _processor;
                     private readonly AsyncDocumentWorkItemQueue _workItemQueue;

@@ -11,7 +11,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
 {
-    internal abstract class IdleProcessor
+    internal abstract class UnitTestingIdleProcessor
     {
         private static readonly TimeSpan s_minimumDelay = TimeSpan.FromMilliseconds(50);
 
@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
         /// </summary>
         private bool _isPaused_doNotAccessDirectly;
 
-        public IdleProcessor(
+        public UnitTestingIdleProcessor(
             IAsynchronousOperationListener listener,
             TimeSpan backOffTimeSpan,
             CancellationToken cancellationToken)

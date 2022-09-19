@@ -11,7 +11,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
 {
-    internal abstract class UnitTestingGlobalOperationAwareIdleProcessor : IdleProcessor
+    internal abstract class UnitTestingGlobalOperationAwareIdleProcessor : UnitTestingIdleProcessor
     {
         private readonly IGlobalOperationNotificationService _globalOperationNotificationService;
 
