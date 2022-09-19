@@ -13,6 +13,7 @@
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800"
              x:Name="Root"
+             vsui:ThemedDialogStyleLoader.UseDefaultThemedDialogStyles="True"
              Background="{StaticResource {x:Static vsshell:VsBrushes.ToolWindowBackgroundKey}}"
              platformimaging:ImageThemingUtilities.ImageBackgroundColor="{StaticResource {x:Static vsshell:VsColors.ToolWindowBackgroundKey}}">
     <UserControl.Resources>
@@ -150,13 +151,13 @@
                     </Setter>
                     <Setter Property="ContextMenu">
                         <Setter.Value>
-                            <local:ThemedContextMenu>
+                            <ContextMenu>
                                 <MenuItem Header="{Binding ElementName=Root, Path=CloseTab}" Command="{Binding CloseClick}">
                                     <MenuItem.Icon>
                                         <imaging:CrispImage Moniker="{x:Static imagecatalog:KnownMonikers.Close}" />
                                     </MenuItem.Icon>
                                 </MenuItem>
-                            </local:ThemedContextMenu>
+                            </ContextMenu>
                         </Setter.Value>
                     </Setter>
                 </Style>

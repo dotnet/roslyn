@@ -504,6 +504,26 @@
           <LocCanonicalName>ShowStackTraceExplorer</LocCanonicalName>
         </Strings>
       </Button>
+
+      <Button guid="guidStackTraceExplorerCmdSet" id="cmdIdPasteStackTraceExplorer" type="Button">
+        <Icon guid="ImageCatalogGuid" id="Paste" />
+        <Strings>
+          <ButtonText>Paste</ButtonText>
+          <CommandName>PasteStackTraceExplorerCommandName</CommandName>
+          <CanonicalName>PasteStackTraceExplorer</CanonicalName>
+          <LocCanonicalName>PasteStackTraceExplorer</LocCanonicalName>
+        </Strings>
+      </Button>
+
+      <Button guid="guidStackTraceExplorerCmdSet" id="cmdIdClearStackTraceExplorer" type="Button">
+        <Icon guid="ImageCatalogGuid" id="ClearCollection" />
+        <Strings>
+          <ButtonText>Clear</ButtonText>
+          <CommandName>CleearStackTraceExplorerCommandName</CommandName>
+          <CanonicalName>ClearStackTraceExplorer</CanonicalName>
+          <LocCanonicalName>ClearStackTraceExplorer</LocCanonicalName>
+        </Strings>
+      </Button>
     </Buttons>
 
     <Menus>
@@ -630,6 +650,14 @@
 
     <CommandPlacement guid="guidRoslynGrpId" id="cmdidshowValueTracking" priority="0xF200">
       <Parent guid="guidSHLMainMenu" id="IDG_VS_CODEWIN_NAVIGATETOLOCATION"/>
+    </CommandPlacement>
+
+    <CommandPlacement guid="guidStackTraceExplorerCmdSet" id="cmdIdPasteStackTraceExplorer" priority="0x0001">
+      <Parent guid="guidStackTraceExplorerCmdSet" id="StackTraceExplorerContextMenu" />
+    </CommandPlacement>
+
+    <CommandPlacement guid="guidStackTraceExplorerCmdSet" id="cmdIdClearStackTraceExplorer" priority="0x0002">
+      <Parent guid="guidStackTraceExplorerCmdSet" id="StackTraceExplorerContextMenu" />
     </CommandPlacement>
   </CommandPlacements>
 
@@ -758,6 +786,9 @@
 
     <GuidSymbol name="guidStackTraceExplorerCmdSet" value="{FB190424-4DFF-43DB-8CCA-E32D1CE8A5CA}">
       <IDSymbol name="cmdIdShowStackTraceExplorer" value="0x0100" />
+      <IDSymbol name="cmdIdPasteStackTraceExplorer" value="0x0101" />
+      <IDSymbol name="cmdIdClearStackTraceExplorer" value="0x0102" />
+      <IDSymbol name="StackTraceExplorerContextMenu" value="0x0300" />
     </GuidSymbol>
   </Symbols>
 </CommandTable>

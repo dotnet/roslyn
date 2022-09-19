@@ -7,6 +7,36 @@
         <target state="translated">Ejecutar &amp;análisis de código en la selección</target>
         <note />
       </trans-unit>
+      <trans-unit id="cmdIdClearStackTraceExplorer|ButtonText">
+        <source>Clear</source>
+        <target state="new">Clear</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdIdClearStackTraceExplorer|CommandName">
+        <source>CleearStackTraceExplorerCommandName</source>
+        <target state="new">CleearStackTraceExplorerCommandName</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdIdClearStackTraceExplorer|LocCanonicalName">
+        <source>ClearStackTraceExplorer</source>
+        <target state="new">ClearStackTraceExplorer</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdIdPasteStackTraceExplorer|ButtonText">
+        <source>Paste</source>
+        <target state="new">Paste</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdIdPasteStackTraceExplorer|CommandName">
+        <source>PasteStackTraceExplorerCommandName</source>
+        <target state="new">PasteStackTraceExplorerCommandName</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdIdPasteStackTraceExplorer|LocCanonicalName">
+        <source>PasteStackTraceExplorer</source>
+        <target state="new">PasteStackTraceExplorer</target>
+        <note />
+      </trans-unit>
       <trans-unit id="cmdIdShowStackTraceExplorer|ButtonText">
         <source>Stack Trace Explorer</source>
         <target state="translated">Explorador de seguimiento de pila</target>

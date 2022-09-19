@@ -151,6 +151,16 @@ namespace Microsoft.VisualStudio.LanguageServices.StackTraceExplorer
             return window;
         }
 
+        private void Paste(object sender, EventArgs e)
+        {
+
+        }
+
+        private void Clear(object sender, EventArgs e)
+        {
+
+        }
+
         internal static void Initialize(OleMenuCommandService menuCommandService, RoslynPackage package)
         {
             if (_instance is not null)
@@ -163,6 +173,15 @@ namespace Microsoft.VisualStudio.LanguageServices.StackTraceExplorer
             var menuCommandId = new CommandID(Guids.StackTraceExplorerCommandId, 0x0100);
             var menuItem = new MenuCommand(_instance.Execute, menuCommandId);
             menuCommandService.AddCommand(menuItem);
+
+            var pasteCommandId = new CommandID(Guids.StackTraceExplorerCommandId, 0x0101);
+            var clearCommandId = new CommandID(Guids.StackTraceExplorerCommandId, 0x0102);
+
+            var pasteMenuItem = new MenuCommand(_instance.Paste, pasteCommandId);
+            var clearMenuItem = new MenuCommand(_instance.Clear, clearCommandId);
+
+            menuCommandService.AddCommand(pasteMenuItem);
+            menuCommandService.AddCommand(clearMenuItem);
         }
     }
 }
