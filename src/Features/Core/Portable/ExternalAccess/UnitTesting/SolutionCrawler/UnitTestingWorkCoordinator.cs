@@ -413,7 +413,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
 
                 // call to this method is serialized. and only this method does the writing.
                 _documentAndProjectWorkerProcessor.Enqueue(
-                    new WorkItem(documentId, project.Language, invocationReasons, isLowPriority, currentMember, _listener.BeginAsyncOperation("WorkItem")));
+                    new UnitTestingWorkItem(documentId, project.Language, invocationReasons, isLowPriority, currentMember, _listener.BeginAsyncOperation("WorkItem")));
 
                 // enqueue semantic work planner
                 if (invocationReasons.Contains(UnitTestingPredefinedInvocationReasons.SemanticChanged) && sourceDocument != null)
@@ -476,7 +476,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                     GetRequiredDocument(project, documentId, document), _shutdownToken).ConfigureAwait(false);
 
                 _documentAndProjectWorkerProcessor.Enqueue(
-                    new WorkItem(documentId, project.Language, invocationReasons,
+                    new UnitTestingWorkItem(documentId, project.Language, invocationReasons,
                         isLowPriority, analyzer, _listener.BeginAsyncOperation("WorkItem")));
             }
 
@@ -571,13 +571,13 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                 internal void WaitUntilCompletion(ImmutableArray<IUnitTestingIncrementalAnalyzer> workers)
                 {
                     var solution = _workCoordinator._registration.GetSolutionToAnalyze();
-                    var list = new List<WorkItem>();
+                    var list = new List<UnitTestingWorkItem>();
 
                     foreach (var project in solution.Projects)
                     {
                         foreach (var document in project.Documents)
                         {
-                            list.Add(new WorkItem(document.Id, document.Project.Language, UnitTestingInvocationReasons.DocumentAdded, isLowPriority: false, activeMember: null, EmptyAsyncToken.Instance));
+                            list.Add(new UnitTestingWorkItem(document.Id, document.Project.Language, UnitTestingInvocationReasons.DocumentAdded, isLowPriority: false, activeMember: null, EmptyAsyncToken.Instance));
                         }
                     }
 

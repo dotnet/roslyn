@@ -102,7 +102,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                     return orderedAnalyzers;
                 }
 
-                public void Enqueue(WorkItem item)
+                public void Enqueue(UnitTestingWorkItem item)
                 {
                     Contract.ThrowIfNull(item.DocumentId);
 
@@ -163,7 +163,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                 }
 
                 private async Task ProcessDocumentAnalyzersAsync(
-                    TextDocument textDocument, ImmutableArray<IUnitTestingIncrementalAnalyzer> analyzers, WorkItem workItem, CancellationToken cancellationToken)
+                    TextDocument textDocument, ImmutableArray<IUnitTestingIncrementalAnalyzer> analyzers, UnitTestingWorkItem workItem, CancellationToken cancellationToken)
                 {
                     // process special active document switched request, if any.
                     if (await ProcessActiveDocumentSwitchedAsync(analyzers, workItem, textDocument, cancellationToken).ConfigureAwait(false))
@@ -210,7 +210,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                         }
                     }
 
-                    async Task<bool> ProcessActiveDocumentSwitchedAsync(ImmutableArray<IUnitTestingIncrementalAnalyzer> analyzers, WorkItem workItem, TextDocument document, CancellationToken cancellationToken)
+                    async Task<bool> ProcessActiveDocumentSwitchedAsync(ImmutableArray<IUnitTestingIncrementalAnalyzer> analyzers, UnitTestingWorkItem workItem, TextDocument document, CancellationToken cancellationToken)
                     {
                         try
                         {
@@ -233,7 +233,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                 private async Task RunAnalyzersAsync<T>(
                     ImmutableArray<IUnitTestingIncrementalAnalyzer> analyzers,
                     T value,
-                    WorkItem workItem,
+                    UnitTestingWorkItem workItem,
                     Func<IUnitTestingIncrementalAnalyzer, T, CancellationToken, Task> runnerAsync,
                     CancellationToken cancellationToken)
                 {
@@ -264,7 +264,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                     }
                 }
 
-                private async Task RunBodyAnalyzersAsync(ImmutableArray<IUnitTestingIncrementalAnalyzer> analyzers, WorkItem workItem, Document document, CancellationToken cancellationToken)
+                private async Task RunBodyAnalyzersAsync(ImmutableArray<IUnitTestingIncrementalAnalyzer> analyzers, UnitTestingWorkItem workItem, Document document, CancellationToken cancellationToken)
                 {
                     try
                     {
@@ -373,7 +373,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                         _incrementalAnalyzerProcessor = incrementalAnalyzerProcessor;
                     }
 
-                    internal void WaitUntilCompletion(ImmutableArray<IUnitTestingIncrementalAnalyzer> analyzers, List<WorkItem> items)
+                    internal void WaitUntilCompletion(ImmutableArray<IUnitTestingIncrementalAnalyzer> analyzers, List<UnitTestingWorkItem> items)
                     {
                         _incrementalAnalyzerProcessor._normalPriorityProcessor.GetTestAccessor().WaitUntilCompletion(analyzers, items);
 

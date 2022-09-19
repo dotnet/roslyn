@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                         }
                     }
 
-                    public void Enqueue(WorkItem item)
+                    public void Enqueue(UnitTestingWorkItem item)
                     {
                         Contract.ThrowIfFalse(item.DocumentId != null, "can only enqueue a document work item");
 
@@ -111,7 +111,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                         EnqueueActiveFileItem(item.WithAsyncToken(Listener.BeginAsyncOperation("ActiveFile")));
                     }
 
-                    private void EnqueueActiveFileItem(WorkItem item)
+                    private void EnqueueActiveFileItem(UnitTestingWorkItem item)
                     {
                         Contract.ThrowIfNull(item.DocumentId);
 
@@ -159,7 +159,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                         }
                     }
 
-                    private bool GetNextWorkItem(out WorkItem workItem, out CancellationToken cancellationToken)
+                    private bool GetNextWorkItem(out UnitTestingWorkItem workItem, out CancellationToken cancellationToken)
                     {
                         // GetNextWorkItem since it can't fail. we still return bool to confirm that this never fail.
                         var documentId = _processor._documentTracker.TryGetActiveDocument();
@@ -179,7 +179,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                             cancellationToken: out cancellationToken);
                     }
 
-                    private async Task ProcessDocumentAsync(Solution solution, ImmutableArray<IUnitTestingIncrementalAnalyzer> analyzers, WorkItem workItem, CancellationToken cancellationToken)
+                    private async Task ProcessDocumentAsync(Solution solution, ImmutableArray<IUnitTestingIncrementalAnalyzer> analyzers, UnitTestingWorkItem workItem, CancellationToken cancellationToken)
                     {
                         Contract.ThrowIfNull(workItem.DocumentId);
 

@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
         {
             private sealed class UnitTestingAsyncProjectWorkItemQueue : UnitTestingAsyncWorkItemQueue<ProjectId>
             {
-                private readonly Dictionary<ProjectId, WorkItem> _projectWorkQueue = new();
+                private readonly Dictionary<ProjectId, UnitTestingWorkItem> _projectWorkQueue = new();
 
                 public UnitTestingAsyncProjectWorkItemQueue(UnitTestingSolutionCrawlerProgressReporter progressReporter, Workspace workspace)
                     : base(progressReporter, workspace)
@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                     return base.WaitAsync(cancellationToken);
                 }
 
-                protected override bool TryTake_NoLock(ProjectId key, out WorkItem workInfo)
+                protected override bool TryTake_NoLock(ProjectId key, out UnitTestingWorkItem workInfo)
                 {
                     if (!_projectWorkQueue.TryGetValue(key, out workInfo))
                     {
@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
 
                 protected override bool TryTakeAnyWork_NoLock(
                     ProjectId? preferableProjectId, ProjectDependencyGraph dependencyGraph, IDiagnosticAnalyzerService? analyzerService,
-                    out WorkItem workItem)
+                    out UnitTestingWorkItem workItem)
                 {
                     // there must be at least one item in the map when this is called unless host is shutting down.
                     if (_projectWorkQueue.Count == 0)
@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                     throw ExceptionUtilities.Unreachable;
                 }
 
-                protected override bool AddOrReplace_NoLock(WorkItem item)
+                protected override bool AddOrReplace_NoLock(UnitTestingWorkItem item)
                 {
                     var key = item.ProjectId;
                     Cancel_NoLock(key);

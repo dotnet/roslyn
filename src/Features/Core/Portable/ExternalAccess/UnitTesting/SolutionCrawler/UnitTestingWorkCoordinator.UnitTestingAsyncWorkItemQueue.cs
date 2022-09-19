@@ -42,11 +42,11 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
 
                 protected abstract void Dispose_NoLock();
 
-                protected abstract bool AddOrReplace_NoLock(WorkItem item);
+                protected abstract bool AddOrReplace_NoLock(UnitTestingWorkItem item);
 
-                protected abstract bool TryTake_NoLock(TKey key, out WorkItem workInfo);
+                protected abstract bool TryTake_NoLock(TKey key, out UnitTestingWorkItem workInfo);
 
-                protected abstract bool TryTakeAnyWork_NoLock(ProjectId? preferableProjectId, ProjectDependencyGraph dependencyGraph, IDiagnosticAnalyzerService? service, out WorkItem workItem);
+                protected abstract bool TryTakeAnyWork_NoLock(ProjectId? preferableProjectId, ProjectDependencyGraph dependencyGraph, IDiagnosticAnalyzerService? service, out UnitTestingWorkItem workItem);
 
                 public int WorkItemCount
                 {
@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                 public virtual Task WaitAsync(CancellationToken cancellationToken)
                     => _semaphore.WaitAsync(cancellationToken);
 
-                public bool AddOrReplace(WorkItem item)
+                public bool AddOrReplace(UnitTestingWorkItem item)
                 {
                     lock (_gate)
                     {
@@ -196,7 +196,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                     }
                 }
 
-                public bool TryTake(TKey key, out WorkItem workInfo, out CancellationToken cancellationToken)
+                public bool TryTake(TKey key, out UnitTestingWorkItem workInfo, out CancellationToken cancellationToken)
                 {
                     lock (_gate)
                     {
@@ -218,7 +218,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                     ProjectId? preferableProjectId,
                     ProjectDependencyGraph dependencyGraph,
                     IDiagnosticAnalyzerService? analyzerService,
-                    out WorkItem workItem,
+                    out UnitTestingWorkItem workItem,
                     out CancellationToken cancellationToken)
                 {
                     lock (_gate)

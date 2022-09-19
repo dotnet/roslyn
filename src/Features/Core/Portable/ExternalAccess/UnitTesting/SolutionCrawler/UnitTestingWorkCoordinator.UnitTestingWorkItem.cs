@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
         internal partial class UnitTestingWorkCoordinator
         {
             // this is internal only type
-            private readonly struct WorkItem
+            private readonly struct UnitTestingWorkItem
             {
                 // project related workitem
                 public readonly ProjectId ProjectId;
@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                     }
                 }
 
-                private WorkItem(
+                private UnitTestingWorkItem(
                     DocumentId? documentId,
                     ProjectId projectId,
                     string language,
@@ -90,12 +90,12 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                     AsyncToken = asyncToken;
                 }
 
-                public WorkItem(DocumentId documentId, string language, UnitTestingInvocationReasons invocationReasons, bool isLowPriority, SyntaxPath? activeMember, IAsyncToken asyncToken)
+                public UnitTestingWorkItem(DocumentId documentId, string language, UnitTestingInvocationReasons invocationReasons, bool isLowPriority, SyntaxPath? activeMember, IAsyncToken asyncToken)
                     : this(documentId, documentId.ProjectId, language, invocationReasons, isLowPriority, activeMember, ImmutableHashSet.Create<IUnitTestingIncrementalAnalyzer>(), retry: false, asyncToken)
                 {
                 }
 
-                public WorkItem(DocumentId documentId, string language, UnitTestingInvocationReasons invocationReasons, bool isLowPriority, IUnitTestingIncrementalAnalyzer? analyzer, IAsyncToken asyncToken)
+                public UnitTestingWorkItem(DocumentId documentId, string language, UnitTestingInvocationReasons invocationReasons, bool isLowPriority, IUnitTestingIncrementalAnalyzer? analyzer, IAsyncToken asyncToken)
                     : this(documentId, documentId.ProjectId, language, invocationReasons, isLowPriority, activeMember: null,
                            analyzer == null ? ImmutableHashSet.Create<IUnitTestingIncrementalAnalyzer>() : ImmutableHashSet.Create(analyzer),
                            retry: false, asyncToken)
@@ -119,14 +119,14 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                     return SpecificAnalyzers.Union(analyzers);
                 }
 
-                public WorkItem Retry(IAsyncToken asyncToken)
+                public UnitTestingWorkItem Retry(IAsyncToken asyncToken)
                 {
-                    return new WorkItem(
+                    return new UnitTestingWorkItem(
                         DocumentId, ProjectId, Language, InvocationReasons, IsLowPriority, ActiveMember, SpecificAnalyzers,
                         retry: true, asyncToken: asyncToken);
                 }
 
-                public WorkItem With(
+                public UnitTestingWorkItem With(
                     UnitTestingInvocationReasons invocationReasons, SyntaxPath? currentMember,
                     ImmutableHashSet<IUnitTestingIncrementalAnalyzer> analyzers, bool retry, IAsyncToken asyncToken)
                 {
@@ -134,7 +134,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                     AsyncToken.Dispose();
 
                     // create new work item
-                    return new WorkItem(
+                    return new UnitTestingWorkItem(
                         DocumentId, ProjectId, Language,
                         InvocationReasons.With(invocationReasons),
                         IsLowPriority,
@@ -143,19 +143,19 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                         asyncToken);
                 }
 
-                public WorkItem WithAsyncToken(IAsyncToken asyncToken)
+                public UnitTestingWorkItem WithAsyncToken(IAsyncToken asyncToken)
                 {
-                    return new WorkItem(
+                    return new UnitTestingWorkItem(
                         DocumentId, ProjectId, Language, InvocationReasons, IsLowPriority, ActiveMember, SpecificAnalyzers,
                         retry: false, asyncToken: asyncToken);
                 }
 
-                public WorkItem ToProjectWorkItem(IAsyncToken asyncToken)
+                public UnitTestingWorkItem ToProjectWorkItem(IAsyncToken asyncToken)
                 {
                     RoslynDebug.Assert(DocumentId != null);
 
                     // create new work item that represents work per project
-                    return new WorkItem(
+                    return new UnitTestingWorkItem(
                         documentId: null,
                         DocumentId.ProjectId,
                         Language,
@@ -167,9 +167,9 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                         asyncToken);
                 }
 
-                public WorkItem With(ImmutableHashSet<IUnitTestingIncrementalAnalyzer> specificAnalyzers, IAsyncToken asyncToken)
+                public UnitTestingWorkItem With(ImmutableHashSet<IUnitTestingIncrementalAnalyzer> specificAnalyzers, IAsyncToken asyncToken)
                 {
-                    return new WorkItem(DocumentId, ProjectId, Language, InvocationReasons,
+                    return new UnitTestingWorkItem(DocumentId, ProjectId, Language, InvocationReasons,
                         IsLowPriority, ActiveMember, specificAnalyzers, IsRetry, asyncToken);
                 }
 

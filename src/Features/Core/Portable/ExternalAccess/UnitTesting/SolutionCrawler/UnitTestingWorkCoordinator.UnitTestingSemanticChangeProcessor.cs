@@ -397,7 +397,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                         var isLowPriority = priorityService != null && await priorityService.IsLowPriorityAsync(GetRequiredDocument(project, documentId, document), CancellationToken).ConfigureAwait(false);
 
                         _processor.Enqueue(
-                            new WorkItem(documentId, project.Language, UnitTestingInvocationReasons.SemanticChanged,
+                            new UnitTestingWorkItem(documentId, project.Language, UnitTestingInvocationReasons.SemanticChanged,
                                 isLowPriority, activeMember: null, Listener.BeginAsyncOperation(nameof(EnqueueWorkItemAsync), tag: EnqueueItem)));
                     }
 
