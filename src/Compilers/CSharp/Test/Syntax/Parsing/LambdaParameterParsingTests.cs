@@ -3713,10 +3713,7 @@ class C {
         public void ScopedAsParameterName_06()
         {
             string source = "(scoped scoped) => { }";
-            UsingExpression(source,
-                // (1,15): error CS1001: Identifier expected
-                // (scoped scoped) => { }
-                Diagnostic(ErrorCode.ERR_IdentifierExpected, ")").WithLocation(1, 15));
+            UsingExpression(source);
 
             N(SyntaxKind.ParenthesizedLambdaExpression);
             {
@@ -3725,12 +3722,11 @@ class C {
                     N(SyntaxKind.OpenParenToken);
                     N(SyntaxKind.Parameter);
                     {
-                        N(SyntaxKind.ScopedKeyword);
                         N(SyntaxKind.IdentifierName);
                         {
                             N(SyntaxKind.IdentifierToken, "scoped");
                         }
-                        M(SyntaxKind.IdentifierToken);
+                        N(SyntaxKind.IdentifierToken, "scoped");
                     }
                     N(SyntaxKind.CloseParenToken);
                 }
