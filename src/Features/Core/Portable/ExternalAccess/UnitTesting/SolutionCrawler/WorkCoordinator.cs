@@ -537,7 +537,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
 
             private async Task EnqueueChangedDocumentWorkItemAsync(Document oldDocument, Document newDocument)
             {
-                var differenceService = newDocument.GetLanguageService<IDocumentDifferenceService>();
+                var differenceService = newDocument.GetLanguageService<IUnitTestingDocumentDifferenceService>();
 
                 if (differenceService == null)
                 {

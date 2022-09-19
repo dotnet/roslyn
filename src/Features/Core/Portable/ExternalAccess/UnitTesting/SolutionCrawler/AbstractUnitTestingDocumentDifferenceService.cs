@@ -13,9 +13,9 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
 {
-    internal abstract class AbstractUnitTestingDocumentDifferenceService : IDocumentDifferenceService
+    internal abstract class AbstractUnitTestingDocumentDifferenceService : IUnitTestingDocumentDifferenceService
     {
-        public async Task<DocumentDifferenceResult?> GetDifferenceAsync(Document oldDocument, Document newDocument, CancellationToken cancellationToken)
+        public async Task<UnitTestingDocumentDifferenceResult?> GetDifferenceAsync(Document oldDocument, Document newDocument, CancellationToken cancellationToken)
         {
             try
             {
@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                 if (syntaxFactsService == null)
                 {
                     // somehow, we can't get the service. without it, there is nothing we can do.
-                    return new DocumentDifferenceResult(InvocationReasons.DocumentChanged);
+                    return new UnitTestingDocumentDifferenceResult(InvocationReasons.DocumentChanged);
                 }
                 // this is based on the implementation detail where opened documents use strong references
                 // to tree and text rather than recoverable versions.
@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                     !newDocument.TryGetText(out var newText))
                 {
                     // no cheap way to determine top level changes. assumes top level has changed
-                    return new DocumentDifferenceResult(InvocationReasons.DocumentChanged);
+                    return new UnitTestingDocumentDifferenceResult(InvocationReasons.DocumentChanged);
                 }
                 // quick check whether two tree versions are same
                 if (oldDocument.TryGetSyntaxVersion(out var oldVersion) &&
@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                     if (!incrementalParsingCandidate)
                     {
                         // no cheap way to determine top level changes. assumes top level has changed
-                        return new DocumentDifferenceResult(InvocationReasons.DocumentChanged);
+                        return new UnitTestingDocumentDifferenceResult(InvocationReasons.DocumentChanged);
                     }
 
                     // explicitly parse them
@@ -81,18 +81,18 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                 {
                     if (oldTopLevelChangeVersion.Equals(newTopLevelChangeVersion))
                     {
-                        return new DocumentDifferenceResult(InvocationReasons.SyntaxChanged, GetChangedMember(syntaxFactsService, oldRoot, newRoot, range));
+                        return new UnitTestingDocumentDifferenceResult(InvocationReasons.SyntaxChanged, GetChangedMember(syntaxFactsService, oldRoot, newRoot, range));
                     }
 
-                    return new DocumentDifferenceResult(InvocationReasons.DocumentChanged, GetBestGuessChangedMember(syntaxFactsService, oldRoot, newRoot, range));
+                    return new UnitTestingDocumentDifferenceResult(InvocationReasons.DocumentChanged, GetBestGuessChangedMember(syntaxFactsService, oldRoot, newRoot, range));
                 }
 
                 if (oldTopLevelChangeVersion.Equals(newTopLevelChangeVersion))
                 {
-                    return new DocumentDifferenceResult(InvocationReasons.SyntaxChanged);
+                    return new UnitTestingDocumentDifferenceResult(InvocationReasons.SyntaxChanged);
                 }
 
-                return new DocumentDifferenceResult(InvocationReasons.DocumentChanged);
+                return new UnitTestingDocumentDifferenceResult(InvocationReasons.DocumentChanged);
             }
             catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
             {

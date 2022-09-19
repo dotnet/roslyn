@@ -8,20 +8,20 @@ using Microsoft.CodeAnalysis.Host;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
 {
-    internal class DocumentDifferenceResult
+    internal class UnitTestingDocumentDifferenceResult
     {
         public InvocationReasons ChangeType { get; }
         public SyntaxNode? ChangedMember { get; }
 
-        public DocumentDifferenceResult(InvocationReasons changeType, SyntaxNode? changedMember = null)
+        public UnitTestingDocumentDifferenceResult(InvocationReasons changeType, SyntaxNode? changedMember = null)
         {
             ChangeType = changeType;
             ChangedMember = changedMember;
         }
     }
 
-    internal interface IDocumentDifferenceService : ILanguageService
+    internal interface IUnitTestingDocumentDifferenceService : ILanguageService
     {
-        Task<DocumentDifferenceResult?> GetDifferenceAsync(Document oldDocument, Document newDocument, CancellationToken cancellationToken);
+        Task<UnitTestingDocumentDifferenceResult?> GetDifferenceAsync(Document oldDocument, Document newDocument, CancellationToken cancellationToken);
     }
 }
