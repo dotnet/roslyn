@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                     public LowPriorityProcessor(
                         IAsynchronousOperationListener listener,
                         IncrementalAnalyzerProcessor processor,
-                        Lazy<ImmutableArray<IIncrementalAnalyzer>> lazyAnalyzers,
+                        Lazy<ImmutableArray<IUnitTestingIncrementalAnalyzer>> lazyAnalyzers,
                         IGlobalOperationNotificationService globalOperationNotificationService,
                         TimeSpan backOffTimeSpan,
                         CancellationToken shutdownToken)
@@ -120,7 +120,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                         _workItemQueue.RequestCancellationOnRunningTasks();
                     }
 
-                    private async Task ProcessProjectAsync(ImmutableArray<IIncrementalAnalyzer> analyzers, WorkItem workItem, CancellationToken cancellationToken)
+                    private async Task ProcessProjectAsync(ImmutableArray<IUnitTestingIncrementalAnalyzer> analyzers, WorkItem workItem, CancellationToken cancellationToken)
                     {
                         if (CancellationToken.IsCancellationRequested)
                         {
@@ -211,7 +211,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                             _lowPriorityProcessor = lowPriorityProcessor;
                         }
 
-                        internal void WaitUntilCompletion(ImmutableArray<IIncrementalAnalyzer> analyzers, List<WorkItem> items)
+                        internal void WaitUntilCompletion(ImmutableArray<IUnitTestingIncrementalAnalyzer> analyzers, List<WorkItem> items)
                         {
                             var uniqueIds = new HashSet<ProjectId>();
                             foreach (var item in items)

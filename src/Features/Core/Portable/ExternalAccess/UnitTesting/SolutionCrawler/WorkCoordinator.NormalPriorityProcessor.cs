@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                     public NormalPriorityProcessor(
                         IAsynchronousOperationListener listener,
                         IncrementalAnalyzerProcessor processor,
-                        Lazy<ImmutableArray<IIncrementalAnalyzer>> lazyAnalyzers,
+                        Lazy<ImmutableArray<IUnitTestingIncrementalAnalyzer>> lazyAnalyzers,
                         IGlobalOperationNotificationService globalOperationNotificationService,
                         TimeSpan backOffTimeSpan,
                         CancellationToken shutdownToken)
@@ -298,7 +298,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                         }
                     }
 
-                    private async Task ProcessDocumentAsync(ImmutableArray<IIncrementalAnalyzer> analyzers, WorkItem workItem, CancellationToken cancellationToken)
+                    private async Task ProcessDocumentAsync(ImmutableArray<IUnitTestingIncrementalAnalyzer> analyzers, WorkItem workItem, CancellationToken cancellationToken)
                     {
                         Contract.ThrowIfNull(workItem.DocumentId);
 
@@ -388,7 +388,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                         }
                     }
 
-                    private async Task ProcessOpenDocumentIfNeededAsync(ImmutableArray<IIncrementalAnalyzer> analyzers, WorkItem workItem, TextDocument textDocument, bool isOpen, CancellationToken cancellationToken)
+                    private async Task ProcessOpenDocumentIfNeededAsync(ImmutableArray<IUnitTestingIncrementalAnalyzer> analyzers, WorkItem workItem, TextDocument textDocument, bool isOpen, CancellationToken cancellationToken)
                     {
                         if (!isOpen || !workItem.InvocationReasons.Contains(PredefinedInvocationReasons.DocumentOpened))
                         {
@@ -400,7 +400,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                         await Processor.RunAnalyzersAsync(analyzers, textDocument, workItem, DocumentOpenAsync, cancellationToken).ConfigureAwait(false);
                         return;
 
-                        static async Task DocumentOpenAsync(IIncrementalAnalyzer analyzer, TextDocument textDocument, CancellationToken cancellationToken)
+                        static async Task DocumentOpenAsync(IUnitTestingIncrementalAnalyzer analyzer, TextDocument textDocument, CancellationToken cancellationToken)
                         {
                             if (textDocument is Document document)
                             {
@@ -413,7 +413,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                         }
                     }
 
-                    private async Task ProcessCloseDocumentIfNeededAsync(ImmutableArray<IIncrementalAnalyzer> analyzers, WorkItem workItem, TextDocument textDocument, bool isOpen, CancellationToken cancellationToken)
+                    private async Task ProcessCloseDocumentIfNeededAsync(ImmutableArray<IUnitTestingIncrementalAnalyzer> analyzers, WorkItem workItem, TextDocument textDocument, bool isOpen, CancellationToken cancellationToken)
                     {
                         if (isOpen || !workItem.InvocationReasons.Contains(PredefinedInvocationReasons.DocumentClosed))
                         {
@@ -425,7 +425,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                         await Processor.RunAnalyzersAsync(analyzers, textDocument, workItem, DocumentCloseAsync, cancellationToken).ConfigureAwait(false);
                         return;
 
-                        static async Task DocumentCloseAsync(IIncrementalAnalyzer analyzer, TextDocument textDocument, CancellationToken cancellationToken)
+                        static async Task DocumentCloseAsync(IUnitTestingIncrementalAnalyzer analyzer, TextDocument textDocument, CancellationToken cancellationToken)
                         {
                             if (textDocument is Document document)
                             {
@@ -478,7 +478,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
 
                         return;
 
-                        static async Task DocumentResetAsync(IIncrementalAnalyzer analyzer, TextDocument textDocument, CancellationToken cancellationToken)
+                        static async Task DocumentResetAsync(IUnitTestingIncrementalAnalyzer analyzer, TextDocument textDocument, CancellationToken cancellationToken)
                         {
                             if (textDocument is Document document)
                             {
@@ -490,7 +490,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                             }
                         }
 
-                        static async Task AnalyzeSyntaxAsync(IIncrementalAnalyzer analyzer, TextDocument textDocument, InvocationReasons reasons, CancellationToken cancellationToken)
+                        static async Task AnalyzeSyntaxAsync(IUnitTestingIncrementalAnalyzer analyzer, TextDocument textDocument, InvocationReasons reasons, CancellationToken cancellationToken)
                         {
                             if (textDocument is Document document)
                             {
@@ -506,7 +506,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                     private Task RemoveDocumentAsync(DocumentId documentId, CancellationToken cancellationToken)
                         => RemoveDocumentAsync(Analyzers, documentId, cancellationToken);
 
-                    private static async Task RemoveDocumentAsync(ImmutableArray<IIncrementalAnalyzer> analyzers, DocumentId documentId, CancellationToken cancellationToken)
+                    private static async Task RemoveDocumentAsync(ImmutableArray<IUnitTestingIncrementalAnalyzer> analyzers, DocumentId documentId, CancellationToken cancellationToken)
                     {
                         foreach (var analyzer in analyzers)
                         {
@@ -601,7 +601,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                             _normalPriorityProcessor = normalPriorityProcessor;
                         }
 
-                        internal void WaitUntilCompletion(ImmutableArray<IIncrementalAnalyzer> analyzers, List<WorkItem> items)
+                        internal void WaitUntilCompletion(ImmutableArray<IUnitTestingIncrementalAnalyzer> analyzers, List<WorkItem> items)
                         {
                             foreach (var item in items)
                             {

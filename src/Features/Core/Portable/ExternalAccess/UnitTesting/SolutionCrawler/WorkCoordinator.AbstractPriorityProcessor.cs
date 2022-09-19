@@ -23,12 +23,12 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                     protected readonly IncrementalAnalyzerProcessor Processor;
 
                     private readonly object _gate = new();
-                    private Lazy<ImmutableArray<IIncrementalAnalyzer>> _lazyAnalyzers;
+                    private Lazy<ImmutableArray<IUnitTestingIncrementalAnalyzer>> _lazyAnalyzers;
 
                     public AbstractPriorityProcessor(
                         IAsynchronousOperationListener listener,
                         IncrementalAnalyzerProcessor processor,
-                        Lazy<ImmutableArray<IIncrementalAnalyzer>> lazyAnalyzers,
+                        Lazy<ImmutableArray<IUnitTestingIncrementalAnalyzer>> lazyAnalyzers,
                         IGlobalOperationNotificationService globalOperationNotificationService,
                         TimeSpan backOffTimeSpan,
                         CancellationToken shutdownToken)
@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                         Processor._documentTracker.NonRoslynBufferTextChanged += OnNonRoslynBufferTextChanged;
                     }
 
-                    public ImmutableArray<IIncrementalAnalyzer> Analyzers
+                    public ImmutableArray<IUnitTestingIncrementalAnalyzer> Analyzers
                     {
                         get
                         {
@@ -51,12 +51,12 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                         }
                     }
 
-                    public void AddAnalyzer(IIncrementalAnalyzer analyzer)
+                    public void AddAnalyzer(IUnitTestingIncrementalAnalyzer analyzer)
                     {
                         lock (_gate)
                         {
                             var analyzers = _lazyAnalyzers.Value;
-                            _lazyAnalyzers = new Lazy<ImmutableArray<IIncrementalAnalyzer>>(() => analyzers.Add(analyzer));
+                            _lazyAnalyzers = new Lazy<ImmutableArray<IUnitTestingIncrementalAnalyzer>>(() => analyzers.Add(analyzer));
                         }
                     }
 

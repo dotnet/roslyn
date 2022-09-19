@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                 /// Non-empty if this work item is intended to be executed only for specific incremental analyzer(s).
                 /// Otherwise, the work item is applicable to all relevant incremental analyzers.
                 /// </summary>
-                public readonly ImmutableHashSet<IIncrementalAnalyzer> SpecificAnalyzers;
+                public readonly ImmutableHashSet<IUnitTestingIncrementalAnalyzer> SpecificAnalyzers;
 
                 /// <summary>
                 /// Gets all the applicable analyzers to execute for this work item.
@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                 /// and the given <paramref name="allAnalyzers"/>.
                 /// Otherwise, returns <paramref name="allAnalyzers"/>.
                 /// </summary>
-                public IEnumerable<IIncrementalAnalyzer> GetApplicableAnalyzers(ImmutableArray<IIncrementalAnalyzer> allAnalyzers)
+                public IEnumerable<IUnitTestingIncrementalAnalyzer> GetApplicableAnalyzers(ImmutableArray<IUnitTestingIncrementalAnalyzer> allAnalyzers)
                     => SpecificAnalyzers?.Count > 0 ? SpecificAnalyzers.Where(allAnalyzers.Contains) : allAnalyzers;
 
                 // retry
@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                     InvocationReasons invocationReasons,
                     bool isLowPriority,
                     SyntaxPath? activeMember,
-                    ImmutableHashSet<IIncrementalAnalyzer> specificAnalyzers,
+                    ImmutableHashSet<IUnitTestingIncrementalAnalyzer> specificAnalyzers,
                     bool retry,
                     IAsyncToken asyncToken)
                 {
@@ -91,20 +91,20 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                 }
 
                 public WorkItem(DocumentId documentId, string language, InvocationReasons invocationReasons, bool isLowPriority, SyntaxPath? activeMember, IAsyncToken asyncToken)
-                    : this(documentId, documentId.ProjectId, language, invocationReasons, isLowPriority, activeMember, ImmutableHashSet.Create<IIncrementalAnalyzer>(), retry: false, asyncToken)
+                    : this(documentId, documentId.ProjectId, language, invocationReasons, isLowPriority, activeMember, ImmutableHashSet.Create<IUnitTestingIncrementalAnalyzer>(), retry: false, asyncToken)
                 {
                 }
 
-                public WorkItem(DocumentId documentId, string language, InvocationReasons invocationReasons, bool isLowPriority, IIncrementalAnalyzer? analyzer, IAsyncToken asyncToken)
+                public WorkItem(DocumentId documentId, string language, InvocationReasons invocationReasons, bool isLowPriority, IUnitTestingIncrementalAnalyzer? analyzer, IAsyncToken asyncToken)
                     : this(documentId, documentId.ProjectId, language, invocationReasons, isLowPriority, activeMember: null,
-                           analyzer == null ? ImmutableHashSet.Create<IIncrementalAnalyzer>() : ImmutableHashSet.Create(analyzer),
+                           analyzer == null ? ImmutableHashSet.Create<IUnitTestingIncrementalAnalyzer>() : ImmutableHashSet.Create(analyzer),
                            retry: false, asyncToken)
                 {
                 }
 
                 public object Key => DocumentId ?? (object)ProjectId;
 
-                private ImmutableHashSet<IIncrementalAnalyzer> Union(ImmutableHashSet<IIncrementalAnalyzer> analyzers)
+                private ImmutableHashSet<IUnitTestingIncrementalAnalyzer> Union(ImmutableHashSet<IUnitTestingIncrementalAnalyzer> analyzers)
                 {
                     if (analyzers.IsEmpty)
                     {
@@ -128,7 +128,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
 
                 public WorkItem With(
                     InvocationReasons invocationReasons, SyntaxPath? currentMember,
-                    ImmutableHashSet<IIncrementalAnalyzer> analyzers, bool retry, IAsyncToken asyncToken)
+                    ImmutableHashSet<IUnitTestingIncrementalAnalyzer> analyzers, bool retry, IAsyncToken asyncToken)
                 {
                     // dispose old one
                     AsyncToken.Dispose();
@@ -167,7 +167,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                         asyncToken);
                 }
 
-                public WorkItem With(ImmutableHashSet<IIncrementalAnalyzer> specificAnalyzers, IAsyncToken asyncToken)
+                public WorkItem With(ImmutableHashSet<IUnitTestingIncrementalAnalyzer> specificAnalyzers, IAsyncToken asyncToken)
                 {
                     return new WorkItem(DocumentId, ProjectId, Language, InvocationReasons,
                         IsLowPriority, ActiveMember, specificAnalyzers, IsRetry, asyncToken);

@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                     private readonly AsyncDocumentWorkItemQueue _workItemQueue;
                     private readonly object _gate = new();
 
-                    private Lazy<ImmutableArray<IIncrementalAnalyzer>> _lazyAnalyzers;
+                    private Lazy<ImmutableArray<IUnitTestingIncrementalAnalyzer>> _lazyAnalyzers;
 
                     // whether this processor is running or not
                     private Task _running;
@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                     public HighPriorityProcessor(
                         IAsynchronousOperationListener listener,
                         IncrementalAnalyzerProcessor processor,
-                        Lazy<ImmutableArray<IIncrementalAnalyzer>> lazyAnalyzers,
+                        Lazy<ImmutableArray<IUnitTestingIncrementalAnalyzer>> lazyAnalyzers,
                         TimeSpan backOffTimeSpan,
                         CancellationToken shutdownToken)
                         : base(listener, backOffTimeSpan, shutdownToken)
@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                     {
                     }
 
-                    public ImmutableArray<IIncrementalAnalyzer> Analyzers
+                    public ImmutableArray<IUnitTestingIncrementalAnalyzer> Analyzers
                     {
                         get
                         {
@@ -68,12 +68,12 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                     public int WorkItemCount => _workItemQueue.WorkItemCount;
                     public bool HasAnyWork => _workItemQueue.HasAnyWork;
 
-                    public void AddAnalyzer(IIncrementalAnalyzer analyzer)
+                    public void AddAnalyzer(IUnitTestingIncrementalAnalyzer analyzer)
                     {
                         lock (_gate)
                         {
                             var analyzers = _lazyAnalyzers.Value;
-                            _lazyAnalyzers = new Lazy<ImmutableArray<IIncrementalAnalyzer>>(() => analyzers.Add(analyzer));
+                            _lazyAnalyzers = new Lazy<ImmutableArray<IUnitTestingIncrementalAnalyzer>>(() => analyzers.Add(analyzer));
                         }
                     }
 
@@ -179,7 +179,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                             cancellationToken: out cancellationToken);
                     }
 
-                    private async Task ProcessDocumentAsync(Solution solution, ImmutableArray<IIncrementalAnalyzer> analyzers, WorkItem workItem, CancellationToken cancellationToken)
+                    private async Task ProcessDocumentAsync(Solution solution, ImmutableArray<IUnitTestingIncrementalAnalyzer> analyzers, WorkItem workItem, CancellationToken cancellationToken)
                     {
                         Contract.ThrowIfNull(workItem.DocumentId);
 

@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
 
         public static void LogReanalyze(
             int correlationId,
-            IIncrementalAnalyzer analyzer,
+            IUnitTestingIncrementalAnalyzer analyzer,
             int documentCount,
             string languages,
             bool highPriority)
@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
             }));
         }
 
-        public static void LogAnalyzers(int correlationId, Workspace workspace, ImmutableArray<IIncrementalAnalyzer> reordered, bool onlyHighPriorityAnalyzer)
+        public static void LogAnalyzers(int correlationId, Workspace workspace, ImmutableArray<IUnitTestingIncrementalAnalyzer> reordered, bool onlyHighPriorityAnalyzer)
         {
             if (onlyHighPriorityAnalyzer)
             {
@@ -94,7 +94,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
         }
 
         private static void LogAnalyzersWorker(
-            FunctionId analyzersId, FunctionId analyzerId, int correlationId, Workspace workspace, ImmutableArray<IIncrementalAnalyzer> reordered)
+            FunctionId analyzersId, FunctionId analyzerId, int correlationId, Workspace workspace, ImmutableArray<IUnitTestingIncrementalAnalyzer> reordered)
         {
             if (workspace.Kind == WorkspaceKind.Preview)
             {
@@ -184,7 +184,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
         public static void LogResetStates(CountLogAggregator<object> logAggregator)
             => logAggregator.IncreaseCount(ResetStates);
 
-        public static void LogIncrementalAnalyzerProcessorStatistics(int correlationId, Solution solution, CountLogAggregator<object> logAggregator, ImmutableArray<IIncrementalAnalyzer> analyzers)
+        public static void LogIncrementalAnalyzerProcessorStatistics(int correlationId, Solution solution, CountLogAggregator<object> logAggregator, ImmutableArray<IUnitTestingIncrementalAnalyzer> analyzers)
         {
             Logger.Log(FunctionId.IncrementalAnalyzerProcessor_Shutdown, KeyValueLogMessage.Create(m =>
             {

@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
 
             public int CorrelationId => _registration.CorrelationId;
 
-            public void AddAnalyzer(IIncrementalAnalyzer analyzer, bool highPriorityForActiveFile)
+            public void AddAnalyzer(IUnitTestingIncrementalAnalyzer analyzer, bool highPriorityForActiveFile)
             {
                 // add analyzer
                 _documentAndProjectWorkerProcessor.AddAnalyzer(analyzer, highPriorityForActiveFile);
@@ -131,7 +131,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                 }
             }
 
-            public void Reanalyze(IIncrementalAnalyzer analyzer, ReanalyzeScope scope, bool highPriority = false)
+            public void Reanalyze(IUnitTestingIncrementalAnalyzer analyzer, ReanalyzeScope scope, bool highPriority = false)
             {
                 _eventProcessingQueue.ScheduleTask("Reanalyze",
                     () => EnqueueWorkItemAsync(analyzer, scope, highPriority), _shutdownToken);
@@ -459,7 +459,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                 }
             }
 
-            private async Task EnqueueWorkItemAsync(IIncrementalAnalyzer analyzer, ReanalyzeScope scope, bool highPriority)
+            private async Task EnqueueWorkItemAsync(IUnitTestingIncrementalAnalyzer analyzer, ReanalyzeScope scope, bool highPriority)
             {
                 var solution = _registration.GetSolutionToAnalyze();
                 var invocationReasons = highPriority ? InvocationReasons.ReanalyzeHighPriority : InvocationReasons.Reanalyze;
@@ -469,7 +469,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
             }
 
             private async Task EnqueueWorkItemAsync(
-                IIncrementalAnalyzer analyzer, Project project, DocumentId documentId, Document? document, InvocationReasons invocationReasons)
+                IUnitTestingIncrementalAnalyzer analyzer, Project project, DocumentId documentId, Document? document, InvocationReasons invocationReasons)
             {
                 var priorityService = project.GetLanguageService<IWorkCoordinatorPriorityService>();
                 var isLowPriority = priorityService != null && await priorityService.IsLowPriorityAsync(
@@ -568,7 +568,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                     _workCoordinator = workCoordinator;
                 }
 
-                internal void WaitUntilCompletion(ImmutableArray<IIncrementalAnalyzer> workers)
+                internal void WaitUntilCompletion(ImmutableArray<IUnitTestingIncrementalAnalyzer> workers)
                 {
                     var solution = _workCoordinator._registration.GetSolutionToAnalyze();
                     var list = new List<WorkItem>();

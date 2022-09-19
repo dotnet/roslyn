@@ -67,8 +67,8 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                     var analyzersGetter = new AnalyzersGetter(analyzerProviders);
 
                     // create analyzers lazily.
-                    var lazyActiveFileAnalyzers = new Lazy<ImmutableArray<IIncrementalAnalyzer>>(() => GetIncrementalAnalyzers(_registration, analyzersGetter, onlyHighPriorityAnalyzer: true));
-                    var lazyAllAnalyzers = new Lazy<ImmutableArray<IIncrementalAnalyzer>>(() => GetIncrementalAnalyzers(_registration, analyzersGetter, onlyHighPriorityAnalyzer: false));
+                    var lazyActiveFileAnalyzers = new Lazy<ImmutableArray<IUnitTestingIncrementalAnalyzer>>(() => GetIncrementalAnalyzers(_registration, analyzersGetter, onlyHighPriorityAnalyzer: true));
+                    var lazyAllAnalyzers = new Lazy<ImmutableArray<IUnitTestingIncrementalAnalyzer>>(() => GetIncrementalAnalyzers(_registration, analyzersGetter, onlyHighPriorityAnalyzer: false));
 
                     if (!initializeLazily)
                     {
@@ -94,7 +94,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                     return (IDiagnosticAnalyzerService?)analyzerProviders.Where(p => p.Value is IDiagnosticAnalyzerService).SingleOrDefault()?.Value;
                 }
 
-                private static ImmutableArray<IIncrementalAnalyzer> GetIncrementalAnalyzers(Registration registration, AnalyzersGetter analyzersGetter, bool onlyHighPriorityAnalyzer)
+                private static ImmutableArray<IUnitTestingIncrementalAnalyzer> GetIncrementalAnalyzers(Registration registration, AnalyzersGetter analyzersGetter, bool onlyHighPriorityAnalyzer)
                 {
                     var orderedAnalyzers = analyzersGetter.GetOrderedAnalyzers(registration.Workspace, onlyHighPriorityAnalyzer);
 
@@ -113,7 +113,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                     ReportPendingWorkItemCount();
                 }
 
-                public void AddAnalyzer(IIncrementalAnalyzer analyzer, bool highPriorityForActiveFile)
+                public void AddAnalyzer(IUnitTestingIncrementalAnalyzer analyzer, bool highPriorityForActiveFile)
                 {
                     if (highPriorityForActiveFile)
                     {
@@ -131,7 +131,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                     _lowPriorityProcessor.Shutdown();
                 }
 
-                public ImmutableArray<IIncrementalAnalyzer> Analyzers => _normalPriorityProcessor.Analyzers;
+                public ImmutableArray<IUnitTestingIncrementalAnalyzer> Analyzers => _normalPriorityProcessor.Analyzers;
 
                 private ProjectDependencyGraph DependencyGraph => _registration.GetSolutionToAnalyze().GetProjectDependencyGraph();
                 private IDiagnosticAnalyzerService? DiagnosticAnalyzerService => _lazyDiagnosticAnalyzerService?.Value;
@@ -163,7 +163,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                 }
 
                 private async Task ProcessDocumentAnalyzersAsync(
-                    TextDocument textDocument, ImmutableArray<IIncrementalAnalyzer> analyzers, WorkItem workItem, CancellationToken cancellationToken)
+                    TextDocument textDocument, ImmutableArray<IUnitTestingIncrementalAnalyzer> analyzers, WorkItem workItem, CancellationToken cancellationToken)
                 {
                     // process special active document switched request, if any.
                     if (await ProcessActiveDocumentSwitchedAsync(analyzers, workItem, textDocument, cancellationToken).ConfigureAwait(false))
@@ -198,7 +198,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
 
                     return;
 
-                    static async Task AnalyzeSyntaxAsync(IIncrementalAnalyzer analyzer, TextDocument textDocument, InvocationReasons reasons, CancellationToken cancellationToken)
+                    static async Task AnalyzeSyntaxAsync(IUnitTestingIncrementalAnalyzer analyzer, TextDocument textDocument, InvocationReasons reasons, CancellationToken cancellationToken)
                     {
                         if (textDocument is Document document)
                         {
@@ -210,7 +210,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                         }
                     }
 
-                    async Task<bool> ProcessActiveDocumentSwitchedAsync(ImmutableArray<IIncrementalAnalyzer> analyzers, WorkItem workItem, TextDocument document, CancellationToken cancellationToken)
+                    async Task<bool> ProcessActiveDocumentSwitchedAsync(ImmutableArray<IUnitTestingIncrementalAnalyzer> analyzers, WorkItem workItem, TextDocument document, CancellationToken cancellationToken)
                     {
                         try
                         {
@@ -231,10 +231,10 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                 }
 
                 private async Task RunAnalyzersAsync<T>(
-                    ImmutableArray<IIncrementalAnalyzer> analyzers,
+                    ImmutableArray<IUnitTestingIncrementalAnalyzer> analyzers,
                     T value,
                     WorkItem workItem,
-                    Func<IIncrementalAnalyzer, T, CancellationToken, Task> runnerAsync,
+                    Func<IUnitTestingIncrementalAnalyzer, T, CancellationToken, Task> runnerAsync,
                     CancellationToken cancellationToken)
                 {
                     using var evaluating = _registration.ProgressReporter.GetEvaluatingScope();
@@ -264,7 +264,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                     }
                 }
 
-                private async Task RunBodyAnalyzersAsync(ImmutableArray<IIncrementalAnalyzer> analyzers, WorkItem workItem, Document document, CancellationToken cancellationToken)
+                private async Task RunBodyAnalyzersAsync(ImmutableArray<IUnitTestingIncrementalAnalyzer> analyzers, WorkItem workItem, Document document, CancellationToken cancellationToken)
                 {
                     try
                     {
@@ -373,7 +373,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                         _incrementalAnalyzerProcessor = incrementalAnalyzerProcessor;
                     }
 
-                    internal void WaitUntilCompletion(ImmutableArray<IIncrementalAnalyzer> analyzers, List<WorkItem> items)
+                    internal void WaitUntilCompletion(ImmutableArray<IUnitTestingIncrementalAnalyzer> analyzers, List<WorkItem> items)
                     {
                         _incrementalAnalyzerProcessor._normalPriorityProcessor.GetTestAccessor().WaitUntilCompletion(analyzers, items);
 
@@ -398,14 +398,14 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                 private class AnalyzersGetter
                 {
                     private readonly List<Lazy<IIncrementalAnalyzerProvider, IncrementalAnalyzerProviderMetadata>> _analyzerProviders;
-                    private readonly Dictionary<Workspace, ImmutableArray<(IIncrementalAnalyzer analyzer, bool highPriorityForActiveFile)>> _analyzerMap = new();
+                    private readonly Dictionary<Workspace, ImmutableArray<(IUnitTestingIncrementalAnalyzer analyzer, bool highPriorityForActiveFile)>> _analyzerMap = new();
 
                     public AnalyzersGetter(IEnumerable<Lazy<IIncrementalAnalyzerProvider, IncrementalAnalyzerProviderMetadata>> analyzerProviders)
                     {
                         _analyzerProviders = analyzerProviders.ToList();
                     }
 
-                    public ImmutableArray<IIncrementalAnalyzer> GetOrderedAnalyzers(Workspace workspace, bool onlyHighPriorityAnalyzer)
+                    public ImmutableArray<IUnitTestingIncrementalAnalyzer> GetOrderedAnalyzers(Workspace workspace, bool onlyHighPriorityAnalyzer)
                     {
                         lock (_analyzerMap)
                         {

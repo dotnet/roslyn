@@ -137,7 +137,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
             }
         }
 
-        public void Reanalyze(Workspace workspace, IIncrementalAnalyzer analyzer, IEnumerable<ProjectId>? projectIds, IEnumerable<DocumentId>? documentIds, bool highPriority)
+        public void Reanalyze(Workspace workspace, IUnitTestingIncrementalAnalyzer analyzer, IEnumerable<ProjectId>? projectIds, IEnumerable<DocumentId>? documentIds, bool highPriority)
         {
             lock (_gate)
             {
@@ -273,7 +273,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                 }
             }
 
-            internal void WaitUntilCompletion(Workspace workspace, ImmutableArray<IIncrementalAnalyzer> workers)
+            internal void WaitUntilCompletion(Workspace workspace, ImmutableArray<IUnitTestingIncrementalAnalyzer> workers)
             {
                 if (TryGetWorkCoordinator(workspace, out var coordinator))
                 {

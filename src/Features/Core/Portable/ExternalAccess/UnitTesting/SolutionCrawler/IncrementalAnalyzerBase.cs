@@ -8,7 +8,7 @@ using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
 {
-    internal class IncrementalAnalyzerBase : IIncrementalAnalyzer
+    internal class IncrementalAnalyzerBase : IUnitTestingIncrementalAnalyzer
     {
         protected IncrementalAnalyzerBase()
         {

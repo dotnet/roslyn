@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
 {
-    internal interface IIncrementalAnalyzer
+    internal interface IUnitTestingIncrementalAnalyzer
     {
         Task NewSolutionSnapshotAsync(Solution solution, CancellationToken cancellationToken);
 

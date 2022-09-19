@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
             {
             }
 
-            public void Reanalyze(Workspace workspace, IIncrementalAnalyzer analyzer, IEnumerable<ProjectId>? projectIds = null, IEnumerable<DocumentId>? documentIds = null, bool highPriority = false)
+            public void Reanalyze(Workspace workspace, IUnitTestingIncrementalAnalyzer analyzer, IEnumerable<ProjectId>? projectIds = null, IEnumerable<DocumentId>? documentIds = null, bool highPriority = false)
             {
                 // if solution crawler doesn't exist for the given workspace. don't do anything
                 if (workspace.Services.GetService<ISolutionCrawlerRegistrationService>() is SolutionCrawlerRegistrationService registration)
