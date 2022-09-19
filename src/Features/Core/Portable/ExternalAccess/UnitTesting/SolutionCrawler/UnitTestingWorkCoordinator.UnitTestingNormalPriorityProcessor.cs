@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
         {
             private sealed partial class UnitTestingIncrementalAnalyzerProcessor
             {
-                private sealed class NormalPriorityProcessor : AbstractUnitTestingPriorityProcessor
+                private sealed class UnitTestingNormalPriorityProcessor : AbstractUnitTestingPriorityProcessor
                 {
                     private const int MaxHighPriorityQueueCache = 29;
 
@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                     // whether this processor is running or not
                     private Task _running;
 
-                    public NormalPriorityProcessor(
+                    public UnitTestingNormalPriorityProcessor(
                         IAsynchronousOperationListener listener,
                         UnitTestingIncrementalAnalyzerProcessor processor,
                         Lazy<ImmutableArray<IUnitTestingIncrementalAnalyzer>> lazyAnalyzers,
@@ -594,9 +594,9 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
 
                     internal readonly struct TestAccessor
                     {
-                        private readonly NormalPriorityProcessor _normalPriorityProcessor;
+                        private readonly UnitTestingNormalPriorityProcessor _normalPriorityProcessor;
 
-                        internal TestAccessor(NormalPriorityProcessor normalPriorityProcessor)
+                        internal TestAccessor(UnitTestingNormalPriorityProcessor normalPriorityProcessor)
                         {
                             _normalPriorityProcessor = normalPriorityProcessor;
                         }

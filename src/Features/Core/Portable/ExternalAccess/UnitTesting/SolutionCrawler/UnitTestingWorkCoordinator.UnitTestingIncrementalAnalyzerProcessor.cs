@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                 private readonly IProjectCacheService? _cacheService;
 
                 private readonly UnitTestingHighPriorityProcessor _highPriorityProcessor;
-                private readonly NormalPriorityProcessor _normalPriorityProcessor;
+                private readonly UnitTestingNormalPriorityProcessor _normalPriorityProcessor;
                 private readonly UnitTestingLowPriorityProcessor _lowPriorityProcessor;
 
                 // NOTE: IDiagnosticAnalyzerService can be null in test environment.
@@ -83,7 +83,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                     var globalNotificationService = _registration.Workspace.Services.GetRequiredService<IGlobalOperationNotificationService>();
 
                     _highPriorityProcessor = new UnitTestingHighPriorityProcessor(listener, this, lazyActiveFileAnalyzers, highBackOffTimeSpan, shutdownToken);
-                    _normalPriorityProcessor = new NormalPriorityProcessor(listener, this, lazyAllAnalyzers, globalNotificationService, normalBackOffTimeSpan, shutdownToken);
+                    _normalPriorityProcessor = new UnitTestingNormalPriorityProcessor(listener, this, lazyAllAnalyzers, globalNotificationService, normalBackOffTimeSpan, shutdownToken);
                     _lowPriorityProcessor = new UnitTestingLowPriorityProcessor(listener, this, lazyAllAnalyzers, globalNotificationService, lowBackOffTimeSpan, shutdownToken);
                 }
 
