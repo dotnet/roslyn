@@ -294,12 +294,14 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
         {
             public readonly int CorrelationId;
             public readonly Workspace Workspace;
+            public readonly SolutionServices Services;
             public readonly UnitTestingSolutionCrawlerProgressReporter ProgressReporter;
 
             public UnitTestingRegistration(int correlationId, Workspace workspace, UnitTestingSolutionCrawlerProgressReporter progressReporter)
             {
                 CorrelationId = correlationId;
                 Workspace = workspace;
+                Services = workspace.Services.SolutionServices;
                 ProgressReporter = progressReporter;
             }
 

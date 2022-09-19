@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                 {
                     _listener = listener;
                     _registration = registration;
-                    _cacheService = registration.Workspace.Services.GetService<IProjectCacheService>();
+                    _cacheService = registration.Services.GetService<IProjectCacheService>();
 
                     _lazyDiagnosticAnalyzerService = new Lazy<IDiagnosticAnalyzerService?>(() => GetDiagnosticAnalyzerService(analyzerProviders));
 
@@ -78,9 +78,9 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                     }
 
                     // event and worker queues
-                    _documentTracker = _registration.Workspace.Services.GetRequiredService<IUnitTestingDocumentTrackingService>();
+                    _documentTracker = _registration.Services.GetRequiredService<IUnitTestingDocumentTrackingService>();
 
-                    var globalNotificationService = _registration.Workspace.Services.GetRequiredService<IGlobalOperationNotificationService>();
+                    var globalNotificationService = _registration.Services.GetRequiredService<IGlobalOperationNotificationService>();
 
                     _highPriorityProcessor = new UnitTestingHighPriorityProcessor(listener, this, lazyActiveFileAnalyzers, highBackOffTimeSpan, shutdownToken);
                     _normalPriorityProcessor = new UnitTestingNormalPriorityProcessor(listener, this, lazyAllAnalyzers, globalNotificationService, normalBackOffTimeSpan, shutdownToken);

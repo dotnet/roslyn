@@ -46,8 +46,8 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                 _registration = registration;
 
                 _listener = listener;
-                _documentTrackingService = _registration.Workspace.Services.GetRequiredService<IUnitTestingDocumentTrackingService>();
-                _workspaceConfigurationService = _registration.Workspace.Services.GetService<IWorkspaceConfigurationService>();
+                _documentTrackingService = _registration.Services.GetRequiredService<IUnitTestingDocumentTrackingService>();
+                _workspaceConfigurationService = _registration.Services.GetService<IWorkspaceConfigurationService>();
 
                 // event and worker queues
                 _shutdownToken = _shutdownNotificationSource.Token;
