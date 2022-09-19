@@ -98,7 +98,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                         if (!_processor._documentTracker.SupportsDocumentTracking
                             && _processor._registration.WorkspaceKind is WorkspaceKind.RemoteWorkspace)
                         {
-                            Debug.Fail($"Unexpected use of '{nameof(ExportUnitTestingIncrementalAnalyzerProviderAttribute.HighPriorityForActiveFile)}' in workspace kind '{_processor._registration.Workspace.Kind}' that cannot support active file tracking.");
+                            Debug.Fail($"Unexpected use of '{nameof(ExportUnitTestingIncrementalAnalyzerProviderAttribute.HighPriorityForActiveFile)}' in workspace kind '{_processor._registration.WorkspaceKind}' that cannot support active file tracking.");
                         }
 
                         // check whether given item is for active document, otherwise, nothing to do here
