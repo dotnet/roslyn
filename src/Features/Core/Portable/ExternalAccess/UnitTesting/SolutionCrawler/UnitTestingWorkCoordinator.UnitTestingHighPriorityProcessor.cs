@@ -173,8 +173,10 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
 
                         return _workItemQueue.TryTakeAnyWork(
                             preferableProjectId: null,
+#if false // Not used in unit testing crawling
                             dependencyGraph: _processor.DependencyGraph,
                             analyzerService: _processor.DiagnosticAnalyzerService,
+#endif
                             workItem: out workItem,
                             cancellationToken: out cancellationToken);
                     }

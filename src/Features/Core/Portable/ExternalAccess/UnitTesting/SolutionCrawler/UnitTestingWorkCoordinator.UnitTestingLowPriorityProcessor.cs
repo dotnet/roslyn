@@ -57,8 +57,12 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                                 : null;
 
                             if (_workItemQueue.TryTakeAnyWork(
-                                preferableProjectId, Processor.DependencyGraph, Processor.DiagnosticAnalyzerService,
-                                out var workItem, out var projectCancellation))
+                                    preferableProjectId,
+#if false // Not used in unit testing crawling
+                                    Processor.DependencyGraph,
+                                    Processor.DiagnosticAnalyzerService,
+#endif
+                                    out var workItem, out var projectCancellation))
                             {
                                 await ProcessProjectAsync(Analyzers, workItem, projectCancellation).ConfigureAwait(false);
                             }

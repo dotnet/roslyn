@@ -44,7 +44,13 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
 
                 protected abstract bool TryTake_NoLock(TKey key, out UnitTestingWorkItem workInfo);
 
-                protected abstract bool TryTakeAnyWork_NoLock(ProjectId? preferableProjectId, ProjectDependencyGraph dependencyGraph, IDiagnosticAnalyzerService? service, out UnitTestingWorkItem workItem);
+                protected abstract bool TryTakeAnyWork_NoLock(
+                    ProjectId? preferableProjectId,
+#if false // Not used in unit testing crawling
+                    ProjectDependencyGraph dependencyGraph,
+                    IDiagnosticAnalyzerService? service,
+#endif
+                    out UnitTestingWorkItem workItem);
 
                 public int WorkItemCount
                 {
@@ -212,15 +218,22 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
 
                 public bool TryTakeAnyWork(
                     ProjectId? preferableProjectId,
+#if false // Not used in unit testing crawling
                     ProjectDependencyGraph dependencyGraph,
                     IDiagnosticAnalyzerService? analyzerService,
+#endif
                     out UnitTestingWorkItem workItem,
                     out CancellationToken cancellationToken)
                 {
                     lock (_gate)
                     {
                         // there must be at least one item in the map when this is called unless host is shutting down.
-                        if (TryTakeAnyWork_NoLock(preferableProjectId, dependencyGraph, analyzerService, out workItem))
+                        if (TryTakeAnyWork_NoLock(preferableProjectId,
+#if false // Not used in unit testing crawling
+                                dependencyGraph,
+                                analyzerService,
+#endif
+                                out workItem))
                         {
                             cancellationToken = GetNewCancellationToken_NoLock(workItem.Key);
                             workItem.AsyncToken.Dispose();
@@ -244,9 +257,14 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                     return source.Token;
                 }
 
-                protected ProjectId GetBestProjectId_NoLock<T>(
-                    Dictionary<ProjectId, T> workQueue, ProjectId? projectId,
-                    ProjectDependencyGraph dependencyGraph, IDiagnosticAnalyzerService? analyzerService)
+                protected static ProjectId GetBestProjectId_NoLock<T>(
+                    Dictionary<ProjectId, T> workQueue,
+                    ProjectId? projectId
+#if false // Not used in unit testing crawling
+                    , ProjectDependencyGraph dependencyGraph
+                    , IDiagnosticAnalyzerService? analyzerService
+#endif
+                    )
                 {
                     if (projectId != null)
                     {

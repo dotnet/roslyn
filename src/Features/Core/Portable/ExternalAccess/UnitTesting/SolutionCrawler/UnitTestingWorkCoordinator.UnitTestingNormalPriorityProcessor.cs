@@ -155,8 +155,13 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
 
                             // process one of documents remaining
                             if (!_workItemQueue.TryTakeAnyWork(
-                                _currentProjectProcessing, Processor.DependencyGraph, Processor.DiagnosticAnalyzerService,
-                                out var workItem, out var documentCancellation))
+                                    _currentProjectProcessing,
+#if false // Not used in unit testing crawling
+                                    Processor.DependencyGraph,
+                                    Processor.DiagnosticAnalyzerService,
+#endif
+                                    out var workItem,
+                                    out var documentCancellation))
                             {
                                 return;
                             }
