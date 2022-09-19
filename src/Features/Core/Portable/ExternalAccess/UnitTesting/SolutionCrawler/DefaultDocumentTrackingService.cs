@@ -9,13 +9,13 @@ using Microsoft.CodeAnalysis.Host.Mef;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
 {
-    [ExportWorkspaceService(typeof(IDocumentTrackingService), ServiceLayer.Default)]
+    [ExportWorkspaceService(typeof(IUnitTestingDocumentTrackingService), ServiceLayer.Default)]
     [Shared]
-    internal sealed class DefaultDocumentTrackingService : IDocumentTrackingService
+    internal sealed class DefaultUnitTestingDocumentTrackingService : IUnitTestingDocumentTrackingService
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public DefaultDocumentTrackingService()
+        public DefaultUnitTestingDocumentTrackingService()
         {
         }
 

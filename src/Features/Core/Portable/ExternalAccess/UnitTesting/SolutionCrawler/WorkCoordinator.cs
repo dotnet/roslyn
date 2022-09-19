@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
 
             private readonly CountLogAggregator<WorkspaceChangeKind> _logAggregator = new();
             private readonly IAsynchronousOperationListener _listener;
-            private readonly IDocumentTrackingService _documentTrackingService;
+            private readonly IUnitTestingDocumentTrackingService _documentTrackingService;
             private readonly IWorkspaceConfigurationService? _workspaceConfigurationService;
 
             private readonly CancellationTokenSource _shutdownNotificationSource = new();
@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                 _registration = registration;
 
                 _listener = listener;
-                _documentTrackingService = _registration.Workspace.Services.GetRequiredService<IDocumentTrackingService>();
+                _documentTrackingService = _registration.Workspace.Services.GetRequiredService<IUnitTestingDocumentTrackingService>();
                 _workspaceConfigurationService = _registration.Workspace.Services.GetService<IWorkspaceConfigurationService>();
 
                 // event and worker queues

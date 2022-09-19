@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
 
                 private readonly Registration _registration;
                 private readonly IAsynchronousOperationListener _listener;
-                private readonly IDocumentTrackingService _documentTracker;
+                private readonly IUnitTestingDocumentTrackingService _documentTracker;
                 private readonly IProjectCacheService? _cacheService;
 
                 private readonly HighPriorityProcessor _highPriorityProcessor;
@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                     }
 
                     // event and worker queues
-                    _documentTracker = _registration.Workspace.Services.GetRequiredService<IDocumentTrackingService>();
+                    _documentTracker = _registration.Workspace.Services.GetRequiredService<IUnitTestingDocumentTrackingService>();
 
                     var globalNotificationService = _registration.Workspace.Services.GetRequiredService<IGlobalOperationNotificationService>();
 

@@ -8,7 +8,7 @@ using Microsoft.CodeAnalysis.Host;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
 {
-    internal interface IDocumentTrackingService : IWorkspaceService
+    internal interface IUnitTestingDocumentTrackingService : IWorkspaceService
     {
         bool SupportsDocumentTracking { get; }
 

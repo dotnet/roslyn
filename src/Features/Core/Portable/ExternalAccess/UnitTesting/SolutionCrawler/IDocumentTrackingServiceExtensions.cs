@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
         /// Gets the active <see cref="Document"/> the user is currently working in. May be null if
         /// there is no active document or the active document is not in this <paramref name="solution"/>.
         /// </summary>
-        public static Document? GetActiveDocument(this IDocumentTrackingService service, Solution solution)
+        public static Document? GetActiveDocument(this IUnitTestingDocumentTrackingService service, Solution solution)
         {
             // Note: GetDocument checks that the DocId is contained in the solution, and returns null if not.
             return solution.GetDocument(service.TryGetActiveDocument());
@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
         /// Get a read only collection of all the unique visible documents in the workspace that are
         /// contained within <paramref name="solution"/>.
         /// </summary>
-        public static ImmutableArray<Document> GetVisibleDocuments(this IDocumentTrackingService service, Solution solution)
+        public static ImmutableArray<Document> GetVisibleDocuments(this IUnitTestingDocumentTrackingService service, Solution solution)
             => service.GetVisibleDocuments()
                       .Select(solution.GetDocument)
                       .WhereNotNull()
