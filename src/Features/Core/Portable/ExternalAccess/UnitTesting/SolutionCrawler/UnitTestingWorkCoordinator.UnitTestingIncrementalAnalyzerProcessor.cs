@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
             {
                 private static readonly Func<int, object, bool, string> s_enqueueLogger = EnqueueLogger;
 
-                private readonly Registration _registration;
+                private readonly UnitTestingRegistration _registration;
                 private readonly IAsynchronousOperationListener _listener;
                 private readonly IUnitTestingDocumentTrackingService _documentTracker;
                 private readonly IProjectCacheService? _cacheService;
@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                     IAsynchronousOperationListener listener,
                     IEnumerable<Lazy<IUnitTestingIncrementalAnalyzerProvider, UnitTestingIncrementalAnalyzerProviderMetadata>> analyzerProviders,
                     bool initializeLazily,
-                    Registration registration,
+                    UnitTestingRegistration registration,
                     TimeSpan highBackOffTimeSpan,
                     TimeSpan normalBackOffTimeSpan,
                     TimeSpan lowBackOffTimeSpan,
@@ -94,7 +94,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                     return (IDiagnosticAnalyzerService?)analyzerProviders.Where(p => p.Value is IDiagnosticAnalyzerService).SingleOrDefault()?.Value;
                 }
 
-                private static ImmutableArray<IUnitTestingIncrementalAnalyzer> GetIncrementalAnalyzers(Registration registration, AnalyzersGetter analyzersGetter, bool onlyHighPriorityAnalyzer)
+                private static ImmutableArray<IUnitTestingIncrementalAnalyzer> GetIncrementalAnalyzers(UnitTestingRegistration registration, AnalyzersGetter analyzersGetter, bool onlyHighPriorityAnalyzer)
                 {
                     var orderedAnalyzers = analyzersGetter.GetOrderedAnalyzers(registration.Workspace, onlyHighPriorityAnalyzer);
 

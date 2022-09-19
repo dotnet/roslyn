@@ -76,7 +76,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                     _listener,
                     GetAnalyzerProviders(workspace.Kind),
                     initializeLazily,
-                    new Registration(correlationId, workspace, _progressReporter));
+                    new UnitTestingRegistration(correlationId, workspace, _progressReporter));
 
                 _documentWorkCoordinatorMap.Add(workspace, coordinator);
             }
@@ -290,13 +290,13 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
             }
         }
 
-        internal sealed class Registration
+        internal sealed class UnitTestingRegistration
         {
             public readonly int CorrelationId;
             public readonly Workspace Workspace;
             public readonly UnitTestingSolutionCrawlerProgressReporter ProgressReporter;
 
-            public Registration(int correlationId, Workspace workspace, UnitTestingSolutionCrawlerProgressReporter progressReporter)
+            public UnitTestingRegistration(int correlationId, Workspace workspace, UnitTestingSolutionCrawlerProgressReporter progressReporter)
             {
                 CorrelationId = correlationId;
                 Workspace = workspace;

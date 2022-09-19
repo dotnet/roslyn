@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
     {
         internal sealed partial class UnitTestingWorkCoordinator
         {
-            private readonly Registration _registration;
+            private readonly UnitTestingRegistration _registration;
             private readonly object _gate = new();
 
             private readonly CountLogAggregator<WorkspaceChangeKind> _logAggregator = new();
@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                  IAsynchronousOperationListener listener,
                  IEnumerable<Lazy<IUnitTestingIncrementalAnalyzerProvider, UnitTestingIncrementalAnalyzerProviderMetadata>> analyzerProviders,
                  bool initializeLazily,
-                 Registration registration)
+                 UnitTestingRegistration registration)
             {
                 _registration = registration;
 

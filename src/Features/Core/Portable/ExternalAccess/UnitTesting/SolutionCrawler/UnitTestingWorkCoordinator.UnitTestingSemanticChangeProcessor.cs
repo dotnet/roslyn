@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
 
                 private readonly SemaphoreSlim _gate;
 
-                private readonly Registration _registration;
+                private readonly UnitTestingRegistration _registration;
                 private readonly ProjectProcessor _processor;
 
                 private readonly NonReentrantLock _workGate = new();
@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
 
                 public UnitTestingSemanticChangeProcessor(
                     IAsynchronousOperationListener listener,
-                    Registration registration,
+                    UnitTestingRegistration registration,
                     UnitTestingIncrementalAnalyzerProcessor documentWorkerProcessor,
                     TimeSpan backOffTimeSpan,
                     TimeSpan projectBackOffTimeSpan,
@@ -332,7 +332,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
 
                     private readonly SemaphoreSlim _gate;
 
-                    private readonly Registration _registration;
+                    private readonly UnitTestingRegistration _registration;
                     private readonly UnitTestingIncrementalAnalyzerProcessor _processor;
 
                     private readonly NonReentrantLock _workGate = new();
@@ -340,7 +340,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
 
                     public ProjectProcessor(
                         IAsynchronousOperationListener listener,
-                        Registration registration,
+                        UnitTestingRegistration registration,
                         UnitTestingIncrementalAnalyzerProcessor processor,
                         TimeSpan backOffTimeSpan,
                         CancellationToken cancellationToken)
