@@ -80,7 +80,7 @@ namespace Microsoft.CodeAnalysis.SolutionEvents
             await ProcessWorkspaceChangeEventsAsync(client, aggregationService, events, cancellationToken).ConfigureAwait(false);
         }
 
-        private async Task ProcessWorkspaceChangeEventsAsync(
+        private static async Task ProcessWorkspaceChangeEventsAsync(
             RemoteHostClient? client,
             ISolutionEventsAggregationService aggregationService,
             ImmutableSegmentedList<SolutionEvent> events,
@@ -90,7 +90,7 @@ namespace Microsoft.CodeAnalysis.SolutionEvents
                 await ProcessWorkspaceChangeEventAsync(client, aggregationService, ev, cancellationToken).ConfigureAwait(false);
         }
 
-        private async ValueTask ProcessWorkspaceChangeEventAsync(
+        private static async ValueTask ProcessWorkspaceChangeEventAsync(
             RemoteHostClient? client,
             ISolutionEventsAggregationService aggregationService,
             SolutionEvent ev,
@@ -175,7 +175,7 @@ namespace Microsoft.CodeAnalysis.SolutionEvents
             }
         }
 
-        private async ValueTask EnqueueFullSolutionEventAsync(
+        private static async ValueTask EnqueueFullSolutionEventAsync(
             RemoteHostClient? client,
             ISolutionEventsAggregationService aggregationService,
             Solution solution,
@@ -195,7 +195,7 @@ namespace Microsoft.CodeAnalysis.SolutionEvents
             }
         }
 
-        private async ValueTask EnqueueFullProjectEventAsync(
+        private static async ValueTask EnqueueFullProjectEventAsync(
             RemoteHostClient? client,
             ISolutionEventsAggregationService aggregationService,
             Solution solution,
@@ -216,7 +216,7 @@ namespace Microsoft.CodeAnalysis.SolutionEvents
             }
         }
 
-        private async ValueTask EnqueueFullDocumentEventAsync(
+        private static async ValueTask EnqueueFullDocumentEventAsync(
             RemoteHostClient? client,
             ISolutionEventsAggregationService aggregationService,
             Solution solution,
@@ -237,7 +237,7 @@ namespace Microsoft.CodeAnalysis.SolutionEvents
             }
         }
 
-        private async ValueTask EnqueueSolutionChangedEventAsync(
+        private static async ValueTask EnqueueSolutionChangedEventAsync(
             RemoteHostClient? client,
             ISolutionEventsAggregationService aggregationService,
             Solution oldSolution,
@@ -258,7 +258,7 @@ namespace Microsoft.CodeAnalysis.SolutionEvents
             }
         }
 
-        private async ValueTask EnqueueProjectChangedEventAsync(
+        private static async ValueTask EnqueueProjectChangedEventAsync(
             RemoteHostClient? client,
             ISolutionEventsAggregationService aggregationService,
             Solution oldSolution,
@@ -280,7 +280,7 @@ namespace Microsoft.CodeAnalysis.SolutionEvents
             }
         }
 
-        private async ValueTask EnqueueDocumentChangedEventAsync(
+        private static async ValueTask EnqueueDocumentChangedEventAsync(
             RemoteHostClient? client,
             ISolutionEventsAggregationService aggregationService,
             Solution oldSolution,
