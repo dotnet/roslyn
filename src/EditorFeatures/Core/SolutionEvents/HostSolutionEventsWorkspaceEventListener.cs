@@ -16,49 +16,22 @@ using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.SolutionCrawler
+namespace Microsoft.CodeAnalysis.SolutionEvents
 {
-    internal readonly struct SolutionCrawlerEvent
-    {
-        public readonly WorkspaceChangeEventArgs? WorkspaceChangeArgs;
-        public readonly TextDocumentEventArgs? DocumentOpenArgs;
-        public readonly TextDocumentEventArgs? DocumentCloseArgs;
-
-        public SolutionCrawlerEvent(
-            WorkspaceChangeEventArgs? workspaceChangeArgs,
-            TextDocumentEventArgs? documentOpenArgs,
-            TextDocumentEventArgs? documentCloseArgs)
-        {
-            if (workspaceChangeArgs != null)
-            {
-                Contract.ThrowIfTrue(workspaceChangeArgs.OldSolution.Workspace != workspaceChangeArgs.NewSolution.Workspace);
-            }
-
-            Contract.ThrowIfTrue(workspaceChangeArgs is null && documentOpenArgs is null && documentCloseArgs is null);
-
-            this.WorkspaceChangeArgs = workspaceChangeArgs;
-            this.DocumentOpenArgs = documentOpenArgs;
-            this.DocumentCloseArgs = documentCloseArgs;
-        }
-
-        public Solution Solution => WorkspaceChangeArgs?.OldSolution ?? DocumentOpenArgs?.Document.Project.Solution ?? DocumentCloseArgs!.Document.Project.Solution;
-        public Workspace Workspace => Solution.Workspace;
-    }
-
     [ExportEventListener(WellKnownEventListeners.Workspace, WorkspaceKind.Host), Shared]
-    internal sealed class HostWorkspaceEventListener : IEventListener<object>
+    internal sealed partial class HostSolutionEventsWorkspaceEventListener : IEventListener<object>
     {
         private readonly IGlobalOptionService _globalOptions;
         private readonly IThreadingContext _threadingContext;
-        private readonly ISolutionCrawlerEventsAggregationService _aggregationService;
+        private readonly ISolutionEventsAggregationService _aggregationService;
         private readonly AsyncBatchingWorkQueue<SolutionCrawlerEvent> _eventQueue;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public HostWorkspaceEventListener(
+        public HostSolutionEventsWorkspaceEventListener(
             IGlobalOptionService globalOptions,
             IThreadingContext threadingContext,
-            ISolutionCrawlerEventsAggregationService notificationService,
+            ISolutionEventsAggregationService notificationService,
             IAsynchronousOperationListenerProvider listenerProvider)
         {
             _globalOptions = globalOptions;
@@ -213,7 +186,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
             }
             else
             {
-                await client.TryInvokeAsync<IRemoteSolutionCrawlerEventsAggregationService>(
+                await client.TryInvokeAsync<IRemoteSolutionEventsAggregationService>(
                     solution,
                     (service, solutionChecksum, cancellationToken) => service.OnSolutionEventAsync(solutionChecksum, reasons, cancellationToken),
                     cancellationToken).ConfigureAwait(false);
@@ -233,7 +206,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
             }
             else
             {
-                await client.TryInvokeAsync<IRemoteSolutionCrawlerEventsAggregationService>(
+                await client.TryInvokeAsync<IRemoteSolutionEventsAggregationService>(
                     solution,
                     (service, solutionChecksum, cancellationToken) => service.OnProjectEventAsync(solutionChecksum, projectId, reasons, cancellationToken),
                     cancellationToken).ConfigureAwait(false);
@@ -253,7 +226,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
             }
             else
             {
-                await client.TryInvokeAsync<IRemoteSolutionCrawlerEventsAggregationService>(
+                await client.TryInvokeAsync<IRemoteSolutionEventsAggregationService>(
                     solution,
                     (service, solutionChecksum, cancellationToken) => service.OnDocumentEventAsync(solutionChecksum, documentId, reasons, cancellationToken),
                     cancellationToken).ConfigureAwait(false);
@@ -272,7 +245,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
             }
             else
             {
-                await client.TryInvokeAsync<IRemoteSolutionCrawlerEventsAggregationService>(
+                await client.TryInvokeAsync<IRemoteSolutionEventsAggregationService>(
                     oldSolution, newSolution,
                     (service, oldSolutionChecksum, newSolutionChecksum, cancellationToken) =>
                         service.OnSolutionChangedAsync(oldSolutionChecksum, newSolutionChecksum, cancellationToken),
@@ -293,7 +266,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
             }
             else
             {
-                await client.TryInvokeAsync<IRemoteSolutionCrawlerEventsAggregationService>(
+                await client.TryInvokeAsync<IRemoteSolutionEventsAggregationService>(
                     oldSolution, newSolution,
                     (service, oldSolutionChecksum, newSolutionChecksum, cancellationToken) =>
                         service.OnProjectChangedAsync(oldSolutionChecksum, newSolutionChecksum, projectId, cancellationToken),
@@ -314,51 +287,12 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
             }
             else
             {
-                await client.TryInvokeAsync<IRemoteSolutionCrawlerEventsAggregationService>(
+                await client.TryInvokeAsync<IRemoteSolutionEventsAggregationService>(
                     oldSolution, newSolution,
                     (service, oldSolutionChecksum, newSolutionChecksum, cancellationToken) =>
                         service.OnDocumentChangedAsync(oldSolutionChecksum, newSolutionChecksum, documentId, cancellationToken),
                     cancellationToken).ConfigureAwait(false);
             }
         }
-
-        //private async Task EnqueueProjectConfigurationChangeWorkItemAsync(
-        //    RemoteHostClient client, ProjectChanges projectChanges)
-        //{
-        //    var oldProject = projectChanges.OldProject;
-        //    var newProject = projectChanges.NewProject;
-
-        //    // TODO: why solution changes return Project not ProjectId but ProjectChanges return DocumentId not Document?
-        //    var projectConfigurationChange = InvocationReasons.Empty;
-
-        //    if (!object.Equals(oldProject.ParseOptions, newProject.ParseOptions))
-        //    {
-        //        projectConfigurationChange = projectConfigurationChange.With(InvocationReasons.ProjectParseOptionChanged);
-        //    }
-
-        //    if (projectChanges.GetAddedMetadataReferences().Any() ||
-        //        projectChanges.GetAddedProjectReferences().Any() ||
-        //        projectChanges.GetAddedAnalyzerReferences().Any() ||
-        //        projectChanges.GetRemovedMetadataReferences().Any() ||
-        //        projectChanges.GetRemovedProjectReferences().Any() ||
-        //        projectChanges.GetRemovedAnalyzerReferences().Any() ||
-        //        !object.Equals(oldProject.CompilationOptions, newProject.CompilationOptions) ||
-        //        !object.Equals(oldProject.AssemblyName, newProject.AssemblyName) ||
-        //        !object.Equals(oldProject.Name, newProject.Name) ||
-        //        !object.Equals(oldProject.AnalyzerOptions, newProject.AnalyzerOptions) ||
-        //        !object.Equals(oldProject.DefaultNamespace, newProject.DefaultNamespace) ||
-        //        !object.Equals(oldProject.OutputFilePath, newProject.OutputFilePath) ||
-        //        !object.Equals(oldProject.OutputRefFilePath, newProject.OutputRefFilePath) ||
-        //        !oldProject.CompilationOutputInfo.Equals(newProject.CompilationOutputInfo) ||
-        //        oldProject.State.RunAnalyzers != newProject.State.RunAnalyzers)
-        //    {
-        //        projectConfigurationChange = projectConfigurationChange.With(InvocationReasons.ProjectConfigurationChanged);
-        //    }
-
-        //    if (!projectConfigurationChange.IsEmpty)
-        //    {
-        //        await EnqueueFullProjectEventAsync(client, projectChanges.NewProject, projectConfigurationChange).ConfigureAwait(false);
-        //    }
-        //}
     }
 }

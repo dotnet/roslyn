@@ -9,21 +9,11 @@ using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.SolutionCrawler;
 
-namespace Microsoft.CodeAnalysis.SolutionCrawler
+namespace Microsoft.CodeAnalysis.SolutionEvents
 {
-    internal interface IRemoteSolutionCrawlerEventsAggregationService
-    {
-        ValueTask OnSolutionEventAsync(Checksum solutionChecksum, InvocationReasons reasons, CancellationToken cancellationToken);
-        ValueTask OnDocumentEventAsync(Checksum solutionChecksum, DocumentId documentId, InvocationReasons reasons, CancellationToken cancellationToken);
-        ValueTask OnProjectEventAsync(Checksum solutionChecksum, ProjectId projectId, InvocationReasons reasons, CancellationToken cancellationToken);
-
-        ValueTask OnSolutionChangedAsync(Checksum oldSolutionChecksum, Checksum newSolutionChecksum, CancellationToken cancellationToken);
-        ValueTask OnProjectChangedAsync(Checksum oldSolutionChecksum, Checksum newSolutionChecksum, ProjectId projectId, CancellationToken cancellationToken);
-        ValueTask OnDocumentChangedAsync(Checksum oldSolutionChecksum, Checksum newSolutionChecksum, DocumentId documentId, CancellationToken cancellationToken);
-    }
-
-    internal interface ISolutionCrawlerEventsAggregationService
+    internal interface ISolutionEventsAggregationService
     {
         ValueTask OnSolutionEventAsync(Solution solution, InvocationReasons reasons, CancellationToken cancellationToken);
         ValueTask OnProjectEventAsync(Solution solution, ProjectId projectId, InvocationReasons reasons, CancellationToken cancellationToken);
@@ -34,26 +24,15 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
         ValueTask OnDocumentChangedAsync(Solution oldSolution, Solution newSolution, DocumentId documentId, CancellationToken cancellationToken);
     }
 
-    internal interface ISolutionCrawlerEventsService
+    [Export(typeof(ISolutionEventsAggregationService)), Shared]
+    internal class DefaultSolutionEventsAggregationService : ISolutionEventsAggregationService
     {
-        ValueTask OnSolutionEventAsync(Solution solution, InvocationReasons reasons, CancellationToken cancellationToken);
-        ValueTask OnDocumentEventAsync(Solution solution, DocumentId documentId, InvocationReasons reasons, CancellationToken cancellationToken);
-        ValueTask OnProjectEventAsync(Solution solution, ProjectId projectId, InvocationReasons reasons, CancellationToken cancellationToken);
-
-        ValueTask OnSolutionChangedAsync(Solution oldSolution, Solution newSolution, CancellationToken cancellationToken);
-        ValueTask OnProjectChangedAsync(Solution oldSolution, Solution newSolution, ProjectId projectId, CancellationToken cancellationToken);
-        ValueTask OnDocumentChangedAsync(Solution oldSolution, Solution newSolution, DocumentId documentId, CancellationToken cancellationToken);
-    }
-
-    [Export(typeof(ISolutionCrawlerEventsAggregationService)), Shared]
-    internal class DefaultSolutionCrawlerEventsAggregationService : ISolutionCrawlerEventsAggregationService
-    {
-        private readonly ImmutableArray<Lazy<ISolutionCrawlerEventsService>> _eventsServices;
+        private readonly ImmutableArray<Lazy<ISolutionEventsService>> _eventsServices;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public DefaultSolutionCrawlerEventsAggregationService(
-            [ImportMany] IEnumerable<Lazy<ISolutionCrawlerEventsService>> eventsServices)
+        public DefaultSolutionEventsAggregationService(
+            [ImportMany] IEnumerable<Lazy<ISolutionEventsService>> eventsServices)
         {
             _eventsServices = eventsServices.ToImmutableArray();
         }
