@@ -152,11 +152,11 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                 // no specific projects or documents provided
                 if (projectIds == null && documentIds == null)
                 {
-                    coordinator.Reanalyze(analyzer, new ReanalyzeScope(workspace.CurrentSolution.Id), highPriority);
+                    coordinator.Reanalyze(analyzer, new UnitTestingReanalyzeScope(workspace.CurrentSolution.Id), highPriority);
                     return;
                 }
 
-                coordinator.Reanalyze(analyzer, new ReanalyzeScope(projectIds, documentIds), highPriority);
+                coordinator.Reanalyze(analyzer, new UnitTestingReanalyzeScope(projectIds, documentIds), highPriority);
             }
         }
 

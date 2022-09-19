@@ -83,7 +83,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                 _documentAndProjectWorkerProcessor.AddAnalyzer(analyzer, highPriorityForActiveFile);
 
                 // and ask to re-analyze whole solution for the given analyzer
-                var scope = new ReanalyzeScope(_registration.GetSolutionToAnalyze().Id);
+                var scope = new UnitTestingReanalyzeScope(_registration.GetSolutionToAnalyze().Id);
                 Reanalyze(analyzer, scope);
             }
 
@@ -131,7 +131,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                 }
             }
 
-            public void Reanalyze(IUnitTestingIncrementalAnalyzer analyzer, ReanalyzeScope scope, bool highPriority = false)
+            public void Reanalyze(IUnitTestingIncrementalAnalyzer analyzer, UnitTestingReanalyzeScope scope, bool highPriority = false)
             {
                 _eventProcessingQueue.ScheduleTask("Reanalyze",
                     () => EnqueueWorkItemAsync(analyzer, scope, highPriority), _shutdownToken);
@@ -459,7 +459,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                 }
             }
 
-            private async Task EnqueueWorkItemAsync(IUnitTestingIncrementalAnalyzer analyzer, ReanalyzeScope scope, bool highPriority)
+            private async Task EnqueueWorkItemAsync(IUnitTestingIncrementalAnalyzer analyzer, UnitTestingReanalyzeScope scope, bool highPriority)
             {
                 var solution = _registration.GetSolutionToAnalyze();
                 var invocationReasons = highPriority ? UnitTestingInvocationReasons.ReanalyzeHighPriority : UnitTestingInvocationReasons.Reanalyze;
@@ -589,18 +589,18 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
             }
         }
 
-        internal readonly struct ReanalyzeScope
+        internal readonly struct UnitTestingReanalyzeScope
         {
             private readonly SolutionId? _solutionId;
             private readonly ISet<object>? _projectOrDocumentIds;
 
-            public ReanalyzeScope(SolutionId solutionId)
+            public UnitTestingReanalyzeScope(SolutionId solutionId)
             {
                 _solutionId = solutionId;
                 _projectOrDocumentIds = null;
             }
 
-            public ReanalyzeScope(IEnumerable<ProjectId>? projectIds = null, IEnumerable<DocumentId>? documentIds = null)
+            public UnitTestingReanalyzeScope(IEnumerable<ProjectId>? projectIds = null, IEnumerable<DocumentId>? documentIds = null)
             {
                 projectIds ??= SpecializedCollections.EmptyEnumerable<ProjectId>();
                 documentIds ??= SpecializedCollections.EmptyEnumerable<DocumentId>();
