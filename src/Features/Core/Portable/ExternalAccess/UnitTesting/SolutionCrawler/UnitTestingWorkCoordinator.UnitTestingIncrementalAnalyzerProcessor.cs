@@ -150,8 +150,10 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                 private IDisposable EnableCaching(ProjectId projectId)
                     => _cacheService?.EnableCaching(projectId) ?? UnitTestingNullDisposable.Instance;
 
+#if false // not used in unit testing solution crawler
                 private IEnumerable<DocumentId> GetOpenDocumentIds()
                     => _registration.Workspace.GetOpenDocumentIds();
+#endif
 
                 private void ResetLogAggregator()
                     => _logAggregator = new CountLogAggregator<object>();
