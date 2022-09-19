@@ -4275,6 +4275,11 @@ When this standard format specifier is used, the formatting or parsing operation
         <target state="translated">静态构造函数</target>
         <note />
       </trans-unit>
+      <trans-unit id="struct_">
+        <source>struct</source>
+        <target state="new">struct</target>
+        <note />
+      </trans-unit>
       <trans-unit id="symbol_cannot_be_a_namespace">
         <source>'symbol' cannot be a namespace.</source>
         <target state="translated">'“symbol” 不能为命名空间。</target>

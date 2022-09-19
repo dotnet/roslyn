@@ -17,33 +17,33 @@ using Microsoft.CodeAnalysis.Snippets.SnippetProviders;
 namespace Microsoft.CodeAnalysis.CSharp.Snippets
 {
     [ExportSnippetProvider(nameof(ISnippetProvider), LanguageNames.CSharp), Shared]
-    internal class CSharpClassSnippetProvider : CSharpTypeSnippetProvider
+    internal class CSharpStructSnippetProvider : CSharpTypeSnippetProvider
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public CSharpClassSnippetProvider()
+        public CSharpStructSnippetProvider()
         {
         }
-        public override string SnippetIdentifier => "class";
+        public override string SnippetIdentifier => "struct";
 
-        public override string SnippetDescription => FeaturesResources.class_;
+        public override string SnippetDescription => FeaturesResources.struct_;
 
         protected override async Task<SyntaxNode> GenerateTypeDeclarationAsync(Document document, int position, bool useAccessibility, CancellationToken cancellationToken)
         {
             var generator = SyntaxGenerator.GetGenerator(document);
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
-            var name = NameGenerator.GenerateUniqueName("MyClass", name => semanticModel.LookupSymbols(position, name: name).IsEmpty);
+            var name = NameGenerator.GenerateUniqueName("MyStruct", name => semanticModel.LookupSymbols(position, name: name).IsEmpty);
             var classDeclaration = useAccessibility is true
-                ? generator.ClassDeclaration(name, accessibility: Accessibility.Public)
-                : generator.ClassDeclaration(name);
+                ? generator.StructDeclaration(name, accessibility: Accessibility.Public)
+                : generator.StructDeclaration(name);
 
             return classDeclaration;
         }
 
         protected override Func<SyntaxNode?, bool> GetSnippetContainerFunction(ISyntaxFacts syntaxFacts)
         {
-            return syntaxFacts.IsClassDeclaration;
+            return syntaxFacts.IsStructDeclaration;
         }
     }
 }
