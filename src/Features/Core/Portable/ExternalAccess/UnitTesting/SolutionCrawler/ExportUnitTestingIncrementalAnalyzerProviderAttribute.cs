@@ -11,13 +11,13 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
 {
     [MetadataAttribute]
     [AttributeUsage(AttributeTargets.Class)]
-    internal class ExportIncrementalAnalyzerProviderAttribute : ExportAttribute
+    internal class ExportUnitTestingIncrementalAnalyzerProviderAttribute : ExportAttribute
     {
         public bool HighPriorityForActiveFile { get; }
         public string Name { get; }
         public string[] WorkspaceKinds { get; }
 
-        public ExportIncrementalAnalyzerProviderAttribute(string name, string[] workspaceKinds)
+        public ExportUnitTestingIncrementalAnalyzerProviderAttribute(string name, string[] workspaceKinds)
             : base(typeof(IIncrementalAnalyzerProvider))
         {
             this.WorkspaceKinds = workspaceKinds;
@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
             this.HighPriorityForActiveFile = false;
         }
 
-        public ExportIncrementalAnalyzerProviderAttribute(bool highPriorityForActiveFile, string name, string[] workspaceKinds)
+        public ExportUnitTestingIncrementalAnalyzerProviderAttribute(bool highPriorityForActiveFile, string name, string[] workspaceKinds)
             : this(name, workspaceKinds)
         {
             this.HighPriorityForActiveFile = highPriorityForActiveFile;
