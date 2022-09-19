@@ -116,12 +116,10 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
             CancellationToken cancellationToken)
         {
             foreach (var ev in events)
-            {
                 await ProcessWorkspaceChangeEventAsync(client, ev, cancellationToken).ConfigureAwait(false);
-            }
         }
 
-        private async Task ProcessWorkspaceChangeEventAsync(
+        private async ValueTask ProcessWorkspaceChangeEventAsync(
             RemoteHostClient client,
             SolutionCrawlerEvent ev,
             CancellationToken cancellationToken)
@@ -129,18 +127,12 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
             if (ev.DocumentOpenArgs != null)
             {
                 var openArgs = ev.DocumentOpenArgs;
-                await client.TryInvokeAsync<IRemoteSolutionCrawlerEventsService>(
-                    openArgs.Document.Project.Solution,
-                    (service, solutionChecksum, cancellationToken) => service.OnDocumentOpenedAsync(solutionChecksum, openArgs.Document.Id, cancellationToken),
-                    cancellationToken).ConfigureAwait(false);
+                await EnqueueFullDocumentEventAsync(client, openArgs.Document.Project.Solution, openArgs.Document.Id, InvocationReasons.DocumentOpened, cancellationToken).ConfigureAwait(false);
             }
             else if (ev.DocumentCloseArgs != null)
             {
                 var closeArgs = ev.DocumentOpenArgs;
-                await client.TryInvokeAsync<IRemoteSolutionCrawlerEventsService>(
-                    closeArgs.Document.Project.Solution,
-                    (service, solutionChecksum, cancellationToken) => service.OnDocumentClosedAsync(solutionChecksum, closeArgs.Document.Id, cancellationToken),
-                    cancellationToken).ConfigureAwait(false);
+                await EnqueueFullDocumentEventAsync(client, closeArgs.Document.Project.Solution, closeArgs.Document.Id, InvocationReasons.DocumentClosed, cancellationToken).ConfigureAwait(false);
             }
             else
             {
@@ -149,52 +141,52 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                 switch (args.Kind)
                 {
                     case WorkspaceChangeKind.SolutionAdded:
-                        EnqueueFullSolutionEvent(args.NewSolution, InvocationReasons.DocumentAdded, eventName);
+                        await EnqueueFullSolutionEventAsync(client, args.NewSolution, InvocationReasons.DocumentAdded, cancellationToken).ConfigureAwait(false);
+                        break;
+
+                    case WorkspaceChangeKind.SolutionRemoved:
+                        await EnqueueFullSolutionEventAsync(client, args.OldSolution, InvocationReasons.SolutionRemoved, cancellationToken).ConfigureAwait(false);
+                        break;
+
+                    case WorkspaceChangeKind.SolutionCleared:
+                        EnqueueFullSolutionEvent(args.OldSolution, InvocationReasons.SolutionRemoved);
                         break;
 
                     case WorkspaceChangeKind.SolutionChanged:
                     case WorkspaceChangeKind.SolutionReloaded:
-                        EnqueueSolutionChangedEvent(args.OldSolution, args.NewSolution, eventName);
-                        break;
-
-                    case WorkspaceChangeKind.SolutionRemoved:
-                        EnqueueFullSolutionEvent(args.OldSolution, InvocationReasons.SolutionRemoved, eventName);
-                        break;
-
-                    case WorkspaceChangeKind.SolutionCleared:
-                        EnqueueFullSolutionEvent(args.OldSolution, InvocationReasons.SolutionRemoved, eventName);
+                        EnqueueSolutionChangedEvent(args.OldSolution, args.NewSolution);
                         break;
 
                     case WorkspaceChangeKind.ProjectAdded:
                         Contract.ThrowIfNull(args.ProjectId);
-                        EnqueueFullProjectEvent(args.NewSolution, args.ProjectId, InvocationReasons.DocumentAdded, eventName);
+                        EnqueueFullProjectEvent(args.NewSolution, args.ProjectId, InvocationReasons.DocumentAdded);
                         break;
 
                     case WorkspaceChangeKind.ProjectChanged:
                     case WorkspaceChangeKind.ProjectReloaded:
                         Contract.ThrowIfNull(args.ProjectId);
-                        EnqueueProjectChangedEvent(args.OldSolution, args.NewSolution, args.ProjectId, eventName);
+                        EnqueueProjectChangedEvent(args.OldSolution, args.NewSolution, args.ProjectId);
                         break;
 
                     case WorkspaceChangeKind.ProjectRemoved:
                         Contract.ThrowIfNull(args.ProjectId);
-                        EnqueueFullProjectEvent(args.OldSolution, args.ProjectId, InvocationReasons.DocumentRemoved, eventName);
+                        EnqueueFullProjectEvent(args.OldSolution, args.ProjectId, InvocationReasons.DocumentRemoved);
                         break;
 
                     case WorkspaceChangeKind.DocumentAdded:
                         Contract.ThrowIfNull(args.DocumentId);
-                        EnqueueFullDocumentEvent(args.NewSolution, args.DocumentId, InvocationReasons.DocumentAdded, eventName);
+                        await EnqueueFullDocumentEventAsync(args.NewSolution, args.DocumentId, InvocationReasons.DocumentAdded, cancellationToken).ConfigureAwait(false);
                         break;
 
                     case WorkspaceChangeKind.DocumentReloaded:
                     case WorkspaceChangeKind.DocumentChanged:
                         Contract.ThrowIfNull(args.DocumentId);
-                        EnqueueDocumentChangedEvent(args.OldSolution, args.NewSolution, args.DocumentId, eventName);
+                        EnqueueDocumentChangedEvent(args.OldSolution, args.NewSolution, args.DocumentId);
                         break;
 
                     case WorkspaceChangeKind.DocumentRemoved:
                         Contract.ThrowIfNull(args.DocumentId);
-                        EnqueueFullDocumentEvent(args.OldSolution, args.DocumentId, InvocationReasons.DocumentRemoved, eventName);
+                        await EnqueueFullDocumentEventAsync(args.OldSolution, args.DocumentId, InvocationReasons.DocumentRemoved, cancellationToken).ConfigureAwait(false);
                         break;
 
                     case WorkspaceChangeKind.AdditionalDocumentAdded:
@@ -207,11 +199,36 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     case WorkspaceChangeKind.AnalyzerConfigDocumentReloaded:
                         // If an additional file or .editorconfig has changed we need to reanalyze the entire project.
                         Contract.ThrowIfNull(args.ProjectId);
-                        EnqueueFullProjectEvent(args.NewSolution, args.ProjectId, InvocationReasons.AdditionalDocumentChanged, eventName);
+                        EnqueueFullProjectEvent(args.NewSolution, args.ProjectId, InvocationReasons.AdditionalDocumentChanged);
                         break;
 
                 }
             }
+        }
+
+        private async ValueTask EnqueueFullSolutionEventAsync(
+            RemoteHostClient client,
+            Solution solution,
+            InvocationReasons reasons,
+            CancellationToken cancellationToken)
+        {
+            await client.TryInvokeAsync<IRemoteSolutionCrawlerEventsService>(
+                solution,
+                (service, solutionChecksum, cancellationToken) => service.OnSolutionEventAsync(solutionChecksum, reasons, cancellationToken),
+                cancellationToken).ConfigureAwait(false);
+        }
+
+        private async ValueTask EnqueueFullDocumentEventAsync(
+            RemoteHostClient client,
+            Solution solution,
+            DocumentId documentId,
+            InvocationReasons reasons,
+            CancellationToken cancellationToken)
+        {
+            await client.TryInvokeAsync<IRemoteSolutionCrawlerEventsService>(
+                solution,
+                (service, solutionChecksum, cancellationToken) => service.OnDocumentEventAsync(solutionChecksum, documentId, reasons, cancellationToken),
+                cancellationToken).ConfigureAwait(false);
         }
     }
 }

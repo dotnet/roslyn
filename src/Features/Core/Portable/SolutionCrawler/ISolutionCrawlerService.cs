@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
     internal interface IRemoteSolutionCrawlerEventsService
     {
-        ValueTask OnDocumentOpenedAsync(Checksum solutionChecksum, DocumentId documentId, CancellationToken cancellationToken);
-        ValueTask OnDocumentClosedAsync(Checksum solutionChecksum, DocumentId documentId, CancellationToken cancellationToken);
+        ValueTask OnSolutionEventAsync(Checksum solutionChecksum, InvocationReasons reasons, CancellationToken cancellationToken);
+        ValueTask OnDocumentEventAsync(Checksum solutionChecksum, DocumentId documentId, InvocationReasons reasons, CancellationToken cancellationToken);
     }
 }
