@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
             private readonly TaskQueue _eventProcessingQueue;
 
             // points to processor task
-            private readonly IncrementalAnalyzerProcessor _documentAndProjectWorkerProcessor;
+            private readonly UnitTestingIncrementalAnalyzerProcessor _documentAndProjectWorkerProcessor;
             private readonly SemanticChangeProcessor _semanticChangeProcessor;
 
             public UnitTestingWorkCoordinator(
@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                 var allFilesWorkerBackOffTimeSpan = UnitTestingSolutionCrawlerTimeSpan.AllFilesWorkerBackOff;
                 var entireProjectWorkerBackOffTimeSpan = UnitTestingSolutionCrawlerTimeSpan.EntireProjectWorkerBackOff;
 
-                _documentAndProjectWorkerProcessor = new IncrementalAnalyzerProcessor(
+                _documentAndProjectWorkerProcessor = new UnitTestingIncrementalAnalyzerProcessor(
                     listener, analyzerProviders, initializeLazily, _registration,
                     activeFileBackOffTimeSpan, allFilesWorkerBackOffTimeSpan, entireProjectWorkerBackOffTimeSpan, _shutdownToken);
 

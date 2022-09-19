@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
     {
         internal partial class UnitTestingWorkCoordinator
         {
-            private partial class IncrementalAnalyzerProcessor
+            private partial class UnitTestingIncrementalAnalyzerProcessor
             {
                 private static readonly Func<int, object, bool, string> s_enqueueLogger = EnqueueLogger;
 
@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                 /// </summary>
                 private CountLogAggregator<object> _logAggregator = new();
 
-                public IncrementalAnalyzerProcessor(
+                public UnitTestingIncrementalAnalyzerProcessor(
                     IAsynchronousOperationListener listener,
                     IEnumerable<Lazy<IUnitTestingIncrementalAnalyzerProvider, UnitTestingIncrementalAnalyzerProviderMetadata>> analyzerProviders,
                     bool initializeLazily,
@@ -366,9 +366,9 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
 
                 internal readonly struct TestAccessor
                 {
-                    private readonly IncrementalAnalyzerProcessor _incrementalAnalyzerProcessor;
+                    private readonly UnitTestingIncrementalAnalyzerProcessor _incrementalAnalyzerProcessor;
 
-                    internal TestAccessor(IncrementalAnalyzerProcessor incrementalAnalyzerProcessor)
+                    internal TestAccessor(UnitTestingIncrementalAnalyzerProcessor incrementalAnalyzerProcessor)
                     {
                         _incrementalAnalyzerProcessor = incrementalAnalyzerProcessor;
                     }

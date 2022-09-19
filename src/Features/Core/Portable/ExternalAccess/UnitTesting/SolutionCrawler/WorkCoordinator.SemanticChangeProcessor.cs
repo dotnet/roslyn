@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                 public SemanticChangeProcessor(
                     IAsynchronousOperationListener listener,
                     Registration registration,
-                    IncrementalAnalyzerProcessor documentWorkerProcessor,
+                    UnitTestingIncrementalAnalyzerProcessor documentWorkerProcessor,
                     TimeSpan backOffTimeSpan,
                     TimeSpan projectBackOffTimeSpan,
                     CancellationToken cancellationToken)
@@ -333,7 +333,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                     private readonly SemaphoreSlim _gate;
 
                     private readonly Registration _registration;
-                    private readonly IncrementalAnalyzerProcessor _processor;
+                    private readonly UnitTestingIncrementalAnalyzerProcessor _processor;
 
                     private readonly NonReentrantLock _workGate = new();
                     private readonly Dictionary<ProjectId, Data> _pendingWork = new();
@@ -341,7 +341,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                     public ProjectProcessor(
                         IAsynchronousOperationListener listener,
                         Registration registration,
-                        IncrementalAnalyzerProcessor processor,
+                        UnitTestingIncrementalAnalyzerProcessor processor,
                         TimeSpan backOffTimeSpan,
                         CancellationToken cancellationToken)
                         : base(listener, backOffTimeSpan, cancellationToken)

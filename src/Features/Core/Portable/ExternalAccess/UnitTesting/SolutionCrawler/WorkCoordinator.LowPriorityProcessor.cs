@@ -19,15 +19,15 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
     {
         internal sealed partial class UnitTestingWorkCoordinator
         {
-            private sealed partial class IncrementalAnalyzerProcessor
+            private sealed partial class UnitTestingIncrementalAnalyzerProcessor
             {
-                private sealed class LowPriorityProcessor : AbstractPriorityProcessor
+                private sealed class LowPriorityProcessor : AbstractUnitTestingPriorityProcessor
                 {
                     private readonly AsyncProjectWorkItemQueue _workItemQueue;
 
                     public LowPriorityProcessor(
                         IAsynchronousOperationListener listener,
-                        IncrementalAnalyzerProcessor processor,
+                        UnitTestingIncrementalAnalyzerProcessor processor,
                         Lazy<ImmutableArray<IUnitTestingIncrementalAnalyzer>> lazyAnalyzers,
                         IGlobalOperationNotificationService globalOperationNotificationService,
                         TimeSpan backOffTimeSpan,

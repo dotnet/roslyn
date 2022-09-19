@@ -16,18 +16,18 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
     {
         internal sealed partial class UnitTestingWorkCoordinator
         {
-            private sealed partial class IncrementalAnalyzerProcessor
+            private sealed partial class UnitTestingIncrementalAnalyzerProcessor
             {
-                private abstract class AbstractPriorityProcessor : UnitTestingGlobalOperationAwareIdleProcessor
+                private abstract class AbstractUnitTestingPriorityProcessor : UnitTestingGlobalOperationAwareIdleProcessor
                 {
-                    protected readonly IncrementalAnalyzerProcessor Processor;
+                    protected readonly UnitTestingIncrementalAnalyzerProcessor Processor;
 
                     private readonly object _gate = new();
                     private Lazy<ImmutableArray<IUnitTestingIncrementalAnalyzer>> _lazyAnalyzers;
 
-                    public AbstractPriorityProcessor(
+                    public AbstractUnitTestingPriorityProcessor(
                         IAsynchronousOperationListener listener,
-                        IncrementalAnalyzerProcessor processor,
+                        UnitTestingIncrementalAnalyzerProcessor processor,
                         Lazy<ImmutableArray<IUnitTestingIncrementalAnalyzer>> lazyAnalyzers,
                         IGlobalOperationNotificationService globalOperationNotificationService,
                         TimeSpan backOffTimeSpan,

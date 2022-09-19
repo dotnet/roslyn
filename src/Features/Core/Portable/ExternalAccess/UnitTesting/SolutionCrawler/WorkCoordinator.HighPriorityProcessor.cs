@@ -18,11 +18,11 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
     {
         internal sealed partial class UnitTestingWorkCoordinator
         {
-            private sealed partial class IncrementalAnalyzerProcessor
+            private sealed partial class UnitTestingIncrementalAnalyzerProcessor
             {
                 private sealed class HighPriorityProcessor : UnitTestingIdleProcessor
                 {
-                    private readonly IncrementalAnalyzerProcessor _processor;
+                    private readonly UnitTestingIncrementalAnalyzerProcessor _processor;
                     private readonly AsyncDocumentWorkItemQueue _workItemQueue;
                     private readonly object _gate = new();
 
@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
 
                     public HighPriorityProcessor(
                         IAsynchronousOperationListener listener,
-                        IncrementalAnalyzerProcessor processor,
+                        UnitTestingIncrementalAnalyzerProcessor processor,
                         Lazy<ImmutableArray<IUnitTestingIncrementalAnalyzer>> lazyAnalyzers,
                         TimeSpan backOffTimeSpan,
                         CancellationToken shutdownToken)
