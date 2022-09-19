@@ -7,6 +7,7 @@ using System.Composition;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using EnvDTE;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host;
@@ -152,7 +153,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
                     case WorkspaceChangeKind.SolutionChanged:
                     case WorkspaceChangeKind.SolutionReloaded:
-                        await EnqueueSolutionChangedEventsAsync(client, args.OldSolution, args.NewSolution, cancellationToken).ConfigureAwait(false);
+                        await EnqueueSolutionChangedEventAsync(client, args.OldSolution, args.NewSolution, cancellationToken).ConfigureAwait(false);
                         break;
 
                     case WorkspaceChangeKind.ProjectAdded:
@@ -168,8 +169,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     case WorkspaceChangeKind.ProjectChanged:
                     case WorkspaceChangeKind.ProjectReloaded:
                         Contract.ThrowIfNull(args.ProjectId);
-                        await EnqueueProjectChangesEventsAsync(
-                            client, args.OldSolution.GetRequiredProject(args.ProjectId).GetChanges(args.NewSolution.GetRequiredProject(args.ProjectId)), cancellationToken).ConfigureAwait(false);
+                        await EnqueueProjectChangedEventAsync(client, args.OldSolution, args.NewSolution, args.ProjectId, cancellationToken).ConfigureAwait(false);
                         break;
 
                     case WorkspaceChangeKind.DocumentAdded:
@@ -185,7 +185,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     case WorkspaceChangeKind.DocumentChanged:
                     case WorkspaceChangeKind.DocumentReloaded:
                         Contract.ThrowIfNull(args.DocumentId);
-                        EnqueueDocumentChangedEvent(args.OldSolution, args.NewSolution, args.DocumentId);
+                        await EnqueueDocumentChangedEventAsync(args.OldSolution, args.NewSolution, args.DocumentId);
                         break;
 
                     case WorkspaceChangeKind.AdditionalDocumentAdded:
@@ -243,82 +243,84 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                 cancellationToken).ConfigureAwait(false);
         }
 
-        private async ValueTask EnqueueSolutionChangedEventsAsync(
+        private async ValueTask EnqueueSolutionChangedEventAsync(
             RemoteHostClient client,
             Solution oldSolution,
             Solution newSolution,
             CancellationToken cancellationToken)
         {
-            var solutionChanges = newSolution.GetChanges(oldSolution);
-
-            foreach (var addedProject in solutionChanges.GetAddedProjects())
-                await EnqueueFullProjectEventAsync(client, addedProject.Solution, addedProject.Id, InvocationReasons.DocumentAdded, cancellationToken).ConfigureAwait(false);
-
-            foreach (var projectChanges in solutionChanges.GetProjectChanges())
-                await EnqueueProjectChangesEventsAsync(client, projectChanges, cancellationToken).ConfigureAwait(false);
-
-            foreach (var removedProject in solutionChanges.GetRemovedProjects())
-                await EnqueueFullProjectEventAsync(client, removedProject.Solution, removedProject.Id, InvocationReasons.DocumentRemoved, cancellationToken).ConfigureAwait(false);
+            await client.TryInvokeAsync<IRemoteSolutionCrawlerEventsService>(
+                oldSolution, newSolution,
+                (service, oldSolutionChecksum, newSolutionChecksum, cancellationToken) =>
+                    service.OnSolutionChangedAsync(oldSolutionChecksum, newSolutionChecksum, cancellationToken),
+                cancellationToken).ConfigureAwait(false);
         }
 
-        private async ValueTask EnqueueProjectChangesEventsAsync(
+        private async ValueTask EnqueueProjectChangedEventAsync(
             RemoteHostClient client,
-            ProjectChanges projectChanges,
+            Solution oldSolution,
+            Solution newSolution,
+            ProjectId projectId,
             CancellationToken cancellationToken)
         {
-            await EnqueueProjectConfigurationChangeWorkItemAsync(projectChanges).ConfigureAwait(false);
-
-            foreach (var addedDocumentId in projectChanges.GetAddedDocuments())
-                await EnqueueFullDocumentEventAsync(client, projectChanges.NewProject.Solution, addedDocumentId, InvocationReasons.DocumentAdded, cancellationToken).ConfigureAwait(false);
-
-            foreach (var changedDocumentId in projectChanges.GetChangedDocuments())
-            {
-                await EnqueueChangedDocumentWorkItemAsync(
-                    projectChanges.OldProject.GetRequiredDocument(changedDocumentId),
-                    projectChanges.NewProject.GetRequiredDocument(changedDocumentId)).ConfigureAwait(false);
-            }
-
-            foreach (var removedDocumentId in projectChanges.GetRemovedDocuments())
-                await EnqueueFullDocumentEventAsync(client, projectChanges.OldProject.Solution, removedDocumentId, InvocationReasons.DocumentRemoved, cancellationToken).ConfigureAwait(false);
+            await client.TryInvokeAsync<IRemoteSolutionCrawlerEventsService>(
+                oldSolution, newSolution,
+                (service, oldSolutionChecksum, newSolutionChecksum, cancellationToken) =>
+                    service.OnProjectChangedAsync(oldSolutionChecksum, newSolutionChecksum, projectId, cancellationToken),
+                cancellationToken).ConfigureAwait(false);
         }
 
-        private async Task EnqueueProjectConfigurationChangeWorkItemAsync(
-            RemoteHostClient client, ProjectChanges projectChanges)
+        private async ValueTask EnqueueDocumentChangedEventAsync(
+            RemoteHostClient client,
+            Solution oldSolution,
+            Solution newSolution,
+            DocumentId documentId,
+            CancellationToken cancellationToken)
         {
-            var oldProject = projectChanges.OldProject;
-            var newProject = projectChanges.NewProject;
-
-            // TODO: why solution changes return Project not ProjectId but ProjectChanges return DocumentId not Document?
-            var projectConfigurationChange = InvocationReasons.Empty;
-
-            if (!object.Equals(oldProject.ParseOptions, newProject.ParseOptions))
-            {
-                projectConfigurationChange = projectConfigurationChange.With(InvocationReasons.ProjectParseOptionChanged);
-            }
-
-            if (projectChanges.GetAddedMetadataReferences().Any() ||
-                projectChanges.GetAddedProjectReferences().Any() ||
-                projectChanges.GetAddedAnalyzerReferences().Any() ||
-                projectChanges.GetRemovedMetadataReferences().Any() ||
-                projectChanges.GetRemovedProjectReferences().Any() ||
-                projectChanges.GetRemovedAnalyzerReferences().Any() ||
-                !object.Equals(oldProject.CompilationOptions, newProject.CompilationOptions) ||
-                !object.Equals(oldProject.AssemblyName, newProject.AssemblyName) ||
-                !object.Equals(oldProject.Name, newProject.Name) ||
-                !object.Equals(oldProject.AnalyzerOptions, newProject.AnalyzerOptions) ||
-                !object.Equals(oldProject.DefaultNamespace, newProject.DefaultNamespace) ||
-                !object.Equals(oldProject.OutputFilePath, newProject.OutputFilePath) ||
-                !object.Equals(oldProject.OutputRefFilePath, newProject.OutputRefFilePath) ||
-                !oldProject.CompilationOutputInfo.Equals(newProject.CompilationOutputInfo) ||
-                oldProject.State.RunAnalyzers != newProject.State.RunAnalyzers)
-            {
-                projectConfigurationChange = projectConfigurationChange.With(InvocationReasons.ProjectConfigurationChanged);
-            }
-
-            if (!projectConfigurationChange.IsEmpty)
-            {
-                await EnqueueFullProjectEventAsync(client, projectChanges.NewProject, projectConfigurationChange).ConfigureAwait(false);
-            }
+            await client.TryInvokeAsync<IRemoteSolutionCrawlerEventsService>(
+                oldSolution, newSolution,
+                (service, oldSolutionChecksum, newSolutionChecksum, cancellationToken) =>
+                    service.OnDocumentChangedAsync(oldSolutionChecksum, newSolutionChecksum, documentId, cancellationToken),
+                cancellationToken).ConfigureAwait(false);
         }
+
+        //private async Task EnqueueProjectConfigurationChangeWorkItemAsync(
+        //    RemoteHostClient client, ProjectChanges projectChanges)
+        //{
+        //    var oldProject = projectChanges.OldProject;
+        //    var newProject = projectChanges.NewProject;
+
+        //    // TODO: why solution changes return Project not ProjectId but ProjectChanges return DocumentId not Document?
+        //    var projectConfigurationChange = InvocationReasons.Empty;
+
+        //    if (!object.Equals(oldProject.ParseOptions, newProject.ParseOptions))
+        //    {
+        //        projectConfigurationChange = projectConfigurationChange.With(InvocationReasons.ProjectParseOptionChanged);
+        //    }
+
+        //    if (projectChanges.GetAddedMetadataReferences().Any() ||
+        //        projectChanges.GetAddedProjectReferences().Any() ||
+        //        projectChanges.GetAddedAnalyzerReferences().Any() ||
+        //        projectChanges.GetRemovedMetadataReferences().Any() ||
+        //        projectChanges.GetRemovedProjectReferences().Any() ||
+        //        projectChanges.GetRemovedAnalyzerReferences().Any() ||
+        //        !object.Equals(oldProject.CompilationOptions, newProject.CompilationOptions) ||
+        //        !object.Equals(oldProject.AssemblyName, newProject.AssemblyName) ||
+        //        !object.Equals(oldProject.Name, newProject.Name) ||
+        //        !object.Equals(oldProject.AnalyzerOptions, newProject.AnalyzerOptions) ||
+        //        !object.Equals(oldProject.DefaultNamespace, newProject.DefaultNamespace) ||
+        //        !object.Equals(oldProject.OutputFilePath, newProject.OutputFilePath) ||
+        //        !object.Equals(oldProject.OutputRefFilePath, newProject.OutputRefFilePath) ||
+        //        !oldProject.CompilationOutputInfo.Equals(newProject.CompilationOutputInfo) ||
+        //        oldProject.State.RunAnalyzers != newProject.State.RunAnalyzers)
+        //    {
+        //        projectConfigurationChange = projectConfigurationChange.With(InvocationReasons.ProjectConfigurationChanged);
+        //    }
+
+        //    if (!projectConfigurationChange.IsEmpty)
+        //    {
+        //        await EnqueueFullProjectEventAsync(client, projectChanges.NewProject, projectConfigurationChange).ConfigureAwait(false);
+        //    }
+        //}
     }
 }
