@@ -75,6 +75,7 @@ namespace Microsoft.CodeAnalysis.Remote
             (typeof(IRemoteUnusedReferenceAnalysisService), null),
             (typeof(IRemoteProcessTelemetryService), null),
             (typeof(IRemoteCompilationAvailableService), null),
+            (typeof(IRemoteSolutionEventsAggregationService), null),
             (typeof(IRemoteStackTraceExplorerService), null),
         });
 
