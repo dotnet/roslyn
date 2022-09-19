@@ -393,7 +393,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                         CancellationToken.ThrowIfCancellationRequested();
 
                         // call to this method is serialized. and only this method does the writing.
-                        var priorityService = project.GetLanguageService<IWorkCoordinatorPriorityService>();
+                        var priorityService = project.GetLanguageService<IUnitTestingWorkCoordinatorPriorityService>();
                         var isLowPriority = priorityService != null && await priorityService.IsLowPriorityAsync(GetRequiredDocument(project, documentId, document), CancellationToken).ConfigureAwait(false);
 
                         _processor.Enqueue(

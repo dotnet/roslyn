@@ -404,7 +404,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                 // we are shutting down
                 _shutdownToken.ThrowIfCancellationRequested();
 
-                var priorityService = project.GetLanguageService<IWorkCoordinatorPriorityService>();
+                var priorityService = project.GetLanguageService<IUnitTestingWorkCoordinatorPriorityService>();
                 document ??= project.GetTextDocument(documentId);
                 var sourceDocument = document as Document;
                 var isLowPriority = priorityService != null && sourceDocument != null && await priorityService.IsLowPriorityAsync(sourceDocument, _shutdownToken).ConfigureAwait(false);
@@ -471,7 +471,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
             private async Task EnqueueWorkItemAsync(
                 IUnitTestingIncrementalAnalyzer analyzer, Project project, DocumentId documentId, Document? document, UnitTestingInvocationReasons invocationReasons)
             {
-                var priorityService = project.GetLanguageService<IWorkCoordinatorPriorityService>();
+                var priorityService = project.GetLanguageService<IUnitTestingWorkCoordinatorPriorityService>();
                 var isLowPriority = priorityService != null && await priorityService.IsLowPriorityAsync(
                     GetRequiredDocument(project, documentId, document), _shutdownToken).ConfigureAwait(false);
 

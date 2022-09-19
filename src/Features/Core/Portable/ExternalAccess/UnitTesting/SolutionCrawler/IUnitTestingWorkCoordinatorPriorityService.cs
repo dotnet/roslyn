@@ -8,7 +8,7 @@ using Microsoft.CodeAnalysis.Host;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
 {
-    internal interface IWorkCoordinatorPriorityService : ILanguageService
+    internal interface IUnitTestingWorkCoordinatorPriorityService : ILanguageService
     {
         /// <summary>
         /// True if this document is less important than other documents in the project it is 
