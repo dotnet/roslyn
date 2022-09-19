@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.SolutionEvents
             public readonly TextDocumentEventArgs? DocumentOpenArgs;
             public readonly TextDocumentEventArgs? DocumentCloseArgs;
 
-            public SolutionCrawlerEvent(
+            public SolutionEvent(
                 WorkspaceChangeEventArgs? workspaceChangeArgs,
                 TextDocumentEventArgs? documentOpenArgs,
                 TextDocumentEventArgs? documentCloseArgs)

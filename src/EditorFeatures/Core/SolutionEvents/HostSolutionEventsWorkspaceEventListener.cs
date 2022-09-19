@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Microsoft.CodeAnalysis.SolutionCrawler;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.SolutionEvents
@@ -24,7 +25,7 @@ namespace Microsoft.CodeAnalysis.SolutionEvents
         private readonly IGlobalOptionService _globalOptions;
         private readonly IThreadingContext _threadingContext;
         private readonly ISolutionEventsAggregationService _aggregationService;
-        private readonly AsyncBatchingWorkQueue<SolutionCrawlerEvent> _eventQueue;
+        private readonly AsyncBatchingWorkQueue<SolutionEvent> _eventQueue;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -37,7 +38,7 @@ namespace Microsoft.CodeAnalysis.SolutionEvents
             _globalOptions = globalOptions;
             _threadingContext = threadingContext;
             _aggregationService = notificationService;
-            _eventQueue = new AsyncBatchingWorkQueue<SolutionCrawlerEvent>(
+            _eventQueue = new AsyncBatchingWorkQueue<SolutionEvent>(
                 DelayTimeSpan.Medium,
                 ProcessWorkspaceChangeEventsAsync,
                 listenerProvider.GetListener(FeatureAttribute.SolutionCrawler),
@@ -61,15 +62,15 @@ namespace Microsoft.CodeAnalysis.SolutionEvents
         }
 
         private void OnWorkspaceChanged(object? sender, WorkspaceChangeEventArgs e)
-            => _eventQueue.AddWork(new SolutionCrawlerEvent(e, null, null));
+            => _eventQueue.AddWork(new SolutionEvent(e, null, null));
 
         private void OnDocumentOpened(object? sender, TextDocumentEventArgs e)
-            => _eventQueue.AddWork(new SolutionCrawlerEvent(null, e, null));
+            => _eventQueue.AddWork(new SolutionEvent(null, e, null));
 
         private void OnDocumentClosed(object? sender, TextDocumentEventArgs e)
-            => _eventQueue.AddWork(new SolutionCrawlerEvent(null, null, e));
+            => _eventQueue.AddWork(new SolutionEvent(null, null, e));
 
-        private async ValueTask ProcessWorkspaceChangeEventsAsync(ImmutableSegmentedList<SolutionCrawlerEvent> events, CancellationToken cancellationToken)
+        private async ValueTask ProcessWorkspaceChangeEventsAsync(ImmutableSegmentedList<SolutionEvent> events, CancellationToken cancellationToken)
         {
             if (events.IsEmpty)
                 return;
@@ -83,7 +84,7 @@ namespace Microsoft.CodeAnalysis.SolutionEvents
 
         private async Task ProcessWorkspaceChangeEventsAsync(
             RemoteHostClient? client,
-            ImmutableSegmentedList<SolutionCrawlerEvent> events,
+            ImmutableSegmentedList<SolutionEvent> events,
             CancellationToken cancellationToken)
         {
             foreach (var ev in events)
@@ -92,7 +93,7 @@ namespace Microsoft.CodeAnalysis.SolutionEvents
 
         private async ValueTask ProcessWorkspaceChangeEventAsync(
             RemoteHostClient? client,
-            SolutionCrawlerEvent ev,
+            SolutionEvent ev,
             CancellationToken cancellationToken)
         {
             if (ev.DocumentOpenArgs != null)
