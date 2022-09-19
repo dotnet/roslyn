@@ -10,6 +10,9 @@
 .vs/
 .vscode/settings.json
 
+# Mitigation for issue https://github.com/dotnet/roslyn/issues/63779
+vstest_*.rsp
+
 # Build results
 [Aa]rtifacts/
 [Dd]ebug/
