@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
             /// actually revert back to the paused state where no work proceeds.
             /// </summary>
             public IDisposable GetEvaluatingScope()
-                => new ProgressStatusRAII(this);
+                => new UnitTestingProgressStatusRAII(this);
 
             private void ChangeProgressStatus(ref int referenceCount, UnitTestingProgressStatus status)
             {
@@ -76,11 +76,11 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
             private void OnProgressChanged(UnitTestingProgressData progressData)
                 => ProgressChanged?.Invoke(this, progressData);
 
-            private readonly struct ProgressStatusRAII : IDisposable
+            private readonly struct UnitTestingProgressStatusRAII : IDisposable
             {
                 private readonly UnitTestingSolutionCrawlerProgressReporter _owner;
 
-                public ProgressStatusRAII(UnitTestingSolutionCrawlerProgressReporter owner)
+                public UnitTestingProgressStatusRAII(UnitTestingSolutionCrawlerProgressReporter owner)
                 {
                     _owner = owner;
                     _owner.Evaluate();
