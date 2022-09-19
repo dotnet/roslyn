@@ -33,7 +33,7 @@ internal class LspServiceLifeCycleManager : ILifeCycleManager, ILspService
         {
             var messageParams = new LogMessageParams()
             {
-                MessageType = MessageType.Error,
+                MessageType = MessageType.Info,
                 Message = message
             };
             await _clientLanguageServerManager.SendNotificationAsync("window/logMessage", messageParams, CancellationToken.None).ConfigureAwait(false);
