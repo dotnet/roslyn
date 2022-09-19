@@ -9,7 +9,9 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.Editing;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
 {
@@ -45,9 +47,21 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
                 //
                 // Otherwise, just generate a normal constructor that assigns any provided
                 // parameters into fields.
+                using var _ = ArrayBuilder<IParameterSymbol>.GetInstance(_state.Parameters.Length, out var finalParameters);
                 var parameterToExistingFieldMap = ImmutableDictionary.CreateBuilder<string, ISymbol>();
                 for (var i = 0; i < _state.Parameters.Length; i++)
-                    parameterToExistingFieldMap[_state.Parameters[i].Name] = _state.SelectedMembers[i];
+                {
+                    // Exclude inaccessible fields.
+                    var member = _state.SelectedMembers[i];
+                    if (!IsWritableInstanceFieldOrProperty(member, _state.ContainingType))
+                    {
+                        continue;
+                    }
+
+                    var parameter = _state.Parameters[i];
+                    finalParameters.Add(parameter);
+                    parameterToExistingFieldMap[parameter.Name] = member;
+                }
 
                 var factory = _document.GetRequiredLanguageService<SyntaxGenerator>();
 
@@ -59,7 +73,7 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
                     semanticModel,
                     _state.ContainingType.Name,
                     _state.ContainingType,
-                    _state.Parameters,
+                    finalParameters.ToImmutable(),
                     _state.Accessibility,
                     parameterToExistingFieldMap.ToImmutable(),
                     parameterToNewMemberMap: null,

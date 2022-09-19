@@ -73,15 +73,16 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 a.AttributeClass?.IsAccessibleWithin(arg.accessibleWithin) == false;
         }
 
-        public static bool IsWritableInConstructor(this IPropertySymbol property)
-            => (property.SetMethod != null || ContainsBackingField(property));
+        public static bool IsWritableInConstructor(this IPropertySymbol property, ISymbol? within = null)
+            => (property.SetMethod != null && (within == null || property.SetMethod.IsAccessibleWithin(within)))
+                || ContainsBackingField(property, within);
 
         public static IFieldSymbol? GetBackingFieldIfAny(this IPropertySymbol property)
             => property.ContainingType.GetMembers()
                 .OfType<IFieldSymbol>()
                 .FirstOrDefault(f => property.Equals(f.AssociatedSymbol));
 
-        private static bool ContainsBackingField(IPropertySymbol property)
-            => property.GetBackingFieldIfAny() != null;
+        private static bool ContainsBackingField(IPropertySymbol property, ISymbol? accessibleWithin = null)
+            => property.GetBackingFieldIfAny() is { } f && (accessibleWithin == null || f.IsAccessibleWithin(accessibleWithin));
     }
 }

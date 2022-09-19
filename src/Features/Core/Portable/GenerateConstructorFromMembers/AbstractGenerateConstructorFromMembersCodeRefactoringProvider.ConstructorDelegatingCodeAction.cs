@@ -60,7 +60,8 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
 
                 using var _1 = ArrayBuilder<SyntaxNode>.GetInstance(out var nullCheckStatements);
                 using var _2 = ArrayBuilder<SyntaxNode>.GetInstance(out var assignStatements);
-                using var _3 = ArrayBuilder<IParameterSymbol>.GetInstance(out var delegatedConstructorParameters);
+                using var _3 = ArrayBuilder<IParameterSymbol>.GetInstance(_state.DelegatedConstructor.Parameters.Length, out var delegatedConstructorParameters);
+                using var _4 = ArrayBuilder<IParameterSymbol>.GetInstance(_state.Parameters.Length, out var finalParameters);
 
                 var useThrowExpressions = await _service.PrefersThrowExpressionAsync(_document, _fallbackOptions, cancellationToken).ConfigureAwait(false);
 
@@ -72,15 +73,23 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
                     // Exclude parameters that will be delegated to another constructor.
                     if (_state.DelegatedConstructor.Parameters.Any(p => p.Name == parameter.Name))
                     {
+                        finalParameters.Add(parameter);
                         delegatedConstructorParameters.Add(parameter);
                         continue;
                     }
 
-                    var symbolName = _state.SelectedMembers[i].Name;
+                    var symbol = _state.SelectedMembers[i];
+
+                    // Exclude inaccessible fields.
+                    if (!IsWritableInstanceFieldOrProperty(symbol, _state.ContainingType))
+                    {
+                        continue;
+                    }
+                    finalParameters.Add(parameter);
 
                     var fieldAccess = factory.MemberAccessExpression(
                         factory.ThisExpression(),
-                        factory.IdentifierName(symbolName));
+                        factory.IdentifierName(symbol.Name));
 
                     factory.AddAssignmentStatements(
                         semanticModel, parameter, fieldAccess,
@@ -113,7 +122,7 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
                         accessibility: _state.ContainingType.IsAbstractClass() ? Accessibility.Protected : Accessibility.Public,
                         modifiers: new DeclarationModifiers(),
                         typeName: _state.ContainingType.Name,
-                        parameters: _state.Parameters,
+                        parameters: finalParameters.ToImmutable(),
                         statements: statements,
                         baseConstructorArguments: thisConstructor ? default : delegatedConstructorArguments,
                         thisConstructorArguments: thisConstructor ? delegatedConstructorArguments : default),

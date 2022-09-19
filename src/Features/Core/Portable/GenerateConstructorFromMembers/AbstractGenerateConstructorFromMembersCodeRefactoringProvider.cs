@@ -203,9 +203,9 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
             // show a dialog to the user to select the ones they want.  Otherwise, if there are none
             // don't offer to generate anything.
             // First suggest `base` members, then `this` members.
-            var viableMembers = containingType.GetAccessibleMembersInBaseTypes<ISymbol>(containingType)
-                .Concat(containingType.GetMembers())
-                .Where(IsWritableInstanceFieldOrProperty)
+            // Even inaccessible members are considered because they could be delegated to a base constructor.
+            var viableMembers = containingType.GetBaseTypesAndThis().Reverse()
+                .SelectMany(t => t.GetMembers().Where(IsWritableInstanceFieldOrProperty))
                 .ToImmutableArray();
             if (viableMembers.Length == 0)
             {
