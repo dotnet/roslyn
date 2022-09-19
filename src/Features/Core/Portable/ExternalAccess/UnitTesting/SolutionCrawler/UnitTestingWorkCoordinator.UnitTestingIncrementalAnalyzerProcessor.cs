@@ -96,7 +96,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
 
                 private static ImmutableArray<IUnitTestingIncrementalAnalyzer> GetIncrementalAnalyzers(UnitTestingRegistration registration, UnitTestingAnalyzersGetter analyzersGetter, bool onlyHighPriorityAnalyzer)
                 {
-                    var orderedAnalyzers = analyzersGetter.GetOrderedAnalyzers(registration.Workspace, onlyHighPriorityAnalyzer);
+                    var orderedAnalyzers = analyzersGetter.GetOrderedAnalyzers(registration.Services, onlyHighPriorityAnalyzer);
 
                     UnitTestingSolutionCrawlerLogger.LogAnalyzers(registration.CorrelationId, registration.WorkspaceKind, orderedAnalyzers, onlyHighPriorityAnalyzer);
                     return orderedAnalyzers;
@@ -398,18 +398,18 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                 private class UnitTestingAnalyzersGetter
                 {
                     private readonly List<Lazy<IUnitTestingIncrementalAnalyzerProvider, UnitTestingIncrementalAnalyzerProviderMetadata>> _analyzerProviders;
-                    private readonly Dictionary<Workspace, ImmutableArray<(IUnitTestingIncrementalAnalyzer analyzer, bool highPriorityForActiveFile)>> _analyzerMap = new();
+                    private readonly Dictionary<SolutionServices, ImmutableArray<(IUnitTestingIncrementalAnalyzer analyzer, bool highPriorityForActiveFile)>> _analyzerMap = new();
 
                     public UnitTestingAnalyzersGetter(IEnumerable<Lazy<IUnitTestingIncrementalAnalyzerProvider, UnitTestingIncrementalAnalyzerProviderMetadata>> analyzerProviders)
                     {
                         _analyzerProviders = analyzerProviders.ToList();
                     }
 
-                    public ImmutableArray<IUnitTestingIncrementalAnalyzer> GetOrderedAnalyzers(Workspace workspace, bool onlyHighPriorityAnalyzer)
+                    public ImmutableArray<IUnitTestingIncrementalAnalyzer> GetOrderedAnalyzers(SolutionServices services, bool onlyHighPriorityAnalyzer)
                     {
                         lock (_analyzerMap)
                         {
-                            if (!_analyzerMap.TryGetValue(workspace, out var analyzers))
+                            if (!_analyzerMap.TryGetValue(services, out var analyzers))
                             {
                                 // Sort list so DiagnosticIncrementalAnalyzers (if any) come first.
                                 analyzers = _analyzerProviders.Select(p => (analyzer: p.Value.CreateIncrementalAnalyzer(), highPriorityForActiveFile: p.Metadata.HighPriorityForActiveFile))
@@ -417,7 +417,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                                                 .OrderBy(t => t.analyzer!.Priority)
                                                 .ToImmutableArray()!;
 
-                                _analyzerMap[workspace] = analyzers;
+                                _analyzerMap[services] = analyzers;
                             }
 
                             if (onlyHighPriorityAnalyzer)
