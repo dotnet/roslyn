@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.VisualBasic;
 using Roslyn.Test.Utilities;
@@ -47,15 +48,18 @@ Module M1
         Sub S() As Object
             Dim a() As Integer = {1, 2, 3}
             For Each x As Integer In a
-                Dim y = x   'BIND:""x""
+                Dim y = x
             Next
         End Sub
     End Class
 End Module
 ";
         var compilation = CreateVisualBasicCompilation(sourceCode);
-        var model = compilation.GetSemanticModel(compilation.SyntaxTrees[0]);
-        var expressionSyntax = VisualBasic.UnitTests.CompilationUtils.FindBindingText<VisualBasic.Syntax.IdentifierNameSyntax>(compilation);
+        var tree = compilation.SyntaxTrees[0];
+        var expressionSyntax = tree.GetRoot().DescendantNodes().
+            OfType<VisualBasic.Syntax.IdentifierNameSyntax>().Last();
+        Assert.Equal("x", expressionSyntax.ToString());
+        var model = compilation.GetSemanticModel(tree);
         var local = (ILocalSymbol)model.GetSymbolInfo(expressionSyntax).Symbol!;
         Assert.False(local.IsUsing);
         Assert.True(local.IsForEach);
