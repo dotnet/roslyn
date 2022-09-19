@@ -163,11 +163,11 @@ namespace Microsoft.CodeAnalysis.Completion
         private PatternMatcher GetPatternMatcher(string pattern, CultureInfo culture, bool includeMatchedSpans)
             => GetPatternMatcher(pattern, culture, includeMatchedSpans, _patternMatcherMap);
 
-        public int CompareItems(CompletionItem item1, PatternMatch? match1, CompletionItem item2, PatternMatch? match2, bool filterTextIsLowerCaseOnly)
+        public int CompareItems(CompletionItem item1, PatternMatch? match1, CompletionItem item2, PatternMatch? match2, bool filterTextHasNoUpperCase)
         {
             if (match1 != null && match2 != null)
             {
-                var result = CompareItems(match1.Value, match2.Value, item1, item2, _isCaseSensitive, filterTextIsLowerCaseOnly);
+                var result = CompareItems(match1.Value, match2.Value, item1, item2, _isCaseSensitive, filterTextHasNoUpperCase);
                 if (result != 0)
                 {
                     return result;
@@ -212,7 +212,7 @@ namespace Microsoft.CodeAnalysis.Completion
             CompletionItem item1,
             CompletionItem item2,
             bool isCaseSensitive,
-            bool filterTextIsLowerCaseOnly)
+            bool filterTextHasNoUpperCase)
         {
             // *Almost* always prefer non-expanded item regardless of the pattern matching result.
             // Except when all non-expanded items are worse than prefix matching and there's
@@ -288,7 +288,7 @@ namespace Microsoft.CodeAnalysis.Completion
             {
                 specialMatchPriorityValuesDiff = CompareSpecialMatchPriorityValues(item1, item2);
             }
-            else if (filterTextIsLowerCaseOnly)
+            else if (filterTextHasNoUpperCase)
             {
                 specialMatchPriorityValuesDiff = CompareDeprioritization(item1, item2);
             }
