@@ -7,14 +7,12 @@ using System.Composition;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using EnvDTE;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Remote;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Roslyn.Utilities;
 
@@ -110,7 +108,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
             await ProcessWorkspaceChangeEventsAsync(client, events, cancellationToken).ConfigureAwait(false);
         }
 
-        private static async Task ProcessWorkspaceChangeEventsAsync(
+        private async Task ProcessWorkspaceChangeEventsAsync(
             RemoteHostClient? client,
             ImmutableSegmentedList<SolutionCrawlerEvent> events,
             CancellationToken cancellationToken)
@@ -119,7 +117,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                 await ProcessWorkspaceChangeEventAsync(client, ev, cancellationToken).ConfigureAwait(false);
         }
 
-        private static async ValueTask ProcessWorkspaceChangeEventAsync(
+        private async ValueTask ProcessWorkspaceChangeEventAsync(
             RemoteHostClient? client,
             SolutionCrawlerEvent ev,
             CancellationToken cancellationToken)
@@ -203,83 +201,125 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
             }
         }
 
-        private static async ValueTask EnqueueFullSolutionEventAsync(
+        private async ValueTask EnqueueFullSolutionEventAsync(
             RemoteHostClient? client,
             Solution solution,
             InvocationReasons reasons,
             CancellationToken cancellationToken)
         {
-            await client.TryInvokeAsync<IRemoteSolutionCrawlerEventsNotificationService>(
-                solution,
-                (service, solutionChecksum, cancellationToken) => service.OnSolutionEventAsync(solutionChecksum, reasons, cancellationToken),
-                cancellationToken).ConfigureAwait(false);
+            if (client == null)
+            {
+                await _notificationService.OnSolutionEventAsync(solution, reasons, cancellationToken).ConfigureAwait(false);
+            }
+            else
+            {
+                await client.TryInvokeAsync<IRemoteSolutionCrawlerEventsNotificationService>(
+                    solution,
+                    (service, solutionChecksum, cancellationToken) => service.OnSolutionEventAsync(solutionChecksum, reasons, cancellationToken),
+                    cancellationToken).ConfigureAwait(false);
+            }
         }
 
-        private static async ValueTask EnqueueFullProjectEventAsync(
+        private async ValueTask EnqueueFullProjectEventAsync(
             RemoteHostClient? client,
             Solution solution,
             ProjectId projectId,
             InvocationReasons reasons,
             CancellationToken cancellationToken)
         {
-            await client.TryInvokeAsync<IRemoteSolutionCrawlerEventsNotificationService>(
-                solution,
-                (service, solutionChecksum, cancellationToken) => service.OnProjectEventAsync(solutionChecksum, projectId, reasons, cancellationToken),
-                cancellationToken).ConfigureAwait(false);
+            if (client == null)
+            {
+                await _notificationService.OnProjectEventAsync(solution, projectId, reasons, cancellationToken).ConfigureAwait(false);
+            }
+            else
+            {
+                await client.TryInvokeAsync<IRemoteSolutionCrawlerEventsNotificationService>(
+                    solution,
+                    (service, solutionChecksum, cancellationToken) => service.OnProjectEventAsync(solutionChecksum, projectId, reasons, cancellationToken),
+                    cancellationToken).ConfigureAwait(false);
+            }
         }
 
-        private static async ValueTask EnqueueFullDocumentEventAsync(
+        private async ValueTask EnqueueFullDocumentEventAsync(
             RemoteHostClient? client,
             Solution solution,
             DocumentId documentId,
             InvocationReasons reasons,
             CancellationToken cancellationToken)
         {
-            await client.TryInvokeAsync<IRemoteSolutionCrawlerEventsNotificationService>(
-                solution,
-                (service, solutionChecksum, cancellationToken) => service.OnDocumentEventAsync(solutionChecksum, documentId, reasons, cancellationToken),
-                cancellationToken).ConfigureAwait(false);
+            if (client == null)
+            {
+                await _notificationService.OnDocumentEventAsync(solution, documentId, reasons, cancellationToken).ConfigureAwait(false);
+            }
+            else
+            {
+                await client.TryInvokeAsync<IRemoteSolutionCrawlerEventsNotificationService>(
+                    solution,
+                    (service, solutionChecksum, cancellationToken) => service.OnDocumentEventAsync(solutionChecksum, documentId, reasons, cancellationToken),
+                    cancellationToken).ConfigureAwait(false);
+            }
         }
 
-        private static async ValueTask EnqueueSolutionChangedEventAsync(
+        private async ValueTask EnqueueSolutionChangedEventAsync(
             RemoteHostClient? client,
             Solution oldSolution,
             Solution newSolution,
             CancellationToken cancellationToken)
         {
-            await client.TryInvokeAsync<IRemoteSolutionCrawlerEventsNotificationService>(
-                oldSolution, newSolution,
-                (service, oldSolutionChecksum, newSolutionChecksum, cancellationToken) =>
-                    service.OnSolutionChangedAsync(oldSolutionChecksum, newSolutionChecksum, cancellationToken),
-                cancellationToken).ConfigureAwait(false);
+            if (client == null)
+            {
+                await _notificationService.OnSolutionChangedAsync(oldSolution, newSolution, cancellationToken).ConfigureAwait(false);
+            }
+            else
+            {
+                await client.TryInvokeAsync<IRemoteSolutionCrawlerEventsNotificationService>(
+                    oldSolution, newSolution,
+                    (service, oldSolutionChecksum, newSolutionChecksum, cancellationToken) =>
+                        service.OnSolutionChangedAsync(oldSolutionChecksum, newSolutionChecksum, cancellationToken),
+                    cancellationToken).ConfigureAwait(false);
+            }
         }
 
-        private static async ValueTask EnqueueProjectChangedEventAsync(
+        private async ValueTask EnqueueProjectChangedEventAsync(
             RemoteHostClient? client,
             Solution oldSolution,
             Solution newSolution,
             ProjectId projectId,
             CancellationToken cancellationToken)
         {
-            await client.TryInvokeAsync<IRemoteSolutionCrawlerEventsNotificationService>(
-                oldSolution, newSolution,
-                (service, oldSolutionChecksum, newSolutionChecksum, cancellationToken) =>
-                    service.OnProjectChangedAsync(oldSolutionChecksum, newSolutionChecksum, projectId, cancellationToken),
-                cancellationToken).ConfigureAwait(false);
+            if (client == null)
+            {
+                await _notificationService.OnProjectChangedAsync(oldSolution, newSolution, projectId, cancellationToken).ConfigureAwait(false);
+            }
+            else
+            {
+                await client.TryInvokeAsync<IRemoteSolutionCrawlerEventsNotificationService>(
+                    oldSolution, newSolution,
+                    (service, oldSolutionChecksum, newSolutionChecksum, cancellationToken) =>
+                        service.OnProjectChangedAsync(oldSolutionChecksum, newSolutionChecksum, projectId, cancellationToken),
+                    cancellationToken).ConfigureAwait(false);
+            }
         }
 
-        private static async ValueTask EnqueueDocumentChangedEventAsync(
+        private async ValueTask EnqueueDocumentChangedEventAsync(
             RemoteHostClient? client,
             Solution oldSolution,
             Solution newSolution,
             DocumentId documentId,
             CancellationToken cancellationToken)
         {
-            await client.TryInvokeAsync<IRemoteSolutionCrawlerEventsNotificationService>(
-                oldSolution, newSolution,
-                (service, oldSolutionChecksum, newSolutionChecksum, cancellationToken) =>
-                    service.OnDocumentChangedAsync(oldSolutionChecksum, newSolutionChecksum, documentId, cancellationToken),
-                cancellationToken).ConfigureAwait(false);
+            if (client == null)
+            {
+                await _notificationService.OnDocumentChangedAsync(oldSolution, newSolution, documentId, cancellationToken).ConfigureAwait(false);
+            }
+            else
+            {
+                await client.TryInvokeAsync<IRemoteSolutionCrawlerEventsNotificationService>(
+                    oldSolution, newSolution,
+                    (service, oldSolutionChecksum, newSolutionChecksum, cancellationToken) =>
+                        service.OnDocumentChangedAsync(oldSolutionChecksum, newSolutionChecksum, documentId, cancellationToken),
+                    cancellationToken).ConfigureAwait(false);
+            }
         }
 
         //private async Task EnqueueProjectConfigurationChangeWorkItemAsync(
