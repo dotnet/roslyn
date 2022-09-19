@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                 private sealed class HighPriorityProcessor : UnitTestingIdleProcessor
                 {
                     private readonly UnitTestingIncrementalAnalyzerProcessor _processor;
-                    private readonly AsyncDocumentWorkItemQueue _workItemQueue;
+                    private readonly UnitTestingAsyncDocumentWorkItemQueue _workItemQueue;
                     private readonly object _gate = new();
 
                     private Lazy<ImmutableArray<IUnitTestingIncrementalAnalyzer>> _lazyAnalyzers;
@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                         _lazyAnalyzers = lazyAnalyzers;
 
                         _running = Task.CompletedTask;
-                        _workItemQueue = new AsyncDocumentWorkItemQueue(processor._registration.ProgressReporter, processor._registration.Workspace);
+                        _workItemQueue = new UnitTestingAsyncDocumentWorkItemQueue(processor._registration.ProgressReporter, processor._registration.Workspace);
 
                         Start();
                     }
