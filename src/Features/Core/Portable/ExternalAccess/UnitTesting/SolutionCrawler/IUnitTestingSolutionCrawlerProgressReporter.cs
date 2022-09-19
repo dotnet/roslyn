@@ -22,12 +22,12 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
         /// Notifications for this event are serialized to preserve order. 
         /// However, individual event notifications may occur on any thread.
         /// </summary>
-        event EventHandler<ProgressData> ProgressChanged;
+        event EventHandler<UnitTestingProgressData> ProgressChanged;
     }
 
-    internal readonly struct ProgressData
+    internal readonly struct UnitTestingProgressData
     {
-        public ProgressStatus Status { get; }
+        public UnitTestingProgressStatus Status { get; }
 
         /// <summary>
         /// number of pending work item in the queue. 
@@ -35,14 +35,14 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
         /// </summary>
         public int? PendingItemCount { get; }
 
-        public ProgressData(ProgressStatus type, int? pendingItemCount)
+        public UnitTestingProgressData(UnitTestingProgressStatus type, int? pendingItemCount)
         {
             Status = type;
             PendingItemCount = pendingItemCount;
         }
     }
 
-    internal enum ProgressStatus
+    internal enum UnitTestingProgressStatus
     {
         Started,
         Paused,

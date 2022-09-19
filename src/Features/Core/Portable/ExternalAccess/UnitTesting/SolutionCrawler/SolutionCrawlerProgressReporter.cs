@@ -34,21 +34,21 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
             private int _progressStartCount = 0;
             private int _progressEvaluateCount = 0;
 
-            public event EventHandler<ProgressData>? ProgressChanged;
+            public event EventHandler<UnitTestingProgressData>? ProgressChanged;
 
             public bool InProgress => _progressStartCount > 0;
 
-            public void Start() => ChangeProgressStatus(ref _progressStartCount, ProgressStatus.Started);
-            public void Stop() => ChangeProgressStatus(ref _progressStartCount, ProgressStatus.Stopped);
+            public void Start() => ChangeProgressStatus(ref _progressStartCount, UnitTestingProgressStatus.Started);
+            public void Stop() => ChangeProgressStatus(ref _progressStartCount, UnitTestingProgressStatus.Stopped);
 
-            private void Evaluate() => ChangeProgressStatus(ref _progressEvaluateCount, ProgressStatus.Evaluating);
-            private void Pause() => ChangeProgressStatus(ref _progressEvaluateCount, ProgressStatus.Paused);
+            private void Evaluate() => ChangeProgressStatus(ref _progressEvaluateCount, UnitTestingProgressStatus.Evaluating);
+            private void Pause() => ChangeProgressStatus(ref _progressEvaluateCount, UnitTestingProgressStatus.Paused);
 
             public void UpdatePendingItemCount(int pendingItemCount)
             {
                 if (_progressStartCount > 0)
                 {
-                    var progressData = new ProgressData(ProgressStatus.PendingItemCountUpdated, pendingItemCount);
+                    var progressData = new UnitTestingProgressData(UnitTestingProgressStatus.PendingItemCountUpdated, pendingItemCount);
                     OnProgressChanged(progressData);
                 }
             }
@@ -63,17 +63,17 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
             public IDisposable GetEvaluatingScope()
                 => new ProgressStatusRAII(this);
 
-            private void ChangeProgressStatus(ref int referenceCount, ProgressStatus status)
+            private void ChangeProgressStatus(ref int referenceCount, UnitTestingProgressStatus status)
             {
-                var start = status is ProgressStatus.Started or ProgressStatus.Evaluating;
+                var start = status is UnitTestingProgressStatus.Started or UnitTestingProgressStatus.Evaluating;
                 if (start ? (Interlocked.Increment(ref referenceCount) == 1) : (Interlocked.Decrement(ref referenceCount) == 0))
                 {
-                    var progressData = new ProgressData(status, pendingItemCount: null);
+                    var progressData = new UnitTestingProgressData(status, pendingItemCount: null);
                     OnProgressChanged(progressData);
                 }
             }
 
-            private void OnProgressChanged(ProgressData progressData)
+            private void OnProgressChanged(UnitTestingProgressData progressData)
                 => ProgressChanged?.Invoke(this, progressData);
 
             private readonly struct ProgressStatusRAII : IDisposable
@@ -100,7 +100,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
 
             public bool InProgress => false;
 
-            public event EventHandler<ProgressData> ProgressChanged
+            public event EventHandler<UnitTestingProgressData> ProgressChanged
             {
                 add { }
                 remove { }
