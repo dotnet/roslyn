@@ -4,10 +4,12 @@
 
 using System;
 using System.Collections.Generic;
+using System.Composition;
 using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Utilities;
@@ -15,8 +17,15 @@ using Moq;
 
 namespace Microsoft.CodeAnalysis.Test.Utilities.Utilities
 {
+    [Export(typeof(IBackgroundWorkIndicatorService))]
+    [Shared]
+    [PartNotDiscoverable]
     internal class TestBackgroundWorkIndicatorService : IBackgroundWorkIndicatorService
     {
+        [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+        public TestBackgroundWorkIndicatorService() { }
+
         public IBackgroundWorkIndicator Create(ITextView textView, SnapshotSpan applicableToSpan, string description, BackgroundWorkIndicatorOptions? options = null)
         {
             return new TestBackgroundWorkIndicator(textView, applicableToSpan, description, options);

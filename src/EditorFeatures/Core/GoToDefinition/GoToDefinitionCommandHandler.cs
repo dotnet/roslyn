@@ -174,7 +174,7 @@ namespace Microsoft.CodeAnalysis.GoToDefinition
                     document, position, includeType: true, cancellationToken).ConfigureAwait(false);
 
                 // make sure that if our background indicator got canceled, that we do not still perform the navigation.
-                if (backgroundIndicator.CancellationToken.IsCancellationRequested)
+                if (cancellationToken.IsCancellationRequested)
                     return;
 
                 // we're about to navigate.  so disable cancellation on focus-lost in our indicator so we don't end up

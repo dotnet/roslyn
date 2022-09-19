@@ -60,7 +60,7 @@ class C
                     workspace.GetService(Of IGlobalOptionService),
                     workspace.GetService(Of IThreadingContext),
                     workspace.GetService(Of IUIThreadOperationExecutor),
-                    New TestBackgroundWorkIndicatorService(),
+                    workspace.GetService(Of IBackgroundWorkIndicatorService),
                     provider)
 
                 handler.ExecuteCommand(New GoToDefinitionCommandArgs(view, baseDocument.GetTextBuffer()), TestCommandExecutionContext.Create())
@@ -103,6 +103,7 @@ int y = x$$</Document>
                     workspace.GetService(Of IGlobalOptionService),
                     workspace.GetService(Of IThreadingContext),
                     workspace.GetService(Of IUIThreadOperationExecutor),
+                    workspace.GetService(Of IBackgroundWorkIndicatorService),
                     provider)
 
                 handler.ExecuteCommand(New GoToDefinitionCommandArgs(view, document.GetTextBuffer()), TestCommandExecutionContext.Create())

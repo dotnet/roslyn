@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
     {
         private readonly IBackgroundWorkIndicatorService _backgroundWorkIndicatorService;
 
-        internal AbstractRenameCommandHandler(IBackgroundWorkIndicatorService backgroundWorkIndicatorService)
+        protected AbstractRenameCommandHandler(IBackgroundWorkIndicatorService backgroundWorkIndicatorService)
         {
             _backgroundWorkIndicatorService = backgroundWorkIndicatorService;
         }

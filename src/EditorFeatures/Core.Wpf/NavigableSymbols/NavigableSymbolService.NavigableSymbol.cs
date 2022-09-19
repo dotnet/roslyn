@@ -55,9 +55,10 @@ namespace Microsoft.CodeAnalysis.Editor.NavigableSymbols
                 using var backgroundIndicator = _service._backgroundWorkIndicatorService.Create(
                     _textView, SymbolSpan,
                     EditorFeaturesResources.Navigating_to_definition,
-                    new()
+                    new BackgroundWorkIndicatorOptions()
                     {
-                        CancelOnFocusLost = false
+                        CancelOnFocusLost = false,
+                        CancelOnEdit = true
                     });
 
                 await _location.TryNavigateToAsync(
