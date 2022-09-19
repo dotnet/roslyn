@@ -185,7 +185,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     case WorkspaceChangeKind.DocumentChanged:
                     case WorkspaceChangeKind.DocumentReloaded:
                         Contract.ThrowIfNull(args.DocumentId);
-                        await EnqueueDocumentChangedEventAsync(args.OldSolution, args.NewSolution, args.DocumentId);
+                        await EnqueueDocumentChangedEventAsync(client, args.OldSolution, args.NewSolution, args.DocumentId, cancellationToken).ConfigureAwait(false);
                         break;
 
                     case WorkspaceChangeKind.AdditionalDocumentAdded:
@@ -243,7 +243,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                 cancellationToken).ConfigureAwait(false);
         }
 
-        private async ValueTask EnqueueSolutionChangedEventAsync(
+        private static async ValueTask EnqueueSolutionChangedEventAsync(
             RemoteHostClient client,
             Solution oldSolution,
             Solution newSolution,
@@ -256,7 +256,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                 cancellationToken).ConfigureAwait(false);
         }
 
-        private async ValueTask EnqueueProjectChangedEventAsync(
+        private static async ValueTask EnqueueProjectChangedEventAsync(
             RemoteHostClient client,
             Solution oldSolution,
             Solution newSolution,
@@ -270,7 +270,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                 cancellationToken).ConfigureAwait(false);
         }
 
-        private async ValueTask EnqueueDocumentChangedEventAsync(
+        private static async ValueTask EnqueueDocumentChangedEventAsync(
             RemoteHostClient client,
             Solution oldSolution,
             Solution newSolution,
