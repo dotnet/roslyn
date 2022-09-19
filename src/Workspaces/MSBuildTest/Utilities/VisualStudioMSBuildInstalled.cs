@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Diagnostics;
 using System.Linq;
 using Microsoft.Build.Locator;
 using Roslyn.Test.Utilities;
@@ -18,19 +17,15 @@ namespace Microsoft.CodeAnalysis.MSBuild.UnitTests
 
         static VisualStudioMSBuildInstalled()
         {
-            var latestInstalledInstance = (VisualStudioInstance?)null;
-            foreach (var visualStudioInstance in MSBuildLocator.QueryVisualStudioInstances())
+            var installedVisualStudios = MSBuildLocator.QueryVisualStudioInstances().ToArray();
+            foreach (var visualStudioInstall in installedVisualStudios)
             {
-                if (latestInstalledInstance == null || visualStudioInstance.Version > latestInstalledInstance.Version)
+                if (visualStudioInstall.Version.Major == 17 &&
+                    visualStudioInstall.Version.Minor == 0)
                 {
-                    latestInstalledInstance = visualStudioInstance;
+                    MSBuildLocator.RegisterInstance(visualStudioInstall);
+                    s_instance = visualStudioInstall;
                 }
-            }
-
-            if (latestInstalledInstance != null)
-            {
-                MSBuildLocator.RegisterInstance(latestInstalledInstance);
-                s_instance = latestInstalledInstance;
             }
         }
 #endif
