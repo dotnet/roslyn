@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -14,7 +15,7 @@ using Microsoft.CodeAnalysis.TodoComments;
 
 namespace Microsoft.CodeAnalysis.TaskList
 {
-    internal abstract partial class AbstractTaskListIncrementalAnalyzer : IncrementalAnalyzerBase
+    internal sealed class TaskListIncrementalAnalyzer : IncrementalAnalyzerBase
     {
         private readonly object _gate = new();
         private ImmutableArray<string> _lastTokenList = ImmutableArray<string>.Empty;
@@ -27,12 +28,10 @@ namespace Microsoft.CodeAnalysis.TaskList
         /// </summary>
         private readonly HashSet<DocumentId> _documentsWithTaskListItems = new();
 
-        protected AbstractTaskListIncrementalAnalyzer()
-        {
-        }
+        private readonly TaskListListener _listener;
 
-        protected abstract ValueTask ReportTaskListItemsAsync(DocumentId documentId, ImmutableArray<TaskListItem> data, CancellationToken cancellationToken);
-        protected abstract ValueTask<TaskListOptions> GetOptionsAsync(CancellationToken cancellationToken);
+        public TaskListIncrementalAnalyzer(TaskListListener listener)
+            => _listener = listener;
 
         public override Task RemoveDocumentAsync(DocumentId documentId, CancellationToken cancellationToken)
         {
@@ -44,7 +43,7 @@ namespace Microsoft.CodeAnalysis.TaskList
                 return Task.CompletedTask;
 
             // Otherwise, report that there should now be no todo comments for this doc.
-            return ReportTaskListItemsAsync(documentId, ImmutableArray<TaskListItem>.Empty, cancellationToken).AsTask();
+            return _listener.ReportTaskListItemsAsync(documentId, ImmutableArray<TaskListItem>.Empty, cancellationToken).AsTask();
         }
 
         private ImmutableArray<TaskListItemDescriptor> GetDescriptors(ImmutableArray<string> tokenList)
@@ -63,10 +62,14 @@ namespace Microsoft.CodeAnalysis.TaskList
 
         private static ITaskListService? GetTaskListService(Document document)
         {
+#pragma warning disable CS0612 // Type or member is obsolete
+#pragma warning disable CS0618 // Type or member is obsolete
             // Legacy compat until TypeScript moves to EA pattern.
             var todoService = document.GetLanguageService<ITodoCommentService>();
             if (todoService != null)
                 return new TodoCommentServiceWrapper(todoService);
+#pragma warning restore CS0618 // Type or member is obsolete
+#pragma warning restore CS0612 // Type or member is obsolete
 
             var todoDataService = document.GetLanguageService<ITaskListService>();
             if (todoDataService != null)
@@ -81,7 +84,7 @@ namespace Microsoft.CodeAnalysis.TaskList
             if (service == null)
                 return;
 
-            var options = await GetOptionsAsync(cancellationToken).ConfigureAwait(false);
+            var options = await _listener.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
             var descriptors = GetDescriptors(options.Descriptors);
 
             // We're out of date.  Recompute this info.
@@ -103,9 +106,10 @@ namespace Microsoft.CodeAnalysis.TaskList
             }
 
             // Now inform VS about this new information
-            await ReportTaskListItemsAsync(document.Id, items, cancellationToken).ConfigureAwait(false);
+            await _listener.ReportTaskListItemsAsync(document.Id, items, cancellationToken).ConfigureAwait(false);
         }
 
+        [Obsolete]
         private sealed class TodoCommentServiceWrapper : ITaskListService
         {
             private readonly ITodoCommentService _todoService;
