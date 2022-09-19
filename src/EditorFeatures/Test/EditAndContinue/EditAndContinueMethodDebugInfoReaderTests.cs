@@ -61,7 +61,8 @@ class C
     }
 }
 ";
-            var compilation = CSharpTestBase.CreateCompilationWithMscorlib40AndSystemCore(source, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), options: TestOptions.DebugDll, sourceFileName: "/a/c.cs");
+            var tree = CSharpTestSource.Parse(source, path: "/a/c.cs", options: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), checksumAlgorithm: SourceHashAlgorithm.Sha1);
+            var compilation = CSharpTestBase.CreateCompilationWithMscorlib40AndSystemCore(tree, options: TestOptions.DebugDll);
 
             var pdbStream = new MemoryStream();
             compilation.EmitToArray(new EmitOptions(debugInformationFormat: format), pdbStream: pdbStream);
