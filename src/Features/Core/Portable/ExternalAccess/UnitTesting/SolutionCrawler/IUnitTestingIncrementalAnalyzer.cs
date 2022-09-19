@@ -22,9 +22,9 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
         /// </summary>
         Task DocumentResetAsync(Document document, CancellationToken cancellationToken);
 
-        Task AnalyzeSyntaxAsync(Document document, InvocationReasons reasons, CancellationToken cancellationToken);
-        Task AnalyzeDocumentAsync(Document document, SyntaxNode bodyOpt, InvocationReasons reasons, CancellationToken cancellationToken);
-        Task AnalyzeProjectAsync(Project project, bool semanticsChanged, InvocationReasons reasons, CancellationToken cancellationToken);
+        Task AnalyzeSyntaxAsync(Document document, UnitTestingInvocationReasons reasons, CancellationToken cancellationToken);
+        Task AnalyzeDocumentAsync(Document document, SyntaxNode bodyOpt, UnitTestingInvocationReasons reasons, CancellationToken cancellationToken);
+        Task AnalyzeProjectAsync(Project project, bool semanticsChanged, UnitTestingInvocationReasons reasons, CancellationToken cancellationToken);
 
         Task RemoveDocumentAsync(DocumentId documentId, CancellationToken cancellationToken);
         Task RemoveProjectAsync(ProjectId projectId, CancellationToken cancellationToken);
@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
         /// </summary>
         Task NonSourceDocumentResetAsync(TextDocument textDocument, CancellationToken cancellationToken);
 
-        Task AnalyzeNonSourceDocumentAsync(TextDocument textDocument, InvocationReasons reasons, CancellationToken cancellationToken);
+        Task AnalyzeNonSourceDocumentAsync(TextDocument textDocument, UnitTestingInvocationReasons reasons, CancellationToken cancellationToken);
 
         void LogAnalyzerCountSummary();
         int Priority { get; }

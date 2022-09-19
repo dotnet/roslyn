@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                 // document related workitem
                 public readonly DocumentId? DocumentId;
                 public readonly string Language;
-                public readonly InvocationReasons InvocationReasons;
+                public readonly UnitTestingInvocationReasons InvocationReasons;
                 public readonly bool IsLowPriority;
 
                 // extra info
@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                     DocumentId? documentId,
                     ProjectId projectId,
                     string language,
-                    InvocationReasons invocationReasons,
+                    UnitTestingInvocationReasons invocationReasons,
                     bool isLowPriority,
                     SyntaxPath? activeMember,
                     ImmutableHashSet<IUnitTestingIncrementalAnalyzer> specificAnalyzers,
@@ -90,12 +90,12 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                     AsyncToken = asyncToken;
                 }
 
-                public WorkItem(DocumentId documentId, string language, InvocationReasons invocationReasons, bool isLowPriority, SyntaxPath? activeMember, IAsyncToken asyncToken)
+                public WorkItem(DocumentId documentId, string language, UnitTestingInvocationReasons invocationReasons, bool isLowPriority, SyntaxPath? activeMember, IAsyncToken asyncToken)
                     : this(documentId, documentId.ProjectId, language, invocationReasons, isLowPriority, activeMember, ImmutableHashSet.Create<IUnitTestingIncrementalAnalyzer>(), retry: false, asyncToken)
                 {
                 }
 
-                public WorkItem(DocumentId documentId, string language, InvocationReasons invocationReasons, bool isLowPriority, IUnitTestingIncrementalAnalyzer? analyzer, IAsyncToken asyncToken)
+                public WorkItem(DocumentId documentId, string language, UnitTestingInvocationReasons invocationReasons, bool isLowPriority, IUnitTestingIncrementalAnalyzer? analyzer, IAsyncToken asyncToken)
                     : this(documentId, documentId.ProjectId, language, invocationReasons, isLowPriority, activeMember: null,
                            analyzer == null ? ImmutableHashSet.Create<IUnitTestingIncrementalAnalyzer>() : ImmutableHashSet.Create(analyzer),
                            retry: false, asyncToken)
@@ -127,7 +127,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                 }
 
                 public WorkItem With(
-                    InvocationReasons invocationReasons, SyntaxPath? currentMember,
+                    UnitTestingInvocationReasons invocationReasons, SyntaxPath? currentMember,
                     ImmutableHashSet<IUnitTestingIncrementalAnalyzer> analyzers, bool retry, IAsyncToken asyncToken)
                 {
                     // dispose old one

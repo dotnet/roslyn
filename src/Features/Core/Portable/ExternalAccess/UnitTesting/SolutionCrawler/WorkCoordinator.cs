@@ -152,7 +152,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                     return;
 
                 var solution = _registration.GetSolutionToAnalyze();
-                EnqueueFullDocumentEvent(solution, activeDocumentId, InvocationReasons.ActiveDocumentSwitched, eventName: nameof(OnActiveDocumentSwitched));
+                EnqueueFullDocumentEvent(solution, activeDocumentId, UnitTestingInvocationReasons.ActiveDocumentSwitched, eventName: nameof(OnActiveDocumentSwitched));
             }
 
             private void OnWorkspaceChanged(object? sender, WorkspaceChangeEventArgs args)
@@ -198,7 +198,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                 switch (args.Kind)
                 {
                     case WorkspaceChangeKind.SolutionAdded:
-                        EnqueueFullSolutionEvent(args.NewSolution, InvocationReasons.DocumentAdded, eventName);
+                        EnqueueFullSolutionEvent(args.NewSolution, UnitTestingInvocationReasons.DocumentAdded, eventName);
                         break;
 
                     case WorkspaceChangeKind.SolutionChanged:
@@ -207,16 +207,16 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                         break;
 
                     case WorkspaceChangeKind.SolutionRemoved:
-                        EnqueueFullSolutionEvent(args.OldSolution, InvocationReasons.SolutionRemoved, eventName);
+                        EnqueueFullSolutionEvent(args.OldSolution, UnitTestingInvocationReasons.SolutionRemoved, eventName);
                         break;
 
                     case WorkspaceChangeKind.SolutionCleared:
-                        EnqueueFullSolutionEvent(args.OldSolution, InvocationReasons.SolutionRemoved, eventName);
+                        EnqueueFullSolutionEvent(args.OldSolution, UnitTestingInvocationReasons.SolutionRemoved, eventName);
                         break;
 
                     case WorkspaceChangeKind.ProjectAdded:
                         Contract.ThrowIfNull(args.ProjectId);
-                        EnqueueFullProjectEvent(args.NewSolution, args.ProjectId, InvocationReasons.DocumentAdded, eventName);
+                        EnqueueFullProjectEvent(args.NewSolution, args.ProjectId, UnitTestingInvocationReasons.DocumentAdded, eventName);
                         break;
 
                     case WorkspaceChangeKind.ProjectChanged:
@@ -227,12 +227,12 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
 
                     case WorkspaceChangeKind.ProjectRemoved:
                         Contract.ThrowIfNull(args.ProjectId);
-                        EnqueueFullProjectEvent(args.OldSolution, args.ProjectId, InvocationReasons.DocumentRemoved, eventName);
+                        EnqueueFullProjectEvent(args.OldSolution, args.ProjectId, UnitTestingInvocationReasons.DocumentRemoved, eventName);
                         break;
 
                     case WorkspaceChangeKind.DocumentAdded:
                         Contract.ThrowIfNull(args.DocumentId);
-                        EnqueueFullDocumentEvent(args.NewSolution, args.DocumentId, InvocationReasons.DocumentAdded, eventName);
+                        EnqueueFullDocumentEvent(args.NewSolution, args.DocumentId, UnitTestingInvocationReasons.DocumentAdded, eventName);
                         break;
 
                     case WorkspaceChangeKind.DocumentReloaded:
@@ -243,7 +243,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
 
                     case WorkspaceChangeKind.DocumentRemoved:
                         Contract.ThrowIfNull(args.DocumentId);
-                        EnqueueFullDocumentEvent(args.OldSolution, args.DocumentId, InvocationReasons.DocumentRemoved, eventName);
+                        EnqueueFullDocumentEvent(args.OldSolution, args.DocumentId, UnitTestingInvocationReasons.DocumentRemoved, eventName);
                         break;
 
                     case WorkspaceChangeKind.AdditionalDocumentAdded:
@@ -256,7 +256,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                     case WorkspaceChangeKind.AnalyzerConfigDocumentReloaded:
                         // If an additional file or .editorconfig has changed we need to reanalyze the entire project.
                         Contract.ThrowIfNull(args.ProjectId);
-                        EnqueueFullProjectEvent(args.NewSolution, args.ProjectId, InvocationReasons.AdditionalDocumentChanged, eventName);
+                        EnqueueFullProjectEvent(args.NewSolution, args.ProjectId, UnitTestingInvocationReasons.AdditionalDocumentChanged, eventName);
                         break;
 
                     default:
@@ -267,13 +267,13 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
             private void OnTextDocumentOpened(object? sender, TextDocumentEventArgs e)
             {
                 _eventProcessingQueue.ScheduleTask("OnTextDocumentOpened",
-                    () => EnqueueDocumentWorkItemAsync(e.Document.Project, e.Document.Id, e.Document, InvocationReasons.DocumentOpened), _shutdownToken);
+                    () => EnqueueDocumentWorkItemAsync(e.Document.Project, e.Document.Id, e.Document, UnitTestingInvocationReasons.DocumentOpened), _shutdownToken);
             }
 
             private void OnTextDocumentClosed(object? sender, TextDocumentEventArgs e)
             {
                 _eventProcessingQueue.ScheduleTask("OnTextDocumentClosed",
-                    () => EnqueueDocumentWorkItemAsync(e.Document.Project, e.Document.Id, e.Document, InvocationReasons.DocumentClosed), _shutdownToken);
+                    () => EnqueueDocumentWorkItemAsync(e.Document.Project, e.Document.Id, e.Document, UnitTestingInvocationReasons.DocumentClosed), _shutdownToken);
             }
 
             private void EnqueueSolutionChangedEvent(Solution oldSolution, Solution newSolution, string eventName)
@@ -287,7 +287,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                         // TODO: Async version for GetXXX methods?
                         foreach (var addedProject in solutionChanges.GetAddedProjects())
                         {
-                            await EnqueueFullProjectWorkItemAsync(addedProject, InvocationReasons.DocumentAdded).ConfigureAwait(false);
+                            await EnqueueFullProjectWorkItemAsync(addedProject, UnitTestingInvocationReasons.DocumentAdded).ConfigureAwait(false);
                         }
 
                         foreach (var projectChanges in solutionChanges.GetProjectChanges())
@@ -297,13 +297,13 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
 
                         foreach (var removedProject in solutionChanges.GetRemovedProjects())
                         {
-                            await EnqueueFullProjectWorkItemAsync(removedProject, InvocationReasons.DocumentRemoved).ConfigureAwait(false);
+                            await EnqueueFullProjectWorkItemAsync(removedProject, UnitTestingInvocationReasons.DocumentRemoved).ConfigureAwait(false);
                         }
                     },
                     _shutdownToken);
             }
 
-            private void EnqueueFullSolutionEvent(Solution solution, InvocationReasons invocationReasons, string eventName)
+            private void EnqueueFullSolutionEvent(Solution solution, UnitTestingInvocationReasons invocationReasons, string eventName)
             {
                 _eventProcessingQueue.ScheduleTask(
                     eventName,
@@ -331,13 +331,13 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                     _shutdownToken);
             }
 
-            private void EnqueueFullProjectEvent(Solution solution, ProjectId projectId, InvocationReasons invocationReasons, string eventName)
+            private void EnqueueFullProjectEvent(Solution solution, ProjectId projectId, UnitTestingInvocationReasons invocationReasons, string eventName)
             {
                 _eventProcessingQueue.ScheduleTask(eventName,
                     () => EnqueueFullProjectWorkItemAsync(solution.GetRequiredProject(projectId), invocationReasons), _shutdownToken);
             }
 
-            private void EnqueueFullDocumentEvent(Solution solution, DocumentId documentId, InvocationReasons invocationReasons, string eventName)
+            private void EnqueueFullDocumentEvent(Solution solution, DocumentId documentId, UnitTestingInvocationReasons invocationReasons, string eventName)
             {
                 _eventProcessingQueue.ScheduleTask(
                     eventName,
@@ -377,7 +377,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                                 if (!newProjectSourceGeneratedDocumentsById.ContainsKey(oldDocumentId))
                                 {
                                     // This source generated document was removed
-                                    EnqueueFullDocumentEvent(oldSolution, oldDocumentId, InvocationReasons.DocumentRemoved, "OnWorkspaceChanged");
+                                    EnqueueFullDocumentEvent(oldSolution, oldDocumentId, UnitTestingInvocationReasons.DocumentRemoved, "OnWorkspaceChanged");
                                 }
                             }
 
@@ -386,7 +386,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                                 if (!oldProjectSourceGeneratedDocumentsById.TryGetValue(newDocumentId, out var oldDocument))
                                 {
                                     // This source generated document was added
-                                    EnqueueFullDocumentEvent(newSolution, newDocumentId, InvocationReasons.DocumentAdded, "OnWorkspaceChanged");
+                                    EnqueueFullDocumentEvent(newSolution, newDocumentId, UnitTestingInvocationReasons.DocumentAdded, "OnWorkspaceChanged");
                                 }
                                 else
                                 {
@@ -399,7 +399,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                     _shutdownToken);
             }
 
-            private async Task EnqueueDocumentWorkItemAsync(Project project, DocumentId documentId, TextDocument? document, InvocationReasons invocationReasons, SyntaxNode? changedMember = null)
+            private async Task EnqueueDocumentWorkItemAsync(Project project, DocumentId documentId, TextDocument? document, UnitTestingInvocationReasons invocationReasons, SyntaxNode? changedMember = null)
             {
                 // we are shutting down
                 _shutdownToken.ThrowIfCancellationRequested();
@@ -439,7 +439,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                 return new SyntaxPath(changedMember);
             }
 
-            private async Task EnqueueFullProjectWorkItemAsync(Project project, InvocationReasons invocationReasons)
+            private async Task EnqueueFullProjectWorkItemAsync(Project project, UnitTestingInvocationReasons invocationReasons)
             {
                 foreach (var documentId in project.DocumentIds)
                     await EnqueueDocumentWorkItemAsync(project, documentId, document: null, invocationReasons).ConfigureAwait(false);
@@ -462,14 +462,14 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
             private async Task EnqueueWorkItemAsync(IUnitTestingIncrementalAnalyzer analyzer, ReanalyzeScope scope, bool highPriority)
             {
                 var solution = _registration.GetSolutionToAnalyze();
-                var invocationReasons = highPriority ? InvocationReasons.ReanalyzeHighPriority : InvocationReasons.Reanalyze;
+                var invocationReasons = highPriority ? UnitTestingInvocationReasons.ReanalyzeHighPriority : UnitTestingInvocationReasons.Reanalyze;
 
                 foreach (var (project, documentId) in scope.GetDocumentIds(solution))
                     await EnqueueWorkItemAsync(analyzer, project, documentId, document: null, invocationReasons).ConfigureAwait(false);
             }
 
             private async Task EnqueueWorkItemAsync(
-                IUnitTestingIncrementalAnalyzer analyzer, Project project, DocumentId documentId, Document? document, InvocationReasons invocationReasons)
+                IUnitTestingIncrementalAnalyzer analyzer, Project project, DocumentId documentId, Document? document, UnitTestingInvocationReasons invocationReasons)
             {
                 var priorityService = project.GetLanguageService<IWorkCoordinatorPriorityService>();
                 var isLowPriority = priorityService != null && await priorityService.IsLowPriorityAsync(
@@ -485,7 +485,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                 await EnqueueProjectConfigurationChangeWorkItemAsync(projectChanges).ConfigureAwait(false);
 
                 foreach (var addedDocumentId in projectChanges.GetAddedDocuments())
-                    await EnqueueDocumentWorkItemAsync(projectChanges.NewProject, addedDocumentId, document: null, InvocationReasons.DocumentAdded).ConfigureAwait(false);
+                    await EnqueueDocumentWorkItemAsync(projectChanges.NewProject, addedDocumentId, document: null, UnitTestingInvocationReasons.DocumentAdded).ConfigureAwait(false);
 
                 foreach (var changedDocumentId in projectChanges.GetChangedDocuments())
                 {
@@ -494,7 +494,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                 }
 
                 foreach (var removedDocumentId in projectChanges.GetRemovedDocuments())
-                    await EnqueueDocumentWorkItemAsync(projectChanges.OldProject, removedDocumentId, document: null, InvocationReasons.DocumentRemoved).ConfigureAwait(false);
+                    await EnqueueDocumentWorkItemAsync(projectChanges.OldProject, removedDocumentId, document: null, UnitTestingInvocationReasons.DocumentRemoved).ConfigureAwait(false);
             }
 
             private async Task EnqueueProjectConfigurationChangeWorkItemAsync(ProjectChanges projectChanges)
@@ -503,11 +503,11 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                 var newProject = projectChanges.NewProject;
 
                 // TODO: why solution changes return Project not ProjectId but ProjectChanges return DocumentId not Document?
-                var projectConfigurationChange = InvocationReasons.Empty;
+                var projectConfigurationChange = UnitTestingInvocationReasons.Empty;
 
                 if (!object.Equals(oldProject.ParseOptions, newProject.ParseOptions))
                 {
-                    projectConfigurationChange = projectConfigurationChange.With(InvocationReasons.ProjectParseOptionChanged);
+                    projectConfigurationChange = projectConfigurationChange.With(UnitTestingInvocationReasons.ProjectParseOptionChanged);
                 }
 
                 if (projectChanges.GetAddedMetadataReferences().Any() ||
@@ -526,7 +526,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                     !oldProject.CompilationOutputInfo.Equals(newProject.CompilationOutputInfo) ||
                     oldProject.State.RunAnalyzers != newProject.State.RunAnalyzers)
                 {
-                    projectConfigurationChange = projectConfigurationChange.With(InvocationReasons.ProjectConfigurationChanged);
+                    projectConfigurationChange = projectConfigurationChange.With(UnitTestingInvocationReasons.ProjectConfigurationChanged);
                 }
 
                 if (!projectConfigurationChange.IsEmpty)
@@ -543,7 +543,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                 {
                     // For languages that don't use a Roslyn syntax tree, they don't export a document difference service.
                     // The whole document should be considered as changed in that case.
-                    await EnqueueDocumentWorkItemAsync(newDocument.Project, newDocument.Id, newDocument, InvocationReasons.DocumentChanged).ConfigureAwait(false);
+                    await EnqueueDocumentWorkItemAsync(newDocument.Project, newDocument.Id, newDocument, UnitTestingInvocationReasons.DocumentChanged).ConfigureAwait(false);
                 }
                 else
                 {
@@ -577,7 +577,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                     {
                         foreach (var document in project.Documents)
                         {
-                            list.Add(new WorkItem(document.Id, document.Project.Language, InvocationReasons.DocumentAdded, isLowPriority: false, activeMember: null, EmptyAsyncToken.Instance));
+                            list.Add(new WorkItem(document.Id, document.Project.Language, UnitTestingInvocationReasons.DocumentAdded, isLowPriority: false, activeMember: null, EmptyAsyncToken.Instance));
                         }
                     }
 

@@ -29,13 +29,13 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
         public Task ActiveDocumentSwitchedAsync(TextDocument document, CancellationToken cancellationToken)
             => Task.CompletedTask;
 
-        public virtual Task AnalyzeSyntaxAsync(Document document, InvocationReasons reasons, CancellationToken cancellationToken)
+        public virtual Task AnalyzeSyntaxAsync(Document document, UnitTestingInvocationReasons reasons, CancellationToken cancellationToken)
             => Task.CompletedTask;
 
-        public virtual Task AnalyzeDocumentAsync(Document document, SyntaxNode bodyOpt, InvocationReasons reasons, CancellationToken cancellationToken)
+        public virtual Task AnalyzeDocumentAsync(Document document, SyntaxNode bodyOpt, UnitTestingInvocationReasons reasons, CancellationToken cancellationToken)
             => Task.CompletedTask;
 
-        public virtual Task AnalyzeProjectAsync(Project project, bool semanticsChanged, InvocationReasons reasons, CancellationToken cancellationToken)
+        public virtual Task AnalyzeProjectAsync(Project project, bool semanticsChanged, UnitTestingInvocationReasons reasons, CancellationToken cancellationToken)
             => Task.CompletedTask;
 
         public virtual Task RemoveDocumentAsync(DocumentId documentId, CancellationToken cancellationToken)
@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
         public virtual Task NonSourceDocumentResetAsync(TextDocument textDocument, CancellationToken cancellationToken)
             => Task.CompletedTask;
 
-        public virtual Task AnalyzeNonSourceDocumentAsync(TextDocument textDocument, InvocationReasons reasons, CancellationToken cancellationToken)
+        public virtual Task AnalyzeNonSourceDocumentAsync(TextDocument textDocument, UnitTestingInvocationReasons reasons, CancellationToken cancellationToken)
             => Task.CompletedTask;
 
         public void LogAnalyzerCountSummary()

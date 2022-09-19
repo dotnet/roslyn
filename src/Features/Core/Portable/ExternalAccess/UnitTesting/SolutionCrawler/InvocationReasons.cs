@@ -10,19 +10,19 @@ using System.Runtime.Serialization;
 namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
 {
     [DataContract]
-    internal partial struct InvocationReasons : IEnumerable<string>
+    internal partial struct UnitTestingInvocationReasons : IEnumerable<string>
     {
-        public static readonly InvocationReasons Empty = new(ImmutableHashSet<string>.Empty);
+        public static readonly UnitTestingInvocationReasons Empty = new(ImmutableHashSet<string>.Empty);
 
         [DataMember(Order = 0)]
         private readonly ImmutableHashSet<string> _reasons;
 
-        public InvocationReasons(string reason)
+        public UnitTestingInvocationReasons(string reason)
             : this(ImmutableHashSet.Create(reason))
         {
         }
 
-        public InvocationReasons(ImmutableHashSet<string> reasons)
+        public UnitTestingInvocationReasons(ImmutableHashSet<string> reasons)
             => _reasons = reasons ?? ImmutableHashSet<string>.Empty;
 
         public bool IsEmpty => _reasons.IsEmpty;
@@ -30,10 +30,10 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
         public bool Contains(string reason)
             => _reasons.Contains(reason);
 
-        public InvocationReasons With(InvocationReasons invocationReasons)
+        public UnitTestingInvocationReasons With(UnitTestingInvocationReasons invocationReasons)
             => new(_reasons.Union(invocationReasons._reasons));
 
-        public InvocationReasons With(string reason)
+        public UnitTestingInvocationReasons With(string reason)
             => new(_reasons.Add(reason));
 
         public ImmutableHashSet<string>.Enumerator GetEnumerator()

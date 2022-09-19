@@ -10,10 +10,10 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
 {
     internal class UnitTestingDocumentDifferenceResult
     {
-        public InvocationReasons ChangeType { get; }
+        public UnitTestingInvocationReasons ChangeType { get; }
         public SyntaxNode? ChangedMember { get; }
 
-        public UnitTestingDocumentDifferenceResult(InvocationReasons changeType, SyntaxNode? changedMember = null)
+        public UnitTestingDocumentDifferenceResult(UnitTestingInvocationReasons changeType, SyntaxNode? changedMember = null)
         {
             ChangeType = changeType;
             ChangedMember = changedMember;

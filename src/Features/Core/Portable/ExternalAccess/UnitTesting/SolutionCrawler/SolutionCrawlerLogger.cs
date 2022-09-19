@@ -153,7 +153,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
             => logAggregator.IncreaseCount(ProjectEnqueue);
 
         public static void LogWorkItemEnqueue(
-            CountLogAggregator<object> logAggregator, string language, DocumentId? documentId, InvocationReasons reasons, bool lowPriority, SyntaxPath? activeMember, bool added)
+            CountLogAggregator<object> logAggregator, string language, DocumentId? documentId, UnitTestingInvocationReasons reasons, bool lowPriority, SyntaxPath? activeMember, bool added)
         {
             logAggregator.IncreaseCount(language);
             logAggregator.IncreaseCount(added ? NewWorkItem : UpdateWorkItem);

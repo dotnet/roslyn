@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                 if (syntaxFactsService == null)
                 {
                     // somehow, we can't get the service. without it, there is nothing we can do.
-                    return new UnitTestingDocumentDifferenceResult(InvocationReasons.DocumentChanged);
+                    return new UnitTestingDocumentDifferenceResult(UnitTestingInvocationReasons.DocumentChanged);
                 }
                 // this is based on the implementation detail where opened documents use strong references
                 // to tree and text rather than recoverable versions.
@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                     !newDocument.TryGetText(out var newText))
                 {
                     // no cheap way to determine top level changes. assumes top level has changed
-                    return new UnitTestingDocumentDifferenceResult(InvocationReasons.DocumentChanged);
+                    return new UnitTestingDocumentDifferenceResult(UnitTestingInvocationReasons.DocumentChanged);
                 }
                 // quick check whether two tree versions are same
                 if (oldDocument.TryGetSyntaxVersion(out var oldVersion) &&
@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                     if (!incrementalParsingCandidate)
                     {
                         // no cheap way to determine top level changes. assumes top level has changed
-                        return new UnitTestingDocumentDifferenceResult(InvocationReasons.DocumentChanged);
+                        return new UnitTestingDocumentDifferenceResult(UnitTestingInvocationReasons.DocumentChanged);
                     }
 
                     // explicitly parse them
@@ -81,18 +81,18 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                 {
                     if (oldTopLevelChangeVersion.Equals(newTopLevelChangeVersion))
                     {
-                        return new UnitTestingDocumentDifferenceResult(InvocationReasons.SyntaxChanged, GetChangedMember(syntaxFactsService, oldRoot, newRoot, range));
+                        return new UnitTestingDocumentDifferenceResult(UnitTestingInvocationReasons.SyntaxChanged, GetChangedMember(syntaxFactsService, oldRoot, newRoot, range));
                     }
 
-                    return new UnitTestingDocumentDifferenceResult(InvocationReasons.DocumentChanged, GetBestGuessChangedMember(syntaxFactsService, oldRoot, newRoot, range));
+                    return new UnitTestingDocumentDifferenceResult(UnitTestingInvocationReasons.DocumentChanged, GetBestGuessChangedMember(syntaxFactsService, oldRoot, newRoot, range));
                 }
 
                 if (oldTopLevelChangeVersion.Equals(newTopLevelChangeVersion))
                 {
-                    return new UnitTestingDocumentDifferenceResult(InvocationReasons.SyntaxChanged);
+                    return new UnitTestingDocumentDifferenceResult(UnitTestingInvocationReasons.SyntaxChanged);
                 }
 
-                return new UnitTestingDocumentDifferenceResult(InvocationReasons.DocumentChanged);
+                return new UnitTestingDocumentDifferenceResult(UnitTestingInvocationReasons.DocumentChanged);
             }
             catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
             {
