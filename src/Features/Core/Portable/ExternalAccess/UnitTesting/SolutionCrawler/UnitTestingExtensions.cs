@@ -7,7 +7,7 @@ using System.Text;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
 {
-    internal static class Extensions
+    internal static class UnitTestingExtensions
     {
         public static string ToBase64(this string data)
         {
