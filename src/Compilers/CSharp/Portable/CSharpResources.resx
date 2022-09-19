@@ -5047,6 +5047,18 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_RefReturnNonreturnableLocal2" xml:space="preserve">
     <value>Cannot return by reference a member of '{0}' because it was initialized to a value that cannot be returned by reference</value>
   </data>
+  <data name="WRN_RefReturnNonreturnableLocal" xml:space="preserve">
+    <value>Local '{0}' is returned by reference but was initialized to a value that cannot be returned by reference</value>
+  </data>
+  <data name="WRN_RefReturnNonreturnableLocal_Title" xml:space="preserve">
+    <value>Local is returned by reference but was initialized to a value that cannot be returned by reference</value>
+  </data>
+  <data name="WRN_RefReturnNonreturnableLocal2" xml:space="preserve">
+    <value>A member of '{0}' is returned by reference but was initialized to a value that cannot be returned by reference</value>
+  </data>
+  <data name="WRN_RefReturnNonreturnableLocal2_Title" xml:space="preserve">
+    <value>A member is returned by reference but was initialized to a value that cannot be returned by reference</value>
+  </data>
   <data name="ERR_RefReturnReadonlyLocal" xml:space="preserve">
     <value>Cannot return '{0}' by reference because it is read-only</value>
   </data>
@@ -5089,14 +5101,68 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_RefReturnOnlyParameter2" xml:space="preserve">
     <value>Cannot return by reference a member of parameter '{0}' through a ref parameter; it can only be returned in a return statement</value>
   </data>
+  <data name="WRN_RefReturnOnlyParameter" xml:space="preserve">
+    <value>This returns a parameter by reference '{0}' through a ref parameter; but it can only be returned in a return statement</value>
+  </data>
+  <data name="WRN_RefReturnOnlyParameter_Title" xml:space="preserve">
+    <value>This returns a parameter by reference through a ref parameter; but it can only be returned in a return statement</value>
+  </data>
+  <data name="WRN_RefReturnOnlyParameter2" xml:space="preserve">
+    <value>This returns by reference a member of parameter '{0}' through a ref parameter; but it can only be returned in a return statement</value>
+  </data>
+  <data name="WRN_RefReturnOnlyParameter2_Title" xml:space="preserve">
+    <value>This returns by reference a member of parameter through a ref parameter; but it can only be returned in a return statement</value>
+  </data>
+  <data name="WRN_RefReturnParameter" xml:space="preserve">
+    <value>This returns a parameter by reference '{0}' but it is not a ref parameter</value>
+  </data>
+  <data name="WRN_RefReturnParameter_Title" xml:space="preserve">
+    <value>This returns a parameter by reference but it is not a ref parameter</value>
+  </data>
+  <data name="WRN_RefReturnScopedParameter" xml:space="preserve">
+    <value>This returns a parameter by reference '{0}' but it is scoped to the current method</value>
+  </data>
+  <data name="WRN_RefReturnScopedParameter_Title" xml:space="preserve">
+    <value>This returns a parameter by reference but it is scoped to the current method</value>
+  </data>
+  <data name="WRN_RefReturnParameter2" xml:space="preserve">
+    <value>This returns by reference a member of parameter '{0}' that is not a ref or out parameter</value>
+  </data>
+  <data name="WRN_RefReturnParameter2_Title" xml:space="preserve">
+    <value>This returns by reference a member of parameter that is not a ref or out parameter</value>
+  </data>
+  <data name="WRN_RefReturnScopedParameter2" xml:space="preserve">
+    <value>This returns by reference a member of parameter '{0}' this is scoped to the current method</value>
+  </data>
+  <data name="WRN_RefReturnScopedParameter2_Title" xml:space="preserve">
+    <value>This returns by reference a member of parameter this is scoped to the current method</value>
+  </data>
   <data name="ERR_RefReturnLocal" xml:space="preserve">
     <value>Cannot return local '{0}' by reference because it is not a ref local</value>
   </data>
   <data name="ERR_RefReturnLocal2" xml:space="preserve">
     <value>Cannot return a member of local '{0}' by reference because it is not a ref local</value>
   </data>
+  <data name="WRN_RefReturnLocal" xml:space="preserve">
+    <value>This returns local '{0}' by reference but it is not a ref local</value>
+  </data>
+  <data name="WRN_RefReturnLocal_Title" xml:space="preserve">
+    <value>This returns local by reference but it is not a ref local</value>
+  </data>
+  <data name="WRN_RefReturnLocal2" xml:space="preserve">
+    <value>This returns a member of local '{0}' by reference but it is not a ref local</value>
+  </data>
+  <data name="WRN_RefReturnLocal2_Title" xml:space="preserve">
+    <value>This returns a member of local by reference but it is not a ref local</value>
+  </data>
   <data name="ERR_RefReturnStructThis" xml:space="preserve">
     <value>Struct members cannot return 'this' or other instance members by reference</value>
+  </data>
+  <data name="WRN_RefReturnStructThis" xml:space="preserve">
+    <value>Struct member returns 'this' or other instance members by reference</value>
+  </data>
+  <data name="WRN_RefReturnStructThis_Title" xml:space="preserve">
+    <value>Struct member returns 'this' or other instance members by reference</value>
   </data>
   <data name="ERR_EscapeOther" xml:space="preserve">
     <value>Expression cannot be used in this context because it may indirectly expose variables outside of their declaration scope</value>
@@ -5104,20 +5170,56 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_EscapeVariable" xml:space="preserve">
     <value>Cannot use variable '{0}' in this context because it may expose referenced variables outside of their declaration scope</value>
   </data>
+  <data name="WRN_EscapeVariable" xml:space="preserve">
+    <value>Use of variable '{0}' in this context may expose referenced variables outside of their declaration scope</value>
+  </data>
+  <data name="WRN_EscapeVariable_Title" xml:space="preserve">
+    <value>Use of variable in this context may expose referenced variables outside of their declaration scope</value>
+  </data>
   <data name="ERR_EscapeCall" xml:space="preserve">
     <value>Cannot use a result of '{0}' in this context because it may expose variables referenced by parameter '{1}' outside of their declaration scope</value>
   </data>
   <data name="ERR_EscapeCall2" xml:space="preserve">
     <value>Cannot use a member of result of '{0}' in this context because it may expose variables referenced by parameter '{1}' outside of their declaration scope</value>
   </data>
+  <data name="WRN_EscapeCall" xml:space="preserve">
+    <value>Use of result of '{0}' in this context may expose variables referenced by parameter '{1}' outside of their declaration scope</value>
+  </data>
+  <data name="WRN_EscapeCall_Title" xml:space="preserve">
+    <value>Use of result in this context may expose variables referenced by parameter outside of their declaration scope</value>
+  </data>
+  <data name="WRN_EscapeCall2" xml:space="preserve">
+    <value>Use of member of result of '{0}' in this context may expose variables referenced by parameter '{1}' outside of their declaration scope</value>
+  </data>
+  <data name="WRN_EscapeCall2_Title" xml:space="preserve">
+    <value>Use of member of result in this context may expose variables referenced by parameter outside of their declaration scope</value>
+  </data>
   <data name="ERR_CallArgMixing" xml:space="preserve">
     <value>This combination of arguments to '{0}' is disallowed because it may expose variables referenced by parameter '{1}' outside of their declaration scope</value>
+  </data>
+  <data name="WRN_CallArgMixing" xml:space="preserve">
+    <value>This combination of arguments to '{0}' may expose variables referenced by parameter '{1}' outside of their declaration scope</value>
+  </data>
+  <data name="WRN_CallArgMixing_Title" xml:space="preserve">
+    <value>This combination of arguments may expose variables referenced by parameter outside of their declaration scope</value>
   </data>
   <data name="ERR_MismatchedRefEscapeInTernary" xml:space="preserve">
     <value>Branches of a ref conditional operator cannot refer to variables with incompatible declaration scopes</value>
   </data>
+  <data name="WRN_MismatchedRefEscapeInTernary" xml:space="preserve">
+    <value>The branches of the ref conditional operator refer to variables with incompatible declaration scopes</value>
+  </data>
+  <data name="WRN_MismatchedRefEscapeInTernary_Title" xml:space="preserve">
+    <value>The branches of the ref conditional operator refer to variables with incompatible declaration scopes</value>
+  </data>
   <data name="ERR_EscapeStackAlloc" xml:space="preserve">
     <value>A result of a stackalloc expression of type '{0}' cannot be used in this context because it may be exposed outside of the containing method</value>
+  </data>
+  <data name="WRN_EscapeStackAlloc" xml:space="preserve">
+    <value>A result of a stackalloc expression of type '{0}' in this context may be exposed outside of the containing method</value>
+  </data>
+  <data name="WRN_EscapeStackAlloc_Title" xml:space="preserve">
+    <value>A result of a stackalloc expression of this type in this context may be exposed outside of the containing method</value>
   </data>
   <data name="ERR_InitializeByValueVariableWithReference" xml:space="preserve">
     <value>Cannot initialize a by-value variable with a reference</value>
@@ -5805,6 +5907,18 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="ERR_RefAssignReturnOnly" xml:space="preserve">
     <value>Cannot ref-assign '{1}' to '{0}' because '{1}' can only escape the current method through a return statement.</value>
+  </data>
+  <data name="WRN_RefAssignReturnOnly" xml:space="preserve">
+    <value>This ref-assigns '{1}' to '{0}' but '{1}' can only escape the current method through a return statement.</value>
+  </data>
+  <data name="WRN_RefAssignReturnOnly_Title" xml:space="preserve">
+    <value>This ref-assigns a value that can only escape the current method through a return statement.</value>
+  </data>
+  <data name="WRN_RefAssignNarrower" xml:space="preserve">
+    <value>The right-hand-side expression '{1}' has a narrower escape scope than the left-hand-side expression '{0}' in ref-assignment.</value>
+  </data>
+  <data name="WRN_RefAssignNarrower_Title" xml:space="preserve">
+    <value>The right-hand-side expression has a narrower escape scope than the left-hand-side expression in ref-assignment.</value>
   </data>
   <data name="IDS_FeatureEnumGenericTypeConstraint" xml:space="preserve">
     <value>enum generic type constraints</value>
