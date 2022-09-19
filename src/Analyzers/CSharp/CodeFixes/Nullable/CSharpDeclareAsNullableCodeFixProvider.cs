@@ -144,7 +144,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.DeclareAsNullable
                 return null;
             }
 
-            if (node.Parent?.Kind() is SyntaxKind.ReturnStatement or SyntaxKind.YieldReturnStatement)
+            if (node.Parent is (kind: SyntaxKind.ReturnStatement or SyntaxKind.YieldReturnStatement))
             {
                 var containingMember = node.GetAncestors().FirstOrDefault(
                     a => a.Kind() is

@@ -130,7 +130,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
                     case SyntaxKind.ArrowExpressionClause:
                         // represents getter symbol declaration node of a property/indexer with expression body
-                        if (current.Parent?.Kind() is SyntaxKind.PropertyDeclaration or SyntaxKind.IndexerDeclaration)
+                        if (current.Parent is (kind: SyntaxKind.PropertyDeclaration or SyntaxKind.IndexerDeclaration))
                         {
                             declarations = new(current);
                             return true;
@@ -1164,20 +1164,20 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
         {
             if (node.Kind() is SyntaxKind.Parameter or SyntaxKind.TypeParameter)
             {
-                Contract.ThrowIfFalse(node.Parent?.Kind() is
+                Contract.ThrowIfFalse(node.Parent is (kind:
                     SyntaxKind.ParameterList or
                     SyntaxKind.TypeParameterList or
-                    SyntaxKind.BracketedParameterList);
+                    SyntaxKind.BracketedParameterList));
                 declaration = node.Parent.Parent!;
                 return true;
             }
 
             // For deletes, we don't associate accessors with their parents, as deleting accessors is allowed
             if (editKind != EditKind.Delete &&
-                node.Parent?.Parent?.Kind() is
+                node.Parent?.Parent is (kind:
                     SyntaxKind.PropertyDeclaration or
                     SyntaxKind.IndexerDeclaration or
-                    SyntaxKind.EventDeclaration)
+                    SyntaxKind.EventDeclaration))
             {
                 declaration = node.Parent.Parent;
                 return true;

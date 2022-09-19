@@ -621,7 +621,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                     return Label.IndexerDeclaration;
 
                 case SyntaxKind.ArrowExpressionClause:
-                    if (node?.Parent?.Kind() is SyntaxKind.PropertyDeclaration or SyntaxKind.IndexerDeclaration)
+                    if (node?.Parent is (kind: SyntaxKind.PropertyDeclaration or SyntaxKind.IndexerDeclaration))
                         return Label.ArrowExpressionClause;
 
                     break;

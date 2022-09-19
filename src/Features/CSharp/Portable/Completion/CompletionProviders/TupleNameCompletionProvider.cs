@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             var token = context.TargetToken;
             if (token.IsKind(SyntaxKind.OpenParenToken))
             {
-                if (token.Parent?.Kind() is SyntaxKind.ParenthesizedExpression or SyntaxKind.TupleExpression or SyntaxKind.CastExpression)
+                if (token.Parent is (kind: SyntaxKind.ParenthesizedExpression or SyntaxKind.TupleExpression or SyntaxKind.CastExpression))
                 {
                     return 0;
                 }

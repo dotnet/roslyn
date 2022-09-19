@@ -153,7 +153,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                     return false;
 
                 case SyntaxKind.ColonToken:
-                    return token.Parent?.Kind() is SyntaxKind.CaseSwitchLabel or SyntaxKind.DefaultSwitchLabel or SyntaxKind.CasePatternSwitchLabel or SyntaxKind.LabeledStatement;
+                    return token.Parent is (kind: SyntaxKind.CaseSwitchLabel or SyntaxKind.DefaultSwitchLabel or SyntaxKind.CasePatternSwitchLabel or SyntaxKind.LabeledStatement);
 
                 case SyntaxKind.DoKeyword when token.Parent.IsKind(SyntaxKind.DoStatement):
                     return true;
@@ -399,7 +399,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
 
             if (targetToken.Kind() == SyntaxKind.ColonToken)
             {
-                if (targetToken.Parent?.Kind() is SyntaxKind.CaseSwitchLabel or SyntaxKind.DefaultSwitchLabel or SyntaxKind.CasePatternSwitchLabel)
+                if (targetToken.Parent is (kind: SyntaxKind.CaseSwitchLabel or SyntaxKind.DefaultSwitchLabel or SyntaxKind.CasePatternSwitchLabel))
                 {
                     return true;
                 }
@@ -427,7 +427,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
         public static bool IsXmlCrefParameterModifierContext(this SyntaxToken targetToken)
         {
             return targetToken.Kind() is SyntaxKind.CommaToken or SyntaxKind.OpenParenToken &&
-                   targetToken.Parent?.Kind() is SyntaxKind.CrefBracketedParameterList or SyntaxKind.CrefParameterList;
+                   targetToken.Parent is (kind: SyntaxKind.CrefBracketedParameterList or SyntaxKind.CrefParameterList);
         }
 
         public static bool IsConstructorOrMethodParameterArgumentContext(this SyntaxToken targetToken)

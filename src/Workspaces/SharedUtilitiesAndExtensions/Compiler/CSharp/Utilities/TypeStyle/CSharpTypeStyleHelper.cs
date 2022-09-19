@@ -102,10 +102,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
             // implicit type is applicable only for local variables and
             // such declarations cannot have multiple declarators and
             // must have an initializer.
-            var isSupportedParentKind = variableDeclaration.Parent?.Kind() is
+            var isSupportedParentKind = variableDeclaration.Parent is (kind:
                 SyntaxKind.LocalDeclarationStatement or
                 SyntaxKind.ForStatement or
-                SyntaxKind.UsingStatement;
+                SyntaxKind.UsingStatement);
 
             return isSupportedParentKind &&
                 variableDeclaration.Variables.Count == 1 &&

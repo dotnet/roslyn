@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.CSharp.QuickInfo
         protected override bool GetBindableNodeForTokenIndicatingLambda(SyntaxToken token, [NotNullWhen(returnValue: true)] out SyntaxNode? found)
         {
             if (token.IsKind(SyntaxKind.EqualsGreaterThanToken)
-                && token.Parent?.Kind() is SyntaxKind.ParenthesizedLambdaExpression or SyntaxKind.SimpleLambdaExpression)
+                && token.Parent is (kind: SyntaxKind.ParenthesizedLambdaExpression or SyntaxKind.SimpleLambdaExpression))
             {
                 // () =>
                 found = token.Parent;

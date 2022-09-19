@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InvertIf
             => ifNode.Else == null;
 
         protected override bool CanInvert(IfStatementSyntax ifNode)
-            => ifNode?.Parent?.Kind() is SyntaxKind.Block or SyntaxKind.SwitchSection;
+            => ifNode?.Parent is (kind: SyntaxKind.Block or SyntaxKind.SwitchSection);
 
         protected override SyntaxNode GetCondition(IfStatementSyntax ifNode)
             => ifNode.Condition;

@@ -149,7 +149,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
             // new() { $$
             // new Goo { $$
-            if (parent?.Kind() is SyntaxKind.ObjectCreationExpression or SyntaxKind.ImplicitObjectCreationExpression)
+            if (parent is (kind: SyntaxKind.ObjectCreationExpression or SyntaxKind.ImplicitObjectCreationExpression))
             {
                 return semanticModel.GetTypeInfo(parent, cancellationToken).Type;
             }

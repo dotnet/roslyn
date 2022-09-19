@@ -325,7 +325,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
             }
 
             if (token.Kind() is SyntaxKind.LessThanToken or SyntaxKind.GreaterThanToken &&
-                token.Parent?.Kind() is SyntaxKind.TypeParameterList or SyntaxKind.TypeArgumentList)
+                token.Parent is (kind: SyntaxKind.TypeParameterList or SyntaxKind.TypeArgumentList))
             {
                 text = Keyword("generics");
                 return true;

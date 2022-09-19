@@ -187,7 +187,7 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageService
             => node.GetParameterList();
 
         public bool IsParameterList([NotNullWhen(true)] SyntaxNode? node)
-            => node?.Kind() is SyntaxKind.ParameterList or SyntaxKind.BracketedParameterList;
+            => node is (kind: SyntaxKind.ParameterList or SyntaxKind.BracketedParameterList);
 
         public bool IsUsingDirectiveName([NotNullWhen(true)] SyntaxNode? node)
             => node?.Parent is UsingDirectiveSyntax usingDirective &&
@@ -298,7 +298,7 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageService
                 case SyntaxKind.DescendingKeyword:
                     return token.Parent is OrderingSyntax;
                 case SyntaxKind.IntoKeyword:
-                    return token.Parent?.Kind() is SyntaxKind.JoinIntoClause or SyntaxKind.QueryContinuation;
+                    return token.Parent is (kind: SyntaxKind.JoinIntoClause or SyntaxKind.QueryContinuation);
                 default:
                     return false;
             }

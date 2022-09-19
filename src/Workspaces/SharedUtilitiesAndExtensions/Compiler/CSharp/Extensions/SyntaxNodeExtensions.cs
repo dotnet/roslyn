@@ -208,14 +208,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             // Effectively, if we're on the RHS of the ? we have to walk up the RHS spine first until we hit the first
             // conditional access.
 
-            while (current?.Kind() is
+            while (current is (kind:
                 SyntaxKind.InvocationExpression or
                 SyntaxKind.ElementAccessExpression or
                 SyntaxKind.SimpleMemberAccessExpression or
                 SyntaxKind.MemberBindingExpression or
                 SyntaxKind.ElementBindingExpression or
                 // Optional exclamations might follow the conditional operation. For example: a.b?.$$c!!!!()
-                SyntaxKind.SuppressNullableWarningExpression &&
+                SyntaxKind.SuppressNullableWarningExpression) &&
                 current.Parent is not ConditionalAccessExpressionSyntax)
             {
                 current = current.Parent;
@@ -622,7 +622,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             if (trivia.HasStructure)
             {
                 var structure = trivia.GetStructure()!;
-                if (trivia.GetStructure()?.Kind() is SyntaxKind.RegionDirectiveTrivia or SyntaxKind.EndRegionDirectiveTrivia or SyntaxKind.IfDirectiveTrivia or SyntaxKind.EndIfDirectiveTrivia)
+                if (trivia.GetStructure() is (kind: SyntaxKind.RegionDirectiveTrivia or SyntaxKind.EndRegionDirectiveTrivia or SyntaxKind.IfDirectiveTrivia or SyntaxKind.EndIfDirectiveTrivia))
                 {
                     var match = ((DirectiveTriviaSyntax)structure).GetMatchingDirective(cancellationToken);
                     if (match != null)
@@ -636,7 +636,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                         }
                     }
                 }
-                else if (trivia.GetStructure()?.Kind() is SyntaxKind.ElseDirectiveTrivia or SyntaxKind.ElifDirectiveTrivia)
+                else if (trivia.GetStructure() is (kind: SyntaxKind.ElseDirectiveTrivia or SyntaxKind.ElifDirectiveTrivia))
                 {
                     var directives = ((DirectiveTriviaSyntax)structure).GetMatchingConditionalDirectives(cancellationToken);
                     if (directives != null && directives.Count > 0)

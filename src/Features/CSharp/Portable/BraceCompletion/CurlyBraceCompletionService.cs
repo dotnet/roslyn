@@ -142,13 +142,13 @@ namespace Microsoft.CodeAnalysis.CSharp.BraceCompletion
                 // int[] arr = {
                 //           = new[] {
                 //           = new int[] {
-                if (currentToken.Parent?.Kind() is
+                if (currentToken.Parent is (kind:
                         SyntaxKind.ObjectInitializerExpression or
                         SyntaxKind.CollectionInitializerExpression or
                         SyntaxKind.ArrayInitializerExpression or
                         SyntaxKind.ImplicitArrayCreationExpression or
                         SyntaxKind.WithInitializerExpression or
-                        SyntaxKind.PropertyPatternClause)
+                        SyntaxKind.PropertyPatternClause))
                 {
                     return options.NewLines.HasFlag(NewLinePlacement.BeforeOpenBraceInObjectCollectionArrayInitializers);
                 }
@@ -180,7 +180,7 @@ namespace Microsoft.CodeAnalysis.CSharp.BraceCompletion
                 }
 
                 // * { - in the simple Lambda context
-                if (currentTokenParentParent?.Kind() is SyntaxKind.SimpleLambdaExpression or SyntaxKind.ParenthesizedLambdaExpression)
+                if (currentTokenParentParent is (kind: SyntaxKind.SimpleLambdaExpression or SyntaxKind.ParenthesizedLambdaExpression))
                 {
                     return options.NewLines.HasFlag(NewLinePlacement.BeforeOpenBraceInLambdaExpressionBody);
                 }

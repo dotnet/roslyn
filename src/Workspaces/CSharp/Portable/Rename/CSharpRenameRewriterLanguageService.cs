@@ -544,7 +544,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
 
                     if (token.Parent is SimpleNameSyntax &&
                         !token.IsKind(SyntaxKind.GlobalKeyword) &&
-                        token.Parent.Parent?.Kind() is SyntaxKind.AliasQualifiedName or SyntaxKind.QualifiedCref or SyntaxKind.QualifiedName)
+                        token.Parent.Parent is (kind: SyntaxKind.AliasQualifiedName or SyntaxKind.QualifiedCref or SyntaxKind.QualifiedName))
                     {
                         var symbol = _speculativeModel.GetSymbolInfo(token.Parent, _cancellationToken).Symbol;
 

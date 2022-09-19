@@ -185,7 +185,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
 
             // * { - in the Lambda context
             if (currentToken.IsKind(SyntaxKind.OpenBraceToken) &&
-               currentTokenParentParent?.Kind() is SyntaxKind.SimpleLambdaExpression or SyntaxKind.ParenthesizedLambdaExpression)
+               currentTokenParentParent is (kind: SyntaxKind.SimpleLambdaExpression or SyntaxKind.ParenthesizedLambdaExpression))
             {
                 if (!_options.NewLines.HasFlag(NewLinePlacement.BeforeOpenBraceInLambdaExpressionBody))
                 {
@@ -403,7 +403,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
 
             // * { - in the simple Lambda context
             if (currentToken.IsKind(SyntaxKind.OpenBraceToken) &&
-               currentTokenParentParent?.Kind() is SyntaxKind.SimpleLambdaExpression or SyntaxKind.ParenthesizedLambdaExpression)
+               currentTokenParentParent is (kind: SyntaxKind.SimpleLambdaExpression or SyntaxKind.ParenthesizedLambdaExpression))
             {
                 if (_options.NewLines.HasFlag(NewLinePlacement.BeforeOpenBraceInLambdaExpressionBody))
                 {
