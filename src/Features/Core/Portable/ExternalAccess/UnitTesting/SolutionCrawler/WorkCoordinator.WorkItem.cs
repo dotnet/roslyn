@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
 {
     internal partial class UnitTestingSolutionCrawlerRegistrationService
     {
-        internal partial class WorkCoordinator
+        internal partial class UnitTestingWorkCoordinator
         {
             // this is internal only type
             private readonly struct WorkItem

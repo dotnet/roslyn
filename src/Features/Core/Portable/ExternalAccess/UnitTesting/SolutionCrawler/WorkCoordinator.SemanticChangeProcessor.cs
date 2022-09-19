@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
         /// </summary>
         public const string EnqueueItem = nameof(EnqueueItem);
 
-        internal sealed partial class WorkCoordinator
+        internal sealed partial class UnitTestingWorkCoordinator
         {
             private sealed class SemanticChangeProcessor : UnitTestingIdleProcessor
             {
@@ -323,7 +323,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                     }
 
                     public Document GetRequiredDocument()
-                        => WorkCoordinator.GetRequiredDocument(Project, _documentId, _document);
+                        => UnitTestingWorkCoordinator.GetRequiredDocument(Project, _documentId, _document);
                 }
 
                 private class ProjectProcessor : UnitTestingIdleProcessor

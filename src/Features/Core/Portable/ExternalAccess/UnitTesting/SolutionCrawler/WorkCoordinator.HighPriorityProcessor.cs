@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
 {
     internal sealed partial class UnitTestingSolutionCrawlerRegistrationService
     {
-        internal sealed partial class WorkCoordinator
+        internal sealed partial class UnitTestingWorkCoordinator
         {
             private sealed partial class IncrementalAnalyzerProcessor
             {

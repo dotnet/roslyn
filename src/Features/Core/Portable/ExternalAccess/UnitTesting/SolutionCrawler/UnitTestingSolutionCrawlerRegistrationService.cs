@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
         private readonly UnitTestingSolutionCrawlerProgressReporter _progressReporter = new();
 
         private readonly IAsynchronousOperationListener _listener;
-        private readonly Dictionary<Workspace, WorkCoordinator> _documentWorkCoordinatorMap;
+        private readonly Dictionary<Workspace, UnitTestingWorkCoordinator> _documentWorkCoordinatorMap;
 
         private ImmutableDictionary<string, ImmutableArray<Lazy<IUnitTestingIncrementalAnalyzerProvider, UnitTestingIncrementalAnalyzerProviderMetadata>>> _analyzerProviders;
 
@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
             _analyzerProviders = analyzerProviders.GroupBy(kv => kv.Metadata.Name).ToImmutableDictionary(g => g.Key, g => g.ToImmutableArray());
             AssertAnalyzerProviders(_analyzerProviders);
 
-            _documentWorkCoordinatorMap = new Dictionary<Workspace, WorkCoordinator>(ReferenceEqualityComparer.Instance);
+            _documentWorkCoordinatorMap = new Dictionary<Workspace, UnitTestingWorkCoordinator>(ReferenceEqualityComparer.Instance);
             _listener = listenerProvider.GetListener(FeatureAttribute.SolutionCrawler);
         }
 
@@ -72,7 +72,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                     return;
                 }
 
-                var coordinator = new WorkCoordinator(
+                var coordinator = new UnitTestingWorkCoordinator(
                     _listener,
                     GetAnalyzerProviders(workspace.Kind),
                     initializeLazily,
@@ -86,7 +86,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
 
         public void Unregister(Workspace workspace, bool blockingShutdown = false)
         {
-            WorkCoordinator? coordinator;
+            UnitTestingWorkCoordinator? coordinator;
 
             lock (_gate)
             {
@@ -265,7 +265,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
             internal ref ImmutableDictionary<string, ImmutableArray<Lazy<IUnitTestingIncrementalAnalyzerProvider, UnitTestingIncrementalAnalyzerProviderMetadata>>> AnalyzerProviders
                 => ref _solutionCrawlerRegistrationService._analyzerProviders;
 
-            internal bool TryGetWorkCoordinator(Workspace workspace, [NotNullWhen(true)] out WorkCoordinator? coordinator)
+            internal bool TryGetWorkCoordinator(Workspace workspace, [NotNullWhen(true)] out UnitTestingWorkCoordinator? coordinator)
             {
                 lock (_solutionCrawlerRegistrationService._gate)
                 {

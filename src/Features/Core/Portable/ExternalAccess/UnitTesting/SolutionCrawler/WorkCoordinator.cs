@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
 {
     internal partial class UnitTestingSolutionCrawlerRegistrationService
     {
-        internal sealed partial class WorkCoordinator
+        internal sealed partial class UnitTestingWorkCoordinator
         {
             private readonly Registration _registration;
             private readonly object _gate = new();
@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
             private readonly IncrementalAnalyzerProcessor _documentAndProjectWorkerProcessor;
             private readonly SemanticChangeProcessor _semanticChangeProcessor;
 
-            public WorkCoordinator(
+            public UnitTestingWorkCoordinator(
                  IAsynchronousOperationListener listener,
                  IEnumerable<Lazy<IUnitTestingIncrementalAnalyzerProvider, UnitTestingIncrementalAnalyzerProviderMetadata>> analyzerProviders,
                  bool initializeLazily,
@@ -561,9 +561,9 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
 
             internal readonly struct TestAccessor
             {
-                private readonly WorkCoordinator _workCoordinator;
+                private readonly UnitTestingWorkCoordinator _workCoordinator;
 
-                internal TestAccessor(WorkCoordinator workCoordinator)
+                internal TestAccessor(UnitTestingWorkCoordinator workCoordinator)
                 {
                     _workCoordinator = workCoordinator;
                 }
