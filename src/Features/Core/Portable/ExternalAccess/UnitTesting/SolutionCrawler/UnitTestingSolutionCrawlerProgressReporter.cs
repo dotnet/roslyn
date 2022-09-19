@@ -7,7 +7,7 @@ using System.Threading;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
 {
-    internal partial class SolutionCrawlerRegistrationService : IUnitTestingSolutionCrawlerRegistrationService
+    internal partial class UnitTestingSolutionCrawlerRegistrationService : IUnitTestingSolutionCrawlerRegistrationService
     {
         /// <summary>
         /// Progress reporter
@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
         /// due to how solution cralwer calls Start/Stop (see caller of those 2), those 2 can't have a race
         /// and that is all we care for this reporter
         /// </summary>
-        internal sealed class SolutionCrawlerProgressReporter : IUnitTestingSolutionCrawlerProgressReporter
+        internal sealed class UnitTestingSolutionCrawlerProgressReporter : IUnitTestingSolutionCrawlerProgressReporter
         {
             // we use ref count here since solution crawler has multiple queues per priority
             // where an item can be enqueued and dequeued independently. 
@@ -78,9 +78,9 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
 
             private readonly struct ProgressStatusRAII : IDisposable
             {
-                private readonly SolutionCrawlerProgressReporter _owner;
+                private readonly UnitTestingSolutionCrawlerProgressReporter _owner;
 
-                public ProgressStatusRAII(SolutionCrawlerProgressReporter owner)
+                public ProgressStatusRAII(UnitTestingSolutionCrawlerProgressReporter owner)
                 {
                     _owner = owner;
                     _owner.Evaluate();

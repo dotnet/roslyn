@@ -13,7 +13,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
 {
-    internal partial class SolutionCrawlerRegistrationService
+    internal partial class UnitTestingSolutionCrawlerRegistrationService
     {
         internal partial class WorkCoordinator
         {
@@ -25,12 +25,12 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                 private bool _disposed;
 
                 private readonly Workspace _workspace;
-                private readonly SolutionCrawlerProgressReporter _progressReporter;
+                private readonly UnitTestingSolutionCrawlerProgressReporter _progressReporter;
 
                 // map containing cancellation source for the item given out.
                 private readonly Dictionary<object, CancellationTokenSource> _cancellationMap = new();
 
-                public AsyncWorkItemQueue(SolutionCrawlerProgressReporter progressReporter, Workspace workspace)
+                public AsyncWorkItemQueue(UnitTestingSolutionCrawlerProgressReporter progressReporter, Workspace workspace)
                 {
                     _semaphore = new SemaphoreSlim(initialCount: 0);
 

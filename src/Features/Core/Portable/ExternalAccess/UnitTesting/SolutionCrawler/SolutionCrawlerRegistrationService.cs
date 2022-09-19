@@ -18,12 +18,12 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
 {
     [ExportWorkspaceService(typeof(IUnitTestingSolutionCrawlerRegistrationService), ServiceLayer.Host), Shared]
-    internal partial class SolutionCrawlerRegistrationService : IUnitTestingSolutionCrawlerRegistrationService
+    internal partial class UnitTestingSolutionCrawlerRegistrationService : IUnitTestingSolutionCrawlerRegistrationService
     {
         private const string Default = "*";
 
         private readonly object _gate = new();
-        private readonly SolutionCrawlerProgressReporter _progressReporter = new();
+        private readonly UnitTestingSolutionCrawlerProgressReporter _progressReporter = new();
 
         private readonly IAsynchronousOperationListener _listener;
         private readonly Dictionary<Workspace, WorkCoordinator> _documentWorkCoordinatorMap;
@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public SolutionCrawlerRegistrationService(
+        public UnitTestingSolutionCrawlerRegistrationService(
             [ImportMany] IEnumerable<Lazy<IUnitTestingIncrementalAnalyzerProvider, UnitTestingIncrementalAnalyzerProviderMetadata>> analyzerProviders,
             IAsynchronousOperationListenerProvider listenerProvider)
         {
@@ -255,9 +255,9 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
 
         internal readonly struct TestAccessor
         {
-            private readonly SolutionCrawlerRegistrationService _solutionCrawlerRegistrationService;
+            private readonly UnitTestingSolutionCrawlerRegistrationService _solutionCrawlerRegistrationService;
 
-            internal TestAccessor(SolutionCrawlerRegistrationService solutionCrawlerRegistrationService)
+            internal TestAccessor(UnitTestingSolutionCrawlerRegistrationService solutionCrawlerRegistrationService)
             {
                 _solutionCrawlerRegistrationService = solutionCrawlerRegistrationService;
             }
@@ -294,9 +294,9 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
         {
             public readonly int CorrelationId;
             public readonly Workspace Workspace;
-            public readonly SolutionCrawlerProgressReporter ProgressReporter;
+            public readonly UnitTestingSolutionCrawlerProgressReporter ProgressReporter;
 
-            public Registration(int correlationId, Workspace workspace, SolutionCrawlerProgressReporter progressReporter)
+            public Registration(int correlationId, Workspace workspace, UnitTestingSolutionCrawlerProgressReporter progressReporter)
             {
                 CorrelationId = correlationId;
                 Workspace = workspace;

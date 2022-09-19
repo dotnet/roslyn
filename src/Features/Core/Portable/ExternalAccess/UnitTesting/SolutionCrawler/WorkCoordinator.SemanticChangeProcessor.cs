@@ -16,7 +16,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
 {
-    internal sealed partial class SolutionCrawlerRegistrationService
+    internal sealed partial class UnitTestingSolutionCrawlerRegistrationService
     {
         /// <summary>
         /// this will be used in the unit test to indicate certain action has happened or not.

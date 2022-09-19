@@ -21,7 +21,7 @@ using System.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
 {
-    internal sealed partial class SolutionCrawlerRegistrationService
+    internal sealed partial class UnitTestingSolutionCrawlerRegistrationService
     {
         internal sealed partial class WorkCoordinator
         {

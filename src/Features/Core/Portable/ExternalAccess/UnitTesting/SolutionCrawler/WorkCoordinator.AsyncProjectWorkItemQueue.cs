@@ -11,7 +11,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
 {
-    internal partial class SolutionCrawlerRegistrationService
+    internal partial class UnitTestingSolutionCrawlerRegistrationService
     {
         internal partial class WorkCoordinator
         {
@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
             {
                 private readonly Dictionary<ProjectId, WorkItem> _projectWorkQueue = new();
 
-                public AsyncProjectWorkItemQueue(SolutionCrawlerProgressReporter progressReporter, Workspace workspace)
+                public AsyncProjectWorkItemQueue(UnitTestingSolutionCrawlerProgressReporter progressReporter, Workspace workspace)
                     : base(progressReporter, workspace)
                 {
                 }
