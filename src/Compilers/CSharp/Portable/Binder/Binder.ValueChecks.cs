@@ -800,7 +800,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return parameter switch
             {
                 { RefKind: RefKind.None } or { EffectiveScope: not DeclarationScope.Unscoped } => Binder.TopLevelScope,
-                { EffectiveScope: DeclarationScope.Unscoped, Type.IsRefLikeType: true } => Binder.ReturnOnlyScope,
+                { Type.IsRefLikeType: true } => Binder.ReturnOnlyScope,
                 _ => Binder.ExternalScope
             };
         }
