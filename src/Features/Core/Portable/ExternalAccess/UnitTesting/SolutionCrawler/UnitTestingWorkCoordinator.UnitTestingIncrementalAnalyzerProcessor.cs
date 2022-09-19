@@ -148,7 +148,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                 }
 
                 private IDisposable EnableCaching(ProjectId projectId)
-                    => _cacheService?.EnableCaching(projectId) ?? NullDisposable.Instance;
+                    => _cacheService?.EnableCaching(projectId) ?? UnitTestingNullDisposable.Instance;
 
                 private IEnumerable<DocumentId> GetOpenDocumentIds()
                     => _registration.Workspace.GetOpenDocumentIds();
@@ -388,9 +388,9 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                     }
                 }
 
-                private class NullDisposable : IDisposable
+                private class UnitTestingNullDisposable : IDisposable
                 {
-                    public static readonly IDisposable Instance = new NullDisposable();
+                    public static readonly IDisposable Instance = new UnitTestingNullDisposable();
 
                     public void Dispose() { }
                 }
