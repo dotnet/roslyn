@@ -140,8 +140,8 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                                 if (project != null)
                                 {
                                     var reasons = workItem.InvocationReasons;
-                                    var semanticsChanged = reasons.Contains(PredefinedInvocationReasons.SemanticChanged) ||
-                                                           reasons.Contains(PredefinedInvocationReasons.SolutionRemoved);
+                                    var semanticsChanged = reasons.Contains(UnitTestingPredefinedInvocationReasons.SemanticChanged) ||
+                                                           reasons.Contains(UnitTestingPredefinedInvocationReasons.SolutionRemoved);
 
                                     using (Processor.EnableCaching(project.Id))
                                     {

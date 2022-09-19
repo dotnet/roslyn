@@ -173,7 +173,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
 
                     // process all analyzers for each categories in this order - syntax, body, document
                     var reasons = workItem.InvocationReasons;
-                    if (workItem.MustRefresh || reasons.Contains(PredefinedInvocationReasons.SyntaxChanged))
+                    if (workItem.MustRefresh || reasons.Contains(UnitTestingPredefinedInvocationReasons.SyntaxChanged))
                     {
                         await RunAnalyzersAsync(analyzers, textDocument, workItem, (analyzer, document, cancellationToken) =>
                             AnalyzeSyntaxAsync(analyzer, document, reasons, cancellationToken), cancellationToken).ConfigureAwait(false);
@@ -185,7 +185,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                         return;
                     }
 
-                    if (workItem.MustRefresh || reasons.Contains(PredefinedInvocationReasons.SemanticChanged))
+                    if (workItem.MustRefresh || reasons.Contains(UnitTestingPredefinedInvocationReasons.SemanticChanged))
                     {
                         await RunAnalyzersAsync(analyzers, document, workItem, (analyzer, document, cancellationToken) =>
                             analyzer.AnalyzeDocumentAsync(document, null, reasons, cancellationToken), cancellationToken).ConfigureAwait(false);
@@ -214,7 +214,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                     {
                         try
                         {
-                            if (!workItem.InvocationReasons.Contains(PredefinedInvocationReasons.ActiveDocumentSwitched))
+                            if (!workItem.InvocationReasons.Contains(UnitTestingPredefinedInvocationReasons.ActiveDocumentSwitched))
                             {
                                 return false;
                             }

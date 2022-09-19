@@ -6,7 +6,7 @@
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
 {
-    internal static class PredefinedInvocationReasons
+    internal static class UnitTestingPredefinedInvocationReasons
     {
         public const string SolutionRemoved = nameof(SolutionRemoved);
 

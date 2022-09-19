@@ -58,8 +58,8 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                         // in current design, we need to re-run all incremental analyzer on document open and close
                         // so that incremental analyzer who only cares about opened document can have a chance to clean up
                         // its state.
-                        return InvocationReasons.Contains(PredefinedInvocationReasons.DocumentOpened) ||
-                               InvocationReasons.Contains(PredefinedInvocationReasons.DocumentClosed);
+                        return InvocationReasons.Contains(UnitTestingPredefinedInvocationReasons.DocumentOpened) ||
+                               InvocationReasons.Contains(UnitTestingPredefinedInvocationReasons.DocumentClosed);
                     }
                 }
 

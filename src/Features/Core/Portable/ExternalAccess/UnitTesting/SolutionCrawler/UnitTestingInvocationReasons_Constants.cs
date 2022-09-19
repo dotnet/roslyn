@@ -13,79 +13,79 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
         public static readonly UnitTestingInvocationReasons DocumentAdded =
             new(
                 ImmutableHashSet.Create<string>(
-                                    PredefinedInvocationReasons.DocumentAdded,
-                                    PredefinedInvocationReasons.SyntaxChanged,
-                                    PredefinedInvocationReasons.SemanticChanged));
+                                    UnitTestingPredefinedInvocationReasons.DocumentAdded,
+                                    UnitTestingPredefinedInvocationReasons.SyntaxChanged,
+                                    UnitTestingPredefinedInvocationReasons.SemanticChanged));
 
         public static readonly UnitTestingInvocationReasons DocumentRemoved =
             new(
                 ImmutableHashSet.Create<string>(
-                                    PredefinedInvocationReasons.DocumentRemoved,
-                                    PredefinedInvocationReasons.SyntaxChanged,
-                                    PredefinedInvocationReasons.SemanticChanged,
-                                    PredefinedInvocationReasons.HighPriority));
+                                    UnitTestingPredefinedInvocationReasons.DocumentRemoved,
+                                    UnitTestingPredefinedInvocationReasons.SyntaxChanged,
+                                    UnitTestingPredefinedInvocationReasons.SemanticChanged,
+                                    UnitTestingPredefinedInvocationReasons.HighPriority));
 
         public static readonly UnitTestingInvocationReasons ProjectParseOptionChanged =
             new(
                 ImmutableHashSet.Create<string>(
-                                    PredefinedInvocationReasons.ProjectParseOptionsChanged,
-                                    PredefinedInvocationReasons.SyntaxChanged,
-                                    PredefinedInvocationReasons.SemanticChanged));
+                                    UnitTestingPredefinedInvocationReasons.ProjectParseOptionsChanged,
+                                    UnitTestingPredefinedInvocationReasons.SyntaxChanged,
+                                    UnitTestingPredefinedInvocationReasons.SemanticChanged));
 
         public static readonly UnitTestingInvocationReasons ProjectConfigurationChanged =
             new(
                 ImmutableHashSet.Create<string>(
-                                    PredefinedInvocationReasons.ProjectConfigurationChanged,
-                                    PredefinedInvocationReasons.SyntaxChanged,
-                                    PredefinedInvocationReasons.SemanticChanged));
+                                    UnitTestingPredefinedInvocationReasons.ProjectConfigurationChanged,
+                                    UnitTestingPredefinedInvocationReasons.SyntaxChanged,
+                                    UnitTestingPredefinedInvocationReasons.SemanticChanged));
 
         public static readonly UnitTestingInvocationReasons SolutionRemoved =
             new(
                 ImmutableHashSet.Create<string>(
-                                    PredefinedInvocationReasons.SolutionRemoved,
-                                    PredefinedInvocationReasons.DocumentRemoved));
+                                    UnitTestingPredefinedInvocationReasons.SolutionRemoved,
+                                    UnitTestingPredefinedInvocationReasons.DocumentRemoved));
 
         public static readonly UnitTestingInvocationReasons DocumentOpened =
             new(
                 ImmutableHashSet.Create<string>(
-                                    PredefinedInvocationReasons.DocumentOpened,
-                                    PredefinedInvocationReasons.HighPriority));
+                                    UnitTestingPredefinedInvocationReasons.DocumentOpened,
+                                    UnitTestingPredefinedInvocationReasons.HighPriority));
 
         public static readonly UnitTestingInvocationReasons DocumentClosed =
             new(
                 ImmutableHashSet.Create<string>(
-                                    PredefinedInvocationReasons.DocumentClosed,
-                                    PredefinedInvocationReasons.HighPriority));
+                                    UnitTestingPredefinedInvocationReasons.DocumentClosed,
+                                    UnitTestingPredefinedInvocationReasons.HighPriority));
 
         public static readonly UnitTestingInvocationReasons DocumentChanged =
             new(
                 ImmutableHashSet.Create<string>(
-                                    PredefinedInvocationReasons.SyntaxChanged,
-                                    PredefinedInvocationReasons.SemanticChanged));
+                                    UnitTestingPredefinedInvocationReasons.SyntaxChanged,
+                                    UnitTestingPredefinedInvocationReasons.SemanticChanged));
 
         public static readonly UnitTestingInvocationReasons AdditionalDocumentChanged =
             new(
                 ImmutableHashSet.Create<string>(
-                                    PredefinedInvocationReasons.SyntaxChanged,
-                                    PredefinedInvocationReasons.SemanticChanged));
+                                    UnitTestingPredefinedInvocationReasons.SyntaxChanged,
+                                    UnitTestingPredefinedInvocationReasons.SemanticChanged));
 
         public static readonly UnitTestingInvocationReasons SyntaxChanged =
             new(
                 ImmutableHashSet.Create<string>(
-                                    PredefinedInvocationReasons.SyntaxChanged));
+                                    UnitTestingPredefinedInvocationReasons.SyntaxChanged));
 
         public static readonly UnitTestingInvocationReasons SemanticChanged =
             new(
                 ImmutableHashSet.Create<string>(
-                                    PredefinedInvocationReasons.SemanticChanged));
+                                    UnitTestingPredefinedInvocationReasons.SemanticChanged));
 
         public static readonly UnitTestingInvocationReasons Reanalyze =
-            new(PredefinedInvocationReasons.Reanalyze);
+            new(UnitTestingPredefinedInvocationReasons.Reanalyze);
 
         public static readonly UnitTestingInvocationReasons ReanalyzeHighPriority =
-            Reanalyze.With(PredefinedInvocationReasons.HighPriority);
+            Reanalyze.With(UnitTestingPredefinedInvocationReasons.HighPriority);
 
         public static readonly UnitTestingInvocationReasons ActiveDocumentSwitched =
-            new(PredefinedInvocationReasons.ActiveDocumentSwitched);
+            new(UnitTestingPredefinedInvocationReasons.ActiveDocumentSwitched);
     }
 }

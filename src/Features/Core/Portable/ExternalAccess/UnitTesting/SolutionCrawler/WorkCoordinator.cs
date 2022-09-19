@@ -416,7 +416,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                     new WorkItem(documentId, project.Language, invocationReasons, isLowPriority, currentMember, _listener.BeginAsyncOperation("WorkItem")));
 
                 // enqueue semantic work planner
-                if (invocationReasons.Contains(PredefinedInvocationReasons.SemanticChanged) && sourceDocument != null)
+                if (invocationReasons.Contains(UnitTestingPredefinedInvocationReasons.SemanticChanged) && sourceDocument != null)
                 {
                     // must use "Document" here so that the snapshot doesn't go away. we need the snapshot to calculate p2p dependency graph later.
                     // due to this, we might hold onto solution (and things kept alive by it) little bit longer than usual.

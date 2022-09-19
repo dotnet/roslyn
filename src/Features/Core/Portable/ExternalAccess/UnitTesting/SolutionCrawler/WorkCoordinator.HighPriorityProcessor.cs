@@ -90,7 +90,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                         // we only put workitem in high priority queue if there is a text change.
                         // this is to prevent things like opening a file, changing in other files keep enqueuing
                         // expensive high priority work.
-                        if (!item.InvocationReasons.Contains(PredefinedInvocationReasons.SyntaxChanged))
+                        if (!item.InvocationReasons.Contains(UnitTestingPredefinedInvocationReasons.SyntaxChanged))
                         {
                             return;
                         }

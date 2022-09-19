@@ -83,7 +83,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                     {
                         Contract.ThrowIfFalse(item.DocumentId != null);
 
-                        if (!item.InvocationReasons.Contains(PredefinedInvocationReasons.HighPriority))
+                        if (!item.InvocationReasons.Contains(UnitTestingPredefinedInvocationReasons.HighPriority))
                         {
                             return;
                         }
@@ -390,7 +390,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
 
                     private async Task ProcessOpenDocumentIfNeededAsync(ImmutableArray<IUnitTestingIncrementalAnalyzer> analyzers, WorkItem workItem, TextDocument textDocument, bool isOpen, CancellationToken cancellationToken)
                     {
-                        if (!isOpen || !workItem.InvocationReasons.Contains(PredefinedInvocationReasons.DocumentOpened))
+                        if (!isOpen || !workItem.InvocationReasons.Contains(UnitTestingPredefinedInvocationReasons.DocumentOpened))
                         {
                             return;
                         }
@@ -415,7 +415,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
 
                     private async Task ProcessCloseDocumentIfNeededAsync(ImmutableArray<IUnitTestingIncrementalAnalyzer> analyzers, WorkItem workItem, TextDocument textDocument, bool isOpen, CancellationToken cancellationToken)
                     {
-                        if (isOpen || !workItem.InvocationReasons.Contains(PredefinedInvocationReasons.DocumentClosed))
+                        if (isOpen || !workItem.InvocationReasons.Contains(UnitTestingPredefinedInvocationReasons.DocumentClosed))
                         {
                             return;
                         }
@@ -443,11 +443,11 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                         try
                         {
 #if DEBUG
-                            Debug.Assert(!workItem.InvocationReasons.Contains(PredefinedInvocationReasons.Reanalyze) || workItem.SpecificAnalyzers.Count > 0);
+                            Debug.Assert(!workItem.InvocationReasons.Contains(UnitTestingPredefinedInvocationReasons.Reanalyze) || workItem.SpecificAnalyzers.Count > 0);
 #endif
 
                             // No-reanalyze request or we already have a request to re-analyze every thing
-                            if (workItem.MustRefresh || !workItem.InvocationReasons.Contains(PredefinedInvocationReasons.Reanalyze))
+                            if (workItem.MustRefresh || !workItem.InvocationReasons.Contains(UnitTestingPredefinedInvocationReasons.Reanalyze))
                             {
                                 return;
                             }
@@ -458,7 +458,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
 
                             // No request to re-run syntax change analysis. run it here
                             var reasons = workItem.InvocationReasons;
-                            if (!reasons.Contains(PredefinedInvocationReasons.SyntaxChanged))
+                            if (!reasons.Contains(UnitTestingPredefinedInvocationReasons.SyntaxChanged))
                             {
                                 await Processor.RunAnalyzersAsync(reanalyzers, document, workItem, (a, d, c) => AnalyzeSyntaxAsync(a, d, reasons, c), cancellationToken).ConfigureAwait(false);
                             }
@@ -466,7 +466,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                             // No request to re-run semantic change analysis. run it here
                             // Note: Semantic analysis is not supported for non-source documents.
                             if (document is Document sourceDocument &&
-                                !workItem.InvocationReasons.Contains(PredefinedInvocationReasons.SemanticChanged))
+                                !workItem.InvocationReasons.Contains(UnitTestingPredefinedInvocationReasons.SemanticChanged))
                             {
                                 await Processor.RunAnalyzersAsync(reanalyzers, sourceDocument, workItem, (a, d, c) => a.AnalyzeDocumentAsync(d, null, reasons, c), cancellationToken).ConfigureAwait(false);
                             }
