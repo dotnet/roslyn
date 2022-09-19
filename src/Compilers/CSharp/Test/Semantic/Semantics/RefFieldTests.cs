@@ -18131,7 +18131,7 @@ public class C1
                     p2.refField = ref p1.refField; // Okay
                 }
 
-                // The [UnscopedRef] moves `out` to default RSTS which is *return only*
+                // The [UnscopedRef] moves `out` to default RSTE which is *return only*
                 static void M4([UnscopedRef] out S p1, ref S p2) {
                     p1 = default;
                     p2.refField = ref p1.field; // 4
