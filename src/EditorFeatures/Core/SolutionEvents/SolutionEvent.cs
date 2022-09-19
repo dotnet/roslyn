@@ -34,10 +34,5 @@ namespace Microsoft.CodeAnalysis.SolutionEvents
             public Solution Solution => WorkspaceChangeArgs?.OldSolution ?? DocumentOpenArgs?.Document.Project.Solution ?? DocumentCloseArgs!.Document.Project.Solution;
             public Workspace Workspace => Solution.Workspace;
         }
-
-
-
-
-
     }
 }
