@@ -19,11 +19,11 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
         /// <summary>
         /// nested class of <see cref="SolutionCrawlerRegistrationService"/> since it is tightly coupled with it.
         /// 
-        /// <see cref="ISolutionCrawlerService"/> is implemented by this class since WorkspaceService doesn't allow a class to implement
+        /// <see cref="IUnitTestingSolutionCrawlerService"/> is implemented by this class since WorkspaceService doesn't allow a class to implement
         /// more than one <see cref="IWorkspaceService"/>.
         /// </summary>
-        [ExportWorkspaceService(typeof(ISolutionCrawlerService), ServiceLayer.Default), Shared]
-        internal class SolutionCrawlerService : ISolutionCrawlerService
+        [ExportWorkspaceService(typeof(IUnitTestingSolutionCrawlerService), ServiceLayer.Default), Shared]
+        internal class SolutionCrawlerService : IUnitTestingSolutionCrawlerService
         {
             [ImportingConstructor]
             [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]

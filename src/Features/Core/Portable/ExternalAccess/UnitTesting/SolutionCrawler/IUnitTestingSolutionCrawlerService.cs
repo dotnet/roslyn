@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
     /// <summary>
     /// Provide a way to control solution crawler.
     /// </summary>
-    internal interface ISolutionCrawlerService : IWorkspaceService
+    internal interface IUnitTestingSolutionCrawlerService : IWorkspaceService
     {
         /// <summary>
         /// Ask solution crawler to re-analyze given <see cref="ProjectId"/>s or/and <see cref="DocumentId"/>s 
