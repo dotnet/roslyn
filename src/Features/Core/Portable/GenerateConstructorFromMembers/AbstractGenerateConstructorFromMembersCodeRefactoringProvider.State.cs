@@ -79,20 +79,22 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
                 MatchingConstructor = GetMatchingConstructorBasedOnParameterTypes(ContainingType, Parameters);
                 // We are going to create a new contructor and pass part of the parameters into DelegatedConstructor,
                 // so parameters should be compared based on types since we don't want get a type mismatch error after the new constructor is genreated.
-                DelegatedConstructor = GetDelegatedConstructorBasedOnParameterTypes(ContainingType, Parameters);
+                DelegatedConstructor = GetDelegatedConstructorBasedOnParameterTypes(ContainingType, Parameters, ContainingType);
                 if (DelegatedConstructor is null && ContainingType.BaseType is not null)
                 {
-                    DelegatedConstructor = GetDelegatedConstructorBasedOnParameterTypes(ContainingType.BaseType, Parameters);
+                    DelegatedConstructor = GetDelegatedConstructorBasedOnParameterTypes(ContainingType.BaseType, Parameters, ContainingType);
                 }
                 return true;
             }
 
             private static IMethodSymbol? GetDelegatedConstructorBasedOnParameterTypes(
                 INamedTypeSymbol containingType,
-                ImmutableArray<IParameterSymbol> parameters)
+                ImmutableArray<IParameterSymbol> parameters,
+                INamedTypeSymbol accessibleWithin)
             {
                 var q =
                     from c in containingType.InstanceConstructors
+                    where c.IsAccessibleWithin(accessibleWithin)
                     orderby c.Parameters.Length descending
                     where c.Parameters.Length > 0 && c.Parameters.Length < parameters.Length
                     where c.Parameters.All(p => p.RefKind == RefKind.None) && !c.Parameters.Any(static p => p.IsParams)
