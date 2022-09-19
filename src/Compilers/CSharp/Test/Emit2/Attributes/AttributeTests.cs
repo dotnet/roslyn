@@ -10593,9 +10593,9 @@ class Outer<T2>
                 // (7,26): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
                 //     [Attr<object>(Prop = default(T2))] // 1
                 Diagnostic(ErrorCode.ERR_BadAttributeArgument, "default(T2)").WithLocation(7, 26),
-                // (10,6): error CS8967: 'T2': an attribute type argument cannot use type parameters
+                // (10,6): error CS8968: 'T2': an attribute type argument cannot use type parameters
                 //     [Attr<T2>(Prop = default(T2))] // 2, 3
-                Diagnostic(ErrorCode.ERR_AttrTypeArgCannotBeTypeVar, "Attr<T2>").WithArguments("T2").WithLocation(10, 6),
+                Diagnostic(ErrorCode.ERR_AttrTypeArgCannotBeTypeVar, "Attr<T2>(Prop = default(T2))").WithArguments("T2").WithLocation(10, 6),
                 // (10,22): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
                 //     [Attr<T2>(Prop = default(T2))] // 2, 3
                 Diagnostic(ErrorCode.ERR_BadAttributeArgument, "default(T2)").WithLocation(10, 22));
@@ -10697,9 +10697,9 @@ class Outer<T2>
                 // (7,19): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
                 //     [Attr<object>(default(T2))] // 1
                 Diagnostic(ErrorCode.ERR_BadAttributeArgument, "default(T2)").WithLocation(7, 19),
-                // (10,6): error CS8967: 'T2': an attribute type argument cannot use type parameters
+                // (10,6): error CS8968: 'T2': an attribute type argument cannot use type parameters
                 //     [Attr<T2>(default(T2))] // 2, 3
-                Diagnostic(ErrorCode.ERR_AttrTypeArgCannotBeTypeVar, "Attr<T2>").WithArguments("T2").WithLocation(10, 6),
+                Diagnostic(ErrorCode.ERR_AttrTypeArgCannotBeTypeVar, "Attr<T2>(default(T2))").WithArguments("T2").WithLocation(10, 6),
                 // (10,15): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
                 //     [Attr<T2>(default(T2))] // 2, 3
                 Diagnostic(ErrorCode.ERR_BadAttributeArgument, "default(T2)").WithLocation(10, 15));
@@ -10848,10 +10848,10 @@ class AttrContainer<T>
                 Diagnostic(ErrorCode.ERR_AttrTypeArgCannotBeTypeVar, "Attr<T>").WithArguments("T").WithLocation(6, 6),
                 // (11,6): error CS8968: 'T': an attribute type argument cannot use type parameters
                 //     [AttrContainer<T>.Attr]
-                Diagnostic(ErrorCode.ERR_AttrTypeArgCannotBeTypeVar, "AttrContainer<T>").WithArguments("T").WithLocation(11, 6),
+                Diagnostic(ErrorCode.ERR_AttrTypeArgCannotBeTypeVar, "AttrContainer<T>.Attr").WithArguments("T").WithLocation(11, 6),
                 // (16,6): error CS8968: 'T': an attribute type argument cannot use type parameters
                 //     [AttrContainer<T>.B.Attr]
-                Diagnostic(ErrorCode.ERR_AttrTypeArgCannotBeTypeVar, "AttrContainer<T>").WithArguments("T").WithLocation(16, 6));
+                Diagnostic(ErrorCode.ERR_AttrTypeArgCannotBeTypeVar, "AttrContainer<T>.B.Attr").WithArguments("T").WithLocation(16, 6));
         }
 
         [Fact, WorkItem(58837, "https://github.com/dotnet/roslyn/issues/58837")]
@@ -10881,10 +10881,10 @@ class A<T>
             comp.VerifyDiagnostics(
                 // (4,2): error CS8970: Type '(int A, int B)' cannot be used in this context because it cannot be represented in metadata.
                 // [A<(int A, int B)>.B]
-                Diagnostic(ErrorCode.ERR_AttrDependentTypeNotAllowed, "A<(int A, int B)>").WithArguments("(int A, int B)").WithLocation(4, 2),
-                // (9,10): error CS8970: Type '(int A, int B)' cannot be used in this context because it cannot be represented in metadata.
+                Diagnostic(ErrorCode.ERR_AttrDependentTypeNotAllowed, "A<(int A, int B)>.B").WithArguments("(int A, int B)").WithLocation(4, 2),
+                // (9,2): error CS8970: Type '(int A, int B)' cannot be used in this context because it cannot be represented in metadata.
                 // [global::A<(int A, int B)>.B]
-                Diagnostic(ErrorCode.ERR_AttrDependentTypeNotAllowed, "A<(int A, int B)>").WithArguments("(int A, int B)").WithLocation(9, 10));
+                Diagnostic(ErrorCode.ERR_AttrDependentTypeNotAllowed, "global::A<(int A, int B)>.B").WithArguments("(int A, int B)").WithLocation(9, 2));
         }
 
         [Fact, WorkItem(58837, "https://github.com/dotnet/roslyn/issues/58837")]
@@ -10914,10 +10914,10 @@ class A<T>
             comp.VerifyDiagnostics(
                 // (4,2): error CS8970: Type '(int A, int B)' cannot be used in this context because it cannot be represented in metadata.
                 // [A<(int A, int B)>.B]
-                Diagnostic(ErrorCode.ERR_AttrDependentTypeNotAllowed, "A<(int A, int B)>").WithArguments("(int A, int B)").WithLocation(4, 2),
-                // (9,10): error CS8970: Type '(int A, int B)' cannot be used in this context because it cannot be represented in metadata.
+                Diagnostic(ErrorCode.ERR_AttrDependentTypeNotAllowed, "A<(int A, int B)>.B").WithArguments("(int A, int B)").WithLocation(4, 2),
+                // (9,2): error CS8970: Type '(int A, int B)' cannot be used in this context because it cannot be represented in metadata.
                 // [global::A<(int A, int B)>.B]
-                Diagnostic(ErrorCode.ERR_AttrDependentTypeNotAllowed, "A<(int A, int B)>").WithArguments("(int A, int B)").WithLocation(9, 10));
+                Diagnostic(ErrorCode.ERR_AttrDependentTypeNotAllowed, "global::A<(int A, int B)>.B").WithArguments("(int A, int B)").WithLocation(9, 2));
         }
 
         [Fact, WorkItem(58837, "https://github.com/dotnet/roslyn/issues/58837")]
@@ -10940,9 +10940,34 @@ namespace N1
 ";
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (4,6): error CS8970: Type '(int A, int B)' cannot be used in this context because it cannot be represented in metadata.
+                // (4,2): error CS8970: Type '(int A, int B)' cannot be used in this context because it cannot be represented in metadata.
                 // [N2::A<(int A, int B)>.B]
-                Diagnostic(ErrorCode.ERR_AttrDependentTypeNotAllowed, "A<(int A, int B)>").WithArguments("(int A, int B)").WithLocation(4, 6));
+                Diagnostic(ErrorCode.ERR_AttrDependentTypeNotAllowed, "N2::A<(int A, int B)>.B").WithArguments("(int A, int B)").WithLocation(4, 2));
+        }
+
+        [Fact, WorkItem(58837, "https://github.com/dotnet/roslyn/issues/58837")]
+        public void GenericAttribute_NestedType05()
+        {
+            var source = @"
+using AB = A<(int A, int B)>.B;
+
+[AB]
+class C
+{
+}
+
+class A<T>
+{  
+    public class B : System.Attribute
+    {
+    }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (4,2): error CS8970: Type '(int A, int B)' cannot be used in this context because it cannot be represented in metadata.
+                // [AB]
+                Diagnostic(ErrorCode.ERR_AttrDependentTypeNotAllowed, "AB").WithArguments("(int A, int B)").WithLocation(4, 2));
         }
         #endregion
     }

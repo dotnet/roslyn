@@ -1160,22 +1160,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             else
             {
                 var boundTypeArguments = BindTypeArguments(typeArguments, diagnostics, basesBeingResolved);
-                if (unconstructedType.IsGenericType
-                    && (options.IsAttributeTypeLookup() || containsAttributeType(node)))
-                {
-                    foreach (var typeArgument in boundTypeArguments)
-                    {
-                        var type = typeArgument.Type;
-                        if (type.IsUnboundGenericType() || type.ContainsTypeParameter())
-                        {
-                            diagnostics.Add(ErrorCode.ERR_AttrTypeArgCannotBeTypeVar, node.Location, type.ToDisplayString(SymbolDisplayFormat.CSharpErrorMessageFormat));
-                        }
-                        else
-                        {
-                            CheckDisallowedAttributeDependentType(typeArgument, node.Location, diagnostics);
-                        }
-                    }
-                }
 
                 // It's not an unbound type expression, so we must have type arguments, and we have a
                 // generic type of the correct arity in hand (possibly an error type). Bind the type
@@ -1190,31 +1174,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return TypeWithAnnotations.Create(AreNullableAnnotationsEnabled(node.TypeArgumentList.GreaterThanToken), resultType);
-
-            // Determines whether node represents containing type of an attribute.
-            // For example, returns true for "A<T>" node in "[A<T>.B]".
-            static bool containsAttributeType(NameSyntax node)
-            {
-                while (true)
-                {
-                    if (node.Parent is QualifiedNameSyntax qn)
-                    {
-                        if (SyntaxFacts.IsAttributeName(qn.Right)) return true;
-                        node = qn;
-                    }
-                    else if (node.Parent is AliasQualifiedNameSyntax aqn)
-                    {
-                        if (SyntaxFacts.IsAttributeName(aqn.Name)) return true;
-                        node = aqn;
-                    }
-                    else
-                    {
-                        break;
-                    }
-                }
-
-                return false;
-            }
         }
 
         private NamedTypeSymbol LookupGenericTypeName(

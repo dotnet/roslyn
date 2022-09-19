@@ -51,7 +51,27 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // BindType for AttributeSyntax's name is handled specially during lookup, see Binder.LookupAttributeType.
                     // When looking up a name in attribute type context, we generate a diagnostic + error type if it is not an attribute type, i.e. named type deriving from System.Attribute.
                     // Hence we can assume here that BindType returns a NamedTypeSymbol.
-                    boundAttributeTypes[i] = (NamedTypeSymbol)binder.BindType(attributeToBind.Name, diagnostics).Type;
+                    var boundType = binder.BindType(attributeToBind.Name, diagnostics);
+                    var boundTypeSymbol = (NamedTypeSymbol)boundType.Type;
+
+                    // Check that there are no type vars.
+                    var location = attributeToBind.GetLocation();
+                    for (var type = boundTypeSymbol; type is not null; type = type.ContainingType)
+                    {
+                        foreach (var typeArg in type.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics)
+                        {
+                            if (typeArg.Type.IsUnboundGenericType() || typeArg.Type.ContainsTypeParameter())
+                            {
+                                diagnostics.Add(ErrorCode.ERR_AttrTypeArgCannotBeTypeVar, location, typeArg.ToDisplayString(SymbolDisplayFormat.CSharpErrorMessageFormat));
+                            }
+                            else
+                            {
+                                binder.CheckDisallowedAttributeDependentType(typeArg, location, diagnostics);
+                            }
+                        }
+                    }
+
+                    boundAttributeTypes[i] = boundTypeSymbol;
 
                     afterAttributePartBound?.Invoke(attributeToBind);
                 }
