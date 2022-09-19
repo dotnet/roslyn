@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                 private readonly SemaphoreSlim _gate;
 
                 private readonly UnitTestingRegistration _registration;
-                private readonly ProjectProcessor _processor;
+                private readonly UnitTestingProjectProcessor _processor;
 
                 private readonly NonReentrantLock _workGate = new();
                 private readonly Dictionary<DocumentId, UnitTestingData> _pendingWork = new();
@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
 
                     _registration = registration;
 
-                    _processor = new ProjectProcessor(listener, registration, documentWorkerProcessor, projectBackOffTimeSpan, cancellationToken);
+                    _processor = new UnitTestingProjectProcessor(listener, registration, documentWorkerProcessor, projectBackOffTimeSpan, cancellationToken);
 
                     Start();
 
@@ -326,7 +326,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                         => UnitTestingWorkCoordinator.GetRequiredDocument(Project, _documentId, _document);
                 }
 
-                private class ProjectProcessor : UnitTestingIdleProcessor
+                private class UnitTestingProjectProcessor : UnitTestingIdleProcessor
                 {
                     private static readonly Func<int, ProjectId, string> s_enqueueLogger = (t, i) => string.Format("[{0}] {1}", t, i.ToString());
 
@@ -338,7 +338,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                     private readonly NonReentrantLock _workGate = new();
                     private readonly Dictionary<ProjectId, UnitTestingData> _pendingWork = new();
 
-                    public ProjectProcessor(
+                    public UnitTestingProjectProcessor(
                         IAsynchronousOperationListener listener,
                         UnitTestingRegistration registration,
                         UnitTestingIncrementalAnalyzerProcessor processor,
