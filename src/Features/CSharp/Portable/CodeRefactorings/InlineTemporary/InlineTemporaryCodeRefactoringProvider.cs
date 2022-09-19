@@ -334,7 +334,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineTemporary
 
             var trailingTrivia = localDeclaration
                 .GetTrailingTrivia()
-                .SkipWhile(t => t is SyntaxTrivia(SyntaxKind.WhitespaceTrivia or SyntaxKind.EndOfLineTrivia))
+                .SkipWhile(t => t is (kind: SyntaxKind.WhitespaceTrivia or SyntaxKind.EndOfLineTrivia))
                 .ToSyntaxTriviaList();
 
             var newLeadingTrivia = leadingTrivia.Concat(trailingTrivia);
