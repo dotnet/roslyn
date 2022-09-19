@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
     {
         private readonly IGlobalOptionService _globalOptions;
         private readonly IThreadingContext _threadingContext;
-        private readonly ISolutionCrawlerEventsNotificationService _notificationService;
+        private readonly ISolutionCrawlerEventsAggregationService _aggregationService;
         private readonly AsyncBatchingWorkQueue<SolutionCrawlerEvent> _eventQueue;
 
         [ImportingConstructor]
@@ -58,12 +58,12 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
         public HostWorkspaceEventListener(
             IGlobalOptionService globalOptions,
             IThreadingContext threadingContext,
-            ISolutionCrawlerEventsNotificationService notificationService,
+            ISolutionCrawlerEventsAggregationService notificationService,
             IAsynchronousOperationListenerProvider listenerProvider)
         {
             _globalOptions = globalOptions;
             _threadingContext = threadingContext;
-            _notificationService = notificationService;
+            _aggregationService = notificationService;
             _eventQueue = new AsyncBatchingWorkQueue<SolutionCrawlerEvent>(
                 DelayTimeSpan.Medium,
                 ProcessWorkspaceChangeEventsAsync,
@@ -87,13 +87,13 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
             }
         }
 
-        private void OnWorkspaceChanged(object sender, WorkspaceChangeEventArgs e)
+        private void OnWorkspaceChanged(object? sender, WorkspaceChangeEventArgs e)
             => _eventQueue.AddWork(new SolutionCrawlerEvent(e, null, null));
 
-        private void OnDocumentOpened(object sender, TextDocumentEventArgs e)
+        private void OnDocumentOpened(object? sender, TextDocumentEventArgs e)
             => _eventQueue.AddWork(new SolutionCrawlerEvent(null, e, null));
 
-        private void OnDocumentClosed(object sender, TextDocumentEventArgs e)
+        private void OnDocumentClosed(object? sender, TextDocumentEventArgs e)
             => _eventQueue.AddWork(new SolutionCrawlerEvent(null, null, e));
 
         private async ValueTask ProcessWorkspaceChangeEventsAsync(ImmutableSegmentedList<SolutionCrawlerEvent> events, CancellationToken cancellationToken)
@@ -129,7 +129,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
             }
             else if (ev.DocumentCloseArgs != null)
             {
-                var closeArgs = ev.DocumentOpenArgs;
+                var closeArgs = ev.DocumentCloseArgs;
                 await EnqueueFullDocumentEventAsync(client, closeArgs.Document.Project.Solution, closeArgs.Document.Id, InvocationReasons.DocumentClosed, cancellationToken).ConfigureAwait(false);
             }
             else
@@ -209,11 +209,11 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
         {
             if (client == null)
             {
-                await _notificationService.OnSolutionEventAsync(solution, reasons, cancellationToken).ConfigureAwait(false);
+                await _aggregationService.OnSolutionEventAsync(solution, reasons, cancellationToken).ConfigureAwait(false);
             }
             else
             {
-                await client.TryInvokeAsync<IRemoteSolutionCrawlerEventsNotificationService>(
+                await client.TryInvokeAsync<IRemoteSolutionCrawlerEventsAggregationService>(
                     solution,
                     (service, solutionChecksum, cancellationToken) => service.OnSolutionEventAsync(solutionChecksum, reasons, cancellationToken),
                     cancellationToken).ConfigureAwait(false);
@@ -229,11 +229,11 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
         {
             if (client == null)
             {
-                await _notificationService.OnProjectEventAsync(solution, projectId, reasons, cancellationToken).ConfigureAwait(false);
+                await _aggregationService.OnProjectEventAsync(solution, projectId, reasons, cancellationToken).ConfigureAwait(false);
             }
             else
             {
-                await client.TryInvokeAsync<IRemoteSolutionCrawlerEventsNotificationService>(
+                await client.TryInvokeAsync<IRemoteSolutionCrawlerEventsAggregationService>(
                     solution,
                     (service, solutionChecksum, cancellationToken) => service.OnProjectEventAsync(solutionChecksum, projectId, reasons, cancellationToken),
                     cancellationToken).ConfigureAwait(false);
@@ -249,11 +249,11 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
         {
             if (client == null)
             {
-                await _notificationService.OnDocumentEventAsync(solution, documentId, reasons, cancellationToken).ConfigureAwait(false);
+                await _aggregationService.OnDocumentEventAsync(solution, documentId, reasons, cancellationToken).ConfigureAwait(false);
             }
             else
             {
-                await client.TryInvokeAsync<IRemoteSolutionCrawlerEventsNotificationService>(
+                await client.TryInvokeAsync<IRemoteSolutionCrawlerEventsAggregationService>(
                     solution,
                     (service, solutionChecksum, cancellationToken) => service.OnDocumentEventAsync(solutionChecksum, documentId, reasons, cancellationToken),
                     cancellationToken).ConfigureAwait(false);
@@ -268,11 +268,11 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
         {
             if (client == null)
             {
-                await _notificationService.OnSolutionChangedAsync(oldSolution, newSolution, cancellationToken).ConfigureAwait(false);
+                await _aggregationService.OnSolutionChangedAsync(oldSolution, newSolution, cancellationToken).ConfigureAwait(false);
             }
             else
             {
-                await client.TryInvokeAsync<IRemoteSolutionCrawlerEventsNotificationService>(
+                await client.TryInvokeAsync<IRemoteSolutionCrawlerEventsAggregationService>(
                     oldSolution, newSolution,
                     (service, oldSolutionChecksum, newSolutionChecksum, cancellationToken) =>
                         service.OnSolutionChangedAsync(oldSolutionChecksum, newSolutionChecksum, cancellationToken),
@@ -289,11 +289,11 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
         {
             if (client == null)
             {
-                await _notificationService.OnProjectChangedAsync(oldSolution, newSolution, projectId, cancellationToken).ConfigureAwait(false);
+                await _aggregationService.OnProjectChangedAsync(oldSolution, newSolution, projectId, cancellationToken).ConfigureAwait(false);
             }
             else
             {
-                await client.TryInvokeAsync<IRemoteSolutionCrawlerEventsNotificationService>(
+                await client.TryInvokeAsync<IRemoteSolutionCrawlerEventsAggregationService>(
                     oldSolution, newSolution,
                     (service, oldSolutionChecksum, newSolutionChecksum, cancellationToken) =>
                         service.OnProjectChangedAsync(oldSolutionChecksum, newSolutionChecksum, projectId, cancellationToken),
@@ -310,11 +310,11 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
         {
             if (client == null)
             {
-                await _notificationService.OnDocumentChangedAsync(oldSolution, newSolution, documentId, cancellationToken).ConfigureAwait(false);
+                await _aggregationService.OnDocumentChangedAsync(oldSolution, newSolution, documentId, cancellationToken).ConfigureAwait(false);
             }
             else
             {
-                await client.TryInvokeAsync<IRemoteSolutionCrawlerEventsNotificationService>(
+                await client.TryInvokeAsync<IRemoteSolutionCrawlerEventsAggregationService>(
                     oldSolution, newSolution,
                     (service, oldSolutionChecksum, newSolutionChecksum, cancellationToken) =>
                         service.OnDocumentChangedAsync(oldSolutionChecksum, newSolutionChecksum, documentId, cancellationToken),
