@@ -13250,6 +13250,15 @@ class C
                     S Prop4 => new S { refField = ref this.field }; // 2
 
                     [UnscopedRef] S Prop5 => new S { refField = ref this.field }; // okay
+
+                    S M1() => new S { refField = ref this.field }; // 3
+
+                    [UnscopedRef]
+                    S M2() => new S { refField = ref this.field }; // okay
+
+                    static S M3(ref S s) => new S { refField = ref s.field }; // 4
+
+                    static S M4([UnscopedRef] ref S s) => new S { refField = ref s.field }; // okay
                 }
                 """;
 
@@ -13260,7 +13269,13 @@ class C
                 Diagnostic(ErrorCode.ERR_RefReturnStructThis, "field").WithLocation(11, 26),
                 // (17,24): error CS8170: Struct members cannot return 'this' or other instance members by reference
                 //     S Prop4 => new S { refField = ref this.field }; // 2
-                Diagnostic(ErrorCode.ERR_RefReturnStructThis, "refField = ref this.field").WithLocation(17, 24));
+                Diagnostic(ErrorCode.ERR_RefReturnStructThis, "refField = ref this.field").WithLocation(17, 24),
+                // (21,23): error CS8170: Struct members cannot return 'this' or other instance members by reference
+                //     S M1() => new S { refField = ref this.field }; // 3
+                Diagnostic(ErrorCode.ERR_RefReturnStructThis, "refField = ref this.field").WithLocation(21, 23),
+                // (26,52): error CS9076: Cannot return by reference a member of parameter 's' because it is scoped to the current method
+                //     static S M3(ref S s) => new S { refField = ref s.field }; // 4
+                Diagnostic(ErrorCode.ERR_RefReturnScopedParameter2, "s").WithArguments("s").WithLocation(26, 52));
         }
 
         [Fact]
@@ -18141,22 +18156,16 @@ public class C1
                 static void M5([UnscopedRef] ref S p1, ref S2 p2) {
                     p2 = Inner1(ref p1); // 5
                     p2 = Inner2(ref p1); // Okay
-                    static S2 Inner1([UnscopedRef] ref S s) => new S2 { S = s };
-                    static S2 Inner2(scoped ref S s) => new S2 { S = s };
                 }
 
                 static void M6([UnscopedRef] ref S p1, out S2 p2) {
                     p2 = Inner1(ref p1); // 6
                     p2 = Inner2(ref p1); // Okay
-                    static S2 Inner1([UnscopedRef] ref S s) => new S2 { S = s };
-                    static S2 Inner2(scoped ref S s) => new S2 { S = s };
                 }
 
                 static void M7(scoped ref S p1, ref S2 p2) {
                     p2 = Inner1(ref p1); // 7
                     p2 = Inner2(ref p1); // Okay
-                    static S2 Inner1([UnscopedRef] ref S s) => new S2 { S = s };
-                    static S2 Inner2(scoped ref S s) => new S2 { S = s };
                 }
 
                 static S2 M8(scoped ref S p) {
@@ -18164,20 +18173,17 @@ public class C1
                     if (condition()) return Inner2(ref p); // Okay
 
                     throw null!;
-
-                    static S2 Inner1([UnscopedRef] ref S s) => new S2 { S = s };
-                    static S2 Inner2(scoped ref S s) => new S2 { S = s };
                 }
 
                 static S2 M9([UnscopedRef] ref S p) {
-                    if (condition()) return Inner1(ref p); // 9
+                    if (condition()) return Inner1(ref p); // Okay
                     if (condition()) return Inner2(ref p); // Okay
 
                     throw null!;
-
-                    static S2 Inner1([UnscopedRef] ref S s) => new S2 { S = s };
-                    static S2 Inner2(scoped ref S s) => new S2 { S = s };
                 }
+
+                static S2 Inner1([UnscopedRef] ref S s) => new S2 { S = s };
+                static S2 Inner2(scoped ref S s) => new S2 { S = s };
 
                 ref struct S {
                     public int field;
@@ -18209,24 +18215,24 @@ public class C1
                 // (31,21): error CS9077: Cannot return a parameter by reference 'p1' through a ref parameter; it can only be returned in a return statement
                 //     p2 = Inner1(ref p1); // 5
                 Diagnostic(ErrorCode.ERR_RefReturnOnlyParameter, "p1").WithArguments("p1").WithLocation(31, 21),
-                // (38,10): error CS8347: Cannot use a result of 'Inner1(ref S)' in this context because it may expose variables referenced by parameter 's' outside of their declaration scope
+                // (36,10): error CS8347: Cannot use a result of 'Inner1(ref S)' in this context because it may expose variables referenced by parameter 's' outside of their declaration scope
                 //     p2 = Inner1(ref p1); // 6
-                Diagnostic(ErrorCode.ERR_EscapeCall, "Inner1(ref p1)").WithArguments("Inner1(ref S)", "s").WithLocation(38, 10),
-                // (38,21): error CS9077: Cannot return a parameter by reference 'p1' through a ref parameter; it can only be returned in a return statement
+                Diagnostic(ErrorCode.ERR_EscapeCall, "Inner1(ref p1)").WithArguments("Inner1(ref S)", "s").WithLocation(36, 10),
+                // (36,21): error CS9077: Cannot return a parameter by reference 'p1' through a ref parameter; it can only be returned in a return statement
                 //     p2 = Inner1(ref p1); // 6
-                Diagnostic(ErrorCode.ERR_RefReturnOnlyParameter, "p1").WithArguments("p1").WithLocation(38, 21),
-                // (45,10): error CS8347: Cannot use a result of 'Inner1(ref S)' in this context because it may expose variables referenced by parameter 's' outside of their declaration scope
+                Diagnostic(ErrorCode.ERR_RefReturnOnlyParameter, "p1").WithArguments("p1").WithLocation(36, 21),
+                // (41,10): error CS8347: Cannot use a result of 'Inner1(ref S)' in this context because it may expose variables referenced by parameter 's' outside of their declaration scope
                 //     p2 = Inner1(ref p1); // 7
-                Diagnostic(ErrorCode.ERR_EscapeCall, "Inner1(ref p1)").WithArguments("Inner1(ref S)", "s").WithLocation(45, 10),
-                // (45,21): error CS9075: Cannot return a parameter by reference 'p1' because it is scoped to the current method
+                Diagnostic(ErrorCode.ERR_EscapeCall, "Inner1(ref p1)").WithArguments("Inner1(ref S)", "s").WithLocation(41, 10),
+                // (41,21): error CS9075: Cannot return a parameter by reference 'p1' because it is scoped to the current method
                 //     p2 = Inner1(ref p1); // 7
-                Diagnostic(ErrorCode.ERR_RefReturnScopedParameter, "p1").WithArguments("p1").WithLocation(45, 21),
-                // (52,29): error CS8347: Cannot use a result of 'Inner1(ref S)' in this context because it may expose variables referenced by parameter 's' outside of their declaration scope
+                Diagnostic(ErrorCode.ERR_RefReturnScopedParameter, "p1").WithArguments("p1").WithLocation(41, 21),
+                // (46,29): error CS8347: Cannot use a result of 'Inner1(ref S)' in this context because it may expose variables referenced by parameter 's' outside of their declaration scope
                 //     if (condition()) return Inner1(ref p); // 8
-                Diagnostic(ErrorCode.ERR_EscapeCall, "Inner1(ref p)").WithArguments("Inner1(ref S)", "s").WithLocation(52, 29),
-                // (52,40): error CS9075: Cannot return a parameter by reference 'p' because it is scoped to the current method
+                Diagnostic(ErrorCode.ERR_EscapeCall, "Inner1(ref p)").WithArguments("Inner1(ref S)", "s").WithLocation(46, 29),
+                // (46,40): error CS9075: Cannot return a parameter by reference 'p' because it is scoped to the current method
                 //     if (condition()) return Inner1(ref p); // 8
-                Diagnostic(ErrorCode.ERR_RefReturnScopedParameter, "p").WithArguments("p").WithLocation(52, 40));
+                Diagnostic(ErrorCode.ERR_RefReturnScopedParameter, "p").WithArguments("p").WithLocation(46, 40));
         }
 
         [Fact, WorkItem(63526, "https://github.com/dotnet/roslyn/issues/63526")]
@@ -18265,16 +18271,15 @@ public class C1
                     void M4(ref S2 p) {
                         p = Inner1(ref this); // 4
                         p = Inner2(ref this); // Okay
-                        static S2 Inner1([UnscopedRef] ref S s) => new S2 { S = s };
-                        static S2 Inner2(scoped ref S s) => new S2 { S = s };
                     }
 
                     void M5(out S2 p) {
                         p = Inner1(ref this); // 5
                         p = Inner2(ref this); // Okay
-                        static S2 Inner1([UnscopedRef] ref S s) => new S2 { S = s };
-                        static S2 Inner2(scoped ref S s) => new S2 { S = s };
                     }
+
+                    static S2 Inner1([UnscopedRef] ref S s) => new S2 { S = s };
+                    static S2 Inner2(scoped ref S s) => new S2 { S = s };
                 }
                 """;
 
@@ -18289,18 +18294,18 @@ public class C1
                 // (26,9): error CS9079: Cannot ref-assign 'this.field' to 'refField' because 'this.field' can only escape the current method through a return statement.
                 //         p.refField = ref this.field; // 3
                 Diagnostic(ErrorCode.ERR_RefAssignReturnOnly, "p.refField = ref this.field").WithArguments("refField", "this.field").WithLocation(26, 9),
-                // (31,13): error CS8347: Cannot use a result of 'Inner1(ref S)' in this context because it may expose variables referenced by parameter 's' outside of their declaration scope
+                // (31,13): error CS8347: Cannot use a result of 'S.Inner1(ref S)' in this context because it may expose variables referenced by parameter 's' outside of their declaration scope
                 //         p = Inner1(ref this); // 4
-                Diagnostic(ErrorCode.ERR_EscapeCall, "Inner1(ref this)").WithArguments("Inner1(ref S)", "s").WithLocation(31, 13),
+                Diagnostic(ErrorCode.ERR_EscapeCall, "Inner1(ref this)").WithArguments("S.Inner1(ref S)", "s").WithLocation(31, 13),
                 // (31,24): error CS8170: Struct members cannot return 'this' or other instance members by reference
                 //         p = Inner1(ref this); // 4
                 Diagnostic(ErrorCode.ERR_RefReturnStructThis, "this").WithLocation(31, 24),
-                // (38,13): error CS8347: Cannot use a result of 'Inner1(ref S)' in this context because it may expose variables referenced by parameter 's' outside of their declaration scope
+                // (36,13): error CS8347: Cannot use a result of 'S.Inner1(ref S)' in this context because it may expose variables referenced by parameter 's' outside of their declaration scope
                 //         p = Inner1(ref this); // 5
-                Diagnostic(ErrorCode.ERR_EscapeCall, "Inner1(ref this)").WithArguments("Inner1(ref S)", "s").WithLocation(38, 13),
-                // (38,24): error CS8170: Struct members cannot return 'this' or other instance members by reference
+                Diagnostic(ErrorCode.ERR_EscapeCall, "Inner1(ref this)").WithArguments("S.Inner1(ref S)", "s").WithLocation(36, 13),
+                // (36,24): error CS8170: Struct members cannot return 'this' or other instance members by reference
                 //         p = Inner1(ref this); // 5
-                Diagnostic(ErrorCode.ERR_RefReturnStructThis, "this").WithLocation(38, 24));
+                Diagnostic(ErrorCode.ERR_RefReturnStructThis, "this").WithLocation(36, 24));
         }
     }
 }
