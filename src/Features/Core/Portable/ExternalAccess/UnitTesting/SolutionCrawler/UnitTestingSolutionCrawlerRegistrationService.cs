@@ -128,7 +128,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                         continue;
                     }
 
-                    var analyzer = lazyProvider.Value.CreateIncrementalAnalyzer(workspace);
+                    var analyzer = lazyProvider.Value.CreateIncrementalAnalyzer();
                     if (analyzer != null)
                     {
                         coordinator.AddAnalyzer(analyzer, metadata.HighPriorityForActiveFile);

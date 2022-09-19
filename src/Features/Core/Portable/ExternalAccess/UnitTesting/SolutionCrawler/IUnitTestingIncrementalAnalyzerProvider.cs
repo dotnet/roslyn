@@ -6,6 +6,10 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
 {
     internal interface IUnitTestingIncrementalAnalyzerProvider
     {
-        IUnitTestingIncrementalAnalyzer? CreateIncrementalAnalyzer(Workspace workspace);
+        IUnitTestingIncrementalAnalyzer? CreateIncrementalAnalyzer(
+#if false // not used for unit testing solution crawler
+            Workspace workspace
+#endif
+            );
     }
 }
