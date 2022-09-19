@@ -207,11 +207,6 @@
         <target state="translated">'{0}' 연산자는 '{1}' 피연산자에 적용할 수 없습니다.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_BadParameterModifiersOrder">
-        <source> The parameter modifier '{0}' cannot follow '{1}'</source>
-        <target state="translated"> 매개 변수 한정자 '{0}'은(는) '{1}'을(를) 따를 수 없습니다.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_BadPatternExpression">
         <source>Invalid operand for pattern match; value required, but found '{0}'.</source>
         <target state="translated">패턴 일치에 대한 피연산자가 잘못되었습니다. 값이 필요하지만 '{0}'을(를) 찾았습니다.</target>
@@ -1415,11 +1410,6 @@
       <trans-unit id="ERR_ScopedMismatchInParameterOfTarget">
         <source>The 'scoped' modifier of parameter '{0}' doesn't match target '{1}'.</source>
         <target state="translated">매개 변수 '{0}'의 '범위 지정' 한정자가 대상 '{1}'과(와) 일치하지 않습니다.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_ScopedNotBeforeType">
-        <source>Invalid use of contextual keyword 'scoped'. The keyword should immediately precede the type or 'ref' keyword.</source>
-        <target state="new">Invalid use of contextual keyword 'scoped'. The keyword should immediately precede the type or 'ref' keyword.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ScopedRefAndRefStructOnly">

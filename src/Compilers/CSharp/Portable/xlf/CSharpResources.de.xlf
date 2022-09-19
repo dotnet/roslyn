@@ -207,11 +207,6 @@
         <target state="translated">Der Operator "{0}" kann nicht auf den Operanden "{1}" angewendet werden.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_BadParameterModifiersOrder">
-        <source> The parameter modifier '{0}' cannot follow '{1}'</source>
-        <target state="translated"> Der Parametermodifizierer "{0}" kann nicht auf "{1}" folgen</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_BadPatternExpression">
         <source>Invalid operand for pattern match; value required, but found '{0}'.</source>
         <target state="translated">Ungültiger Operand für die Musterübereinstimmung. Ein Wert ist erforderlich, gefunden wurde aber "{0}".</target>
@@ -1415,11 +1410,6 @@
       <trans-unit id="ERR_ScopedMismatchInParameterOfTarget">
         <source>The 'scoped' modifier of parameter '{0}' doesn't match target '{1}'.</source>
         <target state="translated">Der 'Scoped'-Modifikator des Parameters '{0}' stimmt nicht mit dem Ziel '{1}' überein.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_ScopedNotBeforeType">
-        <source>Invalid use of contextual keyword 'scoped'. The keyword should immediately precede the type or 'ref' keyword.</source>
-        <target state="new">Invalid use of contextual keyword 'scoped'. The keyword should immediately precede the type or 'ref' keyword.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ScopedRefAndRefStructOnly">
