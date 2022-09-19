@@ -10,19 +10,19 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
 {
-    internal class IncrementalAnalyzerProviderMetadata : WorkspaceKindMetadata
+    internal class UnitTestingIncrementalAnalyzerProviderMetadata : WorkspaceKindMetadata
     {
         public bool HighPriorityForActiveFile { get; }
         public string Name { get; }
 
-        public IncrementalAnalyzerProviderMetadata(IDictionary<string, object> data)
+        public UnitTestingIncrementalAnalyzerProviderMetadata(IDictionary<string, object> data)
             : base(data)
         {
             this.HighPriorityForActiveFile = (bool)data.GetValueOrDefault("HighPriorityForActiveFile");
             this.Name = (string)data.GetValueOrDefault("Name");
         }
 
-        public IncrementalAnalyzerProviderMetadata(string name, bool highPriorityForActiveFile, params string[] workspaceKinds)
+        public UnitTestingIncrementalAnalyzerProviderMetadata(string name, bool highPriorityForActiveFile, params string[] workspaceKinds)
             : base(workspaceKinds)
         {
             this.HighPriorityForActiveFile = highPriorityForActiveFile;
@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
 
         public override bool Equals(object obj)
         {
-            return obj is IncrementalAnalyzerProviderMetadata metadata
+            return obj is UnitTestingIncrementalAnalyzerProviderMetadata metadata
                 && base.Equals(obj)
                 && HighPriorityForActiveFile == metadata.HighPriorityForActiveFile
                 && Name == metadata.Name;

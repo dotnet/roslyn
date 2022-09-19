@@ -16,6 +16,6 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
         void Register(Workspace workspace);
         void Unregister(Workspace workspace, bool blockingShutdown = false);
 
-        void AddAnalyzerProvider(IUnitTestingIncrementalAnalyzerProvider provider, IncrementalAnalyzerProviderMetadata metadata);
+        void AddAnalyzerProvider(IUnitTestingIncrementalAnalyzerProvider provider, UnitTestingIncrementalAnalyzerProviderMetadata metadata);
     }
 }
