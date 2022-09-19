@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                     return registration._progressReporter;
                 }
 
-                return NullReporter.Instance;
+                return UnitTestingNullReporter.Instance;
             }
         }
     }

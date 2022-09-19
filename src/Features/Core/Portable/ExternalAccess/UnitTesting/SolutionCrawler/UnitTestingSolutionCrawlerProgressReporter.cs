@@ -94,9 +94,9 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
         /// <summary>
         /// reporter that doesn't do anything
         /// </summary>
-        private class NullReporter : IUnitTestingSolutionCrawlerProgressReporter
+        private class UnitTestingNullReporter : IUnitTestingSolutionCrawlerProgressReporter
         {
-            public static readonly NullReporter Instance = new();
+            public static readonly UnitTestingNullReporter Instance = new();
 
             public bool InProgress => false;
 
