@@ -6,7 +6,7 @@ using System;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
 {
-    internal static class SolutionCrawlerTimeSpan
+    internal static class UnitTestingSolutionCrawlerTimeSpan
     {
         public static readonly TimeSpan ActiveFileWorkerBackOff = TimeSpan.FromMilliseconds(100);
         public static readonly TimeSpan AllFilesWorkerBackOff = TimeSpan.FromMilliseconds(1500);

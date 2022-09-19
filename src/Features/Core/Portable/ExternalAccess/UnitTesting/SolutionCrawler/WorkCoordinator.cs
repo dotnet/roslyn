@@ -54,16 +54,16 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
 
                 _eventProcessingQueue = new TaskQueue(listener, TaskScheduler.Default);
 
-                var activeFileBackOffTimeSpan = SolutionCrawlerTimeSpan.ActiveFileWorkerBackOff;
-                var allFilesWorkerBackOffTimeSpan = SolutionCrawlerTimeSpan.AllFilesWorkerBackOff;
-                var entireProjectWorkerBackOffTimeSpan = SolutionCrawlerTimeSpan.EntireProjectWorkerBackOff;
+                var activeFileBackOffTimeSpan = UnitTestingSolutionCrawlerTimeSpan.ActiveFileWorkerBackOff;
+                var allFilesWorkerBackOffTimeSpan = UnitTestingSolutionCrawlerTimeSpan.AllFilesWorkerBackOff;
+                var entireProjectWorkerBackOffTimeSpan = UnitTestingSolutionCrawlerTimeSpan.EntireProjectWorkerBackOff;
 
                 _documentAndProjectWorkerProcessor = new IncrementalAnalyzerProcessor(
                     listener, analyzerProviders, initializeLazily, _registration,
                     activeFileBackOffTimeSpan, allFilesWorkerBackOffTimeSpan, entireProjectWorkerBackOffTimeSpan, _shutdownToken);
 
-                var semanticBackOffTimeSpan = SolutionCrawlerTimeSpan.SemanticChangeBackOff;
-                var projectBackOffTimeSpan = SolutionCrawlerTimeSpan.ProjectPropagationBackOff;
+                var semanticBackOffTimeSpan = UnitTestingSolutionCrawlerTimeSpan.SemanticChangeBackOff;
+                var projectBackOffTimeSpan = UnitTestingSolutionCrawlerTimeSpan.ProjectPropagationBackOff;
 
                 _semanticChangeProcessor = new SemanticChangeProcessor(listener, _registration, _documentAndProjectWorkerProcessor, semanticBackOffTimeSpan, projectBackOffTimeSpan, _shutdownToken);
 
