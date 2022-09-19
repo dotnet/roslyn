@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                 }
             }
 
-            public ISolutionCrawlerProgressReporter GetProgressReporter(Workspace workspace)
+            public IUnitTestingSolutionCrawlerProgressReporter GetProgressReporter(Workspace workspace)
             {
                 // if solution crawler doesn't exist for the given workspace, return null reporter
                 if (workspace.Services.GetService<ISolutionCrawlerRegistrationService>() is SolutionCrawlerRegistrationService registration)

@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
         /// due to how solution cralwer calls Start/Stop (see caller of those 2), those 2 can't have a race
         /// and that is all we care for this reporter
         /// </summary>
-        internal sealed class SolutionCrawlerProgressReporter : ISolutionCrawlerProgressReporter
+        internal sealed class SolutionCrawlerProgressReporter : IUnitTestingSolutionCrawlerProgressReporter
         {
             // we use ref count here since solution crawler has multiple queues per priority
             // where an item can be enqueued and dequeued independently. 
@@ -94,7 +94,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
         /// <summary>
         /// reporter that doesn't do anything
         /// </summary>
-        private class NullReporter : ISolutionCrawlerProgressReporter
+        private class NullReporter : IUnitTestingSolutionCrawlerProgressReporter
         {
             public static readonly NullReporter Instance = new();
 

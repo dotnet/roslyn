@@ -9,7 +9,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
     /// <summary>
     /// Provide a way to see whether solution crawler is started or not
     /// </summary>
-    internal interface ISolutionCrawlerProgressReporter
+    internal interface IUnitTestingSolutionCrawlerProgressReporter
     {
         /// <summary>
         /// Return true if solution crawler is in progress.

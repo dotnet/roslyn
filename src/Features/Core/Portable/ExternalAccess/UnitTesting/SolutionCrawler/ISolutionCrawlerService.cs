@@ -19,8 +19,8 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
         void Reanalyze(Workspace workspace, IUnitTestingIncrementalAnalyzer analyzer, IEnumerable<ProjectId>? projectIds = null, IEnumerable<DocumentId>? documentIds = null, bool highPriority = false);
 
         /// <summary>
-        /// Get <see cref="ISolutionCrawlerProgressReporter"/> for the given <see cref="Workspace"/>
+        /// Get <see cref="IUnitTestingSolutionCrawlerProgressReporter"/> for the given <see cref="Workspace"/>
         /// </summary>
-        ISolutionCrawlerProgressReporter GetProgressReporter(Workspace workspace);
+        IUnitTestingSolutionCrawlerProgressReporter GetProgressReporter(Workspace workspace);
     }
 }
