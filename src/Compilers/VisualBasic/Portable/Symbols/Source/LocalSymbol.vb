@@ -404,6 +404,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
+        Private ReadOnly Property ILocalSymbol_IsForEach As Boolean Implements ILocalSymbol.IsForEach
+            Get
+                Return Me.IsForEach
+            End Get
+        End Property
+
+        Private ReadOnly Property ILocalSymbol_IsUsing As Boolean Implements ILocalSymbol.IsUsing
+            Get
+                Return Me.IsUsing
+            End Get
+        End Property
+
 #End Region
 
 
