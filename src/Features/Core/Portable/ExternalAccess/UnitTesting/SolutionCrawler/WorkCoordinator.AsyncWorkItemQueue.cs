@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
     {
         internal partial class UnitTestingWorkCoordinator
         {
-            private abstract class AsyncWorkItemQueue<TKey> : IDisposable
+            private abstract class UnitTestingAsyncWorkItemQueue<TKey> : IDisposable
                 where TKey : class
             {
                 private readonly object _gate = new();
@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                 // map containing cancellation source for the item given out.
                 private readonly Dictionary<object, CancellationTokenSource> _cancellationMap = new();
 
-                public AsyncWorkItemQueue(UnitTestingSolutionCrawlerProgressReporter progressReporter, Workspace workspace)
+                public UnitTestingAsyncWorkItemQueue(UnitTestingSolutionCrawlerProgressReporter progressReporter, Workspace workspace)
                 {
                     _semaphore = new SemaphoreSlim(initialCount: 0);
 

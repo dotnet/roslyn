@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
     {
         internal partial class UnitTestingWorkCoordinator
         {
-            private sealed class UnitTestingAsyncProjectWorkItemQueue : AsyncWorkItemQueue<ProjectId>
+            private sealed class UnitTestingAsyncProjectWorkItemQueue : UnitTestingAsyncWorkItemQueue<ProjectId>
             {
                 private readonly Dictionary<ProjectId, WorkItem> _projectWorkQueue = new();
 
