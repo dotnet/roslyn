@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                         : base(listener, processor, lazyAnalyzers, globalOperationNotificationService, backOffTimeSpan, shutdownToken)
                     {
                         _running = Task.CompletedTask;
-                        _workItemQueue = new UnitTestingAsyncDocumentWorkItemQueue(processor._registration.ProgressReporter, processor._registration.Workspace);
+                        _workItemQueue = new UnitTestingAsyncDocumentWorkItemQueue(processor._registration.ProgressReporter);
                         _higherPriorityDocumentsNotProcessed = new ConcurrentDictionary<DocumentId, IDisposable?>(concurrencyLevel: 2, capacity: 20);
 
                         _currentProjectProcessing = null;

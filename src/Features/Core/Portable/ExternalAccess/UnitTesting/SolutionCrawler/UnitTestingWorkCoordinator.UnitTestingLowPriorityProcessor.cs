@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                         CancellationToken shutdownToken)
                         : base(listener, processor, lazyAnalyzers, globalOperationNotificationService, backOffTimeSpan, shutdownToken)
                     {
-                        _workItemQueue = new UnitTestingAsyncProjectWorkItemQueue(processor._registration.ProgressReporter, processor._registration.Workspace);
+                        _workItemQueue = new UnitTestingAsyncProjectWorkItemQueue(processor._registration.ProgressReporter);
 
                         Start();
                     }

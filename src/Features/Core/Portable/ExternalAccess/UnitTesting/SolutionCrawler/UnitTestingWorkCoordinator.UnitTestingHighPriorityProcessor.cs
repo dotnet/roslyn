@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                         _lazyAnalyzers = lazyAnalyzers;
 
                         _running = Task.CompletedTask;
-                        _workItemQueue = new UnitTestingAsyncDocumentWorkItemQueue(processor._registration.ProgressReporter, processor._registration.Workspace);
+                        _workItemQueue = new UnitTestingAsyncDocumentWorkItemQueue(processor._registration.ProgressReporter);
 
                         Start();
                     }

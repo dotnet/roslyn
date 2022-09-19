@@ -19,8 +19,8 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
             {
                 private readonly Dictionary<ProjectId, UnitTestingWorkItem> _projectWorkQueue = new();
 
-                public UnitTestingAsyncProjectWorkItemQueue(UnitTestingSolutionCrawlerProgressReporter progressReporter, Workspace workspace)
-                    : base(progressReporter, workspace)
+                public UnitTestingAsyncProjectWorkItemQueue(UnitTestingSolutionCrawlerProgressReporter progressReporter)
+                    : base(progressReporter)
                 {
                 }
 

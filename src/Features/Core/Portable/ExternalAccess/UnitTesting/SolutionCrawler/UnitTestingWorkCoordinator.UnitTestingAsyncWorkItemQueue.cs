@@ -24,17 +24,15 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                 private readonly SemaphoreSlim _semaphore;
                 private bool _disposed;
 
-                private readonly Workspace _workspace;
                 private readonly UnitTestingSolutionCrawlerProgressReporter _progressReporter;
 
                 // map containing cancellation source for the item given out.
                 private readonly Dictionary<object, CancellationTokenSource> _cancellationMap = new();
 
-                public UnitTestingAsyncWorkItemQueue(UnitTestingSolutionCrawlerProgressReporter progressReporter, Workspace workspace)
+                public UnitTestingAsyncWorkItemQueue(UnitTestingSolutionCrawlerProgressReporter progressReporter)
                 {
                     _semaphore = new SemaphoreSlim(initialCount: 0);
 
-                    _workspace = workspace;
                     _progressReporter = progressReporter;
                 }
 
@@ -157,8 +155,6 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                     RaiseCancellation_NoLock(cancellations);
                 }
 
-                protected Workspace Workspace => _workspace;
-
                 private static void RaiseCancellation_NoLock(List<CancellationTokenSource>? cancellations)
                 {
                     if (cancellations == null)
@@ -259,6 +255,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                             return projectId;
                         }
 
+#if false // Not used in unit testing crawling
                         // prefer project that directly depends on the given project and has diagnostics as next project to
                         // process
                         foreach (var dependingProjectId in dependencyGraph.GetProjectsThatDirectlyDependOnThisProject(projectId))
@@ -268,8 +265,10 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                                 return dependingProjectId;
                             }
                         }
+#endif
                     }
 
+#if false // Not used in unit testing crawling
                     // prefer a project that has diagnostics as next project to process.
                     foreach (var pendingProjectId in workQueue.Keys)
                     {
@@ -278,6 +277,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                             return pendingProjectId;
                         }
                     }
+#endif
 
                     // explicitly iterate so that we can use struct enumerator
                     foreach (var pair in workQueue)
