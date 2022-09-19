@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Runtime.Serialization;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
@@ -13,14 +14,17 @@ namespace Microsoft.CodeAnalysis
     /// An identifier that can be used to refer to the same <see cref="Project"/> across versions.
     /// </summary>
     [DebuggerDisplay("{GetDebuggerDisplay(),nq}")]
+    [DataContract]
     public sealed class ProjectId : IEquatable<ProjectId>, IObjectWritable
     {
-        private readonly string? _debugName;
-
         /// <summary>
         /// The system generated unique id.
         /// </summary>
+        [DataMember(Order = 0)]
         public Guid Id { get; }
+
+        [DataMember(Order = 1)]
+        private readonly string? _debugName;
 
         private ProjectId(Guid guid, string? debugName)
         {
