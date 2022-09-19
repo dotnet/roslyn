@@ -7,6 +7,9 @@ Imports Microsoft.CodeAnalysis.Text
 Namespace Microsoft.CodeAnalysis.VisualBasic
 
     Partial Public MustInherit Class VisualBasicSyntaxTree
+        ''' <summary>
+        ''' Use by Expression Evaluator.
+        ''' </summary>
         Private NotInheritable Class DebuggerSyntaxTree
             Inherits ParsedSyntaxTree
 

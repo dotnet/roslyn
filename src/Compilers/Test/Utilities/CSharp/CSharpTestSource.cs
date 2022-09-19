@@ -49,7 +49,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             var root = tree.GetRoot();
             root.SerializeTo(stream);
             stream.Position = 0;
-            CSharpSyntaxNode.DeserializeFrom(stream);
+
+            // verify absence of exception:
+            _ = CSharpSyntaxNode.DeserializeFrom(stream);
         }
 
         public SyntaxTree[] GetSyntaxTrees(CSharpParseOptions parseOptions, string sourceFileName = "")

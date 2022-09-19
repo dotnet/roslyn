@@ -32,6 +32,8 @@ Public Structure BasicTestSource
             Dim root = tree.GetRoot()
             root.SerializeTo(stream)
             stream.Position = 0
+
+            ' verify absence of exception
             VisualBasicSyntaxNode.DeserializeFrom(stream)
         End Using
     End Sub

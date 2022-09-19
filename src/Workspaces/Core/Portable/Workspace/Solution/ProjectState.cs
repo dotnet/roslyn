@@ -694,38 +694,55 @@ namespace Microsoft.CodeAnalysis
         internal ProjectInfo.ProjectAttributes Attributes
             => ProjectInfo.Attributes;
 
-        private ProjectState WithRawAttributes(ProjectInfo.ProjectAttributes attributes)
-            => With(projectInfo: ProjectInfo.With(attributes: attributes));
+        /// <summary>
+        /// Updates <see cref="ProjectInfo"/> to a newer version of attributes.
+        /// </summary>
+        private ProjectState WithNewerAttributes(ProjectInfo.ProjectAttributes attributes)
+        {
+            // version must have already been updated:
+            Debug.Assert(attributes.Version != Attributes.Version);
 
-        public ProjectState WithAttributes(ProjectInfo.ProjectAttributes attributes)
-            => (attributes == Attributes) ? this : WithRawAttributes(attributes.With(version: Version.GetNewerVersion()));
+            return With(projectInfo: ProjectInfo.With(attributes: attributes));
+        }
+
+        public ProjectState WithAttributes(ProjectInfo.ProjectAttributes attributes, bool updateDocuments)
+        {
+            if (attributes == Attributes)
+            {
+                return this;
+            }
+
+            return With(
+                projectInfo: ProjectInfo.With(attributes: attributes.With(version: Version.GetNewerVersion())),
+                documentStates: updateDocuments ? UpdateDocumentsChecksumAlgorithm(attributes.ChecksumAlgorithm) : null);
+        }
 
         public ProjectState WithName(string name)
-            => (name == Name) ? this : WithRawAttributes(Attributes.With(name: name, version: Version.GetNewerVersion()));
+            => (name == Name) ? this : WithNewerAttributes(Attributes.With(name: name, version: Version.GetNewerVersion()));
 
         public ProjectState WithFilePath(string? filePath)
-            => (filePath == FilePath) ? this : WithRawAttributes(Attributes.With(filePath: filePath, version: Version.GetNewerVersion()));
+            => (filePath == FilePath) ? this : WithNewerAttributes(Attributes.With(filePath: filePath, version: Version.GetNewerVersion()));
 
         public ProjectState WithAssemblyName(string assemblyName)
-            => (assemblyName == AssemblyName) ? this : WithRawAttributes(Attributes.With(assemblyName: assemblyName, version: Version.GetNewerVersion()));
+            => (assemblyName == AssemblyName) ? this : WithNewerAttributes(Attributes.With(assemblyName: assemblyName, version: Version.GetNewerVersion()));
 
         public ProjectState WithOutputFilePath(string? outputFilePath)
-            => (outputFilePath == OutputFilePath) ? this : WithRawAttributes(Attributes.With(outputPath: outputFilePath, version: Version.GetNewerVersion()));
+            => (outputFilePath == OutputFilePath) ? this : WithNewerAttributes(Attributes.With(outputPath: outputFilePath, version: Version.GetNewerVersion()));
 
         public ProjectState WithOutputRefFilePath(string? outputRefFilePath)
-            => (outputRefFilePath == OutputRefFilePath) ? this : WithRawAttributes(Attributes.With(outputRefPath: outputRefFilePath, version: Version.GetNewerVersion()));
+            => (outputRefFilePath == OutputRefFilePath) ? this : WithNewerAttributes(Attributes.With(outputRefPath: outputRefFilePath, version: Version.GetNewerVersion()));
 
         public ProjectState WithCompilationOutputInfo(in CompilationOutputInfo info)
-            => (info == CompilationOutputInfo) ? this : WithRawAttributes(Attributes.With(compilationOutputInfo: info, version: Version.GetNewerVersion()));
+            => (info == CompilationOutputInfo) ? this : WithNewerAttributes(Attributes.With(compilationOutputInfo: info, version: Version.GetNewerVersion()));
 
         public ProjectState WithDefaultNamespace(string? defaultNamespace)
-            => (defaultNamespace == DefaultNamespace) ? this : WithRawAttributes(Attributes.With(defaultNamespace: defaultNamespace, version: Version.GetNewerVersion()));
+            => (defaultNamespace == DefaultNamespace) ? this : WithNewerAttributes(Attributes.With(defaultNamespace: defaultNamespace, version: Version.GetNewerVersion()));
 
         public ProjectState WithHasAllInformation(bool hasAllInformation)
-            => (hasAllInformation == HasAllInformation) ? this : WithRawAttributes(Attributes.With(hasAllInformation: hasAllInformation, version: Version.GetNewerVersion()));
+            => (hasAllInformation == HasAllInformation) ? this : WithNewerAttributes(Attributes.With(hasAllInformation: hasAllInformation, version: Version.GetNewerVersion()));
 
         public ProjectState WithRunAnalyzers(bool runAnalyzers)
-            => (runAnalyzers == RunAnalyzers) ? this : WithRawAttributes(Attributes.With(runAnalyzers: runAnalyzers, version: Version.GetNewerVersion()));
+            => (runAnalyzers == RunAnalyzers) ? this : WithNewerAttributes(Attributes.With(runAnalyzers: runAnalyzers, version: Version.GetNewerVersion()));
 
         public ProjectState WithChecksumAlgorithm(SourceHashAlgorithm checksumAlgorithm)
         {
@@ -734,11 +751,16 @@ namespace Microsoft.CodeAnalysis
                 return this;
             }
 
-            // Update checksum algorithm of all documents backed by a text loader that supports reloading the content and calculating a new checksum (e.g. file loader).
             return With(
-                projectInfo: ProjectInfo.WithChecksumAlgorithm(checksumAlgorithm).WithVersion(Version.GetNewerVersion()),
-                documentStates: DocumentStates.UpdateStates(static (state, checksumAlgorithm) => state.UpdateChecksumAlgorithm(checksumAlgorithm), checksumAlgorithm));
+                projectInfo: ProjectInfo.With(attributes: Attributes.With(checksumAlgorithm: checksumAlgorithm, version: Version.GetNewerVersion())),
+                documentStates: UpdateDocumentsChecksumAlgorithm(checksumAlgorithm));
         }
+
+        /// <summary>
+        /// Update checksum algorithm of all documents backed by a text loader that supports reloading the content and calculating a new checksum (e.g. file loader).
+        /// </summary>
+        private TextDocumentStates<DocumentState> UpdateDocumentsChecksumAlgorithm(SourceHashAlgorithm checksumAlgorithm)
+            => DocumentStates.UpdateStates(static (state, checksumAlgorithm) => state.UpdateChecksumAlgorithm(checksumAlgorithm), checksumAlgorithm);
 
         public ProjectState WithCompilationOptions(CompilationOptions options)
         {
