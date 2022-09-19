@@ -24,7 +24,6 @@ namespace Microsoft.CodeAnalysis.SolutionEvents
     {
         private readonly IGlobalOptionService _globalOptions;
         private readonly IThreadingContext _threadingContext;
-        private readonly ISolutionEventsAggregationService _aggregationService;
         private readonly AsyncBatchingWorkQueue<SolutionEvent> _eventQueue;
 
         [ImportingConstructor]
@@ -32,12 +31,10 @@ namespace Microsoft.CodeAnalysis.SolutionEvents
         public HostSolutionEventsWorkspaceEventListener(
             IGlobalOptionService globalOptions,
             IThreadingContext threadingContext,
-            ISolutionEventsAggregationService notificationService,
             IAsynchronousOperationListenerProvider listenerProvider)
         {
             _globalOptions = globalOptions;
             _threadingContext = threadingContext;
-            _aggregationService = notificationService;
             _eventQueue = new AsyncBatchingWorkQueue<SolutionEvent>(
                 DelayTimeSpan.Medium,
                 ProcessWorkspaceChangeEventsAsync,
@@ -78,33 +75,36 @@ namespace Microsoft.CodeAnalysis.SolutionEvents
             var workspace = events[0].Workspace;
             Contract.ThrowIfTrue(events.Any(e => e.Workspace != workspace));
 
+            var aggregationService = workspace.Services.GetRequiredService<ISolutionEventsAggregationService>();
             var client = await RemoteHostClient.TryGetClientAsync(workspace, cancellationToken).ConfigureAwait(false);
-            await ProcessWorkspaceChangeEventsAsync(client, events, cancellationToken).ConfigureAwait(false);
+            await ProcessWorkspaceChangeEventsAsync(client, aggregationService, events, cancellationToken).ConfigureAwait(false);
         }
 
         private async Task ProcessWorkspaceChangeEventsAsync(
             RemoteHostClient? client,
+            ISolutionEventsAggregationService aggregationService,
             ImmutableSegmentedList<SolutionEvent> events,
             CancellationToken cancellationToken)
         {
             foreach (var ev in events)
-                await ProcessWorkspaceChangeEventAsync(client, ev, cancellationToken).ConfigureAwait(false);
+                await ProcessWorkspaceChangeEventAsync(client, aggregationService, ev, cancellationToken).ConfigureAwait(false);
         }
 
         private async ValueTask ProcessWorkspaceChangeEventAsync(
             RemoteHostClient? client,
+            ISolutionEventsAggregationService aggregationService,
             SolutionEvent ev,
             CancellationToken cancellationToken)
         {
             if (ev.DocumentOpenArgs != null)
             {
                 var openArgs = ev.DocumentOpenArgs;
-                await EnqueueFullDocumentEventAsync(client, openArgs.Document.Project.Solution, openArgs.Document.Id, InvocationReasons.DocumentOpened, cancellationToken).ConfigureAwait(false);
+                await EnqueueFullDocumentEventAsync(client, aggregationService, openArgs.Document.Project.Solution, openArgs.Document.Id, InvocationReasons.DocumentOpened, cancellationToken).ConfigureAwait(false);
             }
             else if (ev.DocumentCloseArgs != null)
             {
                 var closeArgs = ev.DocumentCloseArgs;
-                await EnqueueFullDocumentEventAsync(client, closeArgs.Document.Project.Solution, closeArgs.Document.Id, InvocationReasons.DocumentClosed, cancellationToken).ConfigureAwait(false);
+                await EnqueueFullDocumentEventAsync(client, aggregationService, closeArgs.Document.Project.Solution, closeArgs.Document.Id, InvocationReasons.DocumentClosed, cancellationToken).ConfigureAwait(false);
             }
             else
             {
@@ -113,49 +113,49 @@ namespace Microsoft.CodeAnalysis.SolutionEvents
                 switch (args.Kind)
                 {
                     case WorkspaceChangeKind.SolutionAdded:
-                        await EnqueueFullSolutionEventAsync(client, args.NewSolution, InvocationReasons.DocumentAdded, cancellationToken).ConfigureAwait(false);
+                        await EnqueueFullSolutionEventAsync(client, aggregationService, args.NewSolution, InvocationReasons.DocumentAdded, cancellationToken).ConfigureAwait(false);
                         break;
 
                     case WorkspaceChangeKind.SolutionCleared:
                     case WorkspaceChangeKind.SolutionRemoved:
-                        await EnqueueFullSolutionEventAsync(client, args.OldSolution, InvocationReasons.SolutionRemoved, cancellationToken).ConfigureAwait(false);
+                        await EnqueueFullSolutionEventAsync(client, aggregationService, args.OldSolution, InvocationReasons.SolutionRemoved, cancellationToken).ConfigureAwait(false);
                         break;
 
                     case WorkspaceChangeKind.SolutionChanged:
                     case WorkspaceChangeKind.SolutionReloaded:
-                        await EnqueueSolutionChangedEventAsync(client, args.OldSolution, args.NewSolution, cancellationToken).ConfigureAwait(false);
+                        await EnqueueSolutionChangedEventAsync(client, aggregationService, args.OldSolution, args.NewSolution, cancellationToken).ConfigureAwait(false);
                         break;
 
                     case WorkspaceChangeKind.ProjectAdded:
                         Contract.ThrowIfNull(args.ProjectId);
-                        await EnqueueFullProjectEventAsync(client, args.NewSolution, args.ProjectId, InvocationReasons.DocumentAdded, cancellationToken).ConfigureAwait(false);
+                        await EnqueueFullProjectEventAsync(client, aggregationService, args.NewSolution, args.ProjectId, InvocationReasons.DocumentAdded, cancellationToken).ConfigureAwait(false);
                         break;
 
                     case WorkspaceChangeKind.ProjectRemoved:
                         Contract.ThrowIfNull(args.ProjectId);
-                        await EnqueueFullProjectEventAsync(client, args.OldSolution, args.ProjectId, InvocationReasons.DocumentRemoved, cancellationToken).ConfigureAwait(false);
+                        await EnqueueFullProjectEventAsync(client, aggregationService, args.OldSolution, args.ProjectId, InvocationReasons.DocumentRemoved, cancellationToken).ConfigureAwait(false);
                         break;
 
                     case WorkspaceChangeKind.ProjectChanged:
                     case WorkspaceChangeKind.ProjectReloaded:
                         Contract.ThrowIfNull(args.ProjectId);
-                        await EnqueueProjectChangedEventAsync(client, args.OldSolution, args.NewSolution, args.ProjectId, cancellationToken).ConfigureAwait(false);
+                        await EnqueueProjectChangedEventAsync(client, aggregationService, args.OldSolution, args.NewSolution, args.ProjectId, cancellationToken).ConfigureAwait(false);
                         break;
 
                     case WorkspaceChangeKind.DocumentAdded:
                         Contract.ThrowIfNull(args.DocumentId);
-                        await EnqueueFullDocumentEventAsync(client, args.NewSolution, args.DocumentId, InvocationReasons.DocumentAdded, cancellationToken).ConfigureAwait(false);
+                        await EnqueueFullDocumentEventAsync(client, aggregationService, args.NewSolution, args.DocumentId, InvocationReasons.DocumentAdded, cancellationToken).ConfigureAwait(false);
                         break;
 
                     case WorkspaceChangeKind.DocumentRemoved:
                         Contract.ThrowIfNull(args.DocumentId);
-                        await EnqueueFullDocumentEventAsync(client, args.OldSolution, args.DocumentId, InvocationReasons.DocumentRemoved, cancellationToken).ConfigureAwait(false);
+                        await EnqueueFullDocumentEventAsync(client, aggregationService, args.OldSolution, args.DocumentId, InvocationReasons.DocumentRemoved, cancellationToken).ConfigureAwait(false);
                         break;
 
                     case WorkspaceChangeKind.DocumentChanged:
                     case WorkspaceChangeKind.DocumentReloaded:
                         Contract.ThrowIfNull(args.DocumentId);
-                        await EnqueueDocumentChangedEventAsync(client, args.OldSolution, args.NewSolution, args.DocumentId, cancellationToken).ConfigureAwait(false);
+                        await EnqueueDocumentChangedEventAsync(client, aggregationService, args.OldSolution, args.NewSolution, args.DocumentId, cancellationToken).ConfigureAwait(false);
                         break;
 
                     case WorkspaceChangeKind.AdditionalDocumentAdded:
@@ -168,7 +168,7 @@ namespace Microsoft.CodeAnalysis.SolutionEvents
                     case WorkspaceChangeKind.AnalyzerConfigDocumentReloaded:
                         // If an additional file or .editorconfig has changed we need to reanalyze the entire project.
                         Contract.ThrowIfNull(args.ProjectId);
-                        await EnqueueFullProjectEventAsync(client, args.NewSolution, args.ProjectId, InvocationReasons.AdditionalDocumentChanged, cancellationToken).ConfigureAwait(false);
+                        await EnqueueFullProjectEventAsync(client, aggregationService, args.NewSolution, args.ProjectId, InvocationReasons.AdditionalDocumentChanged, cancellationToken).ConfigureAwait(false);
                         break;
 
                 }
@@ -177,13 +177,14 @@ namespace Microsoft.CodeAnalysis.SolutionEvents
 
         private async ValueTask EnqueueFullSolutionEventAsync(
             RemoteHostClient? client,
+            ISolutionEventsAggregationService aggregationService,
             Solution solution,
             InvocationReasons reasons,
             CancellationToken cancellationToken)
         {
             if (client == null)
             {
-                await _aggregationService.OnSolutionEventAsync(solution, reasons, cancellationToken).ConfigureAwait(false);
+                await aggregationService.OnSolutionEventAsync(solution, reasons, cancellationToken).ConfigureAwait(false);
             }
             else
             {
@@ -196,6 +197,7 @@ namespace Microsoft.CodeAnalysis.SolutionEvents
 
         private async ValueTask EnqueueFullProjectEventAsync(
             RemoteHostClient? client,
+            ISolutionEventsAggregationService aggregationService,
             Solution solution,
             ProjectId projectId,
             InvocationReasons reasons,
@@ -203,7 +205,7 @@ namespace Microsoft.CodeAnalysis.SolutionEvents
         {
             if (client == null)
             {
-                await _aggregationService.OnProjectEventAsync(solution, projectId, reasons, cancellationToken).ConfigureAwait(false);
+                await aggregationService.OnProjectEventAsync(solution, projectId, reasons, cancellationToken).ConfigureAwait(false);
             }
             else
             {
@@ -216,6 +218,7 @@ namespace Microsoft.CodeAnalysis.SolutionEvents
 
         private async ValueTask EnqueueFullDocumentEventAsync(
             RemoteHostClient? client,
+            ISolutionEventsAggregationService aggregationService,
             Solution solution,
             DocumentId documentId,
             InvocationReasons reasons,
@@ -223,7 +226,7 @@ namespace Microsoft.CodeAnalysis.SolutionEvents
         {
             if (client == null)
             {
-                await _aggregationService.OnDocumentEventAsync(solution, documentId, reasons, cancellationToken).ConfigureAwait(false);
+                await aggregationService.OnDocumentEventAsync(solution, documentId, reasons, cancellationToken).ConfigureAwait(false);
             }
             else
             {
@@ -236,13 +239,14 @@ namespace Microsoft.CodeAnalysis.SolutionEvents
 
         private async ValueTask EnqueueSolutionChangedEventAsync(
             RemoteHostClient? client,
+            ISolutionEventsAggregationService aggregationService,
             Solution oldSolution,
             Solution newSolution,
             CancellationToken cancellationToken)
         {
             if (client == null)
             {
-                await _aggregationService.OnSolutionChangedAsync(oldSolution, newSolution, cancellationToken).ConfigureAwait(false);
+                await aggregationService.OnSolutionChangedAsync(oldSolution, newSolution, cancellationToken).ConfigureAwait(false);
             }
             else
             {
@@ -256,6 +260,7 @@ namespace Microsoft.CodeAnalysis.SolutionEvents
 
         private async ValueTask EnqueueProjectChangedEventAsync(
             RemoteHostClient? client,
+            ISolutionEventsAggregationService aggregationService,
             Solution oldSolution,
             Solution newSolution,
             ProjectId projectId,
@@ -263,7 +268,7 @@ namespace Microsoft.CodeAnalysis.SolutionEvents
         {
             if (client == null)
             {
-                await _aggregationService.OnProjectChangedAsync(oldSolution, newSolution, projectId, cancellationToken).ConfigureAwait(false);
+                await aggregationService.OnProjectChangedAsync(oldSolution, newSolution, projectId, cancellationToken).ConfigureAwait(false);
             }
             else
             {
@@ -277,6 +282,7 @@ namespace Microsoft.CodeAnalysis.SolutionEvents
 
         private async ValueTask EnqueueDocumentChangedEventAsync(
             RemoteHostClient? client,
+            ISolutionEventsAggregationService aggregationService,
             Solution oldSolution,
             Solution newSolution,
             DocumentId documentId,
@@ -284,7 +290,7 @@ namespace Microsoft.CodeAnalysis.SolutionEvents
         {
             if (client == null)
             {
-                await _aggregationService.OnDocumentChangedAsync(oldSolution, newSolution, documentId, cancellationToken).ConfigureAwait(false);
+                await aggregationService.OnDocumentChangedAsync(oldSolution, newSolution, documentId, cancellationToken).ConfigureAwait(false);
             }
             else
             {
