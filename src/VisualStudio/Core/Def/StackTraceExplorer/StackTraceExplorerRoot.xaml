@@ -149,17 +149,6 @@
                             </ControlTemplate>
                         </Setter.Value>
                     </Setter>
-                    <Setter Property="ContextMenu">
-                        <Setter.Value>
-                            <ContextMenu>
-                                <MenuItem Header="{Binding ElementName=Root, Path=CloseTab}" Command="{Binding CloseClick}">
-                                    <MenuItem.Icon>
-                                        <imaging:CrispImage Moniker="{x:Static imagecatalog:KnownMonikers.Close}" />
-                                    </MenuItem.Icon>
-                                </MenuItem>
-                            </ContextMenu>
-                        </Setter.Value>
-                    </Setter>
                 </Style>
             </TabControl.ItemContainerStyle>
         </TabControl>

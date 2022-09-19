@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis.StackTraceExplorer;
 using Microsoft.VisualStudio.LanguageServices.Setup;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
+using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.StackTraceExplorer
 {
@@ -153,12 +154,18 @@ namespace Microsoft.VisualStudio.LanguageServices.StackTraceExplorer
 
         private void Paste(object sender, EventArgs e)
         {
+            RoslynDebug.AssertNotNull(_instance);
 
+            var window = _instance.GetOrInitializeWindow();
+            window.Root?.ViewModel?.DoPasteSynchronously(default);
         }
 
         private void Clear(object sender, EventArgs e)
         {
+            RoslynDebug.AssertNotNull(_instance);
 
+            var window = _instance.GetOrInitializeWindow();
+            window.Root?.OnClear();
         }
 
         internal static void Initialize(OleMenuCommandService menuCommandService, RoslynPackage package)

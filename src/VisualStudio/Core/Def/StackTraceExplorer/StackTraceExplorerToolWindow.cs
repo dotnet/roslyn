@@ -152,7 +152,7 @@ namespace Microsoft.VisualStudio.LanguageServices.StackTraceExplorer
                     }
                 };
 
-                var refCommandId = new Guid(Guids.StackTraceExplorerCommandId.ToByteArray());
+                var refCommandId = new Guid(Guids.StackTraceExplorerCommandIdString);
                 var result = uiShell.ShowContextMenu(0, ref refCommandId, 0x0300, points, null);
                 Debug.Assert(result == S_OK);
             };
