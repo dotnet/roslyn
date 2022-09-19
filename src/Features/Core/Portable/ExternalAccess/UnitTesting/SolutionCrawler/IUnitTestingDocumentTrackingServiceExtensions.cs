@@ -11,7 +11,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
 {
-    internal static class IDocumentTrackingServiceExtensions
+    internal static class IUnitTestingDocumentTrackingServiceExtensions
     {
         /// <summary>
         /// Gets the active <see cref="Document"/> the user is currently working in. May be null if
