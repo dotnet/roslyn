@@ -18115,26 +18115,26 @@ public class C1
                 static bool condition() => false;
 
                 static void M1(ref S p1, ref S p2) {
-                    p2.field = ref p1.field; // 1
+                    p2.refField = ref p1.field; // 1
                     p2.refField = ref p1.refField; // Okay
                 }
 
                 static void M2(ref S p1, out S p2) {
                     p2 = default;
-                    p2.field = ref p1.field; // 2
+                    p2.refField = ref p1.field; // 2
                     p2.refField = ref p1.refField; // Okay
                 }
 
                 static void M3(out S p1, ref S p2) {
                     p1 = default;
-                    p2.field = ref p1.field; // 3
+                    p2.refField = ref p1.field; // 3
                     p2.refField = ref p1.refField; // Okay
                 }
 
                 // The [UnscopedRef] moves `out` to default RSTS which is *return only*
                 static void M4([UnscopedRef] out S p1, ref S p2) {
                     p1 = default;
-                    p2.field = ref p1.field; // 4
+                    p2.refField = ref p1.field; // 4
                     p2.refField = ref p1.refField; // Okay
                 }
 
@@ -18169,6 +18169,16 @@ public class C1
                     static S2 Inner2(scoped ref S s) => new S2 { S = s };
                 }
 
+                static S2 M9([UnscopedRef] ref S p) {
+                    if (condition()) return Inner1(ref p); // 9
+                    if (condition()) return Inner2(ref p); // Okay
+
+                    throw null!;
+
+                    static S2 Inner1([UnscopedRef] ref S s) => new S2 { S = s };
+                    static S2 Inner2(scoped ref S s) => new S2 { S = s };
+                }
+
                 ref struct S {
                     public int field;
                     public ref int refField;
@@ -18181,18 +18191,18 @@ public class C1
 
             var comp = CreateCompilation(new[] { source, UnscopedRefAttributeDefinition }, runtimeFeature: RuntimeFlag.ByRefFields);
             comp.VerifyDiagnostics(
-                // (7,5): error CS8373: The left-hand side of a ref assignment must be a ref variable.
-                //     p2.field = ref p1.field; // 1
-                Diagnostic(ErrorCode.ERR_RefLocalOrParamExpected, "p2.field").WithLocation(7, 5),
-                // (13,5): error CS8373: The left-hand side of a ref assignment must be a ref variable.
-                //     p2.field = ref p1.field; // 2
-                Diagnostic(ErrorCode.ERR_RefLocalOrParamExpected, "p2.field").WithLocation(13, 5),
-                // (19,5): error CS8373: The left-hand side of a ref assignment must be a ref variable.
-                //     p2.field = ref p1.field; // 3
-                Diagnostic(ErrorCode.ERR_RefLocalOrParamExpected, "p2.field").WithLocation(19, 5),
-                // (26,5): error CS8373: The left-hand side of a ref assignment must be a ref variable.
-                //     p2.field = ref p1.field; // 4
-                Diagnostic(ErrorCode.ERR_RefLocalOrParamExpected, "p2.field").WithLocation(26, 5),
+                // (7,5): error CS8374: Cannot ref-assign 'p1.field' to 'refField' because 'p1.field' has a narrower escape scope than 'refField'.
+                //     p2.refField = ref p1.field; // 1
+                Diagnostic(ErrorCode.ERR_RefAssignNarrower, "p2.refField = ref p1.field").WithArguments("refField", "p1.field").WithLocation(7, 5),
+                // (13,5): error CS8374: Cannot ref-assign 'p1.field' to 'refField' because 'p1.field' has a narrower escape scope than 'refField'.
+                //     p2.refField = ref p1.field; // 2
+                Diagnostic(ErrorCode.ERR_RefAssignNarrower, "p2.refField = ref p1.field").WithArguments("refField", "p1.field").WithLocation(13, 5),
+                // (19,5): error CS8374: Cannot ref-assign 'p1.field' to 'refField' because 'p1.field' has a narrower escape scope than 'refField'.
+                //     p2.refField = ref p1.field; // 3
+                Diagnostic(ErrorCode.ERR_RefAssignNarrower, "p2.refField = ref p1.field").WithArguments("refField", "p1.field").WithLocation(19, 5),
+                // (26,5): error CS9079: Cannot ref-assign 'p1.field' to 'refField' because 'p1.field' can only escape the current method through a return statement.
+                //     p2.refField = ref p1.field; // 4
+                Diagnostic(ErrorCode.ERR_RefAssignReturnOnly, "p2.refField = ref p1.field").WithArguments("refField", "p1.field").WithLocation(26, 5),
                 // (31,10): error CS8347: Cannot use a result of 'Inner1(ref S)' in this context because it may expose variables referenced by parameter 's' outside of their declaration scope
                 //     p2 = Inner1(ref p1); // 5
                 Diagnostic(ErrorCode.ERR_EscapeCall, "Inner1(ref p1)").WithArguments("Inner1(ref S)", "s").WithLocation(31, 10),
@@ -18235,20 +18245,20 @@ public class C1
                     public ref int refField;
 
                     void M1(ref S p) {
-                        p.field = ref this.field; // 1
+                        p.refField = ref this.field; // 1
                         p.refField = ref this.refField; // Okay
                     }
 
                     [UnscopedRef]
                     void M2(ref S p) {
-                        p.field = ref this.field; // 2
+                        p.refField = ref this.field; // 2
                         p.refField = ref this.refField; // Okay
                     }
 
                     [UnscopedRef]
                     void M3(out S p) {
                         p = default;
-                        p.field = ref this.field; // 3
+                        p.refField = ref this.field; // 3
                         p.refField = ref this.refField; // Okay
                     }
 
@@ -18270,15 +18280,15 @@ public class C1
 
             var comp = CreateCompilation(new[] { source, UnscopedRefAttributeDefinition }, runtimeFeature: RuntimeFlag.ByRefFields);
             comp.VerifyDiagnostics(
-                // (13,9): error CS8373: The left-hand side of a ref assignment must be a ref variable.
-                //         p.field = ref this.field; // 1
-                Diagnostic(ErrorCode.ERR_RefLocalOrParamExpected, "p.field").WithLocation(13, 9),
-                // (19,9): error CS8373: The left-hand side of a ref assignment must be a ref variable.
-                //         p.field = ref this.field; // 2
-                Diagnostic(ErrorCode.ERR_RefLocalOrParamExpected, "p.field").WithLocation(19, 9),
-                // (26,9): error CS8373: The left-hand side of a ref assignment must be a ref variable.
-                //         p.field = ref this.field; // 3
-                Diagnostic(ErrorCode.ERR_RefLocalOrParamExpected, "p.field").WithLocation(26, 9),
+                // (13,9): error CS8374: Cannot ref-assign 'this.field' to 'refField' because 'this.field' has a narrower escape scope than 'refField'.
+                //         p.refField = ref this.field; // 1
+                Diagnostic(ErrorCode.ERR_RefAssignNarrower, "p.refField = ref this.field").WithArguments("refField", "this.field").WithLocation(13, 9),
+                // (19,9): error CS9079: Cannot ref-assign 'this.field' to 'refField' because 'this.field' can only escape the current method through a return statement.
+                //         p.refField = ref this.field; // 2
+                Diagnostic(ErrorCode.ERR_RefAssignReturnOnly, "p.refField = ref this.field").WithArguments("refField", "this.field").WithLocation(19, 9),
+                // (26,9): error CS9079: Cannot ref-assign 'this.field' to 'refField' because 'this.field' can only escape the current method through a return statement.
+                //         p.refField = ref this.field; // 3
+                Diagnostic(ErrorCode.ERR_RefAssignReturnOnly, "p.refField = ref this.field").WithArguments("refField", "this.field").WithLocation(26, 9),
                 // (31,13): error CS8347: Cannot use a result of 'Inner1(ref S)' in this context because it may expose variables referenced by parameter 's' outside of their declaration scope
                 //         p = Inner1(ref this); // 4
                 Diagnostic(ErrorCode.ERR_EscapeCall, "Inner1(ref this)").WithArguments("Inner1(ref S)", "s").WithLocation(31, 13),
