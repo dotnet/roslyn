@@ -101,7 +101,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
 
                 _documentAndProjectWorkerProcessor.Shutdown();
 
-                SolutionCrawlerLogger.LogWorkCoordinatorShutdown(CorrelationId, _logAggregator);
+                UnitTestingSolutionCrawlerLogger.LogWorkCoordinatorShutdown(CorrelationId, _logAggregator);
 
                 if (blockingShutdown)
                 {
@@ -121,7 +121,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
 
                     if (!shutdownTask.IsCompleted)
                     {
-                        SolutionCrawlerLogger.LogWorkCoordinatorShutdownTimeout(CorrelationId);
+                        UnitTestingSolutionCrawlerLogger.LogWorkCoordinatorShutdownTimeout(CorrelationId);
                     }
                 }
 
@@ -141,7 +141,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                     // log big reanalysis request from things like fix all, suppress all or option changes
                     // we are not interested in 1 file re-analysis request which can happen from like venus typing
                     var solution = _registration.GetSolutionToAnalyze();
-                    SolutionCrawlerLogger.LogReanalyze(
+                    UnitTestingSolutionCrawlerLogger.LogReanalyze(
                         CorrelationId, analyzer, scope.GetDocumentCount(solution), scope.GetLanguagesStringForTelemetry(solution), highPriority);
                 }
             }
@@ -192,7 +192,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
 
             private void ProcessEvent(WorkspaceChangeEventArgs args, string eventName)
             {
-                SolutionCrawlerLogger.LogWorkspaceEvent(_logAggregator, args.Kind);
+                UnitTestingSolutionCrawlerLogger.LogWorkspaceEvent(_logAggregator, args.Kind);
 
                 // TODO: add telemetry that record how much it takes to process an event (max, min, average and etc)
                 switch (args.Kind)

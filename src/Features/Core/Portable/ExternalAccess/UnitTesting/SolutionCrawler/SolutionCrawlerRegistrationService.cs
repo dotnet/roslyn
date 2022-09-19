@@ -81,7 +81,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                 _documentWorkCoordinatorMap.Add(workspace, coordinator);
             }
 
-            SolutionCrawlerLogger.LogRegistration(correlationId, workspace);
+            UnitTestingSolutionCrawlerLogger.LogRegistration(correlationId, workspace);
         }
 
         public void Unregister(Workspace workspace, bool blockingShutdown = false)
@@ -100,7 +100,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                 coordinator.Shutdown(blockingShutdown);
             }
 
-            SolutionCrawlerLogger.LogUnregistration(coordinator.CorrelationId);
+            UnitTestingSolutionCrawlerLogger.LogUnregistration(coordinator.CorrelationId);
         }
 
         public void AddAnalyzerProvider(IUnitTestingIncrementalAnalyzerProvider provider, UnitTestingIncrementalAnalyzerProviderMetadata metadata)

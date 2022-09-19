@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
 
                         CheckHigherPriorityDocument(item);
 
-                        SolutionCrawlerLogger.LogWorkItemEnqueue(
+                        UnitTestingSolutionCrawlerLogger.LogWorkItemEnqueue(
                             Processor._logAggregator, item.Language, item.DocumentId, item.InvocationReasons, item.IsLowPriority, item.ActiveMember, added);
                     }
 
@@ -100,7 +100,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                             cache?.Dispose();
                         }
 
-                        SolutionCrawlerLogger.LogHigherPriority(Processor._logAggregator, id.Id);
+                        UnitTestingSolutionCrawlerLogger.LogHigherPriority(Processor._logAggregator, id.Id);
                     }
 
                     private IDisposable? GetHighPriorityQueueProjectCache(DocumentId id)
@@ -355,7 +355,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                                 }
                                 else
                                 {
-                                    SolutionCrawlerLogger.LogProcessDocumentNotExist(Processor._logAggregator);
+                                    UnitTestingSolutionCrawlerLogger.LogProcessDocumentNotExist(Processor._logAggregator);
 
                                     await RemoveDocumentAsync(documentId, cancellationToken).ConfigureAwait(false);
                                 }
@@ -381,7 +381,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                                 _workItemQueue.AddOrReplace(workItem.Retry(Listener.BeginAsyncOperation("ReenqueueWorkItem")));
                             }
 
-                            SolutionCrawlerLogger.LogProcessDocument(Processor._logAggregator, documentId.Id, processedEverything);
+                            UnitTestingSolutionCrawlerLogger.LogProcessDocument(Processor._logAggregator, documentId.Id, processedEverything);
 
                             // remove one that is finished running
                             _workItemQueue.MarkWorkItemDoneFor(workItem.DocumentId);
@@ -395,7 +395,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                             return;
                         }
 
-                        SolutionCrawlerLogger.LogProcessOpenDocument(Processor._logAggregator, textDocument.Id.Id);
+                        UnitTestingSolutionCrawlerLogger.LogProcessOpenDocument(Processor._logAggregator, textDocument.Id.Id);
 
                         await Processor.RunAnalyzersAsync(analyzers, textDocument, workItem, DocumentOpenAsync, cancellationToken).ConfigureAwait(false);
                         return;
@@ -420,7 +420,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                             return;
                         }
 
-                        SolutionCrawlerLogger.LogProcessCloseDocument(Processor._logAggregator, textDocument.Id.Id);
+                        UnitTestingSolutionCrawlerLogger.LogProcessCloseDocument(Processor._logAggregator, textDocument.Id.Id);
 
                         await Processor.RunAnalyzersAsync(analyzers, textDocument, workItem, DocumentCloseAsync, cancellationToken).ConfigureAwait(false);
                         return;
@@ -533,7 +533,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                                 AddHigherPriorityDocument(id);
                             }
 
-                            SolutionCrawlerLogger.LogResetStates(Processor._logAggregator);
+                            UnitTestingSolutionCrawlerLogger.LogResetStates(Processor._logAggregator);
                         }
                         catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e))
                         {
@@ -570,7 +570,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                             // avg time to analyze files, how many solution snapshot got analyzed and etc.
                             // all accumultation is done in VS side and we only send statistics to VS telemetry otherwise, it is too much
                             // data to send
-                            SolutionCrawlerLogger.LogIncrementalAnalyzerProcessorStatistics(
+                            UnitTestingSolutionCrawlerLogger.LogIncrementalAnalyzerProcessorStatistics(
                                 Processor._registration.CorrelationId, oldSolution, Processor._logAggregator, Analyzers);
 
                             Processor.ResetLogAggregator();

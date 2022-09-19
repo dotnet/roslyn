@@ -107,7 +107,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
 
                         Logger.Log(FunctionId.WorkCoordinator_Project_Enqueue, s_enqueueLogger, Environment.TickCount, item.ProjectId, !added);
 
-                        SolutionCrawlerLogger.LogWorkItemEnqueue(Processor._logAggregator, item.ProjectId);
+                        UnitTestingSolutionCrawlerLogger.LogWorkItemEnqueue(Processor._logAggregator, item.ProjectId);
                     }
 
                     private void CancelRunningTaskIfHigherQueueHasWorkItem()
@@ -150,7 +150,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                                 }
                                 else
                                 {
-                                    SolutionCrawlerLogger.LogProcessProjectNotExist(Processor._logAggregator);
+                                    UnitTestingSolutionCrawlerLogger.LogProcessProjectNotExist(Processor._logAggregator);
 
                                     await RemoveProjectAsync(projectId, cancellationToken).ConfigureAwait(false);
                                 }
@@ -176,7 +176,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                                 _workItemQueue.AddOrReplace(workItem.Retry(Listener.BeginAsyncOperation("ReenqueueWorkItem")));
                             }
 
-                            SolutionCrawlerLogger.LogProcessProject(Processor._logAggregator, projectId.Id, processedEverything);
+                            UnitTestingSolutionCrawlerLogger.LogProcessProject(Processor._logAggregator, projectId.Id, processedEverything);
 
                             // remove one that is finished running
                             _workItemQueue.MarkWorkItemDoneFor(projectId);

@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                 private readonly Lazy<IDiagnosticAnalyzerService?> _lazyDiagnosticAnalyzerService;
 
                 /// <summary>
-                /// The keys in this are either a string or a (string, Guid) tuple. See <see cref="SolutionCrawlerLogger.LogIncrementalAnalyzerProcessorStatistics"/>
+                /// The keys in this are either a string or a (string, Guid) tuple. See <see cref="UnitTestingSolutionCrawlerLogger.LogIncrementalAnalyzerProcessorStatistics"/>
                 /// for what is writing this out.
                 /// </summary>
                 private CountLogAggregator<object> _logAggregator = new();
@@ -98,7 +98,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                 {
                     var orderedAnalyzers = analyzersGetter.GetOrderedAnalyzers(registration.Workspace, onlyHighPriorityAnalyzer);
 
-                    SolutionCrawlerLogger.LogAnalyzers(registration.CorrelationId, registration.Workspace, orderedAnalyzers, onlyHighPriorityAnalyzer);
+                    UnitTestingSolutionCrawlerLogger.LogAnalyzers(registration.CorrelationId, registration.Workspace, orderedAnalyzers, onlyHighPriorityAnalyzer);
                     return orderedAnalyzers;
                 }
 

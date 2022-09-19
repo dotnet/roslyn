@@ -119,7 +119,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                         var added = _workItemQueue.AddOrReplace(item);
 
                         Logger.Log(FunctionId.WorkCoordinator_ActiveFileEnqueue, s_enqueueLogger, Environment.TickCount, item.DocumentId, !added);
-                        SolutionCrawlerLogger.LogActiveFileEnqueue(_processor._logAggregator);
+                        UnitTestingSolutionCrawlerLogger.LogActiveFileEnqueue(_processor._logAggregator);
                     }
 
                     protected override Task WaitAsync(CancellationToken cancellationToken)
@@ -222,7 +222,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                                 _workItemQueue.AddOrReplace(workItem.Retry(Listener.BeginAsyncOperation("ReenqueueWorkItem")));
                             }
 
-                            SolutionCrawlerLogger.LogProcessActiveFileDocument(_processor._logAggregator, documentId.Id, processedEverything);
+                            UnitTestingSolutionCrawlerLogger.LogProcessActiveFileDocument(_processor._logAggregator, documentId.Id, processedEverything);
 
                             // remove one that is finished running
                             _workItemQueue.MarkWorkItemDoneFor(workItem.DocumentId);

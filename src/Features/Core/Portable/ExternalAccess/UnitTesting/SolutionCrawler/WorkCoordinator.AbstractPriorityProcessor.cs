@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                     }
 
                     protected override void OnPaused()
-                        => SolutionCrawlerLogger.LogGlobalOperation(Processor._logAggregator);
+                        => UnitTestingSolutionCrawlerLogger.LogGlobalOperation(Processor._logAggregator);
 
                     protected abstract Task HigherQueueOperationTask { get; }
                     protected abstract bool HigherQueueHasWorkItem { get; }

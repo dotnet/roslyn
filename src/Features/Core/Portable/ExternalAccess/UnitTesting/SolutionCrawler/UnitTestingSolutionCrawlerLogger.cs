@@ -10,7 +10,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
 {
-    internal static class SolutionCrawlerLogger
+    internal static class UnitTestingSolutionCrawlerLogger
     {
         private const string Id = nameof(Id);
         private const string Kind = nameof(Kind);
