@@ -23,11 +23,11 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
         /// more than one <see cref="IWorkspaceService"/>.
         /// </summary>
         [ExportWorkspaceService(typeof(IUnitTestingSolutionCrawlerService), ServiceLayer.Default), Shared]
-        internal class SolutionCrawlerService : IUnitTestingSolutionCrawlerService
+        internal class UnitTestingSolutionCrawlerService : IUnitTestingSolutionCrawlerService
         {
             [ImportingConstructor]
             [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-            public SolutionCrawlerService()
+            public UnitTestingSolutionCrawlerService()
             {
             }
 
