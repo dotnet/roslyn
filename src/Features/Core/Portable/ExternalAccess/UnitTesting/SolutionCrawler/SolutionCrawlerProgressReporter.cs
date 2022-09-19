@@ -7,7 +7,7 @@ using System.Threading;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
 {
-    internal partial class SolutionCrawlerRegistrationService : ISolutionCrawlerRegistrationService
+    internal partial class SolutionCrawlerRegistrationService : IUnitTestingSolutionCrawlerRegistrationService
     {
         /// <summary>
         /// Progress reporter

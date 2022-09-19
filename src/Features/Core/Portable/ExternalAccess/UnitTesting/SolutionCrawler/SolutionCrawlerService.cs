@@ -11,7 +11,7 @@ using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
 {
-    internal partial class SolutionCrawlerRegistrationService : ISolutionCrawlerRegistrationService
+    internal partial class SolutionCrawlerRegistrationService : IUnitTestingSolutionCrawlerRegistrationService
     {
         internal static readonly Option2<bool> EnableSolutionCrawler = new("InternalSolutionCrawlerOptions", "Solution Crawler", defaultValue: true,
             storageLocation: new LocalUserProfileStorageLocation(@"Roslyn\Internal\SolutionCrawler\Solution Crawler"));
@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
             public void Reanalyze(Workspace workspace, IUnitTestingIncrementalAnalyzer analyzer, IEnumerable<ProjectId>? projectIds = null, IEnumerable<DocumentId>? documentIds = null, bool highPriority = false)
             {
                 // if solution crawler doesn't exist for the given workspace. don't do anything
-                if (workspace.Services.GetService<ISolutionCrawlerRegistrationService>() is SolutionCrawlerRegistrationService registration)
+                if (workspace.Services.GetService<IUnitTestingSolutionCrawlerRegistrationService>() is SolutionCrawlerRegistrationService registration)
                 {
                     registration.Reanalyze(workspace, analyzer, projectIds, documentIds, highPriority);
                 }
@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
             public IUnitTestingSolutionCrawlerProgressReporter GetProgressReporter(Workspace workspace)
             {
                 // if solution crawler doesn't exist for the given workspace, return null reporter
-                if (workspace.Services.GetService<ISolutionCrawlerRegistrationService>() is SolutionCrawlerRegistrationService registration)
+                if (workspace.Services.GetService<IUnitTestingSolutionCrawlerRegistrationService>() is SolutionCrawlerRegistrationService registration)
                 {
                     // currently we have only 1 global reporter that are shared by all workspaces.
                     return registration._progressReporter;
