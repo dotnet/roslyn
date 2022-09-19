@@ -300,7 +300,8 @@ namespace Microsoft.CodeAnalysis.Remote
                 Contract.ThrowIfFalse(project.State.ProjectInfo.Attributes.Language == newProjectAttributes.Language);
                 Contract.ThrowIfFalse(project.State.ProjectInfo.Attributes.IsSubmission == newProjectAttributes.IsSubmission);
 
-                return project.Solution.WithProjectAttributes(project.Id, newProjectAttributes).GetRequiredProject(project.Id);
+                // do not propagate attribute update to documents - they will be updated by UpdateDocumentsAsync:
+                return project.Solution.WithProjectAttributes(project.Id, newProjectAttributes, updateDocuments: false).GetRequiredProject(project.Id);
             }
 
             private async Task<Project> UpdateDocumentsAsync(

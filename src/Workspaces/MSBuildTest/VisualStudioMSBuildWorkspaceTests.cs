@@ -263,22 +263,21 @@ namespace Microsoft.CodeAnalysis.MSBuild.UnitTests
             Assert.All(project.AdditionalDocuments, d => Assert.Equal(SourceHashAlgorithm.Sha1, d.GetTextSynchronously(default).ChecksumAlgorithm));
         }
 
-        [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
-        public async Task TestChecksumAlgorithm_Default()
+        [ConditionalTheory(typeof(VisualStudioMSBuildInstalled))]
+        [InlineData(LanguageNames.CSharp)]
+        [InlineData(LanguageNames.VisualBasic)]
+        public async Task TestChecksumAlgorithm_Default(string language)
         {
             CreateFiles(GetMultiProjectSolutionFiles());
             var solutionFilePath = GetSolutionFileName("TestSolution.sln");
 
             using var workspace = CreateMSBuildWorkspace();
             var sol = await workspace.OpenSolutionAsync(solutionFilePath);
-            var csProject = sol.Projects.First(p => p.Language == LanguageNames.CSharp);
-            var vbProject = sol.Projects.First(p => p.Language == LanguageNames.VisualBasic);
+            var project = sol.Projects.First(p => p.Language == language);
 
-            Assert.Equal(SourceHashAlgorithms.Default, csProject.State.ChecksumAlgorithm);
-            Assert.Equal(SourceHashAlgorithms.Default, vbProject.State.ChecksumAlgorithm);
+            Assert.Equal(SourceHashAlgorithms.Default, project.State.ChecksumAlgorithm);
 
-            Assert.All(csProject.Documents, d => Assert.Equal(SourceHashAlgorithms.Default, d.GetTextSynchronously(default).ChecksumAlgorithm));
-            Assert.All(vbProject.Documents, d => Assert.Equal(SourceHashAlgorithms.Default, d.GetTextSynchronously(default).ChecksumAlgorithm));
+            Assert.All(project.Documents, d => Assert.Equal(SourceHashAlgorithms.Default, d.GetTextSynchronously(default).ChecksumAlgorithm));
         }
 
         [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
