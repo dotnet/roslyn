@@ -9510,9 +9510,9 @@ public class AA
 using System;
 public class AA
 {
-    public void F(object dr)
+    public void F(object node)
     {
-        var DR = (string)dr$$
+        var Node = (string)nod$$
     }
 }</Document>)
 
@@ -9520,9 +9520,17 @@ public class AA
                 Await state.WaitForAsynchronousOperationsAsync()
                 Await state.WaitForUIRenderedAsync()
 
-                Await state.AssertSelectedCompletionItem("dr")
-                Await state.AssertCompletionItemsContain("DR", "")
+                ' test prefix match
+                Await state.AssertSelectedCompletionItem("node", isHardSelected:=True)
+                Await state.AssertCompletionItemsContain("Node", "")
 
+                state.SendTypeChars("e")
+                Await state.WaitForAsynchronousOperationsAsync()
+                Await state.WaitForUIRenderedAsync()
+
+                ' test complete match
+                Await state.AssertSelectedCompletionItem("node", isHardSelected:=True)
+                Await state.AssertCompletionItemsContain("Node", "")
             End Using
         End Function
 
