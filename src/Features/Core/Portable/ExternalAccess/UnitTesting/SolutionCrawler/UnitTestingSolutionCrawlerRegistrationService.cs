@@ -129,11 +129,13 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
             }
         }
 
-        public void Reanalyze(Workspace workspace, IUnitTestingIncrementalAnalyzer analyzer, IEnumerable<ProjectId>? projectIds, IEnumerable<DocumentId>? documentIds, bool highPriority)
+        public void Reanalyze(string? workspaceKind, SolutionServices services, IUnitTestingIncrementalAnalyzer analyzer, IEnumerable<ProjectId>? projectIds, IEnumerable<DocumentId>? documentIds, bool highPriority)
         {
+            Contract.ThrowIfNull(workspaceKind);
+
             lock (_gate)
             {
-                if (!_documentWorkCoordinatorMap.TryGetValue(workspace, out var coordinator))
+                if (!_documentWorkCoordinatorMap.TryGetValue((workspaceKind, services), out var coordinator))
                 {
                     // this can happen if solution crawler is already unregistered from workspace.
                     // one of those example will be VS shutting down so roslyn package is disposed but there is a pending
@@ -144,7 +146,8 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                 // no specific projects or documents provided
                 if (projectIds == null && documentIds == null)
                 {
-                    coordinator.Reanalyze(analyzer, new UnitTestingReanalyzeScope(workspace.CurrentSolution.Id), highPriority);
+                    var solution = coordinator.Registration.GetSolutionToAnalyze();
+                    coordinator.Reanalyze(analyzer, new UnitTestingReanalyzeScope(solution.Id), highPriority);
                     return;
                 }
 
