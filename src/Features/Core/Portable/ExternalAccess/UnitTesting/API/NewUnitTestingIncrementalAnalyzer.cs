@@ -8,9 +8,11 @@ using Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.Api;
 using Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler;
 using Microsoft.CodeAnalysis.Options;
 
-namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.Api
+namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.Api;
+
+internal sealed partial class NewUnitTestingIncrementalAnalyzerProvider
 {
-    internal class NewUnitTestingIncrementalAnalyzer : IUnitTestingIncrementalAnalyzer
+    private class NewUnitTestingIncrementalAnalyzer : IUnitTestingIncrementalAnalyzer
     {
         private readonly INewUnitTestingIncrementalAnalyzerImplementation _implementation;
 
@@ -73,9 +75,9 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.Api
 
 #if false
 
-        // Unit testing incremental analyzer only supports full solution analysis scope.
-        // In future, we should add a separate option to allow users to configure background analysis scope for unit testing.
-        public static BackgroundAnalysisScope GetBackgroundAnalysisScope(OptionSet _) => BackgroundAnalysisScope.FullSolution;
+    // Unit testing incremental analyzer only supports full solution analysis scope.
+    // In future, we should add a separate option to allow users to configure background analysis scope for unit testing.
+    public static BackgroundAnalysisScope GetBackgroundAnalysisScope(OptionSet _) => BackgroundAnalysisScope.FullSolution;
 
 #endif
 
