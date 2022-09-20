@@ -22,17 +22,17 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.LegacySolutionEvents
         {
         }
 
-        public ValueTask OnWorkspaceChangedEventAsync(WorkspaceChangeEventArgs args, CancellationToken cancellationToken)
+        public ValueTask OnWorkspaceChangedEventAsync(ILegacyWorkspaceDescriptor descriptor, WorkspaceChangeEventArgs args, CancellationToken cancellationToken)
         {
             throw new NotImplementedException();
         }
 
-        public ValueTask OnTextDocumentOpenedAsync(TextDocumentEventArgs args, CancellationToken cancellationToken)
+        public ValueTask OnTextDocumentOpenedAsync(ILegacyWorkspaceDescriptor descriptor, TextDocumentEventArgs args, CancellationToken cancellationToken)
         {
             throw new NotImplementedException();
         }
 
-        public ValueTask OnTextDocumentClosedAsync(TextDocumentEventArgs args, CancellationToken cancellationToken)
+        public ValueTask OnTextDocumentClosedAsync(ILegacyWorkspaceDescriptor descriptor, TextDocumentEventArgs args, CancellationToken cancellationToken)
         {
             throw new NotImplementedException();
         }
