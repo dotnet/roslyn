@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis
         /// <exception cref="OperationCanceledException"/>
         [Obsolete("Use LoadTextAndVersionAsync(CancellationToken) instead")]
         public virtual Task<TextAndVersion> LoadTextAndVersionAsync(Workspace? workspace, DocumentId? documentId, CancellationToken cancellationToken)
-            => LoadTextAndVersionAsync(cancellationToken);
+            => throw new NotImplementedException("The API is obsolete, call LoadTextAndVersionAsync(CancellationToken) instead");
 
         /// <summary>
         /// Load a text and a version of the document in the workspace.
