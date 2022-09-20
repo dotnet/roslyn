@@ -6,6 +6,7 @@
 
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.Api
 {
@@ -22,9 +23,9 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.Api
         // bool NeedsReanalysisOnOptionChanged(object sender, UnitTestingOptionChangedEventArgsWrapper e);
 #endif
 
-        Task AnalyzeSyntaxAsync(Document document, UnitTestingInvocationReasonsWrapper reasons, CancellationToken cancellationToken);
-        Task AnalyzeDocumentAsync(Document document, SyntaxNode bodyOpt, UnitTestingInvocationReasonsWrapper reasons, CancellationToken cancellationToken);
-        Task AnalyzeProjectAsync(Project project, bool semanticsChanged, UnitTestingInvocationReasonsWrapper reasons, CancellationToken cancellationToken);
+        Task AnalyzeSyntaxAsync(Document document, UnitTestingInvocationReasons reasons, CancellationToken cancellationToken);
+        Task AnalyzeDocumentAsync(Document document, SyntaxNode bodyOpt, UnitTestingInvocationReasons reasons, CancellationToken cancellationToken);
+        Task AnalyzeProjectAsync(Project project, bool semanticsChanged, UnitTestingInvocationReasons reasons, CancellationToken cancellationToken);
         void RemoveDocument(DocumentId documentId);
     }
 }
