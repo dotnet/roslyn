@@ -318,7 +318,10 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
             }
 
             public Solution GetSolutionToAnalyze()
-                => _owner._lastReportedSolution;
+            {
+                lock (_owner._gate)
+                    return _owner._lastReportedSolution;
+            }
         }
     }
 }
