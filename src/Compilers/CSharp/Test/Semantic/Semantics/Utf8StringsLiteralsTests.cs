@@ -182,7 +182,7 @@ class C
             var comp = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
             comp.VerifyEmitDiagnostics(
-                // (6,13): error CS9100: The input string cannot be converted into the equivalent UTF-8 byte representation. Unable to translate Unicode character \\uD801 at index 6 to specified code page.
+                // (6,13): error CS9026: The input string cannot be converted into the equivalent UTF-8 byte representation. Unable to translate Unicode character \\uD801 at index 6 to specified code page.
                 //         _ = "hello \uD801\uD802"u8;
                 Diagnostic(ErrorCode.ERR_CannotBeConvertedToUtf8, @"""hello \uD801\uD802""u8").WithArguments(@"Unable to translate Unicode character \\uD801 at index 6 to specified code page.").WithLocation(6, 13)
                 );

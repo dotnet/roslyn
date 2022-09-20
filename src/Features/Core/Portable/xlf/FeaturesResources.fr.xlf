@@ -4275,6 +4275,11 @@ Quand ce spécificateur de format standard est utilisé, l'opération qui consis
         <target state="translated">constructeur statique</target>
         <note />
       </trans-unit>
+      <trans-unit id="struct_">
+        <source>struct</source>
+        <target state="new">struct</target>
+        <note />
+      </trans-unit>
       <trans-unit id="symbol_cannot_be_a_namespace">
         <source>'symbol' cannot be a namespace.</source>
         <target state="translated">'symbol' ne peut pas être un espace de noms.</target>

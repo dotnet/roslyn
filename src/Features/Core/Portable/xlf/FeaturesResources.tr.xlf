@@ -4275,6 +4275,11 @@ Bu standart biçim belirticisi kullanıldığında, biçimlendirme veya ayrışt
         <target state="translated">statik oluşturucu</target>
         <note />
       </trans-unit>
+      <trans-unit id="struct_">
+        <source>struct</source>
+        <target state="new">struct</target>
+        <note />
+      </trans-unit>
       <trans-unit id="symbol_cannot_be_a_namespace">
         <source>'symbol' cannot be a namespace.</source>
         <target state="translated">'symbol' bir ad alanı olamaz.</target>

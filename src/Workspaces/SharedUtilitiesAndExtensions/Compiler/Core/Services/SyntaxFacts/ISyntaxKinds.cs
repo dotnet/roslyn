@@ -177,6 +177,7 @@ namespace Microsoft.CodeAnalysis.LanguageService
         int ClassDeclaration { get; }
         int? RecordDeclaration { get; }
         int? RecordStructDeclaration { get; }
+        int? StructDeclaration { get; }
         int Parameter { get; }
         int TypeConstraint { get; }
         int VariableDeclarator { get; }

@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.Remote
         {
             (typeof(IRemoteAssetSynchronizationService), null),
             (typeof(IRemoteAsynchronousOperationListenerService), null),
-            (typeof(IRemoteTaskListService), typeof(IRemoteTaskListService.ICallback)),
+            (typeof(IRemoteTaskListService), null),
             (typeof(IRemoteDesignerAttributeDiscoveryService), typeof(IRemoteDesignerAttributeDiscoveryService.ICallback)),
             (typeof(IRemoteDiagnosticAnalyzerService), null),
             (typeof(IRemoteSemanticClassificationService), null),

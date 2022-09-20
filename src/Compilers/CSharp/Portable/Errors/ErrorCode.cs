@@ -2123,6 +2123,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_ScopedNotBeforeType = 9072,
         WRN_ScopedMismatchInParameterOfTarget = 9073,
         WRN_ScopedMismatchInParameterOfOverrideOrImplementation = 9074,
+        ERR_RefReturnScopedParameter = 9075,
+        ERR_RefReturnScopedParameter2 = 9076
 
         #endregion
 

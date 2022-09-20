@@ -832,13 +832,15 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (GetParameterRefEscape(parameterSymbol) > escapeTo)
             {
+                var isRefScoped = parameterSymbol.EffectiveScope == DeclarationScope.RefScoped;
+                Debug.Assert(parameterSymbol.RefKind == RefKind.None || isRefScoped);
                 if (checkingReceiver)
                 {
-                    Error(diagnostics, ErrorCode.ERR_RefReturnParameter2, parameter.Syntax, parameterSymbol.Name);
+                    Error(diagnostics, isRefScoped ? ErrorCode.ERR_RefReturnScopedParameter2 : ErrorCode.ERR_RefReturnParameter2, parameter.Syntax, parameterSymbol.Name);
                 }
                 else
                 {
-                    Error(diagnostics, ErrorCode.ERR_RefReturnParameter, node, parameterSymbol.Name);
+                    Error(diagnostics, isRefScoped ? ErrorCode.ERR_RefReturnScopedParameter : ErrorCode.ERR_RefReturnParameter, node, parameterSymbol.Name);
                 }
                 return false;
             }

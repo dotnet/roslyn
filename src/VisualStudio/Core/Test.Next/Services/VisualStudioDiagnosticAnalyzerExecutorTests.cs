@@ -188,7 +188,7 @@ End Class";
 
             var compilationWithAnalyzers = (await project.GetCompilationAsync()).WithAnalyzers(
                 analyzerReference.GetAnalyzers(project.Language).Where(a => a.GetType() == analyzerType).ToImmutableArray(),
-                new WorkspaceAnalyzerOptions(project.AnalyzerOptions, project.Solution, ideAnalyzerOptions));
+                new WorkspaceAnalyzerOptions(project.AnalyzerOptions, ideAnalyzerOptions));
 
             // no result for open file only analyzer unless forced
             var result = await runner.AnalyzeProjectAsync(project, compilationWithAnalyzers, forceExecuteAllAnalyzers: false, logPerformanceInfo: false, getTelemetryInfo: false, cancellationToken: CancellationToken.None);
@@ -230,7 +230,7 @@ End Class";
             var ideAnalyzerOptions = IdeAnalyzerOptions.GetDefault(project.Services);
 
             var compilationWithAnalyzers = (await project.GetCompilationAsync())
-                .WithAnalyzers(analyzers, new WorkspaceAnalyzerOptions(project.AnalyzerOptions, project.Solution, ideAnalyzerOptions));
+                .WithAnalyzers(analyzers, new WorkspaceAnalyzerOptions(project.AnalyzerOptions, ideAnalyzerOptions));
 
             var result = await runner.AnalyzeProjectAsync(project, compilationWithAnalyzers, forceExecuteAllAnalyzers: false,
                 logPerformanceInfo: false, getTelemetryInfo: false, cancellationToken: CancellationToken.None);
@@ -254,7 +254,7 @@ End Class";
 
             var analyzerDriver = (await project.GetCompilationAsync()).WithAnalyzers(
                     analyzerReference.GetAnalyzers(project.Language).Where(a => a.GetType() == analyzerType).ToImmutableArray(),
-                    new WorkspaceAnalyzerOptions(project.AnalyzerOptions, project.Solution, ideOptions));
+                    new WorkspaceAnalyzerOptions(project.AnalyzerOptions, ideOptions));
 
             var result = await executor.AnalyzeProjectAsync(project, analyzerDriver, forceExecuteAllAnalyzers: true, logPerformanceInfo: false,
                 getTelemetryInfo: false, cancellationToken);

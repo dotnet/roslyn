@@ -57,6 +57,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.PublicModel
 
         bool ILocalSymbol.IsFixed => _underlying.IsFixed;
 
+        bool ILocalSymbol.IsForEach => _underlying.IsForEach;
+
+        bool ILocalSymbol.IsUsing => _underlying.IsUsing;
+
         #region ISymbol Members
 
         protected sealed override void Accept(SymbolVisitor visitor)

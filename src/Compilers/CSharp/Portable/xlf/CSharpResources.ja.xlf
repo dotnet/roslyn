@@ -1307,6 +1307,16 @@
         <target state="translated">ref 代入の左辺は ref 変数である必要があります。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_RefReturnScopedParameter">
+        <source>Cannot return a parameter by reference '{0}' because it is scoped to the current method</source>
+        <target state="new">Cannot return a parameter by reference '{0}' because it is scoped to the current method</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_RefReturnScopedParameter2">
+        <source>Cannot return by reference a member of parameter '{0}' because it is scoped to the current method</source>
+        <target state="new">Cannot return by reference a member of parameter '{0}' because it is scoped to the current method</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_RefReturningPropertiesCannotBeRequired">
         <source>Ref returning properties cannot be required.</source>
         <target state="translated">プロパティを返す参照は必要ありません。</target>
