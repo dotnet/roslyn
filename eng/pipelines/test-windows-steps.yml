@@ -1,41 +1,41 @@
 # Test on Windows Desktop using Helix
 parameters:
-  - name: testArtifactName
-    type: string
-    default: ''
-  - name: configuration
-    type: string
-    default: 'Debug'
-  - name: testArguments
-    type: string
-    default: ''
+- name: testArtifactName
+  type: string
+  default: ''
+- name: configuration
+  type: string
+  default: 'Debug'
+- name: testArguments
+  type: string
+  default: ''
   
-  steps:
-    - checkout: none
-  
-    - task: DownloadPipelineArtifact@2
-      displayName: Download Test Payload
-      inputs:
-        artifact: ${{ parameters.testArtifactName }}
-        path: '$(Build.SourcesDirectory)'
-  
-    - task: BatchScript@1
-      displayName: Rehydrate RunTests
-      inputs:
-        filename: ./artifacts/bin/RunTests/${{ parameters.configuration }}/net6.0/rehydrate.cmd
-      env:
-        HELIX_CORRELATION_PAYLOAD: '$(Build.SourcesDirectory)\.duplicate'
-  
-    - task: PowerShell@2
-      displayName: Run Unit Tests
-      inputs:
-        filePath: eng/build.ps1
-        arguments: -ci -helix -configuration ${{ parameters.configuration }} ${{ parameters.testArguments }} -collectDumps
-      env:
-        SYSTEM_ACCESSTOKEN: $(System.AccessToken)
-  
-    - template: publish-logs.yml
-      parameters:
-        configuration: ${{ parameters.configuration }}
-        jobName: ${{ parameters.jobName }}
+steps:
+  - checkout: none
+
+  - task: DownloadPipelineArtifact@2
+    displayName: Download Test Payload
+    inputs:
+      artifact: ${{ parameters.testArtifactName }}
+      path: '$(Build.SourcesDirectory)'
+
+  - task: BatchScript@1
+    displayName: Rehydrate RunTests
+    inputs:
+      filename: ./artifacts/bin/RunTests/${{ parameters.configuration }}/net6.0/rehydrate.cmd
+    env:
+      HELIX_CORRELATION_PAYLOAD: '$(Build.SourcesDirectory)\.duplicate'
+
+  - task: PowerShell@2
+    displayName: Run Unit Tests
+    inputs:
+      filePath: eng/build.ps1
+      arguments: -ci -helix -configuration ${{ parameters.configuration }} ${{ parameters.testArguments }} -collectDumps
+    env:
+      SYSTEM_ACCESSTOKEN: $(System.AccessToken)
+
+  - template: publish-logs.yml
+    parameters:
+      configuration: ${{ parameters.configuration }}
+      jobName: ${{ parameters.jobName }}
   
