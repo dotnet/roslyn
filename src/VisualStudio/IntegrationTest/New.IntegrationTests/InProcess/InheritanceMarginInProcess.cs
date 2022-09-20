@@ -104,9 +104,9 @@ namespace Roslyn.VisualStudio.NewIntegrationTests.InProcess
             var glyph = await GetTheGlyphOnLineAsync(lineNumber, cancellationToken);
 
             var point = await GetCenterOfGlyphOnScreenAsync(glyph, cancellationToken);
-            await TestServices.Input.MoveMouseAsync(point);
+            await TestServices.Input.MoveMouseAsync(point, cancellationToken);
             await TestServices.Input.SendWithoutActivateAsync(
-                simulator => simulator.Mouse.LeftButtonClick());
+                simulator => simulator.Mouse.LeftButtonClick(), cancellationToken);
         }
 
         public async Task<InheritanceMarginGlyph> GetTheGlyphOnLineAsync(int lineNumber, CancellationToken cancellationToken)
