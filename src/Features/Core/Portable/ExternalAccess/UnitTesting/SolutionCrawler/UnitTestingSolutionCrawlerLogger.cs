@@ -43,12 +43,12 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
         private const string ActiveFileProcessDocument = nameof(ActiveFileProcessDocument);
         private const string ActiveFileProcessDocumentCancellation = nameof(ActiveFileProcessDocumentCancellation);
 
-        public static void LogRegistration(int correlationId, Workspace workspace)
+        public static void LogRegistration(int correlationId, string workspaceKind)
         {
             Logger.Log(FunctionId.WorkCoordinatorRegistrationService_Register, KeyValueLogMessage.Create(m =>
             {
                 m[Id] = correlationId;
-                m[Kind] = workspace.Kind;
+                m[Kind] = workspaceKind;
             }));
         }
 
@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
             }));
         }
 
-        public static void LogAnalyzers(int correlationId, string? workspaceKind, ImmutableArray<IUnitTestingIncrementalAnalyzer> reordered, bool onlyHighPriorityAnalyzer)
+        public static void LogAnalyzers(int correlationId, string workspaceKind, ImmutableArray<IUnitTestingIncrementalAnalyzer> reordered, bool onlyHighPriorityAnalyzer)
         {
             if (onlyHighPriorityAnalyzer)
             {
@@ -94,7 +94,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
         }
 
         private static void LogAnalyzersWorker(
-            FunctionId analyzersId, FunctionId analyzerId, int correlationId, string? workspaceKind, ImmutableArray<IUnitTestingIncrementalAnalyzer> reordered)
+            FunctionId analyzersId, FunctionId analyzerId, int correlationId, string workspaceKind, ImmutableArray<IUnitTestingIncrementalAnalyzer> reordered)
         {
             if (workspaceKind == WorkspaceKind.Preview)
             {
