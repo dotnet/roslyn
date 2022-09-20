@@ -12,6 +12,7 @@ using System.Linq;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Internal.Log;
+using Microsoft.CodeAnalysis.LegacySolutionEvents;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Roslyn.Utilities;
 
@@ -45,11 +46,11 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
         /// <summary>
         /// make sure solution cralwer is registered for the given workspace.
         /// </summary>
-        public void Register(
-            string? workspaceKind,
-            SolutionServices solutionServices,
-            Func<Solution> getCurrentSolutionToAnalyze)
+        public void Register(ILegacyWorkspaceDescriptor workspaceDescriptor)
         {
+            var workspaceKind = workspaceDescriptor.WorkspaceKind;
+            var solutionServices = workspaceDescriptor.SolutionServices;
+            var getSolutionToAnalyze = () => workspaceDescriptor.CurrentSolution;
             Contract.ThrowIfNull(workspaceKind);
 
             var correlationId = CorrelationIdFactory.GetNextId();
@@ -66,7 +67,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                     _listener,
                     GetAnalyzerProviders(workspaceKind),
                     initializeLazily: true,
-                    new UnitTestingRegistration(correlationId, workspaceKind, solutionServices, getCurrentSolutionToAnalyze, _progressReporter));
+                    new UnitTestingRegistration(correlationId, workspaceKind, solutionServices, getSolutionToAnalyze, _progressReporter));
 
                 _documentWorkCoordinatorMap.Add((workspaceKind, solutionServices), coordinator);
             }
