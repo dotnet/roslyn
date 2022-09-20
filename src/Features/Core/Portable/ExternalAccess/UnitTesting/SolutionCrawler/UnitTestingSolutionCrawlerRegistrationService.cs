@@ -42,26 +42,13 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
             _listener = listenerProvider.GetListener(FeatureAttribute.SolutionCrawler);
         }
 
-        public void Register(Workspace workspace)
-            => EnsureRegistration(workspace, initializeLazily: true);
-
         /// <summary>
         /// make sure solution cralwer is registered for the given workspace.
         /// </summary>
-        /// <param name="workspace"><see cref="Workspace"/> this solution crawler runs for</param>
-        /// <param name="initializeLazily">
-        /// when true, solution crawler will be initialized when there is the first workspace event fired. 
-        /// otherwise, it will be initialized when workspace is registered right away. 
-        /// something like "Build" will use initializeLazily:false to make sure diagnostic analyzer engine (incremental analyzer)
-        /// is initialized. otherwise, if build is called before workspace is fully populated, we will think some errors from build
-        /// doesn't belong to us since diagnostic analyzer engine is not there yet and 
-        /// let project system to take care of these unknown errors.
-        /// </param>
-        public void EnsureRegistration(
+        public void Register(
             string? workspaceKind,
             SolutionServices solutionServices,
-            Func<Solution> getCurrentSolutionToAnalyze,
-            bool initializeLazily)
+            Func<Solution> getCurrentSolutionToAnalyze)
         {
             Contract.ThrowIfNull(workspaceKind);
 
@@ -78,7 +65,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                 var coordinator = new UnitTestingWorkCoordinator(
                     _listener,
                     GetAnalyzerProviders(workspaceKind),
-                    initializeLazily,
+                    initializeLazily: true,
                     new UnitTestingRegistration(correlationId, workspaceKind, solutionServices, getCurrentSolutionToAnalyze, _progressReporter));
 
                 _documentWorkCoordinatorMap.Add((workspaceKind, solutionServices), coordinator);
@@ -278,7 +265,6 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                     return _solutionCrawlerRegistrationService._documentWorkCoordinatorMap.TryGetValue(workspace, out coordinator);
                 }
             }
-#endif
 
             internal void WaitUntilCompletion(Workspace workspace, ImmutableArray<IUnitTestingIncrementalAnalyzer> workers)
             {
@@ -295,6 +281,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                     coordinator.GetTestAccessor().WaitUntilCompletion();
                 }
             }
+#endif
         }
 
         internal sealed class UnitTestingRegistration
@@ -316,6 +303,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
             {
                 CorrelationId = correlationId;
                 Workspace = null!;
+                WorkspaceKind = workspaceKind;
                 Services = solutionServices;
                 _getCurrentSolutionToAnalyze = getCurrentSolutionToAnalyze;
                 ProgressReporter = progressReporter;
