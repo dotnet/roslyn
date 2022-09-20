@@ -4275,6 +4275,11 @@ Gdy jest używany ten standardowy specyfikator formatu, operacja formatowania lu
         <target state="translated">konstruktor statyczny</target>
         <note />
       </trans-unit>
+      <trans-unit id="struct_">
+        <source>struct</source>
+        <target state="new">struct</target>
+        <note />
+      </trans-unit>
       <trans-unit id="symbol_cannot_be_a_namespace">
         <source>'symbol' cannot be a namespace.</source>
         <target state="translated">'Element „symbol” nie może być przestrzenią nazw.</target>

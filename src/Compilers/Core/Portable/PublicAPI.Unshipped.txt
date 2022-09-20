@@ -3,6 +3,8 @@
 Microsoft.CodeAnalysis.Compilation.CreateBuiltinOperator(string! name, Microsoft.CodeAnalysis.ITypeSymbol! returnType, Microsoft.CodeAnalysis.ITypeSymbol! leftType, Microsoft.CodeAnalysis.ITypeSymbol! rightType) -> Microsoft.CodeAnalysis.IMethodSymbol!
 Microsoft.CodeAnalysis.Compilation.CreateBuiltinOperator(string! name, Microsoft.CodeAnalysis.ITypeSymbol! returnType, Microsoft.CodeAnalysis.ITypeSymbol! operandType) -> Microsoft.CodeAnalysis.IMethodSymbol!
 Microsoft.CodeAnalysis.GeneratorDriver.ReplaceGenerators(System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.ISourceGenerator!> generators) -> Microsoft.CodeAnalysis.GeneratorDriver!
+Microsoft.CodeAnalysis.ILocalSymbol.IsForEach.get -> bool
+Microsoft.CodeAnalysis.ILocalSymbol.IsUsing.get -> bool
 override sealed Microsoft.CodeAnalysis.CompilationOptions.GetHashCode() -> int
 static Microsoft.CodeAnalysis.ModuleMetadata.CreateFromMetadata(System.IntPtr metadata, int size, System.Action! onDispose) -> Microsoft.CodeAnalysis.ModuleMetadata!
 Microsoft.CodeAnalysis.INamedTypeSymbol.IsFileLocal.get -> bool

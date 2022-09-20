@@ -465,7 +465,10 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq
                 {
                     case SyntaxKind.EqualsValueClause:
                         // Avoid for(int i = (from x in a select x).Count(); i < 10; i++)
-                        if (invocationParent.IsParentKind(SyntaxKind.VariableDeclarator, SyntaxKind.VariableDeclaration, SyntaxKind.LocalDeclarationStatement) &&
+                        if (invocationParent?.Parent.Kind() is
+                                SyntaxKind.VariableDeclarator or
+                                SyntaxKind.VariableDeclaration or
+                                SyntaxKind.LocalDeclarationStatement &&
                             // Avoid int i = (from x in a select x).Count(), j = i;
                             ((VariableDeclarationSyntax)invocationParent.Parent.Parent).Variables.Count == 1)
                         {
