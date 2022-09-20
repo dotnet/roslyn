@@ -87,6 +87,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                 Reanalyze(analyzer, scope);
             }
 
+#if false // Not used in unit testing crawling
             public void Shutdown(bool blockingShutdown)
             {
                 _documentTrackingService.ActiveDocumentChanged -= OnActiveDocumentSwitched;
@@ -130,6 +131,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                     (analyzer as IDisposable)?.Dispose();
                 }
             }
+#endif
 
             public void Reanalyze(IUnitTestingIncrementalAnalyzer analyzer, UnitTestingReanalyzeScope scope, bool highPriority = false)
             {

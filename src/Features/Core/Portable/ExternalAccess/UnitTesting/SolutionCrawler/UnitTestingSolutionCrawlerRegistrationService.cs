@@ -84,6 +84,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
             UnitTestingSolutionCrawlerLogger.LogRegistration(correlationId, workspace);
         }
 
+#if false // Not used in unit testing crawling
         public void Unregister(Workspace workspace, bool blockingShutdown = false)
         {
             UnitTestingWorkCoordinator? coordinator;
@@ -102,6 +103,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
 
             UnitTestingSolutionCrawlerLogger.LogUnregistration(coordinator.CorrelationId);
         }
+#endif
 
         public void AddAnalyzerProvider(IUnitTestingIncrementalAnalyzerProvider provider, UnitTestingIncrementalAnalyzerProviderMetadata metadata)
         {

@@ -533,7 +533,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                                 Processor._registration.GetSolutionToAnalyze(),
                                 workItem: new UnitTestingWorkItem(), (a, s, c) => a.NewSolutionSnapshotAsync(s, c), CancellationToken).ConfigureAwait(false);
 
-#if false // not used in unit testing solution crawler
+#if false // Not used in unit testing crawling
                             foreach (var id in Processor.GetOpenDocumentIds())
                             {
                                 AddHigherPriorityDocument(id);
