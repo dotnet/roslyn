@@ -10595,7 +10595,7 @@ class Outer<T2>
                 Diagnostic(ErrorCode.ERR_BadAttributeArgument, "default(T2)").WithLocation(7, 26),
                 // (10,6): error CS8968: 'T2': an attribute type argument cannot use type parameters
                 //     [Attr<T2>(Prop = default(T2))] // 2, 3
-                Diagnostic(ErrorCode.ERR_AttrTypeArgCannotBeTypeVar, "Attr<T2>(Prop = default(T2))").WithArguments("T2").WithLocation(10, 6),
+                Diagnostic(ErrorCode.ERR_AttrTypeArgCannotBeTypeVar, "Attr<T2>").WithArguments("T2").WithLocation(10, 6),
                 // (10,22): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
                 //     [Attr<T2>(Prop = default(T2))] // 2, 3
                 Diagnostic(ErrorCode.ERR_BadAttributeArgument, "default(T2)").WithLocation(10, 22));
@@ -10699,7 +10699,7 @@ class Outer<T2>
                 Diagnostic(ErrorCode.ERR_BadAttributeArgument, "default(T2)").WithLocation(7, 19),
                 // (10,6): error CS8968: 'T2': an attribute type argument cannot use type parameters
                 //     [Attr<T2>(default(T2))] // 2, 3
-                Diagnostic(ErrorCode.ERR_AttrTypeArgCannotBeTypeVar, "Attr<T2>(default(T2))").WithArguments("T2").WithLocation(10, 6),
+                Diagnostic(ErrorCode.ERR_AttrTypeArgCannotBeTypeVar, "Attr<T2>").WithArguments("T2").WithLocation(10, 6),
                 // (10,15): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
                 //     [Attr<T2>(default(T2))] // 2, 3
                 Diagnostic(ErrorCode.ERR_BadAttributeArgument, "default(T2)").WithLocation(10, 15));

@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // Check type arguments inside the attribute type (unless the attribute type is already an error).
                     if (boundTypeSymbol.TypeKind != TypeKind.Error)
                     {
-                        var location = attributeToBind.GetLocation();
+                        var location = attributeToBind.Name.GetLocation();
                         for (var type = boundTypeSymbol; type is not null; type = type.ContainingType)
                         {
                             foreach (var typeArg in type.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics)
