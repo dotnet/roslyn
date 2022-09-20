@@ -2226,6 +2226,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.WRN_ScopedMismatchInParameterOfOverrideOrImplementation:
                 case ErrorCode.ERR_RefReturnScopedParameter:
                 case ErrorCode.ERR_RefReturnScopedParameter2:
+                case ErrorCode.ERR_RefReturnOnlyParameter:
+                case ErrorCode.ERR_RefReturnOnlyParameter2:
+                case ErrorCode.ERR_RefAssignReturnOnly:
                     return false;
                 default:
                     // NOTE: All error codes must be explicitly handled in this switch statement
