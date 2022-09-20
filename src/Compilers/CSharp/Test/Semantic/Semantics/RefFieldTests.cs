@@ -9873,9 +9873,7 @@ public class A
         private static void VerifyParameterSymbol(IParameterSymbol parameter, string expectedDisplayString, RefKind expectedRefKind, DeclarationScope expectedScope)
         {
             Assert.Equal(expectedRefKind, parameter.RefKind);
-            // https://github.com/dotnet/roslyn/issues/61647: Use public API.
-            //Assert.Equal(expectedScope == DeclarationScope.RefScoped, parameter.IsRefScoped);
-            //Assert.Equal(expectedScope == DeclarationScope.ValueScoped, parameter.IsValueScoped);
+            Assert.Equal(expectedScope.AsScopedKind(), parameter.ScopedKind);
             Assert.Equal(expectedDisplayString, parameter.ToDisplayString(displayFormatWithScoped));
         }
 
@@ -10369,9 +10367,7 @@ class Program
         private static void VerifyLocalSymbol(ILocalSymbol local, string expectedDisplayString, RefKind expectedRefKind, DeclarationScope expectedScope)
         {
             Assert.Equal(expectedRefKind, local.RefKind);
-            // https://github.com/dotnet/roslyn/issues/61647: Use public API.
-            //Assert.Equal(expectedScope == DeclarationScope.RefScoped, local.IsRefScoped);
-            //Assert.Equal(expectedScope == DeclarationScope.ValueScoped, local.IsValueScoped);
+            Assert.Equal(expectedScope.AsScopedKind(), local.ScopedKind);
             Assert.Equal(expectedDisplayString, local.ToDisplayString(displayFormatWithScoped));
         }
 

@@ -640,19 +640,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 foreach (var param in symbol.Parameters)
                 {
-                    // https://github.com/dotnet/roslyn/issues/61647: Use public API.
-#if DEBUG
-                    if ((param as Symbols.PublicModel.ParameterSymbol)?.GetSymbol<ParameterSymbol>() is { } p)
-                    {
-                        Debug.Assert((p.EffectiveScope, ParameterHelpers.IsRefScopedByDefault(p)) switch
-                        {
-                            (DeclarationScope.Unscoped, false) => true,
-                            (DeclarationScope.RefScoped, true) => true,
-                            _ => false,
-                        });
-                    }
-#endif
-
                     AddParameterRefKind(param.RefKind);
 
                     AddCustomModifiersIfNeeded(param.RefCustomModifiers);
@@ -828,8 +815,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 AddParameterRefKindIfNeeded(symbol);
                 AddCustomModifiersIfNeeded(symbol.RefCustomModifiers, leadingSpace: false, trailingSpace: true);
 
-                // https://github.com/dotnet/roslyn/issues/61647: Use public API.
-                if ((symbol as Symbols.PublicModel.ParameterSymbol)?.GetSymbol<ParameterSymbol>().EffectiveScope == DeclarationScope.ValueScoped &&
+                if (symbol.ScopedKind == ScopedKind.ScopedValue &&
                     format.CompilerInternalOptions.IncludesOption(SymbolDisplayCompilerInternalOptions.IncludeScoped))
                 {
                     AddKeyword(SyntaxKind.ScopedKeyword);
@@ -1129,9 +1115,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (format.ParameterOptions.IncludesOption(SymbolDisplayParameterOptions.IncludeParamsRefOut))
             {
-                // https://github.com/dotnet/roslyn/issues/61647: Use public API.
-                if ((symbol as Symbols.PublicModel.ParameterSymbol)?.GetSymbol<ParameterSymbol>() is { } parameter &&
-                    parameter.EffectiveScope == DeclarationScope.RefScoped &&
+                if (symbol.ScopedKind == ScopedKind.ScopedRef &&
+                    (symbol as Symbols.PublicModel.ParameterSymbol)?.GetSymbol<ParameterSymbol>() is { } parameter &&
                     !ParameterHelpers.IsRefScopedByDefault(parameter) &&
                     !parameter.IsThis &&
                     format.CompilerInternalOptions.IncludesOption(SymbolDisplayCompilerInternalOptions.IncludeScoped))
