@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
 
             var correlationId = CorrelationIdFactory.GetNextId();
 
-            UnitTestingWorkCoordinator coordinator;
+            UnitTestingWorkCoordinator? coordinator;
             lock (_gate)
             {
                 if (!_documentWorkCoordinatorMap.TryGetValue((workspaceKind, solutionServices), out coordinator))

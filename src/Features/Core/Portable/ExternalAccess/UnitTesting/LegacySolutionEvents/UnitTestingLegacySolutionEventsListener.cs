@@ -13,6 +13,10 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.LegacySolutionEvents
 {
+    /// <summary>
+    /// Retrieves stream of workspace events and forwards them to the dedicated solution crawler instance that exists
+    /// for unit testing.
+    /// </summary>
     [Export(typeof(ILegacySolutionEventsListener)), Shared]
     internal class UnitTestingLegacySolutionEventsListener : ILegacySolutionEventsListener
     {

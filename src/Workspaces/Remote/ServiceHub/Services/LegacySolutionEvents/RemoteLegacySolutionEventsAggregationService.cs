@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.Remote
             }, cancellationToken);
         }
 
-        public ValueTask OnWorkspaceChangedEventAsync(
+        public ValueTask OnWorkspaceChangedAsync(
             Checksum oldSolutionChecksum,
             Checksum newSolutionChecksum,
             WorkspaceChangeKind kind,
@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 async (oldSolution, newSolution) =>
                 {
                     var aggregationService = oldSolution.Services.GetRequiredService<ILegacySolutionEventsAggregationService>();
-                    await aggregationService.OnWorkspaceChangedEventAsync(
+                    await aggregationService.OnWorkspaceChangedAsync(
                         GetDescriptor(), new WorkspaceChangeEventArgs(kind, oldSolution, newSolution, projectId, documentId), cancellationToken).ConfigureAwait(false);
                 }, cancellationToken);
         }
