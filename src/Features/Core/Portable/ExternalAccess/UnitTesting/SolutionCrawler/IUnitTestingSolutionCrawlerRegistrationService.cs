@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
     /// </summary>
     internal interface IUnitTestingSolutionCrawlerRegistrationService : IWorkspaceService
     {
-        void Register(ILegacyWorkspaceDescriptor workspaceDescriptor);
+        IUnitTestingWorkCoordinator Register(ILegacyWorkspaceDescriptor workspaceDescriptor);
 
 #if false // Not used in unit testing crawling
         void Unregister(Workspace workspace, bool blockingShutdown = false);

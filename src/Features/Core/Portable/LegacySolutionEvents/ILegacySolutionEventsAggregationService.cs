@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.LegacySolutionEvents
     /// </summary>
     internal interface ILegacySolutionEventsAggregationService : IWorkspaceService
     {
-        ValueTask OnWorkspaceChangedEventAsync(ILegacyWorkspaceDescriptor descriptor, WorkspaceChangeEventArgs args, CancellationToken cancellationToken);
+        ValueTask OnWorkspaceChangedAsync(ILegacyWorkspaceDescriptor descriptor, WorkspaceChangeEventArgs args, CancellationToken cancellationToken);
         ValueTask OnTextDocumentOpenedAsync(ILegacyWorkspaceDescriptor descriptor, TextDocumentEventArgs args, CancellationToken cancellationToken);
         ValueTask OnTextDocumentClosedAsync(ILegacyWorkspaceDescriptor descriptor, TextDocumentEventArgs args, CancellationToken cancellationToken);
     }
@@ -38,10 +38,10 @@ namespace Microsoft.CodeAnalysis.LegacySolutionEvents
             _eventsServices = eventsServices.ToImmutableArray();
         }
 
-        public async ValueTask OnWorkspaceChangedEventAsync(ILegacyWorkspaceDescriptor descriptor, WorkspaceChangeEventArgs args, CancellationToken cancellationToken)
+        public async ValueTask OnWorkspaceChangedAsync(ILegacyWorkspaceDescriptor descriptor, WorkspaceChangeEventArgs args, CancellationToken cancellationToken)
         {
             foreach (var service in _eventsServices)
-                await service.Value.OnWorkspaceChangedEventAsync(descriptor, args, cancellationToken).ConfigureAwait(false);
+                await service.Value.OnWorkspaceChangedAsync(descriptor, args, cancellationToken).ConfigureAwait(false);
         }
 
         public async ValueTask OnTextDocumentOpenedAsync(ILegacyWorkspaceDescriptor descriptor, TextDocumentEventArgs args, CancellationToken cancellationToken)

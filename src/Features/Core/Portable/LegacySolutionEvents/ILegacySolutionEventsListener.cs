@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.LegacySolutionEvents
     /// </summary>
     internal interface ILegacySolutionEventsListener
     {
-        ValueTask OnWorkspaceChangedEventAsync(ILegacyWorkspaceDescriptor descriptor, WorkspaceChangeEventArgs args, CancellationToken cancellationToken);
+        ValueTask OnWorkspaceChangedAsync(ILegacyWorkspaceDescriptor descriptor, WorkspaceChangeEventArgs args, CancellationToken cancellationToken);
         ValueTask OnTextDocumentOpenedAsync(ILegacyWorkspaceDescriptor descriptor, TextDocumentEventArgs args, CancellationToken cancellationToken);
         ValueTask OnTextDocumentClosedAsync(ILegacyWorkspaceDescriptor descriptor, TextDocumentEventArgs args, CancellationToken cancellationToken);
     }

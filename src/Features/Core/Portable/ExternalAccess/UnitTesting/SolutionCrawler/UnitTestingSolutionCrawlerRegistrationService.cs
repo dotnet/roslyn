@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
         /// <summary>
         /// make sure solution cralwer is registered for the given workspace.
         /// </summary>
-        public void Register(ILegacyWorkspaceDescriptor workspaceDescriptor)
+        public IUnitTestingWorkCoordinator Register(ILegacyWorkspaceDescriptor workspaceDescriptor)
         {
             var workspaceKind = workspaceDescriptor.WorkspaceKind;
             var solutionServices = workspaceDescriptor.SolutionServices;
@@ -55,24 +55,23 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
 
             var correlationId = CorrelationIdFactory.GetNextId();
 
+            UnitTestingWorkCoordinator coordinator;
             lock (_gate)
             {
-                if (_documentWorkCoordinatorMap.ContainsKey((workspaceKind, solutionServices)))
+                if (!_documentWorkCoordinatorMap.TryGetValue((workspaceKind, solutionServices), out coordinator))
                 {
-                    // already registered.
-                    return;
+                    coordinator = new UnitTestingWorkCoordinator(
+                        _listener,
+                        GetAnalyzerProviders(workspaceKind),
+                        initializeLazily: true,
+                        new UnitTestingRegistration(correlationId, workspaceKind, solutionServices, getSolutionToAnalyze, _progressReporter));
+
+                    _documentWorkCoordinatorMap.Add((workspaceKind, solutionServices), coordinator);
                 }
-
-                var coordinator = new UnitTestingWorkCoordinator(
-                    _listener,
-                    GetAnalyzerProviders(workspaceKind),
-                    initializeLazily: true,
-                    new UnitTestingRegistration(correlationId, workspaceKind, solutionServices, getSolutionToAnalyze, _progressReporter));
-
-                _documentWorkCoordinatorMap.Add((workspaceKind, solutionServices), coordinator);
             }
 
             UnitTestingSolutionCrawlerLogger.LogRegistration(correlationId, workspaceKind);
+            return coordinator;
         }
 
 #if false // Not used in unit testing crawling

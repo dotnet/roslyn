@@ -3,13 +3,13 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using System.Composition;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LegacySolutionEvents;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.LegacySolutionEvents
 {
@@ -22,19 +22,34 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.LegacySolutionEvents
         {
         }
 
-        public ValueTask OnWorkspaceChangedEventAsync(ILegacyWorkspaceDescriptor descriptor, WorkspaceChangeEventArgs args, CancellationToken cancellationToken)
+        private static IUnitTestingWorkCoordinator? GetCoordinator(ILegacyWorkspaceDescriptor descriptor)
         {
-            throw new NotImplementedException();
+            var service = descriptor.SolutionServices.GetService<IUnitTestingSolutionCrawlerRegistrationService>();
+            if (service == null)
+                return null;
+
+            return service.Register(descriptor);
+        }
+
+        public ValueTask OnWorkspaceChangedAsync(ILegacyWorkspaceDescriptor descriptor, WorkspaceChangeEventArgs args, CancellationToken cancellationToken)
+        {
+            var coordinator = GetCoordinator(descriptor);
+            coordinator?.OnWorkspaceChanged(args);
+            return ValueTaskFactory.CompletedTask;
         }
 
         public ValueTask OnTextDocumentOpenedAsync(ILegacyWorkspaceDescriptor descriptor, TextDocumentEventArgs args, CancellationToken cancellationToken)
         {
-            throw new NotImplementedException();
+            var coordinator = GetCoordinator(descriptor);
+            coordinator?.OnTextDocumentOpened(args);
+            return ValueTaskFactory.CompletedTask;
         }
 
         public ValueTask OnTextDocumentClosedAsync(ILegacyWorkspaceDescriptor descriptor, TextDocumentEventArgs args, CancellationToken cancellationToken)
         {
-            throw new NotImplementedException();
+            var coordinator = GetCoordinator(descriptor);
+            coordinator?.OnTextDocumentClosed(args);
+            return ValueTaskFactory.CompletedTask;
         }
     }
 }

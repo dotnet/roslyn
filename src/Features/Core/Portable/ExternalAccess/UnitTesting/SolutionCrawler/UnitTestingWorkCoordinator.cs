@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
 {
     internal partial class UnitTestingSolutionCrawlerRegistrationService
     {
-        internal sealed partial class UnitTestingWorkCoordinator
+        internal sealed partial class UnitTestingWorkCoordinator : IUnitTestingWorkCoordinator
         {
             public readonly UnitTestingRegistration Registration;
             private readonly object _gate = new();
@@ -66,10 +66,6 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                 var projectBackOffTimeSpan = UnitTestingSolutionCrawlerTimeSpan.ProjectPropagationBackOff;
 
                 _semanticChangeProcessor = new UnitTestingSemanticChangeProcessor(listener, Registration, _documentAndProjectWorkerProcessor, semanticBackOffTimeSpan, projectBackOffTimeSpan, _shutdownToken);
-
-                Registration.Workspace.WorkspaceChanged += OnWorkspaceChanged;
-                Registration.Workspace.TextDocumentOpened += OnTextDocumentOpened;
-                Registration.Workspace.TextDocumentClosed += OnTextDocumentClosed;
 
                 // subscribe to active document changed event for active file background analysis scope.
                 _documentTrackingService.ActiveDocumentChanged += OnActiveDocumentSwitched;
@@ -157,7 +153,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                 EnqueueFullDocumentEvent(solution, activeDocumentId, UnitTestingInvocationReasons.ActiveDocumentSwitched, eventName: nameof(OnActiveDocumentSwitched));
             }
 
-            private void OnWorkspaceChanged(object? sender, WorkspaceChangeEventArgs args)
+            public void OnWorkspaceChanged(WorkspaceChangeEventArgs args)
             {
                 // guard us from cancellation
                 try
@@ -266,13 +262,13 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                 }
             }
 
-            private void OnTextDocumentOpened(object? sender, TextDocumentEventArgs e)
+            public void OnTextDocumentOpened(TextDocumentEventArgs e)
             {
                 _eventProcessingQueue.ScheduleTask("OnTextDocumentOpened",
                     () => EnqueueDocumentWorkItemAsync(e.Document.Project, e.Document.Id, e.Document, UnitTestingInvocationReasons.DocumentOpened), _shutdownToken);
             }
 
-            private void OnTextDocumentClosed(object? sender, TextDocumentEventArgs e)
+            public void OnTextDocumentClosed(TextDocumentEventArgs e)
             {
                 _eventProcessingQueue.ScheduleTask("OnTextDocumentClosed",
                     () => EnqueueDocumentWorkItemAsync(e.Document.Project, e.Document.Id, e.Document, UnitTestingInvocationReasons.DocumentClosed), _shutdownToken);
