@@ -26,32 +26,32 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.LegacySolutionEvents
         {
         }
 
-        private static IUnitTestingWorkCoordinator? GetCoordinator(ILegacyWorkspaceDescriptor descriptor)
+        private static IUnitTestingWorkCoordinator? GetCoordinator(Solution solution)
         {
-            var service = descriptor.SolutionServices.GetService<IUnitTestingSolutionCrawlerRegistrationService>();
+            var service = solution.Services.GetService<IUnitTestingSolutionCrawlerRegistrationService>();
             if (service == null)
                 return null;
 
-            return service.Register(descriptor);
+            return service.Register(solution);
         }
 
-        public ValueTask OnWorkspaceChangedAsync(ILegacyWorkspaceDescriptor descriptor, WorkspaceChangeEventArgs args, CancellationToken cancellationToken)
+        public ValueTask OnWorkspaceChangedAsync(WorkspaceChangeEventArgs args, CancellationToken cancellationToken)
         {
-            var coordinator = GetCoordinator(descriptor);
+            var coordinator = GetCoordinator(args.NewSolution);
             coordinator?.OnWorkspaceChanged(args);
             return ValueTaskFactory.CompletedTask;
         }
 
-        public ValueTask OnTextDocumentOpenedAsync(ILegacyWorkspaceDescriptor descriptor, TextDocumentEventArgs args, CancellationToken cancellationToken)
+        public ValueTask OnTextDocumentOpenedAsync(TextDocumentEventArgs args, CancellationToken cancellationToken)
         {
-            var coordinator = GetCoordinator(descriptor);
+            var coordinator = GetCoordinator(args.Document.Project.Solution);
             coordinator?.OnTextDocumentOpened(args);
             return ValueTaskFactory.CompletedTask;
         }
 
-        public ValueTask OnTextDocumentClosedAsync(ILegacyWorkspaceDescriptor descriptor, TextDocumentEventArgs args, CancellationToken cancellationToken)
+        public ValueTask OnTextDocumentClosedAsync(TextDocumentEventArgs args, CancellationToken cancellationToken)
         {
-            var coordinator = GetCoordinator(descriptor);
+            var coordinator = GetCoordinator(args.Document.Project.Solution);
             coordinator?.OnTextDocumentClosed(args);
             return ValueTaskFactory.CompletedTask;
         }
