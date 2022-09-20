@@ -1538,49 +1538,46 @@ class C<T> { }
 static class C2 { }
 ref struct RefLike{}
 
-unsafe record struct C( // 1
-    int* P1, // 2
-    int*[] P2, // 3
+unsafe record struct C(
+    int* P1, // 1
+    int*[] P2, // 2
     C<int*[]> P3,
-    delegate*<int, int> P4, // 4
-    void P5, // 5
-    C2 P6, // 6, 7
-    System.ArgIterator P7, // 8
-    System.TypedReference P8, // 9
-    RefLike P9); // 10
+    delegate*<int, int> P4, // 3
+    void P5, // 4
+    C2 P6, // 5, 6
+    System.ArgIterator P7, // 7
+    System.TypedReference P8, // 8
+    RefLike P9); // 9
 ";
 
             var comp = CreateCompilation(new[] { src, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularPreview, options: TestOptions.UnsafeDebugDll);
             comp.VerifyEmitDiagnostics(
-                // (6,22): error CS0721: 'C2': static types cannot be used as parameters
-                // unsafe record struct C( // 1
-                Diagnostic(ErrorCode.ERR_ParameterIsStaticClass, "C").WithArguments("C2").WithLocation(6, 22),
                 // (7,10): error CS8908: The type 'int*' may not be used for a field of a record.
-                //     int* P1, // 2
+                //     int* P1, // 1
                 Diagnostic(ErrorCode.ERR_BadFieldTypeInRecord, "P1").WithArguments("int*").WithLocation(7, 10),
                 // (8,12): error CS8908: The type 'int*[]' may not be used for a field of a record.
-                //     int*[] P2, // 3
+                //     int*[] P2, // 2
                 Diagnostic(ErrorCode.ERR_BadFieldTypeInRecord, "P2").WithArguments("int*[]").WithLocation(8, 12),
                 // (10,25): error CS8908: The type 'delegate*<int, int>' may not be used for a field of a record.
-                //     delegate*<int, int> P4, // 4
+                //     delegate*<int, int> P4, // 3
                 Diagnostic(ErrorCode.ERR_BadFieldTypeInRecord, "P4").WithArguments("delegate*<int, int>").WithLocation(10, 25),
                 // (11,5): error CS1536: Invalid parameter type 'void'
                 //     void P5, // 5
                 Diagnostic(ErrorCode.ERR_NoVoidParameter, "void").WithLocation(11, 5),
-                // (12,8): error CS0722: 'C2': static types cannot be used as return types
-                //     C2 P6, // 6, 7
-                Diagnostic(ErrorCode.ERR_ReturnTypeIsStaticClass, "P6").WithArguments("C2").WithLocation(12, 8),
-                // (12,8): error CS0721: 'C2': static types cannot be used as parameters
-                //     C2 P6, // 6, 7
-                Diagnostic(ErrorCode.ERR_ParameterIsStaticClass, "P6").WithArguments("C2").WithLocation(12, 8),
+                // (12,5): error CS0721: 'C2': static types cannot be used as parameters
+                //     C2 P6, // 5, 6
+                Diagnostic(ErrorCode.ERR_ParameterIsStaticClass, "C2").WithArguments("C2").WithLocation(12, 5),
+                // (12,5): error CS0722: 'C2': static types cannot be used as return types
+                //     C2 P6, // 5, 6
+                Diagnostic(ErrorCode.ERR_ReturnTypeIsStaticClass, "C2").WithArguments("C2").WithLocation(12, 5),
                 // (13,5): error CS0610: Field or property cannot be of type 'ArgIterator'
-                //     System.ArgIterator P7, // 8
+                //     System.ArgIterator P7, // 7
                 Diagnostic(ErrorCode.ERR_FieldCantBeRefAny, "System.ArgIterator").WithArguments("System.ArgIterator").WithLocation(13, 5),
                 // (14,5): error CS0610: Field or property cannot be of type 'TypedReference'
-                //     System.TypedReference P8, // 9
+                //     System.TypedReference P8, // 8
                 Diagnostic(ErrorCode.ERR_FieldCantBeRefAny, "System.TypedReference").WithArguments("System.TypedReference").WithLocation(14, 5),
                 // (15,5): error CS8345: Field or auto-implemented property cannot be of type 'RefLike' unless it is an instance member of a ref struct.
-                //     RefLike P9); // 10
+                //     RefLike P9); // 9
                 Diagnostic(ErrorCode.ERR_FieldAutoPropCantBeByRefLike, "RefLike").WithArguments("RefLike").WithLocation(15, 5)
                 );
         }
@@ -1653,7 +1650,7 @@ public unsafe record struct C
     public C<int*[]> f3 { get; set; }
     public delegate*<int, int> f4 { get; set; } // 3
     public void f5 { get; set; } // 4
-    public C2 f6 { get; set; } // 5, 6
+    public C2 f6 { get; set; } // 5
     public System.ArgIterator f7 { get; set; } // 6
     public System.TypedReference f8 { get; set; } // 7
     public RefLike f9 { get; set; } // 8
@@ -1674,12 +1671,9 @@ public unsafe record struct C
                 // (12,17): error CS0547: 'C.f5': property or indexer cannot have void type
                 //     public void f5 { get; set; } // 4
                 Diagnostic(ErrorCode.ERR_PropertyCantHaveVoidType, "f5").WithArguments("C.f5").WithLocation(12, 17),
-                // (13,20): error CS0722: 'C2': static types cannot be used as return types
-                //     public C2 f6 { get; set; } // 5, 6
-                Diagnostic(ErrorCode.ERR_ReturnTypeIsStaticClass, "get").WithArguments("C2").WithLocation(13, 20),
-                // (13,25): error CS0721: 'C2': static types cannot be used as parameters
-                //     public C2 f6 { get; set; } // 5, 6
-                Diagnostic(ErrorCode.ERR_ParameterIsStaticClass, "set").WithArguments("C2").WithLocation(13, 25),
+                // (13,12): error CS0722: 'C2': static types cannot be used as return types
+                //     public C2 f6 { get; set; } // 5
+                Diagnostic(ErrorCode.ERR_ReturnTypeIsStaticClass, "C2").WithArguments("C2").WithLocation(13, 12),
                 // (14,12): error CS0610: Field or property cannot be of type 'ArgIterator'
                 //     public System.ArgIterator f7 { get; set; } // 6
                 Diagnostic(ErrorCode.ERR_FieldCantBeRefAny, "System.ArgIterator").WithArguments("System.ArgIterator").WithLocation(14, 12),
@@ -4531,7 +4525,7 @@ namespace System.Text
     }
 }
 ";
-            var comp = CreateEmptyCompilation(src, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateEmptyCompilation(src, parseOptions: TestOptions.RegularPreview.WithNoRefSafetyRulesAttribute());
 
             comp.VerifyEmitDiagnostics(
                 // warning CS8021: No value for RuntimeMetadataVersion found. No assembly containing System.Object was found nor was a value for RuntimeMetadataVersion specified through options.
@@ -4808,7 +4802,7 @@ namespace System.Text
     }
 }
 ";
-            var comp = CreateEmptyCompilation(src, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateEmptyCompilation(src, parseOptions: TestOptions.RegularPreview.WithNoRefSafetyRulesAttribute());
 
             comp.VerifyEmitDiagnostics(
                 // warning CS8021: No value for RuntimeMetadataVersion found. No assembly containing System.Object was found nor was a value for RuntimeMetadataVersion specified through options.

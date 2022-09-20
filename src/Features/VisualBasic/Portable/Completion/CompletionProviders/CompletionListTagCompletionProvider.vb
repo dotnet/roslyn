@@ -9,7 +9,6 @@ Imports Microsoft.CodeAnalysis.Completion
 Imports Microsoft.CodeAnalysis.Completion.Providers
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.LanguageService
-Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
@@ -30,10 +29,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
                 syntaxContext As VisualBasicSyntaxContext,
                 position As Integer,
                 options As CompletionOptions,
-                cancellationToken As CancellationToken) As Task(Of ImmutableArray(Of (symbol As ISymbol, preselect As Boolean)))
+                cancellationToken As CancellationToken) As Task(Of ImmutableArray(Of SymbolAndSelectionInfo))
 
             Dim symbols = Await GetPreselectedSymbolsAsync(syntaxContext, position, options, cancellationToken).ConfigureAwait(False)
-            Return symbols.SelectAsArray(Function(s) (s, preselect:=True))
+            Return symbols.SelectAsArray(Function(s) New SymbolAndSelectionInfo(s, Preselect:=True))
         End Function
 
         Private Shared Function GetPreselectedSymbolsAsync(context As VisualBasicSyntaxContext, position As Integer, options As CompletionOptions, cancellationToken As CancellationToken) As Task(Of ImmutableArray(Of ISymbol))
@@ -92,7 +91,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
                 displayText As String,
                 displayTextSuffix As String,
                 insertionText As String,
-                symbols As ImmutableArray(Of (symbol As ISymbol, preselect As Boolean)),
+                symbols As ImmutableArray(Of SymbolAndSelectionInfo),
                 context As VisualBasicSyntaxContext,
                 supportedPlatformData As SupportedPlatformData) As CompletionItem
 
@@ -100,8 +99,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
                 displayText:=displayText,
                 displayTextSuffix:=displayTextSuffix,
                 insertionText:=insertionText,
-                filterText:=GetFilterText(symbols(0).symbol, displayText, context),
-                symbols:=symbols.SelectAsArray(Function(t) t.symbol),
+                filterText:=GetFilterTextDefault(symbols(0).Symbol, displayText, context),
+                symbols:=symbols.SelectAsArray(Function(t) t.Symbol),
                 rules:=CompletionItemRules.Default.WithMatchPriority(MatchPriority.Preselect),
                 contextPosition:=context.Position,
                 sortText:=displayText,

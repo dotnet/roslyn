@@ -122,6 +122,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             return options.WithFeature("nullablePublicOnly");
         }
 
+        public static CSharpParseOptions WithNoRefSafetyRulesAttribute(this CSharpParseOptions options)
+        {
+            return options.WithFeature("noRefSafetyRulesAttribute");
+        }
+
         public static CSharpParseOptions WithFeature(this CSharpParseOptions options, string feature, string value = "true")
         {
             return options.WithFeatures(options.Features.Concat(new[] { new KeyValuePair<string, string>(feature, value) }));

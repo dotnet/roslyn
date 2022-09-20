@@ -36,7 +36,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.U
 
             var source = @"class C { public static void Main() { int x = 1; } }";
 
-            var compilation = CSharpTestBase.CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll, assemblyName: "lib");
+            var compilation = CSharpTestBase.CreateCompilationWithMscorlib40AndSystemCore(source, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), options: TestOptions.DebugDll, assemblyName: "lib");
             var pdbStream = (pdbFile != null) ? new MemoryStream() : null;
             var debugDirPdbPath = exactPdbPath ? pdbFile.Path : "a/y/z/lib.pdb";
             var peImage = compilation.EmitToArray(new EmitOptions(debugInformationFormat: pdbFormat, pdbFilePath: debugDirPdbPath), pdbStream: pdbStream);

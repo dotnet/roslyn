@@ -144,12 +144,21 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.DeclareAsNullable
                 return null;
             }
 
-            if (node.IsParentKind(SyntaxKind.ReturnStatement, SyntaxKind.YieldReturnStatement))
+            if (node.Parent is (kind: SyntaxKind.ReturnStatement or SyntaxKind.YieldReturnStatement))
             {
-                var containingMember = node.GetAncestors().FirstOrDefault(a => a.IsKind(
-                    SyntaxKind.MethodDeclaration, SyntaxKind.PropertyDeclaration, SyntaxKind.ParenthesizedLambdaExpression, SyntaxKind.SimpleLambdaExpression,
-                    SyntaxKind.LocalFunctionStatement, SyntaxKind.AnonymousMethodExpression, SyntaxKind.ConstructorDeclaration, SyntaxKind.DestructorDeclaration,
-                    SyntaxKind.OperatorDeclaration, SyntaxKind.IndexerDeclaration, SyntaxKind.EventDeclaration));
+                var containingMember = node.GetAncestors().FirstOrDefault(
+                    a => a.Kind() is
+                        SyntaxKind.MethodDeclaration or
+                        SyntaxKind.PropertyDeclaration or
+                        SyntaxKind.ParenthesizedLambdaExpression or
+                        SyntaxKind.SimpleLambdaExpression or
+                        SyntaxKind.LocalFunctionStatement or
+                        SyntaxKind.AnonymousMethodExpression or
+                        SyntaxKind.ConstructorDeclaration or
+                        SyntaxKind.DestructorDeclaration or
+                        SyntaxKind.OperatorDeclaration or
+                        SyntaxKind.IndexerDeclaration or
+                        SyntaxKind.EventDeclaration);
 
                 if (containingMember == null)
                 {
@@ -280,7 +289,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.DeclareAsNullable
             }
 
             // string x { get; set; } = null;
-            if (node.Parent.IsParentKind(SyntaxKind.PropertyDeclaration, out PropertyDeclarationSyntax? propertyDeclaration))
+            if (node.Parent?.Parent is PropertyDeclarationSyntax propertyDeclaration)
             {
                 return propertyDeclaration.Type;
             }
@@ -301,7 +310,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.DeclareAsNullable
             }
 
             // void M(string x = null) { }
-            if (node.Parent.IsParentKind(SyntaxKind.Parameter, out ParameterSyntax? optionalParameter))
+            if (node.Parent?.Parent is ParameterSyntax optionalParameter)
             {
                 var parameterSymbol = model.GetDeclaredSymbol(optionalParameter);
                 return TryGetParameterTypeSyntax(parameterSymbol);
@@ -309,7 +318,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.DeclareAsNullable
 
             // static string M() => null;
             if (node.IsParentKind(SyntaxKind.ArrowExpressionClause) &&
-                node.Parent.IsParentKind(SyntaxKind.MethodDeclaration, out MethodDeclarationSyntax? arrowMethod))
+                node.Parent?.Parent is MethodDeclarationSyntax arrowMethod)
             {
                 return arrowMethod.ReturnType;
             }
@@ -366,16 +375,14 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.DeclareAsNullable
         }
 
         private static bool IsExpressionSupported(SyntaxNode node)
-        {
-            return node.IsKind(
-                SyntaxKind.NullLiteralExpression,
-                SyntaxKind.AsExpression,
-                SyntaxKind.DefaultExpression,
-                SyntaxKind.DefaultLiteralExpression,
-                SyntaxKind.ConditionalExpression,
-                SyntaxKind.ConditionalAccessExpression,
-                SyntaxKind.PropertyDeclaration,
-                SyntaxKind.VariableDeclarator);
-        }
+            => node.Kind() is
+                SyntaxKind.NullLiteralExpression or
+                SyntaxKind.AsExpression or
+                SyntaxKind.DefaultExpression or
+                SyntaxKind.DefaultLiteralExpression or
+                SyntaxKind.ConditionalExpression or
+                SyntaxKind.ConditionalAccessExpression or
+                SyntaxKind.PropertyDeclaration or
+                SyntaxKind.VariableDeclarator;
     }
 }

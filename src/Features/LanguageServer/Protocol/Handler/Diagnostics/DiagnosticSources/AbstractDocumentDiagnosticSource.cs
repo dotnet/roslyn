@@ -74,18 +74,7 @@ internal abstract class AbstractDocumentDiagnosticSource<TDocument> : IDiagnosti
             properties: ImmutableDictionary<string, string?>.Empty,
             projectId: document.Project.Id,
             language: document.Project.Language,
-            location: new DiagnosticDataLocation(
-                originalFilePath: i.Span.Path,
-                documentId: document.Id,
-                originalStartLine: i.Span.StartLinePosition.Line,
-                originalStartColumn: i.Span.StartLinePosition.Character,
-                originalEndLine: i.Span.EndLinePosition.Line,
-                originalEndColumn: i.Span.EndLinePosition.Character,
-                mappedFilePath: i.MappedSpan.Path,
-                mappedStartLine: i.MappedSpan.StartLinePosition.Line,
-                mappedStartColumn: i.MappedSpan.StartLinePosition.Character,
-                mappedEndLine: i.MappedSpan.EndLinePosition.Line,
-                mappedEndColumn: i.MappedSpan.EndLinePosition.Character)));
+            location: new DiagnosticDataLocation(i.Span, document.Id, mappedFileSpan: i.MappedSpan)));
     }
 
     private static ImmutableArray<TaskListItemDescriptor> GetAndCacheDescriptors(ImmutableArray<string> tokenList)

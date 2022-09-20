@@ -10635,7 +10635,7 @@ class Program
     }
 }
 ";
-            var verifier = CompileAndVerify(source, sourceSymbolValidator: verify, symbolValidator: verifyMetadata, expectedOutput: "a");
+            var verifier = CompileAndVerify(source, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), sourceSymbolValidator: verify, symbolValidator: verifyMetadata, expectedOutput: "a");
 
             verifier.VerifyTypeIL("Holder", @"
 .class private auto ansi beforefieldinit Holder

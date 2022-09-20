@@ -355,6 +355,8 @@ class X
                         case ErrorCode.WRN_UseDefViolationThisSupportedVersion:
                         case ErrorCode.WRN_AnalyzerReferencesNewerCompiler:
                         case ErrorCode.WRN_DuplicateAnalyzerReference:
+                        case ErrorCode.WRN_ScopedMismatchInParameterOfTarget:
+                        case ErrorCode.WRN_ScopedMismatchInParameterOfOverrideOrImplementation:
                             Assert.Equal(1, ErrorFacts.GetWarningLevel(errorCode));
                             break;
                         case ErrorCode.WRN_InvalidVersionFormat:

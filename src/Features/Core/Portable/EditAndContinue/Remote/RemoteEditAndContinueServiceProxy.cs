@@ -212,7 +212,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
             // If the location in the generated document is in a scope of user-visible #line mapping use the mapped span,
             // otherwise (if it's hidden) display the diagnostic at the start of the file.
-            var span = data.DataLocation.IsMapped ? data.DataLocation.GetFileLinePositionSpan().Span : default;
+            var span = data.DataLocation.UnmappedFileSpan != data.DataLocation.MappedFileSpan ? data.DataLocation.MappedFileSpan.Span : default;
             var location = Location.Create(designTimeDocument.FilePath, textSpan: default, span);
 
             return data.ToDiagnostic(location, ImmutableArray<Location>.Empty);
