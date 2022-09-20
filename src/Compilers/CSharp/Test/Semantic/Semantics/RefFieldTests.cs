@@ -2985,53 +2985,53 @@ ref struct R { }
 class Program
 {
     static void F0(__arglist) { }
-    static void F1(ref R a, __arglist) { }
+    static void F1(scoped ref R a, __arglist) { }
 
-    static void F00(ref R x, ref R y) { F0(__arglist(ref x, ref y)); } // 1
-    static void F01(ref R x, ref R y) { F1(ref x, __arglist(ref y)); } // 2
-    static void F20(ref R x, [UnscopedRef] ref R y) { F0(__arglist(ref x, ref y)); } // 3
-    static void F21(ref R x, [UnscopedRef] ref R y) { F1(ref x, __arglist(ref y)); } // 4
-    static void F50([UnscopedRef] ref R x, [UnscopedRef] ref R y) { F0(__arglist(ref x, ref y)); } // 5
-    static void F51([UnscopedRef] ref R x, [UnscopedRef] ref R y) { F1(ref x, __arglist(ref y)); } // 6
+    static void F00(scoped ref R x, scoped ref R y) { F0(__arglist(ref x, ref y)); } // 1
+    static void F01(scoped ref R x, scoped ref R y) { F1(ref x, __arglist(ref y)); } // 2
+    static void F20(scoped ref R x, ref R y) { F0(__arglist(ref x, ref y)); } // 3
+    static void F21(scoped ref R x, ref R y) { F1(ref x, __arglist(ref y)); } // 4
+    static void F50(ref R x, ref R y) { F0(__arglist(ref x, ref y)); } // 5
+    static void F51(ref R x, ref R y) { F1(ref x, __arglist(ref y)); } // 6
 }";
             var comp = CreateCompilation(new[] { source, UnscopedRefAttributeDefinition });
             comp.VerifyEmitDiagnostics(
-                // (8,58): error CS9075: Cannot return a parameter by reference 'x' because it is scoped to the current method
-                //     static void F00(ref R x, ref R y) { F0(__arglist(ref x, ref y)); } // 1
-                Diagnostic(ErrorCode.ERR_RefReturnScopedParameter, "x").WithArguments("x").WithLocation(8, 58),
-                // (8,41): error CS8350: This combination of arguments to 'Program.F0(__arglist)' is disallowed because it may expose variables referenced by parameter '__arglist' outside of their declaration scope
-                //     static void F00(ref R x, ref R y) { F0(__arglist(ref x, ref y)); } // 1
-                Diagnostic(ErrorCode.ERR_CallArgMixing, "F0(__arglist(ref x, ref y))").WithArguments("Program.F0(__arglist)", "__arglist").WithLocation(8, 41),
-                // (9,65): error CS9075: Cannot return a parameter by reference 'y' because it is scoped to the current method
-                //     static void F01(ref R x, ref R y) { F1(ref x, __arglist(ref y)); } // 2
-                Diagnostic(ErrorCode.ERR_RefReturnScopedParameter, "y").WithArguments("y").WithLocation(9, 65),
-                // (9,41): error CS8350: This combination of arguments to 'Program.F1(ref R, __arglist)' is disallowed because it may expose variables referenced by parameter '__arglist' outside of their declaration scope
-                //     static void F01(ref R x, ref R y) { F1(ref x, __arglist(ref y)); } // 2
-                Diagnostic(ErrorCode.ERR_CallArgMixing, "F1(ref x, __arglist(ref y))").WithArguments("Program.F1(ref R, __arglist)", "__arglist").WithLocation(9, 41),
-                // (10,72): error CS9075: Cannot return a parameter by reference 'x' because it is scoped to the current method
-                //     static void F20(ref R x, [UnscopedRef] ref R y) { F0(__arglist(ref x, ref y)); } // 3
-                Diagnostic(ErrorCode.ERR_RefReturnScopedParameter, "x").WithArguments("x").WithLocation(10, 72),
-                // (10,55): error CS8350: This combination of arguments to 'Program.F0(__arglist)' is disallowed because it may expose variables referenced by parameter '__arglist' outside of their declaration scope
-                //     static void F20(ref R x, [UnscopedRef] ref R y) { F0(__arglist(ref x, ref y)); } // 3
-                Diagnostic(ErrorCode.ERR_CallArgMixing, "F0(__arglist(ref x, ref y))").WithArguments("Program.F0(__arglist)", "__arglist").WithLocation(10, 55),
-                // (11,79): error CS9077: Cannot return a parameter by reference 'y' through a ref parameter; it can only be returned in a return statement
-                //     static void F21(ref R x, [UnscopedRef] ref R y) { F1(ref x, __arglist(ref y)); } // 4
-                Diagnostic(ErrorCode.ERR_RefReturnOnlyParameter, "y").WithArguments("y").WithLocation(11, 79),
-                // (11,55): error CS8350: This combination of arguments to 'Program.F1(ref R, __arglist)' is disallowed because it may expose variables referenced by parameter '__arglist' outside of their declaration scope
-                //     static void F21(ref R x, [UnscopedRef] ref R y) { F1(ref x, __arglist(ref y)); } // 4
-                Diagnostic(ErrorCode.ERR_CallArgMixing, "F1(ref x, __arglist(ref y))").WithArguments("Program.F1(ref R, __arglist)", "__arglist").WithLocation(11, 55),
-                // (12,86): error CS9077: Cannot return a parameter by reference 'x' through a ref parameter; it can only be returned in a return statement
-                //     static void F50([UnscopedRef] ref R x, [UnscopedRef] ref R y) { F0(__arglist(ref x, ref y)); } // 5
-                Diagnostic(ErrorCode.ERR_RefReturnOnlyParameter, "x").WithArguments("x").WithLocation(12, 86),
-                // (12,69): error CS8350: This combination of arguments to 'Program.F0(__arglist)' is disallowed because it may expose variables referenced by parameter '__arglist' outside of their declaration scope
-                //     static void F50([UnscopedRef] ref R x, [UnscopedRef] ref R y) { F0(__arglist(ref x, ref y)); } // 5
-                Diagnostic(ErrorCode.ERR_CallArgMixing, "F0(__arglist(ref x, ref y))").WithArguments("Program.F0(__arglist)", "__arglist").WithLocation(12, 69),
-                // (13,93): error CS9077: Cannot return a parameter by reference 'y' through a ref parameter; it can only be returned in a return statement
-                //     static void F51([UnscopedRef] ref R x, [UnscopedRef] ref R y) { F1(ref x, __arglist(ref y)); } // 6
-                Diagnostic(ErrorCode.ERR_RefReturnOnlyParameter, "y").WithArguments("y").WithLocation(13, 93),
-                // (13,69): error CS8350: This combination of arguments to 'Program.F1(ref R, __arglist)' is disallowed because it may expose variables referenced by parameter '__arglist' outside of their declaration scope
-                //     static void F51([UnscopedRef] ref R x, [UnscopedRef] ref R y) { F1(ref x, __arglist(ref y)); } // 6
-                Diagnostic(ErrorCode.ERR_CallArgMixing, "F1(ref x, __arglist(ref y))").WithArguments("Program.F1(ref R, __arglist)", "__arglist").WithLocation(13, 69));
+                // (8,72): error CS9075: Cannot return a parameter by reference 'x' because it is scoped to the current method
+                //     static void F00(scoped ref R x, scoped ref R y) { F0(__arglist(ref x, ref y)); } // 1
+                Diagnostic(ErrorCode.ERR_RefReturnScopedParameter, "x").WithArguments("x").WithLocation(8, 72),
+                // (8,55): error CS8350: This combination of arguments to 'Program.F0(__arglist)' is disallowed because it may expose variables referenced by parameter '__arglist' outside of their declaration scope
+                //     static void F00(scoped ref R x, scoped ref R y) { F0(__arglist(ref x, ref y)); } // 1
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "F0(__arglist(ref x, ref y))").WithArguments("Program.F0(__arglist)", "__arglist").WithLocation(8, 55),
+                // (9,79): error CS9075: Cannot return a parameter by reference 'y' because it is scoped to the current method
+                //     static void F01(scoped ref R x, scoped ref R y) { F1(ref x, __arglist(ref y)); } // 2
+                Diagnostic(ErrorCode.ERR_RefReturnScopedParameter, "y").WithArguments("y").WithLocation(9, 79),
+                // (9,55): error CS8350: This combination of arguments to 'Program.F1(ref R, __arglist)' is disallowed because it may expose variables referenced by parameter '__arglist' outside of their declaration scope
+                //     static void F01(scoped ref R x, scoped ref R y) { F1(ref x, __arglist(ref y)); } // 2
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "F1(ref x, __arglist(ref y))").WithArguments("Program.F1(ref R, __arglist)", "__arglist").WithLocation(9, 55),
+                // (10,65): error CS9075: Cannot return a parameter by reference 'x' because it is scoped to the current method
+                //     static void F20(scoped ref R x, ref R y) { F0(__arglist(ref x, ref y)); } // 3
+                Diagnostic(ErrorCode.ERR_RefReturnScopedParameter, "x").WithArguments("x").WithLocation(10, 65),
+                // (10,48): error CS8350: This combination of arguments to 'Program.F0(__arglist)' is disallowed because it may expose variables referenced by parameter '__arglist' outside of their declaration scope
+                //     static void F20(scoped ref R x, ref R y) { F0(__arglist(ref x, ref y)); } // 3
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "F0(__arglist(ref x, ref y))").WithArguments("Program.F0(__arglist)", "__arglist").WithLocation(10, 48),
+                // (11,72): error CS9077: Cannot return a parameter by reference 'y' through a ref parameter; it can only be returned in a return statement
+                //     static void F21(scoped ref R x, ref R y) { F1(ref x, __arglist(ref y)); } // 4
+                Diagnostic(ErrorCode.ERR_RefReturnOnlyParameter, "y").WithArguments("y").WithLocation(11, 72),
+                // (11,48): error CS8350: This combination of arguments to 'Program.F1(ref R, __arglist)' is disallowed because it may expose variables referenced by parameter '__arglist' outside of their declaration scope
+                //     static void F21(scoped ref R x, ref R y) { F1(ref x, __arglist(ref y)); } // 4
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "F1(ref x, __arglist(ref y))").WithArguments("Program.F1(ref R, __arglist)", "__arglist").WithLocation(11, 48),
+                // (12,58): error CS9077: Cannot return a parameter by reference 'x' through a ref parameter; it can only be returned in a return statement
+                //     static void F50(ref R x, ref R y) { F0(__arglist(ref x, ref y)); } // 5
+                Diagnostic(ErrorCode.ERR_RefReturnOnlyParameter, "x").WithArguments("x").WithLocation(12, 58),
+                // (12,41): error CS8350: This combination of arguments to 'Program.F0(__arglist)' is disallowed because it may expose variables referenced by parameter '__arglist' outside of their declaration scope
+                //     static void F50(ref R x, ref R y) { F0(__arglist(ref x, ref y)); } // 5
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "F0(__arglist(ref x, ref y))").WithArguments("Program.F0(__arglist)", "__arglist").WithLocation(12, 41),
+                // (13,65): error CS9077: Cannot return a parameter by reference 'y' through a ref parameter; it can only be returned in a return statement
+                //     static void F51(ref R x, ref R y) { F1(ref x, __arglist(ref y)); } // 6
+                Diagnostic(ErrorCode.ERR_RefReturnOnlyParameter, "y").WithArguments("y").WithLocation(13, 65),
+                // (13,41): error CS8350: This combination of arguments to 'Program.F1(ref R, __arglist)' is disallowed because it may expose variables referenced by parameter '__arglist' outside of their declaration scope
+                //     static void F51(ref R x, ref R y) { F1(ref x, __arglist(ref y)); } // 6
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "F1(ref x, __arglist(ref y))").WithArguments("Program.F1(ref R, __arglist)", "__arglist").WithLocation(13, 41));
         }
 
         [Fact]
@@ -10594,9 +10594,15 @@ class C4 : I<string>
                 // (15,25): error CS8987: The 'scoped' modifier of parameter 'r' doesn't match overridden or implemented member.
                 //     R<string> I<string>.F2(R<string> r) => default; // 1
                 Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfOverrideOrImplementation, "F2").WithArguments("r").WithLocation(15, 25),
+                // (17,25): error CS8987: The 'scoped' modifier of parameter 'r' doesn't match overridden or implemented member.
+                //     R<string> I<string>.F4(ref R<string> r) => default;
+                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfOverrideOrImplementation, "F4").WithArguments("r").WithLocation(17, 25),
                 // (19,53): error CS8987: The 'scoped' modifier of parameter 'y' doesn't match overridden or implemented member.
                 //     R<string> I<string>.this[int x, R<string> y] => default; // 2
-                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfOverrideOrImplementation, "default").WithArguments("y").WithLocation(19, 53));
+                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfOverrideOrImplementation, "default").WithArguments("y").WithLocation(19, 53),
+                // (21,56): error CS8987: The 'scoped' modifier of parameter 'x' doesn't match overridden or implemented member.
+                //     R<string> I<string>.this[in R<string> x, int y] => default;
+                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfOverrideOrImplementation, "default").WithArguments("x").WithLocation(21, 56));
         }
 
         [CombinatorialData]
@@ -17105,8 +17111,8 @@ unsafe public class A
 
             VerifyParameterSymbol(getFunctionPointerMethod(comp, "A.F1").Parameters[0], "out System.Int32", RefKind.Out, useUpdatedRules ? DeclarationScope.RefScoped : DeclarationScope.Unscoped);
             VerifyParameterSymbol(getFunctionPointerMethod(comp, "A.F2").Parameters[0], "R", RefKind.None, DeclarationScope.Unscoped);
-            VerifyParameterSymbol(getFunctionPointerMethod(comp, "A.F3").Parameters[0], "ref R", RefKind.Ref, useUpdatedRules ? DeclarationScope.RefScoped : DeclarationScope.Unscoped);
-            VerifyParameterSymbol(getFunctionPointerMethod(comp, "A.F4").Parameters[0], "in R", RefKind.In, useUpdatedRules ? DeclarationScope.RefScoped : DeclarationScope.Unscoped);
+            VerifyParameterSymbol(getFunctionPointerMethod(comp, "A.F3").Parameters[0], "ref R", RefKind.Ref, DeclarationScope.Unscoped);
+            VerifyParameterSymbol(getFunctionPointerMethod(comp, "A.F4").Parameters[0], "in R", RefKind.In, DeclarationScope.Unscoped);
             VerifyParameterSymbol(getFunctionPointerMethod(comp, "A.F5").Parameters[0], "out R", RefKind.Out, useUpdatedRules ? DeclarationScope.RefScoped : DeclarationScope.Unscoped);
 
             static MethodSymbol getFunctionPointerMethod(CSharpCompilation comp, string qualifiedName) =>

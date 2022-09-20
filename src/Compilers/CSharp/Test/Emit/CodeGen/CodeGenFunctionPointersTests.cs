@@ -10988,10 +10988,7 @@ unsafe
 ");
 
             comp = CreateCompilationWithSpan(source, options: TestOptions.UnsafeReleaseExe);
-            comp.VerifyDiagnostics(
-                // (14,62): error CS9075: Cannot return a parameter by reference 'i' because it is scoped to the current method
-                //     static ref Span<int> ReturnByRef(ref Span<int> i) => ref i;
-                Diagnostic(ErrorCode.ERR_RefReturnScopedParameter, "i").WithArguments("i").WithLocation(14, 62));
+            comp.VerifyDiagnostics();
         }
 
         [Fact, WorkItem(49315, "https://github.com/dotnet/roslyn/issues/49315")]
