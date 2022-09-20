@@ -18307,5 +18307,40 @@ public class C1
                 //         p = Inner1(ref this); // 5
                 Diagnostic(ErrorCode.ERR_RefReturnStructThis, "this").WithLocation(36, 24));
         }
+
+        [Fact]
+        public void ReturnOnlyScope_04()
+        {
+            // This shows that constructors end up being less "capable" than factory methods.
+            // We might want to adjust the rules for 'out' parameters (including 'this' in constructors).
+            // https://github.com/dotnet/roslyn/issues/64155
+            var source = """
+                ref struct ByteContainer
+                {
+                    public byte B;
+                }
+
+                ref struct RefByteContainer
+                {
+                    public ref byte RB;
+
+                    public RefByteContainer(ref ByteContainer bc)
+                    {
+                        RB = ref bc.B; // 1
+                    }
+
+                    public RefByteContainer Create(ref ByteContainer bc)
+                    {
+                        return new RefByteContainer { RB = ref bc.B }; // ok
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation(source, runtimeFeature: RuntimeFlag.ByRefFields);
+            comp.VerifyDiagnostics(
+                // (12,9): error CS9079: Cannot ref-assign 'bc.B' to 'RB' because 'bc.B' can only escape the current method through a return statement.
+                //         RB = ref bc.B; // 1
+                Diagnostic(ErrorCode.ERR_RefAssignReturnOnly, "RB = ref bc.B").WithArguments("RB", "bc.B").WithLocation(12, 9));
+        }
     }
 }
