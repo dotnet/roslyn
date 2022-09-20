@@ -9,7 +9,7 @@ namespace Microsoft.CodeAnalysis.LegacySolutionEvents
     internal interface ILegacyWorkspaceDescriptor
     {
         /// <inheritdoc cref="Workspace.Kind"/>
-        string WorkspaceKind { get; }
+        string? WorkspaceKind { get; }
         /// <inheritdoc cref="HostWorkspaceServices.SolutionServices"/>
         SolutionServices SolutionServices { get; }
         /// <inheritdoc cref="Workspace.CurrentSolution"/>

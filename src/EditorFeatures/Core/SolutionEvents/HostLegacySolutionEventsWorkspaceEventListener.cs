@@ -93,18 +93,20 @@ namespace Microsoft.CodeAnalysis.LegacySolutionEvents
 
         private static async ValueTask ProcessEventAsync(ILegacySolutionEventsAggregationService aggregationService, LegacySolutionEvent ev, CancellationToken cancellationToken)
         {
+            var descriptor = new HostLegacyWorkspaceDescriptor(ev.Workspace);
+
             if (ev.DocumentOpenArgs != null)
             {
-                await aggregationService.OnTextDocumentOpenedAsync(ev.DocumentOpenArgs, cancellationToken).ConfigureAwait(false);
+                await aggregationService.OnTextDocumentOpenedAsync(descriptor, ev.DocumentOpenArgs, cancellationToken).ConfigureAwait(false);
             }
             else if (ev.DocumentCloseArgs != null)
             {
-                await aggregationService.OnTextDocumentOpenedAsync(ev.DocumentCloseArgs, cancellationToken).ConfigureAwait(false);
+                await aggregationService.OnTextDocumentOpenedAsync(descriptor, ev.DocumentCloseArgs, cancellationToken).ConfigureAwait(false);
             }
             else
             {
                 Contract.ThrowIfNull(ev.WorkspaceChangeArgs);
-                await aggregationService.OnWorkspaceChangedEventAsync(ev.WorkspaceChangeArgs, cancellationToken).ConfigureAwait(false);
+                await aggregationService.OnWorkspaceChangedEventAsync(descriptor, ev.WorkspaceChangeArgs, cancellationToken).ConfigureAwait(false);
             }
         }
 
@@ -137,6 +139,22 @@ namespace Microsoft.CodeAnalysis.LegacySolutionEvents
                         service.OnWorkspaceChangedEventAsync(oldSolutionChecksum, newSolutionChecksum, args.Kind, args.ProjectId, args.DocumentId, cancellationToken),
                     cancellationToken).ConfigureAwait(false);
             }
+        }
+
+        private sealed class HostLegacyWorkspaceDescriptor : ILegacyWorkspaceDescriptor
+        {
+            private readonly Workspace _workspace;
+
+            public HostLegacyWorkspaceDescriptor(Workspace workspace)
+            {
+                _workspace = workspace;
+            }
+
+            public string? WorkspaceKind => _workspace.Kind;
+
+            public SolutionServices SolutionServices => _workspace.Services.SolutionServices;
+
+            public Solution CurrentSolution => _workspace.CurrentSolution;
         }
     }
 }
