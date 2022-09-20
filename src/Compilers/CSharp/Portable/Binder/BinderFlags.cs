@@ -113,7 +113,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         InExpressionTree = 1 << 30,
 
         /// <summary>
-        /// The current context allows pointer types to managed types.
+        /// Indicates whether the current context allows pointer types to managed types,
+        /// assuming we're already in an unsafe context (otherwise all pointer types are errors anyways).
         /// </summary>
         AllowManagedPointer = 1u << 31,
 

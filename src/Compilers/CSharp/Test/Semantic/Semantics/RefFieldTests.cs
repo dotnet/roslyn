@@ -1074,6 +1074,42 @@ unsafe class C2
         }
 
         [Fact]
+        public void UnsafeContext_Assignment()
+        {
+            var source = @"
+using System;
+
+public ref struct S2
+{
+    public ref int F1;
+
+    unsafe static void Assign(IntPtr* p, ref S2 r)
+    {
+        *(S2*)p = r;
+    }
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.UnsafeReleaseDll, runtimeFeature: RuntimeFlag.ByRefFields);
+            comp.VerifyEmitDiagnostics(
+                // (10,11): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('S2')
+                //         *(S2*)p = r;
+                Diagnostic(ErrorCode.WRN_ManagedAddr, "S2*").WithArguments("S2").WithLocation(10, 11)
+                );
+            var verifier = CompileAndVerify(comp, verify: Verification.Skipped);
+            verifier.VerifyIL("S2.Assign", @"
+{
+  // Code size       13 (0xd)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldarg.1
+  IL_0002:  ldobj      ""S2""
+  IL_0007:  stobj      ""S2""
+  IL_000c:  ret
+}
+");
+        }
+
+        [Fact]
         public void UnsafeContext_PointerMemberAccess()
         {
             var source = @"
@@ -1179,13 +1215,13 @@ class C
 {
     unsafe void M()
     {
-        var x1 = stackalloc S[0]; // 1
-        var x2 = stackalloc S2[0]; // 2
-        var x3 = stackalloc C[0]; // 3
+        var x1 = stackalloc S[0];
+        var x2 = stackalloc S2[0]; // 1
+        var x3 = stackalloc C[0]; // 2
 
-        S* y1 = stackalloc S[0]; // 4
-        S2* y2 = stackalloc S2[0]; // 5
-        C* y3 = stackalloc C[0]; // 6
+        S* y1 = stackalloc S[0];
+        S2* y2 = stackalloc S2[0]; // 3
+        C* y3 = stackalloc C[0]; // 4
     }
 }
 ";
@@ -1194,23 +1230,75 @@ class C
             var comp = CreateCompilation(source, references: new[] { spanReference.EmitToImageReference() }, options: TestOptions.UnsafeReleaseDll, runtimeFeature: RuntimeFlag.ByRefFields);
             comp.VerifyEmitDiagnostics(
                 // (16,29): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('S2')
-                //         var x2 = stackalloc S2[0]; // 2
+                //         var x2 = stackalloc S2[0]; // 1
                 Diagnostic(ErrorCode.ERR_ManagedAddr, "S2").WithArguments("S2").WithLocation(16, 29),
                 // (17,29): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('C')
-                //         var x3 = stackalloc C[0]; // 3
+                //         var x3 = stackalloc C[0]; // 2
                 Diagnostic(ErrorCode.ERR_ManagedAddr, "C").WithArguments("C").WithLocation(17, 29),
                 // (20,9): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('S2')
-                //         S2* y2 = stackalloc S2[0]; // 5
+                //         S2* y2 = stackalloc S2[0]; // 3
                 Diagnostic(ErrorCode.ERR_ManagedAddr, "S2*").WithArguments("S2").WithLocation(20, 9),
                 // (20,29): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('S2')
-                //         S2* y2 = stackalloc S2[0]; // 5
+                //         S2* y2 = stackalloc S2[0]; // 3
                 Diagnostic(ErrorCode.ERR_ManagedAddr, "S2").WithArguments("S2").WithLocation(20, 29),
                 // (21,9): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('C')
-                //         C* y3 = stackalloc C[0]; // 6
+                //         C* y3 = stackalloc C[0]; // 4
                 Diagnostic(ErrorCode.ERR_ManagedAddr, "C*").WithArguments("C").WithLocation(21, 9),
                 // (21,28): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('C')
-                //         C* y3 = stackalloc C[0]; // 6
+                //         C* y3 = stackalloc C[0]; // 4
                 Diagnostic(ErrorCode.ERR_ManagedAddr, "C").WithArguments("C").WithLocation(21, 28)
+                );
+        }
+
+        [Fact]
+        public void UnsafeContext_Stackalloc_ImplicitType()
+        {
+            var source = @"
+public ref struct S
+{
+    public int F1;
+}
+public ref struct S2
+{
+    public ref int F1;
+}
+
+class C
+{
+    unsafe void M()
+    {
+        var x1 = stackalloc[] { new S() };
+        var x2 = stackalloc[] { new S2() }; // 1
+        var x3 = stackalloc[] { new C() }; // 2
+
+        S* y1 = stackalloc[] { new S() };
+        S2* y2 = stackalloc[] { new S2() }; // 3
+        C* y3 = stackalloc[] { new C() }; // 4
+    }
+}
+";
+
+            var spanReference = CreateCompilation(SpanSource, options: TestOptions.UnsafeReleaseDll);
+            var comp = CreateCompilation(source, references: new[] { spanReference.EmitToImageReference() }, options: TestOptions.UnsafeReleaseDll, runtimeFeature: RuntimeFlag.ByRefFields);
+            comp.VerifyEmitDiagnostics(
+                // (16,18): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('S2')
+                //         var x2 = stackalloc[] { new S2() }; // 1
+                Diagnostic(ErrorCode.ERR_ManagedAddr, "stackalloc[] { new S2() }").WithArguments("S2").WithLocation(16, 18),
+                // (17,18): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('C')
+                //         var x3 = stackalloc[] { new C() }; // 2
+                Diagnostic(ErrorCode.ERR_ManagedAddr, "stackalloc[] { new C() }").WithArguments("C").WithLocation(17, 18),
+                // (20,9): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('S2')
+                //         S2* y2 = stackalloc[] { new S2() }; // 3
+                Diagnostic(ErrorCode.ERR_ManagedAddr, "S2*").WithArguments("S2").WithLocation(20, 9),
+                // (20,18): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('S2')
+                //         S2* y2 = stackalloc[] { new S2() }; // 3
+                Diagnostic(ErrorCode.ERR_ManagedAddr, "stackalloc[] { new S2() }").WithArguments("S2").WithLocation(20, 18),
+                // (21,9): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('C')
+                //         C* y3 = stackalloc[] { new C() }; // 4
+                Diagnostic(ErrorCode.ERR_ManagedAddr, "C*").WithArguments("C").WithLocation(21, 9),
+                // (21,17): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('C')
+                //         C* y3 = stackalloc[] { new C() }; // 4
+                Diagnostic(ErrorCode.ERR_ManagedAddr, "stackalloc[] { new C() }").WithArguments("C").WithLocation(21, 17)
                 );
         }
 
@@ -1238,6 +1326,62 @@ class C
         S** y1 = stackalloc S*[0];
         S2** y2 = stackalloc S2*[0]; // 3
         C** y3 = stackalloc C*[0]; // 4
+    }
+}
+";
+
+            var spanReference = CreateCompilation(SpanSource, options: TestOptions.UnsafeReleaseDll);
+            var comp = CreateCompilation(source, references: new[] { spanReference.EmitToImageReference() }, options: TestOptions.UnsafeReleaseDll, runtimeFeature: RuntimeFlag.ByRefFields);
+            comp.VerifyEmitDiagnostics(
+                // (16,29): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('S2')
+                //         var x2 = stackalloc S2*[0]; // 1
+                Diagnostic(ErrorCode.ERR_ManagedAddr, "S2*").WithArguments("S2").WithLocation(16, 29),
+                // (17,29): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('C')
+                //         var x3 = stackalloc C*[0]; // 2
+                Diagnostic(ErrorCode.ERR_ManagedAddr, "C*").WithArguments("C").WithLocation(17, 29),
+                // (20,9): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('S2')
+                //         S2** y2 = stackalloc S2*[0]; // 3
+                Diagnostic(ErrorCode.ERR_ManagedAddr, "S2*").WithArguments("S2").WithLocation(20, 9),
+                // (20,30): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('S2')
+                //         S2** y2 = stackalloc S2*[0]; // 3
+                Diagnostic(ErrorCode.ERR_ManagedAddr, "S2*").WithArguments("S2").WithLocation(20, 30),
+                // (21,9): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('C')
+                //         C** y3 = stackalloc C*[0]; // 4
+                Diagnostic(ErrorCode.ERR_ManagedAddr, "C*").WithArguments("C").WithLocation(21, 9),
+                // (21,29): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('C')
+                //         C** y3 = stackalloc C*[0]; // 4
+                Diagnostic(ErrorCode.ERR_ManagedAddr, "C*").WithArguments("C").WithLocation(21, 29)
+                );
+        }
+
+        [Fact]
+        public void UnsafeContext_Stackalloc_PointerElementType_ImplicitType()
+        {
+            var source = @"
+public ref struct S
+{
+    public int F1;
+}
+public ref struct S2
+{
+    public ref int F1;
+}
+
+class C
+{
+    unsafe void M()
+    {
+        var s1 = (S*)null;
+        var s2 = (S2*)null; // 1
+        var s3 = (C*)null; // 2
+
+        var x1 = stackalloc[] { s1 };
+        var x2 = stackalloc[] { s2 };
+        var x3 = stackalloc[] { s3 };
+
+        S** y1 = stackalloc[] { s1 };
+        S2** y2 = stackalloc[] { s2 }; // 3
+        C** y3 = stackalloc[] { s3 }; // 4
     }
 }
 ";
