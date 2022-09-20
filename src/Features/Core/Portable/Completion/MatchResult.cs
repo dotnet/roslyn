@@ -5,13 +5,12 @@
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis.PatternMatching;
 using Roslyn.Utilities;
-using RoslynCompletionItem = Microsoft.CodeAnalysis.Completion.CompletionItem;
 
 namespace Microsoft.CodeAnalysis.Completion
 {
-    internal readonly struct MatchResult<TEditorCompletionItem>
+    internal readonly struct MatchResult
     {
-        public readonly RoslynCompletionItem RoslynCompletionItem;
+        public readonly CompletionItem CompletionItem;
 
         // The value of `ShouldBeConsideredMatchingFilterText` doesn't 100% refect the actual PatternMatch result.
         // In certain cases, there'd be no match but we'd still want to consider it a match (e.g. when the item is in MRU list,)
@@ -23,45 +22,36 @@ namespace Microsoft.CodeAnalysis.Completion
         // Text used to create this match if it's one of the CompletionItem.AdditionalFilterTexts. null if it's FilterText.
         public readonly string? MatchedAddtionalFilterText;
 
-        public string FilterTextUsed => MatchedAddtionalFilterText ?? RoslynCompletionItem.FilterText;
+        public string FilterTextUsed => MatchedAddtionalFilterText ?? CompletionItem.FilterText;
 
         public bool MatchedWithAdditionalFilterTexts => MatchedAddtionalFilterText is not null;
-
-        /// <summary>
-        /// The actual editor completion item associated with this <see cref="RoslynCompletionItem"/>
-        /// In VS for example, this is the associated VS async completion item.
-        /// </summary>
-        public readonly TEditorCompletionItem EditorCompletionItem;
 
         // We want to preserve the original alphabetical order for items with same pattern match score,
         // but `ArrayBuilder.Sort` we currently use isn't stable. So we have to add a monotonically increasing 
         // integer to archieve this.
-        private readonly int _indexInOriginalSortedOrder;
+        public readonly int IndexInOriginalSortedOrder;
 
         public MatchResult(
-            RoslynCompletionItem roslynCompletionItem,
-            TEditorCompletionItem editorCompletionItem,
+            CompletionItem completionItem,
             bool shouldBeConsideredMatchingFilterText,
             PatternMatch? patternMatch,
             int index,
             string? matchedAdditionalFilterText)
         {
-            RoslynCompletionItem = roslynCompletionItem;
-            EditorCompletionItem = editorCompletionItem;
+            CompletionItem = completionItem;
             ShouldBeConsideredMatchingFilterText = shouldBeConsideredMatchingFilterText;
             PatternMatch = patternMatch;
-            _indexInOriginalSortedOrder = index;
+            IndexInOriginalSortedOrder = index;
             MatchedAddtionalFilterText = matchedAdditionalFilterText;
         }
 
-        public static IComparer<MatchResult<TEditorCompletionItem>> SortingComparer => FilterResultSortingComparer.Instance;
+        public static IComparer<MatchResult> SortingComparer { get; } = new Comparer();
 
-        private class FilterResultSortingComparer : IComparer<MatchResult<TEditorCompletionItem>>
+        private class Comparer : IComparer<MatchResult>
         {
-            public static FilterResultSortingComparer Instance { get; } = new FilterResultSortingComparer();
-
             // This comparison is used for sorting items in the completion list for the original sorting.
-            public int Compare(MatchResult<TEditorCompletionItem> x, MatchResult<TEditorCompletionItem> y)
+
+            public int Compare(MatchResult x, MatchResult y)
             {
                 var matchX = x.PatternMatch;
                 var matchY = y.PatternMatch;
@@ -77,7 +67,7 @@ namespace Microsoft.CodeAnalysis.Completion
                             ret = x.MatchedWithAdditionalFilterTexts.CompareTo(y.MatchedWithAdditionalFilterTexts);
 
                         // We want to preserve the original order for items with same pattern match score.
-                        return ret == 0 ? x._indexInOriginalSortedOrder - y._indexInOriginalSortedOrder : ret;
+                        return ret == 0 ? x.IndexInOriginalSortedOrder - y.IndexInOriginalSortedOrder : ret;
                     }
 
                     return -1;
@@ -88,37 +78,39 @@ namespace Microsoft.CodeAnalysis.Completion
                     return 1;
                 }
 
-                return x._indexInOriginalSortedOrder - y._indexInOriginalSortedOrder;
+                return x.IndexInOriginalSortedOrder - y.IndexInOriginalSortedOrder;
             }
         }
 
-        // This comparison is used in the deletion/backspace scenario for selecting best elements.
-        public int CompareTo(MatchResult<TEditorCompletionItem> other, string pattern)
+        /// <summary>
+        /// This comparison is used in the deletion/backspace scenario for selecting best elements.
+        /// </summary>
+        public static int CompareForDeletion(MatchResult x, MatchResult y, string pattern)
         {
-            var thisItem = RoslynCompletionItem;
-            var otherItem = other.RoslynCompletionItem;
+            var xItem = x.CompletionItem;
+            var yItem = y.CompletionItem;
 
             // Prefer the item that matches a longer prefix of the filter text.
-            var comparison = FilterTextUsed.GetCaseInsensitivePrefixLength(pattern).CompareTo(other.FilterTextUsed.GetCaseInsensitivePrefixLength(pattern));
+            var comparison = x.FilterTextUsed.GetCaseInsensitivePrefixLength(pattern).CompareTo(y.FilterTextUsed.GetCaseInsensitivePrefixLength(pattern));
             if (comparison != 0)
                 return comparison;
 
             // If there are "Abc" vs "abc", we should prefer the case typed by user.
-            comparison = FilterTextUsed.GetCaseSensitivePrefixLength(pattern).CompareTo(other.FilterTextUsed.GetCaseSensitivePrefixLength(pattern));
+            comparison = x.FilterTextUsed.GetCaseSensitivePrefixLength(pattern).CompareTo(y.FilterTextUsed.GetCaseSensitivePrefixLength(pattern));
             if (comparison != 0)
                 return comparison;
 
             // If the lengths are the same, prefer the one with the higher match priority.
             // But only if it's an item that would have been hard selected.  We don't want
             // to aggressively select an item that was only going to be softly offered.
-            comparison = GetPriority(thisItem).CompareTo(GetPriority(otherItem));
+            comparison = GetPriority(xItem).CompareTo(GetPriority(yItem));
             if (comparison != 0)
                 return comparison;
 
             // Prefer Intellicode items.
-            return thisItem.IsPreferredItem().CompareTo(otherItem.IsPreferredItem());
+            return xItem.IsPreferredItem().CompareTo(yItem.IsPreferredItem());
 
-            static int GetPriority(RoslynCompletionItem item)
+            static int GetPriority(CompletionItem item)
                 => item.Rules.SelectionBehavior == CompletionItemSelectionBehavior.HardSelection ? item.Rules.MatchPriority : MatchPriority.Default;
         }
     }
