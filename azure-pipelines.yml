@@ -29,6 +29,19 @@ pr:
       - README.md
 
 stages:
+- stage: Determine_Changes
+  dependsOn: []
+  jobs:
+  - template: eng/pipelines/evaluate-changed-files.yml
+    parameters:
+      jobName: Determine_Changes
+      vmImageName: ubuntu-latest
+      paths:
+        - subset: compilers
+          include:
+          - src/Compilers/*
+          - src/Dependencies/*
+  
 - stage: Windows_Debug_Build
   dependsOn: []
   jobs:
@@ -117,7 +130,9 @@ stages:
       testArguments: -testDesktop -testArch x64 -helixQueueName Windows.10.Amd64.Server2022.ES.Open
 
 - stage: Windows_Debug_CoreClr
-  dependsOn: Windows_Debug_Build
+  dependsOn:
+    - Windows_Debug_Build
+    - Determine_Changes
   jobs:
   - template: eng/pipelines/test-windows-job.yml
     parameters:
@@ -136,24 +151,32 @@ stages:
         configuration: Debug
         testArguments: -testCoreClr
 
-  - template: eng/pipelines/test-windows-job.yml
-    parameters:
-      testRunName: 'Test Windows CoreCLR IOperation Debug'
-      jobName: Test_Windows_CoreClr_IOperation_Debug
-      testArtifactName: Transport_Artifacts_Windows_Debug
-      configuration: Debug
-      testArguments: -testCoreClr -testIOperation -testCompilerOnly
-
+  - job: Test_Windows_CoreClr_IOperation_Debug
+    condition: or(ne(variables['Build.Reason'], 'PullRequest'), eq(stageDependencies.Determine_Changes.Determine_Changes.outputs['SetPathVars_compilers.containsChange'], 'true'))
+    pool:
+      vmImage: windows-latest
+    timeoutInMinutes: 120
+    steps:
+      - template: eng/pipelines/test-windows-steps.yml
+        parameters:
+          testArtifactName: Transport_Artifacts_Windows_Debug
+          configuration: Debug
+          testArguments: -testCoreClr -testIOperation -testCompilerOnly
+      
   # This leg runs almost all the compiler tests supported on CoreCLR, but
   #  with additional validation for used assemblies and GetEmitDiagnostics
-  - template: eng/pipelines/test-windows-job.yml
-    parameters:
-      testRunName: 'Test Windows CoreCLR UsedAssemblies Debug'
-      jobName: Test_Windows_CoreClr_UsedAssemblies_Debug
-      testArtifactName: Transport_Artifacts_Windows_Debug
-      configuration: Debug
-      testArguments: -testCoreClr -testUsedAssemblies -testCompilerOnly
-
+  - job: Test_Windows_CoreClr_UsedAssemblies_Debug
+    condition: or(ne(variables['Build.Reason'], 'PullRequest'), eq(stageDependencies.Determine_Changes.Determine_Changes.outputs['SetPathVars_compilers.containsChange'], 'true'))
+    pool:
+      vmImage: windows-latest
+    timeoutInMinutes: 120
+    steps:
+      - template: eng/pipelines/test-windows-steps.yml
+        parameters:
+          testArtifactName: Transport_Artifacts_Windows_Debug
+          configuration: Debug
+          testArguments: -testCoreClr -testUsedAssemblies -testCompilerOnly
+      
 - stage: Windows_Release_CoreClr
   dependsOn: Windows_Release_Build
   jobs:
@@ -195,18 +218,8 @@ stages:
       testArguments: --testCoreClr --helixQueueName OSX.1015.Amd64.Open
 
 - stage: Correctness
-  dependsOn: []
+  dependsOn: Determine_Changes
   jobs:
-  - template: eng/pipelines/evaluate-changed-files.yml
-    parameters:
-      jobName: Determine_Changes
-      vmImageName: ubuntu-latest
-      paths:
-        - subset: compilers
-          include:
-          - src/Compilers/*
-          - src/Dependencies/*
-
   - job: Correctness_Build_Artifacts
     dependsOn: Determine_Changes
     pool:
@@ -214,7 +227,7 @@ stages:
       demands: ImageOverride -equals windows.vs2022preview.amd64.open
     timeoutInMinutes: 90
     variables:
-      compilerChange: $[dependencies.Determine_Changes.outputs['SetPathVars_compilers.containsChange']]
+      compilerChange: $[stageDependencies.Determine_Changes.Determine_Changes.outputs['SetPathVars_compilers.containsChange']]
     steps:
       - template: eng/pipelines/checkout-windows-task.yml
 
@@ -251,7 +264,7 @@ stages:
 
   - job: Correctness_Determinism
     dependsOn: Determine_Changes
-    condition: or(ne(variables['Build.Reason'], 'PullRequest'), eq(dependencies.Determine_Changes.outputs['SetPathVars_compilers.containsChange'], 'true'))
+    condition: or(ne(variables['Build.Reason'], 'PullRequest'), eq(stageDependencies.Determine_Changes.Determine_Changes.outputs['SetPathVars_compilers.containsChange'], 'true'))
     pool:
       name: NetCore-Public
       demands: ImageOverride -equals windows.vs2022preview.amd64.open
@@ -269,7 +282,7 @@ stages:
 
   - job: Correctness_Bootstrap_Build
     dependsOn: Determine_Changes
-    condition: or(ne(variables['Build.Reason'], 'PullRequest'), eq(dependencies.Determine_Changes.outputs['SetPathVars_compilers.containsChange'], 'true'))
+    condition: or(ne(variables['Build.Reason'], 'PullRequest'), eq(stageDependencies.Determine_Changes.Determine_Changes.outputs['SetPathVars_compilers.containsChange'], 'true'))
     pool:
       name: NetCore-Public
       demands: ImageOverride -equals windows.vs2022preview.amd64.open
@@ -311,7 +324,7 @@ stages:
 
   - job: Correctness_Rebuild
     dependsOn: Determine_Changes
-    condition: or(ne(variables['Build.Reason'], 'PullRequest'), eq(dependencies.Determine_Changes.outputs['SetPathVars_compilers.containsChange'], 'true'))
+    condition: or(ne(variables['Build.Reason'], 'PullRequest'), eq(stageDependencies.Determine_Changes.Determine_Changes.outputs['SetPathVars_compilers.containsChange'], 'true'))
     pool:
       name: NetCore-Public
       demands: ImageOverride -equals windows.vs2022preview.amd64.open
