@@ -290,7 +290,6 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
         internal sealed class UnitTestingRegistration
         {
             public readonly int CorrelationId;
-            public readonly Workspace Workspace;
             public readonly string WorkspaceKind;
             public readonly SolutionServices Services;
             public readonly UnitTestingSolutionCrawlerProgressReporter ProgressReporter;
@@ -305,7 +304,6 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                 UnitTestingSolutionCrawlerProgressReporter progressReporter)
             {
                 CorrelationId = correlationId;
-                Workspace = null!;
                 WorkspaceKind = workspaceKind;
                 Services = solutionServices;
                 _getCurrentSolutionToAnalyze = getCurrentSolutionToAnalyze;
