@@ -50,7 +50,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.InProcess
             });
         }
 
-        internal Task SendWithoutActivateAsync(params InputKey[] keys)
+        internal Task SendWithoutActivateAsync(CancellationToken cancellationToken, params InputKey[] keys)
         {
             return SendWithoutActivateAsync(
                 simulator =>
@@ -59,10 +59,10 @@ namespace Roslyn.VisualStudio.IntegrationTests.InProcess
                     {
                         key.Apply(simulator);
                     }
-                });
+                }, cancellationToken);
         }
 
-        internal async Task SendWithoutActivateAsync(Action<IInputSimulator> callback)
+        internal async Task SendWithoutActivateAsync(Action<IInputSimulator> callback, CancellationToken cancellationToken)
         {
             // AbstractSendKeys runs synchronously, so switch to a background thread before the call
             await TaskScheduler.Default;
@@ -71,7 +71,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.InProcess
 
             TestServices.JoinableTaskFactory.Run(async () =>
             {
-                await WaitForApplicationIdleAsync(CancellationToken.None);
+                await WaitForApplicationIdleAsync(cancellationToken);
             });
         }
 
