@@ -214,6 +214,6 @@
     <value>Stack Trace Explorer</value>
   </data>
   <data name="FeatureName_LegacySolutionEventsAggregation" xml:space="preserve">
-    <value>Legacy Solution Events</value>
+    <value>Solution Events</value>
   </data>
 </root>
