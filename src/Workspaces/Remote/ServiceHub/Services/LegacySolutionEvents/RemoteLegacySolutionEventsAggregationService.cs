@@ -98,9 +98,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 => s_workspaceToDescriptor.GetValue(workspace, static workspace => new RemoteLegacyWorkspaceDescriptor(workspace));
 
             public string? WorkspaceKind => _remoteWorkspace.Kind;
-
             public SolutionServices SolutionServices => _remoteWorkspace.Services.SolutionServices;
-
             public Solution CurrentSolution => _remoteWorkspace.CurrentSolution;
         }
     }

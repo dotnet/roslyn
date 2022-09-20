@@ -157,9 +157,7 @@ namespace Microsoft.CodeAnalysis.LegacySolutionEvents
                 => s_workspaceToDescriptor.GetValue(workspace, static workspace => new HostLegacyWorkspaceDescriptor(workspace));
 
             public string? WorkspaceKind => _workspace.Kind;
-
             public SolutionServices SolutionServices => _workspace.Services.SolutionServices;
-
             public Solution CurrentSolution => _workspace.CurrentSolution;
         }
     }
