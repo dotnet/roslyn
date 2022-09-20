@@ -10,7 +10,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.SolutionCrawler;
 
 namespace Microsoft.CodeAnalysis.LegacySolutionEvents
 {
@@ -21,13 +20,9 @@ namespace Microsoft.CodeAnalysis.LegacySolutionEvents
     /// </summary>
     internal interface ILegacySolutionEventsAggregationService : IWorkspaceService
     {
-        ValueTask OnSolutionEventAsync(Solution solution, InvocationReasons reasons, CancellationToken cancellationToken);
-        ValueTask OnProjectEventAsync(Solution solution, ProjectId projectId, InvocationReasons reasons, CancellationToken cancellationToken);
-        ValueTask OnDocumentEventAsync(Solution solution, DocumentId documentId, InvocationReasons reasons, CancellationToken cancellationToken);
-
-        ValueTask OnSolutionChangedAsync(Solution oldSolution, Solution newSolution, CancellationToken cancellationToken);
-        ValueTask OnProjectChangedAsync(Solution oldSolution, Solution newSolution, ProjectId projectId, CancellationToken cancellationToken);
-        ValueTask OnDocumentChangedAsync(Solution oldSolution, Solution newSolution, DocumentId documentId, CancellationToken cancellationToken);
+        ValueTask OnWorkspaceChangedEventAsync(WorkspaceChangeEventArgs args, CancellationToken cancellationToken);
+        ValueTask OnTextDocumentOpenedAsync(TextDocumentEventArgs args, CancellationToken cancellationToken);
+        ValueTask OnTextDocumentClosedAsync(TextDocumentEventArgs args, CancellationToken cancellationToken);
     }
 
     [ExportWorkspaceService(typeof(ILegacySolutionEventsAggregationService)), Shared]
@@ -43,40 +38,22 @@ namespace Microsoft.CodeAnalysis.LegacySolutionEvents
             _eventsServices = eventsServices.ToImmutableArray();
         }
 
-        public async ValueTask OnSolutionEventAsync(Solution solution, InvocationReasons reasons, CancellationToken cancellationToken)
+        public async ValueTask OnWorkspaceChangedEventAsync(WorkspaceChangeEventArgs args, CancellationToken cancellationToken)
         {
             foreach (var service in _eventsServices)
-                await service.Value.OnSolutionEventAsync(solution, reasons, cancellationToken).ConfigureAwait(false);
+                await service.Value.OnWorkspaceChangedEventAsync(args, cancellationToken).ConfigureAwait(false);
         }
 
-        public async ValueTask OnProjectEventAsync(Solution solution, ProjectId projectId, InvocationReasons reasons, CancellationToken cancellationToken)
+        public async ValueTask OnTextDocumentOpenedAsync(TextDocumentEventArgs args, CancellationToken cancellationToken)
         {
             foreach (var service in _eventsServices)
-                await service.Value.OnProjectEventAsync(solution, projectId, reasons, cancellationToken).ConfigureAwait(false);
+                await service.Value.OnTextDocumentOpenedAsync(args, cancellationToken).ConfigureAwait(false);
         }
 
-        public async ValueTask OnDocumentEventAsync(Solution solution, DocumentId documentId, InvocationReasons reasons, CancellationToken cancellationToken)
+        public async ValueTask OnTextDocumentClosedAsync(TextDocumentEventArgs args, CancellationToken cancellationToken)
         {
             foreach (var service in _eventsServices)
-                await service.Value.OnDocumentEventAsync(solution, documentId, reasons, cancellationToken).ConfigureAwait(false);
-        }
-
-        public async ValueTask OnSolutionChangedAsync(Solution oldSolution, Solution newSolution, CancellationToken cancellationToken)
-        {
-            foreach (var service in _eventsServices)
-                await service.Value.OnSolutionChangedAsync(oldSolution, newSolution, cancellationToken).ConfigureAwait(false);
-        }
-
-        public async ValueTask OnProjectChangedAsync(Solution oldSolution, Solution newSolution, ProjectId projectId, CancellationToken cancellationToken)
-        {
-            foreach (var service in _eventsServices)
-                await service.Value.OnProjectChangedAsync(oldSolution, newSolution, projectId, cancellationToken).ConfigureAwait(false);
-        }
-
-        public async ValueTask OnDocumentChangedAsync(Solution oldSolution, Solution newSolution, DocumentId documentId, CancellationToken cancellationToken)
-        {
-            foreach (var service in _eventsServices)
-                await service.Value.OnDocumentChangedAsync(oldSolution, newSolution, documentId, cancellationToken).ConfigureAwait(false);
+                await service.Value.OnTextDocumentClosedAsync(args, cancellationToken).ConfigureAwait(false);
         }
     }
 }

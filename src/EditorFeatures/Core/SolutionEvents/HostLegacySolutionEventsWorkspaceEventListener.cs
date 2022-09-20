@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.LegacySolutionEvents
             _globalOptions = globalOptions;
             _threadingContext = threadingContext;
             _eventQueue = new AsyncBatchingWorkQueue<LegacySolutionEvent>(
-                DelayTimeSpan.Medium,
+                DelayTimeSpan.Short,
                 ProcessWorkspaceChangeEventsAsync,
                 listenerProvider.GetListener(FeatureAttribute.SolutionCrawler),
                 _threadingContext.DisposalToken);
@@ -75,229 +75,69 @@ namespace Microsoft.CodeAnalysis.LegacySolutionEvents
             var workspace = events[0].Workspace;
             Contract.ThrowIfTrue(events.Any(e => e.Workspace != workspace));
 
-            var aggregationService = workspace.Services.GetRequiredService<ILegacySolutionEventsAggregationService>();
             var client = await RemoteHostClient.TryGetClientAsync(workspace, cancellationToken).ConfigureAwait(false);
-            await ProcessWorkspaceChangeEventsAsync(client, aggregationService, events, cancellationToken).ConfigureAwait(false);
+
+            if (client is null)
+            {
+                var aggregationService = workspace.Services.GetRequiredService<ILegacySolutionEventsAggregationService>();
+
+                foreach (var ev in events)
+                    await ProcessEventAsync(aggregationService, ev, cancellationToken).ConfigureAwait(false);
+            }
+            else
+            {
+                foreach (var ev in events)
+                    await ProcessEventAsync(client, ev, cancellationToken).ConfigureAwait(false);
+            }
         }
 
-        private static async Task ProcessWorkspaceChangeEventsAsync(
-            RemoteHostClient? client,
-            ILegacySolutionEventsAggregationService aggregationService,
-            ImmutableSegmentedList<LegacySolutionEvent> events,
-            CancellationToken cancellationToken)
-        {
-            foreach (var ev in events)
-                await ProcessWorkspaceChangeEventAsync(client, aggregationService, ev, cancellationToken).ConfigureAwait(false);
-        }
-
-        private static async ValueTask ProcessWorkspaceChangeEventAsync(
-            RemoteHostClient? client,
-            ILegacySolutionEventsAggregationService aggregationService,
-            LegacySolutionEvent ev,
-            CancellationToken cancellationToken)
+        private static async ValueTask ProcessEventAsync(ILegacySolutionEventsAggregationService aggregationService, LegacySolutionEvent ev, CancellationToken cancellationToken)
         {
             if (ev.DocumentOpenArgs != null)
             {
-                var openArgs = ev.DocumentOpenArgs;
-                await EnqueueFullDocumentEventAsync(client, aggregationService, openArgs.Document.Project.Solution, openArgs.Document.Id, InvocationReasons.DocumentOpened, cancellationToken).ConfigureAwait(false);
+                await aggregationService.OnTextDocumentOpenedAsync(ev.DocumentOpenArgs, cancellationToken).ConfigureAwait(false);
             }
             else if (ev.DocumentCloseArgs != null)
             {
-                var closeArgs = ev.DocumentCloseArgs;
-                await EnqueueFullDocumentEventAsync(client, aggregationService, closeArgs.Document.Project.Solution, closeArgs.Document.Id, InvocationReasons.DocumentClosed, cancellationToken).ConfigureAwait(false);
+                await aggregationService.OnTextDocumentOpenedAsync(ev.DocumentCloseArgs, cancellationToken).ConfigureAwait(false);
             }
             else
             {
+                Contract.ThrowIfNull(ev.WorkspaceChangeArgs);
+                await aggregationService.OnWorkspaceChangedEventAsync(ev.WorkspaceChangeArgs, cancellationToken).ConfigureAwait(false);
+            }
+        }
+
+        private static async ValueTask ProcessEventAsync(RemoteHostClient client, LegacySolutionEvent ev, CancellationToken cancellationToken)
+        {
+            if (ev.DocumentOpenArgs != null)
+            {
+                var document = ev.DocumentOpenArgs.Document;
+                await client.TryInvokeAsync<IRemoteLegacySolutionEventsAggregationService>(
+                    document.Project.Solution,
+                    (service, solutionChecksum, cancellationToken) => service.OnTextDocumentOpenedAsync(solutionChecksum, document.Id, cancellationToken),
+                    cancellationToken).ConfigureAwait(false);
+            }
+            else if (ev.DocumentCloseArgs != null)
+            {
+                var document = ev.DocumentOpenArgs.Document;
+                await client.TryInvokeAsync<IRemoteLegacySolutionEventsAggregationService>(
+                    document.Project.Solution,
+                    (service, solutionChecksum, cancellationToken) => service.OnTextDocumentClosedAsync(solutionChecksum, document.Id, cancellationToken),
+                    cancellationToken).ConfigureAwait(false);
+            }
+            else
+            {
+                Contract.ThrowIfNull(ev.WorkspaceChangeArgs);
                 var args = ev.WorkspaceChangeArgs;
-                Contract.ThrowIfNull(args);
-                switch (args.Kind)
-                {
-                    case WorkspaceChangeKind.SolutionAdded:
-                        await EnqueueFullSolutionEventAsync(client, aggregationService, args.NewSolution, InvocationReasons.DocumentAdded, cancellationToken).ConfigureAwait(false);
-                        break;
+                var oldSolution = args.OldSolution;
+                var newSolution = args.NewSolution;
 
-                    case WorkspaceChangeKind.SolutionCleared:
-                    case WorkspaceChangeKind.SolutionRemoved:
-                        await EnqueueFullSolutionEventAsync(client, aggregationService, args.OldSolution, InvocationReasons.SolutionRemoved, cancellationToken).ConfigureAwait(false);
-                        break;
-
-                    case WorkspaceChangeKind.SolutionChanged:
-                    case WorkspaceChangeKind.SolutionReloaded:
-                        await EnqueueSolutionChangedEventAsync(client, aggregationService, args.OldSolution, args.NewSolution, cancellationToken).ConfigureAwait(false);
-                        break;
-
-                    case WorkspaceChangeKind.ProjectAdded:
-                        Contract.ThrowIfNull(args.ProjectId);
-                        await EnqueueFullProjectEventAsync(client, aggregationService, args.NewSolution, args.ProjectId, InvocationReasons.DocumentAdded, cancellationToken).ConfigureAwait(false);
-                        break;
-
-                    case WorkspaceChangeKind.ProjectRemoved:
-                        Contract.ThrowIfNull(args.ProjectId);
-                        await EnqueueFullProjectEventAsync(client, aggregationService, args.OldSolution, args.ProjectId, InvocationReasons.DocumentRemoved, cancellationToken).ConfigureAwait(false);
-                        break;
-
-                    case WorkspaceChangeKind.ProjectChanged:
-                    case WorkspaceChangeKind.ProjectReloaded:
-                        Contract.ThrowIfNull(args.ProjectId);
-                        await EnqueueProjectChangedEventAsync(client, aggregationService, args.OldSolution, args.NewSolution, args.ProjectId, cancellationToken).ConfigureAwait(false);
-                        break;
-
-                    case WorkspaceChangeKind.DocumentAdded:
-                        Contract.ThrowIfNull(args.DocumentId);
-                        await EnqueueFullDocumentEventAsync(client, aggregationService, args.NewSolution, args.DocumentId, InvocationReasons.DocumentAdded, cancellationToken).ConfigureAwait(false);
-                        break;
-
-                    case WorkspaceChangeKind.DocumentRemoved:
-                        Contract.ThrowIfNull(args.DocumentId);
-                        await EnqueueFullDocumentEventAsync(client, aggregationService, args.OldSolution, args.DocumentId, InvocationReasons.DocumentRemoved, cancellationToken).ConfigureAwait(false);
-                        break;
-
-                    case WorkspaceChangeKind.DocumentChanged:
-                    case WorkspaceChangeKind.DocumentReloaded:
-                        Contract.ThrowIfNull(args.DocumentId);
-                        await EnqueueDocumentChangedEventAsync(client, aggregationService, args.OldSolution, args.NewSolution, args.DocumentId, cancellationToken).ConfigureAwait(false);
-                        break;
-
-                    case WorkspaceChangeKind.AdditionalDocumentAdded:
-                    case WorkspaceChangeKind.AdditionalDocumentRemoved:
-                    case WorkspaceChangeKind.AdditionalDocumentChanged:
-                    case WorkspaceChangeKind.AdditionalDocumentReloaded:
-                    case WorkspaceChangeKind.AnalyzerConfigDocumentAdded:
-                    case WorkspaceChangeKind.AnalyzerConfigDocumentRemoved:
-                    case WorkspaceChangeKind.AnalyzerConfigDocumentChanged:
-                    case WorkspaceChangeKind.AnalyzerConfigDocumentReloaded:
-                        // If an additional file or .editorconfig has changed we need to reanalyze the entire project.
-                        Contract.ThrowIfNull(args.ProjectId);
-                        await EnqueueFullProjectEventAsync(client, aggregationService, args.NewSolution, args.ProjectId, InvocationReasons.AdditionalDocumentChanged, cancellationToken).ConfigureAwait(false);
-                        break;
-
-                }
-            }
-        }
-
-        private static async ValueTask EnqueueFullSolutionEventAsync(
-            RemoteHostClient? client,
-            ILegacySolutionEventsAggregationService aggregationService,
-            Solution solution,
-            InvocationReasons reasons,
-            CancellationToken cancellationToken)
-        {
-            if (client == null)
-            {
-                await aggregationService.OnSolutionEventAsync(solution, reasons, cancellationToken).ConfigureAwait(false);
-            }
-            else
-            {
-                await client.TryInvokeAsync<IRemoteLegacySolutionEventsAggregationService>(
-                    solution,
-                    (service, solutionChecksum, cancellationToken) => service.OnSolutionEventAsync(solutionChecksum, reasons, cancellationToken),
-                    cancellationToken).ConfigureAwait(false);
-            }
-        }
-
-        private static async ValueTask EnqueueFullProjectEventAsync(
-            RemoteHostClient? client,
-            ILegacySolutionEventsAggregationService aggregationService,
-            Solution solution,
-            ProjectId projectId,
-            InvocationReasons reasons,
-            CancellationToken cancellationToken)
-        {
-            if (client == null)
-            {
-                await aggregationService.OnProjectEventAsync(solution, projectId, reasons, cancellationToken).ConfigureAwait(false);
-            }
-            else
-            {
-                await client.TryInvokeAsync<IRemoteLegacySolutionEventsAggregationService>(
-                    solution,
-                    (service, solutionChecksum, cancellationToken) => service.OnProjectEventAsync(solutionChecksum, projectId, reasons, cancellationToken),
-                    cancellationToken).ConfigureAwait(false);
-            }
-        }
-
-        private static async ValueTask EnqueueFullDocumentEventAsync(
-            RemoteHostClient? client,
-            ILegacySolutionEventsAggregationService aggregationService,
-            Solution solution,
-            DocumentId documentId,
-            InvocationReasons reasons,
-            CancellationToken cancellationToken)
-        {
-            if (client == null)
-            {
-                await aggregationService.OnDocumentEventAsync(solution, documentId, reasons, cancellationToken).ConfigureAwait(false);
-            }
-            else
-            {
-                await client.TryInvokeAsync<IRemoteLegacySolutionEventsAggregationService>(
-                    solution,
-                    (service, solutionChecksum, cancellationToken) => service.OnDocumentEventAsync(solutionChecksum, documentId, reasons, cancellationToken),
-                    cancellationToken).ConfigureAwait(false);
-            }
-        }
-
-        private static async ValueTask EnqueueSolutionChangedEventAsync(
-            RemoteHostClient? client,
-            ILegacySolutionEventsAggregationService aggregationService,
-            Solution oldSolution,
-            Solution newSolution,
-            CancellationToken cancellationToken)
-        {
-            if (client == null)
-            {
-                await aggregationService.OnSolutionChangedAsync(oldSolution, newSolution, cancellationToken).ConfigureAwait(false);
-            }
-            else
-            {
                 await client.TryInvokeAsync<IRemoteLegacySolutionEventsAggregationService>(
                     oldSolution, newSolution,
                     (service, oldSolutionChecksum, newSolutionChecksum, cancellationToken) =>
-                        service.OnSolutionChangedAsync(oldSolutionChecksum, newSolutionChecksum, cancellationToken),
-                    cancellationToken).ConfigureAwait(false);
-            }
-        }
-
-        private static async ValueTask EnqueueProjectChangedEventAsync(
-            RemoteHostClient? client,
-            ILegacySolutionEventsAggregationService aggregationService,
-            Solution oldSolution,
-            Solution newSolution,
-            ProjectId projectId,
-            CancellationToken cancellationToken)
-        {
-            if (client == null)
-            {
-                await aggregationService.OnProjectChangedAsync(oldSolution, newSolution, projectId, cancellationToken).ConfigureAwait(false);
-            }
-            else
-            {
-                await client.TryInvokeAsync<IRemoteLegacySolutionEventsAggregationService>(
-                    oldSolution, newSolution,
-                    (service, oldSolutionChecksum, newSolutionChecksum, cancellationToken) =>
-                        service.OnProjectChangedAsync(oldSolutionChecksum, newSolutionChecksum, projectId, cancellationToken),
-                    cancellationToken).ConfigureAwait(false);
-            }
-        }
-
-        private static async ValueTask EnqueueDocumentChangedEventAsync(
-            RemoteHostClient? client,
-            ILegacySolutionEventsAggregationService aggregationService,
-            Solution oldSolution,
-            Solution newSolution,
-            DocumentId documentId,
-            CancellationToken cancellationToken)
-        {
-            if (client == null)
-            {
-                await aggregationService.OnDocumentChangedAsync(oldSolution, newSolution, documentId, cancellationToken).ConfigureAwait(false);
-            }
-            else
-            {
-                await client.TryInvokeAsync<IRemoteLegacySolutionEventsAggregationService>(
-                    oldSolution, newSolution,
-                    (service, oldSolutionChecksum, newSolutionChecksum, cancellationToken) =>
-                        service.OnDocumentChangedAsync(oldSolutionChecksum, newSolutionChecksum, documentId, cancellationToken),
+                        service.OnWorkspaceChangedEventAsync(new SerializableWorkspaceChangeEventArgs(
+                            args.Kind, oldSolutionChecksum, newSolutionChecksum, args.ProjectId, args.DocumentId), cancellationToken),
                     cancellationToken).ConfigureAwait(false);
             }
         }
