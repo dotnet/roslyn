@@ -598,7 +598,7 @@ class C
             if (languageVersion == LanguageVersion.CSharp10)
             {
                 expectedDiagnostics = expectedDiagnostics.Append(
-                    // (5,13): error CS9063: UnscopedRefAttribute can only be applied to 'out' parameters, 'ref' and 'in' parameters that refer to 'ref struct' types, and instance methods and properties on 'struct' types other than constructors and 'init' accessors.
+                    // (5,13): error CS9063: UnscopedRefAttribute cannot be applied to this item because it is unscoped by default.
                     //     void M([UnscopedRef] ref Span<int> s)
                     Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedTarget, "UnscopedRef").WithLocation(5, 13));
             }

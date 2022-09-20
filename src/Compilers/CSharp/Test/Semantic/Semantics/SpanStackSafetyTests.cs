@@ -535,10 +535,10 @@ class Program
                 // (39,12): error CS1599: The return type of a method, delegate, or function pointer cannot be 'TypedReference'
                 //     static ref TypedReference M1(ref TypedReference ss) => ref ss;
                 Diagnostic(ErrorCode.ERR_MethodReturnCantBeRefAny, "ref TypedReference").WithArguments("System.TypedReference").WithLocation(39, 12),
-                // (32,33): error CS9063: UnscopedRefAttribute can only be applied to 'out' parameters, 'ref' and 'in' parameters that refer to 'ref struct' types, and instance methods and properties on 'struct' types other than constructors and 'init' accessors.
+                // (32,33): error CS9063: UnscopedRefAttribute cannot be applied to this item because it is unscoped by default.
                 //     static ref Span<string> M4([UnscopedRef] ref Span<string> ss) { return ref ss; }
                 Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedTarget, "UnscopedRef").WithLocation(32, 33),
-                // (35,42): error CS9063: UnscopedRefAttribute can only be applied to 'out' parameters, 'ref' and 'in' parameters that refer to 'ref struct' types, and instance methods and properties on 'struct' types other than constructors and 'init' accessors.
+                // (35,42): error CS9063: UnscopedRefAttribute cannot be applied to this item because it is unscoped by default.
                 //     static ref readonly Span<string> M5([UnscopedRef] ref Span<string> ss) => ref ss;
                 Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedTarget, "UnscopedRef").WithLocation(35, 42)
             );
@@ -1535,10 +1535,10 @@ class C
 
             var comp = CreateCompilationWithMscorlibAndSpan(new[] { source, UnscopedRefAttributeDefinition }, parseOptions: TestOptions.Regular10, options: TestOptions.ReleaseExe);
             comp.VerifyDiagnostics(
-                // (13,30): error CS9063: UnscopedRefAttribute can only be applied to 'out' parameters, 'ref' and 'in' parameters that refer to 'ref struct' types, and instance methods and properties on 'struct' types other than constructors and 'init' accessors.
+                // (13,30): error CS9063: UnscopedRefAttribute cannot be applied to this item because it is unscoped by default.
                 //     static ref Span<int> M1([UnscopedRef] ref Span<int> x)
                 Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedTarget, "UnscopedRef").WithLocation(13, 30),
-                // (19,30): error CS9063: UnscopedRefAttribute can only be applied to 'out' parameters, 'ref' and 'in' parameters that refer to 'ref struct' types, and instance methods and properties on 'struct' types other than constructors and 'init' accessors.
+                // (19,30): error CS9063: UnscopedRefAttribute cannot be applied to this item because it is unscoped by default.
                 //     static ref Span<int> M2([UnscopedRef] ref Span<int> x)
                 Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedTarget, "UnscopedRef").WithLocation(19, 30));
 
