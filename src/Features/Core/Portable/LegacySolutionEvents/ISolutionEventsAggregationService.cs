@@ -12,7 +12,7 @@ using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 
-namespace Microsoft.CodeAnalysis.SolutionEvents
+namespace Microsoft.CodeAnalysis.LegacySolutionEvents
 {
     internal interface ISolutionEventsAggregationService : IWorkspaceService
     {

@@ -4,7 +4,7 @@
 
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.SolutionEvents
+namespace Microsoft.CodeAnalysis.LegacySolutionEvents
 {
     internal sealed partial class HostSolutionEventsWorkspaceEventListener
     {

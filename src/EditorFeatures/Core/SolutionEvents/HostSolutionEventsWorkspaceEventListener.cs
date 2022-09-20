@@ -17,7 +17,7 @@ using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.SolutionEvents
+namespace Microsoft.CodeAnalysis.LegacySolutionEvents
 {
     [ExportEventListener(WellKnownEventListeners.Workspace, WorkspaceKind.Host), Shared]
     internal sealed partial class HostSolutionEventsWorkspaceEventListener : IEventListener<object>

@@ -6,7 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 
-namespace Microsoft.CodeAnalysis.SolutionEvents
+namespace Microsoft.CodeAnalysis.LegacySolutionEvents
 {
     internal interface ISolutionEventsService
     {

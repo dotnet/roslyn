@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.DocumentHighlighting;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.SolutionCrawler;
-using Microsoft.CodeAnalysis.SolutionEvents;
+using Microsoft.CodeAnalysis.LegacySolutionEvents;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Remote
