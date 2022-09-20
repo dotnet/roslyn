@@ -19284,5 +19284,105 @@ class Program
                 //         return ref r[a, 3]; // 3
                 Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "3").WithLocation(18, 25));
         }
+
+        [Fact]
+        public void IndexerAccessor_DefaultArgs_03()
+        {
+            var source =
+@"ref struct R
+{
+    public R(ref int i) { }
+    public int this[in R x, in R y = default] => 0;
+}
+class Program
+{
+    static int F1(ref R r)
+    {
+        int i = 1;
+        R x = new R(ref i);
+        return r[x]; // 1
+    }
+    static int F2(ref R r, in R x)
+    {
+        return r[x];
+    }
+    static int F3(ref R r, in R x)
+    {
+        int i = 3;
+        R y = new R(ref i);
+        return r[x, y]; // 2
+    }
+}";
+
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular10);
+            comp.VerifyDiagnostics();
+
+            comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (12,16): error CS8350: This combination of arguments to 'R.this[in R, in R]' is disallowed because it may expose variables referenced by parameter 'x' outside of their declaration scope
+                //         return r[x]; // 1
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "r[x]").WithArguments("R.this[in R, in R]", "x").WithLocation(12, 16),
+                // (12,18): error CS8352: Cannot use variable 'x' in this context because it may expose referenced variables outside of their declaration scope
+                //         return r[x]; // 1
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "x").WithArguments("x").WithLocation(12, 18),
+                // (22,16): error CS8350: This combination of arguments to 'R.this[in R, in R]' is disallowed because it may expose variables referenced by parameter 'y' outside of their declaration scope
+                //         return r[x, y]; // 2
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "r[x, y]").WithArguments("R.this[in R, in R]", "y").WithLocation(22, 16),
+                // (22,21): error CS8352: Cannot use variable 'y' in this context because it may expose referenced variables outside of their declaration scope
+                //         return r[x, y]; // 2
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "y").WithArguments("y").WithLocation(22, 21));
+        }
+
+        [Fact]
+        public void IndexerAccessor_DefaultArgs_04()
+        {
+            var source =
+@"using System.Diagnostics.CodeAnalysis;
+ref struct R
+{
+    public R(ref int i) { F = ref i; }
+    public ref int F;
+    public ref readonly int this[[UnscopedRef] in R x, [UnscopedRef] in R y = default] => ref y.F;
+}
+class Program
+{
+    static ref readonly int F1(ref R r)
+    {
+        int i = 1;
+        R x = new R(ref i);
+        return ref r[x]; // 1
+    }
+    static ref readonly int F2(ref R r, in R x)
+    {
+        return ref r[x]; // 2
+    }
+    static ref readonly int F3(ref R r, in R x)
+    {
+        int i = 3;
+        R y = new R(ref i);
+        return ref r[x, y]; // 3
+    }
+}";
+            var comp = CreateCompilation(new[] { source, UnscopedRefAttributeDefinition }, runtimeFeature: RuntimeFlag.ByRefFields);
+            comp.VerifyDiagnostics(
+                // (14,20): error CS8350: This combination of arguments to 'R.this[in R, in R]' is disallowed because it may expose variables referenced by parameter 'x' outside of their declaration scope
+                //         return ref r[x]; // 1
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "r[x]").WithArguments("R.this[in R, in R]", "x").WithLocation(14, 20),
+                // (14,22): error CS8352: Cannot use variable 'x' in this context because it may expose referenced variables outside of their declaration scope
+                //         return ref r[x]; // 1
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "x").WithArguments("x").WithLocation(14, 22),
+                // (18,20): error CS8347: Cannot use a result of 'R.this[in R, in R]' in this context because it may expose variables referenced by parameter 'x' outside of their declaration scope
+                //         return ref r[x]; // 2
+                Diagnostic(ErrorCode.ERR_EscapeCall, "r[x]").WithArguments("R.this[in R, in R]", "x").WithLocation(18, 20),
+                // (18,22): error CS9075: Cannot return a parameter by reference 'x' because it is scoped to the current method
+                //         return ref r[x]; // 2
+                Diagnostic(ErrorCode.ERR_RefReturnScopedParameter, "x").WithArguments("x").WithLocation(18, 22),
+                // (24,20): error CS8350: This combination of arguments to 'R.this[in R, in R]' is disallowed because it may expose variables referenced by parameter 'y' outside of their declaration scope
+                //         return ref r[x, y]; // 3
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "r[x, y]").WithArguments("R.this[in R, in R]", "y").WithLocation(24, 20),
+                // (24,25): error CS8352: Cannot use variable 'y' in this context because it may expose referenced variables outside of their declaration scope
+                //         return ref r[x, y]; // 3
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "y").WithArguments("y").WithLocation(24, 25));
+        }
     }
 }
