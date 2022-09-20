@@ -134,33 +134,28 @@ namespace Microsoft.VisualStudio.LanguageServices.StackTraceExplorer
                 VerticalAlignment = VerticalAlignment.Stretch
             };
 
-            themingService?.ApplyThemeToElement(Root);
-
             var contentRoot = (DockPanel)Content;
+            themingService?.ApplyThemeToElement(contentRoot);
             contentRoot.Children.Add(Root);
 
-            var contextMenu = new ThemedContextMenu();
-            contextMenu.Items.Add(new MenuItem()
+            contentRoot.MouseRightButtonUp += (s, e) =>
             {
-                Header = ServicesVSResources.Paste,
-                Command = new DelegateCommand(_ => Root.ViewModel.DoPasteSynchronously(default)),
-                Icon = new CrispImage()
-                {
-                    Moniker = KnownMonikers.Paste
-                }
-            });
+                var uiShell = roslynPackage.GetServiceOnMainThread<SVsUIShell, IVsUIShell>();
+                var relativePoint = e.GetPosition(contentRoot);
+                var screenPosition = contentRoot.PointToScreen(relativePoint);
 
-            contextMenu.Items.Add(new MenuItem()
-            {
-                Header = ServicesVSResources.Clear,
-                Command = new DelegateCommand(_ => Root.OnClear()),
-                Icon = new CrispImage()
-                {
-                    Moniker = KnownMonikers.ClearCollection
-                }
-            });
+                var points = new[] {
+                    new POINTS()
+                    {
+                        x = (short)screenPosition.X,
+                        y = (short)screenPosition.Y
+                    }
+                };
 
-            contentRoot.ContextMenu = contextMenu;
+                var refCommandId = new Guid(Guids.StackTraceExplorerCommandIdString);
+                var result = uiShell.ShowContextMenu(0, ref refCommandId, 0x0300, points, null);
+                Debug.Assert(result == S_OK);
+            };
 
             _initialized = true;
         }
