@@ -2,28 +2,22 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Generic;
-using System.Collections.Immutable;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.DocumentHighlighting;
-using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.CodeAnalysis.LegacySolutionEvents;
-using Roslyn.Utilities;
+using Microsoft.CodeAnalysis.SolutionCrawler;
 
 namespace Microsoft.CodeAnalysis.Remote
 {
-    internal sealed class RemoteSolutionEventsAggregationService : BrokeredServiceBase, IRemoteLegacySolutionEventsAggregationService
+    internal sealed class RemoteLegacySolutionEventsAggregationService : BrokeredServiceBase, IRemoteLegacySolutionEventsAggregationService
     {
         internal sealed class Factory : FactoryBase<IRemoteLegacySolutionEventsAggregationService>
         {
             protected override IRemoteLegacySolutionEventsAggregationService CreateService(in ServiceConstructionArguments arguments)
-                => new RemoteSolutionEventsAggregationService(arguments);
+                => new RemoteLegacySolutionEventsAggregationService(arguments);
         }
 
-        public RemoteSolutionEventsAggregationService(in ServiceConstructionArguments arguments)
+        public RemoteLegacySolutionEventsAggregationService(in ServiceConstructionArguments arguments)
             : base(arguments)
         {
         }

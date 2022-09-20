@@ -20,22 +20,22 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.LegacySolutionEvents
 {
     [ExportEventListener(WellKnownEventListeners.Workspace, WorkspaceKind.Host), Shared]
-    internal sealed partial class HostSolutionEventsWorkspaceEventListener : IEventListener<object>
+    internal sealed partial class HostLegacySolutionEventsWorkspaceEventListener : IEventListener<object>
     {
         private readonly IGlobalOptionService _globalOptions;
         private readonly IThreadingContext _threadingContext;
-        private readonly AsyncBatchingWorkQueue<SolutionEvent> _eventQueue;
+        private readonly AsyncBatchingWorkQueue<LegacySolutionEvent> _eventQueue;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public HostSolutionEventsWorkspaceEventListener(
+        public HostLegacySolutionEventsWorkspaceEventListener(
             IGlobalOptionService globalOptions,
             IThreadingContext threadingContext,
             IAsynchronousOperationListenerProvider listenerProvider)
         {
             _globalOptions = globalOptions;
             _threadingContext = threadingContext;
-            _eventQueue = new AsyncBatchingWorkQueue<SolutionEvent>(
+            _eventQueue = new AsyncBatchingWorkQueue<LegacySolutionEvent>(
                 DelayTimeSpan.Medium,
                 ProcessWorkspaceChangeEventsAsync,
                 listenerProvider.GetListener(FeatureAttribute.SolutionCrawler),
@@ -59,15 +59,15 @@ namespace Microsoft.CodeAnalysis.LegacySolutionEvents
         }
 
         private void OnWorkspaceChanged(object? sender, WorkspaceChangeEventArgs e)
-            => _eventQueue.AddWork(new SolutionEvent(e, null, null));
+            => _eventQueue.AddWork(new LegacySolutionEvent(e, null, null));
 
         private void OnDocumentOpened(object? sender, TextDocumentEventArgs e)
-            => _eventQueue.AddWork(new SolutionEvent(null, e, null));
+            => _eventQueue.AddWork(new LegacySolutionEvent(null, e, null));
 
         private void OnDocumentClosed(object? sender, TextDocumentEventArgs e)
-            => _eventQueue.AddWork(new SolutionEvent(null, null, e));
+            => _eventQueue.AddWork(new LegacySolutionEvent(null, null, e));
 
-        private async ValueTask ProcessWorkspaceChangeEventsAsync(ImmutableSegmentedList<SolutionEvent> events, CancellationToken cancellationToken)
+        private async ValueTask ProcessWorkspaceChangeEventsAsync(ImmutableSegmentedList<LegacySolutionEvent> events, CancellationToken cancellationToken)
         {
             if (events.IsEmpty)
                 return;
@@ -83,7 +83,7 @@ namespace Microsoft.CodeAnalysis.LegacySolutionEvents
         private static async Task ProcessWorkspaceChangeEventsAsync(
             RemoteHostClient? client,
             ILegacySolutionEventsAggregationService aggregationService,
-            ImmutableSegmentedList<SolutionEvent> events,
+            ImmutableSegmentedList<LegacySolutionEvent> events,
             CancellationToken cancellationToken)
         {
             foreach (var ev in events)
@@ -93,7 +93,7 @@ namespace Microsoft.CodeAnalysis.LegacySolutionEvents
         private static async ValueTask ProcessWorkspaceChangeEventAsync(
             RemoteHostClient? client,
             ILegacySolutionEventsAggregationService aggregationService,
-            SolutionEvent ev,
+            LegacySolutionEvent ev,
             CancellationToken cancellationToken)
         {
             if (ev.DocumentOpenArgs != null)
