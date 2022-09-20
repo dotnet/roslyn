@@ -9273,6 +9273,119 @@ class Program
                 );
         }
 
+        [WorkItem(64009, "https://github.com/dotnet/roslyn/issues/64009")]
+        [Fact]
+        public void LocalScope_09()
+        {
+            var source =
+@"{
+    scoped s1 = default;
+    scoped ref @scoped s2 = ref s1;
+}
+ref struct @scoped { }
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void LocalScope_10()
+        {
+            var source =
+@"{
+    int i = 0;
+    S s1 = new S(ref i);
+    scoped S s2 = s1;
+}
+ref struct S
+{
+    public S(ref int i) { }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void LocalScope_11()
+        {
+            var source =
+@"class Program
+{
+    static void Main()
+    {
+        S s0 = default;
+        scoped ref S r0 = ref s0;
+        {
+            scoped ref S r1 = ref s0;
+            r0 = ref r1; // 1
+        }
+        {
+            scoped ref S r2 = ref r0;
+            r0 = ref r2; // 2
+        }
+        {
+            ref S r3 = ref s0;
+            r0 = ref r3;
+        }
+        {
+            ref S r4 = ref r0;
+            r0 = ref r4;
+        }
+    }
+}
+ref struct S { }
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (9,13): error CS8374: Cannot ref-assign 'r1' to 'r0' because 'r1' has a narrower escape scope than 'r0'.
+                //             r0 = ref r1; // 1
+                Diagnostic(ErrorCode.ERR_RefAssignNarrower, "r0 = ref r1").WithArguments("r0", "r1").WithLocation(9, 13),
+                // (13,13): error CS8374: Cannot ref-assign 'r2' to 'r0' because 'r2' has a narrower escape scope than 'r0'.
+                //             r0 = ref r2; // 2
+                Diagnostic(ErrorCode.ERR_RefAssignNarrower, "r0 = ref r2").WithArguments("r0", "r2").WithLocation(13, 13));
+        }
+
+        [Fact]
+        public void LocalScope_12()
+        {
+            var source =
+@"class Program
+{
+    static void Main()
+    {
+        int i0 = 0;
+        S s0 = new S(ref i0);
+        {
+            int i1 = 1;
+            S s1 = new S(ref i1);
+            s0 = s1; // 1
+        }
+        {
+            scoped S s2 = s0;
+            s0 = s2; // 2
+        }
+        {
+            S s3 = s0;
+            s0 = s3;
+        }
+    }
+}
+ref struct S
+{
+    public S(ref int i) { }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (10,18): error CS8352: Cannot use variable 's1' in this context because it may expose referenced variables outside of their declaration scope
+                //             s0 = s1; // 1
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "s1").WithArguments("s1").WithLocation(10, 18),
+                // (14,18): error CS8352: Cannot use variable 's2' in this context because it may expose referenced variables outside of their declaration scope
+                //             s0 = s2; // 2
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "s2").WithArguments("s2").WithLocation(14, 18));
+        }
+
         [Fact]
         public void LocalScopeAndInitializer_01()
         {

@@ -129,7 +129,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     return _refEscapeScope;
                 }
-                return Binder.TopLevelScope;
+                return _scope == DeclarationScope.RefScoped ?
+                    _scopeBinder.LocalScopeDepth :
+                    Binder.TopLevelScope;
             }
         }
 
@@ -143,7 +145,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     return _valEscapeScope;
                 }
                 return _scope == DeclarationScope.ValueScoped ?
-                    Binder.TopLevelScope :
+                    _scopeBinder.LocalScopeDepth :
                     Binder.ExternalScope;
             }
         }
