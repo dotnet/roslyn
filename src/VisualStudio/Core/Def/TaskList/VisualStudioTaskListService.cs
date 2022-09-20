@@ -29,8 +29,7 @@ namespace Microsoft.VisualStudio.LanguageServices.TaskList
     internal class VisualStudioTaskListService :
         ITaskListProvider,
         IVsTypeScriptTodoCommentService,
-        IEventListener<object>,
-        IDisposable
+        IEventListener<object>
     {
         private readonly IThreadingContext _threadingContext;
         private readonly VisualStudioWorkspaceImpl _workspace;
@@ -64,11 +63,6 @@ namespace Microsoft.VisualStudio.LanguageServices.TaskList
                 threadingContext.DisposalToken);
         }
 
-        public void Dispose()
-        {
-            _listener.Dispose();
-        }
-
         void IEventListener<object>.StartListening(Workspace workspace, object _)
         {
             if (workspace is VisualStudioWorkspace)
@@ -89,7 +83,7 @@ namespace Microsoft.VisualStudio.LanguageServices.TaskList
                 // Now that we've started, let the VS todo list know to start listening to us
                 _eventListenerTracker.EnsureEventListener(_workspace, this);
 
-                await _listener.StartAsync().ConfigureAwait(false);
+                _listener.Start();
             }
             catch (OperationCanceledException)
             {
