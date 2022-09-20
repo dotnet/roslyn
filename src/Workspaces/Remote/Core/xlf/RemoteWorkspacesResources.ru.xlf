@@ -78,8 +78,8 @@
         <note />
       </trans-unit>
       <trans-unit id="FeatureName_LegacySolutionEventsAggregation">
-        <source>Legacy Solution Events</source>
-        <target state="new">Legacy Solution Events</target>
+        <source>Solution Events</source>
+        <target state="new">Solution Events</target>
         <note />
       </trans-unit>
       <trans-unit id="FeatureName_MissingImportDiscovery">
