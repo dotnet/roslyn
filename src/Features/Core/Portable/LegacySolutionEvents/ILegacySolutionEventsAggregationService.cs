@@ -33,12 +33,12 @@ namespace Microsoft.CodeAnalysis.LegacySolutionEvents
     [ExportWorkspaceService(typeof(ILegacySolutionEventsAggregationService)), Shared]
     internal class DefaultLegacySolutionEventsAggregationService : ILegacySolutionEventsAggregationService
     {
-        private readonly ImmutableArray<Lazy<ISolutionEventsService>> _eventsServices;
+        private readonly ImmutableArray<Lazy<ILegacySolutionEventsListener>> _eventsServices;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public DefaultLegacySolutionEventsAggregationService(
-            [ImportMany] IEnumerable<Lazy<ISolutionEventsService>> eventsServices)
+            [ImportMany] IEnumerable<Lazy<ILegacySolutionEventsListener>> eventsServices)
         {
             _eventsServices = eventsServices.ToImmutableArray();
         }

@@ -8,7 +8,12 @@ using Microsoft.CodeAnalysis.SolutionCrawler;
 
 namespace Microsoft.CodeAnalysis.LegacySolutionEvents
 {
-    internal interface ISolutionEventsService
+    /// <summary>
+    /// This is a legacy api intended only for existing SolutionCrawler partners to continue to function (albeit with
+    /// ownership of that crawling task now belonging to the partner team, not roslyn).  It should not be used for any
+    /// new services.
+    /// </summary>
+    internal interface ILegacySolutionEventsListener
     {
         ValueTask OnSolutionEventAsync(Solution solution, InvocationReasons reasons, CancellationToken cancellationToken);
         ValueTask OnDocumentEventAsync(Solution solution, DocumentId documentId, InvocationReasons reasons, CancellationToken cancellationToken);
