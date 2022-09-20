@@ -18538,10 +18538,10 @@ class Program
     static Span<byte> GetSpanB([UnscopedRef] in B b) => default;
     static void FA(ref A a)
     {
-        Span<byte> s1 = a.GetSpan(); // 1
-        Span<byte> s2 = GetSpanA(ref a); // 2
+        Span<byte> s1 = a.GetSpan();
+        Span<byte> s2 = GetSpanA(ref a);
         Span<byte> s3 = a.Span1;
-        Span<byte> s4 = a.Span2; // 3
+        Span<byte> s4 = a.Span2;
         Span<byte> s5 = a.Span3;
     }
     static void FB(ref B b)
@@ -18554,19 +18554,7 @@ class Program
     }
 }";
             var comp = CreateCompilation(new[] { source, UnscopedRefAttributeDefinition });
-            comp.VerifyDiagnostics(
-                // (23,25): error CS8166: Cannot return a parameter by reference 'a' because it is not a ref parameter
-                //         Span<byte> s1 = a.GetSpan(); // 1
-                Diagnostic(ErrorCode.ERR_RefReturnParameter, "a").WithArguments("a").WithLocation(23, 25),
-                // (24,25): error CS8350: This combination of arguments to 'Program.GetSpanA(ref A)' is disallowed because it may expose variables referenced by parameter 'a' outside of their declaration scope
-                //         Span<byte> s2 = GetSpanA(ref a); // 2
-                Diagnostic(ErrorCode.ERR_CallArgMixing, "GetSpanA(ref a)").WithArguments("Program.GetSpanA(ref A)", "a").WithLocation(24, 25),
-                // (24,38): error CS8166: Cannot return a parameter by reference 'a' because it is not a ref parameter
-                //         Span<byte> s2 = GetSpanA(ref a); // 2
-                Diagnostic(ErrorCode.ERR_RefReturnParameter, "a").WithArguments("a").WithLocation(24, 38),
-                // (26,25): error CS8166: Cannot return a parameter by reference 'a' because it is not a ref parameter
-                //         Span<byte> s4 = a.Span2; // 3
-                Diagnostic(ErrorCode.ERR_RefReturnParameter, "a").WithArguments("a").WithLocation(26, 25));
+            comp.VerifyDiagnostics();
         }
 
         [Fact]
@@ -18632,9 +18620,9 @@ class Program
     static ref readonly Span<byte> GetSpanB([UnscopedRef] in B b) => throw null;
     static void FA(ref A a)
     {
-        ref Span<byte> s1 = ref a.GetSpan(); // 1
-        ref Span<byte> s2 = ref GetSpanA(ref a); // 2
-        ref Span<byte> s3 = ref a.Span; // 3
+        ref Span<byte> s1 = ref a.GetSpan();
+        ref Span<byte> s2 = ref GetSpanA(ref a);
+        ref Span<byte> s3 = ref a.Span;
     }
     static void FB(ref B b)
     {
@@ -18644,19 +18632,7 @@ class Program
     }
 }";
             var comp = CreateCompilation(new[] { source, UnscopedRefAttributeDefinition });
-            comp.VerifyDiagnostics(
-                // (19,33): error CS8166: Cannot return a parameter by reference 'a' because it is not a ref parameter
-                //         ref Span<byte> s1 = ref a.GetSpan(); // 1
-                Diagnostic(ErrorCode.ERR_RefReturnParameter, "a").WithArguments("a").WithLocation(19, 33),
-                // (20,33): error CS8350: This combination of arguments to 'Program.GetSpanA(ref A)' is disallowed because it may expose variables referenced by parameter 'a' outside of their declaration scope
-                //         ref Span<byte> s2 = ref GetSpanA(ref a); // 2
-                Diagnostic(ErrorCode.ERR_CallArgMixing, "GetSpanA(ref a)").WithArguments("Program.GetSpanA(ref A)", "a").WithLocation(20, 33),
-                // (20,46): error CS8166: Cannot return a parameter by reference 'a' because it is not a ref parameter
-                //         ref Span<byte> s2 = ref GetSpanA(ref a); // 2
-                Diagnostic(ErrorCode.ERR_RefReturnParameter, "a").WithArguments("a").WithLocation(20, 46),
-                // (21,33): error CS8166: Cannot return a parameter by reference 'a' because it is not a ref parameter
-                //         ref Span<byte> s3 = ref a.Span; // 3
-                Diagnostic(ErrorCode.ERR_RefReturnParameter, "a").WithArguments("a").WithLocation(21, 33));
+            comp.VerifyDiagnostics();
         }
 
         [Fact]
@@ -18720,9 +18696,9 @@ class Program
     static ref readonly B GetRefB([UnscopedRef] in B b) => ref b;
     static void FA(ref A a)
     {
-        ref A a1 = ref a.GetRef(); // 1
-        ref A a2 = ref GetRefA(ref a); // 2
-        ref A a3 = ref a.Ref; // 3
+        ref A a1 = ref a.GetRef();
+        ref A a2 = ref GetRefA(ref a);
+        ref A a3 = ref a.Ref;
     }
     static void FB(ref B b)
     {
@@ -18732,19 +18708,7 @@ class Program
     }
 }";
             var comp = CreateCompilation(new[] { source, UnscopedRefAttributeDefinition });
-            comp.VerifyDiagnostics(
-                // (18,24): error CS8166: Cannot return a parameter by reference 'a' because it is not a ref parameter
-                //         ref A a1 = ref a.GetRef(); // 1
-                Diagnostic(ErrorCode.ERR_RefReturnParameter, "a").WithArguments("a").WithLocation(18, 24),
-                // (19,24): error CS8350: This combination of arguments to 'Program.GetRefA(ref A)' is disallowed because it may expose variables referenced by parameter 'a' outside of their declaration scope
-                //         ref A a2 = ref GetRefA(ref a); // 2
-                Diagnostic(ErrorCode.ERR_CallArgMixing, "GetRefA(ref a)").WithArguments("Program.GetRefA(ref A)", "a").WithLocation(19, 24),
-                // (19,36): error CS8166: Cannot return a parameter by reference 'a' because it is not a ref parameter
-                //         ref A a2 = ref GetRefA(ref a); // 2
-                Diagnostic(ErrorCode.ERR_RefReturnParameter, "a").WithArguments("a").WithLocation(19, 36),
-                // (20,24): error CS8166: Cannot return a parameter by reference 'a' because it is not a ref parameter
-                //         ref A a3 = ref a.Ref; // 3
-                Diagnostic(ErrorCode.ERR_RefReturnParameter, "a").WithArguments("a").WithLocation(20, 24));
+            comp.VerifyDiagnostics();
         }
 
         [Fact]
@@ -18871,65 +18835,53 @@ class Program
     static void F1(ref A a)
     {
         int i = 1;
-        a.GetSpan() = new Span<int>(ref i); // 1
+        a.GetSpan() = new Span<int>(ref i);
     }
     static void F2(ref A a)
     {
         int i = 2;
-        a.SetSpan(new Span<int>(ref i)); // 2
+        a.SetSpan(new Span<int>(ref i)); // 1
     }
     static void F3(ref A a)
     {
         int i = 3;
-        a.Span1 = new Span<int>(ref i); // 3
+        a.Span1 = new Span<int>(ref i);
     }
     static void F4(ref A a)
     {
         int i = 4;
-        a.Span2 = new Span<int>(ref i); // 4
+        a.Span2 = new Span<int>(ref i);
     }
     static void F5(ref A a)
     {
         int i = 5;
-        a.Span3 = new Span<int>(ref i); // 5
+        a.Span3 = new Span<int>(ref i);
     }
     static void F6(ref A a)
     {
         int i = 6;
-        SetSpan(ref a, new Span<int>(ref i)); // 6
+        SetSpan(ref a, new Span<int>(ref i)); // 2
     }
 }";
             var comp = CreateCompilation(new[] { source, UnscopedRefAttributeDefinition });
             comp.VerifyDiagnostics(
-                // (20,9): error CS8166: Cannot return a parameter by reference 'a' because it is not a ref parameter
-                //         a.GetSpan() = new Span<int>(ref i); // 1
-                Diagnostic(ErrorCode.ERR_RefReturnParameter, "a").WithArguments("a").WithLocation(20, 9),
                 // (25,9): error CS8350: This combination of arguments to 'A.SetSpan(Span<int>)' is disallowed because it may expose variables referenced by parameter 's' outside of their declaration scope
-                //         a.SetSpan(new Span<int>(ref i)); // 2
+                //         a.SetSpan(new Span<int>(ref i)); // 1
                 Diagnostic(ErrorCode.ERR_CallArgMixing, "a.SetSpan(new Span<int>(ref i))").WithArguments("A.SetSpan(Span<int>)", "s").WithLocation(25, 9),
                 // (25,19): error CS8347: Cannot use a result of 'Span<int>.Span(ref int)' in this context because it may expose variables referenced by parameter 't' outside of their declaration scope
-                //         a.SetSpan(new Span<int>(ref i)); // 2
+                //         a.SetSpan(new Span<int>(ref i)); // 1
                 Diagnostic(ErrorCode.ERR_EscapeCall, "new Span<int>(ref i)").WithArguments("Span<int>.Span(ref int)", "t").WithLocation(25, 19),
                 // (25,37): error CS8168: Cannot return local 'i' by reference because it is not a ref local
-                //         a.SetSpan(new Span<int>(ref i)); // 2
+                //         a.SetSpan(new Span<int>(ref i)); // 1
                 Diagnostic(ErrorCode.ERR_RefReturnLocal, "i").WithArguments("i").WithLocation(25, 37),
-                // (30,9): error CS8166: Cannot return a parameter by reference 'a' because it is not a ref parameter
-                //         a.Span1 = new Span<int>(ref i); // 3
-                Diagnostic(ErrorCode.ERR_RefReturnParameter, "a").WithArguments("a").WithLocation(30, 9),
-                // (35,9): error CS8166: Cannot return a parameter by reference 'a' because it is not a ref parameter
-                //         a.Span2 = new Span<int>(ref i); // 4
-                Diagnostic(ErrorCode.ERR_RefReturnParameter, "a").WithArguments("a").WithLocation(35, 9),
-                // (40,9): error CS8166: Cannot return a parameter by reference 'a' because it is not a ref parameter
-                //         a.Span3 = new Span<int>(ref i); // 5
-                Diagnostic(ErrorCode.ERR_RefReturnParameter, "a").WithArguments("a").WithLocation(40, 9),
                 // (45,9): error CS8350: This combination of arguments to 'Program.SetSpan(ref A, Span<int>)' is disallowed because it may expose variables referenced by parameter 's' outside of their declaration scope
-                //         SetSpan(ref a, new Span<int>(ref i)); // 6
+                //         SetSpan(ref a, new Span<int>(ref i)); // 2
                 Diagnostic(ErrorCode.ERR_CallArgMixing, "SetSpan(ref a, new Span<int>(ref i))").WithArguments("Program.SetSpan(ref A, Span<int>)", "s").WithLocation(45, 9),
                 // (45,24): error CS8347: Cannot use a result of 'Span<int>.Span(ref int)' in this context because it may expose variables referenced by parameter 't' outside of their declaration scope
-                //         SetSpan(ref a, new Span<int>(ref i)); // 6
+                //         SetSpan(ref a, new Span<int>(ref i)); // 2
                 Diagnostic(ErrorCode.ERR_EscapeCall, "new Span<int>(ref i)").WithArguments("Span<int>.Span(ref int)", "t").WithLocation(45, 24),
                 // (45,42): error CS8168: Cannot return local 'i' by reference because it is not a ref local
-                //         SetSpan(ref a, new Span<int>(ref i)); // 6
+                //         SetSpan(ref a, new Span<int>(ref i)); // 2
                 Diagnostic(ErrorCode.ERR_RefReturnLocal, "i").WithArguments("i").WithLocation(45, 42));
         }
 
@@ -18999,30 +18951,21 @@ class Program
     static void F1(ref A a)
     {
         int i = 1;
-        a.Span1 += new Span<int>(ref i); // 1
+        a.Span1 += new Span<int>(ref i);
     }
     static void F2(ref A a)
     {
         int i = 2;
-        a.Span2 += new Span<int>(ref i); // 2
+        a.Span2 += new Span<int>(ref i);
     }
     static void F3(ref A a)
     {
         int i = 3;
-        a.Span3 += new Span<int>(ref i); // 3
+        a.Span3 += new Span<int>(ref i);
     }
 }";
             var comp = CreateCompilation(new[] { source, UnscopedRefAttributeDefinition });
-            comp.VerifyDiagnostics(
-                // (18,9): error CS8166: Cannot return a parameter by reference 'a' because it is not a ref parameter
-                //         a.Span1 += new Span<int>(ref i); // 1
-                Diagnostic(ErrorCode.ERR_RefReturnParameter, "a").WithArguments("a").WithLocation(18, 9),
-                // (23,9): error CS8166: Cannot return a parameter by reference 'a' because it is not a ref parameter
-                //         a.Span2 += new Span<int>(ref i); // 2
-                Diagnostic(ErrorCode.ERR_RefReturnParameter, "a").WithArguments("a").WithLocation(23, 9),
-                // (28,9): error CS8166: Cannot return a parameter by reference 'a' because it is not a ref parameter
-                //         a.Span3 += new Span<int>(ref i); // 3
-                Diagnostic(ErrorCode.ERR_RefReturnParameter, "a").WithArguments("a").WithLocation(28, 9));
+            comp.VerifyDiagnostics();
         }
 
         [Fact]
@@ -19092,12 +19035,12 @@ class Program
 {
     static void F1(ref A a)
     {
-        Span<int> s = a[1]; // 1
+        Span<int> s = a[1];
     }
     static void F2(ref A a)
     {
         int i = 2;
-        a[2] = new Span<int>(ref i); // 2
+        a[2] = new Span<int>(ref i);
     }
     static void F3(ref B b)
     {
@@ -19105,13 +19048,7 @@ class Program
     }
 }";
             var comp = CreateCompilation(new[] { source, UnscopedRefAttributeDefinition });
-            comp.VerifyDiagnostics(
-                // (18,23): error CS8166: Cannot return a parameter by reference 'a' because it is not a ref parameter
-                //         Span<int> s = a[1]; // 1
-                Diagnostic(ErrorCode.ERR_RefReturnParameter, "a").WithArguments("a").WithLocation(18, 23),
-                // (23,9): error CS8166: Cannot return a parameter by reference 'a' because it is not a ref parameter
-                //         a[2] = new Span<int>(ref i); // 2
-                Diagnostic(ErrorCode.ERR_RefReturnParameter, "a").WithArguments("a").WithLocation(23, 9));
+            comp.VerifyDiagnostics();
         }
 
         [Fact]
