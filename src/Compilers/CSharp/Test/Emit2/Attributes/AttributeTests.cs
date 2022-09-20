@@ -10821,6 +10821,11 @@ class Container<T>
     class C3
     {
     }
+
+    [Attr<T[]>]
+    class C4
+    {
+    }
 }
 
 class Attr<T> : Attribute { }
@@ -10851,7 +10856,10 @@ class AttrContainer<T>
                 Diagnostic(ErrorCode.ERR_AttrTypeArgCannotBeTypeVar, "AttrContainer<T>.Attr").WithArguments("T").WithLocation(11, 6),
                 // (16,6): error CS8968: 'T': an attribute type argument cannot use type parameters
                 //     [AttrContainer<T>.B.Attr]
-                Diagnostic(ErrorCode.ERR_AttrTypeArgCannotBeTypeVar, "AttrContainer<T>.B.Attr").WithArguments("T").WithLocation(16, 6));
+                Diagnostic(ErrorCode.ERR_AttrTypeArgCannotBeTypeVar, "AttrContainer<T>.B.Attr").WithArguments("T").WithLocation(16, 6),
+                // (21,6): error CS8968: 'T[]': an attribute type argument cannot use type parameters
+                //     [Attr<T[]>]
+                Diagnostic(ErrorCode.ERR_AttrTypeArgCannotBeTypeVar, "Attr<T[]>").WithArguments("T[]").WithLocation(21, 6));
         }
 
         [Fact, WorkItem(58837, "https://github.com/dotnet/roslyn/issues/58837")]
@@ -10870,6 +10878,11 @@ class C2
 {
 }
 
+[A<(int A, int B)[]>.B]
+class C3
+{
+}
+
 class A<T>
 {  
     public class B : Attribute
@@ -10884,7 +10897,10 @@ class A<T>
                 Diagnostic(ErrorCode.ERR_AttrDependentTypeNotAllowed, "A<(int A, int B)>.B").WithArguments("(int A, int B)").WithLocation(4, 2),
                 // (9,2): error CS8970: Type '(int A, int B)' cannot be used in this context because it cannot be represented in metadata.
                 // [global::A<(int A, int B)>.B]
-                Diagnostic(ErrorCode.ERR_AttrDependentTypeNotAllowed, "global::A<(int A, int B)>.B").WithArguments("(int A, int B)").WithLocation(9, 2));
+                Diagnostic(ErrorCode.ERR_AttrDependentTypeNotAllowed, "global::A<(int A, int B)>.B").WithArguments("(int A, int B)").WithLocation(9, 2),
+                // (14,2): error CS8970: Type '(int A, int B)[]' cannot be used in this context because it cannot be represented in metadata.
+                // [A<(int A, int B)[]>.B]
+                Diagnostic(ErrorCode.ERR_AttrDependentTypeNotAllowed, "A<(int A, int B)[]>.B").WithArguments("(int A, int B)[]").WithLocation(14, 2));
         }
 
         [Fact, WorkItem(58837, "https://github.com/dotnet/roslyn/issues/58837")]
