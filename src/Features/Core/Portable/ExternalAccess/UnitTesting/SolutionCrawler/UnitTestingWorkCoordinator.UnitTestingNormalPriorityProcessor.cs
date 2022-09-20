@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                         : base(listener, processor, lazyAnalyzers, globalOperationNotificationService, backOffTimeSpan, shutdownToken)
                     {
                         _running = Task.CompletedTask;
-                        _workItemQueue = new UnitTestingAsyncDocumentWorkItemQueue(processor._registration.ProgressReporter, processor._registration.Workspace);
+                        _workItemQueue = new UnitTestingAsyncDocumentWorkItemQueue(processor._registration.ProgressReporter);
                         _higherPriorityDocumentsNotProcessed = new ConcurrentDictionary<DocumentId, IDisposable?>(concurrencyLevel: 2, capacity: 20);
 
                         _currentProjectProcessing = null;
@@ -155,8 +155,13 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
 
                             // process one of documents remaining
                             if (!_workItemQueue.TryTakeAnyWork(
-                                _currentProjectProcessing, Processor.DependencyGraph, Processor.DiagnosticAnalyzerService,
-                                out var workItem, out var documentCancellation))
+                                    _currentProjectProcessing,
+#if false // Not used in unit testing crawling
+                                    Processor.DependencyGraph,
+                                    Processor.DiagnosticAnalyzerService,
+#endif
+                                    out var workItem,
+                                    out var documentCancellation))
                             {
                                 return;
                             }
@@ -528,10 +533,12 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                                 Processor._registration.GetSolutionToAnalyze(),
                                 workItem: new UnitTestingWorkItem(), (a, s, c) => a.NewSolutionSnapshotAsync(s, c), CancellationToken).ConfigureAwait(false);
 
+#if false // Not used in unit testing crawling
                             foreach (var id in Processor.GetOpenDocumentIds())
                             {
                                 AddHigherPriorityDocument(id);
                             }
+#endif
 
                             UnitTestingSolutionCrawlerLogger.LogResetStates(Processor._logAggregator);
                         }

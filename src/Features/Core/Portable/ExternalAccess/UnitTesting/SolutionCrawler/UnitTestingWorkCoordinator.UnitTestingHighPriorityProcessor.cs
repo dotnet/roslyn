@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                         _lazyAnalyzers = lazyAnalyzers;
 
                         _running = Task.CompletedTask;
-                        _workItemQueue = new UnitTestingAsyncDocumentWorkItemQueue(processor._registration.ProgressReporter, processor._registration.Workspace);
+                        _workItemQueue = new UnitTestingAsyncDocumentWorkItemQueue(processor._registration.ProgressReporter);
 
                         Start();
                     }
@@ -96,9 +96,9 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                         }
 
                         if (!_processor._documentTracker.SupportsDocumentTracking
-                            && _processor._registration.Workspace.Kind is WorkspaceKind.RemoteWorkspace)
+                            && _processor._registration.WorkspaceKind is WorkspaceKind.RemoteWorkspace)
                         {
-                            Debug.Fail($"Unexpected use of '{nameof(ExportUnitTestingIncrementalAnalyzerProviderAttribute.HighPriorityForActiveFile)}' in workspace kind '{_processor._registration.Workspace.Kind}' that cannot support active file tracking.");
+                            Debug.Fail($"Unexpected use of '{nameof(ExportUnitTestingIncrementalAnalyzerProviderAttribute.HighPriorityForActiveFile)}' in workspace kind '{_processor._registration.WorkspaceKind}' that cannot support active file tracking.");
                         }
 
                         // check whether given item is for active document, otherwise, nothing to do here
@@ -173,8 +173,10 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
 
                         return _workItemQueue.TryTakeAnyWork(
                             preferableProjectId: null,
+#if false // Not used in unit testing crawling
                             dependencyGraph: _processor.DependencyGraph,
                             analyzerService: _processor.DiagnosticAnalyzerService,
+#endif
                             workItem: out workItem,
                             cancellationToken: out cancellationToken);
                     }

@@ -19,8 +19,8 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
             {
                 private readonly Dictionary<ProjectId, UnitTestingWorkItem> _projectWorkQueue = new();
 
-                public UnitTestingAsyncProjectWorkItemQueue(UnitTestingSolutionCrawlerProgressReporter progressReporter, Workspace workspace)
-                    : base(progressReporter, workspace)
+                public UnitTestingAsyncProjectWorkItemQueue(UnitTestingSolutionCrawlerProgressReporter progressReporter)
+                    : base(progressReporter)
                 {
                 }
 
@@ -48,7 +48,11 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                 }
 
                 protected override bool TryTakeAnyWork_NoLock(
-                    ProjectId? preferableProjectId, ProjectDependencyGraph dependencyGraph, IDiagnosticAnalyzerService? analyzerService,
+                    ProjectId? preferableProjectId,
+#if false // Not used in unit testing crawling
+                    ProjectDependencyGraph dependencyGraph,
+                    IDiagnosticAnalyzerService? analyzerService,
+#endif
                     out UnitTestingWorkItem workItem)
                 {
                     // there must be at least one item in the map when this is called unless host is shutting down.
@@ -58,7 +62,13 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                         return false;
                     }
 
-                    var projectId = GetBestProjectId_NoLock(_projectWorkQueue, preferableProjectId, dependencyGraph, analyzerService);
+                    var projectId = GetBestProjectId_NoLock(
+                        _projectWorkQueue, preferableProjectId
+#if false // Not used in unit testing crawling
+                        , dependencyGraph
+                        , analyzerService
+#endif
+                        );
                     if (TryTake_NoLock(projectId, out workItem))
                     {
                         return true;

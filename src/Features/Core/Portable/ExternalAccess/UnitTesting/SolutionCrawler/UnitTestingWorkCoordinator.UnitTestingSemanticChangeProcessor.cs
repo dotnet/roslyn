@@ -248,14 +248,14 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                         if (_pendingWork.TryGetValue(documentId, out var data))
                         {
                             // create new async token and dispose old one.
-                            var newAsyncToken = Listener.BeginAsyncOperation(nameof(Enqueue), tag: _registration.Workspace);
+                            var newAsyncToken = Listener.BeginAsyncOperation(nameof(Enqueue), tag: _registration.Services);
                             data.AsyncToken.Dispose();
 
                             _pendingWork[documentId] = new UnitTestingData(project, documentId, document, data.ChangedMember == changedMember ? changedMember : null, newAsyncToken);
                             return;
                         }
 
-                        _pendingWork.Add(documentId, new UnitTestingData(project, documentId, document, changedMember, Listener.BeginAsyncOperation(nameof(Enqueue), tag: _registration.Workspace)));
+                        _pendingWork.Add(documentId, new UnitTestingData(project, documentId, document, changedMember, Listener.BeginAsyncOperation(nameof(Enqueue), tag: _registration.Services)));
                         _gate.Release();
                     }
 
@@ -378,7 +378,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                                 return;
                             }
 
-                            var data = new UnitTestingData(projectId, needDependencyTracking, Listener.BeginAsyncOperation(nameof(Enqueue), tag: _registration.Workspace));
+                            var data = new UnitTestingData(projectId, needDependencyTracking, Listener.BeginAsyncOperation(nameof(Enqueue), tag: _registration.Services));
 
                             _pendingWork.Add(projectId, data);
                             _gate.Release();

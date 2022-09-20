@@ -4,12 +4,10 @@
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
 {
-    internal interface IUnitTestingIncrementalAnalyzerProvider
+    internal interface IUnitTestingWorkCoordinator
     {
-        IUnitTestingIncrementalAnalyzer? CreateIncrementalAnalyzer(
-#if false // Not used in unit testing crawling
-            Workspace workspace
-#endif
-            );
+        void OnWorkspaceChanged(WorkspaceChangeEventArgs args);
+        void OnTextDocumentOpened(TextDocumentEventArgs args);
+        void OnTextDocumentClosed(TextDocumentEventArgs args);
     }
 }
