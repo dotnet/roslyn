@@ -4,17 +4,17 @@
 
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.SolutionEvents
+namespace Microsoft.CodeAnalysis.LegacySolutionEvents
 {
-    internal sealed partial class HostSolutionEventsWorkspaceEventListener
+    internal sealed partial class HostLegacySolutionEventsWorkspaceEventListener
     {
-        private readonly struct SolutionEvent
+        private readonly struct LegacySolutionEvent
         {
             public readonly WorkspaceChangeEventArgs? WorkspaceChangeArgs;
             public readonly TextDocumentEventArgs? DocumentOpenArgs;
             public readonly TextDocumentEventArgs? DocumentCloseArgs;
 
-            public SolutionEvent(
+            public LegacySolutionEvent(
                 WorkspaceChangeEventArgs? workspaceChangeArgs,
                 TextDocumentEventArgs? documentOpenArgs,
                 TextDocumentEventArgs? documentCloseArgs)

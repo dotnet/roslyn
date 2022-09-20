@@ -213,7 +213,7 @@
   <data name="FeatureName_StackTraceExplorer" xml:space="preserve">
     <value>Stack Trace Explorer</value>
   </data>
-  <data name="FeatureName_SolutionEventsAggregation" xml:space="preserve">
+  <data name="FeatureName_LegacySolutionEventsAggregation" xml:space="preserve">
     <value>Solution Events</value>
   </data>
 </root>
