@@ -36,12 +36,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
             {
                 // the following code requires UI thread:
                 await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
-                return GetOrCreateProviderOnMainThread();
-            }
-
-            private VisualStudioDiagnosticAnalyzerProvider GetOrCreateProviderOnMainThread()
-            {
-                Contract.ThrowIfFalse(_threadingContext.JoinableTaskContext.IsOnMainThread);
 
                 if (_lazyProvider != null)
                 {
