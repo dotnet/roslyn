@@ -299,12 +299,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                             continue;
                         }
 
+                        // TODO: should we use the tree of the document (if available) to get the correct mapped span for this location?
                         var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
                         var linePosition = new LinePosition(line, 0);
                         var linePositionSpan = new LinePositionSpan(start: linePosition, end: linePosition);
-                        var textSpan = text.Lines.GetTextSpan(linePositionSpan);
                         var location = new DiagnosticDataLocation(
-                            new FileLinePositionSpan(filePath, linePositionSpan), document.Id, textSpan, mappedFileSpan: null);
+                            new FileLinePositionSpan(filePath, linePositionSpan), document.Id, mappedFileSpan: null);
 
                         Contract.ThrowIfNull(project);
 

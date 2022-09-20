@@ -99,39 +99,41 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 Diagnostic(ErrorCode.ERR_ExplicitReservedAttr, "RefSafetyRules(11)").WithArguments("System.Runtime.CompilerServices.RefSafetyRulesAttribute").WithLocation(3, 10));
         }
 
+        [WorkItem(63692, "https://github.com/dotnet/roslyn/issues/63692")]
         [Theory]
-        [InlineData("interface I { T F<T>(); }", false)]
-        [InlineData("interface I { ref T F<T>(); }", true)]
-        [InlineData("interface I { void F<T>(T t); }", false)]
-        [InlineData("interface I { void F<T>(ref T t); }", true)]
-        [InlineData("interface I { void F<T>(in T t); }", true)]
-        [InlineData("interface I { void F<T>(out T t); }", true)]
-        [InlineData("interface I { ref int P { get; } }", true)]
-        [InlineData("interface I { }", false)]
-        [InlineData("class C { }", false)]
-        [InlineData("struct S { }", false)]
-        [InlineData("ref struct R { }", true)]
-        public void EmitAttribute_01(string source, bool requiresAttribute)
+        [InlineData("interface I { T F<T>(); }")]
+        [InlineData("interface I { ref T F<T>(); }")]
+        [InlineData("interface I { void F<T>(T t); }")]
+        [InlineData("interface I { void F<T>(ref T t); }")]
+        [InlineData("interface I { void F<T>(in T t); }")]
+        [InlineData("interface I { void F<T>(out T t); }")]
+        [InlineData("interface I { ref int P { get; } }")]
+        [InlineData("interface I { }")]
+        [InlineData("class C { }")]
+        [InlineData("struct S { }")]
+        [InlineData("ref struct R { }")]
+        public void EmitAttribute_01(string source)
         {
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular10);
             CompileAndVerify(comp, symbolValidator: m => AssertRefSafetyRulesAttribute(m, includesAttributeDefinition: false, includesAttributeUse: false, publicDefinition: false));
 
             comp = CreateCompilation(source);
-            CompileAndVerify(comp, symbolValidator: m => AssertRefSafetyRulesAttribute(m, includesAttributeDefinition: requiresAttribute, includesAttributeUse: requiresAttribute, publicDefinition: false));
+            CompileAndVerify(comp, symbolValidator: m => AssertRefSafetyRulesAttribute(m, includesAttributeDefinition: true, includesAttributeUse: true, publicDefinition: false));
         }
 
+        [WorkItem(63692, "https://github.com/dotnet/roslyn/issues/63692")]
         [Theory]
-        [InlineData("class B { I F() => default; }", false)]
-        [InlineData("class B { A F() => default; }", false)]
-        [InlineData("class B { S F() => default; }", false)]
-        [InlineData("class B { R F() => default; }", true)]
-        [InlineData("class B { void F(I i) { } }", false)]
-        [InlineData("class B { void F(A a) { } }", false)]
-        [InlineData("class B { void F(S s) { } }", false)]
-        [InlineData("class B { void F(R r) { } }", true)]
-        [InlineData("class B { R P => default; }", true)]
-        [InlineData("class B { R P { set { } } }", true)]
-        public void EmitAttribute_02(string source, bool requiresAttribute)
+        [InlineData("class B { I F() => default; }")]
+        [InlineData("class B { A F() => default; }")]
+        [InlineData("class B { S F() => default; }")]
+        [InlineData("class B { R F() => default; }")]
+        [InlineData("class B { void F(I i) { } }")]
+        [InlineData("class B { void F(A a) { } }")]
+        [InlineData("class B { void F(S s) { } }")]
+        [InlineData("class B { void F(R r) { } }")]
+        [InlineData("class B { R P => default; }")]
+        [InlineData("class B { R P { set { } } }")]
+        public void EmitAttribute_02(string source)
         {
             var sourceA =
 @"public interface I { }
@@ -145,7 +147,7 @@ public ref struct R { }
             CompileAndVerify(comp, verify: Verification.Skipped, symbolValidator: m => AssertRefSafetyRulesAttribute(m, includesAttributeDefinition: false, includesAttributeUse: false, publicDefinition: false));
 
             comp = CreateCompilation(source, references: new[] { refA });
-            CompileAndVerify(comp, verify: Verification.Skipped, symbolValidator: m => AssertRefSafetyRulesAttribute(m, includesAttributeDefinition: requiresAttribute, includesAttributeUse: requiresAttribute, publicDefinition: false));
+            CompileAndVerify(comp, verify: Verification.Skipped, symbolValidator: m => AssertRefSafetyRulesAttribute(m, includesAttributeDefinition: true, includesAttributeUse: true, publicDefinition: false));
         }
 
         [Fact]
