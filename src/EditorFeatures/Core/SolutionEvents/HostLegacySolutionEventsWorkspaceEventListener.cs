@@ -120,7 +120,7 @@ namespace Microsoft.CodeAnalysis.LegacySolutionEvents
             }
             else if (ev.DocumentCloseArgs != null)
             {
-                var document = ev.DocumentOpenArgs.Document;
+                var document = ev.DocumentCloseArgs.Document;
                 await client.TryInvokeAsync<IRemoteLegacySolutionEventsAggregationService>(
                     document.Project.Solution,
                     (service, solutionChecksum, cancellationToken) => service.OnTextDocumentClosedAsync(solutionChecksum, document.Id, cancellationToken),
