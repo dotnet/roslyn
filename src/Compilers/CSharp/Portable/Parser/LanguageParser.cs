@@ -9086,11 +9086,29 @@ done:;
                 // for a declaration first.
                 VariableDeclarationSyntax decl = null;
                 bool isDeclaration = false;
-                if (this.CurrentToken.Kind == SyntaxKind.RefKeyword)
+                bool haveScopedKeyword = false;
+
+                if (this.CurrentToken.ContextualKind == SyntaxKind.ScopedKeyword)
+                {
+                    if (this.PeekToken(1).Kind == SyntaxKind.RefKeyword)
+                    {
+                        isDeclaration = true;
+                    }
+                    else
+                    {
+                        this.EatToken();
+                        isDeclaration = ScanType() != ScanTypeFlags.NotType && this.CurrentToken.Kind == SyntaxKind.IdentifierToken;
+                        this.Reset(ref resetPoint);
+                    }
+
+                    haveScopedKeyword = isDeclaration;
+                }
+                else if (this.CurrentToken.Kind == SyntaxKind.RefKeyword)
                 {
                     isDeclaration = true;
                 }
-                else
+
+                if (!isDeclaration)
                 {
                     isDeclaration = !this.IsQueryExpression(mayBeVariableDeclaration: true, mayBeMemberDeclaration: false) &&
                                     this.ScanType() != ScanTypeFlags.NotType &&
@@ -9101,12 +9119,29 @@ done:;
 
                 if (isDeclaration)
                 {
-                    decl = ParseVariableDeclaration();
-                    if (decl.Type.Kind == SyntaxKind.RefType)
+                    SyntaxToken scopedKeyword = null;
+
+                    if (haveScopedKeyword)
                     {
-                        decl = decl.Update(
-                            CheckFeatureAvailability(decl.Type, MessageID.IDS_FeatureRefFor),
-                            decl.Variables);
+                        scopedKeyword = EatContextualToken(SyntaxKind.ScopedKeyword);
+                    }
+
+                    decl = ParseVariableDeclaration();
+
+                    var declType = decl.Type;
+                    if (declType.Kind == SyntaxKind.RefType)
+                    {
+                        declType = CheckFeatureAvailability(declType, MessageID.IDS_FeatureRefFor);
+                    }
+
+                    if (scopedKeyword != null)
+                    {
+                        declType = _syntaxFactory.ScopedType(scopedKeyword, declType);
+                    }
+
+                    if (declType != decl.Type)
+                    {
+                        decl = decl.Update(declType, decl.Variables);
                     }
                 }
                 else if (this.CurrentToken.Kind != SyntaxKind.SemicolonToken)
