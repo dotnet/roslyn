@@ -2445,7 +2445,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             };
 
             int index = (checkingReceiver ? 3 : 0) + (kind == BindValueKind.RefReturn ? 0 : (RequiresRefOrOut(kind) ? 1 : 2));
-            Error(diagnostics, ReadOnlyErrors[index], node, symbolKind, symbol);
+            Error(diagnostics, ReadOnlyErrors[index], node, symbolKind, new FormattedSymbol(symbol, SymbolDisplayFormat.ShortFormat));
         }
 
         /// <summary>
