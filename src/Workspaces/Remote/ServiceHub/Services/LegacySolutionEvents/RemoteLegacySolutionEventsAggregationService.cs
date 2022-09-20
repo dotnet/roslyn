@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
@@ -25,7 +26,7 @@ namespace Microsoft.CodeAnalysis.Remote
         }
 
         private ILegacyWorkspaceDescriptor GetDescriptor()
-            => new RemoteLegacyWorkspaceDescriptor(this.GetWorkspace());
+            => RemoteLegacyWorkspaceDescriptor.Create(this.GetWorkspace());
 
         public ValueTask OnTextDocumentOpenedAsync(Checksum solutionChecksum, DocumentId documentId, CancellationToken cancellationToken)
         {
@@ -84,12 +85,17 @@ namespace Microsoft.CodeAnalysis.Remote
         /// </summary>
         private sealed class RemoteLegacyWorkspaceDescriptor : ILegacyWorkspaceDescriptor
         {
+            private static readonly ConditionalWeakTable<RemoteWorkspace, ILegacyWorkspaceDescriptor> s_workspaceToDescriptor = new();
+
             private readonly RemoteWorkspace _remoteWorkspace;
 
-            public RemoteLegacyWorkspaceDescriptor(RemoteWorkspace remoteWorkspace)
+            private RemoteLegacyWorkspaceDescriptor(RemoteWorkspace remoteWorkspace)
             {
                 _remoteWorkspace = remoteWorkspace;
             }
+
+            public static ILegacyWorkspaceDescriptor Create(RemoteWorkspace workspace)
+                => s_workspaceToDescriptor.GetValue(workspace, static workspace => new RemoteLegacyWorkspaceDescriptor(workspace));
 
             public string? WorkspaceKind => _remoteWorkspace.Kind;
 

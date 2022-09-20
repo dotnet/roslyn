@@ -5,6 +5,7 @@
 using System;
 using System.Composition;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Collections;
@@ -93,7 +94,7 @@ namespace Microsoft.CodeAnalysis.LegacySolutionEvents
 
         private static async ValueTask ProcessEventAsync(ILegacySolutionEventsAggregationService aggregationService, LegacySolutionEvent ev, CancellationToken cancellationToken)
         {
-            var descriptor = new HostLegacyWorkspaceDescriptor(ev.Workspace);
+            var descriptor = HostLegacyWorkspaceDescriptor.Create(ev.Workspace);
 
             if (ev.DocumentOpenArgs != null)
             {
@@ -143,12 +144,17 @@ namespace Microsoft.CodeAnalysis.LegacySolutionEvents
 
         private sealed class HostLegacyWorkspaceDescriptor : ILegacyWorkspaceDescriptor
         {
+            private static readonly ConditionalWeakTable<Workspace, ILegacyWorkspaceDescriptor> s_workspaceToDescriptor = new();
+
             private readonly Workspace _workspace;
 
-            public HostLegacyWorkspaceDescriptor(Workspace workspace)
+            private HostLegacyWorkspaceDescriptor(Workspace workspace)
             {
                 _workspace = workspace;
             }
+
+            public static ILegacyWorkspaceDescriptor Create(Workspace workspace)
+                => s_workspaceToDescriptor.GetValue(workspace, static workspace => new HostLegacyWorkspaceDescriptor(workspace));
 
             public string? WorkspaceKind => _workspace.Kind;
 
