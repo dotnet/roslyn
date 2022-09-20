@@ -249,17 +249,23 @@ namespace Microsoft.CodeAnalysis.Completion
             string filterText)
         {
             var helper = CompletionHelper.GetHelper(document);
-            var itemsWithPatternMatch = new SegmentedList<(CompletionItem, PatternMatch?)>(items.Select(
-                item => (item, helper.GetMatch(item, filterText, includeMatchSpans: false, CultureInfo.CurrentCulture))));
+            var itemsWithPatternMatch = new SegmentedList<CompletionItemFilterData>(items.Select(
+                item => CreateCompletionItemFilterData(item, helper, filterText)));
 
             var builder = ImmutableArray.CreateBuilder<CompletionItem>();
             FilterItems(helper, itemsWithPatternMatch, filterText, builder);
             return builder.ToImmutable();
+
+            static CompletionItemFilterData CreateCompletionItemFilterData(CompletionItem item, CompletionHelper helper, string filterText)
+            {
+                var matchData = helper.GetMatch(item, filterText, includeMatchSpans: false, CultureInfo.CurrentCulture);
+                return new CompletionItemFilterData(item, matchData.match, matchData.)
+            }
         }
 
         internal virtual void FilterItems(
            Document document,
-           IReadOnlyList<(CompletionItem, PatternMatch?)> itemsWithPatternMatch,
+           IReadOnlyList<CompletionItemFilterData> itemsWithPatternMatch,
            string filterText,
            IList<CompletionItem> builder)
         {
@@ -271,7 +277,7 @@ namespace Microsoft.CodeAnalysis.Completion
 
         // The FilterItems method might need to handle a large list of items when import completion is enabled and filter text is
         // very short, i.e. <= 1. Therefore, use pooled list to avoid repeated (potentially LOH) allocations.
-        private static readonly ObjectPool<List<(CompletionItem item, PatternMatch? match)>> s_listOfItemMatchPairPool = new(factory: () => new());
+        private static readonly ObjectPool<List<CompletionItemFilterData>> s_listOfItemMatchPairPool = new(factory: () => new());
 
         /// <summary>
         /// Determine among the provided items the best match w.r.t. the given filter text, 
@@ -279,7 +285,7 @@ namespace Microsoft.CodeAnalysis.Completion
         /// </summary>
         internal static void FilterItems(
             CompletionHelper completionHelper,
-            IReadOnlyList<(CompletionItem item, PatternMatch? match)> itemsWithPatternMatch,
+            IReadOnlyList<CompletionItemFilterData> itemsWithPatternMatch,
             string filterText,
             IList<CompletionItem> builder)
         {
@@ -320,7 +326,7 @@ namespace Microsoft.CodeAnalysis.Completion
                         continue;
                     }
 
-                    var (bestItem, bestItemMatch) = bestItems[0];
+                    var (bestItem, bestItemMatch, bestItemMatchesWithAdditionalFilterText) = bestItems[0];
                     var comparison = completionHelper.CompareItems(
                         pair.item, pair.match, bestItem, bestItemMatch, out var onlyDifferInCaseSensitivity);
 
@@ -443,4 +449,7 @@ namespace Microsoft.CodeAnalysis.Completion
                 => _completionServiceWithProviders._suppressPartialSemantics = true;
         }
     }
+
+    internal record struct CompletionItemFilterData (CompletionItem Item, PatternMatch? Match, bool MatchAdditionalFilterText))
+    { }
 }

@@ -375,7 +375,7 @@ End Class
         End Function
 
         <Fact, WorkItem(815963, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/815963")>
-        Public Async Function TestLocalNoAs() As Task
+        Public Async Function TestNoLocals() As Task
             Dim markup = <Text><![CDATA[
 Enum E
     A
@@ -387,7 +387,10 @@ Class C
     End Sub
 End Class
 ]]></Text>.Value
-            Await VerifyItemExistsAsync(markup, "e")
+            Await VerifyItemExistsAsync(markup, "E")
+            Await VerifyItemExistsAsync(markup, "E.A")
+
+            Await VerifyItemIsAbsentAsync(markup, "e")
             Await VerifyItemIsAbsentAsync(markup, "e As E")
         End Function
 

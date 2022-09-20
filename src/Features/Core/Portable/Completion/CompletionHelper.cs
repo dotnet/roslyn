@@ -49,26 +49,31 @@ namespace Microsoft.CodeAnalysis.Completion
         /// results, or false if it should not be.
         /// </summary>
         public bool MatchesPattern(CompletionItem item, string pattern, CultureInfo culture)
-            => GetMatch(item, pattern, includeMatchSpans: false, culture) != null;
+            => GetMatch(item, pattern, includeMatchSpans: false, culture).match != null;
 
-        public PatternMatch? GetMatch(
+        public (PatternMatch? match, bool matchedAdditionalFilterText) GetMatch(
             CompletionItem item,
             string pattern,
             bool includeMatchSpans,
             CultureInfo culture)
         {
+            var matchedAdditionalFilterText = false;
             var match = GetMatch(item.FilterText, pattern, includeMatchSpans, culture);
             if (item.HasAdditionalFilterTexts)
             {
                 foreach (var additionalFilterText in item.AdditionalFilterTexts)
                 {
                     var additionalMatch = GetMatch(additionalFilterText, pattern, includeMatchSpans, culture);
+
                     if (additionalMatch.HasValue && additionalMatch.Value.CompareTo(match, ignoreCase: false) < 0)
+                    {
+                        matchedAdditionalFilterText = true;
                         match = additionalMatch;
+                    }
                 }
             }
 
-            return match;
+            return (match, matchedAdditionalFilterText);
         }
 
         private PatternMatch? GetMatch(

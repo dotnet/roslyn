@@ -196,7 +196,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                         rules: CompletionItemRules.Default,
                         contextPosition: position,
                         sortText: $"{sortText}_{index:0000}",
-                        filterText: memberDisplayName));
+                        filterText: memberDisplayName).WithAdditionalFilterTexts(ImmutableArray.Create(field.Name)));
                 }
             }
             else if (enclosingNamedType is not null)
@@ -237,7 +237,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                         rules: CompletionItemRules.Default,
                         contextPosition: position,
                         sortText: memberDisplayName,
-                        filterText: memberDisplayName));
+                        filterText: memberDisplayName).WithAdditionalFilterTexts(ImmutableArray.Create(staticSymbol.Name)));
                 }
             }
         }
