@@ -1355,19 +1355,24 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             typeArgument.VisitType(type: null, static (typeWithAnnotations, arg, _) =>
             {
-                var (topLevelType, errorLocation, diagnostics) = arg;
+                var (errorLocation, diagnostics) = arg;
                 var type = typeWithAnnotations.Type;
                 if (type.IsDynamic()
                     || (typeWithAnnotations.NullableAnnotation.IsAnnotated() && !type.IsValueType)
                     || type.IsNativeIntegerWrapperType
                     || (type.IsTupleType && !type.TupleElementNames.IsDefault))
                 {
-                    diagnostics.Add(ErrorCode.ERR_AttrDependentTypeNotAllowed, errorLocation, topLevelType.ToDisplayString(SymbolDisplayFormat.CSharpShortErrorMessageFormat));
+                    diagnostics.Add(ErrorCode.ERR_AttrDependentTypeNotAllowed, errorLocation, type.ToDisplayString(SymbolDisplayFormat.CSharpShortErrorMessageFormat));
+                    return true;
+                }
+                if (type.Kind == SymbolKind.TypeParameter)
+                {
+                    diagnostics.Add(ErrorCode.ERR_AttrTypeArgCannotBeTypeVar, errorLocation, type.ToDisplayString(SymbolDisplayFormat.CSharpErrorMessageFormat));
                     return true;
                 }
 
                 return false;
-            }, typePredicate: null, arg: (typeArgument, errorLocation, diagnostics));
+            }, typePredicate: null, arg: (errorLocation, diagnostics));
         }
 
         private BoundExpression BindSizeOf(SizeOfExpressionSyntax node, BindingDiagnosticBag diagnostics)

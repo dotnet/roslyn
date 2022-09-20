@@ -54,24 +54,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var boundType = binder.BindType(attributeToBind.Name, diagnostics);
                     var boundTypeSymbol = (NamedTypeSymbol)boundType.Type;
 
-                    // Check type arguments inside the attribute type (unless the attribute type is already an error).
+                    // Check the attribute type (unless the attribute type is already an error).
                     if (boundTypeSymbol.TypeKind != TypeKind.Error)
                     {
                         var location = attributeToBind.Name.GetLocation();
-                        for (var type = boundTypeSymbol; type is not null; type = type.ContainingType)
-                        {
-                            foreach (var typeArg in type.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics)
-                            {
-                                if (typeArg.Type.IsUnboundGenericType() || typeArg.Type.ContainsTypeParameter())
-                                {
-                                    diagnostics.Add(ErrorCode.ERR_AttrTypeArgCannotBeTypeVar, location, typeArg.ToDisplayString(SymbolDisplayFormat.CSharpErrorMessageFormat));
-                                }
-                                else
-                                {
-                                    binder.CheckDisallowedAttributeDependentType(typeArg, location, diagnostics);
-                                }
-                            }
-                        }
+                        binder.CheckDisallowedAttributeDependentType(boundType, location, diagnostics);
                     }
 
                     boundAttributeTypes[i] = boundTypeSymbol;

@@ -7482,12 +7482,12 @@ public class Test<U>
                 // (8,2): error CS0305: Using the generic type 'Gen2<T>' requires 1 type arguments
                 // [Gen2()]
                 Diagnostic(ErrorCode.ERR_BadArity, "Gen2").WithArguments("Gen2<T>", "type", "1").WithLocation(8, 2),
-                // (9,2): error CS8958: 'U': an attribute type argument cannot use type parameters
+                // (9,2): error CS8968: 'U': an attribute type argument cannot use type parameters
                 // [Gen2<U>]
                 Diagnostic(ErrorCode.ERR_AttrTypeArgCannotBeTypeVar, "Gen2<U>").WithArguments("U").WithLocation(9, 2),
-                // (10,2): error CS8958: 'System.Collections.Generic.List<U>': an attribute type argument cannot use type parameters
+                // (10,2): error CS8968: 'U': an attribute type argument cannot use type parameters
                 // [Gen2<System.Collections.Generic.List<U>>]
-                Diagnostic(ErrorCode.ERR_AttrTypeArgCannotBeTypeVar, "Gen2<System.Collections.Generic.List<U>>").WithArguments("System.Collections.Generic.List<U>").WithLocation(10, 2),
+                Diagnostic(ErrorCode.ERR_AttrTypeArgCannotBeTypeVar, "Gen2<System.Collections.Generic.List<U>>").WithArguments("U").WithLocation(10, 2),
                 // (10,2): error CS0579: Duplicate 'Gen2<>' attribute
                 // [Gen2<System.Collections.Generic.List<U>>]
                 Diagnostic(ErrorCode.ERR_DuplicateAttribute, "Gen2<System.Collections.Generic.List<U>>").WithArguments("Gen2<>").WithLocation(10, 2),
@@ -10303,31 +10303,31 @@ class C { }
 ";
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (10,2): error CS8960: Type 'dynamic' cannot be used in this context because it cannot be represented in metadata.
+                // (10,2): error CS8970: Type 'dynamic' cannot be used in this context because it cannot be represented in metadata.
                 // [Attr<dynamic>] // 1
                 Diagnostic(ErrorCode.ERR_AttrDependentTypeNotAllowed, "Attr<dynamic>").WithArguments("dynamic").WithLocation(10, 2),
-                // (11,2): error CS8960: Type 'List<dynamic>' cannot be used in this context because it cannot be represented in metadata.
+                // (11,2): error CS8970: Type 'dynamic' cannot be used in this context because it cannot be represented in metadata.
                 // [Attr<List<dynamic>>] // 2
-                Diagnostic(ErrorCode.ERR_AttrDependentTypeNotAllowed, "Attr<List<dynamic>>").WithArguments("List<dynamic>").WithLocation(11, 2),
-                // (12,2): error CS8960: Type 'nint' cannot be used in this context because it cannot be represented in metadata.
+                Diagnostic(ErrorCode.ERR_AttrDependentTypeNotAllowed, "Attr<List<dynamic>>").WithArguments("dynamic").WithLocation(11, 2),
+                // (12,2): error CS8970: Type 'nint' cannot be used in this context because it cannot be represented in metadata.
                 // [Attr<nint>] // 3
                 Diagnostic(ErrorCode.ERR_AttrDependentTypeNotAllowed, "Attr<nint>").WithArguments("nint").WithLocation(12, 2),
-                // (13,2): error CS8960: Type 'List<nint>' cannot be used in this context because it cannot be represented in metadata.
+                // (13,2): error CS8970: Type 'nint' cannot be used in this context because it cannot be represented in metadata.
                 // [Attr<List<nint>>] // 4
-                Diagnostic(ErrorCode.ERR_AttrDependentTypeNotAllowed, "Attr<List<nint>>").WithArguments("List<nint>").WithLocation(13, 2),
-                // (14,2): error CS8960: Type 'string?' cannot be used in this context because it cannot be represented in metadata.
+                Diagnostic(ErrorCode.ERR_AttrDependentTypeNotAllowed, "Attr<List<nint>>").WithArguments("nint").WithLocation(13, 2),
+                // (14,2): error CS8970: Type 'string' cannot be used in this context because it cannot be represented in metadata.
                 // [Attr<string?>] // 5
-                Diagnostic(ErrorCode.ERR_AttrDependentTypeNotAllowed, "Attr<string?>").WithArguments("string?").WithLocation(14, 2),
-                // (15,2): error CS8960: Type 'List<string?>' cannot be used in this context because it cannot be represented in metadata.
+                Diagnostic(ErrorCode.ERR_AttrDependentTypeNotAllowed, "Attr<string?>").WithArguments("string").WithLocation(14, 2),
+                // (15,2): error CS8970: Type 'string' cannot be used in this context because it cannot be represented in metadata.
                 // [Attr<List<string?>>] // 6
-                Diagnostic(ErrorCode.ERR_AttrDependentTypeNotAllowed, "Attr<List<string?>>").WithArguments("List<string?>").WithLocation(15, 2),
-                // (16,2): error CS8960: Type '(int a, int b)' cannot be used in this context because it cannot be represented in metadata.
+                Diagnostic(ErrorCode.ERR_AttrDependentTypeNotAllowed, "Attr<List<string?>>").WithArguments("string").WithLocation(15, 2),
+                // (16,2): error CS8970: Type '(int a, int b)' cannot be used in this context because it cannot be represented in metadata.
                 // [Attr<(int a, int b)>] // 7
                 Diagnostic(ErrorCode.ERR_AttrDependentTypeNotAllowed, "Attr<(int a, int b)>").WithArguments("(int a, int b)").WithLocation(16, 2),
-                // (17,2): error CS8960: Type 'List<(int a, int b)>' cannot be used in this context because it cannot be represented in metadata.
+                // (17,2): error CS8970: Type '(int a, int b)' cannot be used in this context because it cannot be represented in metadata.
                 // [Attr<List<(int a, int b)>>] // 8
-                Diagnostic(ErrorCode.ERR_AttrDependentTypeNotAllowed, "Attr<List<(int a, int b)>>").WithArguments("List<(int a, int b)>").WithLocation(17, 2),
-                // (18,2): error CS8960: Type '(int a, string? b)' cannot be used in this context because it cannot be represented in metadata.
+                Diagnostic(ErrorCode.ERR_AttrDependentTypeNotAllowed, "Attr<List<(int a, int b)>>").WithArguments("(int a, int b)").WithLocation(17, 2),
+                // (18,2): error CS8970: Type '(int a, string? b)' cannot be used in this context because it cannot be represented in metadata.
                 // [Attr<(int a, string? b)>] // 9
                 Diagnostic(ErrorCode.ERR_AttrDependentTypeNotAllowed, "Attr<(int a, string? b)>").WithArguments("(int a, string? b)").WithLocation(18, 2));
         }
@@ -10857,9 +10857,9 @@ class AttrContainer<T>
                 // (16,6): error CS8968: 'T': an attribute type argument cannot use type parameters
                 //     [AttrContainer<T>.B.Attr]
                 Diagnostic(ErrorCode.ERR_AttrTypeArgCannotBeTypeVar, "AttrContainer<T>.B.Attr").WithArguments("T").WithLocation(16, 6),
-                // (21,6): error CS8968: 'T[]': an attribute type argument cannot use type parameters
+                // (21,6): error CS8968: 'T': an attribute type argument cannot use type parameters
                 //     [Attr<T[]>]
-                Diagnostic(ErrorCode.ERR_AttrTypeArgCannotBeTypeVar, "Attr<T[]>").WithArguments("T[]").WithLocation(21, 6));
+                Diagnostic(ErrorCode.ERR_AttrTypeArgCannotBeTypeVar, "Attr<T[]>").WithArguments("T").WithLocation(21, 6));
         }
 
         [Fact, WorkItem(58837, "https://github.com/dotnet/roslyn/issues/58837")]
@@ -10898,9 +10898,9 @@ class A<T>
                 // (9,2): error CS8970: Type '(int A, int B)' cannot be used in this context because it cannot be represented in metadata.
                 // [global::A<(int A, int B)>.B]
                 Diagnostic(ErrorCode.ERR_AttrDependentTypeNotAllowed, "global::A<(int A, int B)>.B").WithArguments("(int A, int B)").WithLocation(9, 2),
-                // (14,2): error CS8970: Type '(int A, int B)[]' cannot be used in this context because it cannot be represented in metadata.
+                // (14,2): error CS8970: Type '(int A, int B)' cannot be used in this context because it cannot be represented in metadata.
                 // [A<(int A, int B)[]>.B]
-                Diagnostic(ErrorCode.ERR_AttrDependentTypeNotAllowed, "A<(int A, int B)[]>.B").WithArguments("(int A, int B)[]").WithLocation(14, 2));
+                Diagnostic(ErrorCode.ERR_AttrDependentTypeNotAllowed, "A<(int A, int B)[]>.B").WithArguments("(int A, int B)").WithLocation(14, 2));
         }
 
         [Fact, WorkItem(58837, "https://github.com/dotnet/roslyn/issues/58837")]
