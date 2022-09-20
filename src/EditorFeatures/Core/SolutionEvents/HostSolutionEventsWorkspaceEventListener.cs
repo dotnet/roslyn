@@ -75,14 +75,14 @@ namespace Microsoft.CodeAnalysis.LegacySolutionEvents
             var workspace = events[0].Workspace;
             Contract.ThrowIfTrue(events.Any(e => e.Workspace != workspace));
 
-            var aggregationService = workspace.Services.GetRequiredService<ISolutionEventsAggregationService>();
+            var aggregationService = workspace.Services.GetRequiredService<ILegacySolutionEventsAggregationService>();
             var client = await RemoteHostClient.TryGetClientAsync(workspace, cancellationToken).ConfigureAwait(false);
             await ProcessWorkspaceChangeEventsAsync(client, aggregationService, events, cancellationToken).ConfigureAwait(false);
         }
 
         private static async Task ProcessWorkspaceChangeEventsAsync(
             RemoteHostClient? client,
-            ISolutionEventsAggregationService aggregationService,
+            ILegacySolutionEventsAggregationService aggregationService,
             ImmutableSegmentedList<SolutionEvent> events,
             CancellationToken cancellationToken)
         {
@@ -92,7 +92,7 @@ namespace Microsoft.CodeAnalysis.LegacySolutionEvents
 
         private static async ValueTask ProcessWorkspaceChangeEventAsync(
             RemoteHostClient? client,
-            ISolutionEventsAggregationService aggregationService,
+            ILegacySolutionEventsAggregationService aggregationService,
             SolutionEvent ev,
             CancellationToken cancellationToken)
         {
@@ -177,7 +177,7 @@ namespace Microsoft.CodeAnalysis.LegacySolutionEvents
 
         private static async ValueTask EnqueueFullSolutionEventAsync(
             RemoteHostClient? client,
-            ISolutionEventsAggregationService aggregationService,
+            ILegacySolutionEventsAggregationService aggregationService,
             Solution solution,
             InvocationReasons reasons,
             CancellationToken cancellationToken)
@@ -188,7 +188,7 @@ namespace Microsoft.CodeAnalysis.LegacySolutionEvents
             }
             else
             {
-                await client.TryInvokeAsync<IRemoteSolutionEventsAggregationService>(
+                await client.TryInvokeAsync<IRemoteLegacySolutionEventsAggregationService>(
                     solution,
                     (service, solutionChecksum, cancellationToken) => service.OnSolutionEventAsync(solutionChecksum, reasons, cancellationToken),
                     cancellationToken).ConfigureAwait(false);
@@ -197,7 +197,7 @@ namespace Microsoft.CodeAnalysis.LegacySolutionEvents
 
         private static async ValueTask EnqueueFullProjectEventAsync(
             RemoteHostClient? client,
-            ISolutionEventsAggregationService aggregationService,
+            ILegacySolutionEventsAggregationService aggregationService,
             Solution solution,
             ProjectId projectId,
             InvocationReasons reasons,
@@ -209,7 +209,7 @@ namespace Microsoft.CodeAnalysis.LegacySolutionEvents
             }
             else
             {
-                await client.TryInvokeAsync<IRemoteSolutionEventsAggregationService>(
+                await client.TryInvokeAsync<IRemoteLegacySolutionEventsAggregationService>(
                     solution,
                     (service, solutionChecksum, cancellationToken) => service.OnProjectEventAsync(solutionChecksum, projectId, reasons, cancellationToken),
                     cancellationToken).ConfigureAwait(false);
@@ -218,7 +218,7 @@ namespace Microsoft.CodeAnalysis.LegacySolutionEvents
 
         private static async ValueTask EnqueueFullDocumentEventAsync(
             RemoteHostClient? client,
-            ISolutionEventsAggregationService aggregationService,
+            ILegacySolutionEventsAggregationService aggregationService,
             Solution solution,
             DocumentId documentId,
             InvocationReasons reasons,
@@ -230,7 +230,7 @@ namespace Microsoft.CodeAnalysis.LegacySolutionEvents
             }
             else
             {
-                await client.TryInvokeAsync<IRemoteSolutionEventsAggregationService>(
+                await client.TryInvokeAsync<IRemoteLegacySolutionEventsAggregationService>(
                     solution,
                     (service, solutionChecksum, cancellationToken) => service.OnDocumentEventAsync(solutionChecksum, documentId, reasons, cancellationToken),
                     cancellationToken).ConfigureAwait(false);
@@ -239,7 +239,7 @@ namespace Microsoft.CodeAnalysis.LegacySolutionEvents
 
         private static async ValueTask EnqueueSolutionChangedEventAsync(
             RemoteHostClient? client,
-            ISolutionEventsAggregationService aggregationService,
+            ILegacySolutionEventsAggregationService aggregationService,
             Solution oldSolution,
             Solution newSolution,
             CancellationToken cancellationToken)
@@ -250,7 +250,7 @@ namespace Microsoft.CodeAnalysis.LegacySolutionEvents
             }
             else
             {
-                await client.TryInvokeAsync<IRemoteSolutionEventsAggregationService>(
+                await client.TryInvokeAsync<IRemoteLegacySolutionEventsAggregationService>(
                     oldSolution, newSolution,
                     (service, oldSolutionChecksum, newSolutionChecksum, cancellationToken) =>
                         service.OnSolutionChangedAsync(oldSolutionChecksum, newSolutionChecksum, cancellationToken),
@@ -260,7 +260,7 @@ namespace Microsoft.CodeAnalysis.LegacySolutionEvents
 
         private static async ValueTask EnqueueProjectChangedEventAsync(
             RemoteHostClient? client,
-            ISolutionEventsAggregationService aggregationService,
+            ILegacySolutionEventsAggregationService aggregationService,
             Solution oldSolution,
             Solution newSolution,
             ProjectId projectId,
@@ -272,7 +272,7 @@ namespace Microsoft.CodeAnalysis.LegacySolutionEvents
             }
             else
             {
-                await client.TryInvokeAsync<IRemoteSolutionEventsAggregationService>(
+                await client.TryInvokeAsync<IRemoteLegacySolutionEventsAggregationService>(
                     oldSolution, newSolution,
                     (service, oldSolutionChecksum, newSolutionChecksum, cancellationToken) =>
                         service.OnProjectChangedAsync(oldSolutionChecksum, newSolutionChecksum, projectId, cancellationToken),
@@ -282,7 +282,7 @@ namespace Microsoft.CodeAnalysis.LegacySolutionEvents
 
         private static async ValueTask EnqueueDocumentChangedEventAsync(
             RemoteHostClient? client,
-            ISolutionEventsAggregationService aggregationService,
+            ILegacySolutionEventsAggregationService aggregationService,
             Solution oldSolution,
             Solution newSolution,
             DocumentId documentId,
@@ -294,7 +294,7 @@ namespace Microsoft.CodeAnalysis.LegacySolutionEvents
             }
             else
             {
-                await client.TryInvokeAsync<IRemoteSolutionEventsAggregationService>(
+                await client.TryInvokeAsync<IRemoteLegacySolutionEventsAggregationService>(
                     oldSolution, newSolution,
                     (service, oldSolutionChecksum, newSolutionChecksum, cancellationToken) =>
                         service.OnDocumentChangedAsync(oldSolutionChecksum, newSolutionChecksum, documentId, cancellationToken),

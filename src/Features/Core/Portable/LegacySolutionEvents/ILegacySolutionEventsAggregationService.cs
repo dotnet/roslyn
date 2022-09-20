@@ -14,7 +14,12 @@ using Microsoft.CodeAnalysis.SolutionCrawler;
 
 namespace Microsoft.CodeAnalysis.LegacySolutionEvents
 {
-    internal interface ISolutionEventsAggregationService : IWorkspaceService
+    /// <summary>
+    /// This is a legacy api intended only for existing SolutionCrawler partners to continue to function (albeit with
+    /// ownership of that crawling task now belonging to the partner team, not roslyn).  It should not be used for any
+    /// new services.
+    /// </summary>
+    internal interface ILegacySolutionEventsAggregationService : IWorkspaceService
     {
         ValueTask OnSolutionEventAsync(Solution solution, InvocationReasons reasons, CancellationToken cancellationToken);
         ValueTask OnProjectEventAsync(Solution solution, ProjectId projectId, InvocationReasons reasons, CancellationToken cancellationToken);
@@ -25,14 +30,14 @@ namespace Microsoft.CodeAnalysis.LegacySolutionEvents
         ValueTask OnDocumentChangedAsync(Solution oldSolution, Solution newSolution, DocumentId documentId, CancellationToken cancellationToken);
     }
 
-    [ExportWorkspaceService(typeof(ISolutionEventsAggregationService)), Shared]
-    internal class DefaultSolutionEventsAggregationService : ISolutionEventsAggregationService
+    [ExportWorkspaceService(typeof(ILegacySolutionEventsAggregationService)), Shared]
+    internal class DefaultLegacySolutionEventsAggregationService : ILegacySolutionEventsAggregationService
     {
         private readonly ImmutableArray<Lazy<ISolutionEventsService>> _eventsServices;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public DefaultSolutionEventsAggregationService(
+        public DefaultLegacySolutionEventsAggregationService(
             [ImportMany] IEnumerable<Lazy<ISolutionEventsService>> eventsServices)
         {
             _eventsServices = eventsServices.ToImmutableArray();

@@ -15,11 +15,11 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Remote
 {
-    internal sealed class RemoteSolutionEventsAggregationService : BrokeredServiceBase, IRemoteSolutionEventsAggregationService
+    internal sealed class RemoteSolutionEventsAggregationService : BrokeredServiceBase, IRemoteLegacySolutionEventsAggregationService
     {
-        internal sealed class Factory : FactoryBase<IRemoteSolutionEventsAggregationService>
+        internal sealed class Factory : FactoryBase<IRemoteLegacySolutionEventsAggregationService>
         {
-            protected override IRemoteSolutionEventsAggregationService CreateService(in ServiceConstructionArguments arguments)
+            protected override IRemoteLegacySolutionEventsAggregationService CreateService(in ServiceConstructionArguments arguments)
                 => new RemoteSolutionEventsAggregationService(arguments);
         }
 
@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.Remote
         {
             return RunServiceAsync(solutionChecksum, async solution =>
             {
-                var aggregationService = solution.Services.GetRequiredService<ISolutionEventsAggregationService>();
+                var aggregationService = solution.Services.GetRequiredService<ILegacySolutionEventsAggregationService>();
                 await aggregationService.OnSolutionEventAsync(solution, reasons, cancellationToken).ConfigureAwait(false);
             }, cancellationToken);
         }
@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.Remote
         {
             return RunServiceAsync(solutionChecksum, async solution =>
             {
-                var aggregationService = solution.Services.GetRequiredService<ISolutionEventsAggregationService>();
+                var aggregationService = solution.Services.GetRequiredService<ILegacySolutionEventsAggregationService>();
                 await aggregationService.OnProjectEventAsync(solution, projectId, reasons, cancellationToken).ConfigureAwait(false);
             }, cancellationToken);
         }
@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.Remote
         {
             return RunServiceAsync(solutionChecksum, async solution =>
             {
-                var aggregationService = solution.Services.GetRequiredService<ISolutionEventsAggregationService>();
+                var aggregationService = solution.Services.GetRequiredService<ILegacySolutionEventsAggregationService>();
                 await aggregationService.OnDocumentEventAsync(solution, documentId, reasons, cancellationToken).ConfigureAwait(false);
             }, cancellationToken);
         }
@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.Remote
             return RunServiceAsync(oldSolutionChecksum, newSolutionChecksum,
                 async (oldSolution, newSolution) =>
                 {
-                    var aggregationService = oldSolution.Services.GetRequiredService<ISolutionEventsAggregationService>();
+                    var aggregationService = oldSolution.Services.GetRequiredService<ILegacySolutionEventsAggregationService>();
                     await aggregationService.OnSolutionChangedAsync(oldSolution, newSolution, cancellationToken).ConfigureAwait(false);
                 }, cancellationToken);
         }
@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis.Remote
             return RunServiceAsync(oldSolutionChecksum, newSolutionChecksum,
                 async (oldSolution, newSolution) =>
                 {
-                    var aggregationService = oldSolution.Services.GetRequiredService<ISolutionEventsAggregationService>();
+                    var aggregationService = oldSolution.Services.GetRequiredService<ILegacySolutionEventsAggregationService>();
                     await aggregationService.OnProjectChangedAsync(oldSolution, newSolution, projectId, cancellationToken).ConfigureAwait(false);
                 }, cancellationToken);
         }
@@ -80,7 +80,7 @@ namespace Microsoft.CodeAnalysis.Remote
             return RunServiceAsync(oldSolutionChecksum, newSolutionChecksum,
                 async (oldSolution, newSolution) =>
                 {
-                    var aggregationService = oldSolution.Services.GetRequiredService<ISolutionEventsAggregationService>();
+                    var aggregationService = oldSolution.Services.GetRequiredService<ILegacySolutionEventsAggregationService>();
                     await aggregationService.OnDocumentChangedAsync(oldSolution, newSolution, documentId, cancellationToken).ConfigureAwait(false);
                 }, cancellationToken);
         }
