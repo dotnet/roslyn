@@ -8122,26 +8122,26 @@ public class MyClass
             CreateCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
                 // (25,9): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('myClass')
                 //         myClass* s2 = &s;    // CS0208
-                Diagnostic(ErrorCode.ERR_ManagedAddr, "myClass*").WithArguments("myClass"),
-                // (25,23): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('myClass')
+                Diagnostic(ErrorCode.ERR_ManagedAddr, "myClass*").WithArguments("myClass").WithLocation(25, 9),
+                // (25,23): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('myClass')
                 //         myClass* s2 = &s;    // CS0208
-                Diagnostic(ErrorCode.ERR_ManagedAddr, "&s").WithArguments("myClass"),
+                Diagnostic(ErrorCode.WRN_ManagedAddr, "&s").WithArguments("myClass").WithLocation(25, 23),
                 // (28,17): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('myProblemStruct')
                 //         int i = sizeof(myProblemStruct); //CS0208
-                Diagnostic(ErrorCode.ERR_ManagedAddr, "sizeof(myProblemStruct)").WithArguments("myProblemStruct"),
+                Diagnostic(ErrorCode.ERR_ManagedAddr, "sizeof(myProblemStruct)").WithArguments("myProblemStruct").WithLocation(28, 17),
 
                 // (9,12): warning CS0169: The field 'myProblemStruct.s' is never used
                 //     string s;
-                Diagnostic(ErrorCode.WRN_UnreferencedField, "s").WithArguments("myProblemStruct.s"),
+                Diagnostic(ErrorCode.WRN_UnreferencedField, "s").WithArguments("myProblemStruct.s").WithLocation(9, 12),
                 // (10,11): warning CS0169: The field 'myProblemStruct.f' is never used
                 //     float f;
-                Diagnostic(ErrorCode.WRN_UnreferencedField, "f").WithArguments("myProblemStruct.f"),
+                Diagnostic(ErrorCode.WRN_UnreferencedField, "f").WithArguments("myProblemStruct.f").WithLocation(10, 11),
                 // (15,9): warning CS0169: The field 'myGoodStruct.i' is never used
                 //     int i;
-                Diagnostic(ErrorCode.WRN_UnreferencedField, "i").WithArguments("myGoodStruct.i"),
+                Diagnostic(ErrorCode.WRN_UnreferencedField, "i").WithArguments("myGoodStruct.i").WithLocation(15, 9),
                 // (16,11): warning CS0169: The field 'myGoodStruct.f' is never used
                 //     float f;
-                Diagnostic(ErrorCode.WRN_UnreferencedField, "f").WithArguments("myGoodStruct.f"));
+                Diagnostic(ErrorCode.WRN_UnreferencedField, "f").WithArguments("myGoodStruct.f").WithLocation(16, 11));
         }
 
         [Fact]

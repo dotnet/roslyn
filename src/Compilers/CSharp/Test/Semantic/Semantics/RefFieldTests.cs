@@ -568,6 +568,842 @@ ref struct R
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "_v2").WithArguments("volatile").WithLocation(9, 31));
         }
 
+        [Fact]
+        public void UnsafeContext_PointerType_MethodParameter()
+        {
+            var source = @"
+public ref struct S
+{
+    public int F1;
+}
+public ref struct S2
+{
+    public ref int F1;
+}
+
+class C
+{
+    void M(
+        S* s, // 1
+        S2* s2, // 2, 3
+        C* c) // 4, 5
+    {
+    }
+
+    unsafe void M2(
+        S* s,
+        S2* s2, // 6
+        C* c) // 7
+    {
+    }
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.UnsafeReleaseDll, runtimeFeature: RuntimeFlag.ByRefFields);
+            comp.VerifyEmitDiagnostics(
+                // (14,9): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                //         S* s, // 1
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "S*").WithLocation(14, 9),
+                // (15,9): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                //         S2* s2, // 2, 3
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "S2*").WithLocation(15, 9),
+                // (15,13): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('S2')
+                //         S2* s2, // 2, 3
+                Diagnostic(ErrorCode.ERR_ManagedAddr, "s2").WithArguments("S2").WithLocation(15, 13),
+                // (16,9): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                //         C* c) // 4, 5
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "C*").WithLocation(16, 9),
+                // (16,12): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('C')
+                //         C* c) // 4, 5
+                Diagnostic(ErrorCode.ERR_ManagedAddr, "c").WithArguments("C").WithLocation(16, 12),
+                // (22,13): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('S2')
+                //         S2* s2, // 6
+                Diagnostic(ErrorCode.ERR_ManagedAddr, "s2").WithArguments("S2").WithLocation(22, 13),
+                // (23,12): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('C')
+                //         C* c) // 7
+                Diagnostic(ErrorCode.ERR_ManagedAddr, "c").WithArguments("C").WithLocation(23, 12)
+                );
+        }
+
+        [Fact]
+        public void UnsafeContext_PointerType_MethodReturnType()
+        {
+            var source = @"
+public ref struct S
+{
+    public int F1;
+}
+public ref struct S2
+{
+    public ref int F1;
+}
+
+unsafe class C
+{
+    S* M1() => throw null;
+    S2* M2() => throw null; // 1
+    C* M3() => throw null; // 2
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.UnsafeReleaseDll, runtimeFeature: RuntimeFlag.ByRefFields);
+            comp.VerifyEmitDiagnostics(
+                // (14,9): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('S2')
+                //     S2* M2() => throw null; // 1
+                Diagnostic(ErrorCode.ERR_ManagedAddr, "M2").WithArguments("S2").WithLocation(14, 9),
+                // (15,8): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('C')
+                //     C* M3() => throw null; // 2
+                Diagnostic(ErrorCode.ERR_ManagedAddr, "M3").WithArguments("C").WithLocation(15, 8)
+                );
+        }
+
+        [Fact]
+        public void UnsafeContext_PointerType_LocalDeclaration()
+        {
+            var source = @"
+public ref struct S
+{
+    public int F1;
+}
+public ref struct S2
+{
+    public ref int F1;
+}
+
+class C
+{
+    void M()
+    {
+        S* s = null; // 1
+    }
+
+    unsafe void M2()
+    {
+        S* s = null;
+        S2* s2 = null; // 2
+        C* c = null; // 3
+    }
+}
+";
+            // Note: declaring local of this type still possible with `var`
+            var comp = CreateCompilation(source, options: TestOptions.UnsafeReleaseDll, runtimeFeature: RuntimeFlag.ByRefFields);
+            comp.VerifyEmitDiagnostics(
+                // (15,9): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                //         S* s = null; // 1
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "S*").WithLocation(15, 9),
+                // (21,9): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('S2')
+                //         S2* s2 = null; // 2
+                Diagnostic(ErrorCode.ERR_ManagedAddr, "S2*").WithArguments("S2").WithLocation(21, 9),
+                // (22,9): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('C')
+                //         C* c = null; // 3
+                Diagnostic(ErrorCode.ERR_ManagedAddr, "C*").WithArguments("C").WithLocation(22, 9)
+                );
+        }
+
+        [Fact]
+        public void UnsafeContext_PointerType_FixedStatement()
+        {
+            var source = @"
+public ref struct S
+{
+    public int F1;
+}
+public ref struct S2
+{
+    public ref int F1;
+}
+
+class C
+{
+    ref S Prop { get => throw null; }
+    ref S2 Prop2 { get => throw null; }
+    ref C Prop3 { get => throw null; }
+
+    unsafe void M()
+    {
+        fixed (S* x1 = &Prop) { }
+
+        fixed (S2* x2 = &Prop2) { } // 1
+        fixed (void* y2 = &Prop2) { } // 2
+
+        fixed (C* x3 = &Prop3) { } // 3
+        fixed (void* y3 = &Prop3) { } // 4
+    }
+}
+";
+            // SPEC:
+            // A fixed_pointer_initializer can be one of the following:
+            // The token “&” followed by a variable_reference to a moveable variable of an unmanaged type T,
+            // provided the type T* is implicitly convertible to the pointer type given in the fixed statement.
+            var comp = CreateCompilation(source, options: TestOptions.UnsafeReleaseDll, runtimeFeature: RuntimeFlag.ByRefFields);
+            comp.VerifyEmitDiagnostics(
+                // (21,16): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('S2')
+                //         fixed (S2* x2 = &Prop2) { } // 1
+                Diagnostic(ErrorCode.ERR_ManagedAddr, "S2*").WithArguments("S2").WithLocation(21, 16),
+                // (21,25): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('S2')
+                //         fixed (S2* x2 = &Prop2) { } // 1
+                Diagnostic(ErrorCode.WRN_ManagedAddr, "&Prop2").WithArguments("S2").WithLocation(21, 25),
+                // (21,25): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('S2')
+                //         fixed (S2* x2 = &Prop2) { } // 1
+                Diagnostic(ErrorCode.ERR_ManagedAddr, "&Prop2").WithArguments("S2").WithLocation(21, 25),
+                // (22,27): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('S2')
+                //         fixed (void* y2 = &Prop2) { } // 2
+                Diagnostic(ErrorCode.WRN_ManagedAddr, "&Prop2").WithArguments("S2").WithLocation(22, 27),
+                // (22,27): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('S2')
+                //         fixed (void* y2 = &Prop2) { } // 2
+                Diagnostic(ErrorCode.ERR_ManagedAddr, "&Prop2").WithArguments("S2").WithLocation(22, 27),
+                // (24,16): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('C')
+                //         fixed (C* x3 = &Prop3) { } // 3
+                Diagnostic(ErrorCode.ERR_ManagedAddr, "C*").WithArguments("C").WithLocation(24, 16),
+                // (24,24): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('C')
+                //         fixed (C* x3 = &Prop3) { } // 3
+                Diagnostic(ErrorCode.WRN_ManagedAddr, "&Prop3").WithArguments("C").WithLocation(24, 24),
+                // (24,24): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('C')
+                //         fixed (C* x3 = &Prop3) { } // 3
+                Diagnostic(ErrorCode.ERR_ManagedAddr, "&Prop3").WithArguments("C").WithLocation(24, 24),
+                // (25,27): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('C')
+                //         fixed (void* y3 = &Prop3) { } // 4
+                Diagnostic(ErrorCode.WRN_ManagedAddr, "&Prop3").WithArguments("C").WithLocation(25, 27),
+                // (25,27): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('C')
+                //         fixed (void* y3 = &Prop3) { } // 4
+                Diagnostic(ErrorCode.ERR_ManagedAddr, "&Prop3").WithArguments("C").WithLocation(25, 27)
+                );
+        }
+
+        [Fact]
+        public void UnsafeContext_PointerType_Cast()
+        {
+            var source = @"
+public ref struct S
+{
+    public int F1;
+}
+public ref struct S2
+{
+    public ref int F1;
+}
+
+class C
+{
+    void M(void* p)
+    {
+        _ = (S*)p; // 1
+        _ = (S2*)p; // 2
+        _ = (C*)p; // 3
+    }
+
+    unsafe void M2(void* p)
+    {
+        _ = (S*)p;
+        _ = (S2*)p; // 4
+        _ = (C*)p; // 5
+    }
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.UnsafeReleaseDll, runtimeFeature: RuntimeFlag.ByRefFields);
+            comp.VerifyEmitDiagnostics(
+                // (13,12): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                //     void M(void* p)
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "void*").WithLocation(13, 12),
+                // (15,9): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                //         _ = (S*)p; // 1
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "_ = (S*)p").WithLocation(15, 9),
+                // (15,13): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                //         _ = (S*)p; // 1
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "(S*)p").WithLocation(15, 13),
+                // (15,14): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                //         _ = (S*)p; // 1
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "S*").WithLocation(15, 14),
+                // (15,17): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                //         _ = (S*)p; // 1
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "p").WithLocation(15, 17),
+                // (16,9): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                //         _ = (S2*)p; // 2
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "_ = (S2*)p").WithLocation(16, 9),
+                // (16,13): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                //         _ = (S2*)p; // 2
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "(S2*)p").WithLocation(16, 13),
+                // (16,14): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                //         _ = (S2*)p; // 2
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "S2*").WithLocation(16, 14),
+                // (16,14): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('S2')
+                //         _ = (S2*)p; // 2
+                Diagnostic(ErrorCode.WRN_ManagedAddr, "S2*").WithArguments("S2").WithLocation(16, 14),
+                // (16,18): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                //         _ = (S2*)p; // 2
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "p").WithLocation(16, 18),
+                // (17,9): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                //         _ = (C*)p; // 3
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "_ = (C*)p").WithLocation(17, 9),
+                // (17,13): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                //         _ = (C*)p; // 3
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "(C*)p").WithLocation(17, 13),
+                // (17,14): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                //         _ = (C*)p; // 3
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "C*").WithLocation(17, 14),
+                // (17,14): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('C')
+                //         _ = (C*)p; // 3
+                Diagnostic(ErrorCode.WRN_ManagedAddr, "C*").WithArguments("C").WithLocation(17, 14),
+                // (17,17): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                //         _ = (C*)p; // 3
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "p").WithLocation(17, 17),
+                // (23,14): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('S2')
+                //         _ = (S2*)p; // 4
+                Diagnostic(ErrorCode.WRN_ManagedAddr, "S2*").WithArguments("S2").WithLocation(23, 14),
+                // (24,14): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('C')
+                //         _ = (C*)p; // 5
+                Diagnostic(ErrorCode.WRN_ManagedAddr, "C*").WithArguments("C").WithLocation(24, 14)
+                );
+        }
+
+        [Fact]
+        public void UnsafeContext_SizeOf()
+        {
+            var source = @"
+public ref struct S
+{
+    public int F1;
+}
+public ref struct S2
+{
+    public ref int F1;
+}
+
+class C
+{
+    unsafe void M()
+    {
+        _ = sizeof(S*);
+        _ = sizeof(S2*); // 1
+        _ = sizeof(C*); // 2
+        _ = sizeof(S2); // 3
+        _ = sizeof(C); // 4
+    }
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.UnsafeReleaseDll, runtimeFeature: RuntimeFlag.ByRefFields);
+            comp.VerifyEmitDiagnostics(
+                // (16,20): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('S2')
+                //         _ = sizeof(S2*); // 1
+                Diagnostic(ErrorCode.ERR_ManagedAddr, "S2*").WithArguments("S2").WithLocation(16, 20),
+                // (17,20): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('C')
+                //         _ = sizeof(C*); // 2
+                Diagnostic(ErrorCode.ERR_ManagedAddr, "C*").WithArguments("C").WithLocation(17, 20),
+                // (18,13): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('S2')
+                //         _ = sizeof(S2); // 3
+                Diagnostic(ErrorCode.ERR_ManagedAddr, "sizeof(S2)").WithArguments("S2").WithLocation(18, 13),
+                // (19,13): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('C')
+                //         _ = sizeof(C); // 4
+                Diagnostic(ErrorCode.ERR_ManagedAddr, "sizeof(C)").WithArguments("C").WithLocation(19, 13)
+                );
+        }
+
+        [Fact]
+        public void UnsafeContext_TypeOf()
+        {
+            var source = @"
+public ref struct S
+{
+    public int F1;
+}
+public ref struct S2
+{
+    public ref int F1;
+}
+
+class C
+{
+    unsafe void M()
+    {
+        _ = typeof(S*);
+        _ = typeof(S2*); // 1
+        _ = typeof(C*); // 2
+    }
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.UnsafeReleaseDll, runtimeFeature: RuntimeFlag.ByRefFields);
+            comp.VerifyEmitDiagnostics(
+                // (16,20): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('S2')
+                //         _ = typeof(S2*); // 1
+                Diagnostic(ErrorCode.ERR_ManagedAddr, "S2*").WithArguments("S2").WithLocation(16, 20),
+                // (17,20): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('C')
+                //         _ = typeof(C*); // 2
+                Diagnostic(ErrorCode.ERR_ManagedAddr, "C*").WithArguments("C").WithLocation(17, 20)
+                );
+        }
+
+        [Fact]
+        public void UnsafeContext_AddressOf()
+        {
+            var source = @"
+ref struct S
+{
+    int F1;
+}
+ref struct S2
+{
+    ref int F1;
+}
+
+class C
+{
+    void M(S s)
+    {
+        var x = &s; // 1
+    }
+    void M2(S2 s)
+    {
+        var x = &s; // 2
+    }
+    void M3(ref S2 s)
+    {
+        var x = &s; // 3
+    }
+}
+
+unsafe class C2
+{
+    void M(S s)
+    {
+        var x = &s;
+    }
+    void M2(S2 s)
+    {
+        var x = &s; // 4
+    }
+    void M3(ref S2 s)
+    {
+        var x = &s; // 5
+    }
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.UnsafeReleaseDll, runtimeFeature: RuntimeFlag.ByRefFields);
+            comp.VerifyEmitDiagnostics(
+                // (15,17): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                //         var x = &s; // 1
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "&s").WithLocation(15, 17),
+                // (19,17): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('S2')
+                //         var x = &s; // 2
+                Diagnostic(ErrorCode.WRN_ManagedAddr, "&s").WithArguments("S2").WithLocation(19, 17),
+                // (19,17): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                //         var x = &s; // 2
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "&s").WithLocation(19, 17),
+                // (23,17): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('S2')
+                //         var x = &s; // 3
+                Diagnostic(ErrorCode.WRN_ManagedAddr, "&s").WithArguments("S2").WithLocation(23, 17),
+                // (23,17): error CS0212: You can only take the address of an unfixed expression inside of a fixed statement initializer
+                //         var x = &s; // 3
+                Diagnostic(ErrorCode.ERR_FixedNeeded, "&s").WithLocation(23, 17),
+                // (35,17): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('S2')
+                //         var x = &s; // 4
+                Diagnostic(ErrorCode.WRN_ManagedAddr, "&s").WithArguments("S2").WithLocation(35, 17),
+                // (39,17): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('S2')
+                //         var x = &s; // 5
+                Diagnostic(ErrorCode.WRN_ManagedAddr, "&s").WithArguments("S2").WithLocation(39, 17),
+                // (39,17): error CS0212: You can only take the address of an unfixed expression inside of a fixed statement initializer
+                //         var x = &s; // 5
+                Diagnostic(ErrorCode.ERR_FixedNeeded, "&s").WithLocation(39, 17)
+                );
+
+            source = @"
+ref struct S2
+{
+    ref int F1;
+}
+
+unsafe class C2
+{
+    void* M2(S2 s)
+    {
+        var x = &s; // 1
+        return x;
+    }
+}
+";
+            comp = CreateCompilation(source, options: TestOptions.UnsafeReleaseDll, runtimeFeature: RuntimeFlag.ByRefFields);
+            comp.VerifyEmitDiagnostics(
+                // (11,17): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('S2')
+                //         var x = &s; // 1
+                Diagnostic(ErrorCode.WRN_ManagedAddr, "&s").WithArguments("S2").WithLocation(11, 17)
+                );
+            var verifier = CompileAndVerify(comp, verify: Verification.Skipped);
+            verifier.VerifyIL("C2.M2", @"
+{
+  // Code size        4 (0x4)
+  .maxstack  1
+  IL_0000:  ldarga.s   V_1
+  IL_0002:  conv.u
+  IL_0003:  ret
+}
+");
+        }
+
+        [Fact]
+        public void UnsafeContext_AddressOf_CastToIntPtrPointer()
+        {
+            var source = @"
+using System;
+
+ref struct S2
+{
+    ref int F1;
+}
+
+unsafe class C2
+{
+    IntPtr* M2(S2 s)
+    {
+        return (IntPtr*)&s; // 1
+    }
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.UnsafeReleaseDll, runtimeFeature: RuntimeFlag.ByRefFields);
+            comp.VerifyEmitDiagnostics(
+                // (13,25): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('S2')
+                //         return (IntPtr*)&s; // 1
+                Diagnostic(ErrorCode.WRN_ManagedAddr, "&s").WithArguments("S2").WithLocation(13, 25)
+                );
+            var verifier = CompileAndVerify(comp, verify: Verification.Skipped);
+            verifier.VerifyIL("C2.M2", @"
+{
+  // Code size        4 (0x4)
+  .maxstack  1
+  IL_0000:  ldarga.s   V_1
+  IL_0002:  conv.u
+  IL_0003:  ret
+}
+");
+        }
+
+        [Fact]
+        public void UnsafeContext_Assignment()
+        {
+            var source = @"
+using System;
+
+public ref struct S2
+{
+    public ref int F1;
+
+    unsafe static void Assign(IntPtr* p, ref S2 r)
+    {
+        *(S2*)p = r;
+    }
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.UnsafeReleaseDll, runtimeFeature: RuntimeFlag.ByRefFields);
+            comp.VerifyEmitDiagnostics(
+                // (10,11): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('S2')
+                //         *(S2*)p = r;
+                Diagnostic(ErrorCode.WRN_ManagedAddr, "S2*").WithArguments("S2").WithLocation(10, 11)
+                );
+            var verifier = CompileAndVerify(comp, verify: Verification.Skipped);
+            verifier.VerifyIL("S2.Assign", @"
+{
+  // Code size       13 (0xd)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldarg.1
+  IL_0002:  ldobj      ""S2""
+  IL_0007:  stobj      ""S2""
+  IL_000c:  ret
+}
+");
+        }
+
+        [Fact]
+        public void UnsafeContext_PointerMemberAccess()
+        {
+            var source = @"
+public ref struct S
+{
+    public int F1;
+}
+public ref struct S2
+{
+    public ref int F1;
+}
+
+unsafe class C
+{
+    void M(S s)
+    {
+        _ = (&s)->F1; // 1
+    }
+    int M2(S2 s)
+    {
+        return (&s)->F1; // 2
+    }
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.UnsafeReleaseDll, runtimeFeature: RuntimeFlag.ByRefFields);
+            comp.VerifyEmitDiagnostics(
+                // (19,17): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('S2')
+                //         return (&s)->F1; // 2
+                Diagnostic(ErrorCode.WRN_ManagedAddr, "&s").WithArguments("S2").WithLocation(19, 17)
+                );
+            var verifier = CompileAndVerify(comp, verify: Verification.Skipped);
+            verifier.VerifyIL("C.M2", @"
+{
+  // Code size       10 (0xa)
+  .maxstack  1
+  IL_0000:  ldarga.s   V_1
+  IL_0002:  conv.u
+  IL_0003:  ldfld      ""ref int S2.F1""
+  IL_0008:  ldind.i4
+  IL_0009:  ret
+}
+");
+        }
+
+        [Fact]
+        public void UnsafeContext_PointerElementAccess()
+        {
+            var source = @"
+public ref struct S
+{
+    public int F1;
+}
+public ref struct S2
+{
+    public ref int F1;
+}
+
+unsafe class C
+{
+    S M(S s)
+    {
+        return (&s)[0];
+    }
+    S2 M2(S2 s)
+    {
+        return (&s)[0]; // 1
+    }
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.UnsafeReleaseDll, runtimeFeature: RuntimeFlag.ByRefFields);
+            comp.VerifyEmitDiagnostics(
+                // (19,17): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('S2')
+                //         return (&s)[0]; // 1
+                Diagnostic(ErrorCode.WRN_ManagedAddr, "&s").WithArguments("S2").WithLocation(19, 17)
+                );
+            var verifier = CompileAndVerify(comp, verify: Verification.Skipped);
+            verifier.VerifyIL("C.M2", @"
+{
+  // Code size        9 (0x9)
+  .maxstack  1
+  IL_0000:  ldarga.s   V_1
+  IL_0002:  conv.u
+  IL_0003:  ldobj      ""S2""
+  IL_0008:  ret
+}
+");
+        }
+
+        [Fact]
+        public void UnsafeContext_Stackalloc()
+        {
+            var source = @"
+public ref struct S
+{
+    public int F1;
+}
+public ref struct S2
+{
+    public ref int F1;
+}
+
+class C
+{
+    unsafe void M()
+    {
+        var x1 = stackalloc S[0];
+        var x2 = stackalloc S2[0]; // 1
+        var x3 = stackalloc C[0]; // 2
+
+        S* y1 = stackalloc S[0];
+        S2* y2 = stackalloc S2[0]; // 3
+        C* y3 = stackalloc C[0]; // 4
+    }
+}
+";
+
+            var spanReference = CreateCompilation(SpanSource, options: TestOptions.UnsafeReleaseDll);
+            var comp = CreateCompilation(source, references: new[] { spanReference.EmitToImageReference() }, options: TestOptions.UnsafeReleaseDll, runtimeFeature: RuntimeFlag.ByRefFields);
+            comp.VerifyEmitDiagnostics(
+                // (16,29): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('S2')
+                //         var x2 = stackalloc S2[0]; // 1
+                Diagnostic(ErrorCode.ERR_ManagedAddr, "S2").WithArguments("S2").WithLocation(16, 29),
+                // (17,29): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('C')
+                //         var x3 = stackalloc C[0]; // 2
+                Diagnostic(ErrorCode.ERR_ManagedAddr, "C").WithArguments("C").WithLocation(17, 29),
+                // (20,9): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('S2')
+                //         S2* y2 = stackalloc S2[0]; // 3
+                Diagnostic(ErrorCode.ERR_ManagedAddr, "S2*").WithArguments("S2").WithLocation(20, 9),
+                // (20,29): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('S2')
+                //         S2* y2 = stackalloc S2[0]; // 3
+                Diagnostic(ErrorCode.ERR_ManagedAddr, "S2").WithArguments("S2").WithLocation(20, 29),
+                // (21,9): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('C')
+                //         C* y3 = stackalloc C[0]; // 4
+                Diagnostic(ErrorCode.ERR_ManagedAddr, "C*").WithArguments("C").WithLocation(21, 9),
+                // (21,28): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('C')
+                //         C* y3 = stackalloc C[0]; // 4
+                Diagnostic(ErrorCode.ERR_ManagedAddr, "C").WithArguments("C").WithLocation(21, 28)
+                );
+        }
+
+        [Fact]
+        public void UnsafeContext_Stackalloc_ImplicitType()
+        {
+            var source = @"
+public ref struct S
+{
+    public int F1;
+}
+public ref struct S2
+{
+    public ref int F1;
+}
+
+class C
+{
+    unsafe void M()
+    {
+        var x1 = stackalloc[] { new S() };
+        var x2 = stackalloc[] { new S2() }; // 1
+        var x3 = stackalloc[] { new C() }; // 2
+
+        S* y1 = stackalloc[] { new S() };
+        S2* y2 = stackalloc[] { new S2() }; // 3
+        C* y3 = stackalloc[] { new C() }; // 4
+    }
+}
+";
+
+            var spanReference = CreateCompilation(SpanSource, options: TestOptions.UnsafeReleaseDll);
+            var comp = CreateCompilation(source, references: new[] { spanReference.EmitToImageReference() }, options: TestOptions.UnsafeReleaseDll, runtimeFeature: RuntimeFlag.ByRefFields);
+            comp.VerifyEmitDiagnostics(
+                // (16,18): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('S2')
+                //         var x2 = stackalloc[] { new S2() }; // 1
+                Diagnostic(ErrorCode.ERR_ManagedAddr, "stackalloc[] { new S2() }").WithArguments("S2").WithLocation(16, 18),
+                // (17,18): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('C')
+                //         var x3 = stackalloc[] { new C() }; // 2
+                Diagnostic(ErrorCode.ERR_ManagedAddr, "stackalloc[] { new C() }").WithArguments("C").WithLocation(17, 18),
+                // (20,9): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('S2')
+                //         S2* y2 = stackalloc[] { new S2() }; // 3
+                Diagnostic(ErrorCode.ERR_ManagedAddr, "S2*").WithArguments("S2").WithLocation(20, 9),
+                // (20,18): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('S2')
+                //         S2* y2 = stackalloc[] { new S2() }; // 3
+                Diagnostic(ErrorCode.ERR_ManagedAddr, "stackalloc[] { new S2() }").WithArguments("S2").WithLocation(20, 18),
+                // (21,9): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('C')
+                //         C* y3 = stackalloc[] { new C() }; // 4
+                Diagnostic(ErrorCode.ERR_ManagedAddr, "C*").WithArguments("C").WithLocation(21, 9),
+                // (21,17): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('C')
+                //         C* y3 = stackalloc[] { new C() }; // 4
+                Diagnostic(ErrorCode.ERR_ManagedAddr, "stackalloc[] { new C() }").WithArguments("C").WithLocation(21, 17)
+                );
+        }
+
+        [Fact]
+        public void UnsafeContext_Stackalloc_PointerElementType()
+        {
+            var source = @"
+public ref struct S
+{
+    public int F1;
+}
+public ref struct S2
+{
+    public ref int F1;
+}
+
+class C
+{
+    unsafe void M()
+    {
+        var x1 = stackalloc S*[0];
+        var x2 = stackalloc S2*[0]; // 1
+        var x3 = stackalloc C*[0]; // 2
+
+        S** y1 = stackalloc S*[0];
+        S2** y2 = stackalloc S2*[0]; // 3
+        C** y3 = stackalloc C*[0]; // 4
+    }
+}
+";
+
+            var spanReference = CreateCompilation(SpanSource, options: TestOptions.UnsafeReleaseDll);
+            var comp = CreateCompilation(source, references: new[] { spanReference.EmitToImageReference() }, options: TestOptions.UnsafeReleaseDll, runtimeFeature: RuntimeFlag.ByRefFields);
+            comp.VerifyEmitDiagnostics(
+                // (16,29): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('S2')
+                //         var x2 = stackalloc S2*[0]; // 1
+                Diagnostic(ErrorCode.ERR_ManagedAddr, "S2*").WithArguments("S2").WithLocation(16, 29),
+                // (17,29): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('C')
+                //         var x3 = stackalloc C*[0]; // 2
+                Diagnostic(ErrorCode.ERR_ManagedAddr, "C*").WithArguments("C").WithLocation(17, 29),
+                // (20,9): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('S2')
+                //         S2** y2 = stackalloc S2*[0]; // 3
+                Diagnostic(ErrorCode.ERR_ManagedAddr, "S2*").WithArguments("S2").WithLocation(20, 9),
+                // (20,30): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('S2')
+                //         S2** y2 = stackalloc S2*[0]; // 3
+                Diagnostic(ErrorCode.ERR_ManagedAddr, "S2*").WithArguments("S2").WithLocation(20, 30),
+                // (21,9): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('C')
+                //         C** y3 = stackalloc C*[0]; // 4
+                Diagnostic(ErrorCode.ERR_ManagedAddr, "C*").WithArguments("C").WithLocation(21, 9),
+                // (21,29): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('C')
+                //         C** y3 = stackalloc C*[0]; // 4
+                Diagnostic(ErrorCode.ERR_ManagedAddr, "C*").WithArguments("C").WithLocation(21, 29)
+                );
+        }
+
+        [Fact]
+        public void UnsafeContext_Stackalloc_PointerElementType_ImplicitType()
+        {
+            var source = @"
+public ref struct S
+{
+    public int F1;
+}
+public ref struct S2
+{
+    public ref int F1;
+}
+
+class C
+{
+    unsafe void M()
+    {
+        var s1 = (S*)null;
+        var s2 = (S2*)null; // 1
+        var s3 = (C*)null; // 2
+
+        var x1 = stackalloc[] { s1 };
+        var x2 = stackalloc[] { s2 };
+        var x3 = stackalloc[] { s3 };
+
+        S** y1 = stackalloc[] { s1 };
+        S2** y2 = stackalloc[] { s2 }; // 3
+        C** y3 = stackalloc[] { s3 }; // 4
+    }
+}
+";
+
+            var spanReference = CreateCompilation(SpanSource, options: TestOptions.UnsafeReleaseDll);
+            var comp = CreateCompilation(source, references: new[] { spanReference.EmitToImageReference() }, options: TestOptions.UnsafeReleaseDll, runtimeFeature: RuntimeFlag.ByRefFields);
+            comp.VerifyEmitDiagnostics(
+                // (16,19): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('S2')
+                //         var s2 = (S2*)null; // 1
+                Diagnostic(ErrorCode.WRN_ManagedAddr, "S2*").WithArguments("S2").WithLocation(16, 19),
+                // (17,19): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('C')
+                //         var s3 = (C*)null; // 2
+                Diagnostic(ErrorCode.WRN_ManagedAddr, "C*").WithArguments("C").WithLocation(17, 19),
+                // (24,9): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('S2')
+                //         S2** y2 = stackalloc[] { s2 }; // 3
+                Diagnostic(ErrorCode.ERR_ManagedAddr, "S2*").WithArguments("S2").WithLocation(24, 9),
+                // (25,9): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('C')
+                //         C** y3 = stackalloc[] { s3 }; // 4
+                Diagnostic(ErrorCode.ERR_ManagedAddr, "C*").WithArguments("C").WithLocation(25, 9)
+                );
+        }
+
         [Fact, WorkItem(63018, "https://github.com/dotnet/roslyn/issues/63018")]
         public void InitRefField_AutoDefault()
         {
@@ -7528,6 +8364,117 @@ class Program
                 // (7,20): error CS8352: Cannot use variable 's1' in this context because it may expose referenced variables outside of their declaration scope
                 //         return ref s1[1]; // 1
                 Diagnostic(ErrorCode.ERR_EscapeVariable, "s1").WithArguments("s1").WithLocation(7, 20));
+        }
+
+        [Fact, WorkItem(63104, "https://github.com/dotnet/roslyn/issues/63104")]
+        public void RefFieldsConsideredManaged()
+        {
+            var source = @"
+unsafe
+{
+    StructWithRefField* p = stackalloc StructWithRefField[10]; // 1, 2
+    C.M<StructWithRefField>(); // 3
+}
+
+public ref struct StructWithRefField
+{
+    public ref byte RefField;
+}
+
+class C
+{
+    public static void M<T>() where T : unmanaged { }
+}";
+            var comp = CreateCompilation(source, options: TestOptions.UnsafeDebugExe, runtimeFeature: RuntimeFlag.ByRefFields);
+            comp.VerifyDiagnostics(
+                // (4,5): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('StructWithRefField')
+                //     StructWithRefField* p = stackalloc StructWithRefField[10]; // 1, 2
+                Diagnostic(ErrorCode.ERR_ManagedAddr, "StructWithRefField*").WithArguments("StructWithRefField").WithLocation(4, 5),
+                // (4,40): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('StructWithRefField')
+                //     StructWithRefField* p = stackalloc StructWithRefField[10]; // 1, 2
+                Diagnostic(ErrorCode.ERR_ManagedAddr, "StructWithRefField").WithArguments("StructWithRefField").WithLocation(4, 40),
+                // (5,7): error CS0306: The type 'StructWithRefField' may not be used as a type argument
+                //     C.M<StructWithRefField>(); // 3
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "M<StructWithRefField>").WithArguments("StructWithRefField").WithLocation(5, 7)
+                );
+
+            Assert.True(comp.GetTypeByMetadataName("StructWithRefField").IsManagedTypeNoUseSiteDiagnostics);
+        }
+
+        [Fact, WorkItem(63104, "https://github.com/dotnet/roslyn/issues/63104")]
+        public void RefFieldsConsideredManaged_Generic()
+        {
+            var source = @"
+unsafe
+{
+    StructWithIndirectRefField* p = stackalloc StructWithIndirectRefField[10]; // 1, 2
+    C.M<StructWithRefField>(); // 3
+}
+
+ref struct StructWithIndirectRefField
+{
+    public StructWithRefField<int> Field;
+}
+ref struct StructWithRefField<T>
+{
+    public ref T RefField;
+}
+
+class C
+{
+    public static void M<T>() where T : unmanaged { }
+}";
+            var comp = CreateCompilation(source, options: TestOptions.UnsafeDebugExe, runtimeFeature: RuntimeFlag.ByRefFields);
+            comp.VerifyDiagnostics(
+                // (4,5): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('StructWithIndirectRefField')
+                //     StructWithIndirectRefField* p = stackalloc StructWithIndirectRefField[10]; // 1, 2
+                Diagnostic(ErrorCode.ERR_ManagedAddr, "StructWithIndirectRefField*").WithArguments("StructWithIndirectRefField").WithLocation(4, 5),
+                // (4,48): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('StructWithIndirectRefField')
+                //     StructWithIndirectRefField* p = stackalloc StructWithIndirectRefField[10]; // 1, 2
+                Diagnostic(ErrorCode.ERR_ManagedAddr, "StructWithIndirectRefField").WithArguments("StructWithIndirectRefField").WithLocation(4, 48),
+                // (5,9): error CS0305: Using the generic type 'StructWithRefField<T>' requires 1 type arguments
+                //     C.M<StructWithRefField>(); // 3
+                Diagnostic(ErrorCode.ERR_BadArity, "StructWithRefField").WithArguments("StructWithRefField<T>", "type", "1").WithLocation(5, 9),
+                // (10,36): warning CS0649: Field 'StructWithIndirectRefField.Field' is never assigned to, and will always have its default value 
+                //     public StructWithRefField<int> Field;
+                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "Field").WithArguments("StructWithIndirectRefField.Field", "").WithLocation(10, 36),
+                // (14,18): warning CS0649: Field 'StructWithRefField<T>.RefField' is never assigned to, and will always have its default value 
+                //     public ref T RefField;
+                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "RefField").WithArguments("StructWithRefField<T>.RefField", "").WithLocation(14, 18)
+                );
+
+            Assert.True(comp.GetTypeByMetadataName("StructWithIndirectRefField").IsManagedTypeNoUseSiteDiagnostics);
+        }
+
+        [Fact, WorkItem(63104, "https://github.com/dotnet/roslyn/issues/63104")]
+        public void RefFieldsConsideredManaged_Indirect()
+        {
+            var source = @"
+unsafe
+{
+    StructWithIndirectRefField* p = stackalloc StructWithIndirectRefField[10]; // 1, 2
+}
+
+public ref struct StructWithIndirectRefField
+{
+    public StructWithRefField Field;
+}
+
+public ref struct StructWithRefField
+{
+    public ref byte RefField;
+}";
+            var comp = CreateCompilation(source, options: TestOptions.UnsafeDebugExe, runtimeFeature: RuntimeFlag.ByRefFields);
+            comp.VerifyDiagnostics(
+                // (4,5): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('StructWithIndirectRefField')
+                //     StructWithIndirectRefField* p = stackalloc StructWithIndirectRefField[10]; // 1, 2
+                Diagnostic(ErrorCode.ERR_ManagedAddr, "StructWithIndirectRefField*").WithArguments("StructWithIndirectRefField").WithLocation(4, 5),
+                // (4,48): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('StructWithIndirectRefField')
+                //     StructWithIndirectRefField* p = stackalloc StructWithIndirectRefField[10]; // 1, 2
+                Diagnostic(ErrorCode.ERR_ManagedAddr, "StructWithIndirectRefField").WithArguments("StructWithIndirectRefField").WithLocation(4, 48)
+                );
+
+            Assert.True(comp.GetTypeByMetadataName("StructWithIndirectRefField").IsManagedTypeNoUseSiteDiagnostics);
         }
 
         // Breaking change in C#11: Cannot return an 'out' parameter by reference.
