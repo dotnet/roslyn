@@ -68,7 +68,7 @@ namespace Roslyn.VisualStudio.NewIntegrationTests.InProcess
         private async Task EnsureGlyphsAppearAsync(Func<CancellationToken, Task> makeChangeFunc, int expectedGlyphsNumberInMargin, CancellationToken cancellationToken)
         {
             var margin = await GetTextViewMarginAsync(cancellationToken);
-            var marginCanvas = (Canvas)((Grid)margin.VisualElement).Children[0];
+            var marginCanvas = (Canvas)margin.VisualElement;
             var taskCompletionSource = new TaskCompletionSource<bool>();
             using var _ = cancellationToken.Register(() => taskCompletionSource.TrySetCanceled());
 
@@ -116,11 +116,7 @@ namespace Roslyn.VisualStudio.NewIntegrationTests.InProcess
             var wpfTextViewLine = activeView.TextViewLines[lineNumber - 1];
             var midOfTheLine = wpfTextViewLine.TextTop + wpfTextViewLine.Height / 2;
             var margin = await GetTextViewMarginAsync(cancellationToken);
-
-            var grid = (Grid)margin.VisualElement;
-            // There will be only one Canvas element.
-            Assert.True(grid.Children.Count == 1);
-            var containingCanvas = (Canvas)((Grid)margin.VisualElement).Children[0];
+            var containingCanvas = (Canvas)margin.VisualElement;
 
             var glyphsOnLine = new List<InheritanceMarginGlyph>();
             foreach (var glyph in containingCanvas.Children)
