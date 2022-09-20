@@ -130,14 +130,11 @@ namespace Microsoft.CodeAnalysis.LegacySolutionEvents
             {
                 Contract.ThrowIfNull(ev.WorkspaceChangeArgs);
                 var args = ev.WorkspaceChangeArgs;
-                var oldSolution = args.OldSolution;
-                var newSolution = args.NewSolution;
 
                 await client.TryInvokeAsync<IRemoteLegacySolutionEventsAggregationService>(
-                    oldSolution, newSolution,
+                    args.OldSolution, args.NewSolution,
                     (service, oldSolutionChecksum, newSolutionChecksum, cancellationToken) =>
-                        service.OnWorkspaceChangedEventAsync(new SerializableWorkspaceChangeEventArgs(
-                            args.Kind, oldSolutionChecksum, newSolutionChecksum, args.ProjectId, args.DocumentId), cancellationToken),
+                        service.OnWorkspaceChangedEventAsync(oldSolutionChecksum, newSolutionChecksum, args.Kind, args.ProjectId, args.DocumentId, cancellationToken),
                     cancellationToken).ConfigureAwait(false);
             }
         }

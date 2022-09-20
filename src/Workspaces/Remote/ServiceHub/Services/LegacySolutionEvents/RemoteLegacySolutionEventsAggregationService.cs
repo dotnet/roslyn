@@ -5,7 +5,7 @@
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.LegacySolutionEvents;
-using Microsoft.CodeAnalysis.SolutionCrawler;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.Remote
 {
@@ -22,60 +22,40 @@ namespace Microsoft.CodeAnalysis.Remote
         {
         }
 
-        public ValueTask OnSolutionEventAsync(Checksum solutionChecksum, InvocationReasons reasons, CancellationToken cancellationToken)
+        public ValueTask OnTextDocumentOpenedAsync(Checksum solutionChecksum, DocumentId documentId, CancellationToken cancellationToken)
         {
             return RunServiceAsync(solutionChecksum, async solution =>
             {
                 var aggregationService = solution.Services.GetRequiredService<ILegacySolutionEventsAggregationService>();
-                await aggregationService.OnSolutionEventAsync(solution, reasons, cancellationToken).ConfigureAwait(false);
+                await aggregationService.OnTextDocumentOpenedAsync(
+                    new TextDocumentEventArgs(solution.GetRequiredDocument(documentId)), cancellationToken).ConfigureAwait(false);
             }, cancellationToken);
         }
 
-        public ValueTask OnProjectEventAsync(Checksum solutionChecksum, ProjectId projectId, InvocationReasons reasons, CancellationToken cancellationToken)
+        public ValueTask OnTextDocumentClosedAsync(Checksum solutionChecksum, DocumentId documentId, CancellationToken cancellationToken)
         {
             return RunServiceAsync(solutionChecksum, async solution =>
             {
                 var aggregationService = solution.Services.GetRequiredService<ILegacySolutionEventsAggregationService>();
-                await aggregationService.OnProjectEventAsync(solution, projectId, reasons, cancellationToken).ConfigureAwait(false);
+                await aggregationService.OnTextDocumentClosedAsync(
+                    new TextDocumentEventArgs(solution.GetRequiredDocument(documentId)), cancellationToken).ConfigureAwait(false);
             }, cancellationToken);
         }
 
-        public ValueTask OnDocumentEventAsync(Checksum solutionChecksum, DocumentId documentId, InvocationReasons reasons, CancellationToken cancellationToken)
-        {
-            return RunServiceAsync(solutionChecksum, async solution =>
-            {
-                var aggregationService = solution.Services.GetRequiredService<ILegacySolutionEventsAggregationService>();
-                await aggregationService.OnDocumentEventAsync(solution, documentId, reasons, cancellationToken).ConfigureAwait(false);
-            }, cancellationToken);
-        }
-
-        public ValueTask OnSolutionChangedAsync(Checksum oldSolutionChecksum, Checksum newSolutionChecksum, CancellationToken cancellationToken)
+        public ValueTask OnWorkspaceChangedEventAsync(
+            Checksum oldSolutionChecksum,
+            Checksum newSolutionChecksum,
+            WorkspaceChangeKind kind,
+            ProjectId? projectId,
+            DocumentId? documentId,
+            CancellationToken cancellationToken)
         {
             return RunServiceAsync(oldSolutionChecksum, newSolutionChecksum,
                 async (oldSolution, newSolution) =>
                 {
                     var aggregationService = oldSolution.Services.GetRequiredService<ILegacySolutionEventsAggregationService>();
-                    await aggregationService.OnSolutionChangedAsync(oldSolution, newSolution, cancellationToken).ConfigureAwait(false);
-                }, cancellationToken);
-        }
-
-        public ValueTask OnProjectChangedAsync(Checksum oldSolutionChecksum, Checksum newSolutionChecksum, ProjectId projectId, CancellationToken cancellationToken)
-        {
-            return RunServiceAsync(oldSolutionChecksum, newSolutionChecksum,
-                async (oldSolution, newSolution) =>
-                {
-                    var aggregationService = oldSolution.Services.GetRequiredService<ILegacySolutionEventsAggregationService>();
-                    await aggregationService.OnProjectChangedAsync(oldSolution, newSolution, projectId, cancellationToken).ConfigureAwait(false);
-                }, cancellationToken);
-        }
-
-        public ValueTask OnDocumentChangedAsync(Checksum oldSolutionChecksum, Checksum newSolutionChecksum, DocumentId documentId, CancellationToken cancellationToken)
-        {
-            return RunServiceAsync(oldSolutionChecksum, newSolutionChecksum,
-                async (oldSolution, newSolution) =>
-                {
-                    var aggregationService = oldSolution.Services.GetRequiredService<ILegacySolutionEventsAggregationService>();
-                    await aggregationService.OnDocumentChangedAsync(oldSolution, newSolution, documentId, cancellationToken).ConfigureAwait(false);
+                    await aggregationService.OnWorkspaceChangedEventAsync(
+                        new WorkspaceChangeEventArgs(kind, oldSolution, newSolution, projectId, documentId), cancellationToken).ConfigureAwait(false);
                 }, cancellationToken);
         }
     }
