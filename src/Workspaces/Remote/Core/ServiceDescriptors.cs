@@ -24,7 +24,7 @@ using Microsoft.CodeAnalysis.NavigateTo;
 using Microsoft.CodeAnalysis.NavigationBar;
 using Microsoft.CodeAnalysis.Rename;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
-using Microsoft.CodeAnalysis.SolutionEvents;
+using Microsoft.CodeAnalysis.LegacySolutionEvents;
 using Microsoft.CodeAnalysis.StackTraceExplorer;
 using Microsoft.CodeAnalysis.SymbolSearch;
 using Microsoft.CodeAnalysis.TaskList;
@@ -76,7 +76,7 @@ namespace Microsoft.CodeAnalysis.Remote
             (typeof(IRemoteUnusedReferenceAnalysisService), null),
             (typeof(IRemoteProcessTelemetryService), null),
             (typeof(IRemoteCompilationAvailableService), null),
-            (typeof(IRemoteSolutionEventsAggregationService), null),
+            (typeof(IRemoteLegacySolutionEventsAggregationService), null),
             (typeof(IRemoteStackTraceExplorerService), null),
         });
 
