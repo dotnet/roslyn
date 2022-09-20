@@ -2124,7 +2124,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         WRN_ScopedMismatchInParameterOfTarget = 9073,
         WRN_ScopedMismatchInParameterOfOverrideOrImplementation = 9074,
         ERR_RefReturnScopedParameter = 9075,
-        ERR_RefReturnScopedParameter2 = 9076
+        ERR_RefReturnScopedParameter2 = 9076,
+        ERR_RefReturnOnlyParameter = 9077,
+        ERR_RefReturnOnlyParameter2 = 9078,
+        ERR_RefAssignReturnOnly = 9079,
 
         #endregion
 
