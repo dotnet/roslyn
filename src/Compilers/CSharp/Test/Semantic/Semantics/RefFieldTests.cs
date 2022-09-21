@@ -1477,9 +1477,9 @@ class Program
     static ref readonly C F4(in C c) => ref c;
     static ref readonly S F5(in S s) => ref s;
     static ref readonly R F6(in R r) => ref r;
-    static ref C F7(out C c) { c = default; return ref c; } // 3
-    static ref S F8(out S s) { s = default; return ref s; } // 4
-    static ref R F9(out R r) { r = default; return ref r; } // 5
+    static ref C F7(out C c) { c = default; return ref c; } // 1
+    static ref S F8(out S s) { s = default; return ref s; } // 2
+    static ref R F9(out R r) { r = default; return ref r; } // 3
 }";
 
             var expectedLegacyDiagnostics = new DiagnosticDescription[]
@@ -1489,13 +1489,13 @@ class Program
             var expectedUpdatedDiagnostics = new DiagnosticDescription[]
             {
                 // (12,56): error CS9075: Cannot return a parameter by reference 'c' because it is scoped to the current method
-                //     static ref C F7(out C c) { c = default; return ref c; } // 3
+                //     static ref C F7(out C c) { c = default; return ref c; } // 1
                 Diagnostic(ErrorCode.ERR_RefReturnScopedParameter, "c").WithArguments("c").WithLocation(12, 56),
                 // (13,56): error CS9075: Cannot return a parameter by reference 's' because it is scoped to the current method
-                //     static ref S F8(out S s) { s = default; return ref s; } // 4
+                //     static ref S F8(out S s) { s = default; return ref s; } // 2
                 Diagnostic(ErrorCode.ERR_RefReturnScopedParameter, "s").WithArguments("s").WithLocation(13, 56),
                 // (14,56): error CS9075: Cannot return a parameter by reference 'r' because it is scoped to the current method
-                //     static ref R F9(out R r) { r = default; return ref r; } // 5
+                //     static ref R F9(out R r) { r = default; return ref r; } // 3
                 Diagnostic(ErrorCode.ERR_RefReturnScopedParameter, "r").WithArguments("r").WithLocation(14, 56)
             };
 
@@ -9392,21 +9392,21 @@ class Program
         D1 d1 = (R x, scoped R y) => x;
         D2 d2 = (R x, R y) => x; // 1
         D3 d3 = (ref R x, scoped ref R y) => ref x;
-        D5 d5 = (ref R x, ref R y) => ref x;
+        D5 d5 = (ref R x, ref R y) => ref x; // 2
     }
     static void Explicit()
     {
         var d1 = (D1)((R x, scoped R y) => x);
-        var d2 = (D2)((R x, R y) => x); // 2
+        var d2 = (D2)((R x, R y) => x); // 3
         var d3 = (D3)((ref R x, scoped ref R y) => ref x);
-        var d5 = (D5)((ref R x, ref R y) => ref x);
+        var d5 = (D5)((ref R x, ref R y) => ref x); // 4
     }
     static void New()
     {
         var d1 = new D1((R x, scoped R y) => x);
-        var d2 = new D2((R x, R y) => x); // 3
+        var d2 = new D2((R x, R y) => x); // 5
         var d3 = new D3((ref R x, scoped ref R y) => ref x);
-        var d5 = new D5((ref R x, ref R y) => ref x);
+        var d5 = new D5((ref R x, ref R y) => ref x); // 6
     }
 }";
             var comp = CreateCompilation(source);
@@ -9415,19 +9415,19 @@ class Program
                 //         D2 d2 = (R x, R y) => x; // 1
                 Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfTarget, "(R x, R y) => x").WithArguments("y", "D2").WithLocation(11, 17),
                 // (13,17): error CS8986: The 'scoped' modifier of parameter 'y' doesn't match target 'D5'.
-                //         D5 d5 = (ref R x, ref R y) => ref x;
+                //         D5 d5 = (ref R x, ref R y) => ref x; // 2
                 Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfTarget, "(ref R x, ref R y) => ref x").WithArguments("y", "D5").WithLocation(13, 17),
                 // (18,18): error CS8986: The 'scoped' modifier of parameter 'y' doesn't match target 'D2'.
-                //         var d2 = (D2)((R x, R y) => x); // 2
+                //         var d2 = (D2)((R x, R y) => x); // 3
                 Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfTarget, "(D2)((R x, R y) => x)").WithArguments("y", "D2").WithLocation(18, 18),
                 // (20,18): error CS8986: The 'scoped' modifier of parameter 'y' doesn't match target 'D5'.
-                //         var d5 = (D5)((ref R x, ref R y) => ref x);
+                //         var d5 = (D5)((ref R x, ref R y) => ref x); // 4
                 Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfTarget, "(D5)((ref R x, ref R y) => ref x)").WithArguments("y", "D5").WithLocation(20, 18),
                 // (25,25): error CS8986: The 'scoped' modifier of parameter 'y' doesn't match target 'D2'.
-                //         var d2 = new D2((R x, R y) => x); // 3
+                //         var d2 = new D2((R x, R y) => x); // 5
                 Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfTarget, "(R x, R y) => x").WithArguments("y", "D2").WithLocation(25, 25),
                 // (27,25): error CS8986: The 'scoped' modifier of parameter 'y' doesn't match target 'D5'.
-                //         var d5 = new D5((ref R x, ref R y) => ref x);
+                //         var d5 = new D5((ref R x, ref R y) => ref x); // 6
                 Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfTarget, "(ref R x, ref R y) => ref x").WithArguments("y", "D5").WithLocation(27, 25));
         }
 
@@ -9451,21 +9451,21 @@ class Program
         D1 d1 = M2;
         D2 d2 = M1; // 1
         D3 d3 = M5;
-        D5 d5 = M3;
+        D5 d5 = M3; // 2
     }
     static void Explicit()
     {
         var d1 = (D1)M2;
-        var d2 = (D2)M1; // 2
+        var d2 = (D2)M1; // 3
         var d3 = (D3)M5;
-        var d5 = (D5)M3;
+        var d5 = (D5)M3; // 4
     }
     static void New()
     {
         var d1 = new D1(M2);
-        var d2 = new D2(M1); // 3
+        var d2 = new D2(M1); // 5
         var d3 = new D3(M5);
-        var d5 = new D5(M3);
+        var d5 = new D5(M3); // 6
     }
 }";
             var comp = CreateCompilation(source);
@@ -9474,19 +9474,19 @@ class Program
                 //         D2 d2 = M1; // 1
                 Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfTarget, "M1").WithArguments("y", "D2").WithLocation(15, 17),
                 // (17,17): error CS8986: The 'scoped' modifier of parameter 'y' doesn't match target 'D5'.
-                //         D5 d5 = M3;
+                //         D5 d5 = M3; // 2
                 Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfTarget, "M3").WithArguments("y", "D5").WithLocation(17, 17),
                 // (22,18): error CS8986: The 'scoped' modifier of parameter 'y' doesn't match target 'D2'.
-                //         var d2 = (D2)M1; // 2
+                //         var d2 = (D2)M1; // 3
                 Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfTarget, "(D2)M1").WithArguments("y", "D2").WithLocation(22, 18),
                 // (24,18): error CS8986: The 'scoped' modifier of parameter 'y' doesn't match target 'D5'.
-                //         var d5 = (D5)M3;
+                //         var d5 = (D5)M3; // 4
                 Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfTarget, "(D5)M3").WithArguments("y", "D5").WithLocation(24, 18),
                 // (29,25): error CS8986: The 'scoped' modifier of parameter 'y' doesn't match target 'D2'.
-                //         var d2 = new D2(M1); // 3
+                //         var d2 = new D2(M1); // 5
                 Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfTarget, "M1").WithArguments("y", "D2").WithLocation(29, 25),
                 // (31,25): error CS8986: The 'scoped' modifier of parameter 'y' doesn't match target 'D5'.
-                //         var d5 = new D5(M3);
+                //         var d5 = new D5(M3); // 6
                 Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfTarget, "M3").WithArguments("y", "D5").WithLocation(31, 25));
         }
 
@@ -9592,21 +9592,21 @@ class Program
         D1 d1 = delegate(R x, scoped R y) { return x; };
         D2 d2 = delegate(R x, R y) { return x; }; // 1
         D3 d3 = delegate(ref R x, scoped ref R y) { return ref x; };
-        D5 d5 = delegate(ref R x, ref R y) { return ref x; };
+        D5 d5 = delegate(ref R x, ref R y) { return ref x; }; // 2
     }
     static void Explicit()
     {
         var d1 = (D1)(delegate(R x, scoped R y) { return x; });
-        var d2 = (D2)(delegate(R x, R y) { return x; }); // 2
+        var d2 = (D2)(delegate(R x, R y) { return x; }); // 3
         var d3 = (D3)(delegate(ref R x, scoped ref R y) { return ref x; });
-        var d5 = (D5)(delegate(ref R x, ref R y) { return ref x; });
+        var d5 = (D5)(delegate(ref R x, ref R y) { return ref x; }); // 4
     }
     static void New()
     {
         var d1 = new D1(delegate(R x, scoped R y) { return x; });
-        var d2 = new D2(delegate(R x, R y) { return x; }); // 3
+        var d2 = new D2(delegate(R x, R y) { return x; }); // 5
         var d3 = new D3(delegate(ref R x, scoped ref R y) { return ref x; });
-        var d5 = new D5(delegate(ref R x, ref R y) { return ref x; });
+        var d5 = new D5(delegate(ref R x, ref R y) { return ref x; }); // 6
     }
 }";
             var comp = CreateCompilation(source);
@@ -9615,19 +9615,19 @@ class Program
                 //         D2 d2 = delegate(R x, R y) { return x; }; // 1
                 Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfTarget, "delegate(R x, R y) { return x; }").WithArguments("y", "D2").WithLocation(11, 17),
                 // (13,17): error CS8986: The 'scoped' modifier of parameter 'y' doesn't match target 'D5'.
-                //         D5 d5 = delegate(ref R x, ref R y) { return ref x; };
+                //         D5 d5 = delegate(ref R x, ref R y) { return ref x; }; // 2
                 Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfTarget, "delegate(ref R x, ref R y) { return ref x; }").WithArguments("y", "D5").WithLocation(13, 17),
                 // (18,18): error CS8986: The 'scoped' modifier of parameter 'y' doesn't match target 'D2'.
-                //         var d2 = (D2)(delegate(R x, R y) { return x; }); // 2
+                //         var d2 = (D2)(delegate(R x, R y) { return x; }); // 3
                 Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfTarget, "(D2)(delegate(R x, R y) { return x; })").WithArguments("y", "D2").WithLocation(18, 18),
                 // (20,18): error CS8986: The 'scoped' modifier of parameter 'y' doesn't match target 'D5'.
-                //         var d5 = (D5)(delegate(ref R x, ref R y) { return ref x; });
+                //         var d5 = (D5)(delegate(ref R x, ref R y) { return ref x; }); // 4
                 Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfTarget, "(D5)(delegate(ref R x, ref R y) { return ref x; })").WithArguments("y", "D5").WithLocation(20, 18),
                 // (25,25): error CS8986: The 'scoped' modifier of parameter 'y' doesn't match target 'D2'.
-                //         var d2 = new D2(delegate(R x, R y) { return x; }); // 3
+                //         var d2 = new D2(delegate(R x, R y) { return x; }); // 5
                 Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfTarget, "delegate(R x, R y) { return x; }").WithArguments("y", "D2").WithLocation(25, 25),
                 // (27,25): error CS8986: The 'scoped' modifier of parameter 'y' doesn't match target 'D5'.
-                //         var d5 = new D5(delegate(ref R x, ref R y) { return ref x; });
+                //         var d5 = new D5(delegate(ref R x, ref R y) { return ref x; }); // 6
                 Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfTarget, "delegate(ref R x, ref R y) { return ref x; }").WithArguments("y", "D5").WithLocation(27, 25));
         }
 
@@ -10545,11 +10545,11 @@ class C2 : I<string>
     public R<string> F1(scoped R<string> r) => default;
     public R<string> F2(R<string> r) => default; // 1
     public R<string> F3(scoped ref R<string> r) => default;
-    public R<string> F4(ref R<string> r) => default;
+    public R<string> F4(ref R<string> r) => default; // 2
     public R<string> this[scoped R<string> r] { get { return default; } set { } }
-    public R<string> this[int x, R<string> y] => default; // 2
+    public R<string> this[int x, R<string> y] => default; // 3
     public R<string> this[object x, scoped in R<string> y] { get { return default; } set { } }
-    public R<string> this[in R<string> x, int y] => default;
+    public R<string> this[in R<string> x, int y] => default; // 4
 }";
             comp = CreateCompilation(sourceB1, references: new[] { refA });
             comp.VerifyEmitDiagnostics(
@@ -10557,13 +10557,13 @@ class C2 : I<string>
                 //     public R<string> F2(R<string> r) => default; // 1
                 Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfOverrideOrImplementation, "F2").WithArguments("r").WithLocation(15, 22),
                 // (17,22): error CS8987: The 'scoped' modifier of parameter 'r' doesn't match overridden or implemented member.
-                //     public R<string> F4(ref R<string> r) => default;
+                //     public R<string> F4(ref R<string> r) => default; // 2
                 Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfOverrideOrImplementation, "F4").WithArguments("r").WithLocation(17, 22),
                 // (19,50): error CS8987: The 'scoped' modifier of parameter 'y' doesn't match overridden or implemented member.
-                //     public R<string> this[int x, R<string> y] => default; // 2
+                //     public R<string> this[int x, R<string> y] => default; // 3
                 Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfOverrideOrImplementation, "default").WithArguments("y").WithLocation(19, 50),
                 // (21,53): error CS8987: The 'scoped' modifier of parameter 'x' doesn't match overridden or implemented member.
-                //     public R<string> this[in R<string> x, int y] => default;
+                //     public R<string> this[in R<string> x, int y] => default; // 4
                 Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfOverrideOrImplementation, "default").WithArguments("x").WithLocation(21, 53));
 
             var sourceB2 =
@@ -10583,11 +10583,11 @@ class C4 : I<string>
     R<string> I<string>.F1(scoped R<string> r) => default;
     R<string> I<string>.F2(R<string> r) => default; // 1
     R<string> I<string>.F3(scoped ref R<string> r) => default;
-    R<string> I<string>.F4(ref R<string> r) => default;
+    R<string> I<string>.F4(ref R<string> r) => default; // 2
     R<string> I<string>.this[scoped R<string> r] { get { return default; } set { } }
-    R<string> I<string>.this[int x, R<string> y] => default; // 2
+    R<string> I<string>.this[int x, R<string> y] => default; // 3
     R<string> I<string>.this[object x, scoped in R<string> y] { get { return default; } set { } }
-    R<string> I<string>.this[in R<string> x, int y] => default;
+    R<string> I<string>.this[in R<string> x, int y] => default; // 4
 }";
             comp = CreateCompilation(sourceB2, references: new[] { refA });
             comp.VerifyEmitDiagnostics(
@@ -10595,13 +10595,13 @@ class C4 : I<string>
                 //     R<string> I<string>.F2(R<string> r) => default; // 1
                 Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfOverrideOrImplementation, "F2").WithArguments("r").WithLocation(15, 25),
                 // (17,25): error CS8987: The 'scoped' modifier of parameter 'r' doesn't match overridden or implemented member.
-                //     R<string> I<string>.F4(ref R<string> r) => default;
+                //     R<string> I<string>.F4(ref R<string> r) => default; // 2
                 Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfOverrideOrImplementation, "F4").WithArguments("r").WithLocation(17, 25),
                 // (19,53): error CS8987: The 'scoped' modifier of parameter 'y' doesn't match overridden or implemented member.
-                //     R<string> I<string>.this[int x, R<string> y] => default; // 2
+                //     R<string> I<string>.this[int x, R<string> y] => default; // 3
                 Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfOverrideOrImplementation, "default").WithArguments("y").WithLocation(19, 53),
                 // (21,56): error CS8987: The 'scoped' modifier of parameter 'x' doesn't match overridden or implemented member.
-                //     R<string> I<string>.this[in R<string> x, int y] => default;
+                //     R<string> I<string>.this[in R<string> x, int y] => default; // 4
                 Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfOverrideOrImplementation, "default").WithArguments("x").WithLocation(21, 56));
         }
 
@@ -10951,8 +10951,8 @@ class Program
                 Diagnostic(ErrorCode.ERR_RefReturnScopedParameter, "x").WithArguments("x").WithLocation(4, 83));
         }
 
-        [Fact]
-        public void BestCommonType_04()
+        [Theory, InlineData(LanguageVersion.CSharp10), InlineData(LanguageVersion.CSharp11)]
+        public void BestCommonType_04(LanguageVersion languageVersion)
         {
             var source =
 @"ref struct R { }
@@ -10962,17 +10962,17 @@ class Program
     {
         var f1 = new[] { (R r) => { }, (scoped R r) => { } }[0]; // 1
         var f2 = new[] { (scoped R r) => { }, (scoped R r) => { } }[0];
-        var f3 = new[] { (ref R r) => { }, (scoped ref R r) => { } }[0];
+        var f3 = new[] { (ref R r) => { }, (scoped ref R r) => { } }[0]; // 2
         var f4 = new[] { (scoped ref R r) => { }, (scoped ref R r) => { } }[0];
     }
 }";
-            var comp = CreateCompilation(source);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
             comp.VerifyDiagnostics(
                 // (6,18): error CS0826: No best type found for implicitly-typed array
                 //         var f1 = new[] { (R r) => { }, (scoped R r) => { } }[0]; // 1
                 Diagnostic(ErrorCode.ERR_ImplicitlyTypedArrayNoBestType, "new[] { (R r) => { }, (scoped R r) => { } }").WithLocation(6, 18),
                 // (8,18): error CS0826: No best type found for implicitly-typed array
-                //         var f3 = new[] { (ref R r) => { }, (scoped ref R r) => { } }[0];
+                //         var f3 = new[] { (ref R r) => { }, (scoped ref R r) => { } }[0]; // 2
                 Diagnostic(ErrorCode.ERR_ImplicitlyTypedArrayNoBestType, "new[] { (ref R r) => { }, (scoped ref R r) => { } }").WithLocation(8, 18));
         }
 

@@ -1332,10 +1332,8 @@ class Program
             CreateCompilationWithMscorlibAndSpan(text, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion)).VerifyDiagnostics();
         }
 
-        [Theory]
-        [InlineData(LanguageVersion.CSharp10)]
-        [InlineData(LanguageVersion.CSharp11)]
-        public void RefLikeEscapeMixingCall(LanguageVersion languageVersion)
+        [Fact]
+        public void RefLikeEscapeMixingCall()
         {
             var text = @"
     using System;
@@ -1382,8 +1380,22 @@ class Program
         }
     }
 ";
+            var comp = CreateCompilationWithMscorlibAndSpan(text, parseOptions: TestOptions.Regular10);
+            comp.VerifyDiagnostics(
+                // (20,39): error CS8352: Cannot use variable 'rInner' in this context because it may expose referenced variables outside of their declaration scope
+                //             MayAssign(ref rOuter, ref rInner);
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "rInner").WithArguments("rInner").WithLocation(20, 39),
+                // (20,13): error CS8350: This combination of arguments to 'Program.MayAssign(ref Program.S1, ref Program.S1)' is disallowed because it may expose variables referenced by parameter 'arg2' outside of their declaration scope
+                //             MayAssign(ref rOuter, ref rInner);
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "MayAssign(ref rOuter, ref rInner)").WithArguments("Program.MayAssign(ref Program.S1, ref Program.S1)", "arg2").WithLocation(20, 13),
+                // (23,27): error CS8352: Cannot use variable 'inner' in this context because it may expose referenced variables outside of their declaration scope
+                //             MayAssign(ref inner, ref rOuter);
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "inner").WithArguments("inner").WithLocation(23, 27),
+                // (23,13): error CS8350: This combination of arguments to 'Program.MayAssign(ref Span<int>, ref Program.S1)' is disallowed because it may expose variables referenced by parameter 'arg1' outside of their declaration scope
+                //             MayAssign(ref inner, ref rOuter);
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "MayAssign(ref inner, ref rOuter)").WithArguments("Program.MayAssign(ref System.Span<int>, ref Program.S1)", "arg1").WithLocation(23, 13));
 
-            var comp = CreateCompilationWithMscorlibAndSpan(text, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
+            comp = CreateCompilationWithMscorlibAndSpan(text, parseOptions: TestOptions.Regular11);
             comp.VerifyDiagnostics(
                 // (20,39): error CS8352: Cannot use variable 'rInner' in this context because it may expose referenced variables outside of their declaration scope
                 //             MayAssign(ref rOuter, ref rInner);
@@ -1616,7 +1628,7 @@ class Program
         {
             get
             {
-                // error: ref-safe-to-escape of arg1 is return-noly
+                // error: ref-safe-to-escape of arg1 is return-only
                 this = MayWrap(arg1);
                 return 0;
             }
@@ -1683,10 +1695,8 @@ class Program
             );
         }
 
-        [Theory]
-        [InlineData(LanguageVersion.CSharp10)]
-        [InlineData(LanguageVersion.CSharp11)]
-        public void RefLikeEscapeMixingCtor(LanguageVersion languageVersion)
+        [Fact]
+        public void RefLikeEscapeMixingCtor()
         {
             var text = @"
     using System;
@@ -1739,7 +1749,23 @@ class Program
         }
     }
 ";
-            var comp = CreateCompilationWithMscorlibAndSpan(text, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
+            var comp = CreateCompilationWithMscorlibAndSpan(text, parseOptions: TestOptions.Regular10);
+            comp.VerifyDiagnostics(
+                // (26,43): error CS8352: Cannot use variable 'rInner' in this context because it may expose referenced variables outside of their declaration scope
+                //             MayAssignDel1(ref rOuter, ref rInner);
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "rInner").WithArguments("rInner").WithLocation(26, 43),
+                // (26,13): error CS8350: This combination of arguments to 'Program.D1.Invoke(ref Program.S1, ref Program.S1)' is disallowed because it may expose variables referenced by parameter 'arg2' outside of their declaration scope
+                //             MayAssignDel1(ref rOuter, ref rInner);
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "MayAssignDel1(ref rOuter, ref rInner)").WithArguments("Program.D1.Invoke(ref Program.S1, ref Program.S1)", "arg2").WithLocation(26, 13),
+                // (29,31): error CS8352: Cannot use variable 'inner' in this context because it may expose referenced variables outside of their declaration scope
+                //             MayAssignDel2(ref inner, ref rOuter);
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "inner").WithArguments("inner").WithLocation(29, 31),
+                // (29,13): error CS8350: This combination of arguments to 'Program.D2.Invoke(ref Span<int>, ref Program.S1)' is disallowed because it may expose variables referenced by parameter 'arg1' outside of their declaration scope
+                //             MayAssignDel2(ref inner, ref rOuter);
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "MayAssignDel2(ref inner, ref rOuter)").WithArguments("Program.D2.Invoke(ref System.Span<int>, ref Program.S1)", "arg1").WithLocation(29, 13)
+            );
+
+            comp = CreateCompilationWithMscorlibAndSpan(text, parseOptions: TestOptions.Regular11);
             comp.VerifyDiagnostics(
                 // (26,43): error CS8352: Cannot use variable 'rInner' in this context because it may expose referenced variables outside of their declaration scope
                 //             MayAssignDel1(ref rOuter, ref rInner);
@@ -2245,10 +2271,8 @@ class X : List<int>
             );
         }
 
-        [Theory]
-        [InlineData(LanguageVersion.CSharp10)]
-        [InlineData(LanguageVersion.CSharp11)]
-        public void RefLikeEscapeMixingCallOptionalIn(LanguageVersion languageVersion)
+        [Fact]
+        public void RefLikeEscapeMixingCallOptionalIn()
         {
             var text = @"
     using System;
@@ -2287,7 +2311,9 @@ class X : List<int>
         }
     }
 ";
-            CreateCompilationWithMscorlibAndSpan(text, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion)).VerifyDiagnostics(
+            CreateCompilationWithMscorlibAndSpan(text, parseOptions: TestOptions.Regular10).VerifyDiagnostics();
+
+            CreateCompilationWithMscorlibAndSpan(text, parseOptions: TestOptions.Regular11).VerifyDiagnostics(
                 // (25,20): error CS8347: Cannot use a result of 'Program.MayWrap(in Span<int>)' in this context because it may expose variables referenced by parameter 'arg' outside of their declaration scope
                 //             arg1 = MayWrap(arg2);
                 Diagnostic(ErrorCode.ERR_EscapeCall, "MayWrap(arg2)").WithArguments("Program.MayWrap(in System.Span<int>)", "arg").WithLocation(25, 20),
