@@ -14,7 +14,6 @@ namespace Xunit.Harness
     using System.Threading;
     using System.Threading.Tasks;
     using Microsoft.VisualStudio.Setup.Configuration;
-    using Microsoft.VisualStudio.Threading;
     using Microsoft.Win32;
     using DTE = EnvDTE.DTE;
     using File = System.IO.File;
@@ -394,14 +393,14 @@ namespace Xunit.Harness
             if (version.Major >= 12)
             {
                 var clearCacheProcess = Process.Start(CreateSilentStartInfo(vsExeFile, $"/clearcache {vsLaunchArgs}"));
-                await TakeSnapshotEveryTimeSpanUntilProcessExitAsync(clearCacheProcess, "clearcache").ConfigureAwait(false);
+                TakeSnapshotEveryTimeSpanUntilProcessExit(clearCacheProcess, "clearcache");
             }
 
             var updateConfigProcess = Process.Start(CreateSilentStartInfo(vsExeFile, $"/updateconfiguration {vsLaunchArgs}"));
-            await TakeSnapshotEveryTimeSpanUntilProcessExitAsync(updateConfigProcess, "updateconfiguration").ConfigureAwait(false);
+            TakeSnapshotEveryTimeSpanUntilProcessExit(updateConfigProcess, "updateconfiguration");
 
             var resetSettingsProcess = Process.Start(CreateSilentStartInfo(vsExeFile, $"/resetsettings General.vssettings /command \"File.Exit\" {vsLaunchArgs}"));
-            await TakeSnapshotEveryTimeSpanUntilProcessExitAsync(resetSettingsProcess, "resetsettings").ConfigureAwait(false);
+            TakeSnapshotEveryTimeSpanUntilProcessExit(resetSettingsProcess, "resetsettings");
 
             // Make sure we kill any leftover processes spawned by the host
             IntegrationHelper.KillProcess("DbgCLR");
@@ -448,7 +447,7 @@ namespace Xunit.Harness
             return path;
         }
 
-        private static async Task TakeSnapshotEveryTimeSpanUntilProcessExitAsync(Process process, string commandBeingExecuted)
+        private static void TakeSnapshotEveryTimeSpanUntilProcessExit(Process process, string commandBeingExecuted)
         {
             var dir = DataCollectionService.GetLogDirectory();
             if (!Directory.Exists(dir))
@@ -461,7 +460,7 @@ namespace Xunit.Harness
             try
             {
                 _ = Task.Run(() => TakeScreenShotEveryTimeIntervalAsync(dir, commandBeingExecuted, cancellatokenSource.Token));
-                await process.WaitForExitAsync().ConfigureAwait(false);
+                process.WaitForExit();
             }
             finally
             {
