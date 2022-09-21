@@ -78,6 +78,7 @@ namespace Microsoft.CodeAnalysis.ExtractInterface
                         return;
                     }
 
+                    await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync();
                     if (!document.Project.Solution.Workspace.TryApplyChanges(result.UpdatedSolution))
                     {
                         // TODO: handle failure
