@@ -1612,6 +1612,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_ImplicitRangeIndexerWithName = 8429,
         // available range
 
+        WRN_ManagedAddr = 8500,
+        // available range
+
         #region diagnostics introduced for recursive patterns
         ERR_WrongNumberOfSubpatterns = 8502,
         ERR_PropertyPatternNameMissing = 8503,
@@ -2124,7 +2127,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         WRN_ScopedMismatchInParameterOfTarget = 9073,
         WRN_ScopedMismatchInParameterOfOverrideOrImplementation = 9074,
         ERR_RefReturnScopedParameter = 9075,
-        ERR_RefReturnScopedParameter2 = 9076
+        ERR_RefReturnScopedParameter2 = 9076,
+        ERR_RefReturnOnlyParameter = 9077,
+        ERR_RefReturnOnlyParameter2 = 9078,
+        ERR_RefAssignReturnOnly = 9079,
 
         #endregion
 

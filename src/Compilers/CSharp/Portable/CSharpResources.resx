@@ -990,6 +990,12 @@
   <data name="ERR_ManagedAddr" xml:space="preserve">
     <value>Cannot take the address of, get the size of, or declare a pointer to a managed type ('{0}')</value>
   </data>
+  <data name="WRN_ManagedAddr" xml:space="preserve">
+    <value>This takes the address of, gets the size of, or declares a pointer to a managed type ('{0}')</value>
+  </data>
+  <data name="WRN_ManagedAddr_Title" xml:space="preserve">
+    <value>This takes the address of, gets the size of, or declares a pointer to a managed type</value>
+  </data>
   <data name="ERR_BadFixedInitType" xml:space="preserve">
     <value>The type of a local declared in a fixed statement must be a pointer type</value>
   </data>
@@ -5077,6 +5083,12 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_RefReturnScopedParameter2" xml:space="preserve">
     <value>Cannot return by reference a member of parameter '{0}' because it is scoped to the current method</value>
   </data>
+  <data name="ERR_RefReturnOnlyParameter" xml:space="preserve">
+    <value>Cannot return a parameter by reference '{0}' through a ref parameter; it can only be returned in a return statement</value>
+  </data>
+  <data name="ERR_RefReturnOnlyParameter2" xml:space="preserve">
+    <value>Cannot return by reference a member of parameter '{0}' through a ref parameter; it can only be returned in a return statement</value>
+  </data>
   <data name="ERR_RefReturnLocal" xml:space="preserve">
     <value>Cannot return local '{0}' by reference because it is not a ref local</value>
   </data>
@@ -5790,6 +5802,9 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="ERR_RefAssignNarrower" xml:space="preserve">
     <value>Cannot ref-assign '{1}' to '{0}' because '{1}' has a narrower escape scope than '{0}'.</value>
+  </data>
+  <data name="ERR_RefAssignReturnOnly" xml:space="preserve">
+    <value>Cannot ref-assign '{1}' to '{0}' because '{1}' can only escape the current method through a return statement.</value>
   </data>
   <data name="IDS_FeatureEnumGenericTypeConstraint" xml:space="preserve">
     <value>enum generic type constraints</value>
