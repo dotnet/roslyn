@@ -167,5 +167,14 @@ dotnet_diagnostic.SA1130.severity = silent
 # IDE1006: Naming Styles - StyleCop handles these for us
 dotnet_diagnostic.IDE1006.severity = none
 
+dotnet_diagnostic.DOC100.severity = silent
+dotnet_diagnostic.DOC104.severity = warning
+dotnet_diagnostic.DOC105.severity = warning
+dotnet_diagnostic.DOC106.severity = warning
+dotnet_diagnostic.DOC107.severity = warning
+dotnet_diagnostic.DOC108.severity = warning
+dotnet_diagnostic.DOC200.severity = warning
+dotnet_diagnostic.DOC202.severity = warning
+
 [*.sln]
 indent_style = tab
