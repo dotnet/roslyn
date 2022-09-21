@@ -8152,10 +8152,10 @@ ref struct S<T>
 
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (4,11): error CS9061: Target runtime doesn't support ref fields.
+                // (4,11): error CS9064: Target runtime doesn't support ref fields.
                 //     ref T F1;
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportRefFields, "F1").WithLocation(4, 11),
-                // (5,20): error CS9061: Target runtime doesn't support ref fields.
+                // (5,20): error CS9064: Target runtime doesn't support ref fields.
                 //     ref readonly T F2;
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportRefFields, "F2").WithLocation(5, 20)
                 );
@@ -8303,20 +8303,20 @@ delegate void D(scoped R r1, scoped ref R r2, scoped in R r3);
 ref struct R { }
 unsafe class Program
 {
-    delegate*<scoped R, in scoped R, scoped ref R, void> D;
+    delegate*<scoped R, scoped in R, scoped ref R, void> D;
 }
 ";
 
             var comp = CreateCompilation(source, options: TestOptions.UnsafeReleaseDll);
             comp.VerifyDiagnostics(
                 // (5,15): error CS8755: 'scoped' cannot be used as a modifier on a function pointer parameter.
-                //     delegate*<scoped R, in scoped R, scoped ref R, void> D;
+                //     delegate*<scoped R, scoped in R, scoped ref R, void> D;
                 Diagnostic(ErrorCode.ERR_BadFuncPointerParamModifier, "scoped").WithArguments("scoped").WithLocation(5, 15),
-                // (5,28): error CS8755: 'scoped' cannot be used as a modifier on a function pointer parameter.
-                //     delegate*<scoped R, in scoped R, scoped ref R, void> D;
-                Diagnostic(ErrorCode.ERR_BadFuncPointerParamModifier, "scoped").WithArguments("scoped").WithLocation(5, 28),
+                // (5,25): error CS8755: 'scoped' cannot be used as a modifier on a function pointer parameter.
+                //     delegate*<scoped R, scoped in R, scoped ref R, void> D;
+                Diagnostic(ErrorCode.ERR_BadFuncPointerParamModifier, "scoped").WithArguments("scoped").WithLocation(5, 25),
                 // (5,38): error CS8755: 'scoped' cannot be used as a modifier on a function pointer parameter.
-                //     delegate*<scoped R, in scoped R, scoped ref R, void> D;
+                //     delegate*<scoped R, scoped in R, scoped ref R, void> D;
                 Diagnostic(ErrorCode.ERR_BadFuncPointerParamModifier, "scoped").WithArguments("scoped").WithLocation(5, 38));
 
             var type = comp.GetMember<FieldSymbol>("Program.D").Type;

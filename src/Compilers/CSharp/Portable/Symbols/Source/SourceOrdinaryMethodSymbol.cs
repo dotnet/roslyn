@@ -711,7 +711,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     diagnostics.Add(ErrorCode.ERR_ScopedMismatchInParameterOfPartial, implementingMethod.Locations[0], new FormattedSymbol(implementingParameter, SymbolDisplayFormat.ShortFormat));
                 },
-                extraArgument: (object)null))
+                extraArgument: (object)null,
+                allowVariance: false,
+                invokedAsExtensionMethod: false))
             {
                 hasTypeDifferences = true;
             }

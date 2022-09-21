@@ -579,6 +579,8 @@ namespace System
     public class AttributeUsageAttribute : Attribute
     {
         public AttributeUsageAttribute(AttributeTargets targets) { }
+        public bool AllowMultiple { get; set; }
+        public bool Inherited { get; set; }
     }
 
     [AttributeUsage(AttributeTargets.All)]

@@ -103,7 +103,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                 document, range, GetShouldIncludeDiagnosticPredicate(document, priority),
                 includeSuppressedDiagnostics: false, priority, cancellationToken).ConfigureAwait(false);
 
-            var spanToDiagnostics = ConvertToMap(allDiagnostics);
+            var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+            var spanToDiagnostics = ConvertToMap(text, allDiagnostics);
 
             using var linkedTokenSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
             var linkedToken = linkedTokenSource.Token;
@@ -179,7 +180,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             if (diagnostics.IsEmpty)
                 yield break;
 
-            var spanToDiagnostics = ConvertToMap(diagnostics);
+            var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+            var spanToDiagnostics = ConvertToMap(text, diagnostics);
 
             // 'CodeActionRequestPriority.Lowest' is used when the client only wants suppression/configuration fixes.
             if (priority != CodeActionRequestPriority.Lowest)
@@ -209,7 +211,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         }
 
         private static SortedDictionary<TextSpan, List<DiagnosticData>> ConvertToMap(
-            ImmutableArray<DiagnosticData> diagnostics)
+            SourceText text, ImmutableArray<DiagnosticData> diagnostics)
         {
             // group diagnostics by their diagnostics span
             //
@@ -221,7 +223,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                 if (diagnostic.IsSuppressed)
                     continue;
 
-                spanToDiagnostics.MultiAdd(diagnostic.GetTextSpan(), diagnostic);
+                // TODO: Is it correct to use UnmappedFileSpan here?
+                spanToDiagnostics.MultiAdd(diagnostic.DataLocation.UnmappedFileSpan.GetClampedTextSpan(text), diagnostic);
             }
 
             // Order diagnostics by DiagnosticId so the fixes are in a deterministic order.

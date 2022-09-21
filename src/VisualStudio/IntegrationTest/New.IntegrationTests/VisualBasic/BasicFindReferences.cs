@@ -36,7 +36,7 @@ Class Program
 End Class
 ", HangMitigatingCancellationToken);
 
-            await TestServices.Input.SendAsync((VirtualKeyCode.F12, VirtualKeyCode.SHIFT));
+            await TestServices.Input.SendAsync((VirtualKeyCode.F12, VirtualKeyCode.SHIFT), HangMitigatingCancellationToken);
 
             var results = await TestServices.FindReferencesWindow.GetContentsAsync(HangMitigatingCancellationToken);
 
@@ -79,7 +79,7 @@ Class SomeOtherClass
 End Class
 ", HangMitigatingCancellationToken);
 
-            await TestServices.Input.SendAsync((VirtualKeyCode.F12, VirtualKeyCode.SHIFT));
+            await TestServices.Input.SendAsync((VirtualKeyCode.F12, VirtualKeyCode.SHIFT), HangMitigatingCancellationToken);
 
             var results = await TestServices.FindReferencesWindow.GetContentsAsync(HangMitigatingCancellationToken);
 

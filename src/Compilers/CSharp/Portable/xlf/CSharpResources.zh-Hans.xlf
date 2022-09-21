@@ -207,11 +207,6 @@
         <target state="translated">运算符“{0}”无法应用于操作数“{1}”</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_BadParameterModifiersOrder">
-        <source> The parameter modifier '{0}' cannot follow '{1}'</source>
-        <target state="new"> The parameter modifier '{0}' cannot follow '{1}'</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_BadPatternExpression">
         <source>Invalid operand for pattern match; value required, but found '{0}'.</source>
         <target state="translated">用于模式匹配的操作数无效；需要值，但找到的是“{0}”。</target>
@@ -264,7 +259,7 @@
       </trans-unit>
       <trans-unit id="ERR_CannotMatchOnINumberBase">
         <source>Cannot use a numeric constant or relational pattern on '{0}' because it inherits from or extends 'INumberBase&lt;T&gt;'. Consider using a type pattern to narrow to a specifc numeric type.</source>
-        <target state="new">Cannot use a numeric constant or relational pattern on '{0}' because it inherits from or extends 'INumberBase&lt;T&gt;'. Consider using a type pattern to narrow to a specifc numeric type.</target>
+        <target state="translated">无法对 "{0}" 使用数值常量或关系模式，因为它继承自或扩展了 "INumberBase&lt;T&gt;"。请考虑使用类型模式缩小到具体的数值类型。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CannotSpecifyManagedWithUnmanagedSpecifiers">
@@ -484,7 +479,7 @@
       </trans-unit>
       <trans-unit id="ERR_ExplicitScopedRef">
         <source>Do not use 'System.Runtime.CompilerServices.ScopedRefAttribute'. Use the 'scoped' keyword instead.</source>
-        <target state="new">Do not use 'System.Runtime.CompilerServices.ScopedRefAttribute'. Use the 'scoped' keyword instead.</target>
+        <target state="translated">请勿使用 "System.Runtime.CompilerServices.ScopedRefAttribute"。请改用 "scoped" 关键字。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExprCannotBeFixed">
@@ -569,7 +564,7 @@
       </trans-unit>
       <trans-unit id="ERR_FeatureNotAvailableInVersion11">
         <source>Feature '{0}' is not available in C# 11.0. Please use language version {1} or greater.</source>
-        <target state="new">Feature '{0}' is not available in C# 11.0. Please use language version {1} or greater.</target>
+        <target state="translated">功能“{0}”在 C# 11.0 中不可用。请使用 {1} 或更高的语言版本。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_FeatureNotAvailableInVersion8">
@@ -614,27 +609,27 @@
       </trans-unit>
       <trans-unit id="ERR_FileTypeBase">
         <source>File-local type '{0}' cannot be used as a base type of non-file-local type '{1}'.</source>
-        <target state="new">File-local type '{0}' cannot be used as a base type of non-file-local type '{1}'.</target>
+        <target state="translated">文件本地类型 "{0}" 不能用作非文件本地类型 "{1}" 的基类型。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_FileTypeDisallowedInSignature">
         <source>File-local type '{0}' cannot be used in a member signature in non-file-local type '{1}'.</source>
-        <target state="new">File-local type '{0}' cannot be used in a member signature in non-file-local type '{1}'.</target>
+        <target state="translated">文件本地类型 "{0}" 不能在非文件本地类型 "{1}" 的成员签名中使用。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_FileTypeNameDisallowed">
         <source>Types and aliases cannot be named 'file'.</source>
-        <target state="new">Types and aliases cannot be named 'file'.</target>
+        <target state="translated">类型和别名不能为 "file"。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_FileTypeNested">
         <source>File-local type '{0}' must be defined in a top level type; '{0}' is a nested type.</source>
-        <target state="new">File-local type '{0}' must be defined in a top level type; '{0}' is a nested type.</target>
+        <target state="translated">文件本地类型 "{0}" 必须在顶级类型中定义; "{0}" 是嵌套类型。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_FileTypeNoExplicitAccessibility">
         <source>File-local type '{0}' cannot use accessibility modifiers.</source>
-        <target state="new">File-local type '{0}' cannot use accessibility modifiers.</target>
+        <target state="translated">文件本地类型 "{0}" 无法使用辅助功能修饰符。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_FileTypeNonUniquePath">
@@ -689,7 +684,7 @@
       </trans-unit>
       <trans-unit id="ERR_GlobalUsingStaticFileType">
         <source>File-local type '{0}' cannot be used in a 'global using static' directive.</source>
-        <target state="new">File-local type '{0}' cannot be used in a 'global using static' directive.</target>
+        <target state="translated">文件本地类型 "{0}" 不能在 "global using static" 指令中使用。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_GoToBackwardJumpOverUsingVar">
@@ -947,11 +942,6 @@
         <target state="translated">意外的关键字 \"record\"。你的意思是 \"record struct\" 还是 \"record class\"?</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_MisplacedScoped">
-        <source>Unexpected contextual keyword 'scoped'. Did you mean 'scoped ref' or '@scoped'?</source>
-        <target state="new">Unexpected contextual keyword 'scoped'. Did you mean 'scoped ref' or '@scoped'?</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_MisplacedSlicePattern">
         <source>Slice patterns may only be used once and directly inside a list pattern.</source>
         <target state="translated">切片模式只能使用一次，并且直接在列表模式内使用。</target>
@@ -994,7 +984,7 @@
       </trans-unit>
       <trans-unit id="ERR_ModuleInitializerMethodMustBeStaticParameterlessVoid">
         <source>Module initializer method '{0}' must be static, and non-virtual, must have no parameters, and must return 'void'</source>
-        <target state="new">Module initializer method '{0}' must be static, and non-virtual, must have no parameters, and must return 'void'</target>
+        <target state="translated">模块初始化表达式方法 "{0}" 必须是静态且非虚拟的，不能有任何参数，必须返回 "void"</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MultipleAnalyzerConfigsInSameDir">
@@ -1297,6 +1287,11 @@
         <target state="translated">无法将“{1}”重新赋值为“{0}”，因为“{1}”具有比“{0}”更窄的转义范围。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_RefAssignReturnOnly">
+        <source>Cannot ref-assign '{1}' to '{0}' because '{1}' can only escape the current method through a return statement.</source>
+        <target state="new">Cannot ref-assign '{1}' to '{0}' because '{1}' can only escape the current method through a return statement.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_RefFieldCannotReferToRefStruct">
         <source>A ref field cannot refer to a ref struct.</source>
         <target state="translated">ref 字段不能引用 ref 结构。</target>
@@ -1304,12 +1299,32 @@
       </trans-unit>
       <trans-unit id="ERR_RefFieldInNonRefStruct">
         <source>A ref field can only be declared in a ref struct.</source>
-        <target state="new">A ref field can only be declared in a ref struct.</target>
+        <target state="translated">ref 字段只能在 ref 结构中声明。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RefLocalOrParamExpected">
         <source>The left-hand side of a ref assignment must be a ref variable.</source>
         <target state="translated">ref 赋值的左侧必须为 ref 变量。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_RefReturnOnlyParameter">
+        <source>Cannot return a parameter by reference '{0}' through a ref parameter; it can only be returned in a return statement</source>
+        <target state="new">Cannot return a parameter by reference '{0}' through a ref parameter; it can only be returned in a return statement</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_RefReturnOnlyParameter2">
+        <source>Cannot return by reference a member of parameter '{0}' through a ref parameter; it can only be returned in a return statement</source>
+        <target state="new">Cannot return by reference a member of parameter '{0}' through a ref parameter; it can only be returned in a return statement</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_RefReturnScopedParameter">
+        <source>Cannot return a parameter by reference '{0}' because it is scoped to the current method</source>
+        <target state="new">Cannot return a parameter by reference '{0}' because it is scoped to the current method</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_RefReturnScopedParameter2">
+        <source>Cannot return by reference a member of parameter '{0}' because it is scoped to the current method</source>
+        <target state="new">Cannot return by reference a member of parameter '{0}' because it is scoped to the current method</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RefReturningPropertiesCannotBeRequired">
@@ -1379,7 +1394,7 @@
       </trans-unit>
       <trans-unit id="ERR_RuntimeDoesNotSupportRefFields">
         <source>Target runtime doesn't support ref fields.</source>
-        <target state="new">Target runtime doesn't support ref fields.</target>
+        <target state="translated">目标运行时不支持 ref 字段。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces">
@@ -1412,11 +1427,6 @@
         <target state="translated">参数 "{0}" 的 "scoped" 修饰符与目标 "{1}" 不匹配。</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_ScopedNotBeforeType">
-        <source>Invalid use of contextual keyword 'scoped'. The keyword should immediately precede the type or 'ref' keyword.</source>
-        <target state="new">Invalid use of contextual keyword 'scoped'. The keyword should immediately precede the type or 'ref' keyword.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_ScopedRefAndRefStructOnly">
         <source>The 'scoped' modifier can be used for refs and ref struct values only.</source>
         <target state="translated">"scoped" 修饰符只能用于 refs 和 ref 结构值。</target>
@@ -1424,7 +1434,7 @@
       </trans-unit>
       <trans-unit id="ERR_ScopedTypeNameDisallowed">
         <source>Types and aliases cannot be named 'scoped'.</source>
-        <target state="new">Types and aliases cannot be named 'scoped'.</target>
+        <target state="translated">类型和别名不能为 "scoped"。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ScriptsAndSubmissionsCannotHaveRequiredMembers">
@@ -1609,12 +1619,12 @@
       </trans-unit>
       <trans-unit id="ERR_UnscopedRefAttributeUnsupportedTarget">
         <source>UnscopedRefAttribute can only be applied to 'out' parameters, 'ref' and 'in' parameters that refer to 'ref struct' types, and instance methods and properties on 'struct' types other than constructors and 'init' accessors.</source>
-        <target state="new">UnscopedRefAttribute can only be applied to 'out' parameters, 'ref' and 'in' parameters that refer to 'ref struct' types, and instance methods and properties on 'struct' types other than constructors and 'init' accessors.</target>
+        <target state="translated">UnscopedRefAttribute 只能应用于 "out" 参数、引用 "ref struct" 类型的 "ref" 和 "in" 参数，以及除构造函数和 "init" 访问器之外的 "struct" 类型的实例方法和属性。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnscopedScoped">
         <source>UnscopedRefAttribute cannot be applied to parameters that have a 'scoped' modifier.</source>
-        <target state="new">UnscopedRefAttribute cannot be applied to parameters that have a 'scoped' modifier.</target>
+        <target state="translated">UnscopedRefAttribute 不能应用于具有 "scoped" 修饰符的参数。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnsupportedCompilerFeature">
@@ -1669,7 +1679,7 @@
       </trans-unit>
       <trans-unit id="IDS_ArrayAccess">
         <source>array access</source>
-        <target state="new">array access</target>
+        <target state="translated">数组访问</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_AsyncMethodBuilderOverride">
@@ -1714,7 +1724,7 @@
       </trans-unit>
       <trans-unit id="IDS_FeatureFileTypes">
         <source>file types</source>
-        <target state="new">file types</target>
+        <target state="translated">文件类型</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureGenericAttributes">
@@ -1839,7 +1849,7 @@
       </trans-unit>
       <trans-unit id="IDS_PointerElementAccess">
         <source>pointer element access</source>
-        <target state="new">pointer element access</target>
+        <target state="translated">指针元素访问</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_AnalyzerReferencesFramework">
@@ -1982,6 +1992,16 @@
         <target state="translated">该类型名称仅包含小写 ascii 字符。此类名称可能会成为该语言的保留值。</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_ManagedAddr">
+        <source>This takes the address of, gets the size of, or declares a pointer to a managed type ('{0}')</source>
+        <target state="new">This takes the address of, gets the size of, or declares a pointer to a managed type ('{0}')</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_ManagedAddr_Title">
+        <source>This takes the address of, gets the size of, or declares a pointer to a managed type</source>
+        <target state="new">This takes the address of, gets the size of, or declares a pointer to a managed type</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_MethGrpToNonDel">
         <source>Converting method group '{0}' to non-delegate type '{1}'. Did you intend to invoke the method?</source>
         <target state="translated">将方法组“{0}”转换为非委托类型“{1}”。是否希望调用此方法?</target>
@@ -2065,6 +2085,26 @@
       <trans-unit id="WRN_ReturnNotNullIfNotNull_Title">
         <source>Return value must be non-null because parameter is non-null.</source>
         <target state="translated">由于参数为非 null，因此返回值必须为非 null。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_ScopedMismatchInParameterOfOverrideOrImplementation">
+        <source>The 'scoped' modifier of parameter '{0}' doesn't match overridden or implemented member.</source>
+        <target state="new">The 'scoped' modifier of parameter '{0}' doesn't match overridden or implemented member.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_ScopedMismatchInParameterOfOverrideOrImplementation_Title">
+        <source>The 'scoped' modifier of parameter doesn't match overridden or implemented member.</source>
+        <target state="new">The 'scoped' modifier of parameter doesn't match overridden or implemented member.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_ScopedMismatchInParameterOfTarget">
+        <source>The 'scoped' modifier of parameter '{0}' doesn't match target '{1}'.</source>
+        <target state="new">The 'scoped' modifier of parameter '{0}' doesn't match target '{1}'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_ScopedMismatchInParameterOfTarget_Title">
+        <source>The 'scoped' modifier of parameter doesn't match target.</source>
+        <target state="new">The 'scoped' modifier of parameter doesn't match target.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_SwitchExpressionNotExhaustiveWithUnnamedEnumValue">

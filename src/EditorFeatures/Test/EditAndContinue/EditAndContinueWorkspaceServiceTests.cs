@@ -98,7 +98,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             var projectId = ProjectId.CreateNewId();
 
             var project = solution.
-                AddProject(ProjectInfo.Create(projectId, VersionStamp.Create(), "proj", "proj", LanguageNames.CSharp).WithTelemetryId(s_defaultProjectTelemetryId)).GetProject(projectId).
+                AddProject(ProjectInfo.Create(projectId, VersionStamp.Create(), "proj", "proj", LanguageNames.CSharp, parseOptions: CSharpParseOptions.Default.WithNoRefSafetyRulesAttribute()).WithTelemetryId(s_defaultProjectTelemetryId)).GetProject(projectId).
                 WithMetadataReferences(TargetFrameworkUtil.GetReferences(DefaultTargetFramework));
 
             solution = project.Solution;
@@ -233,7 +233,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             => actual.Select(d => InspectDiagnostic(d));
 
         private static string InspectDiagnostic(DiagnosticData diagnostic)
-            => $"{(string.IsNullOrWhiteSpace(diagnostic.DataLocation.GetFilePath()) ? diagnostic.ProjectId.ToString() : diagnostic.DataLocation.GetFileLinePositionSpan().ToString())}: {diagnostic.Severity} {diagnostic.Id}: {diagnostic.Message}";
+            => $"{(string.IsNullOrWhiteSpace(diagnostic.DataLocation.MappedFileSpan.Path) ? diagnostic.ProjectId.ToString() : diagnostic.DataLocation.MappedFileSpan.ToString())}: {diagnostic.Severity} {diagnostic.Id}: {diagnostic.Message}";
 
         internal static Guid ReadModuleVersionId(Stream stream)
         {
@@ -279,7 +279,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
         {
             encoding ??= Encoding.UTF8;
 
-            var parseOptions = TestOptions.RegularPreview;
+            var parseOptions = TestOptions.RegularPreview.WithNoRefSafetyRulesAttribute();
 
             var trees = sources.Select(source =>
             {
@@ -746,13 +746,12 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
         }
 
         [Theory]
-        [InlineData(true)]
-        [InlineData(false)]
-        public async Task DesignTimeOnlyDocument_Wpf(bool delayLoad)
+        [CombinatorialData]
+        public async Task DesignTimeOnlyDocument_Wpf(bool delayLoad, bool open)
         {
-            var sourceA = "class A { public void M() { } }";
-            var sourceB = "class B { public void M() { } }";
-            var sourceC = "class C { public void M() { } }";
+            var sourceA = "class A { }";
+            var sourceB = "class B { }";
+            var sourceC = "Class C : End Class";
 
             var dir = Temp.CreateDirectory();
             var sourceFileA = dir.CreateFile("a.cs").WriteAllText(sourceA);
@@ -760,18 +759,20 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             using var _ = CreateWorkspace(out var solution, out var service);
 
             // the workspace starts with a version of the source that's not updated with the output of single file generator (or design-time build):
-            var documentA = solution.
-                AddProject("test", "test", LanguageNames.CSharp).
-                AddMetadataReferences(TargetFrameworkUtil.GetReferences(TargetFramework.Mscorlib40)).
-                AddDocument("a.cs", SourceText.From(sourceA, Encoding.UTF8), filePath: sourceFileA.Path);
+            var csProjectId = ProjectId.CreateNewId();
+            var vbProjectId = ProjectId.CreateNewId();
+            var documentAId = DocumentId.CreateNewId(csProjectId);
+            var documentBId = DocumentId.CreateNewId(csProjectId);
+            var documentCId = DocumentId.CreateNewId(vbProjectId);
 
-            var documentB = documentA.Project.
-                AddDocument("b.g.i.cs", SourceText.From(sourceB, Encoding.UTF8), filePath: "b.g.i.cs");
-
-            var documentC = documentB.Project.
-                AddDocument("c.g.i.vb", SourceText.From(sourceC, Encoding.UTF8), filePath: "c.g.i.vb");
-
-            solution = documentC.Project.Solution;
+            solution = solution.
+                AddProject(csProjectId, "test_cs", "test_cs", LanguageNames.CSharp).
+                AddDocument(documentAId, "a.cs", SourceText.From(sourceA, Encoding.UTF8), filePath: sourceFileA.Path).
+                AddDocument(documentBId, "b.g.i.cs", SourceText.From(sourceB, Encoding.UTF8), filePath: "b.g.i.cs").
+                AddMetadataReferences(csProjectId, TargetFrameworkUtil.GetReferences(TargetFramework.Mscorlib40)).
+                AddProject(vbProjectId, "test_vb", "test_vb", LanguageNames.VisualBasic).
+                AddDocument(documentCId, "c.g.i.vb", SourceText.From(sourceC, Encoding.UTF8), filePath: "c.g.i.vb").
+                AddMetadataReferences(vbProjectId, TargetFrameworkUtil.GetReferences(TargetFramework.Mscorlib40));
 
             // only compile A; B and C are design-time-only:
             var moduleId = EmitLibrary(sourceA, sourceFilePath: sourceFileA.Path);
@@ -781,16 +782,22 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                 LoadLibraryToDebuggee(moduleId);
             }
 
-            var sessionId = await service.StartDebuggingSessionAsync(solution, _debuggerService, captureMatchingDocuments: ImmutableArray<DocumentId>.Empty, captureAllMatchingDocuments: false, reportDiagnostics: true, CancellationToken.None);
+            // make sure renames are not supported:
+            _debuggerService.GetCapabilitiesImpl = () => ImmutableArray.Create("Baseline");
+
+            var openDocumentIds = open ? ImmutableArray.Create(documentBId, documentCId) : ImmutableArray<DocumentId>.Empty;
+            var sessionId = await service.StartDebuggingSessionAsync(solution, _debuggerService, captureMatchingDocuments: openDocumentIds, captureAllMatchingDocuments: false, reportDiagnostics: true, CancellationToken.None);
             var debuggingSession = service.GetTestAccessor().GetDebuggingSession(sessionId);
 
             EnterBreakState(debuggingSession);
 
             // change the source (rude edit):
-            solution = solution.WithDocumentText(documentB.Id, SourceText.From("class B { public void RenamedMethod() { } }"));
-            solution = solution.WithDocumentText(documentC.Id, SourceText.From("class C { public void RenamedMethod() { } }"));
-            var documentB2 = solution.GetDocument(documentB.Id);
-            var documentC2 = solution.GetDocument(documentC.Id);
+            solution = solution.
+                WithDocumentText(documentBId, SourceText.From("class B1 { }")).
+                WithDocumentText(documentCId, SourceText.From("Class C2 : End Class"));
+
+            var documentB2 = solution.GetDocument(documentBId);
+            var documentC2 = solution.GetDocument(documentCId);
 
             // no Rude Edits reported:
             Assert.Empty(await service.GetDocumentDiagnosticsAsync(documentB2, s_noActiveSpans, CancellationToken.None));
@@ -2720,7 +2727,7 @@ class G
             var dir = Temp.CreateDirectory();
 
             var sourceV1 = "class C1 { void M1() { int a = 1; System.Console.WriteLine(a); } void M2() { System.Console.WriteLine(1); } }";
-            var compilationV1 = CSharpTestBase.CreateCompilation(sourceV1, options: TestOptions.DebugDll, targetFramework: DefaultTargetFramework, assemblyName: "lib");
+            var compilationV1 = CSharpTestBase.CreateCompilation(sourceV1, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), options: TestOptions.DebugDll, targetFramework: DefaultTargetFramework, assemblyName: "lib");
 
             var (peImage, pdbImage) = compilationV1.EmitToArrays(new EmitOptions(debugInformationFormat: DebugInformationFormat.PortablePdb));
             var moduleMetadata = ModuleMetadata.CreateFromImage(peImage);
@@ -4455,8 +4462,9 @@ class C
 
             using var workspace = CreateWorkspace(out var solution, out var encService);
 
+            var projectId = ProjectId.CreateNewId();
             var projectP = solution.
-                AddProject("P", "P", LanguageNames.CSharp).
+                AddProject(ProjectInfo.Create(projectId, VersionStamp.Create(), "P", "P", LanguageNames.CSharp, parseOptions: CSharpParseOptions.Default.WithNoRefSafetyRulesAttribute())).GetProject(projectId).
                 WithMetadataReferences(TargetFrameworkUtil.GetReferences(DefaultTargetFramework));
 
             solution = projectP.Solution;

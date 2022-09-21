@@ -69,7 +69,7 @@
       </trans-unit>
       <trans-unit id="Failed_to_resolve_rename_conflicts">
         <source>Failed to resolve rename conflicts</source>
-        <target state="new">Failed to resolve rename conflicts</target>
+        <target state="translated">名前変更の競合を解決できませんでした</target>
         <note />
       </trans-unit>
       <trans-unit id="FixAllScope_ContainingType_and_FixAllScope_ContainingMember_are_not_supported_with_this_constructor">

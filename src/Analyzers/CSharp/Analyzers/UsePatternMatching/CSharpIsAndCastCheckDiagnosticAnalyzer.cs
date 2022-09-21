@@ -164,7 +164,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
                 return false;
             }
 
-            if (!ifStatement.Statement.IsKind(SyntaxKind.Block, out BlockSyntax? ifBlock))
+            if (ifStatement.Statement is not BlockSyntax ifBlock)
             {
                 return false;
             }

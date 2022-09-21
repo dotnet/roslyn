@@ -132,7 +132,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                                 }
                             }
                         }
-                        else if (lastExpression.IsKind(SyntaxKind.NumericLiteralExpression, out LiteralExpressionSyntax? numericLiteral))
+                        else if (lastExpression is LiteralExpressionSyntax(SyntaxKind.NumericLiteralExpression) numericLiteral)
                         {
                             var numericToken = numericLiteral.Token;
                             var numericText = numericToken.ToString();

@@ -923,6 +923,9 @@ namespace Microsoft.CodeAnalysis.LanguageService
         public static bool IsGlobalAttribute(this ISyntaxFacts syntaxFacts, [NotNullWhen(true)] SyntaxNode? node)
             => syntaxFacts.IsGlobalAssemblyAttribute(node) || syntaxFacts.IsGlobalModuleAttribute(node);
 
+        public static bool IsInterfaceDeclaration(this ISyntaxFacts syntaxFacts, [NotNullWhen(true)] SyntaxNode? node)
+            => node?.RawKind == syntaxFacts.SyntaxKinds.InterfaceDeclaration;
+
         public static bool IsParameter(this ISyntaxFacts syntaxFacts, [NotNullWhen(true)] SyntaxNode? node)
             => node?.RawKind == syntaxFacts.SyntaxKinds.Parameter;
 
@@ -937,6 +940,9 @@ namespace Microsoft.CodeAnalysis.LanguageService
 
         public static bool IsPropertyDeclaration(this ISyntaxFacts syntaxFacts, [NotNullWhen(true)] SyntaxNode? node)
             => node?.RawKind == syntaxFacts.SyntaxKinds.PropertyDeclaration;
+
+        public static bool IsStructDeclaration(this ISyntaxFacts syntaxFacts, [NotNullWhen(true)] SyntaxNode? node)
+            => node?.RawKind == syntaxFacts.SyntaxKinds.StructDeclaration;
 
         public static bool IsTypeArgumentList(this ISyntaxFacts syntaxFacts, [NotNullWhen(true)] SyntaxNode? node)
             => node?.RawKind == syntaxFacts.SyntaxKinds.TypeArgumentList;
