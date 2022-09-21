@@ -3553,7 +3553,7 @@ class C
         public void PassAround_02()
         {
             var source = @"using System;
-using System.Diagnostics.CodeAnalysis;
+
 class C
 {
     static ref readonly ReadOnlySpan<byte> Test2()

@@ -1466,8 +1466,10 @@ class Program
         }
 
         [WorkItem(27874, "https://github.com/dotnet/roslyn/issues/27874")]
-        [Fact]
-        public void PassingSpansToLocals_EscapeScope_01()
+        [Theory]
+        [InlineData(LanguageVersion.CSharp10)]
+        [InlineData(LanguageVersion.CSharp11)]
+        public void PassingSpansToLocals_EscapeScope_01(LanguageVersion languageVersion)
         {
             var source = @"using System;
 class C
@@ -1492,19 +1494,10 @@ class C
     }
 }";
 
-            var comp = CreateCompilationWithMscorlibAndSpan(source, parseOptions: TestOptions.Regular10, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilationWithMscorlibAndSpan(source, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion), options: TestOptions.ReleaseExe);
             CompileAndVerify(comp, verify: Verification.Fails, expectedOutput: @"
 10
 10");
-
-            comp = CreateCompilationWithMscorlibAndSpan(source, options: TestOptions.ReleaseExe);
-            comp.VerifyDiagnostics(
-                // (15,20): error CS8157: Cannot return 'q' by reference because it was initialized to a value that cannot be returned by reference
-                //         return ref q;
-                Diagnostic(ErrorCode.ERR_RefReturnNonreturnableLocal, "q").WithArguments("q").WithLocation(15, 20),
-                // (20,20): error CS9075: Cannot return a parameter by reference 'x' because it is scoped to the current method
-                //         return ref x;
-                Diagnostic(ErrorCode.ERR_RefReturnScopedParameter, "x").WithArguments("x").WithLocation(20, 20));
         }
 
         [WorkItem(27874, "https://github.com/dotnet/roslyn/issues/27874")]

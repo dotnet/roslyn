@@ -10951,8 +10951,8 @@ class Program
                 Diagnostic(ErrorCode.ERR_RefReturnScopedParameter, "x").WithArguments("x").WithLocation(4, 83));
         }
 
-        [Theory, InlineData(LanguageVersion.CSharp10), InlineData(LanguageVersion.CSharp11)]
-        public void BestCommonType_04(LanguageVersion languageVersion)
+        [Fact]
+        public void BestCommonType_04()
         {
             var source =
 @"ref struct R { }
@@ -10966,7 +10966,7 @@ class Program
         var f4 = new[] { (scoped ref R r) => { }, (scoped ref R r) => { } }[0];
     }
 }";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (6,18): error CS0826: No best type found for implicitly-typed array
                 //         var f1 = new[] { (R r) => { }, (scoped R r) => { } }[0]; // 1

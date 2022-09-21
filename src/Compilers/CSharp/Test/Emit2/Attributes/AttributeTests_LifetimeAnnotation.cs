@@ -344,6 +344,9 @@ struct S
     [ScopedRef] ref System.Int32 i
 void S.F(R r)
     [ScopedRef] R r
+S S.op_Addition(S a, in R b)
+    S a
+    [ScopedRef] in R b
 System.Object S.this[in System.Int32 i].get
     [ScopedRef] in System.Int32 i
 ";
@@ -413,10 +416,13 @@ class Program
 }";
             var comp = CreateCompilation(source);
             var expected =
-@"";
+@"void Program.F4(ref R r)
+    [ScopedRef] ref R r
+void Program.F5(in R r)
+    [ScopedRef] in R r";
             CompileAndVerify(comp, symbolValidator: module =>
             {
-                Assert.Null(GetScopedRefType(module));
+                Assert.Equal("System.Runtime.CompilerServices.ScopedRefAttribute", GetScopedRefType(module).ToTestDisplayString());
                 AssertScopedRefAttributes(module, expected);
             });
 
