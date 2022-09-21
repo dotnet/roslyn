@@ -94,20 +94,18 @@ namespace Microsoft.CodeAnalysis.LegacySolutionEvents
 
         private static async ValueTask ProcessEventAsync(ILegacySolutionEventsAggregationService aggregationService, LegacySolutionEvent ev, CancellationToken cancellationToken)
         {
-            var descriptor = HostLegacyWorkspaceDescriptor.Create(ev.Workspace);
-
             if (ev.DocumentOpenArgs != null)
             {
-                await aggregationService.OnTextDocumentOpenedAsync(descriptor, ev.DocumentOpenArgs, cancellationToken).ConfigureAwait(false);
+                await aggregationService.OnTextDocumentOpenedAsync(ev.DocumentOpenArgs, cancellationToken).ConfigureAwait(false);
             }
             else if (ev.DocumentCloseArgs != null)
             {
-                await aggregationService.OnTextDocumentOpenedAsync(descriptor, ev.DocumentCloseArgs, cancellationToken).ConfigureAwait(false);
+                await aggregationService.OnTextDocumentOpenedAsync(ev.DocumentCloseArgs, cancellationToken).ConfigureAwait(false);
             }
             else
             {
                 Contract.ThrowIfNull(ev.WorkspaceChangeArgs);
-                await aggregationService.OnWorkspaceChangedAsync(descriptor, ev.WorkspaceChangeArgs, cancellationToken).ConfigureAwait(false);
+                await aggregationService.OnWorkspaceChangedAsync(ev.WorkspaceChangeArgs, cancellationToken).ConfigureAwait(false);
             }
         }
 
@@ -140,25 +138,6 @@ namespace Microsoft.CodeAnalysis.LegacySolutionEvents
                         service.OnWorkspaceChangedAsync(oldSolutionChecksum, newSolutionChecksum, args.Kind, args.ProjectId, args.DocumentId, cancellationToken),
                     cancellationToken).ConfigureAwait(false);
             }
-        }
-
-        private sealed class HostLegacyWorkspaceDescriptor : ILegacyWorkspaceDescriptor
-        {
-            private static readonly ConditionalWeakTable<Workspace, ILegacyWorkspaceDescriptor> s_workspaceToDescriptor = new();
-
-            private readonly Workspace _workspace;
-
-            private HostLegacyWorkspaceDescriptor(Workspace workspace)
-            {
-                _workspace = workspace;
-            }
-
-            public static ILegacyWorkspaceDescriptor Create(Workspace workspace)
-                => s_workspaceToDescriptor.GetValue(workspace, static workspace => new HostLegacyWorkspaceDescriptor(workspace));
-
-            public string? WorkspaceKind => _workspace.Kind;
-            public SolutionServices SolutionServices => _workspace.Services.SolutionServices;
-            public Solution CurrentSolution => _workspace.CurrentSolution;
         }
     }
 }

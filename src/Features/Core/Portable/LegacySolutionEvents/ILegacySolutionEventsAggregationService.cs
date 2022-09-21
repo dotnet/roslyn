@@ -20,9 +20,9 @@ namespace Microsoft.CodeAnalysis.LegacySolutionEvents
     /// </summary>
     internal interface ILegacySolutionEventsAggregationService : IWorkspaceService
     {
-        ValueTask OnWorkspaceChangedAsync(ILegacyWorkspaceDescriptor descriptor, WorkspaceChangeEventArgs args, CancellationToken cancellationToken);
-        ValueTask OnTextDocumentOpenedAsync(ILegacyWorkspaceDescriptor descriptor, TextDocumentEventArgs args, CancellationToken cancellationToken);
-        ValueTask OnTextDocumentClosedAsync(ILegacyWorkspaceDescriptor descriptor, TextDocumentEventArgs args, CancellationToken cancellationToken);
+        ValueTask OnWorkspaceChangedAsync(WorkspaceChangeEventArgs args, CancellationToken cancellationToken);
+        ValueTask OnTextDocumentOpenedAsync(TextDocumentEventArgs args, CancellationToken cancellationToken);
+        ValueTask OnTextDocumentClosedAsync(TextDocumentEventArgs args, CancellationToken cancellationToken);
     }
 
     [ExportWorkspaceService(typeof(ILegacySolutionEventsAggregationService)), Shared]
@@ -38,22 +38,22 @@ namespace Microsoft.CodeAnalysis.LegacySolutionEvents
             _eventsServices = eventsServices.ToImmutableArray();
         }
 
-        public async ValueTask OnWorkspaceChangedAsync(ILegacyWorkspaceDescriptor descriptor, WorkspaceChangeEventArgs args, CancellationToken cancellationToken)
+        public async ValueTask OnWorkspaceChangedAsync(WorkspaceChangeEventArgs args, CancellationToken cancellationToken)
         {
             foreach (var service in _eventsServices)
-                await service.Value.OnWorkspaceChangedAsync(descriptor, args, cancellationToken).ConfigureAwait(false);
+                await service.Value.OnWorkspaceChangedAsync(args, cancellationToken).ConfigureAwait(false);
         }
 
-        public async ValueTask OnTextDocumentOpenedAsync(ILegacyWorkspaceDescriptor descriptor, TextDocumentEventArgs args, CancellationToken cancellationToken)
+        public async ValueTask OnTextDocumentOpenedAsync(TextDocumentEventArgs args, CancellationToken cancellationToken)
         {
             foreach (var service in _eventsServices)
-                await service.Value.OnTextDocumentOpenedAsync(descriptor, args, cancellationToken).ConfigureAwait(false);
+                await service.Value.OnTextDocumentOpenedAsync(args, cancellationToken).ConfigureAwait(false);
         }
 
-        public async ValueTask OnTextDocumentClosedAsync(ILegacyWorkspaceDescriptor descriptor, TextDocumentEventArgs args, CancellationToken cancellationToken)
+        public async ValueTask OnTextDocumentClosedAsync(TextDocumentEventArgs args, CancellationToken cancellationToken)
         {
             foreach (var service in _eventsServices)
-                await service.Value.OnTextDocumentClosedAsync(descriptor, args, cancellationToken).ConfigureAwait(false);
+                await service.Value.OnTextDocumentClosedAsync(args, cancellationToken).ConfigureAwait(false);
         }
     }
 }

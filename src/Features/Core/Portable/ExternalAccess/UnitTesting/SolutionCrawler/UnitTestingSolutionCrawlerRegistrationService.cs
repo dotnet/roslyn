@@ -31,6 +31,13 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
 
         private ImmutableDictionary<string, ImmutableArray<Lazy<IUnitTestingIncrementalAnalyzerProvider, UnitTestingIncrementalAnalyzerProviderMetadata>>> _analyzerProviders;
 
+        /// <summary>
+        /// The last solution we've heard about from the <see cref="ILegacySolutionEventsListener"/>.  This is used by
+        /// our <see cref="UnitTestingWorkCoordinator"/> to represent the equivalent entity that <see
+        /// cref="Workspace.CurrentSolution"/> normally represents.
+        /// </summary>
+        private Solution _lastReportedSolution = null!;
+
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public UnitTestingSolutionCrawlerRegistrationService(
@@ -46,11 +53,10 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
         /// <summary>
         /// make sure solution cralwer is registered for the given workspace.
         /// </summary>
-        public IUnitTestingWorkCoordinator Register(ILegacyWorkspaceDescriptor workspaceDescriptor)
+        public IUnitTestingWorkCoordinator Register(Solution solution)
         {
-            var workspaceKind = workspaceDescriptor.WorkspaceKind;
-            var solutionServices = workspaceDescriptor.SolutionServices;
-            var getSolutionToAnalyze = () => workspaceDescriptor.CurrentSolution;
+            var workspaceKind = solution.WorkspaceKind;
+            var solutionServices = solution.Services;
             Contract.ThrowIfNull(workspaceKind);
 
             var correlationId = CorrelationIdFactory.GetNextId();
@@ -58,13 +64,14 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
             UnitTestingWorkCoordinator? coordinator;
             lock (_gate)
             {
+                _lastReportedSolution = solution;
                 if (!_documentWorkCoordinatorMap.TryGetValue((workspaceKind, solutionServices), out coordinator))
                 {
                     coordinator = new UnitTestingWorkCoordinator(
                         _listener,
                         GetAnalyzerProviders(workspaceKind),
                         initializeLazily: true,
-                        new UnitTestingRegistration(correlationId, workspaceKind, solutionServices, getSolutionToAnalyze, _progressReporter));
+                        new UnitTestingRegistration(this, correlationId, workspaceKind, solutionServices, _progressReporter));
 
                     _documentWorkCoordinatorMap.Add((workspaceKind, solutionServices), coordinator);
                 }
@@ -289,29 +296,32 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
 
         internal sealed class UnitTestingRegistration
         {
+            private readonly UnitTestingSolutionCrawlerRegistrationService _owner;
+
             public readonly int CorrelationId;
             public readonly string WorkspaceKind;
             public readonly SolutionServices Services;
             public readonly UnitTestingSolutionCrawlerProgressReporter ProgressReporter;
 
-            private readonly Func<Solution> _getCurrentSolutionToAnalyze;
-
             public UnitTestingRegistration(
+                UnitTestingSolutionCrawlerRegistrationService owner,
                 int correlationId,
                 string workspaceKind,
                 SolutionServices solutionServices,
-                Func<Solution> getCurrentSolutionToAnalyze,
                 UnitTestingSolutionCrawlerProgressReporter progressReporter)
             {
+                _owner = owner;
                 CorrelationId = correlationId;
                 WorkspaceKind = workspaceKind;
                 Services = solutionServices;
-                _getCurrentSolutionToAnalyze = getCurrentSolutionToAnalyze;
                 ProgressReporter = progressReporter;
             }
 
             public Solution GetSolutionToAnalyze()
-                => _getCurrentSolutionToAnalyze();
+            {
+                lock (_owner._gate)
+                    return _owner._lastReportedSolution;
+            }
         }
     }
 }
