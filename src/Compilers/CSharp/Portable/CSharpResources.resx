@@ -990,6 +990,12 @@
   <data name="ERR_ManagedAddr" xml:space="preserve">
     <value>Cannot take the address of, get the size of, or declare a pointer to a managed type ('{0}')</value>
   </data>
+  <data name="WRN_ManagedAddr" xml:space="preserve">
+    <value>This takes the address of, gets the size of, or declares a pointer to a managed type ('{0}')</value>
+  </data>
+  <data name="WRN_ManagedAddr_Title" xml:space="preserve">
+    <value>This takes the address of, gets the size of, or declares a pointer to a managed type</value>
+  </data>
   <data name="ERR_BadFixedInitType" xml:space="preserve">
     <value>The type of a local declared in a fixed statement must be a pointer type</value>
   </data>
@@ -2499,9 +2505,6 @@ A catch() block after a catch (System.Exception e) block can catch non-CLS excep
   </data>
   <data name="ERR_BadParameterModifiers" xml:space="preserve">
     <value> The parameter modifier '{0}' cannot be used with '{1}'</value>
-  </data>
-  <data name="ERR_BadParameterModifiersOrder" xml:space="preserve">
-    <value> The parameter modifier '{0}' cannot follow '{1}'</value>
   </data>
   <data name="ERR_BadTypeforThis" xml:space="preserve">
     <value>The first parameter of an extension method cannot be of type '{0}'</value>
@@ -5074,6 +5077,18 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_RefReturnParameter2" xml:space="preserve">
     <value>Cannot return by reference a member of parameter '{0}' because it is not a ref or out parameter</value>
   </data>
+  <data name="ERR_RefReturnScopedParameter" xml:space="preserve">
+    <value>Cannot return a parameter by reference '{0}' because it is scoped to the current method</value>
+  </data>
+  <data name="ERR_RefReturnScopedParameter2" xml:space="preserve">
+    <value>Cannot return by reference a member of parameter '{0}' because it is scoped to the current method</value>
+  </data>
+  <data name="ERR_RefReturnOnlyParameter" xml:space="preserve">
+    <value>Cannot return a parameter by reference '{0}' through a ref parameter; it can only be returned in a return statement</value>
+  </data>
+  <data name="ERR_RefReturnOnlyParameter2" xml:space="preserve">
+    <value>Cannot return by reference a member of parameter '{0}' through a ref parameter; it can only be returned in a return statement</value>
+  </data>
   <data name="ERR_RefReturnLocal" xml:space="preserve">
     <value>Cannot return local '{0}' by reference because it is not a ref local</value>
   </data>
@@ -5787,6 +5802,9 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="ERR_RefAssignNarrower" xml:space="preserve">
     <value>Cannot ref-assign '{1}' to '{0}' because '{1}' has a narrower escape scope than '{0}'.</value>
+  </data>
+  <data name="ERR_RefAssignReturnOnly" xml:space="preserve">
+    <value>Cannot ref-assign '{1}' to '{0}' because '{1}' can only escape the current method through a return statement.</value>
   </data>
   <data name="IDS_FeatureEnumGenericTypeConstraint" xml:space="preserve">
     <value>enum generic type constraints</value>
@@ -6766,8 +6784,20 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_ScopedMismatchInParameterOfOverrideOrImplementation" xml:space="preserve">
     <value>The 'scoped' modifier of parameter '{0}' doesn't match overridden or implemented member.</value>
   </data>
+  <data name="WRN_ScopedMismatchInParameterOfOverrideOrImplementation" xml:space="preserve">
+    <value>The 'scoped' modifier of parameter '{0}' doesn't match overridden or implemented member.</value>
+  </data>
+  <data name="WRN_ScopedMismatchInParameterOfOverrideOrImplementation_Title" xml:space="preserve">
+    <value>The 'scoped' modifier of parameter doesn't match overridden or implemented member.</value>
+  </data>
   <data name="ERR_ScopedMismatchInParameterOfTarget" xml:space="preserve">
     <value>The 'scoped' modifier of parameter '{0}' doesn't match target '{1}'.</value>
+  </data>
+  <data name="WRN_ScopedMismatchInParameterOfTarget" xml:space="preserve">
+    <value>The 'scoped' modifier of parameter '{0}' doesn't match target '{1}'.</value>
+  </data>
+  <data name="WRN_ScopedMismatchInParameterOfTarget_Title" xml:space="preserve">
+    <value>The 'scoped' modifier of parameter doesn't match target.</value>
   </data>
   <data name="ERR_ScopedMismatchInParameterOfPartial" xml:space="preserve">
     <value>The 'scoped' modifier of parameter '{0}' doesn't match partial method declaration.</value>
@@ -7195,9 +7225,6 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="IDS_PointerElementAccess" xml:space="preserve">
     <value>pointer element access</value>
-  </data>
-  <data name="ERR_MisplacedScoped" xml:space="preserve">
-    <value>Unexpected contextual keyword 'scoped'. Did you mean 'scoped ref' or '@scoped'?</value>
   </data>
   <data name="ERR_ScopedTypeNameDisallowed" xml:space="preserve">
     <value>Types and aliases cannot be named 'scoped'.</value>

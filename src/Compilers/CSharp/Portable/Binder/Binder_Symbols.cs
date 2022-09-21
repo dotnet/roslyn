@@ -480,6 +480,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return BindNamespaceOrTypeOrAliasSymbol(refTypeSyntax.Type, diagnostics, basesBeingResolved, suppressUseSiteDiagnostics);
                     }
 
+                case SyntaxKind.ScopedType:
+                    {
+                        // scoped needs to be handled by the caller
+                        var scopedTypeSyntax = (ScopedTypeSyntax)syntax;
+                        var scopedToken = scopedTypeSyntax.ScopedKeyword;
+                        if (!syntax.HasErrors)
+                        {
+                            diagnostics.Add(ErrorCode.ERR_UnexpectedToken, scopedToken.GetLocation(), scopedToken.ToString());
+                        }
+
+                        return BindNamespaceOrTypeOrAliasSymbol(scopedTypeSyntax.Type, diagnostics, basesBeingResolved, suppressUseSiteDiagnostics);
+                    }
+
                 default:
                     {
                         // This is invalid syntax for a type.  This arises when a constant pattern that fails to bind
@@ -562,7 +575,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (!Flags.HasFlag(BinderFlags.SuppressConstraintChecks))
                 {
-                    CheckManagedAddr(Compilation, elementType.Type, node.Location, diagnostics);
+                    CheckManagedAddr(Compilation, elementType.Type, warnForManaged: Flags.HasFlag(BinderFlags.AllowManagedPointer), node.Location, diagnostics);
                 }
 
                 return TypeWithAnnotations.Create(new PointerTypeSymbol(elementType));

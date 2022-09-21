@@ -155,6 +155,19 @@ namespace RunTests
                     testResultInfo,
                     commandLineArguments,
                     processResults: ImmutableArray.CreateRange(processResultList));
+
+                string getRspDirectory()
+                {
+                    // There is no artifacts directory on Helix, just use the current directory
+                    if (options.UseHelix)
+                    {
+                        return Directory.GetCurrentDirectory();
+                    }
+
+                    var dirPath = Path.Combine(options.ArtifactsDirectory, "tmp", options.Configuration, "vstest-rsp");
+                    Directory.CreateDirectory(dirPath);
+                    return dirPath;
+                }
             }
             catch (Exception ex)
             {

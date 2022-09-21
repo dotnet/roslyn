@@ -17,14 +17,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics;
 internal interface IDiagnosticSource
 {
     Project GetProject();
-
     ProjectOrDocumentId GetId();
-
     Uri GetUri();
 
     Task<ImmutableArray<DiagnosticData>> GetDiagnosticsAsync(
         IDiagnosticAnalyzerService diagnosticAnalyzerService,
         RequestContext context,
-        DiagnosticMode diagnosticMode,
         CancellationToken cancellationToken);
 }

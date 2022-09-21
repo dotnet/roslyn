@@ -213,7 +213,7 @@ namespace RunTests
             {
                 var screenshotPath = Path.Combine(options.LogFilesDirectory, $"timeout.png");
                 ConsoleUtil.WriteLine($"Taking screenshot on timeout at {screenshotPath}");
-                var output = await ProcessRunner.CreateProcess("Powershell.exe", $"-command \"& {{ . .\\eng\\build-utils-win.ps1; Capture-Screenshot {screenshotPath} }}\"", cancellationToken: cancellationToken).Result;
+                var output = await ProcessRunner.CreateProcess("Powershell.exe", $"-command \"& {{ . .\\eng\\build-utils-win.ps1; Capture-Screenshot {screenshotPath} }}\"", displayWindow: false, cancellationToken: cancellationToken).Result;
                 ConsoleUtil.WriteLine(string.Join(Environment.NewLine, output.OutputLines));
                 ConsoleUtil.WriteLine(string.Join(Environment.NewLine, output.ErrorLines));
             }

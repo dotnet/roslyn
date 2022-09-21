@@ -627,7 +627,7 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       </trans-unit>
       <trans-unit id="Deleting_0_requires_restarting_the_application_because_is_not_supported_by_the_runtime">
         <source>Deleting {0} requires restarting the application because is not supported by the runtime.</source>
-        <target state="new">Deleting {0} requires restarting the application because is not supported by the runtime.</target>
+        <target state="translated">런타임에서 지원하지 않기 때문에 {0}을(를) 삭제하려면 응용 프로그램을 다시 시작해야 합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Deleting_captured_variable_0_requires_restarting_the_application">
@@ -717,7 +717,7 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       </trans-unit>
       <trans-unit id="Extract_base_record">
         <source>Extract base record...</source>
-        <target state="new">Extract base record...</target>
+        <target state="translated">기본 record 추출...</target>
         <note>{Locked="record"} "record" is a language construct for C# and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Extract_interface">
@@ -1327,12 +1327,12 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       </trans-unit>
       <trans-unit id="Pull_selected_members_up">
         <source>Pull selected members up</source>
-        <target state="new">Pull selected members up</target>
+        <target state="translated">선택한 멤버를 위로 당깁니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Pull_selected_members_up_to_0">
         <source>Pull selected members up to {0}</source>
-        <target state="new">Pull selected members up to {0}</target>
+        <target state="translated">선택한 멤버를 최대 {0}까지 끌어오기</target>
         <note />
       </trans-unit>
       <trans-unit id="Quantifier_x_y_following_nothing">
@@ -2547,7 +2547,7 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
       </trans-unit>
       <trans-unit id="Required">
         <source>required</source>
-        <target state="new">required</target>
+        <target state="translated">필수 사항</target>
         <note>Used in the object initializer completion.</note>
       </trans-unit>
       <trans-unit id="Resolve_conflict_markers">
@@ -3343,7 +3343,7 @@ If the "H" format specifier is used without other custom format specifiers, it's
       </trans-unit>
       <trans-unit id="console_writeline">
         <source>Console.WriteLine</source>
-        <target state="new">Console.WriteLine</target>
+        <target state="translated">Console.WriteLine</target>
         <note />
       </trans-unit>
       <trans-unit id="date_separator">
@@ -3489,7 +3489,7 @@ The "f" standard format specifier represents a combination of the long date ("D"
       </trans-unit>
       <trans-unit id="if_statement">
         <source>if statement</source>
-        <target state="new">if statement</target>
+        <target state="translated">If 문</target>
         <note />
       </trans-unit>
       <trans-unit id="in_0_1_2">
@@ -4273,6 +4273,11 @@ When this standard format specifier is used, the formatting or parsing operation
       <trans-unit id="static_constructor">
         <source>static constructor</source>
         <target state="translated">정적 생성자</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="struct_">
+        <source>struct</source>
+        <target state="new">struct</target>
         <note />
       </trans-unit>
       <trans-unit id="symbol_cannot_be_a_namespace">

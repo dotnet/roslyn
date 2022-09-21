@@ -183,6 +183,7 @@
                 case ErrorCode.WRN_TypeParameterSameAsOuterMethodTypeParameter:
                 case ErrorCode.WRN_UnconsumedEnumeratorCancellationAttributeUsage:
                 case ErrorCode.WRN_UndecoratedCancellationTokenParameter:
+                case ErrorCode.WRN_ManagedAddr:
                 case ErrorCode.WRN_SwitchExpressionNotExhaustive:
                 case ErrorCode.WRN_CaseConstantNamedUnderscore:
                 case ErrorCode.WRN_IsTypeNamedUnderscore:
@@ -290,6 +291,8 @@
                 case ErrorCode.WRN_ObsoleteMembersShouldNotBeRequired:
                 case ErrorCode.WRN_AnalyzerReferencesNewerCompiler:
                 case ErrorCode.WRN_DuplicateAnalyzerReference:
+                case ErrorCode.WRN_ScopedMismatchInParameterOfTarget:
+                case ErrorCode.WRN_ScopedMismatchInParameterOfOverrideOrImplementation:
                     return true;
                 default:
                     return false;

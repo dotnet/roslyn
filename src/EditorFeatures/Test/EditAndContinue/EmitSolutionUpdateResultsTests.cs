@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
@@ -11,7 +9,6 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.EditAndContinue;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
@@ -50,7 +47,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                     customTags: ImmutableArray.Create("Test2"),
                     properties: ImmutableDictionary<string, string?>.Empty,
                     document.Project.Id,
-                    new DiagnosticDataLocation(document.Id, new TextSpan(1, 2), "a.cs", 0, 0, 0, 5, "a.razor", 10, 10, 10, 15),
+                    DiagnosticDataLocation.TestAccessor.Create(new("a.cs", new(0, 0), new(0, 5)), document.Id, new("a.razor", new(10, 10), new(10, 15)), forceMappedPath: true),
                     language: "C#",
                     title: "title",
                     description: "description",
@@ -66,7 +63,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                     customTags: ImmutableArray.Create("Test2"),
                     properties: ImmutableDictionary<string, string?>.Empty,
                     document.Project.Id,
-                    new DiagnosticDataLocation(document.Id, new TextSpan(1, 2), originalFilePath: sourcePath, 0, 0, 0, 5, mappedFilePath: @"..\a.razor", 10, 10, 10, 15),
+                    DiagnosticDataLocation.TestAccessor.Create(new(sourcePath, new(0, 0), new(0, 5)), document.Id, new(@"..\a.razor", new(10, 10), new(10, 15)), forceMappedPath: true),
                     language: "C#",
                     title: "title",
                     description: "description",
@@ -83,7 +80,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                 customTags: ImmutableArray.Create("Test3"),
                 properties: ImmutableDictionary<string, string?>.Empty,
                 document.Project.Id,
-                new DiagnosticDataLocation(document.Id, new TextSpan(1, 2), originalFilePath: sourcePath, 0, 1, 0, 5, mappedFilePath: null, 0, 0, 0, 0),
+                new DiagnosticDataLocation(new(sourcePath, new(0, 1), new(0, 5)), document.Id, mappedFileSpan: null),
                 language: "C#",
                 title: "title",
                 description: "description",

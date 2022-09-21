@@ -34,6 +34,9 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         public static Document GetRequiredDocument(this Project project, DocumentId documentId)
             => project.GetDocument(documentId) ?? throw new InvalidOperationException(WorkspaceExtensionsResources.The_solution_does_not_contain_the_specified_document);
 
+        public static Document GetRequiredDocument(this Project project, SyntaxTree tree)
+            => project.GetDocument(tree) ?? throw new InvalidOperationException(WorkspaceExtensionsResources.The_solution_does_not_contain_the_specified_document);
+
         public static TextDocument GetRequiredAdditionalDocument(this Project project, DocumentId documentId)
             => project.GetAdditionalDocument(documentId) ?? throw new InvalidOperationException(WorkspaceExtensionsResources.The_solution_does_not_contain_the_specified_document);
 

@@ -17,11 +17,11 @@ internal sealed class DocumentDiagnosticSource : AbstractDocumentDiagnosticSourc
 
     // The normal diagnostic source includes both todo comments and diagnostics for this open file.
 
-    protected override bool IncludeTodoComments => true;
+    protected override bool IncludeTaskListItems => true;
     protected override bool IncludeStandardDiagnostics => true;
 
     protected override async Task<ImmutableArray<DiagnosticData>> GetDiagnosticsWorkerAsync(
-        IDiagnosticAnalyzerService diagnosticAnalyzerService, RequestContext context, DiagnosticMode diagnosticMode, CancellationToken cancellationToken)
+        IDiagnosticAnalyzerService diagnosticAnalyzerService, RequestContext context, CancellationToken cancellationToken)
     {
         // We call GetDiagnosticsForSpanAsync here instead of GetDiagnosticsForIdsAsync as it has faster perf
         // characteristics. GetDiagnosticsForIdsAsync runs analyzers against the entire compilation whereas

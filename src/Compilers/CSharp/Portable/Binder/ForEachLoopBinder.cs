@@ -267,7 +267,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         // If the type in syntax is "var", then the type should be set explicitly so that the
                         // Type property doesn't fail.
-                        TypeSyntax typeSyntax = node.Type.SkipRef(out _);
+                        Debug.Assert(node.Type is not ScopedTypeSyntax);
+                        TypeSyntax typeSyntax = node.Type.SkipScoped(out _).SkipRef(out _);
 
                         bool isVar;
                         AliasSymbol alias;

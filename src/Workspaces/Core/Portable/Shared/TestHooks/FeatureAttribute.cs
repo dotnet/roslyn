@@ -54,8 +54,8 @@ namespace Microsoft.CodeAnalysis.Shared.TestHooks
         public const string Snippets = nameof(Snippets);
         public const string SolutionCrawler = nameof(SolutionCrawler);
         public const string StringIndentation = nameof(StringIndentation);
+        public const string TaskList = nameof(TaskList);
         public const string Telemetry = nameof(Telemetry);
-        public const string TodoCommentList = nameof(TodoCommentList);
         public const string LanguageServer = nameof(LanguageServer);
         public const string ValueTracking = nameof(ValueTracking);
         public const string Workspace = nameof(Workspace);
