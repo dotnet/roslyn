@@ -16,7 +16,6 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
 
         Task DocumentOpenAsync(Document document, CancellationToken cancellationToken);
         Task DocumentCloseAsync(Document document, CancellationToken cancellationToken);
-#endif
 
         Task ActiveDocumentSwitchedAsync(TextDocument document, CancellationToken cancellationToken);
 
@@ -24,6 +23,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
         /// Resets all the document state cached by the analyzer.
         /// </summary>
         Task DocumentResetAsync(Document document, CancellationToken cancellationToken);
+#endif
 
         Task AnalyzeSyntaxAsync(Document document, UnitTestingInvocationReasons reasons, CancellationToken cancellationToken);
         Task AnalyzeDocumentAsync(Document document, SyntaxNode bodyOpt, UnitTestingInvocationReasons reasons, CancellationToken cancellationToken);
@@ -35,12 +35,12 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
 #if false // Not used in unit testing crawling
         Task NonSourceDocumentOpenAsync(TextDocument textDocument, CancellationToken cancellationToken);
         Task NonSourceDocumentCloseAsync(TextDocument textDocument, CancellationToken cancellationToken);
-#endif
 
         /// <summary>
         /// Resets all the document state cached by the analyzer.
         /// </summary>
         Task NonSourceDocumentResetAsync(TextDocument textDocument, CancellationToken cancellationToken);
+#endif
 
         Task AnalyzeNonSourceDocumentAsync(TextDocument textDocument, UnitTestingInvocationReasons reasons, CancellationToken cancellationToken);
 

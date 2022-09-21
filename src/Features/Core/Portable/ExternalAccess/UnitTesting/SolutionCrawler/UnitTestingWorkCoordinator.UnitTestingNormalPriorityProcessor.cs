@@ -463,7 +463,9 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
 
                             // First reset the document state in analyzers.
                             var reanalyzers = workItem.SpecificAnalyzers.ToImmutableArray();
+#if false // Not used in unit testing crawling
                             await Processor.RunAnalyzersAsync(reanalyzers, document, workItem, DocumentResetAsync, cancellationToken).ConfigureAwait(false);
+#endif
 
                             // No request to re-run syntax change analysis. run it here
                             var reasons = workItem.InvocationReasons;
@@ -487,6 +489,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
 
                         return;
 
+#if false // Not used in unit testing crawling
                         static async Task DocumentResetAsync(IUnitTestingIncrementalAnalyzer analyzer, TextDocument textDocument, CancellationToken cancellationToken)
                         {
                             if (textDocument is Document document)
@@ -498,6 +501,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                                 await analyzer.NonSourceDocumentResetAsync(textDocument, cancellationToken).ConfigureAwait(false);
                             }
                         }
+#endif
 
                         static async Task AnalyzeSyntaxAsync(IUnitTestingIncrementalAnalyzer analyzer, TextDocument textDocument, UnitTestingInvocationReasons reasons, CancellationToken cancellationToken)
                         {

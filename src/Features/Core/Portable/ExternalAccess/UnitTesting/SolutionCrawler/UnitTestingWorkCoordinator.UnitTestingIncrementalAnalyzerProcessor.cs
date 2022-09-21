@@ -176,7 +176,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                     TextDocument textDocument, ImmutableArray<IUnitTestingIncrementalAnalyzer> analyzers, UnitTestingWorkItem workItem, CancellationToken cancellationToken)
                 {
                     // process special active document switched request, if any.
-                    if (await ProcessActiveDocumentSwitchedAsync(analyzers, workItem, textDocument, cancellationToken).ConfigureAwait(false))
+                    if (ProcessActiveDocumentSwitched(analyzers, workItem, textDocument, cancellationToken))
                     {
                         return;
                     }
@@ -220,7 +220,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                         }
                     }
 
-                    async Task<bool> ProcessActiveDocumentSwitchedAsync(ImmutableArray<IUnitTestingIncrementalAnalyzer> analyzers, UnitTestingWorkItem workItem, TextDocument document, CancellationToken cancellationToken)
+                    bool ProcessActiveDocumentSwitched(ImmutableArray<IUnitTestingIncrementalAnalyzer> analyzers, UnitTestingWorkItem workItem, TextDocument document, CancellationToken cancellationToken)
                     {
                         try
                         {
@@ -229,8 +229,10 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                                 return false;
                             }
 
+#if false // Not used in unit testing crawling
                             await RunAnalyzersAsync(analyzers, document, workItem, (analyzer, document, cancellationToken) =>
                                 analyzer.ActiveDocumentSwitchedAsync(document, cancellationToken), cancellationToken).ConfigureAwait(false);
+#endif
                             return true;
                         }
                         catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
