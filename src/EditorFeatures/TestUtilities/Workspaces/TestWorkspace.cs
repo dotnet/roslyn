@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             bool disablePartialSolutions = true,
             bool ignoreUnchangeableDocumentsWhenApplyingChanges = true,
             WorkspaceConfigurationOptions? configurationOptions = null)
-            : base(GetHostServices(ref composition, configurationOptions != null), workspaceKind ?? WorkspaceKind.Host)
+            : base(GetHostServices(ref composition, configurationOptions != null, disablePartialSolutions), workspaceKind ?? WorkspaceKind.Host)
         {
             this.Composition = composition;
             this.ExportProvider = composition.ExportProviderFactory.CreateExportProvider();
@@ -121,13 +121,18 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             _metadataAsSourceFileService = ExportProvider.GetExportedValues<IMetadataAsSourceFileService>().FirstOrDefault();
         }
 
-        private static HostServices GetHostServices([NotNull] ref TestComposition? composition, bool hasWorkspaceConfigurationOptions)
+        private static HostServices GetHostServices([NotNull] ref TestComposition? composition, bool hasWorkspaceConfigurationOptions, bool disablePartialSolutions)
         {
             composition ??= EditorTestCompositions.EditorFeatures;
 
             if (hasWorkspaceConfigurationOptions)
             {
                 composition = composition.AddParts(typeof(TestWorkspaceConfigurationService));
+            }
+
+            if (disablePartialSolutions)
+            {
+                composition = composition.AddParts(typeof(WorkpacePartialSolutionsTestHook));
             }
 
             return composition.GetHostServices();
