@@ -1472,7 +1472,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private static BindValueKind GetRequiredRHSValueKindForRefAssignment(BoundExpression boundLeft)
         {
-            var rhsKind = BindValueKind.RefersToLocation;
+            var rhsKind = BindValueKind.RefersToLocation | BindValueKind.RValue;
 
             if (!boundLeft.HasErrors)
             {
