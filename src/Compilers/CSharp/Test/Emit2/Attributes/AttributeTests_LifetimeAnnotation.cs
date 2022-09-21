@@ -273,7 +273,7 @@ ref struct R { }
             Assert.Equal(DeclarationScope.RefScoped, parameter.EffectiveScope);
 
             method = comp.GetMember<MethodSymbol>("A.F4");
-            Assert.Equal("void A.F4(ref R r)", method.ToDisplayString(SymbolDisplayFormat.TestFormat.WithCompilerInternalOptions(SymbolDisplayCompilerInternalOptions.IncludeScoped)));
+            Assert.Equal("void A.F4(scoped ref R r)", method.ToDisplayString(SymbolDisplayFormat.TestFormat.WithCompilerInternalOptions(SymbolDisplayCompilerInternalOptions.IncludeScoped)));
             parameter = method.Parameters[0];
             Assert.Equal(DeclarationScope.RefScoped, parameter.EffectiveScope);
         }
