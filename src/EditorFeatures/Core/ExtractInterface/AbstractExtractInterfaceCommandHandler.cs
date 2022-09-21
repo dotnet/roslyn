@@ -66,19 +66,22 @@ namespace Microsoft.CodeAnalysis.ExtractInterface
                 var extractInterfaceService = document.GetLanguageService<AbstractExtractInterfaceService>();
                 _threadingContext.JoinableTaskFactory.Run(async () =>
                 {
+                    // ConfigureAwait(true) here so we are back on the UI thread
+                    // before calling TryApplyChanges below. Make sure if other
+                    // async code is added between the two calls to handle thread
+                    // affinity accordingly
                     var result = await extractInterfaceService.ExtractInterfaceAsync(
                         document,
                         caretPoint.Value.Position,
                         _globalOptions.CreateProvider(),
                         (errorMessage, severity) => workspace.Services.GetService<INotificationService>().SendNotification(errorMessage, severity: severity),
-                        CancellationToken.None).ConfigureAwait(false);
+                        CancellationToken.None).ConfigureAwait(true);
 
                     if (result == null || !result.Succeeded)
                     {
                         return;
                     }
 
-                    await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync();
                     if (!document.Project.Solution.Workspace.TryApplyChanges(result.UpdatedSolution))
                     {
                         // TODO: handle failure
