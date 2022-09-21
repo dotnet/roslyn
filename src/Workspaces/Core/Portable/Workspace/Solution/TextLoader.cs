@@ -3,6 +3,8 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.IO;
 using System.Reflection;
 using System.Text;
@@ -18,6 +20,8 @@ namespace Microsoft.CodeAnalysis
     /// </summary>
     public abstract class TextLoader
     {
+        private static ImmutableDictionary<Type, bool> s_isObsoleteLoadTextAndVersionAsyncOverriden = ImmutableDictionary<Type, bool>.Empty;
+
         private const double MaxDelaySecs = 1.0;
         private const int MaxRetries = 5;
         internal static readonly TimeSpan RetryDelay = TimeSpan.FromSeconds(MaxDelaySecs / MaxRetries);
@@ -31,9 +35,19 @@ namespace Microsoft.CodeAnalysis
         /// <exception cref="InvalidDataException"/>
         /// <exception cref="OperationCanceledException"/>
         public virtual Task<TextAndVersion> LoadTextAndVersionAsync(CancellationToken cancellationToken)
+        {
 #pragma warning disable CS0618 // Type or member is obsolete
-            => LoadTextAndVersionAsync(workspace: null, documentId: null, cancellationToken);
-#pragma warning restore CS0618
+            if (ImmutableInterlocked.GetOrAdd(
+                ref s_isObsoleteLoadTextAndVersionAsyncOverriden,
+                GetType(),
+                new Func<Workspace, DocumentId, CancellationToken, Task<TextAndVersion>>(LoadTextAndVersionAsync).Method.DeclaringType != typeof(TextLoader)))
+            {
+                return LoadTextAndVersionAsync(workspace: null, documentId: null, cancellationToken);
+            }
+#pragma warning restore
+
+            throw new NotImplementedException($"{GetType()} must override LoadTextAndVersionAsync");
+        }
 
         /// <summary>
         /// Load a text and a version of the document.
