@@ -77,7 +77,11 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                     {
                         get
                         {
+#if false // Not used in unit testing crawling
                             return Task.WhenAll(Processor._highPriorityProcessor.Running, Processor._normalPriorityProcessor.Running);
+#else
+                            return Processor._normalPriorityProcessor.Running;
+#endif
                         }
                     }
 
@@ -85,7 +89,11 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                     {
                         get
                         {
-                            return Processor._highPriorityProcessor.HasAnyWork || Processor._normalPriorityProcessor.HasAnyWork;
+                            return
+#if false // Not used in unit testing crawling
+                                Processor._highPriorityProcessor.HasAnyWork ||
+#endif
+                                Processor._normalPriorityProcessor.HasAnyWork;
                         }
                     }
 

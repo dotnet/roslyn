@@ -190,20 +190,28 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                     }
 
                     protected override Task HigherQueueOperationTask
+#if false // Not used in unit testing crawling
                     {
                         get
                         {
                             return Processor._highPriorityProcessor.Running;
                         }
                     }
+#else
+                        => Task.CompletedTask;
+#endif
 
                     protected override bool HigherQueueHasWorkItem
+#if false // Not used in unit testing crawling
                     {
                         get
                         {
                             return Processor._highPriorityProcessor.HasAnyWork;
                         }
                     }
+#else
+                        => false;
+#endif
 
                     protected override void OnPaused()
                     {

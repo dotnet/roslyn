@@ -40,7 +40,9 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
             public UnitTestingWorkCoordinator(
                  IAsynchronousOperationListener listener,
                  IEnumerable<Lazy<IUnitTestingIncrementalAnalyzerProvider, UnitTestingIncrementalAnalyzerProviderMetadata>> analyzerProviders,
+#if false // Not used in unit testing crawling
                  bool initializeLazily,
+#endif
                  UnitTestingRegistration registration)
             {
                 _registration = registration;
@@ -59,8 +61,16 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                 var entireProjectWorkerBackOffTimeSpan = UnitTestingSolutionCrawlerTimeSpan.EntireProjectWorkerBackOff;
 
                 _documentAndProjectWorkerProcessor = new UnitTestingIncrementalAnalyzerProcessor(
-                    listener, analyzerProviders, initializeLazily, _registration,
-                    activeFileBackOffTimeSpan, allFilesWorkerBackOffTimeSpan, entireProjectWorkerBackOffTimeSpan, _shutdownToken);
+                    listener,
+                    analyzerProviders,
+#if false // Not used in unit testing crawling
+                    initializeLazily,
+#endif
+                    _registration,
+                    activeFileBackOffTimeSpan,
+                    allFilesWorkerBackOffTimeSpan,
+                    entireProjectWorkerBackOffTimeSpan,
+                    _shutdownToken);
 
                 var semanticBackOffTimeSpan = UnitTestingSolutionCrawlerTimeSpan.SemanticChangeBackOff;
                 var projectBackOffTimeSpan = UnitTestingSolutionCrawlerTimeSpan.ProjectPropagationBackOff;

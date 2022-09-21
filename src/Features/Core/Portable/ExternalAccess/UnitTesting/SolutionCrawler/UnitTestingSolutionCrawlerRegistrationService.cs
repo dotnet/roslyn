@@ -70,7 +70,9 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                     coordinator = new UnitTestingWorkCoordinator(
                         _listener,
                         GetAnalyzerProviders(workspaceKind),
+#if false // Not used in unit testing crawling
                         initializeLazily: true,
+#endif
                         new UnitTestingRegistration(this, correlationId, workspaceKind, solutionServices, _progressReporter));
 
                     _documentWorkCoordinatorMap.Add((workspaceKind, solutionServices), coordinator);
