@@ -1362,13 +1362,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                     || type.IsNativeIntegerWrapperType
                     || (type.IsTupleType && !type.TupleElementNames.IsDefault))
                 {
-                    diagnostics.Add(ErrorCode.ERR_AttrDependentTypeNotAllowed, errorLocation, type.ToDisplayString(SymbolDisplayFormat.CSharpShortErrorMessageFormat));
+                    diagnostics.Add(ErrorCode.ERR_AttrDependentTypeNotAllowed, errorLocation, type);
                     return true;
                 }
 
                 if (type.Kind == SymbolKind.TypeParameter)
                 {
-                    diagnostics.Add(ErrorCode.ERR_AttrTypeArgCannotBeTypeVar, errorLocation, type.ToDisplayString(SymbolDisplayFormat.CSharpErrorMessageFormat));
+                    diagnostics.Add(ErrorCode.ERR_AttrTypeArgCannotBeTypeVar, errorLocation, type);
                     return true;
                 }
 
