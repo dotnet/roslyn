@@ -119,12 +119,19 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                     ReportPendingWorkItemCount();
                 }
 
-                public void AddAnalyzer(IUnitTestingIncrementalAnalyzer analyzer, bool highPriorityForActiveFile)
+                public void AddAnalyzer(
+                    IUnitTestingIncrementalAnalyzer analyzer
+#if false // Not used in unit testing crawling
+                    , bool highPriorityForActiveFile
+#endif
+                    )
                 {
+#if false // Not used in unit testing crawling
                     if (highPriorityForActiveFile)
                     {
                         _highPriorityProcessor.AddAnalyzer(analyzer);
                     }
+#endif
 
                     _normalPriorityProcessor.AddAnalyzer(analyzer);
                     _lowPriorityProcessor.AddAnalyzer(analyzer);
@@ -412,7 +419,13 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                 private class UnitTestingAnalyzersGetter
                 {
                     private readonly List<Lazy<IUnitTestingIncrementalAnalyzerProvider, UnitTestingIncrementalAnalyzerProviderMetadata>> _analyzerProviders;
-                    private readonly Dictionary<(string workspaceKind, SolutionServices services), ImmutableArray<(IUnitTestingIncrementalAnalyzer analyzer, bool highPriorityForActiveFile)>> _analyzerMap = new();
+                    private readonly Dictionary<(string workspaceKind, SolutionServices services), ImmutableArray<
+#if false // Not used in unit testing crawling
+                        (IUnitTestingIncrementalAnalyzer analyzer, bool highPriorityForActiveFile)
+#else
+                        IUnitTestingIncrementalAnalyzer
+#endif
+                        >> _analyzerMap = new();
 
                     public UnitTestingAnalyzersGetter(IEnumerable<Lazy<IUnitTestingIncrementalAnalyzerProvider, UnitTestingIncrementalAnalyzerProviderMetadata>> analyzerProviders)
                     {
@@ -425,25 +438,37 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                         {
                             if (!_analyzerMap.TryGetValue((workspaceKind, services), out var analyzers))
                             {
+                                analyzers = _analyzerProviders
+                                    .Select(p => p.Value.CreateIncrementalAnalyzer())
+                                    .WhereNotNull()
+                                    .ToImmutableArray();
+#if false // Not used in unit testing crawling
                                 // Sort list so DiagnosticIncrementalAnalyzers (if any) come first.
                                 analyzers = _analyzerProviders.Select(p => (analyzer: p.Value.CreateIncrementalAnalyzer(), highPriorityForActiveFile: p.Metadata.HighPriorityForActiveFile))
                                                 .Where(t => t.analyzer != null)
-#if false // Not used in unit testing crawling
                                                 .OrderBy(t => t.analyzer!.Priority)
-#endif
                                                 .ToImmutableArray()!;
+#endif
 
                                 _analyzerMap[(workspaceKind, services)] = analyzers;
                             }
 
                             if (onlyHighPriorityAnalyzer)
                             {
+#if false // Not used in unit testing crawling
                                 // include only high priority analyzer for active file
                                 return analyzers.SelectAsArray(t => t.highPriorityForActiveFile, t => t.analyzer);
+#else
+                                return ImmutableArray<IUnitTestingIncrementalAnalyzer>.Empty;
+#endif
                             }
 
+#if false // Not used in unit testing crawling
                             // return all analyzers
                             return analyzers.Select(t => t.analyzer).ToImmutableArray();
+#else
+                            return analyzers;
+#endif
                         }
                     }
                 }

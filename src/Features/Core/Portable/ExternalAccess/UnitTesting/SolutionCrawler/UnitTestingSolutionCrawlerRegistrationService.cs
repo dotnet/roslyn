@@ -130,7 +130,11 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                     var analyzer = lazyProvider.Value.CreateIncrementalAnalyzer();
                     if (analyzer != null)
                     {
-                        coordinator.AddAnalyzer(analyzer, metadata.HighPriorityForActiveFile);
+                        coordinator.AddAnalyzer(analyzer
+#if false // Not used in unit testing crawling
+                            , metadata.HighPriorityForActiveFile
+#endif
+                            );
                     }
                 }
             }

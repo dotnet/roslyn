@@ -95,11 +95,13 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                             return;
                         }
 
+#if false // Not used in unit testing crawling
                         if (!_processor._documentTracker.SupportsDocumentTracking
                             && _processor._registration.WorkspaceKind is WorkspaceKind.RemoteWorkspace)
                         {
                             Debug.Fail($"Unexpected use of '{nameof(ExportUnitTestingIncrementalAnalyzerProviderAttribute.HighPriorityForActiveFile)}' in workspace kind '{_processor._registration.WorkspaceKind}' that cannot support active file tracking.");
                         }
+#endif
 
                         // check whether given item is for active document, otherwise, nothing to do here
                         if (_processor._documentTracker.TryGetActiveDocument() != item.DocumentId)
