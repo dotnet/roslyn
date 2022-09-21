@@ -362,7 +362,7 @@ End Class</a>
             MarkupTestFile.GetPosition(markup.NormalizedValue, code, position)
 
             Using workspaceFixture = New VisualBasicTestWorkspaceFixture()
-                workspaceFixture.GetWorkspace(ExportProvider)
+                workspaceFixture.GetWorkspace(GetComposition())
                 Dim document1 = workspaceFixture.UpdateDocument(code, SourceCodeKind.Regular)
 
                 Dim options As CompletionOptions

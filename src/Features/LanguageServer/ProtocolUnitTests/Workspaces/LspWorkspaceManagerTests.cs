@@ -249,19 +249,17 @@ public class LspWorkspaceManagerTests : AbstractLanguageServerProtocolTests
         // Verify 1 workspace registered to start with.
         Assert.True(IsWorkspaceRegistered(testLspServer.TestWorkspace, testLspServer));
 
-        var exportProvider = testLspServer.TestWorkspace.ExportProvider;
-
         using var testWorkspaceTwo = TestWorkspace.Create(
             XElement.Parse(secondWorkspaceXml),
             workspaceKind: "OtherWorkspaceKind",
-            exportProvider: exportProvider);
+            composition: Composition);
 
         // Wait for workspace creation operations for the second workspace to complete.
         await WaitForWorkspaceOperationsAsync(testWorkspaceTwo);
 
         // Manually register the workspace since the workspace listener does not listen for this workspace kind.
-        var workspaceRegistrationService = exportProvider.GetExport<LspWorkspaceRegistrationService>();
-        workspaceRegistrationService.Value.Register(testWorkspaceTwo);
+        var workspaceRegistrationService = testLspServer.TestWorkspace.GetService<LspWorkspaceRegistrationService>();
+        workspaceRegistrationService.Register(testWorkspaceTwo);
 
         // Verify both workspaces registered.
         Assert.True(IsWorkspaceRegistered(testLspServer.TestWorkspace, testLspServer));
@@ -315,12 +313,11 @@ public class LspWorkspaceManagerTests : AbstractLanguageServerProtocolTests
 </Workspace>";
 
         await using var testLspServer = await CreateXmlTestLspServerAsync(firstWorkspaceXml);
-        var exportProvider = testLspServer.TestWorkspace.ExportProvider;
 
         using var testWorkspaceTwo = TestWorkspace.Create(
             XElement.Parse(secondWorkspaceXml),
             workspaceKind: WorkspaceKind.MSBuild,
-            exportProvider: exportProvider);
+            composition: Composition);
 
         // Wait for workspace creation operations to complete for the second workspace.
         await WaitForWorkspaceOperationsAsync(testWorkspaceTwo);
@@ -378,12 +375,10 @@ public class LspWorkspaceManagerTests : AbstractLanguageServerProtocolTests
 
         await using var testLspServer = await CreateXmlTestLspServerAsync(firstWorkspaceXml);
 
-        var exportProvider = testLspServer.TestWorkspace.ExportProvider;
-
         using var testWorkspaceTwo = TestWorkspace.Create(
             XElement.Parse(secondWorkspaceXml),
             workspaceKind: WorkspaceKind.MSBuild,
-            exportProvider: exportProvider);
+            composition: Composition);
 
         // Wait for workspace operations to complete for the second workspace.
         await WaitForWorkspaceOperationsAsync(testWorkspaceTwo);

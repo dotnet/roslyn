@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -21,6 +22,7 @@ using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
+using Microsoft.CodeAnalysis.UnitTests;
 using Microsoft.VisualStudio.Composition;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
@@ -35,6 +37,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
     public partial class TestWorkspace : Workspace
     {
         public ExportProvider ExportProvider { get; }
+        public TestComposition? Composition { get; }
 
         public bool CanApplyChangeDocument { get; set; }
 
@@ -57,20 +60,19 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         private readonly string _workspaceKind;
 
         public TestWorkspace(
-            ExportProvider? exportProvider = null,
             TestComposition? composition = null,
             string? workspaceKind = WorkspaceKind.Host,
             Guid solutionTelemetryId = default,
             bool disablePartialSolutions = true,
             bool ignoreUnchangeableDocumentsWhenApplyingChanges = true)
-            : base(GetHostServices(exportProvider, composition), workspaceKind ?? WorkspaceKind.Host)
+            : base(GetHostServices(ref composition, disablePartialSolutions), workspaceKind ?? WorkspaceKind.Host)
         {
-            Contract.ThrowIfTrue(exportProvider != null && composition != null);
-
             SetCurrentSolution(CreateSolution(SolutionInfo.Create(SolutionId.CreateNewId(), VersionStamp.Create()).WithTelemetryId(solutionTelemetryId)));
 
             this.TestHookPartialSolutionsDisabled = disablePartialSolutions;
-            this.ExportProvider = exportProvider ?? GetComposition(composition).ExportProviderFactory.CreateExportProvider();
+
+            this.Composition = composition;
+            this.ExportProvider = composition.ExportProviderFactory.CreateExportProvider();
             _workspaceKind = workspaceKind ?? WorkspaceKind.Host;
             this.Projects = new List<TestHostProject>();
             this.Documents = new List<TestHostDocument>();
@@ -109,11 +111,17 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             _metadataAsSourceFileService = ExportProvider.GetExportedValues<IMetadataAsSourceFileService>().FirstOrDefault();
         }
 
-        internal static TestComposition GetComposition(TestComposition? composition)
-            => composition ?? EditorTestCompositions.EditorFeatures;
+        private static HostServices GetHostServices([NotNull] ref TestComposition? composition, bool disablePartialSolutions)
+        {
+            composition ??= EditorTestCompositions.EditorFeatures;
 
-        private static HostServices GetHostServices(ExportProvider? exportProvider = null, TestComposition? composition = null)
-           => (exportProvider != null) ? VisualStudioMefHostServices.Create(exportProvider) : GetComposition(composition).GetHostServices();
+            if (disablePartialSolutions)
+            {
+                composition = composition.AddParts(typeof(WorkpacePartialSolutionsTestHook));
+            }
+
+            return composition.GetHostServices();
+        }
 
         protected internal override bool PartialSemanticsEnabled
         {

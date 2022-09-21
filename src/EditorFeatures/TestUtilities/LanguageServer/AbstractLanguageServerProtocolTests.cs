@@ -36,6 +36,7 @@ using Newtonsoft.Json.Linq;
 using Roslyn.Utilities;
 using StreamJsonRpc;
 using Xunit;
+using static Microsoft.CodeAnalysis.Editor.UnitTests.NavigateTo.AbstractNavigateToTests;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Roslyn.Test.Utilities
@@ -301,22 +302,18 @@ namespace Roslyn.Test.Utilities
         private Task<TestLspServer> CreateTestLspServerAsync(string[] markups, string languageName, InitializationOptions? initializationOptions)
         {
             var lspOptions = initializationOptions ?? new InitializationOptions();
-            var exportProvider = Composition.ExportProviderFactory.CreateExportProvider();
-            var workspaceConfigurationService = exportProvider.GetExportedValue<TestWorkspaceConfigurationService>();
-            workspaceConfigurationService.Options = new WorkspaceConfigurationOptions(EnableOpeningSourceGeneratedFiles: true);
-
-            if (lspOptions.OptionUpdater != null)
-            {
-                var globalOptions = exportProvider.GetExportedValue<IGlobalOptionService>();
-                lspOptions.OptionUpdater(globalOptions);
-            }
 
             var workspace = languageName switch
             {
-                LanguageNames.CSharp => TestWorkspace.CreateCSharp(markups, lspOptions.SourceGeneratedMarkups, exportProvider: exportProvider),
-                LanguageNames.VisualBasic => TestWorkspace.CreateVisualBasic(markups, lspOptions.SourceGeneratedMarkups, exportProvider: exportProvider),
+                LanguageNames.CSharp => TestWorkspace.CreateCSharp(markups, lspOptions.SourceGeneratedMarkups, composition: Composition),
+                LanguageNames.VisualBasic => TestWorkspace.CreateVisualBasic(markups, lspOptions.SourceGeneratedMarkups, composition: Composition),
                 _ => throw new ArgumentException($"language name {languageName} is not valid for a test workspace"),
             };
+
+            var workspaceConfigurationService = workspace.GetService<TestWorkspaceConfigurationService>();
+            workspaceConfigurationService.Options = new WorkspaceConfigurationOptions(EnableOpeningSourceGeneratedFiles: true);
+
+            lspOptions.OptionUpdater?.Invoke(workspace.GetService<IGlobalOptionService>());
 
             return CreateTestLspServerAsync(workspace, lspOptions);
         }
@@ -359,14 +356,14 @@ namespace Roslyn.Test.Utilities
             InitializationOptions? initializationOptions = null)
         {
             var lspOptions = initializationOptions ?? new InitializationOptions();
-            var exportProvider = Composition.ExportProviderFactory.CreateExportProvider();
+
+            var workspace = TestWorkspace.Create(XElement.Parse(xmlContent), openDocuments: false, composition: Composition, workspaceKind: workspaceKind);
+
             if (lspOptions.OptionUpdater != null)
             {
-                var globalOptions = exportProvider.GetExportedValue<IGlobalOptionService>();
-                lspOptions.OptionUpdater(globalOptions);
+                lspOptions.OptionUpdater(workspace.GetService<IGlobalOptionService>());
             }
 
-            var workspace = TestWorkspace.Create(XElement.Parse(xmlContent), openDocuments: false, exportProvider: exportProvider, workspaceKind: workspaceKind);
             workspace.TryApplyChanges(workspace.CurrentSolution.WithAnalyzerReferences(new[] { TestAnalyzerReferences }));
 
             // Important: We must wait for workspace creation operations to finish.
