@@ -285,19 +285,11 @@ namespace Microsoft.CodeAnalysis.Completion
         {
             // It's very common for people to type expecting completion to fix up their casing,
             // so if no uppercase characters were typed so far, we'd loosen our standard on comparing items
-            // in case-sensitive manner and take into consideration the MatchPriority as well.
-            // i.e. when everything else is equal, then if item1 is a better case-sensitive match but item2 has higher 
-            // MatchPriority, we consider them equally good match, so the controller will later have a chance to
-            // decide which is the best one to select.
-            var filterTextIsLowerCaseOnly = true;
-            for (var i = 0; i < filterText.Length; ++i)
-            {
-                if (char.IsUpper(filterText[i]))
-                {
-                    filterTextIsLowerCaseOnly = false;
-                    break;
-                }
-            }
+            // in terms of case-sensitivity and take into consideration the MatchPriority in certain scenarios.
+            // i.e. when everything else is equal, if item1 is a better case-sensitive match but has
+            // MatchPriority.Deprioritize, and item2 is not MatchPriority.Deprioritize, then we consider
+            // item2 a better match.
+            var filterTextHasNoUpperCase = !filterText.Any(char.IsUpper);
 
             var bestItems = s_listOfItemMatchPairPool.Allocate();
 
@@ -313,7 +305,7 @@ namespace Microsoft.CodeAnalysis.Completion
                     }
 
                     var (bestItem, bestItemMatch) = bestItems[0];
-                    var comparison = completionHelper.CompareItems(pair.item, pair.match, bestItem, bestItemMatch, filterTextIsLowerCaseOnly);
+                    var comparison = completionHelper.CompareItems(pair.item, pair.match, bestItem, bestItemMatch, filterTextHasNoUpperCase);
 
                     if (comparison == 0)
                     {

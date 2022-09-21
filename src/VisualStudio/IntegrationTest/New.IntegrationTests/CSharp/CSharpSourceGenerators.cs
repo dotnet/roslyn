@@ -92,7 +92,7 @@ internal static class Program
                 Assert.Equal($"{HelloWorldGenerator.GeneratedEnglishClassName}.cs {ServicesVSResources.generated_suffix}", await TestServices.Shell.GetActiveWindowCaptionAsync(HangMitigatingCancellationToken));
             }
 
-            await TestServices.Input.SendAsync((VirtualKeyCode.F12, VirtualKeyCode.SHIFT));
+            await TestServices.Input.SendAsync((VirtualKeyCode.F12, VirtualKeyCode.SHIFT), HangMitigatingCancellationToken);
 
             var results = (await TestServices.FindReferencesWindow.GetContentsAsync(HangMitigatingCancellationToken)).OrderBy(r => r.GetLine()).ToArray();
 
@@ -134,7 +134,7 @@ internal static class Program
 }", HangMitigatingCancellationToken);
 
             await TestServices.Editor.PlaceCaretAsync(HelloWorldGenerator.GeneratedEnglishClassName, charsOffset: 0, HangMitigatingCancellationToken);
-            await TestServices.Input.SendAsync((VirtualKeyCode.F12, VirtualKeyCode.SHIFT));
+            await TestServices.Input.SendAsync((VirtualKeyCode.F12, VirtualKeyCode.SHIFT), HangMitigatingCancellationToken);
 
             var results = await TestServices.FindReferencesWindow.GetContentsAsync(HangMitigatingCancellationToken);
             var referenceInGeneratedFile = results.Single(r => r.GetText()?.Contains("<summary>") ?? false);

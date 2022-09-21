@@ -1523,7 +1523,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_TypeReserved = 8336,
         ERR_RefExtensionMustBeValueTypeOrConstrainedToOne = 8337,
         ERR_InExtensionMustBeValueType = 8338,
-        ERR_BadParameterModifiersOrder = 8339,
+        // ERR_BadParameterModifiersOrder = 8339,
 
         ERR_FieldsInRoStruct = 8340,
         ERR_AutoPropsInRoStruct = 8341,
@@ -1610,6 +1610,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_VarianceInterfaceNesting = 8427,
         ERR_ImplicitIndexIndexerWithName = 8428,
         ERR_ImplicitRangeIndexerWithName = 8429,
+        // available range
+
+        WRN_ManagedAddr = 8500,
         // available range
 
         #region diagnostics introduced for recursive patterns
@@ -2120,11 +2123,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_FilePathCannotBeConvertedToUtf8 = 9069,
         ERR_ReadOnlyNotSuppAsParamModDidYouMeanIn = 9070,
         ERR_FileLocalDuplicateNameInNS = 9071,
-        ERR_ScopedNotBeforeType = 9072,
+        // Available 9072,
         WRN_ScopedMismatchInParameterOfTarget = 9073,
         WRN_ScopedMismatchInParameterOfOverrideOrImplementation = 9074,
         ERR_RefReturnScopedParameter = 9075,
-        ERR_RefReturnScopedParameter2 = 9076
+        ERR_RefReturnScopedParameter2 = 9076,
+        ERR_RefReturnOnlyParameter = 9077,
+        ERR_RefReturnOnlyParameter2 = 9078,
+        ERR_RefAssignReturnOnly = 9079,
 
         #endregion
 
