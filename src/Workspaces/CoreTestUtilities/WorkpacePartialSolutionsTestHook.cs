@@ -11,7 +11,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.UnitTests;
 
-[ExportWorkspaceService(typeof(IWorkspaceTestLogger), ServiceLayer.Host), Shared, PartNotDiscoverable]
+[ExportWorkspaceService(typeof(IWorkpacePartialSolutionsTestHook), ServiceLayer.Host), Shared, PartNotDiscoverable]
 internal class WorkpacePartialSolutionsTestHook : IWorkpacePartialSolutionsTestHook
 {
     public bool IsPartialSolutionDisabled { get; set; } = true;
