@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.Api;
 
 internal sealed partial class NewUnitTestingIncrementalAnalyzerProvider
 {
-    private class NewUnitTestingIncrementalAnalyzer : IUnitTestingIncrementalAnalyzer
+    private sealed class NewUnitTestingIncrementalAnalyzer : IUnitTestingIncrementalAnalyzer
     {
         private readonly INewUnitTestingIncrementalAnalyzerImplementation _implementation;
 
