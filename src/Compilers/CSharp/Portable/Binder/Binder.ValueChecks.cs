@@ -2282,8 +2282,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return isValueType ? ErrorCode.ERR_AssgReadonlyLocal : ErrorCode.ERR_IncrementLvalueExpected;
 
                 case BindValueKind.RefReturn:
-                case BindValueKind.ReadonlyRef:
                     return ErrorCode.ERR_RefReturnThis;
+
+                case BindValueKind.ReadonlyRef:
+                    return ErrorCode.ERR_RefReadonlyLocal;
 
                 case BindValueKind.RefAssignable:
                     return ErrorCode.ERR_RefLocalOrParamExpected;

@@ -3866,9 +3866,9 @@ class Test
                 // (6,9): error CS8373: The left-hand side of a ref assignment must be a ref variable.
                 //         this = ref this;
                 Diagnostic(ErrorCode.ERR_RefLocalOrParamExpected, "this").WithLocation(6, 9),
-                // (6,20): error CS8354: Cannot return 'this' by reference.
+                // (6,20): error CS1605: Cannot use 'this' as a ref or out value because it is read-only
                 //         this = ref this;
-                Diagnostic(ErrorCode.ERR_RefReturnThis, "this").WithLocation(6, 20),
+                Diagnostic(ErrorCode.ERR_RefReadonlyLocal, "this").WithArguments("this").WithLocation(6, 20),
                 // (7,19): error CS1605: Cannot use 'this' as a ref or out value because it is read-only
                 //         obj = ref this;
                 Diagnostic(ErrorCode.ERR_RefReadonlyLocal, "this").WithArguments("this").WithLocation(7, 19),
