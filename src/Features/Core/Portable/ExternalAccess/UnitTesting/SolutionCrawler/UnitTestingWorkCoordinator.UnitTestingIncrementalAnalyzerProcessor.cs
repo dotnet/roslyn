@@ -216,7 +216,9 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                         }
                         else
                         {
+#if false // Not used in unit testing crawling
                             await analyzer.AnalyzeNonSourceDocumentAsync(textDocument, reasons, cancellationToken).ConfigureAwait(false);
+#endif
                         }
                     }
 

@@ -30,9 +30,10 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
         Task AnalyzeProjectAsync(Project project, bool semanticsChanged, UnitTestingInvocationReasons reasons, CancellationToken cancellationToken);
 
         Task RemoveDocumentAsync(DocumentId documentId, CancellationToken cancellationToken);
-        Task RemoveProjectAsync(ProjectId projectId, CancellationToken cancellationToken);
 
 #if false // Not used in unit testing crawling
+        Task RemoveProjectAsync(ProjectId projectId, CancellationToken cancellationToken);
+
         Task NonSourceDocumentOpenAsync(TextDocument textDocument, CancellationToken cancellationToken);
         Task NonSourceDocumentCloseAsync(TextDocument textDocument, CancellationToken cancellationToken);
 
@@ -40,9 +41,9 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
         /// Resets all the document state cached by the analyzer.
         /// </summary>
         Task NonSourceDocumentResetAsync(TextDocument textDocument, CancellationToken cancellationToken);
-#endif
 
         Task AnalyzeNonSourceDocumentAsync(TextDocument textDocument, UnitTestingInvocationReasons reasons, CancellationToken cancellationToken);
+#endif
 
         void LogAnalyzerCountSummary();
         int Priority { get; }

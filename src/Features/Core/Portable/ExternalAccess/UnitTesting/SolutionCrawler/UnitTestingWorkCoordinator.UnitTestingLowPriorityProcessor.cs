@@ -156,7 +156,9 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                                 {
                                     UnitTestingSolutionCrawlerLogger.LogProcessProjectNotExist(Processor._logAggregator);
 
+#if false // Not used in unit testing crawling
                                     await RemoveProjectAsync(projectId, cancellationToken).ConfigureAwait(false);
+#endif
                                 }
 
                                 if (!cancellationToken.IsCancellationRequested)
@@ -187,6 +189,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                         }
                     }
 
+#if false // Not used in unit testing crawling
                     private async Task RemoveProjectAsync(ProjectId projectId, CancellationToken cancellationToken)
                     {
                         foreach (var analyzer in Analyzers)
@@ -194,6 +197,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                             await analyzer.RemoveProjectAsync(projectId, cancellationToken).ConfigureAwait(false);
                         }
                     }
+#endif
 
                     public override void Shutdown()
                     {

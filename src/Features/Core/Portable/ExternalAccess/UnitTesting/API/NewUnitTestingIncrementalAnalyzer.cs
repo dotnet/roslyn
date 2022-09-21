@@ -51,10 +51,10 @@ internal sealed partial class NewUnitTestingIncrementalAnalyzerProvider
             return Task.CompletedTask;
         }
 
+#if false // Not used in unit testing crawling
         public Task RemoveProjectAsync(ProjectId projectId, CancellationToken cancellationToken)
             => Task.CompletedTask;
 
-#if false // Not used in unit testing crawling
         public Task NonSourceDocumentOpenAsync(TextDocument textDocument, CancellationToken cancellationToken)
             => Task.CompletedTask;
 
@@ -63,10 +63,10 @@ internal sealed partial class NewUnitTestingIncrementalAnalyzerProvider
 
         public Task NonSourceDocumentResetAsync(TextDocument textDocument, CancellationToken cancellationToken)
             => Task.CompletedTask;
-#endif
 
         public Task AnalyzeNonSourceDocumentAsync(TextDocument textDocument, UnitTestingInvocationReasons reasons, CancellationToken cancellationToken)
             => Task.CompletedTask;
+#endif
 
         public void LogAnalyzerCountSummary()
         {
