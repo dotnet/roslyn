@@ -4,16 +4,25 @@
 
 using System;
 using System.Collections.Generic;
+using System.Composition;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Xunit;
 using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.Host;
 
-internal class WorkspaceTestLogger : IWorkspaceTestLogger
+[ExportWorkspaceService(typeof(IWorkspaceTestLogger), ServiceLayer.Host), Shared, PartNotDiscoverable]
+internal sealed class WorkspaceTestLogger : IWorkspaceTestLogger
 {
+    [ImportingConstructor]
+    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    public WorkspaceTestLogger()
+    {
+    }
+
     public ITestOutputHelper? OutputHelper { get; set; }
 
     public void Log(string message)
