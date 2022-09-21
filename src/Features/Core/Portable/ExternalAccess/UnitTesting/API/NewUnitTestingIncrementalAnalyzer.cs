@@ -28,11 +28,13 @@ internal sealed partial class NewUnitTestingIncrementalAnalyzerProvider
         public Task AnalyzeSyntaxAsync(Document document, UnitTestingInvocationReasons reasons, CancellationToken cancellationToken)
             => _implementation.AnalyzeSyntaxAsync(document, reasons, cancellationToken);
 
+#if false // Not used in unit testing crawling
         public Task DocumentCloseAsync(Document document, CancellationToken cancellationToken)
             => Task.CompletedTask;
 
         public Task DocumentOpenAsync(Document document, CancellationToken cancellationToken)
             => Task.CompletedTask;
+#endif
 
         public Task DocumentResetAsync(Document document, CancellationToken cancellationToken)
             => Task.CompletedTask;
@@ -54,11 +56,13 @@ internal sealed partial class NewUnitTestingIncrementalAnalyzerProvider
         public Task RemoveProjectAsync(ProjectId projectId, CancellationToken cancellationToken)
             => Task.CompletedTask;
 
+#if false // Not used in unit testing crawling
         public Task NonSourceDocumentOpenAsync(TextDocument textDocument, CancellationToken cancellationToken)
             => Task.CompletedTask;
 
         public Task NonSourceDocumentCloseAsync(TextDocument textDocument, CancellationToken cancellationToken)
             => Task.CompletedTask;
+#endif
 
         public Task NonSourceDocumentResetAsync(TextDocument textDocument, CancellationToken cancellationToken)
             => Task.CompletedTask;

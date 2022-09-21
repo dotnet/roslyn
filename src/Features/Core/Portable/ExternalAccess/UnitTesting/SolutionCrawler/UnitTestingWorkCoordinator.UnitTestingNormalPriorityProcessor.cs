@@ -342,6 +342,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
 
                                 if (textDocument != null)
                                 {
+#if false // Not used in unit testing crawling
                                     // if we are called because a document is opened, we invalidate the document so that
                                     // it can be re-analyzed. otherwise, since newly opened document has same version as before
                                     // analyzer will simply return same data back
@@ -352,6 +353,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                                         await ProcessOpenDocumentIfNeededAsync(analyzers, workItem, textDocument, isOpen, cancellationToken).ConfigureAwait(false);
                                         await ProcessCloseDocumentIfNeededAsync(analyzers, workItem, textDocument, isOpen, cancellationToken).ConfigureAwait(false);
                                     }
+#endif
 
                                     // check whether we are having special reanalyze request
                                     await ProcessReanalyzeDocumentAsync(workItem, textDocument, cancellationToken).ConfigureAwait(false);
@@ -393,6 +395,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                         }
                     }
 
+#if false // Not used in unit testing crawling
                     private async Task ProcessOpenDocumentIfNeededAsync(ImmutableArray<IUnitTestingIncrementalAnalyzer> analyzers, UnitTestingWorkItem workItem, TextDocument textDocument, bool isOpen, CancellationToken cancellationToken)
                     {
                         if (!isOpen || !workItem.InvocationReasons.Contains(UnitTestingPredefinedInvocationReasons.DocumentOpened))
@@ -442,6 +445,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                             }
                         }
                     }
+#endif
 
                     private async Task ProcessReanalyzeDocumentAsync(UnitTestingWorkItem workItem, TextDocument document, CancellationToken cancellationToken)
                     {
