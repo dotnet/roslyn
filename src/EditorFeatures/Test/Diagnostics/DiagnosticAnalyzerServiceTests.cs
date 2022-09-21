@@ -619,7 +619,7 @@ dotnet_diagnostic.{NamedTypeAnalyzer.DiagnosticId}.severity = warning
         }
 
         [Theory, CombinatorialData]
-        internal async Task TestAdditionalFileAnalyzer(bool registerFromInitialize, bool testMultiple, BackgroundAnalysisScope analysisScope)
+        internal async Task TestAdditionalAndAnalyzerConfigFileAnalyzer(bool testAnalyzerConfigFile, bool registerFromInitialize, bool testMultiple, BackgroundAnalysisScope analysisScope)
         {
             using var workspace = CreateWorkspace();
 
@@ -630,20 +630,26 @@ dotnet_diagnostic.{NamedTypeAnalyzer.DiagnosticId}.severity = warning
             var project = workspace.AddProject(projectInfo);
 
             var diagnosticSpan = new TextSpan(2, 2);
-            var analyzer = new AdditionalFileAnalyzer(registerFromInitialize, diagnosticSpan, id: "ID0001");
-            var analyzers = ImmutableArray.Create<DiagnosticAnalyzer>(analyzer);
+            var analyzer = testAnalyzerConfigFile ?
+                (DiagnosticAnalyzer)new AnalyzerConfigFileAnalyzer(registerFromInitialize, diagnosticSpan, id: "ID0001") :
+                new AdditionalFileAnalyzer(registerFromInitialize, diagnosticSpan, id: "ID0001");
+            var analyzers = ImmutableArray.Create(analyzer);
             if (testMultiple)
             {
-                analyzer = new AdditionalFileAnalyzer2(registerFromInitialize, diagnosticSpan, id: "ID0002");
+                analyzer = testAnalyzerConfigFile ?
+                    new AnalyzerConfigFileAnalyzer2(registerFromInitialize, diagnosticSpan, id: "ID0002") :
+                    new AdditionalFileAnalyzer2(registerFromInitialize, diagnosticSpan, id: "ID0002");
                 analyzers = analyzers.Add(analyzer);
             }
 
             var analyzerReference = new AnalyzerImageReference(analyzers);
             project = project.WithAnalyzerReferences(new[] { analyzerReference })
-                .AddAdditionalDocument(name: "dummy.txt", text: "Additional File Text", filePath: "dummy.txt").Project;
+                .AddAdditionalDocument(name: "dummy.txt", text: "Additional File Text", filePath: "dummy.txt").Project
+                .AddAnalyzerConfigDocument(name: ".editorconfig", text: SourceText.From("# Analzyer Config File Text"), filePath: "c:\\.editorconfig").Project;
             if (testMultiple)
             {
-                project = project.AddAdditionalDocument(name: "dummy2.txt", text: "Additional File2 Text", filePath: "dummy2.txt").Project;
+                project = project.AddAdditionalDocument(name: "dummy2.txt", text: "Additional File2 Text", filePath: "dummy2.txt").Project
+                    .AddAnalyzerConfigDocument(name: ".editorconfig", text: SourceText.From("# Analzyer Config File2 Text"), filePath: "d:\\.editorconfig").Project;
             }
 
             var applied = workspace.TryApplyChanges(project.Solution);
@@ -660,15 +666,18 @@ dotnet_diagnostic.{NamedTypeAnalyzer.DiagnosticId}.severity = warning
             };
 
             var incrementalAnalyzer = (DiagnosticIncrementalAnalyzer)service.CreateIncrementalAnalyzer(workspace);
-            var firstAdditionalDocument = project.AdditionalDocuments.FirstOrDefault();
+            var firstTextDocument = testAnalyzerConfigFile ? project.AnalyzerConfigDocuments.FirstOrDefault() : project.AdditionalDocuments.FirstOrDefault();
 
             switch (analysisScope)
             {
                 case BackgroundAnalysisScope.None:
                 case BackgroundAnalysisScope.ActiveFile:
                 case BackgroundAnalysisScope.OpenFiles:
-                    workspace.OpenAdditionalDocument(firstAdditionalDocument.Id);
-                    await incrementalAnalyzer.AnalyzeNonSourceDocumentAsync(firstAdditionalDocument, InvocationReasons.SyntaxChanged, CancellationToken.None);
+                    if (testAnalyzerConfigFile)
+                        workspace.OpenAnalyzerConfigDocument(firstTextDocument.Id);
+                    else
+                        workspace.OpenAdditionalDocument(firstTextDocument.Id);
+                    await incrementalAnalyzer.AnalyzeNonSourceDocumentAsync(firstTextDocument, InvocationReasons.SyntaxChanged, CancellationToken.None);
                     break;
 
                 case BackgroundAnalysisScope.FullSolution:
@@ -694,19 +703,21 @@ dotnet_diagnostic.{NamedTypeAnalyzer.DiagnosticId}.severity = warning
 
             for (var i = 0; i < analyzers.Length; i++)
             {
-                analyzer = (AdditionalFileAnalyzer)analyzers[i];
-                foreach (var additionalDoc in project.AdditionalDocuments)
+                analyzer = analyzers[i];
+                var descriptor = analyzer.SupportedDiagnostics.Single();
+                var textDocuments = testAnalyzerConfigFile ? project.AnalyzerConfigDocuments : project.AdditionalDocuments;
+                foreach (var textDocument in textDocuments)
                 {
                     var applicableDiagnostics = diagnostics.Where(
-                        d => d.Id == analyzer.Descriptor.Id && d.DataLocation.UnmappedFileSpan.Path == additionalDoc.FilePath);
+                        d => d.Id == descriptor.Id && d.DataLocation.UnmappedFileSpan.Path == textDocument.FilePath);
 
-                    var text = await additionalDoc.GetTextAsync();
+                    var text = await textDocument.GetTextAsync();
                     if (analysisScope is BackgroundAnalysisScope.ActiveFile or BackgroundAnalysisScope.None)
                     {
                         Assert.Empty(applicableDiagnostics);
                     }
                     else if (analysisScope == BackgroundAnalysisScope.OpenFiles &&
-                        firstAdditionalDocument != additionalDoc)
+                        firstTextDocument != textDocument)
                     {
                         Assert.Empty(applicableDiagnostics);
                     }
@@ -725,6 +736,14 @@ dotnet_diagnostic.{NamedTypeAnalyzer.DiagnosticId}.severity = warning
         private class AdditionalFileAnalyzer2 : AdditionalFileAnalyzer
         {
             public AdditionalFileAnalyzer2(bool registerFromInitialize, TextSpan diagnosticSpan, string id)
+                : base(registerFromInitialize, diagnosticSpan, id)
+            {
+            }
+        }
+
+        private class AnalyzerConfigFileAnalyzer2 : AnalyzerConfigFileAnalyzer
+        {
+            public AnalyzerConfigFileAnalyzer2(bool registerFromInitialize, TextSpan diagnosticSpan, string id)
                 : base(registerFromInitialize, diagnosticSpan, id)
             {
             }

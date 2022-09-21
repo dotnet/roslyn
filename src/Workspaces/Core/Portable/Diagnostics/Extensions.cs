@@ -140,7 +140,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                                         treeToAnalyze, additionalDocumentId: null, spanToAnalyze, AnalysisKind.Syntax, diagnosticIdsToFilter, includeSuppressedDiagnostics);
                                 }
                             }
-                            else if (analysisResult.AdditionalFileDiagnostics.TryGetValue(additionalFileToAnalyze!, out diagnosticsByAnalyzerMap))
+                            else if (analysisResult.AdditionalFileDiagnostics.TryGetValue(additionalFileToAnalyze!, out diagnosticsByAnalyzerMap) ||
+                                analysisResult.AnalyzerConfigFileDiagnostics.TryGetValue(additionalFileToAnalyze!, out diagnosticsByAnalyzerMap))
                             {
                                 AddAnalyzerDiagnosticsToResult(analyzer, diagnosticsByAnalyzerMap, ref result, compilation,
                                     tree: null, documentAnalysisScope.TextDocument.Id, spanToAnalyze, AnalysisKind.Syntax, diagnosticIdsToFilter, includeSuppressedDiagnostics);
@@ -175,13 +176,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                             tree, additionalDocumentId: null, span: null, AnalysisKind.Semantic, diagnosticIdsToFilter, includeSuppressedDiagnostics);
                     }
 
-                    foreach (var (file, diagnosticsByAnalyzerMap) in analysisResult.AdditionalFileDiagnostics)
-                    {
-                        var additionalDocumentId = project.GetDocumentForFile(file);
-                        var kind = additionalDocumentId != null ? AnalysisKind.Syntax : AnalysisKind.NonLocal;
-                        AddAnalyzerDiagnosticsToResult(analyzer, diagnosticsByAnalyzerMap, ref result, compilation,
-                            tree: null, additionalDocumentId, span: null, kind, diagnosticIdsToFilter, includeSuppressedDiagnostics);
-                    }
+                    AddNonSourceFileAnalyzerDiagnosticsToResult(analyzer, analysisResult.AdditionalFileDiagnostics, diagnosticIdsToFilter, ref result);
+                    AddNonSourceFileAnalyzerDiagnosticsToResult(analyzer, analysisResult.AnalyzerConfigFileDiagnostics, diagnosticIdsToFilter, ref result);
 
                     AddAnalyzerDiagnosticsToResult(analyzer, analysisResult.CompilationDiagnostics, ref result, compilation,
                         tree: null, additionalDocumentId: null, span: null, AnalysisKind.NonLocal, diagnosticIdsToFilter, includeSuppressedDiagnostics);
@@ -216,6 +212,21 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
 
             return builder.ToImmutable();
+
+            void AddNonSourceFileAnalyzerDiagnosticsToResult(
+                DiagnosticAnalyzer analyzer,
+                ImmutableDictionary<AdditionalText, ImmutableDictionary<DiagnosticAnalyzer, ImmutableArray<Diagnostic>>> nonSourceFileDiagnosticsMap,
+                ImmutableArray<string> diagnosticIdsToFilter,
+                ref DiagnosticAnalysisResultBuilder result)
+            {
+                foreach (var (file, diagnosticsByAnalyzerMap) in nonSourceFileDiagnosticsMap)
+                {
+                    var textDocumentId = project.GetDocumentForFile(file);
+                    var kind = textDocumentId != null ? AnalysisKind.Syntax : AnalysisKind.NonLocal;
+                    AddAnalyzerDiagnosticsToResult(analyzer, diagnosticsByAnalyzerMap, ref result, compilation,
+                        tree: null, textDocumentId, span: null, kind, diagnosticIdsToFilter, includeSuppressedDiagnostics);
+                }
+            }
 
             static void AddAnalyzerDiagnosticsToResult(
                 DiagnosticAnalyzer analyzer,

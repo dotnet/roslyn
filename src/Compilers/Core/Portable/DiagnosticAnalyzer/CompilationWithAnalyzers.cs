@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// Lock to track the set of active tasks computing tree diagnostics and task computing compilation diagnostics.
         /// </summary>
         private readonly object _executingTasksLock = new object();
-        private readonly Dictionary<SourceOrAdditionalFile, Tuple<Task, CancellationTokenSource>>? _executingConcurrentTreeTasksOpt;
+        private readonly Dictionary<SourceOrNonSourceFile, Tuple<Task, CancellationTokenSource>>? _executingConcurrentTreeTasksOpt;
         private Tuple<Task, CancellationTokenSource>? _executingCompilationOrNonConcurrentTreeTask;
 
         /// <summary>
@@ -136,10 +136,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             _compilationData = new CompilationData(_compilation);
             _analysisState = new AnalysisState(analyzers, _compilationData.SemanticModelProvider, _compilation.Options);
-            _analysisResultBuilder = new AnalysisResultBuilder(analysisOptions.LogAnalyzerExecutionTime, analyzers, _analysisOptions.Options?.AdditionalFiles ?? ImmutableArray<AdditionalText>.Empty);
+            _analysisResultBuilder = new AnalysisResultBuilder(analysisOptions.LogAnalyzerExecutionTime, analyzers,
+                _analysisOptions.Options?.AdditionalFiles ?? ImmutableArray<AdditionalText>.Empty,
+                _analysisOptions.Options?.AnalyzerConfigFiles ?? ImmutableArray<AdditionalText>.Empty);
             _analyzerManager = new AnalyzerManager(analyzers);
             _driverPool = new ObjectPool<AnalyzerDriver>(() => _compilation.CreateAnalyzerDriver(analyzers, _analyzerManager, severityFilter: SeverityFilter.None));
-            _executingConcurrentTreeTasksOpt = analysisOptions.ConcurrentAnalysis ? new Dictionary<SourceOrAdditionalFile, Tuple<Task, CancellationTokenSource>>() : null;
+            _executingConcurrentTreeTasksOpt = analysisOptions.ConcurrentAnalysis ? new Dictionary<SourceOrNonSourceFile, Tuple<Task, CancellationTokenSource>>() : null;
             _concurrentTreeTaskTokensOpt = analysisOptions.ConcurrentAnalysis ? new Dictionary<Task, int>() : null;
             _executingCompilationOrNonConcurrentTreeTask = null;
         }
@@ -252,7 +254,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 throw new ArgumentNullException(nameof(file));
             }
 
-            if (_analysisOptions.Options == null || !_analysisOptions.Options.AdditionalFiles.Contains(file))
+            if (_analysisOptions.Options == null ||
+                (!_analysisOptions.Options.AdditionalFiles.Contains(file) &&
+                 !_analysisOptions.Options.AnalyzerConfigFiles.Contains(file)))
             {
                 throw new ArgumentException(CodeAnalysisResources.InvalidAdditionalFile, nameof(file));
             }
@@ -519,7 +523,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
             VerifyTree(tree);
 
-            return GetAnalysisResultCoreAsync(new SourceOrAdditionalFile(tree), Analyzers, cancellationToken);
+            return GetAnalysisResultCoreAsync(new SourceOrNonSourceFile(tree), Analyzers, cancellationToken);
         }
 
         /// <summary>
@@ -534,29 +538,34 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             VerifyTree(tree);
             VerifyExistingAnalyzersArgument(analyzers);
 
-            return GetAnalysisResultCoreAsync(new SourceOrAdditionalFile(tree), analyzers, cancellationToken);
+            return GetAnalysisResultCoreAsync(new SourceOrNonSourceFile(tree), analyzers, cancellationToken);
         }
 
         /// <summary>
-        /// Returns an <see cref="AnalysisResult"/> populated with <see cref="AnalysisResult.AdditionalFileDiagnostics"/> produced by all <see cref="Analyzers"/> from analyzing the given additional <paramref name="file"/>.
-        /// The given <paramref name="file"/> must be part of <see cref="AnalyzerOptions.AdditionalFiles"/> for the <see cref="AnalysisOptions"/> for this CompilationWithAnalyzers instance.
+        /// Returns an <see cref="AnalysisResult"/> populated with <see cref="AnalysisResult.AdditionalFileDiagnostics"/> or <see cref="AnalysisResult.AnalyzerConfigFileDiagnostics"/>
+        /// produced by all <see cref="Analyzers"/> from analyzing the given additional or analyzer config <paramref name="file"/> respectively.
+        /// The given <paramref name="file"/> must be part of <see cref="AnalyzerOptions.AdditionalFiles"/> or <see cref="AnalyzerOptions.AnalyzerConfigFiles"/>
+        /// for the <see cref="AnalysisOptions"/> for this CompilationWithAnalyzers instance.
         /// Depending on analyzers' behavior, some diagnostics that would be reported for the file by an analysis of the complete compilation can be absent.
         /// </summary>
-        /// <param name="file">Additional file to analyze.</param>
+        /// <param name="file">Additional or analyzer config file to analyze.</param>
         /// <param name="cancellationToken">Cancellation token.</param>
         public async Task<AnalysisResult> GetAnalysisResultAsync(AdditionalText file, CancellationToken cancellationToken)
         {
             VerifyAdditionalFile(file);
 
-            return await GetAnalysisResultCoreAsync(new SourceOrAdditionalFile(file), Analyzers, cancellationToken).ConfigureAwait(false);
+            var isAnalyzerConfigFile = _analysisOptions.Options!.AnalyzerConfigFiles.Contains(file);
+            return await GetAnalysisResultCoreAsync(new SourceOrNonSourceFile(file, isAnalyzerConfigFile), Analyzers, cancellationToken).ConfigureAwait(false);
         }
 
         /// <summary>
-        /// Returns an <see cref="AnalysisResult"/> populated with <see cref="AnalysisResult.AdditionalFileDiagnostics"/> produced by given <paramref name="analyzers"/> from analyzing the given additional <paramref name="file"/>.
-        /// The given <paramref name="file"/> must be part of <see cref="AnalyzerOptions.AdditionalFiles"/> for the <see cref="AnalysisOptions"/> for this CompilationWithAnalyzers instance.
+        /// Returns an <see cref="AnalysisResult"/> populated with <see cref="AnalysisResult.AdditionalFileDiagnostics"/> or <see cref="AnalysisResult.AnalyzerConfigFileDiagnostics"/>
+        /// produced by given <paramref name="analyzers"/> from analyzing the given additional or analyzer config <paramref name="file"/> respectively.
+        /// The given <paramref name="file"/> must be part of <see cref="AnalyzerOptions.AdditionalFiles"/> or <see cref="AnalyzerOptions.AnalyzerConfigFiles"/>
+        /// for the <see cref="AnalysisOptions"/> for this CompilationWithAnalyzers instance.
         /// Depending on analyzers' behavior, some diagnostics that would be reported for the file by an analysis of the complete compilation can be absent.
         /// </summary>
-        /// <param name="file">Additional file to analyze.</param>
+        /// <param name="file">Additional or analyzer config file to analyze.</param>
         /// <param name="analyzers">Analyzers whose diagnostics are required. All the given analyzers must be from the analyzers passed into the constructor of <see cref="CompilationWithAnalyzers"/>.</param>
         /// <param name="cancellationToken">Cancellation token.</param>
         public async Task<AnalysisResult> GetAnalysisResultAsync(AdditionalText file, ImmutableArray<DiagnosticAnalyzer> analyzers, CancellationToken cancellationToken)
@@ -564,10 +573,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             VerifyAdditionalFile(file);
             VerifyExistingAnalyzersArgument(analyzers);
 
-            return await GetAnalysisResultCoreAsync(new SourceOrAdditionalFile(file), analyzers, cancellationToken).ConfigureAwait(false);
+            var isAnalyzerConfigFile = _analysisOptions.Options!.AnalyzerConfigFiles.Contains(file);
+            return await GetAnalysisResultCoreAsync(new SourceOrNonSourceFile(file, isAnalyzerConfigFile), analyzers, cancellationToken).ConfigureAwait(false);
         }
 
-        private async Task<AnalysisResult> GetAnalysisResultCoreAsync(SourceOrAdditionalFile file, ImmutableArray<DiagnosticAnalyzer> analyzers, CancellationToken cancellationToken)
+        private async Task<AnalysisResult> GetAnalysisResultCoreAsync(SourceOrNonSourceFile file, ImmutableArray<DiagnosticAnalyzer> analyzers, CancellationToken cancellationToken)
         {
             var analysisScope = new AnalysisScope(analyzers, file, filterSpan: null, isSyntacticSingleFileAnalysis: true, concurrentAnalysis: _analysisOptions.ConcurrentAnalysis, categorizeDiagnostics: true);
             await ComputeAnalyzerSyntaxDiagnosticsAsync(analysisScope, cancellationToken).ConfigureAwait(false);
@@ -576,7 +586,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         private async Task<ImmutableArray<Diagnostic>> GetAnalyzerSyntaxDiagnosticsCoreAsync(SyntaxTree tree, ImmutableArray<DiagnosticAnalyzer> analyzers, CancellationToken cancellationToken)
         {
-            var analysisScope = new AnalysisScope(analyzers, new SourceOrAdditionalFile(tree), filterSpan: null, isSyntacticSingleFileAnalysis: true, concurrentAnalysis: _analysisOptions.ConcurrentAnalysis, categorizeDiagnostics: true);
+            var analysisScope = new AnalysisScope(analyzers, new SourceOrNonSourceFile(tree), filterSpan: null, isSyntacticSingleFileAnalysis: true, concurrentAnalysis: _analysisOptions.ConcurrentAnalysis, categorizeDiagnostics: true);
             await ComputeAnalyzerSyntaxDiagnosticsAsync(analysisScope, cancellationToken).ConfigureAwait(false);
             return _analysisResultBuilder.GetDiagnostics(analysisScope, getLocalDiagnostics: true, getNonLocalDiagnostics: false);
         }
@@ -664,14 +674,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         private async Task<AnalysisResult> GetAnalysisResultCoreAsync(SemanticModel model, TextSpan? filterSpan, ImmutableArray<DiagnosticAnalyzer> analyzers, CancellationToken cancellationToken)
         {
-            var analysisScope = new AnalysisScope(analyzers, new SourceOrAdditionalFile(model.SyntaxTree), filterSpan, isSyntacticSingleFileAnalysis: false, concurrentAnalysis: _analysisOptions.ConcurrentAnalysis, categorizeDiagnostics: true);
+            var analysisScope = new AnalysisScope(analyzers, new SourceOrNonSourceFile(model.SyntaxTree), filterSpan, isSyntacticSingleFileAnalysis: false, concurrentAnalysis: _analysisOptions.ConcurrentAnalysis, categorizeDiagnostics: true);
             await ComputeAnalyzerSemanticDiagnosticsAsync(model, analysisScope, cancellationToken).ConfigureAwait(false);
             return _analysisResultBuilder.ToAnalysisResult(analyzers, analysisScope, cancellationToken);
         }
 
         private async Task<ImmutableArray<Diagnostic>> GetAnalyzerSemanticDiagnosticsCoreAsync(SemanticModel model, TextSpan? filterSpan, ImmutableArray<DiagnosticAnalyzer> analyzers, CancellationToken cancellationToken)
         {
-            var analysisScope = new AnalysisScope(analyzers, new SourceOrAdditionalFile(model.SyntaxTree), filterSpan, isSyntacticSingleFileAnalysis: false, concurrentAnalysis: _analysisOptions.ConcurrentAnalysis, categorizeDiagnostics: true);
+            var analysisScope = new AnalysisScope(analyzers, new SourceOrNonSourceFile(model.SyntaxTree), filterSpan, isSyntacticSingleFileAnalysis: false, concurrentAnalysis: _analysisOptions.ConcurrentAnalysis, categorizeDiagnostics: true);
             await ComputeAnalyzerSemanticDiagnosticsAsync(model, analysisScope, cancellationToken).ConfigureAwait(false);
             return _analysisResultBuilder.GetDiagnostics(analysisScope, getLocalDiagnostics: true, getNonLocalDiagnostics: false);
         }
@@ -746,7 +756,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                             Task.Run(() =>
                             {
                                 var treeModel = _compilation.GetSemanticModel(tree);
-                                analysisScope = new AnalysisScope(analysisScope.Analyzers, new SourceOrAdditionalFile(tree), filterSpan: null, isSyntacticSingleFileAnalysis: false, analysisScope.ConcurrentAnalysis, analysisScope.CategorizeDiagnostics);
+                                analysisScope = new AnalysisScope(analysisScope.Analyzers, new SourceOrNonSourceFile(tree), filterSpan: null, isSyntacticSingleFileAnalysis: false, analysisScope.ConcurrentAnalysis, analysisScope.CategorizeDiagnostics);
                                 return ComputeAnalyzerSemanticDiagnosticsAsync(treeModel, analysisScope, cancellationToken, forceCompletePartialTrees: false);
                             }, cancellationToken))).ConfigureAwait(false);
                     }
@@ -756,7 +766,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                         {
                             cancellationToken.ThrowIfCancellationRequested();
                             var treeModel = _compilation.GetSemanticModel(tree);
-                            analysisScope = new AnalysisScope(analysisScope.Analyzers, new SourceOrAdditionalFile(tree), filterSpan: null, isSyntacticSingleFileAnalysis: false, analysisScope.ConcurrentAnalysis, analysisScope.CategorizeDiagnostics);
+                            analysisScope = new AnalysisScope(analysisScope.Analyzers, new SourceOrNonSourceFile(tree), filterSpan: null, isSyntacticSingleFileAnalysis: false, analysisScope.ConcurrentAnalysis, analysisScope.CategorizeDiagnostics);
                             await ComputeAnalyzerSemanticDiagnosticsAsync(treeModel, analysisScope, cancellationToken, forceCompletePartialTrees: false).ConfigureAwait(false);
                         }
                     }
@@ -905,10 +915,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     driver = await GetAnalyzerDriverAsync(cancellationToken).ConfigureAwait(false);
                     cancellationToken.ThrowIfCancellationRequested();
 
-                    Func<AsyncQueue<CompilationEvent>, ImmutableArray<AdditionalText>, ImmutableArray<CompilationEvent>> getCompilationEvents =
-                        (eventQueue, additionalFiles) => dequeueGeneratedCompilationEvents(eventQueue, _compilation, analysisScope, additionalFiles);
+                    Func<AsyncQueue<CompilationEvent>, ImmutableArray<AdditionalText>, ImmutableArray<AdditionalText>, ImmutableArray<CompilationEvent>> getCompilationEvents =
+                        (eventQueue, additionalFiles, analyzerConfigFiles) => dequeueGeneratedCompilationEvents(eventQueue, _compilation, analysisScope, additionalFiles, analyzerConfigFiles);
                     var additionalFiles = _analysisOptions.Options?.AdditionalFiles ?? ImmutableArray<AdditionalText>.Empty;
-                    await _analysisState.OnCompilationEventsGeneratedAsync(getCompilationEvents, _compilation.EventQueue, additionalFiles, driver, cancellationToken).ConfigureAwait(false);
+                    var analyzerConfigFiles = _analysisOptions.Options?.AnalyzerConfigFiles ?? ImmutableArray<AdditionalText>.Empty;
+                    await _analysisState.OnCompilationEventsGeneratedAsync(getCompilationEvents, _compilation.EventQueue, additionalFiles, analyzerConfigFiles, driver, cancellationToken).ConfigureAwait(false);
                 }
                 finally
                 {
@@ -920,7 +931,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 AsyncQueue<CompilationEvent> eventQueue,
                 Compilation compilation,
                 AnalysisScope analysisScope,
-                ImmutableArray<AdditionalText> additionalFiles)
+                ImmutableArray<AdditionalText> additionalFiles,
+                ImmutableArray<AdditionalText> analyzerConfigFiles)
             {
                 var builder = ArrayBuilder<CompilationEvent>.GetInstance();
 
@@ -932,10 +944,19 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
                 while (eventQueue.TryDequeue(out CompilationEvent compilationEvent))
                 {
-                    if (compilationEvent is CompilationStartedEvent compilationStartedEvent &&
-                        !additionalFiles.IsEmpty)
+                    if (compilationEvent is CompilationStartedEvent compilationStartedEvent)
                     {
-                        compilationEvent = compilationStartedEvent.WithAdditionalFiles(additionalFiles);
+                        if (!additionalFiles.IsEmpty)
+                        {
+                            compilationStartedEvent = compilationStartedEvent.WithAdditionalFiles(additionalFiles);
+                        }
+
+                        if (!analyzerConfigFiles.IsEmpty)
+                        {
+                            compilationStartedEvent = compilationStartedEvent.WithAnalyzerConfigFiles(analyzerConfigFiles);
+                        }
+
+                        compilationEvent = compilationStartedEvent;
                     }
 
                     // We don't need to synthesize a span-based CompilationUnitCompletedEvent if the event queue already
@@ -1044,7 +1065,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
         }
 
-        private Task<Task> SetActiveAnalysisTaskAsync(Func<Tuple<Task, CancellationTokenSource>> getNewAnalysisTask, SourceOrAdditionalFile? fileOpt, int newTaskToken, CancellationToken cancellationToken)
+        private Task<Task> SetActiveAnalysisTaskAsync(Func<Tuple<Task, CancellationTokenSource>> getNewAnalysisTask, SourceOrNonSourceFile? fileOpt, int newTaskToken, CancellationToken cancellationToken)
         {
             if (fileOpt.HasValue)
             {
@@ -1114,7 +1135,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
         }
 
-        private async Task<Task> SetActiveTreeAnalysisTaskAsync(Func<Tuple<Task, CancellationTokenSource>> getNewTreeAnalysisTask, SourceOrAdditionalFile tree, int newTaskToken, CancellationToken cancellationToken)
+        private async Task<Task> SetActiveTreeAnalysisTaskAsync(Func<Tuple<Task, CancellationTokenSource>> getNewTreeAnalysisTask, SourceOrNonSourceFile tree, int newTaskToken, CancellationToken cancellationToken)
         {
             try
             {
@@ -1206,7 +1227,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
         }
 
-        private void ClearExecutingTask(Task? computeTask, SourceOrAdditionalFile? fileOpt)
+        private void ClearExecutingTask(Task? computeTask, SourceOrNonSourceFile? fileOpt)
         {
             if (computeTask != null)
             {

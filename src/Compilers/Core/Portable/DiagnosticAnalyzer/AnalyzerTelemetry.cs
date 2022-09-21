@@ -135,6 +135,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Telemetry
         [DataMember(Order = 19)]
         public bool Concurrent { get; set; }
 
+        /// <summary>
+        /// Count of registered analyzer config file actions.
+        /// </summary>
+        [DataMember(Order = 20)]
+        public int AnalyzerConfigFileActionsCount { get; set; }
+
         internal AnalyzerTelemetryInfo(AnalyzerActionCounts actionCounts, int suppressionActionCounts, TimeSpan executionTime)
         {
             CompilationStartActionsCount = actionCounts.CompilationStartActionsCount;
@@ -143,6 +149,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Telemetry
 
             SyntaxTreeActionsCount = actionCounts.SyntaxTreeActionsCount;
             AdditionalFileActionsCount = actionCounts.AdditionalFileActionsCount;
+            AnalyzerConfigFileActionsCount = actionCounts.AnalyzerConfigFileActionsCount;
             SemanticModelActionsCount = actionCounts.SemanticModelActionsCount;
             SymbolActionsCount = actionCounts.SymbolActionsCount;
             SymbolStartActionsCount = actionCounts.SymbolStartActionsCount;

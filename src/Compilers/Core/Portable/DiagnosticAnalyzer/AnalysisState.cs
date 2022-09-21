@@ -107,9 +107,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         }
 
         public async Task OnCompilationEventsGeneratedAsync(
-            Func<AsyncQueue<CompilationEvent>, ImmutableArray<AdditionalText>, ImmutableArray<CompilationEvent>> getCompilationEvents,
+            Func<AsyncQueue<CompilationEvent>, ImmutableArray<AdditionalText>, ImmutableArray<AdditionalText>, ImmutableArray<CompilationEvent>> getCompilationEvents,
             AsyncQueue<CompilationEvent> eventQueue,
             ImmutableArray<AdditionalText> additionalFiles,
+            ImmutableArray<AdditionalText> analyzerConfigFiles,
             AnalyzerDriver driver,
             CancellationToken cancellationToken)
         {
@@ -120,7 +121,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 using (_gate.DisposableWait(cancellationToken))
                 {
                     // Defer the call to 'getCompilationEvents' until we know cancellation is no longer possible
-                    OnCompilationEventsGenerated_NoLock(getCompilationEvents(eventQueue, additionalFiles));
+                    OnCompilationEventsGenerated_NoLock(getCompilationEvents(eventQueue, additionalFiles, analyzerConfigFiles));
                 }
             }
             catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
@@ -317,7 +318,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
             return compilationEvent switch
             {
-                CompilationStartedEvent => actionCounts.CompilationActionsCount > 0 || actionCounts.SyntaxTreeActionsCount > 0 || actionCounts.AdditionalFileActionsCount > 0,
+                CompilationStartedEvent => actionCounts.CompilationActionsCount > 0 || actionCounts.SyntaxTreeActionsCount > 0 || actionCounts.AdditionalFileActionsCount > 0 || actionCounts.AnalyzerConfigFileActionsCount > 0,
                 CompilationCompletedEvent => actionCounts.CompilationEndActionsCount > 0,
                 SymbolDeclaredCompilationEvent => actionCounts.SymbolActionsCount > 0 || actionCounts.HasAnyExecutableCodeActions,
                 _ => actionCounts.SemanticModelActionsCount > 0
@@ -763,7 +764,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// If true, then it returns a non-null <paramref name="state"/> representing partial syntax analysis state for the given tree for the given analyzer.
         /// </returns>
         public bool TryStartSyntaxAnalysis(
-            SourceOrAdditionalFile file,
+            SourceOrNonSourceFile file,
             DiagnosticAnalyzer analyzer,
             [NotNullWhen(true)] out AnalyzerStateData? state)
         {
@@ -773,7 +774,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <summary>
         /// Marks the given file as fully syntactically analyzed for the given analyzer.
         /// </summary>
-        public void MarkSyntaxAnalysisComplete(SourceOrAdditionalFile file, DiagnosticAnalyzer analyzer)
+        public void MarkSyntaxAnalysisComplete(SourceOrNonSourceFile file, DiagnosticAnalyzer analyzer)
         {
             GetAnalyzerState(analyzer).MarkSyntaxAnalysisComplete(file);
         }
@@ -781,7 +782,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <summary>
         /// Marks the given file as fully syntactically analyzed for the given analyzers.
         /// </summary>
-        public void MarkSyntaxAnalysisComplete(SourceOrAdditionalFile file, IEnumerable<DiagnosticAnalyzer> analyzers)
+        public void MarkSyntaxAnalysisComplete(SourceOrNonSourceFile file, IEnumerable<DiagnosticAnalyzer> analyzers)
         {
             foreach (var analyzer in analyzers)
             {
@@ -793,7 +794,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// Marks the given file as fully syntactically analyzed for the unprocessed analyzers in the given analysisScope.
         /// </summary>
         public void MarkSyntaxAnalysisCompleteForUnprocessedAnalyzers(
-            SourceOrAdditionalFile file,
+            SourceOrNonSourceFile file,
             AnalysisScope analysisScope,
             HashSet<DiagnosticAnalyzer> processedAnalyzers)
             => MarkAnalysisCompleteForUnprocessedAnalyzers(analysisScope, processedAnalyzers, MarkSyntaxAnalysisComplete, file);

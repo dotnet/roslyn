@@ -23,6 +23,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             ImmutableDictionary<SyntaxTree, ImmutableDictionary<DiagnosticAnalyzer, ImmutableArray<Diagnostic>>> localSyntaxDiagnostics,
             ImmutableDictionary<SyntaxTree, ImmutableDictionary<DiagnosticAnalyzer, ImmutableArray<Diagnostic>>> localSemanticDiagnostics,
             ImmutableDictionary<AdditionalText, ImmutableDictionary<DiagnosticAnalyzer, ImmutableArray<Diagnostic>>> localAdditionalFileDiagnostics,
+            ImmutableDictionary<AdditionalText, ImmutableDictionary<DiagnosticAnalyzer, ImmutableArray<Diagnostic>>> localAnalyzerConfigFileDiagnostics,
             ImmutableDictionary<DiagnosticAnalyzer, ImmutableArray<Diagnostic>> nonLocalDiagnostics,
             ImmutableDictionary<DiagnosticAnalyzer, AnalyzerTelemetryInfo> analyzerTelemetryInfo)
         {
@@ -30,6 +31,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             SyntaxDiagnostics = localSyntaxDiagnostics;
             SemanticDiagnostics = localSemanticDiagnostics;
             AdditionalFileDiagnostics = localAdditionalFileDiagnostics;
+            AnalyzerConfigFileDiagnostics = localAnalyzerConfigFileDiagnostics;
             CompilationDiagnostics = nonLocalDiagnostics;
             AnalyzerTelemetryInfo = analyzerTelemetryInfo;
         }
@@ -53,6 +55,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// Diagnostics in additional files reported by the <see cref="Analyzers"/>.
         /// </summary>
         public ImmutableDictionary<AdditionalText, ImmutableDictionary<DiagnosticAnalyzer, ImmutableArray<Diagnostic>>> AdditionalFileDiagnostics { get; }
+
+        /// <summary>
+        /// Diagnostics in analyzer config files reported by the <see cref="Analyzers"/>.
+        /// </summary>
+        public ImmutableDictionary<AdditionalText, ImmutableDictionary<DiagnosticAnalyzer, ImmutableArray<Diagnostic>>> AnalyzerConfigFileDiagnostics { get; }
 
         /// <summary>
         /// Compilation diagnostics reported by the <see cref="Analyzers"/>.
@@ -94,12 +101,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         private ImmutableArray<Diagnostic> GetDiagnostics(ImmutableHashSet<DiagnosticAnalyzer> excludedAnalyzers)
         {
-            if (SyntaxDiagnostics.Count > 0 || SemanticDiagnostics.Count > 0 || AdditionalFileDiagnostics.Count > 0 || CompilationDiagnostics.Count > 0)
+            if (SyntaxDiagnostics.Count > 0 || SemanticDiagnostics.Count > 0 || AdditionalFileDiagnostics.Count > 0 || AnalyzerConfigFileDiagnostics.Count > 0 || CompilationDiagnostics.Count > 0)
             {
                 var builder = ImmutableArray.CreateBuilder<Diagnostic>();
                 AddLocalDiagnostics(SyntaxDiagnostics, excludedAnalyzers, builder);
                 AddLocalDiagnostics(SemanticDiagnostics, excludedAnalyzers, builder);
                 AddLocalDiagnostics(AdditionalFileDiagnostics, excludedAnalyzers, builder);
+                AddLocalDiagnostics(AnalyzerConfigFileDiagnostics, excludedAnalyzers, builder);
                 AddNonLocalDiagnostics(CompilationDiagnostics, excludedAnalyzers, builder);
 
                 return builder.ToImmutable();

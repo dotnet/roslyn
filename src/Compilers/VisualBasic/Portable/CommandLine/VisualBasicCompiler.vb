@@ -19,12 +19,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private ReadOnly _diagnosticFormatter As CommandLineDiagnosticFormatter
         Private ReadOnly _tempDirectory As String
         Private _additionalTextFiles As ImmutableArray(Of AdditionalTextFile)
+        Private _analyzerConfigTextFiles As ImmutableArray(Of AdditionalTextFile)
 
         Protected Sub New(parser As VisualBasicCommandLineParser, responseFile As String, args As String(), buildPaths As BuildPaths, additionalReferenceDirectories As String, analyzerLoader As IAnalyzerAssemblyLoader, Optional driverCache As GeneratorDriverCache = Nothing, Optional fileSystem As ICommonCompilerFileSystem = Nothing)
             MyBase.New(parser, responseFile, args, buildPaths, additionalReferenceDirectories, analyzerLoader, driverCache, fileSystem)
 
-            _diagnosticFormatter = New CommandLineDiagnosticFormatter(buildPaths.WorkingDirectory, AddressOf GetAdditionalTextFiles)
+            _diagnosticFormatter = New CommandLineDiagnosticFormatter(buildPaths.WorkingDirectory, AddressOf GetAdditionalTextFiles, AddressOf GetAnalyzerConfigTextFiles)
             _additionalTextFiles = Nothing
+            _analyzerConfigTextFiles = Nothing
             _tempDirectory = buildPaths.TempDirectory
 
             Debug.Assert(Arguments.OutputFileName IsNot Nothing OrElse Arguments.Errors.Length > 0 OrElse parser.IsScriptCommandLineParser)
@@ -35,9 +37,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return _additionalTextFiles
         End Function
 
-        Protected Overrides Function ResolveAdditionalFilesFromArguments(diagnostics As List(Of DiagnosticInfo), messageProvider As CommonMessageProvider, touchedFilesLogger As TouchedFileLogger) As ImmutableArray(Of AdditionalTextFile)
-            _additionalTextFiles = MyBase.ResolveAdditionalFilesFromArguments(diagnostics, messageProvider, touchedFilesLogger)
+        Protected Overrides Function ResolveAdditionalFilesFromArguments() As ImmutableArray(Of AdditionalTextFile)
+            _additionalTextFiles = MyBase.ResolveAdditionalFilesFromArguments()
             Return _additionalTextFiles
+        End Function
+
+        Private Function GetAnalyzerConfigTextFiles() As ImmutableArray(Of AdditionalTextFile)
+            Debug.Assert(Not _analyzerConfigTextFiles.IsDefault, "GetAnalyzerConfigTextFiles called before ResolveAdditionalFilesFromArguments")
+            Return _analyzerConfigTextFiles
+        End Function
+
+        Protected Overrides Function ResolveAnalyzerConfigFilesFromArguments() As ImmutableArray(Of AdditionalTextFile)
+            _analyzerConfigTextFiles = MyBase.ResolveAnalyzerConfigFilesFromArguments()
+            Return _analyzerConfigTextFiles
         End Function
 
         Friend Overloads ReadOnly Property Arguments As VisualBasicCommandLineArguments

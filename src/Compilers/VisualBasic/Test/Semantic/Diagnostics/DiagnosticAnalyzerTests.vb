@@ -1659,28 +1659,54 @@ End Namespace
             Dim analyzers As ImmutableArray(Of DiagnosticAnalyzer) = ImmutableArray.Create(Of DiagnosticAnalyzer)(analyzer)
 
             Dim diagnostics = Await compilation.WithAnalyzers(analyzers, options).GetAnalyzerDiagnosticsAsync(CancellationToken.None)
-            TestAdditionalFileAnalyzer_VerifyDiagnostics(diagnostics, diagnosticSpan, analyzer, additionalFile)
+            TestAdditionalOrAnalyzerConfigFileAnalyzer_VerifyDiagnostics(diagnostics, diagnosticSpan, analyzer.Descriptor, additionalFile)
 
             Dim analysisResult = Await compilation.WithAnalyzers(analyzers, options).GetAnalysisResultAsync(additionalFile, CancellationToken.None)
-            TestAdditionalFileAnalyzer_VerifyDiagnostics(analysisResult.GetAllDiagnostics(), diagnosticSpan, analyzer, additionalFile)
-            TestAdditionalFileAnalyzer_VerifyDiagnostics(analysisResult.AdditionalFileDiagnostics(additionalFile)(analyzer), diagnosticSpan, analyzer, additionalFile)
+            TestAdditionalOrAnalyzerConfigFileAnalyzer_VerifyDiagnostics(analysisResult.GetAllDiagnostics(), diagnosticSpan, analyzer.Descriptor, additionalFile)
+            TestAdditionalOrAnalyzerConfigFileAnalyzer_VerifyDiagnostics(analysisResult.AdditionalFileDiagnostics(additionalFile)(analyzer), diagnosticSpan, analyzer.Descriptor, additionalFile)
 
             analysisResult = Await compilation.WithAnalyzers(analyzers, options).GetAnalysisResultAsync(CancellationToken.None)
-            TestAdditionalFileAnalyzer_VerifyDiagnostics(analysisResult.GetAllDiagnostics(), diagnosticSpan, analyzer, additionalFile)
-            TestAdditionalFileAnalyzer_VerifyDiagnostics(analysisResult.AdditionalFileDiagnostics(additionalFile)(analyzer), diagnosticSpan, analyzer, additionalFile)
+            TestAdditionalOrAnalyzerConfigFileAnalyzer_VerifyDiagnostics(analysisResult.GetAllDiagnostics(), diagnosticSpan, analyzer.Descriptor, additionalFile)
+            TestAdditionalOrAnalyzerConfigFileAnalyzer_VerifyDiagnostics(analysisResult.AdditionalFileDiagnostics(additionalFile)(analyzer), diagnosticSpan, analyzer.Descriptor, additionalFile)
         End Function
 
-        Private Shared Sub TestAdditionalFileAnalyzer_VerifyDiagnostics(diagnostics As ImmutableArray(Of Diagnostic),
+        Private Shared Sub TestAdditionalOrAnalyzerConfigFileAnalyzer_VerifyDiagnostics(diagnostics As ImmutableArray(Of Diagnostic),
                                                                         expectedDiagnosticSpan As TextSpan,
-                                                                        Analyzer As AdditionalFileAnalyzer,
+                                                                        descriptor As DiagnosticDescriptor,
                                                                         additionalFile As AdditionalText)
             Dim diagnostic = Assert.Single(diagnostics)
-            Assert.Equal(Analyzer.Descriptor.Id, diagnostic.Id)
+            Assert.Equal(descriptor.Id, diagnostic.Id)
             Assert.Equal(LocationKind.ExternalFile, diagnostic.Location.Kind)
             Dim location = DirectCast(diagnostic.Location, ExternalFileLocation)
             Assert.Equal(additionalFile.Path, location.FilePath)
             Assert.Equal(expectedDiagnosticSpan, location.SourceSpan)
         End Sub
+
+        <Theory, CombinatorialData>
+        Public Async Function TestAnalyzerConfigFileAnalyzer(registerFromInitialize As Boolean) As Task
+            Dim tree = VisualBasicSyntaxTree.ParseText(String.Empty)
+            Dim compilation = CreateCompilationWithMscorlib45({tree})
+            compilation.VerifyDiagnostics()
+
+            Dim additionalFiles = ImmutableArray(Of AdditionalText).Empty
+            Dim analyzerConfigFile As AdditionalText = New TestAdditionalText("# Analyzer Config File Text")
+            Dim analyzerConfigFiles = ImmutableArray.Create(analyzerConfigFile)
+            Dim options = New AnalyzerOptions(additionalFiles, analyzerConfigFiles)
+            Dim diagnosticSpan = New TextSpan(2, 2)
+            Dim analyzer = New AnalyzerConfigFileAnalyzer(registerFromInitialize, diagnosticSpan)
+            Dim analyzers As ImmutableArray(Of DiagnosticAnalyzer) = ImmutableArray.Create(Of DiagnosticAnalyzer)(analyzer)
+
+            Dim diagnostics = Await compilation.WithAnalyzers(analyzers, options).GetAnalyzerDiagnosticsAsync(CancellationToken.None)
+            TestAdditionalOrAnalyzerConfigFileAnalyzer_VerifyDiagnostics(diagnostics, diagnosticSpan, analyzer.Descriptor, analyzerConfigFile)
+
+            Dim analysisResult = Await compilation.WithAnalyzers(analyzers, options).GetAnalysisResultAsync(analyzerConfigFile, CancellationToken.None)
+            TestAdditionalOrAnalyzerConfigFileAnalyzer_VerifyDiagnostics(analysisResult.GetAllDiagnostics(), diagnosticSpan, analyzer.Descriptor, analyzerConfigFile)
+            TestAdditionalOrAnalyzerConfigFileAnalyzer_VerifyDiagnostics(analysisResult.AnalyzerConfigFileDiagnostics(analyzerConfigFile)(analyzer), diagnosticSpan, analyzer.Descriptor, analyzerConfigFile)
+
+            analysisResult = Await compilation.WithAnalyzers(analyzers, options).GetAnalysisResultAsync(CancellationToken.None)
+            TestAdditionalOrAnalyzerConfigFileAnalyzer_VerifyDiagnostics(analysisResult.GetAllDiagnostics(), diagnosticSpan, analyzer.Descriptor, analyzerConfigFile)
+            TestAdditionalOrAnalyzerConfigFileAnalyzer_VerifyDiagnostics(analysisResult.AnalyzerConfigFileDiagnostics(analyzerConfigFile)(analyzer), diagnosticSpan, analyzer.Descriptor, analyzerConfigFile)
+        End Function
 
         <Fact>
         Public Sub TestSemanticModelProvider()

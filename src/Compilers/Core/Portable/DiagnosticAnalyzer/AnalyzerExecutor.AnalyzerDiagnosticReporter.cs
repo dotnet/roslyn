@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 new ObjectPool<AnalyzerDiagnosticReporter>(() => new AnalyzerDiagnosticReporter(), 10);
 
             public static AnalyzerDiagnosticReporter GetInstance(
-                SourceOrAdditionalFile contextFile,
+                SourceOrNonSourceFile contextFile,
                 TextSpan? span,
                 Compilation compilation,
                 DiagnosticAnalyzer analyzer,
@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 s_objectPool.Free(this);
             }
 
-            private SourceOrAdditionalFile? _contextFile;
+            private SourceOrNonSourceFile? _contextFile;
             private TextSpan? _span;
             private Compilation _compilation;
             private DiagnosticAnalyzer _analyzer;
@@ -115,16 +115,21 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
                 bool isLocalDiagnostic(Diagnostic diagnostic)
                 {
+                    if (!_contextFile.HasValue)
+                        return false;
+
+                    var contextFile = _contextFile.Value;
                     if (diagnostic.Location.IsInSource)
                     {
-                        return _contextFile?.SourceTree != null &&
-                            _contextFile.Value.SourceTree == diagnostic.Location.SourceTree;
+                        return contextFile.SourceTree != null &&
+                            contextFile.SourceTree == diagnostic.Location.SourceTree;
                     }
 
-                    if (_contextFile?.AdditionalFile != null &&
-                        diagnostic.Location is ExternalFileLocation externalFileLocation)
+                    if (diagnostic.Location is ExternalFileLocation externalFileLocation)
                     {
-                        return PathUtilities.Comparer.Equals(_contextFile.Value.AdditionalFile.Path, externalFileLocation.FilePath);
+                        var externalFile = contextFile.AdditionalFile ?? contextFile.AnalyzerConfigFile;
+                        if (externalFile != null)
+                            return PathUtilities.Comparer.Equals(externalFile.Path, externalFileLocation.FilePath);
                     }
 
                     return false;

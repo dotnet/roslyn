@@ -26,7 +26,9 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
             var parseOptions = new CSharpParseOptions(kind: SourceCodeKind.Regular, documentationMode: DocumentationMode.None)
                 .WithFeatures(new[] { new KeyValuePair<string, string>("IOperation", "true") });
             var compilation = CreateCompilation(code, parseOptions: parseOptions);
-            var options = new AnalyzerOptions(new[] { new TestAdditionalText() }.ToImmutableArray<AdditionalText>());
+            var additionalFiles = new[] { new TestAdditionalText() }.ToImmutableArray<AdditionalText>();
+            var analyzerConfigFiles = new[] { new TestAdditionalText() }.ToImmutableArray<AdditionalText>();
+            var options = new AnalyzerOptions(additionalFiles, analyzerConfigFiles);
 
             Verify(compilation, options, nameof(AnalysisContext.RegisterCodeBlockAction));
             Verify(compilation, options, nameof(AnalysisContext.RegisterCodeBlockStartAction));
@@ -39,6 +41,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
             Verify(compilation, options, nameof(AnalysisContext.RegisterSyntaxNodeAction));
             Verify(compilation, options, nameof(AnalysisContext.RegisterSyntaxTreeAction));
             Verify(compilation, options, nameof(AnalysisContext.RegisterAdditionalFileAction));
+            Verify(compilation, options, nameof(AnalysisContext.RegisterAnalyzerConfigFileAction));
         }
 
         private static void Verify(Compilation compilation, AnalyzerOptions options, string context)
@@ -78,8 +81,9 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                 c.RegisterSemanticModelAction(b => ThrowIfMatch(nameof(c.RegisterSemanticModelAction), new AnalysisContextInfo(b.SemanticModel)));
                 c.RegisterSymbolAction(b => ThrowIfMatch(nameof(c.RegisterSymbolAction), new AnalysisContextInfo(b.Compilation, b.Symbol)), SymbolKind.NamedType);
                 c.RegisterSyntaxNodeAction(b => ThrowIfMatch(nameof(c.RegisterSyntaxNodeAction), new AnalysisContextInfo(b.SemanticModel.Compilation, b.Node)), SyntaxKind.ReturnStatement);
-                c.RegisterSyntaxTreeAction(b => ThrowIfMatch(nameof(c.RegisterSyntaxTreeAction), new AnalysisContextInfo(b.Compilation, new SourceOrAdditionalFile(b.Tree))));
-                c.RegisterAdditionalFileAction(b => ThrowIfMatch(nameof(c.RegisterAdditionalFileAction), new AnalysisContextInfo(b.Compilation, new SourceOrAdditionalFile(b.AdditionalFile))));
+                c.RegisterSyntaxTreeAction(b => ThrowIfMatch(nameof(c.RegisterSyntaxTreeAction), new AnalysisContextInfo(b.Compilation, new SourceOrNonSourceFile(b.Tree))));
+                c.RegisterAdditionalFileAction(b => ThrowIfMatch(nameof(c.RegisterAdditionalFileAction), new AnalysisContextInfo(b.Compilation, new SourceOrNonSourceFile(b.AdditionalFile, isAnalyzerConfigFile: false))));
+                c.RegisterAnalyzerConfigFileAction(b => ThrowIfMatch(nameof(c.RegisterAnalyzerConfigFileAction), new AnalysisContextInfo(b.Compilation, new SourceOrNonSourceFile(b.AnalyzerConfigFile, isAnalyzerConfigFile: true))));
             }
 
             private void ThrowIfMatch(string context, AnalysisContextInfo info)

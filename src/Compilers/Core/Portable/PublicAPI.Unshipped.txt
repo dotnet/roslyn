@@ -2,6 +2,17 @@
 *REMOVED*static Microsoft.CodeAnalysis.ModuleMetadata.CreateFromMetadata(System.IntPtr metadata, int size, System.IDisposable! owner, bool disposeOwner) -> Microsoft.CodeAnalysis.ModuleMetadata!
 Microsoft.CodeAnalysis.Compilation.CreateBuiltinOperator(string! name, Microsoft.CodeAnalysis.ITypeSymbol! returnType, Microsoft.CodeAnalysis.ITypeSymbol! leftType, Microsoft.CodeAnalysis.ITypeSymbol! rightType) -> Microsoft.CodeAnalysis.IMethodSymbol!
 Microsoft.CodeAnalysis.Compilation.CreateBuiltinOperator(string! name, Microsoft.CodeAnalysis.ITypeSymbol! returnType, Microsoft.CodeAnalysis.ITypeSymbol! operandType) -> Microsoft.CodeAnalysis.IMethodSymbol!
+Microsoft.CodeAnalysis.Diagnostics.AnalysisResult.AnalyzerConfigFileDiagnostics.get -> System.Collections.Immutable.ImmutableDictionary<Microsoft.CodeAnalysis.AdditionalText!, System.Collections.Immutable.ImmutableDictionary<Microsoft.CodeAnalysis.Diagnostics.DiagnosticAnalyzer!, System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Diagnostic!>>!>!
+Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigFileAnalysisContext
+Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigFileAnalysisContext.AnalyzerConfigFile.get -> Microsoft.CodeAnalysis.AdditionalText!
+Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigFileAnalysisContext.AnalyzerConfigFileAnalysisContext() -> void
+Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigFileAnalysisContext.CancellationToken.get -> System.Threading.CancellationToken
+Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigFileAnalysisContext.Compilation.get -> Microsoft.CodeAnalysis.Compilation!
+Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigFileAnalysisContext.Options.get -> Microsoft.CodeAnalysis.Diagnostics.AnalyzerOptions!
+Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigFileAnalysisContext.ReportDiagnostic(Microsoft.CodeAnalysis.Diagnostic! diagnostic) -> void
+Microsoft.CodeAnalysis.Diagnostics.AnalyzerOptions.AnalyzerConfigFiles.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.AdditionalText!>
+Microsoft.CodeAnalysis.Diagnostics.AnalyzerOptions.AnalyzerOptions(System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.AdditionalText!> additionalFiles, System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.AdditionalText!> analyzerConfigFiles, Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigOptionsProvider! optionsProvider) -> void
+Microsoft.CodeAnalysis.Diagnostics.AnalyzerOptions.WithAnalyzerConfigFiles(System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.AdditionalText!> analyzerConfigFiles) -> Microsoft.CodeAnalysis.Diagnostics.AnalyzerOptions!
 Microsoft.CodeAnalysis.Diagnostics.CodeBlockAnalysisContext.IsGeneratedCode.get -> bool
 Microsoft.CodeAnalysis.Diagnostics.CodeBlockStartAnalysisContext<TLanguageKindEnum>.IsGeneratedCode.get -> bool
 Microsoft.CodeAnalysis.Diagnostics.OperationAnalysisContext.IsGeneratedCode.get -> bool
@@ -12,9 +23,13 @@ Microsoft.CodeAnalysis.Diagnostics.SymbolAnalysisContext.IsGeneratedCode.get -> 
 Microsoft.CodeAnalysis.Diagnostics.SymbolStartAnalysisContext.IsGeneratedCode.get -> bool
 Microsoft.CodeAnalysis.Diagnostics.SyntaxNodeAnalysisContext.IsGeneratedCode.get -> bool
 Microsoft.CodeAnalysis.Diagnostics.SyntaxTreeAnalysisContext.IsGeneratedCode.get -> bool
+Microsoft.CodeAnalysis.Diagnostics.Telemetry.AnalyzerTelemetryInfo.AnalyzerConfigFileActionsCount.get -> int
+Microsoft.CodeAnalysis.Diagnostics.Telemetry.AnalyzerTelemetryInfo.AnalyzerConfigFileActionsCount.set -> void
 Microsoft.CodeAnalysis.GeneratorDriver.ReplaceGenerators(System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.ISourceGenerator!> generators) -> Microsoft.CodeAnalysis.GeneratorDriver!
 Microsoft.CodeAnalysis.ILocalSymbol.IsForEach.get -> bool
 Microsoft.CodeAnalysis.ILocalSymbol.IsUsing.get -> bool
 override sealed Microsoft.CodeAnalysis.CompilationOptions.GetHashCode() -> int
 static Microsoft.CodeAnalysis.ModuleMetadata.CreateFromMetadata(System.IntPtr metadata, int size, System.Action! onDispose) -> Microsoft.CodeAnalysis.ModuleMetadata!
 Microsoft.CodeAnalysis.INamedTypeSymbol.IsFileLocal.get -> bool
+virtual Microsoft.CodeAnalysis.Diagnostics.AnalysisContext.RegisterAnalyzerConfigFileAction(System.Action<Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigFileAnalysisContext>! action) -> void
+virtual Microsoft.CodeAnalysis.Diagnostics.CompilationStartAnalysisContext.RegisterAnalyzerConfigFileAction(System.Action<Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigFileAnalysisContext>! action) -> void

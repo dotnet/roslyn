@@ -33,14 +33,15 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private Dictionary<SyntaxTree, Dictionary<DiagnosticAnalyzer, ImmutableArray<Diagnostic>.Builder>>? _localSemanticDiagnosticsOpt = null;
         private Dictionary<SyntaxTree, Dictionary<DiagnosticAnalyzer, ImmutableArray<Diagnostic>.Builder>>? _localSyntaxDiagnosticsOpt = null;
         private Dictionary<AdditionalText, Dictionary<DiagnosticAnalyzer, ImmutableArray<Diagnostic>.Builder>>? _localAdditionalFileDiagnosticsOpt = null;
+        private Dictionary<AdditionalText, Dictionary<DiagnosticAnalyzer, ImmutableArray<Diagnostic>.Builder>>? _localAnalyzerConfigFileDiagnosticsOpt = null;
         private Dictionary<DiagnosticAnalyzer, ImmutableArray<Diagnostic>.Builder>? _nonLocalDiagnosticsOpt = null;
 
-        internal AnalysisResultBuilder(bool logAnalyzerExecutionTime, ImmutableArray<DiagnosticAnalyzer> analyzers, ImmutableArray<AdditionalText> additionalFiles)
+        internal AnalysisResultBuilder(bool logAnalyzerExecutionTime, ImmutableArray<DiagnosticAnalyzer> analyzers, ImmutableArray<AdditionalText> additionalFiles, ImmutableArray<AdditionalText> analyzerConfigFiles)
         {
             _analyzerExecutionTimeOpt = logAnalyzerExecutionTime ? CreateAnalyzerExecutionTimeMap(analyzers) : null;
             _completedAnalyzers = new HashSet<DiagnosticAnalyzer>();
             _analyzerActionCounts = new Dictionary<DiagnosticAnalyzer, AnalyzerActionCounts>(analyzers.Length);
-            _pathToAdditionalTextMap = CreatePathToAdditionalTextMap(additionalFiles);
+            _pathToAdditionalTextMap = CreatePathToAdditionalTextMap(additionalFiles, analyzerConfigFiles);
         }
 
         private static Dictionary<DiagnosticAnalyzer, TimeSpan> CreateAnalyzerExecutionTimeMap(ImmutableArray<DiagnosticAnalyzer> analyzers)
@@ -54,15 +55,17 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return map;
         }
 
-        private static ImmutableDictionary<string, OneOrMany<AdditionalText>> CreatePathToAdditionalTextMap(ImmutableArray<AdditionalText> additionalFiles)
+        private static ImmutableDictionary<string, OneOrMany<AdditionalText>> CreatePathToAdditionalTextMap(
+            ImmutableArray<AdditionalText> additionalFiles,
+            ImmutableArray<AdditionalText> analyzerConfigFiles)
         {
-            if (additionalFiles.IsEmpty)
+            if (additionalFiles.IsEmpty && analyzerConfigFiles.IsEmpty)
             {
                 return s_emptyPathToAdditionalTextMap;
             }
 
             var builder = ImmutableDictionary.CreateBuilder<string, OneOrMany<AdditionalText>>(PathUtilities.Comparer);
-            foreach (var file in additionalFiles)
+            foreach (var file in additionalFiles.Concat(analyzerConfigFiles))
             {
                 // Null file path for additional files is not possible from IDE or command line compiler host.
                 // However, it is possible from custom third party analysis hosts.
@@ -136,6 +139,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     {
                         UpdateLocalDiagnostics_NoLock(analyzer, syntaxDiagnostics, fullAnalysisResultForAnalyzersInScope, getSourceTree, ref _localSyntaxDiagnosticsOpt);
                         UpdateLocalDiagnostics_NoLock(analyzer, syntaxDiagnostics, fullAnalysisResultForAnalyzersInScope, getAdditionalTextKey, ref _localAdditionalFileDiagnosticsOpt);
+                        UpdateLocalDiagnostics_NoLock(analyzer, syntaxDiagnostics, fullAnalysisResultForAnalyzersInScope, getAnalyzerConfigTextKey, ref _localAnalyzerConfigFileDiagnosticsOpt);
                         UpdateNonLocalDiagnostics_NoLock(analyzer, compilationDiagnostics, fullAnalysisResultForAnalyzersInScope);
 
                         // NOTE: We need to dedupe compiler analyzer semantic diagnostics as we might run the compiler analyzer multiple times for different spans in the tree.
@@ -167,6 +171,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 => diagnostic.Location.SourceTree;
 
             AdditionalText? getAdditionalTextKey(Diagnostic diagnostic)
+                => getAdditionalOrAnalyzerConfigTextKey(diagnostic, analyzerConfig: false);
+
+            AdditionalText? getAnalyzerConfigTextKey(Diagnostic diagnostic)
+                => getAdditionalOrAnalyzerConfigTextKey(diagnostic, analyzerConfig: true);
+
+            AdditionalText? getAdditionalOrAnalyzerConfigTextKey(Diagnostic diagnostic, bool analyzerConfig)
             {
                 // Fetch the first additional file that matches diagnostic location.
                 if (diagnostic.Location is ExternalFileLocation externalFileLocation)
@@ -175,7 +185,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     {
                         foreach (var additionalText in additionalTexts)
                         {
-                            if (analysisScope.AdditionalFiles.Contains(additionalText))
+                            if (analyzerConfig && analysisScope.AnalyzerConfigFiles.Contains(additionalText) ||
+                                !analyzerConfig && analysisScope.AdditionalFiles.Contains(additionalText))
                             {
                                 return additionalText;
                             }
@@ -284,11 +295,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     AddAllLocalDiagnostics_NoLock(_localSyntaxDiagnosticsOpt, analysisScope, builder);
                     AddAllLocalDiagnostics_NoLock(_localSemanticDiagnosticsOpt, analysisScope, builder);
                     AddAllLocalDiagnostics_NoLock(_localAdditionalFileDiagnosticsOpt, analysisScope, builder);
+                    AddAllLocalDiagnostics_NoLock(_localAnalyzerConfigFileDiagnosticsOpt, analysisScope, builder);
                 }
                 else if (analysisScope.IsSyntacticSingleFileAnalysis)
                 {
                     AddLocalDiagnosticsForPartialAnalysis_NoLock(_localSyntaxDiagnosticsOpt, analysisScope, builder);
                     AddLocalDiagnosticsForPartialAnalysis_NoLock(_localAdditionalFileDiagnosticsOpt, analysisScope, builder);
+                    AddLocalDiagnosticsForPartialAnalysis_NoLock(_localAnalyzerConfigFileDiagnosticsOpt, analysisScope, builder);
                 }
                 else
                 {
@@ -329,7 +342,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             Dictionary<AdditionalText, Dictionary<DiagnosticAnalyzer, ImmutableArray<Diagnostic>.Builder>>? localDiagnostics,
             AnalysisScope analysisScope,
             ImmutableArray<Diagnostic>.Builder builder)
-            => AddLocalDiagnosticsForPartialAnalysis_NoLock(localDiagnostics, analysisScope.FilterFileOpt!.Value.AdditionalFile, analysisScope.Analyzers, builder);
+        {
+            var sourceOrNonSourceFile = analysisScope.FilterFileOpt!.Value;
+            var nonSourceFile = sourceOrNonSourceFile.AdditionalFile ?? sourceOrNonSourceFile.AnalyzerConfigFile; 
+            AddLocalDiagnosticsForPartialAnalysis_NoLock(localDiagnostics, nonSourceFile, analysisScope.Analyzers, builder);
+        }
 
         private static void AddLocalDiagnosticsForPartialAnalysis_NoLock<TKey>(
             Dictionary<TKey, Dictionary<DiagnosticAnalyzer, ImmutableArray<Diagnostic>.Builder>>? localDiagnostics,
@@ -368,7 +385,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             ImmutableDictionary<SyntaxTree, ImmutableDictionary<DiagnosticAnalyzer, ImmutableArray<Diagnostic>>> localSyntaxDiagnostics;
             ImmutableDictionary<SyntaxTree, ImmutableDictionary<DiagnosticAnalyzer, ImmutableArray<Diagnostic>>> localSemanticDiagnostics;
-            ImmutableDictionary<AdditionalText, ImmutableDictionary<DiagnosticAnalyzer, ImmutableArray<Diagnostic>>> localAdditionalFileDiagnostics;
+            ImmutableDictionary<AdditionalText, ImmutableDictionary<DiagnosticAnalyzer, ImmutableArray<Diagnostic>>> localAdditionalFileDiagnostics, localAnalyzerConfigFileDiagnostics;
             ImmutableDictionary<DiagnosticAnalyzer, ImmutableArray<Diagnostic>> nonLocalDiagnostics;
 
             var analyzersSet = analyzers.ToImmutableHashSet();
@@ -378,12 +395,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 localSyntaxDiagnostics = GetImmutable(analyzersSet, shouldInclude, _localSyntaxDiagnosticsOpt);
                 localSemanticDiagnostics = GetImmutable(analyzersSet, shouldInclude, _localSemanticDiagnosticsOpt);
                 localAdditionalFileDiagnostics = GetImmutable(analyzersSet, shouldInclude, _localAdditionalFileDiagnosticsOpt);
+                localAnalyzerConfigFileDiagnostics = GetImmutable(analyzersSet, shouldInclude, _localAnalyzerConfigFileDiagnosticsOpt);
                 nonLocalDiagnostics = GetImmutable(analyzersSet, shouldInclude, _nonLocalDiagnosticsOpt);
             }
 
             cancellationToken.ThrowIfCancellationRequested();
             var analyzerTelemetryInfo = GetTelemetryInfo(analyzers);
-            return new AnalysisResult(analyzers, localSyntaxDiagnostics, localSemanticDiagnostics, localAdditionalFileDiagnostics, nonLocalDiagnostics, analyzerTelemetryInfo);
+            return new AnalysisResult(analyzers, localSyntaxDiagnostics, localSemanticDiagnostics, localAdditionalFileDiagnostics, localAnalyzerConfigFileDiagnostics, nonLocalDiagnostics, analyzerTelemetryInfo);
         }
 
         private static ImmutableDictionary<TKey, ImmutableDictionary<DiagnosticAnalyzer, ImmutableArray<Diagnostic>>> GetImmutable<TKey>(

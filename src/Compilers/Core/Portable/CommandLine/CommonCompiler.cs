@@ -861,7 +861,8 @@ namespace Microsoft.CodeAnalysis
 
             var diagnosticInfos = new List<DiagnosticInfo>();
             ResolveAnalyzersFromArguments(diagnosticInfos, MessageProvider, Arguments.SkipAnalyzers, out var analyzers, out var generators);
-            var additionalTextFiles = ResolveAdditionalFilesFromArguments(diagnosticInfos, MessageProvider, touchedFilesLogger);
+            var additionalTextFiles = ResolveAdditionalFilesFromArguments();
+            var analyzerConfigTextFiles = ResolveAnalyzerConfigFilesFromArguments();
             if (ReportDiagnostics(diagnosticInfos, consoleOutput, errorLogger, compilation))
             {
                 return Failed;
@@ -874,6 +875,7 @@ namespace Microsoft.CodeAnalysis
             }
 
             var additionalTexts = ImmutableArray<AdditionalText>.CastUp(additionalTextFiles);
+            var analyzerConfigTexts = ImmutableArray<AdditionalText>.CastUp(analyzerConfigTextFiles);
 
             CompileAndEmit(
                 touchedFilesLogger,
@@ -881,6 +883,7 @@ namespace Microsoft.CodeAnalysis
                 analyzers,
                 generators,
                 additionalTexts,
+                analyzerConfigTexts,
                 analyzerConfigSet,
                 sourceFileAnalyzerConfigOptions,
                 embeddedTexts,
@@ -974,6 +977,7 @@ namespace Microsoft.CodeAnalysis
             ImmutableArray<DiagnosticAnalyzer> analyzers,
             ImmutableArray<ISourceGenerator> generators,
             ImmutableArray<AdditionalText> additionalTextFiles,
+            ImmutableArray<AdditionalText> analyzerConfigTextFiles,
             AnalyzerConfigSet? analyzerConfigSet,
             ImmutableArray<AnalyzerConfigOptionsResult> sourceFileAnalyzerConfigOptions,
             ImmutableArray<EmbeddedText?> embeddedTexts,
@@ -1088,7 +1092,7 @@ namespace Microsoft.CodeAnalysis
                 }
 
                 AnalyzerOptions analyzerOptions = CreateAnalyzerOptions(
-                      additionalTextFiles, analyzerConfigProvider);
+                      additionalTextFiles, analyzerConfigTextFiles, analyzerConfigProvider);
 
                 if (!analyzers.IsEmpty)
                 {
@@ -1398,8 +1402,9 @@ namespace Microsoft.CodeAnalysis
         // virtual for testing
         protected virtual Diagnostics.AnalyzerOptions CreateAnalyzerOptions(
             ImmutableArray<AdditionalText> additionalTextFiles,
+            ImmutableArray<AdditionalText> analyzerConfigTextFiles,
             AnalyzerConfigOptionsProvider analyzerConfigOptionsProvider)
-            => new Diagnostics.AnalyzerOptions(additionalTextFiles, analyzerConfigOptionsProvider);
+            => new Diagnostics.AnalyzerOptions(additionalTextFiles, analyzerConfigTextFiles, analyzerConfigOptionsProvider);
 
         private bool WriteTouchedFiles(DiagnosticBag diagnostics, TouchedFileLogger? touchedFilesLogger, string? finalXmlFilePath)
         {
@@ -1449,7 +1454,7 @@ namespace Microsoft.CodeAnalysis
             return true;
         }
 
-        protected virtual ImmutableArray<AdditionalTextFile> ResolveAdditionalFilesFromArguments(List<DiagnosticInfo> diagnostics, CommonMessageProvider messageProvider, TouchedFileLogger? touchedFilesLogger)
+        protected virtual ImmutableArray<AdditionalTextFile> ResolveAdditionalFilesFromArguments()
         {
             var builder = ArrayBuilder<AdditionalTextFile>.GetInstance();
             var filePaths = new HashSet<string>(PathUtilities.Comparer);
@@ -1459,6 +1464,24 @@ namespace Microsoft.CodeAnalysis
                 Debug.Assert(PathUtilities.IsAbsolute(file.Path));
                 if (filePaths.Add(PathUtilities.ExpandAbsolutePathWithRelativeParts(file.Path)))
                 {
+                    builder.Add(new AdditionalTextFile(file, this));
+                }
+            }
+
+            return builder.ToImmutableAndFree();
+        }
+
+        protected virtual ImmutableArray<AdditionalTextFile> ResolveAnalyzerConfigFilesFromArguments()
+        {
+            var builder = ArrayBuilder<AdditionalTextFile>.GetInstance();
+            var filePaths = new HashSet<string>(PathUtilities.Comparer);
+
+            foreach (var filePath in Arguments.AnalyzerConfigPaths)
+            {
+                Debug.Assert(PathUtilities.IsAbsolute(filePath));
+                if (filePaths.Add(PathUtilities.ExpandAbsolutePathWithRelativeParts(filePath)))
+                {
+                    var file = new CommandLineSourceFile(filePath, Arguments.IsScriptRunner);
                     builder.Add(new AdditionalTextFile(file, this));
                 }
             }

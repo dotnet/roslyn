@@ -19,7 +19,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
         Public Sub DiagnosticAnalyzerAllInOne()
             Dim source = TestResource.AllInOneVisualBasicBaseline
             Dim analyzer = New BasicTrackingDiagnosticAnalyzer()
-            Dim options = New AnalyzerOptions({DirectCast(New TestAdditionalText(), AdditionalText)}.ToImmutableArray())
+            Dim additionalFiles = {DirectCast(New TestAdditionalText(), AdditionalText)}.ToImmutableArray()
+            Dim analyzerConfigFiles = {DirectCast(New TestAdditionalText(), AdditionalText)}.ToImmutableArray()
+            Dim options = New AnalyzerOptions(additionalFiles, analyzerConfigFiles)
             CreateCompilationWithMscorlib40({source}).VerifyAnalyzerDiagnostics({analyzer}, options)
             analyzer.VerifyAllAnalyzerMembersWereCalled()
             analyzer.VerifyAnalyzeSymbolCalledForAllSymbolKinds()
@@ -45,7 +47,9 @@ End Enum
         <WorkItem(759, "https://github.com/dotnet/roslyn/issues/759")>
         Public Sub AnalyzerDriverIsSafeAgainstAnalyzerExceptions()
             Dim compilation = CreateCompilationWithMscorlib40({TestResource.AllInOneVisualBasicCode})
-            Dim options = New AnalyzerOptions({CType(new TestAdditionalText(), AdditionalText)}.ToImmutableArray())
+            Dim additionalFiles = {DirectCast(New TestAdditionalText(), AdditionalText)}.ToImmutableArray()
+            Dim analyzerConfigFiles = {DirectCast(New TestAdditionalText(), AdditionalText)}.ToImmutableArray()
+            Dim options = New AnalyzerOptions(additionalFiles, analyzerConfigFiles)
             ThrowingDiagnosticAnalyzer(Of SyntaxKind).VerifyAnalyzerEngineIsSafeAgainstExceptions(
                 Function(analyzer) compilation.GetAnalyzerDiagnostics({analyzer}, options))
         End Sub
@@ -53,8 +57,9 @@ End Enum
         <Fact>
         Public Sub AnalyzerOptionsArePassedToAllAnalyzers()
             Dim sourceText = New StringText(String.Empty, encodingOpt:=Nothing)
-            Dim additionalTexts As AdditionalText() = {New TestAdditionalText("myfilepath", sourceText)}
-            Dim options = New AnalyzerOptions(additionalTexts.ToImmutableArray())
+            Dim additionalFiles = {DirectCast(New TestAdditionalText("myfilepath", sourceText), AdditionalText)}.ToImmutableArray()
+            Dim analyzerConfigFiles = {DirectCast(New TestAdditionalText("myfilepath2", sourceText), AdditionalText)}.ToImmutableArray()
+            Dim options = New AnalyzerOptions(additionalFiles, analyzerConfigFiles)
 
             Dim compilation = CreateCompilationWithMscorlib40({TestResource.AllInOneVisualBasicCode})
             Dim analyzer = New OptionsDiagnosticAnalyzer(Of SyntaxKind)(options)

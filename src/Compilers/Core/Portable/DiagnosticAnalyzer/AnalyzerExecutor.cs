@@ -772,7 +772,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public bool TryExecuteSyntaxTreeActions(
             ImmutableArray<SyntaxTreeAnalyzerAction> syntaxTreeActions,
             DiagnosticAnalyzer analyzer,
-            SourceOrAdditionalFile file,
+            SourceOrNonSourceFile file,
             AnalysisScope analysisScope,
             AnalysisState? analysisState,
             bool isGeneratedCode)
@@ -800,7 +800,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private void ExecuteSyntaxTreeActionsCore(
             ImmutableArray<SyntaxTreeAnalyzerAction> syntaxTreeActions,
             DiagnosticAnalyzer analyzer,
-            SourceOrAdditionalFile file,
+            SourceOrNonSourceFile file,
             AnalyzerStateData? analyzerState,
             bool isGeneratedCode)
         {
@@ -854,7 +854,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public bool TryExecuteAdditionalFileActions(
             ImmutableArray<AdditionalFileAnalyzerAction> additionalFileActions,
             DiagnosticAnalyzer analyzer,
-            SourceOrAdditionalFile file,
+            SourceOrNonSourceFile file,
             AnalysisScope analysisScope,
             AnalysisState? analysisState)
         {
@@ -881,7 +881,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private void ExecuteAdditionalFileActionsCore(
             ImmutableArray<AdditionalFileAnalyzerAction> additionalFileActions,
             DiagnosticAnalyzer analyzer,
-            SourceOrAdditionalFile file,
+            SourceOrNonSourceFile file,
             AnalyzerStateData? analyzerState)
         {
             Debug.Assert(file.AdditionalFile != null);
@@ -906,6 +906,79 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                         new AnalysisContextInfo(Compilation, file));
 
                     analyzerState?.ProcessedActions.Add(additionalFileAction);
+                }
+            }
+
+            diagReporter.Free();
+        }
+
+        /// <summary>
+        /// Tries to execute the analyzer config file actions.
+        /// </summary>
+        /// <param name="analyzerConfigFileActions">Actions to be executed.</param>
+        /// <param name="analyzer">Analyzer whose actions are to be executed.</param>
+        /// <param name="file">Analyzer config file to analyze.</param>
+        /// <param name="analysisScope">Scope for analyzer execution.</param>
+        /// <param name="analysisState">An optional object to track analysis state.</param>
+        /// <returns>
+        /// True, if successfully executed the actions for the given analysis scope OR all the actions have already been executed for the given analysis scope.
+        /// False, if there are some pending actions that are currently being executed on another thread.
+        /// </returns>
+        public bool TryExecuteAnalyzerConfigFileActions(
+            ImmutableArray<AnalyzerConfigFileAnalyzerAction> analyzerConfigFileActions,
+            DiagnosticAnalyzer analyzer,
+            SourceOrNonSourceFile file,
+            AnalysisScope analysisScope,
+            AnalysisState? analysisState)
+        {
+            Debug.Assert(file.AnalyzerConfigFile != null);
+            AnalyzerStateData? analyzerState = null;
+
+            try
+            {
+                if (TryStartSyntaxAnalysis(file, analyzer, analysisScope, analysisState, out analyzerState))
+                {
+                    ExecuteAnalyzerConfigFileActionsCore(analyzerConfigFileActions, analyzer, file, analyzerState);
+                    analysisState?.MarkSyntaxAnalysisComplete(file, analyzer);
+                    return true;
+                }
+
+                return analysisState == null || !analysisState.HasPendingSyntaxAnalysis(analysisScope);
+            }
+            finally
+            {
+                analyzerState?.ResetToReadyState();
+            }
+        }
+
+        private void ExecuteAnalyzerConfigFileActionsCore(
+            ImmutableArray<AnalyzerConfigFileAnalyzerAction> analyzerConfigFileActions,
+            DiagnosticAnalyzer analyzer,
+            SourceOrNonSourceFile file,
+            AnalyzerStateData? analyzerState)
+        {
+            Debug.Assert(file.AnalyzerConfigFile != null);
+            var analyzerConfigFile = file.AnalyzerConfigFile;
+
+            var diagReporter = GetAddSyntaxDiagnostic(file, analyzer);
+
+            using var _ = PooledDelegates.GetPooledFunction((d, arg) => arg.self.IsSupportedDiagnostic(arg.analyzer, d), (self: this, analyzer), out Func<Diagnostic, bool> isSupportedDiagnostic);
+            foreach (var analyzerConfigFileAction in analyzerConfigFileActions)
+            {
+                if (ShouldExecuteAction(analyzerState, analyzerConfigFileAction))
+                {
+                    _cancellationToken.ThrowIfCancellationRequested();
+
+                    var context = new AnalyzerConfigFileAnalysisContext(analyzerConfigFile, AnalyzerOptions, diagReporter.AddDiagnosticAction, isSupportedDiagnostic, Compilation, _cancellationToken);
+
+                    // Catch Exception from action.
+                    ExecuteAndCatchIfThrows(
+                        analyzerConfigFileAction.Analyzer,
+                        data => data.action(data.context),
+                        (action: analyzerConfigFileAction.Action, context),
+                        new AnalysisContextInfo(Compilation, file));
+
+                    analyzerState?.ProcessedActions.Add(analyzerConfigFileAction);
                 }
             }
 
@@ -1857,19 +1930,19 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         private AnalyzerDiagnosticReporter GetAddSemanticDiagnostic(SyntaxTree tree, DiagnosticAnalyzer analyzer)
         {
-            return AnalyzerDiagnosticReporter.GetInstance(new SourceOrAdditionalFile(tree), span: null, Compilation, analyzer, isSyntaxDiagnostic: false,
+            return AnalyzerDiagnosticReporter.GetInstance(new SourceOrNonSourceFile(tree), span: null, Compilation, analyzer, isSyntaxDiagnostic: false,
                 _addNonCategorizedDiagnostic, _addCategorizedLocalDiagnostic, _addCategorizedNonLocalDiagnostic,
                 _shouldSuppressGeneratedCodeDiagnostic, _cancellationToken);
         }
 
         private AnalyzerDiagnosticReporter GetAddSemanticDiagnostic(SyntaxTree tree, TextSpan? span, DiagnosticAnalyzer analyzer)
         {
-            return AnalyzerDiagnosticReporter.GetInstance(new SourceOrAdditionalFile(tree), span, Compilation, analyzer, isSyntaxDiagnostic: false,
+            return AnalyzerDiagnosticReporter.GetInstance(new SourceOrNonSourceFile(tree), span, Compilation, analyzer, isSyntaxDiagnostic: false,
                 _addNonCategorizedDiagnostic, _addCategorizedLocalDiagnostic, _addCategorizedNonLocalDiagnostic,
                 _shouldSuppressGeneratedCodeDiagnostic, _cancellationToken);
         }
 
-        private AnalyzerDiagnosticReporter GetAddSyntaxDiagnostic(SourceOrAdditionalFile file, DiagnosticAnalyzer analyzer)
+        private AnalyzerDiagnosticReporter GetAddSyntaxDiagnostic(SourceOrNonSourceFile file, DiagnosticAnalyzer analyzer)
         {
             return AnalyzerDiagnosticReporter.GetInstance(file, span: null, Compilation, analyzer, isSyntaxDiagnostic: true,
                 _addNonCategorizedDiagnostic, _addCategorizedLocalDiagnostic, _addCategorizedNonLocalDiagnostic,
@@ -1949,7 +2022,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return analysisState == null || analysisState.TryStartProcessingEvent(nonSymbolCompilationEvent, analyzer, out analyzerState);
         }
 
-        private static bool TryStartSyntaxAnalysis(SourceOrAdditionalFile file,
+        private static bool TryStartSyntaxAnalysis(SourceOrNonSourceFile file,
             DiagnosticAnalyzer analyzer,
             AnalysisScope analysisScope,
             AnalysisState? analysisState,

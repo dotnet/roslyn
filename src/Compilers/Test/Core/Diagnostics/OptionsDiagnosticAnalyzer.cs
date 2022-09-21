@@ -47,7 +47,8 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
         private bool AreEqual(AnalyzerOptions actual, AnalyzerOptions expected)
         {
-            if (actual.AdditionalFiles.Length != expected.AdditionalFiles.Length)
+            if (actual.AdditionalFiles.Length != expected.AdditionalFiles.Length ||
+                actual.AnalyzerConfigFiles.Length != expected.AnalyzerConfigFiles.Length)
             {
                 return false;
             }
@@ -55,6 +56,14 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             for (int i = 0; i < actual.AdditionalFiles.Length; i++)
             {
                 if (actual.AdditionalFiles[i].Path != expected.AdditionalFiles[i].Path)
+                {
+                    return false;
+                }
+            }
+
+            for (int i = 0; i < actual.AnalyzerConfigFiles.Length; i++)
+            {
+                if (actual.AnalyzerConfigFiles[i].Path != expected.AnalyzerConfigFiles[i].Path)
                 {
                     return false;
                 }

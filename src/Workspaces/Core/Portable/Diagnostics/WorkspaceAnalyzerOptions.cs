@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public IdeAnalyzerOptions IdeOptions { get; }
 
         public WorkspaceAnalyzerOptions(AnalyzerOptions options, IdeAnalyzerOptions ideOptions)
-            : base(options.AdditionalFiles, options.AnalyzerConfigOptionsProvider)
+            : base(options.AdditionalFiles, options.AnalyzerConfigFiles, options.AnalyzerConfigOptionsProvider)
         {
             IdeOptions = ideOptions;
         }

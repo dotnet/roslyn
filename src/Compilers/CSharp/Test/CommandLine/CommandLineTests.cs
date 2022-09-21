@@ -14185,6 +14185,30 @@ dotnet_diagnostic.Warning01.severity = error;
             CleanupAllGeneratedFiles(srcDirectory.Path);
         }
 
+        [Theory, CombinatorialData]
+        public void TestAnalyzerConfigFileAnalyzer(bool registerFromInitialize)
+        {
+            var srcDirectory = Temp.CreateDirectory();
+
+            var source = "class C { }";
+            var srcFile = srcDirectory.CreateFile("a.cs");
+            srcFile.WriteAllText(source);
+
+            var analyzerConfigText = "# Analyzer Config Text";
+            var analyzerConfigFile = srcDirectory.CreateFile(".editorconfig");
+            analyzerConfigFile.WriteAllText(analyzerConfigText);
+
+            var diagnosticSpan = new TextSpan(2, 2);
+            var analyzer = new AnalyzerConfigFileAnalyzer(registerFromInitialize, diagnosticSpan);
+
+            var output = VerifyOutput(srcDirectory, srcFile, expectedWarningCount: 1, includeCurrentAssemblyAsAnalyzerReference: false,
+                additionalFlags: new[] { "/analyzerconfig:" + analyzerConfigFile.Path },
+                analyzers: new[] { analyzer });
+            Assert.Contains(".editorconfig(1,3): warning ID0001", output, StringComparison.Ordinal);
+
+            CleanupAllGeneratedFiles(srcDirectory.Path);
+        }
+
         [Theory]
         // "/warnaserror" tests
         [InlineData(/*analyzerConfigSeverity*/"warning", "/warnaserror", /*expectError*/true, /*expectWarning*/false)]

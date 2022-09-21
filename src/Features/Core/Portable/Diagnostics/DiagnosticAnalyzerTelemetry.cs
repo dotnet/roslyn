@@ -26,6 +26,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             public readonly int CompilationActionsCount;
             public readonly int SyntaxTreeActionsCount;
             public readonly int AdditionalFileActionsCount;
+            public readonly int AnalyzerConfigFileActionsCount;
             public readonly int SemanticModelActionsCount;
             public readonly int SymbolActionsCount;
             public readonly int SymbolStartActionsCount;
@@ -55,6 +56,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 SyntaxNodeActionsCount = analyzerTelemetryInfo.SyntaxNodeActionsCount;
                 SyntaxTreeActionsCount = analyzerTelemetryInfo.SyntaxTreeActionsCount;
                 AdditionalFileActionsCount = analyzerTelemetryInfo.AdditionalFileActionsCount;
+                AnalyzerConfigFileActionsCount = analyzerTelemetryInfo.AnalyzerConfigFileActionsCount;
                 OperationActionsCount = analyzerTelemetryInfo.OperationActionsCount;
                 OperationBlockActionsCount = analyzerTelemetryInfo.OperationBlockActionsCount;
                 OperationBlockEndActionsCount = analyzerTelemetryInfo.OperationBlockEndActionsCount;
@@ -119,6 +121,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     m["Analyzer.SyntaxNode"] = analyzerInfo.SyntaxNodeActionsCount;
                     m["Analyzer.SyntaxTree"] = analyzerInfo.SyntaxTreeActionsCount;
                     m["Analyzer.AdditionalFile"] = analyzerInfo.AdditionalFileActionsCount;
+                    m["Analyzer.AnalyzerConfigFile"] = analyzerInfo.AnalyzerConfigFileActionsCount;
                     m["Analyzer.Operation"] = analyzerInfo.OperationActionsCount;
                     m["Analyzer.OperationBlock"] = analyzerInfo.OperationBlockActionsCount;
                     m["Analyzer.OperationBlockStart"] = analyzerInfo.OperationBlockStartActionsCount;

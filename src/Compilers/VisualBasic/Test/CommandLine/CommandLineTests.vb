@@ -10292,6 +10292,31 @@ End Class"
             CleanupAllGeneratedFiles(srcDirectory.Path)
         End Sub
 
+        <Theory, CombinatorialData>
+        Public Sub TestAnalyzerConfigFileAnalyzer(registerFromInitialize As Boolean)
+            Dim srcDirectory = Temp.CreateDirectory()
+
+            Dim source = "
+Class C
+End Class"
+            Dim srcFile = srcDirectory.CreateFile("a.vb")
+            srcFile.WriteAllText(source)
+
+            Dim analyzerConfigText = "# Analyzer Config Text"
+            Dim analyzerConfigFile = srcDirectory.CreateFile(".editorconfig")
+            analyzerConfigFile.WriteAllText(analyzerConfigText)
+
+            Dim diagnosticSpan = New TextSpan(2, 2)
+            Dim analyzer As DiagnosticAnalyzer = New AnalyzerConfigFileAnalyzer(registerFromInitialize, diagnosticSpan)
+
+            Dim output = VerifyOutput(srcDirectory, srcFile, expectedWarningCount:=1,
+                                      includeCurrentAssemblyAsAnalyzerReference:=False,
+                                      additionalFlags:={"/analyzerconfig:" & analyzerConfigFile.Path},
+                                      analyzers:={analyzer})
+            Assert.Contains(".editorconfig(1) : warning ID0001", output, StringComparison.Ordinal)
+            CleanupAllGeneratedFiles(srcDirectory.Path)
+        End Sub
+
         <Theory>
         <InlineData("warning", "/warnaserror", True, False)>
         <InlineData("error", "/warnaserror", True, False)>

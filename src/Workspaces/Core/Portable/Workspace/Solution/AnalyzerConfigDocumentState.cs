@@ -6,6 +6,7 @@
 
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -15,6 +16,7 @@ namespace Microsoft.CodeAnalysis
     internal sealed class AnalyzerConfigDocumentState : TextDocumentState
     {
         private readonly ValueSource<AnalyzerConfig> _analyzerConfigValueSource;
+        private readonly AnalyzerConfigTextWithState _analyzerConfigTextWithState;
 
         private AnalyzerConfigDocumentState(
             HostWorkspaceServices solutionServices,
@@ -25,6 +27,7 @@ namespace Microsoft.CodeAnalysis
             : base(solutionServices, documentServiceProvider, attributes, sourceTextOpt, textAndVersionSource)
         {
             _analyzerConfigValueSource = CreateAnalyzerConfigValueSource();
+            _analyzerConfigTextWithState = new AnalyzerConfigTextWithState(this);
         }
 
         public AnalyzerConfigDocumentState(
@@ -33,7 +36,10 @@ namespace Microsoft.CodeAnalysis
             : base(documentInfo, solutionServices)
         {
             _analyzerConfigValueSource = CreateAnalyzerConfigValueSource();
+            _analyzerConfigTextWithState = new AnalyzerConfigTextWithState(this);
         }
+
+        public AdditionalText AnalyzerConfigText => _analyzerConfigTextWithState;
 
         private ValueSource<AnalyzerConfig> CreateAnalyzerConfigValueSource()
         {

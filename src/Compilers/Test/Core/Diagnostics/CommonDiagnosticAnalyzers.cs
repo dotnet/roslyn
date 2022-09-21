@@ -2446,6 +2446,55 @@ namespace Microsoft.CodeAnalysis
         }
 
         [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
+        public class AnalyzerConfigFileAnalyzer : DiagnosticAnalyzer
+        {
+            private readonly bool _registerFromInitialize;
+            private readonly TextSpan _diagnosticSpan;
+
+            public AnalyzerConfigFileAnalyzer(bool registerFromInitialize, TextSpan diagnosticSpan, string id = "ID0001")
+            {
+                _registerFromInitialize = registerFromInitialize;
+                _diagnosticSpan = diagnosticSpan;
+
+                Descriptor = new DiagnosticDescriptor(
+                    id,
+                    "Title1",
+                    "Message1",
+                    "Category1",
+                    defaultSeverity: DiagnosticSeverity.Warning,
+                    isEnabledByDefault: true);
+            }
+
+            public DiagnosticDescriptor Descriptor { get; }
+
+            public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(Descriptor);
+            public override void Initialize(AnalysisContext context)
+            {
+                if (_registerFromInitialize)
+                {
+                    context.RegisterAnalyzerConfigFileAction(AnalyzeAnalyzerConfigFile);
+                }
+                else
+                {
+                    context.RegisterCompilationStartAction(context =>
+                        context.RegisterAnalyzerConfigFileAction(AnalyzeAnalyzerConfigFile));
+                }
+            }
+
+            private void AnalyzeAnalyzerConfigFile(AnalyzerConfigFileAnalysisContext context)
+            {
+                if (context.AnalyzerConfigFile.Path == null)
+                {
+                    return;
+                }
+
+                var text = context.AnalyzerConfigFile.GetText();
+                var location = Location.Create(context.AnalyzerConfigFile.Path, _diagnosticSpan, text.Lines.GetLinePositionSpan(_diagnosticSpan));
+                context.ReportDiagnostic(Diagnostic.Create(Descriptor, location));
+            }
+        }
+
+        [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
         public sealed class RegisterSyntaxTreeCancellationAnalyzer : DiagnosticAnalyzer
         {
             public const string DiagnosticId = "ID0001";

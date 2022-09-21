@@ -71,8 +71,9 @@ Friend Class MockVisualBasicCompiler
 
     Protected Overrides Function CreateAnalyzerOptions(
         additionalTextFiles As ImmutableArray(Of AdditionalText),
+        analyzerConfigTextFiles As ImmutableArray(Of AdditionalText),
         analyzerConfigOptionsProvider As AnalyzerConfigOptionsProvider) As AnalyzerOptions
-        AnalyzerOptions = MyBase.CreateAnalyzerOptions(additionalTextFiles, analyzerConfigOptionsProvider)
+        AnalyzerOptions = MyBase.CreateAnalyzerOptions(additionalTextFiles, analyzerConfigTextFiles, analyzerConfigOptionsProvider)
         Return AnalyzerOptions
     End Function
 End Class

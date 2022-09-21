@@ -13,10 +13,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Private ReadOnly _baseDirectory As String
         Private ReadOnly _getAdditionalTextFiles As Func(Of ImmutableArray(Of AdditionalTextFile))
+        Private ReadOnly _getAnalyzerConfigTextFiles As Func(Of ImmutableArray(Of AdditionalTextFile))
 
-        Friend Sub New(baseDirectory As String, getAdditionalTextFiles As Func(Of ImmutableArray(Of AdditionalTextFile)))
+        Friend Sub New(baseDirectory As String, getAdditionalTextFiles As Func(Of ImmutableArray(Of AdditionalTextFile)), getAnalyzerConfigTextFiles As Func(Of ImmutableArray(Of AdditionalTextFile)))
             _baseDirectory = baseDirectory
             _getAdditionalTextFiles = getAdditionalTextFiles
+            _getAnalyzerConfigTextFiles = getAnalyzerConfigTextFiles
         End Sub
 
         ' Returns a diagnostic message in string.
@@ -136,7 +138,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             If diagnostic.Location.Kind = LocationKind.ExternalFile Then
                 Dim path = diagnostic.Location.GetLineSpan().Path
                 If path IsNot Nothing Then
-                    For Each additionalTextFile In _getAdditionalTextFiles()
+                    For Each additionalTextFile In _getAdditionalTextFiles().Concat(_getAnalyzerConfigTextFiles())
                         If path.Equals(additionalTextFile.Path) Then
                             Try
                                 text = additionalTextFile.GetText()

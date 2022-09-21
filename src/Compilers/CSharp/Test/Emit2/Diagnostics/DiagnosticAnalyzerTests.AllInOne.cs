@@ -35,7 +35,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             missingSyntaxKinds.Add(SyntaxKind.RecordDeclaration);
 
             var analyzer = new CSharpTrackingDiagnosticAnalyzer();
-            var options = new AnalyzerOptions(new[] { new TestAdditionalText() }.ToImmutableArray<AdditionalText>());
+            var additionalFiles = new[] { new TestAdditionalText() }.ToImmutableArray<AdditionalText>();
+            var analyzerConfigFiles = new[] { new TestAdditionalText() }.ToImmutableArray<AdditionalText>();
+            var options = new AnalyzerOptions(additionalFiles, analyzerConfigFiles);
             CreateCompilationWithMscorlib45(source).VerifyAnalyzerDiagnostics(new[] { analyzer }, options);
             analyzer.VerifyAllAnalyzerMembersWereCalled();
             analyzer.VerifyAnalyzeSymbolCalledForAllSymbolKinds();
@@ -96,7 +98,9 @@ public class C
         public void AnalyzerDriverIsSafeAgainstAnalyzerExceptions()
         {
             var compilation = CreateCompilationWithMscorlib45(TestResource.AllInOneCSharpCode);
-            var options = new AnalyzerOptions(new[] { new TestAdditionalText() }.ToImmutableArray<AdditionalText>());
+            var additionalFiles = new[] { new TestAdditionalText() }.ToImmutableArray<AdditionalText>();
+            var analyzerConfigFiles = new[] { new TestAdditionalText() }.ToImmutableArray<AdditionalText>();
+            var options = new AnalyzerOptions(additionalFiles, analyzerConfigFiles);
 
             ThrowingDiagnosticAnalyzer<SyntaxKind>.VerifyAnalyzerEngineIsSafeAgainstExceptions(analyzer =>
                 compilation.GetAnalyzerDiagnostics(new[] { analyzer }, options));
@@ -108,7 +112,8 @@ public class C
             var text = new StringText(string.Empty, encodingOpt: null);
             AnalyzerOptions options = new AnalyzerOptions
             (
-                new[] { new TestAdditionalText("myfilepath", text) }.ToImmutableArray<AdditionalText>()
+                new[] { new TestAdditionalText("myfilepath", text) }.ToImmutableArray<AdditionalText>(),
+                new[] { new TestAdditionalText("myfilepath2", text) }.ToImmutableArray<AdditionalText>()
             );
 
             var compilation = CreateCompilationWithMscorlib45(TestResource.AllInOneCSharpCode);

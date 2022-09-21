@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private readonly Compilation? _compilation;
         private readonly IOperation? _operation;
         private readonly ISymbol? _symbol;
-        private readonly SourceOrAdditionalFile? _file;
+        private readonly SourceOrNonSourceFile? _file;
         private readonly SyntaxNode? _node;
 
         public AnalysisContextInfo(Compilation compilation) :
@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         }
 
         public AnalysisContextInfo(SemanticModel model) :
-            this(model.Compilation, new SourceOrAdditionalFile(model.SyntaxTree))
+            this(model.Compilation, new SourceOrNonSourceFile(model.SyntaxTree))
         {
         }
 
@@ -34,23 +34,23 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
         }
 
-        public AnalysisContextInfo(Compilation compilation, SourceOrAdditionalFile file) :
+        public AnalysisContextInfo(Compilation compilation, SourceOrNonSourceFile file) :
             this(compilation: compilation, operation: null, symbol: null, file: file, node: null)
         {
         }
 
         public AnalysisContextInfo(Compilation compilation, SyntaxNode node) :
-            this(compilation: compilation, operation: null, symbol: null, file: new SourceOrAdditionalFile(node.SyntaxTree), node)
+            this(compilation: compilation, operation: null, symbol: null, file: new SourceOrNonSourceFile(node.SyntaxTree), node)
         {
         }
 
         public AnalysisContextInfo(Compilation compilation, IOperation operation) :
-            this(compilation: compilation, operation: operation, symbol: null, file: new SourceOrAdditionalFile(operation.Syntax.SyntaxTree), node: operation.Syntax)
+            this(compilation: compilation, operation: operation, symbol: null, file: new SourceOrNonSourceFile(operation.Syntax.SyntaxTree), node: operation.Syntax)
         {
         }
 
         public AnalysisContextInfo(Compilation compilation, ISymbol symbol, SyntaxNode node) :
-            this(compilation: compilation, operation: null, symbol: symbol, file: new SourceOrAdditionalFile(node.SyntaxTree), node)
+            this(compilation: compilation, operation: null, symbol: symbol, file: new SourceOrNonSourceFile(node.SyntaxTree), node)
         {
         }
 
@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             Compilation? compilation,
             IOperation? operation,
             ISymbol? symbol,
-            SourceOrAdditionalFile? file,
+            SourceOrNonSourceFile? file,
             SyntaxNode? node)
         {
             Debug.Assert(node == null || file?.SourceTree != null);

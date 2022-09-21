@@ -158,6 +158,17 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         }
     }
 
+    internal sealed class AnalyzerConfigFileAnalyzerAction : AnalyzerAction
+    {
+        public Action<AnalyzerConfigFileAnalysisContext> Action { get; }
+
+        public AnalyzerConfigFileAnalyzerAction(Action<AnalyzerConfigFileAnalysisContext> action, DiagnosticAnalyzer analyzer)
+            : base(analyzer)
+        {
+            Action = action;
+        }
+    }
+
     internal sealed class CodeBlockStartAnalyzerAction<TLanguageKindEnum> : AnalyzerAction where TLanguageKindEnum : struct
     {
         public Action<CodeBlockStartAnalysisContext<TLanguageKindEnum>> Action { get; }

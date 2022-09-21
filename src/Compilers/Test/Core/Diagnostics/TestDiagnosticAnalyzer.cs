@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
         protected static readonly ImmutableArray<TLanguageKindEnum> AllSyntaxKinds = GetAllEnumValues<TLanguageKindEnum>();
 
-        protected static readonly ImmutableArray<string> AllAnalyzerMemberNames = new string[] { "AnalyzeCodeBlock", "AnalyzeCompilation", "AnalyzeNode", "AnalyzeSemanticModel", "AnalyzeSymbol", "AnalyzeSyntaxTree", "AnalyzeAdditionalFile", "Initialize", "SupportedDiagnostics" }.ToImmutableArray();
+        protected static readonly ImmutableArray<string> AllAnalyzerMemberNames = new string[] { "AnalyzeCodeBlock", "AnalyzeCompilation", "AnalyzeNode", "AnalyzeSemanticModel", "AnalyzeSymbol", "AnalyzeSyntaxTree", "AnalyzeAdditionalFile", "AnalyzeAnalyzerConfigFile", "Initialize", "SupportedDiagnostics" }.ToImmutableArray();
 
         protected static readonly DiagnosticDescriptor DefaultDiagnostic =
 #pragma warning disable RS1029 // Do not use reserved diagnostic IDs.
@@ -47,6 +47,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             context.RegisterSymbolAction(this.AnalyzeSymbol, AllSymbolKinds.ToArray());
             context.RegisterSyntaxTreeAction(this.AnalyzeSyntaxTree);
             context.RegisterAdditionalFileAction(this.AnalyzeAdditionalFile);
+            context.RegisterAnalyzerConfigFileAction(this.AnalyzeAnalyzerConfigFile);
             context.RegisterSyntaxNodeAction<TLanguageKindEnum>(this.AnalyzeNode, AllSyntaxKinds.ToArray());
         }
 
@@ -92,6 +93,12 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         private void AnalyzeAdditionalFile(AdditionalFileAnalysisContext context)
         {
             OnAbstractMember("AdditionalFile");
+            OnOptions(context.Options);
+        }
+
+        private void AnalyzeAnalyzerConfigFile(AnalyzerConfigFileAnalysisContext context)
+        {
+            OnAbstractMember("AnalyzerConfigFile");
             OnOptions(context.Options);
         }
 

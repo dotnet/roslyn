@@ -140,9 +140,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 }
             }
 
-            if (document == null && textDocument is not AdditionalDocument)
+            if (document == null && textDocument is not (AdditionalDocument or AnalyzerConfigDocument))
             {
-                // We currently support document analysis only for source documents and additional documents.
+                // We currently support document analysis only for source documents, additional documents and analyzer config documents.
                 return SpecializedCollections.EmptyEnumerable<DiagnosticData>();
             }
 

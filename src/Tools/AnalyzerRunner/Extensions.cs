@@ -30,6 +30,7 @@ namespace AnalyzerRunner
             analyzerTelemetryInfo.SyntaxNodeActionsCount += addendum.SyntaxNodeActionsCount;
             analyzerTelemetryInfo.SyntaxTreeActionsCount += addendum.SyntaxTreeActionsCount;
             analyzerTelemetryInfo.AdditionalFileActionsCount += addendum.AdditionalFileActionsCount;
+            analyzerTelemetryInfo.AnalyzerConfigFileActionsCount += addendum.AnalyzerConfigFileActionsCount;
             analyzerTelemetryInfo.SuppressionActionsCount += addendum.SuppressionActionsCount;
         }
     }

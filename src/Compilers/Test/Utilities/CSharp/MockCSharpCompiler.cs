@@ -82,9 +82,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
 
         protected override AnalyzerOptions CreateAnalyzerOptions(
             ImmutableArray<AdditionalText> additionalTextFiles,
+            ImmutableArray<AdditionalText> analyzerConfigTextFiles,
             AnalyzerConfigOptionsProvider analyzerConfigOptionsProvider)
         {
-            AnalyzerOptions = base.CreateAnalyzerOptions(additionalTextFiles, analyzerConfigOptionsProvider);
+            AnalyzerOptions = base.CreateAnalyzerOptions(additionalTextFiles, analyzerConfigTextFiles, analyzerConfigOptionsProvider);
             return AnalyzerOptions;
         }
     }

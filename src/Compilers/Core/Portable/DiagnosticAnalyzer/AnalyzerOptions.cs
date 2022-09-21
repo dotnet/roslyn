@@ -22,6 +22,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public ImmutableArray<AdditionalText> AdditionalFiles { get; }
 
         /// <summary>
+        /// A set of analyzer config non-code text files that can be used by analyzers.
+        /// </summary>
+        public ImmutableArray<AdditionalText> AnalyzerConfigFiles { get; }
+
+        /// <summary>
         /// A set of options keyed to <see cref="SyntaxTree"/> or <see cref="AdditionalText"/>.
         /// </summary>
         public AnalyzerConfigOptionsProvider AnalyzerConfigOptionsProvider { get; }
@@ -30,8 +35,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// Creates analyzer options to be passed to <see cref="DiagnosticAnalyzer"/>.
         /// </summary>
         /// <param name="additionalFiles">A set of additional non-code text files that can be used by analyzers.</param>
+        /// <param name="analyzerConfigFiles">A set of analyzer config non-code text files that can be used by analyzers.</param>
         /// <param name="optionsProvider">A set of per-tree options that can be used by analyzers.</param>
-        public AnalyzerOptions(ImmutableArray<AdditionalText> additionalFiles, AnalyzerConfigOptionsProvider optionsProvider)
+        public AnalyzerOptions(ImmutableArray<AdditionalText> additionalFiles, ImmutableArray<AdditionalText> analyzerConfigFiles, AnalyzerConfigOptionsProvider optionsProvider)
         {
             if (optionsProvider is null)
             {
@@ -39,7 +45,28 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
 
             AdditionalFiles = additionalFiles.NullToEmpty();
+            AnalyzerConfigFiles = analyzerConfigFiles.NullToEmpty();
             AnalyzerConfigOptionsProvider = optionsProvider;
+        }
+
+        /// <summary>
+        /// Creates analyzer options to be passed to <see cref="DiagnosticAnalyzer"/>.
+        /// </summary>
+        /// <param name="additionalFiles">A set of additional non-code text files that can be used by analyzers.</param>
+        /// <param name="analyzerConfigFiles">A set of analyzer config non-code text files that can be used by analyzers.</param>
+        public AnalyzerOptions(ImmutableArray<AdditionalText> additionalFiles, ImmutableArray<AdditionalText> analyzerConfigFiles)
+            : this(additionalFiles, analyzerConfigFiles, CompilerAnalyzerConfigOptionsProvider.Empty)
+        {
+        }
+
+        /// <summary>
+        /// Creates analyzer options to be passed to <see cref="DiagnosticAnalyzer"/>.
+        /// </summary>
+        /// <param name="additionalFiles">A set of additional non-code text files that can be used by analyzers.</param>
+        /// <param name="optionsProvider">A set of per-tree options that can be used by analyzers.</param>
+        public AnalyzerOptions(ImmutableArray<AdditionalText> additionalFiles, AnalyzerConfigOptionsProvider optionsProvider)
+            : this(additionalFiles, analyzerConfigFiles: ImmutableArray<AdditionalText>.Empty, optionsProvider)
+        {
         }
 
         /// <summary>
@@ -60,7 +87,20 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 return this;
             }
 
-            return new AnalyzerOptions(additionalFiles);
+            return new AnalyzerOptions(additionalFiles, AnalyzerConfigFiles, AnalyzerConfigOptionsProvider);
+        }
+
+        /// <summary>
+        /// Returns analyzer options with the given <paramref name="analyzerConfigFiles"/>.
+        /// </summary>
+        public AnalyzerOptions WithAnalyzerConfigFiles(ImmutableArray<AdditionalText> analyzerConfigFiles)
+        {
+            if (this.AnalyzerConfigFiles == analyzerConfigFiles)
+            {
+                return this;
+            }
+
+            return new AnalyzerOptions(AdditionalFiles, analyzerConfigFiles, AnalyzerConfigOptionsProvider);
         }
 
         public override bool Equals(object? obj)
@@ -73,12 +113,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             var other = obj as AnalyzerOptions;
             return other != null &&
                 (this.AdditionalFiles == other.AdditionalFiles ||
-                this.AdditionalFiles.SequenceEqual(other.AdditionalFiles, ReferenceEquals));
+                this.AdditionalFiles.SequenceEqual(other.AdditionalFiles, ReferenceEquals)) &&
+                (this.AnalyzerConfigFiles == other.AnalyzerConfigFiles ||
+                this.AnalyzerConfigFiles.SequenceEqual(other.AnalyzerConfigFiles, ReferenceEquals));
         }
 
         public override int GetHashCode()
         {
-            return Hash.CombineValues(this.AdditionalFiles);
+            return Hash.Combine(Hash.CombineValues(this.AdditionalFiles), Hash.CombineValues(this.AnalyzerConfigFiles));
         }
     }
 }

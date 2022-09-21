@@ -12,15 +12,17 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     internal sealed class CompilationStartedEvent : CompilationEvent
     {
         public ImmutableArray<AdditionalText> AdditionalFiles { get; }
+        public ImmutableArray<AdditionalText> AnalyzerConfigFiles { get; }
 
-        private CompilationStartedEvent(Compilation compilation, ImmutableArray<AdditionalText> additionalFiles)
+        private CompilationStartedEvent(Compilation compilation, ImmutableArray<AdditionalText> additionalFiles, ImmutableArray<AdditionalText> analyzerConfigFiles)
             : base(compilation)
         {
             AdditionalFiles = additionalFiles;
+            AnalyzerConfigFiles = analyzerConfigFiles;
         }
 
         public CompilationStartedEvent(Compilation compilation)
-            : this(compilation, ImmutableArray<AdditionalText>.Empty)
+            : this(compilation, ImmutableArray<AdditionalText>.Empty, ImmutableArray<AdditionalText>.Empty)
         {
         }
 
@@ -30,6 +32,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         }
 
         public CompilationStartedEvent WithAdditionalFiles(ImmutableArray<AdditionalText> additionalFiles)
-            => new CompilationStartedEvent(Compilation, additionalFiles);
+            => new CompilationStartedEvent(Compilation, additionalFiles, AnalyzerConfigFiles);
+
+        public CompilationStartedEvent WithAnalyzerConfigFiles(ImmutableArray<AdditionalText> analyzerConfigFiles)
+            => new CompilationStartedEvent(Compilation, AdditionalFiles, analyzerConfigFiles);
     }
 }

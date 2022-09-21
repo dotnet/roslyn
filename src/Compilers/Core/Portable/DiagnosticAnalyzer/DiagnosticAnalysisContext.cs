@@ -119,11 +119,21 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public abstract void RegisterSyntaxTreeAction(Action<SyntaxTreeAnalysisContext> action);
 
         /// <summary>
-        /// Register an action to be executed for each non-code document.
+        /// Register an action to be executed for each non-code additional document.
         /// An additional file action reports <see cref="Diagnostic"/>s about the <see cref="AdditionalText"/> of a document.
         /// </summary>
-        /// <param name="action">Action to be executed for each non-code document.</param>
+        /// <param name="action">Action to be executed for each non-code additional document.</param>
         public virtual void RegisterAdditionalFileAction(Action<AdditionalFileAnalysisContext> action)
+        {
+            throw new NotImplementedException();
+        }
+
+        /// <summary>
+        /// Register an action to be executed for each non-code analyzer config document.
+        /// An analyzer config file action reports <see cref="Diagnostic"/>s about the <see cref="AdditionalText"/> of a document.
+        /// </summary>
+        /// <param name="action">Action to be executed for each non-code analyzer config document.</param>
+        public virtual void RegisterAnalyzerConfigFileAction(Action<AnalyzerConfigFileAnalysisContext> action)
         {
             throw new NotImplementedException();
         }
@@ -414,11 +424,21 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public abstract void RegisterSyntaxTreeAction(Action<SyntaxTreeAnalysisContext> action);
 
         /// <summary>
-        /// Register an action to be executed for each non-code document.
+        /// Register an action to be executed for each non-code additional document.
         /// An additional file action reports <see cref="Diagnostic"/>s about the <see cref="AdditionalText"/> of a document.
         /// </summary>
-        /// <param name="action">Action to be executed for each non-code document.</param>
+        /// <param name="action">Action to be executed for each non-code additional document.</param>
         public virtual void RegisterAdditionalFileAction(Action<AdditionalFileAnalysisContext> action)
+        {
+            throw new NotImplementedException();
+        }
+
+        /// <summary>
+        /// Register an action to be executed for each non-code analyzer config document.
+        /// An additional file action reports <see cref="Diagnostic"/>s about the <see cref="AdditionalText"/> of a document.
+        /// </summary>
+        /// <param name="action">Action to be executed for each non-code analyzer config document.</param>
+        public virtual void RegisterAnalyzerConfigFileAction(Action<AnalyzerConfigFileAnalysisContext> action)
         {
             throw new NotImplementedException();
         }
@@ -1412,7 +1432,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
     /// <summary>
     /// Context for an additional file action.
-    /// An additional file action can use an <see cref="AdditionalFileAnalysisContext"/> to report <see cref="Diagnostic"/>s about a non-source <see cref="AdditionalText"/> document.
+    /// An additional file action can use an <see cref="AdditionalFileAnalysisContext"/> to report <see cref="Diagnostic"/>s about a non-source additional document.
     /// </summary>
     public readonly struct AdditionalFileAnalysisContext
     {
@@ -1457,6 +1477,66 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         /// <summary>
         /// Report a diagnostic for the given <see cref="AdditionalFile"/>.
+        /// A diagnostic in a non-source document should be created with a non-source <see cref="Location"/>,
+        /// which can be created using <see cref="Location.Create(string, TextSpan, LinePositionSpan)"/> API.
+        /// </summary>
+        public void ReportDiagnostic(Diagnostic diagnostic)
+        {
+            DiagnosticAnalysisContextHelpers.VerifyArguments(diagnostic, Compilation, _isSupportedDiagnostic);
+            lock (_reportDiagnostic)
+            {
+                _reportDiagnostic(diagnostic);
+            }
+        }
+    }
+
+    /// <summary>
+    /// Context for an analyzer config file action.
+    /// An analyzer config file action can use an <see cref="AnalyzerConfigFileAnalysisContext"/> to report <see cref="Diagnostic"/>s about a non-source analyzer config document.
+    /// </summary>
+    public readonly struct AnalyzerConfigFileAnalysisContext
+    {
+        private readonly Action<Diagnostic> _reportDiagnostic;
+        private readonly Func<Diagnostic, bool> _isSupportedDiagnostic;
+
+        /// <summary>
+        /// <see cref="AdditionalText"/> that is the subject of the analysis.
+        /// </summary>
+        public AdditionalText AnalyzerConfigFile { get; }
+
+        /// <summary>
+        /// Options specified for the analysis.
+        /// </summary>
+        public AnalyzerOptions Options { get; }
+
+        /// <summary>
+        /// Token to check for requested cancellation of the analysis.
+        /// </summary>
+        public CancellationToken CancellationToken { get; }
+
+        /// <summary>
+        /// Compilation being analyzed.
+        /// </summary>
+        public Compilation Compilation { get; }
+
+        internal AnalyzerConfigFileAnalysisContext(
+            AdditionalText analyzerConfigFile,
+            AnalyzerOptions options,
+            Action<Diagnostic> reportDiagnostic,
+            Func<Diagnostic, bool> isSupportedDiagnostic,
+            Compilation compilation,
+            CancellationToken cancellationToken)
+        {
+            AnalyzerConfigFile = analyzerConfigFile;
+            Options = options;
+            _reportDiagnostic = reportDiagnostic;
+            _isSupportedDiagnostic = isSupportedDiagnostic;
+            Compilation = compilation;
+            CancellationToken = cancellationToken;
+        }
+
+        /// <summary>
+        /// Report a diagnostic for the given <see cref="AnalyzerConfigFile"/>.
         /// A diagnostic in a non-source document should be created with a non-source <see cref="Location"/>,
         /// which can be created using <see cref="Location.Create(string, TextSpan, LinePositionSpan)"/> API.
         /// </summary>

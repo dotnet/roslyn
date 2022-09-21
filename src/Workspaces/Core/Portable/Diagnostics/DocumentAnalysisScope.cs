@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             Analyzers = analyzers;
             Kind = kind;
 
-            _lazyAdditionalFile = new Lazy<AdditionalText>(ComputeAdditionalFile);
+            _lazyAdditionalFile = new Lazy<AdditionalText>(ComputeAdditionalOrAnalyzerConfigFile);
         }
 
         public TextDocument TextDocument { get; }
@@ -42,16 +42,19 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         /// <summary>
         /// Gets the <see cref="AdditionalText"/> corresponding to the <see cref="TextDocument"/>.
-        /// NOTE: Throws an exception if <see cref="TextDocument"/> is not an <see cref="AdditionalDocument"/>.
+        /// NOTE: Throws an exception if <see cref="TextDocument"/> is neither an <see cref="AdditionalDocument"/>
+        /// nor an <see cref="AnalyzerConfigDocument"/>.
         /// </summary>
         public AdditionalText AdditionalFile => _lazyAdditionalFile.Value;
 
-        private AdditionalText ComputeAdditionalFile()
+        private AdditionalText ComputeAdditionalOrAnalyzerConfigFile()
         {
-            Contract.ThrowIfFalse(TextDocument is AdditionalDocument);
+            Contract.ThrowIfFalse(TextDocument is AdditionalDocument or AnalyzerConfigDocument);
 
             var filePath = TextDocument.FilePath ?? TextDocument.Name;
-            return TextDocument.Project.AnalyzerOptions.AdditionalFiles.First(a => PathUtilities.Comparer.Equals(a.Path, filePath));
+            var compare = (AdditionalText a) => PathUtilities.Comparer.Equals(a.Path, filePath);
+            return TextDocument.Project.AnalyzerOptions.AdditionalFiles.FirstOrDefault(compare)
+                ?? TextDocument.Project.AnalyzerOptions.AnalyzerConfigFiles.First(compare);
         }
 
         public DocumentAnalysisScope WithSpan(TextSpan? span)

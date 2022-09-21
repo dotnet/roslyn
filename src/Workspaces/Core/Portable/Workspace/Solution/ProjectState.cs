@@ -250,6 +250,7 @@ namespace Microsoft.CodeAnalysis
         public AnalyzerOptions AnalyzerOptions
             => _lazyAnalyzerOptions ??= new AnalyzerOptions(
                 additionalFiles: AdditionalDocumentStates.SelectAsArray(static documentState => documentState.AdditionalText),
+                analyzerConfigFiles: AnalyzerConfigDocumentStates.SelectAsArray(static documentState => documentState.AnalyzerConfigText),
                 optionsProvider: new ProjectAnalyzerConfigOptionsProvider(this));
 
         public async Task<AnalyzerConfigData> GetAnalyzerOptionsForPathAsync(string path, CancellationToken cancellationToken)
