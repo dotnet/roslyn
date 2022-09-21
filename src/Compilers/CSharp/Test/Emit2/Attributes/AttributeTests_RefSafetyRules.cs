@@ -101,24 +101,32 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         [WorkItem(63692, "https://github.com/dotnet/roslyn/issues/63692")]
         [Theory]
-        [InlineData("interface I { T F<T>(); }")]
-        [InlineData("interface I { ref T F<T>(); }")]
-        [InlineData("interface I { void F<T>(T t); }")]
-        [InlineData("interface I { void F<T>(ref T t); }")]
-        [InlineData("interface I { void F<T>(in T t); }")]
-        [InlineData("interface I { void F<T>(out T t); }")]
-        [InlineData("interface I { ref int P { get; } }")]
-        [InlineData("interface I { }")]
-        [InlineData("class C { }")]
-        [InlineData("struct S { }")]
-        [InlineData("ref struct R { }")]
-        public void EmitAttribute_01(string source)
+        [InlineData("", false)]
+        [InlineData("[assembly: System.Reflection.AssemblyDescriptionAttribute(null)] [assembly: System.Runtime.CompilerServices.TypeForwardedToAttribute(typeof(string))]", false)]
+        [InlineData("using System;", false)]
+        [InlineData("using S = System.String;", false)]
+        [InlineData("namespace N { namespace M { } }", false)]
+        [InlineData("interface I { }", true)]
+        [InlineData("namespace N { namespace M { interface I { } } }", true)]
+        [InlineData("interface I { T F<T>(); }", true)]
+        [InlineData("interface I { ref T F<T>(); }", true)]
+        [InlineData("interface I { void F<T>(T t); }", true)]
+        [InlineData("interface I { void F<T>(ref T t); }", true)]
+        [InlineData("interface I { void F<T>(in T t); }", true)]
+        [InlineData("interface I { void F<T>(out T t); }", true)]
+        [InlineData("interface I { ref int P { get; } }", true)]
+        [InlineData("class C { }", true)]
+        [InlineData("struct S { }", true)]
+        [InlineData("ref struct R { }", true)]
+        [InlineData("delegate void D();", true)]
+        [InlineData("enum E { }", true)]
+        public void EmitAttribute_01(string source, bool expectedIncludesAttributeUse)
         {
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular10);
             CompileAndVerify(comp, symbolValidator: m => AssertRefSafetyRulesAttribute(m, includesAttributeDefinition: false, includesAttributeUse: false, publicDefinition: false));
 
             comp = CreateCompilation(source);
-            CompileAndVerify(comp, symbolValidator: m => AssertRefSafetyRulesAttribute(m, includesAttributeDefinition: true, includesAttributeUse: true, publicDefinition: false));
+            CompileAndVerify(comp, symbolValidator: m => AssertRefSafetyRulesAttribute(m, includesAttributeDefinition: expectedIncludesAttributeUse, includesAttributeUse: expectedIncludesAttributeUse, publicDefinition: false));
         }
 
         [WorkItem(63692, "https://github.com/dotnet/roslyn/issues/63692")]
@@ -148,6 +156,31 @@ public ref struct R { }
 
             comp = CreateCompilation(source, references: new[] { refA });
             CompileAndVerify(comp, verify: Verification.Skipped, symbolValidator: m => AssertRefSafetyRulesAttribute(m, includesAttributeDefinition: true, includesAttributeUse: true, publicDefinition: false));
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void EmitAttribute_TypeForwardedTo(
+            [CombinatorialValues(LanguageVersion.CSharp10, LanguageVersion.CSharp11)] LanguageVersion languageVersionA,
+            [CombinatorialValues(LanguageVersion.CSharp10, LanguageVersion.CSharp11)] LanguageVersion languageVersionB,
+            bool useCompilationReference)
+        {
+            var sourceA =
+@"public class A { }
+";
+            var comp = CreateCompilation(sourceA, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersionA));
+            var refA = AsReference(comp, useCompilationReference);
+            bool useUpdatedEscapeRulesA = languageVersionA == LanguageVersion.CSharp11;
+            Assert.Equal(useUpdatedEscapeRulesA, comp.SourceModule.UseUpdatedEscapeRules);
+            CompileAndVerify(comp, symbolValidator: m => AssertRefSafetyRulesAttribute(m, includesAttributeDefinition: useUpdatedEscapeRulesA, includesAttributeUse: useUpdatedEscapeRulesA, publicDefinition: false));
+
+            var sourceB =
+@"using System.Runtime.CompilerServices;
+[assembly: TypeForwardedTo(typeof(A))]
+";
+            comp = CreateCompilation(sourceB, references: new[] { refA }, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersionB));
+            Assert.Equal(languageVersionB == LanguageVersion.CSharp11, comp.SourceModule.UseUpdatedEscapeRules);
+            CompileAndVerify(comp, symbolValidator: m => AssertRefSafetyRulesAttribute(m, includesAttributeDefinition: false, includesAttributeUse: false, publicDefinition: false));
         }
 
         [Fact]
