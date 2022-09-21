@@ -1365,6 +1365,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     diagnostics.Add(ErrorCode.ERR_AttrDependentTypeNotAllowed, errorLocation, type.ToDisplayString(SymbolDisplayFormat.CSharpShortErrorMessageFormat));
                     return true;
                 }
+
                 if (type.Kind == SymbolKind.TypeParameter)
                 {
                     diagnostics.Add(ErrorCode.ERR_AttrTypeArgCannotBeTypeVar, errorLocation, type.ToDisplayString(SymbolDisplayFormat.CSharpErrorMessageFormat));
