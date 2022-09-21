@@ -40,8 +40,10 @@ internal sealed partial class NewUnitTestingIncrementalAnalyzerProvider
         public Task ActiveDocumentSwitchedAsync(TextDocument document, CancellationToken cancellationToken)
             => Task.CompletedTask;
 
+#if false // Not used in unit testing crawling
         public Task NewSolutionSnapshotAsync(Solution solution, CancellationToken cancellationToken)
             => Task.CompletedTask;
+#endif
 
         public Task RemoveDocumentAsync(DocumentId documentId, CancellationToken cancellationToken)
         {

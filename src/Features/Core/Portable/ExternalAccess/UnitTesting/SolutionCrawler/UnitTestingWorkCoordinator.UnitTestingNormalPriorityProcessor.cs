@@ -519,19 +519,21 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                         }
                     }
 
-                    private async Task ResetStatesAsync()
+                    private Task ResetStatesAsync()
                     {
                         try
                         {
                             if (!IsSolutionChanged())
                             {
-                                return;
+                                return Task.CompletedTask;
                             }
 
+#if false // Not used in unit testing crawling
                             await Processor.RunAnalyzersAsync(
                                 Analyzers,
                                 Processor._registration.GetSolutionToAnalyze(),
                                 workItem: new UnitTestingWorkItem(), (a, s, c) => a.NewSolutionSnapshotAsync(s, c), CancellationToken).ConfigureAwait(false);
+#endif
 
 #if false // Not used in unit testing crawling
                             foreach (var id in Processor.GetOpenDocumentIds())
@@ -546,6 +548,8 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                         {
                             throw ExceptionUtilities.Unreachable;
                         }
+
+                        return Task.CompletedTask;
 
                         bool IsSolutionChanged()
                         {

@@ -11,7 +11,9 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
 {
     internal interface IUnitTestingIncrementalAnalyzer
     {
+#if false // Not used in unit testing crawling
         Task NewSolutionSnapshotAsync(Solution solution, CancellationToken cancellationToken);
+#endif
 
         Task DocumentOpenAsync(Document document, CancellationToken cancellationToken);
         Task DocumentCloseAsync(Document document, CancellationToken cancellationToken);
