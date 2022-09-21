@@ -223,7 +223,6 @@ stages:
   dependsOn: Determine_Changes
   jobs:
   - job: Correctness_Build_Artifacts
-    dependsOn: Determine_Changes
     pool:
       name: NetCore-Public
       demands: ImageOverride -equals windows.vs2022preview.amd64.open
@@ -265,7 +264,6 @@ stages:
           configuration: Release
 
   - job: Correctness_Determinism
-    dependsOn: Determine_Changes
     condition: or(ne(variables['Build.Reason'], 'PullRequest'), eq(stageDependencies.Determine_Changes.Determine_Changes.outputs['SetPathVars_compilers.containsChange'], 'true'))
     pool:
       name: NetCore-Public
@@ -283,7 +281,6 @@ stages:
           configuration: Debug
 
   - job: Correctness_Bootstrap_Build
-    dependsOn: Determine_Changes
     condition: or(ne(variables['Build.Reason'], 'PullRequest'), eq(stageDependencies.Determine_Changes.Determine_Changes.outputs['SetPathVars_compilers.containsChange'], 'true'))
     pool:
       name: NetCore-Public
@@ -325,7 +322,6 @@ stages:
         displayName: Validate TODO/PROTOTYPE comments are not present
 
   - job: Correctness_Rebuild
-    dependsOn: Determine_Changes
     condition: or(ne(variables['Build.Reason'], 'PullRequest'), eq(stageDependencies.Determine_Changes.Determine_Changes.outputs['SetPathVars_compilers.containsChange'], 'true'))
     pool:
       name: NetCore-Public
