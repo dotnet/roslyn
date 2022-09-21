@@ -11,8 +11,10 @@ namespace Xunit.Harness
     using System.Linq;
     using System.Reflection;
     using System.Text;
+    using System.Threading;
     using System.Threading.Tasks;
     using Microsoft.VisualStudio.Setup.Configuration;
+    using Microsoft.VisualStudio.Threading;
     using Microsoft.Win32;
     using DTE = EnvDTE.DTE;
     using File = System.IO.File;
@@ -20,6 +22,8 @@ namespace Xunit.Harness
 
     internal sealed class VisualStudioInstanceFactory : MarshalByRefObject, IDisposable
     {
+        private const int ReportTimeMinute = 5;
+        private static readonly TimeSpan ReportTimeInterval = TimeSpan.FromMinutes(ReportTimeMinute);
         private static readonly Dictionary<Version, Assembly> _installerAssemblies = new Dictionary<Version, Assembly>();
 
         private readonly bool _leaveRunning;
@@ -389,11 +393,15 @@ namespace Xunit.Harness
             //      So, run clearcache and updateconfiguration to workaround https://devdiv.visualstudio.com/DevDiv/_workitems?id=385351.
             if (version.Major >= 12)
             {
-                Process.Start(CreateSilentStartInfo(vsExeFile, $"/clearcache {vsLaunchArgs}")).WaitForExit();
+                var clearCacheProcess = Process.Start(CreateSilentStartInfo(vsExeFile, $"/clearcache {vsLaunchArgs}"));
+                await TakeSnapshotEveryTimeSpanUntilProcessExitAsync(clearCacheProcess, "clearcache").ConfigureAwait(false);
             }
 
-            Process.Start(CreateSilentStartInfo(vsExeFile, $"/updateconfiguration {vsLaunchArgs}")).WaitForExit();
-            Process.Start(CreateSilentStartInfo(vsExeFile, $"/resetsettings General.vssettings /command \"File.Exit\" {vsLaunchArgs}")).WaitForExit();
+            var updateConfigProcess = Process.Start(CreateSilentStartInfo(vsExeFile, $"/updateconfiguration {vsLaunchArgs}"));
+            await TakeSnapshotEveryTimeSpanUntilProcessExitAsync(updateConfigProcess, "updateconfiguration").ConfigureAwait(false);
+
+            var resetSettingsProcess = Process.Start(CreateSilentStartInfo(vsExeFile, $"/resetsettings General.vssettings /command \"File.Exit\" {vsLaunchArgs}"));
+            await TakeSnapshotEveryTimeSpanUntilProcessExitAsync(resetSettingsProcess, "resetsettings").ConfigureAwait(false);
 
             // Make sure we kill any leftover processes spawned by the host
             IntegrationHelper.KillProcess("DbgCLR");
@@ -438,6 +446,46 @@ namespace Xunit.Harness
             }
 
             return path;
+        }
+
+        private static async Task TakeSnapshotEveryTimeSpanUntilProcessExitAsync(Process process, string commandBeingExecuted)
+        {
+            var dir = DataCollectionService.GetLogDirectory();
+            if (!Directory.Exists(dir))
+            {
+                Directory.CreateDirectory(dir);
+            }
+
+            using var cancellatokenSource = new CancellationTokenSource();
+
+            try
+            {
+                _ = Task.Run(() => TakeScreenShotEveryTimeIntervalAsync(dir, commandBeingExecuted, cancellatokenSource.Token));
+                await process.WaitForExitAsync().ConfigureAwait(false);
+            }
+            finally
+            {
+                cancellatokenSource.Cancel();
+            }
+
+            static async Task TakeScreenShotEveryTimeIntervalAsync(string directory, string commandBeingExecuted, CancellationToken cancellationToken)
+            {
+                var count = 1;
+                while (!cancellationToken.IsCancellationRequested)
+                {
+                    try
+                    {
+                        await Task.Delay(ReportTimeInterval, cancellationToken).ConfigureAwait(false);
+                    }
+                    catch (TaskCanceledException)
+                    {
+                        break;
+                    }
+
+                    ScreenshotService.TakeScreenshot(Path.Combine(Path.GetFullPath(directory), commandBeingExecuted, $"_after_{count * ReportTimeMinute}_min.png"));
+                    count++;
+                }
+            }
         }
 
         public void Dispose()

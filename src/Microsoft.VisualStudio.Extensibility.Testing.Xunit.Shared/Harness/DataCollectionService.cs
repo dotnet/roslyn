@@ -247,7 +247,7 @@ namespace Xunit.Harness
             }
         }
 
-        private static string GetLogDirectory()
+        internal static string GetLogDirectory()
         {
             if (!string.IsNullOrEmpty(Environment.GetEnvironmentVariable("XUNIT_LOGS")))
             {
