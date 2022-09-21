@@ -1366,7 +1366,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return true;
                 }
 
-                if (type.Kind == SymbolKind.TypeParameter)
+                if (type.IsUnboundGenericType() && type.Kind == SymbolKind.TypeParameter)
                 {
                     diagnostics.Add(ErrorCode.ERR_AttrTypeArgCannotBeTypeVar, errorLocation, type);
                     return true;
