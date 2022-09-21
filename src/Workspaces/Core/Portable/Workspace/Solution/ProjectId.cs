@@ -10,9 +10,16 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
+#pragma warning disable CA1200 // Avoid using cref tags with a prefix
     /// <summary>
     /// An identifier that can be used to refer to the same <see cref="Project"/> across versions.
     /// </summary>
+    /// <remarks>
+    /// This supports the general message-pack <see cref="DataContractAttribute"/> of being serializable.  However, in
+    /// practice, this is not serialized directly, but through the use of a custom formatter <see
+    /// cref="T:Microsoft.CodeAnalysis.Remote.MessagePackFormatters.ProjectIdFormatter"/>
+    /// </remarks>
+#pragma warning restore CA1200 // Avoid using cref tags with a prefix
     [DebuggerDisplay("{GetDebuggerDisplay(),nq}")]
     [DataContract]
     public sealed class ProjectId : IEquatable<ProjectId>, IObjectWritable
