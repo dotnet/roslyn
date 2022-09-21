@@ -159,6 +159,7 @@ stages:
     steps:
       - template: eng/pipelines/test-windows-steps.yml
         parameters:
+          jobName: Test_Windows_CoreClr_IOperation_Debug
           testArtifactName: Transport_Artifacts_Windows_Debug
           configuration: Debug
           testArguments: -testCoreClr -testIOperation -testCompilerOnly
@@ -173,6 +174,7 @@ stages:
     steps:
       - template: eng/pipelines/test-windows-steps.yml
         parameters:
+          jobName: Test_Windows_CoreClr_UsedAssemblies_Debug
           testArtifactName: Transport_Artifacts_Windows_Debug
           configuration: Debug
           testArguments: -testCoreClr -testUsedAssemblies -testCompilerOnly

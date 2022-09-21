@@ -1,5 +1,8 @@
 # Test on Windows Desktop using Helix
 parameters:
+- name: jobName
+  type: string
+  default: ''
 - name: testArtifactName
   type: string
   default: ''
