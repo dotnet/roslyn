@@ -405,6 +405,24 @@ namespace Analyzer.Utilities.Extensions
                 _ => false,
             };
 
+        /// <summary>
+        /// Indicates if the given <paramref name="binaryOperation"/> is an addition or substaction operation.
+        /// </summary>
+        /// <param name="binaryOperation"></param>
+        /// <returns>true if the operation is addition or substruction</returns>
+        public static bool IsAdditionOrSubstractionOperation(this IBinaryOperation binaryOperation, out char binaryOperator)
+        {
+            binaryOperator = '\0';
+            switch (binaryOperation.OperatorKind)
+            {
+                case BinaryOperatorKind.Add:
+                    binaryOperator = '+'; return true;
+                case BinaryOperatorKind.Subtract:
+                    binaryOperator = '-'; return true;
+            }
+            return false;
+        }
+
         public static IOperation GetRoot(this IOperation operation)
         {
             while (operation.Parent != null)
