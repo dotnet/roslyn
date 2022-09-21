@@ -155,11 +155,12 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
             Contract.ThrowIfNull(request.TextDocument, "TextDocument is null.");
             Contract.ThrowIfNull(context.Document, "Document is null.");
 
-            // If the full compilation is not yet available, we'll try getting a partial one. It may contain inaccurate
-            // results but will speed up how quickly we can respond to the client's request.
-            var document = context.Document.WithFrozenPartialSemantics(cancellationToken);
+            var document = context.Document;
             var project = document.Project;
-            var options = _globalOptions.GetClassificationOptions(project.Language) with { ForceFrozenPartialSemanticsForCrossProcessOperations = true };
+
+            // Currently this does nothing when OOP is on as OOP does not support frozen partial.  However we set this flag as an indicator that we do
+            // want to support it here eventually (tracked by https://github.com/dotnet/roslyn/issues/63968).
+            var options = _globalOptions.GetClassificationOptions(project.Language) with { UseFrozenPartialSemantics = true };
 
             // The results from the range handler should not be cached since we don't want to cache
             // partial token results. In addition, a range request is only ever called with a whole

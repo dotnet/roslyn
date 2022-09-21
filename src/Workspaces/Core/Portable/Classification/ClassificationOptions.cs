@@ -12,7 +12,7 @@ internal readonly record struct ClassificationOptions
     [DataMember] public bool ClassifyReassignedVariables { get; init; } = false;
     [DataMember] public bool ColorizeRegexPatterns { get; init; } = true;
     [DataMember] public bool ColorizeJsonPatterns { get; init; } = true;
-    [DataMember] public bool ForceFrozenPartialSemanticsForCrossProcessOperations { get; init; } = false;
+    [DataMember] public bool UseFrozenPartialSemantics { get; init; } = false;
 
     public ClassificationOptions()
     {

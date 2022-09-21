@@ -146,6 +146,13 @@ namespace Microsoft.CodeAnalysis.Classification
             ArrayBuilder<ClassifiedSpan> result,
             CancellationToken cancellationToken)
         {
+            if (options.UseFrozenPartialSemantics)
+            {
+                // The caller has asked to use frozen partial semantics for the request.
+                // Frozen partial semantics is not automatically passed to OOP, so enable it explicitly when desired
+                document = document.WithFrozenPartialSemantics(cancellationToken);
+            }
+
             if (type == ClassificationType.Semantic)
             {
                 var classificationService = document.GetRequiredLanguageService<ISyntaxClassificationService>();
