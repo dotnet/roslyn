@@ -219,10 +219,12 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                 }
             }));
 
+#if false // Not used in unit testing crawling
             foreach (var analyzer in analyzers)
             {
                 analyzer.LogAnalyzerCountSummary();
             }
+#endif
         }
 
         private static int GetSolutionHash(Solution solution)

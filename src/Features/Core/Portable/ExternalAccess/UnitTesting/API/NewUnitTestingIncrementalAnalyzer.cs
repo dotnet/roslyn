@@ -66,7 +66,6 @@ internal sealed partial class NewUnitTestingIncrementalAnalyzerProvider
 
         public Task AnalyzeNonSourceDocumentAsync(TextDocument textDocument, UnitTestingInvocationReasons reasons, CancellationToken cancellationToken)
             => Task.CompletedTask;
-#endif
 
         public void LogAnalyzerCountSummary()
         {
@@ -88,5 +87,7 @@ internal sealed partial class NewUnitTestingIncrementalAnalyzerProvider
         public void Shutdown()
         {
         }
+
+#endif
     }
 }

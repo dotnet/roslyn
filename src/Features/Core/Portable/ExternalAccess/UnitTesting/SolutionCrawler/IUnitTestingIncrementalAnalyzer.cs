@@ -43,10 +43,10 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
         Task NonSourceDocumentResetAsync(TextDocument textDocument, CancellationToken cancellationToken);
 
         Task AnalyzeNonSourceDocumentAsync(TextDocument textDocument, UnitTestingInvocationReasons reasons, CancellationToken cancellationToken);
-#endif
 
         void LogAnalyzerCountSummary();
         int Priority { get; }
         void Shutdown();
+#endif
     }
 }

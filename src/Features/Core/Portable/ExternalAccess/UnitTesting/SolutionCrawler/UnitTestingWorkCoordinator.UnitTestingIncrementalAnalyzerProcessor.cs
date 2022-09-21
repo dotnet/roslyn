@@ -428,7 +428,9 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                                 // Sort list so DiagnosticIncrementalAnalyzers (if any) come first.
                                 analyzers = _analyzerProviders.Select(p => (analyzer: p.Value.CreateIncrementalAnalyzer(), highPriorityForActiveFile: p.Metadata.HighPriorityForActiveFile))
                                                 .Where(t => t.analyzer != null)
+#if false // Not used in unit testing crawling
                                                 .OrderBy(t => t.analyzer!.Priority)
+#endif
                                                 .ToImmutableArray()!;
 
                                 _analyzerMap[(workspaceKind, services)] = analyzers;
