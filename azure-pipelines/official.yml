@@ -42,9 +42,6 @@ parameters:
   type: boolean
   default: true
 
-variables:
-  NugetSecurityAnalysisWarningLevel: none # nuget.config requires signed packages by trusted owners
-
 stages:
 
 - stage: Build
