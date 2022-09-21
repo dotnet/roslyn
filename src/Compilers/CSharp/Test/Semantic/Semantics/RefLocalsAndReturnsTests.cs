@@ -311,9 +311,9 @@ class C
                 // (13,36): error CS8333: Cannot return variable 'in int' by writable reference because it is a readonly variable
                 //     ref int M4(in int rro) => ref (rro = ref _rw);
                 Diagnostic(ErrorCode.ERR_RefReturnReadonlyNotField, "rro = ref _rw").WithArguments("variable", "in int").WithLocation(13, 36),
-                // (15,47): error CS0191: A readonly field cannot be assigned to (except in a constructor or a variable initializer)
+                // (15,47): error CS0192: A readonly field cannot be used as a ref or out value (except in a constructor)
                 //     ref int M5(ref int rrw) => ref (rrw = ref _ro);
-                Diagnostic(ErrorCode.ERR_AssgReadonly, "_ro").WithLocation(15, 47));
+                Diagnostic(ErrorCode.ERR_RefReadonly, "_ro").WithLocation(15, 47));
         }
 
         [Fact, WorkItem(42259, "https://github.com/dotnet/roslyn/issues/42259")]
@@ -637,9 +637,9 @@ class C
     }
 }");
             comp.VerifyDiagnostics(
-                // (8,17): error CS1510: A ref or out value must be an assignable variable
+                // (8,17): error CS0206: A property or indexer may not be passed as an out or ref parameter
                 //         s = ref s2;
-                Diagnostic(ErrorCode.ERR_RefLvalueExpected, "s2").WithLocation(8, 17));
+                Diagnostic(ErrorCode.ERR_RefProperty, "s2").WithLocation(8, 17));
         }
 
         [Fact]
@@ -670,9 +670,9 @@ class C
     }
 }");
             comp.VerifyDiagnostics(
-                // (6,17): error CS0198: A static readonly field cannot be assigned to (except in a static constructor or a variable initializer)
+                // (6,17): error CS0199: A static readonly field cannot be used as a ref or out value (except in a static constructor)
                 //         s = ref string.Empty;
-                Diagnostic(ErrorCode.ERR_AssgReadonlyStatic, "string.Empty").WithLocation(6, 17));
+                Diagnostic(ErrorCode.ERR_RefReadonlyStatic, "string.Empty").WithLocation(6, 17));
         }
 
         [Fact]
