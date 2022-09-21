@@ -42,6 +42,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.LegacySolutionEvents
             return ValueTaskFactory.CompletedTask;
         }
 
+#if false // Not used in unit testing crawling
         public ValueTask OnTextDocumentOpenedAsync(TextDocumentEventArgs args, CancellationToken cancellationToken)
         {
             var coordinator = GetCoordinator(args.Document.Project.Solution);
@@ -55,5 +56,6 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.LegacySolutionEvents
             coordinator?.OnTextDocumentClosed(args);
             return ValueTaskFactory.CompletedTask;
         }
+#endif
     }
 }

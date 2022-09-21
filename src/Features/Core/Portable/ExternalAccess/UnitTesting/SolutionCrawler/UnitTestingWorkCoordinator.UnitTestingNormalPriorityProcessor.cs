@@ -464,7 +464,11 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
 #endif
 
                             // No-reanalyze request or we already have a request to re-analyze every thing
-                            if (workItem.MustRefresh || !workItem.InvocationReasons.Contains(UnitTestingPredefinedInvocationReasons.Reanalyze))
+                            if (
+#if false // Not used in unit testing crawling
+                                workItem.MustRefresh ||
+#endif
+                                !workItem.InvocationReasons.Contains(UnitTestingPredefinedInvocationReasons.Reanalyze))
                             {
                                 return;
                             }
