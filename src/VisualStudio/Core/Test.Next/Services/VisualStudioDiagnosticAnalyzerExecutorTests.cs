@@ -43,7 +43,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
     [Trait(Traits.Feature, Traits.Features.RemoteHost)]
     public class VisualStudioDiagnosticAnalyzerExecutorTests
     {
-        [Fact]
+        [ConditionalFact(typeof(IsRelease), Reason = ConditionalSkipReason.TestIsTriggeringMessagePackIssue)]
         public async Task TestCSharpAnalyzerOptions()
         {
             var code = @"class Test
@@ -82,7 +82,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             Assert.Equal(DiagnosticSeverity.Info, diagnostics[0].Severity);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(IsRelease), Reason = ConditionalSkipReason.TestIsTriggeringMessagePackIssue)]
         public async Task TestVisualBasicAnalyzerOptions()
         {
             var code = @"Class Test
@@ -126,7 +126,7 @@ End Class";
             }
         }
 
-        [Fact]
+        [ConditionalFact(typeof(IsRelease), Reason = ConditionalSkipReason.TestIsTriggeringMessagePackIssue)]
         public async Task TestCancellation()
         {
             var code = @"class Test { void Method() { } }";
@@ -162,7 +162,7 @@ End Class";
             }
         }
 
-        [Fact]
+        [ConditionalFact(typeof(IsRelease), Reason = ConditionalSkipReason.TestIsTriggeringMessagePackIssue)]
         public async Task TestHostAnalyzers_OutOfProc()
         {
             var code = @"class Test
@@ -202,7 +202,7 @@ End Class";
             Assert.Equal(IDEDiagnosticIds.UseExplicitTypeDiagnosticId, diagnostics[0].Id);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(IsRelease), Reason = ConditionalSkipReason.TestIsTriggeringMessagePackIssue)]
         public async Task TestDuplicatedAnalyzers()
         {
             var code = @"class Test

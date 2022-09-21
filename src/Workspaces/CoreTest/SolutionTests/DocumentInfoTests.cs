@@ -8,6 +8,7 @@ using System;
 using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.UnitTests
@@ -28,7 +29,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Fact]
         public void Create()
         {
-            var loader = new FileTextLoader(Path.GetTempPath(), defaultEncoding: null);
+            var loader = new TestTextLoader("text");
             var id = DocumentId.CreateNewId(ProjectId.CreateNewId());
 
             var info = DocumentInfo.Create(
@@ -83,7 +84,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             SolutionTestHelpers.TestProperty(instance, (old, value) => old.WithId(value), opt => opt.Id, documentId, defaultThrows: true);
             SolutionTestHelpers.TestProperty(instance, (old, value) => old.WithName(value), opt => opt.Name, "New", defaultThrows: true);
             SolutionTestHelpers.TestProperty(instance, (old, value) => old.WithSourceCodeKind(value), opt => opt.SourceCodeKind, SourceCodeKind.Script);
-            SolutionTestHelpers.TestProperty(instance, (old, value) => old.WithTextLoader(value), opt => opt.TextLoader, (TextLoader)new FileTextLoader(Path.GetTempPath(), defaultEncoding: null));
+            SolutionTestHelpers.TestProperty(instance, (old, value) => old.WithTextLoader(value), opt => opt.TextLoader, (TextLoader)new TestTextLoader("text"));
 
             SolutionTestHelpers.TestListProperty(instance, (old, value) => old.WithFolders(value), opt => opt.Folders, "folder", allowDuplicates: true);
         }

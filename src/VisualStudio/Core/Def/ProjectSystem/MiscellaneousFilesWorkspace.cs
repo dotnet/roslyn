@@ -292,7 +292,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             var languageInformation = TryGetLanguageInformation(filePath);
             Contract.ThrowIfNull(languageInformation);
 
-            return MiscellaneousFileUtilities.CreateMiscellaneousProjectInfoForDocument(filePath, new FileTextLoader(filePath, defaultEncoding: null), languageInformation, Services.SolutionServices, _metadataReferences);
+            var loader = new WorkspaceFileTextLoader(Services.SolutionServices, filePath, defaultEncoding: null);
+            return MiscellaneousFileUtilities.CreateMiscellaneousProjectInfoForDocument(filePath, loader, languageInformation, Services.SolutionServices, _metadataReferences);
         }
 
         private void DetachFromDocument(string moniker)
@@ -308,7 +309,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 var document = this.CurrentSolution.GetProject(projectIdAndContainer.projectId).Documents.Single();
 
                 // We must close the document prior to deleting the project
-                OnDocumentClosed(document.Id, new FileTextLoader(document.FilePath, defaultEncoding: null));
+                OnDocumentClosed(document.Id, new WorkspaceFileTextLoader(Services.SolutionServices, document.FilePath, defaultEncoding: null));
                 OnProjectRemoved(document.Project.Id);
 
                 _monikersToProjectIdAndContainer.Remove(moniker);
