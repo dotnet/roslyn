@@ -183,7 +183,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// Symbol for the type, or MissingMetadataSymbol if the type isn't found.
         /// </returns>
         /// <remarks></remarks>
-        internal sealed override NamedTypeSymbol LookupTopLevelMetadataType(ref MetadataTypeName emittedName)
+        internal sealed override NamedTypeSymbol LookupTopLevelMetadataType(ref MetadataTypeName emittedName, bool returnNullForMissing = false)
         {
             NamedTypeSymbol result;
             NamespaceSymbol scope = this.GlobalNamespace.LookupNestedNamespace(emittedName.NamespaceSegments);
@@ -191,6 +191,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if ((object)scope == null)
             {
                 // We failed to locate the namespace
+                if (returnNullForMissing)
+                {
+                    return null;
+                }
+
                 result = new MissingMetadataTypeSymbol.TopLevel(this, ref emittedName);
             }
             else

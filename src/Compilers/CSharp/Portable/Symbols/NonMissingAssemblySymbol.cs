@@ -85,7 +85,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <param name="digThroughForwardedTypes">
         /// Take forwarded types into account.
         /// </param>
-        internal sealed override NamedTypeSymbol LookupTopLevelMetadataTypeWithCycleDetection(ref MetadataTypeName emittedName, ConsList<AssemblySymbol> visitedAssemblies, bool digThroughForwardedTypes)
+        internal sealed override NamedTypeSymbol LookupTopLevelMetadataTypeWithCycleDetection(ref MetadataTypeName emittedName, ConsList<AssemblySymbol> visitedAssemblies, bool digThroughForwardedTypes, bool returnNullForMissing = false)
         {
             NamedTypeSymbol result = null;
 
@@ -120,6 +120,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
 
                 // According to the cache, the type wasn't found, or isn't declared in this assembly (forwarded).
+                if (returnNullForMissing)
+                {
+                    return null;
+                }
+
                 return new MissingMetadataTypeSymbol.TopLevel(this.Modules[0], ref emittedName);
             }
             else
@@ -131,16 +136,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 var count = modules.Length;
                 var i = 0;
 
-                result = modules[i].LookupTopLevelMetadataType(ref emittedName);
+                result = modules[i].LookupTopLevelMetadataType(ref emittedName, returnNullForMissing);
 
-                if (result is MissingMetadataTypeSymbol)
+                if (result is MissingMetadataTypeSymbol || (returnNullForMissing && result is null))
                 {
                     for (i = 1; i < count; i++)
                     {
-                        var newResult = modules[i].LookupTopLevelMetadataType(ref emittedName);
+                        var newResult = modules[i].LookupTopLevelMetadataType(ref emittedName, returnNullForMissing);
 
                         // Hold on to the first missing type result, unless we found the type.
-                        if (!(newResult is MissingMetadataTypeSymbol))
+                        if (!(newResult is MissingMetadataTypeSymbol || (returnNullForMissing && result is null)))
                         {
                             result = newResult;
                             break;
@@ -155,7 +160,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 if (!foundMatchInThisAssembly && digThroughForwardedTypes)
                 {
                     // We didn't find the type
-                    System.Diagnostics.Debug.Assert(result is MissingMetadataTypeSymbol);
+                    System.Diagnostics.Debug.Assert(result is MissingMetadataTypeSymbol || (result is null && returnNullForMissing));
 
                     NamedTypeSymbol forwarded = TryLookupForwardedMetadataTypeWithCycleDetection(ref emittedName, visitedAssemblies);
                     if ((object)forwarded != null)
@@ -164,7 +169,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     }
                 }
 
-                System.Diagnostics.Debug.Assert((object)result != null);
+                System.Diagnostics.Debug.Assert((object)result != null || returnNullForMissing);
 
                 // Add result of the lookup into the cache
                 if (digThroughForwardedTypes || foundMatchInThisAssembly)

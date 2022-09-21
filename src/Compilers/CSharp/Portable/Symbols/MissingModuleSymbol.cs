@@ -143,8 +143,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal override NamedTypeSymbol LookupTopLevelMetadataType(ref MetadataTypeName emittedName)
+        internal override NamedTypeSymbol LookupTopLevelMetadataType(ref MetadataTypeName emittedName, bool returnNullForMissing = false)
         {
+            if (returnNullForMissing)
+            {
+                return null;
+            }
+
             return new MissingMetadataTypeSymbol.TopLevel(this, ref emittedName);
         }
 

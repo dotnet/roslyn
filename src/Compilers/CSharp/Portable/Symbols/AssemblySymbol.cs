@@ -323,9 +323,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// Take forwarded types into account.
         /// </param>
         /// <remarks></remarks>
-        internal NamedTypeSymbol LookupTopLevelMetadataType(ref MetadataTypeName emittedName, bool digThroughForwardedTypes)
+        internal NamedTypeSymbol LookupTopLevelMetadataType(ref MetadataTypeName emittedName, bool digThroughForwardedTypes, bool returnNullForMissing = false)
         {
-            return LookupTopLevelMetadataTypeWithCycleDetection(ref emittedName, visitedAssemblies: null, digThroughForwardedTypes: digThroughForwardedTypes);
+            return LookupTopLevelMetadataTypeWithCycleDetection(ref emittedName, visitedAssemblies: null, digThroughForwardedTypes: digThroughForwardedTypes, returnNullForMissing: returnNullForMissing);
         }
 
         /// <summary>
@@ -341,7 +341,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <param name="digThroughForwardedTypes">
         /// Take forwarded types into account.
         /// </param>
-        internal abstract NamedTypeSymbol LookupTopLevelMetadataTypeWithCycleDetection(ref MetadataTypeName emittedName, ConsList<AssemblySymbol> visitedAssemblies, bool digThroughForwardedTypes);
+        internal abstract NamedTypeSymbol LookupTopLevelMetadataTypeWithCycleDetection(ref MetadataTypeName emittedName, ConsList<AssemblySymbol> visitedAssemblies, bool digThroughForwardedTypes, bool returnNullForMissing = false);
 
         /// <summary>
         /// Returns the type symbol for a forwarded type based its canonical CLR metadata name.
@@ -974,12 +974,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private static NamedTypeSymbol? GetTopLevelTypeByMetadataName(AssemblySymbol assembly, ref MetadataTypeName metadataName, AssemblyIdentity? assemblyOpt)
         {
-            var result = assembly.LookupTopLevelMetadataType(ref metadataName, digThroughForwardedTypes: false);
-            if (!IsAcceptableMatchForGetTypeByMetadataName(result))
+            var result = assembly.LookupTopLevelMetadataType(ref metadataName, digThroughForwardedTypes: false, returnNullForMissing: true);
+            if (result is null)
             {
                 return null;
             }
 
+            Debug.Assert(IsAcceptableMatchForGetTypeByMetadataName(result));
             if (assemblyOpt != null && !assemblyOpt.Equals(assembly.Identity))
             {
                 return null;

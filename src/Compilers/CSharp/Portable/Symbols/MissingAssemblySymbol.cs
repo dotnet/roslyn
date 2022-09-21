@@ -161,10 +161,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal override NamedTypeSymbol LookupTopLevelMetadataTypeWithCycleDetection(ref MetadataTypeName emittedName, ConsList<AssemblySymbol> visitedAssemblies, bool digThroughForwardedTypes)
+        internal override NamedTypeSymbol LookupTopLevelMetadataTypeWithCycleDetection(ref MetadataTypeName emittedName, ConsList<AssemblySymbol> visitedAssemblies, bool digThroughForwardedTypes, bool returnNullForMissing = false)
         {
-            var result = this.moduleSymbol.LookupTopLevelMetadataType(ref emittedName);
-            Debug.Assert(result is MissingMetadataTypeSymbol);
+            var result = this.moduleSymbol.LookupTopLevelMetadataType(ref emittedName, returnNullForMissing: returnNullForMissing);
+            Debug.Assert(result is MissingMetadataTypeSymbol || (result is null && returnNullForMissing));
             return result;
         }
 

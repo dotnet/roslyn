@@ -7,6 +7,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 using System.Reflection.PortableExecutable;
 using System.Runtime.InteropServices;
@@ -306,10 +307,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// Full type name, possibly with generic name mangling.
         /// </param>
         /// <returns>
-        /// Symbol for the type, or MissingMetadataSymbol if the type isn't found.
+        /// Symbol for the type.
+        /// If the type isn't found and <paramref name="returnNullForMissing"/> is <see langword="true"/>, <see langword="null"/> is returned.
+        /// If the type isn't found and <paramref name="returnNullForMissing"/> is <see langword="false"/>, MissingMetadataSymbol is returned.
         /// </returns>
         /// <remarks></remarks>
-        internal abstract NamedTypeSymbol LookupTopLevelMetadataType(ref MetadataTypeName emittedName);
+        internal abstract NamedTypeSymbol LookupTopLevelMetadataType(ref MetadataTypeName emittedName, bool returnNullForMissing = false);
 
         internal abstract ICollection<string> TypeNames { get; }
 
