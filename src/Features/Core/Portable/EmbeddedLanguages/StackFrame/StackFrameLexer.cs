@@ -182,16 +182,46 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
         }
 
         public StackFrameTrivia? TryScanAtTrivia()
-            // TODO: Handle multiple languages? Right now we're going to only parse english
-            => TryScanStringTrivia("at ", StackFrameKind.AtTrivia);
+        {
+            foreach (var language in s_languages)
+            {
+                var result = TryScanStringTrivia(language.At, StackFrameKind.AtTrivia);
+                if (result.HasValue)
+                {
+                    return result.Value;
+                }
+            }
+
+            return null;
+        }
 
         public StackFrameTrivia? TryScanInTrivia()
-            // TODO: Handle multiple languages? Right now we're going to only parse english
-            => TryScanStringTrivia(" in ", StackFrameKind.InTrivia);
+        {
+            foreach (var language in s_languages)
+            {
+                var result = TryScanStringTrivia(language.In, StackFrameKind.InTrivia);
+                if (result.HasValue)
+                {
+                    return result.Value;
+                }
+            }
+
+            return null;
+        }
 
         public StackFrameTrivia? TryScanLineTrivia()
-            // TODO: Handle multiple languages? Right now we're going to only parse english
-            => TryScanStringTrivia("line ", StackFrameKind.LineTrivia);
+        {
+            foreach (var language in s_languages)
+            {
+                var result = TryScanStringTrivia(language.Line, StackFrameKind.LineTrivia);
+                if (result.HasValue)
+                {
+                    return result.Value;
+                }
+            }
+
+            return null;
+        }
 
         /// <summary>
         /// Attempts to parse <see cref="StackFrameKind.InTrivia"/> and a path following https://docs.microsoft.com/en-us/windows/win32/fileio/naming-a-file#file-and-directory-names
@@ -479,5 +509,12 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
 
         private static bool IsNumber(VirtualChar ch)
             => ch.Value is >= '0' and <= '9';
+
+        private readonly record struct Language(string At, string In, string Line);
+        private static readonly ImmutableArray<Language> s_languages = ImmutableArray.Create(
+            new Language("at ", " in ", "line "),    // en
+            new Language("bei ", " in ", "Zeile "),  // de
+            new Language("à ", " dans ", "ligne ")   // fr
+            );
     }
 }
