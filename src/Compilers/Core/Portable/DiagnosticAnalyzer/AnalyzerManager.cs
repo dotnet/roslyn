@@ -87,23 +87,25 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         private async Task<HostSymbolStartAnalysisScope> GetSymbolAnalysisScopeAsync(
             ISymbol symbol,
+            bool isGeneratedCodeSymbol,
             DiagnosticAnalyzer analyzer,
             ImmutableArray<SymbolStartAnalyzerAction> symbolStartActions,
             AnalyzerExecutor analyzerExecutor)
         {
             var analyzerExecutionContext = GetAnalyzerExecutionContext(analyzer);
-            return await GetSymbolAnalysisScopeCoreAsync(symbol, symbolStartActions, analyzerExecutor, analyzerExecutionContext).ConfigureAwait(false);
+            return await GetSymbolAnalysisScopeCoreAsync(symbol, isGeneratedCodeSymbol, symbolStartActions, analyzerExecutor, analyzerExecutionContext).ConfigureAwait(false);
         }
 
         private async Task<HostSymbolStartAnalysisScope> GetSymbolAnalysisScopeCoreAsync(
             ISymbol symbol,
+            bool isGeneratedCodeSymbol,
             ImmutableArray<SymbolStartAnalyzerAction> symbolStartActions,
             AnalyzerExecutor analyzerExecutor,
             AnalyzerExecutionContext analyzerExecutionContext)
         {
             try
             {
-                return await analyzerExecutionContext.GetSymbolAnalysisScopeAsync(symbol, symbolStartActions, analyzerExecutor).ConfigureAwait(false);
+                return await analyzerExecutionContext.GetSymbolAnalysisScopeAsync(symbol, isGeneratedCodeSymbol, symbolStartActions, analyzerExecutor).ConfigureAwait(false);
             }
             catch (OperationCanceledException)
             {
@@ -112,7 +114,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 analyzerExecutionContext.ClearSymbolScopeTask(symbol);
 
                 analyzerExecutor.CancellationToken.ThrowIfCancellationRequested();
-                return await GetSymbolAnalysisScopeCoreAsync(symbol, symbolStartActions, analyzerExecutor, analyzerExecutionContext).ConfigureAwait(false);
+                return await GetSymbolAnalysisScopeCoreAsync(symbol, isGeneratedCodeSymbol, symbolStartActions, analyzerExecutor, analyzerExecutionContext).ConfigureAwait(false);
             }
         }
 
@@ -169,7 +171,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// These are the actions registered during the various RegisterSymbolStartAction method invocations for the given symbol on different analysis contexts.
         /// </summary>
         [PerformanceSensitive("https://github.com/dotnet/roslyn/issues/23582", OftenCompletesSynchronously = true)]
-        public async ValueTask<AnalyzerActions> GetPerSymbolAnalyzerActionsAsync(ISymbol symbol, DiagnosticAnalyzer analyzer, AnalyzerExecutor analyzerExecutor)
+        public async ValueTask<AnalyzerActions> GetPerSymbolAnalyzerActionsAsync(
+            ISymbol symbol,
+            bool isGeneratedCodeSymbol,
+            DiagnosticAnalyzer analyzer,
+            AnalyzerExecutor analyzerExecutor)
         {
             var analyzerActions = await GetAnalyzerActionsAsync(analyzer, analyzerExecutor).ConfigureAwait(false);
             if (analyzerActions.SymbolStartActionsCount > 0)
@@ -177,7 +183,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 var filteredSymbolStartActions = getFilteredActionsByKind(analyzerActions.SymbolStartActions);
                 if (filteredSymbolStartActions.Length > 0)
                 {
-                    var symbolScope = await GetSymbolAnalysisScopeAsync(symbol, analyzer, filteredSymbolStartActions, analyzerExecutor).ConfigureAwait(false);
+                    var symbolScope = await GetSymbolAnalysisScopeAsync(symbol, isGeneratedCodeSymbol, analyzer, filteredSymbolStartActions, analyzerExecutor).ConfigureAwait(false);
                     return symbolScope.GetAnalyzerActions(analyzer);
                 }
             }

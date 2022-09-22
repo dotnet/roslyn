@@ -670,6 +670,11 @@ Veillez à utiliser le spécificateur "tt" pour les langues où il est nécessai
         <target state="translated">Activer toutes les fonctionnalités de l’éditeur JSON</target>
         <note />
       </trans-unit>
+      <trans-unit id="Enum_members">
+        <source>Enum members</source>
+        <target state="new">Enum members</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ErrorReadingFile">
         <source>Error while reading file '{0}': {1}</source>
         <target state="translated">Erreur durant la lecture du fichier '{0}' : {1}</target>
@@ -4273,6 +4278,11 @@ Quand ce spécificateur de format standard est utilisé, l'opération qui consis
       <trans-unit id="static_constructor">
         <source>static constructor</source>
         <target state="translated">constructeur statique</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="struct_">
+        <source>struct</source>
+        <target state="new">struct</target>
         <note />
       </trans-unit>
       <trans-unit id="symbol_cannot_be_a_namespace">

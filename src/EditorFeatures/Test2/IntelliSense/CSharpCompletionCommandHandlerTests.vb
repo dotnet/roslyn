@@ -5655,6 +5655,63 @@ class C
             End Using
         End Function
 
+        <WpfFact>
+        <Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestEnumMemberFilter() As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document><![CDATA[
+
+public enum Color
+{
+    Red,
+    Green,
+    Blue
+}
+
+class C
+{
+    void M()
+    {
+        Color x = $$
+    }
+}
+            ]]></Document>)
+
+                state.SendInvokeCompletionList()
+                Await state.WaitForUIRenderedAsync()
+
+                Await state.AssertCompletionItemsContainAll("Color.Red", "Color.Green", "Color.Blue", "Color")
+
+                Dim oldFilters = state.GetCompletionItemFilters()
+                Dim newFiltersBuilder = ArrayBuilder(Of Data.CompletionFilterWithState).GetInstance()
+
+                ' ensure both Enum and EnumMembers filter present, and then select EnumMember filter
+                Dim hasEnumerFilter = False, hasEnumMemberFilter = False
+                For Each oldState In oldFilters
+
+                    If Object.ReferenceEquals(oldState.Filter, FilterSet.EnumMemberFilter) Then
+                        hasEnumMemberFilter = True
+                        newFiltersBuilder.Add(oldState.WithSelected(True))
+                        Continue For
+                    End If
+
+                    If Object.ReferenceEquals(oldState.Filter, FilterSet.EnumFilter) Then
+                        hasEnumerFilter = True
+                    End If
+
+                    newFiltersBuilder.Add(oldState.WithSelected(False))
+                Next
+
+                Assert.True(hasEnumerFilter And hasEnumMemberFilter)
+
+                state.RaiseFiltersChanged(newFiltersBuilder.ToImmutableAndFree())
+
+                Await state.WaitForUIRenderedAsync()
+                Await state.AssertCompletionItemsContainAll("Color.Red", "Color.Green", "Color.Blue")
+                Await state.AssertCompletionItemsDoNotContainAny("Color")
+            End Using
+        End Function
+
         <WorkItem(16236, "https://github.com/dotnet/roslyn/issues/16236")>
         <WpfTheory, CombinatorialData>
         <Trait(Traits.Feature, Traits.Features.Completion)>
@@ -9510,9 +9567,9 @@ public class AA
 using System;
 public class AA
 {
-    public void F(object dr)
+    public void F(object node)
     {
-        var DR = (string)dr$$
+        var Node = (string)nod$$
     }
 }</Document>)
 
@@ -9520,9 +9577,17 @@ public class AA
                 Await state.WaitForAsynchronousOperationsAsync()
                 Await state.WaitForUIRenderedAsync()
 
-                Await state.AssertSelectedCompletionItem("dr")
-                Await state.AssertCompletionItemsContain("DR", "")
+                ' test prefix match
+                Await state.AssertSelectedCompletionItem("node", isHardSelected:=True)
+                Await state.AssertCompletionItemsContain("Node", "")
 
+                state.SendTypeChars("e")
+                Await state.WaitForAsynchronousOperationsAsync()
+                Await state.WaitForUIRenderedAsync()
+
+                ' test complete match
+                Await state.AssertSelectedCompletionItem("node", isHardSelected:=True)
+                Await state.AssertCompletionItemsContain("Node", "")
             End Using
         End Function
 

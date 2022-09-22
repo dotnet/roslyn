@@ -29,3 +29,9 @@ Microsoft.CodeAnalysis.Workspace.RaiseTextDocumentOpenedEventAsync(Microsoft.Cod
 Microsoft.CodeAnalysis.Workspace.TextDocumentClosed -> System.EventHandler<Microsoft.CodeAnalysis.TextDocumentEventArgs>
 Microsoft.CodeAnalysis.Workspace.TextDocumentOpened -> System.EventHandler<Microsoft.CodeAnalysis.TextDocumentEventArgs>
 static Microsoft.CodeAnalysis.Editing.DeclarationModifiers.File.get -> Microsoft.CodeAnalysis.Editing.DeclarationModifiers
+virtual Microsoft.CodeAnalysis.FileTextLoader.CreateText(System.IO.Stream stream, System.Threading.CancellationToken cancellationToken) -> Microsoft.CodeAnalysis.Text.SourceText
+override Microsoft.CodeAnalysis.FileTextLoader.LoadTextAndVersionAsync(System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<Microsoft.CodeAnalysis.TextAndVersion>
+*REMOVED*override Microsoft.CodeAnalysis.FileTextLoader.LoadTextAndVersionAsync(Microsoft.CodeAnalysis.Workspace workspace, Microsoft.CodeAnalysis.DocumentId documentId, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<Microsoft.CodeAnalysis.TextAndVersion>
+*REMOVED*abstract Microsoft.CodeAnalysis.TextLoader.LoadTextAndVersionAsync(Microsoft.CodeAnalysis.Workspace workspace, Microsoft.CodeAnalysis.DocumentId documentId, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<Microsoft.CodeAnalysis.TextAndVersion>
+virtual Microsoft.CodeAnalysis.TextLoader.LoadTextAndVersionAsync(Microsoft.CodeAnalysis.Workspace workspace, Microsoft.CodeAnalysis.DocumentId documentId, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<Microsoft.CodeAnalysis.TextAndVersion>
+virtual Microsoft.CodeAnalysis.TextLoader.LoadTextAndVersionAsync(System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<Microsoft.CodeAnalysis.TextAndVersion>

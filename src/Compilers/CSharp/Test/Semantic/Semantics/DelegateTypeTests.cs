@@ -10125,18 +10125,16 @@ class Program
 @"1
 <>f__AnonymousDelegate0
 2
-<>f__AnonymousDelegate0
+<>f__AnonymousDelegate1
 3
-<>f__AnonymousDelegate1
+<>f__AnonymousDelegate2
 4
-<>f__AnonymousDelegate1
+<>f__AnonymousDelegate3
 -5
-<>f__AnonymousDelegate2
+<>f__AnonymousDelegate4
 -6
-<>f__AnonymousDelegate2
+<>f__AnonymousDelegate4
 ");
-
-            // https://github.com/dotnet/roslyn/issues/62780: Test with [UnscopedRef].
         }
 
         [Fact]
