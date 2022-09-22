@@ -172,7 +172,7 @@ namespace Microsoft.CodeAnalysis.Completion
         private PatternMatcher GetPatternMatcher(string pattern, CultureInfo culture, bool includeMatchedSpans)
             => GetPatternMatcher(pattern, culture, includeMatchedSpans, _patternMatcherMap);
 
-        public int CompareMatchResults(MatchResult matchResult1, MatchResult matchResult2, bool filterTextIsLowerCaseOnly)
+        public int CompareMatchResults(MatchResult matchResult1, MatchResult matchResult2, bool filterTextHasNoUpperCase)
         {
             var item1 = matchResult1.CompletionItem;
             var match1 = matchResult1.PatternMatch;

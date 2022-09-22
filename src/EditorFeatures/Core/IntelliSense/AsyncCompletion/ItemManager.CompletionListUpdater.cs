@@ -239,13 +239,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 var filterHelper = new FilterStateHelper(_snapshotData.SelectedFilters);
 
                 // Filter items based on the selected filters and matching.
-                // We keep track the index of the VS CompletionItem in the intial sorted list to maintain a map from Roslyn itemt o VS item.
-                // It's also used to sort the items by pattern matching results while preserving the original alphabetical order for items with
-                // same pattern match score since `List<T>.Sort` isn't stable.
-                for (var currentIndex = 0; currentIndex < _snapshotData.InitialSortedItemList.Count; currentIndex++)
+                var totalCount = _snapshotData.InitialSortedItemList.Count;
+                for (var currentIndex = 0; currentIndex < totalCount; currentIndex++)
                 {
                     cancellationToken.ThrowIfCancellationRequested();
-
                     var item = _snapshotData.InitialSortedItemList[currentIndex];
 
                     if (filterHelper.ShouldBeFilteredOut(item))
@@ -253,6 +250,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
 
                     if (CompletionItemData.TryGetData(item, out var itemData))
                     {
+                        // currentIndex is used to track the index of the VS CompletionItem in the intial sorted list to maintain a map from Roslyn itemt o VS item.
+                        // It's also used to sort the items by pattern matching results while preserving the original alphabetical order for items with
+                        // same pattern match score since `List<T>.Sort` isn't stable.
                         if (CompletionHelper.TryCreateMatchResult(_completionHelper, itemData.RoslynItem, _filterText,
                             roslynInitialTriggerKind, roslynFilterReason, _recentItemsManager.GetRecentItemIndex(itemData.RoslynItem) >= 0, _highlightMatchingPortions, currentIndex,
                             out var matchResult))

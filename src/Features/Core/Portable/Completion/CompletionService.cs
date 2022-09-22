@@ -311,7 +311,7 @@ namespace Microsoft.CodeAnalysis.Completion
                     continue;
                 }
 
-                var comparison = completionHelper.CompareMatchResults(matchResult, builder[0], filterTextIsLowerCaseOnly);
+                var comparison = completionHelper.CompareMatchResults(matchResult, builder[0], filterTextHasNoUpperCase);
 
                 if (comparison == 0)
                 {
