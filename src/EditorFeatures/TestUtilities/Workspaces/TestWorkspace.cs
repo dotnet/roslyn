@@ -111,15 +111,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             _metadataAsSourceFileService = ExportProvider.GetExportedValues<IMetadataAsSourceFileService>().FirstOrDefault();
         }
 
-        private static HostServices GetHostServices([NotNull] ref TestComposition? composition, bool disablePartialSolutions)
+        private static HostServices GetHostServices([NotNull] ref TestComposition? composition)
         {
             composition ??= EditorTestCompositions.EditorFeatures;
-
-            if (disablePartialSolutions)
-            {
-                composition = composition.AddParts(typeof(WorkpacePartialSolutionsTestHook));
-            }
-
             return composition.GetHostServices();
         }
 
