@@ -472,15 +472,7 @@ namespace Xunit.Harness
                 var count = 1;
                 while (!cancellationToken.IsCancellationRequested)
                 {
-                    try
-                    {
-                        await Task.Delay(ReportTimeInterval, cancellationToken).ConfigureAwait(false);
-                    }
-                    catch (TaskCanceledException)
-                    {
-                        break;
-                    }
-
+                    await Task.Delay(ReportTimeInterval, cancellationToken).ConfigureAwait(false);
                     ScreenshotService.TakeScreenshot(Path.Combine(Path.GetFullPath(directory), commandBeingExecuted, $"_after_{count * ReportTimeMinute}_min.png"));
                     count++;
                 }
