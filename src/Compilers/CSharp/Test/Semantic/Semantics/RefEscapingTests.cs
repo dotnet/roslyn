@@ -1557,10 +1557,8 @@ class Program
             );
         }
 
-        [Theory]
-        [InlineData(LanguageVersion.CSharp10)]
-        [InlineData(LanguageVersion.CSharp11)]
-        public void RefLikeEscapeMixingCall_UnsafeContext(LanguageVersion languageVersion)
+        [Fact]
+        public void RefLikeEscapeMixingCall_UnsafeContext()
         {
             var text = @"
 using System;
@@ -1604,7 +1602,7 @@ class Program
 }
 ";
 
-            var comp = CreateCompilationWithMscorlibAndSpan(text, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
+            var comp = CreateCompilationWithMscorlibAndSpan(text, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.Regular10);
             comp.VerifyDiagnostics(
                 // (16,35): warning CS9080: Use of variable 'rInner' in this context may expose referenced variables outside of their declaration scope
                 //         MayAssign(ref rOuter, ref rInner);
@@ -1613,7 +1611,20 @@ class Program
                 //         MayAssign(ref inner, ref rOuter);
                 Diagnostic(ErrorCode.WRN_EscapeVariable, "inner").WithArguments("inner").WithLocation(19, 23)
                 );
-        }
+
+            comp = CreateCompilationWithMscorlibAndSpan(text, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.Regular11);
+            comp.VerifyDiagnostics(
+                // (16,35): warning CS9080: Use of variable 'rInner' in this context may expose referenced variables outside of their declaration scope
+                //         MayAssign(ref rOuter, ref rInner);
+                Diagnostic(ErrorCode.WRN_EscapeVariable, "rInner").WithArguments("rInner").WithLocation(16, 35),
+                // (19,23): warning CS9080: Use of variable 'inner' in this context may expose referenced variables outside of their declaration scope
+                //         MayAssign(ref inner, ref rOuter);
+                Diagnostic(ErrorCode.WRN_EscapeVariable, "inner").WithArguments("inner").WithLocation(19, 23),
+                // (24,28): warning CS9094: This returns a parameter by reference 'arg1' through a ref parameter; but it can only safely be returned in a return statement
+                //         arg2 = MayWrap(ref arg1);
+                Diagnostic(ErrorCode.WRN_RefReturnOnlyParameter, "arg1").WithArguments("arg1").WithLocation(24, 28)
+                );
+         }
 
         [Fact]
         public void RefLikeEscapeMixingCallVararg()
