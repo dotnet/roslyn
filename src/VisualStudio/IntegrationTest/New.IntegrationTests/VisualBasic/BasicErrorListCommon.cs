@@ -74,7 +74,7 @@ Namespace N
 End Namespace
 ", HangMitigatingCancellationToken);
             await TestServices.Editor.PlaceCaretAsync(" Comment", charsOffset: -2, HangMitigatingCancellationToken);
-            await TestServices.Input.SendAsync("F = 0");
+            await TestServices.Input.SendAsync("F = 0", HangMitigatingCancellationToken);
             await TestServices.ErrorList.ShowErrorListAsync(HangMitigatingCancellationToken);
             var expectedContents = Array.Empty<string>();
             await TestServices.Workspace.WaitForAllAsyncOperationsAsync(new[] { FeatureAttribute.Workspace, FeatureAttribute.SolutionCrawler, FeatureAttribute.DiagnosticService, FeatureAttribute.ErrorSquiggles, FeatureAttribute.ErrorList }, HangMitigatingCancellationToken);
@@ -85,7 +85,7 @@ End Namespace
 
             await TestServices.Editor.ActivateAsync(HangMitigatingCancellationToken);
             await TestServices.Editor.PlaceCaretAsync("F = 0 ' Comment", charsOffset: -1, HangMitigatingCancellationToken);
-            await TestServices.Input.SendAsync("F");
+            await TestServices.Input.SendAsync("F", HangMitigatingCancellationToken);
             await TestServices.ErrorList.ShowErrorListAsync(HangMitigatingCancellationToken);
             expectedContents = new[] {
                 "(Compiler) Class1.vb(6, 13): error BC30451: 'FF' is not declared. It may be inaccessible due to its protection level.",
@@ -98,7 +98,7 @@ End Namespace
 
             await TestServices.Editor.ActivateAsync(HangMitigatingCancellationToken);
             await TestServices.Editor.PlaceCaretAsync("FF = 0 ' Comment", charsOffset: -1, HangMitigatingCancellationToken);
-            await TestServices.Input.SendAsync(VirtualKeyCode.DELETE);
+            await TestServices.Input.SendAsync(VirtualKeyCode.DELETE, HangMitigatingCancellationToken);
             await TestServices.ErrorList.ShowErrorListAsync(HangMitigatingCancellationToken);
             expectedContents = Array.Empty<string>();
             await TestServices.Workspace.WaitForAllAsyncOperationsAsync(new[] { FeatureAttribute.Workspace, FeatureAttribute.SolutionCrawler, FeatureAttribute.DiagnosticService, FeatureAttribute.ErrorSquiggles, FeatureAttribute.ErrorList }, HangMitigatingCancellationToken);

@@ -10942,7 +10942,10 @@ unsafe
             comp.VerifyDiagnostics(
                 // (10,28): warning CS9080: Use of variable 'span' in this context may expose referenced variables outside of their declaration scope
                 //         return ref ptr(ref span);
-                Diagnostic(ErrorCode.WRN_EscapeVariable, "span").WithArguments("span").WithLocation(10, 28)
+                Diagnostic(ErrorCode.WRN_EscapeVariable, "span").WithArguments("span").WithLocation(10, 28),
+                // (10,28): warning CS9091: This returns local 'span' by reference but it is not a ref local
+                //         return ref ptr(ref span);
+                Diagnostic(ErrorCode.WRN_RefReturnLocal, "span").WithArguments("span").WithLocation(10, 28)
             );
         }
 
@@ -10982,10 +10985,7 @@ unsafe
 ");
 
             comp = CreateCompilationWithSpan(source, options: TestOptions.UnsafeReleaseExe);
-            comp.VerifyDiagnostics(
-                // (14,62): warning CS9085: This returns a parameter by reference 'i' but it is scoped to the current method
-                //     static ref Span<int> ReturnByRef(ref Span<int> i) => ref i;
-                Diagnostic(ErrorCode.WRN_RefReturnScopedParameter, "i").WithArguments("i").WithLocation(14, 62));
+            comp.VerifyDiagnostics();
         }
 
         [Fact, WorkItem(49315, "https://github.com/dotnet/roslyn/issues/49315")]

@@ -1618,8 +1618,8 @@
         <note>UnmanagedCallersOnly is not localizable.</note>
       </trans-unit>
       <trans-unit id="ERR_UnscopedRefAttributeUnsupportedTarget">
-        <source>UnscopedRefAttribute can only be applied to 'out' parameters, 'ref' and 'in' parameters that refer to 'ref struct' types, and instance methods and properties on 'struct' types other than constructors and 'init' accessors.</source>
-        <target state="translated">UnscopedRefAttribute ne peut être appliqué qu’aux paramètres 'out', 'ref' et 'in' qui font référence aux types 'ref struct', ainsi qu’aux méthodes et propriétés d’instance sur les types 'struct' autres que les constructeurs et les accesseurs 'init'.</target>
+        <source>UnscopedRefAttribute cannot be applied to this item because it is unscoped by default.</source>
+        <target state="needs-review-translation">UnscopedRefAttribute ne peut être appliqué qu’aux paramètres 'out', 'ref' et 'in' qui font référence aux types 'ref struct', ainsi qu’aux méthodes et propriétés d’instance sur les types 'struct' autres que les constructeurs et les accesseurs 'init'.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnscopedScoped">
