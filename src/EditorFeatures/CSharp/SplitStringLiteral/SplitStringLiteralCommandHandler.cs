@@ -117,7 +117,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.SplitStringLiteral
                 return false;
             }
 
-            lazyOptions ??= subjectBuffer.GetIndentationOptions(_editorOptionsService, document.Project.LanguageServices, explicitFormat: false);
+            lazyOptions ??= subjectBuffer.GetIndentationOptions(_editorOptionsService, document.Project.Services, explicitFormat: false);
 
             using var transaction = CaretPreservingEditTransaction.TryCreate(
                 CSharpEditorResources.Split_string, textView, _undoHistoryRegistry, _editorOperationsFactoryService);

@@ -6,7 +6,6 @@
       "capabilityId": "AutoMerge",
       "subCapability": "AutoMerge",
       "version": "1.0",
-      "id": "ZLxwxa6zc",
       "config": {
         "taskName": "Automatically merge PR once CI passes",
         "label": "auto-merge",
@@ -44,7 +43,6 @@
       "capabilityId": "IssueResponder",
       "subCapability": "PullRequestResponder",
       "version": "1.0",
-      "id": "CLJ2dGQF1",
       "config": {
         "conditions": {
           "operator": "and",
@@ -97,7 +95,6 @@
       "capabilityId": "IssueResponder",
       "subCapability": "PullRequestResponder",
       "version": "1.0",
-      "id": "75jIzsWOu",
       "config": {
         "conditions": {
           "operator": "and",
@@ -149,7 +146,6 @@
       "capabilityId": "IssueResponder",
       "subCapability": "PullRequestResponder",
       "version": "1.0",
-      "id": "q9DCIKxTv",
       "config": {
         "conditions": {
           "operator": "and",
@@ -205,7 +201,6 @@
       "capabilityId": "IssueResponder",
       "subCapability": "PullRequestResponder",
       "version": "1.0",
-      "id": "pmPdHS1MuNrvt4VWTU9ry",
       "config": {
         "conditions": {
           "operator": "and",
@@ -252,7 +247,6 @@
       "capabilityId": "IssueResponder",
       "subCapability": "IssuesOnlyResponder",
       "version": "1.0",
-      "id": "j0xIKin90PSJwx60JAnoF",
       "config": {
         "conditions": {
           "operator": "and",
@@ -298,7 +292,6 @@
       "capabilityId": "ScheduledSearch",
       "subCapability": "ScheduledSearch",
       "version": "1.1",
-      "id": "RCSlfUbUzbgN2c9qWpa5Y",
       "config": {
         "frequency": [
           {
@@ -442,7 +435,6 @@
       "capabilityId": "IssueResponder",
       "subCapability": "IssueCommentResponder",
       "version": "1.0",
-      "id": "ZxVNFNvShRFk3GcKEObYE",
       "config": {
         "conditions": {
           "operator": "and",
@@ -485,7 +477,6 @@
       "capabilityId": "IssueResponder",
       "subCapability": "PullRequestResponder",
       "version": "1.0",
-      "id": "803Oq8dbuxtmrs4S7KJO_",
       "config": {
         "conditions": {
           "operator": "and",
@@ -613,7 +604,6 @@
       "capabilityId": "IssueResponder",
       "subCapability": "PullRequestResponder",
       "version": "1.0",
-      "id": "9ttBTtAgvbR2BKsMYeQAF",
       "config": {
         "conditions": {
           "operator": "and",
@@ -759,7 +749,6 @@
       "capabilityId": "IssueResponder",
       "subCapability": "PullRequestResponder",
       "version": "1.0",
-      "id": "_5M0px67UWq-enx9oXUJA",
       "config": {
         "conditions": {
           "operator": "and",
@@ -895,7 +884,6 @@
       "capabilityId": "IssueResponder",
       "subCapability": "PullRequestResponder",
       "version": "1.0",
-      "id": "cFOaSKBWn4wbz5VpEwe6B",
       "config": {
         "conditions": {
           "operator": "and",
@@ -1088,6 +1076,43 @@
             "parameters": {
               "comment": "This PR modifies public API files. Please follow the instructions at https://github.com/dotnet/roslyn/blob/main/docs/contributing/API%20Review%20Process.md for ensuring all public APIs are reviewed before merging."
             }
+          }
+        ]
+      }
+    },
+    {
+      "taskType": "trigger",
+      "capabilityId": "IssueResponder",
+      "subCapability": "IssuesOnlyResponder",
+      "version": "1.0",
+      "config": {
+        "conditions": {
+          "operator": "and",
+          "operands": [
+            {
+              "name": "hasLabel",
+              "parameters": {
+                "label": "vs-insertion"
+              }
+            },
+            {
+              "name": "titleContains",
+              "parameters": {
+                "titlePattern": "[Automated] PRs inserted in VS build"
+              }
+            }
+          ]
+        },
+        "eventType": "issue",
+        "eventNames": [
+          "issues",
+          "project_card"
+        ],
+        "taskName": "Close automatically generated PR tagger issues",
+        "actions": [
+          {
+            "name": "closeIssue",
+            "parameters": {}
           }
         ]
       }

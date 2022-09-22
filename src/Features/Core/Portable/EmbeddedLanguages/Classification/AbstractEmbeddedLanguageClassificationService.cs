@@ -9,7 +9,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.EmbeddedLanguages;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.Classification
             worker.Recurse(root);
         }
 
-        private ref struct Worker
+        private readonly ref struct Worker
         {
             private readonly AbstractEmbeddedLanguageClassificationService _owner;
             private readonly Project _project;

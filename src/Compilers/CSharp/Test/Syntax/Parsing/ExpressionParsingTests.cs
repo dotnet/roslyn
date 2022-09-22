@@ -5673,9 +5673,6 @@ select t";
         public void ObjectInitializer_BadRef()
         {
             UsingExpression("new C { P = ref }",
-                // (1,13): error CS1525: Invalid expression term 'ref'
-                // new C { P = ref }
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "ref ").WithArguments("ref").WithLocation(1, 13),
                 // (1,17): error CS1525: Invalid expression term '}'
                 // new C { P = ref }
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, "}").WithArguments("}").WithLocation(1, 17));
@@ -5717,9 +5714,6 @@ select t";
         public void CollectionInitializer_BadRef_01()
         {
             UsingExpression("new C { ref }",
-                // (1,9): error CS1525: Invalid expression term 'ref'
-                // new C { ref }
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "ref ").WithArguments("ref").WithLocation(1, 9),
                 // (1,13): error CS1525: Invalid expression term '}'
                 // new C { ref }
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, "}").WithArguments("}").WithLocation(1, 13));

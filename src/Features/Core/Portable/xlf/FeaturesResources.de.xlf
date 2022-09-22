@@ -625,6 +625,11 @@ Stellen Sie sicher, dass Sie den Bezeichner "tt" für Sprachen verwenden, für d
         <target state="translated">Das Löschen von {0} erfordert einen Neustart der Anwendung.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Deleting_0_requires_restarting_the_application_because_is_not_supported_by_the_runtime">
+        <source>Deleting {0} requires restarting the application because is not supported by the runtime.</source>
+        <target state="translated">Das Löschen von {0} erfordert einen Neustart der Anwendung, da es von der Laufzeit nicht unterstützt wird.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Deleting_captured_variable_0_requires_restarting_the_application">
         <source>Deleting captured variable '{0}' requires restarting the application.</source>
         <target state="translated">Das Löschen der erfassten Variable „{0}“ erfordert einen Neustart der Anwendung.</target>
@@ -709,6 +714,11 @@ Stellen Sie sicher, dass Sie den Bezeichner "tt" für Sprachen verwenden, für d
         <source>Extract base class...</source>
         <target state="translated">Basisklasse extrahieren...</target>
         <note />
+      </trans-unit>
+      <trans-unit id="Extract_base_record">
+        <source>Extract base record...</source>
+        <target state="translated">Base record extrahieren...</target>
+        <note>{Locked="record"} "record" is a language construct for C# and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Extract_interface">
         <source>Extract interface...</source>
@@ -958,11 +968,6 @@ Stellen Sie sicher, dass Sie den Bezeichner "tt" für Sprachen verwenden, für d
       <trans-unit id="Inline_and_keep_0">
         <source>Inline and keep '{0}'</source>
         <target state="translated">"{0}" inline einbinden und beibehalten</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Insert_an_if_statement">
-        <source>Insert an 'if' statement</source>
-        <target state="new">Insert an 'if' statement</target>
         <note />
       </trans-unit>
       <trans-unit id="Insufficient_hexadecimal_digits">
@@ -1322,12 +1327,12 @@ Stellen Sie sicher, dass Sie den Bezeichner "tt" für Sprachen verwenden, für d
       </trans-unit>
       <trans-unit id="Pull_selected_members_up">
         <source>Pull selected members up</source>
-        <target state="new">Pull selected members up</target>
+        <target state="translated">Ausgewählte Elemente nach oben ziehen</target>
         <note />
       </trans-unit>
       <trans-unit id="Pull_selected_members_up_to_0">
         <source>Pull selected members up to {0}</source>
-        <target state="new">Pull selected members up to {0}</target>
+        <target state="translated">Ausgewählte Elemente bis {0} ziehen</target>
         <note />
       </trans-unit>
       <trans-unit id="Quantifier_x_y_following_nothing">
@@ -2542,7 +2547,7 @@ Positive Lookbehindassertionen mit Nullbreite werden normalerweise am Anfang reg
       </trans-unit>
       <trans-unit id="Required">
         <source>required</source>
-        <target state="new">required</target>
+        <target state="translated">erforderlich</target>
         <note>Used in the object initializer completion.</note>
       </trans-unit>
       <trans-unit id="Resolve_conflict_markers">
@@ -2648,6 +2653,11 @@ Positive Lookbehindassertionen mit Nullbreite werden normalerweise am Anfang reg
       <trans-unit id="The_assembly_0_containing_type_1_references_NET_Framework">
         <source>The assembly '{0}' containing type '{1}' references .NET Framework, which is not supported.</source>
         <target state="translated">Die Assembly "{0}" mit dem Typ "{1}" verweist auf das .NET Framework. Dies wird nicht unterstützt.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="The_assembly_0_references_compiler_version_1_newer_than_2">
+        <source>The analyzer assembly '{0}' references version '{1}' of the compiler, which is newer than the currently running version '{2}'.</source>
+        <target state="translated">Die Analyzerassembly „{0}“ verweist auf Version „{1}“ des Compilers, die neuer ist als die aktuell ausgeführte Version „{2}“.</target>
         <note />
       </trans-unit>
       <trans-unit id="The_selection_contains_a_local_function_call_without_its_declaration">
@@ -2895,16 +2905,6 @@ Positive Lookbehindassertionen mit Nullbreite werden normalerweise am Anfang reg
         <target state="translated">Das Aktualisieren der Abweichung von {0} erfordert einen Neustart der Anwendung.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Use_block_body_for_lambda_expressions">
-        <source>Use block body for lambda expressions</source>
-        <target state="translated">Blocktextkörper für Lambdaausdrücke verwenden</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Use_expression_body_for_lambda_expressions">
-        <source>Use expression body for lambda expressions</source>
-        <target state="translated">Ausdruckskörper für Lambdaausdrücke verwenden</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Value_colon">
         <source>Value:</source>
         <target state="translated">Wert:</target>
@@ -2988,11 +2988,6 @@ Positive Lookbehindassertionen mit Nullbreite werden normalerweise am Anfang reg
       <trans-unit id="Wrapping">
         <source>Wrapping</source>
         <target state="translated">Umbruch</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Write_to_the_console">
-        <source>Write to the console</source>
-        <target state="new">Write to the console</target>
         <note />
       </trans-unit>
       <trans-unit id="You_can_use_the_navigation_bar_to_switch_contexts">
@@ -3346,6 +3341,11 @@ Bei Verwendung des Formatbezeichners "H" ohne weitere benutzerdefinierte Formatb
         <target state="translated">Code</target>
         <note />
       </trans-unit>
+      <trans-unit id="console_writeline">
+        <source>Console.WriteLine</source>
+        <target state="translated">Console.WriteLine</target>
+        <note />
+      </trans-unit>
       <trans-unit id="date_separator">
         <source>date separator</source>
         <target state="translated">Datumstrennzeichen</target>
@@ -3423,6 +3423,11 @@ Bei Verwendung des Formatbezeichners "d" ohne weitere benutzerdefinierte Formatb
         <target state="translated">Extern</target>
         <note>External means "external source", meaning source files that are not part of the current solution</note>
       </trans-unit>
+      <trans-unit id="foreach_loop">
+        <source>foreach loop</source>
+        <target state="new">foreach loop</target>
+        <note />
+      </trans-unit>
       <trans-unit id="from_metadata">
         <source>from metadata</source>
         <target state="translated">aus Metadaten</target>
@@ -3480,6 +3485,11 @@ Der Standardformatbezeichner "f" repräsentiert eine Kombination aus den Mustern
       <trans-unit id="generic_overloads">
         <source>generic overloads</source>
         <target state="translated">generische Überladungen</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="if_statement">
+        <source>if statement</source>
+        <target state="translated">Wenn-Anweisung</target>
         <note />
       </trans-unit>
       <trans-unit id="in_0_1_2">
@@ -4000,16 +4010,6 @@ Möchten Sie fortfahren?</target>
 "{1}".</target>
         <note />
       </trans-unit>
-      <trans-unit id="Simplify_Names">
-        <source>Simplify Names</source>
-        <target state="translated">Namen vereinfachen</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Simplify_Member_Access">
-        <source>Simplify Member Access</source>
-        <target state="translated">Memberzugriff vereinfachen</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Remove_qualification">
         <source>Remove qualification</source>
         <target state="translated">Qualifizierung entfernen</target>
@@ -4273,6 +4273,11 @@ Bei Verwendung dieses Standardformatbezeichners wird zur Formatierung oder Analy
       <trans-unit id="static_constructor">
         <source>static constructor</source>
         <target state="translated">statischer Konstruktor</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="struct_">
+        <source>struct</source>
+        <target state="new">struct</target>
         <note />
       </trans-unit>
       <trans-unit id="symbol_cannot_be_a_namespace">

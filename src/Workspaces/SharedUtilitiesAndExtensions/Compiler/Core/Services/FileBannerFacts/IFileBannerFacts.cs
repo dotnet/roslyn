@@ -5,7 +5,7 @@
 using System.Collections.Immutable;
 using System.Threading;
 
-namespace Microsoft.CodeAnalysis.LanguageServices
+namespace Microsoft.CodeAnalysis.LanguageService
 {
     internal interface IFileBannerFacts
     {

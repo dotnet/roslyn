@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         /// Therefore once an initial baseline is created it needs to be kept alive till the end of the debugging session,
         /// even when it's replaced in <see cref="_projectEmitBaselines"/> by a newer baseline.
         /// </remarks>
-        private readonly Dictionary<ProjectId, EmitBaseline> _projectEmitBaselines = new();
+        private readonly Dictionary<ProjectId, (EmitBaseline Baseline, int Generation)> _projectEmitBaselines = new();
         private readonly List<IDisposable> _initialBaselineModuleReaders = new();
         private readonly object _projectEmitBaselinesGuard = new();
 
@@ -94,7 +94,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         /// Last array of module updates generated during the debugging session.
         /// Useful for crash dump diagnostics.
         /// </summary>
-        private ImmutableArray<ManagedModuleUpdate> _lastModuleUpdatesLog;
+        private ImmutableArray<ModuleUpdate> _lastModuleUpdatesLog;
 
         internal DebuggingSession(
             DebuggingSessionId id,
@@ -307,43 +307,55 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         /// Get <see cref="EmitBaseline"/> for given project.
         /// </summary>
         /// <returns>True unless the project outputs can't be read.</returns>
-        internal bool TryGetOrCreateEmitBaseline(Project project, out ImmutableArray<Diagnostic> diagnostics, [NotNullWhen(true)] out EmitBaseline? baseline, [NotNullWhen(true)] out ReaderWriterLockSlim? baselineAccessLock)
+        internal bool TryGetOrCreateEmitBaseline(
+            Project project,
+            out ImmutableArray<Diagnostic> diagnostics,
+            [NotNullWhen(true)] out EmitBaseline? baseline,
+            out int baselineGeneration,
+            [NotNullWhen(true)] out ReaderWriterLockSlim? baselineAccessLock)
         {
             baselineAccessLock = _baselineAccessLock;
 
             lock (_projectEmitBaselinesGuard)
             {
-                if (_projectEmitBaselines.TryGetValue(project.Id, out baseline))
+                if (_projectEmitBaselines.TryGetValue(project.Id, out var baselineAndGeneration))
                 {
+                    (baseline, baselineGeneration) = baselineAndGeneration;
                     diagnostics = ImmutableArray<Diagnostic>.Empty;
                     return true;
                 }
             }
 
             var outputs = GetCompilationOutputs(project);
-            if (!TryCreateInitialBaseline(outputs, project.Id, out diagnostics, out var newBaseline, out var debugInfoReaderProvider, out var metadataReaderProvider))
+            if (!TryCreateInitialBaseline(outputs, project.Id, out diagnostics, out var initialBaseline, out var debugInfoReaderProvider, out var metadataReaderProvider))
             {
                 // Unable to read the DLL/PDB at this point (it might be open by another process).
                 // Don't cache the failure so that the user can attempt to apply changes again.
+                baselineGeneration = -1;
+                baseline = null;
                 return false;
             }
 
+            const int initialBaselineGeneration = 0;
+
             lock (_projectEmitBaselinesGuard)
             {
-                if (_projectEmitBaselines.TryGetValue(project.Id, out baseline))
+                if (_projectEmitBaselines.TryGetValue(project.Id, out var baselineAndGeneration))
                 {
                     metadataReaderProvider.Dispose();
                     debugInfoReaderProvider.Dispose();
+                    (baseline, baselineGeneration) = baselineAndGeneration;
                     return true;
                 }
 
-                _projectEmitBaselines[project.Id] = newBaseline;
+                _projectEmitBaselines.Add(project.Id, (initialBaseline, initialBaselineGeneration));
 
                 _initialBaselineModuleReaders.Add(metadataReaderProvider);
                 _initialBaselineModuleReaders.Add(debugInfoReaderProvider);
             }
 
-            baseline = newBaseline;
+            baseline = initialBaseline;
+            baselineGeneration = initialBaselineGeneration;
             return true;
         }
 
@@ -514,7 +526,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
             LogSolutionUpdate(solutionUpdate);
 
-            if (solutionUpdate.ModuleUpdates.Status == ManagedModuleUpdateStatus.Ready)
+            if (solutionUpdate.ModuleUpdates.Status == ModuleUpdateStatus.Ready)
             {
                 StorePendingUpdate(solution, solutionUpdate);
             }
@@ -526,26 +538,23 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
         private void LogSolutionUpdate(SolutionUpdate update)
         {
-            EditAndContinueWorkspaceService.Log.Write("Solution update status: {0}",
-                ((int)update.ModuleUpdates.Status, typeof(ManagedModuleUpdateStatus)));
+            var log = EditAndContinueWorkspaceService.Log;
 
-            if (update.ModuleUpdates.Updates.Length > 0)
+            log.Write("Solution update status: {0}", update.ModuleUpdates.Status);
+
+            foreach (var moduleUpdate in update.ModuleUpdates.Updates)
             {
-                var firstUpdate = update.ModuleUpdates.Updates[0];
-
-                EditAndContinueWorkspaceService.Log.Write("Solution update deltas: #{0} [types: #{1} (0x{2}:X8), methods: #{3} (0x{4}:X8)",
-                    update.ModuleUpdates.Updates.Length,
-                    firstUpdate.UpdatedTypes.Length,
-                    firstUpdate.UpdatedTypes.FirstOrDefault(),
-                    firstUpdate.UpdatedMethods.Length,
-                    firstUpdate.UpdatedMethods.FirstOrDefault());
+                log.Write("Module update: capabilities=[{0}], types=[{1}], methods=[{2}]",
+                    moduleUpdate.RequiredCapabilities,
+                    moduleUpdate.UpdatedTypes,
+                    moduleUpdate.UpdatedMethods);
             }
 
             if (update.Diagnostics.Length > 0)
             {
                 var firstProjectDiagnostic = update.Diagnostics[0];
 
-                EditAndContinueWorkspaceService.Log.Write("Solution update diagnostics: #{0} [{1}: {2}, ...]",
+                log.Write("Solution update diagnostics: #{0} [{1}: {2}, ...]",
                     update.Diagnostics.Length,
                     firstProjectDiagnostic.ProjectId,
                     firstProjectDiagnostic.Diagnostics[0]);
@@ -555,7 +564,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             {
                 var firstDocumentWithRudeEdits = update.DocumentsWithRudeEdits[0];
 
-                EditAndContinueWorkspaceService.Log.Write("Solution update documents with rude edits: #{0} [{1}: {2}, ...]",
+                log.Write("Solution update documents with rude edits: #{0} [{1}: {2}, ...]",
                     update.DocumentsWithRudeEdits.Length,
                     firstDocumentWithRudeEdits.DocumentId,
                     firstDocumentWithRudeEdits.Diagnostics[0].Kind);
@@ -586,7 +595,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             {
                 foreach (var (projectId, baseline) in pendingUpdate.EmitBaselines)
                 {
-                    _projectEmitBaselines[projectId] = baseline;
+                    _projectEmitBaselines[projectId] = (baseline, _projectEmitBaselines[projectId].Generation + 1);
                 }
             }
 
@@ -663,7 +672,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     Debug.Assert(oldProject.SupportsEditAndContinue());
                     Debug.Assert(newProject.SupportsEditAndContinue());
 
-                    var analyzer = newProject.LanguageServices.GetRequiredService<IEditAndContinueAnalyzer>();
+                    var analyzer = newProject.Services.GetRequiredService<IEditAndContinueAnalyzer>();
 
                     await foreach (var documentId in EditSession.GetChangedDocumentsAsync(oldProject, newProject, cancellationToken).ConfigureAwait(false))
                     {
@@ -788,7 +797,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     return ImmutableArray<ActiveStatementSpan>.Empty;
                 }
 
-                var analyzer = newProject.LanguageServices.GetRequiredService<IEditAndContinueAnalyzer>();
+                var analyzer = newProject.Services.GetRequiredService<IEditAndContinueAnalyzer>();
 
                 using var _ = ArrayBuilder<ActiveStatementSpan>.GetInstance(out var adjustedMappedSpans);
 
@@ -940,7 +949,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     return null;
                 }
 
-                var analyzer = newDocument.Project.LanguageServices.GetRequiredService<IEditAndContinueAnalyzer>();
+                var analyzer = newDocument.Project.Services.GetRequiredService<IEditAndContinueAnalyzer>();
                 var oldDocumentActiveStatements = await baseActiveStatements.GetOldActiveStatementsAsync(analyzer, oldDocument, cancellationToken).ConfigureAwait(false);
                 return oldDocumentActiveStatements.GetStatement(baseActiveStatement.Ordinal).ExceptionRegions.IsActiveStatementCovered;
             }
@@ -1039,7 +1048,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             Debug.Assert(oldProject.SupportsEditAndContinue());
             Debug.Assert(newProject.SupportsEditAndContinue());
 
-            var analyzer = newProject.LanguageServices.GetRequiredService<IEditAndContinueAnalyzer>();
+            var analyzer = newProject.Services.GetRequiredService<IEditAndContinueAnalyzer>();
 
             await foreach (var documentId in EditSession.GetChangedDocumentsAsync(oldProject, newProject, cancellationToken).ConfigureAwait(false))
             {
@@ -1091,7 +1100,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             {
                 lock (_instance._projectEmitBaselinesGuard)
                 {
-                    return _instance._projectEmitBaselines[id];
+                    return _instance._projectEmitBaselines[id].Baseline;
                 }
             }
 

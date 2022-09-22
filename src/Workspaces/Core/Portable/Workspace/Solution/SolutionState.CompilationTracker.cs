@@ -18,6 +18,7 @@ using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Logging;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Collections;
+using Microsoft.CodeAnalysis.SourceGeneratorTelemetry;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
@@ -72,12 +73,13 @@ namespace Microsoft.CodeAnalysis
 
             private void WriteState(CompilationTrackerState state, SolutionServices solutionServices)
             {
-                if (solutionServices.SupportsCachingRecoverableObjects)
+                var cacheService = solutionServices.GetService<IProjectCacheHostService>();
+                if (cacheService != null)
                 {
                     // Allow the cache service to create a strong reference to the compilation. We'll get the "furthest along" compilation we have
                     // and hold onto that.
                     var compilationToCache = state.FinalCompilationWithGeneratedDocuments ?? state.CompilationWithoutGeneratedDocuments;
-                    solutionServices.CacheService.CacheObjectIfCachingEnabledForKey(ProjectState.Id, state, compilationToCache);
+                    cacheService.CacheObjectIfCachingEnabledForKey(ProjectState.Id, state, compilationToCache);
                 }
 
                 Volatile.Write(ref _stateDoNotAccessDirectly, state);
@@ -115,10 +117,8 @@ namespace Microsoft.CodeAnalysis
             /// compilation state as the now 'old' state
             /// </summary>
             public ICompilationTracker Fork(
-                SolutionServices solutionServices,
                 ProjectState newProject,
-                CompilationAndGeneratorDriverTranslationAction? translate = null,
-                CancellationToken cancellationToken = default)
+                CompilationAndGeneratorDriverTranslationAction? translate)
             {
                 var state = ReadState();
 
@@ -174,14 +174,27 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
+            /// <summary>
+            /// A class to help simplify the investigation of https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1467404 when we
+            /// see a crash dump with the failure. The goal is just to make it easy to find the state that we operated on in memory,
+            /// when sometimes local have been optimized away.
+            /// </summary>
+            private class OldStateHolderForBug1467404Investigation
+            {
+                public CompilationTrackerState? State;
+            }
+
             public ICompilationTracker FreezePartialStateWithTree(SolutionState solution, DocumentState docState, SyntaxTree tree, CancellationToken cancellationToken)
             {
+                var stateHolder = new OldStateHolderForBug1467404Investigation();
+
                 GetPartialCompilationState(
                     solution, docState.Id,
                     out var inProgressProject,
                     out var compilationPair,
                     out var generatorInfo,
                     out var metadataReferenceToProjectId,
+                    out stateHolder.State,
                     cancellationToken);
 
                 // Ensure we actually have the tree we need in there
@@ -213,6 +226,8 @@ namespace Microsoft.CodeAnalysis
                     this.ProjectState.Id,
                     metadataReferenceToProjectId);
 
+                GC.KeepAlive(stateHolder);
+
                 return new CompilationTracker(inProgressProject, finalState, this.SkeletonReferenceCache.Clone());
             }
 
@@ -232,9 +247,11 @@ namespace Microsoft.CodeAnalysis
                 out CompilationPair compilations,
                 out CompilationTrackerGeneratorInfo generatorInfo,
                 out Dictionary<MetadataReference, ProjectId>? metadataReferenceToProjectId,
+                out CompilationTrackerState oldStateForBugInvestigation,
                 CancellationToken cancellationToken)
             {
                 var state = ReadState();
+                oldStateForBugInvestigation = state;
                 var compilationWithoutGeneratedDocuments = state.CompilationWithoutGeneratedDocuments;
 
                 // check whether we can bail out quickly for typing case
@@ -541,7 +558,7 @@ namespace Microsoft.CodeAnalysis
                 try
                 {
                     var compilation = await BuildDeclarationCompilationFromScratchAsync(
-                        solution.Services,
+                        solution.Services.SolutionServices,
                         generatorInfo,
                         cancellationToken).ConfigureAwait(false);
 
@@ -612,7 +629,7 @@ namespace Microsoft.CodeAnalysis
             {
                 try
                 {
-                    var (compilationWithoutGenerators, compilationWithGenerators, generatorDriver) = await BuildDeclarationCompilationFromInProgressAsync(solution.Services, state, inProgressCompilation, cancellationToken).ConfigureAwait(false);
+                    var (compilationWithoutGenerators, compilationWithGenerators, generatorDriver) = await BuildDeclarationCompilationFromInProgressAsync(solution.Services.SolutionServices, state, inProgressCompilation, cancellationToken).ConfigureAwait(false);
                     return await FinalizeCompilationAsync(
                         solution,
                         compilationWithoutGenerators,
@@ -862,6 +879,9 @@ namespace Microsoft.CodeAnalysis
                             // END HACK HACK HACK HACK.
 
                             generatorInfo = generatorInfo.WithDriver(generatorInfo.Driver!.RunGenerators(compilationToRunGeneratorsOn, cancellationToken));
+
+                            solution.Services.GetService<ISourceGeneratorTelemetryCollectorWorkspaceService>()?.CollectRunResult(generatorInfo.Driver!.GetRunResult(), generatorInfo.Driver!.GetTimingInfo());
+
                             var runResult = generatorInfo.Driver!.GetRunResult();
 
                             // We may be able to reuse compilationWithStaleGeneratedTrees if the generated trees are identical. We will assign null
@@ -957,7 +977,7 @@ namespace Microsoft.CodeAnalysis
                         this.ProjectState.Id,
                         metadataReferenceToProjectId);
 
-                    this.WriteState(finalState, solution.Services);
+                    this.WriteState(finalState, solution.Services.SolutionServices);
 
                     return new CompilationInfo(compilationWithGenerators, hasSuccessfullyLoaded, generatorInfo);
                 }
@@ -984,15 +1004,11 @@ namespace Microsoft.CodeAnalysis
                     ISourceGenerator generator,
                     string hintName)
                 {
-                    var generatorAssemblyName = SourceGeneratedDocumentIdentity.GetGeneratorAssemblyName(generator);
-                    var generatorTypeName = SourceGeneratedDocumentIdentity.GetGeneratorTypeName(generator);
+                    var generatorIdentity = new SourceGeneratorIdentity(generator);
 
                     foreach (var (_, state) in states.States)
                     {
-                        if (state.SourceGeneratorAssemblyName != generatorAssemblyName)
-                            continue;
-
-                        if (state.SourceGeneratorTypeName != generatorTypeName)
+                        if (state.Identity.Generator != generatorIdentity)
                             continue;
 
                         if (state.HintName != hintName)

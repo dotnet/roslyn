@@ -184,7 +184,7 @@
       </trans-unit>
       <trans-unit id="Show_new_snippet_experience_experimental">
         <source>Show new snippet experience (experimental)</source>
-        <target state="new">Show new snippet experience (experimental)</target>
+        <target state="translated">Yeni kod parçacığı deneyimini göster (deneysel)</target>
         <note />
       </trans-unit>
       <trans-unit id="Show_remarks_in_Quick_Info">

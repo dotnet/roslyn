@@ -1196,8 +1196,7 @@ public class MyAttribute : Attribute { public int Value {get; set;} }",
                 "t i2.m2()\r\n{\r\n}");
         }
 
-        [WorkItem(3928, "https://github.com/dotnet/roslyn/issues/3928")]
-        [Fact]
+        [Fact, WorkItem(3928, "https://github.com/dotnet/roslyn/issues/3928")]
         public void TestAsPrivateInterfaceImplementationRemovesConstraints()
         {
             var code = @"
@@ -1608,10 +1607,27 @@ public interface IFace
                         Generator.Attribute("a")),
                     Generator.Attribute("b")),
                 "[assembly: a]\r\n[assembly: b]\r\nnamespace n\r\n{\r\n}");
+
+            VerifySyntax<StatementSyntax>(
+                Generator.AddAttributes(
+                    SyntaxFactory.BreakStatement(),
+                    Generator.Attribute("a")),
+                "[a]\r\nbreak;");
+
+            VerifySyntax<TypeParameterSyntax>(
+                Generator.AddAttributes(
+                    SyntaxFactory.TypeParameter("T"),
+                    Generator.Attribute("a")),
+                "[a]\r\nT");
+
+            VerifySyntax<LambdaExpressionSyntax>(
+                Generator.AddAttributes(
+                    SyntaxFactory.ParenthesizedLambdaExpression(),
+                    Generator.Attribute("a")),
+                "[a]\r\n() =>");
         }
 
-        [Fact]
-        [WorkItem(5066, "https://github.com/dotnet/roslyn/issues/5066")]
+        [Fact, WorkItem(5066, "https://github.com/dotnet/roslyn/issues/5066")]
         public void TestAddAttributesToAccessors()
         {
             var prop = Generator.PropertyDeclaration("P", Generator.IdentifierName("T"));
@@ -1819,8 +1835,7 @@ public class C { } // end").Members[0];
 }");
         }
 
-        [WorkItem(38379, "https://github.com/dotnet/roslyn/issues/38379")]
-        [Fact]
+        [Fact, WorkItem(38379, "https://github.com/dotnet/roslyn/issues/38379")]
         public void TestUnsafeFieldDeclarationFromSymbol()
         {
             VerifySyntax<MethodDeclarationSyntax>(
@@ -2350,6 +2365,22 @@ public class C
             VerifySyntax<ClassDeclarationSyntax>(filePublicClass, @"file class C
 {
 }");
+        }
+
+        [Fact]
+        public void TestAddRequiredModifierToVirtualProperty()
+        {
+            var property = (PropertyDeclarationSyntax)SyntaxFactory.ParseMemberDeclaration("public virtual int P { get; }");
+            var updatedProperty = Generator.WithModifiers(property, Generator.GetModifiers(property).WithIsRequired(true));
+            VerifySyntax<PropertyDeclarationSyntax>(updatedProperty, "public virtual required int P { get; }");
+        }
+
+        [Fact]
+        public void TestAddVirtualModifierToRequiredProperty()
+        {
+            var property = (PropertyDeclarationSyntax)SyntaxFactory.ParseMemberDeclaration("public required int P { get; }");
+            var updatedProperty = Generator.WithModifiers(property, Generator.GetModifiers(property).WithIsVirtual(true));
+            VerifySyntax<PropertyDeclarationSyntax>(updatedProperty, "public virtual required int P { get; }");
         }
 
         [Fact]
@@ -3605,8 +3636,7 @@ public void M()
 }");
         }
 
-        [WorkItem(293, "https://github.com/dotnet/roslyn/issues/293")]
-        [Fact]
+        [Fact, WorkItem(293, "https://github.com/dotnet/roslyn/issues/293")]
         [Trait(Traits.Feature, Traits.Features.Formatting)]
         public void IntroduceBaseList()
         {
@@ -3626,7 +3656,7 @@ public class C : IDisposable
             var newDecl = Generator.AddInterfaceType(decl, Generator.IdentifierName("IDisposable"));
             var newRoot = root.ReplaceNode(decl, newDecl);
 
-            var elasticOnlyFormatted = Formatter.Format(newRoot, SyntaxAnnotation.ElasticAnnotation, _workspace.Services, CSharpSyntaxFormattingOptions.Default, CancellationToken.None).ToFullString();
+            var elasticOnlyFormatted = Formatter.Format(newRoot, SyntaxAnnotation.ElasticAnnotation, _workspace.Services.SolutionServices, CSharpSyntaxFormattingOptions.Default, CancellationToken.None).ToFullString();
             Assert.Equal(expected, elasticOnlyFormatted);
         }
 

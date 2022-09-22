@@ -13,12 +13,13 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure.MetadataAsSource
 {
+    [Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
     public class EnumMemberDeclarationStructureTests : AbstractCSharpSyntaxNodeStructureTests<EnumMemberDeclarationSyntax>
     {
         protected override string WorkspaceKind => CodeAnalysis.WorkspaceKind.MetadataAsSource;
         internal override AbstractSyntaxStructureProvider CreateProvider() => new EnumMemberDeclarationStructureProvider();
 
-        [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
+        [Fact]
         public async Task NoCommentsOrAttributes()
         {
             const string code = @"
@@ -31,7 +32,7 @@ enum E
             await VerifyNoBlockSpansAsync(code);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
+        [Fact]
         public async Task WithAttributes()
         {
             const string code = @"
@@ -46,7 +47,7 @@ enum E
                 Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
+        [Fact]
         public async Task WithCommentsAndAttributes()
         {
             const string code = @"

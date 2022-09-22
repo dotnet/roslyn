@@ -625,6 +625,11 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">Для удаления {0} требуется перезапустить приложение.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Deleting_0_requires_restarting_the_application_because_is_not_supported_by_the_runtime">
+        <source>Deleting {0} requires restarting the application because is not supported by the runtime.</source>
+        <target state="translated">Для удаления {0} требуется перезапустить приложение, поскольку удаление не поддерживается средой выполнения.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Deleting_captured_variable_0_requires_restarting_the_application">
         <source>Deleting captured variable '{0}' requires restarting the application.</source>
         <target state="translated">Для удаления зафиксированной переменной "{0}" требуется перезапустить приложение.</target>
@@ -709,6 +714,11 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <source>Extract base class...</source>
         <target state="translated">Извлечь базовый класс...</target>
         <note />
+      </trans-unit>
+      <trans-unit id="Extract_base_record">
+        <source>Extract base record...</source>
+        <target state="translated">Извлечь базовый объект record...</target>
+        <note>{Locked="record"} "record" is a language construct for C# and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Extract_interface">
         <source>Extract interface...</source>
@@ -958,11 +968,6 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       <trans-unit id="Inline_and_keep_0">
         <source>Inline and keep '{0}'</source>
         <target state="translated">Сделать "{0}" встроенным и сохранить его</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Insert_an_if_statement">
-        <source>Insert an 'if' statement</source>
-        <target state="new">Insert an 'if' statement</target>
         <note />
       </trans-unit>
       <trans-unit id="Insufficient_hexadecimal_digits">
@@ -1322,12 +1327,12 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       </trans-unit>
       <trans-unit id="Pull_selected_members_up">
         <source>Pull selected members up</source>
-        <target state="new">Pull selected members up</target>
+        <target state="translated">Вытянуть выбранные элементы вверх</target>
         <note />
       </trans-unit>
       <trans-unit id="Pull_selected_members_up_to_0">
         <source>Pull selected members up to {0}</source>
-        <target state="new">Pull selected members up to {0}</target>
+        <target state="translated">Вытянуть выбранные элементы до {0}</target>
         <note />
       </trans-unit>
       <trans-unit id="Quantifier_x_y_following_nothing">
@@ -2542,7 +2547,7 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
       </trans-unit>
       <trans-unit id="Required">
         <source>required</source>
-        <target state="new">required</target>
+        <target state="translated">требуется</target>
         <note>Used in the object initializer completion.</note>
       </trans-unit>
       <trans-unit id="Resolve_conflict_markers">
@@ -2648,6 +2653,11 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
       <trans-unit id="The_assembly_0_containing_type_1_references_NET_Framework">
         <source>The assembly '{0}' containing type '{1}' references .NET Framework, which is not supported.</source>
         <target state="translated">Сборка "{0}", содержащая тип "{1}", ссылается на платформу .NET Framework, которая не поддерживается.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="The_assembly_0_references_compiler_version_1_newer_than_2">
+        <source>The analyzer assembly '{0}' references version '{1}' of the compiler, which is newer than the currently running version '{2}'.</source>
+        <target state="translated">Сборка анализатора "{0}" ссылается на версию "{1}" компилятора, являющуюся более новой, чем версия "{2}".</target>
         <note />
       </trans-unit>
       <trans-unit id="The_selection_contains_a_local_function_call_without_its_declaration">
@@ -2895,16 +2905,6 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
         <target state="translated">Для обновления расхождения {0} требуется перезапустить приложение.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Use_block_body_for_lambda_expressions">
-        <source>Use block body for lambda expressions</source>
-        <target state="translated">Использовать тело блока для лямбда-выражений</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Use_expression_body_for_lambda_expressions">
-        <source>Use expression body for lambda expressions</source>
-        <target state="translated">Использовать тело выражения для лямбда-выражений</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Value_colon">
         <source>Value:</source>
         <target state="translated">Значение:</target>
@@ -2988,11 +2988,6 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
       <trans-unit id="Wrapping">
         <source>Wrapping</source>
         <target state="translated">Перенос по словам</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Write_to_the_console">
-        <source>Write to the console</source>
-        <target state="new">Write to the console</target>
         <note />
       </trans-unit>
       <trans-unit id="You_can_use_the_navigation_bar_to_switch_contexts">
@@ -3346,6 +3341,11 @@ If the "H" format specifier is used without other custom format specifiers, it's
         <target state="translated">код</target>
         <note />
       </trans-unit>
+      <trans-unit id="console_writeline">
+        <source>Console.WriteLine</source>
+        <target state="translated">Console.WriteLine</target>
+        <note />
+      </trans-unit>
       <trans-unit id="date_separator">
         <source>date separator</source>
         <target state="translated">разделитель компонентов даты</target>
@@ -3423,6 +3423,11 @@ If the "d" format specifier is used without other custom format specifiers, it's
         <target state="translated">внешний</target>
         <note>External means "external source", meaning source files that are not part of the current solution</note>
       </trans-unit>
+      <trans-unit id="foreach_loop">
+        <source>foreach loop</source>
+        <target state="new">foreach loop</target>
+        <note />
+      </trans-unit>
       <trans-unit id="from_metadata">
         <source>from metadata</source>
         <target state="translated">из метаданных</target>
@@ -3480,6 +3485,11 @@ The "f" standard format specifier represents a combination of the long date ("D"
       <trans-unit id="generic_overloads">
         <source>generic overloads</source>
         <target state="translated">универсальные перегрузки</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="if_statement">
+        <source>if statement</source>
+        <target state="translated">оператор if</target>
         <note />
       </trans-unit>
       <trans-unit id="in_0_1_2">
@@ -4000,16 +4010,6 @@ Do you want to continue?</source>
 "{1}".</target>
         <note />
       </trans-unit>
-      <trans-unit id="Simplify_Names">
-        <source>Simplify Names</source>
-        <target state="translated">Упрощение имен</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Simplify_Member_Access">
-        <source>Simplify Member Access</source>
-        <target state="translated">Упрощение доступа для членов</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Remove_qualification">
         <source>Remove qualification</source>
         <target state="translated">Удалить квалификацию</target>
@@ -4273,6 +4273,11 @@ When this standard format specifier is used, the formatting or parsing operation
       <trans-unit id="static_constructor">
         <source>static constructor</source>
         <target state="translated">статический конструктор</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="struct_">
+        <source>struct</source>
+        <target state="new">struct</target>
         <note />
       </trans-unit>
       <trans-unit id="symbol_cannot_be_a_namespace">

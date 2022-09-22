@@ -4,6 +4,7 @@
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.PatternMatching;
 using Microsoft.CodeAnalysis.Tags;
 
@@ -11,8 +12,8 @@ namespace Microsoft.CodeAnalysis.Completion
 {
     internal abstract partial class CommonCompletionService : CompletionService
     {
-        protected CommonCompletionService(Workspace workspace)
-            : base(workspace)
+        protected CommonCompletionService(SolutionServices services)
+            : base(services)
         {
         }
 

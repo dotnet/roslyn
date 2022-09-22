@@ -5757,9 +5757,6 @@ partial class PartialPartial
         {
             var text = @"partial enum E{}";
             CreateCompilationWithMscorlib45(text).VerifyDiagnostics(
-                // (1,1): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or a method return type.
-                // partial enum E{}
-                Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(1, 1),
                 // (1,14): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or a method return type.
                 // partial enum E{}
                 Diagnostic(ErrorCode.ERR_PartialMisplaced, "E").WithLocation(1, 14));
@@ -5913,11 +5910,11 @@ class C
 }";
 
             CreateCompilation(text1).VerifyDiagnostics(
-                // (4,11): error CS0231: A params parameter must be the last parameter in a formal parameter list
+                // (4,11): error CS0231: A params parameter must be the last parameter in a parameter list
                 //    void M(params int[] i, int j)  {}
                 Diagnostic(ErrorCode.ERR_ParamsLast, "params int[] i").WithLocation(4, 11));
             CreateCompilation(text2).VerifyDiagnostics(
-                // (4,11): error CS0257: An __arglist parameter must be the last parameter in a formal parameter list
+                // (4,11): error CS0257: An __arglist parameter must be the last parameter in a parameter list
                 //    void M(__arglist, int j)  {}
                 Diagnostic(ErrorCode.ERR_VarargsLast, "__arglist").WithLocation(4, 11));
         }

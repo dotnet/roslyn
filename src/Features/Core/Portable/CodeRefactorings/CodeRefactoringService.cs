@@ -85,7 +85,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
             CodeActionOptionsProvider options,
             CancellationToken cancellationToken)
         {
-            var extensionManager = document.Project.Solution.Workspace.Services.GetRequiredService<IExtensionManager>();
+            var extensionManager = document.Project.Solution.Services.GetRequiredService<IExtensionManager>();
 
             foreach (var provider in GetProviders(document))
             {
@@ -115,7 +115,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
         {
             using (Logger.LogBlock(FunctionId.Refactoring_CodeRefactoringService_GetRefactoringsAsync, cancellationToken))
             {
-                var extensionManager = document.Project.Solution.Workspace.Services.GetRequiredService<IExtensionManager>();
+                var extensionManager = document.Project.Solution.Services.GetRequiredService<IExtensionManager>();
                 using var _ = ArrayBuilder<Task<CodeRefactoring?>>.GetInstance(out var tasks);
 
                 foreach (var provider in GetProviders(document))
@@ -211,7 +211,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
         private static ImmutableArray<CodeRefactoringProvider> GetProjectRefactorings(Project project)
         {
             // TODO (https://github.com/dotnet/roslyn/issues/4932): Don't restrict refactorings in Interactive
-            if (project.Solution.Workspace.Kind == WorkspaceKind.Interactive)
+            if (project.Solution.WorkspaceKind == WorkspaceKind.Interactive)
                 return ImmutableArray<CodeRefactoringProvider>.Empty;
 
             return ProjectCodeRefactoringProvider.GetExtensions(project);

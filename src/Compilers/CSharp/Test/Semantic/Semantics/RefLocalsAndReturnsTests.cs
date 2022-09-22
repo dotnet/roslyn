@@ -5,13 +5,14 @@
 #nullable disable
 
 using System.Collections.Generic;
-using Xunit;
-using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
-using Roslyn.Test.Utilities;
 using System.Linq;
-using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Test.Utilities;
+using Roslyn.Utilities;
+using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
 {
@@ -561,14 +562,16 @@ class C
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_2, "ref _f").WithArguments("ref reassignment", "7.3").WithLocation(12, 13));
         }
 
-        [Fact]
-        public void RefReassignSpanLifetime()
+        [Theory]
+        [InlineData(LanguageVersion.CSharp10)]
+        [InlineData(LanguageVersion.CSharp11)]
+        public void RefReassignSpanLifetime(LanguageVersion languageVersion)
         {
-            var comp = CreateCompilationWithMscorlibAndSpan(@"
-using System;
+            string source = @"using System;
+using System.Diagnostics.CodeAnalysis;
 class C
 {
-    void M(ref Span<int> s)
+    void M([UnscopedRef] ref Span<int> s)
     {
         Span<int> s2 = new Span<int>(new int[10]);
         s = ref s2; // Illegal, narrower escape scope
@@ -578,8 +581,10 @@ class C
         Span<int> s3 = stackalloc int[10];
         s = ref s3; // Illegal, narrower escape scope
     }
-}");
-            comp.VerifyDiagnostics(
+}";
+            var comp = CreateCompilationWithMscorlibAndSpan(new[] { source, UnscopedRefAttributeDefinition }, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
+            var expectedDiagnostics = new[]
+            {
                 // (8,9): error CS8374: Cannot ref-assign 's2' to 's' because 's2' has a narrower escape scope than 's'.
                 //         s = ref s2; // Illegal, narrower escape scope
                 Diagnostic(ErrorCode.ERR_RefAssignNarrower, "s = ref s2").WithArguments("s", "s2").WithLocation(8, 9),
@@ -588,7 +593,16 @@ class C
                 Diagnostic(ErrorCode.ERR_EscapeStackAlloc, "stackalloc int[10]").WithArguments("System.Span<int>").WithLocation(10, 14),
                 // (13,9): error CS8374: Cannot ref-assign 's3' to 's' because 's3' has a narrower escape scope than 's'.
                 //         s = ref s3; // Illegal, narrower escape scope
-                Diagnostic(ErrorCode.ERR_RefAssignNarrower, "s = ref s3").WithArguments("s", "s3").WithLocation(13, 9));
+                Diagnostic(ErrorCode.ERR_RefAssignNarrower, "s = ref s3").WithArguments("s", "s3").WithLocation(13, 9)
+            };
+            if (languageVersion == LanguageVersion.CSharp10)
+            {
+                expectedDiagnostics = expectedDiagnostics.Append(
+                    // (5,13): error CS9063: UnscopedRefAttribute can only be applied to 'out' parameters, 'ref' and 'in' parameters that refer to 'ref struct' types, and instance methods and properties on 'struct' types other than constructors and 'init' accessors.
+                    //     void M([UnscopedRef] ref Span<int> s)
+                    Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedTarget, "UnscopedRef").WithLocation(5, 13));
+            }
+            comp.VerifyDiagnostics(expectedDiagnostics);
         }
 
         [Fact]
@@ -4293,7 +4307,7 @@ public unsafe class C
         [WorkItem(27772, "https://github.com/dotnet/roslyn/issues/27772")]
         public void RefReturnInvocationOfRefLikeTypeRefResult()
         {
-            CreateCompilationWithMscorlibAndSpan(@"
+            string source = @"
 class C
 {
     public ref long M(S receiver)
@@ -4315,20 +4329,38 @@ class C
 ref struct S
 {
     public ref long M(ref long x) => ref x;
-}").VerifyDiagnostics(
+}";
+
+            var comp = CreateCompilationWithMscorlibAndSpan(source, parseOptions: TestOptions.Regular10);
+            comp.VerifyDiagnostics(
                 // (8,20): error CS8157: Cannot return 'y' by reference because it was initialized to a value that cannot be returned by reference
                 //         return ref y;
                 Diagnostic(ErrorCode.ERR_RefReturnNonreturnableLocal, "y").WithArguments("y").WithLocation(8, 20),
                 // (16,24): error CS8157: Cannot return 'y' by reference because it was initialized to a value that cannot be returned by reference
                 //             return ref y;
                 Diagnostic(ErrorCode.ERR_RefReturnNonreturnableLocal, "y").WithArguments("y").WithLocation(16, 24));
+
+            comp = CreateCompilationWithMscorlibAndSpan(source);
+            comp.VerifyDiagnostics(
+                // (7,26): error CS8350: This combination of arguments to 'S.M(ref long)' is disallowed because it may expose variables referenced by parameter 'x' outside of their declaration scope
+                //         ref long y = ref receiver.M(ref x);
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "receiver.M(ref x)").WithArguments("S.M(ref long)", "x").WithLocation(7, 26),
+                // (7,41): error CS8168: Cannot return local 'x' by reference because it is not a ref local
+                //         ref long y = ref receiver.M(ref x);
+                Diagnostic(ErrorCode.ERR_RefReturnLocal, "x").WithArguments("x").WithLocation(7, 41),
+                // (15,30): error CS8350: This combination of arguments to 'S.M(ref long)' is disallowed because it may expose variables referenced by parameter 'x' outside of their declaration scope
+                //             ref long y = ref receiver.M(ref x);
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "receiver.M(ref x)").WithArguments("S.M(ref long)", "x").WithLocation(15, 30),
+                // (15,45): error CS8168: Cannot return local 'x' by reference because it is not a ref local
+                //             ref long y = ref receiver.M(ref x);
+                Diagnostic(ErrorCode.ERR_RefReturnLocal, "x").WithArguments("x").WithLocation(15, 45));
         }
 
         [Fact]
         [WorkItem(27772, "https://github.com/dotnet/roslyn/issues/27772")]
         public void RefReturnInvocationOfRefLikeTypeRefResult_Repro()
         {
-            CreateCompilationWithMscorlibAndSpan(@"
+            string source = @"
 using System;
 class C
 {
@@ -4363,10 +4395,23 @@ class C
 ref struct S
 {
   public ref long M(ref long x) => ref x;
-}").VerifyDiagnostics(
+}";
+
+            var comp = CreateCompilationWithMscorlibAndSpan(source, parseOptions: TestOptions.Regular10);
+            comp.VerifyDiagnostics(
                 // (19,18): error CS8157: Cannot return 'z' by reference because it was initialized to a value that cannot be returned by reference
                 //       return ref z;
                 Diagnostic(ErrorCode.ERR_RefReturnNonreturnableLocal, "z").WithArguments("z").WithLocation(19, 18));
+
+            // Breaking change in C#11: Instance method on ref struct instance may capture unscoped ref or in arguments.
+            comp = CreateCompilationWithMscorlibAndSpan(source);
+            comp.VerifyDiagnostics(
+                // (18,23): error CS8350: This combination of arguments to 'S.M(ref long)' is disallowed because it may expose variables referenced by parameter 'x' outside of their declaration scope
+                //       ref var z = ref receiver.M(ref y);
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "receiver.M(ref y)").WithArguments("S.M(ref long)", "x").WithLocation(18, 23),
+                // (18,38): error CS8157: Cannot return 'y' by reference because it was initialized to a value that cannot be returned by reference
+                //       ref var z = ref receiver.M(ref y);
+                Diagnostic(ErrorCode.ERR_RefReturnNonreturnableLocal, "y").WithArguments("y").WithLocation(18, 38));
         }
 
         [Fact, WorkItem(49617, "https://github.com/dotnet/roslyn/issues/49617")]

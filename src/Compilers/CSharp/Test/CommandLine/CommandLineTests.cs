@@ -7918,12 +7918,12 @@ namespace System
             src.WriteAllText(source + mslib);
 
             var outWriter = new StringWriter(CultureInfo.InvariantCulture);
-            int exitCode = CreateCSharpCompiler(null, WorkingDirectory, new[] { "/nologo", "/noconfig", "/nostdlib", "/runtimemetadataversion:v4.0.30319", "/nowarn:8625", src.ToString() }).Run(outWriter);
+            int exitCode = CreateCSharpCompiler(null, WorkingDirectory, new[] { "/nologo", "/noconfig", "/nostdlib", "/runtimemetadataversion:v4.0.30319", "/nowarn:8625", "/features:noRefSafetyRulesAttribute", src.ToString() }).Run(outWriter);
             Assert.Equal(0, exitCode);
             Assert.Equal("", outWriter.ToString().Trim());
 
             outWriter = new StringWriter(CultureInfo.InvariantCulture);
-            exitCode = CreateCSharpCompiler(null, WorkingDirectory, new[] { "/nologo", "/nostdlib", "/runtimemetadataversion:v4.0.30319", "/nowarn:8625", src.ToString() }).Run(outWriter);
+            exitCode = CreateCSharpCompiler(null, WorkingDirectory, new[] { "/nologo", "/nostdlib", "/runtimemetadataversion:v4.0.30319", "/nowarn:8625", "/features:noRefSafetyRulesAttribute", src.ToString() }).Run(outWriter);
             Assert.Equal(0, exitCode);
             Assert.Equal("", outWriter.ToString().Trim());
             string OriginalSource = src.Path;
@@ -7931,7 +7931,7 @@ namespace System
             src = Temp.CreateFile("NoStdLib02b.cs");
             src.WriteAllText(mslib);
             outWriter = new StringWriter(CultureInfo.InvariantCulture);
-            exitCode = CreateCSharpCompiler(GetDefaultResponseFilePath(), WorkingDirectory, new[] { "/nologo", "/noconfig", "/nostdlib", "/t:library", "/runtimemetadataversion:v4.0.30319", "/nowarn:8625", src.ToString() }).Run(outWriter);
+            exitCode = CreateCSharpCompiler(GetDefaultResponseFilePath(), WorkingDirectory, new[] { "/nologo", "/noconfig", "/nostdlib", "/t:library", "/runtimemetadataversion:v4.0.30319", "/nowarn:8625", "/features:noRefSafetyRulesAttribute", src.ToString() }).Run(outWriter);
             Assert.Equal(0, exitCode);
             Assert.Equal("", outWriter.ToString().Trim());
 
@@ -9531,10 +9531,10 @@ using System.Diagnostics; // Unused.
             Assert.Equal(0, parsedArgs.Errors.Length);
             Assert.Equal("-_+@%#*^", parsedArgs.EmitOptions.RuntimeMetadataVersion);
 
-            var comp = CreateEmptyCompilation(string.Empty);
+            var comp = CreateEmptyCompilation(string.Empty, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute());
             Assert.Equal("v4.0.30319", ModuleMetadata.CreateFromImage(comp.EmitToArray(new EmitOptions(runtimeMetadataVersion: "v4.0.30319"))).Module.MetadataVersion);
 
-            comp = CreateEmptyCompilation(string.Empty);
+            comp = CreateEmptyCompilation(string.Empty, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute());
             Assert.Equal("_+@%#*^", ModuleMetadata.CreateFromImage(comp.EmitToArray(new EmitOptions(runtimeMetadataVersion: "_+@%#*^"))).Module.MetadataVersion);
         }
 
@@ -13315,6 +13315,49 @@ class C
 
             // Clean up temp files
             CleanupAllGeneratedFiles(src.Path);
+            Directory.Delete(dir.Path, true);
+        }
+
+        [Fact]
+        public void SourceGenerators_ChecksumAlgorithm()
+        {
+            var dir = Temp.CreateDirectory();
+            var src = dir.CreateFile("temp.cs");
+            src.WriteAllText("class C { }");
+
+            var genPath1 = Path.Combine(dir.Path, "Microsoft.CodeAnalysis.Test.Utilities", "Roslyn.Test.Utilities.TestGenerators.TestSourceGenerator", "hint1.cs");
+            var genPath2 = Path.Combine(dir.Path, "Microsoft.CodeAnalysis.Test.Utilities", "Roslyn.Test.Utilities.TestGenerators.TestSourceGenerator", "hint2.cs");
+
+            var generator = new TestSourceGenerator()
+            {
+                ExecuteImpl = context =>
+                {
+                    context.AddSource("hint1", "class G1 { void F() {} }");
+                    context.AddSource("hint2", SourceText.From("class G2 { void F() {} }", Encoding.UTF8, checksumAlgorithm: SourceHashAlgorithm.Sha1));
+                }
+            };
+
+            VerifyOutput(
+                dir,
+                src,
+                includeCurrentAssemblyAsAnalyzerReference: false,
+                additionalFlags: new[] { "/langversion:preview", "/out:checksum.exe", "/pdb:checksum.pdb", "/debug:portable", "/checksumAlgorithm:SHA256" },
+                generators: new[] { generator },
+                analyzers: null);
+
+            using (Stream peStream = File.OpenRead(Path.Combine(dir.Path, "checksum.exe")), pdbStream = File.OpenRead(Path.Combine(dir.Path, "checksum.pdb")))
+            {
+                // TOOD: /checksumAlgorithm setting should override any checksum algorithms set by the generators:
+                PdbValidation.VerifyPdb(peStream, pdbStream, $@"
+<symbols>
+  <files>
+    <file id=""1"" name=""{src.Path}"" language=""C#"" checksumAlgorithm=""SHA256"" checksum=""A0-78-BB-A8-E8-B1-E1-3B-E8-63-80-7D-CE-CC-4B-0D-14-EF-06-D3-9B-14-52-E1-95-C6-64-D1-36-EC-7C-25"" />
+    <file id=""2"" name=""{genPath1}"" language=""C#"" checksumAlgorithm=""SHA1"" checksum=""D8-87-89-A3-FE-EA-FD-AB-49-31-5A-25-B0-05-6B-6F-00-00-C2-DD""><![CDATA[﻿class G1 {{ void F() {{}} }}]]></file>
+    <file id=""3"" name=""{genPath2}"" language=""C#"" checksumAlgorithm=""SHA1"" checksum=""F1-D0-FD-F0-08-9F-1B-32-9F-EF-41-A1-58-A3-14-FF-E8-06-A8-38""><![CDATA[﻿class G2 {{ void F() {{}} }}]]></file>
+  </files>
+</symbols>", PdbValidationOptions.ExcludeMethods);
+            }
+
             Directory.Delete(dir.Path, true);
         }
 

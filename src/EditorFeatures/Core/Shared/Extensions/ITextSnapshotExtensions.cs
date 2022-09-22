@@ -39,17 +39,17 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
             }
 
             var documentSyntax = ParsedDocument.CreateSynchronously(document, cancellationToken);
-            var rules = FormattingRuleUtilities.GetFormattingRules(documentSyntax, document.Project.LanguageServices, span, additionalRules: null);
+            var rules = FormattingRuleUtilities.GetFormattingRules(documentSyntax, span, additionalRules: null);
 
             var formatter = document.GetRequiredLanguageService<ISyntaxFormattingService>();
 
-            var options = textBuffer.GetSyntaxFormattingOptions(editorOptionsService, document.Project.LanguageServices, explicitFormat: false);
+            var options = textBuffer.GetSyntaxFormattingOptions(editorOptionsService, document.Project.Services, explicitFormat: false);
             var result = formatter.GetFormattingResult(documentSyntax.Root, SpecializedCollections.SingletonEnumerable(span), options, rules, cancellationToken);
             var changes = result.GetTextChanges(cancellationToken);
 
             using (Logger.LogBlock(FunctionId.Formatting_ApplyResultToBuffer, cancellationToken))
             {
-                document.Project.Solution.Workspace.ApplyTextChanges(document.Id, changes, cancellationToken);
+                textBuffer.ApplyChanges(changes);
             }
         }
 
@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
             // partial mode is always cancellable
             using (operationContext.AddScope(allowCancellation: true, EditorFeaturesResources.Waiting_for_background_work_to_finish))
             {
-                var service = document.Project.Solution.Workspace.Services.GetService<IWorkspaceStatusService>();
+                var service = document.Project.Solution.Services.GetService<IWorkspaceStatusService>();
                 if (service != null)
                 {
                     // TODO: decide for prototype, we don't do anything complex and just ask workspace whether it is fully loaded

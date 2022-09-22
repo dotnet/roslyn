@@ -107,33 +107,20 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             {
                 foreach (var kv in s_statisticLogAggregator)
                 {
-                    var info = kv.Key.ToString("f");
                     var statistics = kv.Value.GetStatisticResult();
-
-                    m[CreateProperty(info, nameof(StatisticResult.Maximum))] = statistics.Maximum;
-                    m[CreateProperty(info, nameof(StatisticResult.Minimum))] = statistics.Minimum;
-                    m[CreateProperty(info, nameof(StatisticResult.Mean))] = statistics.Mean;
-                    m[CreateProperty(info, nameof(StatisticResult.Range))] = statistics.Range;
-                    m[CreateProperty(info, nameof(StatisticResult.Count))] = statistics.Count;
+                    statistics.WriteTelemetryPropertiesTo(m, prefix: kv.Key.ToString());
                 }
 
                 foreach (var kv in s_countLogAggregator)
                 {
-                    var mergeInfo = kv.Key.ToString("f");
-                    m[mergeInfo] = kv.Value.GetCount();
+                    m[kv.Key.ToString()] = kv.Value.GetCount();
                 }
 
                 foreach (var kv in s_histogramLogAggregator)
                 {
-                    var info = kv.Key.ToString("f");
-                    m[$"{info}.BucketSize"] = kv.Value.BucketSize;
-                    m[$"{info}.MaxBucketValue"] = kv.Value.MaxBucketValue;
-                    m[$"{info}.Buckets"] = kv.Value.GetBucketsAsString();
+                    kv.Value.WriteTelemetryPropertiesTo(m, prefix: kv.Key.ToString());
                 }
             }));
         }
-
-        private static string CreateProperty(string parent, string child)
-            => parent + "." + child;
     }
 }

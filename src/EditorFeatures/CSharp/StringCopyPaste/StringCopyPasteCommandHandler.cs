@@ -224,7 +224,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
                 if (selectionsBeforePaste.Count != 1)
                     return default;
 
-                var copyPasteService = documentBeforePaste.Project.Solution.Workspace.Services.GetRequiredService<IStringCopyPasteService>();
+                var copyPasteService = documentBeforePaste.Project.Solution.Services.GetRequiredService<IStringCopyPasteService>();
                 var clipboardData = copyPasteService.TryGetClipboardData(KeyAndVersion);
                 var copyPasteData = StringCopyPasteData.FromJson(clipboardData);
 

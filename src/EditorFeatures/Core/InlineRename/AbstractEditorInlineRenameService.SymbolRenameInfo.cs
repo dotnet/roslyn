@@ -11,7 +11,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeCleanup;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Rename;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         /// <summary>
         /// Represents information about the ability to rename a particular location.
         /// </summary>
-        private partial class SymbolInlineRenameInfo : IInlineRenameInfoWithFileRename
+        private partial class SymbolInlineRenameInfo : IInlineRenameInfo
         {
             private const string AttributeSuffix = "Attribute";
 
@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 _fallbackOptions = fallbackOptions;
                 this.RenameSymbol = renameSymbol;
 
-                this.HasOverloads = RenameLocations.GetOverloadedSymbols(this.RenameSymbol).Any();
+                this.HasOverloads = RenameUtilities.GetOverloadedSymbols(this.RenameSymbol).Any();
                 this.MustRenameOverloads = forceRenameOverloads;
 
                 _isRenamingAttributePrefix = CanRenameAttributePrefix(triggerText);
@@ -211,7 +211,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             public InlineRenameFileRenameInfo GetFileRenameInfo()
             {
                 if (RenameSymbol.Kind == SymbolKind.NamedType &&
-                    _document.Project.Solution.Workspace.CanApplyChange(ApplyChangesKind.ChangeDocumentInfo))
+                    _document.Project.Solution.CanApplyChange(ApplyChangesKind.ChangeDocumentInfo))
                 {
                     if (RenameSymbol.Locations.Length > 1)
                     {

@@ -7,8 +7,9 @@ Imports Microsoft.CodeAnalysis.Test.Utilities.EmbeddedLanguages
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
     <[UseExportProvider]>
+    <Trait(Traits.Feature, Traits.Features.Completion)>
     Public Class VisualBasicCompletionCommandHandlerTests_DateAndTime
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact>
         Public Async Function ExplicitInvoke() As Task
             Using state = TestStateFactory.CreateVisualBasicTestState(
                 <Document><![CDATA[
@@ -27,7 +28,7 @@ end class
             End Using
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact>
         Public Async Function ExplicitInvoke_LanguageComment() As Task
             Using state = TestStateFactory.CreateVisualBasicTestState(
                 <Document><![CDATA[
@@ -47,7 +48,7 @@ end class
             End Using
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact>
         Public Async Function ExplicitInvoke_StringSyntaxAttribute_Argument() As Task
             Using state = TestStateFactory.CreateVisualBasicTestState(
                 <Document><![CDATA[
@@ -73,7 +74,7 @@ end class
             End Using
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact>
         Public Async Function ExplicitInvoke_OverwriteExisting() As Task
             Using state = TestStateFactory.CreateVisualBasicTestState(
                 <Document><![CDATA[
@@ -94,7 +95,7 @@ end class
             End Using
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact>
         Public Async Function TypeChar_BeginningOfWord() As Task
             Using state = TestStateFactory.CreateVisualBasicTestState(
                 <Document><![CDATA[
@@ -111,7 +112,7 @@ end class
             End Using
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact>
         Public Async Function TypeChar_MiddleOfWord() As Task
             Using state = TestStateFactory.CreateVisualBasicTestState(
                 <Document><![CDATA[
@@ -127,7 +128,7 @@ end class
             End Using
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact>
         Public Async Function TestExample1() As Task
             Using state = TestStateFactory.CreateVisualBasicTestState(
 <Document><![CDATA[
@@ -154,7 +155,7 @@ end class
             End Using
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact>
         Public Async Function ExplicitInvoke_StringInterpolation() As Task
             Using state = TestStateFactory.CreateVisualBasicTestState(
                 <Document><![CDATA[
@@ -173,7 +174,7 @@ end class
             End Using
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact>
         Public Async Function ExplicitInvoke_OverwriteExisting_StringInterpolation() As Task
             Using state = TestStateFactory.CreateVisualBasicTestState(
                 <Document><![CDATA[
@@ -194,7 +195,7 @@ end class
             End Using
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact>
         Public Async Function TypeChar_BeginningOfWord_StringInterpolation() As Task
             Using state = TestStateFactory.CreateVisualBasicTestState(
                 <Document><![CDATA[
@@ -211,7 +212,7 @@ end class
             End Using
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact>
         Public Async Function TestExample1_StringInterpolation() As Task
             Using state = TestStateFactory.CreateVisualBasicTestState(
 <Document><![CDATA[
@@ -238,7 +239,7 @@ end class
             End Using
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact>
         Public Async Function TypeChar_MiddleOfWord_StringInterpolation() As Task
             Using state = TestStateFactory.CreateVisualBasicTestState(
                 <Document><![CDATA[

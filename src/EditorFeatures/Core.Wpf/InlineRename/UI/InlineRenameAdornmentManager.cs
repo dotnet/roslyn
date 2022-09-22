@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.ComponentModel.Composition;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using Microsoft.CodeAnalysis;
@@ -18,6 +19,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
     {
         private readonly IWpfTextView _textView;
         private readonly IGlobalOptionService _globalOptionService;
+        private readonly IWpfThemeService? _themeService;
         private readonly InlineRenameService _renameService;
         private readonly IEditorFormatMapService _editorFormatMapService;
         private readonly IInlineRenameColorUpdater? _dashboardColorUpdater;
@@ -32,13 +34,15 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             IEditorFormatMapService editorFormatMapService,
             IInlineRenameColorUpdater? dashboardColorUpdater,
             IWpfTextView textView,
-            IGlobalOptionService globalOptionService)
+            IGlobalOptionService globalOptionService,
+            IWpfThemeService? themeService)
         {
             _renameService = renameService;
             _editorFormatMapService = editorFormatMapService;
             _dashboardColorUpdater = dashboardColorUpdater;
             _textView = textView;
             _globalOptionService = globalOptionService;
+            _themeService = themeService;
             _adornmentLayer = textView.GetAdornmentLayer(InlineRenameAdornmentProvider.AdornmentLayerName);
 
             _renameService.ActiveSessionChanged += OnActiveSessionChanged;
@@ -68,51 +72,70 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             {
                 _dashboardColorUpdater?.UpdateColors();
 
-                var useInlineAdornment = _globalOptionService.GetOption(InlineRenameExperimentationOptions.UseInlineAdornment);
-                if (useInlineAdornment)
+                var adornment = GetAdornment();
+
+                if (adornment is null)
                 {
-                    if (!_textView.HasAggregateFocus)
-                    {
-                        // For the rename flyout, the adornment is dismissed on focus lost. There's
-                        // no need to keep an adornment on every textview for show/hide behaviors
-                        return;
-                    }
-
-                    // Get the active selection to make sure the rename text is selected in the same way
-                    var originalSpan = _renameService.ActiveSession.TriggerSpan;
-                    var selectionSpan = _textView.Selection.SelectedSpans.First();
-
-                    var start = selectionSpan.IsEmpty
-                        ? 0
-                        : selectionSpan.Start - originalSpan.Start; // The length from the identifier to the start of selection
-
-                    var length = selectionSpan.IsEmpty
-                        ? originalSpan.Length
-                        : selectionSpan.Length;
-
-                    var identifierSelection = new TextSpan(start, length);
-
-                    var adornment = new RenameFlyout(
-                        (RenameFlyoutViewModel)s_createdViewModels.GetValue(_renameService.ActiveSession, session => new RenameFlyoutViewModel(session, identifierSelection)),
-                        _textView);
-
-                    _adornmentLayer.AddAdornment(
-                        AdornmentPositioningBehavior.ViewportRelative,
-                        null, // Set no visual span because we don't want the editor to automatically remove the adornment if the overlapping span changes
-                        tag: null,
-                        adornment,
-                        (tag, adornment) => ((InlineRenameAdornment)adornment).Dispose());
+                    return;
                 }
-                else
+
+                _themeService?.ApplyThemeToElement(adornment);
+
+                _adornmentLayer.AddAdornment(
+                    AdornmentPositioningBehavior.ViewportRelative,
+                    null, // Set no visual span because we don't want the editor to automatically remove the adornment if the overlapping span changes
+                    tag: null,
+                    adornment,
+                    (tag, adornment) => ((InlineRenameAdornment)adornment).Dispose());
+            }
+        }
+
+        private InlineRenameAdornment? GetAdornment()
+        {
+            if (_renameService.ActiveSession is null)
+            {
+                return null;
+            }
+
+            var useInlineAdornment = _globalOptionService.GetOption(InlineRenameUIOptions.UseInlineAdornment);
+            if (useInlineAdornment)
+            {
+                if (!_textView.HasAggregateFocus)
                 {
-                    var newAdornment = new RenameDashboard(
-                        (RenameDashboardViewModel)s_createdViewModels.GetValue(_renameService.ActiveSession, session => new RenameDashboardViewModel(session)),
-                        _editorFormatMapService,
-                        _textView);
-
-                    _adornmentLayer.AddAdornment(AdornmentPositioningBehavior.ViewportRelative, null, null, newAdornment,
-                        (tag, adornment) => ((RenameDashboard)adornment).Dispose());
+                    // For the rename flyout, the adornment is dismissed on focus lost. There's
+                    // no need to keep an adornment on every textview for show/hide behaviors
+                    return null;
                 }
+
+                // Get the active selection to make sure the rename text is selected in the same way
+                var originalSpan = _renameService.ActiveSession.TriggerSpan;
+                var selectionSpan = _textView.Selection.SelectedSpans.First();
+
+                var start = selectionSpan.IsEmpty
+                    ? 0
+                    : selectionSpan.Start - originalSpan.Start; // The length from the identifier to the start of selection
+
+                var length = selectionSpan.IsEmpty
+                    ? originalSpan.Length
+                    : selectionSpan.Length;
+
+                var identifierSelection = new TextSpan(start, length);
+
+                var adornment = new RenameFlyout(
+                    (RenameFlyoutViewModel)s_createdViewModels.GetValue(_renameService.ActiveSession, session => new RenameFlyoutViewModel(session, identifierSelection, registerOleComponent: true, _globalOptionService)),
+                    _textView,
+                    _themeService);
+
+                return adornment;
+            }
+            else
+            {
+                var newAdornment = new RenameDashboard(
+                    (RenameDashboardViewModel)s_createdViewModels.GetValue(_renameService.ActiveSession, session => new RenameDashboardViewModel(session)),
+                    _editorFormatMapService,
+                    _textView);
+
+                return newAdornment;
             }
         }
 

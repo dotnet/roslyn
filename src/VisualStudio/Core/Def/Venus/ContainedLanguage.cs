@@ -6,6 +6,7 @@ using System;
 using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Formatting.Rules;
@@ -118,7 +119,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
                 Workspace.OnDocumentOpened(documentId, SubjectBuffer.AsTextContainer());
             }
 
-            this.ContainedDocument = new ContainedDocument(
+            ContainedDocument = new ContainedDocument(
                 ComponentModel.GetService<IThreadingContext>(),
                 documentId,
                 subjectBuffer: SubjectBuffer,
@@ -128,6 +129,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
                 Project,
                 ComponentModel,
                 vbHelperFormattingRule);
+
+            // link subject buffer back to the ContainedDocument, so that we can find it given just the buffer:
+            SubjectBuffer.Properties.AddProperty(typeof(IContainedDocument), ContainedDocument);
 
             // TODO: Can contained documents be linked or shared?
             this.DataBuffer.Changed += OnDataBufferChanged;

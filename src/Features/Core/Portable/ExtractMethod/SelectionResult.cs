@@ -5,7 +5,7 @@
 #nullable disable
 
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -129,7 +129,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                 //
                 // for the case above, even if the selection contains "await", it doesn't belong to the enclosing block
                 // which extract method is applied to
-                if (SemanticDocument.Project.LanguageServices.GetService<ISyntaxFactsService>().IsAwaitKeyword(currentToken)
+                if (SemanticDocument.Project.Services.GetService<ISyntaxFactsService>().IsAwaitKeyword(currentToken)
                     && !UnderAnonymousOrLocalMethod(currentToken, firstToken, lastToken))
                 {
                     return true;
@@ -164,7 +164,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
 
         private bool IsConfigureAwaitFalse(SyntaxNode node)
         {
-            var syntaxFacts = SemanticDocument.Project.LanguageServices.GetService<ISyntaxFactsService>();
+            var syntaxFacts = SemanticDocument.Project.Services.GetService<ISyntaxFactsService>();
             if (!syntaxFacts.IsInvocationExpression(node))
             {
                 return false;

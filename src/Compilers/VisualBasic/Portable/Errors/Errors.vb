@@ -1997,6 +1997,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         WRN_CallerArgumentExpressionAttributeSelfReferential = 42504
         WRN_CallerArgumentExpressionAttributeHasInvalidParameterName = 42505
 
+        WRN_AnalyzerReferencesNewerCompiler = 42506
+        WRN_DuplicateAnalyzerReference = 42507
+
         ' // AVAILABLE                             42600 - 49998
         WRN_NextAvailable = 42600
 

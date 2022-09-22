@@ -1523,7 +1523,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_TypeReserved = 8336,
         ERR_RefExtensionMustBeValueTypeOrConstrainedToOne = 8337,
         ERR_InExtensionMustBeValueType = 8338,
-        // ERR_BadParameterModifiersOrder = 8339, // Modifier ordering is relaxed
+        // ERR_BadParameterModifiersOrder = 8339,
 
         ERR_FieldsInRoStruct = 8340,
         ERR_AutoPropsInRoStruct = 8341,
@@ -2105,13 +2105,35 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_FileTypeNested = 9054,
         ERR_GlobalUsingStaticFileType = 9055,
         ERR_FileTypeNameDisallowed = 9056,
+        WRN_AnalyzerReferencesNewerCompiler = 9057,
         ERR_FeatureNotAvailableInVersion11 = 9058,
         ERR_RefFieldInNonRefStruct = 9059,
+        ERR_CannotMatchOnINumberBase = 9060,
+        // Available 9061,
+        ERR_ScopedTypeNameDisallowed = 9062,
+        ERR_UnscopedRefAttributeUnsupportedTarget = 9063,
+        ERR_RuntimeDoesNotSupportRefFields = 9064,
+        ERR_ExplicitScopedRef = 9065,
+        ERR_UnscopedScoped = 9066,
+        WRN_DuplicateAnalyzerReference = 9067,
+        ERR_FileTypeNonUniquePath = 9068,
+        ERR_FilePathCannotBeConvertedToUtf8 = 9069,
+        ERR_ReadOnlyNotSuppAsParamModDidYouMeanIn = 9070,
+        ERR_FileLocalDuplicateNameInNS = 9071,
+        // Available 9072,
+        WRN_ScopedMismatchInParameterOfTarget = 9073,
+        WRN_ScopedMismatchInParameterOfOverrideOrImplementation = 9074,
+        ERR_RefReturnScopedParameter = 9075,
+        ERR_RefReturnScopedParameter2 = 9076,
+        ERR_RefReturnOnlyParameter = 9077,
+        ERR_RefReturnOnlyParameter2 = 9078,
+        ERR_RefAssignReturnOnly = 9079,
 
         #endregion
 
-        // Note: you will need to do the following after adding warnings:
+        // Note: you will need to do the following after adding any code:
+        //  1) Update ErrorFacts.IsBuildOnlyDiagnostic to handle the new error code.
+        // Additionally, after adding a new warning you will need to do the following:
         //  1) Re-generate compiler code (eng\generate-compiler-code.cmd).
-        //  2) Update ErrorFacts.IsBuildOnlyDiagnostic to handle the new error code.
     }
 }

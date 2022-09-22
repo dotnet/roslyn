@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Completion.Providers;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
 
@@ -25,26 +26,21 @@ namespace Microsoft.CodeAnalysis.Completion
             private readonly Dictionary<string, CompletionProvider?> _nameToProvider = new();
             private readonly Dictionary<ImmutableHashSet<string>, ImmutableArray<CompletionProvider>> _rolesToProviders;
 
-            private readonly Func<ImmutableHashSet<string>, ImmutableArray<CompletionProvider>> _createRoleProviders;
-            private readonly Func<string, CompletionProvider?> _getProviderByName;
-
-            private IEnumerable<Lazy<CompletionProvider, CompletionProviderMetadata>>? _lazyImportedProviders;
+            private IReadOnlyList<Lazy<CompletionProvider, CompletionProviderMetadata>>? _lazyImportedProviders;
             private readonly CompletionService _service;
 
             public ProviderManager(CompletionService service)
             {
                 _service = service;
                 _rolesToProviders = new Dictionary<ImmutableHashSet<string>, ImmutableArray<CompletionProvider>>(this);
-                _createRoleProviders = CreateRoleProviders;
-                _getProviderByName = GetProviderByName;
             }
 
-            public IEnumerable<Lazy<CompletionProvider, CompletionProviderMetadata>> GetImportedProviders()
+            public IReadOnlyList<Lazy<CompletionProvider, CompletionProviderMetadata>> GetLazyImportedProviders()
             {
                 if (_lazyImportedProviders == null)
                 {
                     var language = _service.Language;
-                    var mefExporter = (IMefHostExportProvider)_service._workspace.Services.HostServices;
+                    var mefExporter = _service._services.ExportProvider;
 
                     var providers = ExtensionOrderer.Order(
                             mefExporter.GetExports<CompletionProvider, CompletionProviderMetadata>()
@@ -57,63 +53,73 @@ namespace Microsoft.CodeAnalysis.Completion
                 return _lazyImportedProviders;
             }
 
-            public ImmutableArray<CompletionProvider> GetAllProviders(ImmutableHashSet<string> roles)
-            {
-                var imported = GetImportedProviders()
-                    .Where(lz => lz.Metadata.Roles == null || lz.Metadata.Roles.Length == 0 || roles.Overlaps(lz.Metadata.Roles))
-                    .Select(lz => lz.Value);
-
-#pragma warning disable 0618
-                // We need to keep supporting built-in providers for a while longer since this is a public API.
-                // https://github.com/dotnet/roslyn/issues/42367
-                var builtin = _service.GetBuiltInProviders();
-#pragma warning restore 0618
-
-                return imported.Concat(builtin).ToImmutableArray();
-            }
-
-            public ImmutableArray<CompletionProvider> GetProviders(ImmutableHashSet<string>? roles)
-            {
-                roles ??= ImmutableHashSet<string>.Empty;
-
-                lock (_gate)
-                {
-                    return _rolesToProviders.GetOrAdd(roles, _createRoleProviders);
-                }
-            }
-
-            public CompletionProvider? GetProvider(CompletionItem item)
-            {
-                CompletionProvider? provider = null;
-
-                if (item.ProviderName != null)
-                {
-                    lock (_gate)
-                    {
-                        provider = _nameToProvider.GetOrAdd(item.ProviderName, _getProviderByName);
-                    }
-                }
-
-                return provider;
-            }
-
-            public ConcatImmutableArray<CompletionProvider> GetFilteredProviders(
-                Project? project, ImmutableHashSet<string>? roles, CompletionTrigger trigger, in CompletionOptions options)
-            {
-                var allCompletionProviders = FilterProviders(GetProviders(roles), trigger, options);
-                var projectCompletionProviders = FilterProviders(GetProjectCompletionProviders(project), trigger, options);
-                return allCompletionProviders.ConcatFast(projectCompletionProviders);
-            }
-
             public static ImmutableArray<CompletionProvider> GetProjectCompletionProviders(Project? project)
             {
-                if (project?.Solution.Workspace.Kind == WorkspaceKind.Interactive)
+                if (project is null || project.Solution.WorkspaceKind == WorkspaceKind.Interactive)
                 {
                     // TODO (https://github.com/dotnet/roslyn/issues/4932): Don't restrict completions in Interactive
                     return ImmutableArray<CompletionProvider>.Empty;
                 }
 
                 return ProjectCompletionProvider.GetExtensions(project);
+            }
+
+            private ImmutableArray<CompletionProvider> GetImportedAndBuiltInProviders(ImmutableHashSet<string>? roles)
+            {
+                roles ??= ImmutableHashSet<string>.Empty;
+
+                lock (_gate)
+                {
+                    if (!_rolesToProviders.TryGetValue(roles, out var providers))
+                    {
+                        providers = GetImportedAndBuiltInProvidersWorker(roles);
+                        _rolesToProviders.Add(roles, providers);
+
+                        foreach (var provider in providers)
+                            _nameToProvider[provider.Name] = provider;
+                    }
+
+                    return providers;
+                }
+
+                ImmutableArray<CompletionProvider> GetImportedAndBuiltInProvidersWorker(ImmutableHashSet<string> roles)
+                {
+                    using var _ = ArrayBuilder<CompletionProvider>.GetInstance(out var providers);
+                    providers.AddRange(GetLazyImportedProviders()
+                        .Where(lz => lz.Metadata.Roles == null || lz.Metadata.Roles.Length == 0 || roles.Overlaps(lz.Metadata.Roles))
+                        .Select(lz => lz.Value));
+
+#pragma warning disable 0618
+                    // We need to keep supporting built-in providers for a while longer since this is a public API.
+                    // https://github.com/dotnet/roslyn/issues/42367
+                    providers.AddRange(_service.GetBuiltInProviders());
+#pragma warning restore 0618
+
+                    return providers.ToImmutable();
+                }
+            }
+
+            public CompletionProvider? GetProvider(CompletionItem item, Project? project)
+            {
+                if (item.ProviderName == null)
+                    return null;
+
+                lock (_gate)
+                {
+                    if (_nameToProvider.TryGetValue(item.ProviderName, out var provider))
+                        return provider;
+                }
+
+                using var _ = PooledDelegates.GetPooledFunction(static (p, n) => p.Name == n, item.ProviderName, out Func<CompletionProvider, bool> isNameMatchingProviderPredicate);
+                return GetProjectCompletionProviders(project).FirstOrDefault(isNameMatchingProviderPredicate);
+            }
+
+            public ConcatImmutableArray<CompletionProvider> GetFilteredProviders(
+                Project? project, ImmutableHashSet<string>? roles, CompletionTrigger trigger, in CompletionOptions options)
+            {
+                var allCompletionProviders = FilterProviders(GetImportedAndBuiltInProviders(roles), trigger, options);
+                var projectCompletionProviders = FilterProviders(GetProjectCompletionProviders(project), trigger, options);
+                return allCompletionProviders.ConcatFast(projectCompletionProviders);
             }
 
             private ImmutableArray<CompletionProvider> FilterProviders(
@@ -157,24 +163,6 @@ namespace Microsoft.CodeAnalysis.Completion
                 }
 
                 return ImmutableArray<CompletionProvider>.Empty;
-            }
-
-            private CompletionProvider? GetProviderByName(string providerName)
-            {
-                var providers = GetAllProviders(roles: ImmutableHashSet<string>.Empty);
-                return providers.FirstOrDefault(p => p.Name == providerName);
-            }
-
-            private ImmutableArray<CompletionProvider> CreateRoleProviders(ImmutableHashSet<string> roles)
-            {
-                var providers = GetAllProviders(roles);
-
-                foreach (var provider in providers)
-                {
-                    _nameToProvider[provider.Name] = provider;
-                }
-
-                return providers;
             }
 
             bool IEqualityComparer<ImmutableHashSet<string>>.Equals([AllowNull] ImmutableHashSet<string> x, [AllowNull] ImmutableHashSet<string> y)
@@ -228,6 +216,27 @@ namespace Microsoft.CodeAnalysis.Completion
 
                     extensions = default;
                     return false;
+                }
+            }
+
+            internal TestAccessor GetTestAccessor()
+                => new(this);
+
+            internal readonly struct TestAccessor
+            {
+                private readonly ProviderManager _providerManager;
+
+                public TestAccessor(ProviderManager providerManager)
+                {
+                    _providerManager = providerManager;
+                }
+
+                public ImmutableArray<CompletionProvider> GetProviders(ImmutableHashSet<string> roles, Project? project)
+                {
+                    using var _ = ArrayBuilder<CompletionProvider>.GetInstance(out var providers);
+                    providers.AddRange(_providerManager.GetImportedAndBuiltInProviders(roles));
+                    providers.AddRange(GetProjectCompletionProviders(project));
+                    return providers.ToImmutable();
                 }
             }
         }

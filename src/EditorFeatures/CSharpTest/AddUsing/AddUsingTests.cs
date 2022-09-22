@@ -435,8 +435,7 @@ class Class
 }", testHost);
         }
 
-        [Fact]
-        [WorkItem(541730, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541730")]
+        [Fact, WorkItem(541730, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541730")]
         public async Task TestAddUsingForNormalExtensionMethod()
         {
             await TestAsync(
@@ -1829,8 +1828,7 @@ class Class
 testHost, options: Option(GenerationOptions.PlaceSystemNamespaceFirst, false));
         }
 
-        [Fact]
-        [WorkItem(538136, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538136")]
+        [Fact, WorkItem(538136, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538136")]
         [WorkItem(538763, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538763")]
         public async Task TestAddUsingForNamespace()
         {
@@ -1878,8 +1876,7 @@ class C { DateTime t; }", testHost);
 class Program { static void Main ( string [ ] args ) { Console . Out . NewLine = ""\r\n\r\n"" ; } } ", testHost);
         }
 
-        [Fact]
-        [WorkItem(539853, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539853")]
+        [Fact, WorkItem(539853, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539853")]
         public async Task BugFix5950()
         {
             await TestAsync(
@@ -2187,8 +2184,7 @@ class Program
 #line default", testHost);
         }
 
-        [Fact]
-        [WorkItem(545248, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545248")]
+        [Fact, WorkItem(545248, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545248")]
         public async Task TestVenusGeneration1()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -2205,8 +2201,7 @@ class Program
     }");
         }
 
-        [Fact]
-        [WorkItem(545774, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545774")]
+        [Fact, WorkItem(545774, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545774")]
         public async Task TestAttribute_ActionCount()
         {
             var input = @"[ assembly : [|Guid|] ( ""9ed54f84-a89d-4fcd-a854-44251e925f09"" ) ] ";
@@ -2227,8 +2222,7 @@ input,
 [ assembly : Guid ( ""9ed54f84-a89d-4fcd-a854-44251e925f09"" ) ] ", testHost);
         }
 
-        [Fact]
-        [WorkItem(546833, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546833")]
+        [Fact, WorkItem(546833, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546833")]
         public async Task TestNotOnOverloadResolutionError()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -2399,8 +2393,7 @@ class X
 }", testHost);
         }
 
-        [Fact]
-        [WorkItem(913300, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/913300")]
+        [Fact, WorkItem(913300, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/913300")]
         public async Task TestNoDuplicateReport_ActionCount()
         {
             await TestActionCountInAllFixesAsync(
@@ -2447,8 +2440,7 @@ class C
 }", testHost);
         }
 
-        [Fact]
-        [WorkItem(938296, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/938296")]
+        [Fact, WorkItem(938296, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/938296")]
         public async Task TestNullParentInNode()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -2463,8 +2455,7 @@ class MultiDictionary<K, V> : Dictionary<K, HashSet<V>>
 }");
         }
 
-        [Fact]
-        [WorkItem(968303, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/968303")]
+        [Fact, WorkItem(968303, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/968303")]
         public async Task TestMalformedUsingSection()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -2776,8 +2767,7 @@ class Program
 }", testHost);
         }
 
-        [Fact]
-        [WorkItem(916368, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/916368")]
+        [Fact, WorkItem(916368, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/916368")]
         public async Task TestAddUsingForCref()
         {
             var initialText =
@@ -2798,8 +2788,7 @@ interface MyNotifyPropertyChanged { }";
             await TestAsync(initialText, expectedText, parseOptions: options);
         }
 
-        [Fact]
-        [WorkItem(916368, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/916368")]
+        [Fact, WorkItem(916368, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/916368")]
         public async Task TestAddUsingForCref2()
         {
             var initialText =
@@ -2820,8 +2809,7 @@ interface MyNotifyPropertyChanged { }";
             await TestAsync(initialText, expectedText, parseOptions: options);
         }
 
-        [Fact]
-        [WorkItem(916368, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/916368")]
+        [Fact, WorkItem(916368, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/916368")]
         public async Task TestAddUsingForCref3()
         {
             var initialText =
@@ -2869,8 +2857,7 @@ public class MyClass2
             await TestAsync(initialText, expectedText, parseOptions: options);
         }
 
-        [Fact]
-        [WorkItem(916368, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/916368")]
+        [Fact, WorkItem(916368, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/916368")]
         public async Task TestAddUsingForCref4()
         {
             var initialText =
@@ -3237,8 +3224,7 @@ namespace ns2
 }", testHost);
         }
 
-        [Fact]
-        [WorkItem(991463, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/991463")]
+        [Fact, WorkItem(991463, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/991463")]
         public async Task TestAddInsideUsingDirective6()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -4441,8 +4427,7 @@ static void Main(string[] args)
             await TestAsync(initialText, expectedText, testHost);
         }
 
-        [WorkItem(860648, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/860648")]
-        [Theory]
+        [Theory, WorkItem(860648, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/860648")]
         [CombinatorialData]
         [WorkItem(902014, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/902014")]
         public async Task TestIncompleteParenthesizedLambdaExpression(TestHost testHost)
@@ -4835,8 +4820,7 @@ namespace N
 }", testHost, index: 1);
         }
 
-        [Fact]
-        [WorkItem(18275, "https://github.com/dotnet/roslyn/issues/18275")]
+        [Fact, WorkItem(18275, "https://github.com/dotnet/roslyn/issues/18275")]
         public async Task TestContextualKeyword1()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -4908,8 +4892,7 @@ namespace Outer
 ", testHost);
         }
 
-        [Fact]
-        [WorkItem(19575, "https://github.com/dotnet/roslyn/issues/19575")]
+        [Fact, WorkItem(19575, "https://github.com/dotnet/roslyn/issues/19575")]
         public async Task TestNoNonGenericsWithGenericCodeParsedAsExpression()
         {
             var code = @"
@@ -6299,8 +6282,7 @@ namespace Microsoft
 }", testHost);
         }
 
-        [WorkItem(1239, @"https://github.com/dotnet/roslyn/issues/1239")]
-        [Fact]
+        [Fact, WorkItem(1239, @"https://github.com/dotnet/roslyn/issues/1239")]
         public async Task TestIncompleteLambda1()
         {
             await TestInRegularAndScriptAsync(
@@ -6323,8 +6305,7 @@ class C
         new Byte");
         }
 
-        [WorkItem(1239, @"https://github.com/dotnet/roslyn/issues/1239")]
-        [Fact]
+        [Fact, WorkItem(1239, @"https://github.com/dotnet/roslyn/issues/1239")]
         public async Task TestIncompleteLambda2()
         {
             await TestInRegularAndScriptAsync(
@@ -6347,9 +6328,8 @@ class C
             new Byte() }");
         }
 
+        [Fact, WorkItem(902014, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/902014")]
         [WorkItem(860648, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/860648")]
-        [WorkItem(902014, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/902014")]
-        [Fact]
         public async Task TestIncompleteSimpleLambdaExpression()
         {
             await TestInRegularAndScriptAsync(

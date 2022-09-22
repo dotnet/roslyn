@@ -7,6 +7,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Structure
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Outlining
+    <Trait(Traits.Feature, Traits.Features.Outlining)>
     Public Class MethodDeclarationStructureProviderTests
         Inherits AbstractVisualBasicSyntaxNodeStructureProviderTests(Of MethodStatementSyntax)
 
@@ -14,7 +15,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Outlining
             Return New MethodDeclarationStructureProvider()
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Outlining)>
+        <Fact>
         Public Async Function TestSub() As Task
             Const code = "
 Class C
@@ -27,7 +28,7 @@ End Class
                 Region("span", "hintspan", "Sub Goo() ...", autoCollapse:=True))
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Outlining)>
+        <Fact>
         Public Async Function TestSubWithGenericTypeParameter() As Task
             Const code = "
 Class C
@@ -40,7 +41,7 @@ End Class
                 Region("span", "Sub Goo(Of T)() ...", autoCollapse:=True))
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Outlining)>
+        <Fact>
         Public Async Function TestSubWithGenericTypeParameterAndSingleConstraint() As Task
             Const code = "
 Class C
@@ -53,7 +54,7 @@ End Class
                 Region("span", "Sub Goo(Of T As Class)() ...", autoCollapse:=True))
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Outlining)>
+        <Fact>
         Public Async Function TestSubWithGenericTypeParameterAndMultipleConstraint() As Task
             Const code = "
 Class C
@@ -66,7 +67,7 @@ End Class
                 Region("span", "Sub Goo(Of T As {Class, New})() ...", autoCollapse:=True))
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Outlining)>
+        <Fact>
         Public Async Function TestPrivateSub() As Task
             Const code = "
 Class C
@@ -79,7 +80,7 @@ End Class
                 Region("span", "Private Sub Goo() ...", autoCollapse:=True))
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Outlining)>
+        <Fact>
         Public Async Function TestSubWithByRefParameter() As Task
             Const code = "
 Class C
@@ -92,7 +93,7 @@ End Class
                 Region("span", "Sub Goo(ByRef i As Integer) ...", autoCollapse:=True))
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Outlining)>
+        <Fact>
         Public Async Function TestSubWithByValParameter() As Task
             Const code = "
 Class C
@@ -105,7 +106,7 @@ End Class
                 Region("span", "Sub Goo(ByVal i As Integer) ...", autoCollapse:=True))
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Outlining)>
+        <Fact>
         Public Async Function TestSubWithOptionalParameter() As Task
             Const code = "
 Class C
@@ -118,7 +119,7 @@ End Class
                 Region("span", "Sub Goo(Optional i As Integer = 1) ...", autoCollapse:=True))
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Outlining)>
+        <Fact>
         Public Async Function TestSubWithHandlesClause() As Task
             Const code = "
 Class C
@@ -131,7 +132,7 @@ End Class
                 Region("span", "Sub Goo() Handles Bar.Baz ...", autoCollapse:=True))
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Outlining)>
+        <Fact>
         Public Async Function TestSubWithImplementsClause() As Task
             Const code = "
 Class C
@@ -144,7 +145,7 @@ End Class
                 Region("span", "Sub Goo() Implements Bar.Baz ...", autoCollapse:=True))
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Outlining)>
+        <Fact>
         Public Async Function TestSubWithComments() As Task
             Const code = "
 Class C
@@ -160,8 +161,7 @@ End Class
                 Region("span2", "Sub Goo() Implements Bar.Baz ...", autoCollapse:=True))
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Outlining)>
-        <WorkItem(27462, "https://github.com/dotnet/roslyn/issues/27462")>
+        <Fact, WorkItem(27462, "https://github.com/dotnet/roslyn/issues/27462")>
         Public Async Function TestSubWithAttribute() As Task
             Const code = "
 Imports System.Runtime.CompilerServices
@@ -178,7 +178,7 @@ End Module
                 Region("span", "hintspan", "<Extension> Public Sub WillNotShowPreviewWhenFolded(ArgFoo As Object) ...", autoCollapse:=True))
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)>
+        <WpfFact>
         Public Async Function TestMethodDeclarationWithLineBreaks() As Task
             Const code = "
 Class C

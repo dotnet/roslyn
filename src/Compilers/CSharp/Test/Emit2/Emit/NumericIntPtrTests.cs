@@ -217,6 +217,15 @@ class Program
             return false;
         }
     }
+    public class Attribute { }
+    public class AttributeUsageAttribute : Attribute
+    {
+        public AttributeUsageAttribute(AttributeTargets validOn) { }
+        public bool AllowMultiple { get; set; }
+        public bool Inherited { get; set; }
+    }
+    public struct Enum { }
+    public enum AttributeTargets { }
 }
 " + RuntimeFeature_NumericIntPtr;
 
@@ -303,6 +312,15 @@ class Program
         public string ToString(IFormatProvider provider) => default;
         public string ToString(string format, IFormatProvider provider) => default;
     }
+    public class Attribute { }
+    public class AttributeUsageAttribute : Attribute
+    {
+        public AttributeUsageAttribute(AttributeTargets t) { }
+        public bool AllowMultiple { get; set; }
+        public bool Inherited { get; set; }
+    }
+    public struct Enum { }
+    public enum AttributeTargets { }
 }
 " + RuntimeFeature_NumericIntPtr;
 
@@ -396,6 +414,15 @@ class Program
         public static bool operator==(UIntPtr x, UIntPtr y) => default;
         public static bool operator!=(UIntPtr x, UIntPtr y) => default;
     }
+    public class Attribute { }
+    public class AttributeUsageAttribute : Attribute
+    {
+        public AttributeUsageAttribute(AttributeTargets t) { }
+        public bool AllowMultiple { get; set; }
+        public bool Inherited { get; set; }
+    }
+    public struct Enum { }
+    public enum AttributeTargets { }
 }
 " + RuntimeFeature_NumericIntPtr;
             var comp = CreateEmptyCompilation(sourceA, options: TestOptions.UnsafeReleaseDll);
@@ -497,6 +524,15 @@ class Program
         public override int GetHashCode() => 0;
         public override bool Equals(object obj) => false;
     }
+    public class Attribute { }
+    public class AttributeUsageAttribute : Attribute
+    {
+        public AttributeUsageAttribute(AttributeTargets t) { }
+        public bool AllowMultiple { get; set; }
+        public bool Inherited { get; set; }
+    }
+    public struct Enum { }
+    public enum AttributeTargets { }
 }
 " + RuntimeFeature_NumericIntPtr;
 
@@ -573,6 +609,15 @@ class Program
         UIntPtr I<UIntPtr>.P => this;
         UIntPtr I<UIntPtr>.F() => this;
     }
+    public class Attribute { }
+    public class AttributeUsageAttribute : Attribute
+    {
+        public AttributeUsageAttribute(AttributeTargets t) { }
+        public bool AllowMultiple { get; set; }
+        public bool Inherited { get; set; }
+    }
+    public struct Enum { }
+    public enum AttributeTargets { }
 }
 " + RuntimeFeature_NumericIntPtr;
 
@@ -748,6 +793,15 @@ class Program
         internal UIntPtr F2() => default;
         public static UIntPtr F3() => default;
     }
+    public class Attribute { }
+    public class AttributeUsageAttribute : Attribute
+    {
+        public AttributeUsageAttribute(AttributeTargets t) { }
+        public bool AllowMultiple { get; set; }
+        public bool Inherited { get; set; }
+    }
+    public struct Enum { }
+    public enum AttributeTargets { }
 }
 " + RuntimeFeature_NumericIntPtr;
 
@@ -875,18 +929,19 @@ class A4 : IA
     void IA.F1(System.IntPtr x, nuint y) { }
 }";
 
-            var comp = CreateNumericIntPtrCompilation(new[] { sourceA, sourceB }, references: new[] { MscorlibRefWithoutSharingCachedSymbols }, parseOptions: TestOptions.Regular9);
+            var mscorlibRefWithoutSharing = MscorlibRefWithoutSharingCachedSymbols;
+            var comp = CreateNumericIntPtrCompilation(new[] { sourceA, sourceB }, references: new[] { mscorlibRefWithoutSharing }, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics();
 
-            comp = CreateNumericIntPtrCompilation(sourceA, references: new[] { MscorlibRefWithoutSharingCachedSymbols }, parseOptions: TestOptions.Regular9);
+            comp = CreateEmptyCompilation(sourceA, references: new[] { mscorlibRefWithoutSharing }, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics();
             var ref1 = comp.ToMetadataReference();
             var ref2 = comp.EmitToImageReference();
 
-            comp = CreateNumericIntPtrCompilation(sourceB, references: new[] { ref1, MscorlibRefWithoutSharingCachedSymbols }, parseOptions: TestOptions.Regular9);
+            comp = CreateEmptyCompilation(sourceB, references: new[] { ref1, mscorlibRefWithoutSharing }, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics();
 
-            comp = CreateNumericIntPtrCompilation(sourceB, references: new[] { ref2, MscorlibRefWithoutSharingCachedSymbols }, parseOptions: TestOptions.Regular9);
+            comp = CreateEmptyCompilation(sourceB, references: new[] { ref2, mscorlibRefWithoutSharing }, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics();
         }
 
@@ -937,18 +992,19 @@ class B4 : A
                 Diagnostic(ErrorCode.WRN_NewNotRequired, "F2").WithArguments("B3.F2(nint)").WithLocation(14, 21)
             };
 
-            var comp = CreateNumericIntPtrCompilation(new[] { sourceA, sourceB }, references: new[] { MscorlibRefWithoutSharingCachedSymbols }, parseOptions: TestOptions.Regular9);
+            var mscorlibRefWithoutSharing = MscorlibRefWithoutSharingCachedSymbols;
+            var comp = CreateNumericIntPtrCompilation(new[] { sourceA, sourceB }, references: new[] { mscorlibRefWithoutSharing }, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics(diagnostics);
 
-            comp = CreateNumericIntPtrCompilation(sourceA, references: new[] { MscorlibRefWithoutSharingCachedSymbols }, parseOptions: TestOptions.Regular9);
+            comp = CreateEmptyCompilation(sourceA, references: new[] { mscorlibRefWithoutSharing }, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics();
             var ref1 = comp.ToMetadataReference();
             var ref2 = comp.EmitToImageReference();
 
-            comp = CreateNumericIntPtrCompilation(sourceB, references: new[] { ref1, MscorlibRefWithoutSharingCachedSymbols }, parseOptions: TestOptions.Regular9);
+            comp = CreateEmptyCompilation(sourceB, references: new[] { ref1, mscorlibRefWithoutSharing }, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics(diagnostics);
 
-            comp = CreateNumericIntPtrCompilation(sourceB, references: new[] { ref2, MscorlibRefWithoutSharingCachedSymbols }, parseOptions: TestOptions.Regular9);
+            comp = CreateEmptyCompilation(sourceB, references: new[] { ref2, mscorlibRefWithoutSharing }, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics(diagnostics);
         }
 
@@ -995,18 +1051,19 @@ public class B4 : A<System.UIntPtr> { }
     }
 }";
 
-            var comp = CreateNumericIntPtrCompilation(new[] { sourceA, sourceB }, references: new[] { MscorlibRefWithoutSharingCachedSymbols }, parseOptions: TestOptions.Regular9);
+            var mscorlibRefWithoutSharing = MscorlibRefWithoutSharingCachedSymbols;
+            var comp = CreateNumericIntPtrCompilation(new[] { sourceA, sourceB }, references: new[] { mscorlibRefWithoutSharing }, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics();
 
-            comp = CreateNumericIntPtrCompilation(sourceA, references: new[] { MscorlibRefWithoutSharingCachedSymbols }, parseOptions: TestOptions.Regular9);
+            comp = CreateEmptyCompilation(sourceA, references: new[] { mscorlibRefWithoutSharing }, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics();
             var ref1 = comp.ToMetadataReference();
             var ref2 = comp.EmitToImageReference();
 
-            comp = CreateNumericIntPtrCompilation(sourceB, references: new[] { ref1, MscorlibRefWithoutSharingCachedSymbols }, parseOptions: TestOptions.Regular9);
+            comp = CreateEmptyCompilation(sourceB, references: new[] { ref1, mscorlibRefWithoutSharing }, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics();
 
-            comp = CreateNumericIntPtrCompilation(sourceB, references: new[] { ref2, MscorlibRefWithoutSharingCachedSymbols }, parseOptions: TestOptions.Regular9);
+            comp = CreateEmptyCompilation(sourceB, references: new[] { ref2, mscorlibRefWithoutSharing }, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics();
         }
 
@@ -1234,15 +1291,14 @@ class Program
             var verifier = CompileAndVerify(comp, expectedOutput: @"1");
             verifier.VerifyIL("Program.F",
 @"{
-  // Code size       17 (0x11)
+  // Code size       16 (0x10)
   .maxstack  2
   IL_0000:  volatile.
   IL_0002:  ldsfld     ""nint Program.F1""
   IL_0007:  volatile.
   IL_0009:  ldsfld     ""nuint Program.F2""
-  IL_000e:  conv.i
-  IL_000f:  add
-  IL_0010:  ret
+  IL_000e:  add
+  IL_000f:  ret
 }");
         }
 
@@ -1400,7 +1456,8 @@ public class A
     public static {{nuintType}}? F4;
 }
 """;
-            var comp = CreateNumericIntPtrCompilation(sourceA, references: new[] { MscorlibRefWithoutSharingCachedSymbols }, parseOptions: TestOptions.Regular9);
+            var mscorlibRefWithoutSharing = MscorlibRefWithoutSharingCachedSymbols;
+            var comp = CreateNumericIntPtrCompilation(sourceA, references: new[] { mscorlibRefWithoutSharing }, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics();
 
             var sourceB =
@@ -1421,7 +1478,7 @@ public class A
         F4 = w;
     }
 }";
-            comp = CreateNumericIntPtrCompilation(sourceB, references: new[] { AsReference(comp, useCompilationReference), MscorlibRefWithoutSharingCachedSymbols }, parseOptions: useLatest ? TestOptions.Regular9 : TestOptions.Regular8);
+            comp = CreateEmptyCompilation(sourceB, references: new[] { AsReference(comp, useCompilationReference), mscorlibRefWithoutSharing }, parseOptions: useLatest ? TestOptions.Regular9 : TestOptions.Regular8);
             comp.VerifyDiagnostics();
             var verifier = CompileAndVerify(comp);
             verifier.VerifyIL("B.M1",
@@ -1513,7 +1570,8 @@ public class A
     public static {{nuintType}}? F4;
 }
 """;
-            var comp = CreateNumericIntPtrCompilation(sourceA, references: new[] { MscorlibRefWithoutSharingCachedSymbols }, parseOptions: TestOptions.Regular9);
+            var mscorlibRefWithoutSharing = MscorlibRefWithoutSharingCachedSymbols;
+            var comp = CreateNumericIntPtrCompilation(sourceA, references: new[] { mscorlibRefWithoutSharing }, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics();
             var refA = AsReference(comp, useCompilationReference);
 
@@ -1532,7 +1590,7 @@ public class A
         F4 = F4 / F2;
     }
 }";
-            comp = CreateNumericIntPtrCompilation(sourceB, references: new[] { refA, MscorlibRefWithoutSharingCachedSymbols }, parseOptions: TestOptions.Regular9);
+            comp = CreateEmptyCompilation(sourceB, references: new[] { refA, mscorlibRefWithoutSharing }, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics();
             var verifier = CompileAndVerify(comp);
             verifier.VerifyIL("B.Main",
@@ -1622,7 +1680,7 @@ public class A
   IL_00f6:  ret
 }");
 
-            comp = CreateNumericIntPtrCompilation(sourceB, references: new[] { refA, MscorlibRefWithoutSharingCachedSymbols }, parseOptions: TestOptions.Regular8);
+            comp = CreateEmptyCompilation(sourceB, references: new[] { refA, mscorlibRefWithoutSharing }, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
                 // (5,14): error CS8400: Feature 'native-sized integers' is not available in C# 8.0. Please use language version 9.0 or greater.
                 //         F1 = -F1;
@@ -2565,7 +2623,8 @@ class Program
     public const nint C1 = -42;
     public const nuint C2 = 42;
 }";
-            var comp = CreateNumericIntPtrCompilation(source0, references: new[] { MscorlibRefWithoutSharingCachedSymbols }, parseOptions: TestOptions.Regular9);
+            var mscorlibRefWithoutSharing = MscorlibRefWithoutSharingCachedSymbols;
+            var comp = CreateNumericIntPtrCompilation(source0, references: new[] { mscorlibRefWithoutSharing }, parseOptions: TestOptions.Regular9);
             var ref0 = comp.EmitToImageReference();
             var source1 =
 @"using System;
@@ -2577,7 +2636,7 @@ class B
         Console.WriteLine(A.C2);
     }
 }";
-            comp = CreateNumericIntPtrCompilation(source1, references: new[] { ref0, MscorlibRefWithoutSharingCachedSymbols }, parseOptions: TestOptions.Regular9, options: TestOptions.ReleaseExe);
+            comp = CreateEmptyCompilation(source1, references: new[] { ref0, mscorlibRefWithoutSharing }, parseOptions: TestOptions.Regular9, options: TestOptions.ReleaseExe);
             CompileAndVerify(comp, expectedOutput:
 @"-42
 42");
@@ -2594,7 +2653,8 @@ class B
     public static System.UIntPtr F3(System.UIntPtr u = 42) => u;
     public static nuint F4(nuint u = 42) => u;
 }";
-            var comp = CreateNumericIntPtrCompilation(source0, references: new[] { MscorlibRefWithoutSharingCachedSymbols }, parseOptions: TestOptions.Regular9);
+            var mscorlibRefWithoutSharing = MscorlibRefWithoutSharingCachedSymbols;
+            var comp = CreateNumericIntPtrCompilation(source0, references: new[] { mscorlibRefWithoutSharing }, parseOptions: TestOptions.Regular9);
 
             var ref0 = comp.EmitToImageReference();
             var source1 =
@@ -2609,7 +2669,7 @@ class B
         Console.WriteLine(A.F4());
     }
 }";
-            comp = CreateNumericIntPtrCompilation(source1, references: new[] { ref0, MscorlibRefWithoutSharingCachedSymbols }, parseOptions: TestOptions.Regular9, options: TestOptions.ReleaseExe);
+            comp = CreateEmptyCompilation(source1, references: new[] { ref0, mscorlibRefWithoutSharing }, parseOptions: TestOptions.Regular9, options: TestOptions.ReleaseExe);
 
             CompileAndVerify(comp, expectedOutput:
 @"-42
@@ -2806,23 +2866,24 @@ null
 -3
 4";
 
-            var comp = CreateNumericIntPtrCompilation(new[] { sourceA, sourceB }, references: new[] { MscorlibRefWithoutSharingCachedSymbols }, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular9);
+            var mscorlibRefWithoutSharing = MscorlibRefWithoutSharingCachedSymbols;
+            var comp = CreateNumericIntPtrCompilation(new[] { sourceA, sourceB }, references: new[] { mscorlibRefWithoutSharing }, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular9);
             CompileAndVerify(comp, expectedOutput: expectedOutput);
 
-            comp = CreateNumericIntPtrCompilation(sourceA, references: new[] { MscorlibRefWithoutSharingCachedSymbols }, parseOptions: TestOptions.Regular9);
+            comp = CreateEmptyCompilation(sourceA, references: new[] { mscorlibRefWithoutSharing }, parseOptions: TestOptions.Regular9);
             var ref1 = comp.ToMetadataReference();
             var ref2 = comp.EmitToImageReference();
 
-            comp = CreateNumericIntPtrCompilation(sourceB, references: new[] { ref1, MscorlibRefWithoutSharingCachedSymbols }, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular9);
+            comp = CreateEmptyCompilation(sourceB, references: new[] { ref1, mscorlibRefWithoutSharing }, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular9);
             CompileAndVerify(comp, expectedOutput: expectedOutput);
 
-            comp = CreateNumericIntPtrCompilation(sourceB, references: new[] { ref2, MscorlibRefWithoutSharingCachedSymbols }, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular9);
+            comp = CreateEmptyCompilation(sourceB, references: new[] { ref2, mscorlibRefWithoutSharing }, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular9);
             CompileAndVerify(comp, expectedOutput: expectedOutput);
 
-            comp = CreateNumericIntPtrCompilation(sourceB, references: new[] { ref1, MscorlibRefWithoutSharingCachedSymbols }, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular8);
+            comp = CreateEmptyCompilation(sourceB, references: new[] { ref1, mscorlibRefWithoutSharing }, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular8);
             CompileAndVerify(comp, expectedOutput: expectedOutput);
 
-            comp = CreateNumericIntPtrCompilation(sourceB, references: new[] { ref2, MscorlibRefWithoutSharingCachedSymbols }, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular8);
+            comp = CreateEmptyCompilation(sourceB, references: new[] { ref2, mscorlibRefWithoutSharing }, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular8);
             CompileAndVerify(comp, expectedOutput: expectedOutput);
         }
 
@@ -3348,7 +3409,7 @@ $@"{{
             conversions(sourceType: "long", destType: "nint", ExplicitNumeric, expectedImplicitIL: null, expectedExplicitIL: conv("conv.i"), expectedCheckedIL: conv("conv.ovf.i"));
             conversions(sourceType: "ulong", destType: "nint", ExplicitNumeric, expectedImplicitIL: null, expectedExplicitIL: conv("conv.i"), expectedCheckedIL: conv("conv.ovf.i.un"));
             conversions(sourceType: "nint", destType: "nint", Identity, expectedImplicitIL: convNone, expectedExplicitIL: convNone);
-            conversions(sourceType: "nuint", destType: "nint", ExplicitNumeric, expectedImplicitIL: null, expectedExplicitIL: conv("conv.i"), expectedCheckedIL: conv("conv.ovf.i.un"));
+            conversions(sourceType: "nuint", destType: "nint", ExplicitNumeric, expectedImplicitIL: null, expectedExplicitIL: convNone, expectedCheckedIL: conv("conv.ovf.i.un"));
             conversions(sourceType: "float", destType: "nint", ExplicitNumeric, expectedImplicitIL: null, expectedExplicitIL: conv("conv.i"), expectedCheckedIL: conv("conv.ovf.i"));
             conversions(sourceType: "double", destType: "nint", ExplicitNumeric, expectedImplicitIL: null, expectedExplicitIL: conv("conv.i"), expectedCheckedIL: conv("conv.ovf.i"));
             conversions(sourceType: "decimal", destType: "nint", ExplicitNumeric, expectedImplicitIL: null,
@@ -3369,7 +3430,7 @@ $@"{{
   IL_0007:  ret
 }");
             conversions(sourceType: "System.IntPtr", destType: "nint", Identity, expectedImplicitIL: convNone, expectedExplicitIL: convNone);
-            conversions(sourceType: "System.UIntPtr", destType: "nint", ExplicitNumeric, expectedImplicitIL: null, expectedExplicitIL: conv("conv.i"), expectedCheckedIL: conv("conv.ovf.i.un"));
+            conversions(sourceType: "System.UIntPtr", destType: "nint", ExplicitNumeric, expectedImplicitIL: null, expectedExplicitIL: convNone, expectedCheckedIL: conv("conv.ovf.i.un"));
 
             // nullable type to nint
             conversions(sourceType: "E?", destType: "nint", ExplicitNullableEnumeration, expectedImplicitIL: null, expectedExplicitIL: convFromNullableT("conv.i", "E"));
@@ -3391,7 +3452,17 @@ $@"{{
   IL_0002:  call       ""nint nint?.Value.get""
   IL_0007:  ret
 }");
-            conversions(sourceType: "nuint?", destType: "nint", ExplicitNullableNumeric, expectedImplicitIL: null, expectedExplicitIL: convFromNullableT("conv.i", "nuint"), expectedCheckedIL: convFromNullableT("conv.ovf.i.un", "nuint"));
+            conversions(sourceType: "nuint?", destType: "nint", ExplicitNullableNumeric, expectedImplicitIL: null, expectedExplicitIL:
+@"
+{
+  // Code size        8 (0x8)
+  .maxstack  1
+  IL_0000:  ldarga.s   V_0
+  IL_0002:  call       ""nuint nuint?.Value.get""
+  IL_0007:  ret
+}
+",
+                expectedCheckedIL: convFromNullableT("conv.ovf.i.un", "nuint"));
             conversions(sourceType: "float?", destType: "nint", ExplicitNullableNumeric, expectedImplicitIL: null, expectedExplicitIL: convFromNullableT("conv.i", "float"), expectedCheckedIL: convFromNullableT("conv.ovf.i", "float"));
             conversions(sourceType: "double?", destType: "nint", ExplicitNullableNumeric, expectedImplicitIL: null, expectedExplicitIL: convFromNullableT("conv.i", "double"), expectedCheckedIL: convFromNullableT("conv.ovf.i", "double"));
             conversions(sourceType: "decimal?", destType: "nint", ExplicitNullableNumeric, expectedImplicitIL: null,
@@ -3421,7 +3492,17 @@ $@"{{
   IL_0002:  call       ""nint nint?.Value.get""
   IL_0007:  ret
 }");
-            conversions(sourceType: "System.UIntPtr?", destType: "nint", ExplicitNullableNumeric, expectedImplicitIL: null, expectedExplicitIL: convFromNullableT("conv.i", "nuint"), expectedCheckedIL: convFromNullableT("conv.ovf.i.un", "nuint"));
+            conversions(sourceType: "System.UIntPtr?", destType: "nint", ExplicitNullableNumeric, expectedImplicitIL: null, expectedExplicitIL:
+@"
+{
+  // Code size        8 (0x8)
+  .maxstack  1
+  IL_0000:  ldarga.s   V_0
+  IL_0002:  call       ""nuint nuint?.Value.get""
+  IL_0007:  ret
+}
+",
+                expectedCheckedIL: convFromNullableT("conv.ovf.i.un", "nuint"));
 
             // type to nullable nint
             conversions(sourceType: "object", destType: "nint?", Unboxing, expectedImplicitIL: null,
@@ -3491,7 +3572,17 @@ $@"{{
   IL_0001:  newobj     ""nint?..ctor(nint)""
   IL_0006:  ret
 }");
-            conversions(sourceType: "nuint", destType: "nint?", ExplicitNullableNumeric, expectedImplicitIL: null, expectedExplicitIL: convToNullableT("conv.i", "nint"), expectedCheckedIL: convToNullableT("conv.ovf.i.un", "nint"));
+            conversions(sourceType: "nuint", destType: "nint?", ExplicitNullableNumeric, expectedImplicitIL: null, expectedExplicitIL:
+@"
+{
+  // Code size        7 (0x7)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  newobj     ""nint?..ctor(nint)""
+  IL_0006:  ret
+}
+",
+                expectedCheckedIL: convToNullableT("conv.ovf.i.un", "nint"));
             conversions(sourceType: "float", destType: "nint?", ExplicitNullableNumeric, expectedImplicitIL: null, expectedExplicitIL: convToNullableT("conv.i", "nint"), expectedCheckedIL: convToNullableT("conv.ovf.i", "nint"));
             conversions(sourceType: "double", destType: "nint?", ExplicitNullableNumeric, expectedImplicitIL: null, expectedExplicitIL: convToNullableT("conv.i", "nint"), expectedCheckedIL: convToNullableT("conv.ovf.i", "nint"));
             conversions(sourceType: "decimal", destType: "nint?", ExplicitNullableNumeric, expectedImplicitIL: null,
@@ -3528,7 +3619,17 @@ $@"{{
   IL_0001:  newobj     ""nint?..ctor(nint)""
   IL_0006:  ret
 }");
-            conversions(sourceType: "System.UIntPtr", destType: "nint?", ExplicitNullableNumeric, expectedImplicitIL: null, expectedExplicitIL: convToNullableT("conv.i", "nint"), expectedCheckedIL: convToNullableT("conv.ovf.i.un", "nint"));
+            conversions(sourceType: "System.UIntPtr", destType: "nint?", ExplicitNullableNumeric, expectedImplicitIL: null, expectedExplicitIL:
+@"
+{
+  // Code size        7 (0x7)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  newobj     ""nint?..ctor(nint)""
+  IL_0006:  ret
+}
+",
+                expectedCheckedIL: convToNullableT("conv.ovf.i.un", "nint"));
 
             // nullable type to nullable nint
             conversions(sourceType: "E?", destType: "nint?", ExplicitNullableEnumeration, expectedImplicitIL: null, expectedExplicitIL: convFromToNullableT("conv.i", "E", "nint"));
@@ -3543,7 +3644,29 @@ $@"{{
             conversions(sourceType: "long?", destType: "nint?", ExplicitNullableNumeric, expectedImplicitIL: null, expectedExplicitIL: convFromToNullableT("conv.i", "long", "nint"), expectedCheckedIL: convFromToNullableT("conv.ovf.i", "long", "nint"));
             conversions(sourceType: "ulong?", destType: "nint?", ExplicitNullableNumeric, expectedImplicitIL: null, expectedExplicitIL: convFromToNullableT("conv.i", "ulong", "nint"), expectedCheckedIL: convFromToNullableT("conv.ovf.i.un", "ulong", "nint"));
             conversions(sourceType: "nint?", destType: "nint?", Identity, expectedImplicitIL: convNone, expectedExplicitIL: convNone);
-            conversions(sourceType: "nuint?", destType: "nint?", ExplicitNullableNumeric, expectedImplicitIL: null, expectedExplicitIL: convFromToNullableT("conv.i", "nuint", "nint"), expectedCheckedIL: convFromToNullableT("conv.ovf.i.un", "nuint", "nint"));
+            conversions(sourceType: "nuint?", destType: "nint?", ExplicitNullableNumeric, expectedImplicitIL: null, expectedExplicitIL:
+@"
+{
+  // Code size       34 (0x22)
+  .maxstack  1
+  .locals init (nuint? V_0,
+                nint? V_1)
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.0
+  IL_0002:  ldloca.s   V_0
+  IL_0004:  call       ""bool nuint?.HasValue.get""
+  IL_0009:  brtrue.s   IL_0015
+  IL_000b:  ldloca.s   V_1
+  IL_000d:  initobj    ""nint?""
+  IL_0013:  ldloc.1
+  IL_0014:  ret
+  IL_0015:  ldloca.s   V_0
+  IL_0017:  call       ""nuint nuint?.GetValueOrDefault()""
+  IL_001c:  newobj     ""nint?..ctor(nint)""
+  IL_0021:  ret
+}
+",
+                expectedCheckedIL: convFromToNullableT("conv.ovf.i.un", "nuint", "nint"));
             conversions(sourceType: "float?", destType: "nint?", ExplicitNullableNumeric, expectedImplicitIL: null, expectedExplicitIL: convFromToNullableT("conv.i", "float", "nint"), expectedCheckedIL: convFromToNullableT("conv.ovf.i", "float", "nint"));
             conversions(sourceType: "double?", destType: "nint?", ExplicitNullableNumeric, expectedImplicitIL: null, expectedExplicitIL: convFromToNullableT("conv.i", "double", "nint"), expectedCheckedIL: convFromToNullableT("conv.ovf.i", "double", "nint"));
             conversions(sourceType: "decimal?", destType: "nint?", ExplicitNullableNumeric, null,
@@ -3590,7 +3713,29 @@ $@"{{
   IL_0027:  ret
 }");
             conversions(sourceType: "System.IntPtr?", destType: "nint?", Identity, expectedImplicitIL: convNone, expectedExplicitIL: convNone);
-            conversions(sourceType: "System.UIntPtr?", destType: "nint?", ExplicitNullableNumeric, expectedImplicitIL: null, expectedExplicitIL: convFromToNullableT("conv.i", "nuint", "nint"), expectedCheckedIL: convFromToNullableT("conv.ovf.i.un", "nuint", "nint"));
+            conversions(sourceType: "System.UIntPtr?", destType: "nint?", ExplicitNullableNumeric, expectedImplicitIL: null, expectedExplicitIL:
+@"
+{
+  // Code size       34 (0x22)
+  .maxstack  1
+  .locals init (nuint? V_0,
+                nint? V_1)
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.0
+  IL_0002:  ldloca.s   V_0
+  IL_0004:  call       ""bool nuint?.HasValue.get""
+  IL_0009:  brtrue.s   IL_0015
+  IL_000b:  ldloca.s   V_1
+  IL_000d:  initobj    ""nint?""
+  IL_0013:  ldloc.1
+  IL_0014:  ret
+  IL_0015:  ldloca.s   V_0
+  IL_0017:  call       ""nuint nuint?.GetValueOrDefault()""
+  IL_001c:  newobj     ""nint?..ctor(nint)""
+  IL_0021:  ret
+}
+",
+                expectedCheckedIL: convFromToNullableT("conv.ovf.i.un", "nuint", "nint"));
 
             // nint to type
             conversions(sourceType: "nint", destType: "object", Boxing,
@@ -3642,7 +3787,7 @@ $@"{{
   IL_0007:  ret
 }");
             conversions(sourceType: "nint", destType: "System.IntPtr", Identity, expectedImplicitIL: convNone, expectedExplicitIL: convNone);
-            conversions(sourceType: "nint", destType: "System.UIntPtr", ExplicitNumeric, expectedImplicitIL: null, expectedExplicitIL: conv("conv.u"), expectedCheckedIL: conv("conv.ovf.u"));
+            conversions(sourceType: "nint", destType: "System.UIntPtr", ExplicitNumeric, expectedImplicitIL: null, expectedExplicitIL: convNone, expectedCheckedIL: conv("conv.ovf.u"));
 
             // nint to nullable type
             conversions(sourceType: "nint", destType: "E?", ExplicitNullableEnumeration, expectedImplicitIL: null, expectedExplicitIL: convToNullableT("conv.i4", "E"), expectedCheckedIL: convToNullableT("conv.ovf.i4", "E"));
@@ -3692,7 +3837,17 @@ $@"{{
   IL_0001:  newobj     ""nint?..ctor(nint)""
   IL_0006:  ret
 }");
-            conversions(sourceType: "nint", destType: "System.UIntPtr?", ExplicitNullableNumeric, expectedImplicitIL: null, expectedExplicitIL: convToNullableT("conv.u", "nuint"), expectedCheckedIL: convToNullableT("conv.ovf.u", "nuint"));
+            conversions(sourceType: "nint", destType: "System.UIntPtr?", ExplicitNullableNumeric, expectedImplicitIL: null, expectedExplicitIL:
+@"
+{
+  // Code size        7 (0x7)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  newobj     ""nuint?..ctor(nuint)""
+  IL_0006:  ret
+}
+",
+                expectedCheckedIL: convToNullableT("conv.ovf.u", "nuint"));
 
             // nullable nint to type
             conversions(sourceType: "nint?", destType: "object", Boxing,
@@ -3744,7 +3899,17 @@ $@"{{
   IL_0002:  call       ""nint nint?.Value.get""
   IL_0007:  ret
 }");
-            conversions(sourceType: "nint?", destType: "System.UIntPtr", ExplicitNullableNumeric, expectedImplicitIL: null, expectedExplicitIL: convFromNullableT("conv.u", "nint"), expectedCheckedIL: convFromNullableT("conv.ovf.u", "nint"));
+            conversions(sourceType: "nint?", destType: "System.UIntPtr", ExplicitNullableNumeric, expectedImplicitIL: null, expectedExplicitIL:
+@"
+{
+  // Code size        8 (0x8)
+  .maxstack  1
+  IL_0000:  ldarga.s   V_0
+  IL_0002:  call       ""nint nint?.Value.get""
+  IL_0007:  ret
+}
+",
+                expectedCheckedIL: convFromNullableT("conv.ovf.u", "nint"));
 
             // nullable nint to nullable type
             conversions(sourceType: "nint?", destType: "E?", ExplicitNullableEnumeration, expectedImplicitIL: null, expectedExplicitIL: convFromToNullableT("conv.i4", "nint", "E"), expectedCheckedIL: convFromToNullableT("conv.ovf.i4", "nint", "E"));
@@ -3804,7 +3969,29 @@ $@"{{
   IL_0027:  ret
 }");
             conversions(sourceType: "nint?", destType: "System.IntPtr?", Identity, expectedImplicitIL: convNone, expectedExplicitIL: convNone);
-            conversions(sourceType: "nint?", destType: "System.UIntPtr?", ExplicitNullableNumeric, expectedImplicitIL: null, expectedExplicitIL: convFromToNullableT("conv.u", "nint", "nuint"), expectedCheckedIL: convFromToNullableT("conv.ovf.u", "nint", "nuint"));
+            conversions(sourceType: "nint?", destType: "System.UIntPtr?", ExplicitNullableNumeric, expectedImplicitIL: null, expectedExplicitIL:
+@"
+{
+  // Code size       34 (0x22)
+  .maxstack  1
+  .locals init (nint? V_0,
+                nuint? V_1)
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.0
+  IL_0002:  ldloca.s   V_0
+  IL_0004:  call       ""bool nint?.HasValue.get""
+  IL_0009:  brtrue.s   IL_0015
+  IL_000b:  ldloca.s   V_1
+  IL_000d:  initobj    ""nuint?""
+  IL_0013:  ldloc.1
+  IL_0014:  ret
+  IL_0015:  ldloca.s   V_0
+  IL_0017:  call       ""nint nint?.GetValueOrDefault()""
+  IL_001c:  newobj     ""nuint?..ctor(nuint)""
+  IL_0021:  ret
+}
+",
+                expectedCheckedIL: convFromToNullableT("conv.ovf.u", "nint", "nuint"));
 
             // type to nuint
             conversions(sourceType: "object", destType: "nuint", Unboxing, expectedImplicitIL: null,
@@ -3829,7 +4016,7 @@ $@"{{
             conversions(sourceType: "uint", destType: "nuint", ImplicitNumeric, expectedImplicitIL: conv("conv.u"), expectedExplicitIL: conv("conv.u"));
             conversions(sourceType: "long", destType: "nuint", ExplicitNumeric, expectedImplicitIL: null, expectedExplicitIL: conv("conv.u"), expectedCheckedIL: conv("conv.ovf.u"));
             conversions(sourceType: "ulong", destType: "nuint", ExplicitNumeric, expectedImplicitIL: null, expectedExplicitIL: conv("conv.u"), expectedCheckedIL: conv("conv.ovf.u.un"));
-            conversions(sourceType: "nint", destType: "nuint", ExplicitNumeric, expectedImplicitIL: null, expectedExplicitIL: conv("conv.u"), expectedCheckedIL: conv("conv.ovf.u"));
+            conversions(sourceType: "nint", destType: "nuint", ExplicitNumeric, expectedImplicitIL: null, expectedExplicitIL: convNone, expectedCheckedIL: conv("conv.ovf.u"));
             conversions(sourceType: "nuint", destType: "nuint", Identity, expectedImplicitIL: convNone, expectedExplicitIL: convNone);
             conversions(sourceType: "float", destType: "nuint", ExplicitNumeric, expectedImplicitIL: null, expectedExplicitIL: conv("conv.u"), expectedCheckedIL: conv("conv.ovf.u"));
             conversions(sourceType: "double", destType: "nuint", ExplicitNumeric, expectedImplicitIL: null, expectedExplicitIL: conv("conv.u"), expectedCheckedIL: conv("conv.ovf.u"));
@@ -3850,7 +4037,7 @@ $@"{{
   IL_0006:  conv.ovf.u.un
   IL_0007:  ret
 }");
-            conversions(sourceType: "System.IntPtr", destType: "nuint", ExplicitNumeric, expectedImplicitIL: null, expectedExplicitIL: conv("conv.u"), expectedCheckedIL: conv("conv.ovf.u"));
+            conversions(sourceType: "System.IntPtr", destType: "nuint", ExplicitNumeric, expectedImplicitIL: null, expectedExplicitIL: convNone, expectedCheckedIL: conv("conv.ovf.u"));
             conversions(sourceType: "System.UIntPtr", destType: "nuint", Identity, expectedImplicitIL: convNone, expectedExplicitIL: convNone);
 
             // nullable type to nuint
@@ -3865,7 +4052,17 @@ $@"{{
             conversions(sourceType: "uint?", destType: "nuint", ExplicitNullableImplicitNumeric, expectedImplicitIL: null, expectedExplicitIL: convFromNullableT("conv.u", "uint"));
             conversions(sourceType: "long?", destType: "nuint", ExplicitNullableNumeric, expectedImplicitIL: null, expectedExplicitIL: convFromNullableT("conv.u", "long"), expectedCheckedIL: convFromNullableT("conv.ovf.u", "long"));
             conversions(sourceType: "ulong?", destType: "nuint", ExplicitNullableNumeric, expectedImplicitIL: null, expectedExplicitIL: convFromNullableT("conv.u", "ulong"), expectedCheckedIL: convFromNullableT("conv.ovf.u.un", "ulong"));
-            conversions(sourceType: "nint?", destType: "nuint", ExplicitNullableNumeric, expectedImplicitIL: null, expectedExplicitIL: convFromNullableT("conv.u", "nint"), expectedCheckedIL: convFromNullableT("conv.ovf.u", "nint"));
+            conversions(sourceType: "nint?", destType: "nuint", ExplicitNullableNumeric, expectedImplicitIL: null, expectedExplicitIL:
+@"
+{
+  // Code size        8 (0x8)
+  .maxstack  1
+  IL_0000:  ldarga.s   V_0
+  IL_0002:  call       ""nint nint?.Value.get""
+  IL_0007:  ret
+}
+",
+                expectedCheckedIL: convFromNullableT("conv.ovf.u", "nint"));
             conversions(sourceType: "nuint?", destType: "nuint", ExplicitNullableIdentity, expectedImplicitIL: null,
 @"{
   // Code size        8 (0x8)
@@ -3895,7 +4092,15 @@ $@"{{
   IL_000c:  conv.ovf.u.un
   IL_000d:  ret
 }");
-            conversions(sourceType: "System.IntPtr?", destType: "nuint", ExplicitNullableNumeric, expectedImplicitIL: null, expectedExplicitIL: convFromNullableT("conv.u", "nint"), expectedCheckedIL: convFromNullableT("conv.ovf.u", "nint"));
+            conversions(sourceType: "System.IntPtr?", destType: "nuint", ExplicitNullableNumeric, expectedImplicitIL: null, expectedExplicitIL:
+@"{
+  // Code size        8 (0x8)
+  .maxstack  1
+  IL_0000:  ldarga.s   V_0
+  IL_0002:  call       ""nint nint?.Value.get""
+  IL_0007:  ret
+}",
+                expectedCheckedIL: convFromNullableT("conv.ovf.u", "nint"));
             conversions(sourceType: "System.UIntPtr?", destType: "nuint", ExplicitNullableIdentity, expectedImplicitIL: null,
 @"{
   // Code size        8 (0x8)
@@ -3942,7 +4147,17 @@ $@"{{
             conversions(sourceType: "uint", destType: "nuint?", ImplicitNullableNumeric, expectedImplicitIL: convToNullableT("conv.u", "nuint"), expectedExplicitIL: convToNullableT("conv.u", "nuint"));
             conversions(sourceType: "long", destType: "nuint?", ExplicitNullableNumeric, expectedImplicitIL: null, expectedExplicitIL: convToNullableT("conv.u", "nuint"), expectedCheckedIL: convToNullableT("conv.ovf.u", "nuint"));
             conversions(sourceType: "ulong", destType: "nuint?", ExplicitNullableNumeric, expectedImplicitIL: null, expectedExplicitIL: convToNullableT("conv.u", "nuint"), expectedCheckedIL: convToNullableT("conv.ovf.u.un", "nuint"));
-            conversions(sourceType: "nint", destType: "nuint?", ExplicitNullableNumeric, expectedImplicitIL: null, expectedExplicitIL: convToNullableT("conv.u", "nuint"), expectedCheckedIL: convToNullableT("conv.ovf.u", "nuint"));
+            conversions(sourceType: "nint", destType: "nuint?", ExplicitNullableNumeric, expectedImplicitIL: null, expectedExplicitIL:
+@"
+{
+  // Code size        7 (0x7)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  newobj     ""nuint?..ctor(nuint)""
+  IL_0006:  ret
+}
+",
+                expectedCheckedIL: convToNullableT("conv.ovf.u", "nuint"));
             conversions(sourceType: "nuint", destType: "nuint?", ImplicitNullableIdentity,
 @"{
   // Code size        7 (0x7)
@@ -3979,7 +4194,17 @@ $@"{{
   IL_0007:  newobj     ""nuint?..ctor(nuint)""
   IL_000c:  ret
 }");
-            conversions(sourceType: "System.IntPtr", destType: "nuint?", ExplicitNullableNumeric, expectedImplicitIL: null, expectedExplicitIL: convToNullableT("conv.u", "nuint"), expectedCheckedIL: convToNullableT("conv.ovf.u", "nuint"));
+            conversions(sourceType: "System.IntPtr", destType: "nuint?", ExplicitNullableNumeric, expectedImplicitIL: null, expectedExplicitIL:
+@"
+{
+  // Code size        7 (0x7)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  newobj     ""nuint?..ctor(nuint)""
+  IL_0006:  ret
+}
+",
+                expectedCheckedIL: convToNullableT("conv.ovf.u", "nuint"));
             conversions(sourceType: "System.UIntPtr", destType: "nuint?", ImplicitNullableIdentity,
 @"{
   // Code size        7 (0x7)
@@ -4008,7 +4233,29 @@ $@"{{
             conversions(sourceType: "uint?", destType: "nuint?", ImplicitNullableNumeric, expectedImplicitIL: convFromToNullableT("conv.u", "uint", "nuint"), expectedExplicitIL: convFromToNullableT("conv.u", "uint", "nuint"));
             conversions(sourceType: "long?", destType: "nuint?", ExplicitNullableNumeric, expectedImplicitIL: null, expectedExplicitIL: convFromToNullableT("conv.u", "long", "nuint"), expectedCheckedIL: convFromToNullableT("conv.ovf.u", "long", "nuint"));
             conversions(sourceType: "ulong?", destType: "nuint?", ExplicitNullableNumeric, expectedImplicitIL: null, expectedExplicitIL: convFromToNullableT("conv.u", "ulong", "nuint"), expectedCheckedIL: convFromToNullableT("conv.ovf.u.un", "ulong", "nuint"));
-            conversions(sourceType: "nint?", destType: "nuint?", ExplicitNullableNumeric, expectedImplicitIL: null, expectedExplicitIL: convFromToNullableT("conv.u", "nint", "nuint"), expectedCheckedIL: convFromToNullableT("conv.ovf.u", "nint", "nuint"));
+            conversions(sourceType: "nint?", destType: "nuint?", ExplicitNullableNumeric, expectedImplicitIL: null, expectedExplicitIL:
+@"
+{
+  // Code size       34 (0x22)
+  .maxstack  1
+  .locals init (nint? V_0,
+                nuint? V_1)
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.0
+  IL_0002:  ldloca.s   V_0
+  IL_0004:  call       ""bool nint?.HasValue.get""
+  IL_0009:  brtrue.s   IL_0015
+  IL_000b:  ldloca.s   V_1
+  IL_000d:  initobj    ""nuint?""
+  IL_0013:  ldloc.1
+  IL_0014:  ret
+  IL_0015:  ldloca.s   V_0
+  IL_0017:  call       ""nint nint?.GetValueOrDefault()""
+  IL_001c:  newobj     ""nuint?..ctor(nuint)""
+  IL_0021:  ret
+}
+",
+                expectedCheckedIL: convFromToNullableT("conv.ovf.u", "nint", "nuint"));
             conversions(sourceType: "nuint?", destType: "nuint?", Identity, expectedImplicitIL: convNone, expectedExplicitIL: convNone);
             conversions(sourceType: "float?", destType: "nuint?", ExplicitNullableNumeric, expectedImplicitIL: null, expectedExplicitIL: convFromToNullableT("conv.u", "float", "nuint"), expectedCheckedIL: convFromToNullableT("conv.ovf.u", "float", "nuint"));
             conversions(sourceType: "double?", destType: "nuint?", ExplicitNullableNumeric, expectedImplicitIL: null, expectedExplicitIL: convFromToNullableT("conv.u", "double", "nuint"), expectedCheckedIL: convFromToNullableT("conv.ovf.u", "double", "nuint"));
@@ -4055,7 +4302,29 @@ $@"{{
   IL_0022:  newobj     ""nuint?..ctor(nuint)""
   IL_0027:  ret
 }");
-            conversions(sourceType: "System.IntPtr?", destType: "nuint?", ExplicitNullableNumeric, expectedImplicitIL: null, expectedExplicitIL: convFromToNullableT("conv.u", "nint", "nuint"), expectedCheckedIL: convFromToNullableT("conv.ovf.u", "nint", "nuint"));
+            conversions(sourceType: "System.IntPtr?", destType: "nuint?", ExplicitNullableNumeric, expectedImplicitIL: null, expectedExplicitIL:
+@"
+{
+  // Code size       34 (0x22)
+  .maxstack  1
+  .locals init (nint? V_0,
+                nuint? V_1)
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.0
+  IL_0002:  ldloca.s   V_0
+  IL_0004:  call       ""bool nint?.HasValue.get""
+  IL_0009:  brtrue.s   IL_0015
+  IL_000b:  ldloca.s   V_1
+  IL_000d:  initobj    ""nuint?""
+  IL_0013:  ldloc.1
+  IL_0014:  ret
+  IL_0015:  ldloca.s   V_0
+  IL_0017:  call       ""nint nint?.GetValueOrDefault()""
+  IL_001c:  newobj     ""nuint?..ctor(nuint)""
+  IL_0021:  ret
+}
+",
+                expectedCheckedIL: convFromToNullableT("conv.ovf.u", "nint", "nuint"));
             conversions(sourceType: "System.UIntPtr?", destType: "nuint?", Identity, expectedImplicitIL: convNone, expectedExplicitIL: convNone);
 
             // nuint to type
@@ -4107,7 +4376,7 @@ $@"{{
   IL_0002:  call       ""decimal decimal.op_Implicit(ulong)""
   IL_0007:  ret
 }");
-            conversions(sourceType: "nuint", destType: "System.IntPtr", ExplicitNumeric, expectedImplicitIL: null, expectedExplicitIL: conv("conv.i"), expectedCheckedIL: conv("conv.ovf.i.un"));
+            conversions(sourceType: "nuint", destType: "System.IntPtr", ExplicitNumeric, expectedImplicitIL: null, expectedExplicitIL: convNone, expectedCheckedIL: conv("conv.ovf.i.un"));
             conversions(sourceType: "nuint", destType: "System.UIntPtr", Identity, expectedImplicitIL: convNone, expectedExplicitIL: convNone);
 
             // nuint to nullable type
@@ -4143,7 +4412,17 @@ $@"{{
   IL_0007:  newobj     ""decimal?..ctor(decimal)""
   IL_000c:  ret
 }");
-            conversions(sourceType: "nuint", destType: "System.IntPtr?", ExplicitNullableNumeric, expectedImplicitIL: null, expectedExplicitIL: convToNullableT("conv.i", "nint"), expectedCheckedIL: convToNullableT("conv.ovf.i.un", "nint"));
+            conversions(sourceType: "nuint", destType: "System.IntPtr?", ExplicitNullableNumeric, expectedImplicitIL: null, expectedExplicitIL:
+@"
+{
+  // Code size        7 (0x7)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  newobj     ""nint?..ctor(nint)""
+  IL_0006:  ret
+}
+",
+                expectedCheckedIL: convToNullableT("conv.ovf.i.un", "nint"));
             conversions(sourceType: "nuint", destType: "System.UIntPtr?", ImplicitNullableIdentity,
 @"{
   // Code size        7 (0x7)
@@ -4202,7 +4481,17 @@ $@"{{
   IL_0008:  call       ""decimal decimal.op_Implicit(ulong)""
   IL_000d:  ret
 }");
-            conversions(sourceType: "nuint?", destType: "System.IntPtr", ExplicitNullableNumeric, expectedImplicitIL: null, expectedExplicitIL: convFromNullableT("conv.i", "nuint"), expectedCheckedIL: convFromNullableT("conv.ovf.i.un", "nuint"));
+            conversions(sourceType: "nuint?", destType: "System.IntPtr", ExplicitNullableNumeric, expectedImplicitIL: null, expectedExplicitIL:
+@"
+{
+  // Code size        8 (0x8)
+  .maxstack  1
+  IL_0000:  ldarga.s   V_0
+  IL_0002:  call       ""nuint nuint?.Value.get""
+  IL_0007:  ret
+}
+",
+                expectedCheckedIL: convFromNullableT("conv.ovf.i.un", "nuint"));
             conversions(sourceType: "nuint?", destType: "System.UIntPtr", ExplicitNullableIdentity, expectedImplicitIL: null,
 @"{
   // Code size        8 (0x8)
@@ -4269,7 +4558,29 @@ $@"{{
   IL_0022:  newobj     ""decimal?..ctor(decimal)""
   IL_0027:  ret
 }");
-            conversions(sourceType: "nuint?", destType: "System.IntPtr?", ExplicitNullableNumeric, expectedImplicitIL: null, expectedExplicitIL: convFromToNullableT("conv.i", "nuint", "nint"), expectedCheckedIL: convFromToNullableT("conv.ovf.i.un", "nuint", "nint"));
+            conversions(sourceType: "nuint?", destType: "System.IntPtr?", ExplicitNullableNumeric, expectedImplicitIL: null, expectedExplicitIL:
+@"
+{
+  // Code size       34 (0x22)
+  .maxstack  1
+  .locals init (nuint? V_0,
+                nint? V_1)
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.0
+  IL_0002:  ldloca.s   V_0
+  IL_0004:  call       ""bool nuint?.HasValue.get""
+  IL_0009:  brtrue.s   IL_0015
+  IL_000b:  ldloca.s   V_1
+  IL_000d:  initobj    ""nint?""
+  IL_0013:  ldloc.1
+  IL_0014:  ret
+  IL_0015:  ldloca.s   V_0
+  IL_0017:  call       ""nuint nuint?.GetValueOrDefault()""
+  IL_001c:  newobj     ""nint?..ctor(nint)""
+  IL_0021:  ret
+}
+",
+                expectedCheckedIL: convFromToNullableT("conv.ovf.i.un", "nuint", "nint"));
             conversions(sourceType: "nuint?", destType: "System.UIntPtr?", Identity, expectedImplicitIL: convNone, expectedExplicitIL: convNone);
 
             // System.IntPtr to type
@@ -4325,7 +4636,7 @@ $@"{{
   IL_0007:  ret
 }");
             conversions(sourceType: "System.IntPtr", destType: "System.IntPtr", Identity, expectedImplicitIL: convNone, expectedExplicitIL: convNone);
-            conversions(sourceType: "System.IntPtr", destType: "System.UIntPtr", ExplicitNumeric, expectedImplicitIL: null, expectedExplicitIL: conv("conv.u"), expectedCheckedIL: conv("conv.ovf.u"));
+            conversions(sourceType: "System.IntPtr", destType: "System.UIntPtr", ExplicitNumeric, expectedImplicitIL: null, expectedExplicitIL: convNone, expectedCheckedIL: conv("conv.ovf.u"));
 
             // System.IntPtr to nullable type
             conversions(sourceType: "System.IntPtr", destType: "E?", ExplicitNullableEnumeration, expectedImplicitIL: null, expectedExplicitIL: convToNullableT("conv.i4", "E"), expectedCheckedIL: convToNullableT("conv.ovf.i4", "E"));
@@ -4375,7 +4686,17 @@ $@"{{
   IL_0001:  newobj     ""nint?..ctor(nint)""
   IL_0006:  ret
 }");
-            conversions(sourceType: "System.IntPtr", destType: "System.UIntPtr?", ExplicitNullableNumeric, expectedImplicitIL: null, expectedExplicitIL: convToNullableT("conv.u", "nuint"), expectedCheckedIL: convToNullableT("conv.ovf.u", "nuint"));
+            conversions(sourceType: "System.IntPtr", destType: "System.UIntPtr?", ExplicitNullableNumeric, expectedImplicitIL: null, expectedExplicitIL:
+@"
+{
+  // Code size        7 (0x7)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  newobj     ""nuint?..ctor(nuint)""
+  IL_0006:  ret
+}
+",
+                expectedCheckedIL: convToNullableT("conv.ovf.u", "nuint"));
 
             // nullable System.IntPtr to type
             conversions(sourceType: "System.IntPtr?", destType: "object", Boxing,
@@ -4427,7 +4748,17 @@ $@"{{
   IL_0002:  call       ""nint nint?.Value.get""
   IL_0007:  ret
 }");
-            conversions(sourceType: "System.IntPtr?", destType: "System.UIntPtr", ExplicitNullableNumeric, expectedImplicitIL: null, expectedExplicitIL: convFromNullableT("conv.u", "nint"), expectedCheckedIL: convFromNullableT("conv.ovf.u", "nint"));
+            conversions(sourceType: "System.IntPtr?", destType: "System.UIntPtr", ExplicitNullableNumeric, expectedImplicitIL: null, expectedExplicitIL:
+@"
+{
+  // Code size        8 (0x8)
+  .maxstack  1
+  IL_0000:  ldarga.s   V_0
+  IL_0002:  call       ""nint nint?.Value.get""
+  IL_0007:  ret
+}
+",
+                expectedCheckedIL: convFromNullableT("conv.ovf.u", "nint"));
 
             // nullable System.IntPtr to nullable type
             conversions(sourceType: "System.IntPtr?", destType: "E?", ExplicitNullableEnumeration, expectedImplicitIL: null, expectedExplicitIL: convFromToNullableT("conv.i4", "nint", "E"), expectedCheckedIL: convFromToNullableT("conv.ovf.i4", "nint", "E"));
@@ -4487,7 +4818,29 @@ $@"{{
   IL_0027:  ret
 }");
             conversions(sourceType: "System.IntPtr?", destType: "System.IntPtr?", Identity, expectedImplicitIL: convNone, expectedExplicitIL: convNone);
-            conversions(sourceType: "System.IntPtr?", destType: "System.UIntPtr?", ExplicitNullableNumeric, expectedImplicitIL: null, expectedExplicitIL: convFromToNullableT("conv.u", "nint", "nuint"), expectedCheckedIL: convFromToNullableT("conv.ovf.u", "nint", "nuint"));
+            conversions(sourceType: "System.IntPtr?", destType: "System.UIntPtr?", ExplicitNullableNumeric, expectedImplicitIL: null, expectedExplicitIL:
+@"
+{
+  // Code size       34 (0x22)
+  .maxstack  1
+  .locals init (nint? V_0,
+                nuint? V_1)
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.0
+  IL_0002:  ldloca.s   V_0
+  IL_0004:  call       ""bool nint?.HasValue.get""
+  IL_0009:  brtrue.s   IL_0015
+  IL_000b:  ldloca.s   V_1
+  IL_000d:  initobj    ""nuint?""
+  IL_0013:  ldloc.1
+  IL_0014:  ret
+  IL_0015:  ldloca.s   V_0
+  IL_0017:  call       ""nint nint?.GetValueOrDefault()""
+  IL_001c:  newobj     ""nuint?..ctor(nuint)""
+  IL_0021:  ret
+}
+",
+                expectedCheckedIL: convFromToNullableT("conv.ovf.u", "nint", "nuint"));
 
             // type to System.IntPtr
             conversions(sourceType: "object", destType: "System.IntPtr", Unboxing, expectedImplicitIL: null,
@@ -4513,7 +4866,7 @@ $@"{{
             conversions(sourceType: "long", destType: "System.IntPtr", ExplicitNumeric, expectedImplicitIL: null, expectedExplicitIL: conv("conv.i"), expectedCheckedIL: conv("conv.ovf.i"));
             conversions(sourceType: "ulong", destType: "System.IntPtr", ExplicitNumeric, expectedImplicitIL: null, expectedExplicitIL: conv("conv.i"), expectedCheckedIL: conv("conv.ovf.i.un"));
             conversions(sourceType: "nint", destType: "System.IntPtr", Identity, expectedImplicitIL: convNone, expectedExplicitIL: convNone);
-            conversions(sourceType: "nuint", destType: "System.IntPtr", ExplicitNumeric, expectedImplicitIL: null, expectedExplicitIL: conv("conv.i"), expectedCheckedIL: conv("conv.ovf.i.un"));
+            conversions(sourceType: "nuint", destType: "System.IntPtr", ExplicitNumeric, expectedImplicitIL: null, expectedExplicitIL: convNone, expectedCheckedIL: conv("conv.ovf.i.un"));
             conversions(sourceType: "float", destType: "System.IntPtr", ExplicitNumeric, expectedImplicitIL: null, expectedExplicitIL: conv("conv.i"), expectedCheckedIL: conv("conv.ovf.i"));
             conversions(sourceType: "double", destType: "System.IntPtr", ExplicitNumeric, expectedImplicitIL: null, expectedExplicitIL: conv("conv.i"), expectedCheckedIL: conv("conv.ovf.i"));
             conversions(sourceType: "decimal", destType: "System.IntPtr", ExplicitNumeric, expectedImplicitIL: null,
@@ -4533,7 +4886,7 @@ $@"{{
   IL_0006:  conv.ovf.i
   IL_0007:  ret
 }");
-            conversions(sourceType: "System.UIntPtr", destType: "System.IntPtr", ExplicitNumeric, expectedImplicitIL: null, expectedExplicitIL: conv("conv.i"), expectedCheckedIL: conv("conv.ovf.i.un"));
+            conversions(sourceType: "System.UIntPtr", destType: "System.IntPtr", ExplicitNumeric, expectedImplicitIL: null, expectedExplicitIL: convNone, expectedCheckedIL: conv("conv.ovf.i.un"));
 
             // type to nullable System.IntPtr
             conversions(sourceType: "object", destType: "System.IntPtr?", Unboxing, expectedImplicitIL: null,
@@ -4603,7 +4956,17 @@ $@"{{
   IL_0001:  newobj     ""nint?..ctor(nint)""
   IL_0006:  ret
 }");
-            conversions(sourceType: "nuint", destType: "System.IntPtr?", ExplicitNullableNumeric, expectedImplicitIL: null, expectedExplicitIL: convToNullableT("conv.i", "nint"), expectedCheckedIL: convToNullableT("conv.ovf.i.un", "nint"));
+            conversions(sourceType: "nuint", destType: "System.IntPtr?", ExplicitNullableNumeric, expectedImplicitIL: null, expectedExplicitIL:
+@"
+{
+  // Code size        7 (0x7)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  newobj     ""nint?..ctor(nint)""
+  IL_0006:  ret
+}
+",
+                expectedCheckedIL: convToNullableT("conv.ovf.i.un", "nint"));
             conversions(sourceType: "float", destType: "System.IntPtr?", ExplicitNullableNumeric, expectedImplicitIL: null, expectedExplicitIL: convToNullableT("conv.i", "nint"), expectedCheckedIL: convToNullableT("conv.ovf.i", "nint"));
             conversions(sourceType: "double", destType: "System.IntPtr?", ExplicitNullableNumeric, expectedImplicitIL: null, expectedExplicitIL: convToNullableT("conv.i", "nint"), expectedCheckedIL: convToNullableT("conv.ovf.i", "nint"));
             conversions(sourceType: "decimal", destType: "System.IntPtr?", ExplicitNullableNumeric, expectedImplicitIL: null,
@@ -4640,7 +5003,17 @@ $@"{{
   IL_0001:  newobj     ""nint?..ctor(nint)""
   IL_0006:  ret
 }");
-            conversions(sourceType: "System.UIntPtr", destType: "System.IntPtr?", ExplicitNullableNumeric, expectedImplicitIL: null, expectedExplicitIL: convToNullableT("conv.i", "nint"), expectedCheckedIL: convToNullableT("conv.ovf.i.un", "nint"));
+            conversions(sourceType: "System.UIntPtr", destType: "System.IntPtr?", ExplicitNullableNumeric, expectedImplicitIL: null, expectedExplicitIL:
+@"
+{
+  // Code size        7 (0x7)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  newobj     ""nint?..ctor(nint)""
+  IL_0006:  ret
+}
+",
+                expectedCheckedIL: convToNullableT("conv.ovf.i.un", "nint"));
 
             // nullable type to System.IntPtr
             conversions(sourceType: "E?", destType: "System.IntPtr", ExplicitNullableEnumeration, expectedImplicitIL: null, expectedExplicitIL: convFromNullableT("conv.i", "E"));
@@ -4662,7 +5035,17 @@ $@"{{
   IL_0002:  call       ""nint nint?.Value.get""
   IL_0007:  ret
 }");
-            conversions(sourceType: "nuint?", destType: "System.IntPtr", ExplicitNullableNumeric, expectedImplicitIL: null, expectedExplicitIL: convFromNullableT("conv.i", "nuint"), expectedCheckedIL: convFromNullableT("conv.ovf.i.un", "nuint"));
+            conversions(sourceType: "nuint?", destType: "System.IntPtr", ExplicitNullableNumeric, expectedImplicitIL: null, expectedExplicitIL:
+@"
+{
+  // Code size        8 (0x8)
+  .maxstack  1
+  IL_0000:  ldarga.s   V_0
+  IL_0002:  call       ""nuint nuint?.Value.get""
+  IL_0007:  ret
+}
+",
+                expectedCheckedIL: convFromNullableT("conv.ovf.i.un", "nuint"));
             conversions(sourceType: "float?", destType: "System.IntPtr", ExplicitNullableNumeric, expectedImplicitIL: null, expectedExplicitIL: convFromNullableT("conv.i", "float"), expectedCheckedIL: convFromNullableT("conv.ovf.i", "float"));
             conversions(sourceType: "double?", destType: "System.IntPtr", ExplicitNullableNumeric, expectedImplicitIL: null, expectedExplicitIL: convFromNullableT("conv.i", "double"), expectedCheckedIL: convFromNullableT("conv.ovf.i", "double"));
             conversions(sourceType: "decimal?", destType: "System.IntPtr", ExplicitNullableNumeric, expectedImplicitIL: null,
@@ -4692,7 +5075,17 @@ $@"{{
   IL_0002:  call       ""nint nint?.Value.get""
   IL_0007:  ret
 }");
-            conversions(sourceType: "System.UIntPtr?", destType: "System.IntPtr", ExplicitNullableNumeric, expectedImplicitIL: null, expectedExplicitIL: convFromNullableT("conv.i", "nuint"), expectedCheckedIL: convFromNullableT("conv.ovf.i.un", "nuint"));
+            conversions(sourceType: "System.UIntPtr?", destType: "System.IntPtr", ExplicitNullableNumeric, expectedImplicitIL: null, expectedExplicitIL:
+@"
+{
+  // Code size        8 (0x8)
+  .maxstack  1
+  IL_0000:  ldarga.s   V_0
+  IL_0002:  call       ""nuint nuint?.Value.get""
+  IL_0007:  ret
+}
+",
+                expectedCheckedIL: convFromNullableT("conv.ovf.i.un", "nuint"));
 
             // nullable type to nullable System.IntPtr
             conversions(sourceType: "E?", destType: "System.IntPtr?", ExplicitNullableEnumeration, expectedImplicitIL: null, expectedExplicitIL: convFromToNullableT("conv.i", "E", "nint"));
@@ -4707,7 +5100,29 @@ $@"{{
             conversions(sourceType: "long?", destType: "System.IntPtr?", ExplicitNullableNumeric, expectedImplicitIL: null, expectedExplicitIL: convFromToNullableT("conv.i", "long", "nint"), expectedCheckedIL: convFromToNullableT("conv.ovf.i", "long", "nint"));
             conversions(sourceType: "ulong?", destType: "System.IntPtr?", ExplicitNullableNumeric, expectedImplicitIL: null, expectedExplicitIL: convFromToNullableT("conv.i", "ulong", "nint"), expectedCheckedIL: convFromToNullableT("conv.ovf.i.un", "ulong", "nint"));
             conversions(sourceType: "nint?", destType: "System.IntPtr?", Identity, expectedImplicitIL: convNone, expectedExplicitIL: convNone);
-            conversions(sourceType: "nuint?", destType: "System.IntPtr?", ExplicitNullableNumeric, expectedImplicitIL: null, expectedExplicitIL: convFromToNullableT("conv.i", "nuint", "nint"), expectedCheckedIL: convFromToNullableT("conv.ovf.i.un", "nuint", "nint"));
+            conversions(sourceType: "nuint?", destType: "System.IntPtr?", ExplicitNullableNumeric, expectedImplicitIL: null, expectedExplicitIL:
+@"
+{
+  // Code size       34 (0x22)
+  .maxstack  1
+  .locals init (nuint? V_0,
+                nint? V_1)
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.0
+  IL_0002:  ldloca.s   V_0
+  IL_0004:  call       ""bool nuint?.HasValue.get""
+  IL_0009:  brtrue.s   IL_0015
+  IL_000b:  ldloca.s   V_1
+  IL_000d:  initobj    ""nint?""
+  IL_0013:  ldloc.1
+  IL_0014:  ret
+  IL_0015:  ldloca.s   V_0
+  IL_0017:  call       ""nuint nuint?.GetValueOrDefault()""
+  IL_001c:  newobj     ""nint?..ctor(nint)""
+  IL_0021:  ret
+}
+",
+                expectedCheckedIL: convFromToNullableT("conv.ovf.i.un", "nuint", "nint"));
             conversions(sourceType: "float?", destType: "System.IntPtr?", ExplicitNullableNumeric, expectedImplicitIL: null, expectedExplicitIL: convFromToNullableT("conv.i", "float", "nint"), expectedCheckedIL: convFromToNullableT("conv.ovf.i", "float", "nint"));
             conversions(sourceType: "double?", destType: "System.IntPtr?", ExplicitNullableNumeric, expectedImplicitIL: null, expectedExplicitIL: convFromToNullableT("conv.i", "double", "nint"), expectedCheckedIL: convFromToNullableT("conv.ovf.i", "double", "nint"));
             conversions(sourceType: "decimal?", destType: "System.IntPtr?", ExplicitNullableNumeric, null,
@@ -4754,7 +5169,29 @@ $@"{{
   IL_0027:  ret
 }");
             conversions(sourceType: "System.IntPtr?", destType: "System.IntPtr?", Identity, expectedImplicitIL: convNone, expectedExplicitIL: convNone);
-            conversions(sourceType: "System.UIntPtr?", destType: "System.IntPtr?", ExplicitNullableNumeric, expectedImplicitIL: null, expectedExplicitIL: convFromToNullableT("conv.i", "nuint", "nint"), expectedCheckedIL: convFromToNullableT("conv.ovf.i.un", "nuint", "nint"));
+            conversions(sourceType: "System.UIntPtr?", destType: "System.IntPtr?", ExplicitNullableNumeric, expectedImplicitIL: null, expectedExplicitIL:
+@"
+{
+  // Code size       34 (0x22)
+  .maxstack  1
+  .locals init (nuint? V_0,
+                nint? V_1)
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.0
+  IL_0002:  ldloca.s   V_0
+  IL_0004:  call       ""bool nuint?.HasValue.get""
+  IL_0009:  brtrue.s   IL_0015
+  IL_000b:  ldloca.s   V_1
+  IL_000d:  initobj    ""nint?""
+  IL_0013:  ldloc.1
+  IL_0014:  ret
+  IL_0015:  ldloca.s   V_0
+  IL_0017:  call       ""nuint nuint?.GetValueOrDefault()""
+  IL_001c:  newobj     ""nint?..ctor(nint)""
+  IL_0021:  ret
+}
+",
+                expectedCheckedIL: convFromToNullableT("conv.ovf.i.un", "nuint", "nint"));
 
             // System.UIntPtr to type
             conversions(sourceType: "System.UIntPtr", destType: "object", Boxing,
@@ -4805,7 +5242,7 @@ $@"{{
   IL_0002:  call       ""decimal decimal.op_Implicit(ulong)""
   IL_0007:  ret
 }");
-            conversions(sourceType: "System.UIntPtr", destType: "System.IntPtr", ExplicitNumeric, expectedImplicitIL: null, expectedExplicitIL: conv("conv.i"), expectedCheckedIL: conv("conv.ovf.i.un"));
+            conversions(sourceType: "System.UIntPtr", destType: "System.IntPtr", ExplicitNumeric, expectedImplicitIL: null, expectedExplicitIL: convNone, expectedCheckedIL: conv("conv.ovf.i.un"));
             conversions(sourceType: "System.UIntPtr", destType: "System.UIntPtr", Identity, expectedImplicitIL: convNone, expectedExplicitIL: convNone);
 
             // System.UIntPtr to nullable type
@@ -4841,7 +5278,17 @@ $@"{{
   IL_0007:  newobj     ""decimal?..ctor(decimal)""
   IL_000c:  ret
 }");
-            conversions(sourceType: "System.UIntPtr", destType: "System.IntPtr?", ExplicitNullableNumeric, expectedImplicitIL: null, expectedExplicitIL: convToNullableT("conv.i", "nint"), expectedCheckedIL: convToNullableT("conv.ovf.i.un", "nint"));
+            conversions(sourceType: "System.UIntPtr", destType: "System.IntPtr?", ExplicitNullableNumeric, expectedImplicitIL: null, expectedExplicitIL:
+@"
+{
+  // Code size        7 (0x7)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  newobj     ""nint?..ctor(nint)""
+  IL_0006:  ret
+}
+",
+                expectedCheckedIL: convToNullableT("conv.ovf.i.un", "nint"));
             conversions(sourceType: "System.UIntPtr", destType: "System.UIntPtr?", ImplicitNullableIdentity,
 @"{
   // Code size        7 (0x7)
@@ -4900,7 +5347,17 @@ $@"{{
   IL_0008:  call       ""decimal decimal.op_Implicit(ulong)""
   IL_000d:  ret
 }");
-            conversions(sourceType: "System.UIntPtr?", destType: "System.IntPtr", ExplicitNullableNumeric, expectedImplicitIL: null, expectedExplicitIL: convFromNullableT("conv.i", "nuint"), expectedCheckedIL: convFromNullableT("conv.ovf.i.un", "nuint"));
+            conversions(sourceType: "System.UIntPtr?", destType: "System.IntPtr", ExplicitNullableNumeric, expectedImplicitIL: null, expectedExplicitIL:
+@"
+{
+  // Code size        8 (0x8)
+  .maxstack  1
+  IL_0000:  ldarga.s   V_0
+  IL_0002:  call       ""nuint nuint?.Value.get""
+  IL_0007:  ret
+}
+",
+                expectedCheckedIL: convFromNullableT("conv.ovf.i.un", "nuint"));
             conversions(sourceType: "System.UIntPtr?", destType: "System.UIntPtr", ExplicitNullableIdentity, expectedImplicitIL: null,
 @"{
   // Code size        8 (0x8)
@@ -4967,7 +5424,29 @@ $@"{{
   IL_0022:  newobj     ""decimal?..ctor(decimal)""
   IL_0027:  ret
 }");
-            conversions(sourceType: "System.UIntPtr?", destType: "System.IntPtr?", ExplicitNullableNumeric, expectedImplicitIL: null, expectedExplicitIL: convFromToNullableT("conv.i", "nuint", "nint"), expectedCheckedIL: convFromToNullableT("conv.ovf.i.un", "nuint", "nint"));
+            conversions(sourceType: "System.UIntPtr?", destType: "System.IntPtr?", ExplicitNullableNumeric, expectedImplicitIL: null, expectedExplicitIL:
+@"
+{
+  // Code size       34 (0x22)
+  .maxstack  1
+  .locals init (nuint? V_0,
+                nint? V_1)
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.0
+  IL_0002:  ldloca.s   V_0
+  IL_0004:  call       ""bool nuint?.HasValue.get""
+  IL_0009:  brtrue.s   IL_0015
+  IL_000b:  ldloca.s   V_1
+  IL_000d:  initobj    ""nint?""
+  IL_0013:  ldloc.1
+  IL_0014:  ret
+  IL_0015:  ldloca.s   V_0
+  IL_0017:  call       ""nuint nuint?.GetValueOrDefault()""
+  IL_001c:  newobj     ""nint?..ctor(nint)""
+  IL_0021:  ret
+}
+",
+                expectedCheckedIL: convFromToNullableT("conv.ovf.i.un", "nuint", "nint"));
             conversions(sourceType: "System.UIntPtr?", destType: "System.UIntPtr?", Identity, expectedImplicitIL: convNone, expectedExplicitIL: convNone);
 
             // type to System.UIntPtr
@@ -4993,7 +5472,7 @@ $@"{{
             conversions(sourceType: "uint", destType: "System.UIntPtr", ImplicitNumeric, expectedImplicitIL: conv("conv.u"), expectedExplicitIL: conv("conv.u"));
             conversions(sourceType: "long", destType: "System.UIntPtr", ExplicitNumeric, expectedImplicitIL: null, expectedExplicitIL: conv("conv.u"), expectedCheckedIL: conv("conv.ovf.u"));
             conversions(sourceType: "ulong", destType: "System.UIntPtr", ExplicitNumeric, expectedImplicitIL: null, expectedExplicitIL: conv("conv.u"), expectedCheckedIL: conv("conv.ovf.u.un"));
-            conversions(sourceType: "nint", destType: "System.UIntPtr", ExplicitNumeric, expectedImplicitIL: null, expectedExplicitIL: conv("conv.u"), expectedCheckedIL: conv("conv.ovf.u"));
+            conversions(sourceType: "nint", destType: "System.UIntPtr", ExplicitNumeric, expectedImplicitIL: null, expectedExplicitIL: convNone, expectedCheckedIL: conv("conv.ovf.u"));
             conversions(sourceType: "nuint", destType: "System.UIntPtr", Identity, expectedImplicitIL: convNone, expectedExplicitIL: convNone);
             conversions(sourceType: "float", destType: "System.UIntPtr", ExplicitNumeric, expectedImplicitIL: null, expectedExplicitIL: conv("conv.u"), expectedCheckedIL: conv("conv.ovf.u"));
             conversions(sourceType: "double", destType: "System.UIntPtr", ExplicitNumeric, expectedImplicitIL: null, expectedExplicitIL: conv("conv.u"), expectedCheckedIL: conv("conv.ovf.u"));
@@ -5014,7 +5493,7 @@ $@"{{
   IL_0006:  conv.ovf.u.un
   IL_0007:  ret
 }");
-            conversions(sourceType: "System.IntPtr", destType: "System.UIntPtr", ExplicitNumeric, expectedImplicitIL: null, expectedExplicitIL: conv("conv.u"), expectedCheckedIL: conv("conv.ovf.u"));
+            conversions(sourceType: "System.IntPtr", destType: "System.UIntPtr", ExplicitNumeric, expectedImplicitIL: null, expectedExplicitIL: convNone, expectedCheckedIL: conv("conv.ovf.u"));
             conversions(sourceType: "System.UIntPtr", destType: "System.UIntPtr", Identity, expectedImplicitIL: convNone, expectedExplicitIL: convNone);
 
             // type to nullable System.UIntPtr
@@ -5054,7 +5533,17 @@ $@"{{
             conversions(sourceType: "uint", destType: "System.UIntPtr?", ImplicitNullableNumeric, expectedImplicitIL: convToNullableT("conv.u", "nuint"), expectedExplicitIL: convToNullableT("conv.u", "nuint"));
             conversions(sourceType: "long", destType: "System.UIntPtr?", ExplicitNullableNumeric, expectedImplicitIL: null, expectedExplicitIL: convToNullableT("conv.u", "nuint"), expectedCheckedIL: convToNullableT("conv.ovf.u", "nuint"));
             conversions(sourceType: "ulong", destType: "System.UIntPtr?", ExplicitNullableNumeric, expectedImplicitIL: null, expectedExplicitIL: convToNullableT("conv.u", "nuint"), expectedCheckedIL: convToNullableT("conv.ovf.u.un", "nuint"));
-            conversions(sourceType: "nint", destType: "System.UIntPtr?", ExplicitNullableNumeric, expectedImplicitIL: null, expectedExplicitIL: convToNullableT("conv.u", "nuint"), expectedCheckedIL: convToNullableT("conv.ovf.u", "nuint"));
+            conversions(sourceType: "nint", destType: "System.UIntPtr?", ExplicitNullableNumeric, expectedImplicitIL: null, expectedExplicitIL:
+@"
+{
+  // Code size        7 (0x7)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  newobj     ""nuint?..ctor(nuint)""
+  IL_0006:  ret
+}
+",
+                expectedCheckedIL: convToNullableT("conv.ovf.u", "nuint"));
             conversions(sourceType: "nuint", destType: "System.UIntPtr?", ImplicitNullableIdentity,
 @"{
   // Code size        7 (0x7)
@@ -5091,7 +5580,17 @@ $@"{{
   IL_0007:  newobj     ""nuint?..ctor(nuint)""
   IL_000c:  ret
 }");
-            conversions(sourceType: "System.IntPtr", destType: "System.UIntPtr?", ExplicitNullableNumeric, expectedImplicitIL: null, expectedExplicitIL: convToNullableT("conv.u", "nuint"), expectedCheckedIL: convToNullableT("conv.ovf.u", "nuint"));
+            conversions(sourceType: "System.IntPtr", destType: "System.UIntPtr?", ExplicitNullableNumeric, expectedImplicitIL: null, expectedExplicitIL:
+@"
+{
+  // Code size        7 (0x7)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  newobj     ""nuint?..ctor(nuint)""
+  IL_0006:  ret
+}
+",
+                expectedCheckedIL: convToNullableT("conv.ovf.u", "nuint"));
             conversions(sourceType: "System.UIntPtr", destType: "System.UIntPtr?", ImplicitNullableIdentity,
 @"{
   // Code size        7 (0x7)
@@ -5120,7 +5619,17 @@ $@"{{
             conversions(sourceType: "uint?", destType: "System.UIntPtr", ExplicitNullableImplicitNumeric, expectedImplicitIL: null, expectedExplicitIL: convFromNullableT("conv.u", "uint"));
             conversions(sourceType: "long?", destType: "System.UIntPtr", ExplicitNullableNumeric, expectedImplicitIL: null, expectedExplicitIL: convFromNullableT("conv.u", "long"), expectedCheckedIL: convFromNullableT("conv.ovf.u", "long"));
             conversions(sourceType: "ulong?", destType: "System.UIntPtr", ExplicitNullableNumeric, expectedImplicitIL: null, expectedExplicitIL: convFromNullableT("conv.u", "ulong"), expectedCheckedIL: convFromNullableT("conv.ovf.u.un", "ulong"));
-            conversions(sourceType: "nint?", destType: "System.UIntPtr", ExplicitNullableNumeric, expectedImplicitIL: null, expectedExplicitIL: convFromNullableT("conv.u", "nint"), expectedCheckedIL: convFromNullableT("conv.ovf.u", "nint"));
+            conversions(sourceType: "nint?", destType: "System.UIntPtr", ExplicitNullableNumeric, expectedImplicitIL: null, expectedExplicitIL:
+@"
+{
+  // Code size        8 (0x8)
+  .maxstack  1
+  IL_0000:  ldarga.s   V_0
+  IL_0002:  call       ""nint nint?.Value.get""
+  IL_0007:  ret
+}
+",
+                expectedCheckedIL: convFromNullableT("conv.ovf.u", "nint"));
             conversions(sourceType: "nuint?", destType: "System.UIntPtr", ExplicitNullableIdentity, expectedImplicitIL: null,
 @"{
   // Code size        8 (0x8)
@@ -5150,7 +5659,17 @@ $@"{{
   IL_000c:  conv.ovf.u.un
   IL_000d:  ret
 }");
-            conversions(sourceType: "System.IntPtr?", destType: "System.UIntPtr", ExplicitNullableNumeric, expectedImplicitIL: null, expectedExplicitIL: convFromNullableT("conv.u", "nint"), expectedCheckedIL: convFromNullableT("conv.ovf.u", "nint"));
+            conversions(sourceType: "System.IntPtr?", destType: "System.UIntPtr", ExplicitNullableNumeric, expectedImplicitIL: null, expectedExplicitIL:
+@"
+{
+  // Code size        8 (0x8)
+  .maxstack  1
+  IL_0000:  ldarga.s   V_0
+  IL_0002:  call       ""nint nint?.Value.get""
+  IL_0007:  ret
+}
+",
+                expectedCheckedIL: convFromNullableT("conv.ovf.u", "nint"));
             conversions(sourceType: "System.UIntPtr?", destType: "System.UIntPtr", ExplicitNullableIdentity, expectedImplicitIL: null,
 @"{
   // Code size        8 (0x8)
@@ -5172,7 +5691,29 @@ $@"{{
             conversions(sourceType: "uint?", destType: "System.UIntPtr?", ImplicitNullableNumeric, expectedImplicitIL: convFromToNullableT("conv.u", "uint", "nuint"), expectedExplicitIL: convFromToNullableT("conv.u", "uint", "nuint"));
             conversions(sourceType: "long?", destType: "System.UIntPtr?", ExplicitNullableNumeric, expectedImplicitIL: null, expectedExplicitIL: convFromToNullableT("conv.u", "long", "nuint"), expectedCheckedIL: convFromToNullableT("conv.ovf.u", "long", "nuint"));
             conversions(sourceType: "ulong?", destType: "System.UIntPtr?", ExplicitNullableNumeric, expectedImplicitIL: null, expectedExplicitIL: convFromToNullableT("conv.u", "ulong", "nuint"), expectedCheckedIL: convFromToNullableT("conv.ovf.u.un", "ulong", "nuint"));
-            conversions(sourceType: "nint?", destType: "System.UIntPtr?", ExplicitNullableNumeric, expectedImplicitIL: null, expectedExplicitIL: convFromToNullableT("conv.u", "nint", "nuint"), expectedCheckedIL: convFromToNullableT("conv.ovf.u", "nint", "nuint"));
+            conversions(sourceType: "nint?", destType: "System.UIntPtr?", ExplicitNullableNumeric, expectedImplicitIL: null, expectedExplicitIL:
+@"
+{
+  // Code size       34 (0x22)
+  .maxstack  1
+  .locals init (nint? V_0,
+                nuint? V_1)
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.0
+  IL_0002:  ldloca.s   V_0
+  IL_0004:  call       ""bool nint?.HasValue.get""
+  IL_0009:  brtrue.s   IL_0015
+  IL_000b:  ldloca.s   V_1
+  IL_000d:  initobj    ""nuint?""
+  IL_0013:  ldloc.1
+  IL_0014:  ret
+  IL_0015:  ldloca.s   V_0
+  IL_0017:  call       ""nint nint?.GetValueOrDefault()""
+  IL_001c:  newobj     ""nuint?..ctor(nuint)""
+  IL_0021:  ret
+}
+",
+                expectedCheckedIL: convFromToNullableT("conv.ovf.u", "nint", "nuint"));
             conversions(sourceType: "nuint?", destType: "System.UIntPtr?", Identity, expectedImplicitIL: convNone, expectedExplicitIL: convNone);
             conversions(sourceType: "float?", destType: "System.UIntPtr?", ExplicitNullableNumeric, expectedImplicitIL: null, expectedExplicitIL: convFromToNullableT("conv.u", "float", "nuint"), expectedCheckedIL: convFromToNullableT("conv.ovf.u", "float", "nuint"));
             conversions(sourceType: "double?", destType: "System.UIntPtr?", ExplicitNullableNumeric, expectedImplicitIL: null, expectedExplicitIL: convFromToNullableT("conv.u", "double", "nuint"), expectedCheckedIL: convFromToNullableT("conv.ovf.u", "double", "nuint"));
@@ -5219,7 +5760,29 @@ $@"{{
   IL_0022:  newobj     ""nuint?..ctor(nuint)""
   IL_0027:  ret
 }");
-            conversions(sourceType: "System.IntPtr?", destType: "System.UIntPtr?", ExplicitNullableNumeric, expectedImplicitIL: null, expectedExplicitIL: convFromToNullableT("conv.u", "nint", "nuint"), expectedCheckedIL: convFromToNullableT("conv.ovf.u", "nint", "nuint"));
+            conversions(sourceType: "System.IntPtr?", destType: "System.UIntPtr?", ExplicitNullableNumeric, expectedImplicitIL: null, expectedExplicitIL:
+@"
+{
+  // Code size       34 (0x22)
+  .maxstack  1
+  .locals init (nint? V_0,
+                nuint? V_1)
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.0
+  IL_0002:  ldloca.s   V_0
+  IL_0004:  call       ""bool nint?.HasValue.get""
+  IL_0009:  brtrue.s   IL_0015
+  IL_000b:  ldloca.s   V_1
+  IL_000d:  initobj    ""nuint?""
+  IL_0013:  ldloc.1
+  IL_0014:  ret
+  IL_0015:  ldloca.s   V_0
+  IL_0017:  call       ""nint nint?.GetValueOrDefault()""
+  IL_001c:  newobj     ""nuint?..ctor(nuint)""
+  IL_0021:  ret
+}
+",
+                expectedCheckedIL: convFromToNullableT("conv.ovf.u", "nint", "nuint"));
             conversions(sourceType: "System.UIntPtr?", destType: "System.UIntPtr?", Identity, expectedImplicitIL: convNone, expectedExplicitIL: convNone);
 
             return;
@@ -8265,7 +8828,8 @@ $@"public class Library
     {declarations}
     public const {opType} F = {expr};
 }}";
-                var comp = CreateNumericIntPtrCompilation(sourceA, references: new[] { MscorlibRefWithoutSharingCachedSymbols }, parseOptions: TestOptions.Regular9);
+                var mscorlibRefWithoutSharing = MscorlibRefWithoutSharingCachedSymbols;
+                var comp = CreateNumericIntPtrCompilation(sourceA, references: new[] { mscorlibRefWithoutSharing }, parseOptions: TestOptions.Regular9);
 
                 comp.VerifyDiagnostics(expectedDiagnostics);
 
@@ -8284,7 +8848,7 @@ $@"public class Library
     }
 }";
                 var refA = comp.EmitToImageReference();
-                comp = CreateNumericIntPtrCompilation(sourceB, references: new[] { refA, MscorlibRefWithoutSharingCachedSymbols }, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular9);
+                comp = CreateEmptyCompilation(sourceB, references: new[] { refA, mscorlibRefWithoutSharing }, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular9);
 
                 CompileAndVerify(comp, expectedOutput: expectedResult);
                 Assert.NotNull(expectedResult);
@@ -8633,11 +9197,11 @@ class B : A
         {
             convert(fromType: "nint", toType: "ulong", "int.MinValue", "18446744071562067968", "conv.i8", "System.OverflowException", "conv.ovf.u8");
             convert(fromType: "nint", toType: "ulong", "int.MaxValue", "2147483647", "conv.i8", "2147483647", "conv.ovf.u8");
-            convert(fromType: "nint", toType: "nuint", "int.MinValue", IntPtr.Size == 4 ? "2147483648" : "18446744071562067968", "conv.u", "System.OverflowException", "conv.ovf.u");
-            convert(fromType: "nint", toType: "nuint", "int.MaxValue", "2147483647", "conv.u", "2147483647", "conv.ovf.u");
+            convert(fromType: "nint", toType: "nuint", "int.MinValue", IntPtr.Size == 4 ? "2147483648" : "18446744071562067968", null, "System.OverflowException", "conv.ovf.u");
+            convert(fromType: "nint", toType: "nuint", "int.MaxValue", "2147483647", null, "2147483647", "conv.ovf.u");
 
             convert(fromType: "nuint", toType: "long", "uint.MaxValue", "4294967295", "conv.u8", "4294967295", "conv.ovf.i8.un");
-            convert(fromType: "nuint", toType: "nint", "uint.MaxValue", IntPtr.Size == 4 ? "-1" : "4294967295", "conv.i", IntPtr.Size == 4 ? "System.OverflowException" : "4294967295", "conv.ovf.i.un");
+            convert(fromType: "nuint", toType: "nint", "uint.MaxValue", IntPtr.Size == 4 ? "-1" : "4294967295", null, IntPtr.Size == 4 ? "System.OverflowException" : "4294967295", "conv.ovf.i.un");
 
             string nintMinValue = IntPtr.Size == 4 ? int.MinValue.ToString() : long.MinValue.ToString();
             string nintMaxValue = IntPtr.Size == 4 ? int.MaxValue.ToString() : long.MaxValue.ToString();
@@ -8645,11 +9209,11 @@ class B : A
 
             convert(fromType: "nint", toType: "ulong", nintMinValue, IntPtr.Size == 4 ? "18446744071562067968" : "9223372036854775808", "conv.i8", "System.OverflowException", "conv.ovf.u8");
             convert(fromType: "nint", toType: "ulong", nintMaxValue, IntPtr.Size == 4 ? "2147483647" : "9223372036854775807", "conv.i8", IntPtr.Size == 4 ? "2147483647" : "9223372036854775807", "conv.ovf.u8");
-            convert(fromType: "nint", toType: "nuint", nintMinValue, IntPtr.Size == 4 ? "2147483648" : "9223372036854775808", "conv.u", "System.OverflowException", "conv.ovf.u");
-            convert(fromType: "nint", toType: "nuint", nintMaxValue, IntPtr.Size == 4 ? "2147483647" : "9223372036854775807", "conv.u", IntPtr.Size == 4 ? "2147483647" : "9223372036854775807", "conv.ovf.u");
+            convert(fromType: "nint", toType: "nuint", nintMinValue, IntPtr.Size == 4 ? "2147483648" : "9223372036854775808", null, "System.OverflowException", "conv.ovf.u");
+            convert(fromType: "nint", toType: "nuint", nintMaxValue, IntPtr.Size == 4 ? "2147483647" : "9223372036854775807", null, IntPtr.Size == 4 ? "2147483647" : "9223372036854775807", "conv.ovf.u");
 
             convert(fromType: "nuint", toType: "long", nuintMaxValue, IntPtr.Size == 4 ? "4294967295" : "-1", "conv.u8", IntPtr.Size == 4 ? "4294967295" : "System.OverflowException", "conv.ovf.i8.un");
-            convert(fromType: "nuint", toType: "nint", nuintMaxValue, "-1", "conv.i", "System.OverflowException", "conv.ovf.i.un");
+            convert(fromType: "nuint", toType: "nint", nuintMaxValue, "-1", null, "System.OverflowException", "conv.ovf.i.un");
 
             void convert(string fromType, string toType, string fromValue, string toValueUnchecked, string toConvUnchecked, string toValueChecked, string toConvChecked)
             {
@@ -8683,7 +9247,14 @@ class Program
 $@"{toValueUnchecked}
 {toValueChecked}");
 
-                verifier.VerifyIL("Program.Convert",
+                verifier.VerifyIL("Program.Convert", toConvUnchecked is null ?
+@"
+{
+  // Code size        2 (0x2)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  ret
+}" :
 $@"{{
   // Code size        3 (0x3)
   .maxstack  1
@@ -9269,6 +9840,13 @@ $@"static class NativeInts
 }}";
             var comp = CreateNumericIntPtrCompilation(source, references: new[] { MscorlibRefWithoutSharingCachedSymbols });
             var verifier = CompileAndVerify(comp);
+            string expectedExplicitILNop =
+@"{
+  // Code size        2 (0x2)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  ret
+}";
             string expectedExplicitILA =
 @"{
   // Code size        3 (0x3)
@@ -9297,7 +9875,7 @@ $@"static class NativeInts
             verifier.VerifyIL("NativeInts.Explicit2", expectedExplicitILA);
             verifier.VerifyIL("NativeInts.Explicit3", expectedExplicitILA);
             verifier.VerifyIL("NativeInts.Explicit4", expectedExplicitILB);
-            verifier.VerifyIL("NativeInts.Explicit5", expectedExplicitILB);
+            verifier.VerifyIL("NativeInts.Explicit5", expectedExplicitILNop);
             verifier.VerifyIL("NativeInts.Checked1", expectedCheckedIL);
             verifier.VerifyIL("NativeInts.Checked2", expectedCheckedIL);
             verifier.VerifyIL("NativeInts.Checked3", expectedCheckedIL);
@@ -9562,7 +10140,7 @@ interface I
     void M(nint x1, System.IntPtr x2, nuint x3, System.UIntPtr x4);
 }
 ";
-            var parseOptions = useCSharp11 ? TestOptions.Regular11 : TestOptions.Regular10;
+            var parseOptions = (useCSharp11 ? TestOptions.Regular11 : TestOptions.Regular10).WithNoRefSafetyRulesAttribute();
 
             var comp = CreateEmptyCompilation(new[] { source, corlib_cs }, parseOptions: parseOptions);
             verify(comp);
@@ -10333,6 +10911,14 @@ namespace System
     public struct RuntimeTypeHandle { }
     public class MulticastDelegate : Delegate { }
     public class Attribute { }
+    public class AttributeUsageAttribute : Attribute
+    {
+        public AttributeUsageAttribute(AttributeTargets t) { }
+        public bool AllowMultiple { get; set; }
+        public bool Inherited { get; set; }
+    }
+    public class Enum { }
+    public enum AttributeTargets { }
 
     public delegate void Action();
 
@@ -10958,6 +11544,75 @@ static class C
   IL_000f:  ret
 }
 ");
+        }
+
+        [WorkItem(63348, "https://github.com/dotnet/roslyn/issues/63348")]
+        [Fact]
+        public void ConditionalStackalloc()
+        {
+            var source =
+@"using System;
+class Program
+{
+    static int F(int n)
+    {
+        Span<char> s = n < 10 ? stackalloc char[n] : new char[n];
+        return s[n - 1];
+    }
+    static void Main()
+    {
+        Console.Write(F(1));
+        Console.Write(F(11));
+    }
+}";
+
+            var comp = CreateCompilation(new[] { SpanSource, source }, options: TestOptions.UnsafeReleaseExe);
+            verify(comp);
+
+            comp = CreateNumericIntPtrCompilation(new[] { SpanSource, source }, references: new[] { MscorlibRefWithoutSharingCachedSymbols }, options: TestOptions.UnsafeReleaseExe);
+            verify(comp);
+
+            void verify(CSharpCompilation comp)
+            {
+                comp.VerifyEmitDiagnostics();
+                var verifier = CompileAndVerify(comp, verify: Verification.Skipped, expectedOutput: "00");
+                verifier.VerifyIL("Program.F", """
+{
+  // Code size       48 (0x30)
+  .maxstack  3
+  .locals init (System.Span<char> V_0, //s
+                System.Span<char> V_1,
+                int V_2)
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.i4.s   10
+  IL_0003:  bge.s      IL_0016
+  IL_0005:  ldarg.0
+  IL_0006:  stloc.2
+  IL_0007:  ldloc.2
+  IL_0008:  conv.u
+  IL_0009:  ldc.i4.2
+  IL_000a:  mul.ovf.un
+  IL_000b:  localloc
+  IL_000d:  ldloc.2
+  IL_000e:  newobj     "System.Span<char>..ctor(void*, int)"
+  IL_0013:  stloc.1
+  IL_0014:  br.s       IL_0022
+  IL_0016:  ldarg.0
+  IL_0017:  newarr     "char"
+  IL_001c:  call       "System.Span<char> System.Span<char>.op_Implicit(char[])"
+  IL_0021:  stloc.1
+  IL_0022:  ldloc.1
+  IL_0023:  stloc.0
+  IL_0024:  ldloca.s   V_0
+  IL_0026:  ldarg.0
+  IL_0027:  ldc.i4.1
+  IL_0028:  sub
+  IL_0029:  call       "ref char System.Span<char>.this[int].get"
+  IL_002e:  ldind.u2
+  IL_002f:  ret
+}
+""");
+            }
         }
 
         private void VerifyNoNativeIntegerAttributeEmitted(CSharpCompilation comp)

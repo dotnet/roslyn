@@ -7,6 +7,7 @@ Imports Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings
 Imports Microsoft.CodeAnalysis.VisualBasic.ConvertIfToSwitch
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeActions.ConvertIfToSwitch
+    <Trait(Traits.Feature, Traits.Features.CodeActionsConvertIfToSwitch)>
     Public Class ConvertIfToSwitchTests
         Inherits AbstractVisualBasicCodeActionTest
 
@@ -14,7 +15,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeActions.Conver
             Return New VisualBasicConvertIfToSwitchCodeRefactoringProvider()
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertIfToSwitch)>
+        <Fact>
         Public Async Function TestMultipleCases() As Task
             Await TestInRegularAndScriptAsync(
 "Class C
@@ -42,7 +43,7 @@ End Class",
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertIfToSwitch)>
+        <Fact>
         Public Async Function TestMultipleCaseLineContinuation() As Task
             Await TestInRegularAndScriptAsync(
 "Class C
@@ -71,7 +72,7 @@ End Class",
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertIfToSwitch)>
+        <Fact>
         Public Async Function TestConstantExpression() As Task
             Await TestInRegularAndScriptAsync(
 "Class C
@@ -93,7 +94,7 @@ End Class",
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertIfToSwitch)>
+        <Fact>
         Public Async Function TestMissingOnNonConstantExpression() As Task
             Await TestMissingInRegularAndScriptAsync(
 "Class C
@@ -106,7 +107,7 @@ End Class")
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertIfToSwitch)>
+        <Fact>
         Public Async Function TestMissingOnDifferentOperands() As Task
             Await TestMissingInRegularAndScriptAsync(
 "Class C
@@ -118,7 +119,7 @@ End Class")
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertIfToSwitch)>
+        <Fact>
         Public Async Function TestMissingForSingleCase() As Task
             Await TestMissingAsync(
 "Class C
@@ -129,7 +130,7 @@ End Class")
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertIfToSwitch)>
+        <Fact>
         Public Async Function TestRange() As Task
             Await TestInRegularAndScriptAsync(
 "Class C
@@ -149,7 +150,7 @@ End Class",
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertIfToSwitch)>
+        <Fact>
         Public Async Function TestComparison() As Task
             Await TestInRegularAndScriptAsync(
 "Class C
@@ -167,7 +168,7 @@ End Class",
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertIfToSwitch)>
+        <Fact>
         Public Async Function TestComplexIf() As Task
             Await TestInRegularAndScriptAsync(
 "Class C
@@ -185,7 +186,7 @@ End Class",
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertIfToSwitch)>
+        <Fact>
         Public Async Function TestSingleLineIf() As Task
             Await TestInRegularAndScriptAsync(
 "Class C
@@ -205,7 +206,7 @@ End Class",
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertIfToSwitch)>
+        <Fact>
         Public Async Function TestSubsequentIfStatements_01() As Task
             Await TestInRegularAndScriptAsync(
 "Class C
@@ -229,7 +230,7 @@ End Class",
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertIfToSwitch)>
+        <Fact>
         Public Async Function TestSubsequentIfStatements_02() As Task
             Await TestInRegularAndScriptAsync(
 "Class C
@@ -252,7 +253,7 @@ End Class",
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertIfToSwitch)>
+        <Fact>
         Public Async Function TestSubsequentIfStatements_03() As Task
             Await TestInRegularAndScriptAsync(
 "Class C
@@ -277,7 +278,7 @@ End Class",
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertIfToSwitch)>
+        <Fact>
         Public Async Function TestSubsequentIfStatements_04() As Task
             Await TestInRegularAndScriptAsync(
 "Class C
@@ -302,7 +303,7 @@ End Class",
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertIfToSwitch)>
+        <Fact>
         Public Async Function TestSubsequentIfStatements_05() As Task
             Await TestInRegularAndScriptAsync(
 "Class C
@@ -333,7 +334,7 @@ End Class",
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertIfToSwitch)>
+        <Fact>
         Public Async Function TestSubsequentIfStatements_06() As Task
             Await TestInRegularAndScriptAsync(
 "Class C
@@ -367,7 +368,7 @@ End Class",
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertIfToSwitch)>
+        <Fact>
         Public Async Function TestExitWhile() As Task
             Await TestInRegularAndScriptAsync(
 "Class C
@@ -393,8 +394,7 @@ End Class",
 End Class")
         End Function
 
-        <WorkItem(21103, "https://github.com/dotnet/roslyn/issues/21103")>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertIfToSwitch)>
+        <Fact, WorkItem(21103, "https://github.com/dotnet/roslyn/issues/21103")>
         Public Async Function TestTrivia1() As Task
             Await TestInRegularAndScriptAsync(
 "Class C

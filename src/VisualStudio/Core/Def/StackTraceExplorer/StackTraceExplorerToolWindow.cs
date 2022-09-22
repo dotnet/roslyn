@@ -12,6 +12,7 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame;
 using Microsoft.CodeAnalysis.StackTraceExplorer;
@@ -46,7 +47,7 @@ namespace Microsoft.VisualStudio.LanguageServices.StackTraceExplorer
 
             dockPanel.CommandBindings.Add(new CommandBinding(ApplicationCommands.Paste, (s, e) =>
             {
-                Root?.ViewModel.DoPasteAsync(default).Start();
+                Root?.ViewModel.DoPasteAsync(default).FileAndForget("StackTraceExplorerPaste");
             }));
 
             Content = dockPanel;
@@ -125,12 +126,15 @@ namespace Microsoft.VisualStudio.LanguageServices.StackTraceExplorer
             var formatMap = formatMapService.GetClassificationFormatMap(StandardContentTypeNames.Text);
             var typeMap = roslynPackage.ComponentModel.GetService<ClassificationTypeMap>();
             var threadingContext = roslynPackage.ComponentModel.GetService<IThreadingContext>();
+            var themingService = roslynPackage.ComponentModel.GetService<IWpfThemeService>();
 
             Root = new StackTraceExplorerRoot(new StackTraceExplorerRootViewModel(threadingContext, workspace, formatMap, typeMap))
             {
                 HorizontalAlignment = HorizontalAlignment.Stretch,
                 VerticalAlignment = VerticalAlignment.Stretch
             };
+
+            themingService?.ApplyThemeToElement(Root);
 
             var contentRoot = (DockPanel)Content;
             contentRoot.Children.Add(Root);
@@ -179,11 +183,13 @@ namespace Microsoft.VisualStudio.LanguageServices.StackTraceExplorer
                 {
                     case VSStd97CmdID.Paste:
                         Root?.ViewModel.DoPasteSynchronously(default);
-                        break;
+                        return S_OK;
                 }
             }
 
-            return VSConstants.S_OK;
+            // Return OLECMDERR_E_UNKNOWNGROUP if we don't handle the command
+            // see https://docs.microsoft.com/en-us/windows/win32/api/docobj/nf-docobj-iolecommandtarget-exec#return-value
+            return -2147221244;
         }
     }
 }

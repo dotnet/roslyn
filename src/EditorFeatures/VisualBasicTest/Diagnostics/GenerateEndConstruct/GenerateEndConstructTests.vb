@@ -7,6 +7,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.CodeFixes.GenerateEndConstruct
 Imports Microsoft.CodeAnalysis.Diagnostics
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.GenerateEndConstruct
+    <Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEndConstruct)>
     Public Class GenerateEndConstructTests
         Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest
 
@@ -14,7 +15,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.Genera
             Return (Nothing, New GenerateEndConstructCodeFixProvider())
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEndConstruct)>
+        <Fact>
         Public Async Function TestIf() As Task
             Dim text = <MethodBody>
 If True Then[||]
@@ -28,7 +29,7 @@ End If</MethodBody>
             Await TestInRegularAndScriptAsync(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag())
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEndConstruct)>
+        <Fact>
         Public Async Function TestUsing() As Task
             Dim text = <MethodBody>
 Using (goo)[||]
@@ -42,7 +43,7 @@ End Using</MethodBody>
             Await TestInRegularAndScriptAsync(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag())
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEndConstruct)>
+        <Fact>
         Public Async Function TestStructure() As Task
             Dim text = <File>
 Structure Goo[||]</File>
@@ -52,7 +53,7 @@ Structure Goo[||]</File>
             Await TestInRegularAndScriptAsync(text.ConvertTestSourceTag(), expected)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEndConstruct)>
+        <Fact>
         Public Async Function TestModule() As Task
             Dim text = <File>
 Module Goo[||]
@@ -63,7 +64,7 @@ Module Goo[||]
             Await TestInRegularAndScriptAsync(text.ConvertTestSourceTag(), expected)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEndConstruct)>
+        <Fact>
         Public Async Function TestNamespace() As Task
             Dim text = <File>
 Namespace Goo[||]
@@ -74,7 +75,7 @@ Namespace Goo[||]
             Await TestInRegularAndScriptAsync(text.ConvertTestSourceTag(), expected)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEndConstruct)>
+        <Fact>
         Public Async Function TestClass() As Task
             Dim text = <File>
 Class Goo[||]
@@ -85,7 +86,7 @@ Class Goo[||]
             Await TestInRegularAndScriptAsync(text.ConvertTestSourceTag(), expected)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEndConstruct)>
+        <Fact>
         Public Async Function TestInterface() As Task
             Dim text = <File>
 Interface Goo[||]
@@ -96,7 +97,7 @@ Interface Goo[||]
             Await TestInRegularAndScriptAsync(text.ConvertTestSourceTag(), expected)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEndConstruct)>
+        <Fact>
         Public Async Function TestEnum() As Task
             Dim text = <File>
 Enum Goo[||]
@@ -107,7 +108,7 @@ Enum Goo[||]
             Await TestInRegularAndScriptAsync(text.ConvertTestSourceTag(), expected)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEndConstruct)>
+        <Fact>
         Public Async Function TestWhile() As Task
             Dim text = <MethodBody>
 While True[||]</MethodBody>
@@ -120,7 +121,7 @@ End While</MethodBody>
             Await TestInRegularAndScriptAsync(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag())
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEndConstruct)>
+        <Fact>
         Public Async Function TestWith() As Task
             Dim text = <MethodBody>
 With True[||]</MethodBody>
@@ -133,7 +134,7 @@ End With</MethodBody>
             Await TestInRegularAndScriptAsync(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag())
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEndConstruct)>
+        <Fact>
         Public Async Function TestSyncLock() As Task
             Dim text = <MethodBody>
 SyncLock Me[||]</MethodBody>
@@ -146,7 +147,7 @@ End SyncLock</MethodBody>
             Await TestInRegularAndScriptAsync(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag())
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEndConstruct)>
+        <Fact>
         Public Async Function TestDoLoop() As Task
             Dim text = <MethodBody>
 Do While True[||]</MethodBody>
@@ -159,7 +160,7 @@ Loop</MethodBody>
             Await TestInRegularAndScriptAsync(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag())
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEndConstruct)>
+        <Fact>
         Public Async Function TestForNext() As Task
             Dim text = <MethodBody>
 For x = 1 to 3[||]</MethodBody>
@@ -172,7 +173,7 @@ Next</MethodBody>
             Await TestInRegularAndScriptAsync(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag())
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEndConstruct)>
+        <Fact>
         Public Async Function TestForEachNext() As Task
             Dim text = <MethodBody>
 For Each x in {}[||]</MethodBody>
@@ -185,7 +186,7 @@ Next</MethodBody>
             Await TestInRegularAndScriptAsync(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag())
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEndConstruct)>
+        <Fact>
         Public Async Function TestEndTry() As Task
             Dim text = <MethodBody>
 Try[||]</MethodBody>
@@ -198,7 +199,7 @@ End Try</MethodBody>
             Await TestInRegularAndScriptAsync(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag())
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEndConstruct)>
+        <Fact>
         Public Async Function TestEndTryCatch() As Task
             Dim text = <MethodBody>
 Try[||]
@@ -213,7 +214,7 @@ End Try</MethodBody>
             Await TestInRegularAndScriptAsync(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag())
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEndConstruct)>
+        <Fact>
         Public Async Function TestEndTryCatchFinally() As Task
             Dim text = <MethodBody>
 Try[||]
@@ -230,7 +231,7 @@ End Try</MethodBody>
             Await TestInRegularAndScriptAsync(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag())
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEndConstruct)>
+        <Fact>
         Public Async Function TestProperty() As Task
             Dim text = <File>
 Class C
@@ -251,7 +252,7 @@ End Class</File>
             Await TestInRegularAndScriptAsync(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag())
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEndConstruct)>
+        <Fact>
         Public Async Function TestReadOnlyProperty() As Task
             Dim text = <File>
 Class C
@@ -270,7 +271,7 @@ End Class</File>
             Await TestInRegularAndScriptAsync(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag())
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEndConstruct)>
+        <Fact>
         Public Async Function TestWriteOnlyProperty() As Task
             Dim text = <File>
 Class C
@@ -289,7 +290,7 @@ End Class</File>
             Await TestInRegularAndScriptAsync(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag())
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEndConstruct)>
+        <Fact>
         Public Async Function TestWriteOnlyPropertyFromSet() As Task
             Dim text = <File>
 Class C
@@ -308,7 +309,7 @@ End Class</File>
             Await TestInRegularAndScriptAsync(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag())
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEndConstruct)>
+        <Fact>
         Public Async Function TestInvInsideEndsEnum() As Task
             Dim text = <File>
 Public Enum e[||]
@@ -327,7 +328,7 @@ End Class</File>
             Await TestInRegularAndScriptAsync(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag())
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEndConstruct)>
+        <Fact>
         Public Async Function TestMissingEndSub() As Task
             Dim text = <File>
 Class C
@@ -344,7 +345,7 @@ End Class</File>
             Await TestInRegularAndScriptAsync(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag())
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEndConstruct)>
+        <Fact>
         Public Async Function TestMissingEndFunction() As Task
             Dim text = <File>
 Class C
@@ -361,8 +362,7 @@ End Class</File>
             Await TestInRegularAndScriptAsync(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag())
         End Function
 
-        <WorkItem(576176, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/576176")>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEndConstruct)>
+        <Fact, WorkItem(576176, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/576176")>
         Public Async Function TestFormatWrappedBlock() As Task
             Dim text = <File>
 Class C
@@ -393,8 +393,7 @@ End Class</File>
             Await TestInRegularAndScriptAsync(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag())
         End Function
 
-        <WorkItem(578253, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/578253")>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEndConstruct)>
+        <Fact, WorkItem(578253, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/578253")>
         Public Async Function TestDoNotWrapCLass() As Task
             Dim text = <File>
 Class C[||]
@@ -425,8 +424,7 @@ End Module</File>
             Await TestInRegularAndScriptAsync(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag())
         End Function
 
-        <WorkItem(578260, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/578260")>
-        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEndConstruct)>
+        <Fact, WorkItem(578260, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/578260")>
         Public Async Function TestNotOnLambda() As Task
             Await TestMissingInRegularAndScriptAsync(
 "Imports System
@@ -443,8 +441,7 @@ Module Program
 End Module")
         End Function
 
-        <WorkItem(578271, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/578271")>
-        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEndConstruct)>
+        <Fact, WorkItem(578271, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/578271")>
         Public Async Function TestNamespaceThatEndsAtFile() As Task
             Dim text = <File>
 Namespace N[||]

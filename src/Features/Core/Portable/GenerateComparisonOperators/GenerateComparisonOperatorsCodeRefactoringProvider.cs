@@ -12,7 +12,7 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.Editing;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.GenerateComparisonOperators
         private const string LeftName = "left";
         private const string RightName = "right";
 
-        private static ImmutableArray<CodeGenerationOperatorKind> s_operatorKinds =
+        private static readonly ImmutableArray<CodeGenerationOperatorKind> s_operatorKinds =
             ImmutableArray.Create(
                 CodeGenerationOperatorKind.LessThan,
                 CodeGenerationOperatorKind.LessThanOrEqual,

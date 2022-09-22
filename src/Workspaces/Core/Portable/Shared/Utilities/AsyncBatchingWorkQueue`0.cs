@@ -26,7 +26,7 @@ namespace Roslyn.Utilities
         private static Func<ImmutableSegmentedList<VoidResult>, CancellationToken, ValueTask> Convert(Func<CancellationToken, ValueTask> processBatchAsync)
             => (items, ct) => processBatchAsync(ct);
 
-        public void AddWork()
-            => base.AddWork(default(VoidResult));
+        public void AddWork(bool cancelExistingWork = false)
+            => base.AddWork(default(VoidResult), cancelExistingWork);
     }
 }

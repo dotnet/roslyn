@@ -2293,7 +2293,8 @@ public delegate void D();
 
 public interface I1 {}
 ";
-            var compilation1 = CreateEmptyCompilation(source1, options: TestOptions.ReleaseDll, references: new[] { MinCorlibRef });
+            var parseOptions = TestOptions.Regular.WithNoRefSafetyRulesAttribute();
+            var compilation1 = CreateEmptyCompilation(source1, parseOptions: parseOptions, options: TestOptions.ReleaseDll, references: new[] { MinCorlibRef });
             compilation1.VerifyEmitDiagnostics();
 
             Assert.Equal(TypeKind.Struct, compilation1.GetTypeByMetadataName("A").TypeKind);
@@ -2309,7 +2310,7 @@ interface I2
 }
 ";
 
-            var compilation2 = CreateEmptyCompilation(source2, options: TestOptions.ReleaseDll, references: new[] { compilation1.EmitToImageReference(), MinCorlibRef });
+            var compilation2 = CreateEmptyCompilation(source2, parseOptions: parseOptions, options: TestOptions.ReleaseDll, references: new[] { compilation1.EmitToImageReference(), MinCorlibRef });
 
             compilation2.VerifyEmitDiagnostics();
             CompileAndVerify(compilation2);
@@ -2320,7 +2321,7 @@ interface I2
             Assert.Equal(TypeKind.Delegate, compilation2.GetTypeByMetadataName("D").TypeKind);
             Assert.Equal(TypeKind.Interface, compilation2.GetTypeByMetadataName("I1").TypeKind);
 
-            var compilation3 = CreateEmptyCompilation(source2, options: TestOptions.ReleaseDll, references: new[] { compilation1.ToMetadataReference(), MinCorlibRef });
+            var compilation3 = CreateEmptyCompilation(source2, parseOptions: parseOptions, options: TestOptions.ReleaseDll, references: new[] { compilation1.ToMetadataReference(), MinCorlibRef });
 
             compilation3.VerifyEmitDiagnostics();
             CompileAndVerify(compilation3);
@@ -2331,7 +2332,7 @@ interface I2
             Assert.Equal(TypeKind.Delegate, compilation3.GetTypeByMetadataName("D").TypeKind);
             Assert.Equal(TypeKind.Interface, compilation3.GetTypeByMetadataName("I1").TypeKind);
 
-            var compilation4 = CreateEmptyCompilation(source2, options: TestOptions.ReleaseDll, references: new[] { compilation1.EmitToImageReference() });
+            var compilation4 = CreateEmptyCompilation(source2, parseOptions: parseOptions, options: TestOptions.ReleaseDll, references: new[] { compilation1.EmitToImageReference() });
 
             compilation4.VerifyDiagnostics(
                 // (4,10): error CS0012: The type 'ValueType' is defined in an assembly that is not referenced. You must add a reference to assembly 'mincorlib, Version=0.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2'.
@@ -2361,7 +2362,7 @@ interface I2
             Assert.Equal(TypeKind.Interface, i1.TypeKind);
             Assert.Null(i1.GetUseSiteDiagnostic());
 
-            var compilation5 = CreateEmptyCompilation(source2, options: TestOptions.ReleaseDll, references: new[] { compilation1.ToMetadataReference() });
+            var compilation5 = CreateEmptyCompilation(source2, parseOptions: parseOptions, options: TestOptions.ReleaseDll, references: new[] { compilation1.ToMetadataReference() });
 
             compilation5.VerifyEmitDiagnostics(
                 // warning CS8021: No value for RuntimeMetadataVersion found. No assembly containing System.Object was found nor was a value for RuntimeMetadataVersion specified through options.
@@ -2376,7 +2377,7 @@ interface I2
             Assert.Equal(TypeKind.Delegate, compilation5.GetTypeByMetadataName("D").TypeKind);
             Assert.Equal(TypeKind.Interface, compilation5.GetTypeByMetadataName("I1").TypeKind);
 
-            var compilation6 = CreateEmptyCompilation(source2, options: TestOptions.ReleaseDll, references: new[] { compilation1.EmitToImageReference(), MscorlibRef });
+            var compilation6 = CreateEmptyCompilation(source2, parseOptions: parseOptions, options: TestOptions.ReleaseDll, references: new[] { compilation1.EmitToImageReference(), MscorlibRef });
 
             compilation6.VerifyDiagnostics(
                 // (4,10): error CS0012: The type 'ValueType' is defined in an assembly that is not referenced. You must add a reference to assembly 'mincorlib, Version=0.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2'.
@@ -2406,7 +2407,7 @@ interface I2
             Assert.Equal(TypeKind.Interface, i1.TypeKind);
             Assert.Null(i1.GetUseSiteDiagnostic());
 
-            var compilation7 = CreateEmptyCompilation(source2, options: TestOptions.ReleaseDll, references: new[] { compilation1.ToMetadataReference(), MscorlibRef });
+            var compilation7 = CreateEmptyCompilation(source2, parseOptions: parseOptions, options: TestOptions.ReleaseDll, references: new[] { compilation1.ToMetadataReference(), MscorlibRef });
 
             compilation7.VerifyEmitDiagnostics();
             CompileAndVerify(compilation7);

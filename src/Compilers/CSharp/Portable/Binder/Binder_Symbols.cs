@@ -480,6 +480,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return BindNamespaceOrTypeOrAliasSymbol(refTypeSyntax.Type, diagnostics, basesBeingResolved, suppressUseSiteDiagnostics);
                     }
 
+                case SyntaxKind.ScopedType:
+                    {
+                        // scoped needs to be handled by the caller
+                        var scopedTypeSyntax = (ScopedTypeSyntax)syntax;
+                        var scopedToken = scopedTypeSyntax.ScopedKeyword;
+                        if (!syntax.HasErrors)
+                        {
+                            diagnostics.Add(ErrorCode.ERR_UnexpectedToken, scopedToken.GetLocation(), scopedToken.ToString());
+                        }
+
+                        return BindNamespaceOrTypeOrAliasSymbol(scopedTypeSyntax.Type, diagnostics, basesBeingResolved, suppressUseSiteDiagnostics);
+                    }
+
                 default:
                     {
                         // This is invalid syntax for a type.  This arises when a constant pattern that fails to bind
@@ -2151,7 +2164,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         [DebuggerDisplay("Location = {_location}, Index = {_index}")]
-        private struct BestSymbolInfo
+        private readonly struct BestSymbolInfo
         {
             private readonly BestSymbolLocation _location;
             private readonly int _index;
@@ -2521,6 +2534,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             return CheckFeatureAvailability(syntax.SyntaxTree, feature, diagnostics, location ?? syntax.GetLocation());
         }
+
+        internal static bool CheckFeatureAvailability(SyntaxToken syntax, MessageID feature, BindingDiagnosticBag diagnostics, Location? location = null)
+            => CheckFeatureAvailability(syntax, feature, diagnostics.DiagnosticBag, location);
+
+        internal static bool CheckFeatureAvailability(SyntaxToken syntax, MessageID feature, DiagnosticBag? diagnostics, Location? location = null)
+            => CheckFeatureAvailability(syntax.SyntaxTree!, feature, diagnostics, location ?? syntax.GetLocation());
 
         internal static bool CheckFeatureAvailability(SyntaxTree tree, MessageID feature, BindingDiagnosticBag diagnostics, Location location)
         {

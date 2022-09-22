@@ -461,14 +461,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             return true;
         }
 
-        protected override bool CanApplyCompilationOptionChange(CompilationOptions oldOptions, CompilationOptions newOptions, CodeAnalysis.Project project)
-            => project.LanguageServices.GetRequiredService<ICompilationOptionsChangingService>().CanApplyChange(oldOptions, newOptions);
+        public override bool CanApplyCompilationOptionChange(CompilationOptions oldOptions, CompilationOptions newOptions, CodeAnalysis.Project project)
+            => project.Services.GetRequiredService<ICompilationOptionsChangingService>().CanApplyChange(oldOptions, newOptions);
 
         public override bool CanApplyParseOptionChange(ParseOptions oldOptions, ParseOptions newOptions, CodeAnalysis.Project project)
         {
             _projectToMaxSupportedLangVersionMap.TryGetValue(project.Id, out var maxSupportLangVersion);
 
-            return project.LanguageServices.GetRequiredService<IParseOptionsChangingService>().CanApplyChange(oldOptions, newOptions, maxSupportLangVersion);
+            return project.Services.GetRequiredService<IParseOptionsChangingService>().CanApplyChange(oldOptions, newOptions, maxSupportLangVersion);
         }
 
         private void AddTextBufferCloneServiceToBuffer(object sender, TextBufferCreatedEventArgs e)
@@ -561,7 +561,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             }
 
             var originalProject = CurrentSolution.GetRequiredProject(projectId);
-            var compilationOptionsService = originalProject.LanguageServices.GetRequiredService<ICompilationOptionsChangingService>();
+            var compilationOptionsService = originalProject.Services.GetRequiredService<ICompilationOptionsChangingService>();
             var storage = ProjectPropertyStorage.Create(TryGetDTEProject(projectId), ServiceProvider.GlobalProvider);
             compilationOptionsService.Apply(originalProject.CompilationOptions!, options, storage);
         }
@@ -578,7 +578,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 throw new ArgumentNullException(nameof(options));
             }
 
-            var parseOptionsService = CurrentSolution.GetRequiredProject(projectId).LanguageServices.GetRequiredService<IParseOptionsChangingService>();
+            var parseOptionsService = CurrentSolution.GetRequiredProject(projectId).Services.GetRequiredService<IParseOptionsChangingService>();
             var storage = ProjectPropertyStorage.Create(TryGetDTEProject(projectId), ServiceProvider.GlobalProvider);
             parseOptionsService.Apply(options, storage);
         }
@@ -1732,6 +1732,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
             // Create a new empty solution and set this; we will reuse the same SolutionId and path since components still may have persistence information they still need
             // to look up by that location; we also keep the existing analyzer references around since those are host-level analyzers that were loaded asynchronously.
+            ClearOpenDocuments();
+
             SetCurrentSolution(
                 solution => CreateSolution(
                     SolutionInfo.Create(

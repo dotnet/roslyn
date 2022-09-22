@@ -132,10 +132,10 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 }
                 catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
                 {
-                    var updates = new ManagedModuleUpdates(ManagedModuleUpdateStatus.Blocked, ImmutableArray<ManagedModuleUpdate>.Empty);
+                    var updates = new ModuleUpdates(ModuleUpdateStatus.Blocked, ImmutableArray<ModuleUpdate>.Empty);
                     var descriptor = EditAndContinueDiagnosticDescriptors.GetDescriptor(EditAndContinueErrorCode.CannotApplyChangesUnexpectedError);
                     var diagnostic = Diagnostic.Create(descriptor, Location.None, new[] { e.Message });
-                    var diagnostics = ImmutableArray.Create(DiagnosticData.Create(diagnostic, project: null));
+                    var diagnostics = ImmutableArray.Create(DiagnosticData.Create(solution, diagnostic, project: null));
 
                     return new EmitSolutionUpdateResults.Data(updates, diagnostics, ImmutableArray<(DocumentId DocumentId, ImmutableArray<RudeEditDiagnostic> Diagnostics)>.Empty, syntaxError: null);
                 }

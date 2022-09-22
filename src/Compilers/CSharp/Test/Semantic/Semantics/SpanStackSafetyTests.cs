@@ -264,9 +264,9 @@ class C
     }
 }");
             comp.VerifyDiagnostics(
-                // (7,13): warning CS0184: The given expression is never of the provided ('Span<int>') type
+                // (7,13): error CS0019: Operator 'is' cannot be applied to operands of type 'T' and 'Span<int>'
                 //         if (t is Span<int>)
-                Diagnostic(ErrorCode.WRN_IsAlwaysFalse, "t is Span<int>").WithArguments("System.Span<int>").WithLocation(7, 13),
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "t is Span<int>").WithArguments("is", "T", "System.Span<int>").WithLocation(7, 13),
                 // (9,18): error CS8121: An expression of type 'T' cannot be handled by a pattern of type 'Span<int>'.
                 //         if (t is Span<int> s)
                 Diagnostic(ErrorCode.ERR_PatternWrongType, "Span<int>").WithArguments("T", "System.Span<int>").WithLocation(9, 18));
@@ -308,9 +308,9 @@ class C
     }
 }");
             comp.VerifyDiagnostics(
-                // (7,13): warning CS0184: The given expression is never of the provided ('T') type
+                // (7,13): error CS0019: Operator 'is' cannot be applied to operands of type 'Span<int>' and 'T'
                 //         if (s is T) { }
-                Diagnostic(ErrorCode.WRN_IsAlwaysFalse, "s is T").WithArguments("T").WithLocation(7, 13),
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "s is T").WithArguments("is", "System.Span<int>", "T").WithLocation(7, 13),
                 // (8,18): error CS8121: An expression of type 'Span<int>' cannot be handled by a pattern of type 'T'.
                 //         if (s is T t) { }
                 Diagnostic(ErrorCode.ERR_PatternWrongType, "T").WithArguments("System.Span<int>", "T").WithLocation(8, 18));
@@ -330,9 +330,9 @@ class C
     }
 }");
             comp.VerifyDiagnostics(
-                // (7,13): warning CS0184: The given expression is never of the provided ('T') type
+                // (7,13): error CS0019: Operator 'is' cannot be applied to operands of type 'Span<int>' and 'T'
                 //         if (s is T) { }
-                Diagnostic(ErrorCode.WRN_IsAlwaysFalse, "s is T").WithArguments("T").WithLocation(7, 13),
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "s is T").WithArguments("is", "System.Span<int>", "T").WithLocation(7, 13),
                 // (8,18): error CS8121: An expression of type 'Span<int>' cannot be handled by a pattern of type 'T'.
                 //         if (s is T t) { }
                 Diagnostic(ErrorCode.ERR_PatternWrongType, "T").WithArguments("System.Span<int>", "T").WithLocation(8, 18));
@@ -485,8 +485,8 @@ class Program
         [Fact]
         public void ByrefParam()
         {
-            var text = @"
-using System;
+            var text = @"using System;
+using System.Diagnostics.CodeAnalysis;
 
 class Program
 {
@@ -516,10 +516,10 @@ class Program
     }
 
     // OK
-    static ref Span<string> M4(ref Span<string> ss) { return ref ss; }
+    static ref Span<string> M4([UnscopedRef] ref Span<string> ss) { return ref ss; }
 
     // OK
-    static ref readonly Span<string> M5(ref Span<string> ss) => ref ss;
+    static ref readonly Span<string> M5([UnscopedRef] ref Span<string> ss) => ref ss;
 
     // Not OK
     // TypedReference baseline
@@ -527,8 +527,23 @@ class Program
 }
 ";
 
-            CSharpCompilation comp = CreateCompilationWithMscorlibAndSpan(text);
+            var comp = CreateCompilationWithMscorlibAndSpan(new[] { text, UnscopedRefAttributeDefinition }, parseOptions: TestOptions.Regular10);
+            comp.VerifyDiagnostics(
+                // (39,34): error CS1601: Cannot make reference to variable of type 'TypedReference'
+                //     static ref TypedReference M1(ref TypedReference ss) => ref ss;
+                Diagnostic(ErrorCode.ERR_MethodArgCantBeRefAny, "ref TypedReference ss").WithArguments("System.TypedReference").WithLocation(39, 34),
+                // (39,12): error CS1599: The return type of a method, delegate, or function pointer cannot be 'TypedReference'
+                //     static ref TypedReference M1(ref TypedReference ss) => ref ss;
+                Diagnostic(ErrorCode.ERR_MethodReturnCantBeRefAny, "ref TypedReference").WithArguments("System.TypedReference").WithLocation(39, 12),
+                // (32,33): error CS9063: UnscopedRefAttribute can only be applied to 'out' parameters, 'ref' and 'in' parameters that refer to 'ref struct' types, and instance methods and properties on 'struct' types other than constructors and 'init' accessors.
+                //     static ref Span<string> M4([UnscopedRef] ref Span<string> ss) { return ref ss; }
+                Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedTarget, "UnscopedRef").WithLocation(32, 33),
+                // (35,42): error CS9063: UnscopedRefAttribute can only be applied to 'out' parameters, 'ref' and 'in' parameters that refer to 'ref struct' types, and instance methods and properties on 'struct' types other than constructors and 'init' accessors.
+                //     static ref readonly Span<string> M5([UnscopedRef] ref Span<string> ss) => ref ss;
+                Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedTarget, "UnscopedRef").WithLocation(35, 42)
+            );
 
+            comp = CreateCompilationWithMscorlibAndSpan(new[] { text, UnscopedRefAttributeDefinition });
             comp.VerifyDiagnostics(
                 // (39,34): error CS1601: Cannot make reference to variable of type 'TypedReference'
                 //     static ref TypedReference M1(ref TypedReference ss) => ref ss;
@@ -1448,13 +1463,11 @@ class Program
                 );
         }
 
-        [Fact]
         [WorkItem(27874, "https://github.com/dotnet/roslyn/issues/27874")]
-        public void PassingSpansToLocals_EscapeScope()
+        [Fact]
+        public void PassingSpansToLocals_EscapeScope_01()
         {
-            CompileAndVerify(
-                CreateCompilationWithMscorlibAndSpan(@"
-using System;
+            var source = @"using System;
 class C
 {
     static void Main()
@@ -1475,8 +1488,62 @@ class C
     {
         return ref x;
     }
-}",
-                options: TestOptions.ReleaseExe), verify: Verification.Fails, expectedOutput: @"
+}";
+
+            var comp = CreateCompilationWithMscorlibAndSpan(source, parseOptions: TestOptions.Regular10, options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp, verify: Verification.Fails, expectedOutput: @"
+10
+10");
+
+            comp = CreateCompilationWithMscorlibAndSpan(source, options: TestOptions.ReleaseExe);
+            comp.VerifyDiagnostics(
+                // (15,20): error CS8157: Cannot return 'q' by reference because it was initialized to a value that cannot be returned by reference
+                //         return ref q;
+                Diagnostic(ErrorCode.ERR_RefReturnNonreturnableLocal, "q").WithArguments("q").WithLocation(15, 20),
+                // (20,20): error CS9075: Cannot return a parameter by reference 'x' because it is scoped to the current method
+                //         return ref x;
+                Diagnostic(ErrorCode.ERR_RefReturnScopedParameter, "x").WithArguments("x").WithLocation(20, 20));
+        }
+
+        [WorkItem(27874, "https://github.com/dotnet/roslyn/issues/27874")]
+        [Fact]
+        public void PassingSpansToLocals_EscapeScope_02()
+        {
+            var source = @"using System;
+using System.Diagnostics.CodeAnalysis;
+class C
+{
+    static void Main()
+    {
+        Span<int> x = stackalloc int [10];
+        
+        Console.WriteLine(M1(ref x).Length);
+        Console.WriteLine(M2(ref x).Length);
+    }
+    
+    static ref Span<int> M1([UnscopedRef] ref Span<int> x)
+    {
+        ref Span<int> q = ref x;
+        return ref q;
+    }
+    
+    static ref Span<int> M2([UnscopedRef] ref Span<int> x)
+    {
+        return ref x;
+    }
+}";
+
+            var comp = CreateCompilationWithMscorlibAndSpan(new[] { source, UnscopedRefAttributeDefinition }, parseOptions: TestOptions.Regular10, options: TestOptions.ReleaseExe);
+            comp.VerifyDiagnostics(
+                // (13,30): error CS9063: UnscopedRefAttribute can only be applied to 'out' parameters, 'ref' and 'in' parameters that refer to 'ref struct' types, and instance methods and properties on 'struct' types other than constructors and 'init' accessors.
+                //     static ref Span<int> M1([UnscopedRef] ref Span<int> x)
+                Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedTarget, "UnscopedRef").WithLocation(13, 30),
+                // (19,30): error CS9063: UnscopedRefAttribute can only be applied to 'out' parameters, 'ref' and 'in' parameters that refer to 'ref struct' types, and instance methods and properties on 'struct' types other than constructors and 'init' accessors.
+                //     static ref Span<int> M2([UnscopedRef] ref Span<int> x)
+                Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedTarget, "UnscopedRef").WithLocation(19, 30));
+
+            comp = CreateCompilationWithMscorlibAndSpan(new[] { source, UnscopedRefAttributeDefinition }, options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp, verify: Verification.Fails, expectedOutput: @"
 10
 10");
         }

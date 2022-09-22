@@ -44,8 +44,7 @@ class C
             await TestInRegularAndScriptWhenDiagnosticNotAppliedAsync(code, expected);
         }
 
-        [Fact]
-        [WorkItem(35180, "https://github.com/dotnet/roslyn/issues/35180")]
+        [Fact, WorkItem(35180, "https://github.com/dotnet/roslyn/issues/35180")]
         public async Task TestSelection1()
         {
             var code = @"
@@ -69,8 +68,7 @@ class C
             await TestInRegularAndScriptWhenDiagnosticNotAppliedAsync(code, expected);
         }
 
-        [Fact]
-        [WorkItem(35180, "https://github.com/dotnet/roslyn/issues/35180")]
+        [Fact, WorkItem(35180, "https://github.com/dotnet/roslyn/issues/35180")]
         public async Task TestSelection2()
         {
             var code = @"
@@ -94,8 +92,7 @@ class C
             await TestInRegularAndScriptWhenDiagnosticNotAppliedAsync(code, expected);
         }
 
-        [Fact]
-        [WorkItem(35180, "https://github.com/dotnet/roslyn/issues/35180")]
+        [Fact, WorkItem(35180, "https://github.com/dotnet/roslyn/issues/35180")]
         [WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
         public async Task TestSelectionNotType()
         {
@@ -261,8 +258,7 @@ class C
             await TestInRegularAndScriptWhenDiagnosticNotAppliedAsync(code, expected);
         }
 
-        [Fact]
-        [WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
+        [Fact, WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
         public async Task TestIntForeachLoop2()
         {
             var code = @"
@@ -286,8 +282,7 @@ class C
             await TestInRegularAndScriptWhenDiagnosticNotAppliedAsync(code, expected);
         }
 
-        [Fact]
-        [WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
+        [Fact, WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
         public async Task TestIntForeachLoop3()
         {
             var code = @"
@@ -311,8 +306,7 @@ class C
             await TestInRegularAndScriptWhenDiagnosticNotAppliedAsync(code, expected);
         }
 
-        [Fact]
-        [WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
+        [Fact, WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
         public async Task TestIntForeachLoop4()
         {
             var code = @"
@@ -405,8 +399,7 @@ class C
             await TestMissingInRegularAndScriptAsync(code);
         }
 
-        [Fact]
-        [WorkItem(35180, "https://github.com/dotnet/roslyn/issues/35180")]
+        [Fact, WorkItem(35180, "https://github.com/dotnet/roslyn/issues/35180")]
         public async Task NoSuggestionWithinAnExpression()
         {
             var code = @"using System;

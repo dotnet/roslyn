@@ -28,7 +28,6 @@ namespace Microsoft.CodeAnalysis.CSharp.InvokeDelegateWithConditionalAccess
             : base(IDEDiagnosticIds.InvokeDelegateWithConditionalAccessId,
                    EnforceOnBuildValues.InvokeDelegateWithConditionalAccess,
                    CSharpCodeStyleOptions.PreferConditionalDelegateCall,
-                   LanguageNames.CSharp,
                    new LocalizableResourceString(nameof(CSharpAnalyzersResources.Delegate_invocation_can_be_simplified), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)))
         {
         }
@@ -67,7 +66,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InvokeDelegateWithConditionalAccess
 
             // Check for both:  "if (...) { a(); }" and "if (...) a();"
             var innerStatement = ifStatement.Statement;
-            if (innerStatement.IsKind(SyntaxKind.Block, out BlockSyntax? block))
+            if (innerStatement is BlockSyntax block)
             {
                 if (block.Statements.Count != 1)
                 {
@@ -77,7 +76,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InvokeDelegateWithConditionalAccess
                 innerStatement = block.Statements[0];
             }
 
-            if (!innerStatement.IsKind(SyntaxKind.ExpressionStatement, out ExpressionStatementSyntax? expressionStatement))
+            if (innerStatement is not ExpressionStatementSyntax expressionStatement)
             {
                 return;
             }
@@ -241,7 +240,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InvokeDelegateWithConditionalAccess
             }
 
             var previousStatement = parentBlock.Statements[ifIndex - 1];
-            if (!previousStatement.IsKind(SyntaxKind.LocalDeclarationStatement, out LocalDeclarationStatementSyntax? localDeclarationStatement))
+            if (previousStatement is not LocalDeclarationStatementSyntax localDeclarationStatement)
             {
                 return false;
             }

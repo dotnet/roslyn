@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using Roslyn.Utilities;
@@ -35,7 +36,10 @@ internal partial class SolutionAssetStorage
         lock (_gate)
         {
             if (!_checksumToScope.ContainsKey(solutionChecksum))
+            {
+                Debug.Fail($"Request for solution-checksum '{solutionChecksum}' that was not pinned on the host side.");
                 throw new InvalidOperationException($"Request for solution-checksum '{solutionChecksum}' that was not pinned on the host side.");
+            }
 
             return _checksumToScope[solutionChecksum];
         }

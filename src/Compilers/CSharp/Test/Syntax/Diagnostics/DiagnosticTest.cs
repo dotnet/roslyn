@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestDiagnostic()
         {
             MockMessageProvider provider = new MockMessageProvider();
-            SyntaxTree syntaxTree = new MockSyntaxTree();
+            SyntaxTree syntaxTree = new MockCSharpSyntaxTree();
             CultureInfo englishCulture = CultureHelpers.EnglishCulture;
 
             DiagnosticInfo di1 = new DiagnosticInfo(provider, 1);
@@ -91,7 +91,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestCustomErrorInfo()
         {
             MockMessageProvider provider = new MockMessageProvider();
-            SyntaxTree syntaxTree = new MockSyntaxTree();
+            SyntaxTree syntaxTree = new MockCSharpSyntaxTree();
 
             DiagnosticInfo di3 = new CustomErrorInfo(provider, "OtherSymbol", new SourceLocation(syntaxTree, new TextSpan(14, 8)));
             var d3 = new CSDiagnostic(di3, new SourceLocation(syntaxTree, new TextSpan(1, 1)));
@@ -353,6 +353,10 @@ class X
                         case ErrorCode.WRN_UseDefViolationPropertySupportedVersion:
                         case ErrorCode.WRN_UseDefViolationFieldSupportedVersion:
                         case ErrorCode.WRN_UseDefViolationThisSupportedVersion:
+                        case ErrorCode.WRN_AnalyzerReferencesNewerCompiler:
+                        case ErrorCode.WRN_DuplicateAnalyzerReference:
+                        case ErrorCode.WRN_ScopedMismatchInParameterOfTarget:
+                        case ErrorCode.WRN_ScopedMismatchInParameterOfOverrideOrImplementation:
                             Assert.Equal(1, ErrorFacts.GetWarningLevel(errorCode));
                             break;
                         case ErrorCode.WRN_InvalidVersionFormat:
@@ -2877,6 +2881,7 @@ class Program
                     case ErrorCode.ERR_DynamicRequiredTypesMissing:
                     case ErrorCode.ERR_EncUpdateFailedDelegateTypeChanged:
                     case ErrorCode.ERR_CannotBeConvertedToUtf8:
+                    case ErrorCode.ERR_FileTypeNonUniquePath:
                         Assert.True(isBuildOnly, $"Check failed for ErrorCode.{errorCode}");
                         break;
 

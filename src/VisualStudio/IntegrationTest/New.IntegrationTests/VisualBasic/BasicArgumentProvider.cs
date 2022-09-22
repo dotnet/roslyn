@@ -102,7 +102,7 @@ End Class
             await TestServices.EditorVerifier.CurrentLineTextAsync("        Dim value = New Object()$$", assertCaretPosition: true, HangMitigatingCancellationToken);
         }
 
-        [IdeFact]
+        [IdeFact(Skip = "https://github.com/dotnet/roslyn/issues/63043")]
         public async Task TabTabCompletionWithArguments()
         {
             await SetUpEditorAsync(@"

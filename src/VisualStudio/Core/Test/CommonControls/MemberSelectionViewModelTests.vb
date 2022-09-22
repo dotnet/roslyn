@@ -7,7 +7,7 @@ Imports System.Threading
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Editor.Host
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
-Imports Microsoft.CodeAnalysis.LanguageServices
+Imports Microsoft.CodeAnalysis.LanguageService
 Imports Microsoft.CodeAnalysis.PullMemberUp
 Imports Microsoft.CodeAnalysis.Shared.Extensions
 Imports Microsoft.CodeAnalysis.Test.Utilities
@@ -18,8 +18,9 @@ Imports Microsoft.VisualStudio.Utilities
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CommonControls
     <[UseExportProvider]>
+    <Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)>
     Public Class MemberSelectionViewModelTests
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)>
+        <Fact>
         Public Async Function SelectPublicMembers() As Task
             Dim markUp = <Text><![CDATA[
         interface Level2Interface
@@ -59,7 +60,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CommonControls
             Next
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)>
+        <Fact>
         Public Async Function TestMemberSelectionViewModelDont_PullDisableItem() As Task
             Dim markUp = <Text><![CDATA[
         interface Level2Interface
@@ -101,7 +102,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CommonControls
             Assert.Empty(checkedMembers.WhereAsArray(Function(analysisResult) analysisResult.Symbol.IsKind(SymbolKind.Field)))
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)>
+        <Fact>
         Public Async Function SelectDependents() As Task
             Dim markUp = <Text><![CDATA[
         using System;
@@ -179,7 +180,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CommonControls
                 End If
 
                 Dim tree = Await workspaceDoc.GetSyntaxTreeAsync()
-                Dim token = Await tree.GetTouchingWordAsync(doc.CursorPosition.Value, workspaceDoc.Project.LanguageServices.GetService(Of ISyntaxFactsService)(), CancellationToken.None)
+                Dim token = Await tree.GetTouchingWordAsync(doc.CursorPosition.Value, workspaceDoc.Project.Services.GetService(Of ISyntaxFactsService)(), CancellationToken.None)
                 Dim memberSymbol = (Await workspaceDoc.GetSemanticModelAsync()).GetDeclaredSymbol(token.Parent)
                 Dim membersInType = memberSymbol.ContainingType.GetMembers().WhereAsArray(Function(member) MemberAndDestinationValidator.IsMemberValid(member))
                 Dim membersViewModel = membersInType.SelectAsArray(

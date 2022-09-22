@@ -96,7 +96,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
             if (document == null)
                 return;
 
-            if (document.Project.Solution.Workspace.Kind == WorkspaceKind.Interactive)
+            if (document.Project.Solution.WorkspaceKind == WorkspaceKind.Interactive)
                 return;
 
             var inheritanceMarginInfoService = document.GetLanguageService<IInheritanceMarginService>();

@@ -309,6 +309,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         protected sealed override bool HasSetsRequiredMembersImpl => throw ExceptionUtilities.Unreachable;
 
+        internal sealed override bool HasUnscopedRefAttribute => false;
+
+        internal sealed override bool UseUpdatedEscapeRules => ContainingModule.UseUpdatedEscapeRules;
+
         /// <summary> A synthesized entrypoint that forwards all calls to an async Main Method </summary>
         internal sealed class AsyncForwardEntryPoint : SynthesizedEntryPointSymbol
         {

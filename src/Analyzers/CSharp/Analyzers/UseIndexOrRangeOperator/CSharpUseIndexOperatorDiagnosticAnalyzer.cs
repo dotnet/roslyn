@@ -46,7 +46,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
             : base(IDEDiagnosticIds.UseIndexOperatorDiagnosticId,
                    EnforceOnBuildValues.UseIndexOperator,
                    CSharpCodeStyleOptions.PreferIndexOperator,
-                   LanguageNames.CSharp,
                    new LocalizableResourceString(nameof(CSharpAnalyzersResources.Use_index_operator), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)),
                    new LocalizableResourceString(nameof(CSharpAnalyzersResources.Indexing_can_be_simplified), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)))
         {

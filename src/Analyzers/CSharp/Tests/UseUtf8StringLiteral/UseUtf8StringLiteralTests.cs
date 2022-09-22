@@ -17,9 +17,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseUtf8StringLiteral
         UseUtf8StringLiteralDiagnosticAnalyzer,
         UseUtf8StringLiteralCodeFixProvider>;
 
+    [Trait(Traits.Feature, Traits.Features.CodeActionsUseUtf8StringLiteral)]
     public class UseUtf8StringLiteralTests
     {
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseUtf8StringLiteral)]
+        [Fact]
         public async Task TestNotInAttribute()
         {
             await new VerifyCS.Test
@@ -45,7 +46,7 @@ public class C
             }.RunAsync();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseUtf8StringLiteral)]
+        [Fact]
         public async Task TestNotInCSharp10()
         {
             await new VerifyCS.Test
@@ -63,7 +64,7 @@ public class C
             }.RunAsync();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseUtf8StringLiteral)]
+        [Fact]
         public async Task TestNotWhenNoReadOnlySpan()
         {
             await new VerifyCS.Test
@@ -82,7 +83,7 @@ public class C
             }.RunAsync();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseUtf8StringLiteral)]
+        [Fact]
         public async Task TestNotWithoutInitializer()
         {
             await new VerifyCS.Test
@@ -101,7 +102,7 @@ public class C
             }.RunAsync();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseUtf8StringLiteral)]
+        [Fact]
         public async Task TestNotInExpressionTree()
         {
             await new VerifyCS.Test
@@ -127,7 +128,7 @@ public class C
             }.RunAsync();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseUtf8StringLiteral)]
+        [Fact]
         public async Task TestNotWhenNotByteArray()
         {
             await new VerifyCS.Test
@@ -146,7 +147,7 @@ public class C
             }.RunAsync();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseUtf8StringLiteral)]
+        [Fact]
         public async Task TestNotWhenOptionNotSet()
         {
             await new VerifyCS.Test
@@ -169,7 +170,7 @@ csharp_style_prefer_utf8_string_literals = false
             }.RunAsync();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseUtf8StringLiteral)]
+        [Fact]
         public async Task TestNotWhenNonLiteralElement()
         {
             await new VerifyCS.Test
@@ -190,7 +191,7 @@ public class C
             }.RunAsync();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseUtf8StringLiteral)]
+        [Fact]
         public async Task TestNotWhenMultidimensionalArray()
         {
             await new VerifyCS.Test
@@ -209,7 +210,7 @@ public class C
             }.RunAsync();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseUtf8StringLiteral)]
+        [Fact]
         public async Task TestSimpleByteArray()
         {
             await new VerifyCS.Test
@@ -238,7 +239,7 @@ public class C
             }.RunAsync();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseUtf8StringLiteral)]
+        [Fact]
         public async Task TestConstant()
         {
             await new VerifyCS.Test
@@ -269,7 +270,7 @@ public class C
             }.RunAsync();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseUtf8StringLiteral)]
+        [Fact]
         public async Task TestImplicitArray()
         {
             await new VerifyCS.Test
@@ -298,7 +299,7 @@ public class C
             }.RunAsync();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseUtf8StringLiteral)]
+        [Fact]
         public async Task TestExplicitCast()
         {
             await new VerifyCS.Test
@@ -327,7 +328,7 @@ public class C
             }.RunAsync();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseUtf8StringLiteral)]
+        [Fact]
         public async Task TestHexLiteral()
         {
             await new VerifyCS.Test
@@ -356,7 +357,7 @@ public class C
             }.RunAsync();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseUtf8StringLiteral)]
+        [Fact]
         public async Task TestBinaryExpression()
         {
             await new VerifyCS.Test
@@ -385,7 +386,7 @@ public class C
             }.RunAsync();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseUtf8StringLiteral)]
+        [Fact]
         public async Task TestEmptyArray()
         {
             await new VerifyCS.Test
@@ -413,7 +414,7 @@ public class C
             }.RunAsync();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseUtf8StringLiteral)]
+        [Fact]
         public async Task TestTrivia1()
         {
             await new VerifyCS.Test
@@ -442,7 +443,7 @@ public class C
             }.RunAsync();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseUtf8StringLiteral)]
+        [Fact]
         public async Task TestTrivia2()
         {
             await new VerifyCS.Test
@@ -471,7 +472,7 @@ public class C
             }.RunAsync();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseUtf8StringLiteral)]
+        [Fact]
         public async Task TestMultiple()
         {
             await new VerifyCS.Test
@@ -504,7 +505,7 @@ public class C
             }.RunAsync();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseUtf8StringLiteral)]
+        [Fact]
         public async Task TestEscapeChars()
         {
             await new VerifyCS.Test
@@ -533,7 +534,7 @@ public class C
             }.RunAsync();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseUtf8StringLiteral)]
+        [Fact]
         public async Task TestEmoji()
         {
             await new VerifyCS.Test
@@ -562,7 +563,7 @@ public class C
             }.RunAsync();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseUtf8StringLiteral)]
+        [Fact]
         public async Task TestHalfEmoji1()
         {
             await new VerifyCS.Test
@@ -582,7 +583,7 @@ public class C
             }.RunAsync();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseUtf8StringLiteral)]
+        [Fact]
         public async Task TestHalfEmoji2()
         {
             await new VerifyCS.Test
@@ -602,7 +603,7 @@ public class C
             }.RunAsync();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseUtf8StringLiteral)]
+        [Fact]
         public async Task TestHalfEmoji3()
         {
             await new VerifyCS.Test
@@ -622,7 +623,7 @@ public class C
             }.RunAsync();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseUtf8StringLiteral)]
+        [Fact]
         public async Task TestUnicodeReplacementChar()
         {
             // The unicode replacement character is what is returned when, for example, an unpaired
@@ -654,7 +655,7 @@ public class C
             }.RunAsync();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseUtf8StringLiteral)]
+        [Fact]
         public async Task TestCollectionInitializer()
         {
             await new VerifyCS.Test
@@ -733,7 +734,7 @@ class C : IEnumerable<int>
             }.RunAsync();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseUtf8StringLiteral)]
+        [Fact]
         public async Task TestUsingWithParamArray()
         {
             // From: https://github.com/dotnet/roslyn/blob/0c7c0b33f0871fc4308eb2d75d77b87fc9293290/src/Compilers/CSharp/Test/IOperation/IOperation/IOperationTests_IUsingStatement.cs#L1189-L1194
@@ -760,7 +761,7 @@ ref struct S
             }.RunAsync();
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsUseUtf8StringLiteral)]
+        [Theory]
         // Standard C# escape characters
         [InlineData(new byte[] { 0, 7, 8, 12, 11 })]
         // Various cases copied from https://github.com/dotnet/runtime/blob/main/src/libraries/Common/tests/Tests/System/Net/aspnetcore/Http2/HuffmanDecodingTests.cs
@@ -848,7 +849,7 @@ public class C
             }.RunAsync();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseUtf8StringLiteral)]
+        [Fact]
         public async Task TestParamArray1()
         {
             await new VerifyCS.Test
@@ -879,7 +880,7 @@ public class C
             }.RunAsync();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseUtf8StringLiteral)]
+        [Fact]
         public async Task TestParamArray2()
         {
             await new VerifyCS.Test
@@ -910,7 +911,7 @@ public class C
             }.RunAsync();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseUtf8StringLiteral)]
+        [Fact]
         public async Task TestParamArray3()
         {
             await new VerifyCS.Test
@@ -941,7 +942,7 @@ public class C
             }.RunAsync();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseUtf8StringLiteral)]
+        [Fact]
         public async Task TestParamArray4()
         {
             await new VerifyCS.Test
@@ -972,7 +973,7 @@ public class C
             }.RunAsync();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseUtf8StringLiteral)]
+        [Fact]
         public async Task TestParamArray5()
         {
             await new VerifyCS.Test
@@ -1003,7 +1004,7 @@ public class C
             }.RunAsync();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseUtf8StringLiteral)]
+        [Fact]
         public async Task TestParamArray6()
         {
             await new VerifyCS.Test
@@ -1034,7 +1035,7 @@ public class C
             }.RunAsync();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseUtf8StringLiteral)]
+        [Fact]
         public async Task TestParamArray7()
         {
             await new VerifyCS.Test
@@ -1054,7 +1055,7 @@ public class C
             }.RunAsync();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseUtf8StringLiteral)]
+        [Fact]
         public async Task TestParamArray8()
         {
             await new VerifyCS.Test
@@ -1085,7 +1086,7 @@ public class C
             }.RunAsync();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseUtf8StringLiteral)]
+        [Fact]
         public async Task TestParamArray9()
         {
             await new VerifyCS.Test
@@ -1116,7 +1117,7 @@ public class C
             }.RunAsync();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseUtf8StringLiteral)]
+        [Fact]
         public async Task TestParamArray10()
         {
             await new VerifyCS.Test
@@ -1147,7 +1148,7 @@ public class C
             }.RunAsync();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseUtf8StringLiteral)]
+        [Fact]
         public async Task TestParamArray11()
         {
             await new VerifyCS.Test
@@ -1178,7 +1179,7 @@ public class C
             }.RunAsync();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseUtf8StringLiteral)]
+        [Fact]
         public async Task TestParamArray12()
         {
             await new VerifyCS.Test
@@ -1209,7 +1210,7 @@ public class C
             }.RunAsync();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseUtf8StringLiteral)]
+        [Fact]
         public async Task TestParamArray13()
         {
             await new VerifyCS.Test
@@ -1250,7 +1251,7 @@ public class C
             }.RunAsync();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseUtf8StringLiteral)]
+        [Fact]
         public async Task TestParamArray14()
         {
             await new VerifyCS.Test
@@ -1305,7 +1306,7 @@ namespace System.Runtime.CompilerServices
             }.RunAsync();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseUtf8StringLiteral)]
+        [Fact]
         public async Task TestParamArray15()
         {
             await new VerifyCS.Test
@@ -1394,7 +1395,7 @@ public class B
             }.RunAsync();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseUtf8StringLiteral)]
+        [Fact]
         public async Task TestParamArray16()
         {
             await new VerifyCS.Test
@@ -1425,7 +1426,7 @@ public class C
             }.RunAsync();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseUtf8StringLiteral)]
+        [Fact]
         public async Task TestParamArray17()
         {
             await new VerifyCS.Test
@@ -1456,7 +1457,7 @@ public class C
             }.RunAsync();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseUtf8StringLiteral)]
+        [Fact]
         public async Task TestMultidimensionalArray()
         {
             await new VerifyCS.Test
@@ -1487,7 +1488,7 @@ public class C
             }.RunAsync();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseUtf8StringLiteral)]
+        [Fact]
         public async Task TestTargettingReadOnlySpan1()
         {
             await new VerifyCS.Test
@@ -1520,7 +1521,7 @@ public class C
             }.RunAsync();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseUtf8StringLiteral)]
+        [Fact]
         public async Task TestTargettingReadOnlySpan2()
         {
             await new VerifyCS.Test

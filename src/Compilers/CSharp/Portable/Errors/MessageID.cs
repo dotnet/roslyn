@@ -257,11 +257,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         IDS_FeatureRequiredMembers = MessageBase + 12825,
         IDS_FeatureRefFields = MessageBase + 12826,
         IDS_FeatureFileTypes = MessageBase + 12827,
+        IDS_ArrayAccess = MessageBase + 12828,
+        IDS_PointerElementAccess = MessageBase + 12829,
     }
 
     // Message IDs may refer to strings that need to be localized.
     // This struct makes an IFormattable wrapper around a MessageID
-    internal struct LocalizableErrorArgument : IFormattable
+    internal readonly struct LocalizableErrorArgument : IFormattable
     {
         private readonly MessageID _id;
 
@@ -366,8 +368,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // PREFER reporting diagnostics in binding when diagnostics do not affect the shape of the syntax tree
 
                 // C# preview features.
-                case MessageID.IDS_FeatureGenericAttributes: // semantic check
-                    return LanguageVersion.Preview;
+                //return LanguageVersion.Preview;
 
                 // C# 11.0 features.
                 case MessageID.IDS_FeatureRawStringLiterals:
@@ -384,6 +385,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case MessageID.IDS_FeatureRelaxedShiftOperator: // semantic check
                 case MessageID.IDS_FeatureRefFields: // semantic check
                 case MessageID.IDS_FeatureFileTypes: // semantic check
+                case MessageID.IDS_FeatureGenericAttributes: // semantic check
                     return LanguageVersion.CSharp11;
 
                 // C# 10.0 features.

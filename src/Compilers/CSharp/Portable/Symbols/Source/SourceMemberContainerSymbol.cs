@@ -431,7 +431,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         case SymbolKind.Namespace:
                             for (var i = 1; i < partCount; i++)
                             {
-                                diagnostics.Add(ErrorCode.ERR_DuplicateNameInNS, declaration.Declarations[i].NameLocation, this.Name, this.ContainingSymbol);
+                                // note: a declaration with the 'file' modifier will only be grouped with declarations in the same file.
+                                diagnostics.Add((result & DeclarationModifiers.File) != 0
+                                    ? ErrorCode.ERR_FileLocalDuplicateNameInNS
+                                    : ErrorCode.ERR_DuplicateNameInNS, declaration.Declarations[i].NameLocation, this.Name, this.ContainingSymbol);
                                 modifierErrors = true;
                             }
                             break;
@@ -478,7 +481,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (reportIfContextual(SyntaxKind.RecordKeyword, MessageID.IDS_FeatureRecords, ErrorCode.WRN_RecordNamedDisallowed)
                 || reportIfContextual(SyntaxKind.RequiredKeyword, MessageID.IDS_FeatureRequiredMembers, ErrorCode.ERR_RequiredNameDisallowed)
-                || reportIfContextual(SyntaxKind.FileKeyword, MessageID.IDS_FeatureFileTypes, ErrorCode.ERR_FileTypeNameDisallowed))
+                || reportIfContextual(SyntaxKind.FileKeyword, MessageID.IDS_FeatureFileTypes, ErrorCode.ERR_FileTypeNameDisallowed)
+                || reportIfContextual(SyntaxKind.ScopedKeyword, MessageID.IDS_FeatureRefFields, ErrorCode.ERR_ScopedTypeNameDisallowed))
             {
                 return;
             }
@@ -828,7 +832,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal bool IsFileLocal => HasFlag(DeclarationModifiers.File);
 
-        internal sealed override SyntaxTree? AssociatedSyntaxTree => IsFileLocal ? declaration.Declarations[0].Location.SourceTree : null;
+        internal SyntaxTree AssociatedSyntaxTree => declaration.Declarations[0].Location.SourceTree;
+
+        internal sealed override FileIdentifier? AssociatedFileIdentifier
+        {
+            get
+            {
+                if (!IsFileLocal)
+                {
+                    return null;
+                }
+
+                return FileIdentifier.Create(AssociatedSyntaxTree);
+            }
+        }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private bool HasFlag(DeclarationModifiers flag) => (_declModifiers & flag) != 0;
@@ -1744,9 +1761,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-            if (IsFileLocal && (object?)ContainingType != null)
+            if (AssociatedFileIdentifier is { } fileIdentifier)
             {
-                diagnostics.Add(ErrorCode.ERR_FileTypeNested, location, this);
+                Debug.Assert(IsFileLocal);
+
+                // A well-behaved file-local type only has declarations in one syntax tree.
+                // There may be multiple syntax trees across declarations in error scenarios,
+                // but we're not interested in handling that for the purposes of producing this error.
+                var tree = declaration.Declarations[0].SyntaxReference.SyntaxTree;
+                if (fileIdentifier.EncoderFallbackErrorMessage is { } errorMessage)
+                {
+                    Debug.Assert(fileIdentifier.FilePathChecksumOpt.IsDefault);
+                    diagnostics.Add(ErrorCode.ERR_FilePathCannotBeConvertedToUtf8, location, this, errorMessage);
+                }
+
+                if ((object?)ContainingType != null)
+                {
+                    diagnostics.Add(ErrorCode.ERR_FileTypeNested, location, this);
+                }
             }
 
             return;
@@ -4442,7 +4474,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     case SyntaxKind.FieldDeclaration:
                         {
                             var fieldSyntax = (FieldDeclarationSyntax)m;
-                            _ = fieldSyntax.Declaration.Type.SkipRef(out RefKind refKind, allowScoped: false, diagnostics);
+
+                            _ = fieldSyntax.Declaration.Type.SkipScoped(out _).SkipRef(out RefKind refKind);
 
                             if (IsImplicitClass && reportMisplacedGlobalCode)
                             {

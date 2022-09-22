@@ -200,7 +200,6 @@
     <Compile Include="$(MSBuildThisFileDirectory)CodeStyle\OperatorPlacementWhenWrappingPreference.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CodeStyle\ParenthesesPreference.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Diagnostics\StructuredAnalyzerConfigOptions.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Diagnostics\AnalyzerOptionsProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Diagnostics\IdeAnalyzerOptions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)EditorConfig\Language.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)EditorConfig\LanguageConstants.cs" />
@@ -245,6 +244,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Formatting\FormattingOptions2.IndentStyle.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Formatting\LineFormattingOptions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Formatting\SyntaxFormattingOptions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Helpers\RemoveUnnecessaryImports\RemoveUnnecessaryImportsHelpers.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Indentation\AbstractIndentation.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Indentation\AbstractIndentation.Indenter.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Indentation\IndentationOptions.cs" />
@@ -422,6 +422,8 @@
     <Compile Include="$(MSBuildThisFileDirectory)Simplification\SimplifierOptions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Simplification\SpecialTypeAnnotation.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Simplification\SymbolAnnotation.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)SymbolKey\SymbolKey.BuiltinOperatorSymbolKey.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)SymbolKey\SymbolKey.AbstractSymbolKey.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)SymbolKey\SymbolKey.AliasSymbolKey.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)SymbolKey\SymbolKey.AnonymousFunctionOrDelegateSymbolKey.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)SymbolKey\SymbolKey.AnonymousTypeSymbolKey.cs" />

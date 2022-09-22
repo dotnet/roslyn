@@ -16,6 +16,8 @@ using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Extensibility.Testing;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Microsoft.VisualStudio.LanguageServices;
+using Microsoft.VisualStudio.Text.Classification;
+using Microsoft.VisualStudio.Text.Operations;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
@@ -243,6 +245,18 @@ namespace Roslyn.VisualStudio.IntegrationTests.InProcess
             AssertEx.EqualOrDiff(
                 string.Join(Environment.NewLine, expectedTags),
                 string.Join(Environment.NewLine, actualTags));
+        }
+
+        public async Task CurrentTokenTypeAsync(string tokenType, CancellationToken cancellationToken)
+        {
+            await TestServices.Workspace.WaitForAllAsyncOperationsAsync(
+                new[] { FeatureAttribute.SolutionCrawler, FeatureAttribute.DiagnosticService, FeatureAttribute.Classification },
+                cancellationToken);
+
+            var actualTokenTypes = await TestServices.Editor.GetCurrentClassificationsAsync(cancellationToken);
+            Assert.Equal(1, actualTokenTypes.Length);
+            Assert.Contains(tokenType, actualTokenTypes[0]);
+            Assert.NotEqual("text", tokenType);
         }
 
         private static WorkspaceEventRestorer WithWorkspaceChangedHandler(Workspace workspace, EventHandler<WorkspaceChangeEventArgs> eventHandler)

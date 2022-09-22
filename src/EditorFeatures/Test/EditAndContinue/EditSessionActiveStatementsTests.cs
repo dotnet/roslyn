@@ -227,7 +227,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 
             // Exception Regions
 
-            var analyzer = solution.GetProject(projectId).LanguageServices.GetRequiredService<IEditAndContinueAnalyzer>();
+            var analyzer = solution.GetProject(projectId).Services.GetRequiredService<IEditAndContinueAnalyzer>();
             var oldActiveStatements1 = await baseActiveStatementsMap.GetOldActiveStatementsAsync(analyzer, document1, CancellationToken.None).ConfigureAwait(false);
 
             AssertEx.Equal(new[]
@@ -354,7 +354,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 
             // Exception Regions
 
-            var analyzer = solution.GetProject(project.Id).LanguageServices.GetRequiredService<IEditAndContinueAnalyzer>();
+            var analyzer = solution.GetProject(project.Id).Services.GetRequiredService<IEditAndContinueAnalyzer>();
             var oldActiveStatements = await baseActiveStatementMap.GetOldActiveStatementsAsync(analyzer, document, CancellationToken.None).ConfigureAwait(false);
 
             // Note that the spans correspond to the base snapshot (V2). 
@@ -539,7 +539,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 
             // Exception Regions
 
-            var analyzer = solution.GetProject(project.Id).LanguageServices.GetRequiredService<IEditAndContinueAnalyzer>();
+            var analyzer = solution.GetProject(project.Id).Services.GetRequiredService<IEditAndContinueAnalyzer>();
             var oldActiveStatements = await baseActiveStatementMap.GetOldActiveStatementsAsync(analyzer, document, CancellationToken.None).ConfigureAwait(false);
 
             // Note that the spans correspond to the base snapshot (V2). 
@@ -685,7 +685,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 
             // Exception Regions
 
-            var analyzer = solution.GetProject(project.Id).LanguageServices.GetRequiredService<IEditAndContinueAnalyzer>();
+            var analyzer = solution.GetProject(project.Id).Services.GetRequiredService<IEditAndContinueAnalyzer>();
             var oldActiveStatements = await baseActiveStatementMap.GetOldActiveStatementsAsync(analyzer, document, CancellationToken.None).ConfigureAwait(false);
 
             AssertEx.Equal(new[]

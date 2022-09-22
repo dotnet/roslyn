@@ -3,15 +3,16 @@
 ' See the LICENSE file in the project root for more information.
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.Statements
+    <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
     Public Class SelectKeywordRecommenderTests
         Inherits RecommenderTests
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact>
         Public Sub SelectInMethodBodyTest()
             VerifyRecommendationsContain(<MethodBody>|</MethodBody>, "Select")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact>
         Public Sub SelectInMultiLineLambdaTest()
             VerifyRecommendationsContain(<ClassDeclaration>
 Private _member = Sub()
@@ -21,20 +22,19 @@ End Sub
 
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact>
         Public Sub SelectNotInSingleLineLambdaTest()
             VerifyRecommendationsMissing(<ClassDeclaration>
 Private _member = Sub() |
                                          </ClassDeclaration>, "Select")
         End Sub
 
-        <WorkItem(543396, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543396")>
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact, WorkItem(543396, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543396")>
         Public Sub SelectInSingleLineIfTest()
             VerifyRecommendationsContain(<MethodBody>If True Then S|</MethodBody>, "Select")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact>
         Public Sub SelectAfterExitInsideCaseTest()
             Dim code =
 <MethodBody>
@@ -47,7 +47,7 @@ Select Case i
             VerifyRecommendationsContain(code, "Select")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact>
         Public Sub SelectNotAfterExitInsideCaseInsideFinallyBlockTest()
             Dim code =
 <MethodBody>
@@ -62,7 +62,7 @@ Finally
             VerifyRecommendationsMissing(code, "Select")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact>
         Public Sub SelectNotAfterExitInsideFinallyBlockInsideCaseTest()
             Dim code =
 <MethodBody>

@@ -16,10 +16,18 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
     internal static partial class ProjectExtensions
     {
         public static TLanguageService? GetLanguageService<TLanguageService>(this Project? project) where TLanguageService : class, ILanguageService
+#if CODE_STYLE
             => project?.GetExtendedLanguageServices().GetService<TLanguageService>();
+#else
+            => project?.Services.GetService<TLanguageService>();
+#endif
 
         public static TLanguageService GetRequiredLanguageService<TLanguageService>(this Project project) where TLanguageService : class, ILanguageService
+#if CODE_STYLE
             => project.GetExtendedLanguageServices().GetRequiredService<TLanguageService>();
+#else
+            => project.Services.GetRequiredService<TLanguageService>();
+#endif
 
 #pragma warning disable RS0030 // Do not used banned API 'Project.LanguageServices', use 'GetExtendedLanguageServices' instead - allow in this helper.
         /// <summary>

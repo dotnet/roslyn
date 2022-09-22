@@ -41,19 +41,19 @@ namespace Microsoft.CodeAnalysis.Formatting
             new(FeatureName, FormattingOptionGroups.IndentationAndSpacing, nameof(UseTabs), LineFormattingOptions.Default.UseTabs,
             storageLocations: ImmutableArray.Create<OptionStorageLocation2>(
                 new EditorConfigStorageLocation<bool>("indent_style", s => s == "tab", isSet => isSet ? "tab" : "space"),
-                new LocalClientSettingsStorageLocation("TextEditor.%LANGUAGE%.Insert Tabs")));
+                new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Insert Tabs")));
 
         public static PerLanguageOption2<int> TabSize =
             new(FeatureName, FormattingOptionGroups.IndentationAndSpacing, nameof(TabSize), LineFormattingOptions.Default.TabSize,
             storageLocations: ImmutableArray.Create<OptionStorageLocation2>(
                 EditorConfigStorageLocation.ForInt32Option("tab_width"),
-                new LocalClientSettingsStorageLocation("TextEditor.%LANGUAGE%.Tab Size")));
+                new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Tab Size")));
 
         public static PerLanguageOption2<int> IndentationSize =
             new(FeatureName, FormattingOptionGroups.IndentationAndSpacing, nameof(IndentationSize), LineFormattingOptions.Default.IndentationSize,
             storageLocations: ImmutableArray.Create<OptionStorageLocation2>(
                 EditorConfigStorageLocation.ForInt32Option("indent_size"),
-                new LocalClientSettingsStorageLocation("TextEditor.%LANGUAGE%.Indent Size")));
+                new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Indent Size")));
 
         public static PerLanguageOption2<string> NewLine =
             new(FeatureName, FormattingOptionGroups.NewLine, nameof(NewLine), LineFormattingOptions.Default.NewLine,

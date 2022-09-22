@@ -237,7 +237,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 get { return this.Arity > 0; }
             }
 
-            internal sealed override SyntaxTree? AssociatedSyntaxTree => null;
+            internal sealed override FileIdentifier? AssociatedFileIdentifier => null;
 
             internal sealed override ImmutableArray<TypeWithAnnotations> TypeArgumentsWithAnnotationsNoUseSiteDiagnostics
             {

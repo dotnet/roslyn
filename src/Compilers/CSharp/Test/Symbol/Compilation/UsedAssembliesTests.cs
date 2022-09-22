@@ -31,7 +31,7 @@ interface I1
     public I1 M();
 }
 ";
-            var comp1 = CreateEmptyCompilation(source);
+            var comp1 = CreateEmptyCompilation(source, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute());
             CompileAndVerify(comp1, verify: Verification.FailsILVerify);
 
             Assert.Empty(comp1.GetUsedAssemblyReferences());
@@ -52,7 +52,7 @@ public interface I1
     public I1 M();
 }
 ";
-            var comp1 = CreateEmptyCompilation(source);
+            var comp1 = CreateEmptyCompilation(source, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute());
             CompileAndVerify(comp1, verify: Verification.FailsILVerify);
 
             var source2 =
@@ -370,7 +370,8 @@ public interface I1
     public I1 M();
 }
 ";
-            var comp1 = CreateEmptyCompilation(source);
+            var parseOptions = TestOptions.Regular.WithNoRefSafetyRulesAttribute();
+            var comp1 = CreateEmptyCompilation(source, parseOptions: parseOptions);
             comp1.VerifyEmitDiagnostics(
                 // warning CS8021: No value for RuntimeMetadataVersion found. No assembly containing System.Object was found nor was a value for RuntimeMetadataVersion specified through options.
                 Diagnostic(ErrorCode.WRN_NoRuntimeMetadataVersion).WithLocation(1, 1)
@@ -394,7 +395,7 @@ public class C2
 
             void verify<TAssemblySymbol>(string source2, MetadataReference reference) where TAssemblySymbol : AssemblySymbol
             {
-                Compilation comp2 = CreateEmptyCompilation(source2, references: new[] { reference, SystemCoreRef, SystemDrawingRef });
+                Compilation comp2 = CreateEmptyCompilation(source2, references: new[] { reference, SystemCoreRef, SystemDrawingRef }, parseOptions: parseOptions);
                 AssertUsedAssemblyReferences(comp2);
                 Assert.IsType<TAssemblySymbol>(((CSharpCompilation)comp2).GetAssemblyOrModuleSymbol(reference));
             }
@@ -410,7 +411,8 @@ public interface I1
     public I1 M1();
 }
 ";
-            var comp1 = CreateEmptyCompilation(source);
+            var parseOptions = TestOptions.Regular.WithNoRefSafetyRulesAttribute();
+            var comp1 = CreateEmptyCompilation(source, parseOptions: parseOptions);
             CompileAndVerify(comp1, verify: Verification.FailsILVerify);
 
             var source2 =
@@ -427,7 +429,7 @@ public interface I2
 
             void verify<TAssemblySymbol>(string source2, MetadataReference reference) where TAssemblySymbol : AssemblySymbol
             {
-                Compilation comp2 = CreateEmptyCompilation(source2, references: new[] { reference, SystemCoreRef, SystemDrawingRef });
+                Compilation comp2 = CreateEmptyCompilation(source2, references: new[] { reference, SystemCoreRef, SystemDrawingRef }, parseOptions: parseOptions);
                 AssertUsedAssemblyReferences(comp2, reference);
                 Assert.IsType<TAssemblySymbol>(((CSharpCompilation)comp2).GetAssemblyOrModuleSymbol(reference));
             }
@@ -5244,7 +5246,8 @@ namespace System
     public struct Void {}
 }
 ";
-            var comp0 = CreateEmptyCompilation(source0);
+            var parseOptions = TestOptions.Regular.WithNoRefSafetyRulesAttribute();
+            var comp0 = CreateEmptyCompilation(source0, parseOptions: parseOptions);
             comp0.VerifyDiagnostics();
             var comp0Ref = comp0.ToMetadataReference();
 
@@ -5260,7 +5263,7 @@ namespace System
     public struct RuntimeTypeHandle {}
 }
 ";
-            var comp1 = CreateEmptyCompilation(source1, references: new[] { comp0Ref });
+            var comp1 = CreateEmptyCompilation(source1, references: new[] { comp0Ref }, parseOptions: parseOptions);
             comp1.VerifyDiagnostics();
 
             var comp1Ref = comp1.ToMetadataReference();
@@ -5271,7 +5274,7 @@ public class Type
 {
 }
 ";
-            var comp2 = CreateEmptyCompilation(source2, references: new[] { comp0Ref });
+            var comp2 = CreateEmptyCompilation(source2, references: new[] { comp0Ref }, parseOptions: parseOptions);
             comp2.VerifyDiagnostics();
 
             var comp2Ref = comp2.ToMetadataReference();
@@ -5287,7 +5290,7 @@ public class C2
 }
 ";
             var references = new[] { comp0Ref, comp1Ref, comp2Ref };
-            var comp3 = CreateEmptyCompilation(source3, references: references);
+            var comp3 = CreateEmptyCompilation(source3, references: references, parseOptions: parseOptions);
 
             AssertUsedAssemblyReferences(comp3, new[] { comp1Ref }, references);
 
@@ -5302,7 +5305,7 @@ public class C2
 }
 ";
 
-            var comp4 = CreateEmptyCompilation(source4, references: new[] { comp0Ref, comp1Ref, comp2Ref });
+            var comp4 = CreateEmptyCompilation(source4, references: new[] { comp0Ref, comp1Ref, comp2Ref }, parseOptions: parseOptions);
 
             AssertUsedAssemblyReferences(comp4, comp1Ref, comp2Ref);
         }

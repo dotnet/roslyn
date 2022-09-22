@@ -18,26 +18,26 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         public readonly bool IsPartialResult;
 
         [DataMember(Order = 2)]
-        public readonly TimeSpan GetSymbolsTime;
+        public TimeSpan GetSymbolsTime { get; set; }
 
         [DataMember(Order = 3)]
         public readonly TimeSpan CreateItemsTime;
 
         [DataMember(Order = 4)]
-        public readonly bool IsRemote;
+        public readonly TimeSpan? RemoteAssetSyncTime;
 
         public SerializableUnimportedExtensionMethods(
             ImmutableArray<SerializableImportCompletionItem> completionItems,
             bool isPartialResult,
             TimeSpan getSymbolsTime,
             TimeSpan createItemsTime,
-            bool isRemote)
+            TimeSpan? remoteAssetSyncTime)
         {
             CompletionItems = completionItems;
             IsPartialResult = isPartialResult;
             GetSymbolsTime = getSymbolsTime;
             CreateItemsTime = createItemsTime;
-            IsRemote = isRemote;
+            RemoteAssetSyncTime = remoteAssetSyncTime;
         }
     }
 }

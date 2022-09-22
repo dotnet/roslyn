@@ -834,7 +834,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Walk a custom attribute argument bound node and return a TypedConstant.  Verify that the expression is a constant expression.
         /// </summary>
-        private struct AttributeExpressionVisitor
+        private readonly struct AttributeExpressionVisitor
         {
             private readonly Binder _binder;
 
@@ -1119,7 +1119,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         #region AnalyzedAttributeArguments
 
-        private struct AnalyzedAttributeArguments
+        private readonly struct AnalyzedAttributeArguments
         {
             internal readonly AnalyzedArguments ConstructorArguments;
             internal readonly ArrayBuilder<BoundAssignmentOperator>? NamedArguments;

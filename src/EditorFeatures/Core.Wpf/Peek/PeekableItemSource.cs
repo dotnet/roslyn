@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Peek
             IList<IPeekableItem> peekableItems, IUIThreadOperationContext context, SnapshotPoint triggerPoint, Document document)
         {
             var cancellationToken = context.UserCancellationToken;
-            var services = document.Project.Solution.Workspace.Services;
+            var services = document.Project.Solution.Services;
 
             if (!document.SupportsSemanticModel)
             {

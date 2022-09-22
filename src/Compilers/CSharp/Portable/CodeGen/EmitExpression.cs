@@ -1013,7 +1013,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
                 // Accessing a volatile field is sideeffecting because it establishes an acquire fence.
                 // Otherwise, accessing an unused instance field on a struct is a noop. Just emit an unused receiver.
-                if (!field.IsVolatile && !field.IsStatic && fieldAccess.ReceiverOpt.Type.IsVerifierValue())
+                if (!field.IsVolatile && !field.IsStatic && fieldAccess.ReceiverOpt.Type.IsVerifierValue() && field.RefKind == RefKind.None)
                 {
                     EmitExpression(fieldAccess.ReceiverOpt, used: false);
                     return;
@@ -1025,7 +1025,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
             EmitFieldLoadNoIndirection(fieldAccess, used);
 
-            if (used && field.RefKind != RefKind.None)
+            if (field.RefKind != RefKind.None)
             {
                 EmitLoadIndirect(field.Type, fieldAccess.Syntax);
             }
@@ -1274,14 +1274,15 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
         private void EmitLocalLoad(BoundLocal local, bool used)
         {
+            bool isRefLocal = local.LocalSymbol.RefKind != RefKind.None;
             if (IsStackLocal(local.LocalSymbol))
             {
                 // local must be already on the stack
-                EmitPopIfUnused(used);
+                EmitPopIfUnused(used || isRefLocal);
             }
             else
             {
-                if (used)
+                if (used || isRefLocal)
                 {
                     LocalDefinition definition = GetLocal(local);
                     _builder.EmitLocalLoad(definition);
@@ -1293,9 +1294,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 }
             }
 
-            if (used && local.LocalSymbol.RefKind != RefKind.None)
+            if (isRefLocal)
             {
                 EmitLoadIndirect(local.LocalSymbol.Type, local.Syntax);
+                EmitPopIfUnused(used);
             }
         }
 
@@ -1534,35 +1536,36 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             FreeOptTemp(tempOpt);
         }
 
-        private void EmitStaticCall(MethodSymbol method, BoundExpression receiverOpt, ImmutableArray<BoundExpression> arguments, UseKind useKind, SyntaxNode syntax, ImmutableArray<RefKind> refKindsOpt)
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        private void EmitStaticCallExpression(BoundCall call, UseKind useKind)
         {
+            var method = call.Method;
+            var receiver = call.ReceiverOpt;
+            var arguments = call.Arguments;
+
             Debug.Assert(method.IsStatic);
 
-            EmitArguments(arguments, method.Parameters, refKindsOpt);
+            EmitArguments(arguments, method.Parameters, call.ArgumentRefKindsOpt);
             int stackBehavior = GetCallStackBehavior(method, arguments);
 
             if (method.IsAbstract || method.IsVirtual)
             {
-                if (receiverOpt is not BoundTypeExpression { Type.TypeKind: TypeKind.TypeParameter })
+                if (receiver is not BoundTypeExpression { Type: { TypeKind: TypeKind.TypeParameter } })
                 {
                     throw ExceptionUtilities.Unreachable;
                 }
 
                 _builder.EmitOpCode(ILOpCode.Constrained);
-                EmitSymbolToken(receiverOpt.Type, receiverOpt.Syntax);
+                EmitSymbolToken(receiver.Type, receiver.Syntax);
             }
 
             _builder.EmitOpCode(ILOpCode.Call, stackBehavior);
 
-            EmitSymbolToken(method, syntax,
-                            method.IsVararg ? (BoundArgListOperator)arguments[^1] : null);
+            EmitSymbolToken(method, call.Syntax,
+                            method.IsVararg ? (BoundArgListOperator)arguments[arguments.Length - 1] : null);
 
-            EmitCallCleanup(syntax, useKind, method);
+            EmitCallCleanup(call.Syntax, useKind, method);
         }
-
-        [MethodImpl(MethodImplOptions.NoInlining)]
-        private void EmitStaticCallExpression(BoundCall call, UseKind useKind)
-            => EmitStaticCall(call.Method, call.ReceiverOpt, call.Arguments, useKind, call.Syntax, call.ArgumentRefKindsOpt);
 
         [MethodImpl(MethodImplOptions.NoInlining)]
         private void EmitInstanceCallExpression(BoundCall call, UseKind useKind)
@@ -1916,42 +1919,19 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             EmitPopIfUnused(used);
         }
 
-        private void EmitUninitializedArrayCreation(int initializerLength, SyntaxNode syntax, MethodSymbol allocUninitialized)
-        {
-            BoundExpression receiverOpt = null;
-
-            var arrLen = ConstantValue.Create(initializerLength);
-            var pinned = ConstantValue.Create(false);
-
-            var arg1 = new BoundLiteral(syntax, arrLen, _module.Compilation.GetSpecialType(SpecialType.System_Int32));
-            var arg2 = new BoundLiteral(syntax, pinned, _module.Compilation.GetSpecialType(SpecialType.System_Boolean));
-            var arguments = ImmutableArray.Create<BoundExpression>(arg1, arg2);
-
-            EmitStaticCall(allocUninitialized, receiverOpt, arguments, UseKind.UsedAsValue, syntax,
-                                ImmutableArray.Create(RefKind.None, RefKind.None));
-        }
-
         private void EmitArrayCreationExpression(BoundArrayCreation expression, bool used)
         {
             var arrayType = (ArrayTypeSymbol)expression.Type;
+
+            EmitArrayIndices(expression.Bounds);
+
             if (arrayType.IsSZArray)
             {
-                var allocUninitialized = _module.Compilation.GetWellKnownTypeMember(WellKnownMember.System_GC__AllocateUninitializedArray_T);
-                if (expression.InitializerOpt != null && allocUninitialized is MethodSymbol { } alloc)
-                {
-                    var constructed = alloc.Construct(ImmutableArray.Create(arrayType.ElementType));
-                    EmitUninitializedArrayCreation(expression.InitializerOpt.Initializers.Length, expression.Syntax, constructed);
-                }
-                else
-                {
-                    EmitArrayIndices(expression.Bounds);
-                    _builder.EmitOpCode(ILOpCode.Newarr);
-                    EmitSymbolToken(arrayType.ElementType, expression.Syntax);
-                }
+                _builder.EmitOpCode(ILOpCode.Newarr);
+                EmitSymbolToken(arrayType.ElementType, expression.Syntax);
             }
             else
             {
-                EmitArrayIndices(expression.Bounds);
                 _builder.EmitArrayCreation(_module.Translate(arrayType), expression.Syntax, _diagnostics);
             }
 

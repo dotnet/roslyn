@@ -101,18 +101,8 @@ public class FileModifierParsingTests : ParsingTests
         UsingNode($$"""
             file partial enum C { }
             """,
-            expectedParsingDiagnostics: new[]
-            {
-                // (1,6): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or a method return type.
-                // file partial enum C { }
-                Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(1, 6)
-            },
-            // note: we also get duplicate ERR_PartialMisplaced diagnostics on `partial enum C { }`.
             expectedBindingDiagnostics: new[]
             {
-                // (1,6): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or a method return type.
-                // file partial enum C { }
-                Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(1, 6),
                 // (1,19): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or a method return type.
                 // file partial enum C { }
                 Diagnostic(ErrorCode.ERR_PartialMisplaced, "C").WithLocation(1, 19)
@@ -192,20 +182,25 @@ public class FileModifierParsingTests : ParsingTests
         EOF();
     }
 
-    [Theory]
-    [InlineData(SyntaxKind.RecordKeyword)]
-    public void FileModifier_04(SyntaxKind typeKeyword)
+    [Fact]
+    public void FileModifier_04()
     {
-        UsingNode($$"""
-            partial file {{SyntaxFacts.GetText(typeKeyword)}} C { }
-            """);
+        UsingNode("""
+            partial file record C { }
+            """,
+            expectedBindingDiagnostics: new DiagnosticDescription[]
+            {
+                // (1,1): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or a method return type.
+                // partial file record C { }
+                Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(1, 1)
+            });
         N(SyntaxKind.CompilationUnit);
         {
-            N(SyntaxFacts.GetBaseTypeDeclarationKind(typeKeyword));
+            N(SyntaxKind.RecordDeclaration);
             {
                 N(SyntaxKind.PartialKeyword);
                 N(SyntaxKind.FileKeyword);
-                N(typeKeyword);
+                N(SyntaxKind.RecordKeyword);
                 N(SyntaxKind.IdentifierToken, "C");
                 N(SyntaxKind.OpenBraceToken);
                 N(SyntaxKind.CloseBraceToken);
@@ -243,7 +238,13 @@ public class FileModifierParsingTests : ParsingTests
     {
         UsingNode($$"""
             partial file record struct C { }
-            """);
+            """,
+            expectedBindingDiagnostics: new DiagnosticDescription[]
+            {
+                // (1,1): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or a method return type.
+                // partial file record struct C { }
+                Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(1, 1)
+            });
         N(SyntaxKind.CompilationUnit);
         {
             N(SyntaxKind.RecordStructDeclaration);

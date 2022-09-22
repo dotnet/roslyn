@@ -149,7 +149,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             var result = ModifierUtils.MakeAndCheckNontypeMemberModifiers(
-                isForTypeDeclaration: false, isForInterfaceMember: inInterface,
+                isOrdinaryMethod: false, isForInterfaceMember: inInterface,
                 syntax.Modifiers, defaultAccess, allowedModifiers, location, diagnostics, modifierErrors: out _);
 
             if (inInterface)
@@ -233,7 +233,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 allowRefOrOut: true,
                 allowThis: false,
                 addRefReadOnlyModifier: false,
-                diagnostics: diagnostics);
+                diagnostics: diagnostics).Cast<SourceParameterSymbol, ParameterSymbol>();
 
             if (arglistToken.Kind() == SyntaxKind.ArgListKeyword)
             {

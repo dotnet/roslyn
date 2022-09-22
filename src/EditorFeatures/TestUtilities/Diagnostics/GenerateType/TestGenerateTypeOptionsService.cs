@@ -9,7 +9,7 @@ using System.Collections.Generic;
 using System.Composition;
 using Microsoft.CodeAnalysis.GenerateType;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.ProjectManagement;
 

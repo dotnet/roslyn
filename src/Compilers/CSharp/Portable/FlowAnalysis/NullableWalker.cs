@@ -607,10 +607,35 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                         // https://github.com/dotnet/roslyn/issues/46718: give diagnostics on return points, not constructor signature
                         var exitLocation = method.DeclaringSyntaxReferences.IsEmpty ? null : method.Locations.FirstOrDefault();
+                        bool constructorEnforcesRequiredMembers = method.ShouldCheckRequiredMembers();
+                        var alreadyWarnedMembers = PooledHashSet<Symbol>.GetInstance();
                         foreach (var member in method.ContainingType.GetMembersUnordered())
                         {
-                            checkMemberStateOnConstructorExit(method, member, state, thisSlot, exitLocation);
+                            // If this constructor has `SetsRequiredMembers`, then we need to check the state of _all_ required properties, regardless of whether they are auto-properties or not.
+                            // For auto-properties, `GetMembersUnordered()` will return the backing field, and `checkStateOnConstructorExit` will follow that to the property itself, so we only need
+                            // to force property analysis if the member is required and _does not_ have a backing field.
+                            var shouldForcePropertyAnalysis = !constructorEnforcesRequiredMembers && member is not SourcePropertySymbolBase { BackingField: not null } && member.IsRequired();
+                            checkMemberStateOnConstructorExit(method, member, state, thisSlot, exitLocation, forcePropertyAnalysis: shouldForcePropertyAnalysis);
                         }
+
+                        // If this constructor is adding `SetsRequiredMembers` and the base or this constructor did not have it, we need
+                        // to restore the nullable warnings for all members that were not initialized in this constructor, including those
+                        // from base types that were expected to have been initialized by the consumer at the construction site.
+
+                        var chainedConstructorEnforcesRequiredMembers = GetBaseOrThisInitializer()?.ShouldCheckRequiredMembers() ?? false;
+
+                        if (chainedConstructorEnforcesRequiredMembers && !constructorEnforcesRequiredMembers && method.ContainingType.BaseTypeNoUseSiteDiagnostics is { } baseType)
+                        {
+                            // Members of the current type were checked above. We need to grab all the required members from the base
+                            // type and enforce them as well. We don't need to check the non-required members: those warnings would have
+                            // been reported in constructor of the type that defined them.
+                            foreach (var (_, member) in baseType.AllRequiredMembers)
+                            {
+                                checkMemberStateOnConstructorExit(method, member, state, thisSlot, exitLocation, forcePropertyAnalysis: true);
+                            }
+                        }
+
+                        alreadyWarnedMembers.Free();
                     }
                     else
                     {
@@ -628,7 +653,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            void checkMemberStateOnConstructorExit(MethodSymbol constructor, Symbol member, LocalState state, int thisSlot, Location? exitLocation)
+            void checkMemberStateOnConstructorExit(MethodSymbol constructor, Symbol member, LocalState state, int thisSlot, Location? exitLocation, bool forcePropertyAnalysis)
             {
                 var isStatic = !constructor.RequiresInstanceReceiver();
                 if (member.IsStatic != isStatic)
@@ -645,18 +670,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return;
                 }
 
-                TypeWithAnnotations fieldType;
+                TypeWithAnnotations symbolType;
                 FieldSymbol? field;
                 Symbol symbol;
                 switch (member)
                 {
                     case FieldSymbol f:
-                        fieldType = f.TypeWithAnnotations;
+                        symbolType = f.TypeWithAnnotations;
                         field = f;
                         symbol = (Symbol?)(f.AssociatedSymbol as PropertySymbol) ?? f;
                         break;
                     case EventSymbol e:
-                        fieldType = e.TypeWithAnnotations;
+                        symbolType = e.TypeWithAnnotations;
                         field = e.AssociatedField;
                         symbol = e;
                         if (field is null)
@@ -664,14 +689,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                             return;
                         }
                         break;
+                    case PropertySymbol p when forcePropertyAnalysis:
+                        symbolType = p.TypeWithAnnotations;
+                        field = null;
+                        symbol = p;
+                        break;
                     default:
                         return;
                 }
-                if (field.IsConst)
+                if (field?.IsConst ?? false)
                 {
                     return;
                 }
-                if (fieldType.Type.IsValueType || fieldType.Type.IsErrorType())
+                if (symbolType.Type.IsValueType || symbolType.Type.IsErrorType())
                 {
                     return;
                 }
@@ -688,8 +718,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // does not care that we exit at a point where the member might be null.
                     return;
                 }
-                fieldType = ApplyUnconditionalAnnotations(fieldType, annotations);
-                if (!fieldType.NullableAnnotation.IsNotAnnotated())
+                symbolType = ApplyUnconditionalAnnotations(symbolType, annotations);
+                if (!symbolType.NullableAnnotation.IsNotAnnotated())
                 {
                     return;
                 }
@@ -700,7 +730,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 var memberState = state[slot];
-                var badState = fieldType.Type.IsPossiblyNullableReferenceTypeTypeParameter() && (annotations & FlowAnalysisAnnotations.NotNull) == 0
+                var badState = symbolType.Type.IsPossiblyNullableReferenceTypeTypeParameter() && (annotations & FlowAnalysisAnnotations.NotNull) == 0
                     ? NullableFlowState.MaybeDefault
                     : NullableFlowState.MaybeNull;
                 if (memberState >= badState) // is 'memberState' as bad as or worse than 'badState'?
@@ -833,8 +863,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                             var memberToInitialize = member;
                             switch (member)
                             {
+                                case PropertySymbol { IsRequired: true }:
+                                    break;
                                 case PropertySymbol:
-                                    // skip any manually implemented properties.
+                                    // skip any manually implemented non-required properties.
                                     continue;
                                 case FieldSymbol { IsConst: true }:
                                     continue;
@@ -892,9 +924,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     if (method is SourceMemberMethodSymbol { SyntaxNode: ConstructorDeclarationSyntax { Initializer: { RawKind: var initializerKind } } })
                     {
-                        // We have multiple ways of entering the nullable walker: we could be just analyzing the initializers, with a BoundStatementList body and _baseOrThisInitializer
-                        // having been provided, or we could be analyzing the body of a constructor, with a BoundConstructorBody body and _baseOrThisInitializer being null.
-                        var baseOrThisInitializer = (_baseOrThisInitializer ?? GetConstructorThisOrBaseSymbol(this.methodMainNode));
+                        var baseOrThisInitializer = GetBaseOrThisInitializer();
                         // If there's an error in the base or this initializer, presume that we should set all required members to default.
                         includeBaseRequiredMembers = baseOrThisInitializer?.ShouldCheckRequiredMembers() ?? true;
                         if (initializerKind == (int)SyntaxKind.ThisConstructorInitializer)
@@ -1022,6 +1052,15 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 return GetOrCreateSlot(member, containingSlot);
             }
+        }
+
+        /// <summary>
+        /// We have multiple ways of entering the nullable walker: we could be just analyzing the initializers, with a BoundStatementList body and _baseOrThisInitializer
+        /// having been provided, or we could be analyzing the body of a constructor, with a BoundConstructorBody body and _baseOrThisInitializer being null.
+        /// </summary>
+        private MethodSymbol? GetBaseOrThisInitializer()
+        {
+            return (_baseOrThisInitializer ?? GetConstructorThisOrBaseSymbol(this.methodMainNode));
         }
 
         private void EnforceNotNullWhenForPendingReturn(PendingBranch pendingReturn, BoundReturnStatement returnStatement)
@@ -7875,12 +7914,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                             _ => (null, ImmutableArray<ParameterSymbol>.Empty),
                         };
 
+#nullable enable
                 case ConversionKind.AnonymousFunction:
                     if (conversionOperand is BoundLambda lambda)
                     {
                         var delegateType = targetType.GetDelegateType();
                         VisitLambda(lambda, delegateType, stateForLambda);
-                        if (reportRemainingWarnings)
+                        if (reportRemainingWarnings && delegateType is not null)
                         {
                             ReportNullabilityMismatchWithTargetDelegate(diagnosticLocationOpt, delegateType, lambda);
                         }
@@ -7890,6 +7930,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return TypeWithState.Create(targetType, NullableFlowState.NotNull);
                     }
                     break;
+#nullable disable
 
                 case ConversionKind.FunctionType:
                     resultState = NullableFlowState.NotNull;
