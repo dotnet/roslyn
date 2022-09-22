@@ -4,45 +4,54 @@
 
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis.PatternMatching;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Completion
 {
     internal readonly struct MatchResult
     {
+        /// <summary>
+        /// The CompletinoItem used to create this MatchResult.
+        /// </summary>
         public readonly CompletionItem CompletionItem;
+
+        public readonly PatternMatch? PatternMatch;
 
         // The value of `ShouldBeConsideredMatchingFilterText` doesn't 100% refect the actual PatternMatch result.
         // In certain cases, there'd be no match but we'd still want to consider it a match (e.g. when the item is in MRU list,)
         // and this is why PatternMatch can be null. There's also cases it's a match but we want to consider it a non-match
         // (e.g. when not a prefix match in deleteion sceanrio).
-        public readonly PatternMatch? PatternMatch;
         public readonly bool ShouldBeConsideredMatchingFilterText;
 
-        // Text used to create this match if it's one of the CompletionItem.AdditionalFilterTexts. null if it's FilterText.
-        public readonly string? MatchedAddtionalFilterText;
-
-        public string FilterTextUsed => MatchedAddtionalFilterText ?? CompletionItem.FilterText;
-
-        public bool MatchedWithAdditionalFilterTexts => MatchedAddtionalFilterText is not null;
+        public string FilterTextUsed => _matchedAddtionalFilterText ?? CompletionItem.FilterText;
 
         // We want to preserve the original alphabetical order for items with same pattern match score,
         // but `ArrayBuilder.Sort` we currently use isn't stable. So we have to add a monotonically increasing 
         // integer to archieve this.
         public readonly int IndexInOriginalSortedOrder;
+        public readonly int RecentItemIndex;
+
+        /// <summary>
+        /// If `CompletionItem.AdditionalFilterTexts` was used to create this MatchResult, then this is set to the one that was used.
+        /// Otherwise this is set to null.
+        /// </summary>
+        private readonly string? _matchedAddtionalFilterText;
+
+        private bool MatchedWithAdditionalFilterTexts => _matchedAddtionalFilterText is not null;
 
         public MatchResult(
             CompletionItem completionItem,
             bool shouldBeConsideredMatchingFilterText,
             PatternMatch? patternMatch,
             int index,
-            string? matchedAdditionalFilterText)
+            string? matchedAdditionalFilterText,
+            int recentItemIndex = -1)
         {
             CompletionItem = completionItem;
             ShouldBeConsideredMatchingFilterText = shouldBeConsideredMatchingFilterText;
             PatternMatch = patternMatch;
             IndexInOriginalSortedOrder = index;
-            MatchedAddtionalFilterText = matchedAdditionalFilterText;
+            RecentItemIndex = recentItemIndex;
+            _matchedAddtionalFilterText = matchedAdditionalFilterText;
         }
 
         public static IComparer<MatchResult> SortingComparer { get; } = new Comparer();
@@ -80,38 +89,6 @@ namespace Microsoft.CodeAnalysis.Completion
 
                 return x.IndexInOriginalSortedOrder - y.IndexInOriginalSortedOrder;
             }
-        }
-
-        /// <summary>
-        /// This comparison is used in the deletion/backspace scenario for selecting best elements.
-        /// </summary>
-        public static int CompareForDeletion(MatchResult x, MatchResult y, string pattern)
-        {
-            var xItem = x.CompletionItem;
-            var yItem = y.CompletionItem;
-
-            // Prefer the item that matches a longer prefix of the filter text.
-            var comparison = x.FilterTextUsed.GetCaseInsensitivePrefixLength(pattern).CompareTo(y.FilterTextUsed.GetCaseInsensitivePrefixLength(pattern));
-            if (comparison != 0)
-                return comparison;
-
-            // If there are "Abc" vs "abc", we should prefer the case typed by user.
-            comparison = x.FilterTextUsed.GetCaseSensitivePrefixLength(pattern).CompareTo(y.FilterTextUsed.GetCaseSensitivePrefixLength(pattern));
-            if (comparison != 0)
-                return comparison;
-
-            // If the lengths are the same, prefer the one with the higher match priority.
-            // But only if it's an item that would have been hard selected.  We don't want
-            // to aggressively select an item that was only going to be softly offered.
-            comparison = GetPriority(xItem).CompareTo(GetPriority(yItem));
-            if (comparison != 0)
-                return comparison;
-
-            // Prefer Intellicode items.
-            return xItem.IsPreferredItem().CompareTo(yItem.IsPreferredItem());
-
-            static int GetPriority(CompletionItem item)
-                => item.Rules.SelectionBehavior == CompletionItemSelectionBehavior.HardSelection ? item.Rules.MatchPriority : MatchPriority.Default;
         }
     }
 }

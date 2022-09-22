@@ -72,6 +72,7 @@ namespace Microsoft.CodeAnalysis.Completion
                     }
                 }
             }
+
             return new MatchResult(
                 item,
                 shouldBeConsideredMatchingFilterText: match is not null,
@@ -430,7 +431,7 @@ namespace Microsoft.CodeAnalysis.Completion
             string pattern,
             CompletionTriggerKind initialTriggerKind,
             CompletionFilterReason filterReason,
-            bool isRecentItem,
+            int recentItemIndex,
             bool includeMatchSpans,
             int currentIndex,
             out MatchResult matchResult)
@@ -452,7 +453,7 @@ namespace Microsoft.CodeAnalysis.Completion
                 item.Rules.MatchPriority,
                 initialTriggerKind,
                 filterReason,
-                isRecentItem,
+                recentItemIndex,
                 patternMatch);
 
             if (pattern.Length > 0 && item.HasAdditionalFilterTexts)
@@ -466,7 +467,7 @@ namespace Microsoft.CodeAnalysis.Completion
                         item.Rules.MatchPriority,
                         initialTriggerKind,
                         filterReason,
-                        isRecentItem,
+                        recentItemIndex,
                         additionalMatch);
 
                     if (!shouldBeConsideredMatchingFilterText ||
@@ -483,7 +484,7 @@ namespace Microsoft.CodeAnalysis.Completion
             {
                 matchResult = new MatchResult(
                     item, shouldBeConsideredMatchingFilterText,
-                    patternMatch, currentIndex, matchedAdditionalFilterText);
+                    patternMatch, currentIndex, matchedAdditionalFilterText, recentItemIndex);
 
                 return true;
             }
@@ -497,7 +498,7 @@ namespace Microsoft.CodeAnalysis.Completion
                 int matchPriority,
                 CompletionTriggerKind initialTriggerKind,
                 CompletionFilterReason filterReason,
-                bool isRecentItem,
+                int recentItemIndex,
                 PatternMatch? patternMatch)
             {
                 // For the deletion we bake in the core logic for how matching should work.
@@ -517,7 +518,7 @@ namespace Microsoft.CodeAnalysis.Completion
                 // MRU list, then we definitely want to include it.
                 if (pattern.Length == 0)
                 {
-                    if (isRecentItem || matchPriority > MatchPriority.Default)
+                    if (recentItemIndex >= 0 || matchPriority > MatchPriority.Default)
                         return true;
                 }
 

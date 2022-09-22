@@ -254,7 +254,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                         // It's also used to sort the items by pattern matching results while preserving the original alphabetical order for items with
                         // same pattern match score since `List<T>.Sort` isn't stable.
                         if (CompletionHelper.TryCreateMatchResult(_completionHelper, itemData.RoslynItem, _filterText,
-                            roslynInitialTriggerKind, roslynFilterReason, _recentItemsManager.GetRecentItemIndex(itemData.RoslynItem) >= 0, _highlightMatchingPortions, currentIndex,
+                            roslynInitialTriggerKind, roslynFilterReason, _recentItemsManager.GetRecentItemIndex(itemData.RoslynItem), _highlightMatchingPortions, currentIndex,
                             out var matchResult))
                         {
                             list.Add(matchResult);
@@ -406,7 +406,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                     }
                     else
                     {
-                        var match = MatchResult.CompareForDeletion(currentMatchResult, bestMatchResult.Value, _filterText);
+                        var match = CompareForDeletion(currentMatchResult, bestMatchResult.Value, _filterText);
                         if (match > 0)
                         {
                             moreThanOneMatch = false;
@@ -450,6 +450,35 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 return new(SelectedItemIndex: indexToSelect,
                     SelectionHint: hardSelect ? UpdateSelectionHint.Selected : UpdateSelectionHint.SoftSelected,
                     UniqueItem: moreThanOneMatch || !bestMatchResult.HasValue ? null : GetCorrespondingVsCompletionItem(bestMatchResult.Value, cancellationToken));
+
+                static int CompareForDeletion(MatchResult x, MatchResult y, string pattern)
+                {
+                    // Prefer the item that matches a longer prefix of the filter text.
+                    var comparison = x.FilterTextUsed.GetCaseInsensitivePrefixLength(pattern).CompareTo(y.FilterTextUsed.GetCaseInsensitivePrefixLength(pattern));
+                    if (comparison != 0)
+                        return comparison;
+
+                    // If there are "Abc" vs "abc", we should prefer the case typed by user.
+                    comparison = x.FilterTextUsed.GetCaseSensitivePrefixLength(pattern).CompareTo(y.FilterTextUsed.GetCaseSensitivePrefixLength(pattern));
+                    if (comparison != 0)
+                        return comparison;
+
+                    var xItem = x.CompletionItem;
+                    var yItem = y.CompletionItem;
+
+                    // If the lengths are the same, prefer the one with the higher match priority.
+                    // But only if it's an item that would have been hard selected.  We don't want
+                    // to aggressively select an item that was only going to be softly offered.
+                    comparison = GetPriority(xItem).CompareTo(GetPriority(yItem));
+                    if (comparison != 0)
+                        return comparison;
+
+                    // Prefer Intellicode items.
+                    return xItem.IsPreferredItem().CompareTo(yItem.IsPreferredItem());
+
+                    static int GetPriority(RoslynCompletionItem item)
+                        => item.Rules.SelectionBehavior == CompletionItemSelectionBehavior.HardSelection ? item.Rules.MatchPriority : MatchPriority.Default;
+                }
             }
 
             private CompletionList<CompletionItemWithHighlight> GetHighlightedList(
@@ -551,17 +580,18 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             /// Given multiple possible chosen completion items, pick the one that has the
             /// best MRU index, or the one with highest MatchPriority if none in MRU.
             /// </summary>
-            private MatchResult GetBestCompletionItemBasedOnMRUFirstOtherwiseOnPriority(IReadOnlyList<MatchResult> chosenItems)
+            private static MatchResult GetBestCompletionItemBasedOnMRUFirstOtherwiseOnPriority(IReadOnlyList<MatchResult> chosenItems)
             {
                 Debug.Assert(chosenItems.Count > 0);
 
                 // Try to find the chosen item has been most recently used.
                 var bestItem = chosenItems[0];
-                var bestItemMruIndex = _recentItemsManager.GetRecentItemIndex(bestItem.CompletionItem);
+                var bestItemMruIndex = bestItem.RecentItemIndex;
+
                 for (int i = 1, n = chosenItems.Count; i < n; i++)
                 {
                     var currentItem = chosenItems[i];
-                    var currentItemMruIndex = _recentItemsManager.GetRecentItemIndex(currentItem.CompletionItem);
+                    var currentItemMruIndex = currentItem.RecentItemIndex;
 
                     if (currentItemMruIndex > bestItemMruIndex ||
                         (currentItemMruIndex == bestItemMruIndex && !bestItem.CompletionItem.IsPreferredItem() && currentItem.CompletionItem.IsPreferredItem()))

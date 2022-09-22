@@ -304,6 +304,9 @@ namespace Microsoft.CodeAnalysis.Completion
 
             foreach (var matchResult in matchResults)
             {
+                if (!matchResult.ShouldBeConsideredMatchingFilterText)
+                    continue;
+
                 if (builder.Count == 0)
                 {
                     // We've found no good items yet.  So this is the best item currently.
