@@ -457,7 +457,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                     filterText,
                     completionTrigger.Kind,
                     GetFilterReason(completionTrigger),
-                    isRecentItem: false,
+                    recentItemIndex: -1,
                     includeMatchSpans: false,
                     index,
                     out var matchResult))

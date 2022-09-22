@@ -316,7 +316,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                     else
                     {
                         // Of the items the service returned, pick the one most recently committed
-                        var bestResult = GetBestCompletionItemBasedOnMRUFirstOtherwiseOnPriority(filteredMatchResultsBuilder);
+                        var bestResult = GetBestCompletionItemSelectionFromFilteredResults(filteredMatchResultsBuilder);
 
                         // Determine if we should consider this item 'unique' or not.  A unique item
                         // will be automatically committed if the user hits the 'invoke completion' 
@@ -577,51 +577,72 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             }
 
             /// <summary>
-            /// Given multiple possible chosen completion items, pick the one that has the
-            /// best MRU index, or the one with highest MatchPriority if none in MRU.
+            /// Given multiple possible chosen completion items, pick the one using the following perferences (in order):
+            ///     1. Most recently used item is our top preference
+            ///     2. IntelliCode item over non-IntelliCode item
+            ///     3. Higher MatchPriority
+            ///     4. Match to FilterText over AdditionalFilterTexts
             /// </summary>
-            private static MatchResult GetBestCompletionItemBasedOnMRUFirstOtherwiseOnPriority(IReadOnlyList<MatchResult> chosenItems)
+            private static MatchResult GetBestCompletionItemSelectionFromFilteredResults(IReadOnlyList<MatchResult> filteredMatchResults)
             {
-                Debug.Assert(chosenItems.Count > 0);
+                Debug.Assert(filteredMatchResults.Count > 0);
 
-                // Try to find the chosen item has been most recently used.
-                var bestItem = chosenItems[0];
-                var bestItemMruIndex = bestItem.RecentItemIndex;
+                var bestResult = filteredMatchResults[0];
+                var bestResultMruIndex = bestResult.RecentItemIndex;
 
-                for (int i = 1, n = chosenItems.Count; i < n; i++)
+                for (int i = 1, n = filteredMatchResults.Count; i < n; i++)
                 {
-                    var currentItem = chosenItems[i];
-                    var currentItemMruIndex = currentItem.RecentItemIndex;
+                    var currentResult = filteredMatchResults[i];
+                    var currentResultMruIndex = currentResult.RecentItemIndex;
 
-                    if (currentItemMruIndex > bestItemMruIndex ||
-                        (currentItemMruIndex == bestItemMruIndex && !bestItem.CompletionItem.IsPreferredItem() && currentItem.CompletionItem.IsPreferredItem()))
+                    // Most recently used item is our top preference.
+                    if (currentResultMruIndex != bestResultMruIndex)
                     {
-                        bestItem = currentItem;
-                        bestItemMruIndex = currentItemMruIndex;
+                        if (currentResultMruIndex > bestResultMruIndex)
+                        {
+                            bestResult = currentResult;
+                            bestResultMruIndex = currentResultMruIndex;
+                        }
+
+                        continue;
+                    }
+
+                    // 2nd preference is IntelliCode item
+                    var currentIsPreferred = currentResult.CompletionItem.IsPreferredItem();
+                    var bestIsPreferred = bestResult.CompletionItem.IsPreferredItem();
+
+                    if (currentIsPreferred != bestIsPreferred)
+                    {
+                        if (currentIsPreferred && !bestIsPreferred)
+                        {
+                            bestResult = currentResult;
+                        }
+
+                        continue;
+                    }
+
+                    // 3rd preference is higher MatchPriority
+                    var currentMatchPriority = currentResult.CompletionItem.Rules.MatchPriority;
+                    var bestMatchPriority = bestResult.CompletionItem.Rules.MatchPriority;
+
+                    if (currentMatchPriority != bestMatchPriority)
+                    {
+                        if (currentMatchPriority > bestMatchPriority)
+                        {
+                            bestResult = currentResult;
+                        }
+
+                        continue;
+                    }
+
+                    // final preference is match to FilterText over AdditionalFilterTexts
+                    if (bestResult.MatchedWithAdditionalFilterTexts && !currentResult.MatchedWithAdditionalFilterTexts)
+                    {
+                        bestResult = currentResult;
                     }
                 }
 
-                // If our best item appeared in the MRU list, use it
-                if (bestItemMruIndex >= 0)
-                {
-                    return bestItem;
-                }
-
-                // Otherwise use the chosen item that has the highest matchPriority.
-                for (int i = 1, n = chosenItems.Count; i < n; i++)
-                {
-                    var chosenItem = chosenItems[i];
-                    var bestItemPriority = bestItem.CompletionItem.Rules.MatchPriority;
-                    var currentItemPriority = chosenItem.CompletionItem.Rules.MatchPriority;
-
-                    if ((currentItemPriority > bestItemPriority) ||
-                        ((currentItemPriority == bestItemPriority) && !bestItem.CompletionItem.IsPreferredItem() && chosenItem.CompletionItem.IsPreferredItem()))
-                    {
-                        bestItem = chosenItem;
-                    }
-                }
-
-                return bestItem;
+                return bestResult;
             }
 
             private static bool TryGetInitialTriggerLocation(AsyncCompletionSessionDataSnapshot data, out SnapshotPoint intialTriggerLocation)

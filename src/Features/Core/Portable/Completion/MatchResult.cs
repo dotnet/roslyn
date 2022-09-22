@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.Completion
         /// </summary>
         private readonly string? _matchedAddtionalFilterText;
 
-        private bool MatchedWithAdditionalFilterTexts => _matchedAddtionalFilterText is not null;
+        public bool MatchedWithAdditionalFilterTexts => _matchedAddtionalFilterText is not null;
 
         public MatchResult(
             CompletionItem completionItem,
