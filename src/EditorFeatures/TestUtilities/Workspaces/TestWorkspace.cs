@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             Guid solutionTelemetryId = default,
             bool disablePartialSolutions = true,
             bool ignoreUnchangeableDocumentsWhenApplyingChanges = true)
-            : base(GetHostServices(ref composition, disablePartialSolutions), workspaceKind ?? WorkspaceKind.Host)
+            : base(GetHostServices(ref composition), workspaceKind ?? WorkspaceKind.Host)
         {
             SetCurrentSolution(CreateSolution(SolutionInfo.Create(SolutionId.CreateNewId(), VersionStamp.Create()).WithTelemetryId(solutionTelemetryId)));
 
