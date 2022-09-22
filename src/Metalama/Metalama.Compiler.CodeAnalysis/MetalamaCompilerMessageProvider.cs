@@ -37,8 +37,6 @@ namespace Metalama.Compiler
 
         #region Roslyn error codes
 
-        internal override bool ShouldAssertExpectedMessageArgumentsLength(int errorCode) => throw new NotImplementedException();
-
         public override int ERR_FailedToCreateTempFile => throw new NotImplementedException();
 
         public override int ERR_MultipleAnalyzerConfigsInSameDir => throw new NotImplementedException();
