@@ -75,7 +75,7 @@ if ((output = sr.ReadLine()) is not null)
     JsonSerializer.Serialize(fileStream, testsToWrite);
 }
 
-internal class Sink : IMessageSink
+internal sealed class Sink : IMessageSink
 {
     public Sink()
     {
