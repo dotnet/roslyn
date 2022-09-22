@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis
                    info.Attributes,
                    sourceText: null,
                    textAndVersionSource: info.TextLoader != null
-                    ? CreateRecoverableText(info.TextLoader, services.SolutionServices)
+                    ? CreateRecoverableText(info.TextLoader, info.Id, services)
                     : CreateStrongText(TextAndVersion.Create(SourceText.From(string.Empty, Encoding.UTF8), VersionStamp.Default, info.FilePath)))
         {
         }
@@ -87,9 +87,12 @@ namespace Microsoft.CodeAnalysis
         protected static ValueSource<TextAndVersion> CreateStrongText(TextAndVersion text)
             => new ConstantValueSource<TextAndVersion>(text);
 
-        protected static ValueSource<TextAndVersion> CreateStrongText(TextLoader loader)
+        protected static ValueSource<TextAndVersion> CreateStrongText(TextLoader loader, DocumentId documentId, HostWorkspaceServices services)
         {
-            return new AsyncLazy<TextAndVersion>(loader.LoadTextAsync, loader.LoadTextSynchronously, cacheResult: true);
+            return new AsyncLazy<TextAndVersion>(
+                asynchronousComputeFunction: cancellationToken => loader.LoadTextAsync(services.Workspace, documentId, cancellationToken),
+                synchronousComputeFunction: cancellationToken => loader.LoadTextSynchronously(services.Workspace, documentId, cancellationToken),
+                cacheResult: true);
         }
 
         protected static ValueSource<TextAndVersion> CreateRecoverableText(TextAndVersion text, SolutionServices services)
@@ -107,8 +110,15 @@ namespace Microsoft.CodeAnalysis
             return result;
         }
 
-        protected static ValueSource<TextAndVersion> CreateRecoverableText(TextLoader loader, SolutionServices services)
-            => new RecoverableTextAndVersion(new AsyncLazy<TextAndVersion>(loader.LoadTextAsync, loader.LoadTextSynchronously, cacheResult: false), services);
+        protected static ValueSource<TextAndVersion> CreateRecoverableText(TextLoader loader, DocumentId documentId, HostWorkspaceServices services)
+        {
+            return new RecoverableTextAndVersion(
+                new AsyncLazy<TextAndVersion>(
+                    asynchronousComputeFunction: cancellationToken => loader.LoadTextAsync(services.Workspace, documentId, cancellationToken),
+                    synchronousComputeFunction: cancellationToken => loader.LoadTextSynchronously(services.Workspace, documentId, cancellationToken),
+                    cacheResult: false),
+                services.SolutionServices);
+        }
 
         public ITemporaryTextStorageInternal? Storage
             => (TextAndVersionSource as RecoverableTextAndVersion)?.Storage;
@@ -220,8 +230,8 @@ namespace Microsoft.CodeAnalysis
         {
             // don't blow up on non-text documents.
             var newTextSource = mode == PreservationMode.PreserveIdentity
-                ? CreateStrongText(loader)
-                : CreateRecoverableText(loader, solutionServices.SolutionServices);
+                ? CreateStrongText(loader, Id, solutionServices)
+                : CreateRecoverableText(loader, Id, solutionServices);
 
             return UpdateText(newTextSource, mode, incremental: false);
         }
