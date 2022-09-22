@@ -39,11 +39,10 @@ namespace Microsoft.CodeAnalysis
             IDocumentServiceProvider? documentServiceProvider,
             DocumentInfo.DocumentAttributes attributes,
             ParseOptions? options,
-            SourceText? sourceText,
             ITextAndVersionSource textSource,
             LoadTextOptions loadTextOptions,
             ValueSource<TreeAndVersion>? treeSource)
-            : base(solutionServices, documentServiceProvider, attributes, sourceText, textSource, loadTextOptions)
+            : base(solutionServices, documentServiceProvider, attributes, textSource, loadTextOptions)
         {
             Contract.ThrowIfFalse(_options is null == _treeSource is null);
 
@@ -353,7 +352,6 @@ namespace Microsoft.CodeAnalysis
                 Services,
                 Attributes,
                 _options,
-                sourceText,
                 TextAndVersionSource,
                 newLoadTextOptions,
                 newTreeSource);
@@ -426,7 +424,6 @@ namespace Microsoft.CodeAnalysis
                 Services,
                 Attributes.With(sourceCodeKind: options.Kind),
                 options,
-                sourceText,
                 TextAndVersionSource,
                 LoadTextOptions,
                 newTreeSource);
@@ -460,7 +457,6 @@ namespace Microsoft.CodeAnalysis
                 Services,
                 attributes,
                 _options,
-                sourceText,
                 TextAndVersionSource,
                 LoadTextOptions,
                 _treeSource);
@@ -488,7 +484,6 @@ namespace Microsoft.CodeAnalysis
                 Services,
                 newAttributes,
                 _options,
-                sourceText,
                 TextAndVersionSource,
                 LoadTextOptions,
                 newTreeSource);
@@ -499,6 +494,9 @@ namespace Microsoft.CodeAnalysis
 
         public new DocumentState UpdateText(TextAndVersion newTextAndVersion, PreservationMode mode)
             => (DocumentState)base.UpdateText(newTextAndVersion, mode);
+
+        public new DocumentState UpdateText(TextLoader loader, PreservationMode mode)
+            => (DocumentState)base.UpdateText(loader, mode);
 
         protected override TextDocumentState UpdateText(ITextAndVersionSource newTextSource, PreservationMode mode, bool incremental)
         {
@@ -530,35 +528,9 @@ namespace Microsoft.CodeAnalysis
                 Services,
                 Attributes,
                 _options,
-                sourceText: null,
                 textSource: newTextSource,
                 LoadTextOptions,
                 treeSource: newTreeSource);
-        }
-
-        internal DocumentState UpdateText(TextLoader loader, SourceText? text, PreservationMode mode)
-        {
-            var documentState = (DocumentState)UpdateText(loader, mode);
-
-            // If we are given a SourceText directly, fork it since we didn't pass that into the base.
-            // TODO: understand why this is being called this way at all. It seems we only have a text in a specific case
-            // when we are opening a file, when it seems this could have just called the other overload that took a
-            // TextAndVersion that could have just pinned the object directly.
-            if (text == null)
-            {
-                return documentState;
-            }
-
-            return new DocumentState(
-                LanguageServices,
-                solutionServices,
-                Services,
-                Attributes,
-                _options,
-                sourceText: text,
-                textSource: documentState.TextAndVersionSource,
-                LoadTextOptions,
-                treeSource: documentState._treeSource);
         }
 
         internal DocumentState UpdateTree(SyntaxNode newRoot, PreservationMode mode)
@@ -600,7 +572,6 @@ namespace Microsoft.CodeAnalysis
                 Services,
                 Attributes,
                 _options,
-                sourceText: null,
                 textSource: text,
                 LoadTextOptions,
                 treeSource: new ConstantValueSource<TreeAndVersion>(treeAndVersion));

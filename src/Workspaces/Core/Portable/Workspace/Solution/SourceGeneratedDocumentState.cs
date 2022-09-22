@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis
             ITextAndVersionSource textSource,
             LoadTextOptions loadTextOptions,
             ValueSource<TreeAndVersion> treeSource)
-            : base(languageServices, solutionServices, documentServiceProvider, attributes, options, sourceText: null, textSource, loadTextOptions, treeSource)
+            : base(languageServices, solutionServices, documentServiceProvider, attributes, options, textSource, loadTextOptions, treeSource)
         {
             Identity = documentIdentity;
         }

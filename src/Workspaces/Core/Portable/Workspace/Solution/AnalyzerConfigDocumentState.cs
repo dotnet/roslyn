@@ -20,10 +20,9 @@ namespace Microsoft.CodeAnalysis
             HostWorkspaceServices solutionServices,
             IDocumentServiceProvider documentServiceProvider,
             DocumentInfo.DocumentAttributes attributes,
-            SourceText sourceTextOpt,
             ITextAndVersionSource textAndVersionSource,
             LoadTextOptions loadTextOptions)
-            : base(solutionServices, documentServiceProvider, attributes, sourceTextOpt, textAndVersionSource, loadTextOptions)
+            : base(solutionServices, documentServiceProvider, attributes, textAndVersionSource, loadTextOptions)
         {
             _analyzerConfigValueSource = CreateAnalyzerConfigValueSource();
         }
@@ -63,7 +62,6 @@ namespace Microsoft.CodeAnalysis
                 this.solutionServices,
                 this.Services,
                 this.Attributes,
-                this.sourceText,
                 newTextSource,
                 this.LoadTextOptions);
         }
