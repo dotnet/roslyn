@@ -13125,7 +13125,7 @@ unsafe class Program
                 // (8,47): warning CS9089: This returns by reference a member of parameter 'r1' that is not a ref or out parameter
                 //     static ref T F1<T>(scoped R<T> r1) => ref r1.F; // 2
                 Diagnostic(ErrorCode.WRN_RefReturnParameter2, "r1").WithArguments("r1").WithLocation(8, 47),
-                // (10,51): warning CS9090: This returns by reference a member of parameter 'r3' this is scoped to the current method
+                // (10,51): warning CS9090: This returns by reference a member of parameter 'r3' that is scoped to the current method
                 //     static ref T F3<T>(scoped ref R<T> r3) => ref r3.F; // 3
                 Diagnostic(ErrorCode.WRN_RefReturnScopedParameter2, "r3").WithArguments("r3").WithLocation(10, 51));
 

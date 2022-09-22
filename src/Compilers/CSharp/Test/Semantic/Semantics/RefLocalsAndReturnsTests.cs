@@ -834,12 +834,13 @@ class C
     }
 }", options: TestOptions.UnsafeDebugDll);
             comp.VerifyDiagnostics(
-                // (7,9): error CS9082: The right-hand-side expression 'y' has a narrower escape scope than the left-hand-side expression 'x' in ref-assignment.
+                // (7,9): warning CS9085: This ref-assigns 'y' to 'x' but 'y' has a narrower escape scope than 'x'.
                 //         x = ref y;
                 Diagnostic(ErrorCode.WRN_RefAssignNarrower, "x = ref y").WithArguments("x", "y").WithLocation(7, 9),
-                // (10,9): error CS9082: The right-hand-side expression 'z' has a narrower escape scope than the left-hand-side expression 'x' in ref-assignment.
+                // (10,9): warning CS9085: This ref-assigns 'z' to 'x' but 'z' has a narrower escape scope than 'x'.
                 //         x = ref z;
-                Diagnostic(ErrorCode.WRN_RefAssignNarrower, "x = ref z").WithArguments("x", "z").WithLocation(10, 9));
+                Diagnostic(ErrorCode.WRN_RefAssignNarrower, "x = ref z").WithArguments("x", "z").WithLocation(10, 9)
+                );
         }
 
         [Fact]
