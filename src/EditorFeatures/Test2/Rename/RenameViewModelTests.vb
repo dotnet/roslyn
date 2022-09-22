@@ -722,7 +722,7 @@ class D : B
     Friend Class TestQuickInfoBroker
         Implements IAsyncQuickInfoBroker
 
-        Private Session As TestSession = New TestSession()
+        Private ReadOnly Session As TestSession = New TestSession()
 
         Public Function IsQuickInfoActive(textView As VisualStudio.Text.Editor.ITextView) As Boolean Implements IAsyncQuickInfoBroker.IsQuickInfoActive
             Return False
