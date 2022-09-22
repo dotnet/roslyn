@@ -468,9 +468,18 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.EmbeddedLanguages.StackFrame
                 );
 
         [Theory]
-        [InlineData("at", "in", "line")]        // en
-        [InlineData("bei", "in", "Zeile")]      // de
-        [InlineData("à", "dans", "ligne")]      // fr
+        [InlineData("v", "v", "řádek")] // Czech
+        [InlineData("bei", "in", "Zeile")] // German
+        [InlineData("en", "en", "línea")] // Spanish
+        [InlineData("à", "dans", "ligne")] // French
+        [InlineData("in", "in", "riga")] // Italian
+        [InlineData("場所", "場所", "行")] // Japanese
+        [InlineData("위치:", "파일", "줄")] // Korean
+        [InlineData("w", "w", "wiersz")] // Polish
+        [InlineData("em", "na", "linha")] // Portuguese (Brazil)
+        [InlineData("в", "в", "строка")] // Russian
+        [InlineData("在", "位置", "行号")] // Chinese (Simplified)
+        [InlineData("於", "於", " 行")] // Chinese (Traditional)
         public void TestLanguages(string at, string @in, string line)
             => Verify(@$"{at} Program.Main() {@in} C:\repos\languages\Program.cs:{line} 16",
                 methodDeclaration: MethodDeclaration(

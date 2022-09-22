@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ErrorReporting;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.Options;
@@ -335,10 +336,12 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
                 project = CurrentSolution.GetRequiredProject(projectInfo.Id);
             }
 
-            var docInfo = DocumentInfo.Create(DocumentId.CreateNewId(project.Id),
-                                                  name: Path.GetFileName(filePath),
-                                                  loader: new FileTextLoader(filePath, null),
-                                                  filePath: filePath);
+            var docInfo = DocumentInfo.Create(
+                DocumentId.CreateNewId(project.Id),
+                name: Path.GetFileName(filePath),
+                loader: new WorkspaceFileTextLoader(project.Solution.Services, filePath, defaultEncoding: null),
+                filePath: filePath);
+
             OnDocumentAdded(docInfo);
             return CurrentSolution.GetDocument(docInfo.Id)!;
         }
@@ -371,7 +374,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
                 // check if the doc is part of the current Roslyn workspace before notifying Roslyn.
                 if (CurrentSolution.ContainsProject(id.ProjectId))
                 {
-                    OnDocumentClosed(id, new FileTextLoaderNoException(moniker, null));
+                    OnDocumentClosed(id, new WorkspaceFileTextLoaderNoException(CurrentSolution.Services, moniker, defaultEncoding: null));
                     _openedDocs = _openedDocs.Remove(moniker);
                 }
             }

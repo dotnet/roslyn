@@ -512,9 +512,19 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
 
         private readonly record struct Language(string At, string In, string Line);
         private static readonly ImmutableArray<Language> s_languages = ImmutableArray.Create(
-            new Language("at ", " in ", "line "),    // en
-            new Language("bei ", " in ", "Zeile "),  // de
-            new Language("à ", " dans ", "ligne ")   // fr
+            new Language("at ", " in ", "line "), // en
+            new Language("v ", " v ", "řádek "), // cs
+            new Language("bei ", " in ", "Zeile "), // de
+            new Language("en ", " en ", "línea "), // es
+            new Language("à ", " dans ", "ligne "), // fr
+            new Language("in ", " in ", "riga "), // it
+            new Language("場所 ", " 場所 ", "行 "), // ja
+            new Language("위치: ", " 파일 ", "줄 "), // ko
+            new Language("w ", " w ", "wiersz "), // pl
+            new Language("em ", " na ", "linha "), // pt-BR
+            new Language("в ", " в ", "строка "), // ru
+            new Language("在 ", " 位置 ", "行号 "), // zh-Hans
+            new Language("於 ", " 於 ", " 行 ") // zh-Hant
             );
     }
 }
