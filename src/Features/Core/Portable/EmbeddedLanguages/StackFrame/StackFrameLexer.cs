@@ -512,7 +512,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
 
         private readonly record struct Language(string At, string In, string Line);
         private static readonly ImmutableArray<Language> s_languages = ImmutableArray.Create(
-            new Language("in ", " in ", "line "), // en
+            new Language("at ", " in ", "line "), // en
             new Language("v ", " v ", "řádek "), // cs
             new Language("bei ", " in ", "Zeile "), // de
             new Language("en ", " en ", "línea "), // es
