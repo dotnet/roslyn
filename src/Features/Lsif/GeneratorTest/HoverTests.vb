@@ -37,7 +37,7 @@ class C
             Dim rangeVertex = Await lsif.GetSelectedRangeAsync()
             Dim resultSetVertex = lsif.GetLinkedVertices(Of Graph.ResultSet)(rangeVertex, "next").Single()
             Dim hoverVertex = lsif.GetLinkedVertices(Of Graph.HoverResult)(resultSetVertex, Methods.TextDocumentHoverName).SingleOrDefault()
-            Dim hoverMarkupContent = DirectCast(hoverVertex.Result.Contents.Value, MarkupContent)
+            Dim hoverMarkupContent = DirectCast(hoverVertex.Result.Contents.Value.Fourth, MarkupContent)
 
             Dim expectedHoverContents As String
             Select Case code
@@ -94,7 +94,7 @@ class C
             Dim rangeVertex = Await lsif.GetSelectedRangeAsync()
             Dim resultSetVertex = lsif.GetLinkedVertices(Of Graph.ResultSet)(rangeVertex, "next").Single()
             Dim hoverVertex = lsif.GetLinkedVertices(Of Graph.HoverResult)(resultSetVertex, Methods.TextDocumentHoverName).SingleOrDefault()
-            Dim hoverMarkupContent = DirectCast(hoverVertex.Result.Contents.Value, MarkupContent)
+            Dim hoverMarkupContent = DirectCast(hoverVertex.Result.Contents.Value.Fourth, MarkupContent)
 
             Dim expectedHoverContents As String
             Select Case code
@@ -160,7 +160,7 @@ class C
                 End If
             Next
 
-            Dim hoverMarkupContent = DirectCast(hoverVertex.Result.Contents.Value, MarkupContent)
+            Dim hoverMarkupContent = DirectCast(hoverVertex.Result.Contents.Value.Fourth, MarkupContent)
             Assert.Equal(MarkupKind.PlainText, hoverMarkupContent.Kind)
             Assert.Equal("class System.String" + Environment.NewLine, hoverMarkupContent.Value)
         End Function

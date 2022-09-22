@@ -6,7 +6,8 @@ using System.Collections;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Text;
 
@@ -34,12 +35,24 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
         public override DiagnosticAnalyzerCategory GetAnalyzerCategory()
             => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
 
+        private static readonly DiagnosticDescriptor s_descriptor = CreateDescriptorWithId(
+            IDEDiagnosticIds.UseCollectionInitializerDiagnosticId,
+            EnforceOnBuildValues.UseCollectionInitializer,
+            new LocalizableResourceString(nameof(AnalyzersResources.Simplify_collection_initialization), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)),
+            new LocalizableResourceString(nameof(AnalyzersResources.Collection_initialization_can_be_simplified), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)),
+            isUnnecessary: false);
+
+        private static readonly DiagnosticDescriptor s_unnecessaryCodeDescriptor = CreateDescriptorWithId(
+            IDEDiagnosticIds.UseCollectionInitializerDiagnosticId,
+            EnforceOnBuildValues.UseCollectionInitializer,
+            new LocalizableResourceString(nameof(AnalyzersResources.Simplify_collection_initialization), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)),
+            new LocalizableResourceString(nameof(AnalyzersResources.Collection_initialization_can_be_simplified), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)),
+            isUnnecessary: true);
+
         protected AbstractUseCollectionInitializerDiagnosticAnalyzer()
-            : base(IDEDiagnosticIds.UseCollectionInitializerDiagnosticId,
-                   EnforceOnBuildValues.UseCollectionInitializer,
-                   CodeStyleOptions2.PreferCollectionInitializer,
-                   new LocalizableResourceString(nameof(AnalyzersResources.Simplify_collection_initialization), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)),
-                   new LocalizableResourceString(nameof(AnalyzersResources.Collection_initialization_can_be_simplified), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)))
+            : base(ImmutableDictionary<DiagnosticDescriptor, IOption2>.Empty
+                    .Add(s_descriptor, CodeStyleOptions2.PreferCollectionInitializer)
+                    .Add(s_unnecessaryCodeDescriptor, CodeStyleOptions2.PreferCollectionInitializer))
         {
         }
 
@@ -77,7 +90,7 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
             var language = objectCreationExpression.Language;
             var cancellationToken = context.CancellationToken;
 
-            var option = context.GetOption(CodeStyleOptions2.PreferCollectionInitializer, language);
+            var option = context.GetAnalyzerOptions().PreferCollectionInitializer;
             if (!option.Value)
             {
                 // not point in analyzing if the option is off.
@@ -108,7 +121,7 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
             var locations = ImmutableArray.Create(objectCreationExpression.GetLocation());
 
             context.ReportDiagnostic(DiagnosticHelper.Create(
-                Descriptor,
+                s_descriptor,
                 objectCreationExpression.GetFirstToken().GetLocation(),
                 option.Notification.Severity,
                 additionalLocations: locations,
@@ -123,12 +136,6 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
             ImmutableArray<Location> locations)
         {
             var syntaxTree = context.Node.SyntaxTree;
-
-            var fadeOutCode = context.GetOption(
-                CodeStyleOptions2.PreferCollectionInitializer_FadeOutCode, context.Node.Language);
-            if (!fadeOutCode)
-                return;
-
             var syntaxFacts = GetSyntaxFacts();
 
             foreach (var match in matches)
@@ -147,7 +154,7 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
                     var location1 = additionalUnnecessaryLocations[0];
 
                     context.ReportDiagnostic(DiagnosticHelper.CreateWithLocationTags(
-                        Descriptor,
+                        s_unnecessaryCodeDescriptor,
                         location1,
                         ReportDiagnostic.Default,
                         additionalLocations: locations,

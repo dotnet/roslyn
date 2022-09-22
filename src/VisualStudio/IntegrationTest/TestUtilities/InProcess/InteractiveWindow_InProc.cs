@@ -156,9 +156,9 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 
         public void Reset(bool waitForPrompt = true)
         {
-            ThreadHelper.JoinableTaskFactory.Run(async () =>
+            JoinableTaskFactory.Run(async () =>
             {
-                await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+                await JoinableTaskFactory.SwitchToMainThreadAsync();
 
                 var interactiveWindow = AcquireInteractiveWindow();
                 var operations = (IInteractiveWindowOperations)interactiveWindow;

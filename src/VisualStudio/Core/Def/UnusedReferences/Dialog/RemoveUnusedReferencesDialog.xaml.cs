@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.UnusedReferences;
 using Microsoft.VisualStudio.PlatformUI;
 using Microsoft.VisualStudio.Shell;
+using Microsoft.VisualStudio.Threading;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.UnusedReferences.Dialog
 {
@@ -31,7 +32,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.UnusedReference
             InitializeComponent();
         }
 
-        public bool? ShowModal(Solution solution, string projectFilePath, ImmutableArray<ReferenceUpdate> referenceUpdates)
+        public bool? ShowModal(JoinableTaskFactory joinableTaskFactory, Solution solution, string projectFilePath, ImmutableArray<ReferenceUpdate> referenceUpdates)
         {
             bool? result = null;
 
@@ -44,7 +45,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.UnusedReference
 
                 // The table control updates its view of the datasource on a background thread.
                 // This will force the table to update.
-                ThreadHelper.JoinableTaskFactory.Run(tableControl.ForceUpdateAsync);
+                joinableTaskFactory.Run(tableControl.ForceUpdateAsync);
 
                 result = ShowModal();
 

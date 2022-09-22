@@ -10,7 +10,7 @@ using System.Threading;
 using Roslyn.Utilities;
 using System.Text;
 
-namespace Microsoft.CodeAnalysis.LanguageServices
+namespace Microsoft.CodeAnalysis.LanguageService
 {
     internal abstract class AbstractDocumentationCommentService<
         TDocumentationCommentTriviaSyntax,
@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
             Contract.ThrowIfNull(documentationComment);
 
             var leadingTrivia = documentationComment.GetLeadingTrivia();
-            var exteriorTrivia = leadingTrivia.Where(t => _syntaxFacts.IsDocumentationCommentExteriorTrivia(t))
+            var exteriorTrivia = leadingTrivia.Where(_syntaxFacts.IsDocumentationCommentExteriorTrivia)
                                               .FirstOrNull();
 
             return exteriorTrivia != null ? exteriorTrivia.Value.ToString() : string.Empty;

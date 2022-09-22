@@ -33,6 +33,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         internal const string WRN_UnableToLoadAnalyzerIdVB = "BC42378";
         internal const string WRN_AnalyzerReferencesNetFrameworkIdCS = "CS8850";
         internal const string WRN_AnalyzerReferencesNetFrameworkIdVB = "BC42503";
+        internal const string WRN_AnalyzerReferencesNewerCompilerIdCS = "CS9057";
+        internal const string WRN_AnalyzerReferencesNewerCompilerIdVB = "BC42506";
 
         // Shared with Compiler
         internal const string AnalyzerExceptionDiagnosticId = "AD0001";
@@ -43,6 +45,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         internal const string WRN_NoAnalyzerInAssemblyId = "AD1001";
         internal const string WRN_UnableToLoadAnalyzerId = "AD1002";
         internal const string WRN_AnalyzerReferencesNetFrameworkId = "AD1003";
+        internal const string WRN_AnalyzerReferencesNewerCompilerId = "AD1004";
 
         private const string AnalyzerExceptionDiagnosticCategory = "Intellisense";
 
@@ -100,6 +103,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     message = string.Format(FeaturesResources.The_assembly_0_containing_type_1_references_NET_Framework, fullPath, e.TypeName);
                     break;
 
+                case AnalyzerLoadFailureEventArgs.FailureErrorCode.ReferencesNewerCompiler:
+                    id = GetLanguageSpecificId(language, WRN_AnalyzerReferencesNewerCompilerId, WRN_AnalyzerReferencesNewerCompilerIdCS, WRN_AnalyzerReferencesNewerCompilerIdVB);
+                    message = string.Format(FeaturesResources.The_assembly_0_references_compiler_version_1_newer_than_2, fullPath, e.ReferencedCompilerVersion, typeof(AnalyzerLoadFailureEventArgs).Assembly.GetName().Version);
+                    break;
+
                 default:
                     throw ExceptionUtilities.UnexpectedValue(e.ErrorCode);
             }
@@ -113,11 +121,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 severity: DiagnosticSeverity.Warning,
                 defaultSeverity: DiagnosticSeverity.Warning,
                 isEnabledByDefault: true,
-                description: description,
                 warningLevel: 0,
-                projectId: projectId,
                 customTags: ImmutableArray<string>.Empty,
                 properties: ImmutableDictionary<string, string?>.Empty,
+                projectId: projectId,
+                location: new DiagnosticDataLocation(new FileLinePositionSpan(fullPath, span: default)),
+                description: description,
                 language: language);
         }
 
@@ -151,7 +160,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             // in IDE, we always set concurrentAnalysis == false otherwise, we can get into thread starvation due to
             // async being used with synchronous blocking concurrency.
             var analyzerOptions = new CompilationWithAnalyzersOptions(
-                options: new WorkspaceAnalyzerOptions(project.AnalyzerOptions, project.Solution, ideOptions),
+                options: new WorkspaceAnalyzerOptions(project.AnalyzerOptions, ideOptions),
                 onAnalyzerException: null,
                 analyzerExceptionFilter: GetAnalyzerExceptionFilter(),
                 concurrentAnalysis: false,
@@ -194,9 +203,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public static bool IsAnalyzerEnabledForProject(DiagnosticAnalyzer analyzer, Project project, IGlobalOptionService globalOptions)
         {
             var options = project.CompilationOptions;
-            if (options == null || analyzer == FileContentLoadAnalyzer.Instance || analyzer.IsCompilerAnalyzer())
+            if (options == null || analyzer == FileContentLoadAnalyzer.Instance || analyzer == GeneratorDiagnosticsPlaceholderAnalyzer.Instance)
             {
                 return true;
+            }
+
+            if (analyzer.IsCompilerAnalyzer())
+            {
+                return globalOptions.GetOption(SolutionCrawlerOptionsStorage.CompilerDiagnosticsScopeOption, project.Language) != CompilerDiagnosticsScope.None;
             }
 
             // Check if user has disabled analyzer execution for this project or via options.
@@ -403,7 +417,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     var lineSpan = diagnostic.Location.GetLineSpan();
 
                     var documentIds = targetTextDocument.Project.Solution.GetDocumentIdsWithFilePath(lineSpan.Path);
-                    return documentIds.Any(id => id == targetTextDocument.Id);
+                    return documentIds.Any(static (id, targetTextDocument) => id == targetTextDocument.Id, targetTextDocument);
                 }
 
                 return false;

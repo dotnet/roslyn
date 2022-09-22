@@ -6,7 +6,6 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.Editor.Host;
@@ -14,6 +13,7 @@ using Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.GoToDefinition;
+using Microsoft.CodeAnalysis.Navigation;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Text.Adornments;
@@ -218,8 +218,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense
 
                 if (resolvedSymbolKey.GetAnySymbol() is { } symbol)
                 {
-                    await GoToDefinitionHelpers.TryGoToDefinitionAsync(
+                    var location = await GoToDefinitionHelpers.GetDefinitionLocationAsync(
                         symbol, solution, threadingContext, streamingPresenter, cancellationToken).ConfigureAwait(false);
+                    await location.TryNavigateToAsync(threadingContext, new NavigationOptions(PreferProvisionalTab: true, ActivateTab: true), cancellationToken).ConfigureAwait(false);
                 }
             }
             catch (OperationCanceledException)

@@ -24,7 +24,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeCleanup
                 New DiagnosticSet(FeaturesResources.Apply_file_header_preferences,
                     IDEDiagnosticIds.FileHeaderMismatch),
                 New DiagnosticSet(AnalyzersResources.Add_this_or_Me_qualification,
-                    IDEDiagnosticIds.AddQualificationDiagnosticId, IDEDiagnosticIds.RemoveQualificationDiagnosticId),
+                    IDEDiagnosticIds.AddThisOrMeQualificationDiagnosticId, IDEDiagnosticIds.RemoveThisOrMeQualificationDiagnosticId),
                 New DiagnosticSet(FeaturesResources.Apply_language_framework_type_preferences,
                     IDEDiagnosticIds.PreferBuiltInOrFrameworkTypeDiagnosticId),
                 New DiagnosticSet(FeaturesResources.Apply_parentheses_preferences,
@@ -82,8 +82,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeCleanup
 
         <ImportingConstructor>
         <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
-        Public Sub New(codeFixService As ICodeFixService)
-            MyBase.New(codeFixService)
+        Public Sub New(codeFixService As ICodeFixService, diagnosticAnalyzerService As IDiagnosticAnalyzerService)
+            MyBase.New(codeFixService, diagnosticAnalyzerService)
         End Sub
 
         Protected Overrides ReadOnly Property OrganizeImportsDescription As String = VBFeaturesResources.Organize_Imports

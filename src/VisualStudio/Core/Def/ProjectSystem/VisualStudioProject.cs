@@ -12,12 +12,15 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Collections;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Telemetry;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics;
 using Microsoft.VisualStudio.LanguageServices.Implementation.TaskList;
 using Roslyn.Utilities;
 
@@ -25,12 +28,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 {
     internal sealed partial class VisualStudioProject
     {
+        private static readonly char[] s_directorySeparator = { Path.DirectorySeparatorChar };
         private static readonly ImmutableArray<MetadataReferenceProperties> s_defaultMetadataReferenceProperties = ImmutableArray.Create(default(MetadataReferenceProperties));
 
         private readonly VisualStudioWorkspaceImpl _workspace;
         private readonly HostDiagnosticUpdateSource _hostDiagnosticUpdateSource;
-        private readonly IWorkspaceTelemetryService? _telemetryService;
-        private readonly IWorkspaceStatusService? _workspaceStatusService;
+        private readonly VisualStudioDiagnosticAnalyzerProvider _vsixAnalyzerProvider;
 
         /// <summary>
         /// Provides dynamic source files for files added through <see cref="AddDynamicSourceFile" />.
@@ -146,6 +149,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             VisualStudioWorkspaceImpl workspace,
             ImmutableArray<Lazy<IDynamicFileInfoProvider, FileExtensionsMetadata>> dynamicFileInfoProviders,
             HostDiagnosticUpdateSource hostDiagnosticUpdateSource,
+            VisualStudioDiagnosticAnalyzerProvider vsixAnalyzerProvider,
             ProjectId id,
             string displayName,
             string language,
@@ -157,9 +161,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             _workspace = workspace;
             _dynamicFileInfoProviders = dynamicFileInfoProviders;
             _hostDiagnosticUpdateSource = hostDiagnosticUpdateSource;
-
-            _telemetryService = _workspace.Services.GetService<IWorkspaceTelemetryService>();
-            _workspaceStatusService = _workspace.Services.GetService<IWorkspaceStatusService>();
+            _vsixAnalyzerProvider = vsixAnalyzerProvider;
 
             Id = id;
             Language = language;
@@ -239,18 +241,29 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
                 field = newValue;
 
-                // Importantly, we do not await/wait on the fullyLoadedStateTask.  We do not want to ever be waiting on work
-                // that may end up touching the UI thread (As we can deadlock if GetTagsSynchronous waits on us).  Instead,
-                // we only check if the Task is completed.  Prior to that we will assume we are still loading.  Once this
-                // task is completed, we know that the WaitUntilFullyLoadedAsync call will have actually finished and we're
-                // fully loaded.
-                var isFullyLoadedTask = _workspaceStatusService?.IsFullyLoadedAsync(CancellationToken.None);
-                var isFullyLoaded = isFullyLoadedTask is { IsCompleted: true } && isFullyLoadedTask.GetAwaiter().GetResult();
-
-                // We only log telemetry during solution open
-                if (logThrowAwayTelemetry && _telemetryService?.HasActiveSession == true && !isFullyLoaded)
+                if (logThrowAwayTelemetry)
                 {
-                    TryReportCompilationThrownAway(_workspace.CurrentSolution.State, Id);
+                    var telemetryService = _workspace.Services.GetService<IWorkspaceTelemetryService>();
+
+                    if (telemetryService?.HasActiveSession == true)
+                    {
+                        var workspaceStatusService = _workspace.Services.GetService<IWorkspaceStatusService>();
+
+                        // We only log telemetry during solution open
+
+                        // Importantly, we do not await/wait on the fullyLoadedStateTask.  We do not want to ever be waiting on work
+                        // that may end up touching the UI thread (As we can deadlock if GetTagsSynchronous waits on us).  Instead,
+                        // we only check if the Task is completed.  Prior to that we will assume we are still loading.  Once this
+                        // task is completed, we know that the WaitUntilFullyLoadedAsync call will have actually finished and we're
+                        // fully loaded.
+                        var isFullyLoadedTask = workspaceStatusService?.IsFullyLoadedAsync(CancellationToken.None);
+                        var isFullyLoaded = isFullyLoadedTask is { IsCompleted: true } && isFullyLoadedTask.GetAwaiter().GetResult();
+
+                        if (!isFullyLoaded)
+                        {
+                            TryReportCompilationThrownAway(_workspace.CurrentSolution.State, Id);
+                        }
+                    }
                 }
 
                 if (_activeBatchScopes > 0)
@@ -870,39 +883,48 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         {
             CompilerPathUtilities.RequireAbsolutePath(fullPath, nameof(fullPath));
 
+            var mappedPaths = GetMappedAnalyzerPaths(fullPath);
+
             using (_gate.DisposableWait())
             {
-                if (_analyzerPathsToAnalyzers.ContainsKey(fullPath))
+                // check all mapped paths first, so that all analyzers are either added or not
+                foreach (var mappedFullPath in mappedPaths)
                 {
-                    throw new ArgumentException($"'{fullPath}' has already been added to this project.", nameof(fullPath));
-                }
-
-                // Are we adding one we just recently removed? If so, we can just keep using that one, and avoid removing
-                // it once we apply the batch
-                var analyzerPendingRemoval = _analyzersRemovedInBatch.FirstOrDefault(a => a.FullPath == fullPath);
-                if (analyzerPendingRemoval != null)
-                {
-                    _analyzersRemovedInBatch.Remove(analyzerPendingRemoval);
-                    _analyzerPathsToAnalyzers.Add(fullPath, analyzerPendingRemoval);
-                }
-                else
-                {
-                    // Nope, we actually need to make a new one.
-                    var visualStudioAnalyzer = new VisualStudioAnalyzer(
-                        fullPath,
-                        _hostDiagnosticUpdateSource,
-                        Id,
-                        Language);
-
-                    _analyzerPathsToAnalyzers.Add(fullPath, visualStudioAnalyzer);
-
-                    if (_activeBatchScopes > 0)
+                    if (_analyzerPathsToAnalyzers.ContainsKey(mappedFullPath))
                     {
-                        _analyzersAddedInBatch.Add(visualStudioAnalyzer);
+                        throw new ArgumentException($"'{fullPath}' has already been added to this project.", nameof(fullPath));
+                    }
+                }
+
+                foreach (var mappedFullPath in mappedPaths)
+                {
+                    // Are we adding one we just recently removed? If so, we can just keep using that one, and avoid removing
+                    // it once we apply the batch
+                    var analyzerPendingRemoval = _analyzersRemovedInBatch.FirstOrDefault(a => a.FullPath == mappedFullPath);
+                    if (analyzerPendingRemoval != null)
+                    {
+                        _analyzersRemovedInBatch.Remove(analyzerPendingRemoval);
+                        _analyzerPathsToAnalyzers.Add(mappedFullPath, analyzerPendingRemoval);
                     }
                     else
                     {
-                        _workspace.ApplyChangeToWorkspace(w => w.OnAnalyzerReferenceAdded(Id, visualStudioAnalyzer.GetReference()));
+                        // Nope, we actually need to make a new one.
+                        var visualStudioAnalyzer = new VisualStudioAnalyzer(
+                            mappedFullPath,
+                            _hostDiagnosticUpdateSource,
+                            Id,
+                            Language);
+
+                        _analyzerPathsToAnalyzers.Add(mappedFullPath, visualStudioAnalyzer);
+
+                        if (_activeBatchScopes > 0)
+                        {
+                            _analyzersAddedInBatch.Add(visualStudioAnalyzer);
+                        }
+                        else
+                        {
+                            _workspace.ApplyChangeToWorkspace(w => w.OnAnalyzerReferenceAdded(Id, visualStudioAnalyzer.GetReference()));
+                        }
                     }
                 }
             }
@@ -915,35 +937,71 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 throw new ArgumentException("message", nameof(fullPath));
             }
 
+            var mappedPaths = GetMappedAnalyzerPaths(fullPath);
+
             using (_gate.DisposableWait())
             {
-                if (!_analyzerPathsToAnalyzers.TryGetValue(fullPath, out var visualStudioAnalyzer))
+                // check all mapped paths first, so that all analyzers are either removed or not
+                foreach (var mappedFullPath in mappedPaths)
                 {
-                    throw new ArgumentException($"'{fullPath}' is not an analyzer of this project.", nameof(fullPath));
+                    if (!_analyzerPathsToAnalyzers.ContainsKey(mappedFullPath))
+                    {
+                        throw new ArgumentException($"'{fullPath}' is not an analyzer of this project.", nameof(fullPath));
+                    }
                 }
 
-                _analyzerPathsToAnalyzers.Remove(fullPath);
-
-                if (_activeBatchScopes > 0)
+                foreach (var mappedFullPath in mappedPaths)
                 {
-                    // This analyzer may be one we've just added in the same batch; in that case, just don't add
-                    // it in the first place.
-                    if (_analyzersAddedInBatch.Remove(visualStudioAnalyzer))
+                    var visualStudioAnalyzer = _analyzerPathsToAnalyzers[mappedFullPath];
+
+                    _analyzerPathsToAnalyzers.Remove(mappedFullPath);
+
+                    if (_activeBatchScopes > 0)
                     {
-                        // Nothing is holding onto this analyzer now, so get rid of it
-                        visualStudioAnalyzer.Dispose();
+                        // This analyzer may be one we've just added in the same batch; in that case, just don't add
+                        // it in the first place.
+                        if (_analyzersAddedInBatch.Remove(visualStudioAnalyzer))
+                        {
+                            // Nothing is holding onto this analyzer now, so get rid of it
+                            visualStudioAnalyzer.Dispose();
+                        }
+                        else
+                        {
+                            _analyzersRemovedInBatch.Add(visualStudioAnalyzer);
+                        }
                     }
                     else
                     {
-                        _analyzersRemovedInBatch.Add(visualStudioAnalyzer);
+                        _workspace.ApplyChangeToWorkspace(w => w.OnAnalyzerReferenceRemoved(Id, visualStudioAnalyzer.GetReference()));
+
+                        visualStudioAnalyzer.Dispose();
                     }
                 }
-                else
-                {
-                    _workspace.ApplyChangeToWorkspace(w => w.OnAnalyzerReferenceRemoved(Id, visualStudioAnalyzer.GetReference()));
-                    visualStudioAnalyzer.Dispose();
-                }
             }
+        }
+
+        private const string RazorVsixExtensionId = "Microsoft.VisualStudio.RazorExtension";
+        private static readonly string s_razorSourceGeneratorSdkDirectory = Path.Combine("Sdks", "Microsoft.NET.Sdk.Razor", "source-generators") + PathUtilities.DirectorySeparatorStr;
+        private static readonly string s_razorSourceGeneratorMainAssemblyRootedFileName = PathUtilities.DirectorySeparatorStr + "Microsoft.NET.Sdk.Razor.SourceGenerators.dll";
+
+        private OneOrMany<string> GetMappedAnalyzerPaths(string fullPath)
+        {
+            // Map all files in the SDK directory that contains the Razor source generator to source generator files loaded from VSIX.
+            // Include the generator and all its dependencies shipped in VSIX, discard the generator and all dependencies in the SDK
+            if (fullPath.LastIndexOf(s_razorSourceGeneratorSdkDirectory, StringComparison.OrdinalIgnoreCase) + s_razorSourceGeneratorSdkDirectory.Length - 1 ==
+                fullPath.LastIndexOf(Path.DirectorySeparatorChar))
+            {
+                if (fullPath.EndsWith(s_razorSourceGeneratorMainAssemblyRootedFileName, StringComparison.OrdinalIgnoreCase))
+                {
+                    return OneOrMany.Create(_vsixAnalyzerProvider.GetAnalyzerReferencesInExtensions().SelectAsArray(
+                        predicate: item => item.extensionId == RazorVsixExtensionId,
+                        selector: item => item.reference.FullPath));
+                }
+
+                return OneOrMany.Create(ImmutableArray<string>.Empty);
+            }
+
+            return OneOrMany.Create(fullPath);
         }
 
         #endregion
@@ -953,7 +1011,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             _fileChangesToProcess.AddWork(fullFilePath);
         }
 
-        private async ValueTask ProcessFileChangesAsync(ImmutableArray<string> filePaths, CancellationToken cancellationToken)
+        private async ValueTask ProcessFileChangesAsync(ImmutableSegmentedList<string> filePaths, CancellationToken cancellationToken)
         {
             await _sourceFiles.ProcessRegularFileChangesAsync(filePaths).ConfigureAwait(false);
             await _additionalFiles.ProcessRegularFileChangesAsync(filePaths).ConfigureAwait(false);
@@ -1224,7 +1282,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 // references being converted to metadata references (or vice versa) and we might either
                 // miss stopping a file watcher or might end up double-stopping a file watcher.
                 remainingMetadataReferences = w.CurrentSolution.GetRequiredProject(Id).MetadataReferences;
-                w.OnProjectRemoved(Id);
+                _workspace.RemoveProjectFromTrackingMaps_NoLock(Id);
+
+                // If this is our last project, clear the entire solution.
+                if (w.CurrentSolution.ProjectIds.Count == 1)
+                {
+                    _workspace.RemoveSolution_NoLock();
+                }
+                else
+                {
+                    _workspace.OnProjectRemoved(Id);
+                }
             });
 
             Contract.ThrowIfNull(remainingMetadataReferences);

@@ -33,10 +33,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         internal static void AddAccessibilityModifiers(
             Accessibility accessibility,
             ArrayBuilder<SyntaxToken> tokens,
-            CSharpCodeGenerationOptions options,
+            CSharpCodeGenerationContextInfo info,
             Accessibility defaultAccessibility)
         {
-            if (!options.Context.GenerateDefaultAccessibility && accessibility == defaultAccessibility)
+            if (!info.Context.GenerateDefaultAccessibility && accessibility == defaultAccessibility)
             {
                 return;
             }
@@ -166,22 +166,19 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         public static SyntaxList<TDeclaration> Insert<TDeclaration>(
             SyntaxList<TDeclaration> declarationList,
             TDeclaration declaration,
-            CSharpCodeGenerationOptions options,
+            CSharpCodeGenerationContextInfo info,
             IList<bool>? availableIndices,
             Func<SyntaxList<TDeclaration>, TDeclaration?>? after = null,
             Func<SyntaxList<TDeclaration>, TDeclaration?>? before = null)
             where TDeclaration : SyntaxNode
         {
             var index = GetInsertionIndex(
-                declarationList, declaration, options, availableIndices,
+                declarationList, declaration, info, availableIndices,
                 CSharpDeclarationComparer.WithoutNamesInstance,
                 CSharpDeclarationComparer.WithNamesInstance,
                 after, before);
 
-            if (availableIndices != null)
-            {
-                availableIndices.Insert(index, true);
-            }
+            availableIndices?.Insert(index, true);
 
             if (index != 0 && declarationList[index - 1].ContainsDiagnostics && AreBracesMissing(declarationList[index - 1]))
             {
@@ -192,7 +189,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         }
 
         private static bool AreBracesMissing<TDeclaration>(TDeclaration declaration) where TDeclaration : SyntaxNode
-            => declaration.ChildTokens().Where(t => t.IsKind(SyntaxKind.OpenBraceToken, SyntaxKind.CloseBraceToken) && t.IsMissing).Any();
+            => declaration.ChildTokens().Where(t => t.Kind() is SyntaxKind.OpenBraceToken or SyntaxKind.CloseBraceToken && t.IsMissing).Any();
 
         public static SyntaxNode? GetContextNode(
             Location location, CancellationToken cancellationToken)
@@ -246,11 +243,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         public static TSyntaxNode ConditionallyAddDocumentationCommentTo<TSyntaxNode>(
             TSyntaxNode node,
             ISymbol symbol,
-            CSharpCodeGenerationOptions options,
+            CSharpCodeGenerationContextInfo info,
             CancellationToken cancellationToken)
             where TSyntaxNode : SyntaxNode
         {
-            if (!options.Context.GenerateDocumentationComments || node.GetLeadingTrivia().Any(t => t.IsDocComment()))
+            if (!info.Context.GenerateDocumentationComments || node.GetLeadingTrivia().Any(t => t.IsDocComment()))
             {
                 return node;
             }
@@ -266,11 +263,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         /// Try use the existing syntax node and generate a new syntax node for the given <param name="symbol"/>.
         /// Note: the returned syntax node might be modified, which means its parent information might be missing.
         /// </summary>
-        public static T? GetReuseableSyntaxNodeForSymbol<T>(ISymbol symbol, CSharpCodeGenerationOptions options) where T : SyntaxNode
+        public static T? GetReuseableSyntaxNodeForSymbol<T>(ISymbol symbol, CSharpCodeGenerationContextInfo info) where T : SyntaxNode
         {
             Contract.ThrowIfNull(symbol);
 
-            if (options.Context.ReuseSyntax && symbol.DeclaringSyntaxReferences.Length == 1)
+            if (info.Context.ReuseSyntax && symbol.DeclaringSyntaxReferences.Length == 1)
             {
                 var reusableSyntaxNode = symbol.DeclaringSyntaxReferences[0].GetSyntax();
 

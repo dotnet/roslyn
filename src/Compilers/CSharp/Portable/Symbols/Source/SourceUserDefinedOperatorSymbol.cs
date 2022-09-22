@@ -25,6 +25,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             string name = OperatorFacts.OperatorNameFromDeclaration(syntax);
 
+            if (SyntaxFacts.IsCheckedOperator(name))
+            {
+                MessageID.IDS_FeatureCheckedUserDefinedOperators.CheckFeatureAvailability(diagnostics, syntax, syntax.CheckedKeyword.GetLocation());
+            }
+            else if (!syntax.OperatorToken.IsMissing && syntax.CheckedKeyword.IsKind(SyntaxKind.CheckedKeyword))
+            {
+                diagnostics.Add(ErrorCode.ERR_OperatorCantBeChecked, syntax.CheckedKeyword.GetLocation(), SyntaxFacts.GetText(SyntaxFacts.GetOperatorKind(name)));
+            }
+
+            if (name == WellKnownMemberNames.UnsignedRightShiftOperatorName)
+            {
+                MessageID.IDS_FeatureUnsignedRightShift.CheckFeatureAvailability(diagnostics, syntax, syntax.OperatorToken.GetLocation());
+            }
+
             var interfaceSpecifier = syntax.ExplicitInterfaceSpecifier;
 
             TypeSymbol explicitInterfaceType;
@@ -67,7 +81,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             CheckForBlockAndExpressionBody(
                 syntax.Body, syntax.ExpressionBody, syntax, diagnostics);
 
-            if (IsAbstract || (name != WellKnownMemberNames.EqualityOperatorName && name != WellKnownMemberNames.InequalityOperatorName))
+            if (IsAbstract || IsVirtual || (name != WellKnownMemberNames.EqualityOperatorName && name != WellKnownMemberNames.InequalityOperatorName))
             {
                 CheckFeatureAvailabilityAndRuntimeSupport(syntax, location, hasBody: syntax.Body != null || syntax.ExpressionBody != null, diagnostics: diagnostics);
             }

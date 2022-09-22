@@ -403,7 +403,10 @@ namespace Microsoft.CodeAnalysis
 
                 // Fire and forget that the workspace is changing.
                 RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.DocumentChanged, oldSolution, newSolution, documentId: documentId);
+
+                // We fire 2 events on source document opened.
                 this.RaiseDocumentOpenedEventAsync(newDoc);
+                this.RaiseTextDocumentOpenedEventAsync(newDoc);
             }
 
             this.RegisterText(textContainer);
@@ -431,8 +434,11 @@ namespace Microsoft.CodeAnalysis
                 UpdateCurrentContextMapping_NoLock(textContainer, documentId, isCurrentContext: true);
 
                 // Fire and forget that the workspace is changing.
+                // We raise 2 events for source document opened.
                 var token = _taskQueue.Listener.BeginAsyncOperation(nameof(OnSourceGeneratedDocumentOpened));
                 _ = RaiseDocumentOpenedEventAsync(document).CompletesAsyncOperation(token);
+                token = _taskQueue.Listener.BeginAsyncOperation(TextDocumentOpenedEventName);
+                _ = RaiseTextDocumentOpenedEventAsync(document).CompletesAsyncOperation(token);
             }
 
             this.RegisterText(textContainer);
@@ -448,12 +454,15 @@ namespace Microsoft.CodeAnalysis
                 ClearOpenDocument(document.Id);
 
                 // Fire and forget that the workspace is changing.
+                // We raise 2 events for source document closed.
                 var token = _taskQueue.Listener.BeginAsyncOperation(nameof(OnSourceGeneratedDocumentClosed));
                 _ = RaiseDocumentClosedEventAsync(document).CompletesAsyncOperation(token);
+                token = _taskQueue.Listener.BeginAsyncOperation(TextDocumentClosedEventName);
+                _ = RaiseTextDocumentClosedEventAsync(document).CompletesAsyncOperation(token);
             }
         }
 
-        private class ReuseVersionLoader : TextLoader
+        private sealed class ReuseVersionLoader : TextLoader
         {
             // Capture DocumentState instead of Document so that we don't hold onto the old solution.
             private readonly DocumentState _oldDocumentState;
@@ -465,8 +474,7 @@ namespace Microsoft.CodeAnalysis
                 _newText = newText;
             }
 
-            public override async Task<TextAndVersion> LoadTextAndVersionAsync(
-                Workspace workspace, DocumentId documentId, CancellationToken cancellationToken)
+            public override async Task<TextAndVersion> LoadTextAndVersionAsync(CancellationToken cancellationToken)
             {
                 var oldText = await _oldDocumentState.GetTextAsync(cancellationToken).ConfigureAwait(false);
                 var version = await _oldDocumentState.GetTextVersionAsync(cancellationToken).ConfigureAwait(false);
@@ -474,7 +482,7 @@ namespace Microsoft.CodeAnalysis
                 return GetProperTextAndVersion(oldText, _newText, version, _oldDocumentState.FilePath);
             }
 
-            internal override TextAndVersion LoadTextAndVersionSynchronously(Workspace workspace, DocumentId documentId, CancellationToken cancellationToken)
+            internal override TextAndVersion LoadTextAndVersionSynchronously(CancellationToken cancellationToken)
             {
                 var oldText = _oldDocumentState.GetTextSynchronously(cancellationToken);
                 var version = _oldDocumentState.GetTextVersionSynchronously(cancellationToken);
@@ -583,6 +591,10 @@ namespace Microsoft.CodeAnalysis
 
                 // Fire and forget.
                 this.RaiseWorkspaceChangedEventAsync(workspaceChangeKind, oldSolution, newSolution, documentId: documentId);
+
+                // Fire and forget.
+                var newDoc = newSolution.GetRequiredTextDocument(documentId);
+                this.RaiseTextDocumentOpenedEventAsync(newDoc);
             }
 
             this.RegisterText(textContainer);
@@ -618,7 +630,10 @@ namespace Microsoft.CodeAnalysis
                     this.OnDocumentTextChanged(newDoc);
 
                     this.RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.DocumentChanged, oldSolution, newSolution, documentId: documentId); // don't wait for this
-                    this.RaiseDocumentClosedEventAsync(newDoc); // don't wait for this
+
+                    // We fire and forget 2 events on source document closed.
+                    this.RaiseDocumentClosedEventAsync(newDoc);
+                    this.RaiseTextDocumentClosedEventAsync(newDoc);
                 }
             }
             catch (Exception e) when (FatalError.ReportAndPropagate(e, ErrorSeverity.General))
@@ -673,6 +688,9 @@ namespace Microsoft.CodeAnalysis
                 newSolution = this.SetCurrentSolution(newSolution);
 
                 this.RaiseWorkspaceChangedEventAsync(workspaceChangeKind, oldSolution, newSolution, documentId: documentId); // don't wait for this
+
+                var newDoc = newSolution.GetRequiredTextDocument(documentId);
+                this.RaiseTextDocumentClosedEventAsync(newDoc); // don't wait for this
             }
         }
 
@@ -775,19 +793,6 @@ namespace Microsoft.CodeAnalysis
             }
 
             return newSolution.GetRequiredProject(oldProject.Id);
-        }
-
-        internal void RegisterDocumentOptionProviders(IEnumerable<Lazy<IDocumentOptionsProviderFactory, OrderableMetadata>> documentOptionsProviderFactories)
-        {
-            foreach (var providerFactory in ExtensionOrderer.Order(documentOptionsProviderFactories))
-            {
-                var optionsProvider = providerFactory.Value.TryCreate(this);
-
-                if (optionsProvider != null)
-                {
-                    Services.GetRequiredService<IOptionService>().RegisterDocumentOptionsProvider(optionsProvider);
-                }
-            }
         }
     }
 }

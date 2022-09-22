@@ -17,9 +17,11 @@ using Microsoft.CodeAnalysis.Recommendations;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.CSharp.Recommendations
+namespace Microsoft.CodeAnalysis.CSharp.Recommendations;
+
+internal partial class CSharpRecommendationService
 {
-    internal partial class CSharpRecommendationServiceRunner : AbstractRecommendationServiceRunner<CSharpSyntaxContext>
+    private sealed partial class CSharpRecommendationServiceRunner : AbstractRecommendationServiceRunner
     {
         public CSharpRecommendationServiceRunner(
             CSharpSyntaxContext context, bool filterOutOfScopeLocals, CancellationToken cancellationToken)
@@ -43,7 +45,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Recommendations
 
         public override bool TryGetExplicitTypeOfLambdaParameter(SyntaxNode lambdaSyntax, int ordinalInLambda, [NotNullWhen(true)] out ITypeSymbol? explicitLambdaParameterType)
         {
-            if (lambdaSyntax.IsKind<ParenthesizedLambdaExpressionSyntax>(SyntaxKind.ParenthesizedLambdaExpression, out var parenthesizedLambdaSyntax))
+            if (lambdaSyntax is ParenthesizedLambdaExpressionSyntax parenthesizedLambdaSyntax)
             {
                 var parameters = parenthesizedLambdaSyntax.ParameterList.Parameters;
                 if (parameters.Count > ordinalInLambda)
@@ -188,7 +190,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Recommendations
 
             return allLabels
                 .WhereAsArray(label => label.DeclaringSyntaxReferences.First().GetSyntax(_cancellationToken)
-                    .IsKind(SyntaxKind.LabeledStatement, SyntaxKind.DefaultSwitchLabel));
+                    .Kind() is SyntaxKind.LabeledStatement or SyntaxKind.DefaultSwitchLabel);
         }
 
         private ImmutableArray<ISymbol> GetSymbolsForTypeOrNamespaceContext()
@@ -232,7 +234,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Recommendations
 
             // Filter out any extension methods that might be imported by a using static directive.
             // But include extension methods declared in the context's type or it's parents
-            var contextOuterTypes = _context.GetOuterTypes(_cancellationToken);
+            var contextOuterTypes = ComputeOuterTypes(_context, _cancellationToken);
             var contextEnclosingNamedType = _context.SemanticModel.GetEnclosingNamedType(_context.Position, _cancellationToken);
 
             symbols = symbols.WhereAsArray(symbol =>

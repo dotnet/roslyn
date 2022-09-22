@@ -5,6 +5,7 @@
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Text.RegularExpressions;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.EditorConfig.Parsing
@@ -15,8 +16,9 @@ namespace Microsoft.CodeAnalysis.EditorConfig.Parsing
         private static readonly Regex s_sectionMatcher = new(@"^\s*\[(([^#;]|\\#|\\;)+)\]\s*([#;].*)?$", RegexOptions.Compiled);
         // Matches EditorConfig property such as "indent_style = space", see https://editorconfig.org for details
         private static readonly Regex s_propertyMatcher = new(@"^\s*([\w\.\-_]+)\s*[=:]\s*(.*?)\s*([#;].*)?$", RegexOptions.Compiled);
+
         private static ImmutableHashSet<string> ReservedKeys { get; }
-            = ImmutableHashSet.CreateRange(CaseInsensitiveComparison.Comparer, new[] {
+            = ImmutableHashSet.CreateRange(AnalyzerConfigOptions.KeyComparer, new[] {
                 "root",
                 "indent_style",
                 "indent_size",
@@ -43,8 +45,7 @@ namespace Microsoft.CodeAnalysis.EditorConfig.Parsing
             where TEditorConfigFile : EditorConfigFile<TEditorConfigOption>
             where TEditorConfigOption : EditorConfigOption
         {
-            var activeSectionProperties = ImmutableDictionary.CreateBuilder<string, (string value, TextLine? line)>(
-                CaseInsensitiveComparison.Comparer);
+            var activeSectionProperties = ImmutableDictionary.CreateBuilder<string, (string value, TextLine? line)>(AnalyzerConfigOptions.KeyComparer);
             var activeSectionName = "";
             var activeSectionStart = 0;
             var activeSectionEnd = 0;
@@ -74,8 +75,7 @@ namespace Microsoft.CodeAnalysis.EditorConfig.Parsing
                     activeSectionStart = textLine.Start;
                     activeSectionName = sectionName;
                     activeSectionEnd = textLine.End;
-                    activeSectionProperties = ImmutableDictionary.CreateBuilder<string, (string value, TextLine? line)>(
-                        CaseInsensitiveComparison.Comparer);
+                    activeSectionProperties.Clear();
                     continue;
                 }
 
@@ -121,7 +121,7 @@ namespace Microsoft.CodeAnalysis.EditorConfig.Parsing
                 var fullText = activeLine.ToString();
                 var sectionSpan = new TextSpan(activeSectionStart, activeSectionEnd);
                 var previousSection = new Section(pathToFile, isGlobal, sectionSpan, activeSectionName, fullText);
-                accumulator.ProcessSection(previousSection, activeSectionProperties.ToImmutable());
+                accumulator.ProcessSection(previousSection, activeSectionProperties);
             }
 
             static bool IsComment(string line)

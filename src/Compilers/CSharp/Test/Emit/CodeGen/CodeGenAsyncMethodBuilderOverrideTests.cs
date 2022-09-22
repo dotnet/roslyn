@@ -2085,7 +2085,7 @@ using System.Threading.Tasks;
 [AsyncMethodBuilder(null)] internal class MyTaskType {{ }}
 
 // Make the builder factory and the builder internal as well
-{AsyncBuilderCode("MyTaskTypeBuilder", "MyTaskType").Replace("public class MyTaskType", "internal class MyTaskType") }
+{AsyncBuilderCode("MyTaskTypeBuilder", "MyTaskType").Replace("public class MyTaskType", "internal class MyTaskType")}
 
 class C
 {{

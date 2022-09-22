@@ -2,19 +2,23 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion;
 using Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion.Data;
 using Roslyn.Utilities;
+
+using RoslynCompletionItem = Microsoft.CodeAnalysis.Completion.CompletionItem;
 using VSCompletionItem = Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion.Data.CompletionItem;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncCompletion
 {
-    internal sealed partial class ItemManager : IAsyncCompletionItemManager
+    internal sealed partial class ItemManager : IAsyncCompletionItemManager2
     {
         public const string AggressiveDefaultsMatchingOptionName = "AggressiveDefaultsMatchingOption";
 
@@ -33,19 +37,36 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             CancellationToken cancellationToken)
         {
             var stopwatch = SharedStopwatch.StartNew();
-            var sessionData = CompletionSessionData.GetOrCreateSessionData(session);
-            // This method is called exactly once, so use the opportunity to set a baseline for telemetry.
-            if (sessionData.TargetTypeFilterExperimentEnabled)
+            var items = SortCompletionitems(data, cancellationToken).ToImmutableArray();
+
+            AsyncCompletionLogger.LogItemManagerSortTicksDataPoint(stopwatch.Elapsed);
+            return Task.FromResult(items);
+        }
+
+        public Task<CompletionList<VSCompletionItem>> SortCompletionItemListAsync(
+            IAsyncCompletionSession session,
+            AsyncCompletionSessionInitialDataSnapshot data,
+            CancellationToken cancellationToken)
+        {
+            var stopwatch = SharedStopwatch.StartNew();
+            var itemList = session.CreateCompletionList(SortCompletionitems(data, cancellationToken));
+
+            AsyncCompletionLogger.LogItemManagerSortTicksDataPoint(stopwatch.Elapsed);
+            return Task.FromResult(itemList);
+        }
+
+        private static SegmentedList<VSCompletionItem> SortCompletionitems(AsyncCompletionSessionInitialDataSnapshot data, CancellationToken cancellationToken)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            var items = new SegmentedList<VSCompletionItem>(data.InitialItemList.Count);
+            foreach (var item in data.InitialItemList)
             {
-                AsyncCompletionLogger.LogSessionHasTargetTypeFilterEnabled();
-                if (data.InitialList.Any(i => i.Filters.Any(f => f.DisplayText == FeaturesResources.Target_type_matches)))
-                    AsyncCompletionLogger.LogSessionContainsTargetTypeFilter();
+                CompletionItemData.GetOrAddDummyRoslynItem(item);
+                items.Add(item);
             }
 
-            // Sort by default comparer of Roslyn CompletionItem
-            var sortedItems = data.InitialList.OrderBy(CompletionItemData.GetOrAddDummyRoslynItem).ToImmutableArray();
-            AsyncCompletionLogger.LogItemManagerSortTicksDataPoint((int)stopwatch.Elapsed.TotalMilliseconds);
-            return Task.FromResult(sortedItems);
+            items.Sort(VSItemComparer.Instance);
+            return items;
         }
 
         public async Task<FilteredCompletionModel?> UpdateCompletionListAsync(
@@ -68,10 +89,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 // There is a `CompletionContext.IsIncomplete` flag, which is only supported in LSP mode at the moment. Therefore we opt to handle the checking
                 // and combining the items in Roslyn until the `IsIncomplete` flag is fully supported in classic mode.
 
-                if (sessionData.CombinedSortedList.HasValue)
+                if (sessionData.CombinedSortedList is not null)
                 {
                     // Always use the previously saved combined list if available.
-                    data = new AsyncCompletionSessionDataSnapshot(sessionData.CombinedSortedList.Value, data.Snapshot, data.Trigger, data.InitialTrigger, data.SelectedFilters,
+                    data = new AsyncCompletionSessionDataSnapshot(sessionData.CombinedSortedList, data.Snapshot, data.Trigger, data.InitialTrigger, data.SelectedFilters,
                         data.IsSoftSelected, data.DisplaySuggestionItem, data.Defaults);
                 }
                 else if (sessionData.ExpandedItemsTask != null)
@@ -84,19 +105,16 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                         sessionData.ExpandedItemsTask = null;
 
                         var (expandedContext, _) = await task.ConfigureAwait(false);
-                        if (expandedContext.Items.Length > 0)
+                        if (expandedContext.ItemList.Count > 0)
                         {
                             // Here we rely on the implementation detail of `CompletionItem.CompareTo`, which always put expand items after regular ones.
-                            var itemsBuilder = ImmutableArray.CreateBuilder<VSCompletionItem>(expandedContext.Items.Length + data.InitialSortedList.Length);
-                            itemsBuilder.AddRange(data.InitialSortedList);
-                            itemsBuilder.AddRange(expandedContext.Items);
-                            var combinedList = itemsBuilder.MoveToImmutable();
+                            var combinedItemList = session.CreateCompletionList(data.InitialSortedItemList.Concat(expandedContext.ItemList));
 
                             // Add expanded items into a combined list, and save it to be used for future updates during the same session.
-                            sessionData.CombinedSortedList = combinedList;
+                            sessionData.CombinedSortedList = combinedItemList;
                             var combinedFilterStates = FilterSet.CombineFilterStates(expandedContext.Filters, data.SelectedFilters);
 
-                            data = new AsyncCompletionSessionDataSnapshot(combinedList, data.Snapshot, data.Trigger, data.InitialTrigger, combinedFilterStates,
+                            data = new AsyncCompletionSessionDataSnapshot(combinedItemList, data.Snapshot, data.Trigger, data.InitialTrigger, combinedFilterStates,
                                 data.IsSoftSelected, data.DisplaySuggestionItem, data.Defaults);
                         }
 
@@ -105,11 +123,32 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 }
 
                 var updater = new CompletionListUpdater(session.ApplicableToSpan, sessionData, data, _recentItemsManager, _globalOptions);
-                return updater.UpdateCompletionList(cancellationToken);
+                return updater.UpdateCompletionList(session, cancellationToken);
             }
             finally
             {
-                AsyncCompletionLogger.LogItemManagerUpdateDataPoint((int)stopwatch.Elapsed.TotalMilliseconds, isCanceled: cancellationToken.IsCancellationRequested);
+                AsyncCompletionLogger.LogItemManagerUpdateDataPoint(stopwatch.Elapsed, isCanceled: cancellationToken.IsCancellationRequested);
+            }
+        }
+
+        private sealed class VSItemComparer : IComparer<VSCompletionItem>
+        {
+            public static VSItemComparer Instance { get; } = new();
+
+            private VSItemComparer()
+            {
+            }
+
+            public int Compare(VSCompletionItem? x, VSCompletionItem? y)
+            {
+                if (x is null && y is null)
+                    return 0;
+
+                var xRoslyn = x is not null ? CompletionItemData.GetOrAddDummyRoslynItem(x) : null;
+                var yRoslyn = y is not null ? CompletionItemData.GetOrAddDummyRoslynItem(y) : null;
+
+                // Sort by default comparer of Roslyn CompletionItem
+                return Comparer<RoslynCompletionItem>.Default.Compare(xRoslyn, yRoslyn);
             }
         }
     }

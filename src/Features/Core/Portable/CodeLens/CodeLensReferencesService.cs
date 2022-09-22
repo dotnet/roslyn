@@ -12,7 +12,8 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.FindSymbols;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -194,10 +195,7 @@ namespace Microsoft.CodeAnalysis.CodeLens
                 }
             }
 
-            if (node == null)
-            {
-                node = token.Parent;
-            }
+            node ??= token.Parent;
 
             return langServices.GetDisplayNode(node);
         }
@@ -279,8 +277,8 @@ namespace Microsoft.CodeAnalysis.CodeLens
             CancellationToken cancellationToken)
         {
             var document = solution.GetDocument(syntaxNode.GetLocation().SourceTree);
-
-            using (solution.Services.CacheService?.EnableCaching(document.Project.Id))
+            var cacheService = solution.Services.GetService<IProjectCacheHostService>();
+            using (cacheService?.EnableCaching(document.Project.Id))
             {
                 var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
                 var declaredSymbol = semanticModel.GetDeclaredSymbol(syntaxNode, cancellationToken);

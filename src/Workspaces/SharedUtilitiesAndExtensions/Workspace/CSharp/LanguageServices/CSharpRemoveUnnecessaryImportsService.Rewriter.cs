@@ -9,9 +9,11 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
-using Microsoft.CodeAnalysis.CSharp.Formatting;
+using Microsoft.CodeAnalysis.CSharp.LanguageService;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Shared.Helpers.RemoveUnnecessaryImports;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryImports
@@ -22,15 +24,12 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryImports
         {
             private readonly ISet<UsingDirectiveSyntax> _unnecessaryUsingsDoNotAccessDirectly;
             private readonly CancellationToken _cancellationToken;
-            private readonly Document _document;
 
             public Rewriter(
-                Document document,
                 ISet<UsingDirectiveSyntax> unnecessaryUsings,
                 CancellationToken cancellationToken)
                 : base(visitIntoStructuredTrivia: true)
             {
-                _document = document;
                 _unnecessaryUsingsDoNotAccessDirectly = unnecessaryUsings;
                 _cancellationToken = cancellationToken;
             }
@@ -48,6 +47,8 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryImports
                 out SyntaxTriviaList finalTrivia)
             {
                 var currentUsings = new List<UsingDirectiveSyntax>(usings);
+                var firstUsingNotBeingRemoved = true;
+                var passedLeadngTrivia = false;
 
                 finalTrivia = default;
                 for (var i = 0; i < usings.Count; i++)
@@ -83,12 +84,39 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryImports
                                     // want to preserve.
                                     currentUsings[nextIndex] = nextUsing.WithLeadingTrivia(leadingTrivia);
                                 }
+
+                                passedLeadngTrivia = true;
                             }
                             else
                             {
                                 finalTrivia = leadingTrivia;
                             }
                         }
+                    }
+                    else if (firstUsingNotBeingRemoved)
+                    {
+                        // 1) We only apply this logic for not first using, that is saved:
+                        // ===================
+                        // namespace N;
+                        //
+                        // using System; <- if we save this using, we don't need to cut leading lines
+                        // ===================
+                        // 2) If leading trivia was saved from the previous using, that was removed,
+                        // we don't bother cutting blank lines as well:
+                        // ===================
+                        // namespace N;
+                        //
+                        // using System; <- need to delete this using
+                        // using System.Collections.Generic; <- this using is saved, no need to eat the line,
+                        // otherwise https://github.com/dotnet/roslyn/issues/58972 will happen
+                        if (i > 0 && !passedLeadngTrivia)
+                        {
+                            var currentUsing = currentUsings[i];
+                            var currentUsingLeadingTrivia = currentUsing.GetLeadingTrivia();
+                            currentUsings[i] = currentUsing.WithLeadingTrivia(currentUsingLeadingTrivia.WithoutLeadingBlankLines());
+                        }
+
+                        firstUsingNotBeingRemoved = false;
                     }
                 }
 
@@ -144,7 +172,7 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryImports
                     // We've removed all the usings and now the first thing in the namespace is a
                     // type.  In this case, remove any newlines preceding the type.
                     var firstToken = resultCompilationUnit.GetFirstToken();
-                    var newFirstToken = StripNewLines(_document, firstToken);
+                    var newFirstToken = RemoveUnnecessaryImportsHelpers.StripNewLines(CSharpSyntaxFacts.Instance, firstToken);
                     resultCompilationUnit = resultCompilationUnit.ReplaceToken(firstToken, newFirstToken);
                 }
 
@@ -183,7 +211,7 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryImports
                     // We've removed all the usings and now the first thing in the namespace is a
                     // type.  In this case, remove any newlines preceding the type.
                     var firstToken = resultNamespace.Members.First().GetFirstToken();
-                    var newFirstToken = StripNewLines(_document, firstToken);
+                    var newFirstToken = RemoveUnnecessaryImportsHelpers.StripNewLines(CSharpSyntaxFacts.Instance, firstToken);
                     resultNamespace = resultNamespace.ReplaceToken(firstToken, newFirstToken);
                 }
 

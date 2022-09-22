@@ -13,6 +13,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeFixes.Suppression;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -29,11 +30,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
     /// Service to maintain information about the suppression state of specific set of items in the error list.
     /// </summary>
     [Export(typeof(IVisualStudioDiagnosticListSuppressionStateService))]
+    [Export(typeof(VisualStudioDiagnosticListSuppressionStateService))]
     internal class VisualStudioDiagnosticListSuppressionStateService : IVisualStudioDiagnosticListSuppressionStateService
     {
+        private readonly IThreadingContext _threadingContext;
         private readonly VisualStudioWorkspace _workspace;
-        private readonly IVsUIShell _shellService;
-        private readonly IWpfTableControl? _tableControl;
+
+        private IVsUIShell? _shellService;
+        private IWpfTableControl? _tableControl;
 
         private int _selectedActiveItems;
         private int _selectedSuppressedItems;
@@ -45,13 +49,20 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public VisualStudioDiagnosticListSuppressionStateService(
-            SVsServiceProvider serviceProvider,
+            IThreadingContext threadingContext,
             VisualStudioWorkspace workspace)
         {
+            _threadingContext = threadingContext;
             _workspace = workspace;
-            _shellService = (IVsUIShell)serviceProvider.GetService(typeof(SVsUIShell));
-            var errorList = serviceProvider.GetService(typeof(SVsErrorList)) as IErrorList;
+        }
+
+        public async Task InitializeAsync(IAsyncServiceProvider serviceProvider, CancellationToken cancellationToken)
+        {
+            _shellService = await serviceProvider.GetServiceAsync<SVsUIShell, IVsUIShell>(_threadingContext.JoinableTaskFactory).ConfigureAwait(false);
+            var errorList = await serviceProvider.GetServiceAsync<SVsErrorList, IErrorList>(_threadingContext.JoinableTaskFactory, throwOnFailure: false).ConfigureAwait(false);
             _tableControl = errorList?.TableControl;
+
+            await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
             ClearState();
             InitializeFromTableControlIfNeeded();
@@ -214,7 +225,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
         {
             Contract.ThrowIfNull(_tableControl);
 
-            var builder = ArrayBuilder<DiagnosticData>.GetInstance();
+            using var _ = ArrayBuilder<DiagnosticData>.GetInstance(out var builder);
 
             Dictionary<string, Project>? projectNameToProjectMap = null;
             Dictionary<Project, ImmutableDictionary<string, Document>>? filePathToDocumentMap = null;
@@ -240,7 +251,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 
                     string? filePath = null;
                     var line = -1; // FxCop only supports line, not column.
-                    DiagnosticDataLocation? location = null;
 
                     if (entryHandle.TryGetValue(StandardTableColumnDefinitions.ErrorCode, out string errorCode) && !string.IsNullOrEmpty(errorCode) &&
                         entryHandle.TryGetValue(StandardTableColumnDefinitions.ErrorCategory, out string category) && !string.IsNullOrEmpty(category) &&
@@ -264,40 +274,39 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                         }
 
                         Document? document = null;
-                        var hasLocation = (entryHandle.TryGetValue(StandardTableColumnDefinitions.DocumentName, out filePath) && !string.IsNullOrEmpty(filePath)) &&
-                            (entryHandle.TryGetValue(StandardTableColumnDefinitions.Line, out line) && line >= 0);
-                        if (hasLocation)
+                        var hasLocation =
+                            entryHandle.TryGetValue(StandardTableColumnDefinitions.DocumentName, out filePath) && !string.IsNullOrEmpty(filePath) &&
+                            entryHandle.TryGetValue(StandardTableColumnDefinitions.Line, out line) && line >= 0;
+                        if (!hasLocation)
+                            continue;
+
+                        if (RoslynString.IsNullOrEmpty(filePath) || line < 0)
                         {
-                            if (RoslynString.IsNullOrEmpty(filePath) || line < 0)
-                            {
-                                // bail out
-                                continue;
-                            }
-
-                            filePathToDocumentMap ??= new Dictionary<Project, ImmutableDictionary<string, Document>>();
-                            if (!filePathToDocumentMap.TryGetValue(project, out var filePathMap))
-                            {
-                                filePathMap = await GetFilePathToDocumentMapAsync(project, cancellationToken).ConfigureAwait(false);
-                                filePathToDocumentMap[project] = filePathMap;
-                            }
-
-                            if (!filePathMap.TryGetValue(filePath, out document))
-                            {
-                                // bail out
-                                continue;
-                            }
-
-                            var tree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
-                            var linePosition = new LinePosition(line, 0);
-                            var linePositionSpan = new LinePositionSpan(start: linePosition, end: linePosition);
-                            var textSpan = (await tree.GetTextAsync(cancellationToken).ConfigureAwait(false)).Lines.GetTextSpan(linePositionSpan);
-                            location = new DiagnosticDataLocation(document.Id, textSpan, filePath,
-                                originalStartLine: linePosition.Line, originalStartColumn: linePosition.Character,
-                                originalEndLine: linePosition.Line, originalEndColumn: linePosition.Character);
+                            // bail out
+                            continue;
                         }
 
+                        filePathToDocumentMap ??= new Dictionary<Project, ImmutableDictionary<string, Document>>();
+                        if (!filePathToDocumentMap.TryGetValue(project, out var filePathMap))
+                        {
+                            filePathMap = await GetFilePathToDocumentMapAsync(project, cancellationToken).ConfigureAwait(false);
+                            filePathToDocumentMap[project] = filePathMap;
+                        }
+
+                        if (!filePathMap.TryGetValue(filePath, out document))
+                        {
+                            // bail out
+                            continue;
+                        }
+
+                        // TODO: should we use the tree of the document (if available) to get the correct mapped span for this location?
+                        var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+                        var linePosition = new LinePosition(line, 0);
+                        var linePositionSpan = new LinePositionSpan(start: linePosition, end: linePosition);
+                        var location = new DiagnosticDataLocation(
+                            new FileLinePositionSpan(filePath, linePositionSpan), document.Id, mappedFileSpan: null);
+
                         Contract.ThrowIfNull(project);
-                        Contract.ThrowIfFalse((document != null) == (location != null));
 
                         // Create a diagnostic with correct values for fields we care about: id, category, message, isSuppressed, location
                         // and default values for the rest of the fields (not used by suppression fixer).
@@ -324,7 +333,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                 }
             }
 
-            return builder.ToImmutableAndFree();
+            return builder.ToImmutable();
         }
 
         private static async Task<ImmutableDictionary<string, Document>> GetFilePathToDocumentMapAsync(Project project, CancellationToken cancellationToken)
@@ -391,10 +400,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
         {
             // Force the shell to refresh the QueryStatus for all the command since default behavior is it only does query
             // when focus on error list has changed, not individual items.
-            if (_shellService != null)
-            {
-                _shellService.UpdateCommandUI(0);
-            }
+            _shellService?.UpdateCommandUI(0);
         }
     }
 }

@@ -26,16 +26,12 @@ namespace Microsoft.CodeAnalysis.MakeFieldReadonly
         public override ImmutableArray<string> FixableDiagnosticIds
             => ImmutableArray.Create(IDEDiagnosticIds.MakeFieldReadonlyDiagnosticId);
 
-        internal sealed override CodeFixCategory CodeFixCategory => CodeFixCategory.CodeQuality;
-
-        protected abstract SyntaxNode GetInitializerNode(TSymbolSyntax declaration);
+        protected abstract SyntaxNode? GetInitializerNode(TSymbolSyntax declaration);
         protected abstract ImmutableList<TSymbolSyntax> GetVariableDeclarators(TFieldDeclarationSyntax declaration);
 
         public override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
-            context.RegisterCodeFix(new MyCodeAction(
-                c => FixAsync(context.Document, context.Diagnostics[0], c)),
-                context.Diagnostics);
+            RegisterCodeFix(context, AnalyzersResources.Add_readonly_modifier, nameof(AnalyzersResources.Add_readonly_modifier));
             return Task.CompletedTask;
         }
 
@@ -43,7 +39,7 @@ namespace Microsoft.CodeAnalysis.MakeFieldReadonly
             Document document,
             ImmutableArray<Diagnostic> diagnostics,
             SyntaxEditor editor,
-            CancellationToken cancellationToken)
+            CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
         {
             var declarators = new List<TSymbolSyntax>();
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
@@ -102,13 +98,5 @@ namespace Microsoft.CodeAnalysis.MakeFieldReadonly
 
         private static DeclarationModifiers WithReadOnly(DeclarationModifiers modifiers)
             => (modifiers - DeclarationModifiers.Volatile) | DeclarationModifiers.ReadOnly;
-
-        private class MyCodeAction : CustomCodeActions.DocumentChangeAction
-        {
-            public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(AnalyzersResources.Add_readonly_modifier, createChangedDocument, nameof(AnalyzersResources.Add_readonly_modifier))
-            {
-            }
-        }
     }
 }

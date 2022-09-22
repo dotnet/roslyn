@@ -4,6 +4,9 @@
 
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeGeneration;
+using Microsoft.CodeAnalysis.CodeCleanup;
+using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Text;
 
@@ -12,6 +15,6 @@ namespace Microsoft.CodeAnalysis.ConvertTupleToStruct
     internal interface IConvertTupleToStructCodeRefactoringProvider : ILanguageService
     {
         Task<Solution> ConvertToStructAsync(
-            Document document, TextSpan span, Scope scope, bool isRecord, CancellationToken cancellationToken);
+            Document document, TextSpan span, Scope scope, CleanCodeGenerationOptionsProvider fallbackOptions, bool isRecord, CancellationToken cancellationToken);
     }
 }

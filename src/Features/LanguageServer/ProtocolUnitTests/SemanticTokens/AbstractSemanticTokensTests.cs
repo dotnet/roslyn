@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.SemanticTokens
     {
         private protected static async Task<LSP.SemanticTokens> RunGetSemanticTokensRangeAsync(TestLspServer testLspServer, LSP.Location caret, LSP.Range range)
         {
-            var result = await testLspServer.ExecuteRequestAsync<LSP.SemanticTokensRangeParams, RoslynSemanticTokens>(LSP.Methods.TextDocumentSemanticTokensRangeName,
+            var result = await testLspServer.ExecuteRequestAsync<LSP.SemanticTokensRangeParams, LSP.SemanticTokens>(LSP.Methods.TextDocumentSemanticTokensRangeName,
                 CreateSemanticTokensRangeParams(caret, range), CancellationToken.None);
             Contract.ThrowIfNull(result);
             return result;

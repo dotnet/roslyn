@@ -34,11 +34,15 @@ namespace Microsoft.CodeAnalysis
         LabelName = 10,
         /// <summary>A line-break (i.e. whitespace).</summary>
         LineBreak = 11,
-        /// <summary>A numeric literal.</summary>
-        /// <remarks>Typically for the default values of parameters and the constant values of fields.</remarks>
+        /// <summary>A numeric literal.
+        /// <para>Typically for the default values of parameters and the constant values of fields.
+        /// </para>
+        /// </summary>
         NumericLiteral = 12,
-        /// <summary>A string literal.</summary>
-        /// <remarks>Typically for the default values of parameters and the constant values of fields.</remarks>
+        /// <summary>A string literal.
+        /// <para>Typically for the default values of parameters and the constant values of fields.
+        /// </para>
+        /// </summary>
         StringLiteral = 13,
         /// <summary>The name of a local.</summary>
         LocalName = 14,
@@ -62,8 +66,10 @@ namespace Microsoft.CodeAnalysis
         StructName = 23,
         /// <summary>A keyword-like part for anonymous types (not actually a keyword).</summary>
         AnonymousTypeIndicator = 24,
-        /// <summary>An unclassified part.</summary>
-        /// <remarks>Never returned - only set in user-constructed parts.</remarks>
+        /// <summary>An unclassified part.
+        /// <para>Never returned - only set in user-constructed parts.
+        /// </para>
+        /// </summary>
         Text = 25,
         /// <summary>The name of a type parameter.</summary>
         TypeParameterName = 26,
@@ -71,10 +77,11 @@ namespace Microsoft.CodeAnalysis
         RangeVariableName = 27,
         /// <summary>The name of an enum member.</summary>
         EnumMemberName = 28,
-        /// <summary>The name of a reduced extension method.</summary>
-        /// <remarks>
+        /// <summary>The name of a reduced extension method.
+        /// <para>
         /// When an extension method is in it's non-reduced form it will be will be marked as MethodName.
-        /// </remarks>
+        /// </para>
+        /// </summary>
         ExtensionMethodName = 29,
         /// <summary>The name of a field or local constant.</summary>
         ConstantName = 30,

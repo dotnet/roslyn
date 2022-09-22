@@ -26,39 +26,29 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     {
         private const string DiagnosticsUpdatedEventName = "DiagnosticsUpdated";
 
-        private readonly EventMap _eventMap;
+        private readonly EventMap _eventMap = new();
         private readonly TaskQueue _eventQueue;
 
-        private readonly object _gate;
-        private readonly Dictionary<IDiagnosticUpdateSource, Dictionary<Workspace, Dictionary<object, Data>>> _map;
+        private readonly object _gate = new();
+        private readonly Dictionary<IDiagnosticUpdateSource, Dictionary<Workspace, Dictionary<object, Data>>> _map = new();
 
         private readonly EventListenerTracker<IDiagnosticService> _eventListenerTracker;
-
-        public IGlobalOptionService GlobalOptions { get; }
 
         private ImmutableHashSet<IDiagnosticUpdateSource> _updateSources;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public DiagnosticService(
-            IGlobalOptionService globalOptions,
             IAsynchronousOperationListenerProvider listenerProvider,
             [ImportMany] IEnumerable<Lazy<IEventListener, EventListenerMetadata>> eventListeners)
         {
-            GlobalOptions = globalOptions;
-
             // we use registry service rather than doing MEF import since MEF import method can have race issue where
             // update source gets created before aggregator - diagnostic service - is created and we will lose events fired before
             // the aggregator is created.
             _updateSources = ImmutableHashSet<IDiagnosticUpdateSource>.Empty;
 
             // queue to serialize events.
-            _eventMap = new EventMap();
-
             _eventQueue = new TaskQueue(listenerProvider.GetListener(FeatureAttribute.DiagnosticService), TaskScheduler.Default);
-
-            _gate = new object();
-            _map = new Dictionary<IDiagnosticUpdateSource, Dictionary<Workspace, Dictionary<object, Data>>>();
 
             _eventListenerTracker = new EventListenerTracker<IDiagnosticService>(eventListeners, WellKnownEventListeners.DiagnosticService);
         }
@@ -90,7 +80,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     return;
                 }
 
-                ev.RaiseEvent(handler => handler(source, args));
+                ev.RaiseEvent(static (handler, arg) => handler(arg.source, arg.args), (source, args));
             }, CancellationToken.None);
         }
 
@@ -113,7 +103,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 // listener should have already created since all events are done in the serialized queue
                 foreach (var args in removed)
                 {
-                    ev.RaiseEvent(handler => handler(source, args));
+                    ev.RaiseEvent(static (handler, arg) => handler(arg.source, arg.args), (source, args));
                 }
             }, CancellationToken.None);
         }
@@ -216,10 +206,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             RaiseDiagnosticsCleared((IDiagnosticUpdateSource)sender);
         }
 
-        [Obsolete]
-        ImmutableArray<DiagnosticData> IDiagnosticService.GetDiagnostics(Workspace workspace, ProjectId projectId, DocumentId documentId, object id, bool includeSuppressedDiagnostics, CancellationToken cancellationToken)
-            => GetPushDiagnosticsAsync(workspace, projectId, documentId, id, includeSuppressedDiagnostics, GlobalOptions.GetDiagnosticMode(InternalDiagnosticsOptions.NormalDiagnosticMode), cancellationToken).AsTask().WaitAndGetResult_CanCallOnBackground(cancellationToken);
-
         public ValueTask<ImmutableArray<DiagnosticData>> GetPullDiagnosticsAsync(Workspace workspace, ProjectId projectId, DocumentId documentId, object id, bool includeSuppressedDiagnostics, DiagnosticMode diagnosticMode, CancellationToken cancellationToken)
             => GetDiagnosticsAsync(workspace, projectId, documentId, id, includeSuppressedDiagnostics, forPullDiagnostics: true, diagnosticMode, cancellationToken);
 
@@ -316,9 +302,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             return result.ToImmutable();
         }
-
-        public ImmutableArray<DiagnosticBucket> GetPullDiagnosticBuckets(Workspace workspace, ProjectId projectId, DocumentId documentId, DiagnosticMode diagnosticMode, CancellationToken cancellationToken)
-            => GetDiagnosticBuckets(workspace, projectId, documentId, forPullDiagnostics: true, diagnosticMode, cancellationToken);
 
         public ImmutableArray<DiagnosticBucket> GetPushDiagnosticBuckets(Workspace workspace, ProjectId projectId, DocumentId documentId, DiagnosticMode diagnosticMode, CancellationToken cancellationToken)
             => GetDiagnosticBuckets(workspace, projectId, documentId, forPullDiagnostics: false, diagnosticMode, cancellationToken);

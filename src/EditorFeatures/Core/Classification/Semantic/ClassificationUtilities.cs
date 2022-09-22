@@ -15,7 +15,7 @@ using Microsoft.CodeAnalysis.Editor.Tagging;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -68,6 +68,7 @@ namespace Microsoft.CodeAnalysis.Classification
             // as we do not have to wait on skeletons to be built.
 
             document = document.WithFrozenPartialSemantics(cancellationToken);
+            options = options with { ForceFrozenPartialSemanticsForCrossProcessOperations = true };
 
             var classified = await TryClassifyContainingMemberSpanAsync(
                     context, document, spanToTag.SnapshotSpan, classificationService, typeMap, options, type, cancellationToken).ConfigureAwait(false);

@@ -16,6 +16,7 @@ using Microsoft.VisualStudio.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.InlineDiagnostics
 {
+    [Order(After = LanguagePriority.NaturalLanguage, Before = LanguagePriority.FormalLanguage)]
     internal sealed class ClassificationTypeDefinitions
     {
         [Export]
@@ -25,7 +26,6 @@ namespace Microsoft.CodeAnalysis.Editor.InlineDiagnostics
 
         [Export(typeof(EditorFormatDefinition))]
         [Name(InlineDiagnosticsTag.TagID + PredefinedErrorTypeNames.SyntaxError)]
-        [Order(After = LanguagePriority.NaturalLanguage, Before = LanguagePriority.FormalLanguage)]
         [UserVisible(true)]
         private class InlineDiagnosticsErrorFormatDefinition : EditorFormatDefinition
         {
@@ -46,7 +46,6 @@ namespace Microsoft.CodeAnalysis.Editor.InlineDiagnostics
 
         [Export(typeof(EditorFormatDefinition))]
         [Name(InlineDiagnosticsTag.TagID + PredefinedErrorTypeNames.Warning)]
-        [Order(After = LanguagePriority.NaturalLanguage, Before = LanguagePriority.FormalLanguage)]
         [UserVisible(true)]
         private class InlineDiagnosticsWarningFormatDefinition : EditorFormatDefinition
         {
@@ -67,7 +66,6 @@ namespace Microsoft.CodeAnalysis.Editor.InlineDiagnostics
 
         [Export(typeof(EditorFormatDefinition))]
         [Name(InlineDiagnosticsTag.TagID + EditAndContinueErrorTypeDefinition.Name)]
-        [Order(After = LanguagePriority.NaturalLanguage, Before = LanguagePriority.FormalLanguage)]
         [UserVisible(true)]
         private class InlineDiagnosticsRudeEditFormatDefinition : EditorFormatDefinition
         {

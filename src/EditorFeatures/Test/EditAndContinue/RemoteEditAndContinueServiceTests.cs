@@ -7,7 +7,6 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Composition;
 using System.Linq;
 using System.Text;
 using System.Threading;
@@ -18,9 +17,8 @@ using Microsoft.CodeAnalysis.EditAndContinue;
 using Microsoft.CodeAnalysis.EditAndContinue.Contracts;
 using Microsoft.CodeAnalysis.EditAndContinue.UnitTests;
 using Microsoft.CodeAnalysis.Editor.UnitTests;
+using Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
-using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Remote.Testing;
@@ -37,13 +35,16 @@ namespace Roslyn.VisualStudio.Next.UnitTests.EditAndContinue
     {
         private static string Inspect(DiagnosticData d)
             => $"[{d.ProjectId}] {d.Severity} {d.Id}:" +
-                (d.DataLocation != null ? $" {d.DataLocation.OriginalFilePath}({d.DataLocation.OriginalStartLine}, {d.DataLocation.OriginalStartColumn}, {d.DataLocation.OriginalEndLine}, {d.DataLocation.OriginalEndColumn}):" : "") +
+                (!string.IsNullOrWhiteSpace(d.DataLocation.UnmappedFileSpan.Path) ? $" {d.DataLocation.UnmappedFileSpan.Path}({d.DataLocation.UnmappedFileSpan.StartLinePosition.Line}, {d.DataLocation.UnmappedFileSpan.StartLinePosition.Character}, {d.DataLocation.UnmappedFileSpan.EndLinePosition.Line}, {d.DataLocation.UnmappedFileSpan.EndLinePosition.Character}):" : "") +
                 $" {d.Message}";
 
-        [Theory, CombinatorialData]
+        [ConditionalTheory(typeof(IsRelease), Reason = ConditionalSkipReason.TestIsTriggeringMessagePackIssue)]
+        [CombinatorialData]
         public async Task Proxy(TestHost testHost)
         {
-            var localComposition = EditorTestCompositions.EditorFeatures.WithTestHostParts(testHost);
+            var localComposition = EditorTestCompositions.EditorFeatures.WithTestHostParts(testHost)
+                .AddExcludedPartTypes(typeof(DiagnosticAnalyzerService))
+                .AddParts(typeof(MockDiagnosticAnalyzerService));
             if (testHost == TestHost.InProcess)
             {
                 localComposition = localComposition.AddParts(typeof(MockEditAndContinueWorkspaceService));
@@ -80,7 +81,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.EditAndContinue
             var project = solution.Projects.Single();
             var document = project.Documents.Single();
 
-            var mockDiagnosticService = new MockDiagnosticAnalyzerService(globalOptions);
+            var mockDiagnosticService = (MockDiagnosticAnalyzerService)localWorkspace.GetService<IDiagnosticAnalyzerService>();
 
             void VerifyReanalyzeInvocation(ImmutableArray<DocumentId> documentIds)
             {
@@ -177,18 +178,6 @@ namespace Roslyn.VisualStudio.Next.UnitTests.EditAndContinue
             var availability = await remoteDebuggeeModuleMetadataProvider!.GetAvailabilityAsync(moduleId1, CancellationToken.None).ConfigureAwait(false);
             Assert.Equal(new ManagedHotReloadAvailability(ManagedHotReloadAvailabilityStatus.NotAllowedForModule, "can't do enc"), availability);
 
-            // HasChanges
-
-            mockEncService.HasChangesImpl = (solution, activeStatementSpanProvider, sourceFilePath) =>
-            {
-                Assert.Equal("proj", solution.Projects.Single().Name);
-                Assert.Equal("test.cs", sourceFilePath);
-                AssertEx.Equal(activeSpans1, activeStatementSpanProvider(document1.Id, "test.cs", CancellationToken.None).AsTask().Result);
-                return true;
-            };
-
-            Assert.True(await sessionProxy.HasChangesAsync(localWorkspace.CurrentSolution, activeStatementSpanProvider, "test.cs", CancellationToken.None).ConfigureAwait(false));
-
             // EmitSolutionUpdate
 
             var diagnosticDescriptor1 = EditAndContinueDiagnosticDescriptors.GetDescriptor(EditAndContinueErrorCode.ErrorReadingFile);
@@ -199,17 +188,17 @@ namespace Roslyn.VisualStudio.Next.UnitTests.EditAndContinue
                 Assert.Equal("proj", project.Name);
                 AssertEx.Equal(activeSpans1, activeStatementSpanProvider(document1.Id, "test.cs", CancellationToken.None).AsTask().Result);
 
-                var deltas = ImmutableArray.Create(new ManagedModuleUpdate(
-                    module: moduleId1,
-                    ilDelta: ImmutableArray.Create<byte>(1, 2),
-                    metadataDelta: ImmutableArray.Create<byte>(3, 4),
-                    pdbDelta: ImmutableArray.Create<byte>(5, 6),
-                    updatedMethods: ImmutableArray.Create(0x06000001),
-                    updatedTypes: ImmutableArray.Create(0x02000001),
-                    sequencePoints: ImmutableArray.Create(new SequencePointUpdates("file.cs", ImmutableArray.Create(new SourceLineUpdate(1, 2)))),
-                    activeStatements: ImmutableArray.Create(new ManagedActiveStatementUpdate(instructionId1.Method.Method, instructionId1.ILOffset, span1.ToSourceSpan())),
-                    exceptionRegions: ImmutableArray.Create(exceptionRegionUpdate1),
-                    requiredCapabilities: EditAndContinueCapabilities.Baseline));
+                var deltas = ImmutableArray.Create(new ModuleUpdate(
+                    Module: moduleId1,
+                    ILDelta: ImmutableArray.Create<byte>(1, 2),
+                    MetadataDelta: ImmutableArray.Create<byte>(3, 4),
+                    PdbDelta: ImmutableArray.Create<byte>(5, 6),
+                    UpdatedMethods: ImmutableArray.Create(0x06000001),
+                    UpdatedTypes: ImmutableArray.Create(0x02000001),
+                    SequencePoints: ImmutableArray.Create(new SequencePointUpdates("file.cs", ImmutableArray.Create(new SourceLineUpdate(1, 2)))),
+                    ActiveStatements: ImmutableArray.Create(new ManagedActiveStatementUpdate(instructionId1.Method.Method, instructionId1.ILOffset, span1.ToSourceSpan())),
+                    ExceptionRegions: ImmutableArray.Create(exceptionRegionUpdate1),
+                    RequiredCapabilities: EditAndContinueCapabilities.Baseline));
 
                 var syntaxTree = project.Documents.Single().GetSyntaxTreeSynchronously(CancellationToken.None)!;
 
@@ -217,7 +206,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.EditAndContinue
                 var projectDiagnostic = Diagnostic.Create(diagnosticDescriptor1, Location.None, new[] { "proj", "some error" });
                 var syntaxError = Diagnostic.Create(diagnosticDescriptor1, Location.Create(syntaxTree, TextSpan.FromBounds(1, 2)), new[] { "doc", "syntax error" });
 
-                var updates = new ManagedModuleUpdates(ManagedModuleUpdateStatus.Ready, deltas);
+                var updates = new ModuleUpdates(ModuleUpdateStatus.Ready, deltas);
                 var diagnostics = ImmutableArray.Create((project.Id, ImmutableArray.Create(documentDiagnostic, projectDiagnostic)));
                 var documentsWithRudeEdits = ImmutableArray.Create((document1.Id, ImmutableArray<RudeEditDiagnostic>.Empty));
 
@@ -229,7 +218,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.EditAndContinue
 
             VerifyReanalyzeInvocation(ImmutableArray.Create(document1.Id));
 
-            Assert.Equal(ManagedModuleUpdateStatus.Ready, updates.Status);
+            Assert.Equal(ModuleUpdateStatus.Ready, updates.Status);
 
             Assert.Equal(1, emitDiagnosticsClearedCount);
             emitDiagnosticsClearedCount = 0;

@@ -4,11 +4,13 @@
 
 using System;
 using System.Collections.Immutable;
+using System.Diagnostics;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Options
 {
     /// <inheritdoc cref="Option2{T}"/>
-    public class Option<T> : ILanguageSpecificOption<T>
+    public class Option<T> : ISingleValuedOption<T>
     {
         private readonly OptionDefinition _optionDefinition;
 
@@ -58,7 +60,7 @@ namespace Microsoft.CodeAnalysis.Options
         }
 
         internal Option(string feature, OptionGroup group, string name, T defaultValue, ImmutableArray<OptionStorageLocation> storageLocations)
-            : this(new OptionDefinition(feature, group, name, defaultValue, typeof(T), isPerLanguage: false), storageLocations)
+            : this(new OptionDefinition(feature, group, name, defaultValue, typeof(T)), storageLocations)
         {
         }
 
@@ -75,6 +77,15 @@ namespace Microsoft.CodeAnalysis.Options
         bool IOption.IsPerLanguage => false;
 
         OptionDefinition IOption2.OptionDefinition => _optionDefinition;
+
+        string? ISingleValuedOption.LanguageName
+        {
+            get
+            {
+                Debug.Fail("It's not expected that we access LanguageName property for Option<T>. The options we use should be Option2<T>.");
+                return null;
+            }
+        }
 
         bool IEquatable<IOption2?>.Equals(IOption2? other) => Equals(other);
 

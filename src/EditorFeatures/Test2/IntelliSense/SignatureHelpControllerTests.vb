@@ -79,8 +79,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             GetMocks(controller).PresenterSession.Verify(Sub(p) p.SelectPreviousItem(), Times.Once)
         End Sub
 
-        <WpfFact>
-        <WorkItem(985007, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/985007")>
+        <WpfFact, WorkItem(985007, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/985007")>
         Public Sub UpKeyShouldNotCrashWhenSessionIsDismissed()
             Dim options = New SignatureHelpOptions()
 
@@ -108,8 +107,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             GetMocks(controller).PresenterSession.Verify(Sub(p) p.Dismiss(), Times.Once)
         End Sub
 
-        <WpfFact>
-        <WorkItem(179726, "https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workItems?id=179726&_a=edit")>
+        <WpfFact, WorkItem(179726, "https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workItems?id=179726&_a=edit")>
         Public Sub DownKeyShouldNotBlockOnModelComputation()
             Dim options = New SignatureHelpOptions()
             Dim mre = New ManualResetEvent(False)
@@ -129,8 +127,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             Assert.False(handled)
         End Sub
 
-        <WpfFact>
-        <WorkItem(179726, "https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workItems?id=179726&_a=edit")>
+        <WpfFact, WorkItem(179726, "https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workItems?id=179726&_a=edit")>
         Public Sub UpKeyShouldNotBlockOnModelComputation()
             Dim options = New SignatureHelpOptions()
             Dim mre = New ManualResetEvent(False)
@@ -150,8 +147,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             Assert.False(handled)
         End Sub
 
-        <WpfFact>
-        <WorkItem(179726, "https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workItems?id=179726&_a=edit")>
+        <WpfFact, WorkItem(179726, "https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workItems?id=179726&_a=edit")>
         Public Async Function UpKeyShouldBlockOnRecomputationAfterPresentation() As Task
             Dim exportProvider = EditorTestCompositions.EditorFeatures.ExportProviderFactory.CreateExportProvider()
             Dim threadingContext = exportProvider.GetExportedValue(Of IThreadingContext)()
@@ -251,8 +247,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             Assert.Equal(2, GetMocks(controller).Provider.GetItemsCount)
         End Sub
 
-        <WpfFact>
-        <WorkItem(959116, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/959116")>
+        <WpfFact, WorkItem(959116, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/959116")>
         Public Sub TypingNonTriggerCharacterShouldNotRequestDocument()
             Dim controller = CreateController(triggerSession:=False)
 
@@ -276,21 +271,17 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                                                  Optional provider As ISignatureHelpProvider = Nothing,
                                                  Optional waitForPresentation As Boolean = False,
                                                  Optional triggerSession As Boolean = True) As Controller
-            Dim document As Document =
-                (Function()
-                     Dim w = TestWorkspace.CreateWorkspace(
-                         <Workspace>
-                             <Project Language="C#">
-                                 <Document>
-                                 </Document>
-                             </Project>
-                         </Workspace>)
-                     Return w.CurrentSolution.GetDocument(w.Documents.Single().Id)
-                 End Function)()
+            Dim workspace = TestWorkspace.CreateWorkspace(
+                <Workspace>
+                    <Project Language="C#">
+                        <Document>
+                        </Document>
+                    </Project>
+                </Workspace>)
+            Dim document = workspace.CurrentSolution.GetDocument(workspace.Documents.Single().Id)
 
-            Dim workspace = DirectCast(document.Project.Solution.Workspace, TestWorkspace)
             Dim threadingContext = workspace.GetService(Of IThreadingContext)
-            Dim bufferFactory As ITextBufferFactoryService = DirectCast(document.Project.Solution.Workspace, TestWorkspace).GetService(Of ITextBufferFactoryService)
+            Dim bufferFactory As ITextBufferFactoryService = workspace.GetService(Of ITextBufferFactoryService)
             Dim buffer = bufferFactory.CreateTextBuffer()
             Dim view = CreateMockTextView(buffer)
             Dim asyncListener = AsynchronousOperationListenerProvider.NullListener

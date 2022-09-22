@@ -23,11 +23,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                        method As MethodSymbol,
                        isEnumerable As Boolean,
                        stateMachineType As IteratorStateMachine,
+                       stateMachineStateDebugInfoBuilder As ArrayBuilder(Of StateMachineStateDebugInfo),
                        slotAllocatorOpt As VariableSlotAllocator,
                        compilationState As TypeCompilationState,
                        diagnostics As BindingDiagnosticBag)
 
-            MyBase.New(body, method, stateMachineType, slotAllocatorOpt, compilationState, diagnostics)
+            MyBase.New(body, method, stateMachineType, stateMachineStateDebugInfoBuilder, slotAllocatorOpt, compilationState, diagnostics)
 
             Me._isEnumerable = isEnumerable
 
@@ -46,6 +47,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Friend Overloads Shared Function Rewrite(body As BoundBlock,
                                                  method As MethodSymbol,
                                                  methodOrdinal As Integer,
+                                                 stateMachineStateDebugInfoBuilder As ArrayBuilder(Of StateMachineStateDebugInfo),
                                                  slotAllocatorOpt As VariableSlotAllocator,
                                                  compilationState As TypeCompilationState,
                                                  diagnostics As BindingDiagnosticBag,
@@ -72,7 +74,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             compilationState.ModuleBuilderOpt.CompilationState.SetStateMachineType(method, stateMachineType)
 
-            Dim rewriter As New IteratorRewriter(body, method, isEnumerable, stateMachineType, slotAllocatorOpt, compilationState, diagnostics)
+            Dim rewriter As New IteratorRewriter(body, method, isEnumerable, stateMachineType, stateMachineStateDebugInfoBuilder, slotAllocatorOpt, compilationState, diagnostics)
 
             ' check if we have all the types we need
             If rewriter.EnsureAllSymbolsAndSignature() Then
@@ -213,11 +215,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     F.If(
                     condition:=
                         F.LogicalAndAlso(
-                            F.IntEqual(F.Field(F.Me, StateField, False), F.Literal(StateMachineStates.FinishedStateMachine)),
+                            F.IntEqual(F.Field(F.Me, StateField, False), F.Literal(StateMachineState.FinishedState)),
                             F.IntEqual(F.Field(F.Me, _initialThreadIdField, False), managedThreadId)),
                     thenClause:=
                         F.Block(
-                            F.Assignment(F.Field(F.Me, StateField, True), F.Literal(StateMachineStates.FirstUnusedState)),
+                            F.Assignment(F.Field(F.Me, StateField, True), F.Literal(StateMachineState.FirstUnusedState)),
                             F.Assignment(F.Local(resultVariable, True), F.Me),
                             If(Method.IsShared OrElse Method.MeParameter.Type.IsReferenceType,
                                     F.Goto(thisInitialized),
@@ -321,7 +323,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Protected Overrides Sub InitializeStateMachine(bodyBuilder As ArrayBuilder(Of BoundStatement), frameType As NamedTypeSymbol, stateMachineLocal As LocalSymbol)
             ' Dim stateMachineLocal As new IteratorImplementationClass(N)
             ' where N is either 0 (if we're producing an enumerator) or -2 (if we're producing an enumerable)
-            Dim initialState = If(_isEnumerable, StateMachineStates.FinishedStateMachine, StateMachineStates.FirstUnusedState)
+            Dim initialState = If(_isEnumerable, StateMachineState.FinishedState, StateMachineState.FirstUnusedState)
             bodyBuilder.Add(
                 F.Assignment(
                     F.Local(stateMachineLocal, True),
@@ -341,16 +343,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
 
         Private Sub GenerateMoveNextAndDispose(moveNextMethod As SynthesizedMethod, disposeMethod As SynthesizedMethod)
-            Dim rewriter = New IteratorMethodToClassRewriter(method:=Me.Method,
-                                                          F:=Me.F,
-                                                          state:=Me.StateField,
-                                                          current:=Me._currentField,
-                                                          hoistedVariables:=Me.hoistedVariables,
-                                                          localProxies:=Me.nonReusableLocalProxies,
-                                                          SynthesizedLocalOrdinals:=Me.SynthesizedLocalOrdinals,
-                                                          slotAllocatorOpt:=Me.SlotAllocatorOpt,
-                                                          nextFreeHoistedLocalSlot:=Me.nextFreeHoistedLocalSlot,
-                                                          diagnostics:=Diagnostics)
+            Dim rewriter = New IteratorMethodToClassRewriter(
+                F:=F,
+                state:=StateField,
+                current:=_currentField,
+                hoistedVariables:=hoistedVariables,
+                localProxies:=nonReusableLocalProxies,
+                StateDebugInfoBuilder,
+                slotAllocatorOpt:=SlotAllocatorOpt,
+                diagnostics:=Diagnostics)
 
             rewriter.GenerateMoveNextAndDispose(Body, moveNextMethod, disposeMethod)
         End Sub

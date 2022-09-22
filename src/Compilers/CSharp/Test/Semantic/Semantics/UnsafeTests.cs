@@ -3288,12 +3288,12 @@ public class C
             var compilation = CreateCompilation(tree, new[] { metadata }, TestOptions.UnsafeReleaseDll);
 
             compilation.VerifyDiagnostics(
-                // (13,22): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('External<object>')
+                // (13,22): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('External<object>')
                 //         var badPtr = &bad;
-                Diagnostic(ErrorCode.ERR_ManagedAddr, "&bad").WithArguments("External<object>").WithLocation(13, 22),
-                // (16,23): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('External<U>')
+                Diagnostic(ErrorCode.WRN_ManagedAddr, "&bad").WithArguments("External<object>").WithLocation(13, 22),
+                // (16,23): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('External<U>')
                 //         var badPtr2 = &bad2;
-                Diagnostic(ErrorCode.ERR_ManagedAddr, "&bad2").WithArguments("External<U>").WithLocation(16, 23)
+                Diagnostic(ErrorCode.WRN_ManagedAddr, "&bad2").WithArguments("External<U>").WithLocation(16, 23)
             );
 
             var model = compilation.GetSemanticModel(tree);
@@ -3418,7 +3418,7 @@ unsafe class C
             CreateCompilationWithMscorlib40AndSystemCore(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
                 // (8,50): error CS0211: Cannot take the address of the given expression
                 //         var z = from x in new int[2] select Goo(&x);
-                Diagnostic(ErrorCode.ERR_InvalidAddrOp, "x").WithArguments("x"));
+                Diagnostic(ErrorCode.ERR_InvalidAddrOp, "x"));
         }
 
         [WorkItem(22306, "https://github.com/dotnet/roslyn/issues/22306")]
@@ -3612,7 +3612,7 @@ enum Color
                 Diagnostic(ErrorCode.ERR_InvalidAddrOp, "local++").WithLocation(38, 15),
                 // (39,14): error CS0211: Cannot take the address of the given expression
                 //         p = &this[0]; //CS0211
-                Diagnostic(ErrorCode.ERR_InvalidAddrOp, "this[0]").WithArguments("C.this[int]").WithLocation(39, 14),
+                Diagnostic(ErrorCode.ERR_InvalidAddrOp, "this[0]").WithLocation(39, 14),
                 // (40,15): error CS0211: Cannot take the address of the given expression
                 //         p = &(() => 1); //CS0211
                 Diagnostic(ErrorCode.ERR_InvalidAddrOp, "() => 1").WithLocation(40, 15),
@@ -3624,7 +3624,7 @@ enum Color
                 Diagnostic(ErrorCode.ERR_InvalidAddrOp, "new System.Int32()").WithLocation(42, 15),
                 // (43,14): error CS0211: Cannot take the address of the given expression
                 //         p = &P; //CS0211
-                Diagnostic(ErrorCode.ERR_InvalidAddrOp, "P").WithArguments("C.P").WithLocation(43, 14),
+                Diagnostic(ErrorCode.ERR_InvalidAddrOp, "P").WithLocation(43, 14),
                 // (44,14): error CS0211: Cannot take the address of the given expression
                 //         p = &sizeof(int); //CS0211
                 Diagnostic(ErrorCode.ERR_InvalidAddrOp, "sizeof(int)").WithLocation(44, 14),
@@ -3646,9 +3646,12 @@ enum Color
                 // (53,19): error CS0211: Cannot take the address of the given expression
                 //         var s = &(array as object); //CS0208, CS0211 (managed)
                 Diagnostic(ErrorCode.ERR_InvalidAddrOp, "array as object").WithLocation(53, 19),
-                // (54,17): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('Action')
+                // (54,17): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('Action')
                 //         var t = &E; //CS0208
-                Diagnostic(ErrorCode.ERR_ManagedAddr, "&E").WithArguments("System.Action").WithLocation(54, 17),
+                Diagnostic(ErrorCode.WRN_ManagedAddr, "&E").WithArguments("System.Action").WithLocation(54, 17),
+                // (54,17): error CS0212: You can only take the address of an unfixed expression inside of a fixed statement initializer
+                //         var t = &E; //CS0208
+                Diagnostic(ErrorCode.ERR_FixedNeeded, "&E").WithLocation(54, 17),
                 // (55,18): error CS0079: The event 'C.F' can only appear on the left hand side of += or -=
                 //         var u = &F; //CS0079 (can't use event like that)
                 Diagnostic(ErrorCode.ERR_BadEventUsageNoField, "F").WithArguments("C.F").WithLocation(55, 18),
@@ -3666,7 +3669,7 @@ enum Color
                 Diagnostic(ErrorCode.ERR_InvalidAddrOp, "array ?? array").WithLocation(59, 19),
                 // (60,19): error CS0211: Cannot take the address of the given expression
                 //         var aa = &this; //CS0208
-                Diagnostic(ErrorCode.ERR_InvalidAddrOp, "this").WithArguments("this").WithLocation(60, 19),
+                Diagnostic(ErrorCode.ERR_InvalidAddrOp, "this").WithLocation(60, 19),
                 // (61,19): error CS0211: Cannot take the address of the given expression
                 //         var bb = &typeof(int); //CS0208, CS0211 (managed)
                 Diagnostic(ErrorCode.ERR_InvalidAddrOp, "typeof(int)").WithLocation(61, 19),
@@ -3688,16 +3691,16 @@ unsafe class C
 {
     void M<T>(T t)
     {
-        var p0 = &t; //CS0208
+        var p0 = &t; // 1
 
         C c = new C();
-        var p1 = &c; //CS0208
+        var p1 = &c; // 2
 
         S s = new S();
-        var p2 = &s; //CS0208
+        var p2 = &s; // 3
         
         var anon = new { };
-        var p3 = &anon; //CS0208
+        var p3 = &anon; // 4
     }
 }
 
@@ -3707,18 +3710,18 @@ public struct S
 }
 ";
             CreateCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
-                // (6,18): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('T')
-                //         var p0 = &t; //CS0208
-                Diagnostic(ErrorCode.ERR_ManagedAddr, "&t").WithArguments("T"),
-                // (9,18): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('C')
-                //         var p1 = &c; //CS0208
-                Diagnostic(ErrorCode.ERR_ManagedAddr, "&c").WithArguments("C"),
-                // (12,18): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('S')
-                //         var p2 = &s; //CS0208
-                Diagnostic(ErrorCode.ERR_ManagedAddr, "&s").WithArguments("S"),
-                // (15,18): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('<empty anonymous type>')
-                //         var p3 = &anon; //CS0208
-                Diagnostic(ErrorCode.ERR_ManagedAddr, "&anon").WithArguments("<empty anonymous type>"));
+                // (6,18): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('T')
+                //         var p0 = &t; // 1
+                Diagnostic(ErrorCode.WRN_ManagedAddr, "&t").WithArguments("T").WithLocation(6, 18),
+                // (9,18): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('C')
+                //         var p1 = &c; // 2
+                Diagnostic(ErrorCode.WRN_ManagedAddr, "&c").WithArguments("C").WithLocation(9, 18),
+                // (12,18): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('S')
+                //         var p2 = &s; // 3
+                Diagnostic(ErrorCode.WRN_ManagedAddr, "&s").WithArguments("S").WithLocation(12, 18),
+                // (15,18): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('<empty anonymous type>')
+                //         var p3 = &anon; // 4
+                Diagnostic(ErrorCode.WRN_ManagedAddr, "&anon").WithArguments("<empty anonymous type>").WithLocation(15, 18));
         }
 
         [Fact]
@@ -3743,10 +3746,10 @@ public struct S
             CreateCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
                 // (13,14): error CS0523: Struct member 'S.s' of type 'S' causes a cycle in the struct layout
                 //     public S s; //CS0523
-                Diagnostic(ErrorCode.ERR_StructLayoutCycle, "s").WithArguments("S.s", "S"),
-                // (7,17): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('S')
+                Diagnostic(ErrorCode.ERR_StructLayoutCycle, "s").WithArguments("S.s", "S").WithLocation(13, 14),
+                // (7,17): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('S')
                 //         var p = &s; //CS0208
-                Diagnostic(ErrorCode.ERR_ManagedAddr, "&s").WithArguments("S"));
+                Diagnostic(ErrorCode.WRN_ManagedAddr, "&s").WithArguments("S").WithLocation(7, 17));
         }
 
         [Fact]
@@ -4714,22 +4717,22 @@ unsafe struct S
             CreateCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
                 // (13,9): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('S')
                 //         S* p = &s; //CS0208
-                Diagnostic(ErrorCode.ERR_ManagedAddr, "S*").WithArguments("S"),
-                // (13,16): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('S')
+                Diagnostic(ErrorCode.ERR_ManagedAddr, "S*").WithArguments("S").WithLocation(13, 9),
+                // (13,16): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('S')
                 //         S* p = &s; //CS0208
-                Diagnostic(ErrorCode.ERR_ManagedAddr, "&s").WithArguments("S"),
+                Diagnostic(ErrorCode.WRN_ManagedAddr, "&s").WithArguments("S").WithLocation(13, 16),
                 // (16,9): error CS0176: Member 'S.StaticFieldLikeEvent' cannot be accessed with an instance reference; qualify it with a type name instead
                 //         p->StaticFieldLikeEvent += null; //CS0176
-                Diagnostic(ErrorCode.ERR_ObjectProhibited, "p->StaticFieldLikeEvent").WithArguments("S.StaticFieldLikeEvent"),
+                Diagnostic(ErrorCode.ERR_ObjectProhibited, "p->StaticFieldLikeEvent").WithArguments("S.StaticFieldLikeEvent").WithLocation(16, 9),
                 // (19,9): error CS0176: Member 'S.StaticCustomEvent' cannot be accessed with an instance reference; qualify it with a type name instead
                 //         p->StaticCustomEvent += null; //CS0176
-                Diagnostic(ErrorCode.ERR_ObjectProhibited, "p->StaticCustomEvent").WithArguments("S.StaticCustomEvent"),
+                Diagnostic(ErrorCode.ERR_ObjectProhibited, "p->StaticCustomEvent").WithArguments("S.StaticCustomEvent").WithLocation(19, 9),
                 // (5,32): warning CS0067: The event 'S.StaticFieldLikeEvent' is never used
                 //     static event System.Action StaticFieldLikeEvent;
-                Diagnostic(ErrorCode.WRN_UnreferencedEvent, "StaticFieldLikeEvent").WithArguments("S.StaticFieldLikeEvent"),
+                Diagnostic(ErrorCode.WRN_UnreferencedEvent, "StaticFieldLikeEvent").WithArguments("S.StaticFieldLikeEvent").WithLocation(5, 32),
                 // (4,25): warning CS0067: The event 'S.InstanceFieldLikeEvent' is never used
                 //     event System.Action InstanceFieldLikeEvent;
-                Diagnostic(ErrorCode.WRN_UnreferencedEvent, "InstanceFieldLikeEvent").WithArguments("S.InstanceFieldLikeEvent")
+                Diagnostic(ErrorCode.WRN_UnreferencedEvent, "InstanceFieldLikeEvent").WithArguments("S.InstanceFieldLikeEvent").WithLocation(4, 25)
                 );
         }
 
@@ -5788,7 +5791,12 @@ unsafe class C
                 else
                 {
                     Assert.NotNull(summary.Symbol);
-                    Assert.Equal(MethodKind.BuiltinOperator, ((IMethodSymbol)summary.Symbol).MethodKind);
+                    var summaryMethod = (IMethodSymbol)summary.Symbol;
+                    Assert.Equal(MethodKind.BuiltinOperator, summaryMethod.MethodKind);
+
+                    var synthesizedMethod = compilation.CreateBuiltinOperator(
+                        summaryMethod.Name, summaryMethod.ReturnType, summaryMethod.Parameters[0].Type, summaryMethod.Parameters[1].Type);
+                    Assert.Equal(synthesizedMethod, summaryMethod);
                 }
 
                 Assert.Equal(0, summary.CandidateSymbols.Length);
@@ -5961,6 +5969,8 @@ unsafe class C
         var r14 = i | p;
         var r15 = p ^ i;
         var r16 = i ^ p;
+        var r17 = p >>> i;
+        var r18 = i >>> p;
     }
 }
 ";
@@ -6013,7 +6023,14 @@ unsafe class C
                 Diagnostic(ErrorCode.ERR_BadBinaryOps, "p ^ i").WithArguments("^", "byte*", "int"),
                 // (21,19): error CS0019: Operator '^' cannot be applied to operands of type 'int' and 'byte*'
                 //         var r16 = i ^ p;
-                Diagnostic(ErrorCode.ERR_BadBinaryOps, "i ^ p").WithArguments("^", "int", "byte*"));
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "i ^ p").WithArguments("^", "int", "byte*"),
+                // (22,19): error CS0019: Operator '>>>' cannot be applied to operands of type 'byte*' and 'int'
+                //         var r17 = p >>> i;
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "p >>> i").WithArguments(">>>", "byte*", "int").WithLocation(22, 19),
+                // (23,19): error CS0019: Operator '>>>' cannot be applied to operands of type 'int' and 'byte*'
+                //         var r18 = i >>> p;
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "i >>> p").WithArguments(">>>", "int", "byte*").WithLocation(23, 19)
+                );
         }
 
         [Fact]
@@ -6236,7 +6253,12 @@ unsafe class C
                 else
                 {
                     Assert.NotNull(summary.Symbol);
-                    Assert.Equal(MethodKind.BuiltinOperator, ((IMethodSymbol)summary.Symbol).MethodKind);
+                    var summaryMethod = (IMethodSymbol)summary.Symbol;
+                    Assert.Equal(MethodKind.BuiltinOperator, summaryMethod.MethodKind);
+
+                    var synthesizedMethod = compilation.CreateBuiltinOperator(
+                        summaryMethod.Name, summaryMethod.ReturnType, summaryMethod.Parameters[0].Type, summaryMethod.Parameters[1].Type);
+                    Assert.Equal(synthesizedMethod, summaryMethod);
                 }
 
                 Assert.Equal(0, summary.CandidateSymbols.Length);
@@ -7459,7 +7481,7 @@ class Program
                 Diagnostic(ErrorCode.ERR_CloseParenExpected, "null"),
                 // (4,21): error CS1003: Syntax error, ',' expected
                 //     int F1 = sizeof(null);
-                Diagnostic(ErrorCode.ERR_SyntaxError, "null").WithArguments(",", "null"),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "null").WithArguments(","),
                 // (4,14): error CS0233: '?' does not have a predefined size, therefore sizeof can only be used in an unsafe context (consider using System.Runtime.InteropServices.Marshal.SizeOf)
                 //     int F1 = sizeof(null);
                 Diagnostic(ErrorCode.ERR_SizeofUnsafe, "sizeof(").WithArguments("?"));

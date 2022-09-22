@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.CodeCleanup
         public async Task CodeCleanersCSharp_NoSpans()
         {
             var document = CreateDocument("class C { }", LanguageNames.CSharp);
-            var cleanDocument = await CodeCleaner.CleanupAsync(document, ImmutableArray<TextSpan>.Empty);
+            var cleanDocument = await CodeCleaner.CleanupAsync(document, ImmutableArray<TextSpan>.Empty, CodeCleanupOptions.GetDefault(document.Project.Services));
 
             Assert.Equal(document, cleanDocument);
         }
@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.CodeCleanup
         public async Task CodeCleanersCSharp_Document()
         {
             var document = CreateDocument("class C { }", LanguageNames.CSharp);
-            var cleanDocument = await CodeCleaner.CleanupAsync(document);
+            var cleanDocument = await CodeCleaner.CleanupAsync(document, CodeCleanupOptions.GetDefault(document.Project.Services));
 
             Assert.Equal(document, cleanDocument);
         }
@@ -59,7 +59,8 @@ namespace Microsoft.CodeAnalysis.UnitTests.CodeCleanup
         public async Task CodeCleanersCSharp_Span()
         {
             var document = CreateDocument("class C { }", LanguageNames.CSharp);
-            var cleanDocument = await CodeCleaner.CleanupAsync(document, (await document.GetSyntaxRootAsync()).FullSpan);
+            var root = await document.GetSyntaxRootAsync();
+            var cleanDocument = await CodeCleaner.CleanupAsync(document, root.FullSpan, CodeCleanupOptions.GetDefault(document.Project.Services));
 
             Assert.Equal(document, cleanDocument);
         }
@@ -68,8 +69,8 @@ namespace Microsoft.CodeAnalysis.UnitTests.CodeCleanup
         public async Task CodeCleanersCSharp_Spans()
         {
             var document = CreateDocument("class C { }", LanguageNames.CSharp);
-            var cleanDocument = await CodeCleaner.CleanupAsync(document, ImmutableArray.Create(
-                (await document.GetSyntaxRootAsync()).FullSpan));
+            var root = await document.GetSyntaxRootAsync();
+            var cleanDocument = await CodeCleaner.CleanupAsync(document, ImmutableArray.Create(root.FullSpan), CodeCleanupOptions.GetDefault(document.Project.Services));
 
             Assert.Equal(document, cleanDocument);
         }
@@ -92,7 +93,7 @@ End Class", LanguageNames.VisualBasic);
         {
             var document = CreateDocument(@"Class C
 End Class", LanguageNames.VisualBasic);
-            var cleanDocument = await CodeCleaner.CleanupAsync(document, ImmutableArray<TextSpan>.Empty);
+            var cleanDocument = await CodeCleaner.CleanupAsync(document, ImmutableArray<TextSpan>.Empty, CodeCleanupOptions.GetDefault(document.Project.Services));
 
             Assert.Equal(document, cleanDocument);
         }
@@ -102,7 +103,7 @@ End Class", LanguageNames.VisualBasic);
         {
             var document = CreateDocument(@"Class C
 End Class", LanguageNames.VisualBasic);
-            var cleanDocument = await CodeCleaner.CleanupAsync(document);
+            var cleanDocument = await CodeCleaner.CleanupAsync(document, CodeCleanupOptions.GetDefault(document.Project.Services));
 
             Assert.Equal(document, cleanDocument);
         }
@@ -112,7 +113,8 @@ End Class", LanguageNames.VisualBasic);
         {
             var document = CreateDocument(@"Class C
 End Class", LanguageNames.VisualBasic);
-            var cleanDocument = await CodeCleaner.CleanupAsync(document, (await document.GetSyntaxRootAsync()).FullSpan);
+            var root = await document.GetSyntaxRootAsync();
+            var cleanDocument = await CodeCleaner.CleanupAsync(document, root.FullSpan, CodeCleanupOptions.GetDefault(document.Project.Services));
 
             Assert.Equal(document, cleanDocument);
         }
@@ -122,8 +124,8 @@ End Class", LanguageNames.VisualBasic);
         {
             var document = CreateDocument(@"Class C
 End Class", LanguageNames.VisualBasic);
-            var cleanDocument = await CodeCleaner.CleanupAsync(document, ImmutableArray.Create(
-                (await document.GetSyntaxRootAsync()).FullSpan));
+            var root = await document.GetSyntaxRootAsync();
+            var cleanDocument = await CodeCleaner.CleanupAsync(document, ImmutableArray.Create(root.FullSpan), CodeCleanupOptions.GetDefault(document.Project.Services));
 
             Assert.Equal(document, cleanDocument);
         }
@@ -135,7 +137,7 @@ End Class", LanguageNames.VisualBasic);
             var annotation = new SyntaxAnnotation();
             document = document.WithSyntaxRoot((await document.GetSyntaxRootAsync()).WithAdditionalAnnotations(annotation));
 
-            var cleanDocument = await CodeCleaner.CleanupAsync(document, annotation);
+            var cleanDocument = await CodeCleaner.CleanupAsync(document, annotation, CodeCleanupOptions.GetDefault(document.Project.Services));
 
             Assert.Equal(document, cleanDocument);
         }
@@ -148,7 +150,7 @@ End Class", LanguageNames.VisualBasic);
             var annotation = new SyntaxAnnotation();
             document = document.WithSyntaxRoot((await document.GetSyntaxRootAsync()).WithAdditionalAnnotations(annotation));
 
-            var cleanDocument = await CodeCleaner.CleanupAsync(document, annotation);
+            var cleanDocument = await CodeCleaner.CleanupAsync(document, annotation, CodeCleanupOptions.GetDefault(document.Project.Services));
 
             Assert.Equal(document, cleanDocument);
         }
@@ -265,8 +267,7 @@ End Class", LanguageNames.VisualBasic);
         public void MultipleRanges()
             => VerifyRange("namespace N { class C {|r:{ {|b:void Method() { }|} }|} class C2 {|r:{ {|b:void Method() { }|} }|} }");
 
-        [Fact]
-        [WorkItem(12848, "DevDiv_Projects/Roslyn")]
+        [Fact, WorkItem(12848, "DevDiv_Projects/Roslyn")]
         public void DontCrash_VB()
         {
             var code = @"#If DEBUG OrElse TRACE Then
@@ -286,8 +287,7 @@ Imports System.Diagnostics
             VerifyRange(code, LanguageNames.VisualBasic);
         }
 
-        [Fact]
-        [WorkItem(774295, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/774295")]
+        [Fact, WorkItem(774295, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/774295")]
         public async Task DontCrash_VB_2()
         {
             var code = @"
@@ -321,12 +321,11 @@ End Class
             Assert.NotNull(newSemanticModel);
             Assert.True(newSemanticModel.IsSpeculativeSemanticModel);
 
-            var cleanDocument = await CodeCleaner.CleanupAsync(document);
+            var cleanDocument = await CodeCleaner.CleanupAsync(document, CodeCleanupOptions.GetDefault(document.Project.Services));
             Assert.Equal(document, cleanDocument);
         }
 
-        [Fact]
-        [WorkItem(547075, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547075")]
+        [Fact, WorkItem(547075, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547075")]
         public void TestCodeCleanupWithinNonStructuredTrivia()
         {
             var code = @"
@@ -406,7 +405,7 @@ End Module";
 
             var document = CreateDocument(code, language);
 
-            CodeCleaner.CleanupAsync(document, spans, codeCleanups.Concat(spanCodeCleanup)).Wait();
+            CodeCleaner.CleanupAsync(document, spans, CodeCleanupOptions.GetDefault(document.Project.Services), codeCleanups.Concat(spanCodeCleanup)).Wait();
 
             var sortedSpans = result.ToList();
             var expectedSpans = expectedResult.ToList();

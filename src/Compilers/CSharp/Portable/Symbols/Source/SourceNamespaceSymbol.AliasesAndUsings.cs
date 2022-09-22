@@ -757,6 +757,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                 else
                                 {
                                     var importedType = (NamedTypeSymbol)imported;
+                                    if (usingDirective.GlobalKeyword != default(SyntaxToken) && importedType.HasFileLocalTypes())
+                                    {
+                                        diagnostics.Add(ErrorCode.ERR_GlobalUsingStaticFileType, usingDirective.Name.Location, imported);
+                                    }
+
                                     if (!getOrCreateUniqueUsings(ref uniqueUsings, globalUsingNamespacesOrTypes).Add(importedType))
                                     {
                                         diagnostics.Add(!globalUsingNamespacesOrTypes.IsEmpty && getOrCreateUniqueGlobalUsingsNotInTree(ref uniqueGlobalUsings, globalUsingNamespacesOrTypes, declarationSyntax.SyntaxTree).Contains(imported) ?

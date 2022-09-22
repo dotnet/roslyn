@@ -314,6 +314,132 @@ class Class2
 
                     await TestInRegularAndScriptAsync(input, expected);
                 }
+
+                [Fact]
+                [Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
+                [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
+                public async Task TestFixAllInContainingMember()
+                {
+                    var input = @"
+<Workspace>
+    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
+        <Document>
+using System;
+
+{|FixAllInContainingMember:class Class1|}
+{
+    int Method()
+    {
+        int x = 0;
+    }
+}
+
+class Class2
+{
+}
+class Class3 { }
+        </Document>
+    </Project>
+</Workspace>";
+
+                    await TestMissingInRegularAndScriptAsync(input);
+                }
+
+                [Fact]
+                [Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
+                [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
+                public async Task TestFixAllInContainingType()
+                {
+                    var input = @"
+<Workspace>
+    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
+        <Document>
+using System;
+
+{|FixAllInContainingType:partial class Class1|}
+{
+    int Method1()
+    {
+        int x = 0;
+    }
+}
+
+class Class2
+{
+    int Method2()
+    {
+        int x = 0;
+    }
+}
+        </Document>
+        <Document>
+partial class Class1
+{
+    int Method3()
+    {
+        int x = 0;
+    }
+}
+
+class Class4
+{
+    int Method4()
+    {
+        int x = 0;
+    }
+}
+        </Document>
+    </Project>
+</Workspace>";
+
+                    var expected = @"
+<Workspace>
+    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
+        <Document>
+using System;
+
+#pragma warning disable InfoDiagnostic // InfoDiagnostic Title
+partial class Class1
+#pragma warning restore InfoDiagnostic // InfoDiagnostic Title
+{
+    int Method1()
+    {
+        int x = 0;
+    }
+}
+
+class Class2
+{
+    int Method2()
+    {
+        int x = 0;
+    }
+}
+        </Document>
+        <Document>
+#pragma warning disable InfoDiagnostic // InfoDiagnostic Title
+partial class Class1
+#pragma warning restore InfoDiagnostic // InfoDiagnostic Title
+{
+    int Method3()
+    {
+        int x = 0;
+    }
+}
+
+class Class4
+{
+    int Method4()
+    {
+        int x = 0;
+    }
+}
+        </Document>
+    </Project>
+</Workspace>";
+
+                    await TestInRegularAndScriptAsync(input, expected);
+                }
             }
         }
 
@@ -659,6 +785,127 @@ class Class2
 </Workspace>";
 
                     await TestInRegularAndScriptAsync(input, expected);
+                }
+
+                [Fact]
+                [Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
+                [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
+                public async Task TestFixAllInContainingMember()
+                {
+                    var input = @"
+<Workspace>
+    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
+        <Document>
+using System;
+
+{|FixAllInContainingMember:class Class1|}
+{
+    int Method1()
+    {
+        int x = 0;
+    }
+}
+
+class Class2
+{
+}
+        </Document>
+    </Project>
+</Workspace>";
+
+                    await TestMissingInRegularAndScriptAsync(input);
+                }
+
+                [Fact]
+                [Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
+                [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
+                public async Task TestFixAllInContainingType()
+                {
+                    var input = @"
+<Workspace>
+    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
+        <Document>
+using System;
+
+{|FixAllInContainingType:partial class Class1|}
+{
+    int Method1()
+    {
+        int x = 0;
+    }
+}
+
+class Class2
+{
+}
+        </Document>
+        <Document>
+partial class Class1
+{
+    int Method2()
+    {
+        int x = 0;
+    }
+}
+
+class Class3
+{
+}
+        </Document>
+    </Project>
+</Workspace>";
+
+                    var addedGlobalSuppressions =
+$@"// This file is used by Code Analysis to maintain SuppressMessage
+// attributes that are applied to this project.
+// Project-level suppressions either have no target or are given
+// a specific target and scoped to a namespace, type, member, etc.
+
+using System.Diagnostics.CodeAnalysis;
+
+[assembly: SuppressMessage(""InfoDiagnostic"", ""InfoDiagnostic:InfoDiagnostic"", Justification = ""{FeaturesResources.Pending}"", Scope = ""member"", Target = ""~M:Class1.Method1~System.Int32"")]
+[assembly: SuppressMessage(""InfoDiagnostic"", ""InfoDiagnostic:InfoDiagnostic"", Justification = ""{FeaturesResources.Pending}"", Scope = ""member"", Target = ""~M:Class1.Method2~System.Int32"")]
+[assembly: SuppressMessage(""InfoDiagnostic"", ""InfoDiagnostic:InfoDiagnostic"", Justification = ""{FeaturesResources.Pending}"", Scope = ""type"", Target = ""~T:Class1"")]
+"
+    .Replace("<", "&lt;").Replace(">", "&gt;");
+
+                    var expected = @"
+<Workspace>
+    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
+        <Document>
+using System;
+
+partial class Class1
+{
+    int Method1()
+    {
+        int x = 0;
+    }
+}
+
+class Class2
+{
+}
+        </Document>
+        <Document>
+partial class Class1
+{
+    int Method2()
+    {
+        int x = 0;
+    }
+}
+
+class Class3
+{
+}
+        </Document>
+        <Document FilePath=""GlobalSuppressions.cs"">" + addedGlobalSuppressions +
+        @"</Document>
+    </Project>
+</Workspace>";
+
+                    await TestInRegularAndScriptAsync(input, expected, index: 1);
                 }
             }
         }

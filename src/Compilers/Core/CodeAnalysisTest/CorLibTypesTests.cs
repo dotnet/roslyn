@@ -6,6 +6,7 @@
 
 using System;
 using System.Collections.Generic;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -191,11 +192,16 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Fact]
         public void ConstantValueToStringTest01()
         {
+            string value = (RuntimeUtilities.IsCoreClrRuntime && !RuntimeUtilities.IsCoreClr6Runtime)
+                ? "Nothing"
+                : "Null";
+
             var cv = ConstantValue.Create(null, ConstantValueTypeDiscriminator.Null);
-            Assert.Equal("ConstantValueNull(null: Null)", cv.ToString());
+            Assert.Equal($"ConstantValueNull(null: {value})", cv.ToString());
 
             cv = ConstantValue.Create(null, ConstantValueTypeDiscriminator.String);
-            Assert.Equal("ConstantValueNull(null: Null)", cv.ToString());
+            Assert.Equal($"ConstantValueNull(null: {value})", cv.ToString());
+
             // Never hit "ConstantValueString(null: Null)"
 
             var strVal = "QC";

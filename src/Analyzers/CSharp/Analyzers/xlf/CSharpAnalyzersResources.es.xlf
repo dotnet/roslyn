@@ -27,6 +27,11 @@
         <target state="translated">Convertir una instrucción switch en expresión</target>
         <note />
       </trans-unit>
+      <trans-unit id="Convert_to_Program_Main_style_program">
+        <source>Convert to 'Program.Main' style program</source>
+        <target state="translated">Convertir en programa de estilo 'Program.Main'</target>
+        <note>{Locked="Program.Main"} this is the C# syntax we are going to generate</note>
+      </trans-unit>
       <trans-unit id="Convert_to_block_scoped_namespace">
         <source>Convert to block scoped namespace</source>
         <target state="translated">Convertir en namespace con ámbito de bloque</target>
@@ -36,6 +41,11 @@
         <source>Convert to file-scoped namespace</source>
         <target state="translated">Convertir en namespace con ámbito de archivo</target>
         <note>{Locked="namespace"} "namespace" is a C# keyword and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="Convert_to_top_level_statements">
+        <source>Convert to top-level statements</source>
+        <target state="translated">Convertir en instrucciones de nivel superior</target>
+        <note />
       </trans-unit>
       <trans-unit id="Deconstruct_variable_declaration">
         <source>Deconstruct variable declaration</source>
@@ -69,7 +79,12 @@
       </trans-unit>
       <trans-unit id="Lambda_expression_can_be_removed">
         <source>Lambda expression can be removed</source>
-        <target state="new">Lambda expression can be removed</target>
+        <target state="translated">Se puede quitar la expresión lambda</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Make_struct_readonly">
+        <source>Make struct 'readonly'</source>
+        <target state="new">Make struct 'readonly'</target>
         <note />
       </trans-unit>
       <trans-unit id="Misplaced_using_directive">
@@ -107,6 +122,16 @@
         <target state="translated">Se puede aclarar la comprobación de valores NULL</target>
         <note />
       </trans-unit>
+      <trans-unit id="Nullable_directive_is_redundant">
+        <source>Nullable directive is redundant</source>
+        <target state="translated">La directiva que admite un valor NULL es redundante</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Nullable_directive_is_unnecessary">
+        <source>Nullable directive is unnecessary</source>
+        <target state="translated">La directiva que admite un valor NULL no es necesaria.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Prefer_null_check_over_type_check">
         <source>Prefer 'null' check over type check</source>
         <target state="translated">Preferir comprobación "null' sobre comprobación de tipo</target>
@@ -122,6 +147,11 @@
         <target state="translated">Quitar operador (conserva la semántica)</target>
         <note />
       </trans-unit>
+      <trans-unit id="Remove_redundant_nullable_directive">
+        <source>Remove redundant nullable directive</source>
+        <target state="translated">Quitar directiva redundante que admite un valor NULL</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Remove_suppression_operators">
         <source>Remove suppression operators</source>
         <target state="translated">Quitar operadores de supresión</target>
@@ -129,7 +159,12 @@
       </trans-unit>
       <trans-unit id="Remove_unnecessary_lambda_expression">
         <source>Remove unnecessary lambda expression</source>
-        <target state="new">Remove unnecessary lambda expression</target>
+        <target state="translated">Quitar la expresión lambda innecesaria</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Remove_unnecessary_nullable_directive">
+        <source>Remove unnecessary nullable directive</source>
+        <target state="translated">Quitar directiva innecesaria que admite un valor NULL</target>
         <note />
       </trans-unit>
       <trans-unit id="Remove_unnecessary_suppression_operator">
@@ -149,12 +184,17 @@
       </trans-unit>
       <trans-unit id="Simplify_delegate_invocation">
         <source>Simplify delegate invocation</source>
-        <target state="new">Simplify delegate invocation</target>
+        <target state="translated">Simplificar la invocación del delegado</target>
         <note />
       </trans-unit>
       <trans-unit id="Simplify_property_pattern">
         <source>Simplify property pattern</source>
         <target state="translated">Simplificar el patrón de propiedad</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Struct_can_be_made_readonly">
+        <source>Struct can be made 'readonly'</source>
+        <target state="new">Struct can be made 'readonly'</target>
         <note />
       </trans-unit>
       <trans-unit id="Struct_contains_assignment_to_this_outside_of_constructor_Make_readonly_fields_writable">
@@ -172,6 +212,11 @@
         <target state="translated">Se detectó código inaccesible</target>
         <note />
       </trans-unit>
+      <trans-unit id="Use_Utf8_string_literal">
+        <source>Use UTF-8 string literal</source>
+        <target state="translated">Usar literal de cadena UTF-8</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Use_block_body_for_accessors">
         <source>Use block body for accessors</source>
         <target state="translated">Usar cuerpo del bloque para los descriptores de acceso</target>
@@ -182,9 +227,19 @@
         <target state="translated">Usar cuerpo del bloque para los constructores</target>
         <note />
       </trans-unit>
+      <trans-unit id="Use_block_body_for_conversion_operators">
+        <source>Use block body for conversion operators</source>
+        <target state="translated">Usar el cuerpo del bloque para los operadores de conversión</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Use_block_body_for_indexers">
         <source>Use block body for indexers</source>
         <target state="translated">Usar cuerpo del bloque para los indizadores</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_block_body_for_lambda_expressions">
+        <source>Use block body for lambda expressions</source>
+        <target state="translated">Usar cuerpo del bloque para las expresiones lambda</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_block_body_for_local_functions">
@@ -227,9 +282,19 @@
         <target state="translated">Usar cuerpo de expresiones para los constructores</target>
         <note />
       </trans-unit>
+      <trans-unit id="Use_expression_body_for_conversion_operators">
+        <source>Use expression body for conversion operators</source>
+        <target state="translated">Usar el cuerpo de expresión para los operadores de conversión</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Use_expression_body_for_indexers">
         <source>Use expression body for indexers</source>
         <target state="translated">Usar cuerpo de expresiones para los indizadores</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_expression_body_for_lambda_expressions">
+        <source>Use expression body for lambda expressions</source>
+        <target state="translated">Usar órgano de expresión para expresiones lambda</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_expression_body_for_local_functions">
@@ -264,7 +329,7 @@
       </trans-unit>
       <trans-unit id="Use_is_not_null_check">
         <source>Use 'is not null' check</source>
-        <target state="new">Use 'is not null' check</target>
+        <target state="translated">Use la comprobación \"is not null\"</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_is_null_check">
@@ -274,7 +339,7 @@
       </trans-unit>
       <trans-unit id="Use_is_object_check">
         <source>Use 'is object' check</source>
-        <target state="new">Use 'is object' check</target>
+        <target state="translated">Use la comprobación \"is object\"</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_local_function">
@@ -286,11 +351,6 @@
         <source>Use 'new(...)'</source>
         <target state="translated">Usar "new(...)"</target>
         <note>{Locked="new(...)"} This is a C# construct and should not be localized.</note>
-      </trans-unit>
-      <trans-unit id="Use_parameter_null_checking">
-        <source>Use parameter null checking</source>
-        <target state="new">Use parameter null checking</target>
-        <note />
       </trans-unit>
       <trans-unit id="Use_pattern_matching">
         <source>Use pattern matching</source>

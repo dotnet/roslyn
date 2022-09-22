@@ -1472,6 +1472,88 @@ var q = from a in await seq1
         public void Yields()
         {
             var src1 = @"
+yield return 0;
+yield return 1;
+";
+            var src2 = @"
+yield break;
+yield return 1;
+";
+
+            var match = GetMethodMatches(src1, src2, kind: MethodKind.Iterator);
+            var actual = ToMatchingPairs(match);
+
+            // yield return should not match yield break
+            var expected = new MatchingPairs()
+            {
+                { "yield return 1;", "yield return 1;" }
+            };
+
+            expected.AssertEqual(actual);
+        }
+
+        [Fact]
+        public void YieldReturn_Add()
+        {
+            var src1 = @"
+yield return /*1*/ 1;
+yield return /*2*/ 2;
+";
+            var src2 = @"
+yield return /*3*/ 3;
+yield return /*1*/ 1;
+yield return /*2*/ 2;
+";
+
+            var match = GetMethodMatches(src1, src2, kind: MethodKind.Iterator);
+            var actual = ToMatchingPairs(match);
+
+            var expected = new MatchingPairs
+            {
+                { "yield return /*1*/ 1;", "yield return /*1*/ 1;" },
+                { "yield return /*2*/ 2;", "yield return /*2*/ 2;" }
+            };
+
+            expected.AssertEqual(actual);
+        }
+
+        [Fact]
+        public void YieldReturn_Swap1()
+        {
+            var src1 = @"
+A();
+yield return /*1*/ 1;
+B();
+yield return /*2*/ 2;
+C();
+";
+            var src2 = @"
+B();
+yield return /*2*/ 2;
+A();
+yield return /*1*/ 1;
+C();
+";
+
+            var match = GetMethodMatches(src1, src2, kind: MethodKind.Iterator);
+            var actual = ToMatchingPairs(match);
+
+            var expected = new MatchingPairs
+            {
+                { "A();", "A();" },
+                { "yield return /*1*/ 1;", "yield return /*1*/ 1;" },
+                { "B();", "B();" },
+                { "yield return /*2*/ 2;", "yield return /*2*/ 2;" },
+                { "C();", "C();" }
+            };
+
+            expected.AssertEqual(actual);
+        }
+
+        [Fact]
+        public void YieldReturn_Swap2()
+        {
+            var src1 = @"
 yield return /*1*/ 1;
 
 {
@@ -1489,14 +1571,286 @@ foreach (var x in y) { yield return /*3*/ 2; }
             var match = GetMethodMatches(src1, src2, kind: MethodKind.Iterator);
             var actual = ToMatchingPairs(match);
 
-            // note that yield returns are matched in source order, regardless of the yielded expressions:
             var expected = new MatchingPairs
             {
                 { "yield return /*1*/ 1;", "yield return /*1*/ 1;" },
                 { "{     yield return /*2*/ 2; }", "{ yield return /*3*/ 2; }" },
-                { "yield return /*2*/ 2;", "yield return /*2*/ 3;" },
-                { "foreach (var x in y) { yield return /*3*/ 3; }", "foreach (var x in y) { yield return /*3*/ 2; }" },
-                { "yield return /*3*/ 3;", "yield return /*3*/ 2;" },
+                { "yield return /*2*/ 2;", "yield return /*3*/ 2;" },
+                { "foreach (var x in y) { yield return /*3*/ 3; }", "foreach (var x in y) { yield return /*3*/ 2; }" }
+            };
+
+            expected.AssertEqual(actual);
+        }
+
+        #endregion
+
+        #region Async
+
+        [Fact]
+        public void AwaitExpressions()
+        {
+            var src1 = "F(await x, await y);";
+            var src2 = "F(await y, await x);";
+
+            var match = GetMethodMatches(src1, src2, kind: MethodKind.Async);
+            var actual = ToMatchingPairs(match);
+
+            var expected = new MatchingPairs
+            {
+                { "F(await x, await y);", "F(await y, await x);" },
+                { "await x", "await x" },
+                { "await y", "await y" }
+            };
+
+            expected.AssertEqual(actual);
+        }
+
+        [Fact]
+        public void Awaits()
+        {
+            var src1 = @"
+await x;
+await using (expr) {}
+await using (D y = new D()) {}
+await using D y = new D();
+await foreach (var z in w) {} 
+await foreach (var (u, v) in w) {}
+";
+            var src2 = @"
+await foreach (var (u, v) in w) {}
+await foreach (var z in w) {} 
+await using D y = new D();
+await using (D y = new D()) {}
+await using (expr) {}
+await x;
+";
+
+            var match = GetMethodMatches(src1, src2, kind: MethodKind.Async);
+            var actual = ToMatchingPairs(match);
+
+            var expected = new MatchingPairs
+            {
+                { "await x;", "await x;" },
+                { "await x", "await x" },
+                { "await using (expr) {}", "await using (expr) {}" },
+                { "{}", "{}" },
+                { "await using (D y = new D()) {}", "await using (D y = new D()) {}" },
+                { "D y = new D()", "D y = new D()" },
+                { "y = new D()", "y = new D()" },
+                { "{}", "{}" },
+                { "await using D y = new D();", "await using D y = new D();" },
+                { "D y = new D()", "D y = new D()" },
+                { "y = new D()", "y = new D()" },
+                { "await foreach (var z in w) {}", "await foreach (var z in w) {}" },
+                { "{}", "{}" },
+                { "await foreach (var (u, v) in w) {}", "await foreach (var (u, v) in w) {}" },
+                { "u", "u" },
+                { "v", "v" },
+                { "{}", "{}" }
+            };
+
+            expected.AssertEqual(actual);
+        }
+
+        [Fact]
+        public void Await_To_AwaitUsingExpression()
+        {
+            var src1 = @"
+await x;
+";
+            var src2 = @"
+await using (expr) {}
+";
+
+            var match = GetMethodMatches(src1, src2, kind: MethodKind.Async);
+            var actual = ToMatchingPairs(match);
+
+            var expected = new MatchingPairs();
+
+            expected.AssertEqual(actual);
+        }
+
+        [Fact]
+        public void Await_To_AwaitUsingDecl()
+        {
+            var src1 = @"
+await x;
+";
+            var src2 = @"
+await using D y = new D();
+";
+
+            var match = GetMethodMatches(src1, src2, kind: MethodKind.Async);
+            var actual = ToMatchingPairs(match);
+
+            // empty - treated as different awaits as the await using awaits at the end of the scope
+            var expected = new MatchingPairs();
+
+            expected.AssertEqual(actual);
+        }
+
+        [Fact]
+        public void AwaitUsingDecl_To_AwaitUsingStatement()
+        {
+            var src1 = @"
+await using D y = new D();
+";
+            var src2 = @"
+await using (D y = new D()) { }
+";
+
+            var match = GetMethodMatches(src1, src2, kind: MethodKind.Async);
+            var actual = ToMatchingPairs(match);
+
+            var expected = new MatchingPairs();
+
+            expected.AssertEqual(actual);
+        }
+
+        [Fact]
+        public void AwaitUsingExpression_To_AwaitUsingStatementWithSingleVariable()
+        {
+            var src1 = @"
+await using (y = new D()) { }
+";
+            var src2 = @"
+await using (D y = new D()) { }
+";
+
+            var match = GetMethodMatches(src1, src2, kind: MethodKind.Async);
+            var actual = ToMatchingPairs(match);
+
+            // Using with a single variable could match using with an expression because they both generate a single try-finally block,
+            // but to simplify logic we do not match them currently.
+            var expected = new MatchingPairs
+            {
+                { "{ }", "{ }" }
+            };
+
+            expected.AssertEqual(actual);
+        }
+
+        [Fact]
+        public void AwaitUsingExpression_To_AwaitUsingStatementWithMultipleVariables()
+        {
+            var src1 = @"
+await using (y = new D()) { }
+";
+            var src2 = @"
+await using (D y = new D(), z = new D()) { }
+";
+
+            var match = GetMethodMatches(src1, src2, kind: MethodKind.Async);
+            var actual = ToMatchingPairs(match);
+
+            // Using with multiple variables should not match using with an expression because they generate different number of try-finally blocks.
+            var expected = new MatchingPairs
+            {
+                { "{ }", "{ }" }
+            };
+
+            expected.AssertEqual(actual);
+        }
+
+        [Fact]
+        public void AwaitUsingMatchesUSing()
+        {
+            var src1 = "await x;foreach (T x in y) {}";
+            var src2 = "await x;await foreach (T x in y) {}";
+
+            var match = GetMethodMatches(src1, src2, kind: MethodKind.Async);
+            var actual = ToMatchingPairs(match);
+
+            var expected = new MatchingPairs()
+            {
+                { "await x;", "await x;" },
+                { "await x", "await x" },
+                { "foreach (T x in y) {}", "await foreach (T x in y) {}" },
+                { "{}", "{}" }
+            };
+
+            expected.AssertEqual(actual);
+        }
+
+        [Fact]
+        public void Await_To_AwaitForeach()
+        {
+            var src1 = @"
+await x;
+";
+            var src2 = @"
+await foreach (var x in y) {}
+";
+
+            var match = GetMethodMatches(src1, src2, kind: MethodKind.Async);
+            var actual = ToMatchingPairs(match);
+
+            // empty - treated as different awaits as the foreach awaits in each loop iteration
+            var expected = new MatchingPairs();
+
+            expected.AssertEqual(actual);
+        }
+
+        [Fact]
+        public void Await_To_AwaitForeachVar()
+        {
+            var src1 = @"
+await x;
+";
+            var src2 = @"
+await foreach (var (x, y) in z) {}
+";
+
+            var match = GetMethodMatches(src1, src2, kind: MethodKind.Async);
+            var actual = ToMatchingPairs(match);
+
+            // empty - treated as different awaits as the foreach awaits in each loop iteration
+            var expected = new MatchingPairs();
+
+            expected.AssertEqual(actual);
+        }
+
+        [Fact]
+        public void AwaitForeach_To_AwaitForeachVar()
+        {
+            var src1 = @"
+await foreach (var x in y) {}
+";
+            var src2 = @"
+await foreach (var (u, v) in y) {}
+";
+
+            var match = GetMethodMatches(src1, src2, kind: MethodKind.Async);
+            var actual = ToMatchingPairs(match);
+
+            var expected = new MatchingPairs
+            {
+                { "await foreach (var x in y) {}", "await foreach (var (u, v) in y) {}" },
+                { "{}", "{}" }
+            };
+
+            expected.AssertEqual(actual);
+        }
+
+        [Fact]
+        public void AwaitForeachMatchesForeach()
+        {
+            var src1 = "await x;foreach (T x in y) {}";
+            var src2 = "await x;await foreach (T x in y) {}";
+
+            var match = GetMethodMatches(src1, src2, kind: MethodKind.Async);
+            var actual = ToMatchingPairs(match);
+
+            // We do match await foreach to foreach, even though the latter does not represent state machine.
+            // This is ok since the previous version of the method won't have state machine state associated with the 
+            // foreach statement and thus matching state machine state for the await foreach won't succeed even though 
+            // the syntax nodes match.
+            var expected = new MatchingPairs()
+            {
+                { "await x;", "await x;" },
+                { "await x", "await x" },
+                { "foreach (T x in y) {}", "await foreach (T x in y) {}" },
+                { "{}", "{}" }
             };
 
             expected.AssertEqual(actual);

@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -26,7 +24,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         /// <summary>
         /// If the symbol was bound through an alias, then this is the alias that was used.
         /// </summary>
-        public IAliasSymbol Alias { get; }
+        public IAliasSymbol? Alias { get; }
 
         /// <summary>
         /// The actual source location for a given symbol.
@@ -65,8 +63,15 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
         public CandidateReason CandidateReason { get; }
 
-        private ReferenceLocation(Document document, IAliasSymbol alias, Location location, bool isImplicit, SymbolUsageInfo symbolUsageInfo, ImmutableDictionary<string, string> additionalProperties, CandidateReason candidateReason, Location containingStringLocation)
-            : this()
+        private ReferenceLocation(
+            Document document,
+            IAliasSymbol? alias,
+            Location location,
+            bool isImplicit,
+            SymbolUsageInfo symbolUsageInfo,
+            ImmutableDictionary<string, string> additionalProperties,
+            CandidateReason candidateReason,
+            Location containingStringLocation)
         {
             this.Document = document;
             this.Alias = alias;
@@ -81,7 +86,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         /// <summary>
         /// Creates a reference location with the given properties.
         /// </summary>
-        internal ReferenceLocation(Document document, IAliasSymbol alias, Location location, bool isImplicit, SymbolUsageInfo symbolUsageInfo, ImmutableDictionary<string, string> additionalProperties, CandidateReason candidateReason)
+        internal ReferenceLocation(Document document, IAliasSymbol? alias, Location location, bool isImplicit, SymbolUsageInfo symbolUsageInfo, ImmutableDictionary<string, string> additionalProperties, CandidateReason candidateReason)
             : this(document, alias, location, isImplicit, symbolUsageInfo, additionalProperties, candidateReason, containingStringLocation: Location.None)
         {
         }
@@ -111,10 +116,10 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         public static bool operator !=(ReferenceLocation left, ReferenceLocation right)
             => !(left == right);
 
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
-            return obj is ReferenceLocation &&
-                Equals((ReferenceLocation)obj);
+            return obj is ReferenceLocation location &&
+                Equals(location);
         }
 
         public bool Equals(ReferenceLocation other)
@@ -140,8 +145,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         {
             int compare;
 
-            var thisPath = this.Location.SourceTree.FilePath;
-            var otherPath = other.Location.SourceTree.FilePath;
+            var thisPath = this.Location.SourceTree?.FilePath;
+            var otherPath = other.Location.SourceTree?.FilePath;
 
             if ((compare = StringComparer.OrdinalIgnoreCase.Compare(thisPath, otherPath)) != 0 ||
                 (compare = this.Location.SourceSpan.CompareTo(other.Location.SourceSpan)) != 0)

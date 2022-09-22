@@ -628,7 +628,6 @@ HandleAsAGeneralExpression:
             Private _asyncLambdaSubToFunctionMismatch As HashSet(Of BoundExpression)
 
             Private ReadOnly _typeParameterNodes As ImmutableArray(Of TypeParameterNode)
-            Private ReadOnly _verifyingAssertions As Boolean
 
             Private Sub New(
                 diagnostic As BindingDiagnosticBag,

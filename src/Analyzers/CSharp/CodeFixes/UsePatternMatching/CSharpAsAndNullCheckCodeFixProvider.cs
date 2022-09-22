@@ -35,19 +35,15 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
         public override ImmutableArray<string> FixableDiagnosticIds
             => ImmutableArray.Create(IDEDiagnosticIds.InlineAsTypeCheckId);
 
-        internal sealed override CodeFixCategory CodeFixCategory => CodeFixCategory.CodeStyle;
-
         public override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
-            context.RegisterCodeFix(new MyCodeAction(
-                c => FixAsync(context.Document, context.Diagnostics.First(), c)),
-                context.Diagnostics);
+            RegisterCodeFix(context, CSharpAnalyzersResources.Use_pattern_matching, nameof(CSharpAnalyzersResources.Use_pattern_matching));
             return Task.CompletedTask;
         }
 
         protected override async Task FixAllAsync(
             Document document, ImmutableArray<Diagnostic> diagnostics,
-            SyntaxEditor editor, CancellationToken cancellationToken)
+            SyntaxEditor editor, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
         {
             using var _1 = PooledHashSet<Location>.GetInstance(out var declaratorLocations);
             using var _2 = PooledHashSet<SyntaxNode>.GetInstance(out var statementParentScopes);
@@ -145,7 +141,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
             var isPatternExpression = SyntaxFactory.IsPatternExpression(asExpression.Left, declarationPattern);
 
             // We should negate the is-expression if we have something like "x == null" or "x is null"
-            if (!comparison.IsKind(SyntaxKind.EqualsExpression, SyntaxKind.IsPatternExpression))
+            if (comparison.Kind() is not (SyntaxKind.EqualsExpression or SyntaxKind.IsPatternExpression))
                 return isPatternExpression;
 
             if (languageVersion >= LanguageVersion.CSharp9)
@@ -157,14 +153,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
 
             // In C# 8 and lower, convert to `!(x is string s)`
             return SyntaxFactory.PrefixUnaryExpression(SyntaxKind.LogicalNotExpression, isPatternExpression.Parenthesize());
-        }
-
-        private class MyCodeAction : CustomCodeActions.DocumentChangeAction
-        {
-            public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(CSharpAnalyzersResources.Use_pattern_matching, createChangedDocument, nameof(CSharpAsAndNullCheckCodeFixProvider))
-            {
-            }
         }
     }
 }

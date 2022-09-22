@@ -37,6 +37,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
 {
     public abstract class CSharpTestBase : CommonTestBase
     {
+        public enum RuntimeFlag
+        {
+            None,
+            ByRefFields,
+        }
+
         protected const string NullableAttributeDefinition = @"
 namespace System.Runtime.CompilerServices
 {
@@ -625,6 +631,70 @@ namespace System.Runtime.CompilerServices
     }
 }";
 
+        protected const string UnscopedRefAttributeDefinition =
+@"namespace System.Diagnostics.CodeAnalysis
+{
+    [AttributeUsage(AttributeTargets.All, AllowMultiple = false, Inherited = false)]
+    public sealed class UnscopedRefAttribute : Attribute
+    {
+    }
+}";
+
+        protected const string RefSafetyRulesAttributeDefinition =
+@"namespace System.Runtime.CompilerServices
+{
+    public sealed class RefSafetyRulesAttribute : Attribute
+    {
+        public RefSafetyRulesAttribute(int version) { Version = version; }
+        public int Version;
+    }
+}";
+
+        protected static MetadataReference RefSafetyRulesAttributeLib =>
+            CreateCompilation(RefSafetyRulesAttributeDefinition).EmitToImageReference();
+
+        protected const string RequiredMemberAttribute = @"
+namespace System.Runtime.CompilerServices
+{
+    [AttributeUsage(AttributeTargets.Class | AttributeTargets.Struct | AttributeTargets.Field | AttributeTargets.Property, Inherited = false, AllowMultiple = false)]
+    public sealed class RequiredMemberAttribute : Attribute
+    {
+        public RequiredMemberAttribute()
+        {
+        }
+    }
+}
+";
+
+        protected const string SetsRequiredMembersAttribute = @"
+namespace System.Diagnostics.CodeAnalysis
+{
+    [AttributeUsage(AttributeTargets.Constructor, Inherited = false, AllowMultiple = false)]
+    public sealed class SetsRequiredMembersAttribute : Attribute
+    {
+        public SetsRequiredMembersAttribute()
+        {
+        }
+    }
+}
+";
+
+        internal const string CompilerFeatureRequiredAttribute = """
+            namespace System.Runtime.CompilerServices
+            {
+                [AttributeUsage(AttributeTargets.All, AllowMultiple = true, Inherited = false)]
+                public sealed class CompilerFeatureRequiredAttribute : Attribute
+                {
+                    public CompilerFeatureRequiredAttribute(string featureName)
+                    {
+                        FeatureName = featureName;
+                    }
+                    public string FeatureName { get; }
+                    public bool IsOptional { get; set; }
+                }
+            }
+            """;
+
         protected static CSharpCompilationOptions WithNullableEnable(CSharpCompilationOptions options = null)
         {
             return WithNullable(options, NullableContextOptions.Enable);
@@ -923,7 +993,7 @@ namespace System.Runtime.CompilerServices
 
         internal CompilationVerifier CompileAndVerifyFieldMarshal(CSharpTestSource source, Func<string, PEAssembly, byte[]> getExpectedBlob, bool isField = true) =>
             CompileAndVerifyFieldMarshalCommon(
-                CreateCompilationWithMscorlib40(source, parseOptions: TestOptions.RegularPreview),
+                CreateCompilationWithMscorlib40(source, parseOptions: TestOptions.RegularPreview.WithNoRefSafetyRulesAttribute()),
                 getExpectedBlob,
                 isField);
 
@@ -1050,6 +1120,21 @@ namespace System.Runtime.CompilerServices
             string sourceFileName = "",
             bool skipUsesIsNullable = false) => CreateCompilationCore(source, TargetFrameworkUtil.GetReferences(TargetFramework.Mscorlib45, references), options, parseOptions, assemblyName, sourceFileName, skipUsesIsNullable, experimentalFeature: feature);
 
+        internal static CSharpCompilation CreateNumericIntPtrCompilation(
+              CSharpTestSource source,
+              IEnumerable<MetadataReference> references = null,
+              CSharpCompilationOptions options = null,
+              CSharpParseOptions parseOptions = null,
+              string assemblyName = "",
+              string sourceFileName = "")
+        {
+            // Note: we use skipUsesIsNullable and skipExtraValidation so that nobody pulls
+            // on the compilation or its references before we set the RuntimeSupportsNumericIntPtr flag.
+            var comp = CreateCompilationCore(source, references, options, parseOptions, assemblyName, sourceFileName, skipUsesIsNullable: true, experimentalFeature: null, skipExtraValidation: true);
+            comp.Assembly.RuntimeSupportsNumericIntPtr = true;
+            return comp;
+        }
+
         public static CSharpCompilation CreateCompilationWithWinRT(
             CSharpTestSource source,
             IEnumerable<MetadataReference> references = null,
@@ -1140,7 +1225,36 @@ namespace System.Runtime.CompilerServices
             TargetFramework targetFramework = TargetFramework.Standard,
             string assemblyName = "",
             string sourceFileName = "",
-            bool skipUsesIsNullable = false) => CreateEmptyCompilation(source, TargetFrameworkUtil.GetReferences(targetFramework, references), options, parseOptions, assemblyName, sourceFileName, skipUsesIsNullable);
+            bool skipUsesIsNullable = false,
+            RuntimeFlag runtimeFeature = RuntimeFlag.None)
+        {
+            Debug.Assert(targetFramework == TargetFramework.Standard || runtimeFeature == RuntimeFlag.None);
+            if (runtimeFeature == RuntimeFlag.ByRefFields)
+            {
+                // Avoid sharing mscorlib symbols with other tests since we are about to change
+                // RuntimeSupportsByRefFields property for it.
+                var mscorlibWithoutSharing = new[] { GetMscorlibRefWithoutSharingCachedSymbols() };
+
+                // Note: we use skipExtraValidation so that nobody pulls
+                // on the compilation or its references before we set the RuntimeSupportsByRefFields flag.
+                var comp = CreateCompilationCore(source, references is not null ? references.Concat(mscorlibWithoutSharing) : mscorlibWithoutSharing,
+                    options, parseOptions, assemblyName, sourceFileName, skipUsesIsNullable, experimentalFeature: null, skipExtraValidation: true);
+
+                comp.Assembly.RuntimeSupportsByRefFields = true;
+                return comp;
+            }
+
+            return CreateEmptyCompilation(source, TargetFrameworkUtil.GetReferences(targetFramework, references), options, parseOptions, assemblyName, sourceFileName, skipUsesIsNullable);
+        }
+
+        public static MetadataReference GetMscorlibRefWithoutSharingCachedSymbols()
+        {
+            // Avoid sharing mscorlib symbols with other tests since we are about to change
+            // RuntimeSupportsByRefFields property for it.
+
+            return ((AssemblyMetadata)((MetadataImageReference)MscorlibRef).GetMetadata()).CopyWithoutSharingCachedSymbols().
+                GetReference(display: "mscorlib.v4_0_30319.dll");
+        }
 
         public static CSharpCompilation CreateEmptyCompilation(
             CSharpTestSource source,
@@ -1149,7 +1263,8 @@ namespace System.Runtime.CompilerServices
             CSharpParseOptions parseOptions = null,
             string assemblyName = "",
             string sourceFileName = "",
-            bool skipUsesIsNullable = false) => CreateCompilationCore(source, references, options, parseOptions, assemblyName, sourceFileName, skipUsesIsNullable, experimentalFeature: null);
+            bool skipUsesIsNullable = false,
+            bool skipExtraValidation = false) => CreateCompilationCore(source, references, options, parseOptions, assemblyName, sourceFileName, skipUsesIsNullable, experimentalFeature: null, skipExtraValidation: skipExtraValidation);
 
         private static CSharpCompilation CreateCompilationCore(
             CSharpTestSource source,
@@ -1159,7 +1274,8 @@ namespace System.Runtime.CompilerServices
             string assemblyName,
             string sourceFileName,
             bool skipUsesIsNullable,
-            MessageID? experimentalFeature)
+            MessageID? experimentalFeature,
+            bool skipExtraValidation = false)
         {
             var syntaxTrees = source.GetSyntaxTrees(parseOptions, sourceFileName);
 
@@ -1181,7 +1297,11 @@ namespace System.Runtime.CompilerServices
                 syntaxTrees,
                 references,
                 options);
-            ValidateCompilation(createCompilationLambda);
+
+            if (!skipExtraValidation)
+            {
+                ValidateCompilation(createCompilationLambda);
+            }
 
             var compilation = createCompilationLambda();
             // 'skipUsesIsNullable' may need to be set for some tests, particularly those that want to verify
@@ -1210,6 +1330,7 @@ namespace System.Runtime.CompilerServices
 
         private static void VerifyUsedAssemblyReferences(Func<CSharpCompilation> createCompilationLambda)
         {
+            // To run the additional validation below, comment this out or define ROSLYN_TEST_USEDASSEMBLIES
             if (!CompilationExtensions.EnableVerifyUsedAssemblies)
             {
                 return;
@@ -1295,12 +1416,12 @@ namespace System.Runtime.CompilerServices
 
         public static CSharpCompilation CreateCompilation(
             AssemblyIdentity identity,
-            string[] source,
-            MetadataReference[] references,
+            CSharpTestSource? source,
+            IEnumerable<MetadataReference> references,
             CSharpCompilationOptions options = null,
             CSharpParseOptions parseOptions = null)
         {
-            var trees = (source == null) ? null : source.Select(s => Parse(s, options: parseOptions)).ToArray();
+            var trees = (source ?? CSharpTestSource.None).GetSyntaxTrees(parseOptions);
             Func<CSharpCompilation> createCompilationLambda = () => CSharpCompilation.Create(identity.Name, options: options ?? TestOptions.ReleaseDll, references: references, syntaxTrees: trees);
 
             ValidateCompilation(createCompilationLambda);
@@ -2001,12 +2122,12 @@ namespace System.Runtime.CompilerServices
             CSharpParseOptions parseOptions = null,
             MetadataReference[] references = null,
             Action<IOperation, Compilation, SyntaxNode> additionalOperationTreeVerifier = null,
-            bool useLatestFrameworkReferences = false)
+            TargetFramework targetFramework = TargetFramework.Standard)
             where TSyntaxNode : SyntaxNode =>
             VerifyOperationTreeAndDiagnosticsForTest<TSyntaxNode>(
                 testSrc,
                 expectedOperationTree,
-                useLatestFrameworkReferences ? TargetFramework.Mscorlib46Extended : TargetFramework.Standard,
+                targetFramework,
                 expectedDiagnostics,
                 compilationOptions,
                 parseOptions,
@@ -2098,11 +2219,11 @@ namespace System.Runtime.CompilerServices
             CSharpParseOptions parseOptions = null,
             MetadataReference[] references = null,
             Action<IOperation, Compilation, SyntaxNode> additionalOperationTreeVerifier = null,
-            bool useLatestFrameworkReferences = false)
+            TargetFramework targetFramework = TargetFramework.Standard)
             where TSyntaxNode : SyntaxNode
         {
             var ilReference = CreateMetadataReferenceFromIlSource(ilSource);
-            VerifyOperationTreeAndDiagnosticsForTest<TSyntaxNode>(testSrc, expectedOperationTree, expectedDiagnostics, compilationOptions, parseOptions, new[] { ilReference }, additionalOperationTreeVerifier, useLatestFrameworkReferences);
+            VerifyOperationTreeAndDiagnosticsForTest<TSyntaxNode>(testSrc, expectedOperationTree, expectedDiagnostics, compilationOptions, parseOptions, new[] { ilReference }, additionalOperationTreeVerifier, targetFramework);
             return ilReference;
         }
 
@@ -2127,7 +2248,7 @@ namespace System.Runtime.CompilerServices
             return comp;
         }
 
-        protected static CSharpCompilation CreateCompilationWithMscorlibAndSpan(string text, CSharpCompilationOptions options = null, CSharpParseOptions parseOptions = null)
+        protected static CSharpCompilation CreateCompilationWithMscorlibAndSpan(CSharpTestSource text, CSharpCompilationOptions options = null, CSharpParseOptions parseOptions = null)
         {
             var reference = CreateEmptyCompilation(
                 SpanSource,
@@ -2393,6 +2514,40 @@ namespace System
                 options: options,
                 parseOptions: parseOptions);
         }
+
+        protected static CSharpCompilation CreateCompilationWithSpanAndMemoryExtensions(CSharpTestSource text, CSharpCompilationOptions options = null, CSharpParseOptions parseOptions = null)
+        {
+            if (ExecutionConditionUtil.IsCoreClr)
+            {
+                return CreateCompilation(text, targetFramework: TargetFramework.NetCoreApp, references: new[] { Basic.Reference.Assemblies.Net50.SystemMemory }, options: options, parseOptions: parseOptions);
+            }
+            else
+            {
+                var reference = CreateCompilation(new[] { TestSources.Span, TestSources.MemoryExtensions }, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
+
+                return CreateCompilation(
+                    text,
+                    references: new List<MetadataReference>() { reference.EmitToImageReference() },
+                    options: options,
+                    parseOptions: parseOptions);
+            }
+        }
+
+        internal static string GetIdForErrorCode(ErrorCode code)
+        {
+            return MessageProvider.Instance.GetIdForErrorCode((int)code);
+        }
+
+        internal static ImmutableDictionary<string, ReportDiagnostic> ReportStructInitializationWarnings { get; } = ImmutableDictionary.CreateRange(
+            new[]
+            {
+                KeyValuePairUtil.Create(GetIdForErrorCode(ErrorCode.WRN_UseDefViolationPropertySupportedVersion), ReportDiagnostic.Warn),
+                KeyValuePairUtil.Create(GetIdForErrorCode(ErrorCode.WRN_UseDefViolationFieldSupportedVersion), ReportDiagnostic.Warn),
+                KeyValuePairUtil.Create(GetIdForErrorCode(ErrorCode.WRN_UseDefViolationThisSupportedVersion), ReportDiagnostic.Warn),
+                KeyValuePairUtil.Create(GetIdForErrorCode(ErrorCode.WRN_UnassignedThisAutoPropertySupportedVersion), ReportDiagnostic.Warn),
+                KeyValuePairUtil.Create(GetIdForErrorCode(ErrorCode.WRN_UnassignedThisSupportedVersion), ReportDiagnostic.Warn),
+            });
+
         #endregion
 
         #region Interpolated string handlers

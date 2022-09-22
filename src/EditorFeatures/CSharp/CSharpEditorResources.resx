@@ -191,4 +191,7 @@
   <data name="Grow_raw_string" xml:space="preserve">
     <value>Grow raw string</value>
   </data>
+  <data name="Fixing_string_literal_after_paste" xml:space="preserve">
+    <value>Fixing string literal after paste</value>
+  </data>
 </root>

@@ -13,6 +13,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
+using Microsoft.CodeAnalysis.Structure;
 using Microsoft.CodeAnalysis.SymbolMapping;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -63,28 +64,29 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
             return _rootTemporaryPathWithGuid;
         }
 
-        public async Task<MetadataAsSourceFile> GetGeneratedFileAsync(Project project, ISymbol symbol, bool signaturesOnly, bool allowDecompilation, CancellationToken cancellationToken = default)
+        public async Task<MetadataAsSourceFile> GetGeneratedFileAsync(
+            Workspace sourceWorkspace,
+            Project sourceProject,
+            ISymbol symbol,
+            bool signaturesOnly,
+            MetadataAsSourceOptions options,
+            CancellationToken cancellationToken = default)
         {
-            if (project == null)
-            {
-                throw new ArgumentNullException(nameof(project));
-            }
+            if (sourceProject == null)
+                throw new ArgumentNullException(nameof(sourceProject));
 
             if (symbol == null)
-            {
                 throw new ArgumentNullException(nameof(symbol));
-            }
 
             if (symbol.Kind == SymbolKind.Namespace)
-            {
                 throw new ArgumentException(FeaturesResources.symbol_cannot_be_a_namespace, nameof(symbol));
-            }
 
             symbol = symbol.GetOriginalUnreducedDefinition();
 
             using (await _gate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
             {
-                InitializeWorkspace(project);
+                _workspace ??= new MetadataAsSourceWorkspace(this, sourceWorkspace.Services.HostServices);
+
                 Contract.ThrowIfNull(_workspace);
                 var tempPath = GetRootPathWithGuid_NoLock();
 
@@ -92,7 +94,7 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
                 {
                     var provider = lazyProvider.Value;
                     var providerTempPath = Path.Combine(tempPath, provider.GetType().Name);
-                    var result = await provider.GetGeneratedFileAsync(_workspace, project, symbol, signaturesOnly, allowDecompilation, providerTempPath, cancellationToken).ConfigureAwait(false);
+                    var result = await provider.GetGeneratedFileAsync(_workspace, sourceWorkspace, sourceProject, symbol, signaturesOnly, options, providerTempPath, cancellationToken).ConfigureAwait(false);
                     if (result is not null)
                     {
                         return result;
@@ -142,12 +144,26 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
             return false;
         }
 
-        private void InitializeWorkspace(Project project)
+        public bool ShouldCollapseOnOpen(string? filePath, BlockStructureOptions blockStructureOptions)
         {
-            if (_workspace == null)
+            if (filePath is null)
+                return false;
+
+            using (_gate.DisposableWait())
             {
-                _workspace = new MetadataAsSourceWorkspace(this, project.Solution.Workspace.Services.HostServices);
+                foreach (var provider in _providers)
+                {
+                    if (!provider.IsValueCreated)
+                        continue;
+
+                    Contract.ThrowIfNull(_workspace);
+
+                    if (provider.Value.ShouldCollapseOnOpen(filePath, blockStructureOptions))
+                        return true;
+                }
             }
+
+            return false;
         }
 
         internal async Task<SymbolMappingResult?> MapSymbolAsync(Document document, SymbolKey symbolId, CancellationToken cancellationToken)
@@ -254,7 +270,7 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
 
         public bool IsNavigableMetadataSymbol(ISymbol symbol)
         {
-            if (!symbol.Locations.Any(l => l.IsInMetadata))
+            if (!symbol.Locations.Any(static l => l.IsInMetadata))
             {
                 return false;
             }

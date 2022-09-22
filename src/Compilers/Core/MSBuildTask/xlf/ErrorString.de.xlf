@@ -7,6 +7,16 @@
         <target state="translated">MSB3883: Unerwartete Ausnahme: </target>
         <note>{StrBegin="MSB3883: "}</note>
       </trans-unit>
+      <trans-unit id="CopyRefAssembly_Changed">
+        <source>Source reference assembly "{0}" (timestamp "{1}", MVID "{2}") differs from destination "{3}" (timestamp "{4}", MVID "{5}").</source>
+        <target state="translated">Die Quellverweisassembly "{0}" (Zeitstempel "{1}", MVID "{2}") unterscheidet sich vom Ziel "{3}" (Zeitstempel "{4}", MVID "{5}").</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="CopyRefAssembly_Copying">
+        <source>Copying reference assembly from "{0}" to "{1}".</source>
+        <target state="translated">Verweisassembly wird von "{0}" in "{1}" kopiert.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Csc_AssemblyAliasContainsIllegalCharacters">
         <source>MSB3053: The assembly alias "{1}" on reference "{0}" contains illegal characters.</source>
         <target state="translated">MSB3053: Der Assemblyalias "{1}" für den Verweis "{0}" enthält ungültige Zeichen.</target>

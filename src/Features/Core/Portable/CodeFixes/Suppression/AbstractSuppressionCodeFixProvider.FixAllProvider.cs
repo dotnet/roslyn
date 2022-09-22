@@ -4,6 +4,8 @@
 
 #nullable disable
 
+using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Roslyn.Utilities;
@@ -12,13 +14,17 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
 {
     internal abstract partial class AbstractSuppressionCodeFixProvider : IConfigurationFixProvider
     {
-        private class SuppressionFixAllProvider : FixAllProvider
+        private sealed class SuppressionFixAllProvider : FixAllProvider
         {
             public static readonly SuppressionFixAllProvider Instance = new();
 
             private SuppressionFixAllProvider()
             {
             }
+
+            public override IEnumerable<FixAllScope> GetSupportedFixAllScopes()
+                => ImmutableArray.Create(FixAllScope.Document, FixAllScope.Project,
+                    FixAllScope.Solution, FixAllScope.ContainingMember, FixAllScope.ContainingType);
 
             public override async Task<CodeAction> GetFixAsync(FixAllContext fixAllContext)
             {
@@ -32,15 +38,19 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
 
                 if (NestedSuppressionCodeAction.IsEquivalenceKeyForGlobalSuppression(fixAllContext.CodeActionEquivalenceKey))
                 {
+                    var fallbackOptions = fixAllContext.GetOptionsProvider();
+
                     // For global suppressions, we defer to the global suppression system to handle directly.
                     var title = fixAllContext.CodeActionEquivalenceKey;
                     return fixAllContext.Document != null
                         ? GlobalSuppressMessageFixAllCodeAction.Create(
                             title, suppressionFixer, fixAllContext.Document,
-                            await fixAllContext.GetDocumentDiagnosticsToFixAsync().ConfigureAwait(false))
+                            await fixAllContext.GetDocumentDiagnosticsToFixAsync().ConfigureAwait(false),
+                            fallbackOptions)
                         : GlobalSuppressMessageFixAllCodeAction.Create(
                             title, suppressionFixer, fixAllContext.Project,
-                            await fixAllContext.GetProjectDiagnosticsToFixAsync().ConfigureAwait(false));
+                            await fixAllContext.GetProjectDiagnosticsToFixAsync().ConfigureAwait(false),
+                            fallbackOptions);
                 }
 
                 if (NestedSuppressionCodeAction.IsEquivalenceKeyForPragmaWarning(fixAllContext.CodeActionEquivalenceKey))

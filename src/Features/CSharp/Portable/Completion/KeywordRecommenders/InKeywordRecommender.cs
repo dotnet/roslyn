@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
@@ -119,7 +117,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
 
             if (token.Kind() == SyntaxKind.IdentifierToken)
             {
-                var joinClause = token.Parent.FirstAncestorOrSelf<JoinClauseSyntax>();
+                var joinClause = token.Parent?.FirstAncestorOrSelf<JoinClauseSyntax>();
                 if (joinClause != null)
                 {
                     // case:
@@ -132,7 +130,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
                     // case:
                     //   join x |
                     if (joinClause.Type != null &&
-                        joinClause.Type.IsKind(SyntaxKind.IdentifierName, out IdentifierNameSyntax joinIdentifier) &&
+                        joinClause.Type is IdentifierNameSyntax joinIdentifier &&
                         token == joinIdentifier.Identifier &&
                         !joinClause.Type.IsPotentialTypeName(context.SemanticModel, cancellationToken))
                     {

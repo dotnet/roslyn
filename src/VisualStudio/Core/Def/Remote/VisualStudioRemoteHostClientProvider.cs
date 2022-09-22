@@ -63,19 +63,20 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                     return new DefaultRemoteHostClientProvider();
                 }
 
-                return new VisualStudioRemoteHostClientProvider(workspaceServices, _globalOptions, _vsServiceProvider, _threadingContext, _listenerProvider, _callbackDispatchers);
+                return new VisualStudioRemoteHostClientProvider(workspaceServices.SolutionServices, _globalOptions, _vsServiceProvider, _threadingContext, _listenerProvider, _callbackDispatchers);
             }
         }
 
-        private readonly HostWorkspaceServices _services;
+        private readonly SolutionServices _services;
         private readonly IGlobalOptionService _globalOptions;
         private readonly VSThreading.AsyncLazy<RemoteHostClient?> _lazyClient;
         private readonly IAsyncServiceProvider _vsServiceProvider;
+        private readonly IThreadingContext _threadingContext;
         private readonly AsynchronousOperationListenerProvider _listenerProvider;
         private readonly RemoteServiceCallbackDispatcherRegistry _callbackDispatchers;
 
         private VisualStudioRemoteHostClientProvider(
-            HostWorkspaceServices services,
+            SolutionServices services,
             IGlobalOptionService globalOptions,
             IAsyncServiceProvider vsServiceProvider,
             IThreadingContext threadingContext,
@@ -85,6 +86,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             _services = services;
             _globalOptions = globalOptions;
             _vsServiceProvider = vsServiceProvider;
+            _threadingContext = threadingContext;
             _listenerProvider = listenerProvider;
             _callbackDispatchers = callbackDispatchers;
 
@@ -97,7 +99,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
         {
             try
             {
-                var brokeredServiceContainer = await _vsServiceProvider.GetServiceAsync<SVsBrokeredServiceContainer, IBrokeredServiceContainer>().ConfigureAwait(false);
+                var brokeredServiceContainer = await _vsServiceProvider.GetServiceAsync<SVsBrokeredServiceContainer, IBrokeredServiceContainer>(_threadingContext.JoinableTaskFactory).ConfigureAwait(false);
                 var serviceBroker = brokeredServiceContainer.GetFullAccessServiceBroker();
 
                 var configuration =

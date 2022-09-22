@@ -4,11 +4,12 @@
 
 #nullable disable
 
+using System.ComponentModel.Design;
 using Microsoft.CodeAnalysis.Editor;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
-using System.ComponentModel.Design;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Interactive
 {
@@ -18,8 +19,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Interactive
         public VisualBasicResetInteractiveMenuCommand(
             OleMenuCommandService menuCommandService,
             IVsMonitorSelection monitorSelection,
-            IComponentModel componentModel)
-            : base(ContentTypeNames.VisualBasicContentType, menuCommandService, monitorSelection, componentModel)
+            IComponentModel componentModel,
+            IThreadingContext threadingContext)
+            : base(ContentTypeNames.VisualBasicContentType, menuCommandService, monitorSelection, componentModel, threadingContext)
         {
         }
 

@@ -8,13 +8,12 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.FindUsages;
-using Microsoft.CodeAnalysis.Internal.Log;
+using Microsoft.CodeAnalysis.Navigation;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
-using Microsoft.VisualStudio.Text.Editor;
+using Microsoft.VisualStudio.LanguageServices.InheritanceMargin;
 using Microsoft.VisualStudio.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMargin.MarginGlyph
@@ -49,7 +48,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
         {
             if (e.OriginalSource is MenuItem { DataContext: TargetMenuItemViewModel viewModel })
             {
-                Logger.Log(FunctionId.InheritanceMargin_NavigateToTarget, KeyValueLogMessage.Create(LogType.UserAction));
+                InheritanceMarginLogger.LogNavigateToTarget();
 
                 var token = _listener.BeginAsyncOperation(nameof(TargetMenuItem_OnClick));
                 TargetMenuItem_OnClickAsync(viewModel).CompletesAsyncOperation(token);
@@ -65,11 +64,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
                 showProgress: false);
 
             var cancellationToken = context.UserCancellationToken;
-            var rehydrated = await viewModel.DefinitionItem.TryRehydrateAsync(cancellationToken).ConfigureAwait(false);
+            var rehydrated = await viewModel.DefinitionItem.TryRehydrateAsync(_workspace.CurrentSolution, cancellationToken).ConfigureAwait(false);
             if (rehydrated == null)
                 return;
 
-            _ = await _streamingFindUsagesPresenter.TryNavigateToOrPresentItemsAsync(
+            await _streamingFindUsagesPresenter.TryPresentLocationOrNavigateIfOneAsync(
                 _threadingContext,
                 _workspace,
                 string.Format(CultureInfo.InvariantCulture, EditorFeaturesResources._0_declarations, viewModel.DisplayContent),
@@ -79,7 +78,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
 
         private void TargetsSubmenu_OnOpen(object sender, RoutedEventArgs e)
         {
-            Logger.Log(FunctionId.InheritanceMargin_TargetsMenuOpen, KeyValueLogMessage.Create(LogType.UserAction));
+            InheritanceMarginLogger.LogInheritanceTargetsMenuOpen();
         }
     }
 }

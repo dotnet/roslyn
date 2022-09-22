@@ -6,7 +6,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
 using Microsoft.CodeAnalysis.Formatting;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
@@ -35,10 +35,11 @@ namespace Microsoft.CodeAnalysis.Editing
                 return;
             }
 
-            if (insertionIndex == existingParameters.Count)
+            if (insertionIndex >= existingParameters.Count)
             {
-                // Placing the last parameter on its own line.  Get the indentation of the 
-                // curent last parameter and give the new last parameter the same indentation.
+                // The parameter is being added after the last parameter and needs to be placed on a new line.
+                // Get the indentation of the original last parameter and give the new parameter the same indentation.
+                // Even if we're adding multiple parameters past the original last parameter, we can give them all the identation of the original 'last' parameter.
                 var leadingIndentation = GetDesiredLeadingIndentation(
                     generator, syntaxFacts, existingParameters[existingParameters.Count - 1], includeLeadingNewLine: true);
                 parameterDeclaration = parameterDeclaration.WithPrependedLeadingTrivia(leadingIndentation)

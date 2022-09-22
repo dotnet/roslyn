@@ -58,10 +58,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
         {
             _textReader.SetText(text);
 
-            if (_xmlReader == null)
-            {
-                _xmlReader = XmlReader.Create(_textReader, s_xmlSettings);
-            }
+            _xmlReader ??= XmlReader.Create(_textReader, s_xmlSettings);
 
             try
             {

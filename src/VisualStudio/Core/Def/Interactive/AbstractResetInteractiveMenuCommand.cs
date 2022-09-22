@@ -16,6 +16,7 @@ using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.CodeAnalysis.Editor;
 using System.Threading;
 using Task = System.Threading.Tasks.Task;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Interactive
 {
@@ -28,6 +29,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Interactive
         private readonly OleMenuCommandService _menuCommandService;
         private readonly IVsMonitorSelection _monitorSelection;
         private readonly IComponentModel _componentModel;
+        private readonly IThreadingContext _threadingContext;
         private readonly string _contentType;
 
         private readonly Lazy<IResetInteractiveCommand> _resetInteractiveCommand;
@@ -38,12 +40,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Interactive
             string contentType,
             OleMenuCommandService menuCommandService,
             IVsMonitorSelection monitorSelection,
-            IComponentModel componentModel)
+            IComponentModel componentModel,
+            IThreadingContext threadingContext)
         {
             _contentType = contentType;
             _menuCommandService = menuCommandService;
             _monitorSelection = monitorSelection;
             _componentModel = componentModel;
+            _threadingContext = threadingContext;
             _resetInteractiveCommand = _componentModel.DefaultExportProvider
                 .GetExports<IResetInteractiveCommand, ContentTypeMetadata>()
                 .Where(resetInteractiveService => resetInteractiveService.Metadata.ContentTypes.Contains(_contentType))
@@ -73,7 +77,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Interactive
                 resetInteractiveFromProjectCommand.Visible = available;
             };
 
-            await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+            await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync();
             _menuCommandService.AddCommand(resetInteractiveFromProjectCommand);
         }
 

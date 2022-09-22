@@ -13,7 +13,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Packaging;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -345,9 +345,9 @@ namespace Microsoft.CodeAnalysis.AddImport
             private bool HasAccessibleStaticFieldOrProperty(INamedTypeSymbol namedType, string fieldOrPropertyName)
             {
                 return namedType.GetMembers(fieldOrPropertyName)
-                                .Any(m => (m is IFieldSymbol || m is IPropertySymbol) &&
+                                .Any(static (m, self) => (m is IFieldSymbol || m is IPropertySymbol) &&
                                           m.IsStatic &&
-                                          m.IsAccessibleWithin(_semanticModel.Compilation.Assembly));
+                                          m.IsAccessibleWithin(self._semanticModel.Compilation.Assembly), this);
             }
 
             /// <summary>

@@ -42,6 +42,11 @@ namespace Microsoft.CodeAnalysis
         bool IsVolatile { get; }
 
         /// <summary>
+        /// True if this field is required to be set in an object initializer during construction.
+        /// </summary>
+        bool IsRequired { get; }
+
+        /// <summary>
         /// Returns true if this field was declared as "fixed".
         /// Note that for a fixed-size buffer declaration, this.Type will be a pointer type, of which
         /// the pointed-to type will be the declared element type of the fixed-size buffer.
@@ -55,6 +60,16 @@ namespace Microsoft.CodeAnalysis
         /// the pointed-to type will be the declared element type of the fixed-size buffer.
         /// </summary>
         int FixedSize { get; }
+
+        /// <summary>
+        /// Returns the RefKind of the field.
+        /// </summary>
+        RefKind RefKind { get; }
+
+        /// <summary>
+        /// Custom modifiers associated with the ref modifier, or an empty array if there are none.
+        /// </summary>
+        ImmutableArray<CustomModifier> RefCustomModifiers { get; }
 
         /// <summary>
         /// Gets the type of this field.

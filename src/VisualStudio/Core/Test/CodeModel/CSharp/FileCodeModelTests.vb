@@ -1286,6 +1286,27 @@ class C
             End Using
         End Sub
 
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Sub RequestingCodeModelForAdditionalFileThrowsCorrectExceptionType()
+            Dim code =
+<Workspace>
+    <Project Language=<%= LanguageName %> CommonReferences="true">
+        <AdditionalDocument FilePath="Z:\Additional.txt"></AdditionalDocument>
+    </Project>
+</Workspace>
+
+            Using state = CreateCodeModelTestState(code)
+                Dim workspace = state.VisualStudioWorkspace
+                Dim projectCodeModelFactory = state.Workspace.GetService(Of ProjectCodeModelFactory)()
+                Dim projectCodeModel = projectCodeModelFactory.GetProjectCodeModel(workspace.CurrentSolution.ProjectIds.Single())
+
+                Assert.Throws(Of NotImplementedException)(
+                    Sub()
+                        projectCodeModel.GetOrCreateFileCodeModel("Z:\Additional.txt", parent:=Nothing)
+                    End Sub)
+            End Using
+        End Sub
+
         Protected Overrides ReadOnly Property LanguageName As String
             Get
                 Return LanguageNames.CSharp

@@ -37,8 +37,16 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Snippets
                 editorCommandHandlerServiceFactory As IEditorCommandHandlerServiceFactory,
                 editorAdaptersFactoryService As IVsEditorAdaptersFactoryService,
                 argumentProviders As ImmutableArray(Of Lazy(Of ArgumentProvider, OrderableLanguageMetadata)),
-                globalOptions As IGlobalOptionService)
-            MyBase.New(threadingContext, languageServiceId, textView, subjectBuffer, signatureHelpControllerProvider, editorCommandHandlerServiceFactory, editorAdaptersFactoryService, argumentProviders, globalOptions)
+                editorOptionsService As EditorOptionsService)
+            MyBase.New(threadingContext,
+                       languageServiceId,
+                       textView,
+                       subjectBuffer,
+                       signatureHelpControllerProvider,
+                       editorCommandHandlerServiceFactory,
+                       editorAdaptersFactoryService,
+                       argumentProviders,
+                       editorOptionsService)
         End Sub
 
         Public Shared Function GetSnippetExpansionClient(
@@ -49,7 +57,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Snippets
                 editorCommandHandlerServiceFactory As IEditorCommandHandlerServiceFactory,
                 editorAdaptersFactoryService As IVsEditorAdaptersFactoryService,
                 argumentProviders As ImmutableArray(Of Lazy(Of ArgumentProvider, OrderableLanguageMetadata)),
-                globalOptions As IGlobalOptionService) As AbstractSnippetExpansionClient
+                editorOptionsService As EditorOptionsService) As AbstractSnippetExpansionClient
 
             Dim expansionClient As AbstractSnippetExpansionClient = Nothing
 
@@ -63,7 +71,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Snippets
                     editorCommandHandlerServiceFactory,
                     editorAdaptersFactoryService,
                     argumentProviders,
-                    globalOptions)
+                    editorOptionsService)
                 textView.Properties.AddProperty(GetType(AbstractSnippetExpansionClient), expansionClient)
             End If
 
@@ -99,7 +107,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Snippets
 
         Friend Overrides Function AddImports(
                 document As Document,
-                options As AddImportPlacementOptions,
+                addImportOptions As AddImportPlacementOptions,
+                formattingOptions As SyntaxFormattingOptions,
                 position As Integer,
                 snippetNode As XElement,
                 cancellationToken As CancellationToken) As Document
@@ -124,10 +133,10 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Snippets
 
             Dim root = document.GetSyntaxRootSynchronously(cancellationToken)
 
-            Dim newRoot = CType(root, CompilationUnitSyntax).AddImportsStatements(newImportsStatements, options.PlaceSystemNamespaceFirst)
+            Dim newRoot = CType(root, CompilationUnitSyntax).AddImportsStatements(newImportsStatements, addImportOptions.PlaceSystemNamespaceFirst)
             Dim newDocument = document.WithSyntaxRoot(newRoot)
 
-            Dim formattedDocument = Formatter.FormatAsync(newDocument, Formatter.Annotation, cancellationToken:=cancellationToken).WaitAndGetResult(cancellationToken)
+            Dim formattedDocument = Formatter.FormatAsync(newDocument, Formatter.Annotation, formattingOptions, cancellationToken).WaitAndGetResult(cancellationToken)
             document.Project.Solution.Workspace.ApplyDocumentChanges(formattedDocument, cancellationToken)
 
             Return formattedDocument

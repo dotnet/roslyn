@@ -4,8 +4,9 @@
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGeneration
     <[UseExportProvider]>
+    <Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
     Public Class WhileLoopTests
-        <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
+        <WpfFact>
         Public Sub ApplyAfterWithStatement()
             VerifyStatementEndConstructApplied(
                 before:="Class c1
@@ -24,7 +25,7 @@ End Class",
                 afterCaret:={3, -1})
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
+        <WpfFact>
         Public Sub DontApplyForMatchedWith()
             VerifyStatementEndConstructNotApplied(
                 text:="Class c1
@@ -36,7 +37,7 @@ End Class",
                 caret:={2, -1})
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
+        <WpfFact>
         Public Sub VerifyNestedWhileBlock()
             VerifyStatementEndConstructApplied(
                 before:="Class C
@@ -61,7 +62,7 @@ End Class",
                 afterCaret:={4, -1})
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
+        <WpfFact>
         Public Sub VerifyRecommitWhileBlock()
             VerifyStatementEndConstructNotApplied(
                 text:="Class C
@@ -73,7 +74,7 @@ End Class",
                 caret:={2, -1})
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
+        <WpfFact>
         Public Sub VerifyInvalidWhileSyntax()
             VerifyStatementEndConstructNotApplied(
                 text:="Class EC
@@ -84,7 +85,7 @@ End Class",
                 caret:={2, -1})
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
+        <WpfFact>
         Public Sub VerifyInvalidWhileLocation()
             VerifyStatementEndConstructNotApplied(
                 text:="Class EC

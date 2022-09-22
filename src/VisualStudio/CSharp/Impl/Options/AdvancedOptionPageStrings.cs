@@ -39,8 +39,41 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
         public static BackgroundAnalysisScope Option_Background_Analysis_Scope_Full_Solution_Tag
             => BackgroundAnalysisScope.FullSolution;
 
+        public static string Option_Show_compiler_errors_and_warnings_for
+            => ServicesVSResources.Show_compiler_errors_and_warnings_for_colon;
+
+        public static string Option_Compiler_Diagnostics_Scope_None
+            => ServicesVSResources.None;
+
+        public static string Option_Compiler_Diagnostics_Scope_Visible_Files
+            => ServicesVSResources.Current_document; // We show "Current document" to users for consistency with term used elsewhere.
+
+        public static string Option_Compiler_Diagnostics_Scope_Open_Files
+            => ServicesVSResources.Open_documents;
+
+        public static string Option_Compiler_Diagnostics_Scope_Full_Solution
+            => ServicesVSResources.Entire_solution;
+
+        public static CompilerDiagnosticsScope Option_Compiler_Diagnostics_Scope_None_Tag
+            => CompilerDiagnosticsScope.None;
+
+        public static CompilerDiagnosticsScope Option_Compiler_Diagnostics_Scope_Visible_Files_Tag
+            => CompilerDiagnosticsScope.VisibleFilesAndFilesWithPreviouslyReportedDiagnostics;
+
+        public static CompilerDiagnosticsScope Option_Compiler_Diagnostics_Scope_Open_Files_Tag
+            => CompilerDiagnosticsScope.OpenFiles;
+
+        public static CompilerDiagnosticsScope Option_Compiler_Diagnostics_Scope_Full_Solution_Tag
+            => CompilerDiagnosticsScope.FullSolution;
+
         public static string Option_Enable_navigation_to_decompiled_sources
             => ServicesVSResources.Enable_navigation_to_decompiled_sources;
+
+        public static string Option_Enable_navigation_to_sourcelink_and_embedded_sources
+            => ServicesVSResources.Enable_navigation_to_sourcelink_and_embedded_sources;
+
+        public static string Option_Always_use_default_symbol_servers_for_navigation
+            => ServicesVSResources.Always_use_default_symbol_servers_for_navigation;
 
         public static string Option_Enable_pull_diagnostics_experimental_requires_restart
             => ServicesVSResources.Enable_pull_diagnostics_experimental_requires_restart;
@@ -105,8 +138,11 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
         public static string Option_on_the_right_edge_of_the_editor_window
             => ServicesVSResources.on_the_right_edge_of_the_editor_window;
 
-        public static string Option_RenameTrackingPreview => CSharpVSResources.Show_preview_for_rename_tracking;
-        public static string Option_Split_string_literals_on_enter => CSharpVSResources.Split_string_literals_on_enter;
+        public static string Option_RenameTrackingPreview
+            => CSharpVSResources.Show_preview_for_rename_tracking;
+
+        public static string Option_Split_string_literals_on_enter
+            => CSharpVSResources.Split_string_literals_on_enter;
 
         public static string Option_DisplayLineSeparators
             => CSharpVSResources.Show_procedure_line_separators;
@@ -169,14 +205,10 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             => CSharpVSResources.Show_remarks_in_Quick_Info;
 
         public static string Option_Highlighting
-        {
-            get { return CSharpVSResources.Highlighting; }
-        }
+            => CSharpVSResources.Highlighting;
 
         public static string Option_OptimizeForSolutionSize
-        {
-            get { return CSharpVSResources.Optimize_for_solution_size; }
-        }
+            => CSharpVSResources.Optimize_for_solution_size;
 
         public static string Option_OptimizeForSolutionSize_Large
             => CSharpVSResources.Large;
@@ -195,6 +227,18 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
 
         public static string Option_Outlining
             => ServicesVSResources.Outlining;
+
+        public static string Option_Collapse_regions_on_file_open
+            => ServicesVSResources.Collapse_regions_on_file_open;
+
+        public static string Option_Collapse_usings_on_file_open
+            => CSharpVSResources.Collapse_usings_on_file_open;
+
+        public static string Option_Collapse_sourcelink_embedded_decompiled_files_on_open
+            => ServicesVSResources.Collapse_sourcelink_embedded_decompiled_files_on_open;
+
+        public static string Option_Collapse_metadata_signature_files_on_open
+            => ServicesVSResources.Collapse_metadata_signature_files_on_open;
 
         public static string Option_Show_outlining_for_declaration_level_constructs
             => ServicesVSResources.Show_outlining_for_declaration_level_constructs;
@@ -307,6 +351,9 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
         public static string Combine_inheritance_margin_with_indicator_margin
             => ServicesVSResources.Combine_inheritance_margin_with_indicator_margin;
 
+        public static string Include_global_imports
+            => ServicesVSResources.Include_global_imports;
+
         public static string Option_JSON_strings =>
             ServicesVSResources.JSON_strings;
 
@@ -324,5 +371,29 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
 
         public static string Option_Automatically_open_stack_trace_explorer_on_focus
             => ServicesVSResources.Automatically_open_stack_trace_explorer_on_focus;
+
+        public static string Option_Fix_text_pasted_into_string_literals_experimental
+            => ServicesVSResources.Fix_text_pasted_into_string_literals_experimental;
+
+        public static string Option_Go_To_Definition
+            => ServicesVSResources.Go_To_Definition;
+
+        public static string Option_Navigate_asynchronously_exerimental
+            => ServicesVSResources.Navigate_asynchronously_exerimental;
+
+        public static string Option_Rename
+            => ServicesVSResources.Rename;
+
+        public static string Option_Rename_asynchronously_experimental
+            => ServicesVSResources.Rename_asynchronously_experimental;
+
+        public static string Where_should_the_rename_UI_be_shown
+            => ServicesVSResources.Where_should_the_rename_UI_be_shown;
+
+        public static string Option_Show_UI_inline
+            => ServicesVSResources.Show_UI_inline;
+
+        public static string Option_Show_UI_as_dashboard_in_top_right
+            => ServicesVSResources.Show_UI_as_dashboard_in_top_right;
     }
 }

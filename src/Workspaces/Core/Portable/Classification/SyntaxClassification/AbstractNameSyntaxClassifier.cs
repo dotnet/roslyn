@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.Classification.Classifiers
         }
 
         protected static void TryClassifyStaticSymbol(
-            ISymbol? symbol,
+            ISymbol symbol,
             TextSpan span,
             ArrayBuilder<ClassifiedSpan> result)
         {
@@ -40,9 +40,9 @@ namespace Microsoft.CodeAnalysis.Classification.Classifiers
             result.Add(new ClassifiedSpan(span, ClassificationTypeNames.StaticSymbol));
         }
 
-        protected static bool IsStaticSymbol(ISymbol? symbol)
+        protected static bool IsStaticSymbol(ISymbol symbol)
         {
-            if (symbol is null || !symbol.IsStatic)
+            if (!symbol.IsStatic)
             {
                 return false;
             }
@@ -60,13 +60,6 @@ namespace Microsoft.CodeAnalysis.Classification.Classifiers
                 // Namespace names are not classified as static since there is no
                 // instance equivalent of the concept and they have their own
                 // classification type.
-                return false;
-            }
-
-            if (symbol.IsLocalFunction())
-            {
-                // Local function names are not classified as static since the
-                // the symbol returning true for IsStatic is an implementation detail.
                 return false;
             }
 

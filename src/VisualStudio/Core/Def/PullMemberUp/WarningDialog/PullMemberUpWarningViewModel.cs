@@ -25,7 +25,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp.Wa
             var warningMessagesBuilder = ImmutableArray.CreateBuilder<string>();
 
             if (!options.Destination.IsAbstract &&
-                options.MemberAnalysisResults.Any(result => result.ChangeDestinationTypeToAbstract))
+                options.MemberAnalysisResults.Any(static result => result.ChangeDestinationTypeToAbstract))
             {
                 Logger.Log(FunctionId.PullMembersUpWarning_ChangeTargetToAbstract);
                 warningMessagesBuilder.Add(string.Format(ServicesVSResources._0_will_be_changed_to_abstract, options.Destination.Name));

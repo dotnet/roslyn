@@ -60,23 +60,21 @@ namespace Microsoft.CodeAnalysis
     /// <typeparam name="T">The type of the items tracked by this table</typeparam>
     internal sealed class NodeStateTable<T> : IStateTable
     {
-        internal static NodeStateTable<T> Empty { get; } = new NodeStateTable<T>(ImmutableArray<TableEntry>.Empty, ImmutableArray<IncrementalGeneratorRunStep>.Empty, isCompacted: true, hasTrackedSteps: true);
+        internal static NodeStateTable<T> Empty { get; } = new NodeStateTable<T>(ImmutableArray<TableEntry>.Empty, ImmutableArray<IncrementalGeneratorRunStep>.Empty, hasTrackedSteps: true);
 
         private readonly ImmutableArray<TableEntry> _states;
 
-
-        private NodeStateTable(ImmutableArray<TableEntry> states, ImmutableArray<IncrementalGeneratorRunStep> steps, bool isCompacted, bool hasTrackedSteps)
+        private NodeStateTable(ImmutableArray<TableEntry> states, ImmutableArray<IncrementalGeneratorRunStep> steps, bool hasTrackedSteps)
         {
-            Debug.Assert(!isCompacted || states.All(s => s.IsCached));
             Debug.Assert(!hasTrackedSteps || steps.Length == states.Length);
 
             _states = states;
             Steps = steps;
-            IsCached = isCompacted;
+            IsCached = !states.IsEmpty && states.All(s => s.IsCached);
             HasTrackedSteps = hasTrackedSteps;
         }
 
-        public int Count { get => _states.Length; }
+        public int Count => _states.Length;
 
         /// <summary>
         /// Indicates if every entry in this table has a state of <see cref="EntryState.Cached"/>
@@ -88,6 +86,9 @@ namespace Microsoft.CodeAnalysis
         public bool HasTrackedSteps { get; }
 
         public ImmutableArray<IncrementalGeneratorRunStep> Steps { get; }
+
+        public int GetTotalEntryItemCount()
+            => _states.Sum(static e => e.Count);
 
         public IEnumerator<NodeStateEntry<T>> GetEnumerator()
         {
@@ -107,17 +108,21 @@ namespace Microsoft.CodeAnalysis
             if (IsCached)
                 return this;
 
-            var compacted = ArrayBuilder<TableEntry>.GetInstance();
+            var nonRemovedCount = _states.Count(static e => !e.IsRemoved);
+
+            var compacted = ArrayBuilder<TableEntry>.GetInstance(nonRemovedCount);
             foreach (var entry in _states)
             {
                 if (!entry.IsRemoved)
-                {
                     compacted.Add(entry.AsCached());
-                }
             }
+
             // When we're preparing a table for caching between runs, we drop the step information as we cannot guarantee the graph structure while also updating
             // the input states
-            return new NodeStateTable<T>(compacted.ToImmutableAndFree(), ImmutableArray<IncrementalGeneratorRunStep>.Empty, isCompacted: true, hasTrackedSteps: false);
+
+            // Ensure we are completely full so that ToImmutable translates to a MoveToImmutable
+            Debug.Assert(compacted.Count == nonRemovedCount);
+            return new NodeStateTable<T>(compacted.ToImmutableAndFree(), ImmutableArray<IncrementalGeneratorRunStep>.Empty, hasTrackedSteps: false);
         }
 
         IStateTable IStateTable.AsCached() => AsCached();
@@ -128,36 +133,20 @@ namespace Microsoft.CodeAnalysis
             return (_states[^1].GetItem(0), HasTrackedSteps ? Steps[^1] : null);
         }
 
-        public ImmutableArray<NodeStateEntry<T>> Batch()
-        {
-            var sourceBuilder = ArrayBuilder<NodeStateEntry<T>>.GetInstance();
-            foreach (var entry in this)
-            {
-                // If we have tracked steps, then we need to report removed entries to ensure all steps are in the graph.
-                // Otherwise, we can just return non-removed entries to build the next value.
-                if (entry.State != EntryState.Removed || HasTrackedSteps)
-                {
-                    sourceBuilder.Add(entry);
-                }
-            }
-            return sourceBuilder.ToImmutableAndFree();
-        }
+        public Builder ToBuilder(string? stepName, bool stepTrackingEnabled, IEqualityComparer<T>? equalityComparer = null, int? tableCapacity = null)
+            => new(this, stepName, stepTrackingEnabled, equalityComparer, tableCapacity);
 
-        public Builder ToBuilder(string? stepName, bool stepTrackingEnabled)
-        {
-            return new Builder(this, stepName, stepTrackingEnabled);
-        }
-
-        public NodeStateTable<T> CreateCachedTableWithUpdatedSteps<TInput>(NodeStateTable<TInput> inputTable, string? stepName)
+        public NodeStateTable<T> CreateCachedTableWithUpdatedSteps<TInput>(NodeStateTable<TInput> inputTable, string? stepName, IEqualityComparer<T> equalityComparer)
         {
             Debug.Assert(inputTable.HasTrackedSteps && inputTable.IsCached);
-            NodeStateTable<T>.Builder builder = ToBuilder(stepName, stepTrackingEnabled: true);
+            NodeStateTable<T>.Builder builder = ToBuilder(stepName, stepTrackingEnabled: true, equalityComparer);
             foreach (var entry in inputTable)
             {
                 var inputs = ImmutableArray.Create((entry.Step!, entry.OutputIndex));
                 bool usedCachedEntry = builder.TryUseCachedEntries(TimeSpan.Zero, inputs);
                 Debug.Assert(usedCachedEntry);
             }
+
             return builder.ToImmutableAndFree();
         }
 
@@ -167,21 +156,39 @@ namespace Microsoft.CodeAnalysis
             private readonly NodeStateTable<T> _previous;
 
             private readonly string? _name;
+            private readonly IEqualityComparer<T> _equalityComparer;
             private readonly ArrayBuilder<IncrementalGeneratorRunStep>? _steps;
 
             [MemberNotNullWhen(true, nameof(_steps))]
             public bool TrackIncrementalSteps => _steps is not null;
 
-            internal Builder(NodeStateTable<T> previous, string? name, bool stepTrackingEnabled)
+#if DEBUG
+            private readonly int? _requestedTableCapacity;
+#endif
+
+            internal Builder(
+                NodeStateTable<T> previous,
+                string? name,
+                bool stepTrackingEnabled,
+                IEqualityComparer<T>? equalityComparer,
+                int? tableCapacity)
             {
-                _states = ArrayBuilder<TableEntry>.GetInstance();
+#if DEBUG
+                _requestedTableCapacity = tableCapacity;
+#endif
+                // If the caller specified a desired capacity, then use that.  Otherwise, use the previous table's total
+                // entry count as a reasonable approximation for what we will need.
+                _states = ArrayBuilder<TableEntry>.GetInstance(tableCapacity ?? previous.GetTotalEntryItemCount());
                 _previous = previous;
                 _name = name;
+                _equalityComparer = equalityComparer ?? EqualityComparer<T>.Default;
                 if (stepTrackingEnabled)
                 {
                     _steps = ArrayBuilder<IncrementalGeneratorRunStep>.GetInstance();
                 }
             }
+
+            public int Count => _states.Count;
 
             public bool TryRemoveEntries(TimeSpan elapsedTime, ImmutableArray<(IncrementalGeneratorRunStep InputStep, int OutputIndex)> stepInputs)
             {
@@ -198,7 +205,7 @@ namespace Microsoft.CodeAnalysis
                 return true;
             }
 
-            public bool TryRemoveEntries(TimeSpan elapsedTime, ImmutableArray<(IncrementalGeneratorRunStep InputStep, int OutputIndex)> stepInputs, out ImmutableArray<T> entries)
+            public bool TryRemoveEntries(TimeSpan elapsedTime, ImmutableArray<(IncrementalGeneratorRunStep InputStep, int OutputIndex)> stepInputs, out OneOrMany<T> entries)
             {
                 if (!TryRemoveEntries(elapsedTime, stepInputs))
                 {
@@ -206,7 +213,7 @@ namespace Microsoft.CodeAnalysis
                     return false;
                 }
 
-                entries = _states[^1].ToImmutableArray();
+                entries = _states[^1].Items;
                 return true;
             }
 
@@ -226,15 +233,15 @@ namespace Microsoft.CodeAnalysis
                 return true;
             }
 
-            public bool TryUseCachedEntries(TimeSpan elapsedTime, ImmutableArray<(IncrementalGeneratorRunStep InputStep, int OutputIndex)> stepInputs, out ImmutableArray<T> entries)
+            internal bool TryUseCachedEntries(TimeSpan elapsedTime, ImmutableArray<(IncrementalGeneratorRunStep InputStep, int OutputIndex)> stepInputs, out TableEntry entry)
             {
                 if (!TryUseCachedEntries(elapsedTime, stepInputs))
                 {
-                    entries = default;
+                    entry = default;
                     return false;
                 }
 
-                entries = _states[^1].ToImmutableArray();
+                entry = _states[^1];
                 return true;
             }
 
@@ -247,8 +254,8 @@ namespace Microsoft.CodeAnalysis
                 }
 
                 Debug.Assert(_previous._states[_states.Count].Count == 1);
-                var (chosen, state) = GetModifiedItemAndState(_previous._states[_states.Count].GetItem(0), value, comparer);
-                _states.Add(new TableEntry(chosen, state));
+                var (chosen, state, _) = GetModifiedItemAndState(_previous._states[_states.Count].GetItem(0), value, comparer);
+                _states.Add(new TableEntry(OneOrMany.Create(chosen), state));
                 RecordStepInfoForLastEntry(elapsedTime, stepInputs, overallInputState);
                 return true;
             }
@@ -277,49 +284,88 @@ namespace Microsoft.CodeAnalysis
                     {
                         RecordStepInfoForLastEntry(elapsedTime, stepInputs, EntryState.Cached);
                     }
+
                     return true;
                 }
 
-                var modified = new TableEntry.Builder();
+                // We may be able to move the previous entry over wholesale.  So avoid creating an builder and doing any
+                // expensive work there until necessary (e.g. we detected either a different item or a different state).
+                // We can only do this if the counts of before/after are the same. If not, then obviously something
+                // changed and we can't reuse the before item.
+
+                var totalBuilderItems = Math.Max(previousEntry.Count, outputs.Length);
+                var builder = previousEntry.Count == outputs.Length ? null : new TableEntry.Builder(capacity: totalBuilderItems);
+
                 var sharedCount = Math.Min(previousEntry.Count, outputs.Length);
 
                 // cached or modified items
                 for (int i = 0; i < sharedCount; i++)
                 {
-                    var previous = previousEntry.GetItem(i);
-                    var replacement = outputs[i];
+                    var previousItem = previousEntry.GetItem(i);
+                    var previousState = previousEntry.GetState(i);
+                    var replacementItem = outputs[i];
 
-                    (var chosen, var state) = GetModifiedItemAndState(previous, replacement, comparer);
-                    modified.Add(chosen, state);
+                    var (chosenItem, state, chosePrevious) = GetModifiedItemAndState(previousItem, replacementItem, comparer);
+
+                    if (builder != null)
+                    {
+                        // if we have a builder, then we're keeping track of all entries no matter what.
+                        builder.Add(chosenItem, state);
+                        continue;
+                    }
+
+                    if (!chosePrevious || state != previousState)
+                    {
+                        // We don't have a builder, but we also can't use the previous entry.  Make a builder, copy
+                        // everything prior to this point to it, and then add the latest entry.
+                        builder = new TableEntry.Builder(capacity: totalBuilderItems);
+                        for (int j = 0; j < i; j++)
+                            builder.Add(previousEntry.GetItem(j), previousEntry.GetState(j));
+
+                        builder.Add(chosenItem, state);
+                        continue;
+                    }
+
+                    // otherwise, we don't have a builder and we are still able to use the previous entry.  Keep going
+                    // without constructing anything.
                 }
 
                 // removed
                 for (int i = sharedCount; i < previousEntry.Count; i++)
                 {
-                    modified.Add(previousEntry.GetItem(i), EntryState.Removed);
+                    // We know we must have a builder because we only get into this path when the counts are different
+                    // (and thus we created a builder at the start).
+                    builder!.Add(previousEntry.GetItem(i), EntryState.Removed);
                 }
 
                 // added
                 for (int i = sharedCount; i < outputs.Length; i++)
                 {
-                    modified.Add(outputs[i], EntryState.Added);
+                    // We know we must have a builder because we only get into this path when the counts are different
+                    // (and thus we created a builder at the start).
+                    builder!.Add(outputs[i], EntryState.Added);
                 }
 
-                _states.Add(modified.ToImmutableAndFree());
+                // If we still don't have a builder, then we can reuse the previous table entry entirely.  Otherwise,
+                // construct the new one from the values collected.
+                _states.Add(builder == null ? previousEntry : builder.ToImmutableAndFree());
+
                 RecordStepInfoForLastEntry(elapsedTime, stepInputs, overallInputState);
                 return true;
             }
 
             public void AddEntry(T value, EntryState state, TimeSpan elapsedTime, ImmutableArray<(IncrementalGeneratorRunStep InputStep, int OutputIndex)> stepInputs, EntryState overallInputState)
             {
-                _states.Add(new TableEntry(value, state));
+                _states.Add(new TableEntry(OneOrMany.Create(value), state));
                 RecordStepInfoForLastEntry(elapsedTime, stepInputs, overallInputState);
             }
 
-            public void AddEntries(ImmutableArray<T> values, EntryState state, TimeSpan elapsedTime, ImmutableArray<(IncrementalGeneratorRunStep InputStep, int OutputIndex)> stepInputs, EntryState overallInputState)
+            public TableEntry AddEntries(ImmutableArray<T> values, EntryState state, TimeSpan elapsedTime, ImmutableArray<(IncrementalGeneratorRunStep InputStep, int OutputIndex)> stepInputs, EntryState overallInputState)
             {
-                _states.Add(new TableEntry(values, state));
+                var tableEntry = new TableEntry(OneOrMany.Create(values), state);
+                _states.Add(tableEntry);
                 RecordStepInfoForLastEntry(elapsedTime, stepInputs, overallInputState);
+                return tableEntry;
             }
 
             private void RecordStepInfoForLastEntry(TimeSpan elapsedTime, ImmutableArray<(IncrementalGeneratorRunStep InputStep, int OutputIndex)> stepInputs, EntryState overallInputState)
@@ -359,6 +405,8 @@ namespace Microsoft.CodeAnalysis
                     (EntryState.Modified, EntryState.Cached) => IncrementalStepRunReason.Unchanged,
                     (EntryState.Cached, EntryState.Cached) => IncrementalStepRunReason.Cached,
                     (EntryState.Removed, EntryState.Removed) => IncrementalStepRunReason.Removed,
+                    (EntryState.Modified, EntryState.Removed) => IncrementalStepRunReason.Removed,
+                    (EntryState.Modified, EntryState.Added) => IncrementalStepRunReason.Modified,
                     _ => throw ExceptionUtilities.UnexpectedValue((inputState, outputState))
                 };
             }
@@ -373,78 +421,103 @@ namespace Microsoft.CodeAnalysis
                     return NodeStateTable<T>.Empty;
                 }
 
-                var hasNonCached = _states.Any(static s => !s.IsCached);
+#if DEBUG
+                // If the caller requested a specific capacity, then we should have added either that amount, or some
+                // amount less than that.  It's possible to have added less as a Where clause will mean some amount of
+                // states are filtered out.
+                Debug.Assert(_requestedTableCapacity == null || _states.Count <= _requestedTableCapacity);
+#endif
+
+                // if we added the exact same entries as before, then we can directly embed previous' entry array,
+                // avoiding a costly allocation of the same data.
+                ImmutableArray<TableEntry> finalStates;
+                if (_states.Count == _previous.Count && _states.SequenceEqual(_previous._states, (e1, e2) => e1.Matches(e2, _equalityComparer)))
+                {
+                    finalStates = _previous._states;
+                    _states.Free();
+                }
+                else
+                {
+                    // Important to use ToImmutableAndFree so that we will MoveToImmutable when the requested capacity
+                    // equals the count.
+                    finalStates = _states.ToImmutableAndFree();
+                }
+
                 return new NodeStateTable<T>(
-                    _states.ToImmutableAndFree(),
+                    finalStates,
                     TrackIncrementalSteps ? _steps.ToImmutableAndFree() : default,
-                    isCompacted: !hasNonCached,
                     hasTrackedSteps: TrackIncrementalSteps);
             }
 
-            private static (T chosen, EntryState state) GetModifiedItemAndState(T previous, T replacement, IEqualityComparer<T> comparer)
+            private static (T chosen, EntryState state, bool chosePrevious) GetModifiedItemAndState(T previous, T replacement, IEqualityComparer<T> comparer)
             {
                 // when comparing an item to check if its modified we explicitly cache the *previous* item in the case where its 
                 // considered to be equal. This ensures that subsequent comparisons are stable across future generation passes.
                 return comparer.Equals(previous, replacement)
-                    ? (previous, EntryState.Cached)
-                    : (replacement, EntryState.Modified);
+                    ? (previous, EntryState.Cached, chosePrevious: true)
+                    : (replacement, EntryState.Modified, chosePrevious: false);
             }
         }
 
-        private readonly struct TableEntry
+        internal readonly struct TableEntry
         {
             private static readonly ImmutableArray<EntryState> s_allAddedEntries = ImmutableArray.Create(EntryState.Added);
             private static readonly ImmutableArray<EntryState> s_allCachedEntries = ImmutableArray.Create(EntryState.Cached);
             private static readonly ImmutableArray<EntryState> s_allModifiedEntries = ImmutableArray.Create(EntryState.Modified);
             private static readonly ImmutableArray<EntryState> s_allRemovedEntries = ImmutableArray.Create(EntryState.Removed);
 
-            private readonly ImmutableArray<T> _items;
-            private readonly T? _item;
+            private readonly OneOrMany<T> _items;
 
             /// <summary>
-            /// Represents the corresponding state of each item in <see cref="_items"/>,
-            /// or contains a single state when <see cref="_item"/> is populated or when every state of <see cref="_items"/> has the same value.
+            /// Represents the corresponding state of each item in <see cref="_items"/>, or contains a single state when
+            /// <see cref="_items"/> is populated or when every state of <see cref="_items"/> has the same value.
             /// </summary>
             private readonly ImmutableArray<EntryState> _states;
 
-            public TableEntry(T item, EntryState state)
-                : this(item, default, GetSingleArray(state)) { }
+            public TableEntry(OneOrMany<T> items, EntryState state)
+                : this(items, GetSingleArray(state)) { }
 
-            public TableEntry(ImmutableArray<T> items, EntryState state)
-                : this(default, items, GetSingleArray(state)) { }
-
-            private TableEntry(T? item, ImmutableArray<T> items, ImmutableArray<EntryState> states)
+            private TableEntry(OneOrMany<T> items, ImmutableArray<EntryState> states)
             {
                 Debug.Assert(!states.IsDefault);
-                Debug.Assert(states.Length == 1 || states.Distinct().Count() > 1);
+                Debug.Assert(states.Length == 1 || states.Distinct().Length > 1);
 
-                this._item = item;
-                this._items = items;
-                this._states = states;
+                _items = items;
+                _states = states;
+            }
+
+            public bool Matches(TableEntry entry, IEqualityComparer<T> equalityComparer)
+            {
+                if (!_states.SequenceEqual(entry._states))
+                    return false;
+
+                if (this.Count != entry.Count)
+                    return false;
+
+                for (int i = 0, n = this.Count; i < n; i++)
+                {
+                    if (!equalityComparer.Equals(this.GetItem(i), entry.GetItem(i)))
+                        return false;
+                }
+
+                return true;
             }
 
             public bool IsCached => this._states == s_allCachedEntries || this._states.All(s => s == EntryState.Cached);
 
             public bool IsRemoved => this._states == s_allRemovedEntries || this._states.All(s => s == EntryState.Removed);
 
-            public int Count => IsSingle ? 1 : _items.Length;
+            public int Count => _items.Count;
 
-            public T GetItem(int index)
-            {
-                Debug.Assert(!IsSingle || index == 0);
-                return IsSingle ? _item : _items[index];
-            }
+            public T GetItem(int index) => _items[index];
 
             public EntryState GetState(int index) => _states.Length == 1 ? _states[0] : _states[index];
 
-            public ImmutableArray<T> ToImmutableArray() => IsSingle ? ImmutableArray.Create(_item) : _items;
+            public OneOrMany<T> Items => _items;
 
-            public TableEntry AsCached() => new(_item, _items, s_allCachedEntries);
+            public TableEntry AsCached() => new(_items, s_allCachedEntries);
 
-            public TableEntry AsRemoved() => new(_item, _items, s_allRemovedEntries);
-
-            [MemberNotNullWhen(true, new[] { nameof(_item) })]
-            private bool IsSingle => this._items.IsDefault;
+            public TableEntry AsRemoved() => new(_items, s_allRemovedEntries);
 
             private static ImmutableArray<EntryState> GetSingleArray(EntryState state) => state switch
             {
@@ -455,29 +528,54 @@ namespace Microsoft.CodeAnalysis
                 _ => throw ExceptionUtilities.Unreachable
             };
 
+            public Enumerator GetEnumerator()
+                => new(this);
+
+            public struct Enumerator
+            {
+                private readonly TableEntry _entry;
+                private int _index = -1;
+
+                public Enumerator(TableEntry tableEntry)
+                {
+                    _entry = tableEntry;
+                }
+
+                public bool MoveNext()
+                {
+                    _index++;
+                    return _index < _entry.Count;
+                }
+
+                public T Current => _entry.GetItem(_index);
+            }
+
+
 #if DEBUG
             public override string ToString()
             {
-                if (IsSingle)
+                if (this.Count == 1)
                 {
                     return $"{GetItem(0)}: {GetState(0)}";
                 }
                 else
                 {
                     var sb = PooledStringBuilder.GetInstance();
-                    sb.Builder.Append("{");
+                    sb.Builder.Append('{');
                     for (int i = 0; i < Count; i++)
                     {
                         if (i > 0)
                         {
                             sb.Builder.Append(',');
                         }
+
                         sb.Builder.Append(" (");
                         sb.Builder.Append(GetItem(i));
                         sb.Builder.Append(':');
                         sb.Builder.Append(GetState(i));
                         sb.Builder.Append(')');
                     }
+
                     sb.Builder.Append(" }");
                     return sb.ToStringAndFree();
                 }
@@ -486,11 +584,18 @@ namespace Microsoft.CodeAnalysis
 
             public sealed class Builder
             {
-                private readonly ArrayBuilder<T> _items = ArrayBuilder<T>.GetInstance();
+                private readonly ArrayBuilder<T> _items;
 
                 private ArrayBuilder<EntryState>? _states;
-
                 private EntryState? _currentState;
+
+                private readonly int _requestedCapacity;
+
+                public Builder(int capacity)
+                {
+                    _items = ArrayBuilder<T>.GetInstance(capacity);
+                    _requestedCapacity = capacity;
+                }
 
                 public void Add(T item, EntryState state)
                 {
@@ -499,13 +604,19 @@ namespace Microsoft.CodeAnalysis
                     {
                         _currentState = state;
                     }
-                    else if (_states is object)
+                    else if (_states is not null)
                     {
                         _states.Add(state);
                     }
                     else if (_currentState != state)
                     {
-                        _states = ArrayBuilder<EntryState>.GetInstance(_items.Count - 1, _currentState.Value);
+                        // Create a builder with the right capacity (so we don't waste scratch space). Copy all the same
+                        // prior values all the way up to the last item we're about to add.
+                        _states = ArrayBuilder<EntryState>.GetInstance(_requestedCapacity);
+                        for (int i = 0, n = _items.Count - 1; i < n; i++)
+                            _states.Add(_currentState.Value);
+
+                        // then finally add the new value at the end.
                         _states.Add(state);
                     }
                 }
@@ -513,8 +624,24 @@ namespace Microsoft.CodeAnalysis
                 public TableEntry ToImmutableAndFree()
                 {
                     Debug.Assert(_currentState.HasValue, "Created a builder with no values?");
-                    int numItems = _items.Count;
-                    return new TableEntry(item: default, _items.ToImmutableAndFree(), _states?.ToImmutableAndFree() ?? GetSingleArray(_currentState.Value));
+                    Debug.Assert(_items.Count >= 1, "Created a builder with no values?");
+
+                    Debug.Assert(_items.Count == _requestedCapacity);
+                    Debug.Assert(_states == null || _states.Count == _requestedCapacity);
+
+                    OneOrMany<T> items;
+                    if (_items.Count == 1)
+                    {
+                        var item = _items[0];
+                        _items.Free();
+                        items = OneOrMany.Create(item);
+                    }
+                    else
+                    {
+                        items = OneOrMany.Create(_items.ToImmutableAndFree());
+                    }
+
+                    return new TableEntry(items, _states?.ToImmutableAndFree() ?? GetSingleArray(_currentState.Value));
                 }
             }
         }

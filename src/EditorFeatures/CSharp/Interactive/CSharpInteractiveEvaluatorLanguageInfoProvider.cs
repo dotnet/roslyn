@@ -51,5 +51,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Interactive
 
         public override Type ReplServiceProviderType
             => typeof(CSharpReplServiceProvider);
+
+        public override string Extension => ".csx";
     }
 }

@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Extensions;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.LanguageServices.Implementation;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
 using Microsoft.VisualStudio.LanguageServices.Utilities;
@@ -64,7 +65,7 @@ namespace Microsoft.VisualStudio.LanguageServices.KeybindingReset
 
         private readonly IGlobalOptionService _globalOptions;
         private readonly System.IServiceProvider _serviceProvider;
-        private readonly VisualStudioInfoBar _infoBarService;
+        private readonly VisualStudioInfoBar _infoBar;
 
         // All mutable fields are UI-thread affinitized
 
@@ -91,13 +92,13 @@ namespace Microsoft.VisualStudio.LanguageServices.KeybindingReset
         public KeybindingResetDetector(
             IThreadingContext threadingContext,
             IGlobalOptionService globalOptions,
-            VisualStudioInfoBar infoBarService,
-            SVsServiceProvider serviceProvider)
+            SVsServiceProvider serviceProvider,
+            IAsynchronousOperationListenerProvider listenerProvider)
             : base(threadingContext)
         {
             _globalOptions = globalOptions;
-            _infoBarService = infoBarService;
             _serviceProvider = serviceProvider;
+            _infoBar = new VisualStudioInfoBar(threadingContext, serviceProvider, listenerProvider);
         }
 
         public Task InitializeAsync()
@@ -120,7 +121,7 @@ namespace Microsoft.VisualStudio.LanguageServices.KeybindingReset
                 return;
             }
 
-            var vsShell = IServiceProviderExtensions.GetService<SVsShell, IVsShell>(_serviceProvider);
+            var vsShell = _serviceProvider.GetServiceOnMainThread<SVsShell, IVsShell>();
             var hr = vsShell.IsPackageInstalled(s_resharperPackageGuid, out var extensionEnabled);
             if (ErrorHandler.Failed(hr))
             {
@@ -133,7 +134,7 @@ namespace Microsoft.VisualStudio.LanguageServices.KeybindingReset
             if (_resharperExtensionInstalledAndEnabled)
             {
                 // We need to monitor for suspend/resume commands, so create and install the command target and the modal callback.
-                var priorityCommandTargetRegistrar = IServiceProviderExtensions.GetService<SVsRegisterPriorityCommandTarget, IVsRegisterPriorityCommandTarget>(_serviceProvider);
+                var priorityCommandTargetRegistrar = _serviceProvider.GetServiceOnMainThread<SVsRegisterPriorityCommandTarget, IVsRegisterPriorityCommandTarget>();
                 hr = priorityCommandTargetRegistrar.RegisterPriorityCommandTarget(
                     dwReserved: 0 /* from docs must be 0 */,
                     pCmdTrgt: this,
@@ -236,7 +237,7 @@ namespace Microsoft.VisualStudio.LanguageServices.KeybindingReset
 
             var message = ServicesVSResources.We_notice_you_suspended_0_Reset_keymappings_to_continue_to_navigate_and_refactor;
             KeybindingsResetLogger.Log("InfoBarShown");
-            _infoBarService.ShowInfoBar(
+            _infoBar.ShowInfoBar(
                 string.Format(message, ReSharperExtensionName),
                 new InfoBarUI(title: ServicesVSResources.Reset_Visual_Studio_default_keymapping,
                               kind: InfoBarUI.UIKind.Button,
@@ -332,7 +333,7 @@ namespace Microsoft.VisualStudio.LanguageServices.KeybindingReset
 
                 await ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
-                _oleCommandTarget = IServiceProviderExtensions.GetService<SUIHostCommandDispatcher, IOleCommandTarget>(_serviceProvider);
+                _oleCommandTarget = _serviceProvider.GetServiceOnMainThread<SUIHostCommandDispatcher, IOleCommandTarget>();
             }
         }
 
@@ -340,10 +341,7 @@ namespace Microsoft.VisualStudio.LanguageServices.KeybindingReset
         {
             AssertIsForeground();
 
-            if (_uiShell == null)
-            {
-                _uiShell = IServiceProviderExtensions.GetService<SVsUIShell, IVsUIShell>(_serviceProvider);
-            }
+            _uiShell ??= _serviceProvider.GetServiceOnMainThread<SVsUIShell, IVsUIShell>();
 
             ErrorHandler.ThrowOnFailure(_uiShell.PostExecCommand(
                     VSConstants.GUID_VSStandardCommandSet97,
@@ -426,7 +424,7 @@ namespace Microsoft.VisualStudio.LanguageServices.KeybindingReset
 
             if (_priorityCommandTargetCookie != VSConstants.VSCOOKIE_NIL)
             {
-                var priorityCommandTargetRegistrar = IServiceProviderExtensions.GetService<SVsRegisterPriorityCommandTarget, IVsRegisterPriorityCommandTarget>(_serviceProvider);
+                var priorityCommandTargetRegistrar = _serviceProvider.GetServiceOnMainThread<SVsRegisterPriorityCommandTarget, IVsRegisterPriorityCommandTarget>();
                 var cookie = _priorityCommandTargetCookie;
                 _priorityCommandTargetCookie = VSConstants.VSCOOKIE_NIL;
                 var hr = priorityCommandTargetRegistrar.UnregisterPriorityCommandTarget(cookie);

@@ -11,9 +11,9 @@ using System.Windows.Media;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
-using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Imaging;
+using Microsoft.VisualStudio.LanguageServices.InheritanceMargin;
 using Microsoft.VisualStudio.PlatformUI;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Text.Classification;
@@ -36,6 +36,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
         private readonly IAsynchronousOperationListener _listener;
 
         public InheritanceMarginGlyph(
+            Workspace workspace,
             IThreadingContext threadingContext,
             IStreamingFindUsagesPresenter streamingFindUsagesPresenter,
             ClassificationTypeMap classificationTypeMap,
@@ -47,7 +48,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
         {
             _threadingContext = threadingContext;
             _streamingFindUsagesPresenter = streamingFindUsagesPresenter;
-            _workspace = tag.Workspace;
+            _workspace = workspace;
             _operationExecutor = operationExecutor;
             _textView = textView;
             _listener = listener;
@@ -163,7 +164,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
         private void ContextMenu_OnOpen(object sender, RoutedEventArgs e)
         {
             if (e.OriginalSource is ContextMenu { DataContext: InheritanceMarginGlyphViewModel inheritanceMarginViewModel }
-                && inheritanceMarginViewModel.MenuItemViewModels.Any(vm => vm is TargetMenuItemViewModel))
+                && inheritanceMarginViewModel.MenuItemViewModels.Any(static vm => vm is TargetMenuItemViewModel))
             {
                 // We have two kinds of context menu. e.g.
                 // 1. [margin] -> Header
@@ -179,7 +180,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
                 //                           -> Target4
                 // If the first level of the context menu contains a TargetMenuItemViewModel, it means here it is case 1,
                 // user is viewing the targets menu.
-                Logger.Log(FunctionId.InheritanceMargin_TargetsMenuOpen, KeyValueLogMessage.Create(LogType.UserAction));
+                InheritanceMarginLogger.LogInheritanceTargetsMenuOpen();
             }
         }
 

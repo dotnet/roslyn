@@ -71,9 +71,11 @@ namespace Microsoft.CodeAnalysis.CSharp.ImplementInterface
             // like: "System.IEnumerable.GetEnumerator"
             directlyImplementedMembers.AddRange(member, member.ExplicitOrImplicitInterfaceImplementations());
 
-            var codeAction = new MyCodeAction(
-                string.Format(Implement_0, member.ExplicitOrImplicitInterfaceImplementations().First().Name),
-                c => ChangeImplementationAsync(project, directlyImplementedMembers, c));
+            var firstImplName = member.ExplicitOrImplicitInterfaceImplementations().First().Name;
+            var codeAction = CodeAction.Create(
+                string.Format(Implement_0, firstImplName),
+                c => ChangeImplementationAsync(project, directlyImplementedMembers, c),
+                nameof(Implement_0) + firstImplName);
 
             var containingType = member.ContainingType;
             var interfaceTypes = directlyImplementedMembers.SelectMany(kvp => kvp.Value).Select(
@@ -102,19 +104,21 @@ namespace Microsoft.CodeAnalysis.CSharp.ImplementInterface
             if (offerForSameInterface)
             {
                 var interfaceNames = interfaceTypes.Select(i => i.ToDisplayString(NameAndTypeParametersFormat));
-                nestedActions.Add(new MyCodeAction(
+                nestedActions.Add(CodeAction.Create(
                     string.Format(Implement_0, string.Join(", ", interfaceNames)),
-                    c => ChangeImplementationAsync(project, implementedMembersFromSameInterfaces, c)));
+                    c => ChangeImplementationAsync(project, implementedMembersFromSameInterfaces, c),
+                    nameof(Implement_0) + string.Join(", ", interfaceNames)));
             }
 
             if (offerForAllInterfaces)
             {
-                nestedActions.Add(new MyCodeAction(
+                nestedActions.Add(CodeAction.Create(
                     Implement_all_interfaces,
-                    c => ChangeImplementationAsync(project, implementedMembersFromAllInterfaces, c)));
+                    c => ChangeImplementationAsync(project, implementedMembersFromAllInterfaces, c),
+                    nameof(Implement_all_interfaces)));
             }
 
-            context.RegisterRefactoring(new CodeAction.CodeActionWithNestedActions(
+            context.RegisterRefactoring(CodeAction.CodeActionWithNestedActions.Create(
                 Implement, nestedActions.ToImmutableAndFree(), isInlinable: true));
         }
 
@@ -245,14 +249,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ImplementInterface
             }
 
             return solutionEditor.GetChangedSolution();
-        }
-
-        private class MyCodeAction : CodeAction.SolutionChangeAction
-        {
-            public MyCodeAction(string title, Func<CancellationToken, Task<Solution>> createChangedSolution)
-                : base(title, createChangedSolution, title)
-            {
-            }
         }
     }
 }

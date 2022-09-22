@@ -22,9 +22,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
     /// we no longer reference the <see cref="IInlineRenameService"/>
     /// See https://github.com/dotnet/roslyn/issues/55142
     /// </summary>
-    [ExportRoslynLanguagesLspRequestHandlerProvider(typeof(RenameHandler)), Shared]
+    [ExportCSharpVisualBasicStatelessLspService(typeof(RenameHandler)), Shared]
     [Method(LSP.Methods.TextDocumentRenameName)]
-    internal class RenameHandler : AbstractStatelessRequestHandler<LSP.RenameParams, WorkspaceEdit?>
+    internal class RenameHandler : IRequestHandler<LSP.RenameParams, WorkspaceEdit?>
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -32,18 +32,18 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         {
         }
 
-        public override bool MutatesSolutionState => false;
-        public override bool RequiresLSPSolution => true;
+        public bool MutatesSolutionState => false;
+        public bool RequiresLSPSolution => true;
 
-        public override TextDocumentIdentifier? GetTextDocumentIdentifier(RenameParams request) => request.TextDocument;
+        public TextDocumentIdentifier? GetTextDocumentIdentifier(RenameParams request) => request.TextDocument;
 
-        public override async Task<WorkspaceEdit?> HandleRequestAsync(RenameParams request, RequestContext context, CancellationToken cancellationToken)
+        public async Task<WorkspaceEdit?> HandleRequestAsync(RenameParams request, RequestContext context, CancellationToken cancellationToken)
         {
             var document = context.Document;
             Contract.ThrowIfNull(document);
 
             var oldSolution = document.Project.Solution;
-            var renameService = document.Project.LanguageServices.GetRequiredService<IEditorInlineRenameService>();
+            var renameService = document.Project.Services.GetRequiredService<IEditorInlineRenameService>();
             var position = await document.GetPositionFromLinePositionAsync(ProtocolConversions.PositionToLinePosition(request.Position), cancellationToken).ConfigureAwait(false);
 
             var renameInfo = await renameService.GetRenameInfoAsync(document, position, cancellationToken).ConfigureAwait(false);
@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 .SelectMany(p => p.GetChangedDocuments(onlyGetDocumentsWithTextChanges: true))
                 .GroupBy(docId => renamedSolution.GetRequiredDocument(docId).FilePath, StringComparer.OrdinalIgnoreCase).Select(group => group.First());
 
-            var textDiffService = renamedSolution.Workspace.Services.GetRequiredService<IDocumentTextDifferencingService>();
+            var textDiffService = renamedSolution.Services.GetRequiredService<IDocumentTextDifferencingService>();
 
             var documentEdits = await ProtocolConversions.ChangedDocumentsToTextDocumentEditsAsync(changedDocuments, renamedSolution.GetRequiredDocument, oldSolution.GetRequiredDocument,
                 textDiffService, cancellationToken).ConfigureAwait(false);

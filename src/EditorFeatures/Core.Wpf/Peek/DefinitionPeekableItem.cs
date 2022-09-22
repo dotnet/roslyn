@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.MetadataAsSource;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Roslyn.Utilities;
 
@@ -20,17 +21,20 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Peek
         private readonly ProjectId _projectId;
         private readonly SymbolKey _symbolKey;
         private readonly IMetadataAsSourceFileService _metadataAsSourceFileService;
+        private readonly IGlobalOptionService _globalOptions;
 
         public DefinitionPeekableItem(
             Workspace workspace, ProjectId projectId, SymbolKey symbolKey,
             IPeekResultFactory peekResultFactory,
-            IMetadataAsSourceFileService metadataAsSourceService)
+            IMetadataAsSourceFileService metadataAsSourceService,
+            IGlobalOptionService globalOptions)
             : base(peekResultFactory)
         {
             _workspace = workspace;
             _projectId = projectId;
             _symbolKey = symbolKey;
             _metadataAsSourceFileService = metadataAsSourceService;
+            _globalOptions = globalOptions;
         }
 
         public override IEnumerable<IPeekRelationship> Relationships
@@ -73,8 +77,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Peek
                 if (!sourceLocations.Any())
                 {
                     // It's a symbol from metadata, so we want to go produce it from metadata
-                    var declarationFile = _peekableItem._metadataAsSourceFileService.GetGeneratedFileAsync(project, symbol, signaturesOnly: true, allowDecompilation: false, cancellationToken).WaitAndGetResult_CanCallOnBackground(cancellationToken);
-                    var peekDisplayInfo = new PeekResultDisplayInfo(declarationFile.DocumentTitle, declarationFile.DocumentTitle, declarationFile.DocumentTitle, declarationFile.DocumentTitle);
+                    var options = _peekableItem._globalOptions.GetMetadataAsSourceOptions(project.Services);
+                    var declarationFile = _peekableItem._metadataAsSourceFileService.GetGeneratedFileAsync(workspace, project, symbol, signaturesOnly: false, options, cancellationToken).WaitAndGetResult_CanCallOnBackground(cancellationToken);
+                    var peekDisplayInfo = new PeekResultDisplayInfo(declarationFile.DocumentTitle, declarationFile.DocumentTooltip, declarationFile.DocumentTitle, declarationFile.DocumentTooltip);
                     var identifierSpan = declarationFile.IdentifierLocation.GetLineSpan().Span;
                     var entityOfInterestSpan = PeekHelpers.GetEntityOfInterestSpan(symbol, workspace, declarationFile.IdentifierLocation, cancellationToken);
                     resultCollection.Add(PeekHelpers.CreateDocumentPeekResult(declarationFile.FilePath, identifierSpan, entityOfInterestSpan, peekDisplayInfo, _peekableItem.PeekResultFactory, isReadOnly: true));

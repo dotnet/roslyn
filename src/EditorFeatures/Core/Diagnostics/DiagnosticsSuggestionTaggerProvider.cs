@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Microsoft.CodeAnalysis.Workspaces;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Adornments;
 using Microsoft.VisualStudio.Text.Tagging;
@@ -23,7 +24,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     [ContentType(ContentTypeNames.RoslynContentType)]
     [ContentType(ContentTypeNames.XamlContentType)]
     [TagType(typeof(IErrorTag))]
-    internal partial class DiagnosticsSuggestionTaggerProvider :
+    internal sealed partial class DiagnosticsSuggestionTaggerProvider :
         AbstractDiagnosticsAdornmentTaggerProvider<IErrorTag>
     {
         private static readonly IEnumerable<Option2<bool>> s_tagSourceOptions =
@@ -36,21 +37,30 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public DiagnosticsSuggestionTaggerProvider(
             IThreadingContext threadingContext,
             IDiagnosticService diagnosticService,
+            IDiagnosticAnalyzerService analyzerService,
             IGlobalOptionService globalOptions,
+            [Import(AllowDefault = true)] ITextBufferVisibilityTracker? visibilityTracker,
             IAsynchronousOperationListenerProvider listenerProvider)
-            : base(threadingContext, diagnosticService, globalOptions, listenerProvider)
+            : base(threadingContext, diagnosticService, analyzerService, globalOptions, visibilityTracker, listenerProvider)
         {
         }
 
         protected internal override bool IncludeDiagnostic(DiagnosticData diagnostic)
             => diagnostic.Severity == DiagnosticSeverity.Info;
 
+        protected internal override bool SupportsDignosticMode(DiagnosticMode mode)
+        {
+            // We only support push diagnostics.  When pull diagnostics are on, ellipses suggestions are handled by the
+            // lsp client.
+            return mode == DiagnosticMode.Push;
+        }
+
         protected override IErrorTag CreateTag(Workspace workspace, DiagnosticData diagnostic)
             => new ErrorTag(
                 PredefinedErrorTypeNames.HintedSuggestion,
                 CreateToolTipContent(workspace, diagnostic));
 
-        protected override SnapshotSpan AdjustSnapshotSpan(SnapshotSpan snapshotSpan, int minimumLength)
+        protected override SnapshotSpan AdjustSnapshotSpan(SnapshotSpan snapshotSpan)
         {
             // We always want suggestion tags to be two characters long.
             return AdjustSnapshotSpan(snapshotSpan, minimumLength: 2, maximumLength: 2);

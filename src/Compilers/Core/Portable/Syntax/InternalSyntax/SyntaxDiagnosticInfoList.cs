@@ -8,7 +8,7 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
 {
     // Avoid implementing IEnumerable so we do not get any unintentional boxing.
-    internal struct SyntaxDiagnosticInfoList
+    internal readonly struct SyntaxDiagnosticInfoList
     {
         private readonly GreenNode _node;
 

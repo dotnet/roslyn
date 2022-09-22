@@ -114,7 +114,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
             CancellationToken cancellationToken)
         {
             var leftOrRightChild = castExpression.WalkUpParentheses();
-            if (leftOrRightChild.Parent is BinaryExpressionSyntax { RawKind: (int)SyntaxKind.EqualsExpression or (int)SyntaxKind.NotEqualsExpression } binary)
+            if (leftOrRightChild.Parent is BinaryExpressionSyntax(SyntaxKind.EqualsExpression or SyntaxKind.NotEqualsExpression) binary)
             {
                 var enumType = semanticModel.GetTypeInfo(castExpression.Expression, cancellationToken).Type as INamedTypeSymbol;
                 var castedType = semanticModel.GetTypeInfo(castExpression.Type, cancellationToken).Type;
@@ -358,12 +358,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
             //
             // Then the original code has an implicit user defined conversion in it.  We can only remove this
             // if the new code would have the same conversion as well.
-            if (originalConversionOperation.Parent is IConversionOperation { IsImplicit: true, Conversion: { IsUserDefined: true } } originalParentImplicitConversion)
+            if (originalConversionOperation.Parent is IConversionOperation { Conversion.IsUserDefined: true } originalParentConversion &&
+                originalParentConversion.GetConversion().IsImplicit)
             {
                 if (!rewrittenConversion.IsUserDefined)
                     return false;
 
-                if (!Equals(originalParentImplicitConversion.Conversion.MethodSymbol, rewrittenConversion.MethodSymbol))
+                if (!Equals(originalParentConversion.Conversion.MethodSymbol, rewrittenConversion.MethodSymbol))
                     return false;
             }
 
@@ -453,6 +454,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
 
             // If the types of the expressions are the same, then we can remove safely.
             if (originalConvertedType.Equals(rewrittenConvertedType, SymbolEqualityComparer.IncludeNullability))
+                return true;
+
+            // We can safely remove convertion to object in interpolated strings regardless of nullability
+            if (castNode.IsParentKind(SyntaxKind.Interpolation) && originalConversionOperation.Type?.SpecialType is SpecialType.System_Object)
                 return true;
 
             // There are cases where the types change but things may still be safe to remove.
@@ -659,8 +664,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
             if (castType.Equals(rewrittenConditionalOperation.Type, SymbolEqualityComparer.IncludeNullability))
                 return true;
 
-            if (rewrittenConditionalOperation.Parent is IConversionOperation { IsImplicit: true } implicitConversion &&
-                castType.Equals(implicitConversion.Type, SymbolEqualityComparer.IncludeNullability))
+            if (rewrittenConditionalOperation.Parent is IConversionOperation conditionalParentConversion &&
+                conditionalParentConversion.GetConversion().IsImplicit &&
+                castType.Equals(conditionalParentConversion.Type, SymbolEqualityComparer.IncludeNullability))
             {
                 return true;
             }
@@ -860,7 +866,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
                 if (IsFieldOrArrayElement(semanticModel, assignmentExpression.Left, cancellationToken))
                     return false;
             }
-            else if (castNode.Parent.IsKind(SyntaxKind.ArrayInitializerExpression, out InitializerExpressionSyntax? arrayInitializer))
+            else if (castNode.Parent is InitializerExpressionSyntax(SyntaxKind.ArrayInitializerExpression) arrayInitializer)
             {
                 // Identity fp conversion is safe if this is in an array initializer.
                 var typeInfo = semanticModel.GetTypeInfo(arrayInitializer, cancellationToken);

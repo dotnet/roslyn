@@ -15,9 +15,9 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.RequestOrdering
 {
-    [Shared, ExportRoslynLanguagesLspRequestHandlerProvider(typeof(NonLSPSolutionRequestHandler)), PartNotDiscoverable]
+    [ExportCSharpVisualBasicStatelessLspService(typeof(NonLSPSolutionRequestHandler)), PartNotDiscoverable, Shared]
     [Method(MethodName)]
-    internal class NonLSPSolutionRequestHandler : AbstractStatelessRequestHandler<TestRequest, TestResponse>
+    internal class NonLSPSolutionRequestHandler : IRequestHandler<TestRequest, TestResponse>
     {
         public const string MethodName = nameof(NonLSPSolutionRequestHandler);
 
@@ -27,12 +27,12 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.RequestOrdering
         {
         }
 
-        public override bool MutatesSolutionState => false;
-        public override bool RequiresLSPSolution => false;
+        public bool MutatesSolutionState => false;
+        public bool RequiresLSPSolution => false;
 
-        public override TextDocumentIdentifier GetTextDocumentIdentifier(TestRequest request) => null;
+        public TextDocumentIdentifier GetTextDocumentIdentifier(TestRequest request) => null;
 
-        public override Task<TestResponse> HandleRequestAsync(TestRequest request, RequestContext context, CancellationToken cancellationToken)
+        public Task<TestResponse> HandleRequestAsync(TestRequest request, RequestContext context, CancellationToken cancellationToken)
         {
             Assert.Null(context.Solution);
 

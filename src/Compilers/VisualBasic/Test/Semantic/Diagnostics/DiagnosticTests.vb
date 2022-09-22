@@ -108,7 +108,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
                     Case < IdsStart
                         Assert.True(False, GetErrorMessage(errString))
 
-                    Case IdsStart to ERRID.IDS_NextAvailable
+                    Case IdsStart To ERRID.IDS_NextAvailable
                         Assert.True(errString.StartsWith("IDS_"), GetErrorMessage(errString))
 
                     Case < FeatureStart
@@ -136,6 +136,27 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
                 Return $"{str} does not start with an approved prefix. Use ERR_ for errors, WRN_ for warnings, HDN_/INF_ for hidden or info diagnostics, IDS_ for ids, and FEATURE_ for feature codes"
             End If
         End Function
+
+        <Fact>
+        Public Sub TestIsBuildOnlyDiagnostic()
+            For Each errObj In [Enum].GetValues(GetType(ERRID))
+                Dim err = DirectCast(errObj, ERRID)
+
+                ' ErrorFacts.IsBuildOnlyDiagnostic with throw if any new ERRID
+                ' is added but not explicitly handled within it.
+                ' Update ErrorFacts.IsBuildOnlyDiagnostic if the below call throws.
+                Dim isBuildOnly = ErrorFacts.IsBuildOnlyDiagnostic(err)
+
+                Select Case err
+                    Case ERRID.ERR_TypeRefResolutionError3,
+                         ERRID.ERR_MissingRuntimeHelper,
+                         ERRID.ERR_CannotGotoNonScopeBlocksWithClosure
+                        Assert.True(isBuildOnly, $"Check failed for ERRID.{err}")
+                    Case Else
+                        Assert.False(isBuildOnly, $"Check failed for ERRID.{err}")
+                End Select
+            Next
+        End Sub
     End Class
 
 End Namespace

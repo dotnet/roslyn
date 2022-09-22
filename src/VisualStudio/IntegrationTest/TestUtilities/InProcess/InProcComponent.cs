@@ -35,7 +35,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
         protected InProcComponent()
         {
             // Make sure SVsExtensionManager loads before trying to execute any test commands
-            ThreadHelper.JoinableTaskFactory.Run(async () =>
+            JoinableTaskFactory.Run(async () =>
             {
                 // Workaround for deadlock loading ExtensionManagerPackage prior to
                 // https://devdiv.visualstudio.com/DevDiv/_git/VSExtensibility/pullrequest/381506
@@ -52,7 +52,9 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             {
                 if (_joinableTaskFactory is null)
                 {
+#pragma warning disable RS0030 // Do not used banned APIs (this code only runs in integration tests)
                     Interlocked.CompareExchange(ref _joinableTaskFactory, ThreadHelper.JoinableTaskFactory.WithPriority(CurrentApplicationDispatcher, DispatcherPriority.Background), null);
+#pragma warning restore RS0030 // Do not used banned APIs
                 }
 
                 return _joinableTaskFactory;

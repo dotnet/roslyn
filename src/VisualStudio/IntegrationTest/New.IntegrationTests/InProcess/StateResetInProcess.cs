@@ -10,13 +10,17 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Editor.Options;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
+using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.MetadataAsSource;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Extensibility.Testing;
+using Microsoft.VisualStudio.IntegrationTest.Utilities;
+using Microsoft.VisualStudio.LanguageServices;
 using Microsoft.VisualStudio.LanguageServices.Implementation;
-using Microsoft.VisualStudio.LanguageServices.Telemetry;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Text.Editor;
+using WindowsInput.Native;
 
 namespace Roslyn.VisualStudio.IntegrationTests.InProcess
 {
@@ -33,27 +37,26 @@ namespace Roslyn.VisualStudio.IntegrationTests.InProcess
 
         public async Task ResetGlobalOptionsAsync(CancellationToken cancellationToken)
         {
-            var globalOptions = await GetComponentModelServiceAsync<IGlobalOptionService>(cancellationToken);
-            ResetOption2(globalOptions, FeatureOnOffOptions.NavigateToDecompiledSources);
-            ResetOption2(globalOptions, VisualStudioSyntaxTreeConfigurationService.OptionsMetadata.EnableOpeningSourceGeneratedFilesInWorkspace);
-            ResetPerLanguageOption(globalOptions, NavigationBarViewOptions.ShowNavigationBar);
-            ResetPerLanguageOption2(globalOptions, VisualStudioNavigationOptions.NavigateToObjectBrowser);
-            ResetPerLanguageOption2(globalOptions, FeatureOnOffOptions.AddImportsOnPaste);
-            ResetPerLanguageOption2(globalOptions, FeatureOnOffOptions.PrettyListing);
-            ResetPerLanguageOption2(globalOptions, CompletionViewOptions.EnableArgumentCompletionSnippets);
+            // clear configuration options, so that the workspace configuration global option update below is effective:
+            var workspace = await TestServices.Shell.GetComponentModelServiceAsync<VisualStudioWorkspace>(cancellationToken);
+            var configurationService = (WorkspaceConfigurationService)workspace.Services.GetRequiredService<IWorkspaceConfigurationService>();
+            configurationService.Clear();
 
-            static void ResetOption2<T>(IGlobalOptionService globalOptions, Option2<T> option)
+            var globalOptions = await GetComponentModelServiceAsync<IGlobalOptionService>(cancellationToken);
+            ResetOption(globalOptions, MetadataAsSourceOptionsStorage.NavigateToDecompiledSources);
+            ResetOption(globalOptions, WorkspaceConfigurationOptionsStorage.EnableOpeningSourceGeneratedFilesInWorkspace);
+            ResetPerLanguageOption(globalOptions, NavigationBarViewOptionsStorage.ShowNavigationBar);
+            ResetPerLanguageOption(globalOptions, VisualStudioNavigationOptions.NavigateToObjectBrowser);
+            ResetPerLanguageOption(globalOptions, FeatureOnOffOptions.AddImportsOnPaste);
+            ResetPerLanguageOption(globalOptions, FeatureOnOffOptions.PrettyListing);
+            ResetPerLanguageOption(globalOptions, CompletionViewOptions.EnableArgumentCompletionSnippets);
+
+            static void ResetOption<T>(IGlobalOptionService globalOptions, Option2<T> option)
             {
                 globalOptions.SetGlobalOption(new OptionKey(option, language: null), option.DefaultValue);
             }
 
-            static void ResetPerLanguageOption<T>(IGlobalOptionService globalOptions, PerLanguageOption<T> option)
-            {
-                globalOptions.SetGlobalOption(new OptionKey(option, LanguageNames.CSharp), option.DefaultValue);
-                globalOptions.SetGlobalOption(new OptionKey(option, LanguageNames.VisualBasic), option.DefaultValue);
-            }
-
-            static void ResetPerLanguageOption2<T>(IGlobalOptionService globalOptions, PerLanguageOption2<T> option)
+            static void ResetPerLanguageOption<T>(IGlobalOptionService globalOptions, PerLanguageOption2<T> option)
             {
                 globalOptions.SetGlobalOption(new OptionKey(option, LanguageNames.CSharp), option.DefaultValue);
                 globalOptions.SetGlobalOption(new OptionKey(option, LanguageNames.VisualBasic), option.DefaultValue);
@@ -78,6 +81,27 @@ namespace Roslyn.VisualStudio.IntegrationTests.InProcess
 
             var latencyGuardOptionKey = new EditorOptionKey<bool>("EnableTypingLatencyGuard");
             options.SetOptionValue(latencyGuardOptionKey, false);
+
+            // Close any modal windows
+            var mainWindow = await TestServices.Shell.GetMainWindowAsync(cancellationToken);
+            var modalWindow = IntegrationHelper.GetModalWindowFromParentWindow(mainWindow);
+            while (modalWindow != IntPtr.Zero)
+            {
+                if ("Default IME" == IntegrationHelper.GetTitleForWindow(modalWindow))
+                {
+                    // "Default IME" shows up as a modal window in some cases where there is no other window blocking
+                    // input to Visual Studio.
+                    break;
+                }
+
+                await TestServices.Input.SendWithoutActivateAsync(VirtualKeyCode.ESCAPE, cancellationToken);
+                var nextModalWindow = IntegrationHelper.GetModalWindowFromParentWindow(mainWindow);
+                if (nextModalWindow == modalWindow)
+                {
+                    // Don't loop forever if windows aren't closing.
+                    break;
+                }
+            }
 
             // Close tool windows where desired (see s_windowsToClose)
             await foreach (var window in TestServices.Shell.EnumerateWindowsAsync(__WindowFrameTypeFlags.WINDOWFRAMETYPE_Tool, cancellationToken).WithCancellation(cancellationToken))

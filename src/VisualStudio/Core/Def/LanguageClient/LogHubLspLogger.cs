@@ -37,7 +37,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
         }
 
         public void TraceInformation(string message)
-            => _traceSource.TraceInformation(message);
+        {
+            // Explicitly call TraceEvent here instead of TraceInformation.
+            // TraceInformation indirectly calls string.Format which throws if the message
+            // has unescaped curlies in it (can be a part of a URI for example).
+            // Since we have no need to call string.Format here, we don't.
+            _traceSource.TraceEvent(TraceEventType.Information, id: 0, message);
+        }
 
         public void TraceWarning(string message)
             => _traceSource.TraceEvent(TraceEventType.Warning, id: 0, message);

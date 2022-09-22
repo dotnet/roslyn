@@ -62,5 +62,20 @@ namespace Microsoft.CodeAnalysis
         /// Display `System.[U]IntPtr` instead of `n[u]int`.
         /// </summary>
         UseNativeIntegerUnderlyingType = 1 << 7,
+
+        /// <summary>
+        /// Separate out nested types from containing types using <c>+</c> instead of <c>.</c> (dot).
+        /// </summary>
+        UsePlusForNestedTypes = 1 << 8,
+
+        /// <summary>
+        /// Includes the <c>scoped</c> keyword.
+        /// </summary>
+        IncludeScoped = 1 << 9,
+
+        /// <summary>
+        /// Display `MyType@File.cs` instead of `MyType`.
+        /// </summary>
+        IncludeContainingFileForFileTypes = 1 << 10,
     }
 }

@@ -67,7 +67,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
             var miscellaneousFilesWorkspace = this.ComponentModel.GetService<MiscellaneousFilesWorkspace>();
             RegisterMiscellaneousFilesWorkspaceInformation(miscellaneousFilesWorkspace);
 
-            if (!IVsShellExtensions.IsInCommandLineMode)
+            if (!IVsShellExtensions.IsInCommandLineMode(JoinableTaskFactory))
             {
                 // not every derived package support object browser and for those languages
                 // this is a no op
@@ -115,9 +115,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
         {
             if (disposing)
             {
-                if (!IVsShellExtensions.IsInCommandLineMode)
+                if (!IVsShellExtensions.IsInCommandLineMode(JoinableTaskFactory))
                 {
-                    ThreadHelper.JoinableTaskFactory.Run(async () => await UnregisterObjectBrowserLibraryManagerAsync(CancellationToken.None).ConfigureAwait(true));
+                    JoinableTaskFactory.Run(async () => await UnregisterObjectBrowserLibraryManagerAsync(CancellationToken.None).ConfigureAwait(true));
                 }
 
                 // If we've created the language service then tell it it's time to clean itself up now.

@@ -8,9 +8,10 @@ Imports VerifyVB = Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions.VisualBas
     Microsoft.CodeAnalysis.VisualBasic.RemoveAsyncModifier.VisualBasicRemoveAsyncModifierCodeFixProvider)
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.RemoteAsyncModifier
+    <Trait(Traits.Feature, Traits.Features.CodeActionsRemoveAsyncModifier)>
     Public Class RemoveAsyncModifierTests
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveAsyncModifier)>
+        <Fact>
         Public Async Function Function_Task() As Task
             Await VerifyVB.VerifyCodeFixAsync(
 "Imports System.Threading.Tasks
@@ -38,7 +39,7 @@ Class C
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveAsyncModifier)>
+        <Fact>
         Public Async Function Function_Task_Throws() As Task
             Await VerifyVB.VerifyCodeFixAsync(
 "Imports System.Threading.Tasks
@@ -61,7 +62,7 @@ Class C
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveAsyncModifier)>
+        <Fact>
         Public Async Function Function_Task_WithLambda() As Task
             Await VerifyVB.VerifyCodeFixAsync(
 "Imports System
@@ -94,7 +95,7 @@ Class C
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveAsyncModifier)>
+        <Fact>
         Public Async Function Function_TaskOfT() As Task
             Await VerifyVB.VerifyCodeFixAsync(
 "Imports System.Threading.Tasks
@@ -113,7 +114,7 @@ Class C
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveAsyncModifier)>
+        <Fact>
         Public Async Function SingleLineFunctionLambda_Task() As Task
             Await VerifyVB.VerifyCodeFixAsync(
 "Imports System
@@ -137,7 +138,7 @@ Class C
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveAsyncModifier)>
+        <Fact>
         Public Async Function SingleLineFunctionLambda_TaskOfT() As Task
             Await VerifyVB.VerifyCodeFixAsync(
 "Imports System
@@ -161,7 +162,7 @@ Class C
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveAsyncModifier)>
+        <Fact>
         Public Async Function MultiLineFunctionLambda_Task() As Task
             Await VerifyVB.VerifyCodeFixAsync(
 "Imports System
@@ -189,7 +190,7 @@ Class C
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveAsyncModifier)>
+        <Fact>
         Public Async Function MultiLineFunctionLambda_TaskOfT() As Task
             Await VerifyVB.VerifyCodeFixAsync(
 "Imports System
@@ -216,7 +217,7 @@ Class C
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveAsyncModifier)>
+        <Fact>
         Public Async Function Sub_Missing() As Task
             Dim source = "
 Imports System
@@ -243,7 +244,7 @@ End Class"
             Await test.RunAsync()
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveAsyncModifier)>
+        <Fact>
         Public Async Function MultiLineSubLambda_Task_Missing() As Task
             Dim source = "
 Imports System
@@ -276,7 +277,7 @@ End Class"
             Await test.RunAsync()
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveAsyncModifier)>
+        <Fact>
         Public Async Function SingleLineSubLambda_Task_Missing() As Task
             Dim source = "
 Imports System

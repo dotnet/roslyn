@@ -12,7 +12,7 @@ using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectBrowser.Lists;
@@ -130,7 +130,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
         private static bool IncludeSymbol(ISymbol symbol)
         {
             return symbol.IsErrorType()
-                || symbol.Locations.Any(l => l.IsInSource || l.IsInMetadata);
+                || symbol.Locations.Any(static l => l.IsInSource || l.IsInMetadata);
         }
 
         private static bool IncludeMemberSymbol(ISymbol symbol, IAssemblySymbol assemblySymbol)
@@ -145,12 +145,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
                 return false;
             }
 
-            if (symbol.Locations.Any(l => l.IsInSource))
+            if (symbol.Locations.Any(static l => l.IsInSource))
             {
                 return true;
             }
 
-            if (symbol.Locations.Any(l => l.IsInMetadata))
+            if (symbol.Locations.Any(static l => l.IsInMetadata))
             {
                 // We want to display protected members because we don't really have through
                 // type to pass along for protected checks. Besides, protected members are 
@@ -575,12 +575,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
                 return false;
             }
 
-            if (typeMember.Locations.Any(l => l.IsInSource))
+            if (typeMember.Locations.Any(static l => l.IsInSource))
             {
                 return true;
             }
 
-            if (typeMember.Locations.Any(l => l.IsInMetadata))
+            if (typeMember.Locations.Any(static l => l.IsInMetadata))
             {
                 return typeMember.IsAccessibleWithin(assemblySymbol);
             }
@@ -618,10 +618,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
 
                 if (Helpers.IsObjectBrowser(listFlags))
                 {
-                    if (assemblyIdentitySet == null)
-                    {
-                        assemblyIdentitySet = new HashSet<AssemblyIdentity>();
-                    }
+                    assemblyIdentitySet ??= new HashSet<AssemblyIdentity>();
 
                     foreach (var reference in project.MetadataReferences)
                     {

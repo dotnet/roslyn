@@ -79,6 +79,9 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin.Finders
             using var _2 = ArrayBuilder<SymbolGroup>.GetInstance(out var implementingSymbolGroupBuilder);
             foreach (var (symbol, symbolSet) in builder)
             {
+                // For all implementing symbols, make sure it is in source.
+                // For example, if the user is viewing IEnumerable from metadata,
+                // then don't show the derived overriden & implemented types in System.Collections
                 if (symbol.Locations.Any(l => l.IsInSource))
                     implementingSymbolGroupBuilder.Add(new SymbolGroup(symbolSet));
             }
