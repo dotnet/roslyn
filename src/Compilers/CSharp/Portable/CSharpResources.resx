@@ -5105,13 +5105,13 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>This returns a parameter by reference '{0}' through a ref parameter; but it can only safely be returned in a return statement</value>
   </data>
   <data name="WRN_RefReturnOnlyParameter_Title" xml:space="preserve">
-    <value>This returns a parameter by reference through a ref parameter; but it can only be safely returned in a return statement</value>
+    <value>This returns a parameter by reference through a ref parameter; but it can only safely be returned in a return statement</value>
   </data>
   <data name="WRN_RefReturnOnlyParameter2" xml:space="preserve">
-    <value>This returns by reference a member of parameter '{0}' through a ref parameter; but it can only be returned in a return statement</value>
+    <value>This returns by reference a member of parameter '{0}' through a ref parameter; but it can only safely be returned in a return statement</value>
   </data>
   <data name="WRN_RefReturnOnlyParameter2_Title" xml:space="preserve">
-    <value>This returns by reference a member of parameter through a ref parameter; but it can only be returned in a return statement</value>
+    <value>This returns by reference a member of parameter through a ref parameter; but it can only safely be returned in a return statement</value>
   </data>
   <data name="WRN_RefReturnParameter" xml:space="preserve">
     <value>This returns a parameter by reference '{0}' but it is not a ref parameter</value>
@@ -5132,10 +5132,10 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>This returns by reference a member of parameter that is not a ref or out parameter</value>
   </data>
   <data name="WRN_RefReturnScopedParameter2" xml:space="preserve">
-    <value>This returns by reference a member of parameter '{0}' this is scoped to the current method</value>
+    <value>This returns by reference a member of parameter '{0}' that is scoped to the current method</value>
   </data>
   <data name="WRN_RefReturnScopedParameter2_Title" xml:space="preserve">
-    <value>This returns by reference a member of parameter this is scoped to the current method</value>
+    <value>This returns by reference a member of parameter that is scoped to the current method</value>
   </data>
   <data name="ERR_RefReturnLocal" xml:space="preserve">
     <value>Cannot return local '{0}' by reference because it is not a ref local</value>
@@ -5915,10 +5915,10 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>This ref-assigns a value that can only escape the current method through a return statement.</value>
   </data>
   <data name="WRN_RefAssignNarrower" xml:space="preserve">
-    <value>The right-hand-side expression '{1}' has a narrower escape scope than the left-hand-side expression '{0}' in ref-assignment.</value>
+    <value>This ref-assigns '{1}' to '{0}' but '{1}' has a narrower escape scope than '{0}'.</value>
   </data>
   <data name="WRN_RefAssignNarrower_Title" xml:space="preserve">
-    <value>The right-hand-side expression has a narrower escape scope than the left-hand-side expression in ref-assignment.</value>
+    <value>This ref-assigns a value that has a narrower escape scope than the target.</value>
   </data>
   <data name="IDS_FeatureEnumGenericTypeConstraint" xml:space="preserve">
     <value>enum generic type constraints</value>

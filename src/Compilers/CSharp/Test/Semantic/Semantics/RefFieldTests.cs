@@ -13096,7 +13096,7 @@ class Program
                 // (16,27): error CS9063: UnscopedRefAttribute cannot be applied to this item because it is unscoped by default.
                 //     static unsafe void M([UnscopedRef] ref RS1 rs, ref RS2 rs2)
                 Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedTarget, "UnscopedRef").WithLocation(16, 27),
-                // (18,34): warning CS9095: This returns by reference a member of parameter 'rs' through a ref parameter; but it can only be returned in a return statement
+                // (18,34): warning CS9095: This returns by reference a member of parameter 'rs' through a ref parameter; but it can only safely be returned in a return statement
                 //         rs2 = new RS2 { I2 = ref rs.I1 };
                 Diagnostic(ErrorCode.WRN_RefReturnOnlyParameter2, "rs").WithArguments("rs").WithLocation(18, 34)
                 );
@@ -13688,7 +13688,8 @@ class Program
                 Diagnostic(ErrorCode.ERR_RefAssignNarrower, "r3.F = ref t").WithArguments("F", "t").WithLocation(29, 9),
                 // (59,9): error CS8374: Cannot ref-assign 't' to 'F' because 't' has a narrower escape scope than 'F'.
                 //         r7.F = ref t;
-                Diagnostic(ErrorCode.ERR_RefAssignNarrower, "r7.F = ref t").WithArguments("F", "t").WithLocation(59, 9));
+                Diagnostic(ErrorCode.ERR_RefAssignNarrower, "r7.F = ref t").WithArguments("F", "t").WithLocation(59, 9)
+                );
         }
 
         [Fact]
@@ -19639,13 +19640,13 @@ public class C1
 
             var comp = CreateCompilation(new[] { source, UnscopedRefAttributeDefinition }, runtimeFeature: RuntimeFlag.ByRefFields, options: TestOptions.UnsafeDebugExe);
             comp.VerifyDiagnostics(
-                // (7,5): warning CS9085: The right-hand-side expression 'p1.field' has a narrower escape scope than the left-hand-side expression 'refField' in ref-assignment.
+                // (7,5): warning CS9085: This ref-assigns 'p1.field' to 'refField' but 'p1.field' has a narrower escape scope than 'refField'.
                 //     p2.refField = ref p1.field; // 1
                 Diagnostic(ErrorCode.WRN_RefAssignNarrower, "p2.refField = ref p1.field").WithArguments("refField", "p1.field").WithLocation(7, 5),
-                // (13,5): warning CS9085: The right-hand-side expression 'p1.field' has a narrower escape scope than the left-hand-side expression 'refField' in ref-assignment.
+                // (13,5): warning CS9085: This ref-assigns 'p1.field' to 'refField' but 'p1.field' has a narrower escape scope than 'refField'.
                 //     p2.refField = ref p1.field; // 2
                 Diagnostic(ErrorCode.WRN_RefAssignNarrower, "p2.refField = ref p1.field").WithArguments("refField", "p1.field").WithLocation(13, 5),
-                // (19,5): warning CS9085: The right-hand-side expression 'p1.field' has a narrower escape scope than the left-hand-side expression 'refField' in ref-assignment.
+                // (19,5): warning CS9085: This ref-assigns 'p1.field' to 'refField' but 'p1.field' has a narrower escape scope than 'refField'.
                 //     p2.refField = ref p1.field; // 3
                 Diagnostic(ErrorCode.WRN_RefAssignNarrower, "p2.refField = ref p1.field").WithArguments("refField", "p1.field").WithLocation(19, 5),
                 // (26,5): warning CS9093: This ref-assigns 'p1.field' to 'refField' but 'p1.field' can only escape the current method through a return statement.

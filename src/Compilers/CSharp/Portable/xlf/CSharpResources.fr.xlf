@@ -2138,13 +2138,13 @@
         <note />
       </trans-unit>
       <trans-unit id="WRN_RefAssignNarrower">
-        <source>The right-hand-side expression '{1}' has a narrower escape scope than the left-hand-side expression '{0}' in ref-assignment.</source>
-        <target state="new">The right-hand-side expression '{1}' has a narrower escape scope than the left-hand-side expression '{0}' in ref-assignment.</target>
+        <source>This ref-assigns '{1}' to '{0}' but '{1}' has a narrower escape scope than '{0}'.</source>
+        <target state="new">This ref-assigns '{1}' to '{0}' but '{1}' has a narrower escape scope than '{0}'.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_RefAssignNarrower_Title">
-        <source>The right-hand-side expression has a narrower escape scope than the left-hand-side expression in ref-assignment.</source>
-        <target state="new">The right-hand-side expression has a narrower escape scope than the left-hand-side expression in ref-assignment.</target>
+        <source>This ref-assigns a value that has a narrower escape scope than the target.</source>
+        <target state="new">This ref-assigns a value that has a narrower escape scope than the target.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_RefAssignReturnOnly">
@@ -2203,18 +2203,18 @@
         <note />
       </trans-unit>
       <trans-unit id="WRN_RefReturnOnlyParameter2">
-        <source>This returns by reference a member of parameter '{0}' through a ref parameter; but it can only be returned in a return statement</source>
-        <target state="new">This returns by reference a member of parameter '{0}' through a ref parameter; but it can only be returned in a return statement</target>
+        <source>This returns by reference a member of parameter '{0}' through a ref parameter; but it can only safely be returned in a return statement</source>
+        <target state="new">This returns by reference a member of parameter '{0}' through a ref parameter; but it can only safely be returned in a return statement</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_RefReturnOnlyParameter2_Title">
-        <source>This returns by reference a member of parameter through a ref parameter; but it can only be returned in a return statement</source>
-        <target state="new">This returns by reference a member of parameter through a ref parameter; but it can only be returned in a return statement</target>
+        <source>This returns by reference a member of parameter through a ref parameter; but it can only safely be returned in a return statement</source>
+        <target state="new">This returns by reference a member of parameter through a ref parameter; but it can only safely be returned in a return statement</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_RefReturnOnlyParameter_Title">
-        <source>This returns a parameter by reference through a ref parameter; but it can only be safely returned in a return statement</source>
-        <target state="new">This returns a parameter by reference through a ref parameter; but it can only be safely returned in a return statement</target>
+        <source>This returns a parameter by reference through a ref parameter; but it can only safely be returned in a return statement</source>
+        <target state="new">This returns a parameter by reference through a ref parameter; but it can only safely be returned in a return statement</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_RefReturnParameter">
@@ -2243,13 +2243,13 @@
         <note />
       </trans-unit>
       <trans-unit id="WRN_RefReturnScopedParameter2">
-        <source>This returns by reference a member of parameter '{0}' this is scoped to the current method</source>
-        <target state="new">This returns by reference a member of parameter '{0}' this is scoped to the current method</target>
+        <source>This returns by reference a member of parameter '{0}' that is scoped to the current method</source>
+        <target state="new">This returns by reference a member of parameter '{0}' that is scoped to the current method</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_RefReturnScopedParameter2_Title">
-        <source>This returns by reference a member of parameter this is scoped to the current method</source>
-        <target state="new">This returns by reference a member of parameter this is scoped to the current method</target>
+        <source>This returns by reference a member of parameter that is scoped to the current method</source>
+        <target state="new">This returns by reference a member of parameter that is scoped to the current method</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_RefReturnScopedParameter_Title">
