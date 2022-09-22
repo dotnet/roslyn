@@ -177,6 +177,22 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 diagnosticOptions)
         End Function
 
+        Friend Shared Function Create(root As VisualBasicSyntaxNode,
+                                      options As VisualBasicParseOptions,
+                                      path As String,
+                                      encoding As Encoding,
+                                      checksumAlgorithm As SourceHashAlgorithm) As SyntaxTree
+            Return New ParsedSyntaxTree(
+                textOpt:=Nothing,
+                encodingOpt:=encoding,
+                checksumAlgorithm:=checksumAlgorithm,
+                path:=path,
+                options:=options,
+                syntaxRoot:=root,
+                isMyTemplate:=False,
+                diagnosticOptions:=Nothing)
+        End Function
+
         ''' <summary>
         ''' Creates a new syntax tree from a syntax node with text that should correspond to the syntax node.
         ''' </summary>

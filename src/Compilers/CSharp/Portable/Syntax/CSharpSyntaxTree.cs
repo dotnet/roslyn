@@ -354,6 +354,25 @@ namespace Microsoft.CodeAnalysis.CSharp
                 cloneRoot: true);
         }
 
+        internal static SyntaxTree Create(
+            CSharpSyntaxNode root,
+            CSharpParseOptions options,
+            string? path,
+            Encoding? encoding,
+            SourceHashAlgorithm checksumAlgorithm)
+        {
+            return new ParsedSyntaxTree(
+                textOpt: null,
+                encodingOpt: encoding,
+                checksumAlgorithm: checksumAlgorithm,
+                path: path,
+                options: options,
+                root: root,
+                directives: default,
+                diagnosticOptions: null,
+                cloneRoot: true);
+        }
+
         /// <summary>
         /// Creates a new syntax tree from a syntax node with text that should correspond to the syntax node.
         /// </summary>

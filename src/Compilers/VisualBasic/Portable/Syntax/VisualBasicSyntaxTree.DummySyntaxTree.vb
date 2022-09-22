@@ -88,11 +88,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Property
 
             Public Overrides Function WithRootAndOptions(root As SyntaxNode, options As ParseOptions) As SyntaxTree
-                Return VisualBasicSyntaxTree.Create(DirectCast(root, VisualBasicSyntaxNode), DirectCast(options, VisualBasicParseOptions), FilePath, Me.Encoding)
+                Return Create(DirectCast(root, VisualBasicSyntaxNode), DirectCast(options, VisualBasicParseOptions), FilePath, Encoding, ChecksumAlgorithm)
             End Function
 
             Public Overrides Function WithFilePath(path As String) As SyntaxTree
-                Return VisualBasicSyntaxTree.Create(_node, Options, path, Me.Encoding)
+                Return Create(_node, Options, path, Encoding, ChecksumAlgorithm)
             End Function
 
             Public Overrides Function WithDiagnosticOptions(options As ImmutableDictionary(Of String, ReportDiagnostic)) As SyntaxTree
