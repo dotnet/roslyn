@@ -4427,7 +4427,7 @@ static void Main(string[] args)
             await TestAsync(initialText, expectedText, testHost);
         }
 
-        [Theory, WorkItem(860648, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/860648")]
+        [ConditionalTheory(typeof(IsRelease), Reason = ConditionalSkipReason.TestIsTriggeringMessagePackIssue), WorkItem(860648, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/860648")]
         [CombinatorialData]
         [WorkItem(902014, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/902014")]
         public async Task TestIncompleteParenthesizedLambdaExpression(TestHost testHost)
