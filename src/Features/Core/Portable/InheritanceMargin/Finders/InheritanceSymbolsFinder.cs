@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin.Finders
                         visitedSet.Add(originalAssociatedSymbol);
                         var linkedSymbols = await SymbolFinder.FindLinkedSymbolsAsync(originalAssociatedSymbol, solution, cancellationToken).ConfigureAwait(false);
                         EnqueueAll(queue, linkedSymbols);
-                        if (!builder.ContainsKey(originalAssociatedSymbol) && InheritanceMarginServiceHelper.IsNavigableSymbol(originalAssociatedSymbol))
+                        if (!builder.ContainsKey(originalAssociatedSymbol) && AbstractInheritanceMarginService.IsNavigableSymbol(originalAssociatedSymbol))
                         {
                             var linkedGroupSymbols = linkedSymbols.SelectAsArray(s => s.OriginalDefinition);
                             var symbolSet = s_symbolHashSetPool.Allocate();

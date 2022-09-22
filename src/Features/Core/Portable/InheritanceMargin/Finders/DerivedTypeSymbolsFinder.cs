@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin.Finders
         /// </summary>
         protected override async Task<ImmutableArray<ISymbol>> GetAssociatedSymbolsAsync(ISymbol symbol, Solution solution, CancellationToken cancellationToken)
         {
-            var derivedSymbols = await InheritanceMarginServiceHelper.GetDerivedTypesAndImplementationsAsync(solution, (INamedTypeSymbol)symbol, cancellationToken).ConfigureAwait(false);
+            var derivedSymbols = await AbstractInheritanceMarginService.GetDerivedTypesAndImplementationsAsync(solution, (INamedTypeSymbol)symbol, cancellationToken).ConfigureAwait(false);
             // Consider all the derived types as vertices. Each of them are pointed by its base type and base interface.
             // We need an 'incomingSymbols' map, whose key is the vertices of the graph,
             // the values is a set of symbols contains the base type and interfaces for this vertices to perform topologically sort.

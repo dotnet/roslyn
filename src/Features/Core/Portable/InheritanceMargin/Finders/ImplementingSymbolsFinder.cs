@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin.Finders
         /// </summary>
         protected override async Task<ImmutableArray<ISymbol>> GetAssociatedSymbolsAsync(ISymbol symbol, Solution solution, CancellationToken cancellationToken)
         {
-            var implementingSymbols = await InheritanceMarginServiceHelper.GetImplementingSymbolsForTypeMemberAsync(solution, symbol, cancellationToken).ConfigureAwait(false);
+            var implementingSymbols = await AbstractInheritanceMarginService.GetImplementingSymbolsForTypeMemberAsync(solution, symbol, cancellationToken).ConfigureAwait(false);
 
             // ImplementingSymbols contains
             // 1. The directly implemeting members's symbol for a interface member.

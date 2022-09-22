@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin.Finders
         protected override Task<ImmutableArray<ISymbol>> GetAssociatedSymbolsAsync(ISymbol symbol, Solution solution, CancellationToken cancellationToken)
         {
             using var _ = GetPooledHashSetDictionary(out var incomingSymbolsMap);
-            var overriddenSymbols = InheritanceMarginServiceHelper.GetOverriddenSymbols(symbol);
+            var overriddenSymbols = AbstractInheritanceMarginService.GetOverriddenSymbols(symbol);
 
             // Consider all overrridden symbols, implemented symbols in the interfaces as vertices.
             // Each of them could be pointed by its overriding symbol, or the implementation in derived type.

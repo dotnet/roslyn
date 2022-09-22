@@ -698,5 +698,16 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
 
             return builder.ToImmutable();
         }
+
+        internal static bool IsNavigableSymbol(ISymbol symbol)
+        {
+            var locations = symbol.Locations;
+            if (locations.Length == 1)
+            {
+                var location = locations[0];
+                return location.IsInMetadata || (location.IsInSource && location.IsVisibleSourceLocation());
+            }
+            return !locations.IsEmpty;
+        }
     }
 }
