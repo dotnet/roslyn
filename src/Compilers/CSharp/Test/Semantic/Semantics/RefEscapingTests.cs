@@ -1576,14 +1576,14 @@ class Program
         // valid
         MayAssign(ref rOuter, ref rOuter);
 
-        // error
+        // warn
         MayAssign(ref rOuter, ref rInner);
 
-        // error
+        // warn
         MayAssign(ref inner, ref rOuter);
     }
 
-    static void MayAssign(ref Span<int> arg1, ref S1 arg2)
+    static unsafe void MayAssign(ref Span<int> arg1, ref S1 arg2)
     {
         arg2 = MayWrap(ref arg1);
     }
@@ -1606,10 +1606,10 @@ class Program
 
             var comp = CreateCompilationWithMscorlibAndSpan(text, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
             comp.VerifyDiagnostics(
-                // (16,35): warning CS9077: Use of variable 'rInner' in this context may expose referenced variables outside of their declaration scope
+                // (16,35): warning CS9080: Use of variable 'rInner' in this context may expose referenced variables outside of their declaration scope
                 //         MayAssign(ref rOuter, ref rInner);
                 Diagnostic(ErrorCode.WRN_EscapeVariable, "rInner").WithArguments("rInner").WithLocation(16, 35),
-                // (19,23): warning CS9077: Use of variable 'inner' in this context may expose referenced variables outside of their declaration scope
+                // (19,23): warning CS9080: Use of variable 'inner' in this context may expose referenced variables outside of their declaration scope
                 //         MayAssign(ref inner, ref rOuter);
                 Diagnostic(ErrorCode.WRN_EscapeVariable, "inner").WithArguments("inner").WithLocation(19, 23)
                 );
@@ -1883,9 +1883,9 @@ class Program
                 // (44,24): error CS8347: Cannot use a result of 'Program.MayWrap(in Span<int>)' in this context because it may expose variables referenced by parameter 'arg' outside of their declaration scope
                 //                 this = MayWrap(arg1);
                 Diagnostic(ErrorCode.ERR_EscapeCall, "MayWrap(arg1)").WithArguments("Program.MayWrap(in System.Span<int>)", "arg").WithLocation(44, 24),
-                // (54,32): error CS9077: Cannot return a parameter by reference 'arg1' through a ref parameter; it can only be returned in a return statement
+                // (54,32): error CS9078: Cannot return by reference a member of parameter 'arg1' through a ref parameter; it can only be returned in a return statement
                 //                 this = MayWrap(arg1.field);
-                Diagnostic(ErrorCode.ERR_RefReturnOnlyParameter, "arg1").WithArguments("arg1").WithLocation(54, 32),
+                Diagnostic(ErrorCode.ERR_RefReturnOnlyParameter2, "arg1").WithArguments("arg1").WithLocation(54, 32),
                 // (54,24): error CS8347: Cannot use a result of 'Program.MayWrap(in Span<int>)' in this context because it may expose variables referenced by parameter 'arg' outside of their declaration scope
                 //                 this = MayWrap(arg1.field);
                 Diagnostic(ErrorCode.ERR_EscapeCall, "MayWrap(arg1.field)").WithArguments("Program.MayWrap(in System.Span<int>)", "arg").WithLocation(54, 24)
