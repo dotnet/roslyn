@@ -1618,8 +1618,8 @@
         <note>UnmanagedCallersOnly is not localizable.</note>
       </trans-unit>
       <trans-unit id="ERR_UnscopedRefAttributeUnsupportedTarget">
-        <source>UnscopedRefAttribute can only be applied to 'out' parameters, 'ref' and 'in' parameters that refer to 'ref struct' types, and instance methods and properties on 'struct' types other than constructors and 'init' accessors.</source>
-        <target state="translated">UnscopedRefAttribute se dá použít jenom pro parametry „out“, „ref“ a „in“, které odkazují na typy „ref struct“, a metody a vlastnosti instance u jiných typů „struct než“ konstruktorů a přístupových objektů „init“.</target>
+        <source>UnscopedRefAttribute cannot be applied to this item because it is unscoped by default.</source>
+        <target state="needs-review-translation">UnscopedRefAttribute se dá použít jenom pro parametry „out“, „ref“ a „in“, které odkazují na typy „ref struct“, a metody a vlastnosti instance u jiných typů „struct než“ konstruktorů a přístupových objektů „init“.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnscopedScoped">
@@ -1990,6 +1990,16 @@
       <trans-unit id="WRN_LowerCaseTypeName_Title">
         <source>The type name only contains lower-cased ascii characters. Such names may become reserved for the language.</source>
         <target state="translated">Název typu obsahuje jenom malá písmena ASCII. Tyto názvy se můžou stát vyhrazenými pro daný jazyk.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_ManagedAddr">
+        <source>This takes the address of, gets the size of, or declares a pointer to a managed type ('{0}')</source>
+        <target state="new">This takes the address of, gets the size of, or declares a pointer to a managed type ('{0}')</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_ManagedAddr_Title">
+        <source>This takes the address of, gets the size of, or declares a pointer to a managed type</source>
+        <target state="new">This takes the address of, gets the size of, or declares a pointer to a managed type</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_MethGrpToNonDel">

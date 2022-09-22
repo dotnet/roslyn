@@ -1618,8 +1618,8 @@
         <note>UnmanagedCallersOnly is not localizable.</note>
       </trans-unit>
       <trans-unit id="ERR_UnscopedRefAttributeUnsupportedTarget">
-        <source>UnscopedRefAttribute can only be applied to 'out' parameters, 'ref' and 'in' parameters that refer to 'ref struct' types, and instance methods and properties on 'struct' types other than constructors and 'init' accessors.</source>
-        <target state="translated">UnscopedRefAttribute yalnızca 'out' parametrelerine, 'ref struct' türlerine başvuran 'ref' ve 'in' parametrelerine ve oluşturucular ve 'init' erişimcileri dışındaki 'struct' türlerde örnek metotları ve özelliklerine uygulanabilir.</target>
+        <source>UnscopedRefAttribute cannot be applied to this item because it is unscoped by default.</source>
+        <target state="needs-review-translation">UnscopedRefAttribute yalnızca 'out' parametrelerine, 'ref struct' türlerine başvuran 'ref' ve 'in' parametrelerine ve oluşturucular ve 'init' erişimcileri dışındaki 'struct' türlerde örnek metotları ve özelliklerine uygulanabilir.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnscopedScoped">
@@ -1990,6 +1990,16 @@
       <trans-unit id="WRN_LowerCaseTypeName_Title">
         <source>The type name only contains lower-cased ascii characters. Such names may become reserved for the language.</source>
         <target state="translated">Tür adı yalnızca küçük harfli ascii karakterleri içerir. Bu tür adlar dil için ayrılmış hale gelebilir.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_ManagedAddr">
+        <source>This takes the address of, gets the size of, or declares a pointer to a managed type ('{0}')</source>
+        <target state="new">This takes the address of, gets the size of, or declares a pointer to a managed type ('{0}')</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_ManagedAddr_Title">
+        <source>This takes the address of, gets the size of, or declares a pointer to a managed type</source>
+        <target state="new">This takes the address of, gets the size of, or declares a pointer to a managed type</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_MethGrpToNonDel">

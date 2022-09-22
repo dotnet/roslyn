@@ -119,7 +119,7 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
                     DocumentId.CreateNewId(projectId, mappedPath),
                     name: mappedPath,
                     filePath: mappedPath,
-                    loader: new FileTextLoader(mappedPath, parsedCommandLine.Encoding));
+                    loader: new WorkspaceFileTextLoader(languageServices.SolutionServices, mappedPath, parsedCommandLine.Encoding));
             }
         }
 

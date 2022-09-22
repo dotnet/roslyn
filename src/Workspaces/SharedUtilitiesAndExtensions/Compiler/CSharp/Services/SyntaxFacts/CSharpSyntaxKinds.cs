@@ -124,6 +124,7 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageService
 
         public int Attribute => (int)SyntaxKind.Attribute;
         public int ClassDeclaration => (int)SyntaxKind.ClassDeclaration;
+        public int InterfaceDeclaration => (int)SyntaxKind.InterfaceDeclaration;
         public int? RecordDeclaration => (int)SyntaxKind.RecordDeclaration;
         public int? RecordStructDeclaration => (int)SyntaxKind.RecordStructDeclaration;
         public int? StructDeclaration => (int)SyntaxKind.StructDeclaration;
