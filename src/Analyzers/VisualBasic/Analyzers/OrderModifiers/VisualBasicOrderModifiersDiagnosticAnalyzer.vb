@@ -2,6 +2,7 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
+Imports Microsoft.CodeAnalysis.CodeStyle
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.OrderModifiers
 Imports Microsoft.CodeAnalysis.VisualBasic.CodeStyle
@@ -19,6 +20,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.OrderModifiers
                        VisualBasicOrderModifiersHelper.Instance,
                        LanguageNames.VisualBasic)
         End Sub
+
+        Protected Overrides Function GetPreferredOrderStyle(context As SyntaxTreeAnalysisContext) As CodeStyleOption2(Of String)
+            Return context.GetVisualBasicAnalyzerOptions().PreferredModifierOrder
+        End Function
 
         Protected Overrides Sub Recurse(
             context As SyntaxTreeAnalysisContext,

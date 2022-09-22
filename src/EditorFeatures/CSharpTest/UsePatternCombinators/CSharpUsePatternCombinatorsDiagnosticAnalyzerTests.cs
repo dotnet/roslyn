@@ -105,6 +105,8 @@ class C
         [InlineData("i == default || i > default(int)", "i is default(int) or > (default(int))")]
         [InlineData("!(o is C c)", "o is not C c")]
         [InlineData("o is int ii && o is long jj", "o is int ii and long jj")]
+        [InlineData("o is string || o is Exception", "o is string or Exception")]
+        [InlineData("o is System.String || o is System.Exception", "o is System.String or System.Exception")]
         [InlineData("!(o is C)", "o is not C")]
         [InlineData("!(o is C _)", "o is not C _")]
         [InlineData("i == (0x02 | 0x04) || i != 0", "i is (0x02 | 0x04) or not 0")]
@@ -473,6 +475,151 @@ class C
         }
 
         if (c == 'x' && c == 'y')
+        {
+        }
+    }
+}
+");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUsePatternCombinators)]
+        [WorkItem(57199, "https://github.com/dotnet/roslyn/issues/57199")]
+        public async Task TestMissingInNonConvertibleTypePattern1()
+        {
+            await TestMissingAsync(
+@"
+static class C
+{
+    public struct S1 : I { }
+    public struct S2 : I { }
+    public interface I { }
+}
+
+class Test<T>
+{
+    public readonly T C;
+    bool P => [|C is C.S1 || C is C.S2|];
+}
+");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUsePatternCombinators)]
+        [WorkItem(57199, "https://github.com/dotnet/roslyn/issues/57199")]
+        public async Task TestMissingInNonConvertibleTypePattern2()
+        {
+            await TestMissingAsync(
+@"
+        class Goo
+        {
+            private class X { }
+            private class Y { }
+
+            private void M(object o)
+            {
+                var X = 1;
+                var Y = 2;
+
+                if [|(o is X || o is Y)|]
+                {
+                }
+            }
+        }
+");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUsePatternCombinators)]
+        [WorkItem(57199, "https://github.com/dotnet/roslyn/issues/57199")]
+        public async Task TestMissingInNonConvertibleTypePattern3()
+        {
+            await TestMissingAsync(
+@"
+        class Goo
+        {
+            private class X { }
+            private class Y { }
+            private void M(object o)
+            {
+                var X = 1;
+                var Y = 2;
+                if [|(o is global::Goo.X || o is Y)|]
+                {
+                }
+            }
+        }
+");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUsePatternCombinators)]
+        [WorkItem(57199, "https://github.com/dotnet/roslyn/issues/57199")]
+        public async Task TestInConvertibleTypePattern()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+static class C
+{
+    public struct S1 : I { }
+    public struct S2 : I { }
+    public interface I { }
+}
+
+class Test<T>
+{
+    bool P => [|C is C.S1 || C is C.S2|];
+}
+",
+
+@"
+static class C
+{
+    public struct S1 : I { }
+    public struct S2 : I { }
+    public interface I { }
+}
+
+class Test<T>
+{
+    bool P => C is C.S1 or C.S2;
+}
+");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUsePatternCombinators)]
+        [WorkItem(57199, "https://github.com/dotnet/roslyn/issues/57199")]
+        public async Task TestInConvertibleTypePattern2()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+public class Goo
+{
+    private class X { }
+    private class Y { }
+
+    private void M(object o)
+    {
+        var X = 1;
+        var Y = 2;
+
+        var @int = 1;
+        var @long = 2;
+        if [|(o is int || o is long)|]
+        {
+        }
+    }
+}
+", @"
+public class Goo
+{
+    private class X { }
+    private class Y { }
+
+    private void M(object o)
+    {
+        var X = 1;
+        var Y = 2;
+
+        var @int = 1;
+        var @long = 2;
+        if (o is int or long)
         {
         }
     }

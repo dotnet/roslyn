@@ -122,6 +122,11 @@
         <target state="translated">Um dos parâmetros de um operador binário deve ser o tipo recipiente ou seu parâmetro de tipo restrito a ele.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_BadAbstractEqualityOperatorSignature">
+        <source>One of the parameters of an equality, or inequality operator declared in interface '{0}' must be a type parameter on '{0}' constrained to '{0}'</source>
+        <target state="translated">Um dos parâmetros de um operador de igualdade ou desigualdade declarado na interface '{0}' deve ser um parâmetro de tipo em '{0}' restrito a '{0}'</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_BadAbstractIncDecRetType">
         <source>The return type for ++ or -- operator must either match the parameter type, or be derived from the parameter type, or be the containing type's type parameter constrained to it unless the parameter type is a different type parameter.</source>
         <target state="translated">O tipo de retorno para o operador ++ ou -- deve corresponder ao tipo de parâmetro, ser derivado do tipo de parâmetro ou ser o parâmetro de tipo do tipo recipiente restrito a ele a menos que o tipo de parâmetro seja um parâmetro de tipo diferente.</target>
@@ -133,18 +138,23 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadAbstractShiftOperatorSignature">
-        <source>The first operand of an overloaded shift operator must have the same type as the containing type or its type parameter constrained to it, and the type of the second operand must be int</source>
-        <target state="translated">O primeiro operando de um operador de deslocamento sobrecarregado deve ser do tipo recipiente ou o parâmetro de tipo restrito a ele, enquanto o do segundo deve ser int</target>
+        <source>The first operand of an overloaded shift operator must have the same type as the containing type or its type parameter constrained to it</source>
+        <target state="translated">A primeira operação de um operador de deslocamento sobrecarregado deve ter o mesmo tipo que o contém ou seu parâmetro de tipo limitado a ele</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadAbstractStaticMemberAccess">
-        <source>A static abstract interface member can be accessed only on a type parameter.</source>
-        <target state="translated">Um membro de interface abstrato estático só pode ser acessado em um parâmetro de tipo.</target>
+        <source>A static virtual or abstract interface member can be accessed only on a type parameter.</source>
+        <target state="translated">Um membro de interface de abstrato ou estático virtual só pode ser acessado em um parâmetro de tipo.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadAbstractUnaryOperatorSignature">
         <source>The parameter of a unary operator must be the containing type, or its type parameter constrained to it.</source>
         <target state="translated">O parâmetro de um operador unário deve ser do tipo recipiente ou seu parâmetro de tipo restrito a ele.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_BadBinaryReadOnlySpanConcatenation">
+        <source>Operator '{0}' cannot be applied to operands of type '{1}' and '{2}' that are not UTF-8 byte representations</source>
+        <target state="translated">O operador '{0}' não pode ser aplicado a operandos do tipo '{1}' e '{2}' que não são representações de bytes UTF-8</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadCallerArgumentExpressionParamWithoutDefaultValue">
@@ -222,6 +232,11 @@
         <target state="translated">O atributo AsyncMethodBuilder não é permitido em métodos anônimos sem um tipo de retorno explícito.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_CannotBeConvertedToUtf8">
+        <source>The input string cannot be converted into the equivalent UTF-8 byte representation. {0}</source>
+        <target state="translated">A cadeia de caracteres de entrada não pode ser convertida na representação equivalente em bytes UTF-8. {0}</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_CannotBeMadeNullable">
         <source>'{0}' cannot be made nullable.</source>
         <target state="translated">'{0}' não pode ser tornado anulável.</target>
@@ -233,8 +248,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_CannotConvertAddressOfToDelegate">
-        <source>Cannot convert &amp;method group '{0}' to delegate type '{0}'.</source>
-        <target state="translated">Não é possível converter o grupo de &amp;métodos '{0}' no tipo delegado '{0}'.</target>
+        <source>Cannot convert &amp;method group '{0}' to delegate type '{1}'.</source>
+        <target state="translated">Não é possível converter o grupo &amp;método '{0}' para o tipo delegado '{1}'.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CannotInferDelegateType">
@@ -285,6 +300,16 @@
       <trans-unit id="ERR_CantUseInOrOutInArglist">
         <source>__arglist cannot have an argument passed by 'in' or 'out'</source>
         <target state="translated">__arglist não pode ter um argumento passado por 'in' ou 'out'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ChainingToSetsRequiredMembersRequiresSetsRequiredMembers">
+        <source>This constructor must add 'SetsRequiredMembers' because it chains to a constructor that has that attribute.</source>
+        <target state="translated">Este construtor deve adicionar 'SetsRequiredMembers' porque se acorrenta a um construtor que tem esse atributo.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_CheckedOperatorNeedsMatch">
+        <source>The operator '{0}' requires a matching non-checked version of the operator to also be defined</source>
+        <target state="translated">O operador "{0}" requer que uma versão correspondente não verificada do operador para também ser definido</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CloneDisallowedInRecord">
@@ -357,11 +382,6 @@
         <target state="translated">Uma variável não pode ser declarada em um padrão 'not' ou 'or'.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_DiscardCannotBeNullChecked">
-        <source>Discard parameter cannot be null-checked.</source>
-        <target state="new">Discard parameter cannot be null-checked.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_DiscardPatternInSwitchStatement">
         <source>The discard pattern is not permitted as a case label in a switch statement. Use 'case var _:' for a discard pattern, or 'case @_:' for a constant named '_'.</source>
         <target state="translated">O padrão de descarte não é permitido como um rótulo de caso em uma instrução switch. Use 'case var _:' para um padrão de descarte ou 'case @_:' para uma constante chamada '_'.</target>
@@ -414,7 +434,7 @@
       </trans-unit>
       <trans-unit id="ERR_EncUpdateFailedDelegateTypeChanged">
         <source>Cannot update because an inferred delegate type has changed.</source>
-        <target state="new">Cannot update because an inferred delegate type has changed.</target>
+        <target state="translated">Não foi possível atualizar porque um tipo de delegado inferido foi alterado.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_EntryPointCannotBeUnmanagedCallersOnly">
@@ -425,6 +445,11 @@
       <trans-unit id="ERR_EqualityContractRequiresGetter">
         <source>Record equality contract property '{0}' must have a get accessor.</source>
         <target state="translated">A propriedade de contrato de igualdade do registro '{0}' precisa ter um acessador get.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_EscapeVariable">
+        <source>Cannot use variable '{0}' in this context because it may expose referenced variables outside of their declaration scope</source>
+        <target state="translated">Não é possível usar a variável '{0}' neste contexto porque ela pode expor variáveis referenciadas fora de seu escopo de declaração</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExplicitImplementationOfOperatorsMustBeStatic">
@@ -440,6 +465,11 @@
       <trans-unit id="ERR_ExplicitPropertyMismatchInitOnly">
         <source>Accessors '{0}' and '{1}' should both be init-only or neither</source>
         <target state="translated">Os acessadores '{0}' e '{1}' devem ser somente de inicialização ou nenhum</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ExplicitRequiredMember">
+        <source>Do not use 'System.Runtime.CompilerServices.RequiredMemberAttribute'. Use the 'required' keyword on required fields and properties instead.</source>
+        <target state="translated">Não use 'System.Runtime.CompilerServices.RequiredMemberAttribute'. Use a palavra-chave 'required' nos campos e propriedades requeridos.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExprCannotBeFixed">
@@ -458,8 +488,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExpressionTreeContainsAbstractStaticMemberAccess">
-        <source>An expression tree may not contain an access of static abstract interface member</source>
-        <target state="translated">Uma árvore de expressão pode não conter um acesso de membro de interface abstrato estático</target>
+        <source>An expression tree may not contain an access of static virtual or abstract interface member</source>
+        <target state="translated">Uma árvore de expressão pode não conter um acesso de membro de interface de abstrato estático ou virtual</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExpressionTreeContainsFromEndIndexExpression">
@@ -490,6 +520,11 @@
       <trans-unit id="ERR_ExpressionTreeContainsTupleBinOp">
         <source>An expression tree may not contain a tuple == or != operator</source>
         <target state="translated">Uma árvore de expressão não pode conter um operador == ou != de tupla</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ExpressionTreeContainsUtf8StringLiterals">
+        <source>An expression tree may not contain UTF-8 string conversion or literal.</source>
+        <target state="translated">Uma árvore de expressão não pode conter conversão de cadeia de caracteres UTF-8 ou literal.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExpressionTreeContainsWithExpression">
@@ -547,6 +582,11 @@
         <target state="translated">O namespace de escopo de arquivo deve preceder todos os outros membros em um arquivo.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_FixedFieldMustNotBeRef">
+        <source>A fixed field must not be a ref field.</source>
+        <target state="translated">Um campo fixo não deve ser um campo ref.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_ForEachMissingMemberWrongAsync">
         <source>foreach statement cannot operate on variables of type '{0}' because '{0}' does not contain a public instance or extension definition for '{1}'. Did you mean 'await foreach' rather than 'foreach'?</source>
         <target state="translated">A instrução foreach não pode operar em variáveis do tipo '{0}' porque '{0}' não contém uma definição de extensão ou de instância pública para '{1}'. Você quis dizer 'await foreach' em vez de 'foreach'?</target>
@@ -573,8 +613,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_GenericConstraintNotSatisfiedInterfaceWithStaticAbstractMembers">
-        <source>The interface '{3}' cannot be used as type parameter '{2}' in the generic type or method '{0}'. The constraint interface '{1}' or its base interface has static abstract members.</source>
-        <target state="translated">A interface '{3}' não pode ser usada como o parâmetro de tipo '{2}' no tipo ou método genérico '{0}'. A interface de restrição '{1}' ou sua interface base tem membros abstratos estáticos.</target>
+        <source>The interface '{0}' cannot be used as type argument. Static member '{1}' does not have a most specific implementation in the interface.</source>
+        <target state="translated">A interface '{0}' não pode ser usada como argumento de tipo. O membro estático '{1}' não tem uma implementação mais específica na interface.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_GlobalUsingInNamespace">
@@ -604,12 +644,22 @@
       </trans-unit>
       <trans-unit id="ERR_IllegalAtSequence">
         <source>Sequence of '@' characters is not allowed. A verbatim string or identifier can only have one '@' character and a raw string cannot have any.</source>
-        <target state="new">Sequence of '@' characters is not allowed. A verbatim string or identifier can only have one '@' character and a raw string cannot have any.</target>
+        <target state="translated">A sequência de caracteres “@” não é permitida. Uma cadeia de caracteres verbatim ou um identificador só podem ter um caractere “@” e uma cadeia de caracteres bruta não pode ter nenhum.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_IllegalSuppression">
         <source>The suppression operator is not allowed in this context</source>
         <target state="translated">O operador de supressão não é permitido neste contexto</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ImplicitConversionOperatorCantBeChecked">
+        <source>An 'implicit' user-defined conversion operator cannot be declared checked</source>
+        <target state="translated">Um operador de conversão 'implicit' definido pelo usuário não pode ser declarado verificado</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ImplicitImplementationOfInaccessibleInterfaceMember">
+        <source>'{0}' does not implement interface member '{1}'. '{2}' cannot implicitly implement an inaccessible member.</source>
+        <target state="translated">'{0}' não implementa o membro da interface '{1}'. '{2}' não pode implementar implicitamente um membro inacessível.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ImplicitIndexIndexerWithName">
@@ -787,14 +837,19 @@
         <target state="translated">Uma expressão lambda com atributos não pode ser convertida em uma árvore de expressão</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_LanguageVersionDoesNotSupportInterfaceImplementationForMember">
+        <source>'{0}' cannot implement interface member '{1}' in type '{2}' because feature '{3}' is not available in C# {4}. Please use language version '{5}' or greater.</source>
+        <target state="translated">'{0}' não pode implementar o membro de interface '{1}' no tipo '{2}' porque o recurso '{3}' não está disponível no C# {4}. Use a versão de linguagem '{5}' ou superior.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_LineContainsDifferentWhitespace">
         <source>Line contains different whitespace than the closing line of the raw string literal: '{0}' versus '{1}'</source>
-        <target state="new">Line contains different whitespace than the closing line of the raw string literal: '{0}' versus '{1}'</target>
+        <target state="translated">A linha contém espaços em branco diferentes dos da linha de fechamento da literal de cadeia de caracteres bruta: “{0}” x “{1}”</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_LineDoesNotStartWithSameWhitespace">
         <source>Line does not start with the same whitespace as the closing line of the raw string literal.</source>
-        <target state="new">Line does not start with the same whitespace as the closing line of the raw string literal.</target>
+        <target state="translated">A linha não começa com o mesmo espaço em branco que a linha de fechamento da literal de cadeia de caracteres bruta.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_LineSpanDirectiveEndLessThanStart">
@@ -807,9 +862,14 @@
         <target state="translated">O valor da diretiva de #line está ausente ou fora do intervalo</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_LineSpanDirectiveRequiresSpace">
+        <source>The #line span directive requires space before the first parenthesis, before the character offset, and before the file name</source>
+        <target state="translated">A #linha de intervalo requer espaço antes do primeiro parêntese, antes do deslocamento do caractere e antes do nome do arquivo</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_ListPatternRequiresLength">
         <source>List patterns may not be used for a value of type '{0}'. No suitable 'Length' or 'Count' property was found.</source>
-        <target state="new">List patterns may not be used for a value of type '{0}'. No suitable 'Length' or 'Count' property was found.</target>
+        <target state="translated">Padrões de lista não podem ser usados para um valor do tipo “{0}”. Nenhuma propriedade “Length” ou “Count” adequada foi encontrada.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MethFuncPtrMismatch">
@@ -819,12 +879,17 @@
       </trans-unit>
       <trans-unit id="ERR_MisplacedRecord">
         <source>Unexpected keyword 'record'. Did you mean 'record struct' or 'record class'?</source>
-        <target state="new">Unexpected keyword 'record'. Did you mean 'record struct' or 'record class'?</target>
+        <target state="translated">Palavra-chave inesperada “record”. Você quis dizer “record struct” or “record class”?</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MisplacedSlicePattern">
         <source>Slice patterns may only be used once and directly inside a list pattern.</source>
         <target state="translated">Os padrões de fatia somente podem ser usados uma vez e diretamente dentro de um padrão de lista.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_MisplacedUnchecked">
+        <source>Unexpected keyword 'unchecked'</source>
+        <target state="translated">Palavra-chave inesperada 'unchecked'</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MissingAddressOf">
@@ -882,14 +947,14 @@
         <target state="translated">Apenas uma declaração parcial de registro único pode ter uma lista de parâmetros</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_MustNullCheckInImplementation">
-        <source>Parameter '{0}' can only have exclamation-point null checking in implementation methods.</source>
-        <target state="translated">O parâmetro '{0}' só pode ter verificação nula de ponto de exclamação nos métodos de implementação.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_NewBoundWithUnmanaged">
         <source>The 'new()' constraint cannot be used with the 'unmanaged' constraint</source>
         <target state="translated">A restrição 'new()' não pode ser usada com a restrição 'unmanaged'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_NewConstraintCannotHaveRequiredMembers">
+        <source>'{2}' cannot satisfy the 'new()' constraint on parameter '{1}' in the generic type or or method '{0}' because '{2}' has required members.</source>
+        <target state="translated">'{2}' não pode satisfazer a restrição 'new()' no parâmetro '{1}' no tipo genérico ou método '{0}' porque '{2}' tem membros requeridos.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NewlinesAreNotAllowedInsideANonVerbatimInterpolatedString">
@@ -919,12 +984,12 @@
       </trans-unit>
       <trans-unit id="ERR_NoDelegateConstraint">
         <source>Keyword 'delegate' cannot be used as a constraint. Did you mean 'System.Delegate'?</source>
-        <target state="new">Keyword 'delegate' cannot be used as a constraint. Did you mean 'System.Delegate'?</target>
+        <target state="translated">A palavra-chave “delegate” não pode ser usada como uma restrição. Você quis dizer “System.Delegate”?</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoEnumConstraint">
         <source>Keyword 'enum' cannot be used as a constraint. Did you mean 'struct, System.Enum'?</source>
-        <target state="new">Keyword 'enum' cannot be used as a constraint. Did you mean 'struct, System.Enum'?</target>
+        <target state="translated">A palavra-chave “enum” não pode ser usada como uma restrição. Você quis dizer “struct, System.Enum”?</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoImplicitConvTargetTypedConditional">
@@ -935,11 +1000,6 @@
       <trans-unit id="ERR_NoOutputDirectory">
         <source>Output directory could not be determined</source>
         <target state="translated">Não foi possível determinar o diretório de saída</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_NonNullableValueTypeIsNullChecked">
-        <source>Parameter '{0}' is a non-nullable value type and cannot be null-checked.</source>
-        <target state="translated">O parâmetro '{0}' é um tipo de valor não anulável e não pode ser verificado como nulo.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NonPrivateAPIInRecord">
@@ -964,12 +1024,12 @@
       </trans-unit>
       <trans-unit id="ERR_NotEnoughCloseBracesForRawString">
         <source>The interpolation must end with the same number of closing braces as the number of '$' characters that the raw string literal started with.</source>
-        <target state="new">The interpolation must end with the same number of closing braces as the number of '$' characters that the raw string literal started with.</target>
+        <target state="translated">A interpolação deve terminar com o mesmo número de chaves de fechamento que o número de caracteres “$” com o qual a literal da cadeia de caracteres bruta começou.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NotEnoughQuotesForRawString">
         <source>Not enough quotes for raw string literal.</source>
-        <target state="new">Not enough quotes for raw string literal.</target>
+        <target state="translated">Não há aspas suficientes para a literal da cadeia de caracteres bruta.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NotInstanceInvalidInterpolatedStringHandlerArgumentName">
@@ -980,11 +1040,6 @@
       <trans-unit id="ERR_NotOverridableAPIInRecord">
         <source>'{0}' must allow overriding because the containing record is not sealed.</source>
         <target state="translated">'{0}' precisa permitir a substituição porque o registro contentor não está selado.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_NullCheckingOnOutParameter">
-        <source>'out' parameter '{0}' cannot be null-checked.</source>
-        <target state="new">'out' parameter '{0}' cannot be null-checked.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NullInvalidInterpolatedStringHandlerArgumentName">
@@ -1017,6 +1072,11 @@
         <target state="translated">Omitir o argumento de tipo não é permitido no contexto atual</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_OperatorCantBeChecked">
+        <source>User-defined operator '{0}' cannot be declared checked</source>
+        <target state="translated">O operador definido pelo usuário '{0}' não pode ser declarado verificado</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_OutVariableCannotBeByRef">
         <source>An out variable cannot be declared as a ref local</source>
         <target state="translated">Uma variável out não pode ser declarada como uma referência local</target>
@@ -1027,6 +1087,11 @@
         <target state="translated">O método '{0}' especifica uma restrição 'default' para o parâmetro de tipo '{1}', mas o parâmetro de tipo correspondente '{2}' do método substituído ou implementado explicitamente '{3}' está restrito por um tipo de referência ou um tipo de valor.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_OverrideMustHaveRequired">
+        <source>'{0}' must be required because it overrides required member '{1}'</source>
+        <target state="translated">'{0}' deve ser requerido porque substitui o membro requerido '{1}'</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_OverrideRefConstraintNotSatisfied">
         <source>Method '{0}' specifies a 'class' constraint for type parameter '{1}', but corresponding type parameter '{2}' of overridden or explicitly implemented method '{3}' is not a reference type.</source>
         <target state="translated">O método '{0}' especifica uma restrição de 'class' para o parâmetro de tipo '{1}', mas o parâmetro de tipo correspondente '{2}' do método substituído ou implementado explicitamente '{3}' não é um tipo de referência.</target>
@@ -1035,6 +1100,11 @@
       <trans-unit id="ERR_OverrideValConstraintNotSatisfied">
         <source>Method '{0}' specifies a 'struct' constraint for type parameter '{1}', but corresponding type parameter '{2}' of overridden or explicitly implemented method '{3}' is not a non-nullable value type.</source>
         <target state="translated">O método '{0}' especifica uma restrição 'struct' para o parâmetro de tipo '{1}', mas o parâmetro de tipo correspondente '{2}' do método substituído ou implementado explicitamente '{3}' não é um tipo de valor não anulável.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ParameterNullCheckingNotSupported">
+        <source>The 'parameter null-checking' feature is not supported.</source>
+        <target state="translated">O recurso de 'verificação nula de parâmetro' não tem suporte.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialMethodAccessibilityDifference">
@@ -1082,6 +1152,11 @@
         <target state="translated">O método parcial '{0}' precisa ter modificadores de acessibilidade porque ele tem parâmetros 'out'.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_PatternSpanCharCannotBeStringNull">
+        <source>A string 'null' constant is not supported as a pattern for '{0}'. Use an empty string instead.</source>
+        <target state="translated">Uma constante cadeia de caracteres 'null' não é suportada como padrão para '{0}'. Use uma cadeia de caracteres vazia em seu lugar.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_PointerTypeInPatternMatching">
         <source>Pattern-matching is not permitted for pointer types.</source>
         <target state="translated">A correspondência de padrões não é permitida para tipos de ponteiro.</target>
@@ -1104,22 +1179,22 @@
       </trans-unit>
       <trans-unit id="ERR_RawStringDelimiterOnOwnLine">
         <source>Raw string literal delimiter must be on its own line.</source>
-        <target state="new">Raw string literal delimiter must be on its own line.</target>
+        <target state="translated">O delimitador da cadeia de caracteres bruta deve estar em sua própria linha.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RawStringInVerbatimInterpolatedStrings">
         <source>Multi-line raw string literals are only allowed in verbatim interpolated strings.</source>
-        <target state="new">Multi-line raw string literals are only allowed in verbatim interpolated strings.</target>
+        <target state="translated">Literais de cadeia de caracteres bruta de várias linhas só são permitidas em cadeias de caracteres verbatim interpoladas.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RawStringMustContainContent">
         <source>Multi-line raw string literals must contain at least one line of content.</source>
-        <target state="new">Multi-line raw string literals must contain at least one line of content.</target>
+        <target state="translated">Literais de cadeia de caracteres bruta de várias linhas devem conter pelo menos uma linha de conteúdo.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RawStringNotInDirectives">
         <source>Raw string literals are not allowed in preprocessor directives.</source>
-        <target state="new">Raw string literals are not allowed in preprocessor directives.</target>
+        <target state="translated">Literais de cadeia de caracteres bruta não são permitidas em diretivas de pré-processador.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ReAbstractionInNoPIAType">
@@ -1147,14 +1222,64 @@
         <target state="translated">Não é possível atribuir ref '{1}' a '{0}' porque '{1}' tem um escopo de escape mais limitado que '{0}'.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_RefFieldCannotReferToRefStruct">
+        <source>A ref field cannot refer to a ref struct.</source>
+        <target state="translated">Um campo ref não pode se referir a um struct ref.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_RefLocalOrParamExpected">
-        <source>The left-hand side of a ref assignment must be a ref local or parameter.</source>
-        <target state="translated">O lado esquerdo da atribuição ref precisa ser um parâmetro ou local ref.</target>
+        <source>The left-hand side of a ref assignment must be a ref variable.</source>
+        <target state="translated">O lado esquerdo de uma atribuição ref deve ser uma variável ref.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_RefReturningPropertiesCannotBeRequired">
+        <source>Ref returning properties cannot be required.</source>
+        <target state="translated">Não se pode exigir a devolução de propriedades de referência.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RelationalPatternWithNaN">
         <source>Relational patterns may not be used for a floating-point NaN.</source>
         <target state="translated">Os padrões relacionais não podem ser usados para um NaN de ponto flutuante.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_RequiredMemberCannotBeHidden">
+        <source>Required member '{0}' cannot be hidden by '{1}'.</source>
+        <target state="translated">O membro requerido '{0}' não pode ser ocultado por '{1}'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_RequiredMemberCannotBeLessVisibleThanContainingType">
+        <source>Required member '{0}' cannot be less visible or have a setter less visible than the containing type '{1}'.</source>
+        <target state="translated">O membro requerido '{0}' pode ser menos visível ou ter um setter menos visível do que o tipo que o contém'{1}'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_RequiredMemberMustBeSet">
+        <source>Required member '{0}' must be set in the object initializer or attribute constructor.</source>
+        <target state="translated">O membro requerido '{0}' deve ser definido no inicializador de objeto ou construtor do atributo.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_RequiredMemberMustBeSettable">
+        <source>Required member '{0}' must be settable.</source>
+        <target state="translated">O membro requerido '{0}' deve ser ajustável.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_RequiredMembersBaseTypeInvalid">
+        <source>The required members list for the base type '{0}' is malformed and cannot be interpreted. To use this constructor, apply the 'SetsRequiredMembers' attribute.</source>
+        <target state="translated">A lista de membros requeridos para o tipo base '{0}' está malformada e não pode ser interpretada. Para usar este construtor, aplique o atributo 'SetsRequiredMembers'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_RequiredMembersInvalid">
+        <source>The required members list for '{0}' is malformed and cannot be interpreted.</source>
+        <target state="translated">A lista de membros requeridos '{0}' está malformada e não pode ser interpretada.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_RequiredMembersMustBeAssignedValue">
+        <source>Required member '{0}' must be assigned a value, it cannot use a nested member or collection initializer.</source>
+        <target state="translated">O membro requerido '{0}' deve ser atribuído um valor, ele não pode usar um membro aninhado ou um inicializador de coleção.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_RequiredNameDisallowed">
+        <source>Types and aliases cannot be named 'required'.</source>
+        <target state="translated">Tipos e pseudônimos não podem ser nomeados 'requeridos'.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RuntimeDoesNotSupportCovariantPropertiesOfClasses">
@@ -1185,6 +1310,31 @@
       <trans-unit id="ERR_RuntimeDoesNotSupportUnmanagedDefaultCallConv">
         <source>The target runtime doesn't support extensible or runtime-environment default calling conventions.</source>
         <target state="translated">O runtime de destino não dá suporte a convenções de chamada padrão extensíveis ou de ambiente de runtime.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ScopedMismatchInParameterOfOverrideOrImplementation">
+        <source>The 'scoped' modifier of parameter '{0}' doesn't match overridden or implemented member.</source>
+        <target state="translated">O modificador 'scoped' do parâmetro '{0}' não corresponde ao membro substituído ou implementado.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ScopedMismatchInParameterOfPartial">
+        <source>The 'scoped' modifier of parameter '{0}' doesn't match partial method declaration.</source>
+        <target state="translated">O modificador 'scoped' do parâmetro '{0}' não corresponde à declaração de método parcial.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ScopedMismatchInParameterOfTarget">
+        <source>The 'scoped' modifier of parameter '{0}' doesn't match target '{1}'.</source>
+        <target state="translated">O modificador 'scoped' do parâmetro '{0}' não corresponde ao parâmetro de '{1}'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ScopedRefAndRefStructOnly">
+        <source>The 'scoped' modifier can be used for refs and ref struct values only.</source>
+        <target state="translated">O modificador 'scoped' só pode ser usado para valores de struct refs e ref.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ScriptsAndSubmissionsCannotHaveRequiredMembers">
+        <source>Required members are not allowed on the top level of a script or submission.</source>
+        <target state="translated">Os membros necessários não são permitidos no nível superior de um script ou envio.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_SealedAPIInRecord">
@@ -1264,7 +1414,7 @@
       </trans-unit>
       <trans-unit id="ERR_StringMustStartWithQuoteCharacter">
         <source>String must start with quote character: "</source>
-        <target state="new">String must start with quote character: "</target>
+        <target state="translated">A cadeia de caracteres deve começar com o caractere de aspa: "</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_StructHasInitializersAndNoDeclaredConstructor">
@@ -1294,17 +1444,17 @@
       </trans-unit>
       <trans-unit id="ERR_TooManyCloseBracesForRawString">
         <source>The interpolated raw string literal does not start with enough '$' characters to allow this many consecutive closing braces as content.</source>
-        <target state="new">The interpolated raw string literal does not start with enough '$' characters to allow this many consecutive closing braces as content.</target>
+        <target state="translated">A literal da cadeia de caracteres bruta interpolada não começa com caracteres “$” suficientes para permitir esse número de chaves de fechamento consecutivas como conteúdo.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_TooManyOpenBracesForRawString">
         <source>The interpolated raw string literal does not start with enough '$' characters to allow this many consecutive opening braces as content.</source>
-        <target state="new">The interpolated raw string literal does not start with enough '$' characters to allow this many consecutive opening braces as content.</target>
+        <target state="translated">A literal da cadeia de caracteres bruta interpolada não começa com caracteres “$” suficientes para permitir esse número de chaves de abertura consecutivas como conteúdo.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_TooManyQuotesForRawString">
         <source>The raw string literal does not start with enough quote characters to allow this many consecutive quote characters as content.</source>
-        <target state="new">The raw string literal does not start with enough quote characters to allow this many consecutive quote characters as content.</target>
+        <target state="translated">A literal da cadeia de caracteres bruta não começa com caracteres de aspa suficientes para permitir esse número de caracteres de aspa consecutivos como conteúdo.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_TopLevelStatementAfterNamespaceOrType">
@@ -1342,6 +1492,16 @@
         <target state="translated">O tipo '{0}' precisa ser público para ser usado como uma convenção de chamada.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_UnassignedThisAutoPropertyUnsupportedVersion">
+        <source>Auto-implemented property '{0}' must be fully assigned before control is returned to the caller. Consider updating to language version '{1}' to auto-default the property.</source>
+        <target state="translated">A propriedade auto-implementada '{0}' deve ser totalmente atribuída antes que o controle seja devolvido ao chamador. Considere atualizar para a versão de linguagem '{1}' para auto-padrão da propriedade.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_UnassignedThisUnsupportedVersion">
+        <source>Field '{0}' must be fully assigned before control is returned to the caller. Consider updating to language version '{1}' to auto-default the field.</source>
+        <target state="translated">O campo '{0}' deve ser totalmente atribuída antes que o controle seja devolvido ao chamador. Considere atualizar para a versão de linguagem '{1}' para auto-padrão do campo.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_UnmanagedCallersOnlyMethodsCannotBeCalledDirectly">
         <source>'{0}' is attributed with 'UnmanagedCallersOnly' and cannot be called directly. Obtain a function pointer to this method.</source>
         <target state="translated">'{0}' foi atribuído com 'UnmanagedCallersOnly' e não pode ser chamado diretamente. Obtenha um ponteiro de função para esse método.</target>
@@ -1351,6 +1511,11 @@
         <source>'{0}' is attributed with 'UnmanagedCallersOnly' and cannot be converted to a delegate type. Obtain a function pointer to this method.</source>
         <target state="translated">'{0}' foi atribuído com 'UnmanagedCallersOnly' e não pode ser convertido em um tipo delegado. Obtenha um ponteiro de função para esse método.</target>
         <note>UnmanagedCallersOnly is not localizable.</note>
+      </trans-unit>
+      <trans-unit id="ERR_UnsupportedCompilerFeature">
+        <source>'{0}' requires compiler feature '{1}', which is not supported by this version of the C# compiler.</source>
+        <target state="translated">'{0}' requer o recurso de compilador '{1}', o que não é suportado por esta versão do compilador de C#.</target>
+        <note />
       </trans-unit>
       <trans-unit id="ERR_UnsupportedTypeForListPattern">
         <source>List patterns may not be used for a value of type '{0}'.</source>
@@ -1364,7 +1529,22 @@
       </trans-unit>
       <trans-unit id="ERR_UnterminatedRawString">
         <source>Unterminated raw string literal.</source>
-        <target state="new">Unterminated raw string literal.</target>
+        <target state="translated">Literal de cadeia de caracteres não terminada.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_UseDefViolationFieldUnsupportedVersion">
+        <source>Use of possibly unassigned field '{0}'. Consider updating to language version '{1}' to auto-default the field.</source>
+        <target state="translated">Uso de campo possivelmente não atribuído '{0}'. Considere atualizar para a versão de linguagem '{1}' para auto-padrão do campo.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_UseDefViolationPropertyUnsupportedVersion">
+        <source>Use of possibly unassigned auto-implemented property '{0}'. Consider updating to language version '{1}' to auto-default the property.</source>
+        <target state="translated">O uso de propriedade auto-implementada possivelmente não atribuída '{0}'. Considere atualizar para a versão de linguagem '{1}' para auto-padrão da propriedade.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_UseDefViolationThisUnsupportedVersion">
+        <source>The 'this' object cannot be used before all of its fields have been assigned. Consider updating to language version '{0}' to auto-default the unassigned fields.</source>
+        <target state="translated">O objeto 'this' não pode ser usado antes que todos os seus campos serem atribuídos. Considere atualizar para a versão de linguagem '{0}' para auto-padrão dos campos não atribuídos.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_WrongArityAsyncReturn">
@@ -1387,6 +1567,16 @@
         <target state="translated">substituição do construtor de método assíncrono</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_FeatureAutoDefaultStructs">
+        <source>auto default struct fields</source>
+        <target state="translated">campos de struct para auto-padrão</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureCheckedUserDefinedOperators">
+        <source>checked user-defined operators</source>
+        <target state="translated">operadores verificados, definidos pelo usuário</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_FeatureCovariantReturnsForOverrides">
         <source>covariant returns</source>
         <target state="translated">retornos de covariante</target>
@@ -1395,6 +1585,11 @@
       <trans-unit id="IDS_FeatureDiscards">
         <source>discards</source>
         <target state="translated">descarte</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureDisposalPattern">
+        <source>pattern-based disposal</source>
+        <target state="translated">descarte baseado em padrões</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureExtendedPropertyPatterns">
@@ -1442,11 +1637,6 @@
         <target state="translated">tipo de retorno de lambda</target>
         <note />
       </trans-unit>
-      <trans-unit id="IDS_FeatureLineSpanDirective">
-        <source>line span directive</source>
-        <target state="translated">diretiva de extensão de linha</target>
-        <note />
-      </trans-unit>
       <trans-unit id="IDS_FeatureListPattern">
         <source>list pattern</source>
         <target state="translated">padrão de lista</target>
@@ -1469,13 +1659,28 @@
       </trans-unit>
       <trans-unit id="IDS_FeatureRawStringLiterals">
         <source>raw string literals</source>
-        <target state="new">raw string literals</target>
+        <target state="translated">literais de cadeia de caracteres bruta</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureRecordStructs">
         <source>record structs</source>
         <target state="translated">registrar structs</target>
         <note>'record structs' is not localizable.</note>
+      </trans-unit>
+      <trans-unit id="IDS_FeatureRefFields">
+        <source>ref fields</source>
+        <target state="translated">campos ref</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureRelaxedShiftOperator">
+        <source>relaxed shift operator</source>
+        <target state="translated">operador de deslocamento flexível</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureRequiredMembers">
+        <source>required members</source>
+        <target state="translated">membros requeridos</target>
+        <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureSealedToStringInRecord">
         <source>sealed ToString in record</source>
@@ -1485,6 +1690,16 @@
       <trans-unit id="IDS_FeatureStructFieldInitializers">
         <source>struct field initializers</source>
         <target state="translated">inicializadores de campo de struct</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureUnsignedRightShift">
+        <source>unsigned right shift</source>
+        <target state="translated">deslocamento direito não atribuído</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureUtf8StringLiterals">
+        <source>UTF-8 string literals</source>
+        <target state="translated">Cadeia de caracteres UTF-8 literais</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureWithOnAnonymousTypes">
@@ -1502,6 +1717,9 @@
         <target state="translated">com estruturas</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_FeatureSpanCharConstantPattern">
+        <source>pattern matching ReadOnly/Span&lt;char&gt; on constant string</source>
+        <target state="translated">padrões correspondentes a ReadOnly/Span&lt;char&gt; na cadeia de caracteres constante</target>
       <trans-unit id="IDS_LogoLine3">
         <source>Based on the Microsoft (R) Visual C# Compiler.
 Copyright (C) Microsoft Corporation. All rights reserved.
@@ -1524,6 +1742,16 @@ See LICENSE.md and THIRD_PARTY_NOTICES.txt for detailed legal notices.</target>
       <trans-unit id="WRN_AnalyzerReferencesFramework_Title">
         <source>The loaded assembly references .NET Framework, which is not supported.</source>
         <target state="translated">O assembly carregado referencia o .NET Framework, mas não há suporte para isso.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_AnalyzerReferencesNewerCompiler">
+        <source>The analyzer assembly '{0}' references version '{1}' of the compiler, which is newer than the currently running version '{2}'.</source>
+        <target state="translated">O assembly do analisador '{0}' referencia a versão '{1}' do compilador, que é mais recente que a versão em execução no momento '{2}'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_AnalyzerReferencesNewerCompiler_Title">
+        <source>The analyzer assembly references a newer version of the compiler than the currently running version.</source>
+        <target state="translated">O assembly do analisador faz referência a uma versão mais recente do compilador do que a versão em execução no momento.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_AttrDependentTypeNotAllowed">
@@ -1646,24 +1874,14 @@ See LICENSE.md and THIRD_PARTY_NOTICES.txt for detailed legal notices.</target>
         <target state="translated">Convertendo grupo de método em tipo não delegado</target>
         <note />
       </trans-unit>
-      <trans-unit id="WRN_NullCheckedHasDefaultNull">
-        <source>Parameter '{0}' is null-checked but is null by default.</source>
-        <target state="translated">O parâmetro '{0}' é verificado como nulo, mas é nulo por padrão.</target>
+      <trans-unit id="WRN_ObsoleteMembersShouldNotBeRequired">
+        <source>Required member '{0}' should not be attributed with 'ObsoleteAttribute' unless the containing type is obsolete or all constructors are obsolete.</source>
+        <target state="translated">Os membros requeridos '{0}' não devem ser atribuídos com 'ObsoleteAttribute', a menos que o tipo que o contém seja obsoleto ou que todos os construtores estejam obsoletos.</target>
         <note />
       </trans-unit>
-      <trans-unit id="WRN_NullCheckedHasDefaultNull_Title">
-        <source>Parameter is null-checked but is null by default.</source>
-        <target state="translated">O parâmetro é verificado como nulo, mas é nulo por padrão.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_NullCheckingOnNullableType">
-        <source>Nullable type '{0}' is null-checked and will throw if null.</source>
-        <target state="translated">O tipo anulável '{0}' é verificado como nulo e será lançado se for nulo.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_NullCheckingOnNullableType_Title">
-        <source>Nullable type is null-checked and will throw if null.</source>
-        <target state="translated">O tipo anulável é verificado como nulo e será lançado se for nulo.</target>
+      <trans-unit id="WRN_ObsoleteMembersShouldNotBeRequired_Title">
+        <source>Members attributed with 'ObsoleteAttribute' should not be required unless the containing type is obsolete or all constructors are obsolete.</source>
+        <target state="translated">Os membros atribuídos com 'ObsoleteAttribute' não devem ser requeridos, a menos que o tipo que o contém seja obsoleto ou que todos os construtores estejam obsoletos.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ParameterNotNullIfNotNull">
@@ -1777,8 +1995,8 @@ See LICENSE.md and THIRD_PARTY_NOTICES.txt for detailed legal notices.</target>
         <note>UnmanagedCallersOnly is not localizable.</note>
       </trans-unit>
       <trans-unit id="ERR_UnmanagedCallersOnlyRequiresStatic">
-        <source>'UnmanagedCallersOnly' can only be applied to ordinary static non-abstract methods or static local functions.</source>
-        <target state="translated">'UnmanagedCallersOnly' só pode ser aplicado a métodos estáticos não abstratos comuns ou funções locais estáticas.</target>
+        <source>'UnmanagedCallersOnly' can only be applied to ordinary static non-abstract, non-virtual methods or static local functions.</source>
+        <target state="translated">'UnmanagedCallersOnly' só pode ser aplicado a métodos estáticos comuns não abstratos, não virtuais ou funções locais estáticas.</target>
         <note>UnmanagedCallersOnly is not localizable.</note>
       </trans-unit>
       <trans-unit id="ERR_UnmanagedConstraintNotSatisfied">
@@ -3560,24 +3778,44 @@ See LICENSE.md and THIRD_PARTY_NOTICES.txt for detailed legal notices.</target>
         <target state="translated">O parâmetro de tipo tem o mesmo tipo que o parâmetro de tipo do método externo.</target>
         <note />
       </trans-unit>
-      <trans-unit id="WRN_UnassignedThis">
-        <source>Field '{0}' must be fully assigned before control is returned to the caller</source>
-        <target state="translated">Campo "{0}" deve ser totalmente atribuído antes que o controle seja retornado ao chamador</target>
+      <trans-unit id="WRN_UnassignedThisAutoPropertySupportedVersion">
+        <source>Control is returned to caller before auto-implemented property '{0}' is explicitly assigned, causing a preceding implicit assignment of 'default'.</source>
+        <target state="translated">O controle é devolvido ao chamador antes que a propriedade auto-implementada seja '{0}' explicitamente atribuída, causando uma atribuição implícita anterior de 'default'.</target>
         <note />
       </trans-unit>
-      <trans-unit id="WRN_UnassignedThisAutoProperty">
-        <source>Auto-implemented property '{0}' must be fully assigned before control is returned to the caller.</source>
-        <target state="translated">A propriedade '{0}' autoimplementada deve ser totalmente atribuída antes de o controle ser retornado ao chamador.</target>
+      <trans-unit id="WRN_UnassignedThisAutoPropertySupportedVersion_Title">
+        <source>Control is returned to caller before auto-implemented property is explicitly assigned, causing a preceding implicit assignment of 'default'.</source>
+        <target state="translated">O controle é devolvido ao chamador antes que a propriedade auto-implementada seja explicitamente atribuída, causando uma atribuição implícita anterior de 'default'.</target>
         <note />
       </trans-unit>
-      <trans-unit id="WRN_UnassignedThisAutoProperty_Title">
-        <source>An auto-implemented property must be fully assigned before control is returned to the caller.</source>
-        <target state="translated">A propriedade autoimplementada precisa ser totalmente atribuída antes que o controle seja retornado ao chamador.</target>
+      <trans-unit id="WRN_UnassignedThisAutoPropertyUnsupportedVersion">
+        <source>Auto-implemented property '{0}' must be fully assigned before control is returned to the caller. Consider updating to language version '{1}' to auto-default the property.</source>
+        <target state="translated">A propriedade auto-implementada '{0}' deve ser totalmente atribuída antes que o controle seja devolvido ao chamador. Considere atualizar para a versão de linguagem '{1}' para auto-padrão da propriedade.</target>
         <note />
       </trans-unit>
-      <trans-unit id="WRN_UnassignedThis_Title">
-        <source>Fields of a struct must be fully assigned in a constructor before control is returned to the caller</source>
-        <target state="translated">Os campos de um struct precisam ser totalmente atribuídos em um construtor antes que o controle seja retornado ao chamador</target>
+      <trans-unit id="WRN_UnassignedThisAutoPropertyUnsupportedVersion_Title">
+        <source>An auto-implemented property must be fully assigned before control is returned to the caller. Consider updating the language version to auto-default the property.</source>
+        <target state="translated">Uma propriedade auto-implementada deve ser totalmente atribuída antes que o controle seja devolvido ao chamador. Considere atualizar a versão de linguagem para auto-padrão da propriedade.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_UnassignedThisSupportedVersion">
+        <source>Control is returned to caller before field '{0}' is explicitly assigned, causing a preceding implicit assignment of 'default'.</source>
+        <target state="translated">O controle é devolvido ao chamador antes que o campo '{0}' seja explicitamente atribuído, causando uma atribuição implícita anterior de 'default'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_UnassignedThisSupportedVersion_Title">
+        <source>Control is returned to caller before field is explicitly assigned, causing a preceding implicit assignment of 'default'.</source>
+        <target state="translated">O controle é devolvido ao chamador antes que o campo seja explicitamente atribuído, causando uma atribuição implícita anterior de 'default'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_UnassignedThisUnsupportedVersion">
+        <source>Field '{0}' must be fully assigned before control is returned to the caller. Consider updating to language version '{1}' to auto-default the field.</source>
+        <target state="translated">O campo '{0}' deve ser totalmente atribuída antes que o controle seja devolvido ao chamador. Considere atualizar para a versão de linguagem '{1}' para auto-padrão do campo.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_UnassignedThisUnsupportedVersion_Title">
+        <source>Fields of a struct must be fully assigned in a constructor before control is returned to the caller. Consider updating the language version to auto-default the field.</source>
+        <target state="translated">Os campos de um struct devem ser totalmente atribuídos em um construtor antes que o controle seja devolvido ao chamador. Considere atualizar a versão de linguagem para auto-padrão do campo.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_UnboxPossibleNull">
@@ -3640,6 +3878,26 @@ See LICENSE.md and THIRD_PARTY_NOTICES.txt for detailed legal notices.</target>
         <target state="translated">Uso de campo possivelmente não atribuído "{0}"</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_UseDefViolationFieldSupportedVersion">
+        <source>Field '{0}' is read before being explicitly assigned, causing a preceding implicit assignment of 'default'.</source>
+        <target state="translated">O campo '{0}' é lido antes de ser explicitamente atribuído, causando uma atribuição implícita anterior de 'default'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_UseDefViolationFieldSupportedVersion_Title">
+        <source>Field is read before being explicitly assigned, causing a preceding implicit assignment of 'default'.</source>
+        <target state="translated">O campo é lido antes de ser explicitamente atribuído, causando uma atribuição implícita anterior de 'default'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_UseDefViolationFieldUnsupportedVersion">
+        <source>Use of possibly unassigned field '{0}'. Consider updating to language version '{1}' to auto-default the field.</source>
+        <target state="translated">Uso de campo possivelmente não atribuído '{0}'. Considere atualizar para a versão de linguagem '{1}' para auto-padrão do campo.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_UseDefViolationFieldUnsupportedVersion_Title">
+        <source>Use of possibly unassigned field. Consider updating the language version to auto-default the field.</source>
+        <target state="translated">Uso de campo possivelmente não atribuído. Considere atualizar a versão de linguagem para auto-padrão do campo.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_UseDefViolationField_Title">
         <source>Use of possibly unassigned field</source>
         <target state="translated">Uso de campo possivelmente não atribuído</target>
@@ -3660,19 +3918,49 @@ See LICENSE.md and THIRD_PARTY_NOTICES.txt for detailed legal notices.</target>
         <target state="translated">Uso de propriedades autoimplementadas possivelmente não atribuídas '{0}'</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_UseDefViolationPropertySupportedVersion">
+        <source>Auto-implemented property '{0}' is read before being explicitly assigned, causing a preceding implicit assignment of 'default'.</source>
+        <target state="translated">A propriedade auto-implementada '{0}' é lida antes de ser explicitamente atribuída, causando uma atribuição implícita anterior de 'default'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_UseDefViolationPropertySupportedVersion_Title">
+        <source>Auto-implemented property is read before being explicitly assigned, causing a preceding implicit assignment of 'default'.</source>
+        <target state="translated">A propriedade auto-implementada é lida antes de ser explicitamente atribuída, causando uma atribuição implícita anterior de 'default'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_UseDefViolationPropertyUnsupportedVersion">
+        <source>Use of possibly unassigned auto-implemented property '{0}'. Consider updating to language version '{1}' to auto-default the property.</source>
+        <target state="translated">O uso de propriedade auto-implementada possivelmente não atribuída '{0}'. Considere atualizar para a versão de linguagem '{1}' para auto-padrão da propriedade.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_UseDefViolationPropertyUnsupportedVersion_Title">
+        <source>Use of possibly unassigned auto-implemented property. Consider updating the language version to auto-default the property.</source>
+        <target state="translated">Uso da propriedade auto-implementada possivelmente não atribuída. Considere atualizar a versão de linguagem para auto-padrão da propriedade.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_UseDefViolationProperty_Title">
         <source>Use of possibly unassigned auto-implemented property</source>
         <target state="translated">Uso de propriedade autoimplementada possivelmente não atribuída</target>
         <note />
       </trans-unit>
-      <trans-unit id="WRN_UseDefViolationThis">
-        <source>The 'this' object cannot be used before all of its fields have been assigned</source>
-        <target state="translated">O objeto 'this' não pode ser usado antes que todos os seus campos tenham sido atribuídos</target>
+      <trans-unit id="WRN_UseDefViolationThisSupportedVersion">
+        <source>The 'this' object is read before all of its fields have been assigned, causing preceding implicit assignments of 'default' to non-explicitly assigned fields.</source>
+        <target state="translated">O objeto 'this' é lido antes que todos os seus campos tenham sido atribuídos, causando atribuições anteriores implícitas de campos 'default' a campos não explicitamente atribuídos.</target>
         <note />
       </trans-unit>
-      <trans-unit id="WRN_UseDefViolationThis_Title">
-        <source>The 'this' object cannot be used in a constructor before all of its fields have been assigned</source>
-        <target state="translated">O objeto 'this' não pode ser usado em um construtor antes que todos os seus campos sejam atribuídos</target>
+      <trans-unit id="WRN_UseDefViolationThisSupportedVersion_Title">
+        <source>The 'this' object is read before all of its fields have been assigned, causing preceding implicit assignments of 'default' to non-explicitly assigned fields.</source>
+        <target state="translated">O objeto 'this' é lido antes que todos os seus campos tenham sido atribuídos, causando atribuições anteriores implícitas de campos 'default' a campos não explicitamente atribuídos.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_UseDefViolationThisUnsupportedVersion">
+        <source>The 'this' object cannot be used before all of its fields have been assigned. Consider updating to language version '{0}' to auto-default the unassigned fields.</source>
+        <target state="translated">O objeto 'this' não pode ser usado antes que todos os seus campos serem atribuídos. Considere atualizar para a versão de linguagem '{0}' para auto-padrão dos campos não atribuídos.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_UseDefViolationThisUnsupportedVersion_Title">
+        <source>The 'this' object cannot be used in a constructor before all of its fields have been assigned. Consider updating the language version to auto-default the unassigned fields.</source>
+        <target state="translated">O objeto 'this' não pode ser usado em um construtor antes de todos os seus campos terem sido atribuídos. Considere atualizar a versão de linguagem para auto-padrão nos campos não atribuídos.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_UseDefViolation_Title">
@@ -4440,11 +4728,6 @@ See LICENSE.md and THIRD_PARTY_NOTICES.txt for detailed legal notices.</target>
         <target state="translated">Uso de propriedades autoimplementadas possivelmente não atribuídas '{0}'</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_UnassignedThis">
-        <source>Field '{0}' must be fully assigned before control is returned to the caller</source>
-        <target state="translated">Campo "{0}" deve ser totalmente atribuído antes que o controle seja retornado ao chamador</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_AmbigQM">
         <source>Type of conditional expression cannot be determined because '{0}' and '{1}' implicitly convert to one another</source>
         <target state="translated">Tipo de expressão condicional não pode ser determinado porque "{0}" e "{1}" se convertem implicitamente um no outro</target>
@@ -4543,11 +4826,6 @@ See LICENSE.md and THIRD_PARTY_NOTICES.txt for detailed legal notices.</target>
       <trans-unit id="ERR_DefaultLiteralNotValid">
         <source>Use of default literal is not valid in this context</source>
         <target state="translated">O uso do literal padrão não é válido neste contexto</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_UseDefViolationThis">
-        <source>The 'this' object cannot be used before all of its fields have been assigned</source>
-        <target state="translated">O objeto 'this' não pode ser usado antes que todos os seus campos tenham sido atribuídos</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ArgsInvalid">
@@ -5720,8 +5998,8 @@ Se tal classe for usada como uma classe base e se a classe derivada definir um d
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadShiftOperatorSignature">
-        <source>The first operand of an overloaded shift operator must have the same type as the containing type, and the type of the second operand must be int</source>
-        <target state="translated">O primeiro operando de um operador de deslocamento sobrecarregado deve ser do tipo recipiente, enquanto o do segundo deve ser int</target>
+        <source>The first operand of an overloaded shift operator must have the same type as the containing type</source>
+        <target state="translated">A primeira operação de um operador de deslocamento sobrecarregado deve ter o mesmo tipo que o tipo que o contém</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_EnumsCantContainDefaultConstructor">
@@ -6295,8 +6573,8 @@ Se tal classe for usada como uma classe base e se a classe derivada definir um d
         <note />
       </trans-unit>
       <trans-unit id="ERR_LookupInTypeVariable">
-        <source>Cannot do member lookup in '{0}' because it is a type parameter</source>
-        <target state="translated">Não é possível fazer pesquisa de membro em "{0}" porque ele é um parâmetro de tipo</target>
+        <source>Cannot do non-virtual member lookup in '{0}' because it is a type parameter</source>
+        <target state="translated">Não é possível fazer pesquisa de membro não virtual em '{0}' porque ele é um parâmetro de tipo</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadConstraintType">
@@ -6697,11 +6975,6 @@ Se tal classe for usada como uma classe base e se a classe derivada definir um d
       <trans-unit id="ERR_RecursivelyTypedVariable">
         <source>Type of '{0}' cannot be inferred since its initializer directly or indirectly refers to the definition.</source>
         <target state="translated">Tipo de "{0}" não pode ser inferido porque seu inicializador direta ou indiretamente refere-se à definição.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_UnassignedThisAutoProperty">
-        <source>Auto-implemented property '{0}' must be fully assigned before control is returned to the caller.</source>
-        <target state="translated">A propriedade '{0}' autoimplementada deve ser totalmente atribuída antes de o controle ser retornado ao chamador.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_VariableUsedBeforeDeclarationAndHidesField">
@@ -10847,8 +11120,8 @@ Para incorporar informações de tipo de interoperabilidade para os dois assembl
         <note />
       </trans-unit>
       <trans-unit id="ERR_RefReturnParameter">
-        <source>Cannot return a parameter by reference '{0}' because it is not a ref or out parameter</source>
-        <target state="translated">Não é possível retornar um parâmetro por referência '{0}', pois ele não é um parâmetro ref ou out</target>
+        <source>Cannot return a parameter by reference '{0}' because it is not a ref parameter</source>
+        <target state="translated">Não é possível retornar um parâmetro por referência '{0}' porque ele não é um parâmetro ref</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RefReturnParameter2">
@@ -10874,11 +11147,6 @@ Para incorporar informações de tipo de interoperabilidade para os dois assembl
       <trans-unit id="ERR_EscapeOther">
         <source>Expression cannot be used in this context because it may indirectly expose variables outside of their declaration scope</source>
         <target state="translated">A expressão não pode ser usada neste contexto porque ela pode expor indiretamente variáveis fora do seu escopo de declaração</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_EscapeLocal">
-        <source>Cannot use local '{0}' in this context because it may expose referenced variables outside of their declaration scope</source>
-        <target state="translated">Não é possível usar o local '{0}' nesse contexto porque ele pode expor variáveis referenciadas fora do seu escopo de declaração</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_EscapeCall">
@@ -11472,8 +11740,8 @@ Para incorporar informações de tipo de interoperabilidade para os dois assembl
         <note />
       </trans-unit>
       <trans-unit id="ERR_InterfacesCantContainConversionOrEqualityOperators">
-        <source>Conversion, equality, or inequality operators declared in interfaces must be abstract</source>
-        <target state="translated">Operadores de conversão, igualdade ou desigualdade declarados em interfaces devem ser abstratos</target>
+        <source>Conversion, equality, or inequality operators declared in interfaces must be abstract or virtual</source>
+        <target state="translated">Os operadores de conversão, igualdade ou desigualdade declarados em interfaces devem ser abstratos ou virtuais</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation">
@@ -11494,11 +11762,6 @@ Para incorporar informações de tipo de interoperabilidade para os dois assembl
       <trans-unit id="ERR_MostSpecificImplementationIsNotFound">
         <source>Interface member '{0}' does not have a most specific implementation. Neither '{1}', nor '{2}' are most specific.</source>
         <target state="translated">O membro de interface '{0}' não tem uma implementação mais específica. Nem '{1}' nem '{2}' são mais específicos.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_LanguageVersionDoesNotSupportDefaultInterfaceImplementationForMember">
-        <source>'{0}' cannot implement interface member '{1}' in type '{2}' because feature '{3}' is not available in C# {4}. Please use language version '{5}' or greater.</source>
-        <target state="translated">'{0}' não pode implementar o membro de interface '{1}' no tipo '{2}' porque o recurso '{3}' não está disponível no C# {4}. Use a versão de linguagem '{5}' ou superior.</target>
         <note />
       </trans-unit>
     </body>

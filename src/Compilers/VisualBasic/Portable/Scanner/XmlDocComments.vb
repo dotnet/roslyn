@@ -32,13 +32,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Private _doNotRequireXmlDocCommentPrefix As Boolean = False
 
-        Private ReadOnly Property ShouldReportXmlError As Boolean
-            Get
-                Return Not Me._IsScanningXmlDoc OrElse
-                    Me._options.DocumentationMode = DocumentationMode.Diagnose
-            End Get
-        End Property
-
         ''' <summary>
         ''' This method is only to be used for parsing Cref and Name attributes as stand-alone entities
         ''' </summary>

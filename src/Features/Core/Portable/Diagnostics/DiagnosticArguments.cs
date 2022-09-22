@@ -68,6 +68,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         [DataMember(Order = 7)]
         public string[] AnalyzerIds;
 
+        [DataMember(Order = 8)]
+        public IdeAnalyzerOptions IdeOptions;
+
         public DiagnosticArguments(
             bool reportSuppressedDiagnostics,
             bool logPerformanceInfo,
@@ -76,7 +79,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             TextSpan? documentSpan,
             AnalysisKind? documentAnalysisKind,
             ProjectId projectId,
-            string[] analyzerIds)
+            string[] analyzerIds,
+            IdeAnalyzerOptions ideOptions)
         {
             Debug.Assert(documentId != null || documentSpan == null);
             Debug.Assert(documentId != null || documentAnalysisKind == null);
@@ -92,6 +96,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             DocumentAnalysisKind = documentAnalysisKind;
             ProjectId = projectId;
             AnalyzerIds = analyzerIds;
+            IdeOptions = ideOptions;
         }
     }
 }

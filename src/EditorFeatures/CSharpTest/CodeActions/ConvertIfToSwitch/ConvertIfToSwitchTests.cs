@@ -6,10 +6,8 @@
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.Shared.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Testing;
-using Microsoft.VisualStudio.Shell.Interop;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
@@ -2647,6 +2645,129 @@ class C
             {
                 TestCode = source,
                 FixedCode = fixedSource,
+                CodeActionValidationMode = CodeActionValidationMode.None,
+            }.RunAsync();
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertIfToSwitch)]
+        public async Task TestMissingOnImplicitCastInRelationalPattern()
+        {
+            var source =
+@"class C
+{
+    void M(char c)
+    {
+        $$if (c >= 128 || c == 'a')
+            System.Console.WriteLine(c);
+    }
+}";
+
+            await new VerifyCS.Test
+            {
+                TestCode = source,
+                FixedCode = source,
+                LanguageVersion = LanguageVersion.CSharp9,
+            }.RunAsync();
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertIfToSwitch)]
+        public async Task TestMissingExpressionOnImplicitCastInRelationalPattern()
+        {
+            var source =
+@"class C
+{
+    int M(char c)
+    {
+        $$if (c >= 128 || c == 'a')
+            return 1;
+        else
+            return 2;
+    }
+}";
+
+            await new VerifyCS.Test
+            {
+                TestCode = source,
+                FixedCode = source,
+                LanguageVersion = LanguageVersion.CSharp9,
+            }.RunAsync();
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertIfToSwitch)]
+        public async Task TestMissingOnImplicitCastInRangePattern()
+        {
+            var source =
+@"class C
+{
+    void M(char c)
+    {
+        $$if (7 >= c && 6 <= c || c == 'a')
+            System.Console.WriteLine(c);
+    }
+}";
+
+            await new VerifyCS.Test
+            {
+                TestCode = source,
+                FixedCode = source,
+                LanguageVersion = LanguageVersion.CSharp9,
+            }.RunAsync();
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertIfToSwitch)]
+        public async Task TestMissingOnImplicitCastInConstantPattern()
+        {
+            var source =
+@"class C
+{
+    void M(char c)
+    {
+        $$if (c == 128 || c == 'a')
+            System.Console.WriteLine(c);
+    }
+}";
+
+            await new VerifyCS.Test
+            {
+                TestCode = source,
+                FixedCode = source,
+                LanguageVersion = LanguageVersion.CSharp9,
+            }.RunAsync();
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertIfToSwitch)]
+        public async Task TestExplicitCastInConstantPattern()
+        {
+            var source =
+@"class C
+{
+    void M(char c)
+    {
+        $$if (c == (char)128 || c == 'a')
+            System.Console.WriteLine(c);
+    }
+}";
+
+            var fixedSource =
+                @"class C
+{
+    void M(char c)
+    {
+        switch (c)
+        {
+            case (char)128:
+            case 'a':
+                System.Console.WriteLine(c);
+                break;
+        }
+    }
+}";
+
+            await new VerifyCS.Test
+            {
+                TestCode = source,
+                FixedCode = fixedSource,
+                LanguageVersion = LanguageVersion.CSharp9,
                 CodeActionValidationMode = CodeActionValidationMode.None,
             }.RunAsync();
         }

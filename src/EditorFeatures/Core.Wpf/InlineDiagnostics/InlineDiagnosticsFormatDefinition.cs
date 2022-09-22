@@ -7,7 +7,7 @@
 using System;
 using System.ComponentModel.Composition;
 using System.Windows.Media;
-using Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue;
+using Microsoft.CodeAnalysis.EditAndContinue;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.VisualStudio.Language.StandardClassification;
 using Microsoft.VisualStudio.Text.Adornments;

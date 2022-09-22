@@ -533,5 +533,28 @@ class C
 }";
             await TestWithUseExpressionBody(code, fixedCode, LanguageVersion.CSharp6);
         }
+
+        [WorkItem(50181, "https://github.com/dotnet/roslyn/issues/50181")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
+        public async Task TestUseExpressionBodyPreserveComments()
+        {
+            var code = @"
+public class C
+{
+    {|IDE0025:public long Length                   //N
+    {
+        // N = N1 + N2
+        get { return 1 + 2; }
+    }|}
+}";
+            var fixedCode = @"
+public class C
+{
+    public long Length                   //N
+                                         // N = N1 + N2
+        => 1 + 2;
+}";
+            await TestWithUseExpressionBody(code, fixedCode);
+        }
     }
 }

@@ -5,6 +5,7 @@
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Text;
 
@@ -14,6 +15,6 @@ namespace Microsoft.CodeAnalysis.CommentSelection
     {
         Task<CommentSelectionInfo> GetInfoAsync(Document document, TextSpan textSpan, CancellationToken cancellationToken);
 
-        Task<Document> FormatAsync(Document document, ImmutableArray<TextSpan> changes, CancellationToken cancellationToken);
+        Task<Document> FormatAsync(Document document, ImmutableArray<TextSpan> changes, SyntaxFormattingOptions formattingOptions, CancellationToken cancellationToken);
     }
 }

@@ -240,58 +240,55 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             Symbol implementedMember = null;
 
-            if (!implementingMember.IsStatic || !containingType.IsInterface)
+            // Do not look in itself
+            if (containingType == (object)explicitInterfaceNamedType.OriginalDefinition)
             {
-                // Do not look in itself
-                if (containingType == (object)explicitInterfaceNamedType.OriginalDefinition)
+                // An error will be reported elsewhere.
+                // Either the interface is not implemented, or it causes a cycle in the interface hierarchy.
+                return null;
+            }
+
+            var hasParamsParam = implementingMember.HasParamsParameter();
+
+            foreach (Symbol interfaceMember in explicitInterfaceNamedType.GetMembers(interfaceMemberName))
+            {
+                // At this point, we know that explicitInterfaceNamedType is an interface.
+                // However, metadata interface members can be static - we ignore them, as does Dev10.
+                if (interfaceMember.Kind != implementingMember.Kind || !interfaceMember.IsImplementableInterfaceMember())
                 {
-                    // An error will be reported elsewhere.
-                    // Either the interface is not implemented, or it causes a cycle in the interface hierarchy.
-                    return null;
+                    continue;
                 }
 
-                var hasParamsParam = implementingMember.HasParamsParameter();
-
-                foreach (Symbol interfaceMember in explicitInterfaceNamedType.GetMembers(interfaceMemberName))
+                if (interfaceMember is MethodSymbol interfaceMethod &&
+                    (interfaceMethod.MethodKind is MethodKind.UserDefinedOperator or MethodKind.Conversion) != isOperator)
                 {
-                    // At this point, we know that explicitInterfaceNamedType is an interface.
-                    // However, metadata interface members can be static - we ignore them, as does Dev10.
-                    if (interfaceMember.Kind != implementingMember.Kind || !interfaceMember.IsImplementableInterfaceMember())
+                    continue;
+                }
+
+                if (MemberSignatureComparer.ExplicitImplementationComparer.Equals(implementingMember, interfaceMember))
+                {
+                    foundMatchingMember = true;
+                    // Cannot implement accessor directly unless
+                    // the accessor is from an indexed property.
+                    if (interfaceMember.IsAccessor() && !((MethodSymbol)interfaceMember).IsIndexedPropertyAccessor())
                     {
-                        continue;
+                        diagnostics.Add(ErrorCode.ERR_ExplicitMethodImplAccessor, memberLocation, implementingMember, interfaceMember);
                     }
-
-                    if (interfaceMember is MethodSymbol interfaceMethod &&
-                        (interfaceMethod.MethodKind is MethodKind.UserDefinedOperator or MethodKind.Conversion) != isOperator)
+                    else
                     {
-                        continue;
-                    }
-
-                    if (MemberSignatureComparer.ExplicitImplementationComparer.Equals(implementingMember, interfaceMember))
-                    {
-                        foundMatchingMember = true;
-                        // Cannot implement accessor directly unless
-                        // the accessor is from an indexed property.
-                        if (interfaceMember.IsAccessor() && !((MethodSymbol)interfaceMember).IsIndexedPropertyAccessor())
+                        if (interfaceMember.MustCallMethodsDirectly())
                         {
-                            diagnostics.Add(ErrorCode.ERR_ExplicitMethodImplAccessor, memberLocation, implementingMember, interfaceMember);
+                            diagnostics.Add(ErrorCode.ERR_BogusExplicitImpl, memberLocation, implementingMember, interfaceMember);
                         }
-                        else
+                        else if (hasParamsParam && !interfaceMember.HasParamsParameter())
                         {
-                            if (interfaceMember.MustCallMethodsDirectly())
-                            {
-                                diagnostics.Add(ErrorCode.ERR_BogusExplicitImpl, memberLocation, implementingMember, interfaceMember);
-                            }
-                            else if (hasParamsParam && !interfaceMember.HasParamsParameter())
-                            {
-                                // Note: no error for !hasParamsParam && interfaceMethod.HasParamsParameter()
-                                // Still counts as an implementation.
-                                diagnostics.Add(ErrorCode.ERR_ExplicitImplParams, memberLocation, implementingMember, interfaceMember);
-                            }
-
-                            implementedMember = interfaceMember;
-                            break;
+                            // Note: no error for !hasParamsParam && interfaceMethod.HasParamsParameter()
+                            // Still counts as an implementation.
+                            diagnostics.Add(ErrorCode.ERR_ExplicitImplParams, memberLocation, implementingMember, interfaceMember);
                         }
+
+                        implementedMember = interfaceMember;
+                        break;
                     }
                 }
             }

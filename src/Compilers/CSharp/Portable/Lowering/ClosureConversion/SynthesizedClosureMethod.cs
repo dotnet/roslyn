@@ -41,6 +41,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     : MakeName(topLevelMethod.Name, topLevelMethodId, closureKind, lambdaId),
                    MakeDeclarationModifiers(closureKind, originalMethod))
         {
+            Debug.Assert(containingType.DeclaringCompilation is not null);
+
             TopLevelMethod = topLevelMethod;
             ClosureKind = closureKind;
             LambdaId = lambdaId;
@@ -122,12 +124,17 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             ParameterHelpers.EnsureIsReadOnlyAttributeExists(moduleBuilder, Parameters);
 
-            if (ReturnType.ContainsNativeInteger())
+            if (moduleBuilder.Compilation.ShouldEmitNativeIntegerAttributes())
             {
-                moduleBuilder.EnsureNativeIntegerAttributeExists();
+                if (ReturnType.ContainsNativeIntegerWrapperType())
+                {
+                    moduleBuilder.EnsureNativeIntegerAttributeExists();
+                }
+
+                ParameterHelpers.EnsureNativeIntegerAttributeExists(moduleBuilder, Parameters);
             }
 
-            ParameterHelpers.EnsureNativeIntegerAttributeExists(moduleBuilder, Parameters);
+            ParameterHelpers.EnsureLifetimeAnnotationAttributeExists(moduleBuilder, Parameters);
 
             if (compilationState.Compilation.ShouldEmitNullableAttributes(this))
             {

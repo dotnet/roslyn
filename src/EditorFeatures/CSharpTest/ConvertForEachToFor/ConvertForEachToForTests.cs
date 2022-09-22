@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertForEachToFor
         private readonly CodeStyleOption2<bool> onWithSilent = new CodeStyleOption2<bool>(true, NotificationOption2.Silent);
 
         private OptionsCollection ImplicitTypeEverywhere
-            => new OptionsCollection(GetLanguage())
+            => new(GetLanguage())
             {
                 { CSharpCodeStyleOptions.VarElsewhere, onWithSilent },
                 { CSharpCodeStyleOptions.VarWhenTypeIsApparent, onWithSilent },
@@ -1781,6 +1781,40 @@ class Test
         {
             string a = (string)array[i];
             Console.WriteLine(a);
+        }
+    }
+}
+";
+            await TestInRegularAndScriptAsync(text, expected);
+        }
+
+        [WorkItem(50469, "https://github.com/dotnet/roslyn/issues/50469")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForEachToFor)]
+        public async Task PreventExplicitCastToVar()
+        {
+            var text = @"
+class Test
+{
+    void Method()
+    {
+        var items = new[] { new { x = 1 } };
+
+        foreach [||] (var item in items)
+        {
+        }
+    }
+}
+";
+            var expected = @"
+class Test
+{
+    void Method()
+    {
+        var items = new[] { new { x = 1 } };
+
+        for (int {|Rename:i|} = 0; i < items.Length; i++)
+        {
+            var item = items[i];
         }
     }
 }

@@ -38,6 +38,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
                 SyntaxKind.PrivateKeyword,
                 SyntaxKind.ProtectedKeyword,
                 SyntaxKind.ReadOnlyKeyword,
+                SyntaxKind.RequiredKeyword,
                 SyntaxKind.SealedKeyword,
                 SyntaxKind.StaticKeyword,
                 SyntaxKind.UnsafeKeyword,

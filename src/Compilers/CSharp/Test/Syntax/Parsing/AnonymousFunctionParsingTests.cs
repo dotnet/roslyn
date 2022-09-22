@@ -1182,7 +1182,7 @@ public class C
             UsingStatement(test, options: useCsharp9 ? TestOptions.Regular9 : TestOptions.Regular8,
                 // (1,13): error CS1003: Syntax error, ',' expected
                 // _ = new int[static];
-                Diagnostic(ErrorCode.ERR_SyntaxError, "static").WithArguments(",", "static").WithLocation(1, 13)
+                Diagnostic(ErrorCode.ERR_SyntaxError, "static").WithArguments(",").WithLocation(1, 13)
                 );
 
             N(SyntaxKind.ExpressionStatement);
@@ -1229,7 +1229,7 @@ public class C
             UsingStatement(test, options: useCsharp9 ? TestOptions.Regular9 : TestOptions.Regular8,
                 // (1,13): error CS1003: Syntax error, ',' expected
                 // _ = new int[static x];
-                Diagnostic(ErrorCode.ERR_SyntaxError, "static").WithArguments(",", "static").WithLocation(1, 13));
+                Diagnostic(ErrorCode.ERR_SyntaxError, "static").WithArguments(",").WithLocation(1, 13));
 
             N(SyntaxKind.ExpressionStatement);
             {
@@ -1408,7 +1408,7 @@ public class C
             UsingStatement(test, options: useCsharp9 ? TestOptions.Regular9 : TestOptions.Regular8,
                 // (1,20): error CS1003: Syntax error, ',' expected
                 // _ = new Action[] { static }
-                Diagnostic(ErrorCode.ERR_SyntaxError, "static").WithArguments(",", "static").WithLocation(1, 20),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "static").WithArguments(",").WithLocation(1, 20),
                 // (1,28): error CS1002: ; expected
                 // _ = new Action[] { static }
                 Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(1, 28)
@@ -1463,7 +1463,7 @@ public class C
             UsingStatement(test, options: useCsharp9 ? TestOptions.Regular9 : TestOptions.Regular8,
                 // (1,20): error CS1003: Syntax error, ',' expected
                 // _ = new Action[] { static x }
-                Diagnostic(ErrorCode.ERR_SyntaxError, "static").WithArguments(",", "static").WithLocation(1, 20),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "static").WithArguments(",").WithLocation(1, 20),
                 // (1,30): error CS1002: ; expected
                 // _ = new Action[] { static x }
                 Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(1, 30)
@@ -1761,7 +1761,7 @@ public class C
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, ")").WithArguments(")").WithLocation(1, 25),
                 // (1,27): error CS1003: Syntax error, ',' expected
                 // delegate*<void> ptr = &() => { };
-                Diagnostic(ErrorCode.ERR_SyntaxError, "=>").WithArguments(",", "=>").WithLocation(1, 27)
+                Diagnostic(ErrorCode.ERR_SyntaxError, "=>").WithArguments(",").WithLocation(1, 27)
                 );
             verify();
 
@@ -1774,7 +1774,7 @@ public class C
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, ")").WithArguments(")").WithLocation(1, 25),
                 // (1,27): error CS1003: Syntax error, ',' expected
                 // delegate*<void> ptr = &() => { };
-                Diagnostic(ErrorCode.ERR_SyntaxError, "=>").WithArguments(",", "=>").WithLocation(1, 27));
+                Diagnostic(ErrorCode.ERR_SyntaxError, "=>").WithArguments(",").WithLocation(1, 27));
             verify();
 
             void verify()
@@ -1842,7 +1842,7 @@ public class C
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, "static").WithArguments("static").WithLocation(1, 24),
                 // (1,24): error CS1003: Syntax error, ',' expected
                 // delegate*<void> ptr = &static () => { };
-                Diagnostic(ErrorCode.ERR_SyntaxError, "static").WithArguments(",", "static").WithLocation(1, 24),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "static").WithArguments(",").WithLocation(1, 24),
                 // (1,32): error CS1002: ; expected
                 // delegate*<void> ptr = &static () => { };
                 Diagnostic(ErrorCode.ERR_SemicolonExpected, ")").WithLocation(1, 32)
@@ -1861,7 +1861,7 @@ public class C
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, "static").WithArguments("static").WithLocation(1, 24),
                 // (1,24): error CS1003: Syntax error, ',' expected
                 // delegate*<void> ptr = &static () => { };
-                Diagnostic(ErrorCode.ERR_SyntaxError, "static").WithArguments(",", "static").WithLocation(1, 24),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "static").WithArguments(",").WithLocation(1, 24),
                 // (1,32): error CS1002: ; expected
                 // delegate*<void> ptr = &static () => { };
                 Diagnostic(ErrorCode.ERR_SemicolonExpected, ")").WithLocation(1, 32)
@@ -2073,7 +2073,7 @@ class Program
                 Diagnostic(ErrorCode.ERR_CloseParenExpected, "").WithLocation(4, 25),
                 // (4,25): error CS1003: Syntax error, ']' expected
                 //     [ObsoleteAttribute(x
-                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments("]", "static").WithLocation(4, 25)
+                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments("]").WithLocation(4, 25)
                 );
 
             N(SyntaxKind.CompilationUnit);
@@ -2148,13 +2148,13 @@ class Program
             tree.GetDiagnostics().Verify(
                 // (4,25): error CS1003: Syntax error, ',' expected
                 //     [ObsoleteAttribute(x
-                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments(",", "").WithLocation(4, 25),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments(",").WithLocation(4, 25),
                 // (5,11): error CS1026: ) expected
                 //     async static Task Main()
                 Diagnostic(ErrorCode.ERR_CloseParenExpected, "static").WithLocation(5, 11),
                 // (5,11): error CS1003: Syntax error, ']' expected
                 //     async static Task Main()
-                Diagnostic(ErrorCode.ERR_SyntaxError, "static").WithArguments("]", "static").WithLocation(5, 11)
+                Diagnostic(ErrorCode.ERR_SyntaxError, "static").WithArguments("]").WithLocation(5, 11)
                 );
 
             N(SyntaxKind.CompilationUnit);

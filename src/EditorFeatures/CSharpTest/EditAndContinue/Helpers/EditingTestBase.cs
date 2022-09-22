@@ -43,10 +43,12 @@ namespace System.Runtime.CompilerServices { class CreateNewOnMetadataUpdateAttri
         public static string GetResource(string keyword)
             => keyword switch
             {
+                "enum" => FeaturesResources.enum_,
                 "class" => FeaturesResources.class_,
-                "struct" => CSharpFeaturesResources.struct_,
                 "interface" => FeaturesResources.interface_,
-                "record" => CSharpFeaturesResources.record_,
+                "delegate" => FeaturesResources.delegate_,
+                "struct" => CSharpFeaturesResources.struct_,
+                "record" or "record class" => CSharpFeaturesResources.record_,
                 "record struct" => CSharpFeaturesResources.record_struct,
                 _ => throw ExceptionUtilities.UnexpectedValue(keyword)
             };
@@ -57,10 +59,10 @@ namespace System.Runtime.CompilerServices { class CreateNewOnMetadataUpdateAttri
             => new(rudeEditKind, squiggle, arguments, firstLine: null);
 
         internal static SemanticEditDescription SemanticEdit(SemanticEditKind kind, Func<Compilation, ISymbol> symbolProvider, IEnumerable<KeyValuePair<TextSpan, TextSpan>>? syntaxMap, string? partialType = null)
-            => new(kind, symbolProvider, (partialType != null) ? c => c.GetMember<INamedTypeSymbol>(partialType) : null, syntaxMap, hasSyntaxMap: syntaxMap != null);
+            => new(kind, symbolProvider, (partialType != null) ? c => c.GetMember<INamedTypeSymbol>(partialType) : null, syntaxMap, hasSyntaxMap: syntaxMap != null, deletedSymbolContainerProvider: null);
 
-        internal static SemanticEditDescription SemanticEdit(SemanticEditKind kind, Func<Compilation, ISymbol> symbolProvider, string? partialType = null, bool preserveLocalVariables = false)
-            => new(kind, symbolProvider, (partialType != null) ? c => c.GetMember<INamedTypeSymbol>(partialType) : null, syntaxMap: null, preserveLocalVariables);
+        internal static SemanticEditDescription SemanticEdit(SemanticEditKind kind, Func<Compilation, ISymbol> symbolProvider, string? partialType = null, bool preserveLocalVariables = false, Func<Compilation, ISymbol>? deletedSymbolContainerProvider = null)
+            => new(kind, symbolProvider, (partialType != null) ? c => c.GetMember<INamedTypeSymbol>(partialType) : null, syntaxMap: null, preserveLocalVariables, deletedSymbolContainerProvider);
 
         internal static string DeletedSymbolDisplay(string kind, string displayName)
             => string.Format(FeaturesResources.member_kind_and_name, kind, displayName);

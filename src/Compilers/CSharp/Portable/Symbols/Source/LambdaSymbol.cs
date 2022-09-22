@@ -47,6 +47,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             base(unboundLambda.Syntax.GetReference())
         {
             Debug.Assert(syntaxReferenceOpt is not null);
+            Debug.Assert(containingSymbol.DeclaringCompilation == compilation);
+
             _binder = binder;
             _containingSymbol = containingSymbol;
             _messageID = unboundLambda.Data.MessageID;
@@ -265,9 +267,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return false; }
         }
 
-        internal override Binder SignatureBinder => _binder;
+        internal override Binder OuterBinder => _binder;
 
-        internal override Binder ParameterBinder => new WithLambdaParametersBinder(this, _binder);
+        internal override Binder WithTypeParametersBinder => _binder;
 
         internal override OneOrMany<SyntaxList<AttributeListSyntax>> GetAttributeDeclarations()
         {
@@ -281,7 +283,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             foreach (var parameter in _parameters)
             {
                 parameter.ForceComplete(locationOpt: null, cancellationToken: default);
-                ParameterHelpers.ReportParameterNullCheckingErrors(addTo.DiagnosticBag, parameter);
             }
 
             GetAttributes();
@@ -334,20 +335,29 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 TypeWithAnnotations type;
                 RefKind refKind;
+                DeclarationScope scope;
                 if (hasExplicitlyTypedParameterList)
                 {
                     type = unboundLambda.ParameterTypeWithAnnotations(p);
                     refKind = unboundLambda.RefKind(p);
+                    scope = unboundLambda.Scope(p);
                 }
                 else if (p < numDelegateParameters)
                 {
                     type = parameterTypes[p];
                     refKind = parameterRefKinds[p];
+                    scope = DeclarationScope.Unscoped; // https://github.com/dotnet/roslyn/issues/62080: DeclarationScope should be taken from delegate signature.
                 }
                 else
                 {
                     type = TypeWithAnnotations.Create(new ExtendedErrorTypeSymbol(compilation, name: string.Empty, arity: 0, errorInfo: null));
                     refKind = RefKind.None;
+                    scope = DeclarationScope.Unscoped;
+                }
+
+                if (refKind == RefKind.Out && scope == DeclarationScope.Unscoped)
+                {
+                    scope = DeclarationScope.RefScoped;
                 }
 
                 var attributeLists = unboundLambda.ParameterAttributes(p);
@@ -355,7 +365,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 var location = unboundLambda.ParameterLocation(p);
                 var locations = location == null ? ImmutableArray<Location>.Empty : ImmutableArray.Create<Location>(location);
 
-                var parameter = new LambdaParameterSymbol(owner: this, attributeLists, type, ordinal: p, refKind, name, unboundLambda.ParameterIsDiscard(p), unboundLambda.ParameterIsNullChecked(p), locations);
+                var parameter = new LambdaParameterSymbol(owner: this, attributeLists, type, ordinal: p, refKind, scope, name, unboundLambda.ParameterIsDiscard(p), locations);
                 builder.Add(parameter);
             }
 

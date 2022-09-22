@@ -8,7 +8,6 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Xml.Linq;
 using Microsoft.CodeAnalysis.Editor.Commanding.Commands;
-using Microsoft.CodeAnalysis.Editor.Implementation.Interactive;
 using Microsoft.CodeAnalysis.Editor.Implementation.Organizing;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.UnitTests;
@@ -1193,7 +1192,9 @@ $@"{typeKind} Program
 
             var textView = workspace.Documents.Single().GetTextView();
 
-            var handler = new OrganizeDocumentCommandHandler(workspace.ExportProvider.GetExportedValue<IThreadingContext>());
+            var handler = new OrganizeDocumentCommandHandler(
+                workspace.GetService<IThreadingContext>(),
+                workspace.GlobalOptions);
 
             var state = handler.GetCommandState(new SortAndRemoveUnnecessaryImportsCommandArgs(textView, textView.TextBuffer));
             Assert.True(state.IsUnspecified);

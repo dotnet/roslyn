@@ -10,6 +10,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeCleanup;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.CodeAnalysis.Text;
@@ -22,14 +23,8 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
     /// </summary>
     internal sealed class RenamedSpansTracker
     {
-        private readonly Dictionary<DocumentId, List<(TextSpan oldSpan, TextSpan newSpan)>> _documentToModifiedSpansMap;
-        private readonly Dictionary<DocumentId, List<MutableComplexifiedSpan>> _documentToComplexifiedSpansMap;
-
-        public RenamedSpansTracker()
-        {
-            _documentToComplexifiedSpansMap = new Dictionary<DocumentId, List<MutableComplexifiedSpan>>();
-            _documentToModifiedSpansMap = new Dictionary<DocumentId, List<(TextSpan oldSpan, TextSpan newSpan)>>();
-        }
+        private readonly Dictionary<DocumentId, List<(TextSpan oldSpan, TextSpan newSpan)>> _documentToModifiedSpansMap = new();
+        private readonly Dictionary<DocumentId, List<MutableComplexifiedSpan>> _documentToComplexifiedSpansMap = new();
 
         internal bool IsDocumentChanged(DocumentId documentId)
             => _documentToModifiedSpansMap.ContainsKey(documentId) || _documentToComplexifiedSpansMap.ContainsKey(documentId);
@@ -148,7 +143,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
             }
         }
 
-        internal async Task<Solution> SimplifyAsync(Solution solution, IEnumerable<DocumentId> documentIds, bool replacementTextValid, AnnotationTable<RenameAnnotation> renameAnnotations, CancellationToken cancellationToken)
+        internal async Task<Solution> SimplifyAsync(Solution solution, IEnumerable<DocumentId> documentIds, bool replacementTextValid, AnnotationTable<RenameAnnotation> renameAnnotations, CodeCleanupOptionsProvider fallbackOptions, CancellationToken cancellationToken)
         {
             foreach (var documentId in documentIds)
             {
@@ -158,8 +153,10 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
 
                     if (replacementTextValid)
                     {
-                        document = await Simplifier.ReduceAsync(document, Simplifier.Annotation, cancellationToken: cancellationToken).ConfigureAwait(false);
-                        document = await Formatter.FormatAsync(document, Formatter.Annotation, cancellationToken: cancellationToken).ConfigureAwait(false);
+                        var cleanupOptions = await document.GetCodeCleanupOptionsAsync(fallbackOptions, cancellationToken).ConfigureAwait(false);
+
+                        document = await Simplifier.ReduceAsync(document, Simplifier.Annotation, cleanupOptions.SimplifierOptions, cancellationToken).ConfigureAwait(false);
+                        document = await Formatter.FormatAsync(document, Formatter.Annotation, cleanupOptions.FormattingOptions, cancellationToken).ConfigureAwait(false);
                     }
 
                     // Simplification may have removed escaping and formatted whitespace.  We need to update

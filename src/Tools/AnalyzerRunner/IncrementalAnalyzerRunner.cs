@@ -14,7 +14,7 @@ using Microsoft.CodeAnalysis.FindSymbols.SymbolTree;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.IncrementalCaches;
-using Microsoft.CodeAnalysis.Shared.Options;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.CodeAnalysis.Storage;
 
@@ -42,19 +42,21 @@ namespace AnalyzerRunner
 
             var usePersistentStorage = _options.UsePersistentStorage;
 
-            _workspace.TryApplyChanges(_workspace.CurrentSolution.WithOptions(_workspace.Options
-                .WithChangedOption(SolutionCrawlerOptions.BackgroundAnalysisScopeOption, LanguageNames.CSharp, _options.AnalysisScope)
-                .WithChangedOption(SolutionCrawlerOptions.BackgroundAnalysisScopeOption, LanguageNames.VisualBasic, _options.AnalysisScope)
-                .WithChangedOption(StorageOptions.Database, usePersistentStorage ? StorageDatabase.SQLite : StorageDatabase.None)));
-
             var exportProvider = (IMefHostExportProvider)_workspace.Services.HostServices;
+
+            var globalOptions = exportProvider.GetExports<IGlobalOptionService>().Single().Value;
+            globalOptions.SetGlobalOption(new OptionKey(SolutionCrawlerOptionsStorage.BackgroundAnalysisScopeOption, LanguageNames.CSharp), _options.AnalysisScope);
+            globalOptions.SetGlobalOption(new OptionKey(SolutionCrawlerOptionsStorage.BackgroundAnalysisScopeOption, LanguageNames.VisualBasic), _options.AnalysisScope);
+
+            var workspaceConfigurationService = (AnalyzerRunnerWorkspaceConfigurationService)_workspace.Services.GetRequiredService<IWorkspaceConfigurationService>();
+            workspaceConfigurationService.Options = new(CacheStorage: usePersistentStorage ? StorageDatabase.SQLite : StorageDatabase.None);
 
             var solutionCrawlerRegistrationService = (SolutionCrawlerRegistrationService)_workspace.Services.GetRequiredService<ISolutionCrawlerRegistrationService>();
             solutionCrawlerRegistrationService.Register(_workspace);
 
             if (usePersistentStorage)
             {
-                var persistentStorageService = _workspace.Services.GetPersistentStorageService(_workspace.CurrentSolution.Options);
+                var persistentStorageService = _workspace.Services.GetPersistentStorageService();
                 await using var persistentStorage = await persistentStorageService.GetStorageAsync(SolutionKey.ToSolutionKey(_workspace.CurrentSolution), cancellationToken).ConfigureAwait(false);
                 if (persistentStorage is NoOpPersistentStorage)
                 {

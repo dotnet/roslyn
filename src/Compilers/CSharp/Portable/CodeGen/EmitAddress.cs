@@ -345,7 +345,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             return result;
         }
 
-        private LocalSymbol DigForValueLocal(BoundSequence topSequence, BoundExpression value)
+        private static LocalSymbol DigForValueLocal(BoundSequence topSequence, BoundExpression value)
         {
             switch (value.Kind)
             {
@@ -541,15 +541,21 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         {
             var field = fieldAccess.FieldSymbol;
 
-            //NOTE: we are not propagating AddressKind.Constrained here.
-            //      the reason is that while Constrained permits calls, it does not permit 
-            //      taking field addresses, so we have to turn Constrained into writeable.
-            var tempOpt = EmitReceiverRef(fieldAccess.ReceiverOpt, addressKind == AddressKind.Constrained ? AddressKind.Writeable : addressKind);
+            // NOTE: We are not propagating AddressKind.Constrained here.
+            // The reason is that while Constrained permits calls, it does not permit 
+            // taking field addresses, so we have to turn Constrained into writeable.
+            // For ref fields, we only require a readonly address for the receiver
+            // since we are loading the field value.
+            var tempOpt = EmitReceiverRef(
+                fieldAccess.ReceiverOpt,
+                field.RefKind == RefKind.None ?
+                    (addressKind == AddressKind.Constrained ? AddressKind.Writeable : addressKind) :
+                    (addressKind != AddressKind.ReadOnlyStrict ? AddressKind.ReadOnly : addressKind));
 
-            _builder.EmitOpCode(ILOpCode.Ldflda);
+            _builder.EmitOpCode(field.RefKind == RefKind.None ? ILOpCode.Ldflda : ILOpCode.Ldfld);
             EmitSymbolToken(field, fieldAccess.Syntax);
 
-            // when loading an address of a fixed field, we actually 
+            // When loading an address of a fixed field, we actually 
             // want to load the address of its "FixedElementField" instead.
             // Both the buffer backing struct and its only field should be at the same location,
             // so we could in theory just use address of the struct, but in some contexts that causes 

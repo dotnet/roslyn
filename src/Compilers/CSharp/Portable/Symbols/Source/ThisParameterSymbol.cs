@@ -168,10 +168,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return null; }
         }
 
-        public override bool IsNullChecked => false;
-
         internal override ImmutableArray<int> InterpolatedStringHandlerArgumentIndexes => ImmutableArray<int>.Empty;
 
         internal override bool HasInterpolatedStringHandlerArgumentError => false;
+
+        internal override DeclarationScope Scope => ContainingType?.TypeKind != TypeKind.Struct ? DeclarationScope.Unscoped : DeclarationScope.RefScoped;
     }
 }

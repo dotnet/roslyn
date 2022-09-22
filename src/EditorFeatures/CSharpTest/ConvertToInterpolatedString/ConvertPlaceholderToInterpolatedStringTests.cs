@@ -286,7 +286,7 @@ class T
 {
     void M()
     {
-        var a = $""{ (object)new object}"";
+        var a = $""{(object)new object}"";
     }
 }");
         }
@@ -411,7 +411,7 @@ class T
     void M()
     {
         Decimal pricePerOunce = 17.36m;
-        String s = $""The current price is { pricePerOunce:C2} per ounce."";
+        String s = $""The current price is {pricePerOunce:C2} per ounce."";
     }
 }");
         }
@@ -490,7 +490,7 @@ class T
 {
     void M()
     {
-        var a = $""{ 126347.89m,-10:C}"";
+        var a = $""{126347.89m,-10:C}"";
     }
 }");
         }
@@ -890,6 +890,35 @@ class T
     }
 }",
 @"using System;
+
+class T
+{
+    void M()
+    {
+        var a = $""{1}"";
+    }
+}");
+        }
+
+        [WorkItem(61346, "https://github.com/dotnet/roslyn/issues/61346")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)]
+        public async Task TestNoCastToObjectWhenNullableEnabled()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+
+#nullable enable
+
+class T
+{
+    void M()
+    {
+        var a = string.Format([|""{0}"", 1|]);
+    }
+}",
+@"using System;
+
+#nullable enable
 
 class T
 {

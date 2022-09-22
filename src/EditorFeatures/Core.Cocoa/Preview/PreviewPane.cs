@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using AppKit;
 using Foundation;
+using ObjCRuntime;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.VisualStudio.Text.Differencing;
 
@@ -95,7 +96,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
                 new Microsoft.VisualStudio.Text.SnapshotPoint(_differenceViewerPreview.Viewer.InlineView.TextSnapshot, 0));
         }
 
-        public PreviewPane(IntPtr ptr)
+        public PreviewPane(NativeHandle ptr)
             : base(ptr)
         {
         }

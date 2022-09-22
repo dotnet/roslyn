@@ -48,9 +48,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.AddBraces
         public void AnalyzeNode(SyntaxNodeAnalysisContext context)
         {
             var statement = context.Node;
-            var cancellationToken = context.CancellationToken;
 
-            var option = context.Options.GetOption(CSharpCodeStyleOptions.PreferBraces, statement.SyntaxTree, cancellationToken);
+            var option = context.GetCSharpAnalyzerOptions().PreferBraces;
             if (option.Value == PreferBracesPreference.None)
             {
                 return;
@@ -102,7 +101,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.AddBraces
                 return;
             }
 
-            if (ContainsInterleavedDirective(statement, embeddedStatement, cancellationToken))
+            if (ContainsInterleavedDirective(statement, embeddedStatement, context.CancellationToken))
             {
                 return;
             }

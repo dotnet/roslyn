@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseCollectionInitialize
 
     public partial class UseCollectionInitializerTests
     {
-        private static async Task TestInRegularAndScriptAsync(string testCode, string fixedCode)
+        private static async Task TestInRegularAndScriptAsync(string testCode, string fixedCode, OutputKind outputKind = OutputKind.DynamicallyLinkedLibrary)
         {
             await new VerifyCS.Test
             {
@@ -27,6 +27,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseCollectionInitialize
                 TestCode = testCode,
                 FixedCode = fixedCode,
                 LanguageVersion = LanguageVersion.Preview,
+                TestState = { OutputKind = outputKind }
             }.RunAsync();
         }
 
@@ -787,6 +788,44 @@ class C
 }");
         }
 
+        [WorkItem(46670, "https://github.com/dotnet/roslyn/issues/46670")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseObjectInitializer)]
+        public async Task TestTriviaRemoveLeadingBlankLinesForFirstElement()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+using System.Collections.Generic;
+class C
+{
+    void M()
+    {
+        var c = [|new|] List<int>();
+        
+        // Goo
+        c.Add(1);
+
+        // Bar
+        c.Add(2);
+    }
+}",
+@"
+using System.Collections.Generic;
+class C
+{
+    void M()
+    {
+        var c = new List<int>
+        {
+            // Goo
+            1,
+
+            // Bar
+            2
+        };
+    }
+}");
+        }
+
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCollectionInitializer)]
         public async Task TestComplexInitializer2()
         {
@@ -1305,6 +1344,21 @@ class C
         };
     }
 }");
+        }
+
+        [WorkItem(61066, "https://github.com/dotnet/roslyn/issues/61066")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseObjectInitializer)]
+        public async Task TestInTopLevelStatements()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System.Collections.Generic;
+
+var list = [|new|] List<int>();
+list.Add(1);",
+@"using System.Collections.Generic;
+
+var list = new List<int> { 1 };
+", OutputKind.ConsoleApplication);
         }
     }
 }

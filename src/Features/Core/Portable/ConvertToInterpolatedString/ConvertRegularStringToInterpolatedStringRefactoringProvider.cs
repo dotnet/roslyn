@@ -50,27 +50,34 @@ namespace Microsoft.CodeAnalysis.ConvertToInterpolatedString
             if (literalExpression.GetDiagnostics().Any(d => d.Severity == DiagnosticSeverity.Error))
                 return;
 
-            if (!token.Text.Contains("{") && !token.Text.Contains("}"))
+            if (!token.Text.Contains('{') && !token.Text.Contains('}'))
                 return;
 
             var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
 
-            // If there is a const keyword, do not offer the refactoring (an interpolated string is not const)
-            var declarator = literalExpression.FirstAncestorOrSelf<SyntaxNode>(syntaxFacts.IsVariableDeclarator);
-            if (declarator != null)
+            if (!syntaxFacts.SupportsConstantInterpolatedStrings(document.Project.ParseOptions!))
             {
-                var generator = SyntaxGenerator.GetGenerator(document);
-                if (generator.GetModifiers(declarator).IsConst)
+                // If there is a const keyword, do not offer the refactoring (an interpolated string is not const)
+                var declarator = literalExpression.FirstAncestorOrSelf<SyntaxNode>(syntaxFacts.IsVariableDeclarator);
+                if (declarator != null)
+                {
+                    var generator = SyntaxGenerator.GetGenerator(document);
+                    if (generator.GetModifiers(declarator).IsConst)
+                        return;
+                }
+
+                // Attributes also only allow constant values.
+                var attribute = literalExpression.FirstAncestorOrSelf<SyntaxNode>(syntaxFacts.IsAttribute);
+                if (attribute != null)
                     return;
             }
 
-            // Attributes also only allow constant values.
-            var attribute = literalExpression.FirstAncestorOrSelf<SyntaxNode>(syntaxFacts.IsAttribute);
-            if (attribute != null)
-                return;
-
             context.RegisterRefactoring(
-                new MyCodeAction(_ => UpdateDocumentAsync(document, root, token)),
+                CodeAction.CreateWithPriority(
+                    CodeActionPriority.Low,
+                    FeaturesResources.Convert_to_interpolated_string,
+                    _ => UpdateDocumentAsync(document, root, token),
+                    nameof(FeaturesResources.Convert_to_interpolated_string)),
                 literalExpression.Span);
         }
 
@@ -105,16 +112,6 @@ namespace Microsoft.CodeAnalysis.ConvertToInterpolatedString
                 root.ReplaceNode(
                     literalExpression,
                     CreateInterpolatedString(document, literalExpression, syntaxFacts.IsVerbatimStringLiteral(token)))));
-        }
-
-        private class MyCodeAction : CodeAction.DocumentChangeAction
-        {
-            internal override CodeActionPriority Priority => CodeActionPriority.Low;
-
-            public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(FeaturesResources.Convert_to_interpolated_string, createChangedDocument, nameof(FeaturesResources.Convert_to_interpolated_string))
-            {
-            }
         }
     }
 }

@@ -198,14 +198,33 @@ namespace Microsoft.CodeAnalysis.Remote.Telemetry
             public Task AnalyzeDocumentAsync(Document document, SyntaxNode bodyOpt, InvocationReasons reasons, CancellationToken cancellationToken)
                 => Task.CompletedTask;
 
-            public bool NeedsReanalysisOnOptionChanged(object sender, OptionChangedEventArgs e)
-                => false;
-
             public Task NewSolutionSnapshotAsync(Solution solution, CancellationToken cancellationToken)
                 => Task.CompletedTask;
 
             public Task RemoveDocumentAsync(DocumentId documentId, CancellationToken cancellationToken)
                 => Task.CompletedTask;
+
+            public Task NonSourceDocumentOpenAsync(TextDocument textDocument, CancellationToken cancellationToken)
+                => Task.CompletedTask;
+
+            public Task NonSourceDocumentCloseAsync(TextDocument textDocument, CancellationToken cancellationToken)
+                => Task.CompletedTask;
+
+            public Task NonSourceDocumentResetAsync(TextDocument textDocument, CancellationToken cancellationToken)
+                => Task.CompletedTask;
+
+            public Task AnalyzeNonSourceDocumentAsync(TextDocument textDocument, InvocationReasons reasons, CancellationToken cancellationToken)
+                => Task.CompletedTask;
+
+            public int Priority => 1;
+
+            public void LogAnalyzerCountSummary()
+            {
+            }
+
+            public void Shutdown()
+            {
+            }
         }
     }
 }

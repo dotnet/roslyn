@@ -286,7 +286,7 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
             using var _ = ArrayBuilder<Document>.GetInstance(out var builder);
             foreach (var relatedDocument in document.GetLinkedDocuments())
             {
-                var syntaxTree = await relatedDocument.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+                var syntaxTree = await relatedDocument.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
                 if (!relatedDocument.GetRequiredLanguageService<ISyntaxFactsService>().IsInInactiveRegion(syntaxTree, position, cancellationToken))
                 {
                     builder.Add(relatedDocument);

@@ -403,16 +403,13 @@ public class C
         [Fact]
         public void Using()
         {
-            var source = WithWindowsLineBreaks(
-@"class C : System.IDisposable
+            var source = WithWindowsLineBreaks(@"
+using System;
+
+class C
 {
-    public void Dispose()
-    {
-    }
-    static System.IDisposable F()
-    {
-        return new C();
-    }
+    static IDisposable F() => null;
+
     static void M()
     {
         using (F())
@@ -501,6 +498,413 @@ public class C
   }
   IL_0040:  ret
 }");
+        }
+
+        [Fact]
+        public void Using_VariableSwap()
+        {
+            var source0 = MarkedSource(@"
+using System;
+
+class C
+{
+    static IDisposable F() => null;
+
+    static void M()
+    {
+        using (IDisposable <N:0>u = F()</N:0>, <N:1>v = F()</N:1>) { }
+    }
+}");
+            var source1 = MarkedSource(@"
+using System;
+
+class C
+{
+    static IDisposable F() => null;
+
+    static void M()
+    {
+        using (IDisposable <N:1>v = F()</N:1>, <N:0>u = F()</N:0>) { }
+    }
+}");
+            var compilation0 = CreateCompilation(source0.Tree, options: TestOptions.DebugDll);
+            var compilation1 = compilation0.WithSource(source1.Tree);
+
+            var v0 = CompileAndVerify(compilation0);
+            var symReader = v0.CreateSymReader();
+
+            using var md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData);
+            var method0 = compilation0.GetMember<MethodSymbol>("C.M");
+            var method1 = compilation1.GetMember<MethodSymbol>("C.M");
+
+            var generation0 = EmitBaseline.CreateInitialBaseline(md0, symReader.GetEncMethodDebugInfo);
+
+            var diff1 = compilation1.EmitDifference(
+                generation0,
+                ImmutableArray.Create(SemanticEdit.Create(SemanticEditKind.Update, method0, method1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables: true)));
+
+            v0.VerifyPdb("C.M", @"
+ <symbols>
+  <files>
+    <file id=""1"" name="""" language=""C#"" />
+  </files>
+  <methods>
+    <method containingType=""C"" name=""M"">
+      <customDebugInfo>
+        <forward declaringType=""C"" methodName=""F"" />
+        <encLocalSlotMap>
+          <slot kind=""0"" offset=""35"" />
+          <slot kind=""0"" offset=""55"" />
+        </encLocalSlotMap>
+      </customDebugInfo>
+      <scope startOffset=""0x0"" endOffset=""0x2a"">
+        <scope startOffset=""0x1"" endOffset=""0x29"">
+          <local name=""u"" il_index=""0"" il_start=""0x1"" il_end=""0x29"" attributes=""0"" />
+          <local name=""v"" il_index=""1"" il_start=""0x1"" il_end=""0x29"" attributes=""0"" />
+        </scope>
+      </scope>
+    </method>
+  </methods>
+</symbols>
+", options: PdbValidationOptions.ExcludeSequencePoints);
+
+            diff1.VerifyIL("C.M", @"
+{
+  // Code size       42 (0x2a)
+  .maxstack  1
+  .locals init (System.IDisposable V_0, //u
+                System.IDisposable V_1) //v
+  IL_0000:  nop
+  IL_0001:  call       ""System.IDisposable C.F()""
+  IL_0006:  stloc.1
+  .try
+  {
+    IL_0007:  call       ""System.IDisposable C.F()""
+    IL_000c:  stloc.0
+    .try
+    {
+      IL_000d:  nop
+      IL_000e:  nop
+      IL_000f:  leave.s    IL_001c
+    }
+    finally
+    {
+      IL_0011:  ldloc.0
+      IL_0012:  brfalse.s  IL_001b
+      IL_0014:  ldloc.0
+      IL_0015:  callvirt   ""void System.IDisposable.Dispose()""
+      IL_001a:  nop
+      IL_001b:  endfinally
+    }
+    IL_001c:  leave.s    IL_0029
+  }
+  finally
+  {
+    IL_001e:  ldloc.1
+    IL_001f:  brfalse.s  IL_0028
+    IL_0021:  ldloc.1
+    IL_0022:  callvirt   ""void System.IDisposable.Dispose()""
+    IL_0027:  nop
+    IL_0028:  endfinally
+  }
+  IL_0029:  ret
+}
+");
+        }
+
+        [Fact]
+        public void Using_VariableDeclaration_VariableSwap()
+        {
+            var source0 = MarkedSource(@"
+using System;
+
+class C
+{
+    static IDisposable F() => null;
+
+    static void M()
+    {
+        using IDisposable <N:0>u = F()</N:0>, <N:1>v = F()</N:1>;
+    }
+}");
+            var source1 = MarkedSource(@"
+using System;
+
+class C
+{
+    static IDisposable F() => null;
+
+    static void M()
+    {
+        using IDisposable <N:1>v = F()</N:1>, <N:0>u = F()</N:0>;
+    }
+}");
+            var compilation0 = CreateCompilation(source0.Tree, options: TestOptions.DebugDll);
+            var compilation1 = compilation0.WithSource(source1.Tree);
+
+            var v0 = CompileAndVerify(compilation0);
+            var symReader = v0.CreateSymReader();
+
+            using var md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData);
+            var method0 = compilation0.GetMember<MethodSymbol>("C.M");
+            var method1 = compilation1.GetMember<MethodSymbol>("C.M");
+
+            var generation0 = EmitBaseline.CreateInitialBaseline(md0, symReader.GetEncMethodDebugInfo);
+
+            var diff1 = compilation1.EmitDifference(
+                generation0,
+                ImmutableArray.Create(SemanticEdit.Create(SemanticEditKind.Update, method0, method1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables: true)));
+
+            v0.VerifyPdb("C.M", @"
+<symbols>
+  <files>
+    <file id=""1"" name="""" language=""C#"" />
+  </files>
+  <methods>
+    <method containingType=""C"" name=""M"">
+      <customDebugInfo>
+        <forward declaringType=""C"" methodName=""F"" />
+        <encLocalSlotMap>
+          <slot kind=""0"" offset=""34"" />
+          <slot kind=""0"" offset=""54"" />
+        </encLocalSlotMap>
+      </customDebugInfo>
+      <scope startOffset=""0x0"" endOffset=""0x26"">
+        <local name=""u"" il_index=""0"" il_start=""0x0"" il_end=""0x26"" attributes=""0"" />
+        <local name=""v"" il_index=""1"" il_start=""0x0"" il_end=""0x26"" attributes=""0"" />
+      </scope>
+    </method>
+  </methods>
+</symbols>
+", options: PdbValidationOptions.ExcludeSequencePoints);
+
+            diff1.VerifyIL("C.M", @"
+{
+  // Code size       38 (0x26)
+  .maxstack  1
+  .locals init (System.IDisposable V_0, //u
+                System.IDisposable V_1) //v
+  IL_0000:  nop
+  IL_0001:  call       ""System.IDisposable C.F()""
+  IL_0006:  stloc.1
+  .try
+  {
+    IL_0007:  call       ""System.IDisposable C.F()""
+    IL_000c:  stloc.0
+    .try
+    {
+      IL_000d:  leave.s    IL_0025
+    }
+    finally
+    {
+      IL_000f:  ldloc.0
+      IL_0010:  brfalse.s  IL_0019
+      IL_0012:  ldloc.0
+      IL_0013:  callvirt   ""void System.IDisposable.Dispose()""
+      IL_0018:  nop
+      IL_0019:  endfinally
+    }
+  }
+  finally
+  {
+    IL_001a:  ldloc.1
+    IL_001b:  brfalse.s  IL_0024
+    IL_001d:  ldloc.1
+    IL_001e:  callvirt   ""void System.IDisposable.Dispose()""
+    IL_0023:  nop
+    IL_0024:  endfinally
+  }
+  IL_0025:  ret
+}
+");
+        }
+
+        [Fact]
+        public void AwaitUsing_VariableSwap()
+        {
+            var source0 = MarkedSource(@"
+using System;
+using System.Threading.Tasks;
+
+class C
+{
+    static IAsyncDisposable F() => null;
+
+    static async Task M()
+    {
+        await using (IAsyncDisposable <N:0>u = F()</N:0>, <N:1>v = F()</N:1>) { }
+    }
+}");
+            var source1 = MarkedSource(@"
+using System;
+using System.Threading.Tasks;
+
+class C
+{
+    static IAsyncDisposable F() => null;
+
+    static async Task M()
+    {
+        await using (IAsyncDisposable <N:1>v = F()</N:1>, <N:0>u = F()</N:0>) { }
+    }
+}");
+            var asyncStreamsTree = Parse(AsyncStreamsTypes);
+            var compilation0 = CreateCompilationWithTasksExtensions(new[] { source0.Tree, asyncStreamsTree }, options: TestOptions.DebugDll);
+            var compilation1 = compilation0.WithSource(new[] { source1.Tree, asyncStreamsTree });
+
+            var v0 = CompileAndVerify(compilation0);
+            var symReader = v0.CreateSymReader();
+
+            using var md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData);
+            var method0 = compilation0.GetMember<MethodSymbol>("C.M");
+            var method1 = compilation1.GetMember<MethodSymbol>("C.M");
+
+            var generation0 = EmitBaseline.CreateInitialBaseline(md0, symReader.GetEncMethodDebugInfo);
+
+            var diff1 = compilation1.EmitDifference(
+                generation0,
+                ImmutableArray.Create(SemanticEdit.Create(SemanticEditKind.Update, method0, method1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables: true)));
+
+            v0.VerifyPdb("C.M", @"
+<symbols>
+  <files>
+    <file id=""1"" name="""" language=""C#"" />
+  </files>
+  <methods>
+    <method containingType=""C"" name=""M"">
+      <customDebugInfo>
+        <forwardIterator name=""&lt;M&gt;d__1"" />
+        <encLocalSlotMap>
+          <slot kind=""0"" offset=""46"" />
+          <slot kind=""0"" offset=""66"" />
+          <slot kind=""22"" offset=""46"" />
+          <slot kind=""23"" offset=""46"" />
+          <slot kind=""22"" offset=""66"" />
+          <slot kind=""23"" offset=""66"" />
+        </encLocalSlotMap>
+        <encStateMachineStateMap>
+          <state number=""0"" offset=""66"" />
+          <state number=""1"" offset=""46"" />
+        </encStateMachineStateMap>
+      </customDebugInfo>
+    </method>
+  </methods>
+</symbols>
+");
+            v0.VerifyLocalSignature("C.<M>d__1.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext", @"
+.locals init (int V_0,
+              object V_1,
+              System.Runtime.CompilerServices.ValueTaskAwaiter V_2,
+              System.Threading.Tasks.ValueTask V_3,
+              C.<M>d__1 V_4,
+              System.Exception V_5,
+              System.Runtime.CompilerServices.ValueTaskAwaiter V_6)
+");
+
+            diff1.VerifyLocalSignature("C.<M>d__1.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext", @"
+.locals init (int V_0,
+              object V_1,
+              System.Runtime.CompilerServices.ValueTaskAwaiter V_2,
+              System.Threading.Tasks.ValueTask V_3,
+              C.<M>d__1 V_4,
+              System.Exception V_5,
+              System.Runtime.CompilerServices.ValueTaskAwaiter V_6)
+");
+        }
+
+        [Fact]
+        public void AwaitUsing_VariableDeclaration_VariableSwap()
+        {
+            var source0 = MarkedSource(@"
+using System;
+using System.Threading.Tasks;
+
+class C
+{
+    static IAsyncDisposable F() => null;
+
+    static async Task M()
+    {
+        await using IAsyncDisposable <N:0>u = F()</N:0>, <N:1>v = F()</N:1>;
+    }
+}");
+            var source1 = MarkedSource(@"
+using System;
+using System.Threading.Tasks;
+
+class C
+{
+    static IAsyncDisposable F() => null;
+
+    static async Task M()
+    {
+        await using IAsyncDisposable <N:1>v = F()</N:1>, <N:0>u = F()</N:0>;
+    }
+}");
+            var asyncStreamsTree = Parse(AsyncStreamsTypes);
+            var compilation0 = CreateCompilationWithTasksExtensions(new[] { source0.Tree, asyncStreamsTree }, options: TestOptions.DebugDll);
+            var compilation1 = compilation0.WithSource(new[] { source1.Tree, asyncStreamsTree });
+
+            var v0 = CompileAndVerify(compilation0);
+            var symReader = v0.CreateSymReader();
+
+            using var md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData);
+            var method0 = compilation0.GetMember<MethodSymbol>("C.M");
+            var method1 = compilation1.GetMember<MethodSymbol>("C.M");
+
+            var generation0 = EmitBaseline.CreateInitialBaseline(md0, symReader.GetEncMethodDebugInfo);
+
+            var diff1 = compilation1.EmitDifference(
+                generation0,
+                ImmutableArray.Create(SemanticEdit.Create(SemanticEditKind.Update, method0, method1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables: true)));
+
+            v0.VerifyPdb("C.M", @"
+<symbols>
+  <files>
+    <file id=""1"" name="""" language=""C#"" />
+  </files>
+  <methods>
+    <method containingType=""C"" name=""M"">
+      <customDebugInfo>
+        <forwardIterator name=""&lt;M&gt;d__1"" />
+        <encLocalSlotMap>
+          <slot kind=""0"" offset=""45"" />
+          <slot kind=""0"" offset=""65"" />
+          <slot kind=""22"" offset=""45"" />
+          <slot kind=""23"" offset=""45"" />
+          <slot kind=""22"" offset=""65"" />
+          <slot kind=""23"" offset=""65"" />
+        </encLocalSlotMap>
+        <encStateMachineStateMap>
+          <state number=""0"" offset=""65"" />
+          <state number=""1"" offset=""45"" />
+        </encStateMachineStateMap>
+      </customDebugInfo>
+    </method>
+  </methods>
+</symbols>
+");
+            v0.VerifyLocalSignature("C.<M>d__1.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext", @"
+.locals init (int V_0,
+              object V_1,
+              System.Runtime.CompilerServices.ValueTaskAwaiter V_2,
+              System.Threading.Tasks.ValueTask V_3,
+              C.<M>d__1 V_4,
+              System.Exception V_5,
+              int V_6,
+              System.Runtime.CompilerServices.ValueTaskAwaiter V_7)
+");
+
+            diff1.VerifyLocalSignature("C.<M>d__1.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext", @"
+.locals init (int V_0,
+              object V_1,
+              System.Runtime.CompilerServices.ValueTaskAwaiter V_2,
+              System.Threading.Tasks.ValueTask V_3,
+              C.<M>d__1 V_4,
+              System.Exception V_5,
+              int V_6,
+              System.Runtime.CompilerServices.ValueTaskAwaiter V_7)
+");
         }
 
         [Fact]

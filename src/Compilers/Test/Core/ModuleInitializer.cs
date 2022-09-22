@@ -12,7 +12,9 @@ namespace Roslyn.Test.Utilities
 {
     internal static class ModuleInitializer
     {
+#pragma warning disable CA2255
         [ModuleInitializer]
+#pragma warning restore CA2255
         internal static void Initialize()
         {
             // <Metalama> Even though the Roslyn test facility implements various ways to handle

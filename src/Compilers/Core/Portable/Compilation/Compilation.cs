@@ -243,7 +243,7 @@ namespace Microsoft.CodeAnalysis
                 }
 
                 // Force the previous submission to be analyzed. This is required for anonymous types unification.
-                if (previousScriptCompilation.GetDiagnostics().Any(d => d.Severity == DiagnosticSeverity.Error))
+                if (previousScriptCompilation.GetDiagnostics().Any(static d => d.Severity == DiagnosticSeverity.Error))
                 {
                     throw new InvalidOperationException(CodeAnalysisResources.PreviousSubmissionHasErrors);
                 }
@@ -1170,7 +1170,9 @@ namespace Microsoft.CodeAnalysis
             {
                 val = CommonGetTypeByMetadataName(fullyQualifiedMetadataName);
                 var result = _getTypeCache.TryAdd(fullyQualifiedMetadataName, val);
-                Debug.Assert(result || (_getTypeCache.TryGetValue(fullyQualifiedMetadataName, out var addedType) && ReferenceEquals(addedType, val)));
+                Debug.Assert(result
+                 || !_getTypeCache.TryGetValue(fullyQualifiedMetadataName, out var addedType) // Could fail if the type was already evicted from the cache
+                 || ReferenceEquals(addedType, val));
             }
             return val;
         }
@@ -1197,8 +1199,8 @@ namespace Microsoft.CodeAnalysis
                 val = getTypesByMetadataNameImpl();
                 var result = _getTypesCache.TryAdd(fullyQualifiedMetadataName, val);
                 Debug.Assert(result
-                    || (_getTypesCache.TryGetValue(fullyQualifiedMetadataName, out var addedArray)
-                        && Enumerable.SequenceEqual(addedArray, val, ReferenceEqualityComparer.Instance)));
+                    || !_getTypesCache.TryGetValue(fullyQualifiedMetadataName, out var addedArray) // Could fail if the type was already evicted from the cache
+                    || Enumerable.SequenceEqual(addedArray, val, ReferenceEqualityComparer.Instance));
             }
 
             return val;

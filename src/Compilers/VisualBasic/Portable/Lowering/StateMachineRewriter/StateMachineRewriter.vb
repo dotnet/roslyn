@@ -28,6 +28,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Protected ReadOnly StateMachineType As SynthesizedContainer
         Protected ReadOnly SlotAllocatorOpt As VariableSlotAllocator
         Protected ReadOnly SynthesizedLocalOrdinals As SynthesizedLocalOrdinalsDispenser
+        Protected ReadOnly StateDebugInfoBuilder As ArrayBuilder(Of StateMachineStateDebugInfo)
 
         Protected StateField As FieldSymbol
         Protected nonReusableLocalProxies As Dictionary(Of Symbol, TProxy)
@@ -38,6 +39,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Protected Sub New(body As BoundStatement,
                           method As MethodSymbol,
                           stateMachineType As StateMachineTypeSymbol,
+                          stateMachineStateDebugInfoBuilder As ArrayBuilder(Of StateMachineStateDebugInfo),
                           slotAllocatorOpt As VariableSlotAllocator,
                           compilationState As TypeCompilationState,
                           diagnostics As BindingDiagnosticBag)
@@ -55,6 +57,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Me.SlotAllocatorOpt = slotAllocatorOpt
             Me.Diagnostics = diagnostics
             Me.SynthesizedLocalOrdinals = New SynthesizedLocalOrdinalsDispenser()
+            Me.StateDebugInfoBuilder = stateMachineStateDebugInfoBuilder
             Me.nonReusableLocalProxies = New Dictionary(Of Symbol, TProxy)()
 
             Me.F = New SyntheticBoundNodeFactory(method, method, method.ContainingType, body.Syntax, compilationState, diagnostics)

@@ -9,7 +9,7 @@ using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Navigation;
 
-namespace Microsoft.CodeAnalysis.Editor.Implementation.Interactive
+namespace Microsoft.CodeAnalysis.Interactive
 {
     [ExportWorkspaceServiceFactory(typeof(IDocumentNavigationService), WorkspaceKind.Interactive), Shared]
     internal sealed class InteractiveDocumentNavigationServiceFactory : IWorkspaceServiceFactory

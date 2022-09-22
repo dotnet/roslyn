@@ -36,6 +36,13 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
             return (bool)isProvisionalObject;
         }
 
+        internal async Task<IntPtr> GetMainWindowAsync(CancellationToken cancellationToken)
+        {
+            await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+            var dte = await GetRequiredGlobalServiceAsync<SDTE, EnvDTE.DTE>(cancellationToken);
+            return dte.MainWindow.HWnd;
+        }
+
         public async Task<PauseFileChangesRestorer> PauseFileChangesAsync(CancellationToken cancellationToken)
         {
             await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);

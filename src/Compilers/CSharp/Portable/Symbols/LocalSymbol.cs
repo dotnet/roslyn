@@ -176,6 +176,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        internal abstract DeclarationScope Scope { get; }
+
         internal sealed override TResult Accept<TArgument, TResult>(CSharpSymbolVisitor<TArgument, TResult> visitor, TArgument argument)
         {
             return visitor.VisitLocal(this, argument);

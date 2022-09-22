@@ -48,6 +48,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert(!type.IsVoidType());
             Debug.Assert(!kind.IsLongLived() || syntaxOpt != null);
             Debug.Assert(refKind != RefKind.Out);
+            Debug.Assert(containingMethodOpt is null || containingMethodOpt.DeclaringCompilation is not null);
 
             _containingMethodOpt = containingMethodOpt;
             _type = type;
@@ -165,6 +166,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// Checking escape scopes is not valid here.
         /// </summary>
         internal sealed override uint RefEscapeScope => throw ExceptionUtilities.Unreachable;
+
+        internal sealed override DeclarationScope Scope => DeclarationScope.Unscoped;
 
         internal sealed override ConstantValue GetConstantValue(SyntaxNode node, LocalSymbol inProgress, BindingDiagnosticBag diagnostics)
         {

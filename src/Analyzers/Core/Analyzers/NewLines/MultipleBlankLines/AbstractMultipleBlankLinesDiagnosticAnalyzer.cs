@@ -35,13 +35,12 @@ namespace Microsoft.CodeAnalysis.NewLines.MultipleBlankLines
 
         private void AnalyzeTree(SyntaxTreeAnalysisContext context)
         {
-            var option = context.GetOption(CodeStyleOptions2.AllowMultipleBlankLines, context.Tree.Options.Language);
+            var option = context.GetAnalyzerOptions().AllowMultipleBlankLines;
             if (option.Value)
                 return;
 
-            var tree = context.Tree;
             var cancellationToken = context.CancellationToken;
-            var root = tree.GetRoot(cancellationToken);
+            var root = context.Tree.GetRoot(cancellationToken);
 
             Recurse(context, option.Notification.Severity, root, cancellationToken);
         }

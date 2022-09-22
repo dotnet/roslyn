@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Diagnostics.CodeAnalysis;
+using System.Threading;
 using Microsoft.CodeAnalysis.Operations;
 
 namespace Microsoft.CodeAnalysis.LanguageServices
@@ -116,5 +117,11 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
         private static bool IsFloatingPoint([NotNullWhen(returnValue: true)] ITypeSymbol? type)
             => type?.SpecialType is SpecialType.System_Single or SpecialType.System_Double;
+
+        public static IParameterSymbol FindParameterForArgument(this ISemanticFacts semanticFacts, SemanticModel semanticModel, SyntaxNode argument, CancellationToken cancellationToken)
+            => semanticFacts.FindParameterForArgument(semanticModel, argument, allowUncertainCandidates: false, cancellationToken);
+
+        public static IParameterSymbol FindParameterForAttributeArgument(this ISemanticFacts semanticFacts, SemanticModel semanticModel, SyntaxNode argument, CancellationToken cancellationToken)
+            => semanticFacts.FindParameterForAttributeArgument(semanticModel, argument, allowUncertainCandidates: false, cancellationToken);
     }
 }

@@ -20,7 +20,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Even
                     SyntaxKind.AddHandlerKeyword, VBFeaturesResources.AddHandler_statement, Glyph.Keyword, New AddHandlerStatementDocumentation()))
 
         Protected Overrides Function RecommendKeywords(context As VisualBasicSyntaxContext, cancellationToken As CancellationToken) As ImmutableArray(Of RecommendedKeyword)
-            Return If(context.IsSingleLineStatementContext OrElse context.CanDeclareCustomEventAccessor(SyntaxKind.AddHandlerAccessorBlock),
+            Return If(context.IsStatementContext OrElse context.CanDeclareCustomEventAccessor(SyntaxKind.AddHandlerAccessorBlock),
                 s_keywords,
                 ImmutableArray(Of RecommendedKeyword).Empty)
         End Function

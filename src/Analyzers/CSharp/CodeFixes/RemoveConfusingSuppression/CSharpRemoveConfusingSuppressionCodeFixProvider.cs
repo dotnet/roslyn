@@ -42,14 +42,14 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveConfusingSuppression
             var cancellationToken = context.CancellationToken;
 
             context.RegisterCodeFix(
-                new MyCodeAction(
+                CodeAction.Create(
                     CSharpAnalyzersResources.Remove_operator_preserves_semantics,
                     c => FixAllAsync(document, diagnostics, negate: false, c),
                     RemoveOperator),
                 context.Diagnostics);
 
             context.RegisterCodeFix(
-                new MyCodeAction(
+                CodeAction.Create(
                     CSharpAnalyzersResources.Negate_expression_changes_semantics,
                     c => FixAllAsync(document, diagnostics, negate: true, c),
                     NegateExpression),
@@ -104,13 +104,5 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveConfusingSuppression
                     document, diagnostics,
                     context.CodeActionEquivalenceKey == NegateExpression,
                     context.CancellationToken).ConfigureAwait(false));
-
-        private class MyCodeAction : CustomCodeActions.DocumentChangeAction
-        {
-            public MyCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument, string equivalenceKey)
-                : base(title, createChangedDocument, equivalenceKey)
-            {
-            }
-        }
     }
 }

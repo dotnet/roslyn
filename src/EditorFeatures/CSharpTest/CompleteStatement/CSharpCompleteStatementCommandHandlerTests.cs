@@ -1994,6 +1994,43 @@ public class SaleItem
             VerifyNoSpecialSemicolonHandling(code);
         }
 
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
+        public void PropertyInitializer1()
+        {
+            var code = @"
+public class C
+{
+   public static C MyProp { get; } = new C($$)
+}";
+
+            var expected = @"
+public class C
+{
+   public static C MyProp { get; } = new C();$$
+}";
+
+            VerifyTypingSemicolon(code, expected);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
+        public void PropertyAttribute1()
+        {
+            var code = @"
+public class C
+{
+    public int P
+    {
+        [My(typeof(C$$))]
+        get
+        {
+            return 0;
+        }
+    }
+}";
+
+            VerifyNoSpecialSemicolonHandling(code);
+        }
+
         #endregion
 
         #region ParenthesizeExpression
@@ -4112,6 +4149,29 @@ class D
     }
 }";
             VerifyNoSpecialSemicolonHandling(code);
+        }
+
+        [WorkItem(54709, "https://github.com/dotnet/roslyn/issues/54709")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
+        public void YieldReturn()
+        {
+            var code = @"
+class D
+{
+    private static IEnumerable<int> M()
+    {
+        yield return GetNumber($$)
+    }
+}";
+            var expected = @"
+class D
+{
+    private static IEnumerable<int> M()
+    {
+        yield return GetNumber();$$
+    }
+}";
+            VerifyTypingSemicolon(code, expected);
         }
 
         [WorkItem(917499, "https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems/edit/917499")]

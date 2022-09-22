@@ -162,11 +162,13 @@ class Class
         (var x, var y) = [|this|];
     }
 }",
-@"class Class
+@"using System;
+
+class Class
 {
     private void Deconstruct(out object x, out object y)
     {
-        throw new System.NotImplementedException();
+        throw new NotImplementedException();
     }
 
     void Method()

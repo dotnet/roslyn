@@ -16,9 +16,9 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities.GoToHelpers
         Public _triedSymbolNavigationNotify As Boolean
         Public _wouldNavigateToSymbol As Boolean
 
-        Public Function TryNavigateToSymbolAsync(symbol As ISymbol, project As Project, options As NavigationOptions, cancellationToken As CancellationToken) As Task(Of Boolean) Implements ISymbolNavigationService.TryNavigateToSymbolAsync
+        Public Function GetNavigableLocationAsync(symbol As ISymbol, project As Project, cancellationToken As CancellationToken) As Task(Of INavigableLocation) Implements ISymbolNavigationService.GetNavigableLocationAsync
             _triedNavigationToSymbol = True
-            Return SpecializedTasks.True
+            Return NavigableLocation.TestAccessor.Create(True)
         End Function
 
         Public Function TrySymbolNavigationNotifyAsync(symbol As ISymbol, project As Project, cancellationToken As CancellationToken) As Task(Of Boolean) Implements ISymbolNavigationService.TrySymbolNavigationNotifyAsync

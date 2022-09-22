@@ -11,18 +11,8 @@ using Microsoft.CodeAnalysis.Options.Providers;
 
 namespace Microsoft.CodeAnalysis.Editor.Options
 {
-    [ExportGlobalOptionProvider, Shared]
-    internal sealed class SignatureHelpViewOptions : IOptionProvider
+    internal sealed class SignatureHelpViewOptions
     {
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public SignatureHelpViewOptions()
-        {
-        }
-
-        ImmutableArray<IOption> IOptionProvider.Options { get; } = ImmutableArray.Create<IOption>(
-            ShowSignatureHelp);
-
         private const string FeatureName = "SignatureHelpOptions";
 
         public static readonly PerLanguageOption2<bool> ShowSignatureHelp = new(FeatureName, nameof(ShowSignatureHelp), defaultValue: true);

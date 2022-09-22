@@ -472,10 +472,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Return definition.Construct(subst)
         End Function
 
-        Private Shared Function GetModifiers(modifiers As ImmutableArray(Of ImmutableArray(Of CustomModifier)), i As Integer) As ImmutableArray(Of CustomModifier)
-            Return If(modifiers.IsDefaultOrEmpty, Nothing, modifiers(i))
-        End Function
-
         Friend Function WithUnderlyingType(newUnderlyingType As NamedTypeSymbol) As TupleTypeSymbol
             Debug.Assert(Not newUnderlyingType.IsTupleType AndAlso newUnderlyingType.IsTupleOrCompatibleWithTupleOfCardinality(Me._elementTypes.Length))
             Return TupleTypeSymbol.Create(Me._locations, newUnderlyingType, Me._elementLocations, Me._providedElementNames, Me._errorPositions)

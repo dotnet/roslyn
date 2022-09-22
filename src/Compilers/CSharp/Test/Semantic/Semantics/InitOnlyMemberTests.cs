@@ -1280,7 +1280,7 @@ public class C
             comp.VerifyEmitDiagnostics(
                 // (8,16): error CS0206: A property or indexer may not be passed as an out or ref parameter
                 //         M2(out Property); // 1
-                Diagnostic(ErrorCode.ERR_RefProperty, "Property").WithArguments("C.Property").WithLocation(8, 16)
+                Diagnostic(ErrorCode.ERR_RefProperty, "Property").WithLocation(8, 16)
                 );
         }
 
@@ -1408,19 +1408,19 @@ public class C
             comp.VerifyEmitDiagnostics(
                 // (4,13): error CS8145: Auto-implemented properties cannot return by reference
                 //     ref int Property1 { get; init; }
-                Diagnostic(ErrorCode.ERR_AutoPropertyCannotBeRefReturning, "Property1").WithArguments("C.Property1").WithLocation(4, 13),
+                Diagnostic(ErrorCode.ERR_AutoPropertyCannotBeRefReturning, "Property1").WithLocation(4, 13),
                 // (4,30): error CS8147: Properties which return by reference cannot have set accessors
                 //     ref int Property1 { get; init; }
-                Diagnostic(ErrorCode.ERR_RefPropertyCannotHaveSetAccessor, "init").WithArguments("C.Property1.init").WithLocation(4, 30),
+                Diagnostic(ErrorCode.ERR_RefPropertyCannotHaveSetAccessor, "init").WithLocation(4, 30),
                 // (5,13): error CS8146: Properties which return by reference must have a get accessor
                 //     ref int Property2 { init; }
-                Diagnostic(ErrorCode.ERR_RefPropertyMustHaveGetAccessor, "Property2").WithArguments("C.Property2").WithLocation(5, 13),
+                Diagnostic(ErrorCode.ERR_RefPropertyMustHaveGetAccessor, "Property2").WithLocation(5, 13),
                 // (6,44): error CS8147: Properties which return by reference cannot have set accessors
                 //     ref int Property3 { get => throw null; init => throw null; }
-                Diagnostic(ErrorCode.ERR_RefPropertyCannotHaveSetAccessor, "init").WithArguments("C.Property3.init").WithLocation(6, 44),
+                Diagnostic(ErrorCode.ERR_RefPropertyCannotHaveSetAccessor, "init").WithLocation(6, 44),
                 // (7,13): error CS8146: Properties which return by reference must have a get accessor
                 //     ref int Property4 { init => throw null; }
-                Diagnostic(ErrorCode.ERR_RefPropertyMustHaveGetAccessor, "Property4").WithArguments("C.Property4").WithLocation(7, 13)
+                Diagnostic(ErrorCode.ERR_RefPropertyMustHaveGetAccessor, "Property4").WithLocation(7, 13)
                 );
         }
 

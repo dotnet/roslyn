@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
         {
             var objectCreationExpression = (TObjectCreationExpressionSyntax)context.Node;
             var language = objectCreationExpression.Language;
-            var option = context.GetOption(CodeStyleOptions2.PreferObjectInitializer, language);
+            var option = context.GetAnalyzerOptions().PreferObjectInitializer;
             if (!option.Value)
             {
                 // not point in analyzing if the option is off.
@@ -111,8 +111,7 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
         {
             var syntaxTree = context.Node.SyntaxTree;
 
-            var fadeOutCode = context.GetOption(
-                CodeStyleOptions2.PreferObjectInitializer_FadeOutCode, context.Node.Language);
+            var fadeOutCode = context.GetIdeAnalyzerOptions().FadeOutComplexObjectInitialization;
             if (!fadeOutCode)
                 return;
 

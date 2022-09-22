@@ -14,7 +14,9 @@ using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Preview;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.CodeAnalysis.Utilities;
@@ -28,18 +30,20 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
 {
-    internal abstract class AbstractPreviewFactoryService<TDifferenceViewer> : ForegroundThreadAffinitizedObject, IPreviewFactoryService
+    internal abstract class AbstractPreviewFactoryService<TDifferenceViewer> : IPreviewFactoryService
         where TDifferenceViewer : IDifferenceViewer
     {
         private const double DefaultZoomLevel = 0.75;
         private readonly ITextViewRoleSet _previewRoleSet;
-
         private readonly ITextBufferFactoryService _textBufferFactoryService;
         private readonly IContentTypeRegistryService _contentTypeRegistryService;
         private readonly IProjectionBufferFactoryService _projectionBufferFactoryService;
         private readonly IEditorOptionsFactoryService _editorOptionsFactoryService;
         private readonly ITextDifferencingSelectorService _differenceSelectorService;
         private readonly IDifferenceBufferFactoryService _differenceBufferService;
+        private readonly IGlobalOptionService _globalOptions;
+
+        protected readonly IThreadingContext ThreadingContext;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -51,11 +55,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
             IEditorOptionsFactoryService editorOptionsFactoryService,
             ITextDifferencingSelectorService differenceSelectorService,
             IDifferenceBufferFactoryService differenceBufferService,
-            ITextViewRoleSet previewRoleSet)
-            : base(threadingContext)
+            ITextViewRoleSet previewRoleSet,
+            IGlobalOptionService globalOptions)
         {
-            Contract.ThrowIfFalse(ThreadingContext.HasMainThread);
-
+            ThreadingContext = threadingContext;
             _textBufferFactoryService = textBufferFactoryService;
             _contentTypeRegistryService = contentTypeRegistryService;
             _projectionBufferFactoryService = projectionBufferFactoryService;
@@ -64,6 +67,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
             _differenceBufferService = differenceBufferService;
 
             _previewRoleSet = previewRoleSet;
+            _globalOptions = globalOptions;
         }
 
         public SolutionPreviewResult? GetSolutionPreviews(Solution oldSolution, Solution? newSolution, CancellationToken cancellationToken)
@@ -678,8 +682,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
                 rightWorkspace = null;
             };
 
-            leftWorkspace?.EnableDiagnostic();
-            rightWorkspace?.EnableDiagnostic();
+            if (_globalOptions.GetOption(SolutionCrawlerRegistrationService.EnableSolutionCrawler))
+            {
+                leftWorkspace?.EnableSolutionCrawler();
+                rightWorkspace?.EnableSolutionCrawler();
+            }
 
             return new DifferenceViewerPreview(diffViewer);
         }

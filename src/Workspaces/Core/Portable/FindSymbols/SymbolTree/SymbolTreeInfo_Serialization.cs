@@ -33,7 +33,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             HostWorkspaceServices services,
             SolutionKey solutionKey,
             Checksum checksum,
-            StorageDatabase database,
             string filePath,
             ImmutableArray<Node> sortedNodes)
         {
@@ -41,7 +40,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 services,
                 solutionKey,
                 checksum,
-                database,
                 loadOnly: false,
                 createAsync: () => CreateSpellCheckerAsync(checksum, sortedNodes),
                 keySuffix: "_SpellChecker_" + filePath,
@@ -59,7 +57,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             HostWorkspaceServices services,
             SolutionKey solutionKey,
             Checksum checksum,
-            StorageDatabase database,
             bool loadOnly,
             Func<Task<T>> createAsync,
             string keySuffix,
@@ -74,7 +71,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 }
 
                 // Ok, we can use persistence.  First try to load from the persistence service.
-                var persistentStorageService = services.GetPersistentStorageService(database);
+                var persistentStorageService = services.GetPersistentStorageService();
 
                 var storage = await persistentStorageService.GetStorageAsync(solutionKey, cancellationToken).ConfigureAwait(false);
                 await using var _ = storage.ConfigureAwait(false);

@@ -27,17 +27,15 @@ namespace Microsoft.CodeAnalysis.Remote
         }
 
         public ValueTask<ImmutableArray<SerializableSymbolAndProjectId>> FindTypesAsync(
-            PinnedSolutionInfo solutionInfo,
+            Checksum solutionChecksum,
             SerializableSymbolAndProjectId typeAndProjectId,
             ImmutableArray<ProjectId> projectIdsOpt,
             bool transitive,
             DependentTypesKind kind,
             CancellationToken cancellationToken)
         {
-            return RunServiceAsync(async cancellationToken =>
+            return RunServiceAsync(solutionChecksum, async solution =>
             {
-                var solution = await GetSolutionAsync(solutionInfo, cancellationToken).ConfigureAwait(false);
-
                 var symbol = await typeAndProjectId.TryRehydrateAsync(solution, cancellationToken).ConfigureAwait(false);
 
                 if (symbol is not INamedTypeSymbol namedType)

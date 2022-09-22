@@ -323,5 +323,14 @@ class C
     }
 }");
         }
+
+        [WorkItem(60400, "https://github.com/dotnet/roslyn/issues/60400")]
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
+        public async Task TestTopLevelStatements()
+        {
+            await TestAsync(
+@"[|await|] Task.Delay(1000);
+{|Cursor:[|await|]|} Task.Run(() => { })");
+        }
     }
 }

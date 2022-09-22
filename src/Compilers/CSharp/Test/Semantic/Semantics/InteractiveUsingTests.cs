@@ -333,7 +333,7 @@ namespace B
 
         [WorkItem(5423, "https://github.com/dotnet/roslyn/issues/5423")]
         [Fact]
-        private void UsingsFromLoadedScript()
+        public void UsingsFromLoadedScript()
         {
             const string scriptSource = @"
 using static System.IO.Path;
@@ -378,7 +378,7 @@ t = typeof(C); // declaration exposed
 
         [WorkItem(5423, "https://github.com/dotnet/roslyn/issues/5423")]
         [Fact]
-        private void UsingsToLoadedScript()
+        public void UsingsToLoadedScript()
         {
             const string scriptSource = @"
 using System.Collections.Generic;
@@ -463,7 +463,7 @@ class C { }
         }
 
         [Fact]
-        private void GlobalUsingsToLoadedScript()
+        public void GlobalUsingsToLoadedScript()
         {
             const string scriptSource = @"
 System.Type t;

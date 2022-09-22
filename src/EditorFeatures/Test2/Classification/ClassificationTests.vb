@@ -46,6 +46,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Classification
                     workspace.GetService(Of IThreadingContext),
                     workspace.GetService(Of ClassificationTypeMap),
                     workspace.GetService(Of IGlobalOptionService),
+                    visibilityTracker:=Nothing,
                     listenerProvider)
 
                 Dim buffer = workspace.Documents.First().GetTextBuffer()

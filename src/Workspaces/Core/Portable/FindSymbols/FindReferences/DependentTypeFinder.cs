@@ -39,8 +39,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
     {
         // Static helpers so we can pass delegates around without allocations.
 
-        private static readonly Func<Location, bool> s_isInMetadata = loc => loc.IsInMetadata;
-        private static readonly Func<Location, bool> s_isInSource = loc => loc.IsInSource;
+        private static readonly Func<Location, bool> s_isInMetadata = static loc => loc.IsInMetadata;
+        private static readonly Func<Location, bool> s_isInSource = static loc => loc.IsInSource;
 
         private static readonly Func<INamedTypeSymbol, bool> s_isInterface = t => t?.TypeKind == TypeKind.Interface;
         private static readonly Func<INamedTypeSymbol, bool> s_isNonSealedClass = t => t?.TypeKind == TypeKind.Class && !t.IsSealed;
@@ -89,27 +89,18 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             // So we can just limit ourselves to that single project.
 
             // First find all the projects that could potentially reference this type.
-            List<Project> orderedProjectsToExamine;
+            var projectsThatCouldReferenceType = await GetProjectsThatCouldReferenceTypeAsync(
+                type, solution, searchInMetadata, cancellationToken).ConfigureAwait(false);
 
-            if (projects.Count == 1)
-            {
-                orderedProjectsToExamine = projects.ToList();
-            }
-            else
-            {
-                var projectsThatCouldReferenceType = await GetProjectsThatCouldReferenceTypeAsync(
-                    type, solution, searchInMetadata, cancellationToken).ConfigureAwait(false);
-
-                // Now, based on the list of projects that could actually reference the type,
-                // and the list of projects the caller wants to search, find the actual list of
-                // projects we need to search through.
-                //
-                // This list of projects is properly topologically ordered.  Because of this we
-                // can just process them in order from first to last because we know no project
-                // in this list could affect a prior project.
-                orderedProjectsToExamine = GetOrderedProjectsToExamine(
-                    solution, projects, projectsThatCouldReferenceType);
-            }
+            // Now, based on the list of projects that could actually reference the type,
+            // and the list of projects the caller wants to search, find the actual list of
+            // projects we need to search through.
+            //
+            // This list of projects is properly topologically ordered.  Because of this we
+            // can just process them in order from first to last because we know no project
+            // in this list could affect a prior project.
+            var orderedProjectsToExamine = GetOrderedProjectsToExamine(
+                solution, projects, projectsThatCouldReferenceType);
 
             // The final set of results we'll be returning.
             using var _1 = GetSymbolSet(out var result);
@@ -136,14 +127,16 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
-                Debug.Assert(project.SupportsCompilation);
-                await DescendInheritanceTreeInProjectAsync(
-                    searchInMetadata, result,
-                    currentMetadataTypes, currentSourceAndMetadataTypes,
-                    project,
-                    typeMatches,
-                    shouldContinueSearching,
-                    transitive, cancellationToken).ConfigureAwait(false);
+                if (project.SupportsCompilation)
+                {
+                    await DescendInheritanceTreeInProjectAsync(
+                        searchInMetadata, result,
+                        currentMetadataTypes, currentSourceAndMetadataTypes,
+                        project,
+                        typeMatches,
+                        shouldContinueSearching,
+                        transitive, cancellationToken).ConfigureAwait(false);
+                }
             }
 
             return result.ToImmutableArray();
@@ -260,7 +253,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 // Need to find all the possible projects that contain this metadata.
                 var projectsThatReferenceMetadataAssembly =
                     await DependentProjectsFinder.GetDependentProjectsAsync(
-                        solution, type, projects: null, cancellationToken: cancellationToken).ConfigureAwait(false);
+                        solution, ImmutableArray.Create<ISymbol>(type), solution.Projects.ToImmutableHashSet(), cancellationToken).ConfigureAwait(false);
 
                 // Now collect all the dependent projects as well.
                 var projectsThatCouldReferenceType =
@@ -294,7 +287,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                                   .Concat(project.Id);
         }
 
-        private static List<Project> GetOrderedProjectsToExamine(
+        private static ImmutableArray<Project> GetOrderedProjectsToExamine(
             Solution solution,
             IImmutableSet<Project> projects,
             IEnumerable<ProjectId> projectsThatCouldReferenceType)
@@ -308,7 +301,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             return OrderTopologically(solution, projectsToExamine);
         }
 
-        private static List<Project> OrderTopologically(
+        private static ImmutableArray<Project> OrderTopologically(
             Solution solution, IEnumerable<Project> projectsToExamine)
         {
             var order = new Dictionary<ProjectId, int>(capacity: solution.ProjectIds.Count);
@@ -322,10 +315,10 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 index++;
             }
 
-            return projectsToExamine.OrderBy((p1, p2) => order[p1.Id] - order[p2.Id]).ToList();
+            return projectsToExamine.OrderBy((p1, p2) => order[p1.Id] - order[p2.Id]).ToImmutableArray();
         }
 
-        private static IEnumerable<Project> GetProjectsToExamineWorker(
+        private static ImmutableArray<Project> GetProjectsToExamineWorker(
             Solution solution,
             IImmutableSet<Project> projects,
             IEnumerable<ProjectId> projectsThatCouldReferenceType)
@@ -357,9 +350,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             // Finally, because we're searching metadata and source symbols, this needs to be a project
             // that actually supports compilations.
             return projectsThatCouldReferenceType.Intersect(allProjectsThatTheseProjectsDependOn)
-                                                 .Select(id => solution.GetRequiredProject(id))
-                                                 .Where(p => p.SupportsCompilation)
-                                                 .ToList();
+                                                 .Select(solution.GetRequiredProject)
+                                                 .ToImmutableArray();
         }
 
         private static async Task AddDescendantMetadataTypesInProjectAsync(
@@ -422,6 +414,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             // 'tpeMatches' to make sure the match is correct.
             var symbolTreeInfo = await SymbolTreeInfo.GetInfoForMetadataReferenceAsync(
                 project.Solution, reference, loadOnly: false, cancellationToken: cancellationToken).ConfigureAwait(false);
+
+            // This will always be non-null since we pass loadOnly: false above.
+            Contract.ThrowIfNull(symbolTreeInfo);
 
             // For each type we care about, see if we can find any derived types
             // in this index.

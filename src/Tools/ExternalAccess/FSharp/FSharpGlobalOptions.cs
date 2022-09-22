@@ -17,14 +17,12 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp
     internal sealed class FSharpGlobalOptions
     {
         private readonly IGlobalOptionService _globalOptions;
-        private readonly VisualStudioWorkspace _workspace;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public FSharpGlobalOptions(IGlobalOptionService globalOptions, VisualStudioWorkspace workspace)
+        public FSharpGlobalOptions(IGlobalOptionService globalOptions)
         {
             _globalOptions = globalOptions;
-            _workspace = workspace;
         }
 
         public bool BlockForCompletionItems
@@ -35,15 +33,9 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp
 
         public void SetBackgroundAnalysisScope(bool openFilesOnly)
         {
-            var solution = _workspace.CurrentSolution;
-
-#pragma warning disable CS0618 // Type or member is obsolete
-            _workspace.TryApplyChanges(solution.WithOptions(solution.Options
-                .WithChangedOption(
-                    SolutionCrawlerOptions.ClosedFileDiagnostic,
-                    LanguageNames.FSharp,
-                    !openFilesOnly)));
-#pragma warning restore
+            _globalOptions.SetGlobalOption(
+                new OptionKey(SolutionCrawlerOptionsStorage.BackgroundAnalysisScopeOption, LanguageNames.FSharp),
+                openFilesOnly ? BackgroundAnalysisScope.OpenFiles : BackgroundAnalysisScope.FullSolution);
         }
     }
 }

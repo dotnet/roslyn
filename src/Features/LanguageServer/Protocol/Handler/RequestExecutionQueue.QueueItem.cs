@@ -28,9 +28,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             /// <inheritdoc cref="IRequestHandler.MutatesSolutionState" />
             bool MutatesSolutionState { get; }
 
-            /// <inheritdoc cref="RequestContext.ClientName" />
-            string? ClientName { get; }
-
             string MethodName { get; }
 
             /// <summary>
@@ -61,13 +58,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             /// A task completion source representing the result of this queue item's work.
             /// This is the task that the client is waiting on.
             /// </summary>
-            private readonly TaskCompletionSource<TResponseType?> _completionSource;
+            private readonly TaskCompletionSource<TResponseType?> _completionSource = new();
 
             public bool RequiresLSPSolution { get; }
 
             public bool MutatesSolutionState { get; }
-
-            public string? ClientName { get; }
 
             public string MethodName { get; }
 
@@ -83,7 +78,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 bool mutatesSolutionState,
                 bool requiresLSPSolution,
                 ClientCapabilities clientCapabilities,
-                string? clientName,
                 string methodName,
                 TextDocumentIdentifier? textDocument,
                 TRequestType request,
@@ -93,7 +87,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 RequestTelemetryLogger telemetryLogger,
                 CancellationToken cancellationToken)
             {
-                _completionSource = new TaskCompletionSource<TResponseType?>();
                 // Set the tcs state to cancelled if the token gets cancelled outside of our callback (for example the server shutting down).
                 cancellationToken.Register(() => _completionSource.TrySetCanceled(cancellationToken));
 
@@ -107,7 +100,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 MutatesSolutionState = mutatesSolutionState;
                 RequiresLSPSolution = requiresLSPSolution;
                 ClientCapabilities = clientCapabilities;
-                ClientName = clientName;
                 MethodName = methodName;
                 TextDocument = textDocument;
             }
@@ -116,28 +108,26 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 bool mutatesSolutionState,
                 bool requiresLSPSolution,
                 ClientCapabilities clientCapabilities,
-                string? clientName,
                 string methodName,
                 TextDocumentIdentifier? textDocument,
                 TRequestType request,
                 IRequestHandler<TRequestType, TResponseType> handler,
                 Guid activityId,
                 ILspLogger logger,
-                RequestTelemetryLogger telemetryLogger,
+                LspServices lspServices,
                 CancellationToken cancellationToken)
             {
                 var queueItem = new QueueItem<TRequestType, TResponseType>(
                     mutatesSolutionState,
                     requiresLSPSolution,
                     clientCapabilities,
-                    clientName,
                     methodName,
                     textDocument,
                     request,
                     handler,
                     activityId,
                     logger,
-                    telemetryLogger,
+                    lspServices.GetRequiredService<RequestTelemetryLogger>(),
                     cancellationToken);
 
                 return (queueItem, queueItem._completionSource.Task);

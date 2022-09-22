@@ -101,7 +101,7 @@ namespace RunTests
         /// </summary>
         public string LogFilesDirectory { get; set; }
 
-        public string Platform { get; set; }
+        public string Architecture { get; set; }
 
         public Options(
             string dotnetFilePath,
@@ -109,20 +109,20 @@ namespace RunTests
             string configuration,
             string testResultsDirectory,
             string logFilesDirectory,
-            string platform)
+            string architecture)
         {
             DotnetFilePath = dotnetFilePath;
             ArtifactsDirectory = artifactsDirectory;
             Configuration = configuration;
             TestResultsDirectory = testResultsDirectory;
             LogFilesDirectory = logFilesDirectory;
-            Platform = platform;
+            Architecture = architecture;
         }
 
         internal static Options? Parse(string[] args)
         {
             string? dotnetFilePath = null;
-            var platform = "x64";
+            var architecture = "x64";
             var includeHtml = false;
             var targetFrameworks = new List<string>();
             var configuration = "Debug";
@@ -147,7 +147,7 @@ namespace RunTests
                 { "tfm=", "Target framework to test", (string s) => targetFrameworks.Add(s) },
                 { "include=", "Expression for including unit test dlls: default *.UnitTests.dll", (string s) => includeFilter.Add(s) },
                 { "exclude=", "Expression for excluding unit test dlls: default is empty", (string s) => excludeFilter.Add(s) },
-                { "platform=", "Platform to test: x86 or x64", (string s) => platform = s },
+                { "arch=", "Architecture to test on: x86, x64 or arm64", (string s) => architecture = s },
                 { "html", "Include HTML file output", o => includeHtml = o is object },
                 { "sequential", "Run tests sequentially", o => sequential = o is object },
                 { "helix", "Run tests on Helix", o => helix = o is object },
@@ -222,7 +222,7 @@ namespace RunTests
                 configuration: configuration,
                 testResultsDirectory: resultFileDirectory,
                 logFilesDirectory: logFileDirectory,
-                platform: platform)
+                architecture: architecture)
             {
                 TargetFrameworks = targetFrameworks,
                 IncludeFilter = includeFilter,

@@ -23,8 +23,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Retargeting
         ''' </summary>
         Private ReadOnly _underlyingEvent As EventSymbol
 
-        Private _lazyCustomModifiers As ImmutableArray(Of CustomModifier)
-
         ''' <summary>
         ''' Retargeted custom attributes
         ''' </summary>

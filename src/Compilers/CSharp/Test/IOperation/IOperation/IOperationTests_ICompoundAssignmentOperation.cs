@@ -133,6 +133,35 @@ ICompoundAssignmentOperation (BinaryOperatorKind.Add) (OperationKind.CompoundAss
 
         [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
+        public void ICompoundAssignment_UnsignedRightShift()
+        {
+            string source = @"
+class C
+{
+    static void M()
+    {
+        int c = 1;
+        int x = 1;
+        /*<bind>*/c >>>= x/*</bind>*/;
+    }
+}
+";
+            string expectedOperationTree = @"
+ICompoundAssignmentOperation (BinaryOperatorKind.UnsignedRightShift) (OperationKind.CompoundAssignment, Type: System.Int32) (Syntax: 'c >>>= x')
+  InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+  OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+  Left:
+    ILocalReferenceOperation: c (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'c')
+  Right:
+    ILocalReferenceOperation: x (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'x')
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyOperationTreeAndDiagnosticsForTest<AssignmentExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
         public void ICompoundAssignment_BinaryOperatorInConversion_InvalidMissingOutConversion()
         {
             string source = @"
@@ -248,6 +277,40 @@ ICompoundAssignmentOperation (BinaryOperatorKind.Add) (OperatorMethod: C C.op_Ad
       Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: True) (MethodSymbol: C C.op_Implicit(System.Int32 i))
       Operand: 
         ILocalReferenceOperation: x (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'x')
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyOperationTreeAndDiagnosticsForTest<AssignmentExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        public void ICompoundAssignment_UserDefinedBinaryOperator_UnsignedRightShift()
+        {
+            string source = @"
+class C
+{
+    static void M()
+    {
+        var c = new C();
+        var x = 1;
+        /*<bind>*/c >>>= x/*</bind>*/;
+    }
+
+    public static C operator >>>(C c1, int c2)
+    {
+        return null;
+    }
+}
+";
+            string expectedOperationTree = @"
+ICompoundAssignmentOperation (BinaryOperatorKind.UnsignedRightShift) (OperatorMethod: C C.op_UnsignedRightShift(C c1, System.Int32 c2)) (OperationKind.CompoundAssignment, Type: C) (Syntax: 'c >>>= x')
+  InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+  OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+  Left:
+    ILocalReferenceOperation: c (OperationKind.LocalReference, Type: C) (Syntax: 'c')
+  Right:
+    ILocalReferenceOperation: x (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'x')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 

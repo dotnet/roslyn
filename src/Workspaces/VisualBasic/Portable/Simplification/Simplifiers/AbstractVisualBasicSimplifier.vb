@@ -11,7 +11,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification.Simplifiers
     Friend MustInherit Class AbstractVisualBasicSimplifier(Of TSyntax As SyntaxNode, TSimplifiedSyntax As SyntaxNode)
-        Inherits AbstractSimplifier(Of TSyntax, TSimplifiedSyntax)
+        Inherits AbstractSimplifier(Of TSyntax, TSimplifiedSyntax, VisualBasicSimplifierOptions)
 
         ''' <summary>
         ''' Returns the predefined keyword kind for a given special type.
@@ -180,10 +180,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification.Simplifiers
             Return False
         End Function
 
-        Protected Shared Function PreferPredefinedTypeKeywordInMemberAccess(expression As ExpressionSyntax, optionSet As OptionSet) As Boolean
+        Protected Shared Function PreferPredefinedTypeKeywordInMemberAccess(expression As ExpressionSyntax, options As VisualBasicSimplifierOptions) As Boolean
             Return (IsDirectChildOfMemberAccessExpression(expression) OrElse IsInCrefReferenceForPredefinedTypeInMemberAccessContext(expression)) AndAlso
                    (Not InsideNameOfExpression(expression)) AndAlso
-                   SimplificationHelpers.PreferPredefinedTypeKeywordInMemberAccess(optionSet, LanguageNames.VisualBasic)
+                   options.PreferPredefinedTypeKeywordInMemberAccess.Value
         End Function
 
         Protected Shared Function InsideNameOfExpression(expr As ExpressionSyntax) As Boolean

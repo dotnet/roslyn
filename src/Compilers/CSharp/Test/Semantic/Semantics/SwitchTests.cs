@@ -3495,7 +3495,7 @@ namespace System.Runtime.CompilerServices
 ";
             CompileAndVerify(text, expectedOutput: "12345678💥").VerifyIL("C.Main", @"
 {
-  // Code size      174 (0xae)
+  // Code size      173 (0xad)
   .maxstack  8
   .locals init (int V_0,
                 System.ValueTuple<int, int, int, int, int, int, int, System.ValueTuple<int>> V_1)
@@ -3555,23 +3555,22 @@ namespace System.Runtime.CompilerServices
     IL_0086:  bne.un.s   IL_008c
     IL_0088:  ldc.i4.1
     IL_0089:  stloc.0
-    IL_008a:  br.s       IL_0098
+    IL_008a:  br.s       IL_0097
     IL_008c:  ldloc.1
     IL_008d:  box        ""System.ValueTuple<int, int, int, int, int, int, int, System.ValueTuple<int>>""
-    IL_0092:  newobj     ""System.Runtime.CompilerServices.SwitchExpressionException..ctor(object)""
-    IL_0097:  throw
-    IL_0098:  ldloc.0
-    IL_0099:  call       ""void System.Console.WriteLine(int)""
-    IL_009e:  leave.s    IL_00ad
+    IL_0092:  call       ""ThrowSwitchExpressionException""
+    IL_0097:  ldloc.0
+    IL_0098:  call       ""void System.Console.WriteLine(int)""
+    IL_009d:  leave.s    IL_00ac
   }
   catch System.Runtime.CompilerServices.SwitchExpressionException
   {
-    IL_00a0:  pop
-    IL_00a1:  ldstr      ""💥""
-    IL_00a6:  call       ""void System.Console.Write(string)""
-    IL_00ab:  leave.s    IL_00ad
+    IL_009f:  pop
+    IL_00a0:  ldstr      ""💥""
+    IL_00a5:  call       ""void System.Console.Write(string)""
+    IL_00aa:  leave.s    IL_00ac
   }
-  IL_00ad:  ret
+  IL_00ac:  ret
 }
 ");
         }
@@ -3619,7 +3618,7 @@ namespace System.Runtime.CompilerServices
 ";
             CompileAndVerify(text, expectedOutput: "123456789💥").VerifyIL("C.Main", @"
 {
-  // Code size      195 (0xc3)
+  // Code size      194 (0xc2)
   .maxstack  9
   .locals init (int V_0,
                 System.ValueTuple<int, int, int, int, int, int, int, System.ValueTuple<int, int>> V_1)
@@ -3686,23 +3685,22 @@ namespace System.Runtime.CompilerServices
     IL_009b:  bne.un.s   IL_00a1
     IL_009d:  ldc.i4.1
     IL_009e:  stloc.0
-    IL_009f:  br.s       IL_00ad
+    IL_009f:  br.s       IL_00ac
     IL_00a1:  ldloc.1
     IL_00a2:  box        ""System.ValueTuple<int, int, int, int, int, int, int, System.ValueTuple<int, int>>""
-    IL_00a7:  newobj     ""System.Runtime.CompilerServices.SwitchExpressionException..ctor(object)""
-    IL_00ac:  throw
-    IL_00ad:  ldloc.0
-    IL_00ae:  call       ""void System.Console.WriteLine(int)""
-    IL_00b3:  leave.s    IL_00c2
+    IL_00a7:  call       ""ThrowSwitchExpressionException""
+    IL_00ac:  ldloc.0
+    IL_00ad:  call       ""void System.Console.WriteLine(int)""
+    IL_00b2:  leave.s    IL_00c1
   }
   catch System.Runtime.CompilerServices.SwitchExpressionException
   {
-    IL_00b5:  pop
-    IL_00b6:  ldstr      ""💥""
-    IL_00bb:  call       ""void System.Console.Write(string)""
-    IL_00c0:  leave.s    IL_00c2
+    IL_00b4:  pop
+    IL_00b5:  ldstr      ""💥""
+    IL_00ba:  call       ""void System.Console.Write(string)""
+    IL_00bf:  leave.s    IL_00c1
   }
-  IL_00c2:  ret
+  IL_00c1:  ret
 }
 ");
         }

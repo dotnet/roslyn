@@ -242,6 +242,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     LambdaExpressionSyntax lambdaExpression => InferTypeInLambdaExpression(lambdaExpression, token),
                     PostfixUnaryExpressionSyntax postfixUnary => InferTypeInPostfixUnaryExpression(postfixUnary, token),
                     PrefixUnaryExpressionSyntax prefixUnary => InferTypeInPrefixUnaryExpression(prefixUnary, token),
+                    RelationalPatternSyntax relationalPattern => InferTypeInRelationalPattern(relationalPattern),
                     ReturnStatementSyntax returnStatement => InferTypeForReturnStatement(returnStatement, token),
                     SingleVariableDesignationSyntax singleVariableDesignationSyntax => InferTypeForSingleVariableDesignation(singleVariableDesignationSyntax),
                     SwitchLabelSyntax switchLabel => InferTypeInSwitchLabel(switchLabel, token),
@@ -629,7 +630,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 // If the method has already been constructed poorly (i.e. with error types for type 
                 // arguments), then unconstruct it.
-                if (method.TypeArguments.Any(t => t.Kind == SymbolKind.ErrorType))
+                if (method.TypeArguments.Any(static t => t.Kind == SymbolKind.ErrorType))
                 {
                     method = method.ConstructedFrom;
                 }
@@ -937,12 +938,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     case SyntaxKind.LessThanLessThanToken:
                     case SyntaxKind.GreaterThanGreaterThanToken:
+                    case SyntaxKind.GreaterThanGreaterThanGreaterThanToken:
                     case SyntaxKind.LessThanLessThanEqualsToken:
                     case SyntaxKind.GreaterThanGreaterThanEqualsToken:
+                    case SyntaxKind.GreaterThanGreaterThanGreaterThanEqualsToken:
 
                         if (onRightOfToken)
                         {
-                            // x << Goo(), x >> Goo(), x <<= Goo(), x >>= Goo()
+                            // x << Goo(), x >> Goo(), x >>> Goo(), x <<= Goo(), x >>= Goo(), x >>>= Goo()
                             return CreateResult(this.Compilation.GetSpecialType(SpecialType.System_Int32));
                         }
 
@@ -1008,7 +1011,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // is the case where the other side was also unknown.  So we walk one higher and if
                     // we get a delegate or a string type, then use that type here.
                     var parentTypes = InferTypes(binop);
-                    if (parentTypes.Any(parentType => parentType.InferredType.SpecialType == SpecialType.System_String || parentType.InferredType.TypeKind == TypeKind.Delegate))
+                    if (parentTypes.Any(static parentType => parentType.InferredType.SpecialType == SpecialType.System_String || parentType.InferredType.TypeKind == TypeKind.Delegate))
                     {
                         return parentTypes.Where(parentType => parentType.InferredType.SpecialType == SpecialType.System_String || parentType.InferredType.TypeKind == TypeKind.Delegate);
                     }
@@ -1037,8 +1040,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case SyntaxKind.PercentEqualsToken:
                     case SyntaxKind.LessThanLessThanToken:
                     case SyntaxKind.GreaterThanGreaterThanToken:
+                    case SyntaxKind.GreaterThanGreaterThanGreaterThanToken:
                     case SyntaxKind.LessThanLessThanEqualsToken:
                     case SyntaxKind.GreaterThanGreaterThanEqualsToken:
+                    case SyntaxKind.GreaterThanGreaterThanGreaterThanEqualsToken:
                         return CreateResult(this.Compilation.GetSpecialType(SpecialType.System_Int32));
 
                     case SyntaxKind.BarEqualsToken:
@@ -2328,6 +2333,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 return CreateResult(SpecialType.System_Boolean);
             }
+
+            private IEnumerable<TypeInferenceInfo> InferTypeInRelationalPattern(RelationalPatternSyntax relationalPattern)
+                => InferTypes(relationalPattern);
         }
     }
 }

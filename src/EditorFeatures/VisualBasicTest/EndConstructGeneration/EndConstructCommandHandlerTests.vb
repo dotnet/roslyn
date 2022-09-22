@@ -12,7 +12,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGenera
     <[UseExportProvider]>
     Public Class EndConstructCommandHandlerTests
         Private ReadOnly _endConstructServiceMock As New Mock(Of IEndConstructGenerationService)(MockBehavior.Strict)
-        Private ReadOnly _featureOptions As New Mock(Of IOptionService)(MockBehavior.Strict)
+        Private ReadOnly _featureOptions As New Mock(Of ILegacyWorkspaceOptionService)(MockBehavior.Strict)
         Private ReadOnly _textViewMock As New Mock(Of ITextView)(MockBehavior.Strict)
         Private ReadOnly _textBufferMock As New Mock(Of ITextBuffer)(MockBehavior.Strict)
 

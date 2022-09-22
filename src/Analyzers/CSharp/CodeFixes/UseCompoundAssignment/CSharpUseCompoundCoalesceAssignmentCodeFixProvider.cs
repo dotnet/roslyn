@@ -11,16 +11,17 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.CSharp.UseCoalesceExpression;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.UseCompoundAssignment
 {
     [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.UseCompoundCoalesceAssignment), Shared]
-    internal class CSharpUseCompoundCoalesceAssignmentCodeFixProvider
-        : SyntaxEditorBasedCodeFixProvider
+    internal class CSharpUseCompoundCoalesceAssignmentCodeFixProvider : SyntaxEditorBasedCodeFixProvider
     {
         [ImportingConstructor]
         [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
@@ -31,23 +32,15 @@ namespace Microsoft.CodeAnalysis.CSharp.UseCompoundAssignment
         public override ImmutableArray<string> FixableDiagnosticIds { get; } =
             ImmutableArray.Create(IDEDiagnosticIds.UseCoalesceCompoundAssignmentDiagnosticId);
 
-        internal sealed override CodeFixCategory CodeFixCategory => CodeFixCategory.CodeStyle;
-
         public override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
-            var document = context.Document;
-            var diagnostic = context.Diagnostics[0];
-
-            context.RegisterCodeFix(new MyCodeAction(
-                c => FixAsync(document, diagnostic, c)),
-                context.Diagnostics);
-
+            RegisterCodeFix(context, AnalyzersResources.Use_compound_assignment, nameof(AnalyzersResources.Use_compound_assignment));
             return Task.CompletedTask;
         }
 
         protected override async Task FixAllAsync(
             Document document, ImmutableArray<Diagnostic> diagnostics,
-            SyntaxEditor editor, CancellationToken cancellationToken)
+            SyntaxEditor editor, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
         {
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
@@ -56,41 +49,53 @@ namespace Microsoft.CodeAnalysis.CSharp.UseCompoundAssignment
 
             foreach (var diagnostic in diagnostics)
             {
-                var coalesce = diagnostic.AdditionalLocations[0].FindNode(getInnermostNodeForTie: true, cancellationToken);
+                var coalesceOrIfStatement = diagnostic.AdditionalLocations[0].FindNode(getInnermostNodeForTie: true, cancellationToken);
 
-                // changing from `x ?? (x = y)` to `x ??= y` can change the type.  Specifically,
-                // with nullable value types (`int?`) it could change from `int?` to `int`.
-                //
-                // Add an explicit cast to the original type to ensure semantics are preserved. 
-                // Simplification engine can then remove it if it's not necessary.
-                var type = semanticModel.GetTypeInfo(coalesce, cancellationToken).Type;
+                if (coalesceOrIfStatement is IfStatementSyntax ifStatement)
+                {
+                    Contract.ThrowIfFalse(CSharpUseCompoundCoalesceAssignmentDiagnosticAnalyzer.GetWhenTrueAssignment(
+                        ifStatement, out var whenTrueStatement, out var assignment));
 
-                editor.ReplaceNode(coalesce,
-                    (currentCoalesceNode, generator) =>
-                    {
-                        var currentCoalesce = (BinaryExpressionSyntax)currentCoalesceNode;
-                        var coalesceRight = (ParenthesizedExpressionSyntax)currentCoalesce.Right;
-                        var assignment = (AssignmentExpressionSyntax)coalesceRight.Expression;
+                    // we have `if (x is null) x = y;`.  Update `x = y` to be `x ??= y`, then replace the entire
+                    // if-statement with that assignment statement.
+                    var newAssignment = SyntaxFactory.AssignmentExpression(
+                        SyntaxKind.CoalesceAssignmentExpression,
+                        assignment.Left,
+                        SyntaxFactory.Token(SyntaxKind.QuestionQuestionEqualsToken).WithTriviaFrom(assignment.OperatorToken),
+                        assignment.Right).WithTriviaFrom(assignment);
+                    var newWhenTrueStatement = whenTrueStatement.ReplaceNode(assignment, newAssignment).WithTriviaFrom(ifStatement);
 
-                        var compoundOperator = SyntaxFactory.Token(SyntaxKind.QuestionQuestionEqualsToken);
-                        var finalAssignment = SyntaxFactory.AssignmentExpression(
-                            SyntaxKind.CoalesceAssignmentExpression,
-                            assignment.Left,
-                            compoundOperator.WithTriviaFrom(assignment.OperatorToken),
-                            assignment.Right);
+                    editor.ReplaceNode(ifStatement, newWhenTrueStatement);
+                }
+                else
+                {
+                    var coalesce = coalesceOrIfStatement;
+                    // changing from `x ?? (x = y)` to `x ??= y` can change the type.  Specifically,
+                    // with nullable value types (`int?`) it could change from `int?` to `int`.
+                    //
+                    // Add an explicit cast to the original type to ensure semantics are preserved. 
+                    // Simplification engine can then remove it if it's not necessary.
+                    var type = semanticModel.GetTypeInfo(coalesce, cancellationToken).Type;
 
-                        return type == null || type.IsErrorType()
-                            ? finalAssignment
-                            : generator.CastExpression(type, finalAssignment);
-                    });
-            }
-        }
+                    editor.ReplaceNode(coalesce,
+                        (currentCoalesceNode, generator) =>
+                        {
+                            var currentCoalesce = (BinaryExpressionSyntax)currentCoalesceNode;
+                            var coalesceRight = (ParenthesizedExpressionSyntax)currentCoalesce.Right;
+                            var assignment = (AssignmentExpressionSyntax)coalesceRight.Expression;
 
-        private class MyCodeAction : CustomCodeActions.DocumentChangeAction
-        {
-            public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(AnalyzersResources.Use_compound_assignment, createChangedDocument, AnalyzersResources.Use_compound_assignment)
-            {
+                            var compoundOperator = SyntaxFactory.Token(SyntaxKind.QuestionQuestionEqualsToken);
+                            var finalAssignment = SyntaxFactory.AssignmentExpression(
+                                SyntaxKind.CoalesceAssignmentExpression,
+                                assignment.Left,
+                                compoundOperator.WithTriviaFrom(assignment.OperatorToken),
+                                assignment.Right);
+
+                            return type == null || type.IsErrorType()
+                                ? finalAssignment
+                                : generator.CastExpression(type, finalAssignment);
+                        });
+                }
             }
         }
     }

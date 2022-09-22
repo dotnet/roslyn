@@ -1498,7 +1498,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             => node.Update(VisitToken(node.OmittedTypeArgumentToken));
 
         public override SyntaxNode? VisitRefType(RefTypeSyntax node)
-            => node.Update(VisitToken(node.RefKeyword), VisitToken(node.ReadOnlyKeyword), (TypeSyntax?)Visit(node.Type) ?? throw new ArgumentNullException("type"));
+            => node.Update(VisitToken(node.RefKeyword), VisitToken(node.ReadOnlyKeyword), VisitToken(node.ScopedKeyword), (TypeSyntax?)Visit(node.Type) ?? throw new ArgumentNullException("type"));
 
         public override SyntaxNode? VisitParenthesizedExpression(ParenthesizedExpressionSyntax node)
             => node.Update(VisitToken(node.OpenParenToken), (ExpressionSyntax?)Visit(node.Expression) ?? throw new ArgumentNullException("expression"), VisitToken(node.CloseParenToken));
@@ -1975,10 +1975,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             => node.Update(VisitList(node.AttributeLists), VisitList(node.Modifiers), (TypeSyntax?)Visit(node.ReturnType) ?? throw new ArgumentNullException("returnType"), (ExplicitInterfaceSpecifierSyntax?)Visit(node.ExplicitInterfaceSpecifier), VisitToken(node.Identifier), (TypeParameterListSyntax?)Visit(node.TypeParameterList), (ParameterListSyntax?)Visit(node.ParameterList) ?? throw new ArgumentNullException("parameterList"), VisitList(node.ConstraintClauses), (BlockSyntax?)Visit(node.Body), (ArrowExpressionClauseSyntax?)Visit(node.ExpressionBody), VisitToken(node.SemicolonToken));
 
         public override SyntaxNode? VisitOperatorDeclaration(OperatorDeclarationSyntax node)
-            => node.Update(VisitList(node.AttributeLists), VisitList(node.Modifiers), (TypeSyntax?)Visit(node.ReturnType) ?? throw new ArgumentNullException("returnType"), (ExplicitInterfaceSpecifierSyntax?)Visit(node.ExplicitInterfaceSpecifier), VisitToken(node.OperatorKeyword), VisitToken(node.OperatorToken), (ParameterListSyntax?)Visit(node.ParameterList) ?? throw new ArgumentNullException("parameterList"), (BlockSyntax?)Visit(node.Body), (ArrowExpressionClauseSyntax?)Visit(node.ExpressionBody), VisitToken(node.SemicolonToken));
+            => node.Update(VisitList(node.AttributeLists), VisitList(node.Modifiers), (TypeSyntax?)Visit(node.ReturnType) ?? throw new ArgumentNullException("returnType"), (ExplicitInterfaceSpecifierSyntax?)Visit(node.ExplicitInterfaceSpecifier), VisitToken(node.OperatorKeyword), VisitToken(node.CheckedKeyword), VisitToken(node.OperatorToken), (ParameterListSyntax?)Visit(node.ParameterList) ?? throw new ArgumentNullException("parameterList"), (BlockSyntax?)Visit(node.Body), (ArrowExpressionClauseSyntax?)Visit(node.ExpressionBody), VisitToken(node.SemicolonToken));
 
         public override SyntaxNode? VisitConversionOperatorDeclaration(ConversionOperatorDeclarationSyntax node)
-            => node.Update(VisitList(node.AttributeLists), VisitList(node.Modifiers), VisitToken(node.ImplicitOrExplicitKeyword), (ExplicitInterfaceSpecifierSyntax?)Visit(node.ExplicitInterfaceSpecifier), VisitToken(node.OperatorKeyword), (TypeSyntax?)Visit(node.Type) ?? throw new ArgumentNullException("type"), (ParameterListSyntax?)Visit(node.ParameterList) ?? throw new ArgumentNullException("parameterList"), (BlockSyntax?)Visit(node.Body), (ArrowExpressionClauseSyntax?)Visit(node.ExpressionBody), VisitToken(node.SemicolonToken));
+            => node.Update(VisitList(node.AttributeLists), VisitList(node.Modifiers), VisitToken(node.ImplicitOrExplicitKeyword), (ExplicitInterfaceSpecifierSyntax?)Visit(node.ExplicitInterfaceSpecifier), VisitToken(node.OperatorKeyword), VisitToken(node.CheckedKeyword), (TypeSyntax?)Visit(node.Type) ?? throw new ArgumentNullException("type"), (ParameterListSyntax?)Visit(node.ParameterList) ?? throw new ArgumentNullException("parameterList"), (BlockSyntax?)Visit(node.Body), (ArrowExpressionClauseSyntax?)Visit(node.ExpressionBody), VisitToken(node.SemicolonToken));
 
         public override SyntaxNode? VisitConstructorDeclaration(ConstructorDeclarationSyntax node)
             => node.Update(VisitList(node.AttributeLists), VisitList(node.Modifiers), VisitToken(node.Identifier), (ParameterListSyntax?)Visit(node.ParameterList) ?? throw new ArgumentNullException("parameterList"), (ConstructorInitializerSyntax?)Visit(node.Initializer), (BlockSyntax?)Visit(node.Body), (ArrowExpressionClauseSyntax?)Visit(node.ExpressionBody), VisitToken(node.SemicolonToken));
@@ -2014,7 +2014,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             => node.Update(VisitToken(node.OpenBracketToken), VisitList(node.Parameters), VisitToken(node.CloseBracketToken));
 
         public override SyntaxNode? VisitParameter(ParameterSyntax node)
-            => node.Update(VisitList(node.AttributeLists), VisitList(node.Modifiers), (TypeSyntax?)Visit(node.Type), VisitToken(node.Identifier), VisitToken(node.ExclamationExclamationToken), (EqualsValueClauseSyntax?)Visit(node.Default));
+            => node.Update(VisitList(node.AttributeLists), VisitList(node.Modifiers), (TypeSyntax?)Visit(node.Type), VisitToken(node.Identifier), (EqualsValueClauseSyntax?)Visit(node.Default));
 
         public override SyntaxNode? VisitFunctionPointerParameter(FunctionPointerParameterSyntax node)
             => node.Update(VisitList(node.AttributeLists), VisitList(node.Modifiers), (TypeSyntax?)Visit(node.Type) ?? throw new ArgumentNullException("type"));
@@ -2041,10 +2041,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             => node.Update(VisitToken(node.ThisKeyword), (CrefBracketedParameterListSyntax?)Visit(node.Parameters));
 
         public override SyntaxNode? VisitOperatorMemberCref(OperatorMemberCrefSyntax node)
-            => node.Update(VisitToken(node.OperatorKeyword), VisitToken(node.OperatorToken), (CrefParameterListSyntax?)Visit(node.Parameters));
+            => node.Update(VisitToken(node.OperatorKeyword), VisitToken(node.CheckedKeyword), VisitToken(node.OperatorToken), (CrefParameterListSyntax?)Visit(node.Parameters));
 
         public override SyntaxNode? VisitConversionOperatorMemberCref(ConversionOperatorMemberCrefSyntax node)
-            => node.Update(VisitToken(node.ImplicitOrExplicitKeyword), VisitToken(node.OperatorKeyword), (TypeSyntax?)Visit(node.Type) ?? throw new ArgumentNullException("type"), (CrefParameterListSyntax?)Visit(node.Parameters));
+            => node.Update(VisitToken(node.ImplicitOrExplicitKeyword), VisitToken(node.OperatorKeyword), VisitToken(node.CheckedKeyword), (TypeSyntax?)Visit(node.Type) ?? throw new ArgumentNullException("type"), (CrefParameterListSyntax?)Visit(node.Parameters));
 
         public override SyntaxNode? VisitCrefParameterList(CrefParameterListSyntax node)
             => node.Update(VisitToken(node.OpenParenToken), VisitList(node.Parameters), VisitToken(node.CloseParenToken));
@@ -2167,9 +2167,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.GlobalKeyword: break;
                 default: throw new ArgumentException(nameof(identifier));
             }
-            // <Metalama> This change is generated. See Modifications.md for details.
-            identifier = Metalama.Compiler.TreeTracker.TrackIfNeeded(identifier);
-            // </Metalama>
             return (IdentifierNameSyntax)Syntax.InternalSyntax.SyntaxFactory.IdentifierName((Syntax.InternalSyntax.SyntaxToken)identifier.Node!).CreateRed();
         }
 
@@ -2179,15 +2176,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (left == null) throw new ArgumentNullException(nameof(left));
             if (dotToken.Kind() != SyntaxKind.DotToken) throw new ArgumentException(nameof(dotToken));
             if (right == null) throw new ArgumentNullException(nameof(right));
-            // <Metalama> This change is generated. See Modifications.md for details.
-            left = Metalama.Compiler.TreeTracker.TrackIfNeeded(left);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            dotToken = Metalama.Compiler.TreeTracker.TrackIfNeeded(dotToken);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            right = Metalama.Compiler.TreeTracker.TrackIfNeeded(right);
-            // </Metalama>
             return (QualifiedNameSyntax)Syntax.InternalSyntax.SyntaxFactory.QualifiedName((Syntax.InternalSyntax.NameSyntax)left.Green, (Syntax.InternalSyntax.SyntaxToken)dotToken.Node!, (Syntax.InternalSyntax.SimpleNameSyntax)right.Green).CreateRed();
         }
 
@@ -2200,12 +2188,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (identifier.Kind() != SyntaxKind.IdentifierToken) throw new ArgumentException(nameof(identifier));
             if (typeArgumentList == null) throw new ArgumentNullException(nameof(typeArgumentList));
-            // <Metalama> This change is generated. See Modifications.md for details.
-            identifier = Metalama.Compiler.TreeTracker.TrackIfNeeded(identifier);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            typeArgumentList = Metalama.Compiler.TreeTracker.TrackIfNeeded(typeArgumentList);
-            // </Metalama>
             return (GenericNameSyntax)Syntax.InternalSyntax.SyntaxFactory.GenericName((Syntax.InternalSyntax.SyntaxToken)identifier.Node!, (Syntax.InternalSyntax.TypeArgumentListSyntax)typeArgumentList.Green).CreateRed();
         }
 
@@ -2222,12 +2204,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (lessThanToken.Kind() != SyntaxKind.LessThanToken) throw new ArgumentException(nameof(lessThanToken));
             if (greaterThanToken.Kind() != SyntaxKind.GreaterThanToken) throw new ArgumentException(nameof(greaterThanToken));
-            // <Metalama> This change is generated. See Modifications.md for details.
-            lessThanToken = Metalama.Compiler.TreeTracker.TrackIfNeeded(lessThanToken);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            greaterThanToken = Metalama.Compiler.TreeTracker.TrackIfNeeded(greaterThanToken);
-            // </Metalama>
             return (TypeArgumentListSyntax)Syntax.InternalSyntax.SyntaxFactory.TypeArgumentList((Syntax.InternalSyntax.SyntaxToken)lessThanToken.Node!, arguments.Node.ToGreenSeparatedList<Syntax.InternalSyntax.TypeSyntax>(), (Syntax.InternalSyntax.SyntaxToken)greaterThanToken.Node!).CreateRed();
         }
 
@@ -2241,15 +2217,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (alias == null) throw new ArgumentNullException(nameof(alias));
             if (colonColonToken.Kind() != SyntaxKind.ColonColonToken) throw new ArgumentException(nameof(colonColonToken));
             if (name == null) throw new ArgumentNullException(nameof(name));
-            // <Metalama> This change is generated. See Modifications.md for details.
-            alias = Metalama.Compiler.TreeTracker.TrackIfNeeded(alias);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            colonColonToken = Metalama.Compiler.TreeTracker.TrackIfNeeded(colonColonToken);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            name = Metalama.Compiler.TreeTracker.TrackIfNeeded(name);
-            // </Metalama>
             return (AliasQualifiedNameSyntax)Syntax.InternalSyntax.SyntaxFactory.AliasQualifiedName((Syntax.InternalSyntax.IdentifierNameSyntax)alias.Green, (Syntax.InternalSyntax.SyntaxToken)colonColonToken.Node!, (Syntax.InternalSyntax.SimpleNameSyntax)name.Green).CreateRed();
         }
 
@@ -2284,9 +2251,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.VoidKeyword: break;
                 default: throw new ArgumentException(nameof(keyword));
             }
-            // <Metalama> This change is generated. See Modifications.md for details.
-            keyword = Metalama.Compiler.TreeTracker.TrackIfNeeded(keyword);
-            // </Metalama>
             return (PredefinedTypeSyntax)Syntax.InternalSyntax.SyntaxFactory.PredefinedType((Syntax.InternalSyntax.SyntaxToken)keyword.Node!).CreateRed();
         }
 
@@ -2294,9 +2258,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static ArrayTypeSyntax ArrayType(TypeSyntax elementType, SyntaxList<ArrayRankSpecifierSyntax> rankSpecifiers)
         {
             if (elementType == null) throw new ArgumentNullException(nameof(elementType));
-            // <Metalama> This change is generated. See Modifications.md for details.
-            elementType = Metalama.Compiler.TreeTracker.TrackIfNeeded(elementType);
-            // </Metalama>
             return (ArrayTypeSyntax)Syntax.InternalSyntax.SyntaxFactory.ArrayType((Syntax.InternalSyntax.TypeSyntax)elementType.Green, rankSpecifiers.Node.ToGreenList<Syntax.InternalSyntax.ArrayRankSpecifierSyntax>()).CreateRed();
         }
 
@@ -2309,12 +2270,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (openBracketToken.Kind() != SyntaxKind.OpenBracketToken) throw new ArgumentException(nameof(openBracketToken));
             if (closeBracketToken.Kind() != SyntaxKind.CloseBracketToken) throw new ArgumentException(nameof(closeBracketToken));
-            // <Metalama> This change is generated. See Modifications.md for details.
-            openBracketToken = Metalama.Compiler.TreeTracker.TrackIfNeeded(openBracketToken);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            closeBracketToken = Metalama.Compiler.TreeTracker.TrackIfNeeded(closeBracketToken);
-            // </Metalama>
             return (ArrayRankSpecifierSyntax)Syntax.InternalSyntax.SyntaxFactory.ArrayRankSpecifier((Syntax.InternalSyntax.SyntaxToken)openBracketToken.Node!, sizes.Node.ToGreenSeparatedList<Syntax.InternalSyntax.ExpressionSyntax>(), (Syntax.InternalSyntax.SyntaxToken)closeBracketToken.Node!).CreateRed();
         }
 
@@ -2327,12 +2282,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (elementType == null) throw new ArgumentNullException(nameof(elementType));
             if (asteriskToken.Kind() != SyntaxKind.AsteriskToken) throw new ArgumentException(nameof(asteriskToken));
-            // <Metalama> This change is generated. See Modifications.md for details.
-            elementType = Metalama.Compiler.TreeTracker.TrackIfNeeded(elementType);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            asteriskToken = Metalama.Compiler.TreeTracker.TrackIfNeeded(asteriskToken);
-            // </Metalama>
             return (PointerTypeSyntax)Syntax.InternalSyntax.SyntaxFactory.PointerType((Syntax.InternalSyntax.TypeSyntax)elementType.Green, (Syntax.InternalSyntax.SyntaxToken)asteriskToken.Node!).CreateRed();
         }
 
@@ -2346,18 +2295,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (delegateKeyword.Kind() != SyntaxKind.DelegateKeyword) throw new ArgumentException(nameof(delegateKeyword));
             if (asteriskToken.Kind() != SyntaxKind.AsteriskToken) throw new ArgumentException(nameof(asteriskToken));
             if (parameterList == null) throw new ArgumentNullException(nameof(parameterList));
-            // <Metalama> This change is generated. See Modifications.md for details.
-            delegateKeyword = Metalama.Compiler.TreeTracker.TrackIfNeeded(delegateKeyword);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            asteriskToken = Metalama.Compiler.TreeTracker.TrackIfNeeded(asteriskToken);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            callingConvention = Metalama.Compiler.TreeTracker.TrackIfNeeded(callingConvention);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            parameterList = Metalama.Compiler.TreeTracker.TrackIfNeeded(parameterList);
-            // </Metalama>
             return (FunctionPointerTypeSyntax)Syntax.InternalSyntax.SyntaxFactory.FunctionPointerType((Syntax.InternalSyntax.SyntaxToken)delegateKeyword.Node!, (Syntax.InternalSyntax.SyntaxToken)asteriskToken.Node!, callingConvention == null ? null : (Syntax.InternalSyntax.FunctionPointerCallingConventionSyntax)callingConvention.Green, (Syntax.InternalSyntax.FunctionPointerParameterListSyntax)parameterList.Green).CreateRed();
         }
 
@@ -2374,12 +2311,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (lessThanToken.Kind() != SyntaxKind.LessThanToken) throw new ArgumentException(nameof(lessThanToken));
             if (greaterThanToken.Kind() != SyntaxKind.GreaterThanToken) throw new ArgumentException(nameof(greaterThanToken));
-            // <Metalama> This change is generated. See Modifications.md for details.
-            lessThanToken = Metalama.Compiler.TreeTracker.TrackIfNeeded(lessThanToken);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            greaterThanToken = Metalama.Compiler.TreeTracker.TrackIfNeeded(greaterThanToken);
-            // </Metalama>
             return (FunctionPointerParameterListSyntax)Syntax.InternalSyntax.SyntaxFactory.FunctionPointerParameterList((Syntax.InternalSyntax.SyntaxToken)lessThanToken.Node!, parameters.Node.ToGreenSeparatedList<Syntax.InternalSyntax.FunctionPointerParameterSyntax>(), (Syntax.InternalSyntax.SyntaxToken)greaterThanToken.Node!).CreateRed();
         }
 
@@ -2396,12 +2327,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.UnmanagedKeyword: break;
                 default: throw new ArgumentException(nameof(managedOrUnmanagedKeyword));
             }
-            // <Metalama> This change is generated. See Modifications.md for details.
-            managedOrUnmanagedKeyword = Metalama.Compiler.TreeTracker.TrackIfNeeded(managedOrUnmanagedKeyword);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            unmanagedCallingConventionList = Metalama.Compiler.TreeTracker.TrackIfNeeded(unmanagedCallingConventionList);
-            // </Metalama>
             return (FunctionPointerCallingConventionSyntax)Syntax.InternalSyntax.SyntaxFactory.FunctionPointerCallingConvention((Syntax.InternalSyntax.SyntaxToken)managedOrUnmanagedKeyword.Node!, unmanagedCallingConventionList == null ? null : (Syntax.InternalSyntax.FunctionPointerUnmanagedCallingConventionListSyntax)unmanagedCallingConventionList.Green).CreateRed();
         }
 
@@ -2414,12 +2339,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (openBracketToken.Kind() != SyntaxKind.OpenBracketToken) throw new ArgumentException(nameof(openBracketToken));
             if (closeBracketToken.Kind() != SyntaxKind.CloseBracketToken) throw new ArgumentException(nameof(closeBracketToken));
-            // <Metalama> This change is generated. See Modifications.md for details.
-            openBracketToken = Metalama.Compiler.TreeTracker.TrackIfNeeded(openBracketToken);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            closeBracketToken = Metalama.Compiler.TreeTracker.TrackIfNeeded(closeBracketToken);
-            // </Metalama>
             return (FunctionPointerUnmanagedCallingConventionListSyntax)Syntax.InternalSyntax.SyntaxFactory.FunctionPointerUnmanagedCallingConventionList((Syntax.InternalSyntax.SyntaxToken)openBracketToken.Node!, callingConventions.Node.ToGreenSeparatedList<Syntax.InternalSyntax.FunctionPointerUnmanagedCallingConventionSyntax>(), (Syntax.InternalSyntax.SyntaxToken)closeBracketToken.Node!).CreateRed();
         }
 
@@ -2431,9 +2350,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static FunctionPointerUnmanagedCallingConventionSyntax FunctionPointerUnmanagedCallingConvention(SyntaxToken name)
         {
             if (name.Kind() != SyntaxKind.IdentifierToken) throw new ArgumentException(nameof(name));
-            // <Metalama> This change is generated. See Modifications.md for details.
-            name = Metalama.Compiler.TreeTracker.TrackIfNeeded(name);
-            // </Metalama>
             return (FunctionPointerUnmanagedCallingConventionSyntax)Syntax.InternalSyntax.SyntaxFactory.FunctionPointerUnmanagedCallingConvention((Syntax.InternalSyntax.SyntaxToken)name.Node!).CreateRed();
         }
 
@@ -2442,12 +2358,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (elementType == null) throw new ArgumentNullException(nameof(elementType));
             if (questionToken.Kind() != SyntaxKind.QuestionToken) throw new ArgumentException(nameof(questionToken));
-            // <Metalama> This change is generated. See Modifications.md for details.
-            elementType = Metalama.Compiler.TreeTracker.TrackIfNeeded(elementType);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            questionToken = Metalama.Compiler.TreeTracker.TrackIfNeeded(questionToken);
-            // </Metalama>
             return (NullableTypeSyntax)Syntax.InternalSyntax.SyntaxFactory.NullableType((Syntax.InternalSyntax.TypeSyntax)elementType.Green, (Syntax.InternalSyntax.SyntaxToken)questionToken.Node!).CreateRed();
         }
 
@@ -2460,12 +2370,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (openParenToken.Kind() != SyntaxKind.OpenParenToken) throw new ArgumentException(nameof(openParenToken));
             if (closeParenToken.Kind() != SyntaxKind.CloseParenToken) throw new ArgumentException(nameof(closeParenToken));
-            // <Metalama> This change is generated. See Modifications.md for details.
-            openParenToken = Metalama.Compiler.TreeTracker.TrackIfNeeded(openParenToken);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            closeParenToken = Metalama.Compiler.TreeTracker.TrackIfNeeded(closeParenToken);
-            // </Metalama>
             return (TupleTypeSyntax)Syntax.InternalSyntax.SyntaxFactory.TupleType((Syntax.InternalSyntax.SyntaxToken)openParenToken.Node!, elements.Node.ToGreenSeparatedList<Syntax.InternalSyntax.TupleElementSyntax>(), (Syntax.InternalSyntax.SyntaxToken)closeParenToken.Node!).CreateRed();
         }
 
@@ -2483,12 +2387,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.None: break;
                 default: throw new ArgumentException(nameof(identifier));
             }
-            // <Metalama> This change is generated. See Modifications.md for details.
-            type = Metalama.Compiler.TreeTracker.TrackIfNeeded(type);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            identifier = Metalama.Compiler.TreeTracker.TrackIfNeeded(identifier);
-            // </Metalama>
             return (TupleElementSyntax)Syntax.InternalSyntax.SyntaxFactory.TupleElement((Syntax.InternalSyntax.TypeSyntax)type.Green, (Syntax.InternalSyntax.SyntaxToken?)identifier.Node).CreateRed();
         }
 
@@ -2500,9 +2398,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static OmittedTypeArgumentSyntax OmittedTypeArgument(SyntaxToken omittedTypeArgumentToken)
         {
             if (omittedTypeArgumentToken.Kind() != SyntaxKind.OmittedTypeArgumentToken) throw new ArgumentException(nameof(omittedTypeArgumentToken));
-            // <Metalama> This change is generated. See Modifications.md for details.
-            omittedTypeArgumentToken = Metalama.Compiler.TreeTracker.TrackIfNeeded(omittedTypeArgumentToken);
-            // </Metalama>
             return (OmittedTypeArgumentSyntax)Syntax.InternalSyntax.SyntaxFactory.OmittedTypeArgument((Syntax.InternalSyntax.SyntaxToken)omittedTypeArgumentToken.Node!).CreateRed();
         }
 
@@ -2511,7 +2406,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             => SyntaxFactory.OmittedTypeArgument(SyntaxFactory.Token(SyntaxKind.OmittedTypeArgumentToken));
 
         /// <summary>Creates a new RefTypeSyntax instance.</summary>
-        public static RefTypeSyntax RefType(SyntaxToken refKeyword, SyntaxToken readOnlyKeyword, TypeSyntax type)
+        public static RefTypeSyntax RefType(SyntaxToken refKeyword, SyntaxToken readOnlyKeyword, SyntaxToken scopedKeyword, TypeSyntax type)
         {
             if (refKeyword.Kind() != SyntaxKind.RefKeyword) throw new ArgumentException(nameof(refKeyword));
             switch (readOnlyKeyword.Kind())
@@ -2520,22 +2415,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.None: break;
                 default: throw new ArgumentException(nameof(readOnlyKeyword));
             }
+            switch (scopedKeyword.Kind())
+            {
+                case SyntaxKind.ScopedKeyword:
+                case SyntaxKind.None: break;
+                default: throw new ArgumentException(nameof(scopedKeyword));
+            }
             if (type == null) throw new ArgumentNullException(nameof(type));
-            // <Metalama> This change is generated. See Modifications.md for details.
-            refKeyword = Metalama.Compiler.TreeTracker.TrackIfNeeded(refKeyword);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            readOnlyKeyword = Metalama.Compiler.TreeTracker.TrackIfNeeded(readOnlyKeyword);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            type = Metalama.Compiler.TreeTracker.TrackIfNeeded(type);
-            // </Metalama>
-            return (RefTypeSyntax)Syntax.InternalSyntax.SyntaxFactory.RefType((Syntax.InternalSyntax.SyntaxToken)refKeyword.Node!, (Syntax.InternalSyntax.SyntaxToken?)readOnlyKeyword.Node, (Syntax.InternalSyntax.TypeSyntax)type.Green).CreateRed();
+            return (RefTypeSyntax)Syntax.InternalSyntax.SyntaxFactory.RefType((Syntax.InternalSyntax.SyntaxToken)refKeyword.Node!, (Syntax.InternalSyntax.SyntaxToken?)readOnlyKeyword.Node, (Syntax.InternalSyntax.SyntaxToken?)scopedKeyword.Node, (Syntax.InternalSyntax.TypeSyntax)type.Green).CreateRed();
         }
 
         /// <summary>Creates a new RefTypeSyntax instance.</summary>
         public static RefTypeSyntax RefType(TypeSyntax type)
-            => SyntaxFactory.RefType(SyntaxFactory.Token(SyntaxKind.RefKeyword), default, type);
+            => SyntaxFactory.RefType(SyntaxFactory.Token(SyntaxKind.RefKeyword), default, default, type);
 
         /// <summary>Creates a new ParenthesizedExpressionSyntax instance.</summary>
         public static ParenthesizedExpressionSyntax ParenthesizedExpression(SyntaxToken openParenToken, ExpressionSyntax expression, SyntaxToken closeParenToken)
@@ -2543,15 +2435,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (openParenToken.Kind() != SyntaxKind.OpenParenToken) throw new ArgumentException(nameof(openParenToken));
             if (expression == null) throw new ArgumentNullException(nameof(expression));
             if (closeParenToken.Kind() != SyntaxKind.CloseParenToken) throw new ArgumentException(nameof(closeParenToken));
-            // <Metalama> This change is generated. See Modifications.md for details.
-            openParenToken = Metalama.Compiler.TreeTracker.TrackIfNeeded(openParenToken);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            expression = Metalama.Compiler.TreeTracker.TrackIfNeeded(expression);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            closeParenToken = Metalama.Compiler.TreeTracker.TrackIfNeeded(closeParenToken);
-            // </Metalama>
             return (ParenthesizedExpressionSyntax)Syntax.InternalSyntax.SyntaxFactory.ParenthesizedExpression((Syntax.InternalSyntax.SyntaxToken)openParenToken.Node!, (Syntax.InternalSyntax.ExpressionSyntax)expression.Green, (Syntax.InternalSyntax.SyntaxToken)closeParenToken.Node!).CreateRed();
         }
 
@@ -2564,12 +2447,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (openParenToken.Kind() != SyntaxKind.OpenParenToken) throw new ArgumentException(nameof(openParenToken));
             if (closeParenToken.Kind() != SyntaxKind.CloseParenToken) throw new ArgumentException(nameof(closeParenToken));
-            // <Metalama> This change is generated. See Modifications.md for details.
-            openParenToken = Metalama.Compiler.TreeTracker.TrackIfNeeded(openParenToken);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            closeParenToken = Metalama.Compiler.TreeTracker.TrackIfNeeded(closeParenToken);
-            // </Metalama>
             return (TupleExpressionSyntax)Syntax.InternalSyntax.SyntaxFactory.TupleExpression((Syntax.InternalSyntax.SyntaxToken)openParenToken.Node!, arguments.Node.ToGreenSeparatedList<Syntax.InternalSyntax.ArgumentSyntax>(), (Syntax.InternalSyntax.SyntaxToken)closeParenToken.Node!).CreateRed();
         }
 
@@ -2607,12 +2484,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 default: throw new ArgumentException(nameof(operatorToken));
             }
             if (operand == null) throw new ArgumentNullException(nameof(operand));
-            // <Metalama> This change is generated. See Modifications.md for details.
-            operatorToken = Metalama.Compiler.TreeTracker.TrackIfNeeded(operatorToken);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            operand = Metalama.Compiler.TreeTracker.TrackIfNeeded(operand);
-            // </Metalama>
             return (PrefixUnaryExpressionSyntax)Syntax.InternalSyntax.SyntaxFactory.PrefixUnaryExpression(kind, (Syntax.InternalSyntax.SyntaxToken)operatorToken.Node!, (Syntax.InternalSyntax.ExpressionSyntax)operand.Green).CreateRed();
         }
 
@@ -2640,12 +2511,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (awaitKeyword.Kind() != SyntaxKind.AwaitKeyword) throw new ArgumentException(nameof(awaitKeyword));
             if (expression == null) throw new ArgumentNullException(nameof(expression));
-            // <Metalama> This change is generated. See Modifications.md for details.
-            awaitKeyword = Metalama.Compiler.TreeTracker.TrackIfNeeded(awaitKeyword);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            expression = Metalama.Compiler.TreeTracker.TrackIfNeeded(expression);
-            // </Metalama>
             return (AwaitExpressionSyntax)Syntax.InternalSyntax.SyntaxFactory.AwaitExpression((Syntax.InternalSyntax.SyntaxToken)awaitKeyword.Node!, (Syntax.InternalSyntax.ExpressionSyntax)expression.Green).CreateRed();
         }
 
@@ -2671,12 +2536,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.ExclamationToken: break;
                 default: throw new ArgumentException(nameof(operatorToken));
             }
-            // <Metalama> This change is generated. See Modifications.md for details.
-            operand = Metalama.Compiler.TreeTracker.TrackIfNeeded(operand);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            operatorToken = Metalama.Compiler.TreeTracker.TrackIfNeeded(operatorToken);
-            // </Metalama>
             return (PostfixUnaryExpressionSyntax)Syntax.InternalSyntax.SyntaxFactory.PostfixUnaryExpression(kind, (Syntax.InternalSyntax.ExpressionSyntax)operand.Green, (Syntax.InternalSyntax.SyntaxToken)operatorToken.Node!).CreateRed();
         }
 
@@ -2710,15 +2569,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 default: throw new ArgumentException(nameof(operatorToken));
             }
             if (name == null) throw new ArgumentNullException(nameof(name));
-            // <Metalama> This change is generated. See Modifications.md for details.
-            expression = Metalama.Compiler.TreeTracker.TrackIfNeeded(expression);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            operatorToken = Metalama.Compiler.TreeTracker.TrackIfNeeded(operatorToken);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            name = Metalama.Compiler.TreeTracker.TrackIfNeeded(name);
-            // </Metalama>
             return (MemberAccessExpressionSyntax)Syntax.InternalSyntax.SyntaxFactory.MemberAccessExpression(kind, (Syntax.InternalSyntax.ExpressionSyntax)expression.Green, (Syntax.InternalSyntax.SyntaxToken)operatorToken.Node!, (Syntax.InternalSyntax.SimpleNameSyntax)name.Green).CreateRed();
         }
 
@@ -2740,15 +2590,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (expression == null) throw new ArgumentNullException(nameof(expression));
             if (operatorToken.Kind() != SyntaxKind.QuestionToken) throw new ArgumentException(nameof(operatorToken));
             if (whenNotNull == null) throw new ArgumentNullException(nameof(whenNotNull));
-            // <Metalama> This change is generated. See Modifications.md for details.
-            expression = Metalama.Compiler.TreeTracker.TrackIfNeeded(expression);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            operatorToken = Metalama.Compiler.TreeTracker.TrackIfNeeded(operatorToken);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            whenNotNull = Metalama.Compiler.TreeTracker.TrackIfNeeded(whenNotNull);
-            // </Metalama>
             return (ConditionalAccessExpressionSyntax)Syntax.InternalSyntax.SyntaxFactory.ConditionalAccessExpression((Syntax.InternalSyntax.ExpressionSyntax)expression.Green, (Syntax.InternalSyntax.SyntaxToken)operatorToken.Node!, (Syntax.InternalSyntax.ExpressionSyntax)whenNotNull.Green).CreateRed();
         }
 
@@ -2761,12 +2602,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (operatorToken.Kind() != SyntaxKind.DotToken) throw new ArgumentException(nameof(operatorToken));
             if (name == null) throw new ArgumentNullException(nameof(name));
-            // <Metalama> This change is generated. See Modifications.md for details.
-            operatorToken = Metalama.Compiler.TreeTracker.TrackIfNeeded(operatorToken);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            name = Metalama.Compiler.TreeTracker.TrackIfNeeded(name);
-            // </Metalama>
             return (MemberBindingExpressionSyntax)Syntax.InternalSyntax.SyntaxFactory.MemberBindingExpression((Syntax.InternalSyntax.SyntaxToken)operatorToken.Node!, (Syntax.InternalSyntax.SimpleNameSyntax)name.Green).CreateRed();
         }
 
@@ -2778,9 +2613,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static ElementBindingExpressionSyntax ElementBindingExpression(BracketedArgumentListSyntax argumentList)
         {
             if (argumentList == null) throw new ArgumentNullException(nameof(argumentList));
-            // <Metalama> This change is generated. See Modifications.md for details.
-            argumentList = Metalama.Compiler.TreeTracker.TrackIfNeeded(argumentList);
-            // </Metalama>
             return (ElementBindingExpressionSyntax)Syntax.InternalSyntax.SyntaxFactory.ElementBindingExpression((Syntax.InternalSyntax.BracketedArgumentListSyntax)argumentList.Green).CreateRed();
         }
 
@@ -2792,15 +2624,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static RangeExpressionSyntax RangeExpression(ExpressionSyntax? leftOperand, SyntaxToken operatorToken, ExpressionSyntax? rightOperand)
         {
             if (operatorToken.Kind() != SyntaxKind.DotDotToken) throw new ArgumentException(nameof(operatorToken));
-            // <Metalama> This change is generated. See Modifications.md for details.
-            leftOperand = Metalama.Compiler.TreeTracker.TrackIfNeeded(leftOperand);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            operatorToken = Metalama.Compiler.TreeTracker.TrackIfNeeded(operatorToken);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            rightOperand = Metalama.Compiler.TreeTracker.TrackIfNeeded(rightOperand);
-            // </Metalama>
             return (RangeExpressionSyntax)Syntax.InternalSyntax.SyntaxFactory.RangeExpression(leftOperand == null ? null : (Syntax.InternalSyntax.ExpressionSyntax)leftOperand.Green, (Syntax.InternalSyntax.SyntaxToken)operatorToken.Node!, rightOperand == null ? null : (Syntax.InternalSyntax.ExpressionSyntax)rightOperand.Green).CreateRed();
         }
 
@@ -2816,9 +2639,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static ImplicitElementAccessSyntax ImplicitElementAccess(BracketedArgumentListSyntax argumentList)
         {
             if (argumentList == null) throw new ArgumentNullException(nameof(argumentList));
-            // <Metalama> This change is generated. See Modifications.md for details.
-            argumentList = Metalama.Compiler.TreeTracker.TrackIfNeeded(argumentList);
-            // </Metalama>
             return (ImplicitElementAccessSyntax)Syntax.InternalSyntax.SyntaxFactory.ImplicitElementAccess((Syntax.InternalSyntax.BracketedArgumentListSyntax)argumentList.Green).CreateRed();
         }
 
@@ -2838,6 +2658,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.ModuloExpression:
                 case SyntaxKind.LeftShiftExpression:
                 case SyntaxKind.RightShiftExpression:
+                case SyntaxKind.UnsignedRightShiftExpression:
                 case SyntaxKind.LogicalOrExpression:
                 case SyntaxKind.LogicalAndExpression:
                 case SyntaxKind.BitwiseOrExpression:
@@ -2864,6 +2685,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.PercentToken:
                 case SyntaxKind.LessThanLessThanToken:
                 case SyntaxKind.GreaterThanGreaterThanToken:
+                case SyntaxKind.GreaterThanGreaterThanGreaterThanToken:
                 case SyntaxKind.BarBarToken:
                 case SyntaxKind.AmpersandAmpersandToken:
                 case SyntaxKind.BarToken:
@@ -2881,15 +2703,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 default: throw new ArgumentException(nameof(operatorToken));
             }
             if (right == null) throw new ArgumentNullException(nameof(right));
-            // <Metalama> This change is generated. See Modifications.md for details.
-            left = Metalama.Compiler.TreeTracker.TrackIfNeeded(left);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            operatorToken = Metalama.Compiler.TreeTracker.TrackIfNeeded(operatorToken);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            right = Metalama.Compiler.TreeTracker.TrackIfNeeded(right);
-            // </Metalama>
             return (BinaryExpressionSyntax)Syntax.InternalSyntax.SyntaxFactory.BinaryExpression(kind, (Syntax.InternalSyntax.ExpressionSyntax)left.Green, (Syntax.InternalSyntax.SyntaxToken)operatorToken.Node!, (Syntax.InternalSyntax.ExpressionSyntax)right.Green).CreateRed();
         }
 
@@ -2907,6 +2720,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 SyntaxKind.ModuloExpression => SyntaxKind.PercentToken,
                 SyntaxKind.LeftShiftExpression => SyntaxKind.LessThanLessThanToken,
                 SyntaxKind.RightShiftExpression => SyntaxKind.GreaterThanGreaterThanToken,
+                SyntaxKind.UnsignedRightShiftExpression => SyntaxKind.GreaterThanGreaterThanGreaterThanToken,
                 SyntaxKind.LogicalOrExpression => SyntaxKind.BarBarToken,
                 SyntaxKind.LogicalAndExpression => SyntaxKind.AmpersandAmpersandToken,
                 SyntaxKind.BitwiseOrExpression => SyntaxKind.BarToken,
@@ -2940,6 +2754,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.OrAssignmentExpression:
                 case SyntaxKind.LeftShiftAssignmentExpression:
                 case SyntaxKind.RightShiftAssignmentExpression:
+                case SyntaxKind.UnsignedRightShiftAssignmentExpression:
                 case SyntaxKind.CoalesceAssignmentExpression: break;
                 default: throw new ArgumentException(nameof(kind));
             }
@@ -2957,19 +2772,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.BarEqualsToken:
                 case SyntaxKind.LessThanLessThanEqualsToken:
                 case SyntaxKind.GreaterThanGreaterThanEqualsToken:
+                case SyntaxKind.GreaterThanGreaterThanGreaterThanEqualsToken:
                 case SyntaxKind.QuestionQuestionEqualsToken: break;
                 default: throw new ArgumentException(nameof(operatorToken));
             }
             if (right == null) throw new ArgumentNullException(nameof(right));
-            // <Metalama> This change is generated. See Modifications.md for details.
-            left = Metalama.Compiler.TreeTracker.TrackIfNeeded(left);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            operatorToken = Metalama.Compiler.TreeTracker.TrackIfNeeded(operatorToken);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            right = Metalama.Compiler.TreeTracker.TrackIfNeeded(right);
-            // </Metalama>
             return (AssignmentExpressionSyntax)Syntax.InternalSyntax.SyntaxFactory.AssignmentExpression(kind, (Syntax.InternalSyntax.ExpressionSyntax)left.Green, (Syntax.InternalSyntax.SyntaxToken)operatorToken.Node!, (Syntax.InternalSyntax.ExpressionSyntax)right.Green).CreateRed();
         }
 
@@ -2991,6 +2798,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 SyntaxKind.OrAssignmentExpression => SyntaxKind.BarEqualsToken,
                 SyntaxKind.LeftShiftAssignmentExpression => SyntaxKind.LessThanLessThanEqualsToken,
                 SyntaxKind.RightShiftAssignmentExpression => SyntaxKind.GreaterThanGreaterThanEqualsToken,
+                SyntaxKind.UnsignedRightShiftAssignmentExpression => SyntaxKind.GreaterThanGreaterThanGreaterThanEqualsToken,
                 SyntaxKind.CoalesceAssignmentExpression => SyntaxKind.QuestionQuestionEqualsToken,
                 _ => throw new ArgumentOutOfRangeException(),
             };
@@ -3003,21 +2811,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (whenTrue == null) throw new ArgumentNullException(nameof(whenTrue));
             if (colonToken.Kind() != SyntaxKind.ColonToken) throw new ArgumentException(nameof(colonToken));
             if (whenFalse == null) throw new ArgumentNullException(nameof(whenFalse));
-            // <Metalama> This change is generated. See Modifications.md for details.
-            condition = Metalama.Compiler.TreeTracker.TrackIfNeeded(condition);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            questionToken = Metalama.Compiler.TreeTracker.TrackIfNeeded(questionToken);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            whenTrue = Metalama.Compiler.TreeTracker.TrackIfNeeded(whenTrue);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            colonToken = Metalama.Compiler.TreeTracker.TrackIfNeeded(colonToken);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            whenFalse = Metalama.Compiler.TreeTracker.TrackIfNeeded(whenFalse);
-            // </Metalama>
             return (ConditionalExpressionSyntax)Syntax.InternalSyntax.SyntaxFactory.ConditionalExpression((Syntax.InternalSyntax.ExpressionSyntax)condition.Green, (Syntax.InternalSyntax.SyntaxToken)questionToken.Node!, (Syntax.InternalSyntax.ExpressionSyntax)whenTrue.Green, (Syntax.InternalSyntax.SyntaxToken)colonToken.Node!, (Syntax.InternalSyntax.ExpressionSyntax)whenFalse.Green).CreateRed();
         }
 
@@ -3029,9 +2822,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static ThisExpressionSyntax ThisExpression(SyntaxToken token)
         {
             if (token.Kind() != SyntaxKind.ThisKeyword) throw new ArgumentException(nameof(token));
-            // <Metalama> This change is generated. See Modifications.md for details.
-            token = Metalama.Compiler.TreeTracker.TrackIfNeeded(token);
-            // </Metalama>
             return (ThisExpressionSyntax)Syntax.InternalSyntax.SyntaxFactory.ThisExpression((Syntax.InternalSyntax.SyntaxToken)token.Node!).CreateRed();
         }
 
@@ -3043,9 +2833,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static BaseExpressionSyntax BaseExpression(SyntaxToken token)
         {
             if (token.Kind() != SyntaxKind.BaseKeyword) throw new ArgumentException(nameof(token));
-            // <Metalama> This change is generated. See Modifications.md for details.
-            token = Metalama.Compiler.TreeTracker.TrackIfNeeded(token);
-            // </Metalama>
             return (BaseExpressionSyntax)Syntax.InternalSyntax.SyntaxFactory.BaseExpression((Syntax.InternalSyntax.SyntaxToken)token.Node!).CreateRed();
         }
 
@@ -3061,6 +2848,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.ArgListExpression:
                 case SyntaxKind.NumericLiteralExpression:
                 case SyntaxKind.StringLiteralExpression:
+                case SyntaxKind.Utf8StringLiteralExpression:
                 case SyntaxKind.CharacterLiteralExpression:
                 case SyntaxKind.TrueLiteralExpression:
                 case SyntaxKind.FalseLiteralExpression:
@@ -3073,8 +2861,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.ArgListKeyword:
                 case SyntaxKind.NumericLiteralToken:
                 case SyntaxKind.StringLiteralToken:
+                case SyntaxKind.Utf8StringLiteralToken:
                 case SyntaxKind.MultiLineRawStringLiteralToken:
+                case SyntaxKind.Utf8MultiLineRawStringLiteralToken:
                 case SyntaxKind.SingleLineRawStringLiteralToken:
+                case SyntaxKind.Utf8SingleLineRawStringLiteralToken:
                 case SyntaxKind.CharacterLiteralToken:
                 case SyntaxKind.TrueKeyword:
                 case SyntaxKind.FalseKeyword:
@@ -3082,9 +2873,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.DefaultKeyword: break;
                 default: throw new ArgumentException(nameof(token));
             }
-            // <Metalama> This change is generated. See Modifications.md for details.
-            token = Metalama.Compiler.TreeTracker.TrackIfNeeded(token);
-            // </Metalama>
             return (LiteralExpressionSyntax)Syntax.InternalSyntax.SyntaxFactory.LiteralExpression(kind, (Syntax.InternalSyntax.SyntaxToken)token.Node!).CreateRed();
         }
 
@@ -3095,18 +2883,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (openParenToken.Kind() != SyntaxKind.OpenParenToken) throw new ArgumentException(nameof(openParenToken));
             if (expression == null) throw new ArgumentNullException(nameof(expression));
             if (closeParenToken.Kind() != SyntaxKind.CloseParenToken) throw new ArgumentException(nameof(closeParenToken));
-            // <Metalama> This change is generated. See Modifications.md for details.
-            keyword = Metalama.Compiler.TreeTracker.TrackIfNeeded(keyword);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            openParenToken = Metalama.Compiler.TreeTracker.TrackIfNeeded(openParenToken);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            expression = Metalama.Compiler.TreeTracker.TrackIfNeeded(expression);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            closeParenToken = Metalama.Compiler.TreeTracker.TrackIfNeeded(closeParenToken);
-            // </Metalama>
             return (MakeRefExpressionSyntax)Syntax.InternalSyntax.SyntaxFactory.MakeRefExpression((Syntax.InternalSyntax.SyntaxToken)keyword.Node!, (Syntax.InternalSyntax.SyntaxToken)openParenToken.Node!, (Syntax.InternalSyntax.ExpressionSyntax)expression.Green, (Syntax.InternalSyntax.SyntaxToken)closeParenToken.Node!).CreateRed();
         }
 
@@ -3121,18 +2897,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (openParenToken.Kind() != SyntaxKind.OpenParenToken) throw new ArgumentException(nameof(openParenToken));
             if (expression == null) throw new ArgumentNullException(nameof(expression));
             if (closeParenToken.Kind() != SyntaxKind.CloseParenToken) throw new ArgumentException(nameof(closeParenToken));
-            // <Metalama> This change is generated. See Modifications.md for details.
-            keyword = Metalama.Compiler.TreeTracker.TrackIfNeeded(keyword);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            openParenToken = Metalama.Compiler.TreeTracker.TrackIfNeeded(openParenToken);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            expression = Metalama.Compiler.TreeTracker.TrackIfNeeded(expression);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            closeParenToken = Metalama.Compiler.TreeTracker.TrackIfNeeded(closeParenToken);
-            // </Metalama>
             return (RefTypeExpressionSyntax)Syntax.InternalSyntax.SyntaxFactory.RefTypeExpression((Syntax.InternalSyntax.SyntaxToken)keyword.Node!, (Syntax.InternalSyntax.SyntaxToken)openParenToken.Node!, (Syntax.InternalSyntax.ExpressionSyntax)expression.Green, (Syntax.InternalSyntax.SyntaxToken)closeParenToken.Node!).CreateRed();
         }
 
@@ -3149,24 +2913,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (comma.Kind() != SyntaxKind.CommaToken) throw new ArgumentException(nameof(comma));
             if (type == null) throw new ArgumentNullException(nameof(type));
             if (closeParenToken.Kind() != SyntaxKind.CloseParenToken) throw new ArgumentException(nameof(closeParenToken));
-            // <Metalama> This change is generated. See Modifications.md for details.
-            keyword = Metalama.Compiler.TreeTracker.TrackIfNeeded(keyword);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            openParenToken = Metalama.Compiler.TreeTracker.TrackIfNeeded(openParenToken);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            expression = Metalama.Compiler.TreeTracker.TrackIfNeeded(expression);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            comma = Metalama.Compiler.TreeTracker.TrackIfNeeded(comma);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            type = Metalama.Compiler.TreeTracker.TrackIfNeeded(type);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            closeParenToken = Metalama.Compiler.TreeTracker.TrackIfNeeded(closeParenToken);
-            // </Metalama>
             return (RefValueExpressionSyntax)Syntax.InternalSyntax.SyntaxFactory.RefValueExpression((Syntax.InternalSyntax.SyntaxToken)keyword.Node!, (Syntax.InternalSyntax.SyntaxToken)openParenToken.Node!, (Syntax.InternalSyntax.ExpressionSyntax)expression.Green, (Syntax.InternalSyntax.SyntaxToken)comma.Node!, (Syntax.InternalSyntax.TypeSyntax)type.Green, (Syntax.InternalSyntax.SyntaxToken)closeParenToken.Node!).CreateRed();
         }
 
@@ -3192,18 +2938,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (openParenToken.Kind() != SyntaxKind.OpenParenToken) throw new ArgumentException(nameof(openParenToken));
             if (expression == null) throw new ArgumentNullException(nameof(expression));
             if (closeParenToken.Kind() != SyntaxKind.CloseParenToken) throw new ArgumentException(nameof(closeParenToken));
-            // <Metalama> This change is generated. See Modifications.md for details.
-            keyword = Metalama.Compiler.TreeTracker.TrackIfNeeded(keyword);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            openParenToken = Metalama.Compiler.TreeTracker.TrackIfNeeded(openParenToken);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            expression = Metalama.Compiler.TreeTracker.TrackIfNeeded(expression);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            closeParenToken = Metalama.Compiler.TreeTracker.TrackIfNeeded(closeParenToken);
-            // </Metalama>
             return (CheckedExpressionSyntax)Syntax.InternalSyntax.SyntaxFactory.CheckedExpression(kind, (Syntax.InternalSyntax.SyntaxToken)keyword.Node!, (Syntax.InternalSyntax.SyntaxToken)openParenToken.Node!, (Syntax.InternalSyntax.ExpressionSyntax)expression.Green, (Syntax.InternalSyntax.SyntaxToken)closeParenToken.Node!).CreateRed();
         }
 
@@ -3226,18 +2960,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (openParenToken.Kind() != SyntaxKind.OpenParenToken) throw new ArgumentException(nameof(openParenToken));
             if (type == null) throw new ArgumentNullException(nameof(type));
             if (closeParenToken.Kind() != SyntaxKind.CloseParenToken) throw new ArgumentException(nameof(closeParenToken));
-            // <Metalama> This change is generated. See Modifications.md for details.
-            keyword = Metalama.Compiler.TreeTracker.TrackIfNeeded(keyword);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            openParenToken = Metalama.Compiler.TreeTracker.TrackIfNeeded(openParenToken);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            type = Metalama.Compiler.TreeTracker.TrackIfNeeded(type);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            closeParenToken = Metalama.Compiler.TreeTracker.TrackIfNeeded(closeParenToken);
-            // </Metalama>
             return (DefaultExpressionSyntax)Syntax.InternalSyntax.SyntaxFactory.DefaultExpression((Syntax.InternalSyntax.SyntaxToken)keyword.Node!, (Syntax.InternalSyntax.SyntaxToken)openParenToken.Node!, (Syntax.InternalSyntax.TypeSyntax)type.Green, (Syntax.InternalSyntax.SyntaxToken)closeParenToken.Node!).CreateRed();
         }
 
@@ -3252,18 +2974,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (openParenToken.Kind() != SyntaxKind.OpenParenToken) throw new ArgumentException(nameof(openParenToken));
             if (type == null) throw new ArgumentNullException(nameof(type));
             if (closeParenToken.Kind() != SyntaxKind.CloseParenToken) throw new ArgumentException(nameof(closeParenToken));
-            // <Metalama> This change is generated. See Modifications.md for details.
-            keyword = Metalama.Compiler.TreeTracker.TrackIfNeeded(keyword);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            openParenToken = Metalama.Compiler.TreeTracker.TrackIfNeeded(openParenToken);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            type = Metalama.Compiler.TreeTracker.TrackIfNeeded(type);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            closeParenToken = Metalama.Compiler.TreeTracker.TrackIfNeeded(closeParenToken);
-            // </Metalama>
             return (TypeOfExpressionSyntax)Syntax.InternalSyntax.SyntaxFactory.TypeOfExpression((Syntax.InternalSyntax.SyntaxToken)keyword.Node!, (Syntax.InternalSyntax.SyntaxToken)openParenToken.Node!, (Syntax.InternalSyntax.TypeSyntax)type.Green, (Syntax.InternalSyntax.SyntaxToken)closeParenToken.Node!).CreateRed();
         }
 
@@ -3278,18 +2988,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (openParenToken.Kind() != SyntaxKind.OpenParenToken) throw new ArgumentException(nameof(openParenToken));
             if (type == null) throw new ArgumentNullException(nameof(type));
             if (closeParenToken.Kind() != SyntaxKind.CloseParenToken) throw new ArgumentException(nameof(closeParenToken));
-            // <Metalama> This change is generated. See Modifications.md for details.
-            keyword = Metalama.Compiler.TreeTracker.TrackIfNeeded(keyword);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            openParenToken = Metalama.Compiler.TreeTracker.TrackIfNeeded(openParenToken);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            type = Metalama.Compiler.TreeTracker.TrackIfNeeded(type);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            closeParenToken = Metalama.Compiler.TreeTracker.TrackIfNeeded(closeParenToken);
-            // </Metalama>
             return (SizeOfExpressionSyntax)Syntax.InternalSyntax.SyntaxFactory.SizeOfExpression((Syntax.InternalSyntax.SyntaxToken)keyword.Node!, (Syntax.InternalSyntax.SyntaxToken)openParenToken.Node!, (Syntax.InternalSyntax.TypeSyntax)type.Green, (Syntax.InternalSyntax.SyntaxToken)closeParenToken.Node!).CreateRed();
         }
 
@@ -3302,12 +3000,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (expression == null) throw new ArgumentNullException(nameof(expression));
             if (argumentList == null) throw new ArgumentNullException(nameof(argumentList));
-            // <Metalama> This change is generated. See Modifications.md for details.
-            expression = Metalama.Compiler.TreeTracker.TrackIfNeeded(expression);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            argumentList = Metalama.Compiler.TreeTracker.TrackIfNeeded(argumentList);
-            // </Metalama>
             return (InvocationExpressionSyntax)Syntax.InternalSyntax.SyntaxFactory.InvocationExpression((Syntax.InternalSyntax.ExpressionSyntax)expression.Green, (Syntax.InternalSyntax.ArgumentListSyntax)argumentList.Green).CreateRed();
         }
 
@@ -3320,12 +3012,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (expression == null) throw new ArgumentNullException(nameof(expression));
             if (argumentList == null) throw new ArgumentNullException(nameof(argumentList));
-            // <Metalama> This change is generated. See Modifications.md for details.
-            expression = Metalama.Compiler.TreeTracker.TrackIfNeeded(expression);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            argumentList = Metalama.Compiler.TreeTracker.TrackIfNeeded(argumentList);
-            // </Metalama>
             return (ElementAccessExpressionSyntax)Syntax.InternalSyntax.SyntaxFactory.ElementAccessExpression((Syntax.InternalSyntax.ExpressionSyntax)expression.Green, (Syntax.InternalSyntax.BracketedArgumentListSyntax)argumentList.Green).CreateRed();
         }
 
@@ -3338,12 +3024,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (openParenToken.Kind() != SyntaxKind.OpenParenToken) throw new ArgumentException(nameof(openParenToken));
             if (closeParenToken.Kind() != SyntaxKind.CloseParenToken) throw new ArgumentException(nameof(closeParenToken));
-            // <Metalama> This change is generated. See Modifications.md for details.
-            openParenToken = Metalama.Compiler.TreeTracker.TrackIfNeeded(openParenToken);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            closeParenToken = Metalama.Compiler.TreeTracker.TrackIfNeeded(closeParenToken);
-            // </Metalama>
             return (ArgumentListSyntax)Syntax.InternalSyntax.SyntaxFactory.ArgumentList((Syntax.InternalSyntax.SyntaxToken)openParenToken.Node!, arguments.Node.ToGreenSeparatedList<Syntax.InternalSyntax.ArgumentSyntax>(), (Syntax.InternalSyntax.SyntaxToken)closeParenToken.Node!).CreateRed();
         }
 
@@ -3356,12 +3036,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (openBracketToken.Kind() != SyntaxKind.OpenBracketToken) throw new ArgumentException(nameof(openBracketToken));
             if (closeBracketToken.Kind() != SyntaxKind.CloseBracketToken) throw new ArgumentException(nameof(closeBracketToken));
-            // <Metalama> This change is generated. See Modifications.md for details.
-            openBracketToken = Metalama.Compiler.TreeTracker.TrackIfNeeded(openBracketToken);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            closeBracketToken = Metalama.Compiler.TreeTracker.TrackIfNeeded(closeBracketToken);
-            // </Metalama>
             return (BracketedArgumentListSyntax)Syntax.InternalSyntax.SyntaxFactory.BracketedArgumentList((Syntax.InternalSyntax.SyntaxToken)openBracketToken.Node!, arguments.Node.ToGreenSeparatedList<Syntax.InternalSyntax.ArgumentSyntax>(), (Syntax.InternalSyntax.SyntaxToken)closeBracketToken.Node!).CreateRed();
         }
 
@@ -3381,15 +3055,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 default: throw new ArgumentException(nameof(refKindKeyword));
             }
             if (expression == null) throw new ArgumentNullException(nameof(expression));
-            // <Metalama> This change is generated. See Modifications.md for details.
-            nameColon = Metalama.Compiler.TreeTracker.TrackIfNeeded(nameColon);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            refKindKeyword = Metalama.Compiler.TreeTracker.TrackIfNeeded(refKindKeyword);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            expression = Metalama.Compiler.TreeTracker.TrackIfNeeded(expression);
-            // </Metalama>
             return (ArgumentSyntax)Syntax.InternalSyntax.SyntaxFactory.Argument(nameColon == null ? null : (Syntax.InternalSyntax.NameColonSyntax)nameColon.Green, (Syntax.InternalSyntax.SyntaxToken?)refKindKeyword.Node, (Syntax.InternalSyntax.ExpressionSyntax)expression.Green).CreateRed();
         }
 
@@ -3402,12 +3067,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (expression == null) throw new ArgumentNullException(nameof(expression));
             if (colonToken.Kind() != SyntaxKind.ColonToken) throw new ArgumentException(nameof(colonToken));
-            // <Metalama> This change is generated. See Modifications.md for details.
-            expression = Metalama.Compiler.TreeTracker.TrackIfNeeded(expression);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            colonToken = Metalama.Compiler.TreeTracker.TrackIfNeeded(colonToken);
-            // </Metalama>
             return (ExpressionColonSyntax)Syntax.InternalSyntax.SyntaxFactory.ExpressionColon((Syntax.InternalSyntax.ExpressionSyntax)expression.Green, (Syntax.InternalSyntax.SyntaxToken)colonToken.Node!).CreateRed();
         }
 
@@ -3416,12 +3075,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (name == null) throw new ArgumentNullException(nameof(name));
             if (colonToken.Kind() != SyntaxKind.ColonToken) throw new ArgumentException(nameof(colonToken));
-            // <Metalama> This change is generated. See Modifications.md for details.
-            name = Metalama.Compiler.TreeTracker.TrackIfNeeded(name);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            colonToken = Metalama.Compiler.TreeTracker.TrackIfNeeded(colonToken);
-            // </Metalama>
             return (NameColonSyntax)Syntax.InternalSyntax.SyntaxFactory.NameColon((Syntax.InternalSyntax.IdentifierNameSyntax)name.Green, (Syntax.InternalSyntax.SyntaxToken)colonToken.Node!).CreateRed();
         }
 
@@ -3430,12 +3083,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (type == null) throw new ArgumentNullException(nameof(type));
             if (designation == null) throw new ArgumentNullException(nameof(designation));
-            // <Metalama> This change is generated. See Modifications.md for details.
-            type = Metalama.Compiler.TreeTracker.TrackIfNeeded(type);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            designation = Metalama.Compiler.TreeTracker.TrackIfNeeded(designation);
-            // </Metalama>
             return (DeclarationExpressionSyntax)Syntax.InternalSyntax.SyntaxFactory.DeclarationExpression((Syntax.InternalSyntax.TypeSyntax)type.Green, (Syntax.InternalSyntax.VariableDesignationSyntax)designation.Green).CreateRed();
         }
 
@@ -3446,18 +3093,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (type == null) throw new ArgumentNullException(nameof(type));
             if (closeParenToken.Kind() != SyntaxKind.CloseParenToken) throw new ArgumentException(nameof(closeParenToken));
             if (expression == null) throw new ArgumentNullException(nameof(expression));
-            // <Metalama> This change is generated. See Modifications.md for details.
-            openParenToken = Metalama.Compiler.TreeTracker.TrackIfNeeded(openParenToken);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            type = Metalama.Compiler.TreeTracker.TrackIfNeeded(type);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            closeParenToken = Metalama.Compiler.TreeTracker.TrackIfNeeded(closeParenToken);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            expression = Metalama.Compiler.TreeTracker.TrackIfNeeded(expression);
-            // </Metalama>
             return (CastExpressionSyntax)Syntax.InternalSyntax.SyntaxFactory.CastExpression((Syntax.InternalSyntax.SyntaxToken)openParenToken.Node!, (Syntax.InternalSyntax.TypeSyntax)type.Green, (Syntax.InternalSyntax.SyntaxToken)closeParenToken.Node!, (Syntax.InternalSyntax.ExpressionSyntax)expression.Green).CreateRed();
         }
 
@@ -3470,18 +3105,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (delegateKeyword.Kind() != SyntaxKind.DelegateKeyword) throw new ArgumentException(nameof(delegateKeyword));
             if (block == null) throw new ArgumentNullException(nameof(block));
-            // <Metalama> This change is generated. See Modifications.md for details.
-            delegateKeyword = Metalama.Compiler.TreeTracker.TrackIfNeeded(delegateKeyword);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            parameterList = Metalama.Compiler.TreeTracker.TrackIfNeeded(parameterList);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            block = Metalama.Compiler.TreeTracker.TrackIfNeeded(block);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            expressionBody = Metalama.Compiler.TreeTracker.TrackIfNeeded(expressionBody);
-            // </Metalama>
             return (AnonymousMethodExpressionSyntax)Syntax.InternalSyntax.SyntaxFactory.AnonymousMethodExpression(modifiers.Node.ToGreenList<Syntax.InternalSyntax.SyntaxToken>(), (Syntax.InternalSyntax.SyntaxToken)delegateKeyword.Node!, parameterList == null ? null : (Syntax.InternalSyntax.ParameterListSyntax)parameterList.Green, (Syntax.InternalSyntax.BlockSyntax)block.Green, expressionBody == null ? null : (Syntax.InternalSyntax.ExpressionSyntax)expressionBody.Green).CreateRed();
         }
 
@@ -3490,18 +3113,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (parameter == null) throw new ArgumentNullException(nameof(parameter));
             if (arrowToken.Kind() != SyntaxKind.EqualsGreaterThanToken) throw new ArgumentException(nameof(arrowToken));
-            // <Metalama> This change is generated. See Modifications.md for details.
-            parameter = Metalama.Compiler.TreeTracker.TrackIfNeeded(parameter);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            arrowToken = Metalama.Compiler.TreeTracker.TrackIfNeeded(arrowToken);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            block = Metalama.Compiler.TreeTracker.TrackIfNeeded(block);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            expressionBody = Metalama.Compiler.TreeTracker.TrackIfNeeded(expressionBody);
-            // </Metalama>
             return (SimpleLambdaExpressionSyntax)Syntax.InternalSyntax.SyntaxFactory.SimpleLambdaExpression(attributeLists.Node.ToGreenList<Syntax.InternalSyntax.AttributeListSyntax>(), modifiers.Node.ToGreenList<Syntax.InternalSyntax.SyntaxToken>(), (Syntax.InternalSyntax.ParameterSyntax)parameter.Green, (Syntax.InternalSyntax.SyntaxToken)arrowToken.Node!, block == null ? null : (Syntax.InternalSyntax.BlockSyntax)block.Green, expressionBody == null ? null : (Syntax.InternalSyntax.ExpressionSyntax)expressionBody.Green).CreateRed();
         }
 
@@ -3518,12 +3129,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (refKeyword.Kind() != SyntaxKind.RefKeyword) throw new ArgumentException(nameof(refKeyword));
             if (expression == null) throw new ArgumentNullException(nameof(expression));
-            // <Metalama> This change is generated. See Modifications.md for details.
-            refKeyword = Metalama.Compiler.TreeTracker.TrackIfNeeded(refKeyword);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            expression = Metalama.Compiler.TreeTracker.TrackIfNeeded(expression);
-            // </Metalama>
             return (RefExpressionSyntax)Syntax.InternalSyntax.SyntaxFactory.RefExpression((Syntax.InternalSyntax.SyntaxToken)refKeyword.Node!, (Syntax.InternalSyntax.ExpressionSyntax)expression.Green).CreateRed();
         }
 
@@ -3536,21 +3141,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (parameterList == null) throw new ArgumentNullException(nameof(parameterList));
             if (arrowToken.Kind() != SyntaxKind.EqualsGreaterThanToken) throw new ArgumentException(nameof(arrowToken));
-            // <Metalama> This change is generated. See Modifications.md for details.
-            returnType = Metalama.Compiler.TreeTracker.TrackIfNeeded(returnType);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            parameterList = Metalama.Compiler.TreeTracker.TrackIfNeeded(parameterList);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            arrowToken = Metalama.Compiler.TreeTracker.TrackIfNeeded(arrowToken);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            block = Metalama.Compiler.TreeTracker.TrackIfNeeded(block);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            expressionBody = Metalama.Compiler.TreeTracker.TrackIfNeeded(expressionBody);
-            // </Metalama>
             return (ParenthesizedLambdaExpressionSyntax)Syntax.InternalSyntax.SyntaxFactory.ParenthesizedLambdaExpression(attributeLists.Node.ToGreenList<Syntax.InternalSyntax.AttributeListSyntax>(), modifiers.Node.ToGreenList<Syntax.InternalSyntax.SyntaxToken>(), returnType == null ? null : (Syntax.InternalSyntax.TypeSyntax)returnType.Green, (Syntax.InternalSyntax.ParameterListSyntax)parameterList.Green, (Syntax.InternalSyntax.SyntaxToken)arrowToken.Node!, block == null ? null : (Syntax.InternalSyntax.BlockSyntax)block.Green, expressionBody == null ? null : (Syntax.InternalSyntax.ExpressionSyntax)expressionBody.Green).CreateRed();
         }
 
@@ -3576,12 +3166,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             if (openBraceToken.Kind() != SyntaxKind.OpenBraceToken) throw new ArgumentException(nameof(openBraceToken));
             if (closeBraceToken.Kind() != SyntaxKind.CloseBraceToken) throw new ArgumentException(nameof(closeBraceToken));
-            // <Metalama> This change is generated. See Modifications.md for details.
-            openBraceToken = Metalama.Compiler.TreeTracker.TrackIfNeeded(openBraceToken);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            closeBraceToken = Metalama.Compiler.TreeTracker.TrackIfNeeded(closeBraceToken);
-            // </Metalama>
             return (InitializerExpressionSyntax)Syntax.InternalSyntax.SyntaxFactory.InitializerExpression(kind, (Syntax.InternalSyntax.SyntaxToken)openBraceToken.Node!, expressions.Node.ToGreenSeparatedList<Syntax.InternalSyntax.ExpressionSyntax>(), (Syntax.InternalSyntax.SyntaxToken)closeBraceToken.Node!).CreateRed();
         }
 
@@ -3594,15 +3178,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (newKeyword.Kind() != SyntaxKind.NewKeyword) throw new ArgumentException(nameof(newKeyword));
             if (argumentList == null) throw new ArgumentNullException(nameof(argumentList));
-            // <Metalama> This change is generated. See Modifications.md for details.
-            newKeyword = Metalama.Compiler.TreeTracker.TrackIfNeeded(newKeyword);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            argumentList = Metalama.Compiler.TreeTracker.TrackIfNeeded(argumentList);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            initializer = Metalama.Compiler.TreeTracker.TrackIfNeeded(initializer);
-            // </Metalama>
             return (ImplicitObjectCreationExpressionSyntax)Syntax.InternalSyntax.SyntaxFactory.ImplicitObjectCreationExpression((Syntax.InternalSyntax.SyntaxToken)newKeyword.Node!, (Syntax.InternalSyntax.ArgumentListSyntax)argumentList.Green, initializer == null ? null : (Syntax.InternalSyntax.InitializerExpressionSyntax)initializer.Green).CreateRed();
         }
 
@@ -3619,18 +3194,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (newKeyword.Kind() != SyntaxKind.NewKeyword) throw new ArgumentException(nameof(newKeyword));
             if (type == null) throw new ArgumentNullException(nameof(type));
-            // <Metalama> This change is generated. See Modifications.md for details.
-            newKeyword = Metalama.Compiler.TreeTracker.TrackIfNeeded(newKeyword);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            type = Metalama.Compiler.TreeTracker.TrackIfNeeded(type);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            argumentList = Metalama.Compiler.TreeTracker.TrackIfNeeded(argumentList);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            initializer = Metalama.Compiler.TreeTracker.TrackIfNeeded(initializer);
-            // </Metalama>
             return (ObjectCreationExpressionSyntax)Syntax.InternalSyntax.SyntaxFactory.ObjectCreationExpression((Syntax.InternalSyntax.SyntaxToken)newKeyword.Node!, (Syntax.InternalSyntax.TypeSyntax)type.Green, argumentList == null ? null : (Syntax.InternalSyntax.ArgumentListSyntax)argumentList.Green, initializer == null ? null : (Syntax.InternalSyntax.InitializerExpressionSyntax)initializer.Green).CreateRed();
         }
 
@@ -3648,15 +3211,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (expression == null) throw new ArgumentNullException(nameof(expression));
             if (withKeyword.Kind() != SyntaxKind.WithKeyword) throw new ArgumentException(nameof(withKeyword));
             if (initializer == null) throw new ArgumentNullException(nameof(initializer));
-            // <Metalama> This change is generated. See Modifications.md for details.
-            expression = Metalama.Compiler.TreeTracker.TrackIfNeeded(expression);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            withKeyword = Metalama.Compiler.TreeTracker.TrackIfNeeded(withKeyword);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            initializer = Metalama.Compiler.TreeTracker.TrackIfNeeded(initializer);
-            // </Metalama>
             return (WithExpressionSyntax)Syntax.InternalSyntax.SyntaxFactory.WithExpression((Syntax.InternalSyntax.ExpressionSyntax)expression.Green, (Syntax.InternalSyntax.SyntaxToken)withKeyword.Node!, (Syntax.InternalSyntax.InitializerExpressionSyntax)initializer.Green).CreateRed();
         }
 
@@ -3668,12 +3222,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static AnonymousObjectMemberDeclaratorSyntax AnonymousObjectMemberDeclarator(NameEqualsSyntax? nameEquals, ExpressionSyntax expression)
         {
             if (expression == null) throw new ArgumentNullException(nameof(expression));
-            // <Metalama> This change is generated. See Modifications.md for details.
-            nameEquals = Metalama.Compiler.TreeTracker.TrackIfNeeded(nameEquals);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            expression = Metalama.Compiler.TreeTracker.TrackIfNeeded(expression);
-            // </Metalama>
             return (AnonymousObjectMemberDeclaratorSyntax)Syntax.InternalSyntax.SyntaxFactory.AnonymousObjectMemberDeclarator(nameEquals == null ? null : (Syntax.InternalSyntax.NameEqualsSyntax)nameEquals.Green, (Syntax.InternalSyntax.ExpressionSyntax)expression.Green).CreateRed();
         }
 
@@ -3687,15 +3235,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (newKeyword.Kind() != SyntaxKind.NewKeyword) throw new ArgumentException(nameof(newKeyword));
             if (openBraceToken.Kind() != SyntaxKind.OpenBraceToken) throw new ArgumentException(nameof(openBraceToken));
             if (closeBraceToken.Kind() != SyntaxKind.CloseBraceToken) throw new ArgumentException(nameof(closeBraceToken));
-            // <Metalama> This change is generated. See Modifications.md for details.
-            newKeyword = Metalama.Compiler.TreeTracker.TrackIfNeeded(newKeyword);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            openBraceToken = Metalama.Compiler.TreeTracker.TrackIfNeeded(openBraceToken);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            closeBraceToken = Metalama.Compiler.TreeTracker.TrackIfNeeded(closeBraceToken);
-            // </Metalama>
             return (AnonymousObjectCreationExpressionSyntax)Syntax.InternalSyntax.SyntaxFactory.AnonymousObjectCreationExpression((Syntax.InternalSyntax.SyntaxToken)newKeyword.Node!, (Syntax.InternalSyntax.SyntaxToken)openBraceToken.Node!, initializers.Node.ToGreenSeparatedList<Syntax.InternalSyntax.AnonymousObjectMemberDeclaratorSyntax>(), (Syntax.InternalSyntax.SyntaxToken)closeBraceToken.Node!).CreateRed();
         }
 
@@ -3708,15 +3247,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (newKeyword.Kind() != SyntaxKind.NewKeyword) throw new ArgumentException(nameof(newKeyword));
             if (type == null) throw new ArgumentNullException(nameof(type));
-            // <Metalama> This change is generated. See Modifications.md for details.
-            newKeyword = Metalama.Compiler.TreeTracker.TrackIfNeeded(newKeyword);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            type = Metalama.Compiler.TreeTracker.TrackIfNeeded(type);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            initializer = Metalama.Compiler.TreeTracker.TrackIfNeeded(initializer);
-            // </Metalama>
             return (ArrayCreationExpressionSyntax)Syntax.InternalSyntax.SyntaxFactory.ArrayCreationExpression((Syntax.InternalSyntax.SyntaxToken)newKeyword.Node!, (Syntax.InternalSyntax.ArrayTypeSyntax)type.Green, initializer == null ? null : (Syntax.InternalSyntax.InitializerExpressionSyntax)initializer.Green).CreateRed();
         }
 
@@ -3735,18 +3265,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (openBracketToken.Kind() != SyntaxKind.OpenBracketToken) throw new ArgumentException(nameof(openBracketToken));
             if (closeBracketToken.Kind() != SyntaxKind.CloseBracketToken) throw new ArgumentException(nameof(closeBracketToken));
             if (initializer == null) throw new ArgumentNullException(nameof(initializer));
-            // <Metalama> This change is generated. See Modifications.md for details.
-            newKeyword = Metalama.Compiler.TreeTracker.TrackIfNeeded(newKeyword);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            openBracketToken = Metalama.Compiler.TreeTracker.TrackIfNeeded(openBracketToken);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            closeBracketToken = Metalama.Compiler.TreeTracker.TrackIfNeeded(closeBracketToken);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            initializer = Metalama.Compiler.TreeTracker.TrackIfNeeded(initializer);
-            // </Metalama>
             return (ImplicitArrayCreationExpressionSyntax)Syntax.InternalSyntax.SyntaxFactory.ImplicitArrayCreationExpression((Syntax.InternalSyntax.SyntaxToken)newKeyword.Node!, (Syntax.InternalSyntax.SyntaxToken)openBracketToken.Node!, commas.Node.ToGreenList<Syntax.InternalSyntax.SyntaxToken>(), (Syntax.InternalSyntax.SyntaxToken)closeBracketToken.Node!, (Syntax.InternalSyntax.InitializerExpressionSyntax)initializer.Green).CreateRed();
         }
 
@@ -3763,15 +3281,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (stackAllocKeyword.Kind() != SyntaxKind.StackAllocKeyword) throw new ArgumentException(nameof(stackAllocKeyword));
             if (type == null) throw new ArgumentNullException(nameof(type));
-            // <Metalama> This change is generated. See Modifications.md for details.
-            stackAllocKeyword = Metalama.Compiler.TreeTracker.TrackIfNeeded(stackAllocKeyword);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            type = Metalama.Compiler.TreeTracker.TrackIfNeeded(type);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            initializer = Metalama.Compiler.TreeTracker.TrackIfNeeded(initializer);
-            // </Metalama>
             return (StackAllocArrayCreationExpressionSyntax)Syntax.InternalSyntax.SyntaxFactory.StackAllocArrayCreationExpression((Syntax.InternalSyntax.SyntaxToken)stackAllocKeyword.Node!, (Syntax.InternalSyntax.TypeSyntax)type.Green, initializer == null ? null : (Syntax.InternalSyntax.InitializerExpressionSyntax)initializer.Green).CreateRed();
         }
 
@@ -3790,18 +3299,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (openBracketToken.Kind() != SyntaxKind.OpenBracketToken) throw new ArgumentException(nameof(openBracketToken));
             if (closeBracketToken.Kind() != SyntaxKind.CloseBracketToken) throw new ArgumentException(nameof(closeBracketToken));
             if (initializer == null) throw new ArgumentNullException(nameof(initializer));
-            // <Metalama> This change is generated. See Modifications.md for details.
-            stackAllocKeyword = Metalama.Compiler.TreeTracker.TrackIfNeeded(stackAllocKeyword);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            openBracketToken = Metalama.Compiler.TreeTracker.TrackIfNeeded(openBracketToken);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            closeBracketToken = Metalama.Compiler.TreeTracker.TrackIfNeeded(closeBracketToken);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            initializer = Metalama.Compiler.TreeTracker.TrackIfNeeded(initializer);
-            // </Metalama>
             return (ImplicitStackAllocArrayCreationExpressionSyntax)Syntax.InternalSyntax.SyntaxFactory.ImplicitStackAllocArrayCreationExpression((Syntax.InternalSyntax.SyntaxToken)stackAllocKeyword.Node!, (Syntax.InternalSyntax.SyntaxToken)openBracketToken.Node!, (Syntax.InternalSyntax.SyntaxToken)closeBracketToken.Node!, (Syntax.InternalSyntax.InitializerExpressionSyntax)initializer.Green).CreateRed();
         }
 
@@ -3814,12 +3311,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (fromClause == null) throw new ArgumentNullException(nameof(fromClause));
             if (body == null) throw new ArgumentNullException(nameof(body));
-            // <Metalama> This change is generated. See Modifications.md for details.
-            fromClause = Metalama.Compiler.TreeTracker.TrackIfNeeded(fromClause);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            body = Metalama.Compiler.TreeTracker.TrackIfNeeded(body);
-            // </Metalama>
             return (QueryExpressionSyntax)Syntax.InternalSyntax.SyntaxFactory.QueryExpression((Syntax.InternalSyntax.FromClauseSyntax)fromClause.Green, (Syntax.InternalSyntax.QueryBodySyntax)body.Green).CreateRed();
         }
 
@@ -3827,12 +3318,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static QueryBodySyntax QueryBody(SyntaxList<QueryClauseSyntax> clauses, SelectOrGroupClauseSyntax selectOrGroup, QueryContinuationSyntax? continuation)
         {
             if (selectOrGroup == null) throw new ArgumentNullException(nameof(selectOrGroup));
-            // <Metalama> This change is generated. See Modifications.md for details.
-            selectOrGroup = Metalama.Compiler.TreeTracker.TrackIfNeeded(selectOrGroup);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            continuation = Metalama.Compiler.TreeTracker.TrackIfNeeded(continuation);
-            // </Metalama>
             return (QueryBodySyntax)Syntax.InternalSyntax.SyntaxFactory.QueryBody(clauses.Node.ToGreenList<Syntax.InternalSyntax.QueryClauseSyntax>(), (Syntax.InternalSyntax.SelectOrGroupClauseSyntax)selectOrGroup.Green, continuation == null ? null : (Syntax.InternalSyntax.QueryContinuationSyntax)continuation.Green).CreateRed();
         }
 
@@ -3847,21 +3332,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (identifier.Kind() != SyntaxKind.IdentifierToken) throw new ArgumentException(nameof(identifier));
             if (inKeyword.Kind() != SyntaxKind.InKeyword) throw new ArgumentException(nameof(inKeyword));
             if (expression == null) throw new ArgumentNullException(nameof(expression));
-            // <Metalama> This change is generated. See Modifications.md for details.
-            fromKeyword = Metalama.Compiler.TreeTracker.TrackIfNeeded(fromKeyword);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            type = Metalama.Compiler.TreeTracker.TrackIfNeeded(type);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            identifier = Metalama.Compiler.TreeTracker.TrackIfNeeded(identifier);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            inKeyword = Metalama.Compiler.TreeTracker.TrackIfNeeded(inKeyword);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            expression = Metalama.Compiler.TreeTracker.TrackIfNeeded(expression);
-            // </Metalama>
             return (FromClauseSyntax)Syntax.InternalSyntax.SyntaxFactory.FromClause((Syntax.InternalSyntax.SyntaxToken)fromKeyword.Node!, type == null ? null : (Syntax.InternalSyntax.TypeSyntax)type.Green, (Syntax.InternalSyntax.SyntaxToken)identifier.Node!, (Syntax.InternalSyntax.SyntaxToken)inKeyword.Node!, (Syntax.InternalSyntax.ExpressionSyntax)expression.Green).CreateRed();
         }
 
@@ -3884,18 +3354,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (identifier.Kind() != SyntaxKind.IdentifierToken) throw new ArgumentException(nameof(identifier));
             if (equalsToken.Kind() != SyntaxKind.EqualsToken) throw new ArgumentException(nameof(equalsToken));
             if (expression == null) throw new ArgumentNullException(nameof(expression));
-            // <Metalama> This change is generated. See Modifications.md for details.
-            letKeyword = Metalama.Compiler.TreeTracker.TrackIfNeeded(letKeyword);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            identifier = Metalama.Compiler.TreeTracker.TrackIfNeeded(identifier);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            equalsToken = Metalama.Compiler.TreeTracker.TrackIfNeeded(equalsToken);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            expression = Metalama.Compiler.TreeTracker.TrackIfNeeded(expression);
-            // </Metalama>
             return (LetClauseSyntax)Syntax.InternalSyntax.SyntaxFactory.LetClause((Syntax.InternalSyntax.SyntaxToken)letKeyword.Node!, (Syntax.InternalSyntax.SyntaxToken)identifier.Node!, (Syntax.InternalSyntax.SyntaxToken)equalsToken.Node!, (Syntax.InternalSyntax.ExpressionSyntax)expression.Green).CreateRed();
         }
 
@@ -3918,36 +3376,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (leftExpression == null) throw new ArgumentNullException(nameof(leftExpression));
             if (equalsKeyword.Kind() != SyntaxKind.EqualsKeyword) throw new ArgumentException(nameof(equalsKeyword));
             if (rightExpression == null) throw new ArgumentNullException(nameof(rightExpression));
-            // <Metalama> This change is generated. See Modifications.md for details.
-            joinKeyword = Metalama.Compiler.TreeTracker.TrackIfNeeded(joinKeyword);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            type = Metalama.Compiler.TreeTracker.TrackIfNeeded(type);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            identifier = Metalama.Compiler.TreeTracker.TrackIfNeeded(identifier);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            inKeyword = Metalama.Compiler.TreeTracker.TrackIfNeeded(inKeyword);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            inExpression = Metalama.Compiler.TreeTracker.TrackIfNeeded(inExpression);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            onKeyword = Metalama.Compiler.TreeTracker.TrackIfNeeded(onKeyword);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            leftExpression = Metalama.Compiler.TreeTracker.TrackIfNeeded(leftExpression);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            equalsKeyword = Metalama.Compiler.TreeTracker.TrackIfNeeded(equalsKeyword);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            rightExpression = Metalama.Compiler.TreeTracker.TrackIfNeeded(rightExpression);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            into = Metalama.Compiler.TreeTracker.TrackIfNeeded(into);
-            // </Metalama>
             return (JoinClauseSyntax)Syntax.InternalSyntax.SyntaxFactory.JoinClause((Syntax.InternalSyntax.SyntaxToken)joinKeyword.Node!, type == null ? null : (Syntax.InternalSyntax.TypeSyntax)type.Green, (Syntax.InternalSyntax.SyntaxToken)identifier.Node!, (Syntax.InternalSyntax.SyntaxToken)inKeyword.Node!, (Syntax.InternalSyntax.ExpressionSyntax)inExpression.Green, (Syntax.InternalSyntax.SyntaxToken)onKeyword.Node!, (Syntax.InternalSyntax.ExpressionSyntax)leftExpression.Green, (Syntax.InternalSyntax.SyntaxToken)equalsKeyword.Node!, (Syntax.InternalSyntax.ExpressionSyntax)rightExpression.Green, into == null ? null : (Syntax.InternalSyntax.JoinIntoClauseSyntax)into.Green).CreateRed();
         }
 
@@ -3968,12 +3396,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (intoKeyword.Kind() != SyntaxKind.IntoKeyword) throw new ArgumentException(nameof(intoKeyword));
             if (identifier.Kind() != SyntaxKind.IdentifierToken) throw new ArgumentException(nameof(identifier));
-            // <Metalama> This change is generated. See Modifications.md for details.
-            intoKeyword = Metalama.Compiler.TreeTracker.TrackIfNeeded(intoKeyword);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            identifier = Metalama.Compiler.TreeTracker.TrackIfNeeded(identifier);
-            // </Metalama>
             return (JoinIntoClauseSyntax)Syntax.InternalSyntax.SyntaxFactory.JoinIntoClause((Syntax.InternalSyntax.SyntaxToken)intoKeyword.Node!, (Syntax.InternalSyntax.SyntaxToken)identifier.Node!).CreateRed();
         }
 
@@ -3990,12 +3412,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (whereKeyword.Kind() != SyntaxKind.WhereKeyword) throw new ArgumentException(nameof(whereKeyword));
             if (condition == null) throw new ArgumentNullException(nameof(condition));
-            // <Metalama> This change is generated. See Modifications.md for details.
-            whereKeyword = Metalama.Compiler.TreeTracker.TrackIfNeeded(whereKeyword);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            condition = Metalama.Compiler.TreeTracker.TrackIfNeeded(condition);
-            // </Metalama>
             return (WhereClauseSyntax)Syntax.InternalSyntax.SyntaxFactory.WhereClause((Syntax.InternalSyntax.SyntaxToken)whereKeyword.Node!, (Syntax.InternalSyntax.ExpressionSyntax)condition.Green).CreateRed();
         }
 
@@ -4007,9 +3423,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static OrderByClauseSyntax OrderByClause(SyntaxToken orderByKeyword, SeparatedSyntaxList<OrderingSyntax> orderings)
         {
             if (orderByKeyword.Kind() != SyntaxKind.OrderByKeyword) throw new ArgumentException(nameof(orderByKeyword));
-            // <Metalama> This change is generated. See Modifications.md for details.
-            orderByKeyword = Metalama.Compiler.TreeTracker.TrackIfNeeded(orderByKeyword);
-            // </Metalama>
             return (OrderByClauseSyntax)Syntax.InternalSyntax.SyntaxFactory.OrderByClause((Syntax.InternalSyntax.SyntaxToken)orderByKeyword.Node!, orderings.Node.ToGreenSeparatedList<Syntax.InternalSyntax.OrderingSyntax>()).CreateRed();
         }
 
@@ -4034,12 +3447,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.None: break;
                 default: throw new ArgumentException(nameof(ascendingOrDescendingKeyword));
             }
-            // <Metalama> This change is generated. See Modifications.md for details.
-            expression = Metalama.Compiler.TreeTracker.TrackIfNeeded(expression);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            ascendingOrDescendingKeyword = Metalama.Compiler.TreeTracker.TrackIfNeeded(ascendingOrDescendingKeyword);
-            // </Metalama>
             return (OrderingSyntax)Syntax.InternalSyntax.SyntaxFactory.Ordering(kind, (Syntax.InternalSyntax.ExpressionSyntax)expression.Green, (Syntax.InternalSyntax.SyntaxToken?)ascendingOrDescendingKeyword.Node).CreateRed();
         }
 
@@ -4060,12 +3467,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (selectKeyword.Kind() != SyntaxKind.SelectKeyword) throw new ArgumentException(nameof(selectKeyword));
             if (expression == null) throw new ArgumentNullException(nameof(expression));
-            // <Metalama> This change is generated. See Modifications.md for details.
-            selectKeyword = Metalama.Compiler.TreeTracker.TrackIfNeeded(selectKeyword);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            expression = Metalama.Compiler.TreeTracker.TrackIfNeeded(expression);
-            // </Metalama>
             return (SelectClauseSyntax)Syntax.InternalSyntax.SyntaxFactory.SelectClause((Syntax.InternalSyntax.SyntaxToken)selectKeyword.Node!, (Syntax.InternalSyntax.ExpressionSyntax)expression.Green).CreateRed();
         }
 
@@ -4080,18 +3481,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (groupExpression == null) throw new ArgumentNullException(nameof(groupExpression));
             if (byKeyword.Kind() != SyntaxKind.ByKeyword) throw new ArgumentException(nameof(byKeyword));
             if (byExpression == null) throw new ArgumentNullException(nameof(byExpression));
-            // <Metalama> This change is generated. See Modifications.md for details.
-            groupKeyword = Metalama.Compiler.TreeTracker.TrackIfNeeded(groupKeyword);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            groupExpression = Metalama.Compiler.TreeTracker.TrackIfNeeded(groupExpression);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            byKeyword = Metalama.Compiler.TreeTracker.TrackIfNeeded(byKeyword);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            byExpression = Metalama.Compiler.TreeTracker.TrackIfNeeded(byExpression);
-            // </Metalama>
             return (GroupClauseSyntax)Syntax.InternalSyntax.SyntaxFactory.GroupClause((Syntax.InternalSyntax.SyntaxToken)groupKeyword.Node!, (Syntax.InternalSyntax.ExpressionSyntax)groupExpression.Green, (Syntax.InternalSyntax.SyntaxToken)byKeyword.Node!, (Syntax.InternalSyntax.ExpressionSyntax)byExpression.Green).CreateRed();
         }
 
@@ -4105,15 +3494,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (intoKeyword.Kind() != SyntaxKind.IntoKeyword) throw new ArgumentException(nameof(intoKeyword));
             if (identifier.Kind() != SyntaxKind.IdentifierToken) throw new ArgumentException(nameof(identifier));
             if (body == null) throw new ArgumentNullException(nameof(body));
-            // <Metalama> This change is generated. See Modifications.md for details.
-            intoKeyword = Metalama.Compiler.TreeTracker.TrackIfNeeded(intoKeyword);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            identifier = Metalama.Compiler.TreeTracker.TrackIfNeeded(identifier);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            body = Metalama.Compiler.TreeTracker.TrackIfNeeded(body);
-            // </Metalama>
             return (QueryContinuationSyntax)Syntax.InternalSyntax.SyntaxFactory.QueryContinuation((Syntax.InternalSyntax.SyntaxToken)intoKeyword.Node!, (Syntax.InternalSyntax.SyntaxToken)identifier.Node!, (Syntax.InternalSyntax.QueryBodySyntax)body.Green).CreateRed();
         }
 
@@ -4129,9 +3509,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static OmittedArraySizeExpressionSyntax OmittedArraySizeExpression(SyntaxToken omittedArraySizeExpressionToken)
         {
             if (omittedArraySizeExpressionToken.Kind() != SyntaxKind.OmittedArraySizeExpressionToken) throw new ArgumentException(nameof(omittedArraySizeExpressionToken));
-            // <Metalama> This change is generated. See Modifications.md for details.
-            omittedArraySizeExpressionToken = Metalama.Compiler.TreeTracker.TrackIfNeeded(omittedArraySizeExpressionToken);
-            // </Metalama>
             return (OmittedArraySizeExpressionSyntax)Syntax.InternalSyntax.SyntaxFactory.OmittedArraySizeExpression((Syntax.InternalSyntax.SyntaxToken)omittedArraySizeExpressionToken.Node!).CreateRed();
         }
 
@@ -4156,12 +3533,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.InterpolatedRawStringEndToken: break;
                 default: throw new ArgumentException(nameof(stringEndToken));
             }
-            // <Metalama> This change is generated. See Modifications.md for details.
-            stringStartToken = Metalama.Compiler.TreeTracker.TrackIfNeeded(stringStartToken);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            stringEndToken = Metalama.Compiler.TreeTracker.TrackIfNeeded(stringEndToken);
-            // </Metalama>
             return (InterpolatedStringExpressionSyntax)Syntax.InternalSyntax.SyntaxFactory.InterpolatedStringExpression((Syntax.InternalSyntax.SyntaxToken)stringStartToken.Node!, contents.Node.ToGreenList<Syntax.InternalSyntax.InterpolatedStringContentSyntax>(), (Syntax.InternalSyntax.SyntaxToken)stringEndToken.Node!).CreateRed();
         }
 
@@ -4175,15 +3546,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (expression == null) throw new ArgumentNullException(nameof(expression));
             if (isKeyword.Kind() != SyntaxKind.IsKeyword) throw new ArgumentException(nameof(isKeyword));
             if (pattern == null) throw new ArgumentNullException(nameof(pattern));
-            // <Metalama> This change is generated. See Modifications.md for details.
-            expression = Metalama.Compiler.TreeTracker.TrackIfNeeded(expression);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            isKeyword = Metalama.Compiler.TreeTracker.TrackIfNeeded(isKeyword);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            pattern = Metalama.Compiler.TreeTracker.TrackIfNeeded(pattern);
-            // </Metalama>
             return (IsPatternExpressionSyntax)Syntax.InternalSyntax.SyntaxFactory.IsPatternExpression((Syntax.InternalSyntax.ExpressionSyntax)expression.Green, (Syntax.InternalSyntax.SyntaxToken)isKeyword.Node!, (Syntax.InternalSyntax.PatternSyntax)pattern.Green).CreateRed();
         }
 
@@ -4196,12 +3558,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (throwKeyword.Kind() != SyntaxKind.ThrowKeyword) throw new ArgumentException(nameof(throwKeyword));
             if (expression == null) throw new ArgumentNullException(nameof(expression));
-            // <Metalama> This change is generated. See Modifications.md for details.
-            throwKeyword = Metalama.Compiler.TreeTracker.TrackIfNeeded(throwKeyword);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            expression = Metalama.Compiler.TreeTracker.TrackIfNeeded(expression);
-            // </Metalama>
             return (ThrowExpressionSyntax)Syntax.InternalSyntax.SyntaxFactory.ThrowExpression((Syntax.InternalSyntax.SyntaxToken)throwKeyword.Node!, (Syntax.InternalSyntax.ExpressionSyntax)expression.Green).CreateRed();
         }
 
@@ -4214,12 +3570,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (whenKeyword.Kind() != SyntaxKind.WhenKeyword) throw new ArgumentException(nameof(whenKeyword));
             if (condition == null) throw new ArgumentNullException(nameof(condition));
-            // <Metalama> This change is generated. See Modifications.md for details.
-            whenKeyword = Metalama.Compiler.TreeTracker.TrackIfNeeded(whenKeyword);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            condition = Metalama.Compiler.TreeTracker.TrackIfNeeded(condition);
-            // </Metalama>
             return (WhenClauseSyntax)Syntax.InternalSyntax.SyntaxFactory.WhenClause((Syntax.InternalSyntax.SyntaxToken)whenKeyword.Node!, (Syntax.InternalSyntax.ExpressionSyntax)condition.Green).CreateRed();
         }
 
@@ -4231,9 +3581,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static DiscardPatternSyntax DiscardPattern(SyntaxToken underscoreToken)
         {
             if (underscoreToken.Kind() != SyntaxKind.UnderscoreToken) throw new ArgumentException(nameof(underscoreToken));
-            // <Metalama> This change is generated. See Modifications.md for details.
-            underscoreToken = Metalama.Compiler.TreeTracker.TrackIfNeeded(underscoreToken);
-            // </Metalama>
             return (DiscardPatternSyntax)Syntax.InternalSyntax.SyntaxFactory.DiscardPattern((Syntax.InternalSyntax.SyntaxToken)underscoreToken.Node!).CreateRed();
         }
 
@@ -4246,12 +3593,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (type == null) throw new ArgumentNullException(nameof(type));
             if (designation == null) throw new ArgumentNullException(nameof(designation));
-            // <Metalama> This change is generated. See Modifications.md for details.
-            type = Metalama.Compiler.TreeTracker.TrackIfNeeded(type);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            designation = Metalama.Compiler.TreeTracker.TrackIfNeeded(designation);
-            // </Metalama>
             return (DeclarationPatternSyntax)Syntax.InternalSyntax.SyntaxFactory.DeclarationPattern((Syntax.InternalSyntax.TypeSyntax)type.Green, (Syntax.InternalSyntax.VariableDesignationSyntax)designation.Green).CreateRed();
         }
 
@@ -4260,12 +3601,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (varKeyword.Kind() != SyntaxKind.VarKeyword) throw new ArgumentException(nameof(varKeyword));
             if (designation == null) throw new ArgumentNullException(nameof(designation));
-            // <Metalama> This change is generated. See Modifications.md for details.
-            varKeyword = Metalama.Compiler.TreeTracker.TrackIfNeeded(varKeyword);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            designation = Metalama.Compiler.TreeTracker.TrackIfNeeded(designation);
-            // </Metalama>
             return (VarPatternSyntax)Syntax.InternalSyntax.SyntaxFactory.VarPattern((Syntax.InternalSyntax.SyntaxToken)varKeyword.Node!, (Syntax.InternalSyntax.VariableDesignationSyntax)designation.Green).CreateRed();
         }
 
@@ -4276,18 +3611,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>Creates a new RecursivePatternSyntax instance.</summary>
         public static RecursivePatternSyntax RecursivePattern(TypeSyntax? type, PositionalPatternClauseSyntax? positionalPatternClause, PropertyPatternClauseSyntax? propertyPatternClause, VariableDesignationSyntax? designation)
         {
-            // <Metalama> This change is generated. See Modifications.md for details.
-            type = Metalama.Compiler.TreeTracker.TrackIfNeeded(type);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            positionalPatternClause = Metalama.Compiler.TreeTracker.TrackIfNeeded(positionalPatternClause);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            propertyPatternClause = Metalama.Compiler.TreeTracker.TrackIfNeeded(propertyPatternClause);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            designation = Metalama.Compiler.TreeTracker.TrackIfNeeded(designation);
-            // </Metalama>
             return (RecursivePatternSyntax)Syntax.InternalSyntax.SyntaxFactory.RecursivePattern(type == null ? null : (Syntax.InternalSyntax.TypeSyntax)type.Green, positionalPatternClause == null ? null : (Syntax.InternalSyntax.PositionalPatternClauseSyntax)positionalPatternClause.Green, propertyPatternClause == null ? null : (Syntax.InternalSyntax.PropertyPatternClauseSyntax)propertyPatternClause.Green, designation == null ? null : (Syntax.InternalSyntax.VariableDesignationSyntax)designation.Green).CreateRed();
         }
 
@@ -4300,12 +3623,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (openParenToken.Kind() != SyntaxKind.OpenParenToken) throw new ArgumentException(nameof(openParenToken));
             if (closeParenToken.Kind() != SyntaxKind.CloseParenToken) throw new ArgumentException(nameof(closeParenToken));
-            // <Metalama> This change is generated. See Modifications.md for details.
-            openParenToken = Metalama.Compiler.TreeTracker.TrackIfNeeded(openParenToken);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            closeParenToken = Metalama.Compiler.TreeTracker.TrackIfNeeded(closeParenToken);
-            // </Metalama>
             return (PositionalPatternClauseSyntax)Syntax.InternalSyntax.SyntaxFactory.PositionalPatternClause((Syntax.InternalSyntax.SyntaxToken)openParenToken.Node!, subpatterns.Node.ToGreenSeparatedList<Syntax.InternalSyntax.SubpatternSyntax>(), (Syntax.InternalSyntax.SyntaxToken)closeParenToken.Node!).CreateRed();
         }
 
@@ -4318,12 +3635,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (openBraceToken.Kind() != SyntaxKind.OpenBraceToken) throw new ArgumentException(nameof(openBraceToken));
             if (closeBraceToken.Kind() != SyntaxKind.CloseBraceToken) throw new ArgumentException(nameof(closeBraceToken));
-            // <Metalama> This change is generated. See Modifications.md for details.
-            openBraceToken = Metalama.Compiler.TreeTracker.TrackIfNeeded(openBraceToken);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            closeBraceToken = Metalama.Compiler.TreeTracker.TrackIfNeeded(closeBraceToken);
-            // </Metalama>
             return (PropertyPatternClauseSyntax)Syntax.InternalSyntax.SyntaxFactory.PropertyPatternClause((Syntax.InternalSyntax.SyntaxToken)openBraceToken.Node!, subpatterns.Node.ToGreenSeparatedList<Syntax.InternalSyntax.SubpatternSyntax>(), (Syntax.InternalSyntax.SyntaxToken)closeBraceToken.Node!).CreateRed();
         }
 
@@ -4335,12 +3646,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static SubpatternSyntax Subpattern(BaseExpressionColonSyntax? expressionColon, PatternSyntax pattern)
         {
             if (pattern == null) throw new ArgumentNullException(nameof(pattern));
-            // <Metalama> This change is generated. See Modifications.md for details.
-            expressionColon = Metalama.Compiler.TreeTracker.TrackIfNeeded(expressionColon);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            pattern = Metalama.Compiler.TreeTracker.TrackIfNeeded(pattern);
-            // </Metalama>
             return (SubpatternSyntax)Syntax.InternalSyntax.SyntaxFactory.Subpattern(expressionColon == null ? null : (Syntax.InternalSyntax.BaseExpressionColonSyntax)expressionColon.Green, (Syntax.InternalSyntax.PatternSyntax)pattern.Green).CreateRed();
         }
 
@@ -4352,9 +3657,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static ConstantPatternSyntax ConstantPattern(ExpressionSyntax expression)
         {
             if (expression == null) throw new ArgumentNullException(nameof(expression));
-            // <Metalama> This change is generated. See Modifications.md for details.
-            expression = Metalama.Compiler.TreeTracker.TrackIfNeeded(expression);
-            // </Metalama>
             return (ConstantPatternSyntax)Syntax.InternalSyntax.SyntaxFactory.ConstantPattern((Syntax.InternalSyntax.ExpressionSyntax)expression.Green).CreateRed();
         }
 
@@ -4364,15 +3666,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (openParenToken.Kind() != SyntaxKind.OpenParenToken) throw new ArgumentException(nameof(openParenToken));
             if (pattern == null) throw new ArgumentNullException(nameof(pattern));
             if (closeParenToken.Kind() != SyntaxKind.CloseParenToken) throw new ArgumentException(nameof(closeParenToken));
-            // <Metalama> This change is generated. See Modifications.md for details.
-            openParenToken = Metalama.Compiler.TreeTracker.TrackIfNeeded(openParenToken);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            pattern = Metalama.Compiler.TreeTracker.TrackIfNeeded(pattern);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            closeParenToken = Metalama.Compiler.TreeTracker.TrackIfNeeded(closeParenToken);
-            // </Metalama>
             return (ParenthesizedPatternSyntax)Syntax.InternalSyntax.SyntaxFactory.ParenthesizedPattern((Syntax.InternalSyntax.SyntaxToken)openParenToken.Node!, (Syntax.InternalSyntax.PatternSyntax)pattern.Green, (Syntax.InternalSyntax.SyntaxToken)closeParenToken.Node!).CreateRed();
         }
 
@@ -4394,12 +3687,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 default: throw new ArgumentException(nameof(operatorToken));
             }
             if (expression == null) throw new ArgumentNullException(nameof(expression));
-            // <Metalama> This change is generated. See Modifications.md for details.
-            operatorToken = Metalama.Compiler.TreeTracker.TrackIfNeeded(operatorToken);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            expression = Metalama.Compiler.TreeTracker.TrackIfNeeded(expression);
-            // </Metalama>
             return (RelationalPatternSyntax)Syntax.InternalSyntax.SyntaxFactory.RelationalPattern((Syntax.InternalSyntax.SyntaxToken)operatorToken.Node!, (Syntax.InternalSyntax.ExpressionSyntax)expression.Green).CreateRed();
         }
 
@@ -4407,9 +3694,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static TypePatternSyntax TypePattern(TypeSyntax type)
         {
             if (type == null) throw new ArgumentNullException(nameof(type));
-            // <Metalama> This change is generated. See Modifications.md for details.
-            type = Metalama.Compiler.TreeTracker.TrackIfNeeded(type);
-            // </Metalama>
             return (TypePatternSyntax)Syntax.InternalSyntax.SyntaxFactory.TypePattern((Syntax.InternalSyntax.TypeSyntax)type.Green).CreateRed();
         }
 
@@ -4430,15 +3714,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 default: throw new ArgumentException(nameof(operatorToken));
             }
             if (right == null) throw new ArgumentNullException(nameof(right));
-            // <Metalama> This change is generated. See Modifications.md for details.
-            left = Metalama.Compiler.TreeTracker.TrackIfNeeded(left);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            operatorToken = Metalama.Compiler.TreeTracker.TrackIfNeeded(operatorToken);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            right = Metalama.Compiler.TreeTracker.TrackIfNeeded(right);
-            // </Metalama>
             return (BinaryPatternSyntax)Syntax.InternalSyntax.SyntaxFactory.BinaryPattern(kind, (Syntax.InternalSyntax.PatternSyntax)left.Green, (Syntax.InternalSyntax.SyntaxToken)operatorToken.Node!, (Syntax.InternalSyntax.PatternSyntax)right.Green).CreateRed();
         }
 
@@ -4459,12 +3734,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (operatorToken.Kind() != SyntaxKind.NotKeyword) throw new ArgumentException(nameof(operatorToken));
             if (pattern == null) throw new ArgumentNullException(nameof(pattern));
-            // <Metalama> This change is generated. See Modifications.md for details.
-            operatorToken = Metalama.Compiler.TreeTracker.TrackIfNeeded(operatorToken);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            pattern = Metalama.Compiler.TreeTracker.TrackIfNeeded(pattern);
-            // </Metalama>
             return (UnaryPatternSyntax)Syntax.InternalSyntax.SyntaxFactory.UnaryPattern((Syntax.InternalSyntax.SyntaxToken)operatorToken.Node!, (Syntax.InternalSyntax.PatternSyntax)pattern.Green).CreateRed();
         }
 
@@ -4477,15 +3746,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (openBracketToken.Kind() != SyntaxKind.OpenBracketToken) throw new ArgumentException(nameof(openBracketToken));
             if (closeBracketToken.Kind() != SyntaxKind.CloseBracketToken) throw new ArgumentException(nameof(closeBracketToken));
-            // <Metalama> This change is generated. See Modifications.md for details.
-            openBracketToken = Metalama.Compiler.TreeTracker.TrackIfNeeded(openBracketToken);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            closeBracketToken = Metalama.Compiler.TreeTracker.TrackIfNeeded(closeBracketToken);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            designation = Metalama.Compiler.TreeTracker.TrackIfNeeded(designation);
-            // </Metalama>
             return (ListPatternSyntax)Syntax.InternalSyntax.SyntaxFactory.ListPattern((Syntax.InternalSyntax.SyntaxToken)openBracketToken.Node!, patterns.Node.ToGreenSeparatedList<Syntax.InternalSyntax.PatternSyntax>(), (Syntax.InternalSyntax.SyntaxToken)closeBracketToken.Node!, designation == null ? null : (Syntax.InternalSyntax.VariableDesignationSyntax)designation.Green).CreateRed();
         }
 
@@ -4501,12 +3761,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static SlicePatternSyntax SlicePattern(SyntaxToken dotDotToken, PatternSyntax? pattern)
         {
             if (dotDotToken.Kind() != SyntaxKind.DotDotToken) throw new ArgumentException(nameof(dotDotToken));
-            // <Metalama> This change is generated. See Modifications.md for details.
-            dotDotToken = Metalama.Compiler.TreeTracker.TrackIfNeeded(dotDotToken);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            pattern = Metalama.Compiler.TreeTracker.TrackIfNeeded(pattern);
-            // </Metalama>
             return (SlicePatternSyntax)Syntax.InternalSyntax.SyntaxFactory.SlicePattern((Syntax.InternalSyntax.SyntaxToken)dotDotToken.Node!, pattern == null ? null : (Syntax.InternalSyntax.PatternSyntax)pattern.Green).CreateRed();
         }
 
@@ -4518,9 +3772,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static InterpolatedStringTextSyntax InterpolatedStringText(SyntaxToken textToken)
         {
             if (textToken.Kind() != SyntaxKind.InterpolatedStringTextToken) throw new ArgumentException(nameof(textToken));
-            // <Metalama> This change is generated. See Modifications.md for details.
-            textToken = Metalama.Compiler.TreeTracker.TrackIfNeeded(textToken);
-            // </Metalama>
             return (InterpolatedStringTextSyntax)Syntax.InternalSyntax.SyntaxFactory.InterpolatedStringText((Syntax.InternalSyntax.SyntaxToken)textToken.Node!).CreateRed();
         }
 
@@ -4534,21 +3785,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (openBraceToken.Kind() != SyntaxKind.OpenBraceToken) throw new ArgumentException(nameof(openBraceToken));
             if (expression == null) throw new ArgumentNullException(nameof(expression));
             if (closeBraceToken.Kind() != SyntaxKind.CloseBraceToken) throw new ArgumentException(nameof(closeBraceToken));
-            // <Metalama> This change is generated. See Modifications.md for details.
-            openBraceToken = Metalama.Compiler.TreeTracker.TrackIfNeeded(openBraceToken);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            expression = Metalama.Compiler.TreeTracker.TrackIfNeeded(expression);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            alignmentClause = Metalama.Compiler.TreeTracker.TrackIfNeeded(alignmentClause);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            formatClause = Metalama.Compiler.TreeTracker.TrackIfNeeded(formatClause);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            closeBraceToken = Metalama.Compiler.TreeTracker.TrackIfNeeded(closeBraceToken);
-            // </Metalama>
             return (InterpolationSyntax)Syntax.InternalSyntax.SyntaxFactory.Interpolation((Syntax.InternalSyntax.SyntaxToken)openBraceToken.Node!, (Syntax.InternalSyntax.ExpressionSyntax)expression.Green, alignmentClause == null ? null : (Syntax.InternalSyntax.InterpolationAlignmentClauseSyntax)alignmentClause.Green, formatClause == null ? null : (Syntax.InternalSyntax.InterpolationFormatClauseSyntax)formatClause.Green, (Syntax.InternalSyntax.SyntaxToken)closeBraceToken.Node!).CreateRed();
         }
 
@@ -4564,12 +3800,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static InterpolationAlignmentClauseSyntax InterpolationAlignmentClause(SyntaxToken commaToken, ExpressionSyntax value)
         {
             if (value == null) throw new ArgumentNullException(nameof(value));
-            // <Metalama> This change is generated. See Modifications.md for details.
-            commaToken = Metalama.Compiler.TreeTracker.TrackIfNeeded(commaToken);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            value = Metalama.Compiler.TreeTracker.TrackIfNeeded(value);
-            // </Metalama>
             return (InterpolationAlignmentClauseSyntax)Syntax.InternalSyntax.SyntaxFactory.InterpolationAlignmentClause((Syntax.InternalSyntax.SyntaxToken)commaToken.Node!, (Syntax.InternalSyntax.ExpressionSyntax)value.Green).CreateRed();
         }
 
@@ -4577,12 +3807,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static InterpolationFormatClauseSyntax InterpolationFormatClause(SyntaxToken colonToken, SyntaxToken formatStringToken)
         {
             if (formatStringToken.Kind() != SyntaxKind.InterpolatedStringTextToken) throw new ArgumentException(nameof(formatStringToken));
-            // <Metalama> This change is generated. See Modifications.md for details.
-            colonToken = Metalama.Compiler.TreeTracker.TrackIfNeeded(colonToken);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            formatStringToken = Metalama.Compiler.TreeTracker.TrackIfNeeded(formatStringToken);
-            // </Metalama>
             return (InterpolationFormatClauseSyntax)Syntax.InternalSyntax.SyntaxFactory.InterpolationFormatClause((Syntax.InternalSyntax.SyntaxToken)colonToken.Node!, (Syntax.InternalSyntax.SyntaxToken)formatStringToken.Node!).CreateRed();
         }
 
@@ -4594,9 +3818,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static GlobalStatementSyntax GlobalStatement(SyntaxList<AttributeListSyntax> attributeLists, SyntaxTokenList modifiers, StatementSyntax statement)
         {
             if (statement == null) throw new ArgumentNullException(nameof(statement));
-            // <Metalama> This change is generated. See Modifications.md for details.
-            statement = Metalama.Compiler.TreeTracker.TrackIfNeeded(statement);
-            // </Metalama>
             return (GlobalStatementSyntax)Syntax.InternalSyntax.SyntaxFactory.GlobalStatement(attributeLists.Node.ToGreenList<Syntax.InternalSyntax.AttributeListSyntax>(), modifiers.Node.ToGreenList<Syntax.InternalSyntax.SyntaxToken>(), (Syntax.InternalSyntax.StatementSyntax)statement.Green).CreateRed();
         }
 
@@ -4609,12 +3830,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (openBraceToken.Kind() != SyntaxKind.OpenBraceToken) throw new ArgumentException(nameof(openBraceToken));
             if (closeBraceToken.Kind() != SyntaxKind.CloseBraceToken) throw new ArgumentException(nameof(closeBraceToken));
-            // <Metalama> This change is generated. See Modifications.md for details.
-            openBraceToken = Metalama.Compiler.TreeTracker.TrackIfNeeded(openBraceToken);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            closeBraceToken = Metalama.Compiler.TreeTracker.TrackIfNeeded(closeBraceToken);
-            // </Metalama>
             return (BlockSyntax)Syntax.InternalSyntax.SyntaxFactory.Block(attributeLists.Node.ToGreenList<Syntax.InternalSyntax.AttributeListSyntax>(), (Syntax.InternalSyntax.SyntaxToken)openBraceToken.Node!, statements.Node.ToGreenList<Syntax.InternalSyntax.StatementSyntax>(), (Syntax.InternalSyntax.SyntaxToken)closeBraceToken.Node!).CreateRed();
         }
 
@@ -4640,27 +3855,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.None: break;
                 default: throw new ArgumentException(nameof(semicolonToken));
             }
-            // <Metalama> This change is generated. See Modifications.md for details.
-            returnType = Metalama.Compiler.TreeTracker.TrackIfNeeded(returnType);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            identifier = Metalama.Compiler.TreeTracker.TrackIfNeeded(identifier);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            typeParameterList = Metalama.Compiler.TreeTracker.TrackIfNeeded(typeParameterList);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            parameterList = Metalama.Compiler.TreeTracker.TrackIfNeeded(parameterList);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            body = Metalama.Compiler.TreeTracker.TrackIfNeeded(body);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            expressionBody = Metalama.Compiler.TreeTracker.TrackIfNeeded(expressionBody);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            semicolonToken = Metalama.Compiler.TreeTracker.TrackIfNeeded(semicolonToken);
-            // </Metalama>
             return (LocalFunctionStatementSyntax)Syntax.InternalSyntax.SyntaxFactory.LocalFunctionStatement(attributeLists.Node.ToGreenList<Syntax.InternalSyntax.AttributeListSyntax>(), modifiers.Node.ToGreenList<Syntax.InternalSyntax.SyntaxToken>(), (Syntax.InternalSyntax.TypeSyntax)returnType.Green, (Syntax.InternalSyntax.SyntaxToken)identifier.Node!, typeParameterList == null ? null : (Syntax.InternalSyntax.TypeParameterListSyntax)typeParameterList.Green, (Syntax.InternalSyntax.ParameterListSyntax)parameterList.Green, constraintClauses.Node.ToGreenList<Syntax.InternalSyntax.TypeParameterConstraintClauseSyntax>(), body == null ? null : (Syntax.InternalSyntax.BlockSyntax)body.Green, expressionBody == null ? null : (Syntax.InternalSyntax.ArrowExpressionClauseSyntax)expressionBody.Green, (Syntax.InternalSyntax.SyntaxToken?)semicolonToken.Node).CreateRed();
         }
 
@@ -4693,18 +3887,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             if (declaration == null) throw new ArgumentNullException(nameof(declaration));
             if (semicolonToken.Kind() != SyntaxKind.SemicolonToken) throw new ArgumentException(nameof(semicolonToken));
-            // <Metalama> This change is generated. See Modifications.md for details.
-            awaitKeyword = Metalama.Compiler.TreeTracker.TrackIfNeeded(awaitKeyword);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            usingKeyword = Metalama.Compiler.TreeTracker.TrackIfNeeded(usingKeyword);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            declaration = Metalama.Compiler.TreeTracker.TrackIfNeeded(declaration);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            semicolonToken = Metalama.Compiler.TreeTracker.TrackIfNeeded(semicolonToken);
-            // </Metalama>
             return (LocalDeclarationStatementSyntax)Syntax.InternalSyntax.SyntaxFactory.LocalDeclarationStatement(attributeLists.Node.ToGreenList<Syntax.InternalSyntax.AttributeListSyntax>(), (Syntax.InternalSyntax.SyntaxToken?)awaitKeyword.Node, (Syntax.InternalSyntax.SyntaxToken?)usingKeyword.Node, modifiers.Node.ToGreenList<Syntax.InternalSyntax.SyntaxToken>(), (Syntax.InternalSyntax.VariableDeclarationSyntax)declaration.Green, (Syntax.InternalSyntax.SyntaxToken)semicolonToken.Node!).CreateRed();
         }
 
@@ -4720,9 +3902,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static VariableDeclarationSyntax VariableDeclaration(TypeSyntax type, SeparatedSyntaxList<VariableDeclaratorSyntax> variables)
         {
             if (type == null) throw new ArgumentNullException(nameof(type));
-            // <Metalama> This change is generated. See Modifications.md for details.
-            type = Metalama.Compiler.TreeTracker.TrackIfNeeded(type);
-            // </Metalama>
             return (VariableDeclarationSyntax)Syntax.InternalSyntax.SyntaxFactory.VariableDeclaration((Syntax.InternalSyntax.TypeSyntax)type.Green, variables.Node.ToGreenSeparatedList<Syntax.InternalSyntax.VariableDeclaratorSyntax>()).CreateRed();
         }
 
@@ -4734,15 +3913,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static VariableDeclaratorSyntax VariableDeclarator(SyntaxToken identifier, BracketedArgumentListSyntax? argumentList, EqualsValueClauseSyntax? initializer)
         {
             if (identifier.Kind() != SyntaxKind.IdentifierToken) throw new ArgumentException(nameof(identifier));
-            // <Metalama> This change is generated. See Modifications.md for details.
-            identifier = Metalama.Compiler.TreeTracker.TrackIfNeeded(identifier);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            argumentList = Metalama.Compiler.TreeTracker.TrackIfNeeded(argumentList);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            initializer = Metalama.Compiler.TreeTracker.TrackIfNeeded(initializer);
-            // </Metalama>
             return (VariableDeclaratorSyntax)Syntax.InternalSyntax.SyntaxFactory.VariableDeclarator((Syntax.InternalSyntax.SyntaxToken)identifier.Node!, argumentList == null ? null : (Syntax.InternalSyntax.BracketedArgumentListSyntax)argumentList.Green, initializer == null ? null : (Syntax.InternalSyntax.EqualsValueClauseSyntax)initializer.Green).CreateRed();
         }
 
@@ -4759,12 +3929,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (equalsToken.Kind() != SyntaxKind.EqualsToken) throw new ArgumentException(nameof(equalsToken));
             if (value == null) throw new ArgumentNullException(nameof(value));
-            // <Metalama> This change is generated. See Modifications.md for details.
-            equalsToken = Metalama.Compiler.TreeTracker.TrackIfNeeded(equalsToken);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            value = Metalama.Compiler.TreeTracker.TrackIfNeeded(value);
-            // </Metalama>
             return (EqualsValueClauseSyntax)Syntax.InternalSyntax.SyntaxFactory.EqualsValueClause((Syntax.InternalSyntax.SyntaxToken)equalsToken.Node!, (Syntax.InternalSyntax.ExpressionSyntax)value.Green).CreateRed();
         }
 
@@ -4776,9 +3940,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static SingleVariableDesignationSyntax SingleVariableDesignation(SyntaxToken identifier)
         {
             if (identifier.Kind() != SyntaxKind.IdentifierToken) throw new ArgumentException(nameof(identifier));
-            // <Metalama> This change is generated. See Modifications.md for details.
-            identifier = Metalama.Compiler.TreeTracker.TrackIfNeeded(identifier);
-            // </Metalama>
             return (SingleVariableDesignationSyntax)Syntax.InternalSyntax.SyntaxFactory.SingleVariableDesignation((Syntax.InternalSyntax.SyntaxToken)identifier.Node!).CreateRed();
         }
 
@@ -4786,9 +3947,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static DiscardDesignationSyntax DiscardDesignation(SyntaxToken underscoreToken)
         {
             if (underscoreToken.Kind() != SyntaxKind.UnderscoreToken) throw new ArgumentException(nameof(underscoreToken));
-            // <Metalama> This change is generated. See Modifications.md for details.
-            underscoreToken = Metalama.Compiler.TreeTracker.TrackIfNeeded(underscoreToken);
-            // </Metalama>
             return (DiscardDesignationSyntax)Syntax.InternalSyntax.SyntaxFactory.DiscardDesignation((Syntax.InternalSyntax.SyntaxToken)underscoreToken.Node!).CreateRed();
         }
 
@@ -4801,12 +3959,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (openParenToken.Kind() != SyntaxKind.OpenParenToken) throw new ArgumentException(nameof(openParenToken));
             if (closeParenToken.Kind() != SyntaxKind.CloseParenToken) throw new ArgumentException(nameof(closeParenToken));
-            // <Metalama> This change is generated. See Modifications.md for details.
-            openParenToken = Metalama.Compiler.TreeTracker.TrackIfNeeded(openParenToken);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            closeParenToken = Metalama.Compiler.TreeTracker.TrackIfNeeded(closeParenToken);
-            // </Metalama>
             return (ParenthesizedVariableDesignationSyntax)Syntax.InternalSyntax.SyntaxFactory.ParenthesizedVariableDesignation((Syntax.InternalSyntax.SyntaxToken)openParenToken.Node!, variables.Node.ToGreenSeparatedList<Syntax.InternalSyntax.VariableDesignationSyntax>(), (Syntax.InternalSyntax.SyntaxToken)closeParenToken.Node!).CreateRed();
         }
 
@@ -4819,12 +3971,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (expression == null) throw new ArgumentNullException(nameof(expression));
             if (semicolonToken.Kind() != SyntaxKind.SemicolonToken) throw new ArgumentException(nameof(semicolonToken));
-            // <Metalama> This change is generated. See Modifications.md for details.
-            expression = Metalama.Compiler.TreeTracker.TrackIfNeeded(expression);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            semicolonToken = Metalama.Compiler.TreeTracker.TrackIfNeeded(semicolonToken);
-            // </Metalama>
             return (ExpressionStatementSyntax)Syntax.InternalSyntax.SyntaxFactory.ExpressionStatement(attributeLists.Node.ToGreenList<Syntax.InternalSyntax.AttributeListSyntax>(), (Syntax.InternalSyntax.ExpressionSyntax)expression.Green, (Syntax.InternalSyntax.SyntaxToken)semicolonToken.Node!).CreateRed();
         }
 
@@ -4840,9 +3986,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static EmptyStatementSyntax EmptyStatement(SyntaxList<AttributeListSyntax> attributeLists, SyntaxToken semicolonToken)
         {
             if (semicolonToken.Kind() != SyntaxKind.SemicolonToken) throw new ArgumentException(nameof(semicolonToken));
-            // <Metalama> This change is generated. See Modifications.md for details.
-            semicolonToken = Metalama.Compiler.TreeTracker.TrackIfNeeded(semicolonToken);
-            // </Metalama>
             return (EmptyStatementSyntax)Syntax.InternalSyntax.SyntaxFactory.EmptyStatement(attributeLists.Node.ToGreenList<Syntax.InternalSyntax.AttributeListSyntax>(), (Syntax.InternalSyntax.SyntaxToken)semicolonToken.Node!).CreateRed();
         }
 
@@ -4860,15 +4003,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (identifier.Kind() != SyntaxKind.IdentifierToken) throw new ArgumentException(nameof(identifier));
             if (colonToken.Kind() != SyntaxKind.ColonToken) throw new ArgumentException(nameof(colonToken));
             if (statement == null) throw new ArgumentNullException(nameof(statement));
-            // <Metalama> This change is generated. See Modifications.md for details.
-            identifier = Metalama.Compiler.TreeTracker.TrackIfNeeded(identifier);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            colonToken = Metalama.Compiler.TreeTracker.TrackIfNeeded(colonToken);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            statement = Metalama.Compiler.TreeTracker.TrackIfNeeded(statement);
-            // </Metalama>
             return (LabeledStatementSyntax)Syntax.InternalSyntax.SyntaxFactory.LabeledStatement(attributeLists.Node.ToGreenList<Syntax.InternalSyntax.AttributeListSyntax>(), (Syntax.InternalSyntax.SyntaxToken)identifier.Node!, (Syntax.InternalSyntax.SyntaxToken)colonToken.Node!, (Syntax.InternalSyntax.StatementSyntax)statement.Green).CreateRed();
         }
 
@@ -4903,18 +4037,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 default: throw new ArgumentException(nameof(caseOrDefaultKeyword));
             }
             if (semicolonToken.Kind() != SyntaxKind.SemicolonToken) throw new ArgumentException(nameof(semicolonToken));
-            // <Metalama> This change is generated. See Modifications.md for details.
-            gotoKeyword = Metalama.Compiler.TreeTracker.TrackIfNeeded(gotoKeyword);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            caseOrDefaultKeyword = Metalama.Compiler.TreeTracker.TrackIfNeeded(caseOrDefaultKeyword);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            expression = Metalama.Compiler.TreeTracker.TrackIfNeeded(expression);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            semicolonToken = Metalama.Compiler.TreeTracker.TrackIfNeeded(semicolonToken);
-            // </Metalama>
             return (GotoStatementSyntax)Syntax.InternalSyntax.SyntaxFactory.GotoStatement(kind, attributeLists.Node.ToGreenList<Syntax.InternalSyntax.AttributeListSyntax>(), (Syntax.InternalSyntax.SyntaxToken)gotoKeyword.Node!, (Syntax.InternalSyntax.SyntaxToken?)caseOrDefaultKeyword.Node, expression == null ? null : (Syntax.InternalSyntax.ExpressionSyntax)expression.Green, (Syntax.InternalSyntax.SyntaxToken)semicolonToken.Node!).CreateRed();
         }
 
@@ -4933,12 +4055,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (breakKeyword.Kind() != SyntaxKind.BreakKeyword) throw new ArgumentException(nameof(breakKeyword));
             if (semicolonToken.Kind() != SyntaxKind.SemicolonToken) throw new ArgumentException(nameof(semicolonToken));
-            // <Metalama> This change is generated. See Modifications.md for details.
-            breakKeyword = Metalama.Compiler.TreeTracker.TrackIfNeeded(breakKeyword);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            semicolonToken = Metalama.Compiler.TreeTracker.TrackIfNeeded(semicolonToken);
-            // </Metalama>
             return (BreakStatementSyntax)Syntax.InternalSyntax.SyntaxFactory.BreakStatement(attributeLists.Node.ToGreenList<Syntax.InternalSyntax.AttributeListSyntax>(), (Syntax.InternalSyntax.SyntaxToken)breakKeyword.Node!, (Syntax.InternalSyntax.SyntaxToken)semicolonToken.Node!).CreateRed();
         }
 
@@ -4955,12 +4071,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (continueKeyword.Kind() != SyntaxKind.ContinueKeyword) throw new ArgumentException(nameof(continueKeyword));
             if (semicolonToken.Kind() != SyntaxKind.SemicolonToken) throw new ArgumentException(nameof(semicolonToken));
-            // <Metalama> This change is generated. See Modifications.md for details.
-            continueKeyword = Metalama.Compiler.TreeTracker.TrackIfNeeded(continueKeyword);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            semicolonToken = Metalama.Compiler.TreeTracker.TrackIfNeeded(semicolonToken);
-            // </Metalama>
             return (ContinueStatementSyntax)Syntax.InternalSyntax.SyntaxFactory.ContinueStatement(attributeLists.Node.ToGreenList<Syntax.InternalSyntax.AttributeListSyntax>(), (Syntax.InternalSyntax.SyntaxToken)continueKeyword.Node!, (Syntax.InternalSyntax.SyntaxToken)semicolonToken.Node!).CreateRed();
         }
 
@@ -4977,15 +4087,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (returnKeyword.Kind() != SyntaxKind.ReturnKeyword) throw new ArgumentException(nameof(returnKeyword));
             if (semicolonToken.Kind() != SyntaxKind.SemicolonToken) throw new ArgumentException(nameof(semicolonToken));
-            // <Metalama> This change is generated. See Modifications.md for details.
-            returnKeyword = Metalama.Compiler.TreeTracker.TrackIfNeeded(returnKeyword);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            expression = Metalama.Compiler.TreeTracker.TrackIfNeeded(expression);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            semicolonToken = Metalama.Compiler.TreeTracker.TrackIfNeeded(semicolonToken);
-            // </Metalama>
             return (ReturnStatementSyntax)Syntax.InternalSyntax.SyntaxFactory.ReturnStatement(attributeLists.Node.ToGreenList<Syntax.InternalSyntax.AttributeListSyntax>(), (Syntax.InternalSyntax.SyntaxToken)returnKeyword.Node!, expression == null ? null : (Syntax.InternalSyntax.ExpressionSyntax)expression.Green, (Syntax.InternalSyntax.SyntaxToken)semicolonToken.Node!).CreateRed();
         }
 
@@ -5004,15 +4105,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (throwKeyword.Kind() != SyntaxKind.ThrowKeyword) throw new ArgumentException(nameof(throwKeyword));
             if (semicolonToken.Kind() != SyntaxKind.SemicolonToken) throw new ArgumentException(nameof(semicolonToken));
-            // <Metalama> This change is generated. See Modifications.md for details.
-            throwKeyword = Metalama.Compiler.TreeTracker.TrackIfNeeded(throwKeyword);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            expression = Metalama.Compiler.TreeTracker.TrackIfNeeded(expression);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            semicolonToken = Metalama.Compiler.TreeTracker.TrackIfNeeded(semicolonToken);
-            // </Metalama>
             return (ThrowStatementSyntax)Syntax.InternalSyntax.SyntaxFactory.ThrowStatement(attributeLists.Node.ToGreenList<Syntax.InternalSyntax.AttributeListSyntax>(), (Syntax.InternalSyntax.SyntaxToken)throwKeyword.Node!, expression == null ? null : (Syntax.InternalSyntax.ExpressionSyntax)expression.Green, (Syntax.InternalSyntax.SyntaxToken)semicolonToken.Node!).CreateRed();
         }
 
@@ -5043,18 +4135,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 default: throw new ArgumentException(nameof(returnOrBreakKeyword));
             }
             if (semicolonToken.Kind() != SyntaxKind.SemicolonToken) throw new ArgumentException(nameof(semicolonToken));
-            // <Metalama> This change is generated. See Modifications.md for details.
-            yieldKeyword = Metalama.Compiler.TreeTracker.TrackIfNeeded(yieldKeyword);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            returnOrBreakKeyword = Metalama.Compiler.TreeTracker.TrackIfNeeded(returnOrBreakKeyword);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            expression = Metalama.Compiler.TreeTracker.TrackIfNeeded(expression);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            semicolonToken = Metalama.Compiler.TreeTracker.TrackIfNeeded(semicolonToken);
-            // </Metalama>
             return (YieldStatementSyntax)Syntax.InternalSyntax.SyntaxFactory.YieldStatement(kind, attributeLists.Node.ToGreenList<Syntax.InternalSyntax.AttributeListSyntax>(), (Syntax.InternalSyntax.SyntaxToken)yieldKeyword.Node!, (Syntax.InternalSyntax.SyntaxToken)returnOrBreakKeyword.Node!, expression == null ? null : (Syntax.InternalSyntax.ExpressionSyntax)expression.Green, (Syntax.InternalSyntax.SyntaxToken)semicolonToken.Node!).CreateRed();
         }
 
@@ -5084,21 +4164,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (condition == null) throw new ArgumentNullException(nameof(condition));
             if (closeParenToken.Kind() != SyntaxKind.CloseParenToken) throw new ArgumentException(nameof(closeParenToken));
             if (statement == null) throw new ArgumentNullException(nameof(statement));
-            // <Metalama> This change is generated. See Modifications.md for details.
-            whileKeyword = Metalama.Compiler.TreeTracker.TrackIfNeeded(whileKeyword);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            openParenToken = Metalama.Compiler.TreeTracker.TrackIfNeeded(openParenToken);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            condition = Metalama.Compiler.TreeTracker.TrackIfNeeded(condition);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            closeParenToken = Metalama.Compiler.TreeTracker.TrackIfNeeded(closeParenToken);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            statement = Metalama.Compiler.TreeTracker.TrackIfNeeded(statement);
-            // </Metalama>
             return (WhileStatementSyntax)Syntax.InternalSyntax.SyntaxFactory.WhileStatement(attributeLists.Node.ToGreenList<Syntax.InternalSyntax.AttributeListSyntax>(), (Syntax.InternalSyntax.SyntaxToken)whileKeyword.Node!, (Syntax.InternalSyntax.SyntaxToken)openParenToken.Node!, (Syntax.InternalSyntax.ExpressionSyntax)condition.Green, (Syntax.InternalSyntax.SyntaxToken)closeParenToken.Node!, (Syntax.InternalSyntax.StatementSyntax)statement.Green).CreateRed();
         }
 
@@ -5120,27 +4185,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (condition == null) throw new ArgumentNullException(nameof(condition));
             if (closeParenToken.Kind() != SyntaxKind.CloseParenToken) throw new ArgumentException(nameof(closeParenToken));
             if (semicolonToken.Kind() != SyntaxKind.SemicolonToken) throw new ArgumentException(nameof(semicolonToken));
-            // <Metalama> This change is generated. See Modifications.md for details.
-            doKeyword = Metalama.Compiler.TreeTracker.TrackIfNeeded(doKeyword);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            statement = Metalama.Compiler.TreeTracker.TrackIfNeeded(statement);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            whileKeyword = Metalama.Compiler.TreeTracker.TrackIfNeeded(whileKeyword);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            openParenToken = Metalama.Compiler.TreeTracker.TrackIfNeeded(openParenToken);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            condition = Metalama.Compiler.TreeTracker.TrackIfNeeded(condition);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            closeParenToken = Metalama.Compiler.TreeTracker.TrackIfNeeded(closeParenToken);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            semicolonToken = Metalama.Compiler.TreeTracker.TrackIfNeeded(semicolonToken);
-            // </Metalama>
             return (DoStatementSyntax)Syntax.InternalSyntax.SyntaxFactory.DoStatement(attributeLists.Node.ToGreenList<Syntax.InternalSyntax.AttributeListSyntax>(), (Syntax.InternalSyntax.SyntaxToken)doKeyword.Node!, (Syntax.InternalSyntax.StatementSyntax)statement.Green, (Syntax.InternalSyntax.SyntaxToken)whileKeyword.Node!, (Syntax.InternalSyntax.SyntaxToken)openParenToken.Node!, (Syntax.InternalSyntax.ExpressionSyntax)condition.Green, (Syntax.InternalSyntax.SyntaxToken)closeParenToken.Node!, (Syntax.InternalSyntax.SyntaxToken)semicolonToken.Node!).CreateRed();
         }
 
@@ -5161,30 +4205,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (secondSemicolonToken.Kind() != SyntaxKind.SemicolonToken) throw new ArgumentException(nameof(secondSemicolonToken));
             if (closeParenToken.Kind() != SyntaxKind.CloseParenToken) throw new ArgumentException(nameof(closeParenToken));
             if (statement == null) throw new ArgumentNullException(nameof(statement));
-            // <Metalama> This change is generated. See Modifications.md for details.
-            forKeyword = Metalama.Compiler.TreeTracker.TrackIfNeeded(forKeyword);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            openParenToken = Metalama.Compiler.TreeTracker.TrackIfNeeded(openParenToken);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            declaration = Metalama.Compiler.TreeTracker.TrackIfNeeded(declaration);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            firstSemicolonToken = Metalama.Compiler.TreeTracker.TrackIfNeeded(firstSemicolonToken);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            condition = Metalama.Compiler.TreeTracker.TrackIfNeeded(condition);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            secondSemicolonToken = Metalama.Compiler.TreeTracker.TrackIfNeeded(secondSemicolonToken);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            closeParenToken = Metalama.Compiler.TreeTracker.TrackIfNeeded(closeParenToken);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            statement = Metalama.Compiler.TreeTracker.TrackIfNeeded(statement);
-            // </Metalama>
             return (ForStatementSyntax)Syntax.InternalSyntax.SyntaxFactory.ForStatement(attributeLists.Node.ToGreenList<Syntax.InternalSyntax.AttributeListSyntax>(), (Syntax.InternalSyntax.SyntaxToken)forKeyword.Node!, (Syntax.InternalSyntax.SyntaxToken)openParenToken.Node!, declaration == null ? null : (Syntax.InternalSyntax.VariableDeclarationSyntax)declaration.Green, initializers.Node.ToGreenSeparatedList<Syntax.InternalSyntax.ExpressionSyntax>(), (Syntax.InternalSyntax.SyntaxToken)firstSemicolonToken.Node!, condition == null ? null : (Syntax.InternalSyntax.ExpressionSyntax)condition.Green, (Syntax.InternalSyntax.SyntaxToken)secondSemicolonToken.Node!, incrementors.Node.ToGreenSeparatedList<Syntax.InternalSyntax.ExpressionSyntax>(), (Syntax.InternalSyntax.SyntaxToken)closeParenToken.Node!, (Syntax.InternalSyntax.StatementSyntax)statement.Green).CreateRed();
         }
 
@@ -5213,33 +4233,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (expression == null) throw new ArgumentNullException(nameof(expression));
             if (closeParenToken.Kind() != SyntaxKind.CloseParenToken) throw new ArgumentException(nameof(closeParenToken));
             if (statement == null) throw new ArgumentNullException(nameof(statement));
-            // <Metalama> This change is generated. See Modifications.md for details.
-            awaitKeyword = Metalama.Compiler.TreeTracker.TrackIfNeeded(awaitKeyword);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            forEachKeyword = Metalama.Compiler.TreeTracker.TrackIfNeeded(forEachKeyword);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            openParenToken = Metalama.Compiler.TreeTracker.TrackIfNeeded(openParenToken);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            type = Metalama.Compiler.TreeTracker.TrackIfNeeded(type);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            identifier = Metalama.Compiler.TreeTracker.TrackIfNeeded(identifier);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            inKeyword = Metalama.Compiler.TreeTracker.TrackIfNeeded(inKeyword);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            expression = Metalama.Compiler.TreeTracker.TrackIfNeeded(expression);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            closeParenToken = Metalama.Compiler.TreeTracker.TrackIfNeeded(closeParenToken);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            statement = Metalama.Compiler.TreeTracker.TrackIfNeeded(statement);
-            // </Metalama>
             return (ForEachStatementSyntax)Syntax.InternalSyntax.SyntaxFactory.ForEachStatement(attributeLists.Node.ToGreenList<Syntax.InternalSyntax.AttributeListSyntax>(), (Syntax.InternalSyntax.SyntaxToken?)awaitKeyword.Node, (Syntax.InternalSyntax.SyntaxToken)forEachKeyword.Node!, (Syntax.InternalSyntax.SyntaxToken)openParenToken.Node!, (Syntax.InternalSyntax.TypeSyntax)type.Green, (Syntax.InternalSyntax.SyntaxToken)identifier.Node!, (Syntax.InternalSyntax.SyntaxToken)inKeyword.Node!, (Syntax.InternalSyntax.ExpressionSyntax)expression.Green, (Syntax.InternalSyntax.SyntaxToken)closeParenToken.Node!, (Syntax.InternalSyntax.StatementSyntax)statement.Green).CreateRed();
         }
 
@@ -5271,30 +4264,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (expression == null) throw new ArgumentNullException(nameof(expression));
             if (closeParenToken.Kind() != SyntaxKind.CloseParenToken) throw new ArgumentException(nameof(closeParenToken));
             if (statement == null) throw new ArgumentNullException(nameof(statement));
-            // <Metalama> This change is generated. See Modifications.md for details.
-            awaitKeyword = Metalama.Compiler.TreeTracker.TrackIfNeeded(awaitKeyword);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            forEachKeyword = Metalama.Compiler.TreeTracker.TrackIfNeeded(forEachKeyword);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            openParenToken = Metalama.Compiler.TreeTracker.TrackIfNeeded(openParenToken);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            variable = Metalama.Compiler.TreeTracker.TrackIfNeeded(variable);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            inKeyword = Metalama.Compiler.TreeTracker.TrackIfNeeded(inKeyword);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            expression = Metalama.Compiler.TreeTracker.TrackIfNeeded(expression);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            closeParenToken = Metalama.Compiler.TreeTracker.TrackIfNeeded(closeParenToken);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            statement = Metalama.Compiler.TreeTracker.TrackIfNeeded(statement);
-            // </Metalama>
             return (ForEachVariableStatementSyntax)Syntax.InternalSyntax.SyntaxFactory.ForEachVariableStatement(attributeLists.Node.ToGreenList<Syntax.InternalSyntax.AttributeListSyntax>(), (Syntax.InternalSyntax.SyntaxToken?)awaitKeyword.Node, (Syntax.InternalSyntax.SyntaxToken)forEachKeyword.Node!, (Syntax.InternalSyntax.SyntaxToken)openParenToken.Node!, (Syntax.InternalSyntax.ExpressionSyntax)variable.Green, (Syntax.InternalSyntax.SyntaxToken)inKeyword.Node!, (Syntax.InternalSyntax.ExpressionSyntax)expression.Green, (Syntax.InternalSyntax.SyntaxToken)closeParenToken.Node!, (Syntax.InternalSyntax.StatementSyntax)statement.Green).CreateRed();
         }
 
@@ -5319,27 +4288,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (openParenToken.Kind() != SyntaxKind.OpenParenToken) throw new ArgumentException(nameof(openParenToken));
             if (closeParenToken.Kind() != SyntaxKind.CloseParenToken) throw new ArgumentException(nameof(closeParenToken));
             if (statement == null) throw new ArgumentNullException(nameof(statement));
-            // <Metalama> This change is generated. See Modifications.md for details.
-            awaitKeyword = Metalama.Compiler.TreeTracker.TrackIfNeeded(awaitKeyword);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            usingKeyword = Metalama.Compiler.TreeTracker.TrackIfNeeded(usingKeyword);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            openParenToken = Metalama.Compiler.TreeTracker.TrackIfNeeded(openParenToken);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            declaration = Metalama.Compiler.TreeTracker.TrackIfNeeded(declaration);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            expression = Metalama.Compiler.TreeTracker.TrackIfNeeded(expression);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            closeParenToken = Metalama.Compiler.TreeTracker.TrackIfNeeded(closeParenToken);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            statement = Metalama.Compiler.TreeTracker.TrackIfNeeded(statement);
-            // </Metalama>
             return (UsingStatementSyntax)Syntax.InternalSyntax.SyntaxFactory.UsingStatement(attributeLists.Node.ToGreenList<Syntax.InternalSyntax.AttributeListSyntax>(), (Syntax.InternalSyntax.SyntaxToken?)awaitKeyword.Node, (Syntax.InternalSyntax.SyntaxToken)usingKeyword.Node!, (Syntax.InternalSyntax.SyntaxToken)openParenToken.Node!, declaration == null ? null : (Syntax.InternalSyntax.VariableDeclarationSyntax)declaration.Green, expression == null ? null : (Syntax.InternalSyntax.ExpressionSyntax)expression.Green, (Syntax.InternalSyntax.SyntaxToken)closeParenToken.Node!, (Syntax.InternalSyntax.StatementSyntax)statement.Green).CreateRed();
         }
 
@@ -5359,21 +4307,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (declaration == null) throw new ArgumentNullException(nameof(declaration));
             if (closeParenToken.Kind() != SyntaxKind.CloseParenToken) throw new ArgumentException(nameof(closeParenToken));
             if (statement == null) throw new ArgumentNullException(nameof(statement));
-            // <Metalama> This change is generated. See Modifications.md for details.
-            fixedKeyword = Metalama.Compiler.TreeTracker.TrackIfNeeded(fixedKeyword);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            openParenToken = Metalama.Compiler.TreeTracker.TrackIfNeeded(openParenToken);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            declaration = Metalama.Compiler.TreeTracker.TrackIfNeeded(declaration);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            closeParenToken = Metalama.Compiler.TreeTracker.TrackIfNeeded(closeParenToken);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            statement = Metalama.Compiler.TreeTracker.TrackIfNeeded(statement);
-            // </Metalama>
             return (FixedStatementSyntax)Syntax.InternalSyntax.SyntaxFactory.FixedStatement(attributeLists.Node.ToGreenList<Syntax.InternalSyntax.AttributeListSyntax>(), (Syntax.InternalSyntax.SyntaxToken)fixedKeyword.Node!, (Syntax.InternalSyntax.SyntaxToken)openParenToken.Node!, (Syntax.InternalSyntax.VariableDeclarationSyntax)declaration.Green, (Syntax.InternalSyntax.SyntaxToken)closeParenToken.Node!, (Syntax.InternalSyntax.StatementSyntax)statement.Green).CreateRed();
         }
 
@@ -5401,12 +4334,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 default: throw new ArgumentException(nameof(keyword));
             }
             if (block == null) throw new ArgumentNullException(nameof(block));
-            // <Metalama> This change is generated. See Modifications.md for details.
-            keyword = Metalama.Compiler.TreeTracker.TrackIfNeeded(keyword);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            block = Metalama.Compiler.TreeTracker.TrackIfNeeded(block);
-            // </Metalama>
             return (CheckedStatementSyntax)Syntax.InternalSyntax.SyntaxFactory.CheckedStatement(kind, attributeLists.Node.ToGreenList<Syntax.InternalSyntax.AttributeListSyntax>(), (Syntax.InternalSyntax.SyntaxToken)keyword.Node!, (Syntax.InternalSyntax.BlockSyntax)block.Green).CreateRed();
         }
 
@@ -5433,12 +4360,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (unsafeKeyword.Kind() != SyntaxKind.UnsafeKeyword) throw new ArgumentException(nameof(unsafeKeyword));
             if (block == null) throw new ArgumentNullException(nameof(block));
-            // <Metalama> This change is generated. See Modifications.md for details.
-            unsafeKeyword = Metalama.Compiler.TreeTracker.TrackIfNeeded(unsafeKeyword);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            block = Metalama.Compiler.TreeTracker.TrackIfNeeded(block);
-            // </Metalama>
             return (UnsafeStatementSyntax)Syntax.InternalSyntax.SyntaxFactory.UnsafeStatement(attributeLists.Node.ToGreenList<Syntax.InternalSyntax.AttributeListSyntax>(), (Syntax.InternalSyntax.SyntaxToken)unsafeKeyword.Node!, (Syntax.InternalSyntax.BlockSyntax)block.Green).CreateRed();
         }
 
@@ -5460,21 +4381,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (expression == null) throw new ArgumentNullException(nameof(expression));
             if (closeParenToken.Kind() != SyntaxKind.CloseParenToken) throw new ArgumentException(nameof(closeParenToken));
             if (statement == null) throw new ArgumentNullException(nameof(statement));
-            // <Metalama> This change is generated. See Modifications.md for details.
-            lockKeyword = Metalama.Compiler.TreeTracker.TrackIfNeeded(lockKeyword);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            openParenToken = Metalama.Compiler.TreeTracker.TrackIfNeeded(openParenToken);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            expression = Metalama.Compiler.TreeTracker.TrackIfNeeded(expression);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            closeParenToken = Metalama.Compiler.TreeTracker.TrackIfNeeded(closeParenToken);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            statement = Metalama.Compiler.TreeTracker.TrackIfNeeded(statement);
-            // </Metalama>
             return (LockStatementSyntax)Syntax.InternalSyntax.SyntaxFactory.LockStatement(attributeLists.Node.ToGreenList<Syntax.InternalSyntax.AttributeListSyntax>(), (Syntax.InternalSyntax.SyntaxToken)lockKeyword.Node!, (Syntax.InternalSyntax.SyntaxToken)openParenToken.Node!, (Syntax.InternalSyntax.ExpressionSyntax)expression.Green, (Syntax.InternalSyntax.SyntaxToken)closeParenToken.Node!, (Syntax.InternalSyntax.StatementSyntax)statement.Green).CreateRed();
         }
 
@@ -5494,24 +4400,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (condition == null) throw new ArgumentNullException(nameof(condition));
             if (closeParenToken.Kind() != SyntaxKind.CloseParenToken) throw new ArgumentException(nameof(closeParenToken));
             if (statement == null) throw new ArgumentNullException(nameof(statement));
-            // <Metalama> This change is generated. See Modifications.md for details.
-            ifKeyword = Metalama.Compiler.TreeTracker.TrackIfNeeded(ifKeyword);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            openParenToken = Metalama.Compiler.TreeTracker.TrackIfNeeded(openParenToken);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            condition = Metalama.Compiler.TreeTracker.TrackIfNeeded(condition);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            closeParenToken = Metalama.Compiler.TreeTracker.TrackIfNeeded(closeParenToken);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            statement = Metalama.Compiler.TreeTracker.TrackIfNeeded(statement);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            @else = Metalama.Compiler.TreeTracker.TrackIfNeeded(@else);
-            // </Metalama>
             return (IfStatementSyntax)Syntax.InternalSyntax.SyntaxFactory.IfStatement(attributeLists.Node.ToGreenList<Syntax.InternalSyntax.AttributeListSyntax>(), (Syntax.InternalSyntax.SyntaxToken)ifKeyword.Node!, (Syntax.InternalSyntax.SyntaxToken)openParenToken.Node!, (Syntax.InternalSyntax.ExpressionSyntax)condition.Green, (Syntax.InternalSyntax.SyntaxToken)closeParenToken.Node!, (Syntax.InternalSyntax.StatementSyntax)statement.Green, @else == null ? null : (Syntax.InternalSyntax.ElseClauseSyntax)@else.Green).CreateRed();
         }
 
@@ -5528,12 +4416,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (elseKeyword.Kind() != SyntaxKind.ElseKeyword) throw new ArgumentException(nameof(elseKeyword));
             if (statement == null) throw new ArgumentNullException(nameof(statement));
-            // <Metalama> This change is generated. See Modifications.md for details.
-            elseKeyword = Metalama.Compiler.TreeTracker.TrackIfNeeded(elseKeyword);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            statement = Metalama.Compiler.TreeTracker.TrackIfNeeded(statement);
-            // </Metalama>
             return (ElseClauseSyntax)Syntax.InternalSyntax.SyntaxFactory.ElseClause((Syntax.InternalSyntax.SyntaxToken)elseKeyword.Node!, (Syntax.InternalSyntax.StatementSyntax)statement.Green).CreateRed();
         }
 
@@ -5560,24 +4442,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             if (openBraceToken.Kind() != SyntaxKind.OpenBraceToken) throw new ArgumentException(nameof(openBraceToken));
             if (closeBraceToken.Kind() != SyntaxKind.CloseBraceToken) throw new ArgumentException(nameof(closeBraceToken));
-            // <Metalama> This change is generated. See Modifications.md for details.
-            switchKeyword = Metalama.Compiler.TreeTracker.TrackIfNeeded(switchKeyword);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            openParenToken = Metalama.Compiler.TreeTracker.TrackIfNeeded(openParenToken);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            expression = Metalama.Compiler.TreeTracker.TrackIfNeeded(expression);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            closeParenToken = Metalama.Compiler.TreeTracker.TrackIfNeeded(closeParenToken);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            openBraceToken = Metalama.Compiler.TreeTracker.TrackIfNeeded(openBraceToken);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            closeBraceToken = Metalama.Compiler.TreeTracker.TrackIfNeeded(closeBraceToken);
-            // </Metalama>
             return (SwitchStatementSyntax)Syntax.InternalSyntax.SyntaxFactory.SwitchStatement(attributeLists.Node.ToGreenList<Syntax.InternalSyntax.AttributeListSyntax>(), (Syntax.InternalSyntax.SyntaxToken)switchKeyword.Node!, (Syntax.InternalSyntax.SyntaxToken?)openParenToken.Node, (Syntax.InternalSyntax.ExpressionSyntax)expression.Green, (Syntax.InternalSyntax.SyntaxToken?)closeParenToken.Node, (Syntax.InternalSyntax.SyntaxToken)openBraceToken.Node!, sections.Node.ToGreenList<Syntax.InternalSyntax.SwitchSectionSyntax>(), (Syntax.InternalSyntax.SyntaxToken)closeBraceToken.Node!).CreateRed();
         }
 
@@ -5597,18 +4461,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (keyword.Kind() != SyntaxKind.CaseKeyword) throw new ArgumentException(nameof(keyword));
             if (pattern == null) throw new ArgumentNullException(nameof(pattern));
             if (colonToken.Kind() != SyntaxKind.ColonToken) throw new ArgumentException(nameof(colonToken));
-            // <Metalama> This change is generated. See Modifications.md for details.
-            keyword = Metalama.Compiler.TreeTracker.TrackIfNeeded(keyword);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            pattern = Metalama.Compiler.TreeTracker.TrackIfNeeded(pattern);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            whenClause = Metalama.Compiler.TreeTracker.TrackIfNeeded(whenClause);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            colonToken = Metalama.Compiler.TreeTracker.TrackIfNeeded(colonToken);
-            // </Metalama>
             return (CasePatternSwitchLabelSyntax)Syntax.InternalSyntax.SyntaxFactory.CasePatternSwitchLabel((Syntax.InternalSyntax.SyntaxToken)keyword.Node!, (Syntax.InternalSyntax.PatternSyntax)pattern.Green, whenClause == null ? null : (Syntax.InternalSyntax.WhenClauseSyntax)whenClause.Green, (Syntax.InternalSyntax.SyntaxToken)colonToken.Node!).CreateRed();
         }
 
@@ -5626,15 +4478,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (keyword.Kind() != SyntaxKind.CaseKeyword) throw new ArgumentException(nameof(keyword));
             if (value == null) throw new ArgumentNullException(nameof(value));
             if (colonToken.Kind() != SyntaxKind.ColonToken) throw new ArgumentException(nameof(colonToken));
-            // <Metalama> This change is generated. See Modifications.md for details.
-            keyword = Metalama.Compiler.TreeTracker.TrackIfNeeded(keyword);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            value = Metalama.Compiler.TreeTracker.TrackIfNeeded(value);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            colonToken = Metalama.Compiler.TreeTracker.TrackIfNeeded(colonToken);
-            // </Metalama>
             return (CaseSwitchLabelSyntax)Syntax.InternalSyntax.SyntaxFactory.CaseSwitchLabel((Syntax.InternalSyntax.SyntaxToken)keyword.Node!, (Syntax.InternalSyntax.ExpressionSyntax)value.Green, (Syntax.InternalSyntax.SyntaxToken)colonToken.Node!).CreateRed();
         }
 
@@ -5647,12 +4490,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (keyword.Kind() != SyntaxKind.DefaultKeyword) throw new ArgumentException(nameof(keyword));
             if (colonToken.Kind() != SyntaxKind.ColonToken) throw new ArgumentException(nameof(colonToken));
-            // <Metalama> This change is generated. See Modifications.md for details.
-            keyword = Metalama.Compiler.TreeTracker.TrackIfNeeded(keyword);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            colonToken = Metalama.Compiler.TreeTracker.TrackIfNeeded(colonToken);
-            // </Metalama>
             return (DefaultSwitchLabelSyntax)Syntax.InternalSyntax.SyntaxFactory.DefaultSwitchLabel((Syntax.InternalSyntax.SyntaxToken)keyword.Node!, (Syntax.InternalSyntax.SyntaxToken)colonToken.Node!).CreateRed();
         }
 
@@ -5667,18 +4504,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (switchKeyword.Kind() != SyntaxKind.SwitchKeyword) throw new ArgumentException(nameof(switchKeyword));
             if (openBraceToken.Kind() != SyntaxKind.OpenBraceToken) throw new ArgumentException(nameof(openBraceToken));
             if (closeBraceToken.Kind() != SyntaxKind.CloseBraceToken) throw new ArgumentException(nameof(closeBraceToken));
-            // <Metalama> This change is generated. See Modifications.md for details.
-            governingExpression = Metalama.Compiler.TreeTracker.TrackIfNeeded(governingExpression);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            switchKeyword = Metalama.Compiler.TreeTracker.TrackIfNeeded(switchKeyword);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            openBraceToken = Metalama.Compiler.TreeTracker.TrackIfNeeded(openBraceToken);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            closeBraceToken = Metalama.Compiler.TreeTracker.TrackIfNeeded(closeBraceToken);
-            // </Metalama>
             return (SwitchExpressionSyntax)Syntax.InternalSyntax.SyntaxFactory.SwitchExpression((Syntax.InternalSyntax.ExpressionSyntax)governingExpression.Green, (Syntax.InternalSyntax.SyntaxToken)switchKeyword.Node!, (Syntax.InternalSyntax.SyntaxToken)openBraceToken.Node!, arms.Node.ToGreenSeparatedList<Syntax.InternalSyntax.SwitchExpressionArmSyntax>(), (Syntax.InternalSyntax.SyntaxToken)closeBraceToken.Node!).CreateRed();
         }
 
@@ -5696,18 +4521,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (pattern == null) throw new ArgumentNullException(nameof(pattern));
             if (equalsGreaterThanToken.Kind() != SyntaxKind.EqualsGreaterThanToken) throw new ArgumentException(nameof(equalsGreaterThanToken));
             if (expression == null) throw new ArgumentNullException(nameof(expression));
-            // <Metalama> This change is generated. See Modifications.md for details.
-            pattern = Metalama.Compiler.TreeTracker.TrackIfNeeded(pattern);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            whenClause = Metalama.Compiler.TreeTracker.TrackIfNeeded(whenClause);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            equalsGreaterThanToken = Metalama.Compiler.TreeTracker.TrackIfNeeded(equalsGreaterThanToken);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            expression = Metalama.Compiler.TreeTracker.TrackIfNeeded(expression);
-            // </Metalama>
             return (SwitchExpressionArmSyntax)Syntax.InternalSyntax.SyntaxFactory.SwitchExpressionArm((Syntax.InternalSyntax.PatternSyntax)pattern.Green, whenClause == null ? null : (Syntax.InternalSyntax.WhenClauseSyntax)whenClause.Green, (Syntax.InternalSyntax.SyntaxToken)equalsGreaterThanToken.Node!, (Syntax.InternalSyntax.ExpressionSyntax)expression.Green).CreateRed();
         }
 
@@ -5724,15 +4537,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (tryKeyword.Kind() != SyntaxKind.TryKeyword) throw new ArgumentException(nameof(tryKeyword));
             if (block == null) throw new ArgumentNullException(nameof(block));
-            // <Metalama> This change is generated. See Modifications.md for details.
-            tryKeyword = Metalama.Compiler.TreeTracker.TrackIfNeeded(tryKeyword);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            block = Metalama.Compiler.TreeTracker.TrackIfNeeded(block);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            @finally = Metalama.Compiler.TreeTracker.TrackIfNeeded(@finally);
-            // </Metalama>
             return (TryStatementSyntax)Syntax.InternalSyntax.SyntaxFactory.TryStatement(attributeLists.Node.ToGreenList<Syntax.InternalSyntax.AttributeListSyntax>(), (Syntax.InternalSyntax.SyntaxToken)tryKeyword.Node!, (Syntax.InternalSyntax.BlockSyntax)block.Green, catches.Node.ToGreenList<Syntax.InternalSyntax.CatchClauseSyntax>(), @finally == null ? null : (Syntax.InternalSyntax.FinallyClauseSyntax)@finally.Green).CreateRed();
         }
 
@@ -5751,18 +4555,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (catchKeyword.Kind() != SyntaxKind.CatchKeyword) throw new ArgumentException(nameof(catchKeyword));
             if (block == null) throw new ArgumentNullException(nameof(block));
-            // <Metalama> This change is generated. See Modifications.md for details.
-            catchKeyword = Metalama.Compiler.TreeTracker.TrackIfNeeded(catchKeyword);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            declaration = Metalama.Compiler.TreeTracker.TrackIfNeeded(declaration);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            filter = Metalama.Compiler.TreeTracker.TrackIfNeeded(filter);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            block = Metalama.Compiler.TreeTracker.TrackIfNeeded(block);
-            // </Metalama>
             return (CatchClauseSyntax)Syntax.InternalSyntax.SyntaxFactory.CatchClause((Syntax.InternalSyntax.SyntaxToken)catchKeyword.Node!, declaration == null ? null : (Syntax.InternalSyntax.CatchDeclarationSyntax)declaration.Green, filter == null ? null : (Syntax.InternalSyntax.CatchFilterClauseSyntax)filter.Green, (Syntax.InternalSyntax.BlockSyntax)block.Green).CreateRed();
         }
 
@@ -5786,18 +4578,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 default: throw new ArgumentException(nameof(identifier));
             }
             if (closeParenToken.Kind() != SyntaxKind.CloseParenToken) throw new ArgumentException(nameof(closeParenToken));
-            // <Metalama> This change is generated. See Modifications.md for details.
-            openParenToken = Metalama.Compiler.TreeTracker.TrackIfNeeded(openParenToken);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            type = Metalama.Compiler.TreeTracker.TrackIfNeeded(type);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            identifier = Metalama.Compiler.TreeTracker.TrackIfNeeded(identifier);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            closeParenToken = Metalama.Compiler.TreeTracker.TrackIfNeeded(closeParenToken);
-            // </Metalama>
             return (CatchDeclarationSyntax)Syntax.InternalSyntax.SyntaxFactory.CatchDeclaration((Syntax.InternalSyntax.SyntaxToken)openParenToken.Node!, (Syntax.InternalSyntax.TypeSyntax)type.Green, (Syntax.InternalSyntax.SyntaxToken?)identifier.Node, (Syntax.InternalSyntax.SyntaxToken)closeParenToken.Node!).CreateRed();
         }
 
@@ -5816,18 +4596,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (openParenToken.Kind() != SyntaxKind.OpenParenToken) throw new ArgumentException(nameof(openParenToken));
             if (filterExpression == null) throw new ArgumentNullException(nameof(filterExpression));
             if (closeParenToken.Kind() != SyntaxKind.CloseParenToken) throw new ArgumentException(nameof(closeParenToken));
-            // <Metalama> This change is generated. See Modifications.md for details.
-            whenKeyword = Metalama.Compiler.TreeTracker.TrackIfNeeded(whenKeyword);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            openParenToken = Metalama.Compiler.TreeTracker.TrackIfNeeded(openParenToken);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            filterExpression = Metalama.Compiler.TreeTracker.TrackIfNeeded(filterExpression);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            closeParenToken = Metalama.Compiler.TreeTracker.TrackIfNeeded(closeParenToken);
-            // </Metalama>
             return (CatchFilterClauseSyntax)Syntax.InternalSyntax.SyntaxFactory.CatchFilterClause((Syntax.InternalSyntax.SyntaxToken)whenKeyword.Node!, (Syntax.InternalSyntax.SyntaxToken)openParenToken.Node!, (Syntax.InternalSyntax.ExpressionSyntax)filterExpression.Green, (Syntax.InternalSyntax.SyntaxToken)closeParenToken.Node!).CreateRed();
         }
 
@@ -5840,12 +4608,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (finallyKeyword.Kind() != SyntaxKind.FinallyKeyword) throw new ArgumentException(nameof(finallyKeyword));
             if (block == null) throw new ArgumentNullException(nameof(block));
-            // <Metalama> This change is generated. See Modifications.md for details.
-            finallyKeyword = Metalama.Compiler.TreeTracker.TrackIfNeeded(finallyKeyword);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            block = Metalama.Compiler.TreeTracker.TrackIfNeeded(block);
-            // </Metalama>
             return (FinallyClauseSyntax)Syntax.InternalSyntax.SyntaxFactory.FinallyClause((Syntax.InternalSyntax.SyntaxToken)finallyKeyword.Node!, (Syntax.InternalSyntax.BlockSyntax)block.Green).CreateRed();
         }
 
@@ -5857,9 +4619,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static CompilationUnitSyntax CompilationUnit(SyntaxList<ExternAliasDirectiveSyntax> externs, SyntaxList<UsingDirectiveSyntax> usings, SyntaxList<AttributeListSyntax> attributeLists, SyntaxList<MemberDeclarationSyntax> members, SyntaxToken endOfFileToken)
         {
             if (endOfFileToken.Kind() != SyntaxKind.EndOfFileToken) throw new ArgumentException(nameof(endOfFileToken));
-            // <Metalama> This change is generated. See Modifications.md for details.
-            endOfFileToken = Metalama.Compiler.TreeTracker.TrackIfNeeded(endOfFileToken);
-            // </Metalama>
             return (CompilationUnitSyntax)Syntax.InternalSyntax.SyntaxFactory.CompilationUnit(externs.Node.ToGreenList<Syntax.InternalSyntax.ExternAliasDirectiveSyntax>(), usings.Node.ToGreenList<Syntax.InternalSyntax.UsingDirectiveSyntax>(), attributeLists.Node.ToGreenList<Syntax.InternalSyntax.AttributeListSyntax>(), members.Node.ToGreenList<Syntax.InternalSyntax.MemberDeclarationSyntax>(), (Syntax.InternalSyntax.SyntaxToken)endOfFileToken.Node!).CreateRed();
         }
 
@@ -5878,18 +4637,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (aliasKeyword.Kind() != SyntaxKind.AliasKeyword) throw new ArgumentException(nameof(aliasKeyword));
             if (identifier.Kind() != SyntaxKind.IdentifierToken) throw new ArgumentException(nameof(identifier));
             if (semicolonToken.Kind() != SyntaxKind.SemicolonToken) throw new ArgumentException(nameof(semicolonToken));
-            // <Metalama> This change is generated. See Modifications.md for details.
-            externKeyword = Metalama.Compiler.TreeTracker.TrackIfNeeded(externKeyword);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            aliasKeyword = Metalama.Compiler.TreeTracker.TrackIfNeeded(aliasKeyword);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            identifier = Metalama.Compiler.TreeTracker.TrackIfNeeded(identifier);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            semicolonToken = Metalama.Compiler.TreeTracker.TrackIfNeeded(semicolonToken);
-            // </Metalama>
             return (ExternAliasDirectiveSyntax)Syntax.InternalSyntax.SyntaxFactory.ExternAliasDirective((Syntax.InternalSyntax.SyntaxToken)externKeyword.Node!, (Syntax.InternalSyntax.SyntaxToken)aliasKeyword.Node!, (Syntax.InternalSyntax.SyntaxToken)identifier.Node!, (Syntax.InternalSyntax.SyntaxToken)semicolonToken.Node!).CreateRed();
         }
 
@@ -5913,24 +4660,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (usingKeyword.Kind() != SyntaxKind.UsingKeyword) throw new ArgumentException(nameof(usingKeyword));
             if (name == null) throw new ArgumentNullException(nameof(name));
             if (semicolonToken.Kind() != SyntaxKind.SemicolonToken) throw new ArgumentException(nameof(semicolonToken));
-            // <Metalama> This change is generated. See Modifications.md for details.
-            globalKeyword = Metalama.Compiler.TreeTracker.TrackIfNeeded(globalKeyword);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            usingKeyword = Metalama.Compiler.TreeTracker.TrackIfNeeded(usingKeyword);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            staticKeyword = Metalama.Compiler.TreeTracker.TrackIfNeeded(staticKeyword);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            alias = Metalama.Compiler.TreeTracker.TrackIfNeeded(alias);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            name = Metalama.Compiler.TreeTracker.TrackIfNeeded(name);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            semicolonToken = Metalama.Compiler.TreeTracker.TrackIfNeeded(semicolonToken);
-            // </Metalama>
             return (UsingDirectiveSyntax)Syntax.InternalSyntax.SyntaxFactory.UsingDirective((Syntax.InternalSyntax.SyntaxToken?)globalKeyword.Node, (Syntax.InternalSyntax.SyntaxToken)usingKeyword.Node!, (Syntax.InternalSyntax.SyntaxToken?)staticKeyword.Node, alias == null ? null : (Syntax.InternalSyntax.NameEqualsSyntax)alias.Green, (Syntax.InternalSyntax.NameSyntax)name.Green, (Syntax.InternalSyntax.SyntaxToken)semicolonToken.Node!).CreateRed();
         }
 
@@ -5955,21 +4684,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.None: break;
                 default: throw new ArgumentException(nameof(semicolonToken));
             }
-            // <Metalama> This change is generated. See Modifications.md for details.
-            namespaceKeyword = Metalama.Compiler.TreeTracker.TrackIfNeeded(namespaceKeyword);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            name = Metalama.Compiler.TreeTracker.TrackIfNeeded(name);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            openBraceToken = Metalama.Compiler.TreeTracker.TrackIfNeeded(openBraceToken);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            closeBraceToken = Metalama.Compiler.TreeTracker.TrackIfNeeded(closeBraceToken);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            semicolonToken = Metalama.Compiler.TreeTracker.TrackIfNeeded(semicolonToken);
-            // </Metalama>
             return (NamespaceDeclarationSyntax)Syntax.InternalSyntax.SyntaxFactory.NamespaceDeclaration(attributeLists.Node.ToGreenList<Syntax.InternalSyntax.AttributeListSyntax>(), modifiers.Node.ToGreenList<Syntax.InternalSyntax.SyntaxToken>(), (Syntax.InternalSyntax.SyntaxToken)namespaceKeyword.Node!, (Syntax.InternalSyntax.NameSyntax)name.Green, (Syntax.InternalSyntax.SyntaxToken)openBraceToken.Node!, externs.Node.ToGreenList<Syntax.InternalSyntax.ExternAliasDirectiveSyntax>(), usings.Node.ToGreenList<Syntax.InternalSyntax.UsingDirectiveSyntax>(), members.Node.ToGreenList<Syntax.InternalSyntax.MemberDeclarationSyntax>(), (Syntax.InternalSyntax.SyntaxToken)closeBraceToken.Node!, (Syntax.InternalSyntax.SyntaxToken?)semicolonToken.Node).CreateRed();
         }
 
@@ -5987,15 +4701,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (namespaceKeyword.Kind() != SyntaxKind.NamespaceKeyword) throw new ArgumentException(nameof(namespaceKeyword));
             if (name == null) throw new ArgumentNullException(nameof(name));
             if (semicolonToken.Kind() != SyntaxKind.SemicolonToken) throw new ArgumentException(nameof(semicolonToken));
-            // <Metalama> This change is generated. See Modifications.md for details.
-            namespaceKeyword = Metalama.Compiler.TreeTracker.TrackIfNeeded(namespaceKeyword);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            name = Metalama.Compiler.TreeTracker.TrackIfNeeded(name);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            semicolonToken = Metalama.Compiler.TreeTracker.TrackIfNeeded(semicolonToken);
-            // </Metalama>
             return (FileScopedNamespaceDeclarationSyntax)Syntax.InternalSyntax.SyntaxFactory.FileScopedNamespaceDeclaration(attributeLists.Node.ToGreenList<Syntax.InternalSyntax.AttributeListSyntax>(), modifiers.Node.ToGreenList<Syntax.InternalSyntax.SyntaxToken>(), (Syntax.InternalSyntax.SyntaxToken)namespaceKeyword.Node!, (Syntax.InternalSyntax.NameSyntax)name.Green, (Syntax.InternalSyntax.SyntaxToken)semicolonToken.Node!, externs.Node.ToGreenList<Syntax.InternalSyntax.ExternAliasDirectiveSyntax>(), usings.Node.ToGreenList<Syntax.InternalSyntax.UsingDirectiveSyntax>(), members.Node.ToGreenList<Syntax.InternalSyntax.MemberDeclarationSyntax>()).CreateRed();
         }
 
@@ -6012,15 +4717,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (openBracketToken.Kind() != SyntaxKind.OpenBracketToken) throw new ArgumentException(nameof(openBracketToken));
             if (closeBracketToken.Kind() != SyntaxKind.CloseBracketToken) throw new ArgumentException(nameof(closeBracketToken));
-            // <Metalama> This change is generated. See Modifications.md for details.
-            openBracketToken = Metalama.Compiler.TreeTracker.TrackIfNeeded(openBracketToken);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            target = Metalama.Compiler.TreeTracker.TrackIfNeeded(target);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            closeBracketToken = Metalama.Compiler.TreeTracker.TrackIfNeeded(closeBracketToken);
-            // </Metalama>
             return (AttributeListSyntax)Syntax.InternalSyntax.SyntaxFactory.AttributeList((Syntax.InternalSyntax.SyntaxToken)openBracketToken.Node!, target == null ? null : (Syntax.InternalSyntax.AttributeTargetSpecifierSyntax)target.Green, attributes.Node.ToGreenSeparatedList<Syntax.InternalSyntax.AttributeSyntax>(), (Syntax.InternalSyntax.SyntaxToken)closeBracketToken.Node!).CreateRed();
         }
 
@@ -6036,12 +4732,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static AttributeTargetSpecifierSyntax AttributeTargetSpecifier(SyntaxToken identifier, SyntaxToken colonToken)
         {
             if (colonToken.Kind() != SyntaxKind.ColonToken) throw new ArgumentException(nameof(colonToken));
-            // <Metalama> This change is generated. See Modifications.md for details.
-            identifier = Metalama.Compiler.TreeTracker.TrackIfNeeded(identifier);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            colonToken = Metalama.Compiler.TreeTracker.TrackIfNeeded(colonToken);
-            // </Metalama>
             return (AttributeTargetSpecifierSyntax)Syntax.InternalSyntax.SyntaxFactory.AttributeTargetSpecifier((Syntax.InternalSyntax.SyntaxToken)identifier.Node!, (Syntax.InternalSyntax.SyntaxToken)colonToken.Node!).CreateRed();
         }
 
@@ -6053,12 +4743,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static AttributeSyntax Attribute(NameSyntax name, AttributeArgumentListSyntax? argumentList)
         {
             if (name == null) throw new ArgumentNullException(nameof(name));
-            // <Metalama> This change is generated. See Modifications.md for details.
-            name = Metalama.Compiler.TreeTracker.TrackIfNeeded(name);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            argumentList = Metalama.Compiler.TreeTracker.TrackIfNeeded(argumentList);
-            // </Metalama>
             return (AttributeSyntax)Syntax.InternalSyntax.SyntaxFactory.Attribute((Syntax.InternalSyntax.NameSyntax)name.Green, argumentList == null ? null : (Syntax.InternalSyntax.AttributeArgumentListSyntax)argumentList.Green).CreateRed();
         }
 
@@ -6071,12 +4755,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (openParenToken.Kind() != SyntaxKind.OpenParenToken) throw new ArgumentException(nameof(openParenToken));
             if (closeParenToken.Kind() != SyntaxKind.CloseParenToken) throw new ArgumentException(nameof(closeParenToken));
-            // <Metalama> This change is generated. See Modifications.md for details.
-            openParenToken = Metalama.Compiler.TreeTracker.TrackIfNeeded(openParenToken);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            closeParenToken = Metalama.Compiler.TreeTracker.TrackIfNeeded(closeParenToken);
-            // </Metalama>
             return (AttributeArgumentListSyntax)Syntax.InternalSyntax.SyntaxFactory.AttributeArgumentList((Syntax.InternalSyntax.SyntaxToken)openParenToken.Node!, arguments.Node.ToGreenSeparatedList<Syntax.InternalSyntax.AttributeArgumentSyntax>(), (Syntax.InternalSyntax.SyntaxToken)closeParenToken.Node!).CreateRed();
         }
 
@@ -6088,15 +4766,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static AttributeArgumentSyntax AttributeArgument(NameEqualsSyntax? nameEquals, NameColonSyntax? nameColon, ExpressionSyntax expression)
         {
             if (expression == null) throw new ArgumentNullException(nameof(expression));
-            // <Metalama> This change is generated. See Modifications.md for details.
-            nameEquals = Metalama.Compiler.TreeTracker.TrackIfNeeded(nameEquals);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            nameColon = Metalama.Compiler.TreeTracker.TrackIfNeeded(nameColon);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            expression = Metalama.Compiler.TreeTracker.TrackIfNeeded(expression);
-            // </Metalama>
             return (AttributeArgumentSyntax)Syntax.InternalSyntax.SyntaxFactory.AttributeArgument(nameEquals == null ? null : (Syntax.InternalSyntax.NameEqualsSyntax)nameEquals.Green, nameColon == null ? null : (Syntax.InternalSyntax.NameColonSyntax)nameColon.Green, (Syntax.InternalSyntax.ExpressionSyntax)expression.Green).CreateRed();
         }
 
@@ -6109,12 +4778,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (name == null) throw new ArgumentNullException(nameof(name));
             if (equalsToken.Kind() != SyntaxKind.EqualsToken) throw new ArgumentException(nameof(equalsToken));
-            // <Metalama> This change is generated. See Modifications.md for details.
-            name = Metalama.Compiler.TreeTracker.TrackIfNeeded(name);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            equalsToken = Metalama.Compiler.TreeTracker.TrackIfNeeded(equalsToken);
-            // </Metalama>
             return (NameEqualsSyntax)Syntax.InternalSyntax.SyntaxFactory.NameEquals((Syntax.InternalSyntax.IdentifierNameSyntax)name.Green, (Syntax.InternalSyntax.SyntaxToken)equalsToken.Node!).CreateRed();
         }
 
@@ -6131,12 +4794,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (lessThanToken.Kind() != SyntaxKind.LessThanToken) throw new ArgumentException(nameof(lessThanToken));
             if (greaterThanToken.Kind() != SyntaxKind.GreaterThanToken) throw new ArgumentException(nameof(greaterThanToken));
-            // <Metalama> This change is generated. See Modifications.md for details.
-            lessThanToken = Metalama.Compiler.TreeTracker.TrackIfNeeded(lessThanToken);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            greaterThanToken = Metalama.Compiler.TreeTracker.TrackIfNeeded(greaterThanToken);
-            // </Metalama>
             return (TypeParameterListSyntax)Syntax.InternalSyntax.SyntaxFactory.TypeParameterList((Syntax.InternalSyntax.SyntaxToken)lessThanToken.Node!, parameters.Node.ToGreenSeparatedList<Syntax.InternalSyntax.TypeParameterSyntax>(), (Syntax.InternalSyntax.SyntaxToken)greaterThanToken.Node!).CreateRed();
         }
 
@@ -6155,12 +4812,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 default: throw new ArgumentException(nameof(varianceKeyword));
             }
             if (identifier.Kind() != SyntaxKind.IdentifierToken) throw new ArgumentException(nameof(identifier));
-            // <Metalama> This change is generated. See Modifications.md for details.
-            varianceKeyword = Metalama.Compiler.TreeTracker.TrackIfNeeded(varianceKeyword);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            identifier = Metalama.Compiler.TreeTracker.TrackIfNeeded(identifier);
-            // </Metalama>
             return (TypeParameterSyntax)Syntax.InternalSyntax.SyntaxFactory.TypeParameter(attributeLists.Node.ToGreenList<Syntax.InternalSyntax.AttributeListSyntax>(), (Syntax.InternalSyntax.SyntaxToken?)varianceKeyword.Node, (Syntax.InternalSyntax.SyntaxToken)identifier.Node!).CreateRed();
         }
 
@@ -6185,27 +4836,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.None: break;
                 default: throw new ArgumentException(nameof(semicolonToken));
             }
-            // <Metalama> This change is generated. See Modifications.md for details.
-            keyword = Metalama.Compiler.TreeTracker.TrackIfNeeded(keyword);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            identifier = Metalama.Compiler.TreeTracker.TrackIfNeeded(identifier);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            typeParameterList = Metalama.Compiler.TreeTracker.TrackIfNeeded(typeParameterList);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            baseList = Metalama.Compiler.TreeTracker.TrackIfNeeded(baseList);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            openBraceToken = Metalama.Compiler.TreeTracker.TrackIfNeeded(openBraceToken);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            closeBraceToken = Metalama.Compiler.TreeTracker.TrackIfNeeded(closeBraceToken);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            semicolonToken = Metalama.Compiler.TreeTracker.TrackIfNeeded(semicolonToken);
-            // </Metalama>
             return (ClassDeclarationSyntax)Syntax.InternalSyntax.SyntaxFactory.ClassDeclaration(attributeLists.Node.ToGreenList<Syntax.InternalSyntax.AttributeListSyntax>(), modifiers.Node.ToGreenList<Syntax.InternalSyntax.SyntaxToken>(), (Syntax.InternalSyntax.SyntaxToken)keyword.Node!, (Syntax.InternalSyntax.SyntaxToken)identifier.Node!, typeParameterList == null ? null : (Syntax.InternalSyntax.TypeParameterListSyntax)typeParameterList.Green, baseList == null ? null : (Syntax.InternalSyntax.BaseListSyntax)baseList.Green, constraintClauses.Node.ToGreenList<Syntax.InternalSyntax.TypeParameterConstraintClauseSyntax>(), (Syntax.InternalSyntax.SyntaxToken)openBraceToken.Node!, members.Node.ToGreenList<Syntax.InternalSyntax.MemberDeclarationSyntax>(), (Syntax.InternalSyntax.SyntaxToken)closeBraceToken.Node!, (Syntax.InternalSyntax.SyntaxToken?)semicolonToken.Node).CreateRed();
         }
 
@@ -6234,27 +4864,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.None: break;
                 default: throw new ArgumentException(nameof(semicolonToken));
             }
-            // <Metalama> This change is generated. See Modifications.md for details.
-            keyword = Metalama.Compiler.TreeTracker.TrackIfNeeded(keyword);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            identifier = Metalama.Compiler.TreeTracker.TrackIfNeeded(identifier);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            typeParameterList = Metalama.Compiler.TreeTracker.TrackIfNeeded(typeParameterList);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            baseList = Metalama.Compiler.TreeTracker.TrackIfNeeded(baseList);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            openBraceToken = Metalama.Compiler.TreeTracker.TrackIfNeeded(openBraceToken);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            closeBraceToken = Metalama.Compiler.TreeTracker.TrackIfNeeded(closeBraceToken);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            semicolonToken = Metalama.Compiler.TreeTracker.TrackIfNeeded(semicolonToken);
-            // </Metalama>
             return (StructDeclarationSyntax)Syntax.InternalSyntax.SyntaxFactory.StructDeclaration(attributeLists.Node.ToGreenList<Syntax.InternalSyntax.AttributeListSyntax>(), modifiers.Node.ToGreenList<Syntax.InternalSyntax.SyntaxToken>(), (Syntax.InternalSyntax.SyntaxToken)keyword.Node!, (Syntax.InternalSyntax.SyntaxToken)identifier.Node!, typeParameterList == null ? null : (Syntax.InternalSyntax.TypeParameterListSyntax)typeParameterList.Green, baseList == null ? null : (Syntax.InternalSyntax.BaseListSyntax)baseList.Green, constraintClauses.Node.ToGreenList<Syntax.InternalSyntax.TypeParameterConstraintClauseSyntax>(), (Syntax.InternalSyntax.SyntaxToken)openBraceToken.Node!, members.Node.ToGreenList<Syntax.InternalSyntax.MemberDeclarationSyntax>(), (Syntax.InternalSyntax.SyntaxToken)closeBraceToken.Node!, (Syntax.InternalSyntax.SyntaxToken?)semicolonToken.Node).CreateRed();
         }
 
@@ -6283,27 +4892,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.None: break;
                 default: throw new ArgumentException(nameof(semicolonToken));
             }
-            // <Metalama> This change is generated. See Modifications.md for details.
-            keyword = Metalama.Compiler.TreeTracker.TrackIfNeeded(keyword);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            identifier = Metalama.Compiler.TreeTracker.TrackIfNeeded(identifier);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            typeParameterList = Metalama.Compiler.TreeTracker.TrackIfNeeded(typeParameterList);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            baseList = Metalama.Compiler.TreeTracker.TrackIfNeeded(baseList);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            openBraceToken = Metalama.Compiler.TreeTracker.TrackIfNeeded(openBraceToken);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            closeBraceToken = Metalama.Compiler.TreeTracker.TrackIfNeeded(closeBraceToken);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            semicolonToken = Metalama.Compiler.TreeTracker.TrackIfNeeded(semicolonToken);
-            // </Metalama>
             return (InterfaceDeclarationSyntax)Syntax.InternalSyntax.SyntaxFactory.InterfaceDeclaration(attributeLists.Node.ToGreenList<Syntax.InternalSyntax.AttributeListSyntax>(), modifiers.Node.ToGreenList<Syntax.InternalSyntax.SyntaxToken>(), (Syntax.InternalSyntax.SyntaxToken)keyword.Node!, (Syntax.InternalSyntax.SyntaxToken)identifier.Node!, typeParameterList == null ? null : (Syntax.InternalSyntax.TypeParameterListSyntax)typeParameterList.Green, baseList == null ? null : (Syntax.InternalSyntax.BaseListSyntax)baseList.Green, constraintClauses.Node.ToGreenList<Syntax.InternalSyntax.TypeParameterConstraintClauseSyntax>(), (Syntax.InternalSyntax.SyntaxToken)openBraceToken.Node!, members.Node.ToGreenList<Syntax.InternalSyntax.MemberDeclarationSyntax>(), (Syntax.InternalSyntax.SyntaxToken)closeBraceToken.Node!, (Syntax.InternalSyntax.SyntaxToken?)semicolonToken.Node).CreateRed();
         }
 
@@ -6354,33 +4942,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.None: break;
                 default: throw new ArgumentException(nameof(semicolonToken));
             }
-            // <Metalama> This change is generated. See Modifications.md for details.
-            keyword = Metalama.Compiler.TreeTracker.TrackIfNeeded(keyword);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            classOrStructKeyword = Metalama.Compiler.TreeTracker.TrackIfNeeded(classOrStructKeyword);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            identifier = Metalama.Compiler.TreeTracker.TrackIfNeeded(identifier);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            typeParameterList = Metalama.Compiler.TreeTracker.TrackIfNeeded(typeParameterList);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            parameterList = Metalama.Compiler.TreeTracker.TrackIfNeeded(parameterList);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            baseList = Metalama.Compiler.TreeTracker.TrackIfNeeded(baseList);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            openBraceToken = Metalama.Compiler.TreeTracker.TrackIfNeeded(openBraceToken);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            closeBraceToken = Metalama.Compiler.TreeTracker.TrackIfNeeded(closeBraceToken);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            semicolonToken = Metalama.Compiler.TreeTracker.TrackIfNeeded(semicolonToken);
-            // </Metalama>
             return (RecordDeclarationSyntax)Syntax.InternalSyntax.SyntaxFactory.RecordDeclaration(kind, attributeLists.Node.ToGreenList<Syntax.InternalSyntax.AttributeListSyntax>(), modifiers.Node.ToGreenList<Syntax.InternalSyntax.SyntaxToken>(), (Syntax.InternalSyntax.SyntaxToken)keyword.Node!, (Syntax.InternalSyntax.SyntaxToken?)classOrStructKeyword.Node, (Syntax.InternalSyntax.SyntaxToken)identifier.Node!, typeParameterList == null ? null : (Syntax.InternalSyntax.TypeParameterListSyntax)typeParameterList.Green, parameterList == null ? null : (Syntax.InternalSyntax.ParameterListSyntax)parameterList.Green, baseList == null ? null : (Syntax.InternalSyntax.BaseListSyntax)baseList.Green, constraintClauses.Node.ToGreenList<Syntax.InternalSyntax.TypeParameterConstraintClauseSyntax>(), (Syntax.InternalSyntax.SyntaxToken?)openBraceToken.Node, members.Node.ToGreenList<Syntax.InternalSyntax.MemberDeclarationSyntax>(), (Syntax.InternalSyntax.SyntaxToken?)closeBraceToken.Node, (Syntax.InternalSyntax.SyntaxToken?)semicolonToken.Node).CreateRed();
         }
 
@@ -6417,24 +4978,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.None: break;
                 default: throw new ArgumentException(nameof(semicolonToken));
             }
-            // <Metalama> This change is generated. See Modifications.md for details.
-            enumKeyword = Metalama.Compiler.TreeTracker.TrackIfNeeded(enumKeyword);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            identifier = Metalama.Compiler.TreeTracker.TrackIfNeeded(identifier);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            baseList = Metalama.Compiler.TreeTracker.TrackIfNeeded(baseList);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            openBraceToken = Metalama.Compiler.TreeTracker.TrackIfNeeded(openBraceToken);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            closeBraceToken = Metalama.Compiler.TreeTracker.TrackIfNeeded(closeBraceToken);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            semicolonToken = Metalama.Compiler.TreeTracker.TrackIfNeeded(semicolonToken);
-            // </Metalama>
             return (EnumDeclarationSyntax)Syntax.InternalSyntax.SyntaxFactory.EnumDeclaration(attributeLists.Node.ToGreenList<Syntax.InternalSyntax.AttributeListSyntax>(), modifiers.Node.ToGreenList<Syntax.InternalSyntax.SyntaxToken>(), (Syntax.InternalSyntax.SyntaxToken)enumKeyword.Node!, (Syntax.InternalSyntax.SyntaxToken)identifier.Node!, baseList == null ? null : (Syntax.InternalSyntax.BaseListSyntax)baseList.Green, (Syntax.InternalSyntax.SyntaxToken)openBraceToken.Node!, members.Node.ToGreenSeparatedList<Syntax.InternalSyntax.EnumMemberDeclarationSyntax>(), (Syntax.InternalSyntax.SyntaxToken)closeBraceToken.Node!, (Syntax.InternalSyntax.SyntaxToken?)semicolonToken.Node).CreateRed();
         }
 
@@ -6458,24 +5001,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (identifier.Kind() != SyntaxKind.IdentifierToken) throw new ArgumentException(nameof(identifier));
             if (parameterList == null) throw new ArgumentNullException(nameof(parameterList));
             if (semicolonToken.Kind() != SyntaxKind.SemicolonToken) throw new ArgumentException(nameof(semicolonToken));
-            // <Metalama> This change is generated. See Modifications.md for details.
-            delegateKeyword = Metalama.Compiler.TreeTracker.TrackIfNeeded(delegateKeyword);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            returnType = Metalama.Compiler.TreeTracker.TrackIfNeeded(returnType);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            identifier = Metalama.Compiler.TreeTracker.TrackIfNeeded(identifier);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            typeParameterList = Metalama.Compiler.TreeTracker.TrackIfNeeded(typeParameterList);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            parameterList = Metalama.Compiler.TreeTracker.TrackIfNeeded(parameterList);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            semicolonToken = Metalama.Compiler.TreeTracker.TrackIfNeeded(semicolonToken);
-            // </Metalama>
             return (DelegateDeclarationSyntax)Syntax.InternalSyntax.SyntaxFactory.DelegateDeclaration(attributeLists.Node.ToGreenList<Syntax.InternalSyntax.AttributeListSyntax>(), modifiers.Node.ToGreenList<Syntax.InternalSyntax.SyntaxToken>(), (Syntax.InternalSyntax.SyntaxToken)delegateKeyword.Node!, (Syntax.InternalSyntax.TypeSyntax)returnType.Green, (Syntax.InternalSyntax.SyntaxToken)identifier.Node!, typeParameterList == null ? null : (Syntax.InternalSyntax.TypeParameterListSyntax)typeParameterList.Green, (Syntax.InternalSyntax.ParameterListSyntax)parameterList.Green, constraintClauses.Node.ToGreenList<Syntax.InternalSyntax.TypeParameterConstraintClauseSyntax>(), (Syntax.InternalSyntax.SyntaxToken)semicolonToken.Node!).CreateRed();
         }
 
@@ -6495,12 +5020,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static EnumMemberDeclarationSyntax EnumMemberDeclaration(SyntaxList<AttributeListSyntax> attributeLists, SyntaxTokenList modifiers, SyntaxToken identifier, EqualsValueClauseSyntax? equalsValue)
         {
             if (identifier.Kind() != SyntaxKind.IdentifierToken) throw new ArgumentException(nameof(identifier));
-            // <Metalama> This change is generated. See Modifications.md for details.
-            identifier = Metalama.Compiler.TreeTracker.TrackIfNeeded(identifier);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            equalsValue = Metalama.Compiler.TreeTracker.TrackIfNeeded(equalsValue);
-            // </Metalama>
             return (EnumMemberDeclarationSyntax)Syntax.InternalSyntax.SyntaxFactory.EnumMemberDeclaration(attributeLists.Node.ToGreenList<Syntax.InternalSyntax.AttributeListSyntax>(), modifiers.Node.ToGreenList<Syntax.InternalSyntax.SyntaxToken>(), (Syntax.InternalSyntax.SyntaxToken)identifier.Node!, equalsValue == null ? null : (Syntax.InternalSyntax.EqualsValueClauseSyntax)equalsValue.Green).CreateRed();
         }
 
@@ -6516,9 +5035,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static BaseListSyntax BaseList(SyntaxToken colonToken, SeparatedSyntaxList<BaseTypeSyntax> types)
         {
             if (colonToken.Kind() != SyntaxKind.ColonToken) throw new ArgumentException(nameof(colonToken));
-            // <Metalama> This change is generated. See Modifications.md for details.
-            colonToken = Metalama.Compiler.TreeTracker.TrackIfNeeded(colonToken);
-            // </Metalama>
             return (BaseListSyntax)Syntax.InternalSyntax.SyntaxFactory.BaseList((Syntax.InternalSyntax.SyntaxToken)colonToken.Node!, types.Node.ToGreenSeparatedList<Syntax.InternalSyntax.BaseTypeSyntax>()).CreateRed();
         }
 
@@ -6530,9 +5046,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static SimpleBaseTypeSyntax SimpleBaseType(TypeSyntax type)
         {
             if (type == null) throw new ArgumentNullException(nameof(type));
-            // <Metalama> This change is generated. See Modifications.md for details.
-            type = Metalama.Compiler.TreeTracker.TrackIfNeeded(type);
-            // </Metalama>
             return (SimpleBaseTypeSyntax)Syntax.InternalSyntax.SyntaxFactory.SimpleBaseType((Syntax.InternalSyntax.TypeSyntax)type.Green).CreateRed();
         }
 
@@ -6541,12 +5054,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (type == null) throw new ArgumentNullException(nameof(type));
             if (argumentList == null) throw new ArgumentNullException(nameof(argumentList));
-            // <Metalama> This change is generated. See Modifications.md for details.
-            type = Metalama.Compiler.TreeTracker.TrackIfNeeded(type);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            argumentList = Metalama.Compiler.TreeTracker.TrackIfNeeded(argumentList);
-            // </Metalama>
             return (PrimaryConstructorBaseTypeSyntax)Syntax.InternalSyntax.SyntaxFactory.PrimaryConstructorBaseType((Syntax.InternalSyntax.TypeSyntax)type.Green, (Syntax.InternalSyntax.ArgumentListSyntax)argumentList.Green).CreateRed();
         }
 
@@ -6560,15 +5067,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (whereKeyword.Kind() != SyntaxKind.WhereKeyword) throw new ArgumentException(nameof(whereKeyword));
             if (name == null) throw new ArgumentNullException(nameof(name));
             if (colonToken.Kind() != SyntaxKind.ColonToken) throw new ArgumentException(nameof(colonToken));
-            // <Metalama> This change is generated. See Modifications.md for details.
-            whereKeyword = Metalama.Compiler.TreeTracker.TrackIfNeeded(whereKeyword);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            name = Metalama.Compiler.TreeTracker.TrackIfNeeded(name);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            colonToken = Metalama.Compiler.TreeTracker.TrackIfNeeded(colonToken);
-            // </Metalama>
             return (TypeParameterConstraintClauseSyntax)Syntax.InternalSyntax.SyntaxFactory.TypeParameterConstraintClause((Syntax.InternalSyntax.SyntaxToken)whereKeyword.Node!, (Syntax.InternalSyntax.IdentifierNameSyntax)name.Green, (Syntax.InternalSyntax.SyntaxToken)colonToken.Node!, constraints.Node.ToGreenSeparatedList<Syntax.InternalSyntax.TypeParameterConstraintSyntax>()).CreateRed();
         }
 
@@ -6590,15 +5088,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (newKeyword.Kind() != SyntaxKind.NewKeyword) throw new ArgumentException(nameof(newKeyword));
             if (openParenToken.Kind() != SyntaxKind.OpenParenToken) throw new ArgumentException(nameof(openParenToken));
             if (closeParenToken.Kind() != SyntaxKind.CloseParenToken) throw new ArgumentException(nameof(closeParenToken));
-            // <Metalama> This change is generated. See Modifications.md for details.
-            newKeyword = Metalama.Compiler.TreeTracker.TrackIfNeeded(newKeyword);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            openParenToken = Metalama.Compiler.TreeTracker.TrackIfNeeded(openParenToken);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            closeParenToken = Metalama.Compiler.TreeTracker.TrackIfNeeded(closeParenToken);
-            // </Metalama>
             return (ConstructorConstraintSyntax)Syntax.InternalSyntax.SyntaxFactory.ConstructorConstraint((Syntax.InternalSyntax.SyntaxToken)newKeyword.Node!, (Syntax.InternalSyntax.SyntaxToken)openParenToken.Node!, (Syntax.InternalSyntax.SyntaxToken)closeParenToken.Node!).CreateRed();
         }
 
@@ -6627,12 +5116,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.None: break;
                 default: throw new ArgumentException(nameof(questionToken));
             }
-            // <Metalama> This change is generated. See Modifications.md for details.
-            classOrStructKeyword = Metalama.Compiler.TreeTracker.TrackIfNeeded(classOrStructKeyword);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            questionToken = Metalama.Compiler.TreeTracker.TrackIfNeeded(questionToken);
-            // </Metalama>
             return (ClassOrStructConstraintSyntax)Syntax.InternalSyntax.SyntaxFactory.ClassOrStructConstraint(kind, (Syntax.InternalSyntax.SyntaxToken)classOrStructKeyword.Node!, (Syntax.InternalSyntax.SyntaxToken?)questionToken.Node).CreateRed();
         }
 
@@ -6652,9 +5135,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static TypeConstraintSyntax TypeConstraint(TypeSyntax type)
         {
             if (type == null) throw new ArgumentNullException(nameof(type));
-            // <Metalama> This change is generated. See Modifications.md for details.
-            type = Metalama.Compiler.TreeTracker.TrackIfNeeded(type);
-            // </Metalama>
             return (TypeConstraintSyntax)Syntax.InternalSyntax.SyntaxFactory.TypeConstraint((Syntax.InternalSyntax.TypeSyntax)type.Green).CreateRed();
         }
 
@@ -6662,9 +5142,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static DefaultConstraintSyntax DefaultConstraint(SyntaxToken defaultKeyword)
         {
             if (defaultKeyword.Kind() != SyntaxKind.DefaultKeyword) throw new ArgumentException(nameof(defaultKeyword));
-            // <Metalama> This change is generated. See Modifications.md for details.
-            defaultKeyword = Metalama.Compiler.TreeTracker.TrackIfNeeded(defaultKeyword);
-            // </Metalama>
             return (DefaultConstraintSyntax)Syntax.InternalSyntax.SyntaxFactory.DefaultConstraint((Syntax.InternalSyntax.SyntaxToken)defaultKeyword.Node!).CreateRed();
         }
 
@@ -6677,12 +5154,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (declaration == null) throw new ArgumentNullException(nameof(declaration));
             if (semicolonToken.Kind() != SyntaxKind.SemicolonToken) throw new ArgumentException(nameof(semicolonToken));
-            // <Metalama> This change is generated. See Modifications.md for details.
-            declaration = Metalama.Compiler.TreeTracker.TrackIfNeeded(declaration);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            semicolonToken = Metalama.Compiler.TreeTracker.TrackIfNeeded(semicolonToken);
-            // </Metalama>
             return (FieldDeclarationSyntax)Syntax.InternalSyntax.SyntaxFactory.FieldDeclaration(attributeLists.Node.ToGreenList<Syntax.InternalSyntax.AttributeListSyntax>(), modifiers.Node.ToGreenList<Syntax.InternalSyntax.SyntaxToken>(), (Syntax.InternalSyntax.VariableDeclarationSyntax)declaration.Green, (Syntax.InternalSyntax.SyntaxToken)semicolonToken.Node!).CreateRed();
         }
 
@@ -6700,15 +5171,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (eventKeyword.Kind() != SyntaxKind.EventKeyword) throw new ArgumentException(nameof(eventKeyword));
             if (declaration == null) throw new ArgumentNullException(nameof(declaration));
             if (semicolonToken.Kind() != SyntaxKind.SemicolonToken) throw new ArgumentException(nameof(semicolonToken));
-            // <Metalama> This change is generated. See Modifications.md for details.
-            eventKeyword = Metalama.Compiler.TreeTracker.TrackIfNeeded(eventKeyword);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            declaration = Metalama.Compiler.TreeTracker.TrackIfNeeded(declaration);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            semicolonToken = Metalama.Compiler.TreeTracker.TrackIfNeeded(semicolonToken);
-            // </Metalama>
             return (EventFieldDeclarationSyntax)Syntax.InternalSyntax.SyntaxFactory.EventFieldDeclaration(attributeLists.Node.ToGreenList<Syntax.InternalSyntax.AttributeListSyntax>(), modifiers.Node.ToGreenList<Syntax.InternalSyntax.SyntaxToken>(), (Syntax.InternalSyntax.SyntaxToken)eventKeyword.Node!, (Syntax.InternalSyntax.VariableDeclarationSyntax)declaration.Green, (Syntax.InternalSyntax.SyntaxToken)semicolonToken.Node!).CreateRed();
         }
 
@@ -6725,12 +5187,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (name == null) throw new ArgumentNullException(nameof(name));
             if (dotToken.Kind() != SyntaxKind.DotToken) throw new ArgumentException(nameof(dotToken));
-            // <Metalama> This change is generated. See Modifications.md for details.
-            name = Metalama.Compiler.TreeTracker.TrackIfNeeded(name);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            dotToken = Metalama.Compiler.TreeTracker.TrackIfNeeded(dotToken);
-            // </Metalama>
             return (ExplicitInterfaceSpecifierSyntax)Syntax.InternalSyntax.SyntaxFactory.ExplicitInterfaceSpecifier((Syntax.InternalSyntax.NameSyntax)name.Green, (Syntax.InternalSyntax.SyntaxToken)dotToken.Node!).CreateRed();
         }
 
@@ -6750,30 +5206,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.None: break;
                 default: throw new ArgumentException(nameof(semicolonToken));
             }
-            // <Metalama> This change is generated. See Modifications.md for details.
-            returnType = Metalama.Compiler.TreeTracker.TrackIfNeeded(returnType);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            explicitInterfaceSpecifier = Metalama.Compiler.TreeTracker.TrackIfNeeded(explicitInterfaceSpecifier);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            identifier = Metalama.Compiler.TreeTracker.TrackIfNeeded(identifier);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            typeParameterList = Metalama.Compiler.TreeTracker.TrackIfNeeded(typeParameterList);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            parameterList = Metalama.Compiler.TreeTracker.TrackIfNeeded(parameterList);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            body = Metalama.Compiler.TreeTracker.TrackIfNeeded(body);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            expressionBody = Metalama.Compiler.TreeTracker.TrackIfNeeded(expressionBody);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            semicolonToken = Metalama.Compiler.TreeTracker.TrackIfNeeded(semicolonToken);
-            // </Metalama>
             return (MethodDeclarationSyntax)Syntax.InternalSyntax.SyntaxFactory.MethodDeclaration(attributeLists.Node.ToGreenList<Syntax.InternalSyntax.AttributeListSyntax>(), modifiers.Node.ToGreenList<Syntax.InternalSyntax.SyntaxToken>(), (Syntax.InternalSyntax.TypeSyntax)returnType.Green, explicitInterfaceSpecifier == null ? null : (Syntax.InternalSyntax.ExplicitInterfaceSpecifierSyntax)explicitInterfaceSpecifier.Green, (Syntax.InternalSyntax.SyntaxToken)identifier.Node!, typeParameterList == null ? null : (Syntax.InternalSyntax.TypeParameterListSyntax)typeParameterList.Green, (Syntax.InternalSyntax.ParameterListSyntax)parameterList.Green, constraintClauses.Node.ToGreenList<Syntax.InternalSyntax.TypeParameterConstraintClauseSyntax>(), body == null ? null : (Syntax.InternalSyntax.BlockSyntax)body.Green, expressionBody == null ? null : (Syntax.InternalSyntax.ArrowExpressionClauseSyntax)expressionBody.Green, (Syntax.InternalSyntax.SyntaxToken?)semicolonToken.Node).CreateRed();
         }
 
@@ -6790,10 +5222,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             => SyntaxFactory.MethodDeclaration(default, default(SyntaxTokenList), returnType, default, SyntaxFactory.Identifier(identifier), default, SyntaxFactory.ParameterList(), default, default, default, default);
 
         /// <summary>Creates a new OperatorDeclarationSyntax instance.</summary>
-        public static OperatorDeclarationSyntax OperatorDeclaration(SyntaxList<AttributeListSyntax> attributeLists, SyntaxTokenList modifiers, TypeSyntax returnType, ExplicitInterfaceSpecifierSyntax? explicitInterfaceSpecifier, SyntaxToken operatorKeyword, SyntaxToken operatorToken, ParameterListSyntax parameterList, BlockSyntax? body, ArrowExpressionClauseSyntax? expressionBody, SyntaxToken semicolonToken)
+        public static OperatorDeclarationSyntax OperatorDeclaration(SyntaxList<AttributeListSyntax> attributeLists, SyntaxTokenList modifiers, TypeSyntax returnType, ExplicitInterfaceSpecifierSyntax? explicitInterfaceSpecifier, SyntaxToken operatorKeyword, SyntaxToken checkedKeyword, SyntaxToken operatorToken, ParameterListSyntax parameterList, BlockSyntax? body, ArrowExpressionClauseSyntax? expressionBody, SyntaxToken semicolonToken)
         {
             if (returnType == null) throw new ArgumentNullException(nameof(returnType));
             if (operatorKeyword.Kind() != SyntaxKind.OperatorKeyword) throw new ArgumentException(nameof(operatorKeyword));
+            switch (checkedKeyword.Kind())
+            {
+                case SyntaxKind.CheckedKeyword:
+                case SyntaxKind.None: break;
+                default: throw new ArgumentException(nameof(checkedKeyword));
+            }
             switch (operatorToken.Kind())
             {
                 case SyntaxKind.PlusToken:
@@ -6807,6 +5245,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.PercentToken:
                 case SyntaxKind.LessThanLessThanToken:
                 case SyntaxKind.GreaterThanGreaterThanToken:
+                case SyntaxKind.GreaterThanGreaterThanGreaterThanToken:
                 case SyntaxKind.BarToken:
                 case SyntaxKind.AmpersandToken:
                 case SyntaxKind.CaretToken:
@@ -6828,43 +5267,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.None: break;
                 default: throw new ArgumentException(nameof(semicolonToken));
             }
-            // <Metalama> This change is generated. See Modifications.md for details.
-            returnType = Metalama.Compiler.TreeTracker.TrackIfNeeded(returnType);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            explicitInterfaceSpecifier = Metalama.Compiler.TreeTracker.TrackIfNeeded(explicitInterfaceSpecifier);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            operatorKeyword = Metalama.Compiler.TreeTracker.TrackIfNeeded(operatorKeyword);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            operatorToken = Metalama.Compiler.TreeTracker.TrackIfNeeded(operatorToken);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            parameterList = Metalama.Compiler.TreeTracker.TrackIfNeeded(parameterList);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            body = Metalama.Compiler.TreeTracker.TrackIfNeeded(body);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            expressionBody = Metalama.Compiler.TreeTracker.TrackIfNeeded(expressionBody);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            semicolonToken = Metalama.Compiler.TreeTracker.TrackIfNeeded(semicolonToken);
-            // </Metalama>
-            return (OperatorDeclarationSyntax)Syntax.InternalSyntax.SyntaxFactory.OperatorDeclaration(attributeLists.Node.ToGreenList<Syntax.InternalSyntax.AttributeListSyntax>(), modifiers.Node.ToGreenList<Syntax.InternalSyntax.SyntaxToken>(), (Syntax.InternalSyntax.TypeSyntax)returnType.Green, explicitInterfaceSpecifier == null ? null : (Syntax.InternalSyntax.ExplicitInterfaceSpecifierSyntax)explicitInterfaceSpecifier.Green, (Syntax.InternalSyntax.SyntaxToken)operatorKeyword.Node!, (Syntax.InternalSyntax.SyntaxToken)operatorToken.Node!, (Syntax.InternalSyntax.ParameterListSyntax)parameterList.Green, body == null ? null : (Syntax.InternalSyntax.BlockSyntax)body.Green, expressionBody == null ? null : (Syntax.InternalSyntax.ArrowExpressionClauseSyntax)expressionBody.Green, (Syntax.InternalSyntax.SyntaxToken?)semicolonToken.Node).CreateRed();
+            return (OperatorDeclarationSyntax)Syntax.InternalSyntax.SyntaxFactory.OperatorDeclaration(attributeLists.Node.ToGreenList<Syntax.InternalSyntax.AttributeListSyntax>(), modifiers.Node.ToGreenList<Syntax.InternalSyntax.SyntaxToken>(), (Syntax.InternalSyntax.TypeSyntax)returnType.Green, explicitInterfaceSpecifier == null ? null : (Syntax.InternalSyntax.ExplicitInterfaceSpecifierSyntax)explicitInterfaceSpecifier.Green, (Syntax.InternalSyntax.SyntaxToken)operatorKeyword.Node!, (Syntax.InternalSyntax.SyntaxToken?)checkedKeyword.Node, (Syntax.InternalSyntax.SyntaxToken)operatorToken.Node!, (Syntax.InternalSyntax.ParameterListSyntax)parameterList.Green, body == null ? null : (Syntax.InternalSyntax.BlockSyntax)body.Green, expressionBody == null ? null : (Syntax.InternalSyntax.ArrowExpressionClauseSyntax)expressionBody.Green, (Syntax.InternalSyntax.SyntaxToken?)semicolonToken.Node).CreateRed();
         }
 
         /// <summary>Creates a new OperatorDeclarationSyntax instance.</summary>
         public static OperatorDeclarationSyntax OperatorDeclaration(SyntaxList<AttributeListSyntax> attributeLists, SyntaxTokenList modifiers, TypeSyntax returnType, ExplicitInterfaceSpecifierSyntax? explicitInterfaceSpecifier, SyntaxToken operatorToken, ParameterListSyntax parameterList, BlockSyntax? body, ArrowExpressionClauseSyntax? expressionBody)
-            => SyntaxFactory.OperatorDeclaration(attributeLists, modifiers, returnType, explicitInterfaceSpecifier, SyntaxFactory.Token(SyntaxKind.OperatorKeyword), operatorToken, parameterList, body, expressionBody, default);
+            => SyntaxFactory.OperatorDeclaration(attributeLists, modifiers, returnType, explicitInterfaceSpecifier, SyntaxFactory.Token(SyntaxKind.OperatorKeyword), default, operatorToken, parameterList, body, expressionBody, default);
 
         /// <summary>Creates a new OperatorDeclarationSyntax instance.</summary>
         public static OperatorDeclarationSyntax OperatorDeclaration(TypeSyntax returnType, SyntaxToken operatorToken)
-            => SyntaxFactory.OperatorDeclaration(default, default(SyntaxTokenList), returnType, default, SyntaxFactory.Token(SyntaxKind.OperatorKeyword), operatorToken, SyntaxFactory.ParameterList(), default, default, default);
+            => SyntaxFactory.OperatorDeclaration(default, default(SyntaxTokenList), returnType, default, SyntaxFactory.Token(SyntaxKind.OperatorKeyword), default, operatorToken, SyntaxFactory.ParameterList(), default, default, default);
 
         /// <summary>Creates a new ConversionOperatorDeclarationSyntax instance.</summary>
-        public static ConversionOperatorDeclarationSyntax ConversionOperatorDeclaration(SyntaxList<AttributeListSyntax> attributeLists, SyntaxTokenList modifiers, SyntaxToken implicitOrExplicitKeyword, ExplicitInterfaceSpecifierSyntax? explicitInterfaceSpecifier, SyntaxToken operatorKeyword, TypeSyntax type, ParameterListSyntax parameterList, BlockSyntax? body, ArrowExpressionClauseSyntax? expressionBody, SyntaxToken semicolonToken)
+        public static ConversionOperatorDeclarationSyntax ConversionOperatorDeclaration(SyntaxList<AttributeListSyntax> attributeLists, SyntaxTokenList modifiers, SyntaxToken implicitOrExplicitKeyword, ExplicitInterfaceSpecifierSyntax? explicitInterfaceSpecifier, SyntaxToken operatorKeyword, SyntaxToken checkedKeyword, TypeSyntax type, ParameterListSyntax parameterList, BlockSyntax? body, ArrowExpressionClauseSyntax? expressionBody, SyntaxToken semicolonToken)
         {
             switch (implicitOrExplicitKeyword.Kind())
             {
@@ -6873,6 +5288,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 default: throw new ArgumentException(nameof(implicitOrExplicitKeyword));
             }
             if (operatorKeyword.Kind() != SyntaxKind.OperatorKeyword) throw new ArgumentException(nameof(operatorKeyword));
+            switch (checkedKeyword.Kind())
+            {
+                case SyntaxKind.CheckedKeyword:
+                case SyntaxKind.None: break;
+                default: throw new ArgumentException(nameof(checkedKeyword));
+            }
             if (type == null) throw new ArgumentNullException(nameof(type));
             if (parameterList == null) throw new ArgumentNullException(nameof(parameterList));
             switch (semicolonToken.Kind())
@@ -6881,40 +5302,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.None: break;
                 default: throw new ArgumentException(nameof(semicolonToken));
             }
-            // <Metalama> This change is generated. See Modifications.md for details.
-            implicitOrExplicitKeyword = Metalama.Compiler.TreeTracker.TrackIfNeeded(implicitOrExplicitKeyword);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            explicitInterfaceSpecifier = Metalama.Compiler.TreeTracker.TrackIfNeeded(explicitInterfaceSpecifier);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            operatorKeyword = Metalama.Compiler.TreeTracker.TrackIfNeeded(operatorKeyword);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            type = Metalama.Compiler.TreeTracker.TrackIfNeeded(type);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            parameterList = Metalama.Compiler.TreeTracker.TrackIfNeeded(parameterList);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            body = Metalama.Compiler.TreeTracker.TrackIfNeeded(body);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            expressionBody = Metalama.Compiler.TreeTracker.TrackIfNeeded(expressionBody);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            semicolonToken = Metalama.Compiler.TreeTracker.TrackIfNeeded(semicolonToken);
-            // </Metalama>
-            return (ConversionOperatorDeclarationSyntax)Syntax.InternalSyntax.SyntaxFactory.ConversionOperatorDeclaration(attributeLists.Node.ToGreenList<Syntax.InternalSyntax.AttributeListSyntax>(), modifiers.Node.ToGreenList<Syntax.InternalSyntax.SyntaxToken>(), (Syntax.InternalSyntax.SyntaxToken)implicitOrExplicitKeyword.Node!, explicitInterfaceSpecifier == null ? null : (Syntax.InternalSyntax.ExplicitInterfaceSpecifierSyntax)explicitInterfaceSpecifier.Green, (Syntax.InternalSyntax.SyntaxToken)operatorKeyword.Node!, (Syntax.InternalSyntax.TypeSyntax)type.Green, (Syntax.InternalSyntax.ParameterListSyntax)parameterList.Green, body == null ? null : (Syntax.InternalSyntax.BlockSyntax)body.Green, expressionBody == null ? null : (Syntax.InternalSyntax.ArrowExpressionClauseSyntax)expressionBody.Green, (Syntax.InternalSyntax.SyntaxToken?)semicolonToken.Node).CreateRed();
+            return (ConversionOperatorDeclarationSyntax)Syntax.InternalSyntax.SyntaxFactory.ConversionOperatorDeclaration(attributeLists.Node.ToGreenList<Syntax.InternalSyntax.AttributeListSyntax>(), modifiers.Node.ToGreenList<Syntax.InternalSyntax.SyntaxToken>(), (Syntax.InternalSyntax.SyntaxToken)implicitOrExplicitKeyword.Node!, explicitInterfaceSpecifier == null ? null : (Syntax.InternalSyntax.ExplicitInterfaceSpecifierSyntax)explicitInterfaceSpecifier.Green, (Syntax.InternalSyntax.SyntaxToken)operatorKeyword.Node!, (Syntax.InternalSyntax.SyntaxToken?)checkedKeyword.Node, (Syntax.InternalSyntax.TypeSyntax)type.Green, (Syntax.InternalSyntax.ParameterListSyntax)parameterList.Green, body == null ? null : (Syntax.InternalSyntax.BlockSyntax)body.Green, expressionBody == null ? null : (Syntax.InternalSyntax.ArrowExpressionClauseSyntax)expressionBody.Green, (Syntax.InternalSyntax.SyntaxToken?)semicolonToken.Node).CreateRed();
         }
 
         /// <summary>Creates a new ConversionOperatorDeclarationSyntax instance.</summary>
         public static ConversionOperatorDeclarationSyntax ConversionOperatorDeclaration(SyntaxList<AttributeListSyntax> attributeLists, SyntaxTokenList modifiers, SyntaxToken implicitOrExplicitKeyword, ExplicitInterfaceSpecifierSyntax? explicitInterfaceSpecifier, TypeSyntax type, ParameterListSyntax parameterList, BlockSyntax? body, ArrowExpressionClauseSyntax? expressionBody)
-            => SyntaxFactory.ConversionOperatorDeclaration(attributeLists, modifiers, implicitOrExplicitKeyword, explicitInterfaceSpecifier, SyntaxFactory.Token(SyntaxKind.OperatorKeyword), type, parameterList, body, expressionBody, default);
+            => SyntaxFactory.ConversionOperatorDeclaration(attributeLists, modifiers, implicitOrExplicitKeyword, explicitInterfaceSpecifier, SyntaxFactory.Token(SyntaxKind.OperatorKeyword), default, type, parameterList, body, expressionBody, default);
 
         /// <summary>Creates a new ConversionOperatorDeclarationSyntax instance.</summary>
         public static ConversionOperatorDeclarationSyntax ConversionOperatorDeclaration(SyntaxToken implicitOrExplicitKeyword, TypeSyntax type)
-            => SyntaxFactory.ConversionOperatorDeclaration(default, default(SyntaxTokenList), implicitOrExplicitKeyword, default, SyntaxFactory.Token(SyntaxKind.OperatorKeyword), type, SyntaxFactory.ParameterList(), default, default, default);
+            => SyntaxFactory.ConversionOperatorDeclaration(default, default(SyntaxTokenList), implicitOrExplicitKeyword, default, SyntaxFactory.Token(SyntaxKind.OperatorKeyword), default, type, SyntaxFactory.ParameterList(), default, default, default);
 
         /// <summary>Creates a new ConstructorDeclarationSyntax instance.</summary>
         public static ConstructorDeclarationSyntax ConstructorDeclaration(SyntaxList<AttributeListSyntax> attributeLists, SyntaxTokenList modifiers, SyntaxToken identifier, ParameterListSyntax parameterList, ConstructorInitializerSyntax? initializer, BlockSyntax? body, ArrowExpressionClauseSyntax? expressionBody, SyntaxToken semicolonToken)
@@ -6927,24 +5324,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.None: break;
                 default: throw new ArgumentException(nameof(semicolonToken));
             }
-            // <Metalama> This change is generated. See Modifications.md for details.
-            identifier = Metalama.Compiler.TreeTracker.TrackIfNeeded(identifier);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            parameterList = Metalama.Compiler.TreeTracker.TrackIfNeeded(parameterList);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            initializer = Metalama.Compiler.TreeTracker.TrackIfNeeded(initializer);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            body = Metalama.Compiler.TreeTracker.TrackIfNeeded(body);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            expressionBody = Metalama.Compiler.TreeTracker.TrackIfNeeded(expressionBody);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            semicolonToken = Metalama.Compiler.TreeTracker.TrackIfNeeded(semicolonToken);
-            // </Metalama>
             return (ConstructorDeclarationSyntax)Syntax.InternalSyntax.SyntaxFactory.ConstructorDeclaration(attributeLists.Node.ToGreenList<Syntax.InternalSyntax.AttributeListSyntax>(), modifiers.Node.ToGreenList<Syntax.InternalSyntax.SyntaxToken>(), (Syntax.InternalSyntax.SyntaxToken)identifier.Node!, (Syntax.InternalSyntax.ParameterListSyntax)parameterList.Green, initializer == null ? null : (Syntax.InternalSyntax.ConstructorInitializerSyntax)initializer.Green, body == null ? null : (Syntax.InternalSyntax.BlockSyntax)body.Green, expressionBody == null ? null : (Syntax.InternalSyntax.ArrowExpressionClauseSyntax)expressionBody.Green, (Syntax.InternalSyntax.SyntaxToken?)semicolonToken.Node).CreateRed();
         }
 
@@ -6977,15 +5356,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 default: throw new ArgumentException(nameof(thisOrBaseKeyword));
             }
             if (argumentList == null) throw new ArgumentNullException(nameof(argumentList));
-            // <Metalama> This change is generated. See Modifications.md for details.
-            colonToken = Metalama.Compiler.TreeTracker.TrackIfNeeded(colonToken);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            thisOrBaseKeyword = Metalama.Compiler.TreeTracker.TrackIfNeeded(thisOrBaseKeyword);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            argumentList = Metalama.Compiler.TreeTracker.TrackIfNeeded(argumentList);
-            // </Metalama>
             return (ConstructorInitializerSyntax)Syntax.InternalSyntax.SyntaxFactory.ConstructorInitializer(kind, (Syntax.InternalSyntax.SyntaxToken)colonToken.Node!, (Syntax.InternalSyntax.SyntaxToken)thisOrBaseKeyword.Node!, (Syntax.InternalSyntax.ArgumentListSyntax)argumentList.Green).CreateRed();
         }
 
@@ -7013,24 +5383,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.None: break;
                 default: throw new ArgumentException(nameof(semicolonToken));
             }
-            // <Metalama> This change is generated. See Modifications.md for details.
-            tildeToken = Metalama.Compiler.TreeTracker.TrackIfNeeded(tildeToken);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            identifier = Metalama.Compiler.TreeTracker.TrackIfNeeded(identifier);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            parameterList = Metalama.Compiler.TreeTracker.TrackIfNeeded(parameterList);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            body = Metalama.Compiler.TreeTracker.TrackIfNeeded(body);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            expressionBody = Metalama.Compiler.TreeTracker.TrackIfNeeded(expressionBody);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            semicolonToken = Metalama.Compiler.TreeTracker.TrackIfNeeded(semicolonToken);
-            // </Metalama>
             return (DestructorDeclarationSyntax)Syntax.InternalSyntax.SyntaxFactory.DestructorDeclaration(attributeLists.Node.ToGreenList<Syntax.InternalSyntax.AttributeListSyntax>(), modifiers.Node.ToGreenList<Syntax.InternalSyntax.SyntaxToken>(), (Syntax.InternalSyntax.SyntaxToken)tildeToken.Node!, (Syntax.InternalSyntax.SyntaxToken)identifier.Node!, (Syntax.InternalSyntax.ParameterListSyntax)parameterList.Green, body == null ? null : (Syntax.InternalSyntax.BlockSyntax)body.Green, expressionBody == null ? null : (Syntax.InternalSyntax.ArrowExpressionClauseSyntax)expressionBody.Green, (Syntax.InternalSyntax.SyntaxToken?)semicolonToken.Node).CreateRed();
         }
 
@@ -7057,27 +5409,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.None: break;
                 default: throw new ArgumentException(nameof(semicolonToken));
             }
-            // <Metalama> This change is generated. See Modifications.md for details.
-            type = Metalama.Compiler.TreeTracker.TrackIfNeeded(type);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            explicitInterfaceSpecifier = Metalama.Compiler.TreeTracker.TrackIfNeeded(explicitInterfaceSpecifier);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            identifier = Metalama.Compiler.TreeTracker.TrackIfNeeded(identifier);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            accessorList = Metalama.Compiler.TreeTracker.TrackIfNeeded(accessorList);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            expressionBody = Metalama.Compiler.TreeTracker.TrackIfNeeded(expressionBody);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            initializer = Metalama.Compiler.TreeTracker.TrackIfNeeded(initializer);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            semicolonToken = Metalama.Compiler.TreeTracker.TrackIfNeeded(semicolonToken);
-            // </Metalama>
             return (PropertyDeclarationSyntax)Syntax.InternalSyntax.SyntaxFactory.PropertyDeclaration(attributeLists.Node.ToGreenList<Syntax.InternalSyntax.AttributeListSyntax>(), modifiers.Node.ToGreenList<Syntax.InternalSyntax.SyntaxToken>(), (Syntax.InternalSyntax.TypeSyntax)type.Green, explicitInterfaceSpecifier == null ? null : (Syntax.InternalSyntax.ExplicitInterfaceSpecifierSyntax)explicitInterfaceSpecifier.Green, (Syntax.InternalSyntax.SyntaxToken)identifier.Node!, accessorList == null ? null : (Syntax.InternalSyntax.AccessorListSyntax)accessorList.Green, expressionBody == null ? null : (Syntax.InternalSyntax.ArrowExpressionClauseSyntax)expressionBody.Green, initializer == null ? null : (Syntax.InternalSyntax.EqualsValueClauseSyntax)initializer.Green, (Syntax.InternalSyntax.SyntaxToken?)semicolonToken.Node).CreateRed();
         }
 
@@ -7098,12 +5429,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (arrowToken.Kind() != SyntaxKind.EqualsGreaterThanToken) throw new ArgumentException(nameof(arrowToken));
             if (expression == null) throw new ArgumentNullException(nameof(expression));
-            // <Metalama> This change is generated. See Modifications.md for details.
-            arrowToken = Metalama.Compiler.TreeTracker.TrackIfNeeded(arrowToken);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            expression = Metalama.Compiler.TreeTracker.TrackIfNeeded(expression);
-            // </Metalama>
             return (ArrowExpressionClauseSyntax)Syntax.InternalSyntax.SyntaxFactory.ArrowExpressionClause((Syntax.InternalSyntax.SyntaxToken)arrowToken.Node!, (Syntax.InternalSyntax.ExpressionSyntax)expression.Green).CreateRed();
         }
 
@@ -7123,24 +5448,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.None: break;
                 default: throw new ArgumentException(nameof(semicolonToken));
             }
-            // <Metalama> This change is generated. See Modifications.md for details.
-            eventKeyword = Metalama.Compiler.TreeTracker.TrackIfNeeded(eventKeyword);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            type = Metalama.Compiler.TreeTracker.TrackIfNeeded(type);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            explicitInterfaceSpecifier = Metalama.Compiler.TreeTracker.TrackIfNeeded(explicitInterfaceSpecifier);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            identifier = Metalama.Compiler.TreeTracker.TrackIfNeeded(identifier);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            accessorList = Metalama.Compiler.TreeTracker.TrackIfNeeded(accessorList);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            semicolonToken = Metalama.Compiler.TreeTracker.TrackIfNeeded(semicolonToken);
-            // </Metalama>
             return (EventDeclarationSyntax)Syntax.InternalSyntax.SyntaxFactory.EventDeclaration(attributeLists.Node.ToGreenList<Syntax.InternalSyntax.AttributeListSyntax>(), modifiers.Node.ToGreenList<Syntax.InternalSyntax.SyntaxToken>(), (Syntax.InternalSyntax.SyntaxToken)eventKeyword.Node!, (Syntax.InternalSyntax.TypeSyntax)type.Green, explicitInterfaceSpecifier == null ? null : (Syntax.InternalSyntax.ExplicitInterfaceSpecifierSyntax)explicitInterfaceSpecifier.Green, (Syntax.InternalSyntax.SyntaxToken)identifier.Node!, accessorList == null ? null : (Syntax.InternalSyntax.AccessorListSyntax)accessorList.Green, (Syntax.InternalSyntax.SyntaxToken?)semicolonToken.Node).CreateRed();
         }
 
@@ -7168,27 +5475,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.None: break;
                 default: throw new ArgumentException(nameof(semicolonToken));
             }
-            // <Metalama> This change is generated. See Modifications.md for details.
-            type = Metalama.Compiler.TreeTracker.TrackIfNeeded(type);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            explicitInterfaceSpecifier = Metalama.Compiler.TreeTracker.TrackIfNeeded(explicitInterfaceSpecifier);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            thisKeyword = Metalama.Compiler.TreeTracker.TrackIfNeeded(thisKeyword);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            parameterList = Metalama.Compiler.TreeTracker.TrackIfNeeded(parameterList);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            accessorList = Metalama.Compiler.TreeTracker.TrackIfNeeded(accessorList);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            expressionBody = Metalama.Compiler.TreeTracker.TrackIfNeeded(expressionBody);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            semicolonToken = Metalama.Compiler.TreeTracker.TrackIfNeeded(semicolonToken);
-            // </Metalama>
             return (IndexerDeclarationSyntax)Syntax.InternalSyntax.SyntaxFactory.IndexerDeclaration(attributeLists.Node.ToGreenList<Syntax.InternalSyntax.AttributeListSyntax>(), modifiers.Node.ToGreenList<Syntax.InternalSyntax.SyntaxToken>(), (Syntax.InternalSyntax.TypeSyntax)type.Green, explicitInterfaceSpecifier == null ? null : (Syntax.InternalSyntax.ExplicitInterfaceSpecifierSyntax)explicitInterfaceSpecifier.Green, (Syntax.InternalSyntax.SyntaxToken)thisKeyword.Node!, (Syntax.InternalSyntax.BracketedParameterListSyntax)parameterList.Green, accessorList == null ? null : (Syntax.InternalSyntax.AccessorListSyntax)accessorList.Green, expressionBody == null ? null : (Syntax.InternalSyntax.ArrowExpressionClauseSyntax)expressionBody.Green, (Syntax.InternalSyntax.SyntaxToken?)semicolonToken.Node).CreateRed();
         }
 
@@ -7205,12 +5491,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (openBraceToken.Kind() != SyntaxKind.OpenBraceToken) throw new ArgumentException(nameof(openBraceToken));
             if (closeBraceToken.Kind() != SyntaxKind.CloseBraceToken) throw new ArgumentException(nameof(closeBraceToken));
-            // <Metalama> This change is generated. See Modifications.md for details.
-            openBraceToken = Metalama.Compiler.TreeTracker.TrackIfNeeded(openBraceToken);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            closeBraceToken = Metalama.Compiler.TreeTracker.TrackIfNeeded(closeBraceToken);
-            // </Metalama>
             return (AccessorListSyntax)Syntax.InternalSyntax.SyntaxFactory.AccessorList((Syntax.InternalSyntax.SyntaxToken)openBraceToken.Node!, accessors.Node.ToGreenList<Syntax.InternalSyntax.AccessorDeclarationSyntax>(), (Syntax.InternalSyntax.SyntaxToken)closeBraceToken.Node!).CreateRed();
         }
 
@@ -7247,18 +5527,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.None: break;
                 default: throw new ArgumentException(nameof(semicolonToken));
             }
-            // <Metalama> This change is generated. See Modifications.md for details.
-            keyword = Metalama.Compiler.TreeTracker.TrackIfNeeded(keyword);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            body = Metalama.Compiler.TreeTracker.TrackIfNeeded(body);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            expressionBody = Metalama.Compiler.TreeTracker.TrackIfNeeded(expressionBody);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            semicolonToken = Metalama.Compiler.TreeTracker.TrackIfNeeded(semicolonToken);
-            // </Metalama>
             return (AccessorDeclarationSyntax)Syntax.InternalSyntax.SyntaxFactory.AccessorDeclaration(kind, attributeLists.Node.ToGreenList<Syntax.InternalSyntax.AttributeListSyntax>(), modifiers.Node.ToGreenList<Syntax.InternalSyntax.SyntaxToken>(), (Syntax.InternalSyntax.SyntaxToken)keyword.Node!, body == null ? null : (Syntax.InternalSyntax.BlockSyntax)body.Green, expressionBody == null ? null : (Syntax.InternalSyntax.ArrowExpressionClauseSyntax)expressionBody.Green, (Syntax.InternalSyntax.SyntaxToken?)semicolonToken.Node).CreateRed();
         }
 
@@ -7287,12 +5555,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (openParenToken.Kind() != SyntaxKind.OpenParenToken) throw new ArgumentException(nameof(openParenToken));
             if (closeParenToken.Kind() != SyntaxKind.CloseParenToken) throw new ArgumentException(nameof(closeParenToken));
-            // <Metalama> This change is generated. See Modifications.md for details.
-            openParenToken = Metalama.Compiler.TreeTracker.TrackIfNeeded(openParenToken);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            closeParenToken = Metalama.Compiler.TreeTracker.TrackIfNeeded(closeParenToken);
-            // </Metalama>
             return (ParameterListSyntax)Syntax.InternalSyntax.SyntaxFactory.ParameterList((Syntax.InternalSyntax.SyntaxToken)openParenToken.Node!, parameters.Node.ToGreenSeparatedList<Syntax.InternalSyntax.ParameterSyntax>(), (Syntax.InternalSyntax.SyntaxToken)closeParenToken.Node!).CreateRed();
         }
 
@@ -7305,12 +5567,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (openBracketToken.Kind() != SyntaxKind.OpenBracketToken) throw new ArgumentException(nameof(openBracketToken));
             if (closeBracketToken.Kind() != SyntaxKind.CloseBracketToken) throw new ArgumentException(nameof(closeBracketToken));
-            // <Metalama> This change is generated. See Modifications.md for details.
-            openBracketToken = Metalama.Compiler.TreeTracker.TrackIfNeeded(openBracketToken);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            closeBracketToken = Metalama.Compiler.TreeTracker.TrackIfNeeded(closeBracketToken);
-            // </Metalama>
             return (BracketedParameterListSyntax)Syntax.InternalSyntax.SyntaxFactory.BracketedParameterList((Syntax.InternalSyntax.SyntaxToken)openBracketToken.Node!, parameters.Node.ToGreenSeparatedList<Syntax.InternalSyntax.ParameterSyntax>(), (Syntax.InternalSyntax.SyntaxToken)closeBracketToken.Node!).CreateRed();
         }
 
@@ -7319,7 +5575,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             => SyntaxFactory.BracketedParameterList(SyntaxFactory.Token(SyntaxKind.OpenBracketToken), parameters, SyntaxFactory.Token(SyntaxKind.CloseBracketToken));
 
         /// <summary>Creates a new ParameterSyntax instance.</summary>
-        public static ParameterSyntax Parameter(SyntaxList<AttributeListSyntax> attributeLists, SyntaxTokenList modifiers, TypeSyntax? type, SyntaxToken identifier, SyntaxToken exclamationExclamationToken, EqualsValueClauseSyntax? @default)
+        public static ParameterSyntax Parameter(SyntaxList<AttributeListSyntax> attributeLists, SyntaxTokenList modifiers, TypeSyntax? type, SyntaxToken identifier, EqualsValueClauseSyntax? @default)
         {
             switch (identifier.Kind())
             {
@@ -7327,42 +5583,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.ArgListKeyword: break;
                 default: throw new ArgumentException(nameof(identifier));
             }
-            switch (exclamationExclamationToken.Kind())
-            {
-                case SyntaxKind.ExclamationExclamationToken:
-                case SyntaxKind.None: break;
-                default: throw new ArgumentException(nameof(exclamationExclamationToken));
-            }
-            // <Metalama> This change is generated. See Modifications.md for details.
-            type = Metalama.Compiler.TreeTracker.TrackIfNeeded(type);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            identifier = Metalama.Compiler.TreeTracker.TrackIfNeeded(identifier);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            exclamationExclamationToken = Metalama.Compiler.TreeTracker.TrackIfNeeded(exclamationExclamationToken);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            @default = Metalama.Compiler.TreeTracker.TrackIfNeeded(@default);
-            // </Metalama>
-            return (ParameterSyntax)Syntax.InternalSyntax.SyntaxFactory.Parameter(attributeLists.Node.ToGreenList<Syntax.InternalSyntax.AttributeListSyntax>(), modifiers.Node.ToGreenList<Syntax.InternalSyntax.SyntaxToken>(), type == null ? null : (Syntax.InternalSyntax.TypeSyntax)type.Green, (Syntax.InternalSyntax.SyntaxToken)identifier.Node!, (Syntax.InternalSyntax.SyntaxToken?)exclamationExclamationToken.Node, @default == null ? null : (Syntax.InternalSyntax.EqualsValueClauseSyntax)@default.Green).CreateRed();
+            return (ParameterSyntax)Syntax.InternalSyntax.SyntaxFactory.Parameter(attributeLists.Node.ToGreenList<Syntax.InternalSyntax.AttributeListSyntax>(), modifiers.Node.ToGreenList<Syntax.InternalSyntax.SyntaxToken>(), type == null ? null : (Syntax.InternalSyntax.TypeSyntax)type.Green, (Syntax.InternalSyntax.SyntaxToken)identifier.Node!, @default == null ? null : (Syntax.InternalSyntax.EqualsValueClauseSyntax)@default.Green).CreateRed();
         }
 
         /// <summary>Creates a new ParameterSyntax instance.</summary>
-        public static ParameterSyntax Parameter(SyntaxList<AttributeListSyntax> attributeLists, SyntaxTokenList modifiers, TypeSyntax? type, SyntaxToken identifier, EqualsValueClauseSyntax? @default)
-            => SyntaxFactory.Parameter(attributeLists, modifiers, type, identifier, default, @default);
-
-        /// <summary>Creates a new ParameterSyntax instance.</summary>
         public static ParameterSyntax Parameter(SyntaxToken identifier)
-            => SyntaxFactory.Parameter(default, default(SyntaxTokenList), default, identifier, default, default);
+            => SyntaxFactory.Parameter(default, default(SyntaxTokenList), default, identifier, default);
 
         /// <summary>Creates a new FunctionPointerParameterSyntax instance.</summary>
         public static FunctionPointerParameterSyntax FunctionPointerParameter(SyntaxList<AttributeListSyntax> attributeLists, SyntaxTokenList modifiers, TypeSyntax type)
         {
             if (type == null) throw new ArgumentNullException(nameof(type));
-            // <Metalama> This change is generated. See Modifications.md for details.
-            type = Metalama.Compiler.TreeTracker.TrackIfNeeded(type);
-            // </Metalama>
             return (FunctionPointerParameterSyntax)Syntax.InternalSyntax.SyntaxFactory.FunctionPointerParameter(attributeLists.Node.ToGreenList<Syntax.InternalSyntax.AttributeListSyntax>(), modifiers.Node.ToGreenList<Syntax.InternalSyntax.SyntaxToken>(), (Syntax.InternalSyntax.TypeSyntax)type.Green).CreateRed();
         }
 
@@ -7373,9 +5604,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>Creates a new IncompleteMemberSyntax instance.</summary>
         public static IncompleteMemberSyntax IncompleteMember(SyntaxList<AttributeListSyntax> attributeLists, SyntaxTokenList modifiers, TypeSyntax? type)
         {
-            // <Metalama> This change is generated. See Modifications.md for details.
-            type = Metalama.Compiler.TreeTracker.TrackIfNeeded(type);
-            // </Metalama>
             return (IncompleteMemberSyntax)Syntax.InternalSyntax.SyntaxFactory.IncompleteMember(attributeLists.Node.ToGreenList<Syntax.InternalSyntax.AttributeListSyntax>(), modifiers.Node.ToGreenList<Syntax.InternalSyntax.SyntaxToken>(), type == null ? null : (Syntax.InternalSyntax.TypeSyntax)type.Green).CreateRed();
         }
 
@@ -7405,9 +5633,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 default: throw new ArgumentException(nameof(kind));
             }
             if (endOfComment.Kind() != SyntaxKind.EndOfDocumentationCommentToken) throw new ArgumentException(nameof(endOfComment));
-            // <Metalama> This change is generated. See Modifications.md for details.
-            endOfComment = Metalama.Compiler.TreeTracker.TrackIfNeeded(endOfComment);
-            // </Metalama>
             return (DocumentationCommentTriviaSyntax)Syntax.InternalSyntax.SyntaxFactory.DocumentationCommentTrivia(kind, content.Node.ToGreenList<Syntax.InternalSyntax.XmlNodeSyntax>(), (Syntax.InternalSyntax.SyntaxToken)endOfComment.Node!).CreateRed();
         }
 
@@ -7419,9 +5644,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static TypeCrefSyntax TypeCref(TypeSyntax type)
         {
             if (type == null) throw new ArgumentNullException(nameof(type));
-            // <Metalama> This change is generated. See Modifications.md for details.
-            type = Metalama.Compiler.TreeTracker.TrackIfNeeded(type);
-            // </Metalama>
             return (TypeCrefSyntax)Syntax.InternalSyntax.SyntaxFactory.TypeCref((Syntax.InternalSyntax.TypeSyntax)type.Green).CreateRed();
         }
 
@@ -7431,15 +5653,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (container == null) throw new ArgumentNullException(nameof(container));
             if (dotToken.Kind() != SyntaxKind.DotToken) throw new ArgumentException(nameof(dotToken));
             if (member == null) throw new ArgumentNullException(nameof(member));
-            // <Metalama> This change is generated. See Modifications.md for details.
-            container = Metalama.Compiler.TreeTracker.TrackIfNeeded(container);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            dotToken = Metalama.Compiler.TreeTracker.TrackIfNeeded(dotToken);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            member = Metalama.Compiler.TreeTracker.TrackIfNeeded(member);
-            // </Metalama>
             return (QualifiedCrefSyntax)Syntax.InternalSyntax.SyntaxFactory.QualifiedCref((Syntax.InternalSyntax.TypeSyntax)container.Green, (Syntax.InternalSyntax.SyntaxToken)dotToken.Node!, (Syntax.InternalSyntax.MemberCrefSyntax)member.Green).CreateRed();
         }
 
@@ -7451,12 +5664,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static NameMemberCrefSyntax NameMemberCref(TypeSyntax name, CrefParameterListSyntax? parameters)
         {
             if (name == null) throw new ArgumentNullException(nameof(name));
-            // <Metalama> This change is generated. See Modifications.md for details.
-            name = Metalama.Compiler.TreeTracker.TrackIfNeeded(name);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            parameters = Metalama.Compiler.TreeTracker.TrackIfNeeded(parameters);
-            // </Metalama>
             return (NameMemberCrefSyntax)Syntax.InternalSyntax.SyntaxFactory.NameMemberCref((Syntax.InternalSyntax.TypeSyntax)name.Green, parameters == null ? null : (Syntax.InternalSyntax.CrefParameterListSyntax)parameters.Green).CreateRed();
         }
 
@@ -7468,12 +5675,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static IndexerMemberCrefSyntax IndexerMemberCref(SyntaxToken thisKeyword, CrefBracketedParameterListSyntax? parameters)
         {
             if (thisKeyword.Kind() != SyntaxKind.ThisKeyword) throw new ArgumentException(nameof(thisKeyword));
-            // <Metalama> This change is generated. See Modifications.md for details.
-            thisKeyword = Metalama.Compiler.TreeTracker.TrackIfNeeded(thisKeyword);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            parameters = Metalama.Compiler.TreeTracker.TrackIfNeeded(parameters);
-            // </Metalama>
             return (IndexerMemberCrefSyntax)Syntax.InternalSyntax.SyntaxFactory.IndexerMemberCref((Syntax.InternalSyntax.SyntaxToken)thisKeyword.Node!, parameters == null ? null : (Syntax.InternalSyntax.CrefBracketedParameterListSyntax)parameters.Green).CreateRed();
         }
 
@@ -7482,9 +5683,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             => SyntaxFactory.IndexerMemberCref(SyntaxFactory.Token(SyntaxKind.ThisKeyword), parameters);
 
         /// <summary>Creates a new OperatorMemberCrefSyntax instance.</summary>
-        public static OperatorMemberCrefSyntax OperatorMemberCref(SyntaxToken operatorKeyword, SyntaxToken operatorToken, CrefParameterListSyntax? parameters)
+        public static OperatorMemberCrefSyntax OperatorMemberCref(SyntaxToken operatorKeyword, SyntaxToken checkedKeyword, SyntaxToken operatorToken, CrefParameterListSyntax? parameters)
         {
             if (operatorKeyword.Kind() != SyntaxKind.OperatorKeyword) throw new ArgumentException(nameof(operatorKeyword));
+            switch (checkedKeyword.Kind())
+            {
+                case SyntaxKind.CheckedKeyword:
+                case SyntaxKind.None: break;
+                default: throw new ArgumentException(nameof(checkedKeyword));
+            }
             switch (operatorToken.Kind())
             {
                 case SyntaxKind.PlusToken:
@@ -7498,6 +5705,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.PercentToken:
                 case SyntaxKind.LessThanLessThanToken:
                 case SyntaxKind.GreaterThanGreaterThanToken:
+                case SyntaxKind.GreaterThanGreaterThanGreaterThanToken:
                 case SyntaxKind.BarToken:
                 case SyntaxKind.AmpersandToken:
                 case SyntaxKind.CaretToken:
@@ -7511,28 +5719,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.TrueKeyword: break;
                 default: throw new ArgumentException(nameof(operatorToken));
             }
-            // <Metalama> This change is generated. See Modifications.md for details.
-            operatorKeyword = Metalama.Compiler.TreeTracker.TrackIfNeeded(operatorKeyword);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            operatorToken = Metalama.Compiler.TreeTracker.TrackIfNeeded(operatorToken);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            parameters = Metalama.Compiler.TreeTracker.TrackIfNeeded(parameters);
-            // </Metalama>
-            return (OperatorMemberCrefSyntax)Syntax.InternalSyntax.SyntaxFactory.OperatorMemberCref((Syntax.InternalSyntax.SyntaxToken)operatorKeyword.Node!, (Syntax.InternalSyntax.SyntaxToken)operatorToken.Node!, parameters == null ? null : (Syntax.InternalSyntax.CrefParameterListSyntax)parameters.Green).CreateRed();
+            return (OperatorMemberCrefSyntax)Syntax.InternalSyntax.SyntaxFactory.OperatorMemberCref((Syntax.InternalSyntax.SyntaxToken)operatorKeyword.Node!, (Syntax.InternalSyntax.SyntaxToken?)checkedKeyword.Node, (Syntax.InternalSyntax.SyntaxToken)operatorToken.Node!, parameters == null ? null : (Syntax.InternalSyntax.CrefParameterListSyntax)parameters.Green).CreateRed();
         }
 
         /// <summary>Creates a new OperatorMemberCrefSyntax instance.</summary>
         public static OperatorMemberCrefSyntax OperatorMemberCref(SyntaxToken operatorToken, CrefParameterListSyntax? parameters)
-            => SyntaxFactory.OperatorMemberCref(SyntaxFactory.Token(SyntaxKind.OperatorKeyword), operatorToken, parameters);
+            => SyntaxFactory.OperatorMemberCref(SyntaxFactory.Token(SyntaxKind.OperatorKeyword), default, operatorToken, parameters);
 
         /// <summary>Creates a new OperatorMemberCrefSyntax instance.</summary>
         public static OperatorMemberCrefSyntax OperatorMemberCref(SyntaxToken operatorToken)
-            => SyntaxFactory.OperatorMemberCref(SyntaxFactory.Token(SyntaxKind.OperatorKeyword), operatorToken, default);
+            => SyntaxFactory.OperatorMemberCref(SyntaxFactory.Token(SyntaxKind.OperatorKeyword), default, operatorToken, default);
 
         /// <summary>Creates a new ConversionOperatorMemberCrefSyntax instance.</summary>
-        public static ConversionOperatorMemberCrefSyntax ConversionOperatorMemberCref(SyntaxToken implicitOrExplicitKeyword, SyntaxToken operatorKeyword, TypeSyntax type, CrefParameterListSyntax? parameters)
+        public static ConversionOperatorMemberCrefSyntax ConversionOperatorMemberCref(SyntaxToken implicitOrExplicitKeyword, SyntaxToken operatorKeyword, SyntaxToken checkedKeyword, TypeSyntax type, CrefParameterListSyntax? parameters)
         {
             switch (implicitOrExplicitKeyword.Kind())
             {
@@ -7541,41 +5740,29 @@ namespace Microsoft.CodeAnalysis.CSharp
                 default: throw new ArgumentException(nameof(implicitOrExplicitKeyword));
             }
             if (operatorKeyword.Kind() != SyntaxKind.OperatorKeyword) throw new ArgumentException(nameof(operatorKeyword));
+            switch (checkedKeyword.Kind())
+            {
+                case SyntaxKind.CheckedKeyword:
+                case SyntaxKind.None: break;
+                default: throw new ArgumentException(nameof(checkedKeyword));
+            }
             if (type == null) throw new ArgumentNullException(nameof(type));
-            // <Metalama> This change is generated. See Modifications.md for details.
-            implicitOrExplicitKeyword = Metalama.Compiler.TreeTracker.TrackIfNeeded(implicitOrExplicitKeyword);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            operatorKeyword = Metalama.Compiler.TreeTracker.TrackIfNeeded(operatorKeyword);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            type = Metalama.Compiler.TreeTracker.TrackIfNeeded(type);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            parameters = Metalama.Compiler.TreeTracker.TrackIfNeeded(parameters);
-            // </Metalama>
-            return (ConversionOperatorMemberCrefSyntax)Syntax.InternalSyntax.SyntaxFactory.ConversionOperatorMemberCref((Syntax.InternalSyntax.SyntaxToken)implicitOrExplicitKeyword.Node!, (Syntax.InternalSyntax.SyntaxToken)operatorKeyword.Node!, (Syntax.InternalSyntax.TypeSyntax)type.Green, parameters == null ? null : (Syntax.InternalSyntax.CrefParameterListSyntax)parameters.Green).CreateRed();
+            return (ConversionOperatorMemberCrefSyntax)Syntax.InternalSyntax.SyntaxFactory.ConversionOperatorMemberCref((Syntax.InternalSyntax.SyntaxToken)implicitOrExplicitKeyword.Node!, (Syntax.InternalSyntax.SyntaxToken)operatorKeyword.Node!, (Syntax.InternalSyntax.SyntaxToken?)checkedKeyword.Node, (Syntax.InternalSyntax.TypeSyntax)type.Green, parameters == null ? null : (Syntax.InternalSyntax.CrefParameterListSyntax)parameters.Green).CreateRed();
         }
 
         /// <summary>Creates a new ConversionOperatorMemberCrefSyntax instance.</summary>
         public static ConversionOperatorMemberCrefSyntax ConversionOperatorMemberCref(SyntaxToken implicitOrExplicitKeyword, TypeSyntax type, CrefParameterListSyntax? parameters)
-            => SyntaxFactory.ConversionOperatorMemberCref(implicitOrExplicitKeyword, SyntaxFactory.Token(SyntaxKind.OperatorKeyword), type, parameters);
+            => SyntaxFactory.ConversionOperatorMemberCref(implicitOrExplicitKeyword, SyntaxFactory.Token(SyntaxKind.OperatorKeyword), default, type, parameters);
 
         /// <summary>Creates a new ConversionOperatorMemberCrefSyntax instance.</summary>
         public static ConversionOperatorMemberCrefSyntax ConversionOperatorMemberCref(SyntaxToken implicitOrExplicitKeyword, TypeSyntax type)
-            => SyntaxFactory.ConversionOperatorMemberCref(implicitOrExplicitKeyword, SyntaxFactory.Token(SyntaxKind.OperatorKeyword), type, default);
+            => SyntaxFactory.ConversionOperatorMemberCref(implicitOrExplicitKeyword, SyntaxFactory.Token(SyntaxKind.OperatorKeyword), default, type, default);
 
         /// <summary>Creates a new CrefParameterListSyntax instance.</summary>
         public static CrefParameterListSyntax CrefParameterList(SyntaxToken openParenToken, SeparatedSyntaxList<CrefParameterSyntax> parameters, SyntaxToken closeParenToken)
         {
             if (openParenToken.Kind() != SyntaxKind.OpenParenToken) throw new ArgumentException(nameof(openParenToken));
             if (closeParenToken.Kind() != SyntaxKind.CloseParenToken) throw new ArgumentException(nameof(closeParenToken));
-            // <Metalama> This change is generated. See Modifications.md for details.
-            openParenToken = Metalama.Compiler.TreeTracker.TrackIfNeeded(openParenToken);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            closeParenToken = Metalama.Compiler.TreeTracker.TrackIfNeeded(closeParenToken);
-            // </Metalama>
             return (CrefParameterListSyntax)Syntax.InternalSyntax.SyntaxFactory.CrefParameterList((Syntax.InternalSyntax.SyntaxToken)openParenToken.Node!, parameters.Node.ToGreenSeparatedList<Syntax.InternalSyntax.CrefParameterSyntax>(), (Syntax.InternalSyntax.SyntaxToken)closeParenToken.Node!).CreateRed();
         }
 
@@ -7588,12 +5775,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (openBracketToken.Kind() != SyntaxKind.OpenBracketToken) throw new ArgumentException(nameof(openBracketToken));
             if (closeBracketToken.Kind() != SyntaxKind.CloseBracketToken) throw new ArgumentException(nameof(closeBracketToken));
-            // <Metalama> This change is generated. See Modifications.md for details.
-            openBracketToken = Metalama.Compiler.TreeTracker.TrackIfNeeded(openBracketToken);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            closeBracketToken = Metalama.Compiler.TreeTracker.TrackIfNeeded(closeBracketToken);
-            // </Metalama>
             return (CrefBracketedParameterListSyntax)Syntax.InternalSyntax.SyntaxFactory.CrefBracketedParameterList((Syntax.InternalSyntax.SyntaxToken)openBracketToken.Node!, parameters.Node.ToGreenSeparatedList<Syntax.InternalSyntax.CrefParameterSyntax>(), (Syntax.InternalSyntax.SyntaxToken)closeBracketToken.Node!).CreateRed();
         }
 
@@ -7613,12 +5794,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 default: throw new ArgumentException(nameof(refKindKeyword));
             }
             if (type == null) throw new ArgumentNullException(nameof(type));
-            // <Metalama> This change is generated. See Modifications.md for details.
-            refKindKeyword = Metalama.Compiler.TreeTracker.TrackIfNeeded(refKindKeyword);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            type = Metalama.Compiler.TreeTracker.TrackIfNeeded(type);
-            // </Metalama>
             return (CrefParameterSyntax)Syntax.InternalSyntax.SyntaxFactory.CrefParameter((Syntax.InternalSyntax.SyntaxToken?)refKindKeyword.Node, (Syntax.InternalSyntax.TypeSyntax)type.Green).CreateRed();
         }
 
@@ -7631,12 +5806,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (startTag == null) throw new ArgumentNullException(nameof(startTag));
             if (endTag == null) throw new ArgumentNullException(nameof(endTag));
-            // <Metalama> This change is generated. See Modifications.md for details.
-            startTag = Metalama.Compiler.TreeTracker.TrackIfNeeded(startTag);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            endTag = Metalama.Compiler.TreeTracker.TrackIfNeeded(endTag);
-            // </Metalama>
             return (XmlElementSyntax)Syntax.InternalSyntax.SyntaxFactory.XmlElement((Syntax.InternalSyntax.XmlElementStartTagSyntax)startTag.Green, content.Node.ToGreenList<Syntax.InternalSyntax.XmlNodeSyntax>(), (Syntax.InternalSyntax.XmlElementEndTagSyntax)endTag.Green).CreateRed();
         }
 
@@ -7650,15 +5819,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (lessThanToken.Kind() != SyntaxKind.LessThanToken) throw new ArgumentException(nameof(lessThanToken));
             if (name == null) throw new ArgumentNullException(nameof(name));
             if (greaterThanToken.Kind() != SyntaxKind.GreaterThanToken) throw new ArgumentException(nameof(greaterThanToken));
-            // <Metalama> This change is generated. See Modifications.md for details.
-            lessThanToken = Metalama.Compiler.TreeTracker.TrackIfNeeded(lessThanToken);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            name = Metalama.Compiler.TreeTracker.TrackIfNeeded(name);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            greaterThanToken = Metalama.Compiler.TreeTracker.TrackIfNeeded(greaterThanToken);
-            // </Metalama>
             return (XmlElementStartTagSyntax)Syntax.InternalSyntax.SyntaxFactory.XmlElementStartTag((Syntax.InternalSyntax.SyntaxToken)lessThanToken.Node!, (Syntax.InternalSyntax.XmlNameSyntax)name.Green, attributes.Node.ToGreenList<Syntax.InternalSyntax.XmlAttributeSyntax>(), (Syntax.InternalSyntax.SyntaxToken)greaterThanToken.Node!).CreateRed();
         }
 
@@ -7676,15 +5836,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (lessThanSlashToken.Kind() != SyntaxKind.LessThanSlashToken) throw new ArgumentException(nameof(lessThanSlashToken));
             if (name == null) throw new ArgumentNullException(nameof(name));
             if (greaterThanToken.Kind() != SyntaxKind.GreaterThanToken) throw new ArgumentException(nameof(greaterThanToken));
-            // <Metalama> This change is generated. See Modifications.md for details.
-            lessThanSlashToken = Metalama.Compiler.TreeTracker.TrackIfNeeded(lessThanSlashToken);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            name = Metalama.Compiler.TreeTracker.TrackIfNeeded(name);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            greaterThanToken = Metalama.Compiler.TreeTracker.TrackIfNeeded(greaterThanToken);
-            // </Metalama>
             return (XmlElementEndTagSyntax)Syntax.InternalSyntax.SyntaxFactory.XmlElementEndTag((Syntax.InternalSyntax.SyntaxToken)lessThanSlashToken.Node!, (Syntax.InternalSyntax.XmlNameSyntax)name.Green, (Syntax.InternalSyntax.SyntaxToken)greaterThanToken.Node!).CreateRed();
         }
 
@@ -7698,15 +5849,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (lessThanToken.Kind() != SyntaxKind.LessThanToken) throw new ArgumentException(nameof(lessThanToken));
             if (name == null) throw new ArgumentNullException(nameof(name));
             if (slashGreaterThanToken.Kind() != SyntaxKind.SlashGreaterThanToken) throw new ArgumentException(nameof(slashGreaterThanToken));
-            // <Metalama> This change is generated. See Modifications.md for details.
-            lessThanToken = Metalama.Compiler.TreeTracker.TrackIfNeeded(lessThanToken);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            name = Metalama.Compiler.TreeTracker.TrackIfNeeded(name);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            slashGreaterThanToken = Metalama.Compiler.TreeTracker.TrackIfNeeded(slashGreaterThanToken);
-            // </Metalama>
             return (XmlEmptyElementSyntax)Syntax.InternalSyntax.SyntaxFactory.XmlEmptyElement((Syntax.InternalSyntax.SyntaxToken)lessThanToken.Node!, (Syntax.InternalSyntax.XmlNameSyntax)name.Green, attributes.Node.ToGreenList<Syntax.InternalSyntax.XmlAttributeSyntax>(), (Syntax.InternalSyntax.SyntaxToken)slashGreaterThanToken.Node!).CreateRed();
         }
 
@@ -7722,12 +5864,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static XmlNameSyntax XmlName(XmlPrefixSyntax? prefix, SyntaxToken localName)
         {
             if (localName.Kind() != SyntaxKind.IdentifierToken) throw new ArgumentException(nameof(localName));
-            // <Metalama> This change is generated. See Modifications.md for details.
-            prefix = Metalama.Compiler.TreeTracker.TrackIfNeeded(prefix);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            localName = Metalama.Compiler.TreeTracker.TrackIfNeeded(localName);
-            // </Metalama>
             return (XmlNameSyntax)Syntax.InternalSyntax.SyntaxFactory.XmlName(prefix == null ? null : (Syntax.InternalSyntax.XmlPrefixSyntax)prefix.Green, (Syntax.InternalSyntax.SyntaxToken)localName.Node!).CreateRed();
         }
 
@@ -7744,12 +5880,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (prefix.Kind() != SyntaxKind.IdentifierToken) throw new ArgumentException(nameof(prefix));
             if (colonToken.Kind() != SyntaxKind.ColonToken) throw new ArgumentException(nameof(colonToken));
-            // <Metalama> This change is generated. See Modifications.md for details.
-            prefix = Metalama.Compiler.TreeTracker.TrackIfNeeded(prefix);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            colonToken = Metalama.Compiler.TreeTracker.TrackIfNeeded(colonToken);
-            // </Metalama>
             return (XmlPrefixSyntax)Syntax.InternalSyntax.SyntaxFactory.XmlPrefix((Syntax.InternalSyntax.SyntaxToken)prefix.Node!, (Syntax.InternalSyntax.SyntaxToken)colonToken.Node!).CreateRed();
         }
 
@@ -7778,18 +5908,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.DoubleQuoteToken: break;
                 default: throw new ArgumentException(nameof(endQuoteToken));
             }
-            // <Metalama> This change is generated. See Modifications.md for details.
-            name = Metalama.Compiler.TreeTracker.TrackIfNeeded(name);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            equalsToken = Metalama.Compiler.TreeTracker.TrackIfNeeded(equalsToken);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            startQuoteToken = Metalama.Compiler.TreeTracker.TrackIfNeeded(startQuoteToken);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            endQuoteToken = Metalama.Compiler.TreeTracker.TrackIfNeeded(endQuoteToken);
-            // </Metalama>
             return (XmlTextAttributeSyntax)Syntax.InternalSyntax.SyntaxFactory.XmlTextAttribute((Syntax.InternalSyntax.XmlNameSyntax)name.Green, (Syntax.InternalSyntax.SyntaxToken)equalsToken.Node!, (Syntax.InternalSyntax.SyntaxToken)startQuoteToken.Node!, textTokens.Node.ToGreenList<Syntax.InternalSyntax.SyntaxToken>(), (Syntax.InternalSyntax.SyntaxToken)endQuoteToken.Node!).CreateRed();
         }
 
@@ -7819,21 +5937,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.DoubleQuoteToken: break;
                 default: throw new ArgumentException(nameof(endQuoteToken));
             }
-            // <Metalama> This change is generated. See Modifications.md for details.
-            name = Metalama.Compiler.TreeTracker.TrackIfNeeded(name);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            equalsToken = Metalama.Compiler.TreeTracker.TrackIfNeeded(equalsToken);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            startQuoteToken = Metalama.Compiler.TreeTracker.TrackIfNeeded(startQuoteToken);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            cref = Metalama.Compiler.TreeTracker.TrackIfNeeded(cref);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            endQuoteToken = Metalama.Compiler.TreeTracker.TrackIfNeeded(endQuoteToken);
-            // </Metalama>
             return (XmlCrefAttributeSyntax)Syntax.InternalSyntax.SyntaxFactory.XmlCrefAttribute((Syntax.InternalSyntax.XmlNameSyntax)name.Green, (Syntax.InternalSyntax.SyntaxToken)equalsToken.Node!, (Syntax.InternalSyntax.SyntaxToken)startQuoteToken.Node!, (Syntax.InternalSyntax.CrefSyntax)cref.Green, (Syntax.InternalSyntax.SyntaxToken)endQuoteToken.Node!).CreateRed();
         }
 
@@ -7859,21 +5962,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.DoubleQuoteToken: break;
                 default: throw new ArgumentException(nameof(endQuoteToken));
             }
-            // <Metalama> This change is generated. See Modifications.md for details.
-            name = Metalama.Compiler.TreeTracker.TrackIfNeeded(name);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            equalsToken = Metalama.Compiler.TreeTracker.TrackIfNeeded(equalsToken);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            startQuoteToken = Metalama.Compiler.TreeTracker.TrackIfNeeded(startQuoteToken);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            identifier = Metalama.Compiler.TreeTracker.TrackIfNeeded(identifier);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            endQuoteToken = Metalama.Compiler.TreeTracker.TrackIfNeeded(endQuoteToken);
-            // </Metalama>
             return (XmlNameAttributeSyntax)Syntax.InternalSyntax.SyntaxFactory.XmlNameAttribute((Syntax.InternalSyntax.XmlNameSyntax)name.Green, (Syntax.InternalSyntax.SyntaxToken)equalsToken.Node!, (Syntax.InternalSyntax.SyntaxToken)startQuoteToken.Node!, (Syntax.InternalSyntax.IdentifierNameSyntax)identifier.Green, (Syntax.InternalSyntax.SyntaxToken)endQuoteToken.Node!).CreateRed();
         }
 
@@ -7900,12 +5988,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (startCDataToken.Kind() != SyntaxKind.XmlCDataStartToken) throw new ArgumentException(nameof(startCDataToken));
             if (endCDataToken.Kind() != SyntaxKind.XmlCDataEndToken) throw new ArgumentException(nameof(endCDataToken));
-            // <Metalama> This change is generated. See Modifications.md for details.
-            startCDataToken = Metalama.Compiler.TreeTracker.TrackIfNeeded(startCDataToken);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            endCDataToken = Metalama.Compiler.TreeTracker.TrackIfNeeded(endCDataToken);
-            // </Metalama>
             return (XmlCDataSectionSyntax)Syntax.InternalSyntax.SyntaxFactory.XmlCDataSection((Syntax.InternalSyntax.SyntaxToken)startCDataToken.Node!, textTokens.Node.ToGreenList<Syntax.InternalSyntax.SyntaxToken>(), (Syntax.InternalSyntax.SyntaxToken)endCDataToken.Node!).CreateRed();
         }
 
@@ -7919,15 +6001,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (startProcessingInstructionToken.Kind() != SyntaxKind.XmlProcessingInstructionStartToken) throw new ArgumentException(nameof(startProcessingInstructionToken));
             if (name == null) throw new ArgumentNullException(nameof(name));
             if (endProcessingInstructionToken.Kind() != SyntaxKind.XmlProcessingInstructionEndToken) throw new ArgumentException(nameof(endProcessingInstructionToken));
-            // <Metalama> This change is generated. See Modifications.md for details.
-            startProcessingInstructionToken = Metalama.Compiler.TreeTracker.TrackIfNeeded(startProcessingInstructionToken);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            name = Metalama.Compiler.TreeTracker.TrackIfNeeded(name);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            endProcessingInstructionToken = Metalama.Compiler.TreeTracker.TrackIfNeeded(endProcessingInstructionToken);
-            // </Metalama>
             return (XmlProcessingInstructionSyntax)Syntax.InternalSyntax.SyntaxFactory.XmlProcessingInstruction((Syntax.InternalSyntax.SyntaxToken)startProcessingInstructionToken.Node!, (Syntax.InternalSyntax.XmlNameSyntax)name.Green, textTokens.Node.ToGreenList<Syntax.InternalSyntax.SyntaxToken>(), (Syntax.InternalSyntax.SyntaxToken)endProcessingInstructionToken.Node!).CreateRed();
         }
 
@@ -7944,12 +6017,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (lessThanExclamationMinusMinusToken.Kind() != SyntaxKind.XmlCommentStartToken) throw new ArgumentException(nameof(lessThanExclamationMinusMinusToken));
             if (minusMinusGreaterThanToken.Kind() != SyntaxKind.XmlCommentEndToken) throw new ArgumentException(nameof(minusMinusGreaterThanToken));
-            // <Metalama> This change is generated. See Modifications.md for details.
-            lessThanExclamationMinusMinusToken = Metalama.Compiler.TreeTracker.TrackIfNeeded(lessThanExclamationMinusMinusToken);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            minusMinusGreaterThanToken = Metalama.Compiler.TreeTracker.TrackIfNeeded(minusMinusGreaterThanToken);
-            // </Metalama>
             return (XmlCommentSyntax)Syntax.InternalSyntax.SyntaxFactory.XmlComment((Syntax.InternalSyntax.SyntaxToken)lessThanExclamationMinusMinusToken.Node!, textTokens.Node.ToGreenList<Syntax.InternalSyntax.SyntaxToken>(), (Syntax.InternalSyntax.SyntaxToken)minusMinusGreaterThanToken.Node!).CreateRed();
         }
 
@@ -7964,18 +6031,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (ifKeyword.Kind() != SyntaxKind.IfKeyword) throw new ArgumentException(nameof(ifKeyword));
             if (condition == null) throw new ArgumentNullException(nameof(condition));
             if (endOfDirectiveToken.Kind() != SyntaxKind.EndOfDirectiveToken) throw new ArgumentException(nameof(endOfDirectiveToken));
-            // <Metalama> This change is generated. See Modifications.md for details.
-            hashToken = Metalama.Compiler.TreeTracker.TrackIfNeeded(hashToken);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            ifKeyword = Metalama.Compiler.TreeTracker.TrackIfNeeded(ifKeyword);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            condition = Metalama.Compiler.TreeTracker.TrackIfNeeded(condition);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            endOfDirectiveToken = Metalama.Compiler.TreeTracker.TrackIfNeeded(endOfDirectiveToken);
-            // </Metalama>
             return (IfDirectiveTriviaSyntax)Syntax.InternalSyntax.SyntaxFactory.IfDirectiveTrivia((Syntax.InternalSyntax.SyntaxToken)hashToken.Node!, (Syntax.InternalSyntax.SyntaxToken)ifKeyword.Node!, (Syntax.InternalSyntax.ExpressionSyntax)condition.Green, (Syntax.InternalSyntax.SyntaxToken)endOfDirectiveToken.Node!, isActive, branchTaken, conditionValue).CreateRed();
         }
 
@@ -7990,18 +6045,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (elifKeyword.Kind() != SyntaxKind.ElifKeyword) throw new ArgumentException(nameof(elifKeyword));
             if (condition == null) throw new ArgumentNullException(nameof(condition));
             if (endOfDirectiveToken.Kind() != SyntaxKind.EndOfDirectiveToken) throw new ArgumentException(nameof(endOfDirectiveToken));
-            // <Metalama> This change is generated. See Modifications.md for details.
-            hashToken = Metalama.Compiler.TreeTracker.TrackIfNeeded(hashToken);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            elifKeyword = Metalama.Compiler.TreeTracker.TrackIfNeeded(elifKeyword);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            condition = Metalama.Compiler.TreeTracker.TrackIfNeeded(condition);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            endOfDirectiveToken = Metalama.Compiler.TreeTracker.TrackIfNeeded(endOfDirectiveToken);
-            // </Metalama>
             return (ElifDirectiveTriviaSyntax)Syntax.InternalSyntax.SyntaxFactory.ElifDirectiveTrivia((Syntax.InternalSyntax.SyntaxToken)hashToken.Node!, (Syntax.InternalSyntax.SyntaxToken)elifKeyword.Node!, (Syntax.InternalSyntax.ExpressionSyntax)condition.Green, (Syntax.InternalSyntax.SyntaxToken)endOfDirectiveToken.Node!, isActive, branchTaken, conditionValue).CreateRed();
         }
 
@@ -8015,15 +6058,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (hashToken.Kind() != SyntaxKind.HashToken) throw new ArgumentException(nameof(hashToken));
             if (elseKeyword.Kind() != SyntaxKind.ElseKeyword) throw new ArgumentException(nameof(elseKeyword));
             if (endOfDirectiveToken.Kind() != SyntaxKind.EndOfDirectiveToken) throw new ArgumentException(nameof(endOfDirectiveToken));
-            // <Metalama> This change is generated. See Modifications.md for details.
-            hashToken = Metalama.Compiler.TreeTracker.TrackIfNeeded(hashToken);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            elseKeyword = Metalama.Compiler.TreeTracker.TrackIfNeeded(elseKeyword);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            endOfDirectiveToken = Metalama.Compiler.TreeTracker.TrackIfNeeded(endOfDirectiveToken);
-            // </Metalama>
             return (ElseDirectiveTriviaSyntax)Syntax.InternalSyntax.SyntaxFactory.ElseDirectiveTrivia((Syntax.InternalSyntax.SyntaxToken)hashToken.Node!, (Syntax.InternalSyntax.SyntaxToken)elseKeyword.Node!, (Syntax.InternalSyntax.SyntaxToken)endOfDirectiveToken.Node!, isActive, branchTaken).CreateRed();
         }
 
@@ -8037,15 +6071,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (hashToken.Kind() != SyntaxKind.HashToken) throw new ArgumentException(nameof(hashToken));
             if (endIfKeyword.Kind() != SyntaxKind.EndIfKeyword) throw new ArgumentException(nameof(endIfKeyword));
             if (endOfDirectiveToken.Kind() != SyntaxKind.EndOfDirectiveToken) throw new ArgumentException(nameof(endOfDirectiveToken));
-            // <Metalama> This change is generated. See Modifications.md for details.
-            hashToken = Metalama.Compiler.TreeTracker.TrackIfNeeded(hashToken);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            endIfKeyword = Metalama.Compiler.TreeTracker.TrackIfNeeded(endIfKeyword);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            endOfDirectiveToken = Metalama.Compiler.TreeTracker.TrackIfNeeded(endOfDirectiveToken);
-            // </Metalama>
             return (EndIfDirectiveTriviaSyntax)Syntax.InternalSyntax.SyntaxFactory.EndIfDirectiveTrivia((Syntax.InternalSyntax.SyntaxToken)hashToken.Node!, (Syntax.InternalSyntax.SyntaxToken)endIfKeyword.Node!, (Syntax.InternalSyntax.SyntaxToken)endOfDirectiveToken.Node!, isActive).CreateRed();
         }
 
@@ -8059,15 +6084,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (hashToken.Kind() != SyntaxKind.HashToken) throw new ArgumentException(nameof(hashToken));
             if (regionKeyword.Kind() != SyntaxKind.RegionKeyword) throw new ArgumentException(nameof(regionKeyword));
             if (endOfDirectiveToken.Kind() != SyntaxKind.EndOfDirectiveToken) throw new ArgumentException(nameof(endOfDirectiveToken));
-            // <Metalama> This change is generated. See Modifications.md for details.
-            hashToken = Metalama.Compiler.TreeTracker.TrackIfNeeded(hashToken);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            regionKeyword = Metalama.Compiler.TreeTracker.TrackIfNeeded(regionKeyword);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            endOfDirectiveToken = Metalama.Compiler.TreeTracker.TrackIfNeeded(endOfDirectiveToken);
-            // </Metalama>
             return (RegionDirectiveTriviaSyntax)Syntax.InternalSyntax.SyntaxFactory.RegionDirectiveTrivia((Syntax.InternalSyntax.SyntaxToken)hashToken.Node!, (Syntax.InternalSyntax.SyntaxToken)regionKeyword.Node!, (Syntax.InternalSyntax.SyntaxToken)endOfDirectiveToken.Node!, isActive).CreateRed();
         }
 
@@ -8081,15 +6097,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (hashToken.Kind() != SyntaxKind.HashToken) throw new ArgumentException(nameof(hashToken));
             if (endRegionKeyword.Kind() != SyntaxKind.EndRegionKeyword) throw new ArgumentException(nameof(endRegionKeyword));
             if (endOfDirectiveToken.Kind() != SyntaxKind.EndOfDirectiveToken) throw new ArgumentException(nameof(endOfDirectiveToken));
-            // <Metalama> This change is generated. See Modifications.md for details.
-            hashToken = Metalama.Compiler.TreeTracker.TrackIfNeeded(hashToken);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            endRegionKeyword = Metalama.Compiler.TreeTracker.TrackIfNeeded(endRegionKeyword);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            endOfDirectiveToken = Metalama.Compiler.TreeTracker.TrackIfNeeded(endOfDirectiveToken);
-            // </Metalama>
             return (EndRegionDirectiveTriviaSyntax)Syntax.InternalSyntax.SyntaxFactory.EndRegionDirectiveTrivia((Syntax.InternalSyntax.SyntaxToken)hashToken.Node!, (Syntax.InternalSyntax.SyntaxToken)endRegionKeyword.Node!, (Syntax.InternalSyntax.SyntaxToken)endOfDirectiveToken.Node!, isActive).CreateRed();
         }
 
@@ -8103,15 +6110,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (hashToken.Kind() != SyntaxKind.HashToken) throw new ArgumentException(nameof(hashToken));
             if (errorKeyword.Kind() != SyntaxKind.ErrorKeyword) throw new ArgumentException(nameof(errorKeyword));
             if (endOfDirectiveToken.Kind() != SyntaxKind.EndOfDirectiveToken) throw new ArgumentException(nameof(endOfDirectiveToken));
-            // <Metalama> This change is generated. See Modifications.md for details.
-            hashToken = Metalama.Compiler.TreeTracker.TrackIfNeeded(hashToken);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            errorKeyword = Metalama.Compiler.TreeTracker.TrackIfNeeded(errorKeyword);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            endOfDirectiveToken = Metalama.Compiler.TreeTracker.TrackIfNeeded(endOfDirectiveToken);
-            // </Metalama>
             return (ErrorDirectiveTriviaSyntax)Syntax.InternalSyntax.SyntaxFactory.ErrorDirectiveTrivia((Syntax.InternalSyntax.SyntaxToken)hashToken.Node!, (Syntax.InternalSyntax.SyntaxToken)errorKeyword.Node!, (Syntax.InternalSyntax.SyntaxToken)endOfDirectiveToken.Node!, isActive).CreateRed();
         }
 
@@ -8125,15 +6123,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (hashToken.Kind() != SyntaxKind.HashToken) throw new ArgumentException(nameof(hashToken));
             if (warningKeyword.Kind() != SyntaxKind.WarningKeyword) throw new ArgumentException(nameof(warningKeyword));
             if (endOfDirectiveToken.Kind() != SyntaxKind.EndOfDirectiveToken) throw new ArgumentException(nameof(endOfDirectiveToken));
-            // <Metalama> This change is generated. See Modifications.md for details.
-            hashToken = Metalama.Compiler.TreeTracker.TrackIfNeeded(hashToken);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            warningKeyword = Metalama.Compiler.TreeTracker.TrackIfNeeded(warningKeyword);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            endOfDirectiveToken = Metalama.Compiler.TreeTracker.TrackIfNeeded(endOfDirectiveToken);
-            // </Metalama>
             return (WarningDirectiveTriviaSyntax)Syntax.InternalSyntax.SyntaxFactory.WarningDirectiveTrivia((Syntax.InternalSyntax.SyntaxToken)hashToken.Node!, (Syntax.InternalSyntax.SyntaxToken)warningKeyword.Node!, (Syntax.InternalSyntax.SyntaxToken)endOfDirectiveToken.Node!, isActive).CreateRed();
         }
 
@@ -8146,15 +6135,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (hashToken.Kind() != SyntaxKind.HashToken) throw new ArgumentException(nameof(hashToken));
             if (endOfDirectiveToken.Kind() != SyntaxKind.EndOfDirectiveToken) throw new ArgumentException(nameof(endOfDirectiveToken));
-            // <Metalama> This change is generated. See Modifications.md for details.
-            hashToken = Metalama.Compiler.TreeTracker.TrackIfNeeded(hashToken);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            identifier = Metalama.Compiler.TreeTracker.TrackIfNeeded(identifier);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            endOfDirectiveToken = Metalama.Compiler.TreeTracker.TrackIfNeeded(endOfDirectiveToken);
-            // </Metalama>
             return (BadDirectiveTriviaSyntax)Syntax.InternalSyntax.SyntaxFactory.BadDirectiveTrivia((Syntax.InternalSyntax.SyntaxToken)hashToken.Node!, (Syntax.InternalSyntax.SyntaxToken)identifier.Node!, (Syntax.InternalSyntax.SyntaxToken)endOfDirectiveToken.Node!, isActive).CreateRed();
         }
 
@@ -8169,18 +6149,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (defineKeyword.Kind() != SyntaxKind.DefineKeyword) throw new ArgumentException(nameof(defineKeyword));
             if (name.Kind() != SyntaxKind.IdentifierToken) throw new ArgumentException(nameof(name));
             if (endOfDirectiveToken.Kind() != SyntaxKind.EndOfDirectiveToken) throw new ArgumentException(nameof(endOfDirectiveToken));
-            // <Metalama> This change is generated. See Modifications.md for details.
-            hashToken = Metalama.Compiler.TreeTracker.TrackIfNeeded(hashToken);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            defineKeyword = Metalama.Compiler.TreeTracker.TrackIfNeeded(defineKeyword);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            name = Metalama.Compiler.TreeTracker.TrackIfNeeded(name);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            endOfDirectiveToken = Metalama.Compiler.TreeTracker.TrackIfNeeded(endOfDirectiveToken);
-            // </Metalama>
             return (DefineDirectiveTriviaSyntax)Syntax.InternalSyntax.SyntaxFactory.DefineDirectiveTrivia((Syntax.InternalSyntax.SyntaxToken)hashToken.Node!, (Syntax.InternalSyntax.SyntaxToken)defineKeyword.Node!, (Syntax.InternalSyntax.SyntaxToken)name.Node!, (Syntax.InternalSyntax.SyntaxToken)endOfDirectiveToken.Node!, isActive).CreateRed();
         }
 
@@ -8199,18 +6167,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (undefKeyword.Kind() != SyntaxKind.UndefKeyword) throw new ArgumentException(nameof(undefKeyword));
             if (name.Kind() != SyntaxKind.IdentifierToken) throw new ArgumentException(nameof(name));
             if (endOfDirectiveToken.Kind() != SyntaxKind.EndOfDirectiveToken) throw new ArgumentException(nameof(endOfDirectiveToken));
-            // <Metalama> This change is generated. See Modifications.md for details.
-            hashToken = Metalama.Compiler.TreeTracker.TrackIfNeeded(hashToken);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            undefKeyword = Metalama.Compiler.TreeTracker.TrackIfNeeded(undefKeyword);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            name = Metalama.Compiler.TreeTracker.TrackIfNeeded(name);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            endOfDirectiveToken = Metalama.Compiler.TreeTracker.TrackIfNeeded(endOfDirectiveToken);
-            // </Metalama>
             return (UndefDirectiveTriviaSyntax)Syntax.InternalSyntax.SyntaxFactory.UndefDirectiveTrivia((Syntax.InternalSyntax.SyntaxToken)hashToken.Node!, (Syntax.InternalSyntax.SyntaxToken)undefKeyword.Node!, (Syntax.InternalSyntax.SyntaxToken)name.Node!, (Syntax.InternalSyntax.SyntaxToken)endOfDirectiveToken.Node!, isActive).CreateRed();
         }
 
@@ -8241,21 +6197,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 default: throw new ArgumentException(nameof(file));
             }
             if (endOfDirectiveToken.Kind() != SyntaxKind.EndOfDirectiveToken) throw new ArgumentException(nameof(endOfDirectiveToken));
-            // <Metalama> This change is generated. See Modifications.md for details.
-            hashToken = Metalama.Compiler.TreeTracker.TrackIfNeeded(hashToken);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            lineKeyword = Metalama.Compiler.TreeTracker.TrackIfNeeded(lineKeyword);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            line = Metalama.Compiler.TreeTracker.TrackIfNeeded(line);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            file = Metalama.Compiler.TreeTracker.TrackIfNeeded(file);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            endOfDirectiveToken = Metalama.Compiler.TreeTracker.TrackIfNeeded(endOfDirectiveToken);
-            // </Metalama>
             return (LineDirectiveTriviaSyntax)Syntax.InternalSyntax.SyntaxFactory.LineDirectiveTrivia((Syntax.InternalSyntax.SyntaxToken)hashToken.Node!, (Syntax.InternalSyntax.SyntaxToken)lineKeyword.Node!, (Syntax.InternalSyntax.SyntaxToken)line.Node!, (Syntax.InternalSyntax.SyntaxToken?)file.Node, (Syntax.InternalSyntax.SyntaxToken)endOfDirectiveToken.Node!, isActive).CreateRed();
         }
 
@@ -8275,21 +6216,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (commaToken.Kind() != SyntaxKind.CommaToken) throw new ArgumentException(nameof(commaToken));
             if (character.Kind() != SyntaxKind.NumericLiteralToken) throw new ArgumentException(nameof(character));
             if (closeParenToken.Kind() != SyntaxKind.CloseParenToken) throw new ArgumentException(nameof(closeParenToken));
-            // <Metalama> This change is generated. See Modifications.md for details.
-            openParenToken = Metalama.Compiler.TreeTracker.TrackIfNeeded(openParenToken);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            line = Metalama.Compiler.TreeTracker.TrackIfNeeded(line);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            commaToken = Metalama.Compiler.TreeTracker.TrackIfNeeded(commaToken);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            character = Metalama.Compiler.TreeTracker.TrackIfNeeded(character);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            closeParenToken = Metalama.Compiler.TreeTracker.TrackIfNeeded(closeParenToken);
-            // </Metalama>
             return (LineDirectivePositionSyntax)Syntax.InternalSyntax.SyntaxFactory.LineDirectivePosition((Syntax.InternalSyntax.SyntaxToken)openParenToken.Node!, (Syntax.InternalSyntax.SyntaxToken)line.Node!, (Syntax.InternalSyntax.SyntaxToken)commaToken.Node!, (Syntax.InternalSyntax.SyntaxToken)character.Node!, (Syntax.InternalSyntax.SyntaxToken)closeParenToken.Node!).CreateRed();
         }
 
@@ -8313,30 +6239,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             if (file.Kind() != SyntaxKind.StringLiteralToken) throw new ArgumentException(nameof(file));
             if (endOfDirectiveToken.Kind() != SyntaxKind.EndOfDirectiveToken) throw new ArgumentException(nameof(endOfDirectiveToken));
-            // <Metalama> This change is generated. See Modifications.md for details.
-            hashToken = Metalama.Compiler.TreeTracker.TrackIfNeeded(hashToken);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            lineKeyword = Metalama.Compiler.TreeTracker.TrackIfNeeded(lineKeyword);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            start = Metalama.Compiler.TreeTracker.TrackIfNeeded(start);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            minusToken = Metalama.Compiler.TreeTracker.TrackIfNeeded(minusToken);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            end = Metalama.Compiler.TreeTracker.TrackIfNeeded(end);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            characterOffset = Metalama.Compiler.TreeTracker.TrackIfNeeded(characterOffset);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            file = Metalama.Compiler.TreeTracker.TrackIfNeeded(file);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            endOfDirectiveToken = Metalama.Compiler.TreeTracker.TrackIfNeeded(endOfDirectiveToken);
-            // </Metalama>
             return (LineSpanDirectiveTriviaSyntax)Syntax.InternalSyntax.SyntaxFactory.LineSpanDirectiveTrivia((Syntax.InternalSyntax.SyntaxToken)hashToken.Node!, (Syntax.InternalSyntax.SyntaxToken)lineKeyword.Node!, (Syntax.InternalSyntax.LineDirectivePositionSyntax)start.Green, (Syntax.InternalSyntax.SyntaxToken)minusToken.Node!, (Syntax.InternalSyntax.LineDirectivePositionSyntax)end.Green, (Syntax.InternalSyntax.SyntaxToken?)characterOffset.Node, (Syntax.InternalSyntax.SyntaxToken)file.Node!, (Syntax.InternalSyntax.SyntaxToken)endOfDirectiveToken.Node!, isActive).CreateRed();
         }
 
@@ -8361,21 +6263,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 default: throw new ArgumentException(nameof(disableOrRestoreKeyword));
             }
             if (endOfDirectiveToken.Kind() != SyntaxKind.EndOfDirectiveToken) throw new ArgumentException(nameof(endOfDirectiveToken));
-            // <Metalama> This change is generated. See Modifications.md for details.
-            hashToken = Metalama.Compiler.TreeTracker.TrackIfNeeded(hashToken);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            pragmaKeyword = Metalama.Compiler.TreeTracker.TrackIfNeeded(pragmaKeyword);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            warningKeyword = Metalama.Compiler.TreeTracker.TrackIfNeeded(warningKeyword);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            disableOrRestoreKeyword = Metalama.Compiler.TreeTracker.TrackIfNeeded(disableOrRestoreKeyword);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            endOfDirectiveToken = Metalama.Compiler.TreeTracker.TrackIfNeeded(endOfDirectiveToken);
-            // </Metalama>
             return (PragmaWarningDirectiveTriviaSyntax)Syntax.InternalSyntax.SyntaxFactory.PragmaWarningDirectiveTrivia((Syntax.InternalSyntax.SyntaxToken)hashToken.Node!, (Syntax.InternalSyntax.SyntaxToken)pragmaKeyword.Node!, (Syntax.InternalSyntax.SyntaxToken)warningKeyword.Node!, (Syntax.InternalSyntax.SyntaxToken)disableOrRestoreKeyword.Node!, errorCodes.Node.ToGreenSeparatedList<Syntax.InternalSyntax.ExpressionSyntax>(), (Syntax.InternalSyntax.SyntaxToken)endOfDirectiveToken.Node!, isActive).CreateRed();
         }
 
@@ -8397,27 +6284,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (guid.Kind() != SyntaxKind.StringLiteralToken) throw new ArgumentException(nameof(guid));
             if (bytes.Kind() != SyntaxKind.StringLiteralToken) throw new ArgumentException(nameof(bytes));
             if (endOfDirectiveToken.Kind() != SyntaxKind.EndOfDirectiveToken) throw new ArgumentException(nameof(endOfDirectiveToken));
-            // <Metalama> This change is generated. See Modifications.md for details.
-            hashToken = Metalama.Compiler.TreeTracker.TrackIfNeeded(hashToken);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            pragmaKeyword = Metalama.Compiler.TreeTracker.TrackIfNeeded(pragmaKeyword);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            checksumKeyword = Metalama.Compiler.TreeTracker.TrackIfNeeded(checksumKeyword);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            file = Metalama.Compiler.TreeTracker.TrackIfNeeded(file);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            guid = Metalama.Compiler.TreeTracker.TrackIfNeeded(guid);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            bytes = Metalama.Compiler.TreeTracker.TrackIfNeeded(bytes);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            endOfDirectiveToken = Metalama.Compiler.TreeTracker.TrackIfNeeded(endOfDirectiveToken);
-            // </Metalama>
             return (PragmaChecksumDirectiveTriviaSyntax)Syntax.InternalSyntax.SyntaxFactory.PragmaChecksumDirectiveTrivia((Syntax.InternalSyntax.SyntaxToken)hashToken.Node!, (Syntax.InternalSyntax.SyntaxToken)pragmaKeyword.Node!, (Syntax.InternalSyntax.SyntaxToken)checksumKeyword.Node!, (Syntax.InternalSyntax.SyntaxToken)file.Node!, (Syntax.InternalSyntax.SyntaxToken)guid.Node!, (Syntax.InternalSyntax.SyntaxToken)bytes.Node!, (Syntax.InternalSyntax.SyntaxToken)endOfDirectiveToken.Node!, isActive).CreateRed();
         }
 
@@ -8432,18 +6298,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (referenceKeyword.Kind() != SyntaxKind.ReferenceKeyword) throw new ArgumentException(nameof(referenceKeyword));
             if (file.Kind() != SyntaxKind.StringLiteralToken) throw new ArgumentException(nameof(file));
             if (endOfDirectiveToken.Kind() != SyntaxKind.EndOfDirectiveToken) throw new ArgumentException(nameof(endOfDirectiveToken));
-            // <Metalama> This change is generated. See Modifications.md for details.
-            hashToken = Metalama.Compiler.TreeTracker.TrackIfNeeded(hashToken);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            referenceKeyword = Metalama.Compiler.TreeTracker.TrackIfNeeded(referenceKeyword);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            file = Metalama.Compiler.TreeTracker.TrackIfNeeded(file);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            endOfDirectiveToken = Metalama.Compiler.TreeTracker.TrackIfNeeded(endOfDirectiveToken);
-            // </Metalama>
             return (ReferenceDirectiveTriviaSyntax)Syntax.InternalSyntax.SyntaxFactory.ReferenceDirectiveTrivia((Syntax.InternalSyntax.SyntaxToken)hashToken.Node!, (Syntax.InternalSyntax.SyntaxToken)referenceKeyword.Node!, (Syntax.InternalSyntax.SyntaxToken)file.Node!, (Syntax.InternalSyntax.SyntaxToken)endOfDirectiveToken.Node!, isActive).CreateRed();
         }
 
@@ -8458,18 +6312,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (loadKeyword.Kind() != SyntaxKind.LoadKeyword) throw new ArgumentException(nameof(loadKeyword));
             if (file.Kind() != SyntaxKind.StringLiteralToken) throw new ArgumentException(nameof(file));
             if (endOfDirectiveToken.Kind() != SyntaxKind.EndOfDirectiveToken) throw new ArgumentException(nameof(endOfDirectiveToken));
-            // <Metalama> This change is generated. See Modifications.md for details.
-            hashToken = Metalama.Compiler.TreeTracker.TrackIfNeeded(hashToken);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            loadKeyword = Metalama.Compiler.TreeTracker.TrackIfNeeded(loadKeyword);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            file = Metalama.Compiler.TreeTracker.TrackIfNeeded(file);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            endOfDirectiveToken = Metalama.Compiler.TreeTracker.TrackIfNeeded(endOfDirectiveToken);
-            // </Metalama>
             return (LoadDirectiveTriviaSyntax)Syntax.InternalSyntax.SyntaxFactory.LoadDirectiveTrivia((Syntax.InternalSyntax.SyntaxToken)hashToken.Node!, (Syntax.InternalSyntax.SyntaxToken)loadKeyword.Node!, (Syntax.InternalSyntax.SyntaxToken)file.Node!, (Syntax.InternalSyntax.SyntaxToken)endOfDirectiveToken.Node!, isActive).CreateRed();
         }
 
@@ -8483,15 +6325,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (hashToken.Kind() != SyntaxKind.HashToken) throw new ArgumentException(nameof(hashToken));
             if (exclamationToken.Kind() != SyntaxKind.ExclamationToken) throw new ArgumentException(nameof(exclamationToken));
             if (endOfDirectiveToken.Kind() != SyntaxKind.EndOfDirectiveToken) throw new ArgumentException(nameof(endOfDirectiveToken));
-            // <Metalama> This change is generated. See Modifications.md for details.
-            hashToken = Metalama.Compiler.TreeTracker.TrackIfNeeded(hashToken);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            exclamationToken = Metalama.Compiler.TreeTracker.TrackIfNeeded(exclamationToken);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            endOfDirectiveToken = Metalama.Compiler.TreeTracker.TrackIfNeeded(endOfDirectiveToken);
-            // </Metalama>
             return (ShebangDirectiveTriviaSyntax)Syntax.InternalSyntax.SyntaxFactory.ShebangDirectiveTrivia((Syntax.InternalSyntax.SyntaxToken)hashToken.Node!, (Syntax.InternalSyntax.SyntaxToken)exclamationToken.Node!, (Syntax.InternalSyntax.SyntaxToken)endOfDirectiveToken.Node!, isActive).CreateRed();
         }
 
@@ -8519,21 +6352,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 default: throw new ArgumentException(nameof(targetToken));
             }
             if (endOfDirectiveToken.Kind() != SyntaxKind.EndOfDirectiveToken) throw new ArgumentException(nameof(endOfDirectiveToken));
-            // <Metalama> This change is generated. See Modifications.md for details.
-            hashToken = Metalama.Compiler.TreeTracker.TrackIfNeeded(hashToken);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            nullableKeyword = Metalama.Compiler.TreeTracker.TrackIfNeeded(nullableKeyword);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            settingToken = Metalama.Compiler.TreeTracker.TrackIfNeeded(settingToken);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            targetToken = Metalama.Compiler.TreeTracker.TrackIfNeeded(targetToken);
-            // </Metalama>
-            // <Metalama> This change is generated. See Modifications.md for details.
-            endOfDirectiveToken = Metalama.Compiler.TreeTracker.TrackIfNeeded(endOfDirectiveToken);
-            // </Metalama>
             return (NullableDirectiveTriviaSyntax)Syntax.InternalSyntax.SyntaxFactory.NullableDirectiveTrivia((Syntax.InternalSyntax.SyntaxToken)hashToken.Node!, (Syntax.InternalSyntax.SyntaxToken)nullableKeyword.Node!, (Syntax.InternalSyntax.SyntaxToken)settingToken.Node!, (Syntax.InternalSyntax.SyntaxToken?)targetToken.Node, (Syntax.InternalSyntax.SyntaxToken)endOfDirectiveToken.Node!, isActive).CreateRed();
         }
 

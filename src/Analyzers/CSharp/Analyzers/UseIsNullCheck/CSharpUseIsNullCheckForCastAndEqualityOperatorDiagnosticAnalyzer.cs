@@ -43,18 +43,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIsNullCheck
 
         private void AnalyzeSyntax(SyntaxNodeAnalysisContext context)
         {
-            var cancellationToken = context.CancellationToken;
-
-            var semanticModel = context.SemanticModel;
-            var syntaxTree = semanticModel.SyntaxTree;
-
-            var option = context.Options.GetOption(CodeStyleOptions2.PreferIsNullCheckOverReferenceEqualityMethod, semanticModel.Language, syntaxTree, cancellationToken);
+            var option = context.GetAnalyzerOptions().PreferIsNullCheckOverReferenceEqualityMethod;
             if (!option.Value)
             {
                 return;
             }
 
             var binaryExpression = (BinaryExpressionSyntax)context.Node;
+            var semanticModel = context.SemanticModel;
 
             if (!IsObjectCastAndNullCheck(semanticModel, binaryExpression.Left, binaryExpression.Right) &&
                 !IsObjectCastAndNullCheck(semanticModel, binaryExpression.Right, binaryExpression.Left))

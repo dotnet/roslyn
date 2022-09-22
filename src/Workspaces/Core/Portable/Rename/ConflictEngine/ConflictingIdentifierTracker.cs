@@ -16,13 +16,12 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
         /// via the AddIdentifier and RemoveIdentifier helpers.
         /// </summary>
         private readonly Dictionary<string, List<SyntaxToken>> _currentIdentifiersInScope;
-        private readonly HashSet<SyntaxToken> _conflictingTokensToReport;
+        private readonly HashSet<SyntaxToken> _conflictingTokensToReport = new();
         private readonly SyntaxToken _tokenBeingRenamed;
 
         public ConflictingIdentifierTracker(SyntaxToken tokenBeingRenamed, IEqualityComparer<string> identifierComparer)
         {
             _currentIdentifiersInScope = new Dictionary<string, List<SyntaxToken>>(identifierComparer);
-            _conflictingTokensToReport = new HashSet<SyntaxToken>();
             _tokenBeingRenamed = tokenBeingRenamed;
         }
 

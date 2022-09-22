@@ -65,6 +65,9 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         protected abstract SyntaxNode? GetExpressionToPlaceAwaitInFrontOf(SyntaxTree syntaxTree, int position, CancellationToken cancellationToken);
         protected abstract SyntaxToken? GetDotTokenLeftOfPosition(SyntaxTree syntaxTree, int position, CancellationToken cancellationToken);
 
+        protected virtual bool IsAwaitKeywordContext(SyntaxContext syntaxContext)
+            => syntaxContext.IsAwaitKeywordContext;
+
         private static bool IsConfigureAwaitable(Compilation compilation, ITypeSymbol symbol)
         {
             var originalDefinition = symbol.OriginalDefinition;
@@ -85,10 +88,9 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             if (syntaxFacts.IsInNonUserCode(syntaxTree, position, cancellationToken))
                 return;
 
-            var semanticModel = await document.ReuseExistingSpeculativeModelAsync(position, cancellationToken).ConfigureAwait(false);
-            var syntaxContext = document.GetRequiredLanguageService<ISyntaxContextService>().CreateContext(document, semanticModel, position, cancellationToken);
+            var syntaxContext = await context.GetSyntaxContextWithExistingSpeculativeModelAsync(document, cancellationToken).ConfigureAwait(false);
 
-            var isAwaitKeywordContext = syntaxContext.IsAwaitKeywordContext();
+            var isAwaitKeywordContext = IsAwaitKeywordContext(syntaxContext);
             var dotAwaitContext = GetDotAwaitKeywordContext(syntaxContext, cancellationToken);
             if (!isAwaitKeywordContext && dotAwaitContext == DotAwaitContext.None)
                 return;
@@ -210,7 +212,11 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
             var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
             var newText = text.WithChanges(builder);
-            return CompletionChange.Create(Utilities.Collapse(newText, builder.ToImmutableArray()));
+            var allChanges = builder.ToImmutable();
+
+            // Collapse all text changes down to a single change (for clients that only care about that), but also keep
+            // all the individual changes around for clients that prefer the fine-grained information.
+            return CompletionChange.Create(Utilities.Collapse(newText, allChanges), allChanges);
         }
 
         /// <summary>
@@ -243,9 +249,9 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                     {
                         // We have a awaitable type left of the dot, that is not yet awaited.
                         // We need to check if await is valid at the insertion position.
-                        var syntaxContextAtInsertationPosition = syntaxContext.GetLanguageService<ISyntaxContextService>().CreateContext(
+                        var syntaxContextAtInsertationPosition = syntaxContext.GetRequiredLanguageService<ISyntaxContextService>().CreateContext(
                             document, syntaxContext.SemanticModel, potentialAwaitableExpression.SpanStart, cancellationToken);
-                        if (syntaxContextAtInsertationPosition.IsAwaitKeywordContext())
+                        if (syntaxContextAtInsertationPosition.IsAwaitKeywordContext)
                         {
                             return IsConfigureAwaitable(syntaxContext.SemanticModel.Compilation, symbol)
                                 ? DotAwaitContext.AwaitAndConfigureAwait

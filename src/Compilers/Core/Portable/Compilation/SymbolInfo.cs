@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis
     {
         internal static readonly SymbolInfo None = new SymbolInfo(null, ImmutableArray<ISymbol>.Empty, CandidateReason.None);
 
-        private ImmutableArray<ISymbol> _candidateSymbols;
+        private readonly ImmutableArray<ISymbol> _candidateSymbols;
 
         /// <summary>
         /// The symbol that was referred to by the syntax node, if any. Returns null if the given

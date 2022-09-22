@@ -144,6 +144,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.PublicModel
 
         protected abstract TResult Accept<TResult>(SymbolVisitor<TResult> visitor);
 
+        TResult ISymbol.Accept<TArgument, TResult>(SymbolVisitor<TArgument, TResult> visitor, TArgument argument)
+        {
+            return Accept(visitor, argument);
+        }
+
+        protected abstract TResult Accept<TArgument, TResult>(SymbolVisitor<TArgument, TResult> visitor, TArgument argument);
+
         string ISymbol.GetDocumentationCommentId()
         {
             return UnderlyingSymbol.GetDocumentationCommentId();

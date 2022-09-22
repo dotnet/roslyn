@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Linq;
 using System.Runtime.CompilerServices;
@@ -37,18 +35,16 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             var solution = project.Solution;
             var services = solution.Workspace.Services;
             var solutionKey = SolutionKey.ToSolutionKey(solution);
-            var projectFilePath = project.FilePath;
-            var database = solution.Options.GetPersistentStorageDatabase();
+            var projectFilePath = project.FilePath ?? "";
 
             var result = TryLoadOrCreateAsync(
                 services,
                 solutionKey,
                 checksum,
-                database,
                 loadOnly,
                 createAsync: () => CreateSourceSymbolTreeInfoAsync(project, checksum, cancellationToken),
                 keySuffix: "_Source_" + project.FilePath,
-                tryReadObject: reader => TryReadSymbolTreeInfo(reader, checksum, nodes => GetSpellCheckerAsync(services, solutionKey, checksum, database, projectFilePath, nodes)),
+                tryReadObject: reader => TryReadSymbolTreeInfo(reader, checksum, nodes => GetSpellCheckerAsync(services, solutionKey, checksum, projectFilePath, nodes)),
                 cancellationToken: cancellationToken);
             Contract.ThrowIfNull(result, "Result should never be null as we passed 'loadOnly: false'.");
             return result;
@@ -124,12 +120,11 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             var solution = project.Solution;
             var services = solution.Workspace.Services;
             var solutionKey = SolutionKey.ToSolutionKey(solution);
-            var database = solution.Options.GetPersistentStorageDatabase();
 
             return CreateSymbolTreeInfo(
-                services, solutionKey, checksum, database, project.FilePath, unsortedNodes.ToImmutableAndFree(),
+                services, solutionKey, checksum, project.FilePath ?? "", unsortedNodes.ToImmutableAndFree(),
                 inheritanceMap: new OrderPreservingMultiDictionary<string, string>(),
-                simpleMethods: null);
+                receiverTypeNameToExtensionMethodMap: null);
         }
 
         // generate nodes for the global namespace an all descendants

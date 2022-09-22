@@ -164,7 +164,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return type.GetEnumUnderlyingType() ?? type;
         }
 
-        public static bool IsNativeIntegerOrNullableNativeIntegerType(this TypeSymbol? type)
+        public static bool IsNativeIntegerOrNullableThereof(this TypeSymbol? type)
         {
             return type?.StrippedType().IsNativeIntegerType == true;
         }
@@ -474,6 +474,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             return false;
+        }
+
+        internal static bool IsErrorTypeOrRefLikeType(this TypeSymbol type)
+        {
+            return type.IsErrorType() || type.IsRefLikeType;
         }
 
         private static readonly string[] s_expressionsNamespaceName = { "Expressions", "Linq", MetadataHelpers.SystemString, "" };
@@ -904,7 +909,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        private static bool IsAsRestrictive(NamedTypeSymbol s1, Symbol sym2, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+        internal static bool IsAsRestrictive(this Symbol s1, Symbol sym2, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
             Accessibility acc1 = s1.DeclaredAccessibility;
 
@@ -1149,15 +1154,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private static readonly Func<TypeSymbol, object?, bool, bool> s_containsDynamicPredicate = (type, unused1, unused2) => type.TypeKind == TypeKind.Dynamic;
 
-        internal static bool ContainsNativeInteger(this TypeSymbol type)
+        internal static bool ContainsNativeIntegerWrapperType(this TypeSymbol type)
         {
-            var result = type.VisitType((type, unused1, unused2) => type.IsNativeIntegerType, (object?)null, canDigThroughNullable: true);
+            var result = type.VisitType((type, unused1, unused2) => type.IsNativeIntegerWrapperType, (object?)null, canDigThroughNullable: true);
             return result is object;
         }
 
-        internal static bool ContainsNativeInteger(this TypeWithAnnotations type)
+        internal static bool ContainsNativeIntegerWrapperType(this TypeWithAnnotations type)
         {
-            return type.Type?.ContainsNativeInteger() == true;
+            return type.Type?.ContainsNativeIntegerWrapperType() == true;
         }
 
         internal static bool ContainsErrorType(this TypeSymbol type)
@@ -1263,6 +1268,39 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             return false;
+        }
+
+        internal static bool IsSpanChar(this TypeSymbol type)
+        {
+            return type is NamedTypeSymbol
+            {
+                ContainingNamespace: { Name: "System", ContainingNamespace: { IsGlobalNamespace: true } },
+                MetadataName: "Span`1",
+                TypeArgumentsWithAnnotationsNoUseSiteDiagnostics: { Length: 1 } arguments,
+            }
+            && arguments[0].SpecialType == SpecialType.System_Char;
+        }
+
+        internal static bool IsReadOnlySpanChar(this TypeSymbol type)
+        {
+            return type is NamedTypeSymbol
+            {
+                ContainingNamespace: { Name: "System", ContainingNamespace: { IsGlobalNamespace: true } },
+                MetadataName: "ReadOnlySpan`1",
+                TypeArgumentsWithAnnotationsNoUseSiteDiagnostics: { Length: 1 } arguments,
+            }
+            && arguments[0].SpecialType == SpecialType.System_Char;
+        }
+
+        internal static bool IsSpanOrReadOnlySpanChar(this TypeSymbol type)
+        {
+            return type is NamedTypeSymbol
+            {
+                ContainingNamespace: { Name: "System", ContainingNamespace: { IsGlobalNamespace: true } },
+                MetadataName: "ReadOnlySpan`1" or "Span`1",
+                TypeArgumentsWithAnnotationsNoUseSiteDiagnostics: { Length: 1 } arguments,
+            }
+            && arguments[0].SpecialType == SpecialType.System_Char;
         }
 
 #pragma warning disable CA1200 // Avoid using cref tags with a prefix
@@ -1947,7 +1985,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     addIfNotNull(builder, compilation.SynthesizeTupleNamesAttribute(type.Type));
                 }
-                if (type.Type.ContainsNativeInteger())
+                if (compilation.ShouldEmitNativeIntegerAttributes(type.Type))
                 {
                     addIfNotNull(builder, moduleBuilder.SynthesizeNativeIntegerAttribute(declaringSymbol, type.Type));
                 }
@@ -2001,6 +2039,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal static bool IsCompilerServicesTopLevelType(this TypeSymbol typeSymbol)
             => typeSymbol.ContainingType is null && IsContainedInNamespace(typeSymbol, "System", "Runtime", "CompilerServices");
+
+        internal static bool IsWellKnownSetsRequiredMembersAttribute(this TypeSymbol type)
+            => type.Name == "SetsRequiredMembersAttribute" && type.IsWellKnownDiagnosticsCodeAnalysisTopLevelType();
+
+        private static bool IsWellKnownDiagnosticsCodeAnalysisTopLevelType(this TypeSymbol typeSymbol)
+            => typeSymbol.ContainingType is null && IsContainedInNamespace(typeSymbol, "System", "Diagnostics", "CodeAnalysis");
 
         private static bool IsContainedInNamespace(this TypeSymbol typeSymbol, string outerNS, string midNS, string innerNS)
         {

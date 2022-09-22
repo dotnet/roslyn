@@ -1209,7 +1209,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var referenceManager = GetBoundReferenceManager();
 
-            for (int i = 0; i < referenceManager.ReferencedAssemblies.Length; i++)
+            int length = referenceManager.ReferencedAssemblies.Length;
+
+            assemblies.EnsureCapacity(assemblies.Count + length);
+
+            for (int i = 0; i < length; i++)
             {
                 if (referenceManager.DeclarationsAccessibleWithoutAlias(i))
                 {
@@ -1834,7 +1838,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             if (candidate.IsAsync)
                             {
-                                diagnostics.Add(ErrorCode.ERR_NonTaskMainCantBeAsync, candidate.Locations.First(), candidate);
+                                diagnostics.Add(ErrorCode.ERR_NonTaskMainCantBeAsync, candidate.Locations.First());
                             }
                             else
                             {
@@ -2094,6 +2098,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <paramref name="source"/> type to the <paramref name="destination"/> type.</returns>
         public Conversion ClassifyConversion(ITypeSymbol source, ITypeSymbol destination)
         {
+            // https://github.com/dotnet/roslyn/issues/60397 : Add an API with ability to specify isChecked?
+
             // Note that it is possible for there to be both an implicit user-defined conversion
             // and an explicit built-in conversion from source to destination. In that scenario
             // this method returns the implicit conversion.
@@ -2112,7 +2118,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeSymbol? csdest = destination.EnsureCSharpSymbolOrNull(nameof(destination));
 
             var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
-            return Conversions.ClassifyConversionFromType(cssource, csdest, ref discardedUseSiteInfo);
+
+            return Conversions.ClassifyConversionFromType(cssource, csdest, isChecked: false, ref discardedUseSiteInfo);
         }
 
         /// <summary>
@@ -2125,6 +2132,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <paramref name="source"/> type to the <paramref name="destination"/> type.</returns>
         public override CommonConversion ClassifyCommonConversion(ITypeSymbol source, ITypeSymbol destination)
         {
+            // https://github.com/dotnet/roslyn/issues/60397 : Add an API with ability to specify isChecked?
             return ClassifyConversion(source, destination).ToCommonConversion();
         }
 
@@ -3809,7 +3817,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 memberTypes[i].EnsureCSharpSymbolOrNull($"{nameof(memberTypes)}[{i}]");
             }
 
-            if (!memberIsReadOnly.IsDefault && memberIsReadOnly.Any(v => !v))
+            if (!memberIsReadOnly.IsDefault && memberIsReadOnly.Any(static v => !v))
             {
                 throw new ArgumentException($"Non-ReadOnly members are not supported in C# anonymous types.");
             }
@@ -3822,7 +3830,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var name = memberNames[i];
                 var location = memberLocations.IsDefault ? Location.None : memberLocations[i];
                 var nullableAnnotation = memberNullableAnnotations.IsDefault ? NullableAnnotation.Oblivious : memberNullableAnnotations[i].ToInternalAnnotation();
-                fields.Add(new AnonymousTypeField(name, location, TypeWithAnnotations.Create(type, nullableAnnotation), RefKind.None));
+                fields.Add(new AnonymousTypeField(name, location, TypeWithAnnotations.Create(type, nullableAnnotation), RefKind.None, DeclarationScope.Unscoped));
             }
 
             var descriptor = new AnonymousTypeDescriptor(fields.ToImmutableAndFree(), Location.None);
@@ -4005,6 +4013,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 return _lazyEmitNullablePublicOnly.Value();
             }
+        }
+
+        internal bool ShouldEmitNativeIntegerAttributes()
+        {
+            return !Assembly.RuntimeSupportsNumericIntPtr;
         }
 
         internal bool ShouldEmitNullableAttributes(Symbol symbol)

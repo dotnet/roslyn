@@ -462,5 +462,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.KeywordHighlighting
     }
 }");
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
+        public async Task TestInTopLevelStatements()
+        {
+            await TestAsync(
+@"if (args.Length > 0) [|return|] 0;
+{|Cursor:[|return|]|} 1;");
+        }
     }
 }

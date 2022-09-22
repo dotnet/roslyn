@@ -8,6 +8,7 @@ using System.IO.Pipelines;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ErrorReporting;
+using Microsoft.ServiceHub.Framework;
 using Roslyn.Utilities;
 using StreamJsonRpc;
 
@@ -17,8 +18,6 @@ namespace Microsoft.CodeAnalysis.Remote
     /// Wraps calls from a remote brokered service back to the client or to an in-proc brokered service.
     /// The purpose of this type is to handle exceptions thrown by the underlying remoting infrastructure
     /// in manner that's compatible with our exception handling policies.
-    /// 
-    /// TODO: This wrapper might not be needed once https://github.com/microsoft/vs-streamjsonrpc/issues/246 is fixed.
     /// </summary>
     internal readonly struct RemoteCallback<T>
         where T : class
@@ -30,6 +29,36 @@ namespace Microsoft.CodeAnalysis.Remote
             _callback = callback;
         }
 
+        /// <summary>
+        /// Use to perform a callback from ServiceHub process to an arbitrary brokered service hosted in the original process (usually devenv).
+        /// </summary>
+        public static async ValueTask<TResult> InvokeServiceAsync<TResult>(
+            ServiceBrokerClient client,
+            ServiceRpcDescriptor serviceDescriptor,
+            Func<RemoteCallback<T>, CancellationToken, ValueTask<TResult>> invocation,
+            CancellationToken cancellationToken)
+        {
+            ServiceBrokerClient.Rental<T> rental;
+            try
+            {
+                rental = await client.GetProxyAsync<T>(serviceDescriptor, cancellationToken).ConfigureAwait(false);
+            }
+            catch (ObjectDisposedException e)
+            {
+                // When a connection is dropped ServiceHub's ServiceManager disposes the brokered service, which in turn disposes the ServiceBrokerClient.
+                cancellationToken.ThrowIfCancellationRequested();
+                throw new OperationCanceledIgnoringCallerTokenException(e);
+            }
+
+            Contract.ThrowIfNull(rental.Proxy);
+            var callback = new RemoteCallback<T>(rental.Proxy);
+
+            return await invocation(callback, cancellationToken).ConfigureAwait(false);
+        }
+
+        /// <summary>
+        /// Invokes API on the callback object hosted in the original process (usually devenv) associated with the currently executing brokered service hosted in ServiceHub process.
+        /// </summary>
         public async ValueTask InvokeAsync(Func<T, CancellationToken, ValueTask> invocation, CancellationToken cancellationToken)
         {
             try
@@ -42,6 +71,9 @@ namespace Microsoft.CodeAnalysis.Remote
             }
         }
 
+        /// <summary>
+        /// Invokes API on the callback object hosted in the original process (usually devenv) associated with the currently executing brokered service hosted in ServiceHub process.
+        /// </summary>
         public async ValueTask<TResult> InvokeAsync<TResult>(Func<T, CancellationToken, ValueTask<TResult>> invocation, CancellationToken cancellationToken)
         {
             try
@@ -55,7 +87,8 @@ namespace Microsoft.CodeAnalysis.Remote
         }
 
         /// <summary>
-        /// Invokes a remote API that streams results back to the caller.
+        /// Invokes API on the callback object hosted in the original process (usually devenv) associated with the currently executing brokered service hosted in ServiceHub process.
+        /// The API streams results back to the caller.
         /// </summary>
         /// <inheritdoc cref="BrokeredServiceConnection{TService}.InvokeStreamingServiceAsync"/>
         public async ValueTask<TResult> InvokeAsync<TResult>(
@@ -100,12 +133,9 @@ namespace Microsoft.CodeAnalysis.Remote
                 return FatalError.ReportAndCatch(exception);
             }
 
-            // When a connection is dropped and CancelLocallyInvokedMethodsWhenConnectionIsClosed is
-            // set ConnectionLostException should not be thrown. Instead the cancellation token should be
-            // signaled and OperationCancelledException should be thrown.
-            // Seems to not work in all cases currently, so we need to cancel ourselves (bug https://github.com/microsoft/vs-streamjsonrpc/issues/551).
-            // Once this issue is fixed we can remov this if statement and fall back to reporting NFW
-            // as any observation of ConnectionLostException indicates a bug (e.g. https://github.com/microsoft/vs-streamjsonrpc/issues/549).
+            // When a connection is dropped we can see ConnectionLostException even though CancelLocallyInvokedMethodsWhenConnectionIsClosed is set.
+            // That's because there might be a delay between the JsonRpc detecting the disconnect and the call attempting to send a message.
+            // Catch the ConnectionLostException exception here and convert it to OperationCanceledException.
             if (exception is ConnectionLostException)
             {
                 return true;
@@ -121,7 +151,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
             if (exception is ConnectionLostException)
             {
-                throw new OperationCanceledException(exception.Message, exception);
+                throw new OperationCanceledIgnoringCallerTokenException(exception);
             }
 
             // If this is hit the cancellation token passed to the service implementation did not use the correct token,

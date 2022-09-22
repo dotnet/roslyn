@@ -51,19 +51,20 @@ namespace Microsoft.CodeAnalysis.ConvertAnonymousType
             // anonymous type, and one to fixup all anonymous types.
             if (allAnonymousNodes.Any(t => !anonymousType.Equals(t.symbol, SymbolEqualityComparer.Default)))
             {
-                context.RegisterRefactoring(new CodeAction.CodeActionWithNestedActions(
-                    FeaturesResources.Convert_to_tuple,
-                    ImmutableArray.Create<CodeAction>(
-                        new MyCodeAction(FeaturesResources.just_this_anonymous_type, c => FixInCurrentMemberAsync(document, anonymousNode, anonymousType, allAnonymousTypes: false, c)),
-                        new MyCodeAction(FeaturesResources.all_anonymous_types_in_container, c => FixInCurrentMemberAsync(document, anonymousNode, anonymousType, allAnonymousTypes: true, c))),
-                    isInlinable: false),
+                context.RegisterRefactoring(
+                    CodeAction.CodeActionWithNestedActions.Create(
+                        FeaturesResources.Convert_to_tuple,
+                        ImmutableArray.Create(
+                            CodeAction.Create(FeaturesResources.just_this_anonymous_type, c => FixInCurrentMemberAsync(document, anonymousNode, anonymousType, allAnonymousTypes: false, c), nameof(FeaturesResources.just_this_anonymous_type)),
+                            CodeAction.Create(FeaturesResources.all_anonymous_types_in_container, c => FixInCurrentMemberAsync(document, anonymousNode, anonymousType, allAnonymousTypes: true, c), nameof(FeaturesResources.all_anonymous_types_in_container))),
+                        isInlinable: false),
                     span);
             }
             else
             {
                 // otherwise, just offer the change to the single tuple type.
                 context.RegisterRefactoring(
-                    new MyCodeAction(FeaturesResources.Convert_to_tuple, c => FixInCurrentMemberAsync(document, anonymousNode, anonymousType, allAnonymousTypes: false, c)),
+                    CodeAction.Create(FeaturesResources.Convert_to_tuple, c => FixInCurrentMemberAsync(document, anonymousNode, anonymousType, allAnonymousTypes: false, c), nameof(FeaturesResources.Convert_to_tuple)),
                     span);
             }
         }
@@ -128,13 +129,5 @@ namespace Microsoft.CodeAnalysis.ConvertAnonymousType
 
                     return ConvertToTuple(anonCreation).WithAdditionalAnnotations(Formatter.Annotation);
                 });
-
-        private class MyCodeAction : CustomCodeActions.DocumentChangeAction
-        {
-            public MyCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(title, createChangedDocument, title)
-            {
-            }
-        }
     }
 }

@@ -40,6 +40,8 @@ End Namespace
 
         Public Shared Function GetResource(keyword As String) As String
             Select Case keyword
+                Case "Enum"
+                    Return FeaturesResources.enum_
                 Case "Class"
                     Return FeaturesResources.class_
                 Case "Structure"
@@ -48,6 +50,8 @@ End Namespace
                     Return VBFeaturesResources.module_
                 Case "Interface"
                     Return FeaturesResources.interface_
+                Case "Delegate"
+                    Return FeaturesResources.delegate_
                 Case Else
                     Throw ExceptionUtilities.UnexpectedValue(keyword)
             End Select
@@ -62,25 +66,29 @@ End Namespace
         Friend Shared Function SemanticEdit(kind As SemanticEditKind,
                                             symbolProvider As Func(Of Compilation, ISymbol),
                                             syntaxMap As IEnumerable(Of KeyValuePair(Of TextSpan, TextSpan)),
-                                            Optional partialType As String = Nothing) As SemanticEditDescription
+                                            Optional partialType As String = Nothing,
+                                            Optional deletedSymbolContainerProvider As Func(Of Compilation, ISymbol) = Nothing) As SemanticEditDescription
             Return New SemanticEditDescription(
                 kind,
                 symbolProvider,
                 If(partialType Is Nothing, Nothing, Function(c As Compilation) CType(c.GetMember(partialType), ITypeSymbol)),
                 syntaxMap,
-                hasSyntaxMap:=syntaxMap IsNot Nothing)
+                hasSyntaxMap:=syntaxMap IsNot Nothing,
+                deletedSymbolContainerProvider)
         End Function
 
         Friend Shared Function SemanticEdit(kind As SemanticEditKind,
                                             symbolProvider As Func(Of Compilation, ISymbol),
                                             Optional partialType As String = Nothing,
-                                            Optional preserveLocalVariables As Boolean = False) As SemanticEditDescription
+                                            Optional preserveLocalVariables As Boolean = False,
+                                            Optional deletedSymbolContainerProvider As Func(Of Compilation, ISymbol) = Nothing) As SemanticEditDescription
             Return New SemanticEditDescription(
                 kind,
                 symbolProvider,
                 If(partialType Is Nothing, Nothing, Function(c As Compilation) CType(c.GetMember(partialType), ITypeSymbol)),
                 syntaxMap:=Nothing,
-                hasSyntaxMap:=preserveLocalVariables)
+                hasSyntaxMap:=preserveLocalVariables,
+                deletedSymbolContainerProvider)
         End Function
 
         Friend Shared Function DeletedSymbolDisplay(kind As String, displayName As String) As String
@@ -145,8 +153,8 @@ End Namespace
 
         Public Shared Function GetMethodMatches(src1 As String,
                                                 src2 As String,
-                                                Optional stateMachine As MethodKind = MethodKind.Regular) As IEnumerable(Of KeyValuePair(Of SyntaxNode, SyntaxNode))
-            Dim methodMatch = GetMethodMatch(src1, src2, stateMachine)
+                                                Optional kind As MethodKind = MethodKind.Regular) As IEnumerable(Of KeyValuePair(Of SyntaxNode, SyntaxNode))
+            Dim methodMatch = GetMethodMatch(src1, src2, kind)
             Return EditAndContinueTestHelpers.GetMethodMatches(CreateAnalyzer(), methodMatch)
         End Function
 

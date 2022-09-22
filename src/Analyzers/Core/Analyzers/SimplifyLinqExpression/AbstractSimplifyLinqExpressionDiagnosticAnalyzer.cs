@@ -162,7 +162,7 @@ namespace Microsoft.CodeAnalysis.SimplifyLinqExpression
                 => whereMethod.Equals(invocation.TargetMethod.ReducedFrom ?? invocation.TargetMethod.OriginalDefinition, SymbolEqualityComparer.Default);
 
             bool IsInvocationNonEnumerableReturningLinqMethod(IInvocationOperation invocation)
-                => linqMethods.Any(m => m.Equals(invocation.TargetMethod.ReducedFrom ?? invocation.TargetMethod.OriginalDefinition, SymbolEqualityComparer.Default));
+                => linqMethods.Any(static (m, invocation) => m.Equals(invocation.TargetMethod.ReducedFrom ?? invocation.TargetMethod.OriginalDefinition, SymbolEqualityComparer.Default), invocation);
 
             INamedTypeSymbol? TryGetSymbolOfMemberAccess(IInvocationOperation invocation)
             {

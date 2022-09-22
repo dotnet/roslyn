@@ -45,9 +45,10 @@ namespace Microsoft.CodeAnalysis.ConvertLinq
             if (TryConvert(queryExpression, semanticModel, semanticFacts, cancellationToken, out var documentUpdateInfo))
             {
                 context.RegisterRefactoring(
-                    new MyCodeAction(
+                    CodeAction.Create(
                         Title,
-                        c => Task.FromResult(document.WithSyntaxRoot(documentUpdateInfo.UpdateRoot(root)))),
+                        c => Task.FromResult(document.WithSyntaxRoot(documentUpdateInfo.UpdateRoot(root))),
+                        Title),
                     queryExpression.Span);
             }
         }
@@ -86,14 +87,6 @@ namespace Microsoft.CodeAnalysis.ConvertLinq
                 {
                     return root.ReplaceNode(Source, Destinations);
                 }
-            }
-        }
-
-        protected sealed class MyCodeAction : CodeAction.DocumentChangeAction
-        {
-            public MyCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(title, createChangedDocument, title)
-            {
             }
         }
     }

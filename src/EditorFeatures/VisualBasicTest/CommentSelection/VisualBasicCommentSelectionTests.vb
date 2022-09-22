@@ -4,7 +4,7 @@
 
 Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis
-Imports Microsoft.CodeAnalysis.Editor.Implementation.CommentSelection
+Imports Microsoft.CodeAnalysis.CommentSelection
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Text
@@ -83,8 +83,9 @@ End Module</code>
                 SetupSelection(doc.GetTextView(), spans.Select(Function(s) Span.FromBounds(s.Start, s.End)))
 
                 Dim commandHandler = New CommentUncommentSelectionCommandHandler(
-                    workspace.ExportProvider.GetExportedValue(Of ITextUndoHistoryRegistry),
-                    workspace.ExportProvider.GetExportedValue(Of IEditorOperationsFactoryService))
+                    workspace.GetService(Of ITextUndoHistoryRegistry),
+                    workspace.GetService(Of IEditorOperationsFactoryService),
+                    workspace.GlobalOptions)
                 Dim textView = doc.GetTextView()
                 Dim textBuffer = doc.GetTextBuffer()
                 commandHandler.ExecuteCommand(textView, textBuffer, operation, TestCommandExecutionContext.Create())

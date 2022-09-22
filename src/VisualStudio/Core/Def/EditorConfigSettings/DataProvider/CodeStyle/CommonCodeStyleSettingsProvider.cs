@@ -113,7 +113,7 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.DataProvider.CodeSt
 
         private IEnumerable<CodeStyleSetting> GetModifierCodeStyleOptions(AnalyzerConfigOptions options, OptionSet visualStudioOptions, OptionUpdater updater)
         {
-            yield return CodeStyleSetting.Create(option: CodeStyleOptions2.RequireAccessibilityModifiers,
+            yield return CodeStyleSetting.Create(option: CodeStyleOptions2.AccessibilityModifiersRequired,
                 description: ServicesVSResources.Require_accessibility_modifiers,
                 enumValues: new[] { AccessibilityModifiersRequired.Always, AccessibilityModifiersRequired.ForNonInterfaceMembers, AccessibilityModifiersRequired.Never, AccessibilityModifiersRequired.OmitIfDefault },
                 valueDescriptions: new[] { ServicesVSResources.Always, ServicesVSResources.For_non_interface_members, ServicesVSResources.Never, ServicesVSResources.Omit_if_default },

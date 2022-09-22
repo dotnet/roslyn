@@ -62,6 +62,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 block.TryConvertToExpressionBody(languageVersion, preference, out var expression, out semicolonToken))
             {
                 arrowExpression = SyntaxFactory.ArrowExpressionClause(expression);
+
+                var parent = block.GetRequiredParent();
+
+                if (parent.Kind() == SyntaxKind.GetAccessorDeclaration)
+                {
+                    var comments = parent.GetLeadingTrivia().Where(t => !t.IsWhitespaceOrEndOfLine());
+                    if (!comments.IsEmpty())
+                    {
+                        arrowExpression = arrowExpression.WithLeadingTrivia(
+                            parent.GetLeadingTrivia());
+                    }
+                }
+
                 return true;
             }
 

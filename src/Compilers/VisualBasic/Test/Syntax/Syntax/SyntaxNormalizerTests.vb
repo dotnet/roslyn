@@ -121,7 +121,7 @@ with goo
 .bar()
 end with
 end Sub</code>.Value, _
- _
+                      _
 <code>Sub goo()
   with goo
     .bar()
@@ -146,7 +146,7 @@ private sub myhandler() Handles y.e1
 end sub
 end module
 </code>.Value,
- _
+              _
 <code>module m1
 
   private withevents x as y
@@ -166,7 +166,7 @@ end module
                             "Dim s as string=""boo""&""ya""" + vbCrLf +
                             "end sub" + vbCrLf +
                             "end module", _
- _
+                                          _
                             "module m1" + vbCrLf + vbCrLf +
                             "  sub s1()" + vbCrLf +
                             "    Dim x as Integer()" + vbCrLf +
@@ -190,7 +190,7 @@ end module
                             "y &=""a""" + vbCrLf +
                             "end sub" + vbCrLf +
                             "end module", _
- _
+                                          _
                             "module m1" + vbCrLf + vbCrLf +
                             "  sub s1()" + vbCrLf +
                             "    Dim x as Integer" + vbCrLf +
@@ -214,7 +214,7 @@ end module
                             "Mid$(s1,3,3)=s2" + vbCrLf +
                             "end sub" + vbCrLf +
                             "end module", _
- _
+                                          _
                             "module m1" + vbCrLf + vbCrLf +
                             "  sub s1()" + vbCrLf +
                             "    Dim s1 As String = ""a""" + vbCrLf +
@@ -232,7 +232,7 @@ end module
                             "s1 ( p1:=23 , p2:=23)" + vbCrLf +
                             "end sub" + vbCrLf +
                             "end module", _
- _
+                                          _
                             "module m1" + vbCrLf + vbCrLf +
                             "  sub s2()" + vbCrLf +
                             "    s1(23)" + vbCrLf +
@@ -245,7 +245,7 @@ end module
                             "N1.M2.S2 ( ) " + vbCrLf +
                             "end sub" + vbCrLf +
                             "end module", _
- _
+                                          _
                             "module m1" + vbCrLf + vbCrLf +
                             "  sub s2(Of T)(optional x As T = nothing)" + vbCrLf +
                             "    N1.M2.S2()" + vbCrLf +
@@ -268,7 +268,7 @@ end module
                             "Console . WriteLine ( x .<   db:Name  > )" + vbCrLf +
                             "End Sub" + vbCrLf +
                             "End Module",
- _
+                                         _
                             "Imports <xmlns:db=""http://example.org/database"">" + vbCrLf +
                             "" + vbCrLf +
                             "Module Test" + vbCrLf + vbCrLf +
@@ -286,7 +286,7 @@ end module
                             "Namespace N2.N3" + vbCrLf +
                             "end Namespace" + vbCrLf +
                             "end Namespace", _
- _
+                                             _
                             "Imports I1.I2" + vbCrLf +
                             "" + vbCrLf +
                             "Namespace N1" + vbCrLf +
@@ -302,7 +302,7 @@ end module
 module m1
 Dim x as Integer?=nothing
 end module</code>.Value, _
- _
+                         _
 <code>module m1
 
   Dim x as Integer? = nothing
@@ -327,7 +327,7 @@ end module
                             "end function" + vbCrLf +
                             "End Structure" + vbCrLf +
                             "End Namespace", _
- _
+                                             _
                             "namespace N1" + vbCrLf + vbCrLf +
                             "  Interface I1" + vbCrLf + vbCrLf +
                             "    public Function F1() As Object" + vbCrLf + vbCrLf +
@@ -355,7 +355,7 @@ end module
                             "booya=1.4" + vbCrLf +
                             "end enum" + vbCrLf +
                             "end         MODule", _
- _
+                                                  _
                             "Module M1" + vbCrLf + vbCrLf +
                             "  ENUM E1 as long" + vbCrLf +
                             "    goo = 23" + vbCrLf +
@@ -373,7 +373,7 @@ end module
                             "booya=1.4" + vbCrLf +
                             "end enum" + vbCrLf +
                             "end         class", _
- _
+                                                 _
                             "class c1" + vbCrLf + vbCrLf +
                             "  ENUM E1 as long" + vbCrLf +
                             "    goo = 23" + vbCrLf +
@@ -391,7 +391,7 @@ end module
                             "booya=1.4" + vbCrLf +
                             "end enum" + vbCrLf +
                             "end         class", _
- _
+                                                 _
                             "public class c1" + vbCrLf + vbCrLf +
                             "  ENUM E1 as long" + vbCrLf +
                             "    goo = 23" + vbCrLf +
@@ -409,7 +409,7 @@ end module
                             "booya=1.4" + vbCrLf +
                             "end enum" + vbCrLf +
                             "end         class", _
- _
+                                                 _
                             "class c1" + vbCrLf + vbCrLf +
                             "  public ENUM E1 as long" + vbCrLf +
                             "    goo = 23" + vbCrLf +
@@ -427,7 +427,7 @@ end module
                             "Dim x=Function( x ,y )x+y" + vbCrLf +
                             "Dim y As Func ( Of Integer ,Integer ,Integer )=x" + vbCrLf +
                             "end MODule", _
- _
+                                          _
                             "Module M1" + vbCrLf + vbCrLf +
                             "  Dim x = Function(x, y) x + y" + vbCrLf + vbCrLf +
                             "  Dim y As Func(Of Integer, Integer, Integer) = x" + vbCrLf +
@@ -439,7 +439,7 @@ end module
                             "end function" + vbCrLf +
                             "Dim y As Func ( Of Integer ,Integer ,Integer )=x" + vbCrLf +
                             "end MODule", _
- _
+                                          _
                             "Module M1" + vbCrLf + vbCrLf +
                             "  Dim x = Function(x, y)" + vbCrLf +
                             "    return x + y" + vbCrLf +
@@ -453,7 +453,7 @@ end module
                             "end sub" + vbCrLf +
                             "Dim y As Action ( Of Integer ,Integer)=x" + vbCrLf +
                             "end MODule", _
- _
+                                          _
                             "Module M1" + vbCrLf + vbCrLf +
                             "  Dim x = Sub(x, y)" + vbCrLf +
                             "    dim x as integer" + vbCrLf +
@@ -486,7 +486,7 @@ end module
                             "end   select  " + vbCrLf +
                             "end   sub  " + vbCrLf +
                             "end   module  ", _
- _
+                                              _
                             "Module M1" + vbCrLf + vbCrLf +
                             "  sub s1()" + vbCrLf +
                             "    select case goo" + vbCrLf +
@@ -552,7 +552,7 @@ end module
             TestNormalizeStatement("DO until a(2)<>12" + vbCrLf +
                             "Dim x = 12" + vbCrLf +
                             "   loop", _
- _
+                                       _
                             "DO until a(2) <> 12" + vbCrLf +
                             "  Dim x = 12" + vbCrLf +
                             "loop")
@@ -560,7 +560,7 @@ end module
             TestNormalizeStatement("DO while a(2)<>12" + vbCrLf +
                             "Dim x = 12" + vbCrLf +
                             "   loop", _
- _
+                                       _
                             "DO while a(2) <> 12" + vbCrLf +
                             "  Dim x = 12" + vbCrLf +
                             "loop")
@@ -568,7 +568,7 @@ end module
             TestNormalizeStatement("DO               " + vbCrLf +
                             "Dim x = 12" + vbCrLf +
                             "   loop", _
- _
+                                       _
                             "DO" + vbCrLf +
                             "  Dim x = 12" + vbCrLf +
                             "loop")
@@ -576,7 +576,7 @@ end module
             TestNormalizeStatement("DO               " + vbCrLf +
                             "Dim x = 12" + vbCrLf +
                             "   loop until a ( 2 )  <>    12   ", _
- _
+                                                                  _
                             "DO" + vbCrLf +
                             "  Dim x = 12" + vbCrLf +
                             "loop until a(2) <> 12")
@@ -584,7 +584,7 @@ end module
             TestNormalizeStatement("For     Each   i  In   x" + vbCrLf +
                             "Dim x = 12" + vbCrLf +
                             "   next", _
- _
+                                       _
                             "For Each i In x" + vbCrLf +
                             "  Dim x = 12" + vbCrLf +
                             "next")
@@ -593,7 +593,7 @@ end module
                                 "For     Each   j  In   x" + vbCrLf +
                                 "Dim x = 12" + vbCrLf +
                                 "   next j,i", _
- _
+                                               _
                             "For Each i In x" + vbCrLf +
                             "  For Each j In x" + vbCrLf +
                             "    Dim x = 12" + vbCrLf +
@@ -612,7 +612,7 @@ end module
                             "finally" + vbCrLf +
                             "dim x =23" + vbCrLf +
                             " end try", _
- _
+                                        _
                             "try" + vbCrLf +
                             "  dim x = 23" + vbCrLf +
                             "Catch e1 As Exception When 1 > 2" + vbCrLf +
@@ -630,7 +630,7 @@ end module
             TestNormalizeStatement("  Using   r1  As  R =  New R ( ) ,   r2 As R = New R( )" + vbCrLf +
                             "dim x =23" + vbCrLf +
                             "end using", _
- _
+                                         _
                             "Using r1 As R = New R(), r2 As R = New R()" + vbCrLf +
                             "  dim x = 23" + vbCrLf +
                             "end using")
@@ -642,7 +642,7 @@ end module
             TestNormalizeStatement("  Dim waCusts = _" + vbCrLf +
                             "From cust As Customer In Customers _" + vbCrLf +
                             "Where    cust.State    =  ""WA""", _
- _
+                                                                _
                             "Dim waCusts = From cust As Customer In Customers Where cust.State = ""WA""")
         End Sub
 

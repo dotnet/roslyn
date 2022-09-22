@@ -8,12 +8,14 @@ using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
-namespace Microsoft.CodeAnalysis.CSharp.Recommendations
+namespace Microsoft.CodeAnalysis.CSharp.Recommendations;
+
+internal partial class CSharpRecommendationService
 {
     /// <summary>
     /// Adds user defined and predefined conversions to the unnamed recommendation set.
     /// </summary>
-    internal partial class CSharpRecommendationServiceRunner
+    private sealed partial class CSharpRecommendationServiceRunner
     {
         private static readonly ImmutableArray<SpecialType> s_predefinedEnumConversionTargets = ImmutableArray.Create(
             SpecialType.System_Byte,

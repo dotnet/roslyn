@@ -10,11 +10,11 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
     Friend Class ParameterGenerator
 
-        Public Shared Function GenerateParameterList(parameterDefinitions As ImmutableArray(Of IParameterSymbol), options As CodeGenerationOptions) As ParameterListSyntax
+        Public Shared Function GenerateParameterList(parameterDefinitions As ImmutableArray(Of IParameterSymbol), options As CodeGenerationContextInfo) As ParameterListSyntax
             Return GenerateParameterList(DirectCast(parameterDefinitions, IList(Of IParameterSymbol)), options)
         End Function
 
-        Public Shared Function GenerateParameterList(parameterDefinitions As IEnumerable(Of IParameterSymbol), options As CodeGenerationOptions) As ParameterListSyntax
+        Public Shared Function GenerateParameterList(parameterDefinitions As IEnumerable(Of IParameterSymbol), options As CodeGenerationContextInfo) As ParameterListSyntax
             Dim result = New List(Of ParameterSyntax)()
             Dim seenOptional = False
 
@@ -27,7 +27,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             Return SyntaxFactory.ParameterList(SyntaxFactory.SeparatedList(result))
         End Function
 
-        Friend Shared Function GenerateParameter(parameter As IParameterSymbol, seenOptional As Boolean, options As CodeGenerationOptions) As ParameterSyntax
+        Friend Shared Function GenerateParameter(parameter As IParameterSymbol, seenOptional As Boolean, options As CodeGenerationContextInfo) As ParameterSyntax
             Dim reusableSyntax = GetReuseableSyntaxNodeForSymbol(Of ParameterSyntax)(parameter, options)
             If reusableSyntax IsNot Nothing Then
                 Return reusableSyntax

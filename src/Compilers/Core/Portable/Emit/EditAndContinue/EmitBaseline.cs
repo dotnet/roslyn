@@ -139,7 +139,7 @@ namespace Microsoft.CodeAnalysis.Emit
                 throw new ArgumentException(CodeAnalysisResources.PEImageNotAvailable, nameof(module));
             }
 
-            var hasPortablePdb = module.Module.PEReaderOpt.ReadDebugDirectory().Any(entry => entry.IsPortableCodeView);
+            var hasPortablePdb = module.Module.PEReaderOpt.ReadDebugDirectory().Any(static entry => entry.IsPortableCodeView);
 
             var localSigProvider = new Func<MethodDefinitionHandle, StandaloneSignatureHandle>(methodHandle =>
             {
@@ -249,6 +249,7 @@ namespace Microsoft.CodeAnalysis.Emit
                 anonymousDelegates: null, // Unset for initial metadata
                 anonymousDelegatesWithFixedTypes: null, // Unset for initial metadata
                 synthesizedMembers: ImmutableDictionary<ISymbolInternal, ImmutableArray<ISymbolInternal>>.Empty,
+                deletedMembers: ImmutableDictionary<ISymbolInternal, ImmutableArray<ISymbolInternal>>.Empty,
                 methodsAddedOrChanged: new Dictionary<int, AddedOrChangedMethodInfo>(),
                 debugInformationProvider: debugInformationProvider,
                 localSignatureProvider: localSignatureProvider,
@@ -338,6 +339,7 @@ namespace Microsoft.CodeAnalysis.Emit
         private readonly IReadOnlyDictionary<SynthesizedDelegateKey, SynthesizedDelegateValue>? _anonymousDelegates;
         private readonly IReadOnlyDictionary<string, AnonymousTypeValue>? _anonymousDelegatesWithFixedTypes;
         internal readonly ImmutableDictionary<ISymbolInternal, ImmutableArray<ISymbolInternal>> SynthesizedMembers;
+        internal readonly ImmutableDictionary<ISymbolInternal, ImmutableArray<ISymbolInternal>> DeletedMembers;
 
         private EmitBaseline(
             EmitBaseline? initialBaseline,
@@ -368,6 +370,7 @@ namespace Microsoft.CodeAnalysis.Emit
             IReadOnlyDictionary<SynthesizedDelegateKey, SynthesizedDelegateValue>? anonymousDelegates,
             IReadOnlyDictionary<string, AnonymousTypeValue>? anonymousDelegatesWithFixedTypes,
             ImmutableDictionary<ISymbolInternal, ImmutableArray<ISymbolInternal>> synthesizedMembers,
+            ImmutableDictionary<ISymbolInternal, ImmutableArray<ISymbolInternal>> deletedMembers,
             IReadOnlyDictionary<int, AddedOrChangedMethodInfo> methodsAddedOrChanged,
             Func<MethodDefinitionHandle, EditAndContinueMethodDebugInformation> debugInformationProvider,
             Func<MethodDefinitionHandle, StandaloneSignatureHandle> localSignatureProvider,
@@ -389,6 +392,7 @@ namespace Microsoft.CodeAnalysis.Emit
             Debug.Assert(moduleVersionId != default);
             Debug.Assert(moduleVersionId == module.GetModuleVersionId());
             Debug.Assert(synthesizedMembers != null);
+            Debug.Assert(deletedMembers != null);
 
             Debug.Assert(tableEntriesAdded.Length == MetadataTokens.TableCount);
 
@@ -435,6 +439,7 @@ namespace Microsoft.CodeAnalysis.Emit
             _anonymousDelegates = anonymousDelegates;
             _anonymousDelegatesWithFixedTypes = anonymousDelegatesWithFixedTypes;
             SynthesizedMembers = synthesizedMembers;
+            DeletedMembers = deletedMembers;
             AddedOrChangedMethods = methodsAddedOrChanged;
 
             DebugInformationProvider = debugInformationProvider;
@@ -470,6 +475,7 @@ namespace Microsoft.CodeAnalysis.Emit
             IReadOnlyDictionary<SynthesizedDelegateKey, SynthesizedDelegateValue> anonymousDelegates,
             IReadOnlyDictionary<string, AnonymousTypeValue> anonymousDelegatesWithFixedTypes,
             ImmutableDictionary<ISymbolInternal, ImmutableArray<ISymbolInternal>> synthesizedMembers,
+            ImmutableDictionary<ISymbolInternal, ImmutableArray<ISymbolInternal>> deletedMembers,
             IReadOnlyDictionary<int, AddedOrChangedMethodInfo> addedOrChangedMethods,
             Func<MethodDefinitionHandle, EditAndContinueMethodDebugInformation> debugInformationProvider,
             Func<MethodDefinitionHandle, StandaloneSignatureHandle> localSignatureProvider)
@@ -512,6 +518,7 @@ namespace Microsoft.CodeAnalysis.Emit
                 anonymousDelegates: anonymousDelegates,
                 anonymousDelegatesWithFixedTypes: anonymousDelegatesWithFixedTypes,
                 synthesizedMembers: synthesizedMembers,
+                deletedMembers: deletedMembers,
                 methodsAddedOrChanged: addedOrChangedMethods,
                 debugInformationProvider: debugInformationProvider,
                 localSignatureProvider: localSignatureProvider,

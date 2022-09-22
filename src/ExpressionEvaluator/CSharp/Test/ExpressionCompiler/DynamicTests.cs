@@ -818,7 +818,7 @@ public class Outer<T, U>
                     testData);
                 Assert.Null(error);
                 VerifyCustomTypeInfo(result, null);
-                Assert.Equal(resultProperties.Flags, DkmClrCompilationResultFlags.PotentialSideEffect | DkmClrCompilationResultFlags.ReadOnlyResult);
+                Assert.Equal(DkmClrCompilationResultFlags.PotentialSideEffect | DkmClrCompilationResultFlags.ReadOnlyResult, resultProperties.Flags);
                 testData.GetMethodData("<>x.<>m0").VerifyIL(
 @"{
   // Code size       60 (0x3c)
@@ -1021,7 +1021,7 @@ class C
         }
 
         [WorkItem(1160855, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1160855")]
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/58198")]
+        [Fact]
         public void AwaitDynamic()
         {
             var source = @"

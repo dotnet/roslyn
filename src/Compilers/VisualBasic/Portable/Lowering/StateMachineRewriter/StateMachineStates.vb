@@ -9,10 +9,14 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
 
-    Friend Module StateMachineStates
-        Public FinishedStateMachine As Integer = -2
-        Public NotStartedStateMachine As Integer = -1
-        Public FirstUnusedState As Integer = 0
-    End Module
+    Friend NotInheritable Class StateMachineStates
+        Public Const FirstIteratorFinalizeState As Integer = -3
+        Public Const InitialIteratorState As Integer = 0
+        Public Const FinishedStateMachine As Integer = -2
+        Public Const NotStartedStateMachine As Integer = -1
+        Public Const FirstUnusedState As Integer = 0
+        Public Const FirstResumableIteratorState As Integer = InitialIteratorState + 1
+        Public Const FirstResumableAsyncState As Integer = 0
+    End Class
 
 End Namespace

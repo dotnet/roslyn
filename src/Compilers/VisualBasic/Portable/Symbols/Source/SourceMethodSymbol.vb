@@ -1651,7 +1651,7 @@ lReportErrorOnTwoTokens:
 
                 Dim moduleName As String = TryCast(attrData.CommonConstructorArguments(0).ValueInternal, String)
                 If Not MetadataHelpers.IsValidMetadataIdentifier(moduleName) Then
-                    diagnostics.Add(ERRID.ERR_BadAttribute1, arguments.AttributeSyntaxOpt.ArgumentList.Arguments(0).GetLocation(), attrData.AttributeClass)
+                    diagnostics.Add(ERRID.ERR_BadAttribute1, VisualBasicAttributeData.GetFirstArgumentLocation(arguments.AttributeSyntaxOpt), attrData.AttributeClass)
                 End If
 
                 ' Default value of charset is inherited from the module (only if specified).
