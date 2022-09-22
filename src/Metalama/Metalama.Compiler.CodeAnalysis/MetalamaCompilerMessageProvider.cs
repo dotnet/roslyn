@@ -37,6 +37,8 @@ namespace Metalama.Compiler
 
         #region Roslyn error codes
 
+        internal override bool ShouldAssertExpectedMessageArgumentsLength(int errorCode) => throw new NotImplementedException();
+
         public override int ERR_FailedToCreateTempFile => throw new NotImplementedException();
 
         public override int ERR_MultipleAnalyzerConfigsInSameDir => throw new NotImplementedException();
@@ -69,6 +71,8 @@ namespace Metalama.Compiler
 
         public override int WRN_NoAnalyzerInAssembly => throw new NotImplementedException();
 
+        public override int WRN_AnalyzerReferencesNewerCompiler => throw new NotImplementedException();
+        
         public override int ERR_CantReadRulesetFile => throw new NotImplementedException();
 
         public override int ERR_CompileCancelled => throw new NotImplementedException();
@@ -186,8 +190,10 @@ namespace Metalama.Compiler
             throw new NotImplementedException();
         }
 
-        public override string GetErrorDisplayString(ISymbol symbol) => symbol.ToString()!;
+        public override string GetErrorDisplayString(ISymbol symbol) => symbol.ToDisplayString();
 
+        public override bool GetIsEnabledByDefault(int code) => true;
+        
         public override string GetHelpLink(int code) => string.Empty;
 
         public override LocalizableString GetMessageFormat(int code) => LoadMessage(code, null);
