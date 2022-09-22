@@ -49,8 +49,6 @@ if ((output = sr.ReadLine()) is not null)
         return null;
     };
 #endif
-
-
     using var xunit = new XunitFrontController(AppDomainSupport.IfAvailable, assemblyFileName, shadowCopy: false);
     var configuration = ConfigReader.Load(assemblyFileName);
     var sink = new Sink();
