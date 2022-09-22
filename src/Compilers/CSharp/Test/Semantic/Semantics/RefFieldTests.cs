@@ -19651,10 +19651,10 @@ public class C1
                 // (26,5): warning CS9093: This ref-assigns 'p1.field' to 'refField' but 'p1.field' can only escape the current method through a return statement.
                 //     p2.refField = ref p1.field; // 4
                 Diagnostic(ErrorCode.WRN_RefAssignReturnOnly, "p2.refField = ref p1.field").WithArguments("refField", "p1.field").WithLocation(26, 5),
-                // (31,21): warning CS9094: This returns a parameter by reference 'p1' through a ref parameter; but it can only be returned in a return statement
+                // (31,21): warning CS9094: This returns a parameter by reference 'p1' through a ref parameter; but it can only safely be returned in a return statement
                 //     p2 = Inner1(ref p1); // 5
                 Diagnostic(ErrorCode.WRN_RefReturnOnlyParameter, "p1").WithArguments("p1").WithLocation(31, 21),
-                // (36,21): warning CS9094: This returns a parameter by reference 'p1' through a ref parameter; but it can only be returned in a return statement
+                // (36,21): warning CS9094: This returns a parameter by reference 'p1' through a ref parameter; but it can only safely be returned in a return statement
                 //     p2 = Inner1(ref p1); // 6
                 Diagnostic(ErrorCode.WRN_RefReturnOnlyParameter, "p1").WithArguments("p1").WithLocation(36, 21),
                 // (41,21): warning CS9088: This returns a parameter by reference 'p1' but it is scoped to the current method

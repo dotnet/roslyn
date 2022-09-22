@@ -5102,10 +5102,10 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>Cannot return by reference a member of parameter '{0}' through a ref parameter; it can only be returned in a return statement</value>
   </data>
   <data name="WRN_RefReturnOnlyParameter" xml:space="preserve">
-    <value>This returns a parameter by reference '{0}' through a ref parameter; but it can only be returned in a return statement</value>
+    <value>This returns a parameter by reference '{0}' through a ref parameter; but it can only safely be returned in a return statement</value>
   </data>
   <data name="WRN_RefReturnOnlyParameter_Title" xml:space="preserve">
-    <value>This returns a parameter by reference through a ref parameter; but it can only be returned in a return statement</value>
+    <value>This returns a parameter by reference through a ref parameter; but it can only be safely returned in a return statement</value>
   </data>
   <data name="WRN_RefReturnOnlyParameter2" xml:space="preserve">
     <value>This returns by reference a member of parameter '{0}' through a ref parameter; but it can only be returned in a return statement</value>
