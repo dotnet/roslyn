@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp;
@@ -8821,6 +8822,29 @@ namespace ConsoleApp
         }
     }
 }", options: PreferDiscard);
+        }
+
+        [WorkItem(57650, "https://github.com/dotnet/roslyn/issues/57650")]
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
+        [InlineData(nameof(PreferDiscard))]
+        [InlineData(nameof(PreferUnusedLocal))]
+        public async Task UseInLambda_WithInvocationOutsideLocalScope(string optionName)
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"using System;
+
+class C
+{
+    void M()
+    {
+        Action act = null;
+        {
+            var[| capture |] = new object();
+            act = () => capture.ToString();
+        }
+        act();
+    }
+}", optionName);
         }
     }
 }
