@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.IO;
@@ -15,7 +14,6 @@ using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.InheritanceMargin.Finders;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.SymbolMapping;
@@ -268,48 +266,49 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
 
         private static async ValueTask AddInheritanceMemberItemsForNamedTypeAsync(
             Solution solution,
-            INamedTypeSymbol namedTypeSymbol,
+            INamedTypeSymbol memberSymbol,
             int lineNumber,
             ArrayBuilder<InheritanceMarginItem> builder,
             CancellationToken cancellationToken)
         {
-            var (baseTypeSymbolGroups, baseInterfaceSymbolGroups) = await BaseTypeSymbolsFinder.Instance
-                .GetBaseTypeAndBaseInterfaceSymbolGroupsAsync(
-                    namedTypeSymbol, solution, cancellationToken).ConfigureAwait(false);
+            var (baseTypeSymbolGroups, baseInterfaceSymbolGroups) = await BaseTypeSymbolsFinder.Instance.GetBaseTypeAndBaseInterfaceSymbolGroupsAsync(
+                    memberSymbol, solution, cancellationToken).ConfigureAwait(false);
 
             var derivedTypeSymbolGroups = await DerivedTypeSymbolsFinder.Instance.GetDerivedTypeSymbolGroupsAsync(
-                namedTypeSymbol,
+                memberSymbol,
                 solution,
                 cancellationToken).ConfigureAwait(false);
 
-            if (baseTypeSymbolGroups.Any() || baseInterfaceSymbolGroups.Any() || derivedTypeSymbolGroups.Any())
+            if (memberSymbol.TypeKind == TypeKind.Interface)
             {
-                if (namedTypeSymbol.TypeKind == TypeKind.Interface)
+                if (baseInterfaceSymbolGroups.Any() || derivedTypeSymbolGroups.Any())
                 {
+                    // Interface can only have base interfaces.
+                    Debug.Assert(baseTypeSymbolGroups.IsEmpty);
                     var item = await CreateInheritanceMemberItemForInterfaceAsync(
                         solution,
-                        namedTypeSymbol,
+                        memberSymbol,
                         lineNumber,
-                        baseSymbolGroups: baseTypeSymbolGroups.Concat(baseInterfaceSymbolGroups),
+                        baseSymbolGroups: baseInterfaceSymbolGroups,
                         derivedTypesSymbolGroups: derivedTypeSymbolGroups,
                         cancellationToken).ConfigureAwait(false);
                     builder.AddIfNotNull(item);
                 }
-                else
+            }
+            else
+            {
+                Debug.Assert(memberSymbol.TypeKind is TypeKind.Class or TypeKind.Struct);
+                if (baseTypeSymbolGroups.Any() || baseInterfaceSymbolGroups.Any() || derivedTypeSymbolGroups.Any())
                 {
-                    Debug.Assert(namedTypeSymbol.TypeKind is TypeKind.Class or TypeKind.Struct);
-                    if (baseTypeSymbolGroups.Any() || baseInterfaceSymbolGroups.Any() || derivedTypeSymbolGroups.Any())
-                    {
-                        var item = await CreateInheritanceItemForClassAndStructureAsync(
-                            solution,
-                            namedTypeSymbol,
-                            lineNumber,
-                            baseTypeSymbolGroups: baseTypeSymbolGroups,
-                            implementedInterfacesSymbolGroups: baseInterfaceSymbolGroups,
-                            derivedTypesSymbolGroups: derivedTypeSymbolGroups,
-                            cancellationToken).ConfigureAwait(false);
-                        builder.AddIfNotNull(item);
-                    }
+                    var item = await CreateInheritanceItemForClassAndStructureAsync(
+                        solution,
+                        memberSymbol,
+                        lineNumber,
+                        baseTypeSymbolGroups: baseTypeSymbolGroups,
+                        implementedInterfacesSymbolGroups: baseInterfaceSymbolGroups,
+                        derivedTypesSymbolGroups: derivedTypeSymbolGroups,
+                        cancellationToken).ConfigureAwait(false);
+                    builder.AddIfNotNull(item);
                 }
             }
         }
@@ -327,7 +326,8 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
                 var implementingSymbolGroups = await ImplementingSymbolsFinder.Instance.GetImplementingSymbolsGroupAsync(memberSymbol, solution, cancellationToken).ConfigureAwait(false);
                 if (implementingSymbolGroups.Any())
                 {
-                    var item = await CreateInheritanceMemberItemForInterfaceMemberAsync(solution,
+                    var item = await CreateInheritanceMemberItemForInterfaceMemberAsync(
+                        solution,
                         memberSymbol,
                         lineNumber,
                         implementingMembers: implementingSymbolGroups,
@@ -426,8 +426,6 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
             ImmutableArray<SymbolGroup> derivedTypesSymbolGroups,
             CancellationToken cancellationToken)
         {
-            // If the target is an interface, it would be shown as 'Inherited interface',
-            // and if it is an class/struct, it whould be shown as 'Base Type'
             var baseSymbolItems = await baseTypeSymbolGroups
                 .Distinct()
                 .SelectAsArrayAsync((symbolGroup, _) => CreateInheritanceItemAsync(
@@ -453,6 +451,7 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
                 .ConfigureAwait(false);
 
             var nonNullBaseSymbolItems = GetNonNullTargetItems(baseSymbolItems);
+            var nonNullImplementedInterface = GetNonNullTargetItems(implementedInterfaces);
             var nonNullDerivedTypeItems = GetNonNullTargetItems(derivedTypeItems);
 
             return InheritanceMarginItem.CreateOrdered(
@@ -460,7 +459,7 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
                 topLevelDisplayText: null,
                 FindUsagesHelpers.GetDisplayParts(memberSymbol),
                 memberSymbol.GetGlyph(),
-                nonNullBaseSymbolItems.Concat(nonNullDerivedTypeItems));
+                nonNullBaseSymbolItems.Concat(nonNullImplementedInterface).Concat(nonNullDerivedTypeItems));
         }
 
         private static async ValueTask<InheritanceMarginItem?> CreateInheritanceMemberItemForClassOrStructMemberAsync(
