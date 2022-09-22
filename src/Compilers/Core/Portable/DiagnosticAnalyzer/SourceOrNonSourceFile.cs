@@ -8,9 +8,10 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.Diagnostics
 {
     /// <summary>
-    /// Represents a source file or an additional file.
-    /// For source files, <see cref="SourceTree"/> is non-null and <see cref="AdditionalFile"/> is null.
-    /// For additional files, <see cref="AdditionalFile"/> is non-null and <see cref="SourceTree"/> is null.
+    /// Represents a source file or a non-source file, which could be an additional file or an analyzer config file.
+    /// For source files, <see cref="SourceTree"/> is non-null and <see cref="AdditionalFile"/> and <see cref="AnalyzerConfigFile"/> are null.
+    /// For additional files, <see cref="AdditionalFile"/> is non-null and <see cref="SourceTree"/> and <see cref="AnalyzerConfigFile"/> are null.
+    /// For analyzer config files, <see cref="AnalyzerConfigFile"/> is non-null and <see cref="SourceTree"/> and <see cref="AdditionalFile"/> are null.
     /// </summary>
     internal readonly struct SourceOrNonSourceFile
         : IEquatable<SourceOrNonSourceFile>

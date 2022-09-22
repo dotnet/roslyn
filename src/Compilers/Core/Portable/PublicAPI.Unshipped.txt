@@ -11,6 +11,7 @@ Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigFileAnalysisContext.Compilation
 Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigFileAnalysisContext.Options.get -> Microsoft.CodeAnalysis.Diagnostics.AnalyzerOptions!
 Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigFileAnalysisContext.ReportDiagnostic(Microsoft.CodeAnalysis.Diagnostic! diagnostic) -> void
 Microsoft.CodeAnalysis.Diagnostics.AnalyzerOptions.AnalyzerConfigFiles.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.AdditionalText!>
+Microsoft.CodeAnalysis.Diagnostics.AnalyzerOptions.AnalyzerOptions(System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.AdditionalText!> additionalFiles, System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.AdditionalText!> analyzerConfigFiles) -> void
 Microsoft.CodeAnalysis.Diagnostics.AnalyzerOptions.AnalyzerOptions(System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.AdditionalText!> additionalFiles, System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.AdditionalText!> analyzerConfigFiles, Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigOptionsProvider! optionsProvider) -> void
 Microsoft.CodeAnalysis.Diagnostics.AnalyzerOptions.WithAnalyzerConfigFiles(System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.AdditionalText!> analyzerConfigFiles) -> Microsoft.CodeAnalysis.Diagnostics.AnalyzerOptions!
 Microsoft.CodeAnalysis.Diagnostics.CodeBlockAnalysisContext.IsGeneratedCode.get -> bool

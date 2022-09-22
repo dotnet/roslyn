@@ -205,9 +205,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
             else if (diagnostic.Location is ExternalFileLocation externalFileLocation)
             {
-                var exernalFile = FilterFileOpt.Value.AdditionalFile ?? FilterFileOpt.Value.AnalyzerConfigFile;
-                if (exernalFile == null ||
-                    !PathUtilities.Comparer.Equals(externalFileLocation.FilePath, exernalFile.Path))
+                var externalFile = FilterFileOpt.Value.AdditionalFile ?? FilterFileOpt.Value.AnalyzerConfigFile;
+                if (externalFile == null ||
+                    !PathUtilities.Comparer.Equals(externalFileLocation.FilePath, externalFile.Path))
                 {
                     return false;
                 }

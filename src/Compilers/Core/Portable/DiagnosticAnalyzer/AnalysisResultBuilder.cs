@@ -344,7 +344,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             ImmutableArray<Diagnostic>.Builder builder)
         {
             var sourceOrNonSourceFile = analysisScope.FilterFileOpt!.Value;
-            var nonSourceFile = sourceOrNonSourceFile.AdditionalFile ?? sourceOrNonSourceFile.AnalyzerConfigFile; 
+            var nonSourceFile = sourceOrNonSourceFile.AdditionalFile ?? sourceOrNonSourceFile.AnalyzerConfigFile;
             AddLocalDiagnosticsForPartialAnalysis_NoLock(localDiagnostics, nonSourceFile, analysisScope.Analyzers, builder);
         }
 
