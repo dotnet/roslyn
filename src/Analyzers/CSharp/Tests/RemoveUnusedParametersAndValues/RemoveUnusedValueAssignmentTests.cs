@@ -180,7 +180,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnusedParametersA
         }
 
         [Fact]
-        public async Task Initialization_ConstantValue_RemoveUnsuedParametersSuppressed()
+        public async Task Initialization_ConstantValue_RemoveUnusedParametersSuppressed()
         {
             var source =
 @"class C
@@ -214,7 +214,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnusedParametersA
         }
 
         [Fact]
-        public async Task Initialization_ConstantValue_RemoveUnsuedParametersNotApplicable()
+        public async Task Initialization_ConstantValue_RemoveUnusedParametersNotApplicable()
         {
             var source =
 @"class C
