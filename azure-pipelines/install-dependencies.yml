@@ -6,7 +6,6 @@ steps:
 - task: NuGetAuthenticate@1
   displayName: 🔏 Authenticate NuGet feeds
   inputs:
-    nuGetServiceConnections: azure-public/msft_consumption
     forceReinstallCredentialProvider: true
 
 - powershell: |
