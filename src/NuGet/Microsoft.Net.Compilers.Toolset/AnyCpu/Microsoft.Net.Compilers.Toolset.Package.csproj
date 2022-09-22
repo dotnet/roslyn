@@ -79,16 +79,10 @@
     </ItemGroup>
   </Target>
 
-<<<<<<<< HEAD:src/NuGet/Microsoft.Net.Compilers.Toolset/Metalama.Compiler.csproj
   <Import Project="DesktopCompilerArtifacts.targets" Condition="'$(TargetFramework)' == 'net472'" />
   <Import Project="CoreClrCompilerArtifacts.targets" Condition="'$(TargetFramework)' == 'net6.0'" />
   
   <!-- <Metalama> -->
   <Import Project="MetalamaCompilerArtifacts.targets" />
   <!-- </Metalama> -->
-  
-========
-  <Import Project="..\DesktopCompilerArtifacts.targets" Condition="'$(TargetFramework)' == 'net472'" />
-  <Import Project="..\CoreClrCompilerArtifacts.targets" Condition="'$(TargetFramework)' == 'net6.0'" />
->>>>>>>> origin/release/release/dev17.3:src/NuGet/Microsoft.Net.Compilers.Toolset/AnyCpu/Microsoft.Net.Compilers.Toolset.Package.csproj
 </Project>

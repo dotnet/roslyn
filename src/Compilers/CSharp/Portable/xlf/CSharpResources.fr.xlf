@@ -1719,7 +1719,9 @@
       </trans-unit>
       <trans-unit id="IDS_FeatureSpanCharConstantPattern">
         <source>pattern matching ReadOnly/Span&lt;char&gt; on constant string</source>
-        <target state="translated">modèle correspondant à ReadOnly/Span&lt;char&gt; sur une chaîne constante</target>
+        <target state="needs-review-translation">modèle correspondant à ReadOnly/Span&lt;char&gt; sur une chaîne constante</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_LogoLine3">
         <source>Based on the Microsoft (R) Visual C# Compiler.
 Copyright (C) Microsoft Corporation. All rights reserved.
@@ -1727,11 +1729,6 @@ See LICENSE.md and THIRD_PARTY_NOTICES.txt for detailed legal notices.</source>
         <target state="new">Based on the Microsoft (R) Visual C# Compiler.
 Copyright (C) Microsoft Corporation. All rights reserved.
 See LICENSE.md and THIRD_PARTY_NOTICES.txt for detailed legal notices.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="IDS_ParameterNullChecking">
-        <source>parameter null-checking</source>
-        <target state="translated">vérification de la valeur null du paramètre</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_AnalyzerReferencesFramework">
