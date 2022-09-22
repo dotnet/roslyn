@@ -36,15 +36,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
             // Avoid analysis of compilation units and types in AnalyzeCodeBlock. These nodes appear in code block
             // callbacks when they include attributes, but analysis of the node at this level would block more efficient
             // analysis of descendant members.
-            return codeBlock.IsKind(
-                SyntaxKind.CompilationUnit,
-                SyntaxKind.ClassDeclaration,
-                SyntaxKind.RecordDeclaration,
-                SyntaxKind.StructDeclaration,
-                SyntaxKind.RecordStructDeclaration,
-                SyntaxKind.InterfaceDeclaration,
-                SyntaxKind.DelegateDeclaration,
-                SyntaxKind.EnumDeclaration);
+            return codeBlock.Kind() is
+                SyntaxKind.CompilationUnit or
+                SyntaxKind.ClassDeclaration or
+                SyntaxKind.RecordDeclaration or
+                SyntaxKind.StructDeclaration or
+                SyntaxKind.RecordStructDeclaration or
+                SyntaxKind.InterfaceDeclaration or
+                SyntaxKind.DelegateDeclaration or
+                SyntaxKind.EnumDeclaration;
         }
 
         protected override ImmutableArray<Diagnostic> AnalyzeCodeBlock(CodeBlockAnalysisContext context)
@@ -96,7 +96,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
             }
 
             SyntaxNode replacementSyntax;
-            if (node.IsKind(SyntaxKind.QualifiedCref, out QualifiedCrefSyntax? crefSyntax))
+            if (node is QualifiedCrefSyntax crefSyntax)
             {
                 if (!QualifiedCrefSimplifier.Instance.TrySimplify(crefSyntax, model, options, out var replacement, out issueSpan, cancellationToken))
                     return false;

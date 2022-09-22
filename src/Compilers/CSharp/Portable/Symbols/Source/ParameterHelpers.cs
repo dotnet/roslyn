@@ -320,26 +320,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal static bool IsRefScopedByDefault(ParameterSymbol parameter)
         {
-            return IsRefScopedByDefault(parameter.UseUpdatedEscapeRules, parameter.RefKind, parameter.TypeWithAnnotations);
+            return IsRefScopedByDefault(parameter.UseUpdatedEscapeRules, parameter.RefKind);
         }
 
-        internal static bool IsRefScopedByDefault(bool useUpdatedEscapeRules, RefKind refKind, TypeWithAnnotations parameterType)
+        internal static bool IsRefScopedByDefault(bool useUpdatedEscapeRules, RefKind refKind)
         {
-            if (!useUpdatedEscapeRules)
-            {
-                return false;
-            }
-
-            switch (refKind)
-            {
-                case RefKind.Out:
-                    return true;
-                case RefKind.Ref:
-                case RefKind.In:
-                    return parameterType.IsRefLikeType();
-                default:
-                    return false;
-            }
+            return useUpdatedEscapeRules && refKind == RefKind.Out;
         }
 
         internal static void EnsureScopedRefAttributeExists(PEModuleBuilder moduleBuilder, ImmutableArray<ParameterSymbol> parameters)
@@ -428,7 +414,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var seenOut = false;
             var seenParams = false;
             var seenIn = false;
-            bool scopedBeforeRef = false;
+            bool seenScoped = false;
 
             foreach (var modifier in parameter.Modifiers)
             {
@@ -582,29 +568,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                     case SyntaxKind.ScopedKeyword when !parsingFunctionPointerParams:
                         ModifierUtils.CheckScopedModifierAvailability(parameter, modifier, diagnostics);
-                        if (seenIn)
-                        {
-                            addERR_BadParameterModifiersOrder(diagnostics, modifier, SyntaxKind.InKeyword);
-                        }
-                        else if (seenOut)
-                        {
-                            addERR_BadParameterModifiersOrder(diagnostics, modifier, SyntaxKind.OutKeyword);
-                        }
-                        else if (seenRef)
-                        {
-                            addERR_BadParameterModifiersOrder(diagnostics, modifier, SyntaxKind.RefKeyword);
-                        }
-                        else
-                        {
-                            if (scopedBeforeRef)
-                            {
-                                addERR_DupParamMod(diagnostics, modifier);
-                            }
-                            else
-                            {
-                                scopedBeforeRef = true;
-                            }
-                        }
+                        Debug.Assert(!seenIn);
+                        Debug.Assert(!seenOut);
+                        Debug.Assert(!seenRef);
+                        Debug.Assert(!seenScoped);
+
+                        seenScoped = true;
                         break;
 
                     case SyntaxKind.ReadOnlyKeyword:
@@ -624,11 +593,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             static void addERR_DupParamMod(BindingDiagnosticBag diagnostics, SyntaxToken modifier)
             {
                 diagnostics.Add(ErrorCode.ERR_DupParamMod, modifier.GetLocation(), SyntaxFacts.GetText(modifier.Kind()));
-            }
-
-            static void addERR_BadParameterModifiersOrder(BindingDiagnosticBag diagnostics, SyntaxToken modifier, SyntaxKind otherModifierKind)
-            {
-                diagnostics.Add(ErrorCode.ERR_BadParameterModifiersOrder, modifier.GetLocation(), SyntaxFacts.GetText(modifier.Kind()), SyntaxFacts.GetText(otherModifierKind));
             }
 
             static void addERR_BadParameterModifiers(BindingDiagnosticBag diagnostics, SyntaxToken modifier, SyntaxKind otherModifierKind)
@@ -917,7 +881,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal static RefKind GetModifiers(SyntaxTokenList modifiers, out SyntaxToken refnessKeyword, out SyntaxToken paramsKeyword, out SyntaxToken thisKeyword, out DeclarationScope scope)
         {
             var refKind = RefKind.None;
-            bool scopedBeforeRef = false;
+            bool isScoped = false;
 
             refnessKeyword = default(SyntaxToken);
             paramsKeyword = default(SyntaxToken);
@@ -955,15 +919,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         thisKeyword = modifier;
                         break;
                     case SyntaxKind.ScopedKeyword:
-                        if (refKind == RefKind.None)
-                        {
-                            scopedBeforeRef = true;
-                        }
+                        Debug.Assert(refKind == RefKind.None);
+                        isScoped = true;
                         break;
                 }
             }
 
-            if (scopedBeforeRef)
+            if (isScoped)
             {
                 scope = (refKind == RefKind.None) ? DeclarationScope.ValueScoped : DeclarationScope.RefScoped;
             }

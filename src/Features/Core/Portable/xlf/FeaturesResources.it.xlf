@@ -4275,6 +4275,11 @@ Quando si usa questo identificatore di formato standard, la formattazione o l'op
         <target state="translated">costruttore statico</target>
         <note />
       </trans-unit>
+      <trans-unit id="struct_">
+        <source>struct</source>
+        <target state="new">struct</target>
+        <note />
+      </trans-unit>
       <trans-unit id="symbol_cannot_be_a_namespace">
         <source>'symbol' cannot be a namespace.</source>
         <target state="translated">'L'elemento 'symbol' non può essere uno spazio dei nomi.</target>
