@@ -6,7 +6,6 @@ using Xunit;
 using System.Collections.Immutable;
 using static Microsoft.CodeAnalysis.Editor.UnitTests.EmbeddedLanguages.StackFrame.StackFrameSyntaxFactory;
 using static Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame.StackFrameExtensions;
-using Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.EmbeddedLanguages.StackFrame
 {
@@ -466,22 +465,5 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.EmbeddedLanguages.StackFrame
                             "0_0"))
                     )
                 );
-
-        [Theory]
-        [InlineData("at", "in", "line")]        // en
-        [InlineData("bei", "in", "Zeile")]      // de
-        [InlineData("à", "dans", "ligne")]      // fr
-        public void TestLanguages(string at, string @in, string line)
-            => Verify(@$"{at} Program.Main() {@in} C:\repos\languages\Program.cs:{line} 16",
-                methodDeclaration: MethodDeclaration(
-                    QualifiedName("Program.Main",
-                        leadingTrivia: CreateTrivia(StackFrameKind.AtTrivia, $"{at} "))),
-
-                fileInformation: FileInformation(
-                    Path(@"C:\repos\languages\Program.cs"),
-                    ColonToken,
-                    line: CreateToken(StackFrameKind.NumberToken, "16", leadingTrivia: ImmutableArray.Create(CreateTrivia(StackFrameKind.LineTrivia, $"{line} "))),
-                    inTrivia: CreateTrivia(StackFrameKind.InTrivia, $" {@in} "))
-                    );
     }
 }
