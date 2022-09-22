@@ -43,7 +43,7 @@ if ((output = sr.ReadLine()) is not null)
         var assemblyPath = resolver.ResolveAssemblyToPath(assemblyName);
         if (assemblyPath != null)
         {
-            return Assembly.LoadFrom(assemblyPath);
+            return context.LoadFromAssemblyPath(assemblyPath);
         }
 
         return null;
