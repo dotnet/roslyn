@@ -45,17 +45,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Preview
                 }
             }
 
-            private class PreviewTextLoader : TextLoader
+            private sealed class PreviewTextLoader : TextLoader
             {
                 private readonly SourceText _text;
 
                 internal PreviewTextLoader(SourceText documentText)
                     => _text = documentText;
 
-                public override Task<TextAndVersion> LoadTextAndVersionAsync(Workspace workspace, DocumentId documentId, CancellationToken cancellationToken)
-                    => Task.FromResult(LoadTextAndVersionSynchronously(workspace, documentId, cancellationToken));
+                public override Task<TextAndVersion> LoadTextAndVersionAsync(CancellationToken cancellationToken)
+                    => Task.FromResult(LoadTextAndVersionSynchronously(cancellationToken));
 
-                internal override TextAndVersion LoadTextAndVersionSynchronously(Workspace workspace, DocumentId documentId, CancellationToken cancellationToken)
+                internal override TextAndVersion LoadTextAndVersionSynchronously(CancellationToken cancellationToken)
                     => TextAndVersion.Create(_text, VersionStamp.Create());
             }
         }
