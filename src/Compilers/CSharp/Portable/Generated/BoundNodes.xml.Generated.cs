@@ -8326,8 +8326,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.Symbol = symbol;
         }
 
-
         public Symbol Symbol { get; }
+
         [DebuggerStepThrough]
         public override BoundNode? Accept(BoundTreeVisitor visitor) => visitor.VisitGetRuntimeHandleExpression(this);
 
