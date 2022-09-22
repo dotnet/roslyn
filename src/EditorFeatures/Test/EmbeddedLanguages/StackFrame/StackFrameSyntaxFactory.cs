@@ -196,8 +196,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.EmbeddedLanguages.StackFrame
         public static StackFrameIdentifierNameNode TypeArgument(StackFrameToken identifier)
             => new(identifier);
 
-        public static StackFrameFileInformationNode FileInformation(StackFrameToken path, StackFrameToken colon, StackFrameToken line)
-            => new(path.With(leadingTrivia: ImmutableArray.Create(InTrivia)), colon, line);
+        public static StackFrameFileInformationNode FileInformation(StackFrameToken path, StackFrameToken colon, StackFrameToken line, StackFrameTrivia? inTrivia = null)
+            => new(path.With(leadingTrivia: ImmutableArray.Create(inTrivia.HasValue ? inTrivia.Value : InTrivia)), colon, line);
 
         public static StackFrameToken Path(string path)
             => CreateToken(StackFrameKind.PathToken, path);

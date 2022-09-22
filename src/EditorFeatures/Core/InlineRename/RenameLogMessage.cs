@@ -19,6 +19,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
         private const string Committed = nameof(Committed);
         private const string Canceled = nameof(Canceled);
+        private const string Empty = nameof(Empty);
 
         private const string ConflictResolutionFinishedComputing = nameof(ConflictResolutionFinishedComputing);
         private const string PreviewChanges = nameof(PreviewChanges);
@@ -41,6 +42,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
                 m[Committed] = (outcome & UserActionOutcome.Committed) == UserActionOutcome.Committed;
                 m[Canceled] = (outcome & UserActionOutcome.Canceled) == UserActionOutcome.Canceled;
+                m[Empty] = (outcome & UserActionOutcome.Empty) == UserActionOutcome.Empty;
 
                 m[ConflictResolutionFinishedComputing] = conflictResolutionFinishedComputing;
                 m[PreviewChanges] = previewChanges;
@@ -57,6 +59,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         {
             Committed = 0x1,
             Canceled = 0x2,
+
+            /// <summary>
+            /// The user entered an empty string or a string with no changes
+            /// </summary>
+            Empty = 0x4,
         }
     }
 }
