@@ -109,13 +109,9 @@ namespace Microsoft.CodeAnalysis.Snippets
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
             var snippetExpressionNode = FindAddedSnippetSyntaxNode(root, position, syntaxFacts.IsExpressionStatement);
-            if (snippetExpressionNode is null)
-            {
-                return root;
-            }
+            Contract.ThrowIfNull(snippetExpressionNode);
 
             var consoleSymbol = await GetSymbolFromMetaDataNameAsync(document, cancellationToken).ConfigureAwait(false);
-
             var reformatSnippetNode = snippetExpressionNode.WithAdditionalAnnotations(findSnippetAnnotation, cursorAnnotation, Simplifier.Annotation, SymbolAnnotation.Create(consoleSymbol!), Formatter.Annotation);
             return root.ReplaceNode(snippetExpressionNode, reformatSnippetNode);
         }

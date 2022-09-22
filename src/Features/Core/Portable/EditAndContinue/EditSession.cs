@@ -1119,7 +1119,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
             var generation = baselineGeneration + 1;
             log.WriteToFile(sessionId, delta.ILDelta, newProject.Name, generation + ".il");
-            log.WriteToFile(sessionId, delta.MetadataDelta, newProject.Name, generation + ".md");
+            log.WriteToFile(sessionId, delta.MetadataDelta, newProject.Name, generation + ".meta");
             log.WriteToFile(sessionId, delta.PdbDelta, newProject.Name, generation + ".pdb");
         }
 

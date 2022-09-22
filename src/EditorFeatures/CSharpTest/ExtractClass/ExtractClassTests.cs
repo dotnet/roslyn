@@ -2488,6 +2488,39 @@ class C
             }.RunAsync();
         }
 
+        [Fact]
+        [WorkItem(63315, "https://github.com/dotnet/roslyn/issues/63315")]
+        public async Task TestMethodInsideNamespace_NoException()
+        {
+            var code = """
+                namespace N
+                {
+                    class C
+                    {
+                    }
+
+                    public void $$N
+                    {
+                    }
+                }
+                """;
+
+            await new Test()
+            {
+                TestCode = code,
+                FixedCode = code,
+                ExpectedDiagnostics =
+                {
+                    // /0/Test0.cs(7,17): error CS0116: A namespace cannot directly contain members such as fields, methods or statements
+                    DiagnosticResult.CompilerError("CS0116").WithSpan(7, 17, 7, 18),
+                    // /0/Test0.cs(7,17): error CS0547: '<invalid-global-code>.N': property or indexer cannot have void type
+                    DiagnosticResult.CompilerError("CS0547").WithSpan(7, 17, 7, 18).WithArguments("N.<invalid-global-code>.N"),
+                    // /0/Test0.cs(7,17): error CS0548: '<invalid-global-code>.N': property or indexer must have at least one accessor
+                    DiagnosticResult.CompilerError("CS0548").WithSpan(7, 17, 7, 18).WithArguments("N.<invalid-global-code>.N"),
+                }
+            }.RunAsync();
+        }
+
         private static IEnumerable<(string name, bool makeAbstract)> MakeAbstractSelection(params string[] memberNames)
             => memberNames.Select(m => (m, true));
 

@@ -736,7 +736,7 @@ class A {
             using var testLspServer = await CreateTestWorkspaceWithDiagnosticsAsync(
                 new[] { markup1 }, BackgroundAnalysisScope.OpenFiles, useVSDiagnostics);
 
-            var results = await RunGetWorkspacePullDiagnosticsAsync(testLspServer, useVSDiagnostics, includeTodoComments: false);
+            var results = await RunGetWorkspacePullDiagnosticsAsync(testLspServer, useVSDiagnostics, includeTaskListItems: false);
 
             Assert.Equal(0, results.Length);
         }
@@ -752,7 +752,7 @@ class A {
             using var testLspServer = await CreateTestWorkspaceWithDiagnosticsAsync(
                 new[] { markup1 }, BackgroundAnalysisScope.OpenFiles, useVSDiagnostics);
 
-            var results = await RunGetWorkspacePullDiagnosticsAsync(testLspServer, useVSDiagnostics, includeTodoComments: true);
+            var results = await RunGetWorkspacePullDiagnosticsAsync(testLspServer, useVSDiagnostics, includeTaskListItems: true);
 
             Assert.Equal(1, results.Length);
             Assert.Equal("TODO", results[0].Diagnostics.Single().Code);
@@ -770,7 +770,7 @@ class A {
             using var testLspServer = await CreateTestWorkspaceWithDiagnosticsAsync(
                 new[] { markup1 }, BackgroundAnalysisScope.FullSolution, useVSDiagnostics);
 
-            var results = await RunGetWorkspacePullDiagnosticsAsync(testLspServer, useVSDiagnostics, includeTodoComments: false);
+            var results = await RunGetWorkspacePullDiagnosticsAsync(testLspServer, useVSDiagnostics, includeTaskListItems: false);
 
             Assert.Equal(2, results.Length);
 
@@ -790,7 +790,7 @@ class A {
             using var testLspServer = await CreateTestWorkspaceWithDiagnosticsAsync(
                 new[] { markup1 }, BackgroundAnalysisScope.FullSolution, useVSDiagnostics);
 
-            var results = await RunGetWorkspacePullDiagnosticsAsync(testLspServer, useVSDiagnostics, includeTodoComments: true);
+            var results = await RunGetWorkspacePullDiagnosticsAsync(testLspServer, useVSDiagnostics, includeTaskListItems: true);
 
             Assert.Equal(2, results.Length);
 
@@ -810,7 +810,7 @@ class A {
             using var testLspServer = await CreateTestWorkspaceWithDiagnosticsAsync(
                 new[] { markup1 }, BackgroundAnalysisScope.FullSolution, useVSDiagnostics);
 
-            var results = await RunGetWorkspacePullDiagnosticsAsync(testLspServer, useVSDiagnostics, includeTodoComments: true);
+            var results = await RunGetWorkspacePullDiagnosticsAsync(testLspServer, useVSDiagnostics, includeTaskListItems: true);
 
             Assert.Equal(2, results.Length);
 

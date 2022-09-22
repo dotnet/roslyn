@@ -391,7 +391,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
             private static bool IsTypeParameterDeclaration(SyntaxToken token, out NameDeclarationInfo result)
             {
-                if (token.IsKind(SyntaxKind.LessThanToken, SyntaxKind.CommaToken) &&
+                if (token.Kind() is SyntaxKind.LessThanToken or SyntaxKind.CommaToken &&
                     token.Parent.IsKind(SyntaxKind.TypeParameterList))
                 {
                     result = new NameDeclarationInfo(
@@ -419,7 +419,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                     cancellationToken);
 
                 if (result.Type != null &&
-                    token.GetAncestor<ParameterSyntax>()?.Parent.IsParentKind(SyntaxKind.RecordDeclaration, SyntaxKind.RecordStructDeclaration) == true)
+                    token.GetAncestor<ParameterSyntax>()?.Parent?.Parent is (kind: SyntaxKind.RecordDeclaration or SyntaxKind.RecordStructDeclaration))
                 {
                     return true;
                 }
@@ -475,13 +475,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 return result.Type != null;
             }
 
-            private static bool IsPossibleTypeToken(SyntaxToken token) =>
-                token.IsKind(
-                    SyntaxKind.IdentifierToken,
-                    SyntaxKind.GreaterThanToken,
-                    SyntaxKind.CloseBracketToken,
-                    SyntaxKind.QuestionToken)
-                || token.Parent.IsKind(SyntaxKind.PredefinedType);
+            private static bool IsPossibleTypeToken(SyntaxToken token)
+                => token.Kind() is
+                     SyntaxKind.IdentifierToken or
+                     SyntaxKind.GreaterThanToken or
+                     SyntaxKind.CloseBracketToken or
+                     SyntaxKind.QuestionToken ||
+                   token.Parent.IsKind(SyntaxKind.PredefinedType);
 
             private static ImmutableArray<SymbolKindOrTypeKind> GetPossibleMemberDeclarations(DeclarationModifiers modifiers)
             {

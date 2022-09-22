@@ -307,7 +307,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             public const string SyncNamespaces = nameof(SyncNamespaces);
             public const string TargetTypedCompletion = nameof(TargetTypedCompletion);
             public const string TextStructureNavigator = nameof(TextStructureNavigator);
-            public const string TodoComments = nameof(TodoComments);
+            public const string TaskList = nameof(TaskList);
             public const string ToggleBlockComment = nameof(ToggleBlockComment);
             public const string ToggleLineComment = nameof(ToggleLineComment);
             public const string TypeInferenceService = nameof(TypeInferenceService);

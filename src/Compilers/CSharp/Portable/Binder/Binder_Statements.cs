@@ -237,7 +237,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression argument = (node.Expression == null)
                 ? BadExpression(node).MakeCompilerGenerated()
                 : BindValue(node.Expression, diagnostics, BindValueKind.RValue);
-            argument = ValidateEscape(argument, ExternalScope, isByRef: false, diagnostics: diagnostics);
+            argument = ValidateEscape(argument, ReturnOnlyScope, isByRef: false, diagnostics: diagnostics);
 
             if (!argument.HasAnyErrors)
             {
@@ -691,18 +691,18 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundStatement BindDeclarationStatementParts(LocalDeclarationStatementSyntax node, BindingDiagnosticBag diagnostics)
         {
-            var typeSyntax = node.Declaration.Type.SkipRef(out _);
+            var typeSyntax = node.Declaration.Type;
             bool isConst = node.IsConst;
 
-            foreach (var modifier in node.Modifiers)
+            if (typeSyntax is ScopedTypeSyntax scopedType)
             {
-                // Check for support for 'scoped'. Duplicate modifiers are reported
-                // as errors in parsing rather than here.
-                if (modifier.Kind() == SyntaxKind.ScopedKeyword)
-                {
-                    ModifierUtils.CheckScopedModifierAvailability(node, modifier, diagnostics);
-                }
+                // Check for support for 'scoped'.
+                ModifierUtils.CheckScopedModifierAvailability(node, scopedType.ScopedKeyword, diagnostics);
+
+                typeSyntax = scopedType.Type;
             }
+
+            typeSyntax = typeSyntax.SkipRef(out _);
 
             bool isVar;
             AliasSymbol alias;
@@ -783,7 +783,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             // or it might not; if it is not then we do not want to report an error. If it is, then
             // we want to treat the declaration as an explicitly typed declaration.
 
-            TypeWithAnnotations declType = BindTypeOrVarKeyword(typeSyntax.SkipRef(out _), diagnostics, out isVar, out alias);
+            Debug.Assert(typeSyntax is not ScopedTypeSyntax);
+            TypeWithAnnotations declType = BindTypeOrVarKeyword(typeSyntax.SkipScoped(out _).SkipRef(out _), diagnostics, out isVar, out alias);
             Debug.Assert(declType.HasType || isVar);
 
             if (isVar)
@@ -1235,11 +1236,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     ContainingMemberOrLambda,
                     this,
                     allowRefKind: false, // do not allow ref
+                    allowScoped: false,
                     typeSyntax,
                     identifier,
                     kind,
-                    equalsValue,
-                    hasScopedModifier: false);
+                    equalsValue);
             }
 
             return localSymbol;
@@ -1333,7 +1334,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
             }
 
-            if (CheckManagedAddr(Compilation, elementType, initializerSyntax.Location, diagnostics))
+            if (CheckManagedAddr(Compilation, elementType, warnForManaged: false, initializerSyntax.Location, diagnostics))
             {
                 hasErrors = true;
             }
@@ -1545,7 +1546,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var rightEscape = GetRefEscape(op2, LocalScopeDepth);
                         if (leftEscape < rightEscape)
                         {
-                            Error(diagnostics, ErrorCode.ERR_RefAssignNarrower, node, getName(op1), op2.Syntax);
+                            Error(diagnostics, rightEscape == Binder.ReturnOnlyScope ? ErrorCode.ERR_RefAssignReturnOnly : ErrorCode.ERR_RefAssignNarrower, node, getName(op1), op2.Syntax);
                             op2 = ToBadExpression(op2);
                         }
                     }
@@ -2685,6 +2686,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var typeSyntax = nodeOpt.Type;
+            Debug.Assert(nodeOpt.Type is not ScopedTypeSyntax);
+
             // Fixed and using variables are not allowed to be ref-like, but regular variables are
             if (localKind == LocalDeclarationKind.RegularVariable)
             {
@@ -2976,7 +2979,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     else
                     {
                         arg = CreateReturnConversion(syntax, diagnostics, arg, sigRefKind, retType);
-                        arg = ValidateEscape(arg, Binder.ExternalScope, refKind != RefKind.None, diagnostics);
+                        arg = ValidateEscape(arg, Binder.ReturnOnlyScope, refKind != RefKind.None, diagnostics);
                     }
                 }
             }
@@ -3418,7 +3421,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ExpressionSyntax expressionSyntax = expressionBody.Expression.CheckAndUnwrapRefExpression(diagnostics, out refKind);
                 BindValueKind requiredValueKind = bodyBinder.GetRequiredReturnValueKind(refKind);
                 BoundExpression expression = bodyBinder.BindValue(expressionSyntax, diagnostics, requiredValueKind);
-                expression = bodyBinder.ValidateEscape(expression, Binder.ExternalScope, refKind != RefKind.None, diagnostics);
+                expression = bodyBinder.ValidateEscape(expression, Binder.ReturnOnlyScope, refKind != RefKind.None, diagnostics);
 
                 return bodyBinder.CreateBlockFromExpression(expressionBody, bodyBinder.GetDeclaredLocalsForScope(expressionBody), refKind, expression, expressionSyntax, diagnostics);
             }
@@ -3436,7 +3439,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var expressionSyntax = body.CheckAndUnwrapRefExpression(diagnostics, out refKind);
             BindValueKind requiredValueKind = GetRequiredReturnValueKind(refKind);
             BoundExpression expression = bodyBinder.BindValue(expressionSyntax, diagnostics, requiredValueKind);
-            expression = ValidateEscape(expression, Binder.ExternalScope, refKind != RefKind.None, diagnostics);
+            expression = ValidateEscape(expression, Binder.ReturnOnlyScope, refKind != RefKind.None, diagnostics);
 
             return bodyBinder.CreateBlockFromExpression(body, bodyBinder.GetDeclaredLocalsForScope(body), refKind, expression, expressionSyntax, diagnostics);
         }

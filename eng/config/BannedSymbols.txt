@@ -35,3 +35,4 @@ M:Microsoft.CodeAnalysis.Simplification.Simplifier.ReduceAsync(Microsoft.CodeAna
 M:Microsoft.CodeAnalysis.Simplification.Simplifier.ReduceAsync(Microsoft.CodeAnalysis.Document,Microsoft.CodeAnalysis.Text.TextSpan,Microsoft.CodeAnalysis.Options.OptionSet,System.Threading.CancellationToken); Use overload that takes SimplifierOptions
 M:Microsoft.CodeAnalysis.Simplification.Simplifier.ReduceAsync(Microsoft.CodeAnalysis.Document,System.Collections.Generic.IEnumerable{Microsoft.CodeAnalysis.Text.TextSpan},Microsoft.CodeAnalysis.Options.OptionSet,System.Threading.CancellationToken); Use overload that takes SimplifierOptions
 M:Microsoft.CodeAnalysis.Editing.SyntaxEditor.#ctor(Microsoft.CodeAnalysis.SyntaxNode,Microsoft.CodeAnalysis.Host.HostWorkspaceServices); Use overload that takes HostSolutionServices instead
+M:Microsoft.CodeAnalysis.FileTextLoader.#ctor(System.String,System.Text.Encoding); use WorkspaceFileTextLoader

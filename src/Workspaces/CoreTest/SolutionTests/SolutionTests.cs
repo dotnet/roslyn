@@ -1926,7 +1926,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var did = DocumentId.CreateNewId(pid);
 
             sol = sol.AddProject(pid, "goo", "goo.dll", LanguageNames.CSharp)
-                     .AddDocument(did, "x", new FileTextLoader(file.Path, Encoding.UTF8));
+                     .AddDocument(did, "x", new WorkspaceFileTextLoader(workspace.Services.SolutionServices, file.Path, Encoding.UTF8));
 
             var observedText = GetObservedText(sol, did, text1);
 
@@ -1985,7 +1985,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             using var workspace = CreateWorkspace();
             var sol = workspace.CurrentSolution
                                     .AddProject(pid, "goo", "goo.dll", LanguageNames.CSharp)
-                                    .AddDocument(did, "x", new FileTextLoader(file.Path, Encoding.UTF8));
+                                    .AddDocument(did, "x", new WorkspaceFileTextLoader(workspace.Services.SolutionServices, file.Path, Encoding.UTF8));
 
             var doc = sol.GetDocument(did);
 
@@ -2052,7 +2052,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             using var workspace = CreateWorkspace();
             var sol = workspace.CurrentSolution
                                     .AddProject(pid, "goo", "goo.dll", LanguageNames.CSharp)
-                                    .AddDocument(did, "x", new FileTextLoader(file.Path, Encoding.UTF8));
+                                    .AddDocument(did, "x", new WorkspaceFileTextLoader(workspace.Services.SolutionServices, file.Path, Encoding.UTF8));
 
             var doc = sol.GetDocument(did);
             var docTree = doc.GetSyntaxTreeAsync().Result;
@@ -2567,17 +2567,11 @@ End Class";
             var workspace = new AdhocWorkspace();
             var solution = workspace.CurrentSolution;
 
-            WorkspaceDiagnostic diagnosticFromEvent = null;
-            solution.Workspace.WorkspaceFailed += (sender, args) =>
-            {
-                diagnosticFromEvent = args.Diagnostic;
-            };
-
             var pid = ProjectId.CreateNewId();
             var did = DocumentId.CreateNewId(pid);
 
             solution = solution.AddProject(pid, "goo", "goo", LanguageNames.CSharp)
-                               .AddDocument(did, "x", new FileTextLoader(@"C:\doesnotexist.cs", Encoding.UTF8))
+                               .AddDocument(did, "x", new WorkspaceFileTextLoader(solution.Services, @"C:\doesnotexist.cs", Encoding.UTF8))
                                .WithDocumentFilePath(did, "document path");
 
             var doc = solution.GetDocument(did);
@@ -2586,7 +2580,6 @@ End Class";
             var diagnostic = await doc.State.GetLoadDiagnosticAsync(CancellationToken.None).ConfigureAwait(false);
 
             Assert.Equal(@"C:\doesnotexist.cs: (0,0)-(0,0)", diagnostic.Location.GetLineSpan().ToString());
-            Assert.Equal(WorkspaceDiagnosticKind.Failure, diagnosticFromEvent.Kind);
             Assert.Equal("", text.ToString());
 
             // Verify invariant: The compilation is guaranteed to have a syntax tree for each document of the project (even if the contnet fails to load).
@@ -2779,6 +2772,41 @@ public class C : A {
             Assert.Empty(frozenDocument.Project.AdditionalDocuments);
         }
 
+        [Theory]
+        [CombinatorialData]
+        public async Task TestFrozenPartialSemanticsWithMulitipleUnrelatedEdits([CombinatorialValues(1, 2, 3)] int documentToFreeze)
+        {
+            using var workspace = CreateWorkspaceWithPartialSemanticsAndWeakCompilations();
+            var solution = workspace.CurrentSolution.AddProject("TestProject", "TestProject", LanguageNames.CSharp).Solution;
+
+            var documentId1 = DocumentId.CreateNewId(solution.ProjectIds.Single());
+            var documentId2 = DocumentId.CreateNewId(solution.ProjectIds.Single());
+            var documentId3 = DocumentId.CreateNewId(solution.ProjectIds.Single());
+
+            solution = solution
+                .AddDocument(documentId1, nameof(documentId1), "// Document 1")
+                .AddDocument(documentId2, nameof(documentId2), "// Document 2")
+                .AddDocument(documentId3, nameof(documentId3), "// Document 3");
+
+            // Fetch the compilation and ensure it's held during forking, as otherwise we may have no in-progress state
+            // when we freeze.
+            var originalCompilation = await solution.Projects.Single().GetCompilationAsync();
+
+            solution = solution
+                .WithDocumentText(documentId1, SourceText.From("// Document 1 Changed"))
+                .WithDocumentText(documentId2, SourceText.From("// Document 2 Changed"))
+                .WithDocumentText(documentId3, SourceText.From("// Document 3 Changed"));
+
+            GC.KeepAlive(originalCompilation);
+
+            var documentIdToFreeze = documentToFreeze == 1 ? documentId1 : documentToFreeze == 2 ? documentId2 : documentId3;
+
+            var frozen = solution.GetRequiredDocument(documentIdToFreeze).WithFrozenPartialSemantics(CancellationToken.None);
+
+            var tree = await frozen.GetSyntaxTreeAsync();
+            Assert.Contains("Changed", tree.ToString());
+        }
+
         [Fact]
         public void TestProjectCompletenessWithMultipleProjects()
         {
@@ -2808,7 +2836,9 @@ public class C : A {
         private class TestSmallFileTextLoader : FileTextLoader
         {
             public TestSmallFileTextLoader(string path, Encoding encoding)
+#pragma warning disable RS0030 // Do not used banned APIs
                 : base(path, encoding)
+#pragma warning restore
             {
             }
 
@@ -2819,8 +2849,6 @@ public class C : A {
         [Fact]
         public async Task TestMassiveFileSize()
         {
-            var workspace = new AdhocWorkspace();
-
             using var root = new TempRoot();
             var file = root.CreateFile(prefix: "massiveFile", extension: ".cs").WriteAllText("hello");
 
@@ -2834,7 +2862,7 @@ public class C : A {
             try
             {
                 // test async one
-                var unused = await loader.LoadTextAndVersionAsync(workspace, DocumentId.CreateNewId(ProjectId.CreateNewId()), CancellationToken.None);
+                var unused = await loader.LoadTextAndVersionAsync(CancellationToken.None);
             }
             catch (InvalidDataException ex)
             {
@@ -2848,7 +2876,7 @@ public class C : A {
             try
             {
                 // test sync one
-                var unused = loader.LoadTextAndVersionSynchronously(workspace, DocumentId.CreateNewId(ProjectId.CreateNewId()), CancellationToken.None);
+                var unused = loader.LoadTextAndVersionSynchronously(CancellationToken.None);
             }
             catch (InvalidDataException ex)
             {

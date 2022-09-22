@@ -74,21 +74,25 @@ namespace Microsoft.Cci
         {
             emitExternNamespaces = false;
 
-            // CONSIDER: this may not be the same "first" method as in Dev10, but
-            // it shouldn't matter since all methods will still forward to a method
-            // containing the appropriate information.
-            if (_methodBodyWithModuleInfo == null)
+            // Caller is only expecting emitExternNamespaces == true if emitStateMachineInfo == true.
+            if (emitStateMachineInfo)
             {
-                // This module level information could go on every method (and does in
-                // the edit-and-continue case), but - as an optimization - we'll just
-                // put it on the first method we happen to encounter and then put a
-                // reference to the first method's token in every other method (so they
-                // can find the information).
-                if (context.Module.GetAssemblyReferenceAliases(context).Any())
+                // CONSIDER: this may not be the same "first" method as in Dev10, but
+                // it shouldn't matter since all methods will still forward to a method
+                // containing the appropriate information.
+                if (_methodBodyWithModuleInfo == null)
                 {
-                    _methodWithModuleInfo = methodHandle;
-                    _methodBodyWithModuleInfo = methodBody;
-                    emitExternNamespaces = true;
+                    // This module level information could go on every method (and does in
+                    // the edit-and-continue case), but - as an optimization - we'll just
+                    // put it on the first method we happen to encounter and then put a
+                    // reference to the first method's token in every other method (so they
+                    // can find the information).
+                    if (context.Module.GetAssemblyReferenceAliases(context).Any())
+                    {
+                        _methodWithModuleInfo = methodHandle;
+                        _methodBodyWithModuleInfo = methodBody;
+                        emitExternNamespaces = true;
+                    }
                 }
             }
 

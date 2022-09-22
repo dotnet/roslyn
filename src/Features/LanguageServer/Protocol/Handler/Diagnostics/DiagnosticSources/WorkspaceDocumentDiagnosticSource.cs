@@ -13,24 +13,23 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics;
 
 internal sealed class WorkspaceDocumentDiagnosticSource : AbstractDocumentDiagnosticSource<TextDocument>
 {
-    protected override bool IncludeTodoComments { get; }
+    protected override bool IncludeTaskListItems { get; }
     protected override bool IncludeStandardDiagnostics { get; }
 
     public WorkspaceDocumentDiagnosticSource(
         TextDocument document,
-        bool includeTodoComments,
+        bool includeTaskListItems,
         bool includeStandardDiagnostics) : base(document)
     {
-        Contract.ThrowIfFalse(includeTodoComments || includeStandardDiagnostics,
-            $"At least one of includeTodoComments={includeTodoComments} or includeStandardDiagnostics={includeStandardDiagnostics} must be true.");
-        IncludeTodoComments = includeTodoComments;
+        Contract.ThrowIfFalse(includeTaskListItems || includeStandardDiagnostics,
+            $"At least one of includeTaskListItems={includeTaskListItems} or includeStandardDiagnostics={includeStandardDiagnostics} must be true.");
+        IncludeTaskListItems = includeTaskListItems;
         IncludeStandardDiagnostics = includeStandardDiagnostics;
     }
 
     protected override async Task<ImmutableArray<DiagnosticData>> GetDiagnosticsWorkerAsync(
         IDiagnosticAnalyzerService diagnosticAnalyzerService,
         RequestContext context,
-        DiagnosticMode diagnosticMode,
         CancellationToken cancellationToken)
     {
         if (Document is SourceGeneratedDocument sourceGeneratedDocument)
