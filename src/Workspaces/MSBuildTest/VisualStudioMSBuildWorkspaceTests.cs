@@ -2326,10 +2326,10 @@ class C1
             var infos = await loader.LoadProjectInfoAsync(projectFullPath);
 
             var doc = infos[0].Documents[0];
-            var tav = doc.TextLoader.LoadTextAndVersionSynchronously(CancellationToken.None);
+            var tav = doc.TextLoader.LoadTextAndVersionSynchronously(workspace, doc.Id, CancellationToken.None);
 
             var adoc = infos[0].AdditionalDocuments.First(a => a.Name == "XamlFile.xaml");
-            var atav = adoc.TextLoader.LoadTextAndVersionSynchronously(CancellationToken.None);
+            var atav = adoc.TextLoader.LoadTextAndVersionSynchronously(workspace, adoc.Id, CancellationToken.None);
             Assert.Contains("Window", atav.Text.ToString(), StringComparison.Ordinal);
         }
 

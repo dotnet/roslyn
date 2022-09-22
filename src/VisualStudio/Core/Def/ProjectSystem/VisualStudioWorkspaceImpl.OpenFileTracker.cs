@@ -10,7 +10,6 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
-using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.ComponentModelHost;
@@ -318,20 +317,18 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                     {
                         if (w.IsDocumentOpen(documentId) && !_workspace._documentsNotFromFiles.Contains(documentId))
                         {
-                            var loader = new WorkspaceFileTextLoader(w.Services.SolutionServices, moniker, defaultEncoding: null);
-
                             if (w.CurrentSolution.ContainsDocument(documentId))
                             {
-                                w.OnDocumentClosed(documentId, loader);
+                                w.OnDocumentClosed(documentId, new FileTextLoader(moniker, defaultEncoding: null));
                             }
                             else if (w.CurrentSolution.ContainsAdditionalDocument(documentId))
                             {
-                                w.OnAdditionalDocumentClosed(documentId, loader);
+                                w.OnAdditionalDocumentClosed(documentId, new FileTextLoader(moniker, defaultEncoding: null));
                             }
                             else
                             {
                                 Debug.Assert(w.CurrentSolution.ContainsAnalyzerConfigDocument(documentId));
-                                w.OnAnalyzerConfigDocumentClosed(documentId, loader);
+                                w.OnAnalyzerConfigDocumentClosed(documentId, new FileTextLoader(moniker, defaultEncoding: null));
                             }
                         }
                     }
