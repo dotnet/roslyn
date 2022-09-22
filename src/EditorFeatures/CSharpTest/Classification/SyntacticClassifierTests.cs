@@ -351,20 +351,22 @@ partial interface T3
 
         [Theory]
         [CombinatorialData]
-        public async Task VerbatimStringLiteralsUTF8_01(TestHost testHost)
+        public async Task VerbatimStringLiteralsUtf8_01(TestHost testHost)
         {
             await TestInMethodAsync(@"@""goo""u8",
                 testHost,
-                Verbatim(@"@""goo""u8"));
+                Verbatim(@"@""goo""u8"),
+                Keyword("u8"));
         }
 
         [Theory]
         [CombinatorialData]
-        public async Task VerbatimStringLiteralsUTF8_02(TestHost testHost)
+        public async Task VerbatimStringLiteralsUtf8_02(TestHost testHost)
         {
             await TestInMethodAsync(@"@""goo""U8",
                 testHost,
-                Verbatim(@"@""goo""U8"));
+                Verbatim(@"@""goo""U8"),
+                Keyword("U8"));
         }
 
         /// <summary>
@@ -432,7 +434,7 @@ on a new line """),
 
         [Theory]
         [CombinatorialData]
-        public async Task VerbatimStringLiteralsUTF8_03(TestHost testHost)
+        public async Task VerbatimStringLiteralsUtf8_03(TestHost testHost)
         {
             var code = @"
 
@@ -445,13 +447,14 @@ more stuff";
                 Verbatim(@"@"" goo bar
 and 
 on a new line ""u8"),
+                Keyword("u8"),
                 Identifier("more"),
                 Local("stuff"));
         }
 
         [Theory]
         [CombinatorialData]
-        public async Task VerbatimStringLiteralsUTF8_04(TestHost testHost)
+        public async Task VerbatimStringLiteralsUtf8_04(TestHost testHost)
         {
             var code = @"
 
@@ -464,12 +467,12 @@ more stuff";
                 Verbatim(@"@"" goo bar
 and 
 on a new line ""U8"),
+                Keyword("U8"),
                 Identifier("more"),
                 Local("stuff"));
         }
 
-        [Theory]
-        [WorkItem(44423, "https://github.com/dotnet/roslyn/issues/44423")]
+        [Theory, WorkItem(44423, "https://github.com/dotnet/roslyn/issues/44423")]
         [CombinatorialData]
         public async Task VerbatimStringLiterals6(bool script, TestHost testHost)
         {
@@ -491,7 +494,7 @@ on a new line ""U8"),
 
         [Theory]
         [CombinatorialData]
-        public async Task VerbatimStringLiteralsUTF8_05(bool script, TestHost testHost)
+        public async Task VerbatimStringLiteralsUtf8_05(bool script, TestHost testHost)
         {
             var code = @"string s = @""""""/*""u8;";
 
@@ -506,12 +509,13 @@ on a new line ""U8"),
                 script ? Field("s") : Local("s"),
                 Operators.Equals,
                 Verbatim(@"@""""""/*""u8"),
+                Keyword("u8"),
                 Punctuation.Semicolon);
         }
 
         [Theory]
         [CombinatorialData]
-        public async Task VerbatimStringLiteralsUTF8_06(bool script, TestHost testHost)
+        public async Task VerbatimStringLiteralsUtf8_06(bool script, TestHost testHost)
         {
             var code = @"string s = @""""""/*""u8;";
 
@@ -526,6 +530,7 @@ on a new line ""U8"),
                 script ? Field("s") : Local("s"),
                 Operators.Equals,
                 Verbatim(@"@""""""/*""u8"),
+                Keyword("u8"),
                 Punctuation.Semicolon);
         }
 
@@ -540,20 +545,22 @@ on a new line ""U8"),
 
         [Theory]
         [CombinatorialData]
-        public async Task StringLiteralUTF8_01(TestHost testHost)
+        public async Task StringLiteralUtf8_01(TestHost testHost)
         {
             await TestAsync(@"""goo""u8",
                 testHost,
-                String(@"""goo""u8"));
+                String(@"""goo""u8"),
+                Keyword("u8"));
         }
 
         [Theory]
         [CombinatorialData]
-        public async Task StringLiteralUTF8_02(TestHost testHost)
+        public async Task StringLiteralUtf8_02(TestHost testHost)
         {
             await TestAsync(@"""goo""U8",
                 testHost,
-                String(@"""goo""U8"));
+                String(@"""goo""U8"),
+                Keyword("U8"));
         }
 
         [Theory]
@@ -567,20 +574,22 @@ on a new line ""U8"),
 
         [Theory]
         [CombinatorialData]
-        public async Task StringLiteralUTF8_03(TestHost testHost)
+        public async Task StringLiteralUtf8_03(TestHost testHost)
         {
             await TestAsync(@"""""u8",
                 testHost,
-                String(@"""""u8"));
+                String(@"""""u8"),
+                Keyword("u8"));
         }
 
         [Theory]
         [CombinatorialData]
-        public async Task StringLiteralUTF8_04(TestHost testHost)
+        public async Task StringLiteralUtf8_04(TestHost testHost)
         {
             await TestAsync(@"""""U8",
                 testHost,
-                String(@"""""U8"));
+                String(@"""""U8"),
+                Keyword("U8"));
         }
 
         [Theory]
@@ -682,8 +691,7 @@ on a new line ""U8"),
                 String(@"""bar"""));
         }
 
-        [Theory]
-        [WorkItem(44423, "https://github.com/dotnet/roslyn/issues/44423")]
+        [Theory, WorkItem(44423, "https://github.com/dotnet/roslyn/issues/44423")]
         [CombinatorialData]
         public async Task VarContextualKeywordAtNamespaceLevel(bool script, TestHost testHost)
         {
@@ -702,8 +710,7 @@ on a new line ""U8"),
                 Punctuation.Semicolon);
         }
 
-        [Theory]
-        [WorkItem(44423, "https://github.com/dotnet/roslyn/issues/44423")]
+        [Theory, WorkItem(44423, "https://github.com/dotnet/roslyn/issues/44423")]
         [CombinatorialData]
         public async Task LinqKeywordsAtNamespaceLevel(bool script, TestHost testHost)
         {
@@ -1574,8 +1581,7 @@ class Bar { }";
                 Punctuation.CloseCurly);
         }
 
-        [WorkItem(531155, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531155")]
-        [Theory]
+        [Theory, WorkItem(531155, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531155")]
         [CombinatorialData]
         public async Task XmlDocComment_ExteriorTriviaInsideCRef(TestHost testHost)
         {
@@ -2057,8 +2063,7 @@ public class Program
                 Punctuation.CloseCurly);
         }
 
-        [WorkItem(4302, "DevDiv_Projects/Roslyn")]
-        [Theory]
+        [Theory, WorkItem(4302, "DevDiv_Projects/Roslyn")]
         [CombinatorialData]
         public async Task ClassInEnum(TestHost testHost)
         {
@@ -3895,8 +3900,7 @@ public class Goo<T>
                 Punctuation.CloseCurly);
         }
 
-        [WorkItem(538680, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538680")]
-        [Theory]
+        [Theory, WorkItem(538680, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538680")]
         [CombinatorialData]
         public async Task TestValueInLabel(TestHost testHost)
         {
@@ -3929,8 +3933,7 @@ public class Goo<T>
                 Punctuation.CloseCurly);
         }
 
-        [WorkItem(541150, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541150")]
-        [Theory]
+        [Theory, WorkItem(541150, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541150")]
         [CombinatorialData]
         public async Task TestGenericVar(TestHost testHost)
         {
@@ -3980,8 +3983,7 @@ class var<T>
                 Punctuation.CloseCurly);
         }
 
-        [WorkItem(541154, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541154")]
-        [Theory]
+        [Theory, WorkItem(541154, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541154")]
         [CombinatorialData]
         public async Task TestInaccessibleVar(TestHost testHost)
         {
@@ -4036,8 +4038,7 @@ class B : A
                 Punctuation.CloseCurly);
         }
 
-        [WorkItem(541613, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541613")]
-        [Theory]
+        [Theory, WorkItem(541613, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541613")]
         [CombinatorialData]
         public async Task TestEscapedVar(TestHost testHost)
         {
@@ -4073,8 +4074,7 @@ class B : A
                 Punctuation.CloseCurly);
         }
 
-        [WorkItem(542432, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542432")]
-        [Theory]
+        [Theory, WorkItem(542432, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542432")]
         [CombinatorialData]
         public async Task TestVar(TestHost testHost)
         {
@@ -4150,8 +4150,7 @@ class B : A
                 Punctuation.CloseCurly);
         }
 
-        [WorkItem(543123, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543123")]
-        [Theory]
+        [Theory, WorkItem(543123, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543123")]
         [CombinatorialData]
         public async Task TestVar2(TestHost testHost)
         {
@@ -4529,6 +4528,47 @@ void M()
                 Method("Goo"),
                 Punctuation.OpenParen,
                 Punctuation.CloseParen,
+                Punctuation.Semicolon,
+                Comment("======="),
+                Keyword("public"),
+                Keyword("void"),
+                Identifier("Bar"),
+                Punctuation.OpenParen,
+                Punctuation.CloseParen,
+                Punctuation.Semicolon,
+                Comment(">>>>>>> End"),
+                Punctuation.CloseCurly);
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public async Task TestConflictMarkers2(TestHost testHost)
+        {
+            await TestAsync(
+@"class C
+{
+<<<<<<< Start
+    public void Goo();
+||||||| Baseline
+    int removed;
+=======
+    public void Bar();
+>>>>>>> End
+}",
+                testHost,
+                Keyword("class"),
+                Class("C"),
+                Punctuation.OpenCurly,
+                Comment("<<<<<<< Start"),
+                Keyword("public"),
+                Keyword("void"),
+                Method("Goo"),
+                Punctuation.OpenParen,
+                Punctuation.CloseParen,
+                Punctuation.Semicolon,
+                Comment("||||||| Baseline"),
+                Keyword("int"),
+                Identifier("removed"),
                 Punctuation.Semicolon,
                 Comment("======="),
                 Keyword("public"),
@@ -5269,8 +5309,7 @@ int F = int.TryParse(""1"", out int x) ? x : -1;
                 Punctuation.Semicolon);
         }
 
-        [WorkItem(33039, "https://github.com/dotnet/roslyn/issues/33039")]
-        [Theory]
+        [Theory, WorkItem(33039, "https://github.com/dotnet/roslyn/issues/33039")]
         [CombinatorialData]
         public async Task ForEachVariableStatement(TestHost testHost)
         {
@@ -5937,7 +5976,7 @@ class C
 
         [Theory]
         [CombinatorialData]
-        public async Task TestRawStringLiteralUTF8_01(TestHost testHost)
+        public async Task TestRawStringLiteralUtf8_01(TestHost testHost)
         {
             var code = @"
 class C
@@ -5967,6 +6006,7 @@ class C
                 Local("s"),
                 Operators.Equals,
                 String("\"\"\"Hello world\"\"\"u8"),
+                Keyword("u8"),
                 Punctuation.Semicolon,
                 Punctuation.CloseCurly,
                 Punctuation.CloseCurly);
@@ -5974,7 +6014,7 @@ class C
 
         [Theory]
         [CombinatorialData]
-        public async Task TestRawStringLiteralUTF8_02(TestHost testHost)
+        public async Task TestRawStringLiteralUtf8_02(TestHost testHost)
         {
             var code = @"
 class C
@@ -6004,6 +6044,7 @@ class C
                 Local("s"),
                 Operators.Equals,
                 String("\"\"\"Hello world\"\"\"U8"),
+                Keyword("U8"),
                 Punctuation.Semicolon,
                 Punctuation.CloseCurly,
                 Punctuation.CloseCurly);
@@ -6052,7 +6093,7 @@ class C
 
         [Theory]
         [CombinatorialData]
-        public async Task TestRawStringLiteralMultilineUTF8_01(TestHost testHost)
+        public async Task TestRawStringLiteralMultilineUtf8_01(TestHost testHost)
         {
             var code = @"
 class C
@@ -6086,6 +6127,7 @@ class C
                 String(@"""""""
       Hello world
    """"""u8"),
+                Keyword("u8"),
                 Punctuation.Semicolon,
                 Punctuation.CloseCurly,
                 Punctuation.CloseCurly);
@@ -6093,7 +6135,7 @@ class C
 
         [Theory]
         [CombinatorialData]
-        public async Task TestRawStringLiteralMultilineUTF8_02(TestHost testHost)
+        public async Task TestRawStringLiteralMultilineUtf8_02(TestHost testHost)
         {
             var code = @"
 class C
@@ -6127,6 +6169,7 @@ class C
                 String(@"""""""
       Hello world
    """"""U8"),
+                Keyword("U8"),
                 Punctuation.Semicolon,
                 Punctuation.CloseCurly,
                 Punctuation.CloseCurly);

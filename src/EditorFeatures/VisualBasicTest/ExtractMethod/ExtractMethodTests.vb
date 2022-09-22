@@ -102,7 +102,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.ExtractMethod
             Assert.NotNull(document)
 
             Dim extractOptions = New ExtractMethodOptions() With {.DontPutOutOrRefOnStruct = dontPutOutOrRefOnStruct}
-            Dim cleanupOptions = CodeCleanupOptions.GetDefault(document.Project.LanguageServices)
+            Dim cleanupOptions = CodeCleanupOptions.GetDefault(document.Project.Services)
 
             Dim sdocument = Await SemanticDocument.CreateAsync(document, CancellationToken.None)
             Dim validator = New VisualBasicSelectionValidator(sdocument, snapshotSpan.Span.ToTextSpan(), extractOptions)
@@ -115,7 +115,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.ExtractMethod
             Assert.True(selectedCode.ContainsValidContext)
 
             ' extract method
-            Dim extractGenerationOptions = New ExtractMethodGenerationOptions(CodeGenerationOptions.GetDefault(document.Project.LanguageServices)) With
+            Dim extractGenerationOptions = New ExtractMethodGenerationOptions(CodeGenerationOptions.GetDefault(document.Project.Services)) With
             {
                 .ExtractOptions = extractOptions
             }

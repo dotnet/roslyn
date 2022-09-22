@@ -691,7 +691,7 @@ namespace Microsoft.CodeAnalysis.Emit
 
             static void AddTopLevelType(HashSet<string> names, Cci.INamespaceTypeDefinition type)
                 // _namesOfTopLevelTypes are only used to generated exported types, which are not emitted in EnC deltas (hence generation 0):
-                => names?.Add(MetadataHelpers.BuildQualifiedName(type.NamespaceName, Cci.MetadataWriter.GetMangledName(type, generation: 0)));
+                => names?.Add(MetadataHelpers.BuildQualifiedName(type.NamespaceName, Cci.MetadataWriter.GetMetadataName(type, generation: 0)));
         }
 
         public virtual ImmutableArray<TNamedTypeSymbol> GetAdditionalTopLevelTypes()

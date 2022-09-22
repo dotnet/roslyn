@@ -432,6 +432,10 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
         public Cci.ITypeReference GetType(EmitContext context) => _type;
 
+        public ImmutableArray<Cci.ICustomModifier> RefCustomModifiers => ImmutableArray<Cci.ICustomModifier>.Empty;
+
+        public bool IsByReference => false;
+
         internal Cci.ITypeReference Type => _type;
 
         public Cci.IFieldDefinition GetResolvedField(EmitContext context) => this;
@@ -591,6 +595,8 @@ namespace Microsoft.CodeAnalysis.CodeGen
         public Cci.ITypeDefinition AsTypeDefinition(EmitContext context) => this;
 
         public bool MangleName => false;
+
+        public string? AssociatedFileIdentifier => null;
 
         public virtual ushort Alignment => 0;
 

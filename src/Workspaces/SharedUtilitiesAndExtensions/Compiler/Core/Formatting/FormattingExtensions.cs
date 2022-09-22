@@ -9,7 +9,7 @@ using System.Linq;
 using System.Text;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Formatting.Rules;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -287,7 +287,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             if (annotation == SyntaxAnnotation.ElasticAnnotation)
             {
                 var tokens = node.GetAnnotatedTrivia(SyntaxAnnotation.ElasticAnnotation).Select(tr => tr.Token).Distinct();
-                return AggregateSpans(tokens.Select(t => GetElasticSpan(t)));
+                return AggregateSpans(tokens.Select(GetElasticSpan));
             }
 
             return EnumerateAnnotatedSpans(node, annotation);

@@ -134,6 +134,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ParameterHelpers.EnsureNativeIntegerAttributeExists(moduleBuilder, Parameters);
             }
 
+            ParameterHelpers.EnsureScopedRefAttributeExists(moduleBuilder, Parameters);
+
             if (compilationState.Compilation.ShouldEmitNullableAttributes(this))
             {
                 if (ShouldEmitNullableContextValue(out _))

@@ -161,37 +161,6 @@ namespace Microsoft.CodeAnalysis.CommandLine
             return new RunCompilationResult(exitCode);
         }
 
-        private static bool TryEnableMulticoreJitting(out string errorMessage)
-        {
-            errorMessage = null;
-            try
-            {
-                // Enable multi-core JITing
-                // https://blogs.msdn.microsoft.com/dotnet/2012/10/18/an-easy-solution-for-improving-app-launch-performance/
-                var profileRoot = Path.Combine(
-                    Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-                    "RoslynCompiler",
-                    "ProfileOptimization");
-                var assemblyName = Assembly.GetExecutingAssembly().GetName();
-                var profileName = assemblyName.Name + assemblyName.Version + ".profile";
-                Directory.CreateDirectory(profileRoot);
-#if NET472
-                ProfileOptimization.SetProfileRoot(profileRoot);
-                ProfileOptimization.StartProfile(profileName);
-#else
-                AssemblyLoadContext.Default.SetProfileOptimizationRoot(profileRoot);
-                AssemblyLoadContext.Default.StartProfileOptimization(profileName);
-#endif
-            }
-            catch (Exception e)
-            {
-                errorMessage = string.Format(CodeAnalysisResources.ExceptionEnablingMulticoreJit, e.Message);
-                return false;
-            }
-
-            return true;
-        }
-
         public Task<RunCompilationResult> RunCompilationAsync(IEnumerable<string> originalArguments, BuildPaths buildPaths, TextWriter textWriter = null)
         {
             var tcs = new TaskCompletionSource<RunCompilationResult>();
@@ -287,6 +256,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
                 case BuildResponse.ResponseType.IncorrectHash:
                 case BuildResponse.ResponseType.Rejected:
                 case BuildResponse.ResponseType.AnalyzerInconsistency:
+                case BuildResponse.ResponseType.CannotConnect:
                     // Build could not be completed on the server.
                     return null;
                 default:

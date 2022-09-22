@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Immutable;
 using System.Threading;
@@ -50,5 +48,11 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
         ValueTask<ImmutableArray<SerializableSymbolAndProjectId>> FindProjectSourceDeclarationsWithPatternAsync(
             Checksum solutionChecksum, ProjectId projectId, string pattern, SymbolFilter criteria, CancellationToken cancellationToken);
+
+        // Notification so we can keep the remote SymbolTreeInfoCache up to date.
+
+        ValueTask AnalyzeDocumentAsync(Checksum solutionChecksum, DocumentId documentId, bool isMethodBodyEdit, CancellationToken cancellationToken);
+        ValueTask AnalyzeProjectAsync(Checksum solutionChecksum, ProjectId projectId, CancellationToken cancellationToken);
+        ValueTask RemoveProjectAsync(ProjectId projectId, CancellationToken cancellationToken);
     }
 }

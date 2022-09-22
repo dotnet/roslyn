@@ -29,7 +29,7 @@
       </trans-unit>
       <trans-unit id="Convert_to_Program_Main_style_program">
         <source>Convert to 'Program.Main' style program</source>
-        <target state="new">Convert to 'Program.Main' style program</target>
+        <target state="translated">'Program.Main' stil programına dönüştür</target>
         <note>{Locked="Program.Main"} this is the C# syntax we are going to generate</note>
       </trans-unit>
       <trans-unit id="Convert_to_block_scoped_namespace">
@@ -44,7 +44,7 @@
       </trans-unit>
       <trans-unit id="Convert_to_top_level_statements">
         <source>Convert to top-level statements</source>
-        <target state="new">Convert to top-level statements</target>
+        <target state="translated">Üst düzey deyimlere dönüştür</target>
         <note />
       </trans-unit>
       <trans-unit id="Deconstruct_variable_declaration">
@@ -82,6 +82,11 @@
         <target state="translated">Lambda ifadesi kaldırılabilir</target>
         <note />
       </trans-unit>
+      <trans-unit id="Make_struct_readonly">
+        <source>Make struct 'readonly'</source>
+        <target state="new">Make struct 'readonly'</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Misplaced_using_directive">
         <source>Misplaced using directive</source>
         <target state="translated">Yanlış yerleştirilmiş using yönergesi</target>
@@ -117,6 +122,16 @@
         <target state="translated">Null denetimi daha fazla ayrıntıya sahip olabilir</target>
         <note />
       </trans-unit>
+      <trans-unit id="Nullable_directive_is_redundant">
+        <source>Nullable directive is redundant</source>
+        <target state="translated">Null atanabilir yönerge yineleniyor</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Nullable_directive_is_unnecessary">
+        <source>Nullable directive is unnecessary</source>
+        <target state="translated">Null atanabilir yönerge gereksiz</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Prefer_null_check_over_type_check">
         <source>Prefer 'null' check over type check</source>
         <target state="translated">Tür denetimi yerine 'null' denetimini tercih et</target>
@@ -132,6 +147,11 @@
         <target state="translated">İşleci kaldır (semantiği korur)</target>
         <note />
       </trans-unit>
+      <trans-unit id="Remove_redundant_nullable_directive">
+        <source>Remove redundant nullable directive</source>
+        <target state="translated">Yinelenen null atanabilir yönergeyi kaldırın</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Remove_suppression_operators">
         <source>Remove suppression operators</source>
         <target state="translated">Gizleme işleçlerini kaldır</target>
@@ -140,6 +160,11 @@
       <trans-unit id="Remove_unnecessary_lambda_expression">
         <source>Remove unnecessary lambda expression</source>
         <target state="translated">Gereksiz lambda ifadesini kaldır</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Remove_unnecessary_nullable_directive">
+        <source>Remove unnecessary nullable directive</source>
+        <target state="translated">Gereksiz null atanabilir yönergeyi kaldırın</target>
         <note />
       </trans-unit>
       <trans-unit id="Remove_unnecessary_suppression_operator">
@@ -167,6 +192,11 @@
         <target state="translated">Özellik desenini basitleştir</target>
         <note />
       </trans-unit>
+      <trans-unit id="Struct_can_be_made_readonly">
+        <source>Struct can be made 'readonly'</source>
+        <target state="new">Struct can be made 'readonly'</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Struct_contains_assignment_to_this_outside_of_constructor_Make_readonly_fields_writable">
         <source>Struct contains assignment to 'this' outside of constructor. Make readonly fields writable.</source>
         <target state="translated">Struct, oluşturucu dışında 'this' öğesine yönelik atama içeriyor. Salt okunur alanları yazılabilir yapın.</target>
@@ -182,9 +212,9 @@
         <target state="translated">Ulaşılamayan kod algılandı</target>
         <note />
       </trans-unit>
-      <trans-unit id="Use_UTF8_string_literal">
+      <trans-unit id="Use_Utf8_string_literal">
         <source>Use UTF-8 string literal</source>
-        <target state="new">Use UTF-8 string literal</target>
+        <target state="translated">UTF-8 sabit değerli dizesini kullan</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_block_body_for_accessors">
@@ -199,12 +229,17 @@
       </trans-unit>
       <trans-unit id="Use_block_body_for_conversion_operators">
         <source>Use block body for conversion operators</source>
-        <target state="new">Use block body for conversion operators</target>
+        <target state="translated">Dönüştürme işleçleri için blok gövdesi kullan</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_block_body_for_indexers">
         <source>Use block body for indexers</source>
         <target state="translated">Dizin oluşturucular için blok gövdesi kullan</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_block_body_for_lambda_expressions">
+        <source>Use block body for lambda expressions</source>
+        <target state="translated">Lambda ifadeleri için blok vücut kullanımı</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_block_body_for_local_functions">
@@ -249,12 +284,17 @@
       </trans-unit>
       <trans-unit id="Use_expression_body_for_conversion_operators">
         <source>Use expression body for conversion operators</source>
-        <target state="new">Use expression body for conversion operators</target>
+        <target state="translated">Dönüştürme işleçleri için ifade gövdesi kullan</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_expression_body_for_indexers">
         <source>Use expression body for indexers</source>
         <target state="translated">Dizin oluşturucular için ifade gövdesi kullan</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_expression_body_for_lambda_expressions">
+        <source>Use expression body for lambda expressions</source>
+        <target state="translated">Lambda ifadeleri için ifade vücut kullanımı</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_expression_body_for_local_functions">

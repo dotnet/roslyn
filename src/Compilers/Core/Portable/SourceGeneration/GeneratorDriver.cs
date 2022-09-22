@@ -11,6 +11,7 @@ using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.SourceGeneration;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
@@ -35,8 +36,8 @@ namespace Microsoft.CodeAnalysis
 
         internal GeneratorDriver(ParseOptions parseOptions, ImmutableArray<ISourceGenerator> generators, AnalyzerConfigOptionsProvider optionsProvider, ImmutableArray<AdditionalText> additionalTexts, GeneratorDriverOptions driverOptions)
         {
-            (var filteredGenerators, var incrementalGenerators) = GetIncrementalGenerators(generators, SourceExtension);
-            _state = new GeneratorDriverState(parseOptions, optionsProvider, filteredGenerators, incrementalGenerators, additionalTexts, ImmutableArray.Create(new GeneratorState[filteredGenerators.Length]), DriverStateTable.Empty, SyntaxStore.Empty, driverOptions.DisabledOutputs, runtime: TimeSpan.Zero, driverOptions.TrackIncrementalGeneratorSteps);
+            var incrementalGenerators = GetIncrementalGenerators(generators, SourceExtension);
+            _state = new GeneratorDriverState(parseOptions, optionsProvider, generators, incrementalGenerators, additionalTexts, ImmutableArray.Create(new GeneratorState[generators.Length]), DriverStateTable.Empty, SyntaxStore.Empty, driverOptions.DisabledOutputs, runtime: TimeSpan.Zero, driverOptions.TrackIncrementalGeneratorSteps, parseOptionsChanged: true);
         }
 
         public GeneratorDriver RunGenerators(Compilation compilation, CancellationToken cancellationToken = default)
@@ -66,11 +67,33 @@ namespace Microsoft.CodeAnalysis
 
         public GeneratorDriver AddGenerators(ImmutableArray<ISourceGenerator> generators)
         {
-            (var filteredGenerators, var incrementalGenerators) = GetIncrementalGenerators(generators, SourceExtension);
-            var newState = _state.With(sourceGenerators: _state.Generators.AddRange(filteredGenerators),
+            var incrementalGenerators = GetIncrementalGenerators(generators, SourceExtension);
+            var newState = _state.With(sourceGenerators: _state.Generators.AddRange(generators),
                                        incrementalGenerators: _state.IncrementalGenerators.AddRange(incrementalGenerators),
-                                       generatorStates: _state.GeneratorStates.AddRange(new GeneratorState[filteredGenerators.Length]));
+                                       generatorStates: _state.GeneratorStates.AddRange(new GeneratorState[generators.Length]));
             return FromState(newState);
+        }
+
+        public GeneratorDriver ReplaceGenerators(ImmutableArray<ISourceGenerator> generators)
+        {
+            var incrementalGenerators = GetIncrementalGenerators(generators, SourceExtension);
+            var states = ArrayBuilder<GeneratorState>.GetInstance(generators.Length);
+
+            foreach (var generator in generators)
+            {
+                var existingIndex = _state.Generators.IndexOf(generator);
+
+                if (existingIndex >= 0)
+                {
+                    states.Add(_state.GeneratorStates[existingIndex]);
+                }
+                else
+                {
+                    states.Add(GeneratorState.Empty);
+                }
+            }
+
+            return FromState(_state.With(generators, incrementalGenerators, states.ToImmutableAndFree()));
         }
 
         public GeneratorDriver RemoveGenerators(ImmutableArray<ISourceGenerator> generators)
@@ -122,7 +145,7 @@ namespace Microsoft.CodeAnalysis
         public GeneratorDriver ReplaceAdditionalTexts(ImmutableArray<AdditionalText> newTexts) => FromState(_state.With(additionalTexts: newTexts));
 
         public GeneratorDriver WithUpdatedParseOptions(ParseOptions newOptions) => newOptions is object
-                                                                                   ? FromState(_state.With(parseOptions: newOptions))
+                                                                                   ? FromState(_state.With(parseOptions: newOptions, parseOptionsChanged: true))
                                                                                    : throw new ArgumentNullException(nameof(newOptions));
 
         public GeneratorDriver WithUpdatedAnalyzerConfigOptions(AnalyzerConfigOptionsProvider newOptions) => newOptions is object
@@ -191,7 +214,8 @@ namespace Microsoft.CodeAnalysis
                     var outputBuilder = ArrayBuilder<IIncrementalGeneratorOutputNode>.GetInstance();
                     var inputBuilder = ArrayBuilder<SyntaxInputNode>.GetInstance();
                     var postInitSources = ImmutableArray<GeneratedSyntaxTree>.Empty;
-                    var pipelineContext = new IncrementalGeneratorInitializationContext(inputBuilder, outputBuilder, SourceExtension);
+                    var pipelineContext = new IncrementalGeneratorInitializationContext(
+                        inputBuilder, outputBuilder, this.SyntaxHelper, this.SourceExtension);
 
                     Exception? ex = null;
                     try
@@ -223,6 +247,12 @@ namespace Microsoft.CodeAnalysis
                     generatorState = ex is null
                                      ? new GeneratorState(postInitSources, inputNodes, outputNodes)
                                      : SetGeneratorException(MessageProvider, GeneratorState.Empty, sourceGenerator, ex, diagnosticsBag, isInit: true);
+                }
+                else if (state.ParseOptionsChanged && generatorState.PostInitTrees.Length > 0)
+                {
+                    // the generator is initalized, but we need to reparse the post-init trees as the parse options have changed
+                    var reparsedInitSources = ParseAdditionalSources(sourceGenerator, generatorState.PostInitTrees.SelectAsArray(t => new GeneratedSourceText(t.HintName, t.Text)), cancellationToken);
+                    generatorState = new GeneratorState(reparsedInitSources, generatorState.InputNodes, generatorState.OutputNodes);
                 }
 
                 // if the pipeline registered any syntax input nodes, record them
@@ -274,7 +304,7 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
-            state = state.With(stateTable: driverStateBuilder.ToImmutable(), syntaxStore: syntaxStoreBuilder.ToImmutable(), generatorStates: stateBuilder.ToImmutableAndFree(), runTime: timer.Elapsed);
+            state = state.With(stateTable: driverStateBuilder.ToImmutable(), syntaxStore: syntaxStoreBuilder.ToImmutable(), generatorStates: stateBuilder.ToImmutableAndFree(), runTime: timer.Elapsed, parseOptionsChanged: false);
             return state;
         }
 
@@ -353,14 +383,14 @@ namespace Microsoft.CodeAnalysis
             return Path.Combine(type.Assembly.GetName().Name ?? string.Empty, type.FullName!);
         }
 
-        private static (ImmutableArray<ISourceGenerator>, ImmutableArray<IIncrementalGenerator>) GetIncrementalGenerators(ImmutableArray<ISourceGenerator> generators, string sourceExtension)
+        private static ImmutableArray<IIncrementalGenerator> GetIncrementalGenerators(ImmutableArray<ISourceGenerator> generators, string sourceExtension)
         {
-            return (generators, generators.SelectAsArray(g => g switch
+            return generators.SelectAsArray(g => g switch
             {
                 IncrementalGeneratorWrapper igw => igw.Generator,
                 IIncrementalGenerator ig => ig,
                 _ => new SourceGeneratorAdaptor(g, sourceExtension)
-            }));
+            });
 
         }
 
@@ -371,5 +401,7 @@ namespace Microsoft.CodeAnalysis
         internal abstract SyntaxTree ParseGeneratedSourceText(GeneratedSourceText input, string fileName, CancellationToken cancellationToken);
 
         internal abstract string SourceExtension { get; }
+
+        internal abstract ISyntaxHelper SyntaxHelper { get; }
     }
 }

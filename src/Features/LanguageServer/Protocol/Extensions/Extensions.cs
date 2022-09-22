@@ -6,6 +6,7 @@ using System;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using System.Reflection.Metadata;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.FindUsages;
@@ -36,8 +37,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer
         {
             var documentIds = GetDocumentIds(solution, documentUri);
 
-            var documents = documentIds.SelectAsArray(id => solution.GetRequiredDocument(id));
-
+            // We don't call GetRequiredDocument here as the id could be referring to an additional document.
+            var documents = documentIds.Select(solution.GetDocument).WhereNotNull().ToImmutableArray();
             return documents;
         }
 
@@ -98,6 +99,17 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             // latter case, we'll just return the first one arbitrarily since this might just be some temporary mis-sync
             // of client and server state.
             return documents[0];
+        }
+
+        public static Project? GetProject(this Solution solution, TextDocumentIdentifier projectIdentifier)
+            => solution.Projects.Where(project => project.FilePath == projectIdentifier.Uri.LocalPath).SingleOrDefault();
+
+        public static TextDocument? GetAdditionalDocument(this Solution solution, TextDocumentIdentifier documentIdentifier)
+        {
+            var documentIds = GetDocumentIds(solution, documentIdentifier.Uri);
+
+            // We don't call GetRequiredAdditionalDocument as the id could be referring to a regular document.
+            return documentIds.Select(solution.GetAdditionalDocument).WhereNotNull().SingleOrDefault();
         }
 
         public static async Task<int> GetPositionFromLinePositionAsync(this TextDocument document, LinePosition linePosition, CancellationToken cancellationToken)

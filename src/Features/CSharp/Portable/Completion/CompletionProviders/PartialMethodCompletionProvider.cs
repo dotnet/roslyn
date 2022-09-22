@@ -96,7 +96,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
             modifiers = default;
 
-            if (targetToken.IsKind(SyntaxKind.VoidKeyword, SyntaxKind.PartialKeyword) ||
+            if (targetToken.Kind() is SyntaxKind.VoidKeyword or SyntaxKind.PartialKeyword ||
                 (targetToken.Kind() == SyntaxKind.IdentifierToken && targetToken.HasMatchingText(SyntaxKind.PartialKeyword)))
             {
                 return !IsOnSameLine(touchingToken.GetNextToken(), touchingToken, text) &&

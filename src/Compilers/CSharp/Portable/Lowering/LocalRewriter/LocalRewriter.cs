@@ -427,6 +427,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(value.Type is { } && (value.Type.Equals(placeholder.Type, TypeCompareKind.AllIgnoreOptions) || value.HasErrors));
         }
 
+#if DEBUG
         [Conditional("DEBUG")]
         private void AssertNoPlaceholderReplacements()
         {
@@ -435,6 +436,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert(_placeholderReplacementMapDoNotUseDirectly.Count == 0);
             }
         }
+#endif
 
         /// <summary>
         /// Sets substitution used by the rewriter for a placeholder node.
@@ -912,7 +914,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                             return true;
 
                         Debug.Assert(eventAccess.ReceiverOpt is { });
-                        return CanBePassedByReference(eventAccess.ReceiverOpt);
+                        Debug.Assert(eventAccess.ReceiverOpt.Type is { });
+                        return !eventAccess.ReceiverOpt.Type.IsValueType || CanBePassedByReference(eventAccess.ReceiverOpt);
                     }
 
                     return false;
@@ -922,7 +925,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (!fieldAccess.FieldSymbol.IsStatic)
                     {
                         Debug.Assert(fieldAccess.ReceiverOpt is { });
-                        return CanBePassedByReference(fieldAccess.ReceiverOpt);
+                        Debug.Assert(fieldAccess.ReceiverOpt.Type is { });
+                        return !fieldAccess.ReceiverOpt.Type.IsValueType || CanBePassedByReference(fieldAccess.ReceiverOpt);
                     }
 
                     return true;

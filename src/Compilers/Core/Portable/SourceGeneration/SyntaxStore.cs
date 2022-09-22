@@ -8,6 +8,7 @@ using System.Diagnostics;
 using System.Threading;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -89,7 +90,7 @@ namespace Microsoft.CodeAnalysis
                                 var currentNode = syntaxInputBuilders[i].node;
                                 try
                                 {
-                                    Stopwatch sw = Stopwatch.StartNew();
+                                    var sw = SharedStopwatch.StartNew();
                                     try
                                     {
                                         _cancellationToken.ThrowIfCancellationRequested();

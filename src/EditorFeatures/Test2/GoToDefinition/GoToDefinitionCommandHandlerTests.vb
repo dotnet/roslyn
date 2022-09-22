@@ -76,5 +76,40 @@ class C
                 Assert.Equal(New TextSpan(121, 2), mockDocumentNavigationService._span)
             End Using
         End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
+        Public Async Function TestAtEndOfFile() As Task
+            Dim definition =
+<Workspace>
+    <Project Language="C#" CommonReferences="true" AssemblyName="CSProj">
+        <Document FilePath="C.cs">int x = 0;
+int y = x$$</Document>
+    </Project>
+</Workspace>
+
+            Using workspace = TestWorkspace.Create(definition, composition:=GoToTestHelpers.Composition)
+
+                Dim document = workspace.Documents.First()
+                Dim view = document.GetTextView()
+
+                Dim mockDocumentNavigationService =
+                    DirectCast(workspace.Services.GetService(Of IDocumentNavigationService)(), MockDocumentNavigationService)
+
+                Dim provider = workspace.GetService(Of IAsynchronousOperationListenerProvider)()
+                Dim waiter = provider.GetWaiter(FeatureAttribute.GoToDefinition)
+                Dim handler = New GoToDefinitionCommandHandler(
+                    workspace.GetService(Of IGlobalOptionService),
+                    workspace.GetService(Of IThreadingContext),
+                    workspace.GetService(Of IUIThreadOperationExecutor),
+                    provider)
+
+                handler.ExecuteCommand(New GoToDefinitionCommandArgs(view, document.GetTextBuffer()), TestCommandExecutionContext.Create())
+                Await waiter.ExpeditedWaitAsync()
+
+                Assert.True(mockDocumentNavigationService._triedNavigationToSpan)
+                Assert.Equal(New TextSpan(4, 1), mockDocumentNavigationService._span)
+                Assert.Equal(document.Id, mockDocumentNavigationService._documentId)
+            End Using
+        End Function
     End Class
 End Namespace

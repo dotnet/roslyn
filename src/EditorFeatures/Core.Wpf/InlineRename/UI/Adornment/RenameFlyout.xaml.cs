@@ -6,6 +6,10 @@ using System;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
+using System.Windows.Media;
+using Microsoft.VisualStudio;
+using Microsoft.VisualStudio.PlatformUI;
+using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Text.Editor;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
@@ -16,9 +20,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
     internal partial class RenameFlyout : InlineRenameAdornment
     {
         private readonly RenameFlyoutViewModel _viewModel;
-        private readonly ITextView _textView;
+        private readonly IWpfTextView _textView;
 
-        public RenameFlyout(RenameFlyoutViewModel viewModel, ITextView textView)
+        public RenameFlyout(RenameFlyoutViewModel viewModel, IWpfTextView textView, IWpfThemeService? themeService)
         {
             DataContext = _viewModel = viewModel;
             _textView = textView;
@@ -26,18 +30,26 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             _textView.LayoutChanged += TextView_LayoutChanged;
             _textView.ViewportHeightChanged += TextView_ViewPortChanged;
             _textView.ViewportWidthChanged += TextView_ViewPortChanged;
-            _textView.LostAggregateFocus += TextView_LostFocus;
-            _textView.Caret.PositionChanged += TextView_CursorChanged;
 
             // On load focus the first tab target
             Loaded += (s, e) =>
             {
-                Focus();
-                MoveFocus(new TraversalRequest(FocusNavigationDirection.First));
+                IdentifierTextBox.Focus();
+                IdentifierTextBox.Select(_viewModel.StartingSelection.Start, _viewModel.StartingSelection.Length);
+
+                // Don't hook up our close events until we're done loading and have focused within the textbox
+                _textView.LostAggregateFocus += TextView_LostFocus;
+                IsKeyboardFocusWithinChanged += RenameFlyout_IsKeyboardFocusWithinChanged;
             };
 
             InitializeComponent();
             PositionAdornment();
+
+            if (themeService is not null)
+            {
+                Outline.BorderBrush = new SolidColorBrush(themeService.GetThemeColor(EnvironmentColors.AccentBorderColorKey));
+                Background = new SolidColorBrush(themeService.GetThemeColor(EnvironmentColors.ToolWindowBackgroundColorKey));
+            }
         }
 
 #pragma warning disable CA1822 // Mark members as static - used in xaml
@@ -50,8 +62,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         public string SubmitText => EditorFeaturesWpfResources.Enter_to_rename_shift_enter_to_preview;
 #pragma warning restore CA1822 // Mark members as static
 
-        private void TextView_CursorChanged(object sender, CaretPositionChangedEventArgs e)
-            => _viewModel.Cancel();
+        private void RenameFlyout_IsKeyboardFocusWithinChanged(object sender, DependencyPropertyChangedEventArgs e)
+        {
+            if (!IsKeyboardFocusWithin)
+            {
+                _viewModel.Cancel();
+            }
+        }
 
         private void TextView_LostFocus(object sender, EventArgs e)
             => _viewModel.Cancel();
@@ -60,7 +77,15 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             => PositionAdornment();
 
         private void TextView_LayoutChanged(object sender, TextViewLayoutChangedEventArgs e)
-            => PositionAdornment();
+        {
+            // Since the textview will update for the buffer being updated, we only want to reposition
+            // in cases where there was an actual view translation instead of EVERY time it updates. Otherwise
+            // the user will see the flyout jumping as they type
+            if (e.VerticalTranslation || e.HorizontalTranslation)
+            {
+                PositionAdornment();
+            }
+        }
 
         private void PositionAdornment()
         {
@@ -79,7 +104,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             _textView.ViewportHeightChanged -= TextView_ViewPortChanged;
             _textView.ViewportWidthChanged -= TextView_ViewPortChanged;
             _textView.LostAggregateFocus -= TextView_LostFocus;
-            _textView.Caret.PositionChanged -= TextView_CursorChanged;
+
+            // Restore focus back to the textview
+            _textView.VisualElement.Focus();
         }
 
         private void Submit_Click(object sender, RoutedEventArgs e)

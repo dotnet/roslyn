@@ -288,7 +288,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return MemberSymbol.ContainingType is SourceMemberContainerTypeSymbol type &&
                         type.IsNullableEnabledForConstructorsAndInitializers(useStatic: MemberSymbol.IsStatic);
                 case SymbolKind.Parameter:
-                    return SourceComplexParameterSymbol.GetDefaultValueSyntaxForIsNullableAnalysisEnabled(Root as ParameterSyntax) is { } value &&
+                    return SourceComplexParameterSymbolBase.GetDefaultValueSyntaxForIsNullableAnalysisEnabled(Root as ParameterSyntax) is { } value &&
                         Compilation.IsNullableAnalysisEnabledIn(value);
                 default:
                     throw ExceptionUtilities.UnexpectedValue(MemberSymbol.Kind);

@@ -19798,7 +19798,7 @@ public class Cls
                                                             options: TestOptions.ReleaseExe,
                                                             parseOptions: TestOptions.Regular);
             compilation.VerifyDiagnostics(
-                // (5,13): error CS7036: There is no argument given that corresponds to the required formal parameter 'i' of 'Program.M(int, out string)'
+                // (5,13): error CS7036: There is no argument given that corresponds to the required parameter 'i' of 'Program.M(int, out string)'
                 //         if (M(s: out var s))
                 Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "M").WithArguments("i", "Program.M(int, out string)").WithLocation(5, 13)
                 );
@@ -20031,7 +20031,7 @@ public class Cls
             var compilation = CreateCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
 
             compilation.VerifyDiagnostics(
-                // (7,9): error CS7036: There is no argument given that corresponds to the required formal parameter 'x' of 'Cls.Test1(int, ref int)'
+                // (7,9): error CS7036: There is no argument given that corresponds to the required parameter 'x' of 'Cls.Test1(int, ref int)'
                 //         Test1(y: ref x, y: out var y);
                 Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "Test1").WithArguments("x", "Cls.Test1(int, ref int)").WithLocation(7, 9));
 
@@ -23021,9 +23021,9 @@ public class Cls
             var compilation = CreateCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
 
             compilation.VerifyDiagnostics(
-                // (9,19): error CS0721: 'Cls.StaticType': static types cannot be used as parameters
+                // (9,29): error CS0721: 'Cls.StaticType': static types cannot be used as parameters
                 //     static object Test1(out StaticType x)
-                Diagnostic(ErrorCode.ERR_ParameterIsStaticClass, "Test1").WithArguments("Cls.StaticType").WithLocation(9, 19),
+                Diagnostic(ErrorCode.ERR_ParameterIsStaticClass, "StaticType").WithArguments("Cls.StaticType").WithLocation(9, 29),
                 // (6,19): error CS0723: Cannot declare a variable of static type 'Cls.StaticType'
                 //         Test1(out StaticType x1);
                 Diagnostic(ErrorCode.ERR_VarDeclIsStaticClass, "StaticType").WithArguments("Cls.StaticType").WithLocation(6, 19)
@@ -25575,11 +25575,6 @@ class H
                 VerifyModelForOutVar(model, x4Decl[0], x4Ref);
                 VerifyModelForOutVarDuplicateInSameScope(model, x4Decl[1]);
             }
-        }
-
-        private static void AssertNoGlobalStatements(SyntaxTree tree)
-        {
-            Assert.Empty(tree.GetRoot().DescendantNodes().OfType<GlobalStatementSyntax>());
         }
 
         [Fact]
@@ -32099,9 +32094,9 @@ static class StaticType{}
                 // (5,31): error CS0723: Cannot declare a variable of static type 'StaticType'
                 // H.TakeOutParam(out StaticType x2);
                 Diagnostic(ErrorCode.ERR_VarDeclIsStaticClass, "x2").WithArguments("StaticType").WithLocation(5, 31),
-                // (9,24): error CS0721: 'StaticType': static types cannot be used as parameters
+                // (9,41): error CS0721: 'StaticType': static types cannot be used as parameters
                 //     public static void TakeOutParam(out StaticType x) 
-                Diagnostic(ErrorCode.ERR_ParameterIsStaticClass, "TakeOutParam").WithArguments("StaticType").WithLocation(9, 24),
+                Diagnostic(ErrorCode.ERR_ParameterIsStaticClass, "StaticType").WithArguments("StaticType").WithLocation(9, 41),
                 // (3,24): error CS0723: Cannot declare a variable of static type 'StaticType'
                 // H.TakeOutParam(out var x1);
                 Diagnostic(ErrorCode.ERR_VarDeclIsStaticClass, "x1").WithArguments("StaticType").WithLocation(3, 24)

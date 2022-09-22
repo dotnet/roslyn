@@ -7,6 +7,7 @@ Imports VerifyVB = Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions.VisualBas
     Microsoft.CodeAnalysis.VisualBasic.UseObjectInitializer.VisualBasicUseObjectInitializerCodeFixProvider)
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.UseObjectInitializer
+    <Trait(Traits.Feature, Traits.Features.CodeActionsUseObjectInitializer)>
     Public Class UseObjectInitializerTests
         Private Shared Async Function TestInRegularAndScriptAsync(testCode As String, fixedCode As String) As Task
             Await New VerifyVB.Test With {
@@ -22,7 +23,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.UseObj
             }.RunAsync()
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseObjectInitializer)>
+        <Fact>
         Public Async Function TestOnVariableDeclarator() As Task
             Await TestInRegularAndScriptAsync(
 "
@@ -30,7 +31,7 @@ Class C
     Dim i As Integer
     Sub M()
         Dim c = [|New|] C()
-        c.i = 1
+        [|c|].i = 1
     End Sub
 End Class",
 "
@@ -44,7 +45,7 @@ Class C
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseObjectInitializer)>
+        <Fact>
         Public Async Function TestOnVariableDeclarator2() As Task
             Await TestInRegularAndScriptAsync(
 "
@@ -52,7 +53,7 @@ Class C
     Dim i As Integer
     Sub M()
         Dim c As [|New|] C()
-        c.i = 1
+        [|c|].i = 1
     End Sub
 End Class",
 "
@@ -66,7 +67,7 @@ Class C
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseObjectInitializer)>
+        <Fact>
         Public Async Function TestOnAssignmentExpression() As Task
             Await TestInRegularAndScriptAsync(
 "
@@ -75,7 +76,7 @@ Class C
     Sub M()
         Dim c as C = Nothing
         c = [|New|] C()
-        c.i = 1
+        [|c|].i = 1
     End Sub
 End Class",
 "
@@ -90,7 +91,7 @@ Class C
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseObjectInitializer)>
+        <Fact>
         Public Async Function TestStopOnDuplicateMember() As Task
             Await TestInRegularAndScriptAsync(
 "
@@ -98,7 +99,7 @@ Class C
     Dim i As Integer
     Sub M()
         Dim c = [|New|] C()
-        c.i = 1
+        [|c|].i = 1
         c.i = 2
     End Sub
 End Class",
@@ -114,7 +115,7 @@ Class C
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseObjectInitializer)>
+        <Fact>
         Public Async Function TestComplexInitializer() As Task
             Await TestInRegularAndScriptAsync(
 "
@@ -125,8 +126,8 @@ Class C
         Dim array As C()
 
         array(0) = [|New|] C()
-        array(0).i = 1
-        array(0).j = 2
+        [|array(0)|].i = 1
+        [|array(0)|].j = 2
     End Sub
 End Class",
 "
@@ -144,7 +145,7 @@ Class C
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseObjectInitializer)>
+        <Fact>
         Public Async Function TestNotOnCompoundAssignment() As Task
             Await TestInRegularAndScriptAsync(
 "
@@ -153,7 +154,7 @@ Class C
     Dim j As Integer
     Sub M()
         Dim c = [|New|] C()
-        c.i = 1
+        [|c|].i = 1
         c.j += 1
     End Sub
 End Class",
@@ -170,8 +171,7 @@ Class C
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseObjectInitializer)>
-        <WorkItem(39146, "https://github.com/dotnet/roslyn/issues/39146")>
+        <Fact, WorkItem(39146, "https://github.com/dotnet/roslyn/issues/39146")>
         Public Async Function TestWithExistingInitializer() As Task
             Await TestInRegularAndScriptAsync(
 "
@@ -182,7 +182,7 @@ Class C
         Dim c = [|New|] C() With {
             .i = 1
         }
-        c.j = 1
+        [|c|].j = 1
     End Sub
 End Class",
 "
@@ -198,8 +198,7 @@ Class C
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseObjectInitializer)>
-        <WorkItem(39146, "https://github.com/dotnet/roslyn/issues/39146")>
+        <Fact, WorkItem(39146, "https://github.com/dotnet/roslyn/issues/39146")>
         Public Async Function TestWithExistingInitializerNotIfAlreadyInitialized() As Task
             Await TestInRegularAndScriptAsync(
 "
@@ -210,7 +209,7 @@ Class C
         Dim c = [|New|] C() With {
             .i = 1
         }
-        c.j = 1
+        [|c|].j = 1
         c.i = 2
     End Sub
 End Class",
@@ -228,8 +227,7 @@ Class C
 End Class")
         End Function
 
-        <WorkItem(15012, "https://github.com/dotnet/roslyn/issues/15012")>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseObjectInitializer)>
+        <Fact, WorkItem(15012, "https://github.com/dotnet/roslyn/issues/15012")>
         Public Async Function TestMissingIfImplicitMemberAccessWouldChange() As Task
             Await TestMissingInRegularAndScriptAsync(
 "
@@ -245,8 +243,7 @@ Class C
 End Class")
         End Function
 
-        <WorkItem(15012, "https://github.com/dotnet/roslyn/issues/15012")>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseObjectInitializer)>
+        <Fact, WorkItem(15012, "https://github.com/dotnet/roslyn/issues/15012")>
         Public Async Function TestIfImplicitMemberAccessWouldNotChange() As Task
             Await TestInRegularAndScriptAsync(
 "
@@ -255,7 +252,7 @@ imports system.diagnostics
 Class C
     Sub M()
         Dim x As ProcessStartInfo = [|New|] ProcessStartInfo()
-        x.Arguments = {|BC30491:Sub()
+        [|x|].Arguments = {|BC30491:Sub()
                          With New String(Nothing)
                             Dim a = .Length.ToString()
                          End With
@@ -278,7 +275,7 @@ Class C
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseObjectInitializer)>
+        <Fact>
         Public Async Function TestFixAllInDocument() As Task
             Await TestInRegularAndScriptAsync(
 "
@@ -289,12 +286,12 @@ Class C
         Dim array As C()
 
         array(0) = [|New|] C()
-        array(0).i = 1
-        array(0).j = 2
+        [|array(0)|].i = 1
+        [|array(0)|].j = 2
 
         array(1) = [|New|] C()
-        array(1).i = 3
-        array(1).j = 4
+        [|array(1)|].i = 3
+        [|array(1)|].j = 4
     End Sub
 End Class",
 "
@@ -317,7 +314,7 @@ Class C
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseObjectInitializer)>
+        <Fact>
         Public Async Function TestTrivia1() As Task
             Await TestInRegularAndScriptAsync(
 "
@@ -326,8 +323,8 @@ Class C
     Dim j As Integer
     Sub M()
         Dim c = [|New|] C()
-        c.i = 1 ' Goo
-        c.j = 2 ' Bar
+        [|c|].i = 1 ' Goo
+        [|c|].j = 2 ' Bar
     End Sub
 End Class",
 "
@@ -343,8 +340,7 @@ Class C
 End Class")
         End Function
 
-        <WorkItem(15525, "https://github.com/dotnet/roslyn/issues/15525")>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseObjectInitializer)>
+        <Fact, WorkItem(15525, "https://github.com/dotnet/roslyn/issues/15525")>
         Public Async Function TestTrivia2() As Task
             Await TestInRegularAndScriptAsync(
 "
@@ -353,8 +349,8 @@ Class C
         Dim XmlAppConfigReader As [|New|] XmlTextReader(Reader)
 
         ' Required by Fxcop rule CA3054 - DoNotAllowDTDXmlTextReader
-        XmlAppConfigReader.x = 0
-        XmlAppConfigReader.y = 1
+        [|XmlAppConfigReader|].x = 0
+        [|XmlAppConfigReader|].y = 1
     End Sub
 End Class
 
@@ -387,8 +383,7 @@ end class
 ")
         End Function
 
-        <WorkItem(15525, "https://github.com/dotnet/roslyn/issues/15525")>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseObjectInitializer)>
+        <Fact, WorkItem(15525, "https://github.com/dotnet/roslyn/issues/15525")>
         Public Async Function TestTrivia3() As Task
             Await TestInRegularAndScriptAsync(
 "
@@ -397,10 +392,10 @@ Class C
         Dim XmlAppConfigReader As [|New|] XmlTextReader(Reader)
 
         ' Required by Fxcop rule CA3054 - DoNotAllowDTDXmlTextReader
-        XmlAppConfigReader.x = 0
+        [|XmlAppConfigReader|].x = 0
 
         ' Bar
-        XmlAppConfigReader.y = 1
+        [|XmlAppConfigReader|].y = 1
     End Sub
 End Class
 
@@ -434,8 +429,7 @@ end class
 ")
         End Function
 
-        <WorkItem(401322, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=401322")>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseObjectInitializer)>
+        <Fact, WorkItem(401322, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=401322")>
         Public Async Function TestSharedMember() As Task
             Await TestInRegularAndScriptAsync(
 "
@@ -445,7 +439,7 @@ Class C
 
     Sub M()
         Dim z = [|New|] C()
-        z.x = 1
+        [|z|].x = 1
         z.y = 2
     End Sub
 End Class
@@ -465,8 +459,7 @@ End Class
 ")
         End Function
 
-        <WorkItem(23368, "https://github.com/dotnet/roslyn/issues/23368")>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseObjectInitializer)>
+        <Fact, WorkItem(23368, "https://github.com/dotnet/roslyn/issues/23368")>
         Public Async Function TestWithExplicitImplementedInterfaceMembers1() As Task
             Await TestMissingInRegularAndScriptAsync(
 "
@@ -491,8 +484,7 @@ End Class
 ")
         End Function
 
-        <WorkItem(23368, "https://github.com/dotnet/roslyn/issues/23368")>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseObjectInitializer)>
+        <Fact, WorkItem(23368, "https://github.com/dotnet/roslyn/issues/23368")>
         Public Async Function TestWithExplicitImplementedInterfaceMembers2() As Task
             Await TestMissingInRegularAndScriptAsync(
 "
@@ -518,15 +510,14 @@ End Class
 ")
         End Function
 
-        <WorkItem(23368, "https://github.com/dotnet/roslyn/issues/23368")>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseObjectInitializer)>
+        <Fact, WorkItem(23368, "https://github.com/dotnet/roslyn/issues/23368")>
         Public Async Function TestWithExplicitImplementedInterfaceMembers3() As Task
             Await TestInRegularAndScriptAsync(
 "
 class C
     Sub Bar()
         Dim c As IExample = [|New|] Goo
-        c.LastName = String.Empty
+        [|c|].LastName = String.Empty
         c.Name = String.Empty
     End Sub
 End Class
@@ -567,15 +558,14 @@ End Class
 ")
         End Function
 
-        <WorkItem(23368, "https://github.com/dotnet/roslyn/issues/23368")>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseObjectInitializer)>
+        <Fact, WorkItem(23368, "https://github.com/dotnet/roslyn/issues/23368")>
         Public Async Function TestWithExplicitImplementedInterfaceMembers4() As Task
             Await TestInRegularAndScriptAsync(
 "
 class C
     Sub Bar()
         Dim c As IExample = [|New|] Goo
-        c.LastName = String.Empty
+        [|c|].LastName = String.Empty
         c.Name = String.Empty
     End Sub
 End Class

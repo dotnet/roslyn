@@ -74,6 +74,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         public const string MakeRefStruct = nameof(MakeRefStruct);
         public const string MakeStatementAsynchronous = nameof(MakeStatementAsynchronous);
         public const string MakeStructFieldsWritable = nameof(MakeStructFieldsWritable);
+        public const string MakeStructReadOnly = nameof(MakeStructReadOnly);
         public const string MakeTypeAbstract = nameof(MakeTypeAbstract);
         public const string MoveMisplacedUsingDirectives = nameof(MoveMisplacedUsingDirectives);
         public const string MoveToTopOfFile = nameof(MoveToTopOfFile);
@@ -97,6 +98,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         public const string RemoveUnnecessaryDiscardDesignation = nameof(RemoveUnnecessaryDiscardDesignation);
         public const string RemoveUnnecessaryImports = nameof(RemoveUnnecessaryImports);
         public const string RemoveUnnecessaryLambdaExpression = nameof(RemoveUnnecessaryLambdaExpression);
+        public const string RemoveUnnecessaryNullableDirective = nameof(RemoveUnnecessaryNullableDirective);
         public const string RemoveUnnecessaryParentheses = nameof(RemoveUnnecessaryParentheses);
         public const string RemoveUnnecessaryPragmaSuppressions = nameof(RemoveUnnecessaryPragmaSuppressions);
         public const string RemoveUnreachableCode = nameof(RemoveUnreachableCode);
@@ -156,6 +158,6 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         public const string UseSystemHashCode = nameof(UseSystemHashCode);
         public const string UseThrowExpression = nameof(UseThrowExpression);
         public const string UseTupleSwap = nameof(UseTupleSwap);
-        public const string UseUTF8StringLiteral = nameof(UseUTF8StringLiteral);
+        public const string UseUtf8StringLiteral = nameof(UseUtf8StringLiteral);
     }
 }

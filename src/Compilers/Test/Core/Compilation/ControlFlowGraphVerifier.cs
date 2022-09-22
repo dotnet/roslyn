@@ -1928,7 +1928,7 @@ endRegion:
                 case OperationKind.Stop:
                 case OperationKind.RaiseEvent:
                 case OperationKind.Literal:
-                case OperationKind.UTF8String:
+                case OperationKind.Utf8String:
                 case OperationKind.Conversion:
                 case OperationKind.Invocation:
                 case OperationKind.ArrayElementReference:

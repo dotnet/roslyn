@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         }
 
         [DebuggerDisplay("{GetDebuggerDisplay(), nq}")]
-        private struct Token
+        private readonly struct Token
         {
             internal readonly TokenKind Kind;
             internal readonly string Text;

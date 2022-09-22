@@ -26,11 +26,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Indentation
                 indenter.Rules, indenter.Root, indenter.LineToBeIndented, indenter.Options, out syntaxToken);
 
         protected override ISmartTokenFormatter CreateSmartTokenFormatter(
-            CompilationUnitSyntax root, TextLine lineToBeIndented,
+            CompilationUnitSyntax root, SourceText text, TextLine lineToBeIndented,
             IndentationOptions options, AbstractFormattingRule baseIndentationRule)
         {
             var rules = ImmutableArray.Create(baseIndentationRule).AddRange(CSharpSyntaxFormatting.Instance.GetDefaultFormattingRules());
-            return new CSharpSmartTokenFormatter(options, rules, root);
+            return new CSharpSmartTokenFormatter(options, rules, root, text);
         }
 
         protected override IndentationResult? GetDesiredIndentationWorker(Indenter indenter, SyntaxToken? tokenOpt, SyntaxTrivia? triviaOpt)

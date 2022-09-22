@@ -4656,54 +4656,6 @@ class Class1<T>{
             TestClassPropertyWithModifier(SyntaxKind.SealedKeyword);
         }
 
-        private void TestClassPropertyWithAccessorModifier(SyntaxKind mod)
-        {
-            var text = "class a { b c { " + SyntaxFacts.GetText(mod) + " get { } } }";
-            var file = this.ParseFile(text);
-
-            Assert.NotNull(file);
-            Assert.Equal(1, file.Members.Count);
-            Assert.Equal(text, file.ToString());
-            Assert.Equal(0, file.Errors().Length);
-
-            Assert.Equal(SyntaxKind.ClassDeclaration, file.Members[0].Kind());
-            var cs = (TypeDeclarationSyntax)file.Members[0];
-            Assert.Equal(0, cs.AttributeLists.Count);
-            Assert.Equal(0, cs.Modifiers.Count);
-            Assert.NotEqual(default, cs.Keyword);
-            Assert.Equal(SyntaxKind.ClassKeyword, cs.Keyword.Kind());
-            Assert.NotEqual(default, cs.Identifier);
-            Assert.Equal("a", cs.Identifier.ToString());
-            Assert.Null(cs.BaseList);
-            Assert.Equal(0, cs.ConstraintClauses.Count);
-            Assert.NotEqual(default, cs.OpenBraceToken);
-            Assert.NotEqual(default, cs.CloseBraceToken);
-
-            Assert.Equal(1, cs.Members.Count);
-
-            Assert.Equal(SyntaxKind.PropertyDeclaration, cs.Members[0].Kind());
-            var ps = (PropertyDeclarationSyntax)cs.Members[0];
-            Assert.Equal(0, ps.AttributeLists.Count);
-            Assert.Equal(0, ps.Modifiers.Count);
-            Assert.NotNull(ps.Type);
-            Assert.Equal("b", ps.Type.ToString());
-            Assert.NotEqual(default, ps.Identifier);
-            Assert.Equal("c", ps.Identifier.ToString());
-
-            Assert.NotEqual(default, ps.AccessorList.OpenBraceToken);
-            Assert.NotEqual(default, ps.AccessorList.CloseBraceToken);
-
-            Assert.Equal(1, ps.AccessorList.Accessors.Count);
-
-            Assert.Equal(0, ps.AccessorList.Accessors[0].AttributeLists.Count);
-            Assert.Equal(1, ps.AccessorList.Accessors[0].Modifiers.Count);
-            Assert.Equal(mod, ps.AccessorList.Accessors[0].Modifiers[0].Kind());
-            Assert.NotEqual(default, ps.AccessorList.Accessors[0].Keyword);
-            Assert.Equal(SyntaxKind.GetKeyword, ps.AccessorList.Accessors[0].Keyword.Kind());
-            Assert.NotNull(ps.AccessorList.Accessors[0].Body);
-            Assert.Equal(SyntaxKind.None, ps.AccessorList.Accessors[0].SemicolonToken.Kind());
-        }
-
         [Fact]
         public void TestClassPropertyWithAccessorModifiers()
         {
@@ -4895,55 +4847,6 @@ class Class1<T>{
             TestClassEventPropertyWithModifier(SyntaxKind.AbstractKeyword);
             TestClassEventPropertyWithModifier(SyntaxKind.VirtualKeyword);
             TestClassEventPropertyWithModifier(SyntaxKind.OverrideKeyword);
-        }
-
-        private void TestClassEventPropertyWithAccessorModifier(SyntaxKind mod)
-        {
-            var text = "class a { event b c { " + SyntaxFacts.GetText(mod) + " add { } } }";
-            var file = this.ParseFile(text);
-
-            Assert.NotNull(file);
-            Assert.Equal(1, file.Members.Count);
-            Assert.Equal(text, file.ToString());
-            Assert.Equal(0, file.Errors().Length);
-
-            Assert.Equal(SyntaxKind.ClassDeclaration, file.Members[0].Kind());
-            var cs = (TypeDeclarationSyntax)file.Members[0];
-            Assert.Equal(0, cs.AttributeLists.Count);
-            Assert.Equal(0, cs.Modifiers.Count);
-            Assert.NotEqual(default, cs.Keyword);
-            Assert.Equal(SyntaxKind.ClassKeyword, cs.Keyword.Kind());
-            Assert.NotEqual(default, cs.Identifier);
-            Assert.Equal("a", cs.Identifier.ToString());
-            Assert.Null(cs.BaseList);
-            Assert.Equal(0, cs.ConstraintClauses.Count);
-            Assert.NotEqual(default, cs.OpenBraceToken);
-            Assert.NotEqual(default, cs.CloseBraceToken);
-
-            Assert.Equal(1, cs.Members.Count);
-
-            Assert.Equal(SyntaxKind.PropertyDeclaration, cs.Members[0].Kind());
-            var ps = (PropertyDeclarationSyntax)cs.Members[0];
-            Assert.Equal(0, ps.AttributeLists.Count);
-            Assert.Equal(1, ps.Modifiers.Count);
-            Assert.Equal(SyntaxKind.EventKeyword, ps.Modifiers[0].Kind());
-            Assert.NotNull(ps.Type);
-            Assert.Equal("b", ps.Type.ToString());
-            Assert.NotEqual(default, ps.Identifier);
-            Assert.Equal("c", ps.Identifier.ToString());
-
-            Assert.NotEqual(default, ps.AccessorList.OpenBraceToken);
-            Assert.NotEqual(default, ps.AccessorList.CloseBraceToken);
-
-            Assert.Equal(1, ps.AccessorList.Accessors.Count);
-
-            Assert.Equal(0, ps.AccessorList.Accessors[0].AttributeLists.Count);
-            Assert.Equal(1, ps.AccessorList.Accessors[0].Modifiers.Count);
-            Assert.Equal(mod, ps.AccessorList.Accessors[0].Modifiers[0].Kind());
-            Assert.NotEqual(default, ps.AccessorList.Accessors[0].Keyword);
-            Assert.Equal(SyntaxKind.AddKeyword, ps.AccessorList.Accessors[0].Keyword.Kind());
-            Assert.NotNull(ps.AccessorList.Accessors[0].Body);
-            Assert.Equal(SyntaxKind.None, ps.AccessorList.Accessors[0].SemicolonToken.Kind());
         }
 
         [Fact]
@@ -5854,9 +5757,6 @@ partial class PartialPartial
         {
             var text = @"partial enum E{}";
             CreateCompilationWithMscorlib45(text).VerifyDiagnostics(
-                // (1,1): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or a method return type.
-                // partial enum E{}
-                Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(1, 1),
                 // (1,14): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or a method return type.
                 // partial enum E{}
                 Diagnostic(ErrorCode.ERR_PartialMisplaced, "E").WithLocation(1, 14));
@@ -5995,14 +5895,6 @@ System.Console.WriteLine(""Bad, breaking change"");
             Assert.DoesNotContain(undesiredText, stmtText, StringComparison.Ordinal);
         }
 
-        private void TestError(string text, ErrorCode error)
-        {
-            var file = this.ParseFile(text);
-            Assert.NotNull(file);
-            Assert.Equal(1, file.Errors().Length);
-            Assert.Equal(error, (ErrorCode)file.Errors()[0].Code);
-        }
-
         [Fact]
         public void TestBadlyPlacedParams()
         {
@@ -6018,11 +5910,11 @@ class C
 }";
 
             CreateCompilation(text1).VerifyDiagnostics(
-                // (4,11): error CS0231: A params parameter must be the last parameter in a formal parameter list
+                // (4,11): error CS0231: A params parameter must be the last parameter in a parameter list
                 //    void M(params int[] i, int j)  {}
                 Diagnostic(ErrorCode.ERR_ParamsLast, "params int[] i").WithLocation(4, 11));
             CreateCompilation(text2).VerifyDiagnostics(
-                // (4,11): error CS0257: An __arglist parameter must be the last parameter in a formal parameter list
+                // (4,11): error CS0257: An __arglist parameter must be the last parameter in a parameter list
                 //    void M(__arglist, int j)  {}
                 Diagnostic(ErrorCode.ERR_VarargsLast, "__arglist").WithLocation(4, 11));
         }
@@ -6227,7 +6119,13 @@ public interface I1
     event System.Action I2.
 P10
 }
-");
+",
+                // (5,27): error CS0071: An explicit interface implementation of an event must use event accessor syntax
+                //     event System.Action I2.
+                Diagnostic(ErrorCode.ERR_ExplicitEventFieldImpl, ".").WithLocation(5, 27),
+                // (7,1): error CS1519: Invalid token '}' in class, record, struct, or interface member declaration
+                // }
+                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "}").WithArguments("}").WithLocation(7, 1));
             N(SyntaxKind.CompilationUnit);
             {
                 N(SyntaxKind.InterfaceDeclaration);
@@ -6297,7 +6195,10 @@ public interface I1
 {
     event System.Action I2.P10
 }
-");
+",
+                // (5,27): error CS0071: An explicit interface implementation of an event must use event accessor syntax
+                //     event System.Action I2.P10
+                Diagnostic(ErrorCode.ERR_ExplicitEventFieldImpl, ".").WithLocation(5, 27));
             N(SyntaxKind.CompilationUnit);
             {
                 N(SyntaxKind.InterfaceDeclaration);
@@ -6361,7 +6262,19 @@ class C
     int A { get { return this.
     public int B;
 }
-");
+",
+                // (4,31): error CS1001: Identifier expected
+                //     int A { get { return this.
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "").WithLocation(4, 31),
+                // (4,31): error CS1002: ; expected
+                //     int A { get { return this.
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(4, 31),
+                // (4,31): error CS1513: } expected
+                //     int A { get { return this.
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(4, 31),
+                // (4,31): error CS1513: } expected
+                //     int A { get { return this.
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(4, 31));
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -6704,7 +6617,13 @@ class C
         {
             var tree = UsingTree(@"
 class C<T> : where
-");
+",
+                // (2,19): error CS1514: { expected
+                // class C<T> : where
+                Diagnostic(ErrorCode.ERR_LbraceExpected, "").WithLocation(2, 19),
+                // (2,19): error CS1513: } expected
+                // class C<T> : where
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(2, 19));
             N(SyntaxKind.CompilationUnit);
             {
                 N(SyntaxKind.ClassDeclaration);
@@ -6744,7 +6663,16 @@ class C<T> : where
         {
             var tree = UsingTree(@"
 class C<T> : where T
-");
+",
+                // (2,20): error CS1003: Syntax error, ',' expected
+                // class C<T> : where T
+                Diagnostic(ErrorCode.ERR_SyntaxError, "T").WithArguments(",").WithLocation(2, 20),
+                // (2,21): error CS1514: { expected
+                // class C<T> : where T
+                Diagnostic(ErrorCode.ERR_LbraceExpected, "").WithLocation(2, 21),
+                // (2,21): error CS1513: } expected
+                // class C<T> : where T
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(2, 21));
             N(SyntaxKind.CompilationUnit);
             {
                 N(SyntaxKind.ClassDeclaration);
@@ -6792,7 +6720,19 @@ class C<T> : where T
         {
             var tree = UsingTree(@"
 class C<T> : where T :
-");
+",
+                // (2,14): error CS1031: Type expected
+                // class C<T> : where T :
+                Diagnostic(ErrorCode.ERR_TypeExpected, "where").WithLocation(2, 14),
+                // (2,23): error CS1031: Type expected
+                // class C<T> : where T :
+                Diagnostic(ErrorCode.ERR_TypeExpected, "").WithLocation(2, 23),
+                // (2,23): error CS1514: { expected
+                // class C<T> : where T :
+                Diagnostic(ErrorCode.ERR_LbraceExpected, "").WithLocation(2, 23),
+                // (2,23): error CS1513: } expected
+                // class C<T> : where T :
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(2, 23));
             N(SyntaxKind.CompilationUnit);
             {
                 N(SyntaxKind.ClassDeclaration);
@@ -6848,7 +6788,16 @@ class C<T> : where T :
         {
             var tree = UsingTree(@"
 class C<T> : where T : X
-");
+",
+                // (2,14): error CS1031: Type expected
+                // class C<T> : where T : X
+                Diagnostic(ErrorCode.ERR_TypeExpected, "where").WithLocation(2, 14),
+                // (2,25): error CS1514: { expected
+                // class C<T> : where T : X
+                Diagnostic(ErrorCode.ERR_LbraceExpected, "").WithLocation(2, 25),
+                // (2,25): error CS1513: } expected
+                // class C<T> : where T : X
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(2, 25));
             N(SyntaxKind.CompilationUnit);
             {
                 N(SyntaxKind.ClassDeclaration);
@@ -8241,7 +8190,10 @@ class C<T> where T : struct? {}
 class C
 {
     public void M(string x!!) { }
-}", options: TestOptions.RegularPreview);
+}", options: TestOptions.RegularPreview,
+                // (4,27): error CS8989: The 'parameter null-checking' feature is not supported.
+                //     public void M(string x!!) { }
+                Diagnostic(ErrorCode.ERR_ParameterNullCheckingNotSupported, "!").WithLocation(4, 27));
             N(SyntaxKind.CompilationUnit);
             {
                 N(SyntaxKind.ClassDeclaration);
@@ -8289,7 +8241,10 @@ class C
 class C
 {
     public C(string x!!) { }
-}", options: TestOptions.RegularPreview);
+}", options: TestOptions.RegularPreview,
+                // (4,22): error CS8989: The 'parameter null-checking' feature is not supported.
+                //     public C(string x!!) { }
+                Diagnostic(ErrorCode.ERR_ParameterNullCheckingNotSupported, "!").WithLocation(4, 22));
             N(SyntaxKind.CompilationUnit);
             {
                 N(SyntaxKind.ClassDeclaration);
@@ -8337,7 +8292,10 @@ class Box
     {
         return 2;
     }
-}", options: TestOptions.RegularPreview);
+}", options: TestOptions.RegularPreview,
+                // (4,39): error CS8989: The 'parameter null-checking' feature is not supported.
+                //     public static int operator+ (Box b!!, Box c) 
+                Diagnostic(ErrorCode.ERR_ParameterNullCheckingNotSupported, "!").WithLocation(4, 39));
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -8404,7 +8362,16 @@ class Box
         {
             UsingTree(@"
 delegate void Del(int x!!);
-Del d = delegate(int k!!) { /* ... */ };", options: TestOptions.RegularPreview);
+Del d = delegate(int k!!) { /* ... */ };", options: TestOptions.RegularPreview,
+                // (2,24): error CS8989: The 'parameter null-checking' feature is not supported.
+                // delegate void Del(int x!!);
+                Diagnostic(ErrorCode.ERR_ParameterNullCheckingNotSupported, "!").WithLocation(2, 24),
+                // (3,1): error CS8803: Top-level statements must precede namespace and type declarations.
+                // Del d = delegate(int k!!) { /* ... */ };
+                Diagnostic(ErrorCode.ERR_TopLevelStatementAfterNamespaceOrType, "Del d = delegate(int k!!) { /* ... */ };").WithLocation(3, 1),
+                // (3,23): error CS8989: The 'parameter null-checking' feature is not supported.
+                // Del d = delegate(int k!!) { /* ... */ };
+                Diagnostic(ErrorCode.ERR_ParameterNullCheckingNotSupported, "!").WithLocation(3, 23));
             N(SyntaxKind.CompilationUnit);
             {
                 N(SyntaxKind.DelegateDeclaration);

@@ -624,4 +624,7 @@
   <data name="Global_using_directives" xml:space="preserve">
     <value>Global 'using' directives</value>
   </data>
+  <data name="Apply_readonly_struct_preferences" xml:space="preserve">
+    <value>Apply 'readonly struct' preferences</value>
+  </data>
 </root>

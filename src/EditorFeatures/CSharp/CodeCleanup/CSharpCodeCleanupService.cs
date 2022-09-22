@@ -187,6 +187,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeCleanup
                 new DiagnosticSet(FeaturesResources.Sort_accessibility_modifiers,
                     IDEDiagnosticIds.OrderModifiersDiagnosticId,
                     "CS0267"),
+                new DiagnosticSet(CSharpFeaturesResources.Apply_readonly_struct_preferences,
+                    IDEDiagnosticIds.MakeStructReadOnlyDiagnosticId),
 
                 // Code-block preferences
                 //   csharp_prefer_braces
@@ -262,13 +264,17 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeCleanup
 
                 new DiagnosticSet(FeaturesResources.Remove_unused_variables,
                     CSharpRemoveUnusedVariableCodeFixProvider.CS0168,
-                    CSharpRemoveUnusedVariableCodeFixProvider.CS0219)
+                    CSharpRemoveUnusedVariableCodeFixProvider.CS0219),
+
+                new DiagnosticSet(CSharpAnalyzersResources.Remove_unnecessary_nullable_directive,
+                    IDEDiagnosticIds.RemoveRedundantNullableDirectiveDiagnosticId,
+                    IDEDiagnosticIds.RemoveUnnecessaryNullableDirectiveDiagnosticId)
                 );
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public CSharpCodeCleanupService(ICodeFixService codeFixService)
-            : base(codeFixService)
+        public CSharpCodeCleanupService(ICodeFixService codeFixService, IDiagnosticAnalyzerService diagnosticAnalyzerService)
+            : base(codeFixService, diagnosticAnalyzerService)
         {
         }
 

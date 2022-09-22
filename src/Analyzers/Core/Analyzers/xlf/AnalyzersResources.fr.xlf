@@ -24,7 +24,7 @@
       </trans-unit>
       <trans-unit id="Add_explicit_cast">
         <source>Add explicit cast</source>
-        <target state="new">Add explicit cast</target>
+        <target state="translated">Ajouter un cast explicite</target>
         <note />
       </trans-unit>
       <trans-unit id="Add_parentheses_for_clarity">
@@ -104,7 +104,7 @@
       </trans-unit>
       <trans-unit id="Fix_formatting">
         <source>Fix formatting</source>
-        <target state="new">Fix formatting</target>
+        <target state="translated">Corriger la mise en forme</target>
         <note />
       </trans-unit>
       <trans-unit id="Format_string_contains_invalid_placeholder">
@@ -165,6 +165,11 @@
       <trans-unit id="Modifiers_are_not_ordered">
         <source>Modifiers are not ordered</source>
         <target state="translated">Les modificateurs ne sont pas ordonnés</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Name_can_be_simplified">
+        <source>Name can be simplified</source>
+        <target state="translated">Le nom peut être simplifié</target>
         <note />
       </trans-unit>
       <trans-unit id="Namespace_0_does_not_match_folder_structure_expected_1">
@@ -307,6 +312,16 @@
         <target state="translated">Simplifier l'expression LINQ</target>
         <note />
       </trans-unit>
+      <trans-unit id="Simplify_Member_Access">
+        <source>Simplify Member Access</source>
+        <target state="translated">Simplifier l'accès au membre</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Simplify_Names">
+        <source>Simplify Names</source>
+        <target state="translated">Simplifier les noms</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Simplify_collection_initialization">
         <source>Simplify collection initialization</source>
         <target state="translated">Simplifier l'initialisation des collections</target>
@@ -399,7 +414,7 @@
       </trans-unit>
       <trans-unit id="_0_statement_implicitly_converts_1_to_2_Add_an_explicit_cast_to_make_intent_clearer_as_it_may_fail_at_runtime">
         <source>'{0}' statement implicitly converts '{1}' to '{2}'. Add an explicit cast to make intent clearer, as it may fail at runtime</source>
-        <target state="new">'{0}' statement implicitly converts '{1}' to '{2}'. Add an explicit cast to make intent clearer, as it may fail at runtime</target>
+        <target state="translated">'{0}' instruction convertit implicitement '{1}' en '{2}'. Ajouter un cast explicite pour rendre l’intention plus claire, car elle peut échouer au moment de l’exécution</target>
         <note />
       </trans-unit>
     </body>

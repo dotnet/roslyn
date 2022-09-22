@@ -1,5 +1,74 @@
 # This document lists known breaking changes in Roslyn after .NET 6 all the way to .NET 7.
 
+## Type tests for `ref` structs are not supported.
+
+***Introduced in Visual Studio 2022 version 17.4***
+
+When a `ref` struct type is used in an 'is' or 'as' operator, in some scenarios compiler was previously reporting
+an erroneous warning about the type test always failing at runtime, omitting the actual type check, and leading to
+incorrect behavior. When incorrect behavior at execution time was possible, compiler will now produce an error instead.
+
+```csharp
+ref struct G<T>
+{
+    public void Test()
+    {
+        if (this is G<int>) // Will now produce an error, used to be treated as always `false`.
+        {
+```
+
+## Unused results from ref local are dereferences.
+
+***Introduced in Visual Studio 2022 version 17.4***
+
+When a `ref` local variable is referenced by value, but the result is not used (such as being assigned to a discard), the result was previously ignored. The compiler will now dereference that local, ensuring that any side effects are observed.
+
+```csharp
+ref int local = Unsafe.NullRef<int>();
+_ = local; // Will now produce a `NullReferenceException`
+```
+
+## Types cannot be named `scoped`
+
+***Introduced in Visual Studio 2022 version 17.4.*** Starting in C# 11, types cannot be named `scoped`. The compiler will report an error on all such type names. To work around this, the type name and all usages must be escaped with an `@`:
+
+```csharp
+class scoped {} // Error CS9056
+class @scoped {} // No error
+```
+
+```csharp
+ref scoped local; // Error
+ref scoped.nested local; // Error
+ref @scoped local2; // No error
+```
+
+This was done as `scoped` is now a modifier for variable declarations and reserved following `ref` in a ref type.
+
+## Types cannot be named `file`
+
+***Introduced in Visual Studio 2022 version 17.4.*** Starting in C# 11, types cannot be named `file`. The compiler will report an error on all such type names. To work around this, the type name and all usages must be escaped with an `@`:
+
+```csharp
+class file {} // Error CS9056
+class @file {} // No error
+```
+
+This was done as `file` is now a modifier for type declarations.
+
+You can learn more about this change in the associated [csharplang issue](https://github.com/dotnet/csharplang/issues/6011).
+
+## Required spaces in #line span directives
+
+***Introduced in .NET SDK 6.0.400, Visual Studio 2022 version 17.3.***
+
+When the `#line` span directive was introduced in C# 10, it required no particular spacing.  
+For example, this would be valid: `#line(1,2)-(3,4)5"file.cs"`.
+
+In Visual Studio 17.3, the compiler requires spaces before the first parenthesis, the character
+offset, and the file name.  
+So the above example fails to parse unless spaces are added: `#line (1,2)-(3,4) 5 "file.cs"`.
+
 ## Checked operators on System.IntPtr and System.UIntPtr
 
 ***Introduced in .NET SDK 7.0.100, Visual Studio 2022 version 17.3.***
@@ -72,11 +141,137 @@ Possible workarounds are:
 
 1. Rename the type parameter or parameter to avoid shadowing the name from outer scope.
 1. Use a string literal instead of the `nameof` operator.
-1. Downgrade the `<LangVersion>` element to 9.0 or earlier.
 
-Note: The break will also apply to C# 10 and earlier when .NET 7 ships, but is
-currently scoped down to users of LangVer=preview.  
-Tracked by https://github.com/dotnet/roslyn/issues/60640
+## Cannot return an out parameter by reference
+
+***Introduced in .NET SDK 7.0.100, Visual Studio 2022 version 17.3.***
+
+With language version C# 11 or later, or with .NET 7.0 or later, an `out` parameter cannot be returned by reference.
+
+```csharp
+static ref T ReturnOutParamByRef<T>(out T t)
+{
+    t = default;
+    return ref t; // error CS8166: Cannot return a parameter by reference 't' because it is not a ref parameter
+}
+```
+
+Possible workarounds are:
+1. Use `System.Diagnostics.CodeAnalysis.UnscopedRefAttribute` to mark the reference as unscoped.
+    ```csharp
+    static ref T ReturnOutParamByRef<T>([UnscopedRef] out T t)
+    {
+        t = default;
+        return ref t; // ok
+    }
+    ```
+
+1. Change the method signature to pass the parameter by `ref`.
+    ```csharp
+    static ref T ReturnRefParamByRef<T>(ref T t)
+    {
+        t = default;
+        return ref t; // ok
+    }
+    ```
+
+## Instance method on ref struct may capture unscoped ref parameters
+
+***Introduced in .NET SDK 7.0.100, Visual Studio 2022 version 17.4.***
+
+With language version C# 11 or later, or with .NET 7.0 or later, a `ref struct` instance method invocation is assumed to capture unscoped `ref` or `in` parameters.
+
+```csharp
+R<int> Use(R<int> r)
+{
+    int i = 42;
+    r.MayCaptureArg(ref i); // error CS8350: may expose variables referenced by parameter 't' outside of their declaration scope
+    return r;
+}
+
+ref struct R<T>
+{
+    public void MayCaptureArg(ref T t) { }
+}
+```
+
+A possible workaround, if the `ref` or `in` parameter is not captured in the `ref struct` instance method, is to declare the parameter as `scoped ref` or `scoped in`.
+
+```csharp
+R<int> Use(R<int> r)
+{
+    int i = 42;
+    r.CannotCaptureArg(ref i); // ok
+    return r;
+}
+
+ref struct R<T>
+{
+    public void CannotCaptureArg(scoped ref T t) { }
+}
+```
+
+## Method ref struct return escape analysis depends on ref escape of ref arguments
+
+***Introduced in .NET SDK 7.0.100, Visual Studio 2022 version 17.3.***
+
+With language version C# 11 or later, or with .NET 7.0 or later, the return value of a method invocation that returns a `ref struct` is only _safe-to-escape_ if all the `ref` and `in` arguments to the method invocation are _ref-safe-to-escape_. _The `in` arguments may include implicit default parameter values._
+
+```csharp
+ref struct R { }
+
+static R MayCaptureArg(ref int i) => new R();
+
+static R MayCaptureDefaultArg(in int i = 0) => new R();
+
+static R Create()
+{
+    int i = 0;
+    // error CS8347: Cannot use a result of 'MayCaptureArg(ref int)' because it may expose
+    // variables referenced by parameter 'i' outside of their declaration scope
+    return MayCaptureArg(ref i);
+}
+
+static R CreateDefault()
+{
+    // error CS8347: Cannot use a result of 'MayCaptureDefaultArg(in int)' because it may expose
+    // variables referenced by parameter 'i' outside of their declaration scope
+    return MayCaptureDefaultArg();
+}
+```
+
+A possible workaround, if the `ref` or `in` argument is not captured in the `ref struct` return value, is to declare the parameter as `scoped ref` or `scoped in`.
+
+```csharp
+static R CannotCaptureArg(scoped ref int i) => new R();
+
+static R Create()
+{
+    int i = 0;
+    return CannotCaptureArg(ref i); // ok
+}
+```
+
+## `ref` to `ref struct` argument considered unscoped in `__arglist`
+
+***Introduced in .NET SDK 7.0.100, Visual Studio 2022 version 17.4.***
+
+With language version C# 11 or later, or with .NET 7.0 or later, a `ref` to a `ref struct` type is considered an unscoped reference when passed as an argument to `__arglist`.
+
+```csharp
+ref struct R { }
+
+class Program
+{
+    static void MayCaptureRef(__arglist) { }
+
+    static void Main()
+    {
+        var r = new R();
+        MayCaptureRef(__arglist(ref r)); // error: may expose variables outside of their declaration scope
+    }
+}
+```
 
 ## Unsigned right shift operator
 

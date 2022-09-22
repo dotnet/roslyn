@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
         {
             verifyCount<ParseOptions>(11);
             verifyCount<CSharpParseOptions>(10);
-            verifyCount<CompilationOptions>(62);
+            verifyCount<CompilationOptions>(63);
             verifyCount<CSharpCompilationOptions>(9);
 
             static void verifyCount<T>(int expected)
@@ -552,7 +552,7 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
           ""features"": {{
             ""debug-determinism"": ""true""
           }},
-          ""languageVersion"": ""CSharp10"",
+          ""languageVersion"": ""CSharp11"",
           ""specifiedLanguageVersion"": ""Default"",
           ""preprocessorSymbols"": []
         }}

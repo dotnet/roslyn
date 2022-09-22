@@ -7,6 +7,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Structure
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Outlining.MetadataAsSource
+    <Trait(Traits.Feature, Traits.Features.MetadataAsSource)>
     Public Class TypeDeclarationStructureProviderTests
         Inherits AbstractVisualBasicSyntaxNodeStructureProviderTests(Of TypeStatementSyntax)
 
@@ -20,7 +21,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Outlining.Metadata
             Return New TypeDeclarationStructureProvider()
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)>
+        <Fact>
         Public Async Function NoCommentsOrAttributes() As Task
             Dim code = "
 {|hint:{|textspan:Class $$C
@@ -31,7 +32,7 @@ End Class|}|}
                 Region("textspan", "hint", "Class C " & VisualBasicOutliningHelpers.Ellipsis, autoCollapse:=False))
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)>
+        <Fact>
         Public Async Function WithAttributes() As Task
             Dim code = "
 {|textspan2:{|hint:{|textspan:<Goo>
@@ -44,7 +45,7 @@ End Class|#0}|}
                 Region("textspan2", "#0", "<Goo> Class C " & VisualBasicOutliningHelpers.Ellipsis, autoCollapse:=False))
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)>
+        <Fact>
         Public Async Function WithCommentsAndAttributes() As Task
             Dim code = "
 {|hint:{|textspan:' Summary:
@@ -59,7 +60,7 @@ End Class|#0}|#1}
                 Region("#1", "#0", "<Goo> Class C " & VisualBasicOutliningHelpers.Ellipsis, autoCollapse:=False))
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)>
+        <Fact>
         Public Async Function WithCommentsAttributesAndModifiers() As Task
             Dim code = "
 {|hint:{|textspan:' Summary:

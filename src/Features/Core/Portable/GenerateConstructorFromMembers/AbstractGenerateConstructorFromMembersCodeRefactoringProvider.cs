@@ -13,7 +13,7 @@ using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.Features.Intents;
 using Microsoft.CodeAnalysis.GenerateFromMembers;
 using Microsoft.CodeAnalysis.Internal.Log;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PickMembers;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
         public override Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
             return ComputeRefactoringsAsync(context.Document, context.Span,
-                (action, applicableToSpan) => context.RegisterRefactoring(action, applicableToSpan),
+                context.RegisterRefactoring,
                 (actions) => context.RegisterRefactorings(actions), desiredAccessibility: null,
                 context.Options, context.CancellationToken);
         }
@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
                 priorDocument,
                 priorSelection,
                 (singleAction, applicableToSpan) => actions.Add(singleAction),
-                (multipleActions) => actions.AddRange(multipleActions),
+                actions.AddRange,
                 desiredAccessibility: accessibility,
                 intentDataProvider.FallbackOptions,
                 cancellationToken).ConfigureAwait(false);
@@ -143,7 +143,7 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
             CleanCodeGenerationOptionsProvider fallbackOptions,
             CancellationToken cancellationToken)
         {
-            if (document.Project.Solution.Workspace.Kind == WorkspaceKind.MiscellaneousFiles)
+            if (document.Project.Solution.WorkspaceKind == WorkspaceKind.MiscellaneousFiles)
             {
                 return;
             }
@@ -222,7 +222,7 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
 
             if (canAddNullCheck)
             {
-                var globalOptions = document.Project.Solution.Workspace.Services.GetRequiredService<ILegacyGlobalOptionsWorkspaceService>();
+                var globalOptions = document.Project.Solution.Services.GetRequiredService<ILegacyGlobalOptionsWorkspaceService>();
                 var optionValue = globalOptions.GetGenerateConstructorFromMembersOptionsAddNullChecks(document.Project.Language);
 
                 pickMemberOptions.Add(new PickMembersOption(

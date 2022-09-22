@@ -40,6 +40,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             ImmutableArray<string> names = default;
             ImmutableArray<RefKind> refKinds = default;
+            ImmutableArray<DeclarationScope> scopes = default;
             ImmutableArray<TypeWithAnnotations> types = default;
             RefKind returnRefKind = RefKind.None;
             TypeWithAnnotations returnType = default;
@@ -94,10 +95,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (parameterSyntaxList != null)
             {
                 var hasExplicitlyTypedParameterList = true;
-                var allValue = true;
 
                 var typesBuilder = ArrayBuilder<TypeWithAnnotations>.GetInstance();
                 var refKindsBuilder = ArrayBuilder<RefKind>.GetInstance();
+                var scopesBuilder = ArrayBuilder<DeclarationScope>.GetInstance();
                 var attributesBuilder = ArrayBuilder<SyntaxList<AttributeListSyntax>>.GetInstance();
 
                 // In the batch compiler case we probably should have given a syntax error if the
@@ -132,6 +133,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var typeSyntax = p.Type;
                     TypeWithAnnotations type = default;
                     var refKind = RefKind.None;
+                    var scope = DeclarationScope.Unscoped;
 
                     if (typeSyntax == null)
                     {
@@ -140,42 +142,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                     else
                     {
                         type = BindType(typeSyntax, diagnostics);
-                        foreach (var modifier in p.Modifiers)
-                        {
-                            switch (modifier.Kind())
-                            {
-                                case SyntaxKind.RefKeyword:
-                                    refKind = RefKind.Ref;
-                                    allValue = false;
-                                    break;
-
-                                case SyntaxKind.OutKeyword:
-                                    refKind = RefKind.Out;
-                                    allValue = false;
-                                    break;
-
-                                case SyntaxKind.InKeyword:
-                                    refKind = RefKind.In;
-                                    allValue = false;
-                                    break;
-
-                                case SyntaxKind.ParamsKeyword:
-                                    // This was a parse error in the native compiler; 
-                                    // it is a semantic analysis error in Roslyn. See comments to
-                                    // changeset 1674 for details.
-                                    Error(diagnostics, ErrorCode.ERR_IllegalParams, p);
-                                    break;
-
-                                case SyntaxKind.ThisKeyword:
-                                    Error(diagnostics, ErrorCode.ERR_ThisInBadContext, modifier);
-                                    break;
-                            }
-                        }
+                        ParameterHelpers.CheckParameterModifiers(p, diagnostics, parsingFunctionPointerParams: false, parsingLambdaParams: true);
+                        refKind = ParameterHelpers.GetModifiers(p.Modifiers, out _, out _, out _, out scope);
                     }
 
                     namesBuilder.Add(p.Identifier.ValueText);
                     typesBuilder.Add(type);
                     refKindsBuilder.Add(refKind);
+                    scopesBuilder.Add(scope);
                     attributesBuilder.Add(syntax.Kind() == SyntaxKind.ParenthesizedLambdaExpression ? p.AttributeLists : default);
                 }
 
@@ -186,9 +160,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                     types = typesBuilder.ToImmutable();
                 }
 
-                if (!allValue)
+                if (refKindsBuilder.Any(r => r != RefKind.None))
                 {
                     refKinds = refKindsBuilder.ToImmutable();
+                }
+
+                if (scopesBuilder.Any(s => s != DeclarationScope.Unscoped))
+                {
+                    scopes = scopesBuilder.ToImmutable();
                 }
 
                 if (attributesBuilder.Any(a => a.Count > 0))
@@ -197,6 +176,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 typesBuilder.Free();
+                scopesBuilder.Free();
                 refKindsBuilder.Free();
                 attributesBuilder.Free();
             }
@@ -208,7 +188,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             namesBuilder.Free();
 
-            return UnboundLambda.Create(syntax, this, diagnostics.AccumulatesDependencies, returnRefKind, returnType, parameterAttributes, refKinds, types, names, discardsOpt, isAsync, isStatic);
+            return UnboundLambda.Create(syntax, this, diagnostics.AccumulatesDependencies, returnRefKind, returnType, parameterAttributes, refKinds, scopes, types, names, discardsOpt, isAsync, isStatic);
 
             static ImmutableArray<bool> computeDiscards(SeparatedSyntaxList<ParameterSyntax> parameters, int underscoresCount)
             {
@@ -247,7 +227,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             MessageID.IDS_FeatureLambdaReturnType.CheckFeatureAvailability(diagnostics, syntax);
 
-            syntax = syntax.SkipRef(out RefKind refKind);
+            Debug.Assert(syntax is not ScopedTypeSyntax);
+            syntax = syntax.SkipScoped(out _).SkipRef(out RefKind refKind);
             if ((syntax as IdentifierNameSyntax)?.Identifier.ContextualKind() == SyntaxKind.VarKeyword)
             {
                 diagnostics.Add(ErrorCode.ERR_LambdaExplicitReturnTypeVar, syntax.Location);
@@ -306,10 +287,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                 for (int i = 0; i < lambda.ParameterCount; i++)
                 {
                     // UNDONE: Where do we report improper use of pointer types?
-                    var type = lambda.Data.ParameterTypeWithAnnotations(i);
-                    if (type.HasType && type.IsStatic)
+                    var type = data.ParameterTypeWithAnnotations(i).Type;
+                    if (type is { })
                     {
-                        Error(diagnostics, ErrorFacts.GetStaticClassParameterCode(useWarning: false), syntax, type.Type);
+                        if (type.IsStatic)
+                        {
+                            Error(diagnostics, ErrorFacts.GetStaticClassParameterCode(useWarning: false), syntax, type);
+                        }
+                        if (data.DeclaredScope(i) == DeclarationScope.ValueScoped && !type.IsErrorTypeOrRefLikeType())
+                        {
+                            diagnostics.Add(ErrorCode.ERR_ScopedRefAndRefStructOnly, data.ParameterLocation(i));
+                        }
                     }
                 }
             }

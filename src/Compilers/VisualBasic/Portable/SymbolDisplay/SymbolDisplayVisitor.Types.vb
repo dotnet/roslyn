@@ -160,7 +160,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 If containingType IsNot Nothing Then
                     visitedParents = True
                     containingType.Accept(Me.NotFirstVisitor())
-                    AddOperator(SyntaxKind.DotToken)
+
+                    If format.CompilerInternalOptions.HasFlag(SymbolDisplayCompilerInternalOptions.UsePlusForNestedTypes) Then
+                        AddOperator(SyntaxKind.PlusToken)
+                    Else
+                        AddOperator(SyntaxKind.DotToken)
+                    End If
                 End If
             End If
 

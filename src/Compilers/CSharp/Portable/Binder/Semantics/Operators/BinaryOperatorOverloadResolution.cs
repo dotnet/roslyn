@@ -730,6 +730,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 // We similarly limit pointer operator candidates considered.
                 GetPointerOperators(kind, left, right, operators);
+
+                if (kind.Operator() is BinaryOperatorKind.Addition &&
+                    isUtf8ByteRepresentation(left) &&
+                    isUtf8ByteRepresentation(right))
+                {
+                    this.Compilation.builtInOperators.GetUtf8ConcatenationBuiltInOperator(left.Type, operators);
+                }
             }
 
             CandidateOperators(isChecked, operators, left, right, results, ref useSiteInfo);
@@ -742,6 +749,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     BuiltInOperators.IsValidObjectEquality(conversions, left.Type, left.IsLiteralNull(), leftIsDefault: false, right.Type, right.IsLiteralNull(), rightIsDefault: false, ref useSiteInfo) &&
                     ((object)left.Type == null || (!left.Type.IsDelegateType() && left.Type.SpecialType != SpecialType.System_String && left.Type.SpecialType != SpecialType.System_Delegate)) &&
                     ((object)right.Type == null || (!right.Type.IsDelegateType() && right.Type.SpecialType != SpecialType.System_String && right.Type.SpecialType != SpecialType.System_Delegate));
+            }
+
+            static bool isUtf8ByteRepresentation(BoundExpression value)
+            {
+                return value is BoundUtf8String or BoundBinaryOperator { OperatorKind: BinaryOperatorKind.Utf8Addition };
             }
         }
 

@@ -6,7 +6,7 @@ using System.Collections.Generic;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Utilities;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery;
 
@@ -80,7 +80,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             bool isInNonUserCode,
             bool isInQuery,
             bool isInstanceContext,
-            bool isInTaskLikeTypeContext,
+            bool isTaskLikeTypeContext,
             bool isIsOrAsOrSwitchOrWithExpressionContext,
             bool isIsOrAsTypeContext,
             bool isLabelContext,
@@ -125,7 +125,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                   isGlobalStatementContext: isGlobalStatementContext,
                   isInImportsDirective: isInImportsDirective,
                   isInQuery: isInQuery,
-                  isInTaskLikeTypeContext: isInTaskLikeTypeContext,
+                  isTaskLikeTypeContext: isTaskLikeTypeContext,
                   isNameOfContext: isNameOfContext,
                   isNamespaceContext: isNamespaceContext,
                   isNamespaceDeclarationNameContext: isNamespaceDeclarationNameContext,
@@ -226,7 +226,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
 
             var isDestructorTypeContext = targetToken.IsKind(SyntaxKind.TildeToken) &&
                                             targetToken.Parent.IsKind(SyntaxKind.DestructorDeclaration) &&
-                                            targetToken.Parent.Parent.IsKind(SyntaxKind.ClassDeclaration, SyntaxKind.RecordDeclaration);
+                                            targetToken.Parent.Parent is (kind: SyntaxKind.ClassDeclaration or SyntaxKind.RecordDeclaration);
 
             // Typing a dot after a numeric expression (numericExpression.) 
             // - maybe a start of MemberAccessExpression like numericExpression.Member.
@@ -235,7 +235,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             // If the second dot was typed, we just insert two dots.
             var isRightSideOfNumericType = leftToken.IsNumericTypeContext(semanticModel, cancellationToken);
 
-            var isOnArgumentListBracketOrComma = targetToken.Parent.IsKind(SyntaxKind.ArgumentList, SyntaxKind.AttributeArgumentList, SyntaxKind.ArrayRankSpecifier);
+            var isOnArgumentListBracketOrComma = targetToken.Parent is (kind: SyntaxKind.ArgumentList or SyntaxKind.AttributeArgumentList or SyntaxKind.ArrayRankSpecifier);
 
             var isLocalFunctionDeclarationContext = syntaxTree.IsLocalFunctionDeclarationContext(position, cancellationToken);
 
@@ -274,7 +274,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                 isInNonUserCode: isInNonUserCode,
                 isInQuery: leftToken.GetAncestor<QueryExpressionSyntax>() != null,
                 isInstanceContext: syntaxTree.IsInstanceContext(targetToken, semanticModel, cancellationToken),
-                isInTaskLikeTypeContext: precedingModifiers.Contains(SyntaxKind.AsyncKeyword),
+                isTaskLikeTypeContext: precedingModifiers.Contains(SyntaxKind.AsyncKeyword),
                 isIsOrAsOrSwitchOrWithExpressionContext: syntaxTree.IsIsOrAsOrSwitchOrWithExpressionContext(semanticModel, position, leftToken, cancellationToken),
                 isIsOrAsTypeContext: syntaxTree.IsIsOrAsTypeContext(position, leftToken),
                 isLabelContext: syntaxTree.IsLabelContext(position, cancellationToken),
@@ -479,7 +479,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                         return false;
                     }
 
-                    if (node.IsKind(SyntaxKind.LockStatement, out LockStatementSyntax? lockStatement))
+                    if (node is LockStatementSyntax lockStatement)
                     {
                         if (lockStatement.Statement != null &&
                             !lockStatement.Statement.IsMissing &&

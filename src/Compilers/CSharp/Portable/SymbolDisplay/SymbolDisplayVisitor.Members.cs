@@ -35,6 +35,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                 this.isFirstSymbolVisited &&
                 !IsEnumMember(symbol))
             {
+                switch (symbol.RefKind)
+                {
+                    case RefKind.Ref:
+                        AddRefIfNeeded();
+                        break;
+                    case RefKind.RefReadOnly:
+                        AddRefReadonlyIfNeeded();
+                        break;
+                }
+
+                AddCustomModifiersIfNeeded(symbol.RefCustomModifiers);
+
                 VisitFieldType(symbol);
                 AddSpace();
 
@@ -599,6 +611,19 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 foreach (var param in symbol.Parameters)
                 {
+                    // https://github.com/dotnet/roslyn/issues/61647: Use public API.
+#if DEBUG
+                    if ((param as Symbols.PublicModel.ParameterSymbol)?.GetSymbol<ParameterSymbol>() is { } p)
+                    {
+                        Debug.Assert((p.EffectiveScope, ParameterHelpers.IsRefScopedByDefault(p)) switch
+                        {
+                            (DeclarationScope.Unscoped, false) => true,
+                            (DeclarationScope.RefScoped, true) => true,
+                            _ => false,
+                        });
+                    }
+#endif
+
                     AddParameterRefKind(param.RefKind);
 
                     AddCustomModifiersIfNeeded(param.RefCustomModifiers);
@@ -755,8 +780,16 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (includeType)
             {
-                AddParameterRefKindIfNeeded(symbol.RefKind);
+                AddParameterRefKindIfNeeded(symbol);
                 AddCustomModifiersIfNeeded(symbol.RefCustomModifiers, leadingSpace: false, trailingSpace: true);
+
+                // https://github.com/dotnet/roslyn/issues/61647: Use public API.
+                if ((symbol as Symbols.PublicModel.ParameterSymbol)?.GetSymbol<ParameterSymbol>().EffectiveScope == DeclarationScope.ValueScoped &&
+                    format.CompilerInternalOptions.IncludesOption(SymbolDisplayCompilerInternalOptions.IncludeScoped))
+                {
+                    AddKeyword(SyntaxKind.ScopedKeyword);
+                    AddSpace();
+                }
 
                 if (symbol.IsParams && format.ParameterOptions.IncludesOption(SymbolDisplayParameterOptions.IncludeParamsRefOut))
                 {
@@ -795,6 +828,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 AddPunctuation(SyntaxKind.CloseBracketToken);
             }
         }
+
+#nullable enable
 
         private static bool CanAddConstant(ITypeSymbol type, object value)
         {
@@ -1045,11 +1080,22 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private void AddParameterRefKindIfNeeded(RefKind refKind)
+        private void AddParameterRefKindIfNeeded(IParameterSymbol symbol)
         {
             if (format.ParameterOptions.IncludesOption(SymbolDisplayParameterOptions.IncludeParamsRefOut))
             {
-                AddParameterRefKind(refKind);
+                // https://github.com/dotnet/roslyn/issues/61647: Use public API.
+                if ((symbol as Symbols.PublicModel.ParameterSymbol)?.GetSymbol<ParameterSymbol>() is { } parameter &&
+                    parameter.EffectiveScope == DeclarationScope.RefScoped &&
+                    !ParameterHelpers.IsRefScopedByDefault(parameter) &&
+                    !parameter.IsThis &&
+                    format.CompilerInternalOptions.IncludesOption(SymbolDisplayCompilerInternalOptions.IncludeScoped))
+                {
+                    AddKeyword(SyntaxKind.ScopedKeyword);
+                    AddSpace();
+                }
+
+                AddParameterRefKind(symbol.RefKind);
             }
         }
 

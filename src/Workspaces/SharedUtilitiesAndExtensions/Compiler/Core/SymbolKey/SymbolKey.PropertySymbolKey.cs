@@ -6,9 +6,11 @@ namespace Microsoft.CodeAnalysis
 {
     internal partial struct SymbolKey
     {
-        private static class PropertySymbolKey
+        private sealed class PropertySymbolKey : AbstractSymbolKey<IPropertySymbol>
         {
-            public static void Create(IPropertySymbol symbol, SymbolKeyWriter visitor)
+            public static readonly PropertySymbolKey Instance = new();
+
+            public sealed override void Create(IPropertySymbol symbol, SymbolKeyWriter visitor)
             {
                 visitor.WriteString(symbol.MetadataName);
                 visitor.WriteSymbolKey(symbol.ContainingSymbol);
@@ -17,13 +19,54 @@ namespace Microsoft.CodeAnalysis
                 visitor.WriteParameterTypesArray(symbol.OriginalDefinition.Parameters);
             }
 
-            public static SymbolKeyResolution Resolve(SymbolKeyReader reader, out string? failureReason)
+            protected sealed override SymbolKeyResolution Resolve(
+                SymbolKeyReader reader, IPropertySymbol? contextualSymbol, out string? failureReason)
             {
                 var metadataName = reader.ReadString();
-                var containingTypeResolution = reader.ReadSymbolKey(out var containingTypeFailureReason);
+
+                var containingTypeResolution = reader.ReadSymbolKey(contextualSymbol?.ContainingSymbol, out var containingTypeFailureReason);
+
                 var isIndexer = reader.ReadBoolean();
                 using var refKinds = reader.ReadRefKindArray();
-                using var parameterTypes = reader.ReadSymbolKeyArray<ITypeSymbol>(out var parameterTypesFailureReason);
+
+                using var properties = GetMembersOfNamedType<IPropertySymbol>(containingTypeResolution, metadataName: null);
+                using var result = PooledArrayBuilder<IPropertySymbol>.GetInstance();
+
+                // For each property that we look at, we'll have to resolve the parameter list and return type in the
+                // context of that method.  This makes sure we can attempt to resolve the parameter list types against
+                // error types in the property we're currently looking at.
+                //
+                // Because of this, we keep track of where we are in the reader.  Before resolving every parameter list,
+                // we'll mark which method we're on and we'll rewind to this point.
+                var beforeParametersPosition = reader.Position;
+
+                IPropertySymbol? property = null;
+                foreach (var candidate in properties)
+                {
+                    if (candidate.Parameters.Length != refKinds.Count ||
+                        candidate.MetadataName != metadataName ||
+                        candidate.IsIndexer != isIndexer ||
+                        !ParameterRefKindsMatch(candidate.OriginalDefinition.Parameters, refKinds))
+                    {
+                        continue;
+                    }
+
+                    property = Resolve(reader, candidate);
+                    if (property != null)
+                        break;
+
+                    // reset ourselves so we can check the return-type/parameters against the next candidate.
+                    reader.Position = beforeParametersPosition;
+                }
+
+                if (reader.Position == beforeParametersPosition)
+                {
+                    // We didn't find a match.  Read through the stream one final time so we're at the correct location
+                    // after this PropertySymbolKey.
+
+                    _ = reader.ReadSymbolKeyArray<IPropertySymbol, ITypeSymbol>(
+                        contextualSymbol: null, getContextualSymbol: null, failureReason: out _);
+                }
 
                 if (containingTypeFailureReason != null)
                 {
@@ -31,33 +74,29 @@ namespace Microsoft.CodeAnalysis
                     return default;
                 }
 
-                if (parameterTypesFailureReason != null)
+                if (property == null)
                 {
-                    failureReason = $"({nameof(PropertySymbolKey)} {nameof(parameterTypes)} failed -> {parameterTypesFailureReason})";
+                    failureReason = $"({nameof(PropertySymbolKey)} '{metadataName}' not found)";
                     return default;
                 }
 
-                if (parameterTypes.IsDefault)
+                failureReason = null;
+                return new SymbolKeyResolution(property);
+            }
+
+            private static IPropertySymbol? Resolve(
+                SymbolKeyReader reader,
+                IPropertySymbol property)
+            {
+                if (reader.ParameterTypesMatch(
+                        property,
+                        getContextualType: static (property, i) => SafeGet(property.OriginalDefinition.Parameters, i)?.Type,
+                        property.OriginalDefinition.Parameters))
                 {
-                    failureReason = $"({nameof(PropertySymbolKey)} no parameter types)";
-                    return default;
+                    return property;
                 }
 
-                using var properties = GetMembersOfNamedType<IPropertySymbol>(containingTypeResolution, metadataName: null);
-                using var result = PooledArrayBuilder<IPropertySymbol>.GetInstance();
-                foreach (var property in properties)
-                {
-                    if (property.Parameters.Length == refKinds.Count &&
-                        property.MetadataName == metadataName &&
-                        property.IsIndexer == isIndexer &&
-                        ParameterRefKindsMatch(property.OriginalDefinition.Parameters, refKinds) &&
-                        reader.ParameterTypesMatch(property.OriginalDefinition.Parameters, parameterTypes))
-                    {
-                        result.AddIfNotNull(property);
-                    }
-                }
-
-                return CreateResolution(result, $"({nameof(PropertySymbolKey)} '{metadataName}' not found)", out failureReason);
+                return null;
             }
         }
     }

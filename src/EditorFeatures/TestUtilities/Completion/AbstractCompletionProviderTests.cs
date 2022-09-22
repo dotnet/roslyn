@@ -16,9 +16,10 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
 using Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncCompletion;
+using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -46,27 +47,28 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
         protected readonly Mock<ICompletionSession> MockCompletionSession;
         private ExportProvider _lazyExportProvider;
 
-        protected bool? TargetTypedCompletionFilterFeatureFlag { get; set; }
+        protected bool? ShowTargetTypedCompletionFilter { get; set; }
         protected bool? TypeImportCompletionFeatureFlag { get; set; }
         protected bool? ShowImportCompletionItemsOptionValue { get; set; }
         protected bool? ForceExpandedCompletionIndexCreation { get; set; }
         protected bool? HideAdvancedMembers { get; set; }
         protected bool? ShowNameSuggestions { get; set; }
+        protected bool? ShowNewSnippetExperience { get; set; }
 
         protected AbstractCompletionProviderTests()
         {
             MockCompletionSession = new Mock<ICompletionSession>(MockBehavior.Strict);
         }
 
-        protected virtual OptionSet WithChangedNonCompletionOptions(OptionSet options)
-            => options;
+        internal virtual OptionsCollection NonCompletionOptions
+            => null;
 
         private CompletionOptions GetCompletionOptions()
         {
             var options = CompletionOptions.Default;
 
-            if (TargetTypedCompletionFilterFeatureFlag.HasValue)
-                options = options with { TargetTypedCompletionFilter = TargetTypedCompletionFilterFeatureFlag.Value };
+            if (ShowTargetTypedCompletionFilter.HasValue)
+                options = options with { TargetTypedCompletionFilter = ShowTargetTypedCompletionFilter.Value };
 
             if (TypeImportCompletionFeatureFlag.HasValue)
                 options = options with { TypeImportCompletion = TypeImportCompletionFeatureFlag.Value };
@@ -82,6 +84,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
 
             if (ShowNameSuggestions.HasValue)
                 options = options with { ShowNameSuggestions = ShowNameSuggestions.Value };
+
+            if (ShowNewSnippetExperience.HasValue)
+                options = options with { ShowNewSnippetExperience = ShowNewSnippetExperience.Value };
 
             return options;
         }
@@ -103,17 +108,14 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
             return !service.GetMemberBodySpanForSpeculativeBinding(node).IsEmpty;
         }
 
-        internal virtual CompletionServiceWithProviders GetCompletionService(Project project)
+        internal virtual CompletionService GetCompletionService(Project project)
         {
-            var completionService = project.LanguageServices.GetRequiredService<CompletionService>();
-
-            var completionServiceWithProviders = Assert.IsAssignableFrom<CompletionServiceWithProviders>(completionService);
-
-            var completionProviders = ((IMefHostExportProvider)project.Solution.Workspace.Services.HostServices).GetExports<CompletionProvider>();
-            var completionProvider = Assert.Single(completionProviders).Value;
+            var completionService = project.Services.GetRequiredService<CompletionService>();
+            var completionProviders = completionService.GetTestAccessor().GetAllProviders(ImmutableHashSet<string>.Empty, project);
+            var completionProvider = Assert.Single(completionProviders);
             Assert.IsType(GetCompletionProviderType(), completionProvider);
 
-            return completionServiceWithProviders;
+            return completionService;
         }
 
         internal static ImmutableHashSet<string> GetRoles(Document document)
@@ -257,7 +259,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
                 var position = workspaceFixture.Target.Position;
 
                 // Set options that are not CompletionOptions
-                workspace.SetOptions(WithChangedNonCompletionOptions(workspace.Options));
+                NonCompletionOptions?.SetGlobalOptions(workspace.GlobalOptions);
 
                 await VerifyWorkerAsync(
                     code, position, expectedItemOrNull, expectedDescriptionOrNull,
@@ -274,7 +276,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
             var workspace = workspaceFixture.Target.GetWorkspace(markup, ExportProvider, workspaceKind: workspaceKind);
 
             // Set options that are not CompletionOptions
-            workspace.SetOptions(WithChangedNonCompletionOptions(workspace.Options));
+            NonCompletionOptions?.SetGlobalOptions(workspace.GlobalOptions);
 
             var currentDocument = workspace.CurrentSolution.GetDocument(workspaceFixture.Target.CurrentDocument.Id);
             var position = workspaceFixture.Target.Position;
@@ -452,7 +454,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
             var workspace = workspaceFixture.Target.GetWorkspace();
 
             // Set options that are not CompletionOptions
-            workspace.SetOptions(WithChangedNonCompletionOptions(workspace.Options));
+            NonCompletionOptions?.SetGlobalOptions(workspace.GlobalOptions);
 
             var document1 = workspaceFixture.Target.UpdateDocument(codeBeforeCommit, sourceCodeKind);
             await VerifyCustomCommitProviderCheckResultsAsync(document1, codeBeforeCommit, position, itemToCommit, expectedCodeAfterCommit, commitChar);
@@ -473,7 +475,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
             Assert.Contains(itemToCommit, items.Select(x => x.DisplayText), GetStringComparer());
             var firstItem = items.First(i => CompareItems(i.DisplayText, itemToCommit));
 
-            if (service.GetProvider(firstItem) is ICustomCommitCompletionProvider customCommitCompletionProvider)
+            if (service.GetProvider(firstItem, document.Project) is ICustomCommitCompletionProvider customCommitCompletionProvider)
             {
                 VerifyCustomCommitWorker(service, customCommitCompletionProvider, firstItem, codeBeforeCommit, expectedCodeAfterCommit, commitChar);
             }
@@ -484,7 +486,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
         }
 
         private async Task VerifyCustomCommitWorkerAsync(
-            CompletionServiceWithProviders service,
+            CompletionService service,
             Document document,
             RoslynCompletion.CompletionItem completionItem,
             string codeBeforeCommit,
@@ -574,7 +576,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
             var workspace = workspaceFixture.Target.GetWorkspace();
 
             // Set options that are not CompletionOptions
-            workspace.SetOptions(WithChangedNonCompletionOptions(workspace.Options));
+            NonCompletionOptions?.SetGlobalOptions(workspace.GlobalOptions);
 
             var document1 = workspaceFixture.Target.UpdateDocument(codeBeforeCommit, sourceCodeKind);
             await VerifyProviderCommitCheckResultsAsync(document1, position, itemToCommit, expectedCodeAfterCommit, commitChar);
@@ -1058,7 +1060,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
                     TriggerInArgumentLists = showCompletionInArgumentLists
                 };
 
-                var isTextualTriggerCharacterResult = service.ShouldTriggerCompletion(document.Project, document.Project.LanguageServices, text, position + 1, trigger, options, document.Project.Solution.Options, GetRoles(document));
+                var isTextualTriggerCharacterResult = service.ShouldTriggerCompletion(document.Project, document.Project.Services, text, position + 1, trigger, options, document.Project.Solution.Options, GetRoles(document));
 
                 if (expectedTriggerCharacter)
                 {

@@ -8,6 +8,7 @@ using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
@@ -41,7 +42,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
         private bool _refreshAllGlyphs;
         private bool _disposed;
 
-        public InheritanceMarginViewMargin(IWpfTextView textView,
+        public InheritanceMarginViewMargin(
+            Workspace workspace,
+            IWpfTextView textView,
             IThreadingContext threadingContext,
             IStreamingFindUsagesPresenter streamingFindUsagesPresenter,
             IUIThreadOperationExecutor operationExecutor,
@@ -61,6 +64,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
             _grid = new Grid();
             _grid.Children.Add(_mainCanvas);
             _glyphManager = new InheritanceGlyphManager(
+                workspace,
                 textView,
                 threadingContext,
                 streamingFindUsagesPresenter,

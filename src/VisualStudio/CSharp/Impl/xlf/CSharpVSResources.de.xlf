@@ -59,7 +59,7 @@
       </trans-unit>
       <trans-unit id="Collapse_usings_on_file_open">
         <source>Collapse usings on file open</source>
-        <target state="new">Collapse usings on file open</target>
+        <target state="translated">Reduzieren von Usings beim Öffnen einer Datei</target>
         <note />
       </trans-unit>
       <trans-unit id="Completion">
@@ -180,6 +180,11 @@
       <trans-unit id="Show_items_from_unimported_namespaces">
         <source>Show items from unimported namespaces</source>
         <target state="translated">Elemente aus nicht importierten Namespaces anzeigen</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Show_new_snippet_experience_experimental">
+        <source>Show new snippet experience (experimental)</source>
+        <target state="translated">Neue Ausschnittsoberfläche anzeigen (experimentell)</target>
         <note />
       </trans-unit>
       <trans-unit id="Show_remarks_in_Quick_Info">

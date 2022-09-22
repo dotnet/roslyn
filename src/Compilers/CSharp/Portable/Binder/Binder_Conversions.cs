@@ -700,9 +700,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             // UNDONE: is converted to a delegate that does not match. What to surface then?
 
             var unboundLambda = (UnboundLambda)source;
-
             var boundLambda = unboundLambda.Bind((NamedTypeSymbol)destination, isExpressionTree: destination.IsGenericOrNonGenericExpressionType(out _));
             diagnostics.AddRange(boundLambda.Diagnostics);
+
+            CheckValidScopedMethodConversion(syntax, boundLambda.Symbol, destination, invokedAsExtensionMethod: false, diagnostics);
             return new BoundConversion(
                 syntax,
                 boundLambda,
@@ -732,6 +733,44 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return new BoundConversion(syntax, group, conversion, @checked: false, explicitCastInCode: isCast, conversionGroup, constantValueOpt: ConstantValue.NotAvailable, type: destination, hasErrors: hasErrors) { WasCompilerGenerated = group.WasCompilerGenerated };
+        }
+
+        private static void CheckValidScopedMethodConversion(SyntaxNode syntax, MethodSymbol lambdaOrMethod, TypeSymbol targetType, bool invokedAsExtensionMethod, BindingDiagnosticBag diagnostics)
+        {
+            MethodSymbol? delegateMethod;
+            if (targetType.GetDelegateType() is { } delegateType)
+            {
+                delegateMethod = delegateType.DelegateInvokeMethod;
+            }
+            else if (targetType is FunctionPointerTypeSymbol functionPointerType)
+            {
+                delegateMethod = functionPointerType.Signature;
+            }
+            else
+            {
+                return;
+            }
+
+            if (SourceMemberContainerTypeSymbol.RequiresValidScopedOverrideForRefSafety(delegateMethod))
+            {
+                SourceMemberContainerTypeSymbol.CheckValidScopedOverride(
+                    delegateMethod,
+                    lambdaOrMethod,
+                    diagnostics,
+                    static (diagnostics, delegateMethod, lambdaOrMethod, parameter, _, typeAndLocation) =>
+                    {
+                        diagnostics.Add(
+                            SourceMemberContainerTypeSymbol.ReportInvalidScopedOverrideAsError(delegateMethod, lambdaOrMethod) ?
+                                ErrorCode.ERR_ScopedMismatchInParameterOfTarget :
+                                ErrorCode.WRN_ScopedMismatchInParameterOfTarget,
+                            typeAndLocation.Location,
+                            new FormattedSymbol(parameter, SymbolDisplayFormat.ShortFormat),
+                            typeAndLocation.Type);
+                    },
+                    (Type: targetType, Location: syntax.Location),
+                    allowVariance: true,
+                    invokedAsExtensionMethod: invokedAsExtensionMethod);
+            }
         }
 
         private BoundExpression CreateStackAllocConversion(SyntaxNode syntax, BoundExpression source, Conversion conversion, bool isCast, ConversionGroup? conversionGroup, TypeSymbol destination, BindingDiagnosticBag diagnostics)
@@ -1345,6 +1384,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 return true;
             }
+
+            CheckValidScopedMethodConversion(syntax, selectedMethod, delegateOrFuncPtrType, isExtensionMethod, diagnostics);
             if (!isAddressOf)
             {
                 ReportDiagnosticsIfUnmanagedCallersOnly(diagnostics, selectedMethod, location, isDelegateConversion: true);

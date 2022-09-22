@@ -67,14 +67,19 @@
         <target state="translated">讀取來源檔案 '{0}' 的內容時發生錯誤 -- '{1}'。</target>
         <note />
       </trans-unit>
+      <trans-unit id="Failed_to_resolve_rename_conflicts">
+        <source>Failed to resolve rename conflicts</source>
+        <target state="translated">無法解決重新命名衝突</target>
+        <note />
+      </trans-unit>
       <trans-unit id="FixAllScope_ContainingType_and_FixAllScope_ContainingMember_are_not_supported_with_this_constructor">
         <source>'FixAllScope.ContainingType' and 'FixAllScope.ContainingMember' are not supported with this constructor</source>
-        <target state="new">'FixAllScope.ContainingType' and 'FixAllScope.ContainingMember' are not supported with this constructor</target>
+        <target state="translated">此建構函式不支援 'FixAllScope.ContainingType' 和 'FixAllScope.ContainingMember'</target>
         <note />
       </trans-unit>
       <trans-unit id="FixAllScope_Custom_is_not_supported_with_this_API">
         <source>'FixAllScope.Custom' is not supported with this API</source>
-        <target state="new">'FixAllScope.Custom' is not supported with this API</target>
+        <target state="translated">此 API 不支援 'FixAllScope.Custom'</target>
         <note />
       </trans-unit>
       <trans-unit id="Indentation_and_spacing">
@@ -445,11 +450,6 @@
       <trans-unit id="Specified_path_must_be_absolute">
         <source>Specified path must be absolute.</source>
         <target state="translated">指定的路徑必須是絕對路徑。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Name_can_be_simplified">
-        <source>Name can be simplified.</source>
-        <target state="translated">可以簡化名稱。</target>
         <note />
       </trans-unit>
       <trans-unit id="Unknown_identifier">

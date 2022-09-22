@@ -99,6 +99,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override bool MangleName => false;
 
+        internal override FileIdentifier? AssociatedFileIdentifier => null;
+
         internal override bool HasCodeAnalysisEmbeddedAttribute => true;
 
         internal override bool IsInterpolatedStringHandlerType => false;
@@ -159,6 +161,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override ImmutableArray<NamedTypeSymbol> InterfacesNoUseSiteDiagnostics(ConsList<TypeSymbol> basesBeingResolved = null) => ImmutableArray<NamedTypeSymbol>.Empty;
 
+        internal sealed override bool IsRecord => false;
+        internal sealed override bool IsRecordStruct => false;
+        internal sealed override bool HasPossibleWellKnownCloneMethod() => false;
+
         internal override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<SynthesizedAttributeData> attributes)
         {
             base.AddSynthesizedAttributes(moduleBuilder, ref attributes);
@@ -208,10 +214,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         public override ImmutableArray<MethodSymbol> Constructors => _constructors;
-
-        internal override bool IsRecord => false;
-        internal override bool IsRecordStruct => false;
-        internal override bool HasPossibleWellKnownCloneMethod() => false;
     }
 
     internal sealed class SynthesizedEmbeddedAttributeConstructorSymbol : SynthesizedInstanceConstructor

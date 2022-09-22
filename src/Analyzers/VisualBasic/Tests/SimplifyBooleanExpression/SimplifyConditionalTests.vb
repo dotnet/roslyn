@@ -9,6 +9,7 @@ Imports Microsoft.CodeAnalysis.SimplifyBooleanExpression
 Imports Microsoft.CodeAnalysis.VisualBasic.SimplifyBooleanExpression
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.SimplifyBooleanExpression
+    <Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyConditional)>
     Partial Public Class SimplifyConditionalTests
         Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest
 
@@ -16,7 +17,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.SimplifyBooleanExp
             Return (New VisualBasicSimplifyConditionalDiagnosticAnalyzer(), New SimplifyConditionalCodeFixProvider())
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyConditional)>
+        <Fact>
         Public Async Function TestSimpleCase() As Task
             Await TestInRegularAndScript1Async(
 "
@@ -43,7 +44,7 @@ class C
 end class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyConditional)>
+        <Fact>
         Public Async Function TestSimpleNegatedCase() As Task
             Await TestInRegularAndScript1Async(
 "
@@ -70,7 +71,7 @@ class C
 end class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyConditional)>
+        <Fact>
         Public Async Function TestMustBeBool1() As Task
             Await TestMissingInRegularAndScriptAsync(
 "
@@ -86,7 +87,7 @@ class C
 end class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyConditional)>
+        <Fact>
         Public Async Function TestMustBeBool2() As Task
             Await TestMissingInRegularAndScriptAsync(
 "
@@ -102,7 +103,7 @@ class C
 end class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyConditional)>
+        <Fact>
         Public Async Function TestNotWithTrueTrue() As Task
             Await TestInRegularAndScript1Async(
 "
@@ -129,7 +130,7 @@ class C
 end class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyConditional)>
+        <Fact>
         Public Async Function TestNotWithFalseFalse() As Task
             Await TestInRegularAndScript1Async(
 "
@@ -156,7 +157,7 @@ class C
 end class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyConditional)>
+        <Fact>
         Public Async Function TestWhenTrueIsTrueAndWhenFalseIsUnknown() As Task
             Await TestInRegularAndScript1Async(
 "
@@ -183,7 +184,7 @@ class C
 end class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyConditional)>
+        <Fact>
         Public Async Function TestWhenTrueIsFalseAndWhenFalseIsUnknown() As Task
             Await TestInRegularAndScript1Async(
 "
@@ -210,7 +211,7 @@ class C
 end class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyConditional)>
+        <Fact>
         Public Async Function TestWhenTrueIsUnknownAndWhenFalseIsTrue() As Task
             Await TestInRegularAndScript1Async(
 "
@@ -237,7 +238,7 @@ class C
 end class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyConditional)>
+        <Fact>
         Public Async Function TestWhenTrueIsUnknownAndWhenFalseIsFalse() As Task
             Await TestInRegularAndScript1Async(
 "
@@ -264,8 +265,7 @@ class C
 end class")
         End Function
 
-        <WorkItem(57472, "https://github.com/dotnet/roslyn/issues/57472")>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyConditional)>
+        <Fact, WorkItem(57472, "https://github.com/dotnet/roslyn/issues/57472")>
         Public Async Function TestValueEqualityOnReferenceType1() As Task
             Await TestInRegularAndScript1Async(
 "
@@ -288,8 +288,7 @@ class C
 end class")
         End Function
 
-        <WorkItem(57472, "https://github.com/dotnet/roslyn/issues/57472")>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyConditional)>
+        <Fact, WorkItem(57472, "https://github.com/dotnet/roslyn/issues/57472")>
         Public Async Function TestValueEqualityOnReferenceType2() As Task
             Await TestInRegularAndScript1Async(
 "
@@ -312,8 +311,7 @@ class C
 end class")
         End Function
 
-        <WorkItem(57472, "https://github.com/dotnet/roslyn/issues/57472")>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyConditional)>
+        <Fact, WorkItem(57472, "https://github.com/dotnet/roslyn/issues/57472")>
         Public Async Function TestValueEqualityOnReferenceType3() As Task
             Await TestInRegularAndScript1Async(
 "
@@ -336,8 +334,7 @@ class C
 end class")
         End Function
 
-        <WorkItem(57472, "https://github.com/dotnet/roslyn/issues/57472")>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyConditional)>
+        <Fact, WorkItem(57472, "https://github.com/dotnet/roslyn/issues/57472")>
         Public Async Function TestValueEqualityOnReferenceType4() As Task
             Await TestInRegularAndScript1Async(
 "

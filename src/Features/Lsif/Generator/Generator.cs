@@ -13,7 +13,7 @@ using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.Graph;
 using Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.ResultSetTracking;
 using Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.Writing;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Roslyn.Utilities;
 using Methods = Microsoft.VisualStudio.LanguageServer.Protocol.Methods;
 
@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
             return generator;
         }
 
-        public async Task GenerateForCompilationAsync(Compilation compilation, string projectPath, HostLanguageServices languageServices, GeneratorOptions options)
+        public async Task GenerateForCompilationAsync(Compilation compilation, string projectPath, LanguageServices languageServices, GeneratorOptions options)
         {
             var projectVertex = new Graph.LsifProject(kind: GetLanguageKind(compilation.Language), new Uri(projectPath), _idFactory);
             _lsifJsonWriter.Write(projectVertex);
@@ -118,7 +118,7 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
         /// </remarks>
         private static async Task<Id<Graph.LsifDocument>> GenerateForDocumentAsync(
             SemanticModel semanticModel,
-            HostLanguageServices languageServices,
+            LanguageServices languageServices,
             GeneratorOptions options,
             IResultSetTracker topLevelSymbolsResultSetTracker,
             ILsifJsonWriter lsifJsonWriter,

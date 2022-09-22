@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis
 
         protected DocumentState(
             HostLanguageServices languageServices,
-            SolutionServices solutionServices,
+            HostWorkspaceServices solutionServices,
             IDocumentServiceProvider? documentServiceProvider,
             DocumentInfo.DocumentAttributes attributes,
             ParseOptions? options,
@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis
             DocumentInfo info,
             ParseOptions? options,
             HostLanguageServices languageServices,
-            SolutionServices services)
+            HostWorkspaceServices services)
             : base(info, services)
         {
             _languageServices = languageServices;
@@ -378,15 +378,12 @@ namespace Microsoft.CodeAnalysis
             }
 
             // If we weren't able to reuse in a smart way, just reparse
-            if (newTreeSource is null)
-            {
-                newTreeSource = CreateLazyFullyParsedTree(
+            newTreeSource ??= CreateLazyFullyParsedTree(
                     TextAndVersionSource,
                     Id.ProjectId,
                     GetSyntaxTreeFilePath(Attributes),
                     options,
                     _languageServices);
-            }
 
             return new DocumentState(
                 LanguageServices,
@@ -607,8 +604,8 @@ namespace Microsoft.CodeAnalysis
                 // its okay to use a strong cached AsyncLazy here because the compiler layer SyntaxTree will also keep the text alive once its built.
                 lazyTextAndVersion = new TreeTextSource(
                     new AsyncLazy<SourceText>(
-                        c => tree.GetTextAsync(c),
-                        c => tree.GetText(c),
+                        tree.GetTextAsync,
+                        tree.GetText,
                         cacheResult: true),
                     textVersion,
                     filePath);

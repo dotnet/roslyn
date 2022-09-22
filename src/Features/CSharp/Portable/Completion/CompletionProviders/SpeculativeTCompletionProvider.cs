@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
             var context = await completionContext.GetSyntaxContextWithExistingSpeculativeModelAsync(document, cancellationToken).ConfigureAwait(false);
 
-            if (context.IsInTaskLikeTypeContext)
+            if (context.IsTaskLikeTypeContext)
                 return false;
 
             var spanStart = position;
@@ -144,7 +144,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             var prevToken = syntaxTree.FindTokenOnLeftOfPosition(position, cancellationToken)
                                       .GetPreviousTokenIfTouchingWord(position);
 
-            if (prevToken.IsKind(SyntaxKind.RefKeyword, SyntaxKind.ReadOnlyKeyword) && prevToken.Parent.IsKind(SyntaxKind.RefType))
+            if (prevToken.Kind() is SyntaxKind.RefKeyword or SyntaxKind.ReadOnlyKeyword && prevToken.Parent.IsKind(SyntaxKind.RefType))
             {
                 return prevToken.SpanStart;
             }

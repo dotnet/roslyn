@@ -8,6 +8,7 @@ using System.Text;
 using System.Threading;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.SourceGeneration;
 using Microsoft.CodeAnalysis.Text;
 namespace Microsoft.CodeAnalysis
 {
@@ -115,7 +116,7 @@ namespace Microsoft.CodeAnalysis
     /// <summary>
     /// Context passed to a source generator when <see cref="ISourceGenerator.Initialize(GeneratorInitializationContext)"/> is called
     /// </summary>
-    public struct GeneratorInitializationContext
+    public readonly struct GeneratorInitializationContext
     {
         internal GeneratorInitializationContext(CancellationToken cancellationToken = default)
         {
@@ -215,12 +216,14 @@ namespace Microsoft.CodeAnalysis
     /// </summary>
     public readonly struct GeneratorSyntaxContext
     {
+        internal readonly ISyntaxHelper SyntaxHelper;
         private readonly Lazy<SemanticModel>? _semanticModel;
 
-        internal GeneratorSyntaxContext(SyntaxNode node, Lazy<SemanticModel>? semanticModel)
+        internal GeneratorSyntaxContext(SyntaxNode node, Lazy<SemanticModel>? semanticModel, ISyntaxHelper syntaxHelper)
         {
             Node = node;
             _semanticModel = semanticModel;
+            SyntaxHelper = syntaxHelper;
         }
 
         /// <summary>

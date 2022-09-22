@@ -616,6 +616,14 @@
         <summary>Operator method used by the operation, null if the operation does not use an operator method.</summary>
       </Comments>
     </Property>
+    <Property Name="ConstrainedToType" Type="ITypeSymbol?" SkipGeneration="true">
+      <Comments>
+        <summary>
+          Type parameter which runtime type will be used to resolve virtual invocation of the <see cref="OperatorMethod" />, if any.
+          Null if <see cref="OperatorMethod" /> is resolved statically, or is null.
+        </summary>
+      </Comments>
+    </Property>
     <Property Name="Conversion" Type="CommonConversion">
       <Comments>
         <summary>Gets the underlying common conversion information.</summary>
@@ -661,6 +669,14 @@
     <Property Name="TargetMethod" Type="IMethodSymbol">
       <Comments>
         <summary>Method to be invoked.</summary>
+      </Comments>
+    </Property>
+    <Property Name="ConstrainedToType" Type="ITypeSymbol?">
+      <Comments>
+        <summary>
+          Type parameter which runtime type will be used to resolve virtual invocation of the <see cref="TargetMethod" />.
+          Null if <see cref="TargetMethod" /> is resolved statically, or is an instance method.
+        </summary>
       </Comments>
     </Property>
     <Property Name="Instance" Type="IOperation?">
@@ -768,6 +784,14 @@
         <summary>Referenced member.</summary>
       </Comments>
     </Property>
+    <Property Name="ConstrainedToType" Type="ITypeSymbol?" MakeAbstract="true">
+      <Comments>
+        <summary>
+          Type parameter which runtime type will be used to resolve virtual invocation of the <see cref="Member" />.
+          Null if <see cref="Member" /> is resolved statically, or is an instance member.
+        </summary>
+      </Comments>
+    </Property>
   </AbstractNode>
   <Node Name="IFieldReferenceOperation" Base="IMemberReferenceOperation" HasType="true" HasConstantValue="true">
     <Comments>
@@ -811,6 +835,7 @@
         <summary>Referenced method.</summary>
       </Comments>
     </Property>
+    <Property Name="ConstrainedToType" Type="ITypeSymbol?" Override="true"/>
     <Property Name="IsVirtual" Type="bool">
       <Comments>
         <summary>Indicates whether the reference uses virtual semantics.</summary>
@@ -833,6 +858,7 @@
         <summary>Referenced property.</summary>
       </Comments>
     </Property>
+    <Property Name="ConstrainedToType" Type="ITypeSymbol?" Override="true"/>
     <Property Name="Arguments" Type="ImmutableArray&lt;IArgumentOperation&gt;">
       <Comments>
         <summary>Arguments of the indexer property reference, excluding the instance argument. Arguments are in evaluation order.</summary>
@@ -859,6 +885,7 @@
         <summary>Referenced event.</summary>
       </Comments>
     </Property>
+    <Property Name="ConstrainedToType" Type="ITypeSymbol?" Override="true"/>
   </Node>
   <Node Name="IUnaryOperation" Base="IOperation" VisitorName="VisitUnaryOperator" HasType="true" HasConstantValue="true">
     <OperationKind>
@@ -905,6 +932,14 @@
     <Property Name="OperatorMethod" Type="IMethodSymbol?">
       <Comments>
         <summary>Operator method used by the operation, null if the operation does not use an operator method.</summary>
+      </Comments>
+    </Property>
+    <Property Name="ConstrainedToType" Type="ITypeSymbol?">
+      <Comments>
+        <summary>
+          Type parameter which runtime type will be used to resolve virtual invocation of the <see cref="OperatorMethod" />, if any.
+          Null if <see cref="OperatorMethod" /> is resolved statically, or is null.
+        </summary>
       </Comments>
     </Property>
   </Node>
@@ -965,6 +1000,15 @@
     <Property Name="OperatorMethod" Type="IMethodSymbol?">
       <Comments>
         <summary>Operator method used by the operation, null if the operation does not use an operator method.</summary>
+      </Comments>
+    </Property>
+    <Property Name="ConstrainedToType" Type="ITypeSymbol?">
+      <Comments>
+        <summary>
+          Type parameter which runtime type will be used to resolve virtual invocation of the <see cref="OperatorMethod" />
+          or corresponding true/false operator, if any.
+          Null if operators are resolved statically, or are not used.
+        </summary>
       </Comments>
     </Property>
     <Property Name="UnaryOperatorMethod" Type="IMethodSymbol?" Internal="true">
@@ -1302,6 +1346,14 @@
     <Property Name="OperatorMethod" Type="IMethodSymbol?">
       <Comments>
         <summary>Operator method used by the operation, null if the operation does not use an operator method.</summary>
+      </Comments>
+    </Property>
+    <Property Name="ConstrainedToType" Type="ITypeSymbol?">
+      <Comments>
+        <summary>
+          Type parameter which runtime type will be used to resolve virtual invocation of the <see cref="OperatorMethod" />, if any.
+          Null if <see cref="OperatorMethod" /> is resolved statically, or is null.
+        </summary>
       </Comments>
     </Property>
   </Node>
@@ -1804,6 +1856,14 @@
     <Property Name="OperatorMethod" Type="IMethodSymbol?">
       <Comments>
         <summary>Operator method used by the operation, null if the operation does not use an operator method.</summary>
+      </Comments>
+    </Property>
+    <Property Name="ConstrainedToType" Type="ITypeSymbol?">
+      <Comments>
+        <summary>
+          Type parameter which runtime type will be used to resolve virtual invocation of the <see cref="OperatorMethod" />, if any.
+          Null if <see cref="OperatorMethod" /> is resolved statically, or is null.
+        </summary>
       </Comments>
     </Property>
   </Node>
@@ -3273,13 +3333,13 @@
       </Comments>
     </Property>
   </Node>
-  <Node Name="IUTF8StringOperation" Base="IOperation" HasType="true" HasConstantValue="false">
+  <Node Name="IUtf8StringOperation" Base="IOperation" HasType="true" HasConstantValue="false">
     <Comments>
       <summary>
-        Represents a UTF8 encoded byte representation of a string.
+        Represents a UTF-8 encoded byte representation of a string.
         <para>
           Current usage:
-          (1) C# UTF8 string literal expression.
+          (1) C# UTF-8 string literal expression.
         </para>
       </summary>
     </Comments>

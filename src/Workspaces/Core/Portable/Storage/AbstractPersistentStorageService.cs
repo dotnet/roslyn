@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis.Storage
                     // instance.  Then once all other existing clients who are holding onto this
                     // instance let go, it will finally get truly disposed.
                     // This operation is not safe to cancel (as dispose must happen).
-                    _ = Task.Run(() => storageToDispose.Dispose(), CancellationToken.None);
+                    _ = Task.Run(storageToDispose.Dispose, CancellationToken.None);
 
                     _currentPersistentStorage = null;
                     _currentPersistentStorageSolutionId = null;
@@ -159,12 +159,9 @@ namespace Microsoft.CodeAnalysis.Storage
                 _currentPersistentStorageSolutionId = null;
             }
 
-            if (storage != null)
-            {
-                // Dispose storage outside of the lock. Note this only removes our reference count; clients who are still
-                // using this will still be holding a reference count.
-                storage.Dispose();
-            }
+            // Dispose storage outside of the lock. Note this only removes our reference count; clients who are still
+            // using this will still be holding a reference count.
+            storage?.Dispose();
         }
 
         internal TestAccessor GetTestAccessor()

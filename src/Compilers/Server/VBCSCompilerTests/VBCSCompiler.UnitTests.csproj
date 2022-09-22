@@ -7,7 +7,7 @@
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <TargetFrameworks>net6.0;net472</TargetFrameworks>
 
-    <!-- 
+    <!--
       Currently fails on CI against old versions of mono
       See https://github.com/dotnet/roslyn/pull/30166#issuecomment-425571629
     -->
@@ -15,16 +15,16 @@
   </PropertyGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\Test\Core\Microsoft.CodeAnalysis.Test.Utilities.csproj" />
-    <ProjectReference Include="..\..\CSharp\csc\csc.csproj">
+    <ProjectReference Include="..\..\CSharp\csc\AnyCpu\csc.csproj">
       <Aliases>csc</Aliases>
     </ProjectReference>
-    <ProjectReference Include="..\..\VisualBasic\vbc\vbc.csproj">
+    <ProjectReference Include="..\..\VisualBasic\vbc\AnyCpu\vbc.csproj">
       <Aliases>vbc</Aliases>
     </ProjectReference>
     <ProjectReference Include="..\..\..\Test\PdbUtilities\Roslyn.Test.PdbUtilities.csproj" />
     <ProjectReference Include="..\..\Test\Resources\Core\Microsoft.CodeAnalysis.Compiler.Test.Resources.csproj" />
     <ProjectReference Include="..\..\Core\Portable\Microsoft.CodeAnalysis.csproj" />
-    <ProjectReference Include="..\VBCSCompiler\VBCSCompiler.csproj" />
+    <ProjectReference Include="..\VBCSCompiler\AnyCpu\VBCSCompiler.csproj" />
     <ProjectReference Include="..\..\VisualBasic\Portable\Microsoft.CodeAnalysis.VisualBasic.vbproj" />
     <ProjectReference Include="..\..\CSharp\Portable\Microsoft.CodeAnalysis.CSharp.csproj" />
   </ItemGroup>
@@ -33,6 +33,7 @@
     <Reference Include="System.Xml" Condition="'$(TargetFramework)' != 'net6.0'" />
     <PackageReference Include="Microsoft.DiaSymReader" Version="$(MicrosoftDiaSymReaderVersion)" />
     <PackageReference Include="Moq" Version="$(MoqVersion)" />
+    <PackageReference Include="Newtonsoft.Json" Version="$(NewtonsoftJsonVersion)" />
   </ItemGroup>
   <ItemGroup>
     <Service Include="{82A7F48D-3B50-4B1E-B82E-3ADA8210C358}" />

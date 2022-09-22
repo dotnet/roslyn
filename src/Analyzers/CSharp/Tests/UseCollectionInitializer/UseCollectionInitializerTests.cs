@@ -17,6 +17,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseCollectionInitialize
         CSharpUseCollectionInitializerDiagnosticAnalyzer,
         CSharpUseCollectionInitializerCodeFixProvider>;
 
+    [Trait(Traits.Feature, Traits.Features.CodeActionsUseCollectionInitializer)]
     public partial class UseCollectionInitializerTests
     {
         private static async Task TestInRegularAndScriptAsync(string testCode, string fixedCode, OutputKind outputKind = OutputKind.DynamicallyLinkedLibrary)
@@ -45,7 +46,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseCollectionInitialize
             await test.RunAsync();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCollectionInitializer)]
+        [Fact]
         public async Task TestOnVariableDeclarator()
         {
             await TestInRegularAndScriptAsync(
@@ -56,7 +57,7 @@ class C
     void M()
     {
         var c = [|new|] List<int>();
-        c.Add(1);
+        [|c.Add(|]1);
     }
 }",
 @"using System.Collections.Generic;
@@ -73,7 +74,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCollectionInitializer)]
+        [Fact]
         public async Task TestIndexAccess1()
         {
             await TestInRegularAndScriptAsync(
@@ -101,7 +102,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCollectionInitializer)]
+        [Fact]
         public async Task TestIndexAccess1_NotInCSharp5()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -117,7 +118,7 @@ class C
 }", LanguageVersion.CSharp5);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCollectionInitializer)]
+        [Fact]
         public async Task TestComplexIndexAccess1()
         {
             await TestInRegularAndScriptAsync(
@@ -167,7 +168,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCollectionInitializer)]
+        [Fact]
         public async Task TestIndexAccess2()
         {
             await TestInRegularAndScriptAsync(
@@ -197,7 +198,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCollectionInitializer)]
+        [Fact]
         public async Task TestIndexAccess3()
         {
             await TestInRegularAndScriptAsync(
@@ -251,7 +252,7 @@ class X : IEnumerable
 ");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCollectionInitializer)]
+        [Fact]
         public async Task TestIndexFollowedByInvocation()
         {
             await TestInRegularAndScriptAsync(
@@ -281,7 +282,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCollectionInitializer)]
+        [Fact]
         public async Task TestInvocationFollowedByIndex()
         {
             await TestInRegularAndScriptAsync(
@@ -292,7 +293,7 @@ class C
     void M()
     {
         var c = [|new|] List<int>();
-        c.Add(0);
+        [|c.Add(|]0);
         c[1] = 2;
     }
 }",
@@ -311,7 +312,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCollectionInitializer)]
+        [Fact]
         public async Task TestWithInterimStatement()
         {
             await TestInRegularAndScriptAsync(
@@ -322,8 +323,8 @@ class C
     void M()
     {
         var c = [|new|] List<int>();
-        c.Add(1);
-        c.Add(2);
+        [|c.Add(|]1);
+        [|c.Add(|]2);
         throw new System.Exception();
         c.Add(3);
         c.Add(4);
@@ -347,7 +348,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCollectionInitializer)]
+        [Fact]
         public async Task TestMissingBeforeCSharp3()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -363,7 +364,7 @@ class C
 }", LanguageVersion.CSharp2);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCollectionInitializer)]
+        [Fact]
         public async Task TestMissingOnNonIEnumerable()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -381,7 +382,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCollectionInitializer)]
+        [Fact]
         public async Task TestMissingOnNonIEnumerableEvenWithAdd()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -401,7 +402,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCollectionInitializer)]
+        [Fact]
         public async Task TestWithCreationArguments()
         {
             await TestInRegularAndScriptAsync(
@@ -412,7 +413,7 @@ class C
     void M()
     {
         var c = [|new|] List<int>(1);
-        c.Add(1);
+        [|c.Add(|]1);
     }
 }",
 @"using System.Collections.Generic;
@@ -429,7 +430,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCollectionInitializer)]
+        [Fact]
         public async Task TestOnAssignmentExpression()
         {
             await TestInRegularAndScriptAsync(
@@ -441,7 +442,7 @@ class C
     {
         List<int> c = null;
         c = [|new|] List<int>();
-        c.Add(1);
+        [|c.Add(|]1);
     }
 }",
 @"using System.Collections.Generic;
@@ -459,7 +460,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCollectionInitializer)]
+        [Fact]
         public async Task TestMissingOnRefAdd()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -484,7 +485,7 @@ class List
 ");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCollectionInitializer)]
+        [Fact]
         public async Task TestComplexInitializer()
         {
             await TestInRegularAndScriptAsync(
@@ -495,8 +496,8 @@ class C
     void M(List<int>[] array)
     {
         array[0] = [|new|] List<int>();
-        array[0].Add(1);
-        array[0].Add(2);
+        [|array[0].Add(|]1);
+        [|array[0].Add(|]2);
     }
 }",
 @"using System.Collections.Generic;
@@ -514,7 +515,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCollectionInitializer)]
+        [Fact]
         public async Task TestNotOnNamedArg()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -530,8 +531,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCollectionInitializer)]
-        [WorkItem(39146, "https://github.com/dotnet/roslyn/issues/39146")]
+        [Fact, WorkItem(39146, "https://github.com/dotnet/roslyn/issues/39146")]
         public async Task TestWithExistingInitializer()
         {
             await TestInRegularAndScriptAsync(
@@ -545,7 +545,7 @@ class C
         {
             1
         };
-        c.Add(1);
+        [|c.Add(|]1);
     }
 }",
 @"using System.Collections.Generic;
@@ -563,8 +563,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCollectionInitializer)]
-        [WorkItem(39146, "https://github.com/dotnet/roslyn/issues/39146")]
+        [Fact, WorkItem(39146, "https://github.com/dotnet/roslyn/issues/39146")]
         public async Task TestWithExistingInitializerWithComma()
         {
             await TestInRegularAndScriptAsync(
@@ -578,7 +577,7 @@ class C
         {
             1,
         };
-        c.Add(1);
+        [|c.Add(|]1);
     }
 }",
 @"using System.Collections.Generic;
@@ -596,7 +595,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCollectionInitializer)]
+        [Fact]
         public async Task TestFixAllInDocument1()
         {
             await TestInRegularAndScriptAsync(
@@ -607,11 +606,11 @@ class C
     void M(List<int>[] array)
     {
         array[0] = [|new|] List<int>();
-        array[0].Add(1);
-        array[0].Add(2);
+        [|array[0].Add(|]1);
+        [|array[0].Add(|]2);
         array[1] = [|new|] List<int>();
-        array[1].Add(3);
-        array[1].Add(4);
+        [|array[1].Add(|]3);
+        [|array[1].Add(|]4);
     }
 }",
 @"using System.Collections.Generic;
@@ -634,7 +633,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCollectionInitializer)]
+        [Fact]
         public async Task TestFixAllInDocument2()
         {
             await TestInRegularAndScriptAsync(
@@ -649,9 +648,9 @@ class C
     {
         var list1 = [|new|] Bar(() => {
             var list2 = [|new|] List<int>();
-            list2.Add(2);
+            [|list2.Add(|]2);
         });
-        list1.Add(1);
+        [|list1.Add(|]1);
     }
 }
 
@@ -695,7 +694,7 @@ class Bar : IEnumerable
 ");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCollectionInitializer)]
+        [Fact]
         public async Task TestFixAllInDocument3()
         {
             await new VerifyCS.Test
@@ -710,9 +709,9 @@ class C
     void M()
     {
         var list1 = [|new|] List<Action>();
-        list1.Add(() => {
+        [|list1.Add(|]() => {
             var list2 = [|new|] List<int>();
-            list2.Add(2);
+            [|list2.Add(|]2);
         });
     }
 }",
@@ -758,7 +757,7 @@ class C
             }.RunAsync();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCollectionInitializer)]
+        [Fact]
         public async Task TestTrivia1()
         {
             await TestInRegularAndScriptAsync(
@@ -769,8 +768,8 @@ class C
     void M()
     {
         var c = [|new|] List<int>();
-        c.Add(1); // Goo
-        c.Add(2); // Bar
+        [|c.Add(|]1); // Goo
+        [|c.Add(|]2); // Bar
     }
 }",
 @"
@@ -788,8 +787,8 @@ class C
 }");
         }
 
-        [WorkItem(46670, "https://github.com/dotnet/roslyn/issues/46670")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseObjectInitializer)]
+        [WorkItem(46670, "https://github.com/dotnet/roslyn/issues/46670")]
         public async Task TestTriviaRemoveLeadingBlankLinesForFirstElement()
         {
             await TestInRegularAndScriptAsync(
@@ -802,10 +801,10 @@ class C
         var c = [|new|] List<int>();
         
         // Goo
-        c.Add(1);
+        [|c.Add(|]1);
 
         // Bar
-        c.Add(2);
+        [|c.Add(|]2);
     }
 }",
 @"
@@ -826,7 +825,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCollectionInitializer)]
+        [Fact]
         public async Task TestComplexInitializer2()
         {
             await TestInRegularAndScriptAsync(
@@ -837,8 +836,8 @@ class C
     void M()
     {
         var c = [|new|] Dictionary<int, string>();
-        c.Add(1, ""x"");
-        c.Add(2, ""y"");
+        [|c.Add(|]1, ""x"");
+        [|c.Add(|]2, ""y"");
     }
 }",
 @"using System.Collections.Generic;
@@ -856,8 +855,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCollectionInitializer)]
-        [WorkItem(16158, "https://github.com/dotnet/roslyn/issues/16158")]
+        [Fact, WorkItem(16158, "https://github.com/dotnet/roslyn/issues/16158")]
         public async Task TestIncorrectAddName()
         {
             await TestInRegularAndScriptAsync(
@@ -871,7 +869,7 @@ public class Goo
         var items = new List<string>();
 
         var values = [|new|] List<string>(); // Collection initialization can be simplified
-        values.Add(item);
+        [|values.Add(|]item);
         values.AddRange(items);
     }
 }",
@@ -893,8 +891,7 @@ public class Goo
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCollectionInitializer)]
-        [WorkItem(16241, "https://github.com/dotnet/roslyn/issues/16241")]
+        [Fact, WorkItem(16241, "https://github.com/dotnet/roslyn/issues/16241")]
         public async Task TestNestedCollectionInitializer()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -913,8 +910,7 @@ class Program
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCollectionInitializer)]
-        [WorkItem(17823, "https://github.com/dotnet/roslyn/issues/17823")]
+        [Fact, WorkItem(17823, "https://github.com/dotnet/roslyn/issues/17823")]
         public async Task TestMissingWhenReferencedInInitializer()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -931,8 +927,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCollectionInitializer)]
-        [WorkItem(17823, "https://github.com/dotnet/roslyn/issues/17823")]
+        [Fact, WorkItem(17823, "https://github.com/dotnet/roslyn/issues/17823")]
         public async Task TestWhenReferencedInInitializer_LocalVar()
         {
             await TestInRegularAndScriptAsync(
@@ -964,8 +959,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCollectionInitializer)]
-        [WorkItem(17823, "https://github.com/dotnet/roslyn/issues/17823")]
+        [Fact, WorkItem(17823, "https://github.com/dotnet/roslyn/issues/17823")]
         public async Task TestWhenReferencedInInitializer_LocalVar2()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -983,8 +977,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCollectionInitializer)]
-        [WorkItem(18260, "https://github.com/dotnet/roslyn/issues/18260")]
+        [Fact, WorkItem(18260, "https://github.com/dotnet/roslyn/issues/18260")]
         public async Task TestWhenReferencedInInitializer_Assignment()
         {
             await TestInRegularAndScriptAsync(
@@ -1018,8 +1011,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCollectionInitializer)]
-        [WorkItem(18260, "https://github.com/dotnet/roslyn/issues/18260")]
+        [Fact, WorkItem(18260, "https://github.com/dotnet/roslyn/issues/18260")]
         public async Task TestWhenReferencedInInitializer_Assignment2()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -1037,8 +1029,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCollectionInitializer)]
-        [WorkItem(18260, "https://github.com/dotnet/roslyn/issues/18260")]
+        [Fact, WorkItem(18260, "https://github.com/dotnet/roslyn/issues/18260")]
         public async Task TestFieldReference()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -1055,8 +1046,7 @@ class C
 }");
         }
 
-        [WorkItem(17853, "https://github.com/dotnet/roslyn/issues/17853")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCollectionInitializer)]
+        [Fact, WorkItem(17853, "https://github.com/dotnet/roslyn/issues/17853")]
         public async Task TestMissingForDynamic()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -1072,8 +1062,7 @@ class C
 }");
         }
 
-        [WorkItem(17953, "https://github.com/dotnet/roslyn/issues/17953")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCollectionInitializer)]
+        [Fact, WorkItem(17953, "https://github.com/dotnet/roslyn/issues/17953")]
         public async Task TestMissingAcrossPreprocessorDirective()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -1092,8 +1081,7 @@ public class Goo
 }");
         }
 
-        [WorkItem(17953, "https://github.com/dotnet/roslyn/issues/17953")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCollectionInitializer)]
+        [Fact, WorkItem(17953, "https://github.com/dotnet/roslyn/issues/17953")]
         public async Task TestAvailableInsidePreprocessorDirective()
         {
             await TestInRegularAndScriptAsync(
@@ -1106,7 +1094,7 @@ public class Goo
     {
 #if true
         var items = [|new|] List<object>();
-        items.Add(1);
+        [|items.Add(|]1);
 #endif
     }
 }",
@@ -1127,8 +1115,7 @@ public class Goo
 }");
         }
 
-        [WorkItem(18242, "https://github.com/dotnet/roslyn/issues/18242")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCollectionInitializer)]
+        [Fact, WorkItem(18242, "https://github.com/dotnet/roslyn/issues/18242")]
         public async Task TestObjectInitializerAssignmentAmbiguity()
         {
             await TestInRegularAndScriptAsync(
@@ -1141,7 +1128,7 @@ public class Goo
     {
         int lastItem;
         var list = [|new|] List<int>();
-        list.Add(lastItem = 5);
+        [|list.Add(|]lastItem = 5);
     }
 }",
 @"
@@ -1160,8 +1147,7 @@ public class Goo
 }");
         }
 
-        [WorkItem(18242, "https://github.com/dotnet/roslyn/issues/18242")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCollectionInitializer)]
+        [Fact, WorkItem(18242, "https://github.com/dotnet/roslyn/issues/18242")]
         public async Task TestObjectInitializerCompoundAssignment()
         {
             await TestInRegularAndScriptAsync(
@@ -1174,7 +1160,7 @@ public class Goo
     {
         int lastItem = 0;
         var list = [|new|] List<int>();
-        list.Add(lastItem += 5);
+        [|list.Add(|]lastItem += 5);
     }
 }",
 @"
@@ -1193,8 +1179,7 @@ public class Goo
 }");
         }
 
-        [WorkItem(19253, "https://github.com/dotnet/roslyn/issues/19253")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCollectionInitializer)]
+        [Fact, WorkItem(19253, "https://github.com/dotnet/roslyn/issues/19253")]
         public async Task TestKeepBlankLinesAfter()
         {
             await TestInRegularAndScriptAsync(
@@ -1206,7 +1191,7 @@ class MyClass
     public void Main()
     {
         var list = [|new|] List<int>();
-        list.Add(1);
+        [|list.Add(|]1);
 
         int horse = 1;
     }
@@ -1228,8 +1213,7 @@ class MyClass
 }");
         }
 
-        [WorkItem(23672, "https://github.com/dotnet/roslyn/issues/23672")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCollectionInitializer)]
+        [Fact, WorkItem(23672, "https://github.com/dotnet/roslyn/issues/23672")]
         public async Task TestMissingWithExplicitImplementedAddMethod()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -1249,8 +1233,7 @@ public class Goo
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCollectionInitializer)]
-        [WorkItem(47632, "https://github.com/dotnet/roslyn/issues/47632")]
+        [Fact, WorkItem(47632, "https://github.com/dotnet/roslyn/issues/47632")]
         public async Task TestWhenReferencedInInitializerLeft()
         {
             await TestInRegularAndScriptAsync(
@@ -1282,8 +1265,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCollectionInitializer)]
-        [WorkItem(47632, "https://github.com/dotnet/roslyn/issues/47632")]
+        [Fact, WorkItem(47632, "https://github.com/dotnet/roslyn/issues/47632")]
         public async Task TestWithIndexerInInitializerLeft()
         {
             await TestInRegularAndScriptAsync(
@@ -1315,8 +1297,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCollectionInitializer)]
-        [WorkItem(47632, "https://github.com/dotnet/roslyn/issues/47632")]
+        [Fact, WorkItem(47632, "https://github.com/dotnet/roslyn/issues/47632")]
         public async Task TestWithImplicitObjectCreation()
         {
             await TestInRegularAndScriptAsync(
@@ -1346,15 +1327,15 @@ class C
 }");
         }
 
-        [WorkItem(61066, "https://github.com/dotnet/roslyn/issues/61066")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseObjectInitializer)]
+        [WorkItem(61066, "https://github.com/dotnet/roslyn/issues/61066")]
         public async Task TestInTopLevelStatements()
         {
             await TestInRegularAndScriptAsync(
 @"using System.Collections.Generic;
 
 var list = [|new|] List<int>();
-list.Add(1);",
+[|list.Add(|]1);",
 @"using System.Collections.Generic;
 
 var list = new List<int> { 1 };

@@ -58,7 +58,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             private const int NullableContextSize = 3;
 
             private const int IsNullableAnalysisEnabledOffset = NullableContextOffset + NullableContextSize;
+#pragma warning disable IDE0051 // Remove unused private members
             private const int IsNullableAnalysisEnabledSize = 1;
+#pragma warning restore IDE0051 // Remove unused private members
 
             private const int MethodKindMask = (1 << MethodKindSize) - 1;
 
@@ -274,6 +276,27 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             diagnostics.Add(Locations[0], useSiteInfo);
+        }
+
+        protected void CheckFileTypeUsage(TypeWithAnnotations returnType, ImmutableArray<ParameterSymbol> parameters, BindingDiagnosticBag diagnostics)
+        {
+            if (ContainingType.HasFileLocalTypes())
+            {
+                return;
+            }
+
+            if (returnType.Type.HasFileLocalTypes())
+            {
+                diagnostics.Add(ErrorCode.ERR_FileTypeDisallowedInSignature, Locations[0], returnType.Type, ContainingType);
+            }
+
+            foreach (var param in parameters)
+            {
+                if (param.Type.HasFileLocalTypes())
+                {
+                    diagnostics.Add(ErrorCode.ERR_FileTypeDisallowedInSignature, Locations[0], param.Type, ContainingType);
+                }
+            }
         }
 
         protected void MakeFlags(

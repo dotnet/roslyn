@@ -10,18 +10,17 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Editor.Options;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
-using Microsoft.CodeAnalysis.MetadataAsSource;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.MetadataAsSource;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Extensibility.Testing;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
-using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
 using Microsoft.VisualStudio.LanguageServices;
 using Microsoft.VisualStudio.LanguageServices.Implementation;
-using Microsoft.VisualStudio.LanguageServices.Telemetry;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Text.Editor;
+using WindowsInput.Native;
 
 namespace Roslyn.VisualStudio.IntegrationTests.InProcess
 {
@@ -44,26 +43,20 @@ namespace Roslyn.VisualStudio.IntegrationTests.InProcess
             configurationService.Clear();
 
             var globalOptions = await GetComponentModelServiceAsync<IGlobalOptionService>(cancellationToken);
-            ResetOption2(globalOptions, MetadataAsSourceOptionsStorage.NavigateToDecompiledSources);
-            ResetOption2(globalOptions, WorkspaceConfigurationOptionsStorage.EnableOpeningSourceGeneratedFilesInWorkspace);
-            ResetPerLanguageOption(globalOptions, NavigationBarViewOptions.ShowNavigationBar);
-            ResetPerLanguageOption2(globalOptions, VisualStudioNavigationOptions.NavigateToObjectBrowser);
-            ResetPerLanguageOption2(globalOptions, FeatureOnOffOptions.AddImportsOnPaste);
-            ResetPerLanguageOption2(globalOptions, FeatureOnOffOptions.PrettyListing);
-            ResetPerLanguageOption2(globalOptions, CompletionViewOptions.EnableArgumentCompletionSnippets);
+            ResetOption(globalOptions, MetadataAsSourceOptionsStorage.NavigateToDecompiledSources);
+            ResetOption(globalOptions, WorkspaceConfigurationOptionsStorage.EnableOpeningSourceGeneratedFilesInWorkspace);
+            ResetPerLanguageOption(globalOptions, NavigationBarViewOptionsStorage.ShowNavigationBar);
+            ResetPerLanguageOption(globalOptions, VisualStudioNavigationOptions.NavigateToObjectBrowser);
+            ResetPerLanguageOption(globalOptions, FeatureOnOffOptions.AddImportsOnPaste);
+            ResetPerLanguageOption(globalOptions, FeatureOnOffOptions.PrettyListing);
+            ResetPerLanguageOption(globalOptions, CompletionViewOptions.EnableArgumentCompletionSnippets);
 
-            static void ResetOption2<T>(IGlobalOptionService globalOptions, Option2<T> option)
+            static void ResetOption<T>(IGlobalOptionService globalOptions, Option2<T> option)
             {
                 globalOptions.SetGlobalOption(new OptionKey(option, language: null), option.DefaultValue);
             }
 
-            static void ResetPerLanguageOption<T>(IGlobalOptionService globalOptions, PerLanguageOption<T> option)
-            {
-                globalOptions.SetGlobalOption(new OptionKey(option, LanguageNames.CSharp), option.DefaultValue);
-                globalOptions.SetGlobalOption(new OptionKey(option, LanguageNames.VisualBasic), option.DefaultValue);
-            }
-
-            static void ResetPerLanguageOption2<T>(IGlobalOptionService globalOptions, PerLanguageOption2<T> option)
+            static void ResetPerLanguageOption<T>(IGlobalOptionService globalOptions, PerLanguageOption2<T> option)
             {
                 globalOptions.SetGlobalOption(new OptionKey(option, LanguageNames.CSharp), option.DefaultValue);
                 globalOptions.SetGlobalOption(new OptionKey(option, LanguageNames.VisualBasic), option.DefaultValue);
@@ -101,7 +94,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.InProcess
                     break;
                 }
 
-                await TestServices.Input.SendWithoutActivateAsync(VirtualKey.Escape);
+                await TestServices.Input.SendWithoutActivateAsync(VirtualKeyCode.ESCAPE);
                 var nextModalWindow = IntegrationHelper.GetModalWindowFromParentWindow(mainWindow);
                 if (nextModalWindow == modalWindow)
                 {

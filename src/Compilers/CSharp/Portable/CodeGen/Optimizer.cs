@@ -304,7 +304,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
     // represents a span of a value between definition and use.
     // start/end positions are specified in terms of global node count as visited by 
     // StackOptimizer visitors. (i.e. recursive walk not looking into constants)
-    internal struct LocalDefUseSpan
+    internal readonly struct LocalDefUseSpan
     {
         public readonly int Start;
         public readonly int End;
@@ -561,11 +561,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         private void PopEvalStack()
         {
             SetStackDepth(_evalStack.Count - 1);
-        }
-
-        private void ClearEvalStack()
-        {
-            _evalStack.Clear();
         }
 
         public BoundNode VisitStatement(BoundNode node)
@@ -1028,8 +1023,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             var lhs = node.Left;
 
             Debug.Assert(!node.IsRef ||
-              (lhs is BoundLocal local && local.LocalSymbol.RefKind != RefKind.None) ||
-              (lhs is BoundParameter param && param.ParameterSymbol.RefKind != RefKind.None),
+                (lhs.Kind is BoundKind.Local or BoundKind.Parameter or BoundKind.FieldAccess && lhs.GetRefKind() != RefKind.None),
                                 "only ref symbols can be a target of a ref assignment");
 
             switch (lhs.Kind)
@@ -2061,7 +2055,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             }
 
             // indirect local store is not special. (operands still could be rewritten) 
-            // NOTE: if Lhs is a stack local, it will be handled as a read and possibly duped.
+            // NOTE: if lhs is a stack local, it will be handled as a read and possibly duped.
             var isIndirectLocalStore = left.LocalSymbol.RefKind != RefKind.None && !node.IsRef;
             if (isIndirectLocalStore)
             {
@@ -2274,5 +2268,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         /// Checking escape scopes is not valid here.
         /// </summary>
         internal override uint RefEscapeScope => throw ExceptionUtilities.Unreachable;
+
+        internal override DeclarationScope Scope => DeclarationScope.Unscoped;
     }
 }

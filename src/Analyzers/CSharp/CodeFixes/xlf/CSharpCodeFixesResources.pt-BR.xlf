@@ -4,12 +4,12 @@
     <body>
       <trans-unit id="Add_Obsolete">
         <source>Add [Obsolete]</source>
-        <target state="new">Add [Obsolete]</target>
+        <target state="translated">Adicionar [Obsolete]</target>
         <note />
       </trans-unit>
       <trans-unit id="Add_await">
         <source>Add 'await'</source>
-        <target state="new">Add 'await'</target>
+        <target state="translated">Adicionar 'await'</target>
         <note>{Locked="await"} "await" is a C# keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Add_this">
@@ -19,17 +19,17 @@
       </trans-unit>
       <trans-unit id="Assign_to_0">
         <source>Assign to '{0}'</source>
-        <target state="new">Assign to '{0}'</target>
+        <target state="translated">Atribuir a '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="Change_return_type_from_0_to_1">
         <source>Change return type from {0} to {1}</source>
-        <target state="new">Change return type from {0} to {1}</target>
+        <target state="translated">Alterar tipo de retorno de {0} para {1}</target>
         <note />
       </trans-unit>
       <trans-unit id="Compare_to_0">
         <source>Compare to '{0}'</source>
-        <target state="new">Compare to '{0}'</target>
+        <target state="translated">Comparar a '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="Convert_typeof_to_nameof">
@@ -39,32 +39,32 @@
       </trans-unit>
       <trans-unit id="Fix_constraint">
         <source>Fix constraint</source>
-        <target state="new">Fix constraint</target>
+        <target state="translated">Corrigir restrição</target>
         <note />
       </trans-unit>
       <trans-unit id="Declare_as_nullable">
         <source>Declare as nullable</source>
-        <target state="new">Declare as nullable</target>
+        <target state="translated">Declarar como anulável</target>
         <note />
       </trans-unit>
       <trans-unit id="Explicitly_inherit_documentation">
         <source>Explicitly inherit documentation</source>
-        <target state="new">Explicitly inherit documentation</target>
+        <target state="translated">Herdar explicitamente a documentação</target>
         <note />
       </trans-unit>
       <trans-unit id="Fix_record_declaration">
         <source>Fix record declaration</source>
-        <target state="new">Fix record declaration</target>
+        <target state="translated">Correção do registro de declaração</target>
         <note />
       </trans-unit>
       <trans-unit id="Fix_return_type">
         <source>Fix return type</source>
-        <target state="new">Fix return type</target>
+        <target state="translated">Corrigir o tipo de retorno</target>
         <note />
       </trans-unit>
       <trans-unit id="Hide_base_member">
         <source>Hide base member</source>
-        <target state="new">Hide base member</target>
+        <target state="translated">Ocultar o membro base</target>
         <note />
       </trans-unit>
       <trans-unit id="Pass_in_captured_variables_as_arguments">
@@ -99,17 +99,17 @@
       </trans-unit>
       <trans-unit id="Replace_return_with_yield_return">
         <source>Replace return with yield return</source>
-        <target state="new">Replace return with yield return</target>
+        <target state="translated">Substituir return por yield return</target>
         <note />
       </trans-unit>
       <trans-unit id="Unseal_class_0">
         <source>Unseal class '{0}'</source>
-        <target state="new">Unseal class '{0}'</target>
+        <target state="translated">Desselar a classe '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_interpolated_verbatim_string">
         <source>Use interpolated verbatim string</source>
-        <target state="new">Use interpolated verbatim string</target>
+        <target state="translated">Usar cadeia de caracteres verbatim interpolada</target>
         <note />
       </trans-unit>
       <trans-unit id="Warning_colon_Adding_parameters_to_local_function_declaration_may_produce_invalid_code">

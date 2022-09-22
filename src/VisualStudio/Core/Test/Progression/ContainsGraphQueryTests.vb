@@ -239,8 +239,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
             End Using
         End Function
 
-        <WpfFact>
-        <WorkItem(543892, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543892")>
+        <WpfFact, WorkItem(543892, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543892")>
         Public Async Function NestedTypesContainedInClass() As Task
             Using testState = ProgressionTestState.Create(
                     <Workspace>

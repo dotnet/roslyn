@@ -232,7 +232,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public static bool IsVerbatimStringLiteral(this SyntaxToken token)
         {
-            return token.Kind() is (SyntaxKind.StringLiteralToken or SyntaxKind.UTF8StringLiteralToken) && token.Text.Length > 0 && token.Text[0] == '@';
+            return token.Kind() is (SyntaxKind.StringLiteralToken or SyntaxKind.Utf8StringLiteralToken) && token.Text.Length > 0 && token.Text[0] == '@';
         }
 
         public static bool IsVerbatimIdentifier(this SyntaxToken token)

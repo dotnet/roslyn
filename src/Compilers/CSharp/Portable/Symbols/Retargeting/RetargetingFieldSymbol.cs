@@ -70,6 +70,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
             }
         }
 
+        public override RefKind RefKind => _underlyingField.RefKind;
+
+        public override ImmutableArray<CustomModifier> RefCustomModifiers =>
+            this.RetargetingTranslator.RetargetModifiers(_underlyingField.RefCustomModifiers, out _);
+
         public override ImmutableArray<CSharpAttributeData> GetAttributes()
         {
             return this.RetargetingTranslator.GetRetargetedAttributes(_underlyingField.GetAttributes(), ref _lazyCustomAttributes);

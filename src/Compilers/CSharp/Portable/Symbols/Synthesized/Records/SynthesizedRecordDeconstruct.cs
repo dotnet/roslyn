@@ -46,6 +46,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                                 param.TypeWithAnnotations,
                                                 param.Ordinal,
                                                 RefKind.Out,
+                                                DeclarationScope.Unscoped,
                                                 param.Name,
                                                 locations),
                                         arg: Locations),

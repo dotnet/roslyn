@@ -47,6 +47,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return mangleName;
             }
         }
+
+        internal override FileIdentifier? AssociatedFileIdentifier => null;
+
         /// <summary>
         /// Get the arity of the missing type.
         /// </summary>

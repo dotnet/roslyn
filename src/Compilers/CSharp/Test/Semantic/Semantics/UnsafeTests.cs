@@ -5788,7 +5788,12 @@ unsafe class C
                 else
                 {
                     Assert.NotNull(summary.Symbol);
-                    Assert.Equal(MethodKind.BuiltinOperator, ((IMethodSymbol)summary.Symbol).MethodKind);
+                    var summaryMethod = (IMethodSymbol)summary.Symbol;
+                    Assert.Equal(MethodKind.BuiltinOperator, summaryMethod.MethodKind);
+
+                    var synthesizedMethod = compilation.CreateBuiltinOperator(
+                        summaryMethod.Name, summaryMethod.ReturnType, summaryMethod.Parameters[0].Type, summaryMethod.Parameters[1].Type);
+                    Assert.Equal(synthesizedMethod, summaryMethod);
                 }
 
                 Assert.Equal(0, summary.CandidateSymbols.Length);
@@ -6245,7 +6250,12 @@ unsafe class C
                 else
                 {
                     Assert.NotNull(summary.Symbol);
-                    Assert.Equal(MethodKind.BuiltinOperator, ((IMethodSymbol)summary.Symbol).MethodKind);
+                    var summaryMethod = (IMethodSymbol)summary.Symbol;
+                    Assert.Equal(MethodKind.BuiltinOperator, summaryMethod.MethodKind);
+
+                    var synthesizedMethod = compilation.CreateBuiltinOperator(
+                        summaryMethod.Name, summaryMethod.ReturnType, summaryMethod.Parameters[0].Type, summaryMethod.Parameters[1].Type);
+                    Assert.Equal(synthesizedMethod, summaryMethod);
                 }
 
                 Assert.Equal(0, summary.CandidateSymbols.Length);
