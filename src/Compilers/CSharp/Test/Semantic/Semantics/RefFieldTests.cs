@@ -9918,6 +9918,36 @@ class Program
         }
 
         [Fact]
+        public void ScopedRefAndRefStructOnly_06_For()
+        {
+            var source =
+@"#pragma warning disable CS0219 // The variable is assigned but its value is never used
+struct S<T> { }
+class Program
+{
+    static void Main()
+    {
+        for (scoped var y1 = new S<int>();;) break;
+        var y2 = new S<int>();
+        for (scoped ref var y3 = ref y2;;) break;
+        for (scoped S<int> y4 = new S<int>(), y5 = new S<int>();;) break;
+    }
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (7,21): error CS9048: The 'scoped' modifier can be used for refs and ref struct values only.
+                //         for (scoped var y1 = new S<int>();;) break; // 2
+                Diagnostic(ErrorCode.ERR_ScopedRefAndRefStructOnly, "var").WithLocation(7, 21),
+                // (10,21): error CS9048: The 'scoped' modifier can be used for refs and ref struct values only.
+                //         for (scoped S<int> y4 = new S<int>(), y5 = new S<int>();;) break;
+                Diagnostic(ErrorCode.ERR_ScopedRefAndRefStructOnly, "S<int>").WithLocation(10, 21),
+                // (10,21): error CS9048: The 'scoped' modifier can be used for refs and ref struct values only.
+                //         for (scoped S<int> y4 = new S<int>(), y5 = new S<int>();;) break;
+                Diagnostic(ErrorCode.ERR_ScopedRefAndRefStructOnly, "S<int>").WithLocation(10, 21)
+                );
+        }
+
+        [Fact]
         public void LocalScopeAndInitializer_01()
         {
             var source =
@@ -11891,6 +11921,9 @@ class Program
         scoped ref var x3 = ref x1; // 1
         scoped var y1 = new S<int>(); // 2
         scoped ref var y3 = ref y1;
+        scoped S<int> y4 = new S<int>(), y5 = new S<int>(); // 3
+        y4 = y5;
+        y5 = y4;
     }
 }";
             var comp = CreateCompilation(source);
@@ -11900,7 +11933,14 @@ class Program
                 Diagnostic(ErrorCode.ERR_EscapeVariable, "x1").WithArguments("x1").WithLocation(8, 33),
                 // (9,16): error CS9048: The 'scoped' modifier can be used for refs and ref struct values only.
                 //         scoped var y1 = new S<int>(); // 2
-                Diagnostic(ErrorCode.ERR_ScopedRefAndRefStructOnly, "var").WithLocation(9, 16));
+                Diagnostic(ErrorCode.ERR_ScopedRefAndRefStructOnly, "var").WithLocation(9, 16),
+                // (11,16): error CS9048: The 'scoped' modifier can be used for refs and ref struct values only.
+                //         scoped S<int> y4 = new S<int>(), y5 = new S<int>(); // 3
+                Diagnostic(ErrorCode.ERR_ScopedRefAndRefStructOnly, "S<int>").WithLocation(11, 16),
+                // (11,16): error CS9048: The 'scoped' modifier can be used for refs and ref struct values only.
+                //         scoped S<int> y4 = new S<int>(), y5 = new S<int>(); // 3
+                Diagnostic(ErrorCode.ERR_ScopedRefAndRefStructOnly, "S<int>").WithLocation(11, 16)
+                );
         }
 
         [Fact]
