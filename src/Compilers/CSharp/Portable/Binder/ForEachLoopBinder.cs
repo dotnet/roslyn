@@ -300,6 +300,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                         local.SetTypeWithAnnotations(declType);
                         local.SetValEscape(collectionEscape);
 
+                        if (local.Scope == DeclarationScope.ValueScoped && !declType.Type.IsErrorTypeOrRefLikeType())
+                        {
+                            diagnostics.Add(ErrorCode.ERR_ScopedRefAndRefStructOnly, typeSyntax.Location);
+                        }
+
                         if (local.RefKind != RefKind.None)
                         {
                             // The ref-escape of a ref-returning property is decided

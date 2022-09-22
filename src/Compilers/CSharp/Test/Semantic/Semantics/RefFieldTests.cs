@@ -9997,6 +9997,51 @@ class Enumerator1
                 );
         }
 
+        [Fact]
+        public void ScopedRefAndRefStructOnly_06_Foreach()
+        {
+            var source =
+@"
+struct S<T> { }
+class Program
+{
+    static void Main()
+    {
+        foreach (scoped var y1 in new Enumerable1<int>()) break;
+        foreach (scoped ref var y3 in new Enumerable2<int>()) break;
+    }
+}
+
+class Enumerable1<T>
+{
+    public Enumerator1<T> GetEnumerator() => default;
+}
+
+class Enumerator1<T>
+{
+    public S<T> Current => default;
+    public bool MoveNext() => false;
+}
+
+class Enumerable2<T>
+{
+    public Enumerator2<T> GetEnumerator() => default;
+}
+
+class Enumerator2<T>
+{
+    public ref S<T> Current => throw null;
+    public bool MoveNext() => false;
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (7,25): error CS9048: The 'scoped' modifier can be used for refs and ref struct values only.
+                //         foreach (scoped var y1 in new Enumerable1<int>()) break;
+                Diagnostic(ErrorCode.ERR_ScopedRefAndRefStructOnly, "var").WithLocation(7, 25)
+                );
+        }
+
         private static void VerifyLocalSymbol(LocalSymbol local, string expectedDisplayString, RefKind expectedRefKind, DeclarationScope expectedScope)
         {
             Assert.Equal(expectedRefKind, local.RefKind);
