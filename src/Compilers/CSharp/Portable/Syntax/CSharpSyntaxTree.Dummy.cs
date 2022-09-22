@@ -92,10 +92,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             public override SyntaxTree WithRootAndOptions(SyntaxNode root, ParseOptions options)
-                => Create((CSharpSyntaxNode)root, (CSharpParseOptions)options, FilePath, Encoding);
+                => Create((CSharpSyntaxNode)root, (CSharpParseOptions)options, FilePath, Encoding, ChecksumAlgorithm);
 
             public override SyntaxTree WithFilePath(string path)
-                => Create(_node, Options, path, Encoding);
+                => Create(_node, Options, path, Encoding, ChecksumAlgorithm);
         }
     }
 }

@@ -1545,7 +1545,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         public static SyntaxTree SyntaxTree(SyntaxNode root, ParseOptions? options = null, string path = "", Encoding? encoding = null)
         {
+#pragma warning disable RS0030 // Do not used banned APIs
             return CSharpSyntaxTree.Create((CSharpSyntaxNode)root, (CSharpParseOptions?)options, path, encoding);
+#pragma warning restore
         }
 
 #pragma warning disable RS0026 // Do not add multiple public overloads with optional parameters
@@ -1561,7 +1563,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             return CSharpSyntaxTree.ParseText(text, (CSharpParseOptions?)options, path, encoding, cancellationToken);
         }
-#pragma warning restore RS0030 // Do not used banned APIs
+#pragma warning restore
 
         /// <inheritdoc cref="CSharpSyntaxTree.ParseText(SourceText, CSharpParseOptions?, string, CancellationToken)"/>
         public static SyntaxTree ParseSyntaxTree(

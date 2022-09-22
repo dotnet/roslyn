@@ -172,8 +172,6 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
                 }
             }
 
-            Debug.Assert(!sourceDocuments.IsEmpty);
-            var checksumAlgorithm = sourceDocuments[0].ChecksumAlgorithm;
 
             Encoding? defaultEncoding = null;
             if (pdbCompilationOptions.TryGetValue(Cci.CompilationOptionNames.DefaultEncoding, out var encodingString))
@@ -187,8 +185,12 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
 
             if (!_assemblyToProjectMap.TryGetValue(assemblyName, out var projectId))
             {
+                // Use the first document's checksum algorithm as a default, project-level value.
+                // The compiler doesn't persist the actual value of /checksumalgorithm in the PDB.
+                var projectChecksumAlgorithm = sourceDocuments[0].ChecksumAlgorithm;
+
                 // Get the project info now, so we can dispose the documentDebugInfoReader sooner
-                var projectInfo = CreateProjectInfo(metadataWorkspace, sourceProject, pdbCompilationOptions, assemblyName, assemblyVersion, checksumAlgorithm);
+                var projectInfo = CreateProjectInfo(metadataWorkspace, sourceProject, pdbCompilationOptions, assemblyName, assemblyVersion, projectChecksumAlgorithm);
 
                 if (projectInfo is null)
                     return null;

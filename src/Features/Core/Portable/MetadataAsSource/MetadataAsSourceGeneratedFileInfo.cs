@@ -46,7 +46,6 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
             this.TemporaryFilePath = Path.Combine(rootPath, directoryName, topLevelNamedType.Name + extension);
         }
 
-        // TODO:
         public static Encoding Encoding => Encoding.UTF8;
         public static SourceHashAlgorithm ChecksumAlgorithm => SourceHashAlgorithms.Default;
 

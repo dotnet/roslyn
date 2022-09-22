@@ -122,6 +122,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             using var stream = new MemoryStream(bytes);
             var text = textFactoryService.CreateText(stream, defaultEncoding, SourceHashAlgorithms.Default, CancellationToken.None);
             Assert.Equal(expectedEncoding, text.Encoding);
+            Assert.Equal(SourceHashAlgorithms.Default, text.ChecksumAlgorithm);
         }
     }
 }
