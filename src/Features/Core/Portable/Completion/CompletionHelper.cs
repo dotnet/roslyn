@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.Completion
             CultureInfo culture)
         {
             var match = GetMatch(item.FilterText, pattern, includeMatchSpans, culture);
-            string matchedAdditionalFilterText = null;
+            string? matchedAdditionalFilterText = null;
 
             if (item.HasAdditionalFilterTexts)
             {
