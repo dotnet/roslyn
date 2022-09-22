@@ -320,26 +320,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal static bool IsRefScopedByDefault(ParameterSymbol parameter)
         {
-            return IsRefScopedByDefault(parameter.UseUpdatedEscapeRules, parameter.RefKind, parameter.TypeWithAnnotations);
+            return IsRefScopedByDefault(parameter.UseUpdatedEscapeRules, parameter.RefKind);
         }
 
-        internal static bool IsRefScopedByDefault(bool useUpdatedEscapeRules, RefKind refKind, TypeWithAnnotations parameterType)
+        internal static bool IsRefScopedByDefault(bool useUpdatedEscapeRules, RefKind refKind)
         {
-            if (!useUpdatedEscapeRules)
-            {
-                return false;
-            }
-
-            switch (refKind)
-            {
-                case RefKind.Out:
-                    return true;
-                case RefKind.Ref:
-                case RefKind.In:
-                    return parameterType.IsRefLikeType();
-                default:
-                    return false;
-            }
+            return useUpdatedEscapeRules && refKind == RefKind.Out;
         }
 
         internal static void EnsureScopedRefAttributeExists(PEModuleBuilder moduleBuilder, ImmutableArray<ParameterSymbol> parameters)

@@ -14,7 +14,7 @@ using Microsoft.CodeAnalysis.Text;
 namespace Microsoft.CodeAnalysis.Host
 {
     [ExportWorkspaceService(typeof(ITextFactoryService), ServiceLayer.Default), Shared]
-    internal class TextFactoryService : ITextFactoryService
+    internal sealed class TextFactoryService : ITextFactoryService
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -22,13 +22,13 @@ namespace Microsoft.CodeAnalysis.Host
         {
         }
 
-        public SourceText CreateText(Stream stream, Encoding? defaultEncoding, CancellationToken cancellationToken = default)
+        public SourceText CreateText(Stream stream, Encoding? defaultEncoding, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
             return EncodedStringText.Create(stream, defaultEncoding);
         }
 
-        public SourceText CreateText(TextReader reader, Encoding? encoding, CancellationToken cancellationToken = default)
+        public SourceText CreateText(TextReader reader, Encoding? encoding, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
 

@@ -317,7 +317,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                         isBad = true;
                     }
                 }
-                else if (ParameterHelpers.IsRefScopedByDefault(_moduleSymbol.UseUpdatedEscapeRules, refKind, typeWithAnnotations))
+                else if (ParameterHelpers.IsRefScopedByDefault(_moduleSymbol.UseUpdatedEscapeRules, refKind))
                 {
                     scope = DeclarationScope.RefScoped;
                 }

@@ -372,6 +372,7 @@ namespace Microsoft.CodeAnalysis
         }
 
         #region Host API
+
         /// <summary>
         /// Call this method to respond to a solution being opened in the host environment.
         /// </summary>
