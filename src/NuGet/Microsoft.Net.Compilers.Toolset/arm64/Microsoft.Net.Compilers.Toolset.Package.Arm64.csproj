@@ -8,23 +8,30 @@
     <NuspecPackageId>Microsoft.Net.Compilers.Toolset.Arm64</NuspecPackageId>
     <IncludeBuildOutput>false</IncludeBuildOutput>
     <DevelopmentDependency>true</DevelopmentDependency>
+
+        <!-- <Metalama> -->
+    <NuspecPackageId>Metalama.Compiler</NuspecPackageId>
+ 
     <PackageDescription>
-      .NET Compilers Toolset Package.
-      Referencing this package will cause the project to be built using the C# and Visual Basic compilers contained in the package, as opposed to the version installed with MSBuild.
-
-      This package is primarily intended as a method for rapidly shipping hotfixes to customers. Using it as a long term solution for providing newer compilers on older MSBuild installations is explicitly not supported. That can and will break on a regular basis.
-
-      The supported mechanism for providing new compilers in a build enviroment is updating to the newer .NET SDK or Visual Studio Build Tools SKU.
-
-      This package requires either MSBuild 16.3 and .NET Desktop 4.7.2+ or .NET Core 2.1+
-
-      $(RoslynPackageDescriptionDetails)
+      Metalama compiler package.
+      Referencing this package will cause the project to be built using the Metalama compiler contained in the package, as opposed to the version of the C# compiler installed with MSBuild.
+      This package is not meant to be used directly and only serves as a dependency for Metalama.Framework and Metalama.Framework.Sdk.
     </PackageDescription>
+   
+    <PackageIcon>metalama.png</PackageIcon>
+    <PackageIconFullPath>$(AssetsDirectory)\metalama.png</PackageIconFullPath>
+    <!-- </Metalama> -->
+    
     <TargetsForTfmSpecificContentInPackage>$(TargetsForTfmSpecificContentInPackage);_GetFilesToPackage</TargetsForTfmSpecificContentInPackage>
     <!-- Remove NU5128 once https://github.com/NuGet/Home/issues/8583 is fixed -->
     <NoWarn>$(NoWarn);NU5100;NU5128</NoWarn>
 
     <_DependsOn>InitializeDesktopCompilerArtifacts</_DependsOn>
+
+    <!-- <Metalama> -->
+    <_DependsOn>$(_DependsOn);InitializeMetalamaCompilerBinArtifacts</_DependsOn>
+    <!-- </Metalama> -->
+
   </PropertyGroup>
 
   <ItemGroup>
@@ -40,6 +47,10 @@
                       SkipGetTargetFrameworkProperties="true"
                       Condition="'$(TargetFramework)' == 'net6.0'"
                       SetTargetFramework="TargetFramework=net6.0" />
+
+    <!-- <Metalama> -->
+    <None Include="$(ArtifactsBinDir)Metalama.Compiler.Sdk\$(Configuration)\netstandard2.0\Metalama.Compiler.Interface.dll" Visible="false" Pack="true" PackagePath="analyzers/dotnet/cs" />
+    <!-- </Metalama> -->
   </ItemGroup>
 
   <Target Name="_GetFilesToPackage" DependsOnTargets="$(_DependsOn)">
@@ -51,8 +62,21 @@
       <_File Include="$(MSBuildProjectDirectory)\buildMultiTargeting\**\*.*" Condition="'$(TargetFramework)' == 'net472'" TargetDir="buildMultiTargeting" />
      
       <TfmSpecificPackageFile Include="@(_File)" PackagePath="%(_File.TargetDir)/%(_File.RecursiveDir)%(_File.FileName)%(_File.Extension)" />
+
+      <!-- <Metalama> -->
+      <_File Include="$(MSBuildProjectDirectory)\buildTransitive\**\*.*" Condition="'$(TargetFramework)' == 'net472'" TargetDir="buildTransitive" />
+      <_File Include="$(MSBuildProjectDirectory)\buildMultiTargeting\**\*.*" Condition="'$(TargetFramework)' == 'net472'" TargetDir="buildMultiTargeting" />
+      <_File Include="@(CommonMetalamaCompilerBinArtifact)" TargetDir="tasks/net472" Condition="'$(TargetFramework)' == 'net472'" />
+      <_File Include="@(DesktopMetalamaCompilerBinArtifact)" TargetDir="tasks/net472" Condition="'$(TargetFramework)' == 'net472'" />
+      <!-- </Metalama> -->
+
     </ItemGroup>
   </Target>
 
   <Import Project="..\DesktopCompilerArtifacts.targets" />
+
+    <!-- <Metalama> -->
+  <Import Project="..\MetalamaCompilerArtifacts.targets" />
+  <!-- </Metalama> -->
+
 </Project>

@@ -10,19 +10,17 @@
     <TargetFrameworks>net6.0;net472</TargetFrameworks>
 
     <IsPackable>true</IsPackable>
-    <!-- <Metalama> -->
-    <NuspecPackageId>Metalama.Compiler</NuspecPackageId>
-    <!-- </Metalama> -->
     <IncludeBuildOutput>false</IncludeBuildOutput>
     <DevelopmentDependency>true</DevelopmentDependency>
     <!-- <Metalama> -->
+    <NuspecPackageId>Metalama.Compiler</NuspecPackageId>
+ 
     <PackageDescription>
       Metalama compiler package.
       Referencing this package will cause the project to be built using the Metalama compiler contained in the package, as opposed to the version of the C# compiler installed with MSBuild.
       This package is not meant to be used directly and only serves as a dependency for Metalama.Framework and Metalama.Framework.Sdk.
     </PackageDescription>
-
-    
+   
     <PackageIcon>metalama.png</PackageIcon>
     <PackageIconFullPath>$(AssetsDirectory)\metalama.png</PackageIconFullPath>
     <!-- </Metalama> -->
@@ -79,10 +77,10 @@
     </ItemGroup>
   </Target>
 
-  <Import Project="DesktopCompilerArtifacts.targets" Condition="'$(TargetFramework)' == 'net472'" />
-  <Import Project="CoreClrCompilerArtifacts.targets" Condition="'$(TargetFramework)' == 'net6.0'" />
+  <Import Project="..\DesktopCompilerArtifacts.targets" Condition="'$(TargetFramework)' == 'net472'" />
+  <Import Project="..\CoreClrCompilerArtifacts.targets" Condition="'$(TargetFramework)' == 'net6.0'" />
   
   <!-- <Metalama> -->
-  <Import Project="MetalamaCompilerArtifacts.targets" />
+  <Import Project="..\MetalamaCompilerArtifacts.targets" />
   <!-- </Metalama> -->
 </Project>
