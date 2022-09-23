@@ -31,8 +31,8 @@
       "group": "build"
   },
   {
-    "label": "test metalama",
-    "command": "./Build.ps1",
+    "label": "run tests",
+    "command": "dotnet",
     "type": "shell",
     "args": [
       "test"

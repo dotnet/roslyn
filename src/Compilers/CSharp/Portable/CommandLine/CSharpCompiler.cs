@@ -559,8 +559,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // Execute the transformers.
             var outputCompilation = annotatedInputCompilation;
-            
-            
+
+
             foreach (var transformer in transformers)
             {
                 try

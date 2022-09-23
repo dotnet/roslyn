@@ -319,6 +319,10 @@ namespace Metalama.Compiler
             throw new NotImplementedException();
         }
 
+#if DEBUG
+        internal override bool ShouldAssertExpectedMessageArgumentsLength(int errorCode) => true;
+#endif
+
         #endregion
     }
 }

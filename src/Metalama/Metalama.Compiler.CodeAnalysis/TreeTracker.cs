@@ -28,21 +28,21 @@ namespace Metalama.Compiler
         // this is used for nodes that changed from the pre-transformation tree
         private const string ExcludeDescendantsData = "ExcludeDescendants";
 
-        private static SyntaxAnnotation CreateAnnotation(SyntaxNode? node, bool includeChildren )
+        private static SyntaxAnnotation CreateAnnotationForNode(SyntaxNode? node, bool includeChildren)
         {
             var annotation = new SyntaxAnnotation(MetalamaCompilerAnnotations.OriginalLocationAnnotationKind,
                 includeChildren ? IncludeDescendantsData : ExcludeDescendantsData);
 
-            annotations.Add(annotation, new AnnotationData(node ));
+            annotations.Add(annotation, new AnnotationData(node));
 
             return annotation;
         }
 
-        private static SyntaxAnnotation CreateAnnotation(SyntaxToken token)
+        private static SyntaxAnnotation CreateAnnotationForToken(SyntaxToken token)
         {
             var annotation = new SyntaxAnnotation(MetalamaCompilerAnnotations.OriginalLocationAnnotationKind, null);
 
-            annotations.Add(annotation, new AnnotationData(token ));
+            annotations.Add(annotation, new AnnotationData(token));
 
             return annotation;
         }
@@ -68,7 +68,7 @@ namespace Metalama.Compiler
             }
 
             var newAnnotation = new SyntaxAnnotation(MetalamaCompilerAnnotations.OriginalLocationAnnotationKind, ExcludeDescendantsData);
-            annotations.Add(newAnnotation, new AnnotationData(oldAnnotationData.NodeOrToken ));
+            annotations.Add(newAnnotation, new AnnotationData(oldAnnotationData.NodeOrToken));
 
             return newAnnotation;
         }
@@ -83,7 +83,7 @@ namespace Metalama.Compiler
             // copied from SyntaxNode.WithAdditionalAnnotationsInternal to avoid infinite recursion
             return (TNode)node.Green.WithAdditionalAnnotationsGreen(new[]
             {
-                CreateAnnotation(preTransformationNode, preTransformationNode != null)
+                CreateAnnotationForNode(preTransformationNode, preTransformationNode != null)
             }).CreateRed();
         }
 
@@ -100,7 +100,7 @@ namespace Metalama.Compiler
                     null,
                     token.Node.WithAdditionalAnnotationsGreen(new[]
                     {
-                        CreateAnnotation(preTransformationToken)
+                        CreateAnnotationForToken(preTransformationToken)
                     }),
                     0,
                     0);
@@ -115,7 +115,7 @@ namespace Metalama.Compiler
             {
                 // no annotation found, but is needed, create a new one
                 Array.Resize(ref annotations, annotations.Length + 1);
-                annotations[^1] = CreateAnnotation(preTransformationNode, false);
+                annotations[^1] = CreateAnnotationForNode(preTransformationNode, false);
             }
             else
             {
@@ -135,7 +135,7 @@ namespace Metalama.Compiler
                     TreeTracker.annotations.TryGetValue(oldAnnotation, out var oldNode);
                     Debug.Assert(oldNode != null);
                     annotations = annotations.ToArray();
-                    annotations[index] = CreateAnnotation(oldNode.NodeOrToken.AsNode(),
+                    annotations[index] = CreateAnnotationForNode(oldNode.NodeOrToken.AsNode(),
                         false);
                 }
             }
@@ -163,7 +163,7 @@ namespace Metalama.Compiler
         private static (SyntaxNodeOrToken? ancestor, SyntaxAnnotation? annotation) FindAncestorWithAnnotation(
             SyntaxToken token)
         {
-            if ( token.TryGetAnnotationFast(MetalamaCompilerAnnotations.OriginalLocationAnnotationKind, out var annotation ) )
+            if (token.TryGetAnnotationFast(MetalamaCompilerAnnotations.OriginalLocationAnnotationKind, out var annotation))
             {
                 return (token, annotation);
             }
@@ -212,7 +212,7 @@ namespace Metalama.Compiler
                 while (possibleZeroWidthToken.FullSpan.IsEmpty)
                 {
                     var possibleZeroWidthNode = possibleZeroWidthToken.Parent;
-                    if (possibleZeroWidthNode?.FullSpan == span && possibleZeroWidthNode.RawKind == kind )
+                    if (possibleZeroWidthNode?.FullSpan == span && possibleZeroWidthNode.RawKind == kind)
                     {
                         return possibleZeroWidthNode;
                     }
@@ -232,13 +232,13 @@ namespace Metalama.Compiler
         }
 
         [return: NotNull]
-        private static bool TryFindSourceNode([DisallowNull] SyntaxNode node, SyntaxNode ancestor, SyntaxAnnotation annotation, [NotNullWhen(true)] out SyntaxNode? sourceNode ) 
+        private static bool TryFindSourceNode([DisallowNull] SyntaxNode node, SyntaxNode ancestor, SyntaxAnnotation annotation, [NotNullWhen(true)] out SyntaxNode? sourceNode)
         {
             annotations.TryGetValue(annotation, out var annotationData);
             Debug.Assert(annotationData != null);
 
             var sourceAncestor = annotationData.NodeOrToken.AsNode()!;
-            
+
             if (node == ancestor)
             {
                 // If the annotation was found on the node itself, then the source node is directly known.
@@ -254,7 +254,7 @@ namespace Metalama.Compiler
             {
                 var originalPosition = node.Position - ancestor.Position + sourceAncestor.Position;
                 var nodeOriginalSpan = new TextSpan(originalPosition, node.FullWidth);
-                
+
                 sourceNode =
                     sourceAncestor!
                         .FindNodeByPosition(node.RawKind, nodeOriginalSpan, node.IsPartOfStructuredTrivia());
@@ -263,7 +263,7 @@ namespace Metalama.Compiler
             }
         }
 
-        private static bool TryFindSourceToken(SyntaxToken token, SyntaxNode parent, SyntaxAnnotation annotation, out SyntaxToken foundToken )
+        private static bool TryFindSourceToken(SyntaxToken token, SyntaxNode parent, SyntaxAnnotation annotation, out SyntaxToken foundToken)
         {
             annotations.TryGetValue(annotation, out var annotationData);
             Debug.Assert(annotationData != null);
@@ -385,14 +385,14 @@ namespace Metalama.Compiler
             // compute original node of the current node from the original node of the annotated ancestor
             if (TryFindSourceNode(node, ancestor, annotation, out sourceNode))
             {
-                return true;    
+                return true;
             }
             else
             {
                 // There is no source code for this node
                 return false;
             }
-            
+
         }
 
         public static bool NeedsTrackingAnnotation(SyntaxToken token, [NotNullWhen(true)] out SyntaxToken? preTransformationToken)
@@ -425,11 +425,11 @@ namespace Metalama.Compiler
 
             // compute original node of the current node from the original node of the annotated ancestor
             if (!TryFindSourceToken(token, ancestor.Value.AsNode()!, annotation,
-                    out var foundToken ))
+                    out var foundToken))
             {
                 return false;
             }
-            
+
             preTransformationToken = foundToken;
             return true;
         }
@@ -489,8 +489,16 @@ namespace Metalama.Compiler
 
             Debug.Assert(ancestor != null);
 
+            return GetSourceSyntaxNode(node, ancestor, annotation);
+
+
+        }
+
+        private static SyntaxNode? GetSourceSyntaxNode(SyntaxNode node, SyntaxNode ancestorWithAnnotation, SyntaxAnnotation annotation)
+        {
+
             // current node is annotated, so return its stored original node directly
-            if (ancestor == node)
+            if (ancestorWithAnnotation == node)
             {
                 annotations.TryGetValue(annotation, out var preTransformationNode);
                 return preTransformationNode?.NodeOrToken.AsNode();
@@ -503,7 +511,7 @@ namespace Metalama.Compiler
             }
 
             // compute original node of the current node from the original node of the annotated ancestor
-            if (TryFindSourceNode(node, ancestor, annotation, out var sourceNode))
+            if (TryFindSourceNode(node, ancestorWithAnnotation, annotation, out var sourceNode))
             {
                 return sourceNode;
             }
@@ -538,26 +546,26 @@ namespace Metalama.Compiler
             GetPreTransformationLocationInfo(location).Location ?? Location.Create(location.SourceTree!, default);
 
         public static Location GetSourceLocation(this SyntaxNode node) =>
-            node.GetLocation().GetSourceLocation();
+            node.Location.GetSourceLocation();
 
         public static bool IsTransformedSyntaxNode(this SyntaxNode node)
             => GetSourceSyntaxNode(node) == null;
 
         public static TextSpan GetSourceSpan(this SyntaxNode node, bool throwOnTransforcedCode = true)
-            => GetSourceSyntaxNode( node)?.Span ?? (throwOnTransforcedCode ? throw new InvalidOperationException() : default);
+            => GetSourceSyntaxNode(node)?.Span ?? (throwOnTransforcedCode ? throw new InvalidOperationException() : default);
 
         public static TextSpan GetSourceSpan(this SyntaxToken token, bool throwOnTransforcedCode = true)
          => GetSourceSyntaxToken(token)?.Span ?? (throwOnTransforcedCode ? throw new InvalidOperationException() : default);
 
         public static TextSpan GetSourceSpan(this SyntaxTokenList list, bool throwOnTransforcedCode = true)
         {
-            if ( list.Count == 0 )
+            if (list.Count == 0)
             {
                 return default;
             }
 
             var firstSpan = list[0].GetSourceSpan(throwOnTransforcedCode);
-            if ( list.Count == 1 )
+            if (list.Count == 1)
             {
                 return firstSpan;
             }
@@ -566,10 +574,10 @@ namespace Metalama.Compiler
                 var lastSpan = list[list.Count - 1].GetSourceSpan(throwOnTransforcedCode);
                 return TextSpan.FromBounds(firstSpan.Start, lastSpan.End);
             }
-            
+
         }
 
-        
+
         public static SyntaxTree GetSourceSyntaxTree(this SyntaxNode node, bool throwOnTransforcedCode = true)
         {
             var sourceRoot = GetSourceSyntaxNode(node.SyntaxTree.GetRoot());
@@ -592,7 +600,6 @@ namespace Metalama.Compiler
 
         }
 
-
         private static (Location? Location, SyntaxNode? SyntaxNode) GetPreTransformationLocationInfo(Location location)
         {
             var tree = location.SourceTree;
@@ -607,14 +614,51 @@ namespace Metalama.Compiler
                 return (location, null);
             }
 
-            // from the given location, try to find the corresponding node, token or token pair and then proceed as usual
+            // From the given location, try to find the corresponding node, token or token pair and then proceed as usual
             var foundNode = tree.GetRoot()
                 .FindNode(location.SourceSpan, true, true);
             if (foundNode.Span == location.SourceSpan)
             {
-                var preTransformationNode = GetSourceSyntaxNode(foundNode);
+                // The location corresponds to a node in the transformed tree. Find the corresponding tree in the source tree.
 
-                return (preTransformationNode?.GetLocation(), preTransformationNode);
+                var (ancestor, annotation) = FindAncestorWithAnnotation(foundNode);
+
+                // We must find some annotation since we know there is one on the syntax root.
+                Debug.Assert(annotation != null);
+                Debug.Assert(ancestor != null);
+
+                var sourceNode = GetSourceSyntaxNode(foundNode, ancestor, annotation);
+
+                if (sourceNode != null)
+                {
+                    return (sourceNode?.Location, sourceNode);
+                }
+                else
+                {
+                    // The location does not correspond to a node in the transformed tree.
+                    // This can happen with XML documentation (cref) nodes: in the source tree, it is represented as a trivia,
+                    // but it is parsed into a new syntax tree, and the diagnostic is reported on the parsed node.
+                    // The transformed node then maps to a span of a trivia in the source tree.
+
+                    var sourceAncestor = GetSourceSyntaxNode(ancestor, ancestor, annotation);
+
+                    if (sourceAncestor != null)
+                    {
+
+                        var sourcePosition = sourceAncestor.FullSpan.Start + (foundNode.SpanStart - ancestor.FullSpan.Start);
+                        var sourceTrivia = sourceAncestor.FindTrivia(sourcePosition);
+
+                        if (sourceTrivia.Position > 0)
+                        {
+                            // The source node indeeds maps to inside the trivia.
+                            var newTextSpan = new TextSpan(sourcePosition, location.SourceSpan.Length);
+                            return (Location.Create(sourceAncestor.SyntaxTree!, newTextSpan), null);
+                        }
+
+                    }
+
+                    return (location, null);
+                }
             }
 
             var startToken = foundNode.FindToken(location.SourceSpan.Start, true);
@@ -689,7 +733,7 @@ namespace Metalama.Compiler
         private class AnnotationData
         {
             public SyntaxNodeOrToken NodeOrToken { get; }
-            
+
             public AnnotationData(SyntaxNodeOrToken nodeOrToken)
             {
                 NodeOrToken = nodeOrToken;
