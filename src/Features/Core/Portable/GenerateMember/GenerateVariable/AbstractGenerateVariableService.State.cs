@@ -12,7 +12,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.FindSymbols;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
@@ -72,6 +72,29 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
                 }
 
                 return state;
+            }
+
+            public Accessibility DetermineMaximalAccessibility()
+            {
+                if (this.TypeToGenerateIn.TypeKind == TypeKind.Interface)
+                    return Accessibility.NotApplicable;
+
+                var accessibility = Accessibility.Public;
+
+                // Ensure that we're not overly exposing a type.
+                var containingTypeAccessibility = this.TypeToGenerateIn.DetermineMinimalAccessibility();
+                var effectiveAccessibility = AccessibilityUtilities.Minimum(
+                    containingTypeAccessibility, accessibility);
+
+                var returnTypeAccessibility = this.TypeMemberType.DetermineMinimalAccessibility();
+
+                if (AccessibilityUtilities.Minimum(effectiveAccessibility, returnTypeAccessibility) !=
+                    effectiveAccessibility)
+                {
+                    return returnTypeAccessibility;
+                }
+
+                return accessibility;
             }
 
             private async Task<bool> TryInitializeAsync(
@@ -323,8 +346,8 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
 
                             if (symbolKind == SymbolKind.Field)
                             {
-                                OfferReadOnlyFieldFirst = FieldIsReadOnly(previousAssignedSymbol) ||
-                                                               FieldIsReadOnly(nextAssignedSymbol);
+                                OfferReadOnlyFieldFirst =
+                                    FieldIsReadOnly(previousAssignedSymbol) || FieldIsReadOnly(nextAssignedSymbol);
                             }
 
                             AfterThisLocation ??= previousAssignedSymbol?.Locations.FirstOrDefault();
@@ -461,7 +484,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
                 // If we're in an lambda/local function we're not actually 'in' the constructor.
                 // i.e. we can't actually write to read-only fields here.
                 var syntaxFacts = semanticDocument.Document.GetRequiredLanguageService<ISyntaxFactsService>();
-                if (simpleName.AncestorsAndSelf().Any(n => syntaxFacts.IsAnonymousOrLocalFunction(n)))
+                if (simpleName.AncestorsAndSelf().Any(syntaxFacts.IsAnonymousOrLocalFunction))
                     return false;
 
                 return syntaxFacts.IsInConstructor(simpleName);

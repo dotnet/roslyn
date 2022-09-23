@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis.Editor.UnitTests;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.MetadataAsSource;
 using Microsoft.CodeAnalysis.PdbSourceDocument;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -130,7 +131,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.PdbSourceDocument
             var service = workspace.GetService<IMetadataAsSourceFileService>();
             try
             {
-                var file = await service.GetGeneratedFileAsync(project, symbol, signaturesOnly: false, allowDecompilation: false, CancellationToken.None).ConfigureAwait(false);
+                // Using default settings here because none of the tests exercise any of the settings
+                var file = await service.GetGeneratedFileAsync(workspace, project, symbol, signaturesOnly: false, MetadataAsSourceOptions.GetDefault(project.Services), CancellationToken.None).ConfigureAwait(false);
 
                 if (expectNullResult)
                 {
@@ -158,6 +160,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.PdbSourceDocument
                 var document = masWorkspace!.CurrentSolution.Projects.First().Documents.First();
 
                 Assert.Equal(document.FilePath, file.FilePath);
+
+                // Mapping the project from the generated document should map back to the original project
+                var provider = workspace.ExportProvider.GetExportedValues<IMetadataAsSourceFileProvider>().OfType<PdbSourceDocumentMetadataAsSourceFileProvider>().Single();
+                var mappedProject = provider.MapDocument(document);
+                Assert.NotNull(mappedProject);
+                Assert.Equal(project.Id, mappedProject!.Id);
 
                 var actual = await document.GetTextAsync();
                 var actualSpan = file!.IdentifierLocation.SourceSpan;
@@ -201,17 +209,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.PdbSourceDocument
                 ? $"PreprocessorSymbols=\"{string.Join(";", preprocessorSymbols)}\""
                 : "";
 
-            // We construct our own composition here because we only want the decompilation metadata as source provider
-            // to be available.
-            var composition = EditorTestCompositions.EditorFeatures
-                .WithExcludedPartTypes(ImmutableHashSet.Create(typeof(IMetadataAsSourceFileProvider)))
-                .AddParts(typeof(PdbSourceDocumentMetadataAsSourceFileProvider), typeof(NullResultMetadataAsSourceFileProvider));
-
             var workspace = TestWorkspace.Create(@$"
 <Workspace>
     <Project Language=""{LanguageNames.CSharp}"" CommonReferences=""true"" ReferencesOnDisk=""true"" {preprocessorSymbolsAttribute}>
     </Project>
-</Workspace>", composition: composition);
+</Workspace>", composition: GetTestComposition());
 
             var project = workspace.CurrentSolution.Projects.First();
 
@@ -228,16 +230,29 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.PdbSourceDocument
             return (project, symbol);
         }
 
+        protected static TestComposition GetTestComposition()
+        {
+            // We construct our own composition here because we only want the decompilation metadata as source provider
+            // to be available.
+
+            return EditorTestCompositions.EditorFeatures
+                .WithExcludedPartTypes(ImmutableHashSet.Create(typeof(IMetadataAsSourceFileProvider)))
+                .AddParts(typeof(PdbSourceDocumentMetadataAsSourceFileProvider), typeof(NullResultMetadataAsSourceFileProvider));
+        }
+
         protected static void CompileTestSource(string path, SourceText source, Project project, Location pdbLocation, Location sourceLocation, bool buildReferenceAssembly, bool windowsPdb, Encoding? fallbackEncoding = null)
         {
             var dllFilePath = GetDllPath(path);
             var sourceCodePath = GetSourceFilePath(path);
             var pdbFilePath = GetPdbPath(path);
+            var assemblyName = "reference";
 
-            var assemblyName = "ReferencedAssembly";
+            CompileTestSource(dllFilePath, sourceCodePath, pdbFilePath, assemblyName, source, project, pdbLocation, sourceLocation, buildReferenceAssembly, windowsPdb, fallbackEncoding);
+        }
 
-            var languageServices = project.Solution.Workspace.Services.GetLanguageServices(LanguageNames.CSharp);
-            var compilationFactory = languageServices.GetRequiredService<ICompilationFactoryService>();
+        protected static void CompileTestSource(string dllFilePath, string sourceCodePath, string? pdbFilePath, string assemblyName, SourceText source, Project project, Location pdbLocation, Location sourceLocation, bool buildReferenceAssembly, bool windowsPdb, Encoding? fallbackEncoding = null)
+        {
+            var compilationFactory = project.Solution.Services.GetRequiredLanguageService<ICompilationFactoryService>(LanguageNames.CSharp);
             var options = compilationFactory.GetDefaultCompilationOptions().WithOutputKind(OutputKind.DynamicallyLinkedLibrary);
             var parseOptions = project.ParseOptions;
 
@@ -247,7 +262,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.PdbSourceDocument
                 .AddReferences(project.MetadataReferences);
 
             IEnumerable<EmbeddedText>? embeddedTexts;
-            if (sourceLocation == Location.OnDisk)
+            if (buildReferenceAssembly)
+            {
+                embeddedTexts = null;
+            }
+            else if (sourceLocation == Location.OnDisk)
             {
                 embeddedTexts = null;
                 File.WriteAllText(sourceCodePath, source.ToString(), source.Encoding);

@@ -6,6 +6,7 @@ using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
+using Microsoft.CodeAnalysis.LanguageService;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.Completion
 {
@@ -21,7 +22,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.Completion
             CancellationToken cancellationToken)
         {
             var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
-            return completionService.ShouldTriggerCompletion(document.Project, document.Project.LanguageServices, text, caretPosition, trigger, options.ToCompletionOptions(), document.Project.Solution.Options, roles);
+            return completionService.ShouldTriggerCompletion(document.Project, document.Project.Services, text, caretPosition, trigger, options.ToCompletionOptions(), document.Project.Solution.Options, roles);
         }
 
         public static Task<CompletionList> GetCompletionsAsync(
@@ -34,6 +35,16 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.Completion
            CancellationToken cancellationToken)
         {
             return completionService.GetCompletionsAsync(document, caretPosition, options.ToCompletionOptions(), document.Project.Solution.Options, trigger, roles, cancellationToken);
+        }
+
+        public static Task<CompletionDescription?> GetDescriptionAsync(
+           this CompletionService completionService,
+           Document document,
+           CompletionItem item,
+           OmniSharpCompletionOptions options,
+           CancellationToken cancellationToken)
+        {
+            return completionService.GetDescriptionAsync(document, item, options.ToCompletionOptions(), SymbolDescriptionOptions.Default, cancellationToken);
         }
 
         public static string? GetProviderName(this CompletionItem completionItem) => completionItem.ProviderName;

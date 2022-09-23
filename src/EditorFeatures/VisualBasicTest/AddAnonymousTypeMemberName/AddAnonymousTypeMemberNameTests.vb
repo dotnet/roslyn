@@ -8,6 +8,7 @@ Imports Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics
 Imports Microsoft.CodeAnalysis.VisualBasic.AddAnonymousTypeMemberName
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.AddAnonymousTypeMemberName
+    <Trait(Traits.Feature, Traits.Features.CodeActionsAddAnonymousTypeMemberName)>
     Public Class AddAnonymousTypeMemberNameTests
         Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest
 
@@ -15,7 +16,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.AddAnonymousTypeMe
             Return (Nothing, New VisualBasicAddAnonymousTypeMemberNameCodeFixProvider())
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAnonymousTypeMemberName)>
+        <Fact>
         Public Async Function Test1() As Task
             Await TestInRegularAndScript1Async(
 "
@@ -32,7 +33,7 @@ class C
 end class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAnonymousTypeMemberName)>
+        <Fact>
         Public Async Function TestExistingName1() As Task
             Await TestInRegularAndScript1Async(
 "
@@ -49,7 +50,7 @@ class C
 end class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAnonymousTypeMemberName)>
+        <Fact>
         Public Async Function TestExistingName2() As Task
             Await TestInRegularAndScript1Async(
 "
@@ -66,7 +67,7 @@ class C
 end class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAnonymousTypeMemberName)>
+        <Fact>
         Public Async Function TestFixAll1() As Task
             Await TestInRegularAndScript1Async(
 "
@@ -78,12 +79,12 @@ end class",
 "
 class C
     sub M()
-        dim v = new with {.P = new with {.V = me.Equals(1), .V1 = me.ToString() + 1}}
+        dim v = new with {.Value = new with {.V = me.Equals(1), .V1 = me.ToString() + 1}}
     end sub
 end class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAnonymousTypeMemberName)>
+        <Fact>
         Public Async Function TestFixAll2() As Task
             Await TestInRegularAndScript1Async(
 "
@@ -99,12 +100,12 @@ class C
 {
     sub M()
     {
-        dim v = new with {.P = new with {.V = me.Equals(1), .V1 = me.ToString() + 1}}
+        dim v = new with {.Value = new with {.V = me.Equals(1), .V1 = me.ToString() + 1}}
     }
 end class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAnonymousTypeMemberName)>
+        <Fact>
         Public Async Function TestFixAll3() As Task
             Await TestInRegularAndScript1Async(
 "
@@ -116,7 +117,7 @@ end class",
 "
 class C
     sub M()
-        dim v = new with {.P = new with {.V = me.Equals(1), .V1 = me.Equals(2)}}
+        dim v = new with {.Value = new with {.V = me.Equals(1), .V1 = me.Equals(2)}}
     end sub
 end class")
         End Function

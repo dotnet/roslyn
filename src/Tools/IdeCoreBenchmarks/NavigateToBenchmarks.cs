@@ -7,6 +7,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Composition;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -18,6 +19,7 @@ using BenchmarkDotNet.Diagnosers;
 using Microsoft.Build.Locator;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.FindSymbols;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.MSBuild;
 using Microsoft.CodeAnalysis.NavigateTo;
@@ -85,18 +87,16 @@ namespace IdeCoreBenchmarks
             if (_workspace == null)
                 throw new ArgumentException("Couldn't create workspace");
 
-            _workspace.TryApplyChanges(_workspace.CurrentSolution.WithOptions(_workspace.Options
-                .WithChangedOption(StorageOptions.Database, StorageDatabase.SQLite)));
-
             Console.WriteLine("Opening roslyn.  Attach to: " + Process.GetCurrentProcess().Id);
 
             var start = DateTime.Now;
+
             var solution = _workspace.OpenSolutionAsync(_solutionPath, progress: null, CancellationToken.None).Result;
             Console.WriteLine("Finished opening roslyn: " + (DateTime.Now - start));
 
             // Force a storage instance to be created.  This makes it simple to go examine it prior to any operations we
             // perform, including seeing how big the initial string table is.
-            var storageService = _workspace.Services.GetPersistentStorageService(_workspace.CurrentSolution.Options);
+            var storageService = _workspace.Services.SolutionServices.GetPersistentStorageService();
             if (storageService == null)
                 throw new ArgumentException("Couldn't get storage service");
 
@@ -113,7 +113,7 @@ namespace IdeCoreBenchmarks
             _workspace = null;
         }
 
-        // [Benchmark]
+        [Benchmark]
         public async Task RunSerialIndexing()
         {
             Console.WriteLine("start profiling now");
@@ -125,14 +125,16 @@ namespace IdeCoreBenchmarks
                 foreach (var document in project.Documents)
                 {
                     // await WalkTree(document);
-                    await SyntaxTreeIndex.PrecalculateAsync(document, default).ConfigureAwait(false);
+                    await SyntaxTreeIndex.GetIndexAsync(document, default).ConfigureAwait(false);
                 }
             }
             Console.WriteLine("Serial: " + (DateTime.Now - start));
             Console.ReadLine();
         }
 
+#pragma warning disable IDE0051 // Remove unused private members
         private static async Task WalkTree(Document document)
+#pragma warning restore IDE0051 // Remove unused private members
         {
             var root = await document.GetSyntaxRootAsync();
             if (root != null)
@@ -144,7 +146,7 @@ namespace IdeCoreBenchmarks
             }
         }
 
-        [Benchmark]
+        // [Benchmark]
         public async Task RunProjectParallelIndexing()
         {
             Console.WriteLine("start profiling now");
@@ -157,7 +159,7 @@ namespace IdeCoreBenchmarks
                     async () =>
                     {
                         // await WalkTree(d);
-                        await TopLevelSyntaxTreeIndex.PrecalculateAsync(d, default);
+                        await TopLevelSyntaxTreeIndex.GetIndexAsync(d, default);
                     })).ToList();
                 await Task.WhenAll(tasks);
             }
@@ -173,7 +175,7 @@ namespace IdeCoreBenchmarks
             Console.WriteLine("Starting indexing");
             var start = DateTime.Now;
             var tasks = _workspace.CurrentSolution.Projects.SelectMany(p => p.Documents).Select(d => Task.Run(
-                () => SyntaxTreeIndex.PrecalculateAsync(d, default))).ToList();
+                () => SyntaxTreeIndex.GetIndexAsync(d, default))).ToList();
             await Task.WhenAll(tasks);
             Console.WriteLine("Solution parallel: " + (DateTime.Now - start));
         }
@@ -197,10 +199,10 @@ namespace IdeCoreBenchmarks
 
         private async Task<int> SearchAsync(Project project, ImmutableArray<Document> priorityDocuments)
         {
-            var service = project.LanguageServices.GetService<INavigateToSearchService>();
+            var service = project.Services.GetService<INavigateToSearchService>();
             var results = new List<INavigateToSearchResult>();
             await service.SearchProjectAsync(
-                project, priorityDocuments, "Syntax", service.KindsProvided,
+                project, priorityDocuments, "Syntax", service.KindsProvided, activeDocument: null,
                 r =>
                 {
                     lock (results)

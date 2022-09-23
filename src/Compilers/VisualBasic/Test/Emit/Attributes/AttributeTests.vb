@@ -4654,5 +4654,28 @@ End Namespace
                 Diagnostic(ERRID.ERR_BadAttributeConstructor1, "Command").WithArguments("a.Class1.CommandAttribute.FxCommand").WithLocation(20, 10),
                 Diagnostic(ERRID.ERR_RequiredConstExpr, "AddressOf UserInfo").WithLocation(20, 18))
         End Sub
+
+        <Fact>
+        Public Sub AttributeWithOptionalNullableParameter_NullIsPassed()
+            Dim code = "
+Imports System
+
+Class MyAttribute
+    Inherits Attribute
+    Public Sub New(Optional x As Integer? = 0)
+    End Sub
+End Class
+
+<My(Nothing)>
+Class C
+End Class
+"
+            CreateCompilation(code).AssertTheseDiagnostics(
+<expected><![CDATA[
+BC30045: Attribute constructor has a parameter of type 'Integer?', which is not an integral, floating-point or Enum type or one of Object, Char, String, Boolean, System.Type or 1-dimensional array of these types.
+<My(Nothing)>
+ ~~
+]]></expected>)
+        End Sub
     End Class
 End Namespace

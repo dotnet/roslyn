@@ -6,17 +6,20 @@ namespace Microsoft.CodeAnalysis
 {
     internal partial struct SymbolKey
     {
-        private static class ArrayTypeSymbolKey
+        private sealed class ArrayTypeSymbolKey : AbstractSymbolKey<IArrayTypeSymbol>
         {
-            public static void Create(IArrayTypeSymbol symbol, SymbolKeyWriter visitor)
+            public static readonly ArrayTypeSymbolKey Instance = new();
+
+            public sealed override void Create(IArrayTypeSymbol symbol, SymbolKeyWriter visitor)
             {
                 visitor.WriteSymbolKey(symbol.ElementType);
                 visitor.WriteInteger(symbol.Rank);
             }
 
-            public static SymbolKeyResolution Resolve(SymbolKeyReader reader, out string? failureReason)
+            protected sealed override SymbolKeyResolution Resolve(
+                SymbolKeyReader reader, IArrayTypeSymbol? contextualSymbol, out string? failureReason)
             {
-                var elementTypeResolution = reader.ReadSymbolKey(out var elementTypeFailureReason);
+                var elementTypeResolution = reader.ReadSymbolKey(contextualSymbol?.ElementType, out var elementTypeFailureReason);
                 var rank = reader.ReadInteger();
 
                 if (elementTypeFailureReason != null)

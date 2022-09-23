@@ -8,7 +8,7 @@ using System.Collections.Immutable;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.InteractiveWindow;
 
-namespace Microsoft.CodeAnalysis.Editor.Interactive
+namespace Microsoft.CodeAnalysis.Interactive
 {
     internal interface IResettableInteractiveEvaluator : IInteractiveEvaluator
     {

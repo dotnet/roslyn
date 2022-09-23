@@ -10,10 +10,10 @@ Imports Microsoft.VisualStudio.Text.Editor
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
     <[UseExportProvider]>
+    <Trait(Traits.Feature, Traits.Features.Completion)>
     Public Class CSharpCompletionCommandHandlerTests_DefaultsSource
 
         <WpfTheory, CombinatorialData>
-        <Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestNoItemMatchesDefaults(isAggressive As Boolean) As Task
             ' We are not adding the additional file which contains type MyAB and MyA
             ' the the suggestion from default source doesn't match anything in the completion list.
@@ -42,7 +42,7 @@ class C
         End Function
 
         <WpfFact, CombinatorialData>
-        <Trait(Traits.Feature, Traits.Features.Completion)>
+        <WorkItem(61120, "https://github.com/dotnet/roslyn/issues/61120")>
         Public Async Function SelectFirstMatchingDefaultIfNoFilterText() As Task
             Using state = CreateTestStateWithAdditionalDocument(
                               <Document>
@@ -57,12 +57,11 @@ class C
                               </Document>)
 
                 state.SendInvokeCompletionList()
-                Await state.AssertSelectedCompletionItem("MyAB", isHardSelected:=False) ' Not hard-selected since filter text is empty
+                Await state.AssertSelectedCompletionItem("MyAB", isHardSelected:=True) ' hard-selected since filter text is empty
             End Using
         End Function
 
         <WpfFact, CombinatorialData>
-        <Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function SelectFirstMatchingDefaultWithPrefixFilterText() As Task
             Using state = CreateTestStateWithAdditionalDocument(
                               <Document>
@@ -83,7 +82,6 @@ class C
         End Function
 
         <WpfFact>
-        <Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function DoNotChangeSelectionIfBetterMatch_CaseSensivePrefix() As Task
             Using state = CreateTestStateWithAdditionalDocument(
                               <Document>
@@ -107,7 +105,6 @@ class C
         End Function
 
         <WpfFact>
-        <Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function DoNotChangeSelectionIfBetterMatch_ExactOverPrefix() As Task
             Using state = CreateTestStateWithAdditionalDocument(
                               <Document>
@@ -131,7 +128,6 @@ class My
         End Function
 
         <WpfTheory, CombinatorialData>
-        <Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function DoNotChangeIfPreselection(isAggressive As Boolean) As Task
             Using state = CreateTestStateWithAdditionalDocument(
                               <Document>

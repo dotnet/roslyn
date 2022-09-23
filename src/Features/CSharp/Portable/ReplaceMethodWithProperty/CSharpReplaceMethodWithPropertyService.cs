@@ -7,10 +7,12 @@
 using System;
 using System.Composition;
 using Microsoft.CodeAnalysis.CodeActions;
+using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.CodeStyle;
+using Microsoft.CodeAnalysis.CSharp.CodeGeneration;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
-using Microsoft.CodeAnalysis.CSharp.LanguageServices;
+using Microsoft.CodeAnalysis.CSharp.LanguageService;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
@@ -33,7 +35,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ReplaceMethodWithProper
             => editor.RemoveNode(setMethodDeclaration);
 
         public void ReplaceGetMethodWithProperty(
-            DocumentOptionSet documentOptions,
+            CodeGenerationOptions options,
             ParseOptions parseOptions,
             SyntaxEditor editor,
             SemanticModel semanticModel,
@@ -47,7 +49,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ReplaceMethodWithProper
 
             var languageVersion = parseOptions.LanguageVersion();
             var newProperty = ConvertMethodsToProperty(
-                documentOptions, languageVersion,
+                (CSharpCodeGenerationOptions)options, languageVersion,
                 semanticModel, editor.Generator,
                 getAndSetMethods, propertyName, nameChanged);
 
@@ -55,15 +57,15 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ReplaceMethodWithProper
         }
 
         public static SyntaxNode ConvertMethodsToProperty(
-            DocumentOptionSet documentOptions, LanguageVersion languageVersion,
+            CSharpCodeGenerationOptions options, LanguageVersion languageVersion,
             SemanticModel semanticModel, SyntaxGenerator generator, GetAndSetMethods getAndSetMethods,
             string propertyName, bool nameChanged)
         {
             var propertyDeclaration = ConvertMethodsToPropertyWorker(
-                documentOptions, languageVersion, semanticModel,
+                options, languageVersion, semanticModel,
                 generator, getAndSetMethods, propertyName, nameChanged);
 
-            var expressionBodyPreference = documentOptions.GetOption(CSharpCodeStyleOptions.PreferExpressionBodiedProperties).Value;
+            var expressionBodyPreference = options.PreferExpressionBodiedProperties.Value;
             if (expressionBodyPreference != ExpressionBodyPreference.Never)
             {
                 if (propertyDeclaration.AccessorList?.Accessors.Count == 1 &&
@@ -110,14 +112,14 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ReplaceMethodWithProper
         }
 
         public static PropertyDeclarationSyntax ConvertMethodsToPropertyWorker(
-            DocumentOptionSet documentOptions, LanguageVersion languageVersion,
+            CSharpCodeGenerationOptions options, LanguageVersion languageVersion,
             SemanticModel semanticModel, SyntaxGenerator generator, GetAndSetMethods getAndSetMethods,
             string propertyName, bool nameChanged)
         {
             var getMethodDeclaration = (MethodDeclarationSyntax)getAndSetMethods.GetMethodDeclaration;
             var setMethodDeclaration = getAndSetMethods.SetMethodDeclaration as MethodDeclarationSyntax;
-            var getAccessor = CreateGetAccessor(getAndSetMethods, documentOptions, languageVersion);
-            var setAccessor = CreateSetAccessor(semanticModel, generator, getAndSetMethods, documentOptions, languageVersion);
+            var getAccessor = CreateGetAccessor(getAndSetMethods, options, languageVersion);
+            var setAccessor = CreateSetAccessor(semanticModel, generator, getAndSetMethods, options, languageVersion);
 
             var nameToken = GetPropertyName(getMethodDeclaration.Identifier, propertyName, nameChanged);
             var warning = GetWarning(getAndSetMethods);
@@ -160,19 +162,19 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ReplaceMethodWithProper
         }
 
         private static AccessorDeclarationSyntax CreateGetAccessor(
-            GetAndSetMethods getAndSetMethods, DocumentOptionSet documentOptions, LanguageVersion languageVersion)
+            GetAndSetMethods getAndSetMethods, CSharpCodeGenerationOptions options, LanguageVersion languageVersion)
         {
             var accessorDeclaration = CreateGetAccessorWorker(getAndSetMethods);
 
             return UseExpressionOrBlockBodyIfDesired(
-                documentOptions, languageVersion, accessorDeclaration);
+                options, languageVersion, accessorDeclaration);
         }
 
         private static AccessorDeclarationSyntax UseExpressionOrBlockBodyIfDesired(
-            DocumentOptionSet documentOptions, LanguageVersion languageVersion,
+            CSharpCodeGenerationOptions options, LanguageVersion languageVersion,
             AccessorDeclarationSyntax accessorDeclaration)
         {
-            var expressionBodyPreference = documentOptions.GetOption(CSharpCodeStyleOptions.PreferExpressionBodiedAccessors).Value;
+            var expressionBodyPreference = options.PreferExpressionBodiedAccessors.Value;
             if (accessorDeclaration?.Body != null && expressionBodyPreference != ExpressionBodyPreference.Never)
             {
                 if (accessorDeclaration.Body.TryConvertToArrowExpressionBody(
@@ -229,10 +231,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ReplaceMethodWithProper
 
         private static AccessorDeclarationSyntax CreateSetAccessor(
             SemanticModel semanticModel, SyntaxGenerator generator, GetAndSetMethods getAndSetMethods,
-            DocumentOptionSet documentOptions, LanguageVersion languageVersion)
+            CSharpCodeGenerationOptions options, LanguageVersion languageVersion)
         {
             var accessorDeclaration = CreateSetAccessorWorker(semanticModel, generator, getAndSetMethods);
-            return UseExpressionOrBlockBodyIfDesired(documentOptions, languageVersion, accessorDeclaration);
+            return UseExpressionOrBlockBodyIfDesired(options, languageVersion, accessorDeclaration);
         }
 
         private static AccessorDeclarationSyntax CreateSetAccessorWorker(
@@ -373,18 +375,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ReplaceMethodWithProper
             var newName = nameNode;
             if (nameChanged)
             {
-                if (invocation == null)
-                {
-                    newName = SyntaxFactory.IdentifierName(SyntaxFactory.Identifier(propertyName)
-                        .WithTriviaFrom(nameToken));
-                }
-                else
-                {
-                    newName = SyntaxFactory.IdentifierName(SyntaxFactory.Identifier(propertyName)
-                        .WithLeadingTrivia(nameToken.LeadingTrivia)
-                        .WithTrailingTrivia(invocation.ArgumentList.CloseParenToken.TrailingTrivia));
-                }
+                newName = SyntaxFactory.IdentifierName(SyntaxFactory.Identifier(propertyName));
             }
+
+            newName = newName.WithTriviaFrom(invocation is null ? nameToken.Parent : invocation);
 
             var invocationExpression = invocation?.Expression;
             if (!IsInvocationName(nameNode, invocationExpression))

@@ -5,8 +5,8 @@
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Formatting
 {
@@ -15,10 +15,10 @@ namespace Microsoft.CodeAnalysis.Formatting
     /// </summary>
     internal abstract class AbstractFormattingService : IFormattingService
     {
-        public Task<Document> FormatAsync(Document document, IEnumerable<TextSpan>? spans, OptionSet options, CancellationToken cancellationToken)
+        public Task<Document> FormatAsync(Document document, IEnumerable<TextSpan>? spans, LineFormattingOptions lineFormattingOptions, SyntaxFormattingOptions? syntaxFormattingOptions, CancellationToken cancellationToken)
         {
-            var formattingOptions = SyntaxFormattingOptions.Create(options, document.Project.Solution.Workspace.Services, document.Project.Language);
-            return Formatter.FormatAsync(document, spans, formattingOptions, rules: null, cancellationToken);
+            Contract.ThrowIfNull(syntaxFormattingOptions);
+            return Formatter.FormatAsync(document, spans, syntaxFormattingOptions, rules: null, cancellationToken);
         }
     }
 }

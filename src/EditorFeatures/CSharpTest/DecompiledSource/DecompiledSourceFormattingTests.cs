@@ -7,6 +7,7 @@
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CSharp.Formatting;
 using Microsoft.CodeAnalysis.Editor.CSharp.DecompiledSource;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -16,9 +17,10 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.DecompiledSource
 {
     [UseExportProvider]
+    [Trait(Traits.Feature, Traits.Features.DecompiledSource)]
     public class DecompiledSourceFormattingTests
     {
-        [Fact, Trait(Traits.Feature, Traits.Features.DecompiledSource)]
+        [Fact]
         public async Task TestIfFormatting1()
         {
             await TestAsync(
@@ -39,7 +41,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.DecompiledSource
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DecompiledSource)]
+        [Fact]
         public async Task TestIfFormatting2()
         {
             await TestAsync(
@@ -63,7 +65,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.DecompiledSource
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DecompiledSource)]
+        [Fact]
         public async Task TestIfFormatting3()
         {
             await TestAsync(
@@ -90,7 +92,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.DecompiledSource
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DecompiledSource)]
+        [Fact]
         public async Task TestTryCatchFinally()
         {
             await TestAsync(
@@ -119,7 +121,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.DecompiledSource
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DecompiledSource)]
+        [Fact]
         public async Task TestDoWhile()
         {
             await TestAsync(
@@ -140,7 +142,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.DecompiledSource
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DecompiledSource)]
+        [Fact]
         public async Task TestNestedIf()
         {
             await TestAsync(
@@ -166,7 +168,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.DecompiledSource
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DecompiledSource)]
+        [Fact]
         public async Task TestBraces()
         {
             await TestAsync(
@@ -226,7 +228,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.DecompiledSource
             using var workspace = TestWorkspace.CreateCSharp(input);
             var document = workspace.CurrentSolution.Projects.Single().Documents.Single();
 
-            var formatted = await CSharpDecompiledSourceService.FormatDocumentAsync(document, CancellationToken.None);
+            var formatted = await CSharpDecompiledSourceService.FormatDocumentAsync(document, CSharpSyntaxFormattingOptions.Default, CancellationToken.None);
             var test = await formatted.GetTextAsync();
 
             AssertEx.Equal(expected, test.ToString());

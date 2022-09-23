@@ -9,7 +9,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.FindSymbols;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
@@ -386,11 +386,11 @@ namespace Microsoft.CodeAnalysis.InlineMethod
         private class LocalVariableDeclarationVisitor : OperationWalker
         {
             private readonly CancellationToken _cancellationToken;
-            private readonly HashSet<ISymbol> _allSymbols;
+            private readonly HashSet<ISymbol> _allSymbols = new();
+
             private LocalVariableDeclarationVisitor(CancellationToken cancellationToken)
             {
                 _cancellationToken = cancellationToken;
-                _allSymbols = new HashSet<ISymbol>();
             }
 
             public static ImmutableHashSet<ISymbol> GetAllSymbols(

@@ -13,7 +13,7 @@ using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.Graph;
 using Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.ResultSetTracking;
 using Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.Writing;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Roslyn.Utilities;
 using Methods = Microsoft.VisualStudio.LanguageServer.Protocol.Methods;
 
@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
             return generator;
         }
 
-        public async Task GenerateForCompilationAsync(Compilation compilation, string projectPath, HostLanguageServices languageServices, GeneratorOptions options)
+        public async Task GenerateForCompilationAsync(Compilation compilation, string projectPath, LanguageServices languageServices, GeneratorOptions options)
         {
             var projectVertex = new Graph.LsifProject(kind: GetLanguageKind(compilation.Language), new Uri(projectPath), _idFactory);
             _lsifJsonWriter.Write(projectVertex);
@@ -118,7 +118,7 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
         /// </remarks>
         private static async Task<Id<Graph.LsifDocument>> GenerateForDocumentAsync(
             SemanticModel semanticModel,
-            HostLanguageServices languageServices,
+            LanguageServices languageServices,
             GeneratorOptions options,
             IResultSetTracker topLevelSymbolsResultSetTracker,
             ILsifJsonWriter lsifJsonWriter,
@@ -131,6 +131,8 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
 
             string? contentBase64Encoded = null;
 
+            var uri = syntaxTree.FilePath;
+
             // TODO: move to checking the enum member mentioned in https://github.com/dotnet/roslyn/issues/49326 when that
             // is implemented. In the mean time, we'll use a heuristic of the path being a relative path as a way to indicate
             // this is a source generated file.
@@ -141,9 +143,13 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
                 // We always use UTF-8 encoding when writing out file contents, as that's expected by LSIF implementations.
                 // TODO: when we move to .NET Core, is there a way to reduce allocations here?
                 contentBase64Encoded = Convert.ToBase64String(Encoding.UTF8.GetBytes(text.ToString()));
+
+                // There is a triple slash here, so the "host" portion of the URI is empty, similar to
+                // how file URIs work.
+                uri = "source-generated:///" + syntaxTree.FilePath.Replace('\\', '/');
             }
 
-            var documentVertex = new Graph.LsifDocument(new Uri(syntaxTree.FilePath, UriKind.RelativeOrAbsolute), GetLanguageKind(semanticModel.Language), contentBase64Encoded, idFactory);
+            var documentVertex = new Graph.LsifDocument(new Uri(uri, UriKind.RelativeOrAbsolute), GetLanguageKind(semanticModel.Language), contentBase64Encoded, idFactory);
 
             lsifJsonWriter.Write(documentVertex);
             lsifJsonWriter.Write(new Event(Event.EventKind.Begin, documentVertex.GetId(), idFactory));

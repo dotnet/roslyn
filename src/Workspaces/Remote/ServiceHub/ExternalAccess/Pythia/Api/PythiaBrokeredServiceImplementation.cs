@@ -18,7 +18,11 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Pythia.Api
         public static ValueTask RunServiceAsync(Func<CancellationToken, ValueTask> implementation, CancellationToken cancellationToken)
             => BrokeredServiceBase.RunServiceImplAsync(implementation, cancellationToken);
 
+        [Obsolete("Use RunServiceAsync (that is passsed a Solution) instead", error: false)]
         public static ValueTask<Solution> GetSolutionAsync(this PythiaPinnedSolutionInfoWrapper solutionInfo, ServiceBrokerClient client, CancellationToken cancellationToken)
             => RemoteWorkspaceManager.Default.GetSolutionAsync(client, solutionInfo.UnderlyingObject, cancellationToken);
+
+        public static ValueTask<T> RunServiceAsync<T>(this PythiaPinnedSolutionInfoWrapper solutionInfo, ServiceBrokerClient client, Func<Solution, ValueTask<T>> implementation, CancellationToken cancellationToken)
+            => RemoteWorkspaceManager.Default.RunServiceAsync(client, solutionInfo.UnderlyingObject, implementation, cancellationToken);
     }
 }

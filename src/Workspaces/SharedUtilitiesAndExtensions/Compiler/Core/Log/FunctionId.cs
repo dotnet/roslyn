@@ -278,7 +278,7 @@ namespace Microsoft.CodeAnalysis.Internal.Log
         WorkCoordinatorRegistrationService_Unregister = 224,
         WorkCoordinatorRegistrationService_Reanalyze = 225,
 
-        WorkCoordinator_SolutionCrawlerOption = 226,
+        // obsolete: WorkCoordinator_SolutionCrawlerOption = 226,
         WorkCoordinator_PersistentStorageAdded = 227,
         WorkCoordinator_PersistentStorageRemoved = 228,
         WorkCoordinator_Shutdown = 229,
@@ -328,7 +328,7 @@ namespace Microsoft.CodeAnalysis.Internal.Log
         VisualBasic_Interactive_Window = 268,
 
         NonFatalWatson = 269,
-        GlobalOperationRegistration = 270,
+        // GlobalOperationRegistration = 270, No longer fired.
         CommandHandler_FindAllReference = 271,
 
         CodefixInfobar_Enable = 272,
@@ -539,5 +539,42 @@ namespace Microsoft.CodeAnalysis.Internal.Log
         NavigateToExternalSources = 531,
 
         StackTraceToolWindow_ShowOnActivated = 540,
+
+        CodeModel_FileCodeModel_Create = 550,
+
+        Refactoring_FixAllOccurrencesSession = 560,
+        Refactoring_FixAllOccurrencesContext = 561,
+        Refactoring_FixAllOccurrencesComputation = 562,
+        Refactoring_FixAllOccurrencesPreviewChanges = 563,
+
+        LSP_UsedForkedSolution = 571,
+
+        DocumentOutline_WindowOpen = 572,
+        DocumentOutline_SortByName = 573,
+        DocumentOutline_SortByOrder = 574,
+        DocumentOutline_SortByType = 575,
+
+        ApplyChangesOperation_WorkspaceVersionMatch_ApplicationSucceeded = 580,
+        ApplyChangesOperation_WorkspaceVersionMatch_ApplicationFailed = 581,
+        ApplyChangesOperation_WorkspaceVersionMismatch_ApplicationSucceeded = 582,
+        ApplyChangesOperation_WorkspaceVersionMismatch_ApplicationFailed_IncompatibleSolutionChange = 583,
+        ApplyChangesOperation_WorkspaceVersionMismatch_ApplicationFailed_IncompatibleProjectChange = 584,
+        ApplyChangesOperation_WorkspaceVersionMismatch_ApplicationFailed_NoChangedDocument = 585,
+        ApplyChangesOperation_WorkspaceVersionMismatch_ApplicationFailed_NoTextChange = 586,
+        ApplyChangesOperation_WorkspaceVersionMismatch_ApplicationFailed_DocumentRemoved = 587,
+        ApplyChangesOperation_WorkspaceVersionMismatch_ApplicationFailed_TextChangeConflict = 588,
+
+        Completion_SemanticSnippets = 589,
+        // please leave the range up through 600 free in case we need to add more items to learn more about ApplyChangesOperation results.
+
+        SpellCheckFixer_CouldNotFindDocument = 600,
+        SpellCheckFixer_LanguageDoesNotSupportRename = 601,
+        SpellCheckFixer_LanguageCouldNotGetRenameInfo = 602,
+        SpellCheckFixer_RenameSpanNotWithinTokenSpan = 603,
+        SpellCheckFixer_ReplacementTextInvalid = 604,
+        SpellCheckFixer_TryApplyChangesFailure = 605,
+
+        SourceGenerator_SolutionStatistics = 620,
+        SourceGenerator_OtherWorkspaceSessionStatistics = 621
     }
 }

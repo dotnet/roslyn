@@ -46,7 +46,11 @@ namespace Microsoft.CodeAnalysis.Classification
             using var _2 = ArrayBuilder<ClassifiedSpan>.GetInstance(out var semanticSpans);
 
             await classificationService.AddSyntacticClassificationsAsync(document, span, syntaxSpans, cancellationToken).ConfigureAwait(false);
+
+            // Intentional that we're adding both semantic and embedded lang classifications to the same array.  Both
+            // are 'semantic' from the perspective of this helper method.
             await classificationService.AddSemanticClassificationsAsync(document, span, options, semanticSpans, cancellationToken).ConfigureAwait(false);
+            await classificationService.AddEmbeddedLanguageClassificationsAsync(document, span, options, semanticSpans, cancellationToken).ConfigureAwait(false);
 
             // MergeClassifiedSpans will ultimately filter multiple classifications for the same
             // span down to one. We know that additive classifications are there just to 

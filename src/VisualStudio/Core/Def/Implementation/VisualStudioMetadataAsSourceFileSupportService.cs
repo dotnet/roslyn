@@ -6,6 +6,9 @@
 
 using System;
 using System.ComponentModel.Composition;
+using System.Threading;
+using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.MetadataAsSource;
 using Microsoft.VisualStudio.Shell;
@@ -16,20 +19,25 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
     [Export(typeof(VisualStudioMetadataAsSourceFileSupportService))]
     internal sealed class VisualStudioMetadataAsSourceFileSupportService : IVsSolutionEvents
     {
+        private readonly IThreadingContext _threadingContext;
         private readonly IMetadataAsSourceFileService _metadataAsSourceFileService;
-
-#pragma warning disable IDE0052 // Remove unread private members - Used to store the AdviseSolutionEvents cookie.
-        private readonly uint _eventCookie;
-#pragma warning restore IDE0052 // Remove unread private members
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public VisualStudioMetadataAsSourceFileSupportService(SVsServiceProvider serviceProvider, IMetadataAsSourceFileService metadataAsSourceFileService)
+        public VisualStudioMetadataAsSourceFileSupportService(
+            IThreadingContext threadingContext,
+            IMetadataAsSourceFileService metadataAsSourceFileService)
         {
+            _threadingContext = threadingContext;
             _metadataAsSourceFileService = metadataAsSourceFileService;
+        }
 
-            var solution = (IVsSolution)serviceProvider.GetService(typeof(SVsSolution));
-            ErrorHandler.ThrowOnFailure(solution.AdviseSolutionEvents(this, out _eventCookie));
+        public async Task InitializeAsync(IAsyncServiceProvider serviceProvider, CancellationToken cancellationToken)
+        {
+            var solution = await serviceProvider.GetServiceAsync<SVsSolution, IVsSolution>(_threadingContext.JoinableTaskFactory).ConfigureAwait(false);
+            await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+            // Intentionally ignore the event-cookie we get back out.  We never stop listening to solution events.
+            ErrorHandler.ThrowOnFailure(solution.AdviseSolutionEvents(this, out _));
         }
 
         public int OnAfterCloseSolution(object pUnkReserved)

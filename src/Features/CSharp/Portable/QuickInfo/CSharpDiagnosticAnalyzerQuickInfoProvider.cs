@@ -27,13 +27,13 @@ namespace Microsoft.CodeAnalysis.CSharp.QuickInfo
     [ExtensionOrder(Before = QuickInfoProviderNames.Semantic)]
     internal class CSharpDiagnosticAnalyzerQuickInfoProvider : CommonQuickInfoProvider
     {
-        private readonly IDiagnosticAnalyzerService _diagnosticAnalyzerService;
+        private readonly DiagnosticAnalyzerInfoCache _diagnosticAnalyzerInfoCache;
 
         [ImportingConstructor]
         [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
-        public CSharpDiagnosticAnalyzerQuickInfoProvider(IDiagnosticAnalyzerService diagnosticAnalyzerService)
+        public CSharpDiagnosticAnalyzerQuickInfoProvider(DiagnosticAnalyzerInfoCache.SharedGlobalCache globalCache)
         {
-            _diagnosticAnalyzerService = diagnosticAnalyzerService;
+            _diagnosticAnalyzerInfoCache = globalCache.AnalyzerInfoCache;
         }
 
         protected override async Task<QuickInfoItem?> BuildQuickInfoAsync(
@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis.CSharp.QuickInfo
                 IdentifierNameSyntax identifierName => identifierName.Identifier.ValueText,
                 // case 0219 or 219:
                 // Take the number and add the "CS" prefix.
-                LiteralExpressionSyntax { RawKind: (int)SyntaxKind.NumericLiteralExpression } literal
+                LiteralExpressionSyntax(SyntaxKind.NumericLiteralExpression) literal
                     => int.TryParse(literal.Token.ValueText, out var errorCodeNumber)
                         ? $"CS{errorCodeNumber:0000}"
                         : literal.Token.ValueText,
@@ -138,9 +138,8 @@ namespace Microsoft.CodeAnalysis.CSharp.QuickInfo
         private QuickInfoItem? GetQuickInfoFromSupportedDiagnosticsOfProjectAnalyzers(Document document,
             string errorCode, TextSpan location)
         {
-            var infoCache = _diagnosticAnalyzerService.AnalyzerInfoCache;
             var hostAnalyzers = document.Project.Solution.State.Analyzers;
-            var groupedDiagnostics = hostAnalyzers.GetDiagnosticDescriptorsPerReference(infoCache, document.Project).Values;
+            var groupedDiagnostics = hostAnalyzers.GetDiagnosticDescriptorsPerReference(_diagnosticAnalyzerInfoCache, document.Project).Values;
             var supportedDiagnostics = groupedDiagnostics.SelectMany(d => d);
             var diagnosticDescriptor = supportedDiagnostics.FirstOrDefault(d => d.Id == errorCode);
             if (diagnosticDescriptor != null)

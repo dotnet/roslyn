@@ -132,7 +132,7 @@ namespace Microsoft.CodeAnalysis
             {
                 return ValueUsageInfo.ReadableWritableReference;
             }
-            else if (operation.Parent is IIncrementOrDecrementOperation)
+            else if (operation.Parent is IIncrementOrDecrementOperation || (operation.Parent is IForToLoopOperation forToLoopOperation && forToLoopOperation.LoopControlVariable.Equals(operation)))
             {
                 return ValueUsageInfo.ReadWrite;
             }
@@ -376,6 +376,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         /// <param name="operation">The starting operation.</param>
         /// <returns>The inner non conversion operation or the starting operation if it wasn't a conversion operation.</returns>
+        [return: NotNullIfNotNull("operation")]
         public static IOperation? WalkDownConversion(this IOperation? operation)
         {
             while (operation is IConversionOperation conversionOperation)

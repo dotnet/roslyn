@@ -67,7 +67,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
 
                 var assemblyDirectory = GetAssemblyDirectory();
                 var testName = CaptureTestNameAttribute.CurrentName ?? "Unknown";
-                var logDir = Path.Combine(assemblyDirectory, "xUnitResults", "Screenshots");
+                var logDir = Path.Combine(assemblyDirectory, "TestResults", "Screenshots");
                 var baseFileName = $"{DateTime.UtcNow:HH.mm.ss}-{testName}-{eventArgs.Exception.GetType().Name}";
 
                 var maxLength = logDir.Length + 1 + baseFileName.Length + ".Watson.log".Length + 1;
@@ -179,12 +179,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
                 var instanceVersion = instance.GetInstallationVersion();
                 var majorVersion = int.Parse(instanceVersion.Substring(0, instanceVersion.IndexOf('.')));
                 hostProcess = StartNewVisualStudioProcess(installationPath, majorVersion, isUsingLspEditor);
-
-                var procDumpInfo = ProcDumpInfo.ReadFromEnvironment();
-                if (procDumpInfo != null)
-                {
-                    ProcDumpUtil.AttachProcDump(procDumpInfo.Value, hostProcess.Id);
-                }
 
                 // We wait until the DTE instance is up before we're good
                 dte = await IntegrationHelper.WaitForNotNullAsync(() => IntegrationHelper.TryLocateDteForProcess(hostProcess)).ConfigureAwait(true);
@@ -333,6 +327,9 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
 
                 // Disable IntelliCode line completions to avoid interference with argument completion testing
                 Process.Start(CreateSilentStartInfo(vsRegEditExeFile, $"set \"{installationPath}\" {Settings.Default.VsRootSuffix} HKCU \"ApplicationPrivateSettings\\Microsoft\\VisualStudio\\IntelliCode\" wholeLineCompletions string \"0*System.Int32*2\"")).WaitForExit();
+
+                // Disable IntelliCode RepositoryAttachedModels since it requires authentication which can fail in CI
+                Process.Start(CreateSilentStartInfo(vsRegEditExeFile, $"set \"{installationPath}\" {Settings.Default.VsRootSuffix} HKCU \"ApplicationPrivateSettings\\Microsoft\\VisualStudio\\IntelliCode\" repositoryAttachedModels string \"0*System.Int32*2\"")).WaitForExit();
 
                 // Disable background download UI to avoid toasts
                 Process.Start(CreateSilentStartInfo(vsRegEditExeFile, $"set \"{installationPath}\" {Settings.Default.VsRootSuffix} HKCU \"FeatureFlags\\Setup\\BackgroundDownload\" Value dword 0")).WaitForExit();

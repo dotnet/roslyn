@@ -117,6 +117,7 @@ namespace Microsoft.Cci
                 this.Visit(marshalling);
             }
 
+            this.Visit(fieldDefinition.RefCustomModifiers);
             this.Visit(fieldDefinition.GetType(Context));
         }
 

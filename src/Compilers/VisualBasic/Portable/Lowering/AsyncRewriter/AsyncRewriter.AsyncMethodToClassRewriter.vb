@@ -66,13 +66,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                            builder As FieldSymbol,
                            hoistedVariables As IReadOnlySet(Of Symbol),
                            nonReusableLocalProxies As Dictionary(Of Symbol, CapturedSymbolOrExpression),
-                           synthesizedLocalOrdinals As SynthesizedLocalOrdinalsDispenser,
+                           stateMachineStateDebugInfoBuilder As ArrayBuilder(Of StateMachineStateDebugInfo),
                            slotAllocatorOpt As VariableSlotAllocator,
-                           nextFreeHoistedLocalSlot As Integer,
                            owner As AsyncRewriter,
                            diagnostics As BindingDiagnosticBag)
 
-                MyBase.New(F, state, hoistedVariables, nonReusableLocalProxies, synthesizedLocalOrdinals, slotAllocatorOpt, nextFreeHoistedLocalSlot, diagnostics)
+                MyBase.New(F, state, hoistedVariables, nonReusableLocalProxies, stateMachineStateDebugInfoBuilder, slotAllocatorOpt, diagnostics)
 
                 Me._method = method
                 Me._builder = builder
@@ -88,6 +87,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 Me._nextAwaiterId = If(slotAllocatorOpt IsNot Nothing, slotAllocatorOpt.PreviousAwaiterSlotCount, 0)
             End Sub
+
+            Protected Overrides ReadOnly Property FirstIncreasingResumableState As StateMachineState
+                Get
+                    Return StateMachineState.FirstResumableAsyncState
+                End Get
+            End Property
+
+            Protected Overrides ReadOnly Property EncMissingStateMessage As String
+                Get
+                    Return CodeAnalysisResources.EncCannotResumeSuspendedAsyncMethod
+                End Get
+            End Property
 
             Private Function GetAwaiterField(awaiterType As TypeSymbol) As FieldSymbol
                 Dim result As FieldSymbol = Nothing
@@ -158,7 +169,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         Me.F.Block(
                             ImmutableArray(Of LocalSymbol).Empty,
                             SyntheticBoundNodeFactory.HiddenSequencePoint(),
-                            Me.Dispatch(),
+                            Me.Dispatch(isOutermost:=True),
                             rewrittenBody
                         ),
                         Me.F.CatchBlocks(
@@ -166,7 +177,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                 exceptionLocal,
                                 Me.F.Block(
                                     SyntheticBoundNodeFactory.HiddenSequencePoint(),
-                                    Me.F.Assignment(Me.F.Field(Me.F.Me(), Me.StateField, True), Me.F.Literal(StateMachineStates.FinishedStateMachine)),
+                                    Me.F.Assignment(Me.F.Field(Me.F.Me(), Me.StateField, True), Me.F.Literal(StateMachineState.FinishedState)),
                                     Me.F.ExpressionStatement(
                                         Me._owner.GenerateMethodCall(
                                             Me.F.Field(Me.F.Me(), Me._builder, False),
@@ -182,7 +193,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 ' STMT:   state = cachedState = finishedState
                 Dim stateDone = Me.F.Assignment(
                         Me.F.Field(Me.F.Me(), Me.StateField, True),
-                        Me.F.AssignmentExpression(Me.F.Local(Me.CachedState, True), Me.F.Literal(StateMachineStates.FinishedStateMachine)))
+                        Me.F.AssignmentExpression(Me.F.Local(Me.CachedState, True), Me.F.Literal(StateMachineState.FinishedState)))
                 Dim block As MethodBlockSyntax = TryCast(body.Syntax, MethodBlockSyntax)
                 If (block Is Nothing) Then
                     bodyBuilder.Add(stateDone)

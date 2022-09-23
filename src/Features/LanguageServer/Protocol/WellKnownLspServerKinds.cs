@@ -36,6 +36,17 @@ internal enum WellKnownLspServerKinds
     /// </summary>
     XamlLspServer,
     XamlLspServerDisableUX,
+
+    /// <summary>
+    /// LSP server for TypeScript
+    /// </summary>
+    RoslynTypeScriptLspServer,
+
+    /// <summary>
+    /// Flag representing any LSP server - used by <see cref="ExportLspServiceFactoryAttribute"/>
+    /// to specify that something applies to any LSP server.
+    /// </summary>
+    Any,
 }
 
 internal static class WellKnownLspServerExtensions
@@ -52,6 +63,7 @@ internal static class WellKnownLspServerExtensions
             // When updating the string of Name, please make sure to update the same string in Microsoft.VisualStudio.LanguageServer.Client.ExperimentalSnippetSupport.AllowList
             WellKnownLspServerKinds.XamlLspServer => "XAML Language Server Client (Experimental)",
             WellKnownLspServerKinds.XamlLspServerDisableUX => "XAML Language Server Client for LiveShare and Codespaces",
+            WellKnownLspServerKinds.RoslynTypeScriptLspServer => "Roslyn TypeScript Language Server Client",
             _ => throw ExceptionUtilities.UnexpectedValue(server),
         };
     }
@@ -77,6 +89,23 @@ internal static class WellKnownLspServerExtensions
 
             // Telemetry was previously reported as XamlInProcLanguageClientDisableUX.GetType().Name
             WellKnownLspServerKinds.XamlLspServerDisableUX => "XamlInProcLanguageClientDisableUX",
+
+            WellKnownLspServerKinds.RoslynTypeScriptLspServer => "RoslynTypeScriptLspServer",
+            _ => throw ExceptionUtilities.UnexpectedValue(server),
+        };
+    }
+
+    public static string GetContractName(this WellKnownLspServerKinds server)
+    {
+        return server switch
+        {
+            WellKnownLspServerKinds.RazorLspServer => ProtocolConstants.RoslynLspLanguagesContract,
+            WellKnownLspServerKinds.LiveShareLspServer => ProtocolConstants.RoslynLspLanguagesContract,
+            WellKnownLspServerKinds.AlwaysActiveVSLspServer => ProtocolConstants.RoslynLspLanguagesContract,
+            WellKnownLspServerKinds.CSharpVisualBasicLspServer => ProtocolConstants.RoslynLspLanguagesContract,
+            WellKnownLspServerKinds.XamlLspServer => "XamlLspLanguages",
+            WellKnownLspServerKinds.XamlLspServerDisableUX => "XamlLspLanguages",
+            WellKnownLspServerKinds.RoslynTypeScriptLspServer => ProtocolConstants.TypeScriptLanguageContract,
             _ => throw ExceptionUtilities.UnexpectedValue(server),
         };
     }

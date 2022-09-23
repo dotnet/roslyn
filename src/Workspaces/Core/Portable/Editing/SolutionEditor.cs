@@ -16,12 +16,11 @@ namespace Microsoft.CodeAnalysis.Editing
     public class SolutionEditor
     {
         private readonly Solution _solution;
-        private readonly Dictionary<DocumentId, DocumentEditor> _documentEditors;
+        private readonly Dictionary<DocumentId, DocumentEditor> _documentEditors = new();
 
         public SolutionEditor(Solution solution)
         {
             _solution = solution;
-            _documentEditors = new Dictionary<DocumentId, DocumentEditor>();
         }
 
         /// <summary>

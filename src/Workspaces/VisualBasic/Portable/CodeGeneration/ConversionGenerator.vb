@@ -11,7 +11,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
 
         Friend Function AddConversionTo(destination As TypeBlockSyntax,
                             method As IMethodSymbol,
-                            options As CodeGenerationOptions,
+                            options As CodeGenerationContextInfo,
                             availableIndices As IList(Of Boolean)) As TypeBlockSyntax
             Dim methodDeclaration = GenerateConversionDeclaration(method, options)
 
@@ -22,7 +22,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
         End Function
 
         Public Function GenerateConversionDeclaration(method As IMethodSymbol,
-                                                      options As CodeGenerationOptions) As StatementSyntax
+                                                      options As CodeGenerationContextInfo) As StatementSyntax
             Dim reusableSyntax = GetReuseableSyntaxNodeForSymbol(Of StatementSyntax)(method, options)
             If reusableSyntax IsNot Nothing Then
                 Return reusableSyntax
@@ -36,7 +36,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
         End Function
 
         Private Function GenerateConversionDeclarationWorker(method As IMethodSymbol,
-                                                             options As CodeGenerationOptions) As StatementSyntax
+                                                             options As CodeGenerationContextInfo) As StatementSyntax
             Dim modifiers = New List(Of SyntaxToken) From {
                 SyntaxFactory.Token(SyntaxKind.PublicKeyword),
                 SyntaxFactory.Token(SyntaxKind.SharedKeyword)

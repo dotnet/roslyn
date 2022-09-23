@@ -5,8 +5,9 @@
 Imports System.Collections.Immutable
 Imports System.Composition
 Imports System.Threading
-Imports Microsoft.CodeAnalysis.Editor.Implementation.CodeDefinitionWindow
+Imports Microsoft.CodeAnalysis.CodeDefinitionWindow
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
+Imports Microsoft.CodeAnalysis.GoToDefinition
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.Navigation
 Imports Microsoft.CodeAnalysis.Text
@@ -15,6 +16,7 @@ Imports Roslyn.Utilities
 
 Namespace Microsoft.CodeAnalysis.Editor.CodeDefinitionWindow.UnitTests
     <UseExportProvider>
+    <Trait(Traits.Feature, Traits.Features.CodeDefinitionWindow)>
     Public Class CrossLanguageCodeDefinitionWindowTests
 
         Private Class FakeNavigableItem
@@ -93,7 +95,7 @@ Namespace Microsoft.CodeAnalysis.Editor.CodeDefinitionWindow.UnitTests
             End Function
         End Class
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeDefinitionWindow)>
+        <Fact>
         Public Async Function DocumentWithNoSemanticModel() As Task
             Using workspace = TestWorkspace.Create(
                 <Workspace>
@@ -110,6 +112,7 @@ Namespace Microsoft.CodeAnalysis.Editor.CodeDefinitionWindow.UnitTests
 
                 Dim definitionContextTracker = workspace.ExportProvider.GetExportedValue(Of DefinitionContextTracker)
                 Dim locations = Await definitionContextTracker.GetContextFromPointAsync(
+                    workspace,
                     document,
                     hostDocument.CursorPosition.Value,
                     CancellationToken.None)
@@ -123,7 +126,7 @@ Namespace Microsoft.CodeAnalysis.Editor.CodeDefinitionWindow.UnitTests
             End Using
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeDefinitionWindow)>
+        <Fact>
         Public Async Function VisualBasicReferencingCSharp() As Task
             Using workspace = TestWorkspace.Create(
                 <Workspace>

@@ -21,65 +21,54 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities.GoToHelpers
         Public _triedNavigationToSpan As Boolean
 
         Public _documentId As DocumentId
-        Public _options As NavigationOptions
         Public _line As Integer = -1
         Public _offset As Integer = -1
         Public _span As TextSpan = Nothing
         Public _position As Integer = -1
         Public _positionVirtualSpace As Integer = -1
 
-        Public Function CanNavigateToLineAndOffset(workspace As Workspace, documentId As DocumentId, lineNumber As Integer, offset As Integer, cancellationToken As CancellationToken) As Boolean Implements IDocumentNavigationService.CanNavigateToLineAndOffset
-            Return _canNavigateToLineAndOffset
+        Public Function CanNavigateToLineAndOffsetAsync(workspace As Workspace, documentId As DocumentId, lineNumber As Integer, offset As Integer, cancellationToken As CancellationToken) As Task(Of Boolean) Implements IDocumentNavigationService.CanNavigateToLineAndOffsetAsync
+            Return If(_canNavigateToLineAndOffset, SpecializedTasks.True, SpecializedTasks.False)
         End Function
 
-        Public Function CanNavigateToPosition(workspace As Workspace, documentId As DocumentId, position As Integer, virtualSpace As Integer, cancellationToken As CancellationToken) As Boolean Implements IDocumentNavigationService.CanNavigateToPosition
-            Return _canNavigateToPosition
+        Public Function CanNavigateToPositionAsync(workspace As Workspace, documentId As DocumentId, position As Integer, virtualSpace As Integer, cancellationToken As CancellationToken) As Task(Of Boolean) Implements IDocumentNavigationService.CanNavigateToPositionAsync
+            Return If(_canNavigateToPosition, SpecializedTasks.True, SpecializedTasks.False)
         End Function
 
-        Public Function CanNavigateToSpan(workspace As Workspace, documentId As DocumentId, textSpan As TextSpan, cancellationToken As CancellationToken) As Boolean Implements IDocumentNavigationService.CanNavigateToSpan
-            Return _canNavigateToSpan
-        End Function
-
-        Public Function CanNavigateToSpanAsync(workspace As Workspace, documentId As DocumentId, textSpan As TextSpan, cancellationToken As CancellationToken) As Task(Of Boolean) Implements IDocumentNavigationService.CanNavigateToSpanAsync
+        Public Function CanNavigateToSpanAsync(workspace As Workspace, documentId As DocumentId, textSpan As TextSpan, allowInvalidSpan As Boolean, cancellationToken As CancellationToken) As Task(Of Boolean) Implements IDocumentNavigationService.CanNavigateToSpanAsync
             Return If(_canNavigateToSpan, SpecializedTasks.True, SpecializedTasks.False)
         End Function
 
-        Public Function TryNavigateToLineAndOffset(workspace As Workspace, documentId As DocumentId, lineNumber As Integer, offset As Integer, options As NavigationOptions, cancellationToken As CancellationToken) As Boolean Implements IDocumentNavigationService.TryNavigateToLineAndOffset
-            _triedNavigationToLineAndOffset = True
-            _documentId = documentId
-            _options = options
-            _line = lineNumber
-            _offset = offset
-
-            Return _canNavigateToLineAndOffset
+        Public Function GetLocationForLineAndOffsetAsync(workspace As Workspace, documentId As DocumentId, lineNumber As Integer, offset As Integer, cancellationToken As CancellationToken) As Task(Of INavigableLocation) Implements IDocumentNavigationService.GetLocationForLineAndOffsetAsync
+            Return Task.FromResult(Of INavigableLocation)(New NavigableLocation(
+                Function(o, c)
+                    _triedNavigationToLineAndOffset = True
+                    _documentId = documentId
+                    _line = lineNumber
+                    _offset = offset
+                    Return SpecializedTasks.True
+                End Function))
         End Function
 
-        Public Function TryNavigateToPosition(workspace As Workspace, documentId As DocumentId, position As Integer, virtualSpace As Integer, options As NavigationOptions, cancellationToken As CancellationToken) As Boolean Implements IDocumentNavigationService.TryNavigateToPosition
-            _triedNavigationToPosition = True
-            _documentId = documentId
-            _options = options
-            _position = position
-            _positionVirtualSpace = virtualSpace
-
-            Return _canNavigateToPosition
+        Public Function GetLocationForPositionAsync(workspace As Workspace, documentId As DocumentId, position As Integer, virtualSpace As Integer, cancellationToken As CancellationToken) As Task(Of INavigableLocation) Implements IDocumentNavigationService.GetLocationForPositionAsync
+            Return Task.FromResult(Of INavigableLocation)(New NavigableLocation(
+                Function(o, c)
+                    _triedNavigationToPosition = True
+                    _documentId = documentId
+                    _position = position
+                    _positionVirtualSpace = virtualSpace
+                    Return SpecializedTasks.True
+                End Function))
         End Function
 
-        Public Function TryNavigateToSpan(workspace As Workspace, documentId As DocumentId, textSpan As TextSpan, options As NavigationOptions, allowInvalidSpan As Boolean, cancellationToken As CancellationToken) As Boolean Implements IDocumentNavigationService.TryNavigateToSpan
-            _triedNavigationToSpan = True
-            _documentId = documentId
-            _options = options
-            _span = textSpan
-
-            Return _canNavigateToSpan
-        End Function
-
-        Public Function TryNavigateToSpanAsync(workspace As Workspace, documentId As DocumentId, textSpan As TextSpan, options As NavigationOptions, allowInvalidSpan As Boolean, cancellationToken As CancellationToken) As Task(Of Boolean) Implements IDocumentNavigationService.TryNavigateToSpanAsync
-            _triedNavigationToSpan = True
-            _documentId = documentId
-            _options = options
-            _span = textSpan
-
-            Return If(_canNavigateToSpan, SpecializedTasks.True, SpecializedTasks.False)
+        Public Function GetLocationForSpanAsync(workspace As Workspace, documentId As DocumentId, textSpan As TextSpan, allowInvalidSpan As Boolean, cancellationToken As CancellationToken) As Task(Of INavigableLocation) Implements IDocumentNavigationService.GetLocationForSpanAsync
+            Return Task.FromResult(Of INavigableLocation)(New NavigableLocation(
+                Function(o, c)
+                    _triedNavigationToSpan = True
+                    _documentId = documentId
+                    _span = textSpan
+                    Return SpecializedTasks.True
+                End Function))
         End Function
     End Class
 End Namespace

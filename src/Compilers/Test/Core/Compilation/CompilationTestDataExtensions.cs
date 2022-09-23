@@ -37,7 +37,7 @@ namespace Roslyn.Test.Utilities
                 expectedIL = expectedIL.Replace(moduleNamePlaceholder, moduleName);
             }
 
-            AssertEx.AssertEqualToleratingWhitespaceDifferences(expectedIL, actualIL, escapeQuotes: true, expectedValueSourcePath: expectedValueSourcePath, expectedValueSourceLine: expectedValueSourceLine);
+            AssertEx.AssertEqualToleratingWhitespaceDifferences(expectedIL, actualIL, escapeQuotes: false, expectedValueSourcePath: expectedValueSourcePath, expectedValueSourceLine: expectedValueSourceLine);
         }
 
         internal static ImmutableArray<KeyValuePair<IMethodSymbolInternal, CompilationTestData.MethodData>> GetExplicitlyDeclaredMethods(this CompilationTestData data)
@@ -108,7 +108,8 @@ namespace Roslyn.Test.Utilities
                 0,
                 Cci.MetadataWriter.GetLocalSlotDebugInfos(methodData.ILBuilder.LocalSlotManager.LocalsInOrder()),
                 closures: ImmutableArray<ClosureDebugInfo>.Empty,
-                lambdas: ImmutableArray<LambdaDebugInfo>.Empty);
+                lambdas: ImmutableArray<LambdaDebugInfo>.Empty,
+                stateMachineStates: ImmutableArray<StateMachineStateDebugInfo>.Empty);
         }
 
         internal static Func<MethodDefinitionHandle, EditAndContinueMethodDebugInformation> EncDebugInfoProvider(this CompilationTestData.MethodData methodData)

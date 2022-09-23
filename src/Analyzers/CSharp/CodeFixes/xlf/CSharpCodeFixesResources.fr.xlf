@@ -2,14 +2,69 @@
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="fr" original="../CSharpCodeFixesResources.resx">
     <body>
+      <trans-unit id="Add_Obsolete">
+        <source>Add [Obsolete]</source>
+        <target state="translated">Ajouter [obsolète]</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Add_await">
+        <source>Add 'await'</source>
+        <target state="translated">Ajouter 'await'</target>
+        <note>{Locked="await"} "await" is a C# keyword and should not be localized.</note>
+      </trans-unit>
       <trans-unit id="Add_this">
         <source>Add 'this.'</source>
         <target state="translated">Ajouter 'this.'</target>
         <note />
       </trans-unit>
+      <trans-unit id="Assign_to_0">
+        <source>Assign to '{0}'</source>
+        <target state="translated">Affecter à '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Change_return_type_from_0_to_1">
+        <source>Change return type from {0} to {1}</source>
+        <target state="translated">Changer le type de retour de {0} en {1}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Compare_to_0">
+        <source>Compare to '{0}'</source>
+        <target state="translated">Comparer à '{0}'</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Convert_typeof_to_nameof">
         <source>Convert 'typeof' to 'nameof'</source>
         <target state="translated">Convertir 'typeof' en 'nameof'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Fix_constraint">
+        <source>Fix constraint</source>
+        <target state="translated">Correction de la contrainte</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Declare_as_nullable">
+        <source>Declare as nullable</source>
+        <target state="translated">Déclarer comme nullable</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Explicitly_inherit_documentation">
+        <source>Explicitly inherit documentation</source>
+        <target state="translated">Hériter explicitement de la documentation</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Fix_record_declaration">
+        <source>Fix record declaration</source>
+        <target state="translated">Correction de la déclaration d’enregistrement</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Fix_return_type">
+        <source>Fix return type</source>
+        <target state="translated">Corriger le type de retour</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Hide_base_member">
+        <source>Hide base member</source>
+        <target state="translated">Masquer le membre de base</target>
         <note />
       </trans-unit>
       <trans-unit id="Pass_in_captured_variables_as_arguments">
@@ -40,6 +95,21 @@
       <trans-unit id="Remove_unreachable_code">
         <source>Remove unreachable code</source>
         <target state="translated">Supprimer le code inaccessible</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Replace_return_with_yield_return">
+        <source>Replace return with yield return</source>
+        <target state="translated">Remplacer return par yield return</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Unseal_class_0">
+        <source>Unseal class '{0}'</source>
+        <target state="translated">Classe unsealed '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_interpolated_verbatim_string">
+        <source>Use interpolated verbatim string</source>
+        <target state="translated">Utiliser une chaîne verbatim interpolée</target>
         <note />
       </trans-unit>
       <trans-unit id="Warning_colon_Adding_parameters_to_local_function_declaration_may_produce_invalid_code">

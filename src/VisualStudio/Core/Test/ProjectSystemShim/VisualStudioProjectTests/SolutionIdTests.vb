@@ -11,8 +11,7 @@ Imports Roslyn.Test.Utilities
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
     <[UseExportProvider]>
     Public Class SolutionIdTests
-        <WpfFact>
-        <WorkItem(31686, "https://github.com/dotnet/roslyn/issues/31686")>
+        <WpfFact, WorkItem(31686, "https://github.com/dotnet/roslyn/issues/31686")>
         Public Async Function RemovingAndAddingProjectCreatesNewSolutionId() As Task
             Using environment = New TestEnvironment()
                 Dim project1 = Await environment.ProjectFactory.CreateAndAddToWorkspaceAsync(

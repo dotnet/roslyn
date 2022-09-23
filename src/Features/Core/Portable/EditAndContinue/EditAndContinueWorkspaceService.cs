@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
+using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -24,7 +25,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
     [ExportWorkspaceService(typeof(IEditAndContinueWorkspaceService)), Shared]
     internal sealed class EditAndContinueWorkspaceService : IEditAndContinueWorkspaceService
     {
-        internal static readonly TraceLog Log = new(2048, "EnC");
+        internal static readonly TraceLog Log = new(2048, "EnC", GetLogDirectory());
 
         private Func<Project, CompilationOutputs> _compilationOutputsProvider;
 
@@ -39,6 +40,25 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         public EditAndContinueWorkspaceService()
         {
             _compilationOutputsProvider = GetCompilationOutputs;
+        }
+
+        private static string? GetLogDirectory()
+        {
+            try
+            {
+                var path = Environment.GetEnvironmentVariable("Microsoft_CodeAnalysis_EditAndContinue_LogDir");
+                if (string.IsNullOrWhiteSpace(path))
+                {
+                    return null;
+                }
+
+                Directory.CreateDirectory(path);
+                return path;
+            }
+            catch
+            {
+                return null;
+            }
         }
 
         private static CompilationOutputs GetCompilationOutputs(Project project)
@@ -116,6 +136,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 _debuggingSessions.Add(session);
             }
 
+            Log.Write("Session #{0} started.", sessionId.Ordinal);
             return sessionId;
         }
 
@@ -137,6 +158,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             Contract.ThrowIfNull(debuggingSession, "Debugging session has not started.");
 
             debuggingSession.EndSession(out documentsToReanalyze, out var telemetryData);
+
+            Log.Write("Session #{0} ended.", debuggingSession.Id.Ordinal);
         }
 
         public void BreakStateOrCapabilitiesChanged(DebuggingSessionId sessionId, bool? inBreakState, out ImmutableArray<DocumentId> documentsToReanalyze)
@@ -152,29 +175,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 (s, arg, cancellationToken) => s.GetDocumentDiagnosticsAsync(arg.document, arg.activeStatementSpanProvider, cancellationToken),
                 (document, activeStatementSpanProvider),
                 cancellationToken);
-        }
-
-        /// <summary>
-        /// Determine whether updates have been made to projects containing the specified file (or all projects that are built,
-        /// if <paramref name="sourceFilePath"/> is null).
-        /// </summary>
-        public ValueTask<bool> HasChangesAsync(
-            DebuggingSessionId sessionId,
-            Solution solution,
-            ActiveStatementSpanProvider activeStatementSpanProvider,
-            string? sourceFilePath,
-            CancellationToken cancellationToken)
-        {
-            // GetStatusAsync is called outside of edit session when the debugger is determining
-            // whether a source file checksum matches the one in PDB.
-            // The debugger expects no changes in this case.
-            var debuggingSession = TryGetDebuggingSession(sessionId);
-            if (debuggingSession == null)
-            {
-                return default;
-            }
-
-            return debuggingSession.EditSession.HasChangesAsync(solution, activeStatementSpanProvider, sourceFilePath, cancellationToken);
         }
 
         public ValueTask<EmitSolutionUpdateResults> EmitSolutionUpdateAsync(

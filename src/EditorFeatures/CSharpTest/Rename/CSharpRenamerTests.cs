@@ -381,8 +381,7 @@ renamedSymbols: RenameHelpers.MakeSymbolPairs("Test.Path.C", "Test.Path.After.Te
         newDocumentPath: @"Test\C2.cs",
         renamedSymbols: RenameHelpers.MakeSymbolPairs("Test.Path.C", "Test.C2"));
 
-        [Fact]
-        [WorkItem(46580, "https://github.com/dotnet/roslyn/issues/46580")]
+        [Fact, WorkItem(46580, "https://github.com/dotnet/roslyn/issues/46580")]
         public Task CSharp_RenameDocument_MappedDocumentHasNoResults()
         {
             var documentName = "Component1.razor";

@@ -11,7 +11,7 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
-using Microsoft.CodeAnalysis.CSharp.LanguageServices;
+using Microsoft.CodeAnalysis.CSharp.LanguageService;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.FindSymbols.Finders;
@@ -40,6 +40,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
         internal override SyntaxTrivia ElasticCarriageReturnLineFeed => SyntaxFactory.ElasticCarriageReturnLineFeed;
         internal override SyntaxTrivia CarriageReturnLineFeed => SyntaxFactory.CarriageReturnLineFeed;
+        internal override SyntaxTrivia ElasticMarker => SyntaxFactory.ElasticMarker;
 
         internal override bool RequiresExplicitImplementationForInterfaceMembers => false;
 
@@ -292,6 +293,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 OperatorKind.Multiply => SyntaxKind.AsteriskToken,
                 OperatorKind.OnesComplement => SyntaxKind.TildeToken,
                 OperatorKind.RightShift => SyntaxKind.GreaterThanGreaterThanToken,
+                OperatorKind.UnsignedRightShift => SyntaxKind.GreaterThanGreaterThanGreaterThanToken,
                 OperatorKind.Subtraction => SyntaxKind.MinusToken,
                 OperatorKind.True => SyntaxKind.TrueKeyword,
                 OperatorKind.UnaryNegation => SyntaxKind.MinusToken,
@@ -555,7 +557,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
         private SyntaxNode WithoutConstraints(SyntaxNode declaration)
         {
-            if (declaration.IsKind(SyntaxKind.MethodDeclaration, out MethodDeclarationSyntax? method))
+            if (declaration is MethodDeclarationSyntax method)
             {
                 if (method.ConstraintClauses.Count > 0)
                 {
@@ -761,6 +763,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             {
                 Accessibility acc;
                 DeclarationModifiers modifiers;
+
+                // return any nested member "as is" without any additional changes
+                if (member is BaseTypeDeclarationSyntax)
+                    return member;
 
                 switch (member.Kind())
                 {
@@ -998,11 +1004,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             var existingAttributes = this.GetAttributes(declaration);
             if (index >= 0 && index < existingAttributes.Count)
             {
-                return this.InsertNodesBefore(declaration, existingAttributes[index], newAttributes);
+                return this.InsertNodesBefore(declaration, existingAttributes[index], WithRequiredTargetSpecifier(newAttributes, declaration));
             }
             else if (existingAttributes.Count > 0)
             {
-                return this.InsertNodesAfter(declaration, existingAttributes[existingAttributes.Count - 1], newAttributes);
+                return this.InsertNodesAfter(declaration, existingAttributes[existingAttributes.Count - 1], WithRequiredTargetSpecifier(newAttributes, declaration));
             }
             else
             {
@@ -1057,6 +1063,16 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         {
             return SyntaxFactory.List(
                     attributes.Select(list => list.WithTarget(SyntaxFactory.AttributeTargetSpecifier(SyntaxFactory.Token(SyntaxKind.AssemblyKeyword)))));
+        }
+
+        private static SyntaxList<AttributeListSyntax> WithRequiredTargetSpecifier(SyntaxList<AttributeListSyntax> attributes, SyntaxNode declaration)
+        {
+            if (!declaration.IsKind(SyntaxKind.CompilationUnit))
+            {
+                return attributes;
+            }
+
+            return AsAssemblyAttributes(attributes);
         }
 
         public override IReadOnlyList<SyntaxNode> GetAttributeArguments(SyntaxNode attributeDeclaration)
@@ -1166,6 +1182,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 ParameterSyntax parameter => parameter.WithAttributeLists(attributeLists),
                 CompilationUnitSyntax compilationUnit => compilationUnit.WithAttributeLists(AsAssemblyAttributes(attributeLists)),
                 StatementSyntax statement => statement.WithAttributeLists(attributeLists),
+                TypeParameterSyntax typeParameter => typeParameter.WithAttributeLists(attributeLists),
+                LambdaExpressionSyntax lambdaExpression => lambdaExpression.WithAttributeLists(attributeLists),
                 _ => declaration,
             };
 
@@ -1336,7 +1354,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             };
 
         private static bool CanHaveAccessibility(SyntaxNode declaration)
-            => CSharpAccessibilityFacts.Instance.CanHaveAccessibility(declaration);
+            // For certain declarations, the answer of CanHaveAccessibility depends on the modifiers.
+            // For example, static constructors cannot have accessibility, but constructors in general can.
+            // The same applies to file-local declarations (e.g, "file class C { }").
+            // For such declarations, we want to return true. This is because we can be explicitly asked to put accessibility.
+            // In such cases, we'll drop the modifier that prevents us from having accessibility.
+            => CSharpAccessibilityFacts.Instance.CanHaveAccessibility(declaration, ignoreDeclarationModifiers: true);
 
         public override Accessibility GetAccessibility(SyntaxNode declaration)
             => CSharpAccessibilityFacts.Instance.GetAccessibility(declaration);
@@ -1356,6 +1379,20 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             {
                 var tokens = GetModifierTokens(d);
                 GetAccessibilityAndModifiers(tokens, out _, out var modifiers, out _);
+                if (modifiers.IsFile && accessibility != Accessibility.NotApplicable)
+                {
+                    // If user wants to set accessibility for a file-local declaration, we remove file.
+                    // Otherwise, code will be in error:
+                    // error CS9052: File-local type '{0}' cannot use accessibility modifiers.
+                    modifiers = modifiers.WithIsFile(false);
+                }
+
+                if (modifiers.IsStatic && declaration.IsKind(SyntaxKind.ConstructorDeclaration) && accessibility != Accessibility.NotApplicable)
+                {
+                    // If user wants to add accessibility for a static constructor, we remove static modifier
+                    modifiers = modifiers.WithIsStatic(false);
+                }
+
                 var newTokens = Merge(tokens, AsModifierList(accessibility, modifiers));
                 return SetModifierTokens(d, newTokens);
             });
@@ -1365,6 +1402,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             DeclarationModifiers.Const |
             DeclarationModifiers.New |
             DeclarationModifiers.ReadOnly |
+            DeclarationModifiers.Required |
             DeclarationModifiers.Static |
             DeclarationModifiers.Unsafe |
             DeclarationModifiers.Volatile;
@@ -1394,6 +1432,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             DeclarationModifiers.New |
             DeclarationModifiers.Override |
             DeclarationModifiers.ReadOnly |
+            DeclarationModifiers.Required |
             DeclarationModifiers.Sealed |
             DeclarationModifiers.Static |
             DeclarationModifiers.Virtual |
@@ -1433,28 +1472,32 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             DeclarationModifiers.Partial |
             DeclarationModifiers.Sealed |
             DeclarationModifiers.Static |
-            DeclarationModifiers.Unsafe;
+            DeclarationModifiers.Unsafe |
+            DeclarationModifiers.File;
 
         private static readonly DeclarationModifiers s_recordModifiers =
             DeclarationModifiers.Abstract |
             DeclarationModifiers.New |
             DeclarationModifiers.Partial |
             DeclarationModifiers.Sealed |
-            DeclarationModifiers.Unsafe;
+            DeclarationModifiers.Unsafe |
+            DeclarationModifiers.File;
 
         private static readonly DeclarationModifiers s_structModifiers =
             DeclarationModifiers.New |
             DeclarationModifiers.Partial |
             DeclarationModifiers.ReadOnly |
             DeclarationModifiers.Ref |
-            DeclarationModifiers.Unsafe;
+            DeclarationModifiers.Unsafe |
+            DeclarationModifiers.File;
 
-        private static readonly DeclarationModifiers s_interfaceModifiers = DeclarationModifiers.New | DeclarationModifiers.Partial | DeclarationModifiers.Unsafe;
+        private static readonly DeclarationModifiers s_interfaceModifiers = DeclarationModifiers.New | DeclarationModifiers.Partial | DeclarationModifiers.Unsafe | DeclarationModifiers.File;
         private static readonly DeclarationModifiers s_accessorModifiers = DeclarationModifiers.Abstract | DeclarationModifiers.New | DeclarationModifiers.Override | DeclarationModifiers.Virtual;
 
         private static readonly DeclarationModifiers s_localFunctionModifiers =
             DeclarationModifiers.Async |
             DeclarationModifiers.Static |
+            DeclarationModifiers.Unsafe |
             DeclarationModifiers.Extern;
 
         private static readonly DeclarationModifiers s_lambdaModifiers =
@@ -1471,10 +1514,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                     return s_classModifiers;
 
                 case SyntaxKind.EnumDeclaration:
-                    return DeclarationModifiers.New;
+                    return DeclarationModifiers.New | DeclarationModifiers.File;
 
                 case SyntaxKind.DelegateDeclaration:
-                    return DeclarationModifiers.New | DeclarationModifiers.Unsafe;
+                    return DeclarationModifiers.New | DeclarationModifiers.Unsafe | DeclarationModifiers.File;
 
                 case SyntaxKind.InterfaceDeclaration:
                     return s_interfaceModifiers;
@@ -1554,6 +1597,16 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 {
                     var tokens = GetModifierTokens(d);
                     GetAccessibilityAndModifiers(tokens, out var accessibility, out var tmp, out _);
+                    if (accessibility != Accessibility.NotApplicable)
+                    {
+                        if (modifiers.IsFile ||
+                            (modifiers.IsStatic && declaration.IsKind(SyntaxKind.ConstructorDeclaration)))
+                        {
+                            // We remove the accessibility if the modifiers don't allow it.
+                            accessibility = Accessibility.NotApplicable;
+                        }
+                    }
+
                     var newTokens = Merge(tokens, AsModifierList(accessibility, modifiers));
                     return SetModifierTokens(d, newTokens);
                 });
@@ -1610,6 +1663,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                     break;
             }
 
+            if (modifiers.IsFile)
+                list.Add(SyntaxFactory.Token(SyntaxKind.FileKeyword));
+
             if (modifiers.IsAbstract)
                 list.Add(SyntaxFactory.Token(SyntaxKind.AbstractKeyword));
 
@@ -1645,6 +1701,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
             if (modifiers.IsExtern)
                 list.Add(SyntaxFactory.Token(SyntaxKind.ExternKeyword));
+
+            if (modifiers.IsRequired)
+                list.Add(SyntaxFactory.Token(SyntaxKind.RequiredKeyword));
 
             // partial and ref must be last
             if (modifiers.IsRef)
@@ -3144,7 +3203,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             // this counts for actual reference type, or a type parameter with a 'class' constraint.
             // Also, if it's a nullable type, then we can use "null".
             if (type.IsReferenceType ||
-                type.IsPointerType() ||
+                type is IPointerTypeSymbol ||
                 type.IsNullable())
             {
                 return SyntaxFactory.LiteralExpression(SyntaxKind.NullLiteralExpression);
@@ -3475,6 +3534,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
         internal override SyntaxNode ScopeBlock(IEnumerable<SyntaxNode> statements)
             => SyntaxFactory.Block(statements.Cast<StatementSyntax>());
+
+        internal override SyntaxNode GlobalStatement(SyntaxNode statement)
+            => SyntaxFactory.GlobalStatement((StatementSyntax)statement);
 
         public override SyntaxNode ValueReturningLambdaExpression(IEnumerable<SyntaxNode>? parameterDeclarations, SyntaxNode expression)
         {

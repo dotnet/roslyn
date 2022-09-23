@@ -113,7 +113,7 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.DataProvider.CodeSt
 
         private IEnumerable<CodeStyleSetting> GetModifierCodeStyleOptions(AnalyzerConfigOptions options, OptionSet visualStudioOptions, OptionUpdater updater)
         {
-            yield return CodeStyleSetting.Create(option: CodeStyleOptions2.RequireAccessibilityModifiers,
+            yield return CodeStyleSetting.Create(option: CodeStyleOptions2.AccessibilityModifiersRequired,
                 description: ServicesVSResources.Require_accessibility_modifiers,
                 enumValues: new[] { AccessibilityModifiersRequired.Always, AccessibilityModifiersRequired.ForNonInterfaceMembers, AccessibilityModifiersRequired.Never, AccessibilityModifiersRequired.OmitIfDefault },
                 valueDescriptions: new[] { ServicesVSResources.Always, ServicesVSResources.For_non_interface_members, ServicesVSResources.Never, ServicesVSResources.Omit_if_default },
@@ -130,10 +130,6 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.DataProvider.CodeSt
         {
             yield return CodeStyleSetting.Create(option: CodeStyleOptions2.PreferAutoProperties,
                 description: ServicesVSResources.analyzer_Prefer_auto_properties,
-                editorConfigOptions: options,
-                visualStudioOptions: visualStudioOptions, updater: updater, fileName: FileName);
-            yield return CodeStyleSetting.Create(option: CodeStyleOptions2.PreferSystemHashCode,
-                description: ServicesVSResources.Prefer_System_HashCode_in_GetHashCode,
                 editorConfigOptions: options,
                 visualStudioOptions: visualStudioOptions, updater: updater, fileName: FileName);
         }

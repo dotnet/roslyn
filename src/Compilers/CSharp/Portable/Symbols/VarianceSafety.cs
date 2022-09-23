@@ -88,7 +88,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (container is object)
             {
                 Debug.Assert(container.IsInterfaceType());
-                Debug.Assert(container.TypeParameters.Any(tp => tp.Variance != VarianceKind.None));
+                Debug.Assert(container.TypeParameters.Any(static tp => tp.Variance != VarianceKind.None));
                 diagnostics.Add(ErrorCode.ERR_VarianceInterfaceNesting, member.Locations[0]);
             }
         }
@@ -105,7 +105,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     break;
                 }
 
-                if (container.TypeParameters.Any(tp => tp.Variance != VarianceKind.None))
+                if (container.TypeParameters.Any(static tp => tp.Variance != VarianceKind.None))
                 {
                     // We are inside of a variant interface
                     return container;
@@ -171,7 +171,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private static bool SkipVarianceSafetyChecks(Symbol member)
         {
-            if (member.IsStatic && !member.IsAbstract)
+            if (member.IsStatic && !member.IsAbstract && !member.IsVirtual)
             {
                 return MessageID.IDS_FeatureVarianceSafetyForStaticInterfaceMembers.RequiredVersion() <= member.DeclaringCompilation.LanguageVersion;
             }
@@ -469,7 +469,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // "requires output-safe", and "requires input-safe and output-safe".  This would make the error codes much easier to document and
             // much more actionable.
             // UNDONE: related location for use is much more useful
-            if (!(context is TypeSymbol) && context.IsStatic && !context.IsAbstract)
+            if (!(context is TypeSymbol) && context.IsStatic && !context.IsAbstract && !context.IsVirtual)
             {
                 diagnostics.Add(ErrorCode.ERR_UnexpectedVarianceStaticMember, location, context, unsafeTypeParameter, actualVariance.Localize(), expectedVariance.Localize(),
                                 new CSharpRequiredLanguageVersion(MessageID.IDS_FeatureVarianceSafetyForStaticInterfaceMembers.RequiredVersion()));

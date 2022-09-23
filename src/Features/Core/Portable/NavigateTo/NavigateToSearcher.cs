@@ -32,7 +32,6 @@ namespace Microsoft.CodeAnalysis.NavigateTo
     {
         private readonly INavigateToSearcherHost _host;
         private readonly Solution _solution;
-        private readonly IAsynchronousOperationListener _asyncListener;
         private readonly INavigateToSearchCallback _callback;
         private readonly string _searchPattern;
         private readonly IImmutableSet<string> _kinds;
@@ -46,14 +45,12 @@ namespace Microsoft.CodeAnalysis.NavigateTo
         private NavigateToSearcher(
             INavigateToSearcherHost host,
             Solution solution,
-            IAsynchronousOperationListener asyncListener,
             INavigateToSearchCallback callback,
             string searchPattern,
             IImmutableSet<string> kinds)
         {
             _host = host;
             _solution = solution;
-            _asyncListener = asyncListener;
             _callback = callback;
             _searchPattern = searchPattern;
             _kinds = kinds;
@@ -63,7 +60,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
                 return new ValueTask();
             });
 
-            var docTrackingService = _solution.Workspace.Services.GetRequiredService<IDocumentTrackingService>();
+            var docTrackingService = _solution.Services.GetRequiredService<IDocumentTrackingService>();
 
             // If the workspace is tracking documents, use that to prioritize our search
             // order.  That way we provide results for the documents the user is working
@@ -83,7 +80,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             INavigateToSearcherHost? host = null)
         {
             host ??= new DefaultNavigateToSearchHost(solution, asyncListener, disposalToken);
-            return new NavigateToSearcher(host, solution, asyncListener, callback, searchPattern, kinds);
+            return new NavigateToSearcher(host, solution, callback, searchPattern, kinds);
         }
 
         private async Task AddProgressItemsAsync(int count, CancellationToken cancellationToken)
@@ -114,7 +111,6 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             try
             {
                 using var navigateToSearch = Logger.LogBlock(FunctionId.NavigateTo_Search, KeyValueLogMessage.Create(LogType.UserAction), cancellationToken);
-                using var asyncToken = _asyncListener.BeginAsyncOperation(GetType() + ".Search");
 
                 if (searchCurrentDocument)
                 {
@@ -152,7 +148,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
 
             await AddProgressItemsAsync(1, cancellationToken).ConfigureAwait(false);
             await service.SearchDocumentAsync(
-                _activeDocument, _searchPattern, _kinds,
+                _activeDocument, _searchPattern, _kinds, _activeDocument,
                 r => _callback.AddItemAsync(project, r, cancellationToken),
                 cancellationToken).ConfigureAwait(false);
         }
@@ -353,7 +349,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
                 parallel: true,
                 orderedProjects,
                 seenItems,
-                (s, p, cb) => s.SearchProjectAsync(p, GetPriorityDocuments(p), _searchPattern, _kinds, cb, cancellationToken),
+                (s, p, cb) => s.SearchProjectAsync(p, GetPriorityDocuments(p), _searchPattern, _kinds, _activeDocument, cb, cancellationToken),
                 cancellationToken);
         }
 
@@ -370,7 +366,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
                 parallel: true,
                 orderedProjects,
                 seenItems,
-                (s, p, cb) => s.SearchCachedDocumentsAsync(p, GetPriorityDocuments(p), _searchPattern, _kinds, cb, cancellationToken),
+                (s, p, cb) => s.SearchCachedDocumentsAsync(p, GetPriorityDocuments(p), _searchPattern, _kinds, _activeDocument, cb, cancellationToken),
                 cancellationToken);
         }
 
@@ -398,7 +394,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
                 parallel: false,
                 allProjects,
                 seenItems,
-                (s, p, cb) => s.SearchGeneratedDocumentsAsync(p, _searchPattern, _kinds, cb, cancellationToken),
+                (s, p, cb) => s.SearchGeneratedDocumentsAsync(p, _searchPattern, _kinds, _activeDocument, cb, cancellationToken),
                 cancellationToken);
         }
     }

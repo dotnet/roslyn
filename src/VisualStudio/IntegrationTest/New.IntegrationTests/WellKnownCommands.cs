@@ -4,6 +4,7 @@
 
 using System.ComponentModel.Design;
 using Microsoft.VisualStudio;
+using Microsoft.VisualStudio.LanguageServices;
 
 namespace Roslyn.VisualStudio.IntegrationTests
 {
@@ -11,6 +12,7 @@ namespace Roslyn.VisualStudio.IntegrationTests
     {
         public static class Edit
         {
+            public static readonly CommandID GoToImplementation = new(Guids.RoslynGroupId, ID.RoslynCommands.GoToImplementation);
             public static readonly CommandID RemoveAndSort = new(VSConstants.CMDSETID.CSharpGroup_guid, 6419);
         }
     }

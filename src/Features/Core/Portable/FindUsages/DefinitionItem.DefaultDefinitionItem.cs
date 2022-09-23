@@ -37,46 +37,30 @@ namespace Microsoft.CodeAnalysis.FindUsages
             {
             }
 
-            public sealed override async Task<bool> CanNavigateToAsync(Workspace workspace, CancellationToken cancellationToken)
+            public override async Task<INavigableLocation?> GetNavigableLocationAsync(Workspace workspace, CancellationToken cancellationToken)
             {
                 if (Properties.ContainsKey(NonNavigable))
-                    return false;
+                    return null;
 
                 if (Properties.TryGetValue(MetadataSymbolKey, out var symbolKey))
                 {
-                    var (_, symbol) = await TryResolveSymbolInCurrentSolutionAsync(workspace, symbolKey, cancellationToken).ConfigureAwait(false);
-                    return symbol is { Kind: not SymbolKind.Namespace };
-                }
-
-                return await SourceSpans[0].CanNavigateToAsync(cancellationToken).ConfigureAwait(false);
-            }
-
-            public sealed override async Task<bool> TryNavigateToAsync(Workspace workspace, NavigationOptions options, CancellationToken cancellationToken)
-            {
-                if (Properties.ContainsKey(NonNavigable))
-                    return false;
-
-                if (Properties.TryGetValue(MetadataSymbolKey, out var symbolKey))
-                {
-                    var (project, symbol) = await TryResolveSymbolInCurrentSolutionAsync(workspace, symbolKey, cancellationToken).ConfigureAwait(false);
+                    var (project, symbol) = await TryResolveSymbolAsync(workspace.CurrentSolution, symbolKey, cancellationToken).ConfigureAwait(false);
                     if (symbol is { Kind: not SymbolKind.Namespace })
                     {
                         Contract.ThrowIfNull(project);
 
                         var navigationService = workspace.Services.GetRequiredService<ISymbolNavigationService>();
-                        return navigationService.TryNavigateToSymbol(symbol, project, options with { PreferProvisionalTab = true }, cancellationToken);
+                        return await navigationService.GetNavigableLocationAsync(
+                            symbol, project, cancellationToken).ConfigureAwait(false);
                     }
 
-                    return false;
+                    return null;
                 }
 
-                return await SourceSpans[0].TryNavigateToAsync(options, cancellationToken).ConfigureAwait(false);
+                return await SourceSpans[0].GetNavigableLocationAsync(cancellationToken).ConfigureAwait(false);
             }
 
-            public DetachedDefinitionItem Detach()
-                => new(Tags, DisplayParts, NameDisplayParts, OriginationParts, SourceSpans, Properties, DisplayableProperties, DisplayIfNoReferences);
-
-            private async ValueTask<(Project? project, ISymbol? symbol)> TryResolveSymbolInCurrentSolutionAsync(Workspace workspace, string symbolKey, CancellationToken cancellationToken)
+            private async ValueTask<(Project? project, ISymbol? symbol)> TryResolveSymbolAsync(Solution solution, string symbolKey, CancellationToken cancellationToken)
             {
                 if (!Properties.TryGetValue(MetadataSymbolOriginatingProjectIdGuid, out var projectIdGuid) ||
                     !Properties.TryGetValue(MetadataSymbolOriginatingProjectIdDebugName, out var projectDebugName))
@@ -84,7 +68,7 @@ namespace Microsoft.CodeAnalysis.FindUsages
                     return default;
                 }
 
-                var project = workspace.CurrentSolution.GetProject(ProjectId.CreateFromSerialized(Guid.Parse(projectIdGuid), projectDebugName));
+                var project = solution.GetProject(ProjectId.CreateFromSerialized(Guid.Parse(projectIdGuid), projectDebugName));
                 if (project == null)
                     return default;
 

@@ -8,9 +8,10 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Roslyn.Test.Utilities;
+using Roslyn.VisualStudio.IntegrationTests;
 using Xunit;
 
-namespace Roslyn.VisualStudio.IntegrationTests.CSharp
+namespace Roslyn.VisualStudio.NewIntegrationTests.CSharp
 {
     [Trait(Traits.Feature, Traits.Features.CodeActionsUpdateProjectToAllowUnsafe)]
     public class CSharpUpdateProjectToAllowUnsafe : AbstractUpgradeProjectTest
@@ -34,7 +35,7 @@ unsafe class C
             }
         }
 
-        [IdeFact]
+        [IdeFact(Skip = "https://github.com/dotnet/roslyn/issues/63026")]
         public async Task CPSProject_GeneralPropertyGroupUpdated()
         {
             var project = ProjectName;
@@ -47,7 +48,7 @@ unsafe class C
             VerifyPropertyOutsideConfiguration(await GetProjectFileElementAsync(project, HangMitigatingCancellationToken), "AllowUnsafeBlocks", "true");
         }
 
-        [IdeFact]
+        [IdeFact(Skip = "https://github.com/dotnet/roslyn/issues/63026")]
         public async Task LegacyProject_AllConfigurationsUpdated()
         {
             var project = ProjectName;
@@ -59,7 +60,7 @@ unsafe class C
             VerifyPropertyInEachConfiguration(await GetProjectFileElementAsync(project, HangMitigatingCancellationToken), "AllowUnsafeBlocks", "true");
         }
 
-        [IdeFact]
+        [IdeFact(Skip = "https://github.com/dotnet/roslyn/issues/63026")]
         [WorkItem(23342, "https://github.com/dotnet/roslyn/issues/23342")]
         public async Task LegacyProject_MultiplePlatforms_AllConfigurationsUpdated()
         {

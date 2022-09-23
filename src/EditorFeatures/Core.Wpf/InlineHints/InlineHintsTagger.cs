@@ -5,11 +5,13 @@
 using System;
 using System.Collections.Generic;
 using System.Composition;
+using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.InlineHints;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Classification;
 using Microsoft.VisualStudio.Text.Editor;
@@ -47,7 +49,6 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
         private TextFormattingRunProperties? _format;
         private readonly IClassificationType _hintClassification;
 
-        private readonly ForegroundThreadAffinitizedObject _threadAffinitizedObject;
         private readonly InlineHintsTaggerProvider _taggerProvider;
 
         private readonly ITextBuffer _buffer;
@@ -61,7 +62,6 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
             ITextBuffer buffer,
             ITagAggregator<InlineHintDataTag> tagAggregator)
         {
-            _threadAffinitizedObject = new ForegroundThreadAffinitizedObject(taggerProvider.ThreadingContext);
             _taggerProvider = taggerProvider;
 
             _textView = textView;
@@ -76,7 +76,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
 
         private void OnClassificationFormatMappingChanged(object sender, EventArgs e)
         {
-            _threadAffinitizedObject.AssertIsForeground();
+            _taggerProvider.ThreadingContext.ThrowIfNotOnUIThread();
             if (_format != null)
             {
                 _format = null;
@@ -106,7 +106,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
         {
             get
             {
-                _threadAffinitizedObject.AssertIsForeground();
+                _taggerProvider.ThreadingContext.ThrowIfNotOnUIThread();
                 _format ??= _formatMap.GetTextProperties(_hintClassification);
                 return _format;
             }
@@ -151,18 +151,23 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
                 var selectedSpans = new List<ITagSpan<IntraTextAdornmentTag>>();
                 for (var i = 0; i < _cache.Count; i++)
                 {
-                    var tagSpan = _cache[i].mappingTagSpan.Span.GetSpans(snapshot)[0];
-                    if (spans.IntersectsWith(tagSpan))
+                    var tagSpans = _cache[i].mappingTagSpan.Span.GetSpans(snapshot);
+                    if (tagSpans.Count == 1)
                     {
-                        if (_cache[i].tagSpan is not { } hintTagSpan)
+                        var tagSpan = tagSpans[0];
+                        if (spans.IntersectsWith(tagSpan))
                         {
-                            var parameterHintUITag = InlineHintsTag.Create(
-                                    _cache[i].mappingTagSpan.Tag.Hint, Format, _textView, tagSpan, _taggerProvider, _formatMap, classify);
-                            hintTagSpan = new TagSpan<IntraTextAdornmentTag>(tagSpan, parameterHintUITag);
-                            _cache[i] = (_cache[i].mappingTagSpan, hintTagSpan);
-                        }
+                            if (_cache[i].tagSpan is not { } hintTagSpan)
+                            {
+                                var hintUITag = InlineHintsTag.Create(
+                                        _cache[i].mappingTagSpan.Tag.Hint, Format, _textView, tagSpan, _taggerProvider, _formatMap, classify);
 
-                        selectedSpans.Add(hintTagSpan);
+                                hintTagSpan = new TagSpan<IntraTextAdornmentTag>(tagSpan, hintUITag);
+                                _cache[i] = (_cache[i].mappingTagSpan, hintTagSpan);
+                            }
+
+                            selectedSpans.Add(hintTagSpan);
+                        }
                     }
                 }
 

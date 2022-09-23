@@ -7,7 +7,6 @@
 extern alias InteractiveHost;
 
 using Microsoft.CodeAnalysis.Editor.Host;
-using Microsoft.VisualStudio.LanguageServices.Interactive;
 using Microsoft.VisualStudio.Text.Editor;
 using System;
 using System.Collections.Immutable;
@@ -17,6 +16,8 @@ using System.Collections.Generic;
 using InteractiveHost::Microsoft.CodeAnalysis.Interactive;
 using Microsoft.VisualStudio.Utilities;
 using Microsoft.VisualStudio.Language.Intellisense.Utilities;
+using Microsoft.CodeAnalysis.Interactive;
+using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Interactive.Commands
 {
@@ -46,11 +47,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Interactive.Commands
 
         public TestResetInteractive(
             IUIThreadOperationExecutor uiThreadOperationExecutor,
-            IEditorOptionsFactoryService editorOptionsFactoryService,
+            EditorOptionsService editorOptionsService,
             Func<string, string> createReference,
             Func<string, string> createImport,
             bool buildSucceeds)
-            : base(editorOptionsFactoryService, createReference, createImport)
+            : base(editorOptionsService, createReference, createImport)
         {
             _uiThreadOperationExecutor = uiThreadOperationExecutor;
             _buildSucceeds = buildSucceeds;

@@ -2,15 +2,12 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
-Imports Microsoft.CodeAnalysis.Editor.Shared
 Imports Microsoft.CodeAnalysis.Editor.[Shared].Utilities
 Imports Microsoft.CodeAnalysis.Editor.UnitTests
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
-Imports Microsoft.CodeAnalysis.Editor.VisualBasic.EncapsulateField
-Imports Microsoft.CodeAnalysis.Shared.TestHooks
 Imports Microsoft.CodeAnalysis.VisualBasic.EncapsulateField
-Imports Microsoft.VisualStudio.Composition
+Imports Microsoft.CodeAnalysis.Shared.TestHooks
 Imports Microsoft.VisualStudio.Text.Editor.Commanding.Commands
 Imports Microsoft.VisualStudio.Text.Operations
 
@@ -33,25 +30,26 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EncapsulateField
             Return New EncapsulateFieldTestState(workspace)
         End Function
 
-        Public Sub Encapsulate()
+        Public Async Function EncapsulateAsync() As Task
             Dim args = New EncapsulateFieldCommandArgs(_testDocument.GetTextView(), _testDocument.GetTextBuffer())
             Dim commandHandler = New EncapsulateFieldCommandHandler(
                 Workspace.ExportProvider.GetExportedValue(Of IThreadingContext)(),
                 Workspace.GetService(Of ITextBufferUndoManagerProvider)(),
+                Workspace.GlobalOptions,
                 Workspace.ExportProvider.GetExportedValue(Of IAsynchronousOperationListenerProvider))
+            Dim provider = Workspace.ExportProvider.GetExportedValue(Of IAsynchronousOperationListenerProvider)()
+            Dim waiter = DirectCast(provider.GetListener(FeatureAttribute.EncapsulateField), IAsynchronousOperationWaiter)
             commandHandler.ExecuteCommand(args, TestCommandExecutionContext.Create())
-        End Sub
+            Await waiter.ExpeditedWaitAsync()
+        End Function
 
-        Public Sub AssertEncapsulateAs(expected As String)
-            Encapsulate()
+        Public Async Function AssertEncapsulateAsAsync(expected As String) As Task
+            Await EncapsulateAsync()
             Assert.Equal(expected, _testDocument.GetTextBuffer().CurrentSnapshot.GetText().ToString())
-        End Sub
+        End Function
 
         Public Sub Dispose() Implements IDisposable.Dispose
-            If Workspace IsNot Nothing Then
-                Workspace.Dispose()
-            End If
+            Workspace?.Dispose()
         End Sub
-
     End Class
 End Namespace

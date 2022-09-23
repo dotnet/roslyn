@@ -349,7 +349,7 @@ ISwitchExpressionOperation (1 arms, IsExhaustive: True) (OperationKind.SwitchExp
             var expectedDiagnostics = new[] {
                 // file.cs(7,43): error CS1003: Syntax error, '=>' expected
                 //         y = /*<bind>*/x switch { _ /*=>*/ 5 }/*</bind>*/;
-                Diagnostic(ErrorCode.ERR_SyntaxError, "5").WithArguments("=>", "").WithLocation(7, 43)
+                Diagnostic(ErrorCode.ERR_SyntaxError, "5").WithArguments("=>").WithLocation(7, 43)
             };
             VerifyOperationTreeAndDiagnosticsForTest<SwitchExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }

@@ -7,6 +7,7 @@ Imports Microsoft.CodeAnalysis.ConvertToInterpolatedString
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.ConvertToInterpolatedString
+    <Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)>
     Public Class ConvertRegularStringToInterpolatedStringTests
         Inherits AbstractVisualBasicCodeActionTest
 
@@ -14,7 +15,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.ConvertToInterpola
             Return New ConvertRegularStringToInterpolatedStringRefactoringProvider()
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)>
+        <Fact>
         Public Async Function TestMissingOnRegularStringWithNoBraces() As Task
             Await TestMissingInRegularAndScriptAsync(
 "
@@ -25,7 +26,7 @@ Public Class C
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)>
+        <Fact>
         Public Async Function TestOnRegularStringWithBraces() As Task
             Await TestInRegularAndScriptAsync(
 "
@@ -42,7 +43,7 @@ Public Class C
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)>
+        <Fact>
         Public Async Function TestMissingOnInterpolatedString() As Task
             Await TestMissingInRegularAndScriptAsync(
 "
@@ -54,7 +55,7 @@ Public Class C
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)>
+        <Fact, WorkItem(52243, "https://github.com/dotnet/roslyn/issues/52243")>
         Public Async Function TestMissingOnRegularStringWithBracesAssignedToConst() As Task
             Await TestMissingInRegularAndScriptAsync(
 "
@@ -62,6 +63,17 @@ Public Class C
     Sub M()
         Const v = [||]""string {""
     End Sub
+End Class")
+        End Function
+
+        <Fact, WorkItem(52243, "https://github.com/dotnet/roslyn/issues/52243")>
+        Public Async Function TestMissingOnAttributeStringParameterWithBraces() As Task
+            Await TestMissingInRegularAndScriptAsync(
+"
+<System.Diagnostics.DebuggerDisplay([||]""FirstName={FirstName}, LastName={LastName}"")>
+Public Class C
+    Public Property FirstName As String
+    Public Property LastName As String
 End Class")
         End Function
     End Class

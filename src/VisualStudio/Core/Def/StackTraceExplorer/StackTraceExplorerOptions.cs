@@ -11,25 +11,15 @@ using Microsoft.CodeAnalysis.Options.Providers;
 
 namespace Microsoft.CodeAnalysis.StackTraceExplorer
 {
-    [ExportGlobalOptionProvider, Shared]
-    internal sealed class StackTraceExplorerOptionsMetadata : IOptionProvider
+    internal sealed class StackTraceExplorerOptionsMetadata
     {
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public StackTraceExplorerOptionsMetadata()
-        {
-        }
-
-        public ImmutableArray<IOption> Options { get; } = ImmutableArray.Create<IOption>(
-            OpenOnFocus);
-
         private const string FeatureName = "StackTraceExplorerOptions";
 
         /// <summary>
         /// Used to determine if a user focusing VS should look at the clipboard for a callstack and automatically
         /// open the tool window with the callstack inserted
         /// </summary>
-        public static readonly Option2<bool> OpenOnFocus = new(FeatureName, "OpenOnFocus", defaultValue: true,
+        public static readonly Option2<bool> OpenOnFocus = new(FeatureName, "OpenOnFocus", defaultValue: false,
             storageLocation: new RoamingProfileStorageLocation("StackTraceExplorer.Options.OpenOnFocus"));
     }
 }

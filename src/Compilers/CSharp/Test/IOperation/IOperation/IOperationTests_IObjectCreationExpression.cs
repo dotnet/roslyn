@@ -5189,13 +5189,13 @@ class C3
                 Diagnostic(ErrorCode.ERR_CloseParenExpected, "{").WithLocation(8, 70),
                 // CS1003: Syntax error, ':' expected
                 //         var x = new C1 { C2 = { C31 = { P1 = 1, P2 = 2 }, C32 = b ? ({ P1 = 3, P2 = 4 }) : ({ P1 = 3, P2 = 4 })
-                Diagnostic(ErrorCode.ERR_SyntaxError, "{").WithArguments(":", "{").WithLocation(8, 70),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "{").WithArguments(":").WithLocation(8, 70),
                 // CS1525: Invalid expression term '{'
                 //         var x = new C1 { C2 = { C31 = { P1 = 1, P2 = 2 }, C32 = b ? ({ P1 = 3, P2 = 4 }) : ({ P1 = 3, P2 = 4 })
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, "{").WithArguments("{").WithLocation(8, 70),
                 // CS1003: Syntax error, ',' expected
                 //         var x = new C1 { C2 = { C31 = { P1 = 1, P2 = 2 }, C32 = b ? ({ P1 = 3, P2 = 4 }) : ({ P1 = 3, P2 = 4 })
-                Diagnostic(ErrorCode.ERR_SyntaxError, "{").WithArguments(",", "{").WithLocation(8, 70),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "{").WithArguments(",").WithLocation(8, 70),
                 // CS1513: } expected
                 //         var x = new C1 { C2 = { C31 = { P1 = 1, P2 = 2 }, C32 = b ? ({ P1 = 3, P2 = 4 }) : ({ P1 = 3, P2 = 4 })
                 Diagnostic(ErrorCode.ERR_RbraceExpected, ")").WithLocation(8, 88),
@@ -13848,7 +13848,7 @@ class C1 : IEnumerable<int>
 }
 ";
             var expectedDiagnostics = new[] {
-                // file.cs(11,17): error CS7036: There is no argument given that corresponds to the required formal parameter 'x' of 'C1.C1(int)'
+                // file.cs(11,17): error CS7036: There is no argument given that corresponds to the required parameter 'x' of 'C1.C1(int)'
                 //         c = new C1 { i1 };
                 Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "C1").WithArguments("x", "C1.C1(int)").WithLocation(11, 17)
             };

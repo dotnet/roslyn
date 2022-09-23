@@ -8,9 +8,10 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Roslyn.Test.Utilities;
+using Roslyn.VisualStudio.IntegrationTests;
 using Xunit;
 
-namespace Roslyn.VisualStudio.IntegrationTests.CSharp
+namespace Roslyn.VisualStudio.NewIntegrationTests.CSharp
 {
     [Trait(Traits.Feature, Traits.Features.CodeActionsUpgradeProject)]
     public class CSharpUpgradeProject : AbstractUpgradeProjectTest
@@ -46,7 +47,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
             VerifyPropertyOutsideConfiguration(await GetProjectFileElementAsync(project, HangMitigatingCancellationToken), "LangVersion", "latest");
         }
 
-        [IdeFact]
+        [IdeFact(Skip = "https://github.com/dotnet/roslyn/issues/63026")]
         public async Task LegacyProject_AllConfigurationsUpdated()
         {
             var project = ProjectName;
@@ -95,7 +96,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
             VerifyPropertyInEachConfiguration(await GetProjectFileElementAsync(project, HangMitigatingCancellationToken), "LangVersion", "7.3");
         }
 
-        [IdeFact]
+        [IdeFact(Skip = "https://github.com/dotnet/roslyn/issues/63026")]
         [WorkItem(23342, "https://github.com/dotnet/roslyn/issues/23342")]
         public async Task LegacyProject_MultiplePlatforms_AllConfigurationsUpdated()
         {

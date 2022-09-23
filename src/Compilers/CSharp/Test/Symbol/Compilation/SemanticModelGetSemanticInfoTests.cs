@@ -4584,6 +4584,8 @@ class C
             var symbol = (ILocalSymbol)semanticInfo.Symbol;
             Assert.True(symbol.HasConstantValue);
             Assert.Equal(2, symbol.ConstantValue);
+            Assert.False(symbol.IsForEach);
+            Assert.False(symbol.IsUsing);
         }
 
         [Fact]
@@ -8985,7 +8987,7 @@ public class Test
             CreateCompilation(sourceCode).VerifyDiagnostics(
                 // (12,30): error CS1003: Syntax error, ':' expected
                 //             case /*<bind>*/()=>3/*</bind>*/:
-                Diagnostic(ErrorCode.ERR_SyntaxError, "=>").WithArguments(":", "=>").WithLocation(12, 30),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "=>").WithArguments(":").WithLocation(12, 30),
                 // (12,30): error CS1513: } expected
                 //             case /*<bind>*/()=>3/*</bind>*/:
                 Diagnostic(ErrorCode.ERR_RbraceExpected, "=>").WithLocation(12, 30),
@@ -9032,7 +9034,7 @@ public class Test
             CreateCompilation(sourceCode).VerifyDiagnostics(
                 // (13,30): error CS1003: Syntax error, ':' expected
                 //             case /*<bind>*/()=>/*</bind>*/:
-                Diagnostic(ErrorCode.ERR_SyntaxError, "=>").WithArguments(":", "=>").WithLocation(13, 30),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "=>").WithArguments(":").WithLocation(13, 30),
                 // (13,30): error CS1513: } expected
                 //             case /*<bind>*/()=>/*</bind>*/:
                 Diagnostic(ErrorCode.ERR_RbraceExpected, "=>").WithLocation(13, 30),

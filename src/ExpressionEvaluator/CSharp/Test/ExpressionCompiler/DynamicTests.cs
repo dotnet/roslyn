@@ -275,8 +275,7 @@ class Generic<T>
             });
         }
 
-        [WorkItem(4106, "https://github.com/dotnet/roslyn/issues/4106")]
-        [Fact]
+        [Fact, WorkItem(4106, "https://github.com/dotnet/roslyn/issues/4106")]
         public void LocalDuplicateConstantAndNonConstantDynamic()
         {
             var source =
@@ -344,8 +343,7 @@ class Generic<T>
             });
         }
 
-        [WorkItem(4106, "https://github.com/dotnet/roslyn/issues/4106")]
-        [Fact]
+        [Fact, WorkItem(4106, "https://github.com/dotnet/roslyn/issues/4106")]
         public void LocalDuplicateConstantAndNonConstantNonDynamic()
         {
             var source =
@@ -403,8 +401,7 @@ class Generic<T>
             });
         }
 
-        [WorkItem(4106, "https://github.com/dotnet/roslyn/issues/4106")]
-        [Fact]
+        [Fact, WorkItem(4106, "https://github.com/dotnet/roslyn/issues/4106")]
         public void LocalDuplicateConstantAndConstantDynamic()
         {
             var source =
@@ -503,8 +500,7 @@ class Generic<T>
             });
         }
 
-        [WorkItem(4106, "https://github.com/dotnet/roslyn/issues/4106")]
-        [Fact]
+        [Fact, WorkItem(4106, "https://github.com/dotnet/roslyn/issues/4106")]
         public void LocalDuplicateConstantAndConstantNonDynamic()
         {
             var source =
@@ -818,7 +814,7 @@ public class Outer<T, U>
                     testData);
                 Assert.Null(error);
                 VerifyCustomTypeInfo(result, null);
-                Assert.Equal(resultProperties.Flags, DkmClrCompilationResultFlags.PotentialSideEffect | DkmClrCompilationResultFlags.ReadOnlyResult);
+                Assert.Equal(DkmClrCompilationResultFlags.PotentialSideEffect | DkmClrCompilationResultFlags.ReadOnlyResult, resultProperties.Flags);
                 testData.GetMethodData("<>x.<>m0").VerifyIL(
 @"{
   // Code size       60 (0x3c)
@@ -1020,8 +1016,7 @@ class C
             });
         }
 
-        [WorkItem(1160855, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1160855")]
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/58198")]
+        [Fact, WorkItem(1160855, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1160855")]
         public void AwaitDynamic()
         {
             var source = @"
@@ -1251,8 +1246,7 @@ class C
             });
         }
 
-        [WorkItem(1072296, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1072296")]
-        [Fact]
+        [Fact, WorkItem(1072296, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1072296")]
         public void InvokeStaticMemberInLambda()
         {
             var source = @"
@@ -1359,8 +1353,7 @@ class C
             });
         }
 
-        [WorkItem(1095613, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1095613")]
-        [Fact]
+        [Fact, WorkItem(1095613, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1095613")]
         public void HoistedLocalsLoseDynamicAttribute()
         {
             var source = @"

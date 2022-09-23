@@ -46,16 +46,16 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
 
         private static bool TryGetSymbolSpec(
             string namingRuleTitle,
-            IReadOnlyDictionary<string, string?> conventionsDictionary,
+            IReadOnlyDictionary<string, string> conventionsDictionary,
             [NotNullWhen(true)] out SymbolSpecification? symbolSpec)
         {
-            return TryGetSymbolSpec<string?, object?, SymbolSpecification>(
+            return TryGetSymbolSpec<string, object?, SymbolSpecification>(
                 namingRuleTitle,
                 conventionsDictionary,
-                s => (s ?? string.Empty, null),
+                s => (s, null),
                 () => null,
                 (t0, t1, t2, t3) => new SymbolSpecification(
-                        null,
+                        Guid.NewGuid(),
                         t0.name,
                         t1.kinds,
                         t2.accessibilities,

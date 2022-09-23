@@ -7,12 +7,14 @@
 using System;
 using System.Linq;
 using System.Threading;
+using Microsoft.CodeAnalysis.BraceMatching;
 using Microsoft.CodeAnalysis.Debugging;
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Internal.Log;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.ComponentModelHost;
@@ -112,7 +114,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
                         if (document != null)
                         {
-                            var languageDebugInfo = document.Project.LanguageServices.GetService<ILanguageDebugInfoService>();
+                            var languageDebugInfo = document.Project.Services.GetService<ILanguageDebugInfoService>();
                             if (languageDebugInfo != null)
                             {
                                 var spanOpt = textSnapshot.TryGetSpan(textSpan);
@@ -161,9 +163,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         private int GetPairExtentsWorker(int iLine, int iIndex, TextSpan[] pSpan, CancellationToken cancellationToken)
         {
             var braceMatcher = ComponentModel.GetService<IBraceMatchingService>();
+            var globalOptions = ComponentModel.GetService<IGlobalOptionService>();
             return GetPairExtentsWorker(
                 WpfTextView,
                 braceMatcher,
+                globalOptions,
                 iLine,
                 iIndex,
                 pSpan,
@@ -172,7 +176,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         }
 
         // Internal for testing purposes
-        internal static int GetPairExtentsWorker(ITextView textView, IBraceMatchingService braceMatcher, int iLine, int iIndex, TextSpan[] pSpan, bool extendSelection, CancellationToken cancellationToken)
+        internal static int GetPairExtentsWorker(ITextView textView, IBraceMatchingService braceMatcher, IGlobalOptionService globalOptions, int iLine, int iIndex, TextSpan[] pSpan, bool extendSelection, CancellationToken cancellationToken)
         {
             pSpan[0].iStartLine = pSpan[0].iEndLine = iLine;
             pSpan[0].iStartIndex = pSpan[0].iEndIndex = iIndex;
@@ -192,11 +196,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 if (positionInSubjectBuffer.HasValue)
                 {
                     var position = positionInSubjectBuffer.Value;
-
                     var document = subjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
                     if (document != null)
                     {
-                        var options = BraceMatchingOptions.From(document.Project);
+                        var options = globalOptions.GetBraceMatchingOptions(document.Project.Language);
                         var matchingSpan = braceMatcher.FindMatchingSpanAsync(document, position, options, cancellationToken).WaitAndGetResult(cancellationToken);
 
                         if (matchingSpan.HasValue)
@@ -235,6 +238,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                                         var vsClosingSpans = textView.GetSpanInView(closingSpans.Value.ToSnapshotSpan(subjectBuffer.CurrentSnapshot)).ToList().First().ToVsTextSpan();
                                         pSpan[0].iEndIndex = vsClosingSpans.iStartIndex;
                                     }
+
+                                    return VSConstants.S_OK;
                                 }
                                 else if (matchingSpan.Value.End > position) // caret is at open parenthesis
                                 {
@@ -252,6 +257,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                                         var vsOpeningSpans = textView.GetSpanInView(openingSpans.Value.ToSnapshotSpan(subjectBuffer.CurrentSnapshot)).ToList().First().ToVsTextSpan();
                                         pSpan[0].iStartIndex = vsOpeningSpans.iStartIndex;
                                     }
+
+                                    return VSConstants.S_OK;
                                 }
                             }
                         }
@@ -259,7 +266,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 }
             }
 
-            return VSConstants.S_OK;
+            return VSConstants.S_FALSE;
         }
 
         int IVsTextViewFilter.GetWordExtent(int iLine, int iIndex, uint dwFlags, TextSpan[] pSpan)

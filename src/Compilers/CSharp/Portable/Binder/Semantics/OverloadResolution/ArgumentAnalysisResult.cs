@@ -9,7 +9,7 @@ using System.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
-    internal struct ArgumentAnalysisResult
+    internal readonly struct ArgumentAnalysisResult
     {
         public readonly ImmutableArray<int> ArgsToParamsOpt;
         public readonly int ArgumentPosition;
@@ -86,8 +86,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new ArgumentAnalysisResult(ArgumentAnalysisResultKind.Expanded, 0, 0, argsToParamsOpt);
         }
 
-#if DEBUG        
+#if DEBUG
+#pragma warning disable IDE0051 // Remove unused private members
         private string Dump()
+#pragma warning restore IDE0051 // Remove unused private members
         {
             string s = "";
             switch (Kind)

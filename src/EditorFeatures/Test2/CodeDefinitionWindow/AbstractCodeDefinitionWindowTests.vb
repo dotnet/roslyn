@@ -5,7 +5,7 @@
 Imports System.Collections.Immutable
 Imports System.ComponentModel.Composition
 Imports System.Threading
-Imports Microsoft.CodeAnalysis.Editor.Implementation.CodeDefinitionWindow
+Imports Microsoft.CodeAnalysis.CodeDefinitionWindow
 Imports Microsoft.CodeAnalysis.Editor.UnitTests
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
@@ -55,6 +55,7 @@ Namespace Microsoft.CodeAnalysis.Editor.CodeDefinitionWindow.UnitTests
 
                 Dim definitionContextTracker = workspace.ExportProvider.GetExportedValue(Of DefinitionContextTracker)
                 Dim locations = Await definitionContextTracker.GetContextFromPointAsync(
+                    workspace,
                     document,
                     hostDocument.CursorPosition.Value,
                     CancellationToken.None)
@@ -80,6 +81,7 @@ Namespace Microsoft.CodeAnalysis.Editor.CodeDefinitionWindow.UnitTests
 
             Dim definitionContextTracker = workspace.ExportProvider.GetExportedValue(Of DefinitionContextTracker)
             Dim locations = Await definitionContextTracker.GetContextFromPointAsync(
+                workspace,
                 triggerDocument,
                 triggerHostDocument.CursorPosition.Value,
                 CancellationToken.None)

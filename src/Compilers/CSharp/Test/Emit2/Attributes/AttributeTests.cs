@@ -587,7 +587,293 @@ static class Program
 
             var program = (NamedTypeSymbol)comp.GetMember("Program");
             var attributeData = (SourceAttributeData)program.GetAttributes()[0];
-            Assert.Equal(new[] { 0, -1 }, attributeData.ConstructorArgumentsSourceIndices);
+            Assert.True(attributeData.ConstructorArgumentsSourceIndices.IsDefault);
+
+            var attributeSyntax = (AttributeSyntax)attributeData.ApplicationSyntaxReference.GetSyntax();
+            Assert.Equal("a: true", attributeData.GetAttributeArgumentSyntax(parameterIndex: 0, attributeSyntax).ToString());
+            Assert.Equal(@"b: new object[] { ""Hello"", ""World"" }", attributeData.GetAttributeArgumentSyntax(parameterIndex: 1, attributeSyntax).ToString());
+        }
+
+        [Fact]
+        [WorkItem(20741, "https://github.com/dotnet/roslyn/issues/20741")]
+        public void TestComplexOrderedAttributeArguments()
+        {
+            var comp = CreateCompilation(@"
+using System;
+
+sealed class MarkAttribute : Attribute
+{
+    public MarkAttribute(int a, int b, int c)
+    {
+    }
+}
+
+[Mark(b: 0, c: 1, a: 2)]
+static class Program
+{
+    public static void Main()
+    {
+    }
+}", options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics();
+
+            var program = (NamedTypeSymbol)comp.GetMember("Program");
+            var attributeData = (SourceAttributeData)program.GetAttributes()[0];
+            Assert.Equal(new[] { 2, 0, 1 }, attributeData.ConstructorArgumentsSourceIndices);
+
+            var attributeSyntax = (AttributeSyntax)attributeData.ApplicationSyntaxReference.GetSyntax();
+            Assert.Equal("a: 2", attributeData.GetAttributeArgumentSyntax(parameterIndex: 0, attributeSyntax).ToString());
+            Assert.Equal("b: 0", attributeData.GetAttributeArgumentSyntax(parameterIndex: 1, attributeSyntax).ToString());
+            Assert.Equal("c: 1", attributeData.GetAttributeArgumentSyntax(parameterIndex: 2, attributeSyntax).ToString());
+        }
+
+        [Fact]
+        public void TestBadParamsCtor()
+        {
+            var comp = CreateCompilation(@"
+using System;
+
+class AAttribute : Attribute
+{
+    private AAttribute(params int[] args) { }
+}
+
+[A(1, 2, 3)]
+class Program
+{
+}", options: TestOptions.DebugDll);
+
+            comp.VerifyDiagnostics(
+                // (9,2): error CS0122: 'AAttribute.AAttribute(params int[])' is inaccessible due to its protection level
+                // [A(1, 2, 3)]
+                Diagnostic(ErrorCode.ERR_BadAccess, "A(1, 2, 3)").WithArguments("AAttribute.AAttribute(params int[])").WithLocation(9, 2));
+
+            var program = (NamedTypeSymbol)comp.GetMember("Program");
+            var attributeData = (SourceAttributeData)program.GetAttributes()[0];
+            Assert.True(attributeData.ConstructorArgumentsSourceIndices.IsDefault);
+            Assert.True(attributeData.HasErrors);
+            Assert.Equal("AAttribute..ctor(params System.Int32[] args)", attributeData.AttributeConstructor.ToTestDisplayString());
+            Assert.Equal(1, attributeData.AttributeConstructor.ParameterCount);
+            Assert.Equal(new object[] { 1, 2, 3 }, attributeData.ConstructorArguments.Select(arg => arg.Value));
+            // `SourceAttributeData.GetAttributeArgumentSyntax` asserts in debug mode when the attributeData has errors, so we don't test it here.
+        }
+
+        [Fact]
+        public void TestCallWithOptionalParametersInsideAttribute()
+        {
+            var source = @"
+using System;
+
+class Attr : Attribute { public Attr(int x) { } }
+
+class C
+{
+    [Attr(M())]
+    void M0() { }
+
+    public static int M(int x = 0) => x;
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (8,11): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
+                //     [Attr(M())]
+                Diagnostic(ErrorCode.ERR_BadAttributeArgument, "M()").WithLocation(8, 11));
+
+            var m0 = comp.GetMember<MethodSymbol>("C.M0");
+            var attrs = m0.GetAttributes();
+            Assert.Equal(1, attrs.Length);
+            Assert.Equal(TypedConstantKind.Error, attrs[0].ConstructorArguments.Single().Kind);
+        }
+
+        [Fact]
+        public void TestAttributeCallerInfoSemanticModel()
+        {
+            var source = @"
+using System;
+using System.Runtime.CompilerServices;
+
+class Attr : Attribute { public Attr([CallerMemberName] string s = null) { } }
+
+class C
+{
+    [Attr()]
+    void M0() { }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees[0];
+            var root = tree.GetRoot();
+            var attrSyntax = root.DescendantNodes().OfType<AttributeSyntax>().Last();
+
+            var semanticModel = comp.GetSemanticModel(tree);
+            var m0 = semanticModel.GetDeclaredSymbol(root.DescendantNodes().OfType<MethodDeclarationSyntax>().Last());
+            var attrs = m0.GetAttributes();
+            Assert.Equal("M0", attrs.Single().ConstructorArguments.Single().Value);
+
+            var operation = semanticModel.GetOperation(attrSyntax);
+            // note: this operation tree should contain a constant string "M0" instead of null.
+            // this should ideally be fixed as part of https://github.com/dotnet/roslyn/issues/53618.
+            VerifyOperationTree(comp, operation, @"
+IOperation:  (OperationKind.None, Type: Attr) (Syntax: 'Attr()')
+  Children(1):
+      IDefaultValueOperation (OperationKind.DefaultValue, Type: System.String, Constant: null, IsImplicit) (Syntax: 'Attr()')
+");
+        }
+
+        [Fact]
+        public void TestAttributeCallerInfoSemanticModel_Speculative()
+        {
+            var source = @"
+using System;
+using System.Runtime.CompilerServices;
+
+class Attr : Attribute { public Attr([CallerMemberName] string s = null) { } }
+
+class C
+{
+    [Attr(""a"")]
+    void M0() { }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees[0];
+            var root = tree.GetRoot();
+            var attrSyntax = root.DescendantNodes().OfType<AttributeSyntax>().Last();
+
+            var semanticModel = comp.GetSemanticModel(tree);
+            var newRoot = root.ReplaceNode(attrSyntax, attrSyntax.WithArgumentList(SyntaxFactory.ParseAttributeArgumentList("()")));
+            var newAttrSyntax = newRoot.DescendantNodes().OfType<AttributeSyntax>().Last();
+
+            Assert.True(semanticModel.TryGetSpeculativeSemanticModel(attrSyntax.ArgumentList.Position, newAttrSyntax, out var speculativeModel));
+
+            var speculativeOperation = speculativeModel.GetOperation(newAttrSyntax);
+            // note: this operation tree should contain a constant string "M0" instead of null.
+            // this should ideally be fixed as part of https://github.com/dotnet/roslyn/issues/53618.
+            VerifyOperationTree(comp, speculativeOperation, @"
+IOperation:  (OperationKind.None, Type: Attr) (Syntax: 'Attr()')
+  Children(1):
+      IDefaultValueOperation (OperationKind.DefaultValue, Type: System.String, Constant: null, IsImplicit) (Syntax: 'Attr()')
+");
+        }
+
+        [Fact]
+        public void NotNullIfNotNullDefinitionUsesCallerMemberName()
+        {
+            var definitionSource = @"
+using System.Runtime.CompilerServices;
+using System.Diagnostics.CodeAnalysis;
+
+namespace System.Diagnostics.CodeAnalysis
+{
+    public class NotNullIfNotNullAttribute : Attribute
+    {
+        public NotNullIfNotNullAttribute([CallerMemberName] string paramName = """") { }
+    }
+}
+
+public class C
+{
+    [return: NotNullIfNotNull]
+    public static string? M(string? M)
+    {
+        return M;
+    }
+}
+";
+
+            var usageSource = @"
+class Program
+{
+    void M0()
+    {
+        C.M(""a"").ToString();
+    }
+}";
+            CreateCompilation(new[] { definitionSource, usageSource }, options: WithNullableEnable())
+                .VerifyDiagnostics();
+
+            var definitionComp = CreateCompilation(definitionSource, options: WithNullableEnable());
+
+            CreateCompilation(usageSource, references: new[] { definitionComp.ToMetadataReference() }, options: WithNullableEnable())
+                .VerifyDiagnostics();
+
+            CreateCompilation(usageSource, references: new[] { definitionComp.EmitToImageReference() }, options: WithNullableEnable())
+                .VerifyDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem(60572, "https://github.com/dotnet/roslyn/issues/60572")]
+        public void TestParamArrayWithReorderedArguments_01()
+        {
+            var source = @"
+using System;
+
+[AttributeUsage(AttributeTargets.All, AllowMultiple = true)]
+class Attr : Attribute
+{
+    public Attr(bool b, int i, params object?[] parameters) { }
+}
+
+[Attr(i: 1, b: true)]
+[Attr(i: 1, b: true, parameters: ""a"")]
+class Program { }
+";
+            var comp = CreateCompilation(source, options: WithNullableEnable());
+            comp.VerifyDiagnostics();
+
+            var program = comp.GetMember<NamedTypeSymbol>("Program");
+            var attrs = program.GetAttributes();
+            Assert.Equal(2, attrs.Length);
+
+            var arguments0 = attrs[0].ConstructorArguments.ToArray();
+            Assert.Equal(3, arguments0.Length);
+            Assert.Equal(true, arguments0[0].Value);
+            Assert.Equal(1, arguments0[1].Value);
+            Assert.Empty(arguments0[2].Values);
+
+            var arguments1 = attrs[1].ConstructorArguments.ToArray();
+            Assert.Equal(3, arguments1.Length);
+            Assert.Equal(true, arguments1[0].Value);
+            Assert.Equal(1, arguments1[1].Value);
+            Assert.Equal("a", arguments1[2].Values.Single().Value);
+        }
+
+        [Fact]
+        [WorkItem(60572, "https://github.com/dotnet/roslyn/issues/60572")]
+        public void TestParamArrayWithReorderedArguments_02()
+        {
+            var source = @"
+using System;
+
+[AttributeUsage(AttributeTargets.All, AllowMultiple = true)]
+class Attr : Attribute
+{
+    public Attr(bool b, int i, params object?[] parameters) { }
+}
+
+[Attr(i: 1, b: true, ""a"")]
+[Attr(i: 1, b: true, ""a"", ""b"")]
+class Program { }
+";
+            var comp = CreateCompilation(source, options: WithNullableEnable());
+            comp.VerifyDiagnostics(
+                // (10,7): error CS8323: Named argument 'i' is used out-of-position but is followed by an unnamed argument
+                // [Attr(i: 1, b: true, "a")]
+                Diagnostic(ErrorCode.ERR_BadNonTrailingNamedArgument, "i").WithArguments("i").WithLocation(10, 7),
+                // (11,7): error CS8323: Named argument 'i' is used out-of-position but is followed by an unnamed argument
+                // [Attr(i: 1, b: true, "a", "b")]
+                Diagnostic(ErrorCode.ERR_BadNonTrailingNamedArgument, "i").WithArguments("i").WithLocation(11, 7));
+
+            var program = comp.GetMember<NamedTypeSymbol>("Program");
+            var attrs = program.GetAttributes();
+            Assert.Equal(2, attrs.Length);
+            Assert.Empty(attrs[0].ConstructorArguments);
+            Assert.Empty(attrs[1].ConstructorArguments);
         }
 
         [Fact]
@@ -622,7 +908,11 @@ static class Program
 
             var program = (NamedTypeSymbol)comp.GetMember("Program");
             var attributeData = (SourceAttributeData)program.GetAttributes()[0];
-            Assert.Equal(new[] { 1, -1 }, attributeData.ConstructorArgumentsSourceIndices);
+            Assert.Equal(new[] { 1, 0 }, attributeData.ConstructorArgumentsSourceIndices);
+
+            var attributeSyntax = (AttributeSyntax)attributeData.ApplicationSyntaxReference.GetSyntax();
+            Assert.Equal(@"a: true", attributeData.GetAttributeArgumentSyntax(parameterIndex: 0, attributeSyntax).ToString());
+            Assert.Equal(@"b: new object[] { ""Hello"", ""World"" }", attributeData.GetAttributeArgumentSyntax(parameterIndex: 1, attributeSyntax).ToString());
         }
 
         [Fact]
@@ -659,7 +949,11 @@ static class Program
 
             var program = (NamedTypeSymbol)comp.GetMember("Program");
             var attributeData = (SourceAttributeData)program.GetAttributes()[0];
-            Assert.Equal(new[] { 1, -1 }, attributeData.ConstructorArgumentsSourceIndices);
+            Assert.Equal(new[] { 1, 0 }, attributeData.ConstructorArgumentsSourceIndices);
+
+            var attributeSyntax = comp.SyntaxTrees[0].GetRoot().DescendantNodes().OfType<AttributeSyntax>().First();
+            Assert.Equal(@"a: true", attributeData.GetAttributeArgumentSyntax(parameterIndex: 0, attributeSyntax).ToString());
+            Assert.Equal(@"b: ""Hello""", attributeData.GetAttributeArgumentSyntax(parameterIndex: 1, attributeSyntax).ToString());
         }
 
         [Fact]
@@ -695,7 +989,11 @@ static class Program
 
             var program = (NamedTypeSymbol)comp.GetMember("Program");
             var attributeData = (SourceAttributeData)program.GetAttributes()[0];
-            Assert.Equal(new[] { 0, -1 }, attributeData.ConstructorArgumentsSourceIndices);
+            Assert.Equal(new[] { 0, 1 }, attributeData.ConstructorArgumentsSourceIndices);
+
+            var attributeSyntax = (AttributeSyntax)attributeData.ApplicationSyntaxReference.GetSyntax();
+            Assert.Equal(@"true", attributeData.GetAttributeArgumentSyntax(parameterIndex: 0, attributeSyntax).ToString());
+            Assert.Equal(@"new object[] { ""Hello"" }", attributeData.GetAttributeArgumentSyntax(parameterIndex: 1, attributeSyntax).ToString());
         }
 
         [Fact]
@@ -731,7 +1029,11 @@ static class Program
 
             var program = (NamedTypeSymbol)comp.GetMember("Program");
             var attributeData = (SourceAttributeData)program.GetAttributes()[0];
-            Assert.Equal(new[] { 0, -1 }, attributeData.ConstructorArgumentsSourceIndices);
+            Assert.Equal(new[] { 0, 1 }, attributeData.ConstructorArgumentsSourceIndices);
+
+            var attributeSyntax = (AttributeSyntax)attributeData.ApplicationSyntaxReference.GetSyntax();
+            Assert.Equal(@"a: true", attributeData.GetAttributeArgumentSyntax(parameterIndex: 0, attributeSyntax).ToString());
+            Assert.Equal(@"new object[] { ""Hello"" }", attributeData.GetAttributeArgumentSyntax(parameterIndex: 1, attributeSyntax).ToString());
         }
 
         [Fact]
@@ -766,7 +1068,11 @@ static class Program
 
             var program = (NamedTypeSymbol)comp.GetMember("Program");
             var attributeData = (SourceAttributeData)program.GetAttributes()[0];
-            Assert.Equal(new[] { 1, -1 }, attributeData.ConstructorArgumentsSourceIndices);
+            Assert.Equal(new[] { 1, 0 }, attributeData.ConstructorArgumentsSourceIndices);
+
+            var attributeSyntax = (AttributeSyntax)attributeData.ApplicationSyntaxReference.GetSyntax();
+            Assert.Equal(@"a: true", attributeData.GetAttributeArgumentSyntax(parameterIndex: 0, attributeSyntax).ToString());
+            Assert.Equal(@"b: null", attributeData.GetAttributeArgumentSyntax(parameterIndex: 1, attributeSyntax).ToString());
         }
 
         [Fact]
@@ -1474,7 +1780,7 @@ public struct Test
             comp.VerifyDiagnostics(
                 // (4,13): error CS0637: The FieldOffset attribute is not allowed on static or const fields
                 //     [field: System.Runtime.InteropServices.FieldOffset(0)]
-                Diagnostic(ErrorCode.ERR_StructOffsetOnBadField, "System.Runtime.InteropServices.FieldOffset").WithArguments("System.Runtime.InteropServices.FieldOffset").WithLocation(4, 13)
+                Diagnostic(ErrorCode.ERR_StructOffsetOnBadField, "System.Runtime.InteropServices.FieldOffset").WithLocation(4, 13)
                 );
         }
 
@@ -5450,7 +5756,7 @@ public class Test
                 // (3,39): error CS0643: 'AllowMultiple' duplicate named attribute argument
                 // [AttributeUsage(AllowMultiple = true, AllowMultiple = false)]
                 Diagnostic(ErrorCode.ERR_DuplicateNamedAttributeArgument, "AllowMultiple = false").WithArguments("AllowMultiple").WithLocation(3, 39),
-                // (3,2): error CS7036: There is no argument given that corresponds to the required formal parameter 'validOn' of 'AttributeUsageAttribute.AttributeUsageAttribute(AttributeTargets)'
+                // (3,2): error CS7036: There is no argument given that corresponds to the required parameter 'validOn' of 'AttributeUsageAttribute.AttributeUsageAttribute(AttributeTargets)'
                 // [AttributeUsage(AllowMultiple = true, AllowMultiple = false)]
                 Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "AttributeUsage(AllowMultiple = true, AllowMultiple = false)").WithArguments("validOn", "System.AttributeUsageAttribute.AttributeUsageAttribute(System.AttributeTargets)").WithLocation(3, 2)
                 );
@@ -5495,14 +5801,14 @@ class Goo<T>
 }
 ";
 
-            var compilation = CreateCompilation(source, parseOptions: TestOptions.Regular9);
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.Regular10);
             compilation.VerifyDiagnostics(
                 // (2,2): error CS0616: 'Goo<T>' is not an attribute class
                 // [Goo<int>]
                 Diagnostic(ErrorCode.ERR_NotAnAttributeClass, "Goo<int>").WithArguments("Goo<T>").WithLocation(2, 2),
-                // (2,2): error CS8652: The feature 'generic attributes' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (2,2): error CS8936: Feature 'generic attributes' is not available in C# 10.0. Please use language version 11.0 or greater.
                 // [Goo<int>]
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "Goo<int>").WithArguments("generic attributes").WithLocation(2, 2));
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "Goo<int>").WithArguments("generic attributes", "11.0").WithLocation(2, 2));
 
             compilation = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
             compilation.VerifyDiagnostics(
@@ -5555,14 +5861,14 @@ class Goo<T>
 }
 ";
 
-            var compilation = CreateCompilation(source, parseOptions: TestOptions.Regular9);
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.Regular10);
             compilation.VerifyDiagnostics(
                 // (2,2): error CS0616: 'Goo<T>' is not an attribute class
                 // [Goo<int>]
                 Diagnostic(ErrorCode.ERR_NotAnAttributeClass, "Goo<int>").WithArguments("Goo<T>").WithLocation(2, 2),
-                // (2,2): error CS8652: The feature 'generic attributes' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (2,2): error CS8936: Feature 'generic attributes' is not available in C# 10.0. Please use language version 11.0 or greater.
                 // [Goo<int>]
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "Goo<int>").WithArguments("generic attributes").WithLocation(2, 2));
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "Goo<int>").WithArguments("generic attributes", "11.0").WithLocation(2, 2));
 
             compilation = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
             compilation.VerifyDiagnostics(
@@ -7126,12 +7432,12 @@ public class Test
 }";
             CSharpCompilationOptions opt = TestOptions.ReleaseDll;
 
-            var compilation = CreateCompilation(source, null, options: opt, parseOptions: TestOptions.Regular9);
+            var compilation = CreateCompilation(source, null, options: opt, parseOptions: TestOptions.Regular10);
 
             compilation.VerifyDiagnostics(
-                // (3,16): error CS8652: The feature 'generic attributes' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (3,16): error CS8936: Feature 'generic attributes' is not available in C# 10.0. Please use language version 11.0 or greater.
                 // class Gen2<T>: System.Attribute {}
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "System.Attribute").WithArguments("generic attributes").WithLocation(3, 16),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "System.Attribute").WithArguments("generic attributes", "11.0").WithLocation(3, 16),
                 // (5,2): error CS0616: 'Gen<T>' is not an attribute class
                 // [Gen]
                 Diagnostic(ErrorCode.ERR_NotAnAttributeClass, "Gen").WithArguments("Gen<T>").WithLocation(5, 2),
@@ -8100,32 +8406,32 @@ public class C<T, U> : Attribute // 20
 }
 ";
 
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular10);
             comp.VerifyDiagnostics(
                 // (4,2): error CS0308: The non-generic type 'A' cannot be used with type arguments
                 // [A<>] // 1, 2
                 Diagnostic(ErrorCode.ERR_HasNoTypeVars, "A<>").WithArguments("A", "type").WithLocation(4, 2),
-                // (4,2): error CS8652: The feature 'generic attributes' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (4,2): error CS8936: Feature 'generic attributes' is not available in C# 10.0. Please use language version 11.0 or greater.
                 // [A<>] // 1, 2
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "A<>").WithArguments("generic attributes").WithLocation(4, 2),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "A<>").WithArguments("generic attributes", "11.0").WithLocation(4, 2),
                 // (5,2): error CS0308: The non-generic type 'A' cannot be used with type arguments
                 // [A<int>] // 3, 4
                 Diagnostic(ErrorCode.ERR_HasNoTypeVars, "A<int>").WithArguments("A", "type").WithLocation(5, 2),
-                // (5,2): error CS8652: The feature 'generic attributes' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (5,2): error CS8936: Feature 'generic attributes' is not available in C# 10.0. Please use language version 11.0 or greater.
                 // [A<int>] // 3, 4
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "A<int>").WithArguments("generic attributes").WithLocation(5, 2),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "A<int>").WithArguments("generic attributes", "11.0").WithLocation(5, 2),
                 // (6,2): error CS0305: Using the generic type 'B<T>' requires 1 type arguments
                 // [B] // 5
                 Diagnostic(ErrorCode.ERR_BadArity, "B").WithArguments("B<T>", "type", "1").WithLocation(6, 2),
                 // (7,2): error CS7003: Unexpected use of an unbound generic name
                 // [B<>] // 6, 7
                 Diagnostic(ErrorCode.ERR_UnexpectedUnboundGenericName, "B<>").WithLocation(7, 2),
-                // (7,2): error CS8652: The feature 'generic attributes' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (7,2): error CS8936: Feature 'generic attributes' is not available in C# 10.0. Please use language version 11.0 or greater.
                 // [B<>] // 6, 7
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "B<>").WithArguments("generic attributes").WithLocation(7, 2),
-                // (8,2): error CS8652: The feature 'generic attributes' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "B<>").WithArguments("generic attributes", "11.0").WithLocation(7, 2),
+                // (8,2): error CS8936: Feature 'generic attributes' is not available in C# 10.0. Please use language version 11.0 or greater.
                 // [B<int>] // 8, 9
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "B<int>").WithArguments("generic attributes").WithLocation(8, 2),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "B<int>").WithArguments("generic attributes", "11.0").WithLocation(8, 2),
                 // (8,2): error CS0579: Duplicate 'B<>' attribute
                 // [B<int>] // 8, 9
                 Diagnostic(ErrorCode.ERR_DuplicateAttribute, "B<int>").WithArguments("B<>").WithLocation(8, 2),
@@ -8135,33 +8441,33 @@ public class C<T, U> : Attribute // 20
                 // (10,2): error CS0305: Using the generic type 'C<T, U>' requires 2 type arguments
                 // [C<>] // 11, 12
                 Diagnostic(ErrorCode.ERR_BadArity, "C<>").WithArguments("C<T, U>", "type", "2").WithLocation(10, 2),
-                // (10,2): error CS8652: The feature 'generic attributes' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (10,2): error CS8936: Feature 'generic attributes' is not available in C# 10.0. Please use language version 11.0 or greater.
                 // [C<>] // 11, 12
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "C<>").WithArguments("generic attributes").WithLocation(10, 2),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "C<>").WithArguments("generic attributes", "11.0").WithLocation(10, 2),
                 // (11,2): error CS0305: Using the generic type 'C<T, U>' requires 2 type arguments
                 // [C<int>] // 13, 14
                 Diagnostic(ErrorCode.ERR_BadArity, "C<int>").WithArguments("C<T, U>", "type", "2").WithLocation(11, 2),
-                // (11,2): error CS8652: The feature 'generic attributes' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (11,2): error CS8936: Feature 'generic attributes' is not available in C# 10.0. Please use language version 11.0 or greater.
                 // [C<int>] // 13, 14
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "C<int>").WithArguments("generic attributes").WithLocation(11, 2),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "C<int>").WithArguments("generic attributes", "11.0").WithLocation(11, 2),
                 // (12,2): error CS7003: Unexpected use of an unbound generic name
                 // [C<,>] // 15, 16
                 Diagnostic(ErrorCode.ERR_UnexpectedUnboundGenericName, "C<,>").WithLocation(12, 2),
-                // (12,2): error CS8652: The feature 'generic attributes' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (12,2): error CS8936: Feature 'generic attributes' is not available in C# 10.0. Please use language version 11.0 or greater.
                 // [C<,>] // 15, 16
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "C<,>").WithArguments("generic attributes").WithLocation(12, 2),
-                // (13,2): error CS8652: The feature 'generic attributes' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "C<,>").WithArguments("generic attributes", "11.0").WithLocation(12, 2),
+                // (13,2): error CS8936: Feature 'generic attributes' is not available in C# 10.0. Please use language version 11.0 or greater.
                 // [C<int, int>] // 17, 18
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "C<int, int>").WithArguments("generic attributes").WithLocation(13, 2),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "C<int, int>").WithArguments("generic attributes", "11.0").WithLocation(13, 2),
                 // (13,2): error CS0579: Duplicate 'C<,>' attribute
                 // [C<int, int>] // 17, 18
                 Diagnostic(ErrorCode.ERR_DuplicateAttribute, "C<int, int>").WithArguments("C<,>").WithLocation(13, 2),
-                // (22,21): error CS8652: The feature 'generic attributes' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (22,21): error CS8936: Feature 'generic attributes' is not available in C# 10.0. Please use language version 11.0 or greater.
                 // public class B<T> : Attribute // 19
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "Attribute").WithArguments("generic attributes").WithLocation(22, 21),
-                // (26,24): error CS8652: The feature 'generic attributes' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "Attribute").WithArguments("generic attributes", "11.0").WithLocation(22, 21),
+                // (26,24): error CS8936: Feature 'generic attributes' is not available in C# 10.0. Please use language version 11.0 or greater.
                 // public class C<T, U> : Attribute // 20
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "Attribute").WithArguments("generic attributes").WithLocation(26, 24));
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "Attribute").WithArguments("generic attributes", "11.0").WithLocation(26, 24));
 
             comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
@@ -8217,26 +8523,26 @@ public class C<T> : Attribute
 }
 ";
 
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular10);
             comp.VerifyDiagnostics(
-                // (12,21): error CS8652: The feature 'generic attributes' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (12,21): error CS8936: Feature 'generic attributes' is not available in C# 10.0. Please use language version 11.0 or greater.
                 // public class C<T> : Attribute
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "Attribute").WithArguments("generic attributes").WithLocation(12, 21),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "Attribute").WithArguments("generic attributes", "11.0").WithLocation(12, 21),
                 // (6,2): error CS0307: The using alias 'Alias' cannot be used with type arguments
                 // [Alias<>]
                 Diagnostic(ErrorCode.ERR_TypeArgsNotAllowed, "Alias<>").WithArguments("Alias", "using alias").WithLocation(6, 2),
                 // (7,2): error CS0307: The using alias 'Alias' cannot be used with type arguments
                 // [Alias<int>]
                 Diagnostic(ErrorCode.ERR_TypeArgsNotAllowed, "Alias<int>").WithArguments("Alias", "using alias").WithLocation(7, 2),
-                // (5,2): error CS8652: The feature 'generic attributes' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (5,2): error CS8936: Feature 'generic attributes' is not available in C# 10.0. Please use language version 11.0 or greater.
                 // [Alias]
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "Alias").WithArguments("generic attributes").WithLocation(5, 2),
-                // (6,2): error CS8652: The feature 'generic attributes' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "Alias").WithArguments("generic attributes", "11.0").WithLocation(5, 2),
+                // (6,2): error CS8936: Feature 'generic attributes' is not available in C# 10.0. Please use language version 11.0 or greater.
                 // [Alias<>]
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "Alias<>").WithArguments("generic attributes").WithLocation(6, 2),
-                // (7,2): error CS8652: The feature 'generic attributes' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "Alias<>").WithArguments("generic attributes", "11.0").WithLocation(6, 2),
+                // (7,2): error CS8936: Feature 'generic attributes' is not available in C# 10.0. Please use language version 11.0 or greater.
                 // [Alias<int>]
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "Alias<int>").WithArguments("generic attributes").WithLocation(7, 2));
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "Alias<int>").WithArguments("generic attributes", "11.0").WithLocation(7, 2));
 
             comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
             comp.VerifyDiagnostics(
@@ -8279,23 +8585,23 @@ class Test
 
             // NOTE: Dev11 does not give an error for "[Alias]" - it just silently drops the
             // attribute at emit-time.
-            var comp = CreateCompilationWithILAndMscorlib40(source, il, parseOptions: TestOptions.Regular9);
+            var comp = CreateCompilationWithILAndMscorlib40(source, il, parseOptions: TestOptions.Regular10);
             comp.VerifyDiagnostics(
-                // (4,2): error CS8652: The feature 'generic attributes' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (4,2): error CS8936: Feature 'generic attributes' is not available in C# 10.0. Please use language version 11.0 or greater.
                 // [Alias]
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "Alias").WithArguments("generic attributes").WithLocation(4, 2),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "Alias").WithArguments("generic attributes", "11.0").WithLocation(4, 2),
                 // (5,2): error CS0307: The using alias 'Alias' cannot be used with type arguments
                 // [Alias<>]
                 Diagnostic(ErrorCode.ERR_TypeArgsNotAllowed, "Alias<>").WithArguments("Alias", "using alias").WithLocation(5, 2),
-                // (5,2): error CS8652: The feature 'generic attributes' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (5,2): error CS8936: Feature 'generic attributes' is not available in C# 10.0. Please use language version 11.0 or greater.
                 // [Alias<>]
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "Alias<>").WithArguments("generic attributes").WithLocation(5, 2),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "Alias<>").WithArguments("generic attributes", "11.0").WithLocation(5, 2),
                 // (6,2): error CS0307: The using alias 'Alias' cannot be used with type arguments
                 // [Alias<int>]
                 Diagnostic(ErrorCode.ERR_TypeArgsNotAllowed, "Alias<int>").WithArguments("Alias", "using alias").WithLocation(6, 2),
-                // (6,2): error CS8652: The feature 'generic attributes' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (6,2): error CS8936: Feature 'generic attributes' is not available in C# 10.0. Please use language version 11.0 or greater.
                 // [Alias<int>]
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "Alias<int>").WithArguments("generic attributes").WithLocation(6, 2));
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "Alias<int>").WithArguments("generic attributes", "11.0").WithLocation(6, 2));
 
             // NOTE: Dev11 does not give an error for "[Alias]" - it just silently drops the
             // attribute at emit-time.
@@ -8334,20 +8640,20 @@ public class Outer<T>
 }
 ";
 
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular10);
             comp.VerifyDiagnostics(
                 // (5,2): error CS0616: 'Outer<int>.Inner' is not an attribute class
                 // [InnerAlias]
                 Diagnostic(ErrorCode.ERR_NotAnAttributeClass, "InnerAlias").WithArguments("Outer<int>.Inner").WithLocation(5, 2),
-                // (5,2): error CS8652: The feature 'generic attributes' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (5,2): error CS8936: Feature 'generic attributes' is not available in C# 10.0. Please use language version 11.0 or greater.
                 // [InnerAlias]
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "InnerAlias").WithArguments("generic attributes").WithLocation(5, 2),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "InnerAlias").WithArguments("generic attributes", "11.0").WithLocation(5, 2),
                 // (8,17): error CS0616: 'Outer<int>.Inner' is not an attribute class
                 //     [OuterAlias.Inner]
                 Diagnostic(ErrorCode.ERR_NotAnAttributeClass, "Inner").WithArguments("Outer<int>.Inner").WithLocation(8, 17),
-                // (8,6): error CS8652: The feature 'generic attributes' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (8,6): error CS8936: Feature 'generic attributes' is not available in C# 10.0. Please use language version 11.0 or greater.
                 //     [OuterAlias.Inner]
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "OuterAlias.Inner").WithArguments("generic attributes").WithLocation(8, 6));
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "OuterAlias.Inner").WithArguments("generic attributes", "11.0").WithLocation(8, 6));
 
             comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
             comp.VerifyDiagnostics(
@@ -9471,11 +9777,11 @@ public class C
             comp.VerifyDiagnostics();
             Assert.False(comp.GlobalNamespace.GetTypeMember("C").GetAttributes().Single().AttributeClass.IsGenericType);
 
-            comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
+            comp = CreateCompilation(source, parseOptions: TestOptions.Regular10);
             comp.VerifyDiagnostics(
-                // (2,14): error CS8652: The feature 'generic attributes' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (2,14): error CS8936: Feature 'generic attributes' is not available in C# 10.0. Please use language version 11.0 or greater.
                 // class A<T> : System.Attribute {}
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "System.Attribute").WithArguments("generic attributes").WithLocation(2, 14)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "System.Attribute").WithArguments("generic attributes", "11.0").WithLocation(2, 14)
                 );
             Assert.False(comp.GlobalNamespace.GetTypeMember("C").GetAttributes().Single().AttributeClass.IsGenericType);
         }
@@ -9600,20 +9906,20 @@ public class C
                 Diagnostic(ErrorCode.ERR_AmbiguousAttribute, "A<int>").WithArguments("A<>", "A<T>", "AAttribute<T>").WithLocation(5, 2)
                 );
 
-            comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
+            comp = CreateCompilation(source, parseOptions: TestOptions.Regular10);
             comp.VerifyDiagnostics(
-                // (2,30): error CS8652: The feature 'generic attributes' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (2,30): error CS8936: Feature 'generic attributes' is not available in C# 10.0. Please use language version 11.0 or greater.
                 // public class AAttribute<T> : System.Attribute {}
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "System.Attribute").WithArguments("generic attributes").WithLocation(2, 30),
-                // (3,21): error CS8652: The feature 'generic attributes' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "System.Attribute").WithArguments("generic attributes", "11.0").WithLocation(2, 30),
+                // (3,21): error CS8936: Feature 'generic attributes' is not available in C# 10.0. Please use language version 11.0 or greater.
                 // public class A<T> : System.Attribute {}
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "System.Attribute").WithArguments("generic attributes").WithLocation(3, 21),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "System.Attribute").WithArguments("generic attributes", "11.0").WithLocation(3, 21),
                 // (5,2): error CS1614: 'A<>' is ambiguous between 'A<T>' and 'AAttribute<T>'. Either use '@A<>' or explicitly include the 'Attribute' suffix.
                 // [A<int>]
                 Diagnostic(ErrorCode.ERR_AmbiguousAttribute, "A<int>").WithArguments("A<>", "A<T>", "AAttribute<T>").WithLocation(5, 2),
-                // (5,2): error CS8652: The feature 'generic attributes' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (5,2): error CS8936: Feature 'generic attributes' is not available in C# 10.0. Please use language version 11.0 or greater.
                 // [A<int>]
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "A<int>").WithArguments("generic attributes").WithLocation(5, 2));
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "A<int>").WithArguments("generic attributes", "11.0").WithLocation(5, 2));
         }
 
         [Fact, WorkItem(54772, "https://github.com/dotnet/roslyn/issues/54772")]
@@ -9636,23 +9942,23 @@ public class C
                 Diagnostic(ErrorCode.ERR_AmbiguousAttribute, "@A<int>").WithArguments("A<>", "A<T>", "AAttribute<T>").WithLocation(5, 2)
                 );
 
-            comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
+            comp = CreateCompilation(source, parseOptions: TestOptions.Regular10);
             comp.VerifyDiagnostics(
-                // (2,30): error CS8652: The feature 'generic attributes' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (2,30): error CS8936: Feature 'generic attributes' is not available in C# 10.0. Please use language version 11.0 or greater.
                 // public class AAttribute<T> : System.Attribute {}
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "System.Attribute").WithArguments("generic attributes").WithLocation(2, 30),
-                // (3,21): error CS8652: The feature 'generic attributes' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "System.Attribute").WithArguments("generic attributes", "11.0").WithLocation(2, 30),
+                // (3,21): error CS8936: Feature 'generic attributes' is not available in C# 10.0. Please use language version 11.0 or greater.
                 // public class A<T> : System.Attribute {}
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "System.Attribute").WithArguments("generic attributes").WithLocation(3, 21),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "System.Attribute").WithArguments("generic attributes", "11.0").WithLocation(3, 21),
                 // (5,2): error CS1614: 'A<>' is ambiguous between 'A<T>' and 'AAttribute<T>'. Either use '@A<>' or explicitly include the 'Attribute' suffix.
                 // [@A<int>]
                 Diagnostic(ErrorCode.ERR_AmbiguousAttribute, "@A<int>").WithArguments("A<>", "A<T>", "AAttribute<T>").WithLocation(5, 2),
-                // (5,2): error CS8652: The feature 'generic attributes' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (5,2): error CS8936: Feature 'generic attributes' is not available in C# 10.0. Please use language version 11.0 or greater.
                 // [@A<int>]
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "@A<int>").WithArguments("generic attributes").WithLocation(5, 2),
-                // (6,2): error CS8652: The feature 'generic attributes' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "@A<int>").WithArguments("generic attributes", "11.0").WithLocation(5, 2),
+                // (6,2): error CS8936: Feature 'generic attributes' is not available in C# 10.0. Please use language version 11.0 or greater.
                 // [AAttribute<int>]
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "AAttribute<int>").WithArguments("generic attributes").WithLocation(6, 2));
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "AAttribute<int>").WithArguments("generic attributes", "11.0").WithLocation(6, 2));
         }
 
         [Fact]
@@ -9667,11 +9973,11 @@ public class D : C<int> { }
 [D]
 public class Program { }
 ";
-            var comp = CreateCompilation(new[] { source1, source2 }, parseOptions: TestOptions.Regular9);
+            var comp = CreateCompilation(new[] { source1, source2 }, parseOptions: TestOptions.Regular10);
             comp.VerifyDiagnostics(
-                // (2,21): error CS8652: The feature 'generic attributes' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (2,21): error CS8936: Feature 'generic attributes' is not available in C# 10.0. Please use language version 11.0 or greater.
                 // public class C<T> : System.Attribute { }
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "System.Attribute").WithArguments("generic attributes").WithLocation(2, 21));
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "System.Attribute").WithArguments("generic attributes", "11.0").WithLocation(2, 21));
 
             var comp1 = CreateCompilation(source1);
             var comp2 = CreateCompilation(source2, references: new[] { comp1.ToMetadataReference() }, parseOptions: TestOptions.Regular9);
@@ -9738,11 +10044,11 @@ public class D : C<int>.Inner { }
 [D]
 public class Program { }
 ";
-            var comp = CreateCompilation(new[] { source1, source2 }, parseOptions: TestOptions.Regular9);
+            var comp = CreateCompilation(new[] { source1, source2 }, parseOptions: TestOptions.Regular10);
             comp.VerifyDiagnostics(
-                // (4,26): error CS8652: The feature 'generic attributes' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (4,26): error CS8936: Feature 'generic attributes' is not available in C# 10.0. Please use language version 11.0 or greater.
                 //     public class Inner : System.Attribute { }
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "System.Attribute").WithArguments("generic attributes").WithLocation(4, 26));
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "System.Attribute").WithArguments("generic attributes", "11.0").WithLocation(4, 26));
 
             var comp1 = CreateCompilation(source1);
             var comp2 = CreateCompilation(source2, references: new[] { comp1.ToMetadataReference() }, parseOptions: TestOptions.Regular9);
@@ -9782,20 +10088,20 @@ public class C<T> : System.Attribute { }
 [C<>]
 public class Program { }
 ";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular10);
             comp.VerifyDiagnostics(
-                // (2,21): error CS8652: The feature 'generic attributes' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (2,21): error CS8936: Feature 'generic attributes' is not available in C# 10.0. Please use language version 11.0 or greater.
                 // public class C<T> : System.Attribute { }
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "System.Attribute").WithArguments("generic attributes").WithLocation(2, 21),
-                // (4,2): error CS8652: The feature 'generic attributes' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "System.Attribute").WithArguments("generic attributes", "11.0").WithLocation(2, 21),
+                // (4,2): error CS8936: Feature 'generic attributes' is not available in C# 10.0. Please use language version 11.0 or greater.
                 // [C<ERROR>]
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "C<ERROR>").WithArguments("generic attributes").WithLocation(4, 2),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "C<ERROR>").WithArguments("generic attributes", "11.0").WithLocation(4, 2),
                 // (4,4): error CS0246: The type or namespace name 'ERROR' could not be found (are you missing a using directive or an assembly reference?)
                 // [C<ERROR>]
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "ERROR").WithArguments("ERROR").WithLocation(4, 4),
-                // (5,2): error CS8652: The feature 'generic attributes' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (5,2): error CS8936: Feature 'generic attributes' is not available in C# 10.0. Please use language version 11.0 or greater.
                 // [C<System>]
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "C<System>").WithArguments("generic attributes").WithLocation(5, 2),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "C<System>").WithArguments("generic attributes", "11.0").WithLocation(5, 2),
                 // (5,2): error CS0579: Duplicate 'C<>' attribute
                 // [C<System>]
                 Diagnostic(ErrorCode.ERR_DuplicateAttribute, "C<System>").WithArguments("C<>").WithLocation(5, 2),
@@ -9805,9 +10111,9 @@ public class Program { }
                 // (6,2): error CS7003: Unexpected use of an unbound generic name
                 // [C<>]
                 Diagnostic(ErrorCode.ERR_UnexpectedUnboundGenericName, "C<>").WithLocation(6, 2),
-                // (6,2): error CS8652: The feature 'generic attributes' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (6,2): error CS8936: Feature 'generic attributes' is not available in C# 10.0. Please use language version 11.0 or greater.
                 // [C<>]
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "C<>").WithArguments("generic attributes").WithLocation(6, 2),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "C<>").WithArguments("generic attributes", "11.0").WithLocation(6, 2),
                 // (6,2): error CS0579: Duplicate 'C<>' attribute
                 // [C<>]
                 Diagnostic(ErrorCode.ERR_DuplicateAttribute, "C<>").WithArguments("C<>").WithLocation(6, 2));
@@ -10215,15 +10521,19 @@ class C2 { }
                 // (8,26): error CS8919: Target runtime doesn't support static abstract members in interfaces.
                 //     static abstract void M();
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces, "M").WithLocation(8, 26),
-                // (13,11): error CS8929: 'C.M()' cannot implement interface member 'I1.M()' in type 'C' because the target runtime doesn't support static abstract members in interfaces.
-                // class C : I1
-                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfacesForMember, "I1").WithArguments("C.M()", "I1.M()", "C").WithLocation(13, 11),
-                // (19,8): error CS8920: The interface 'I1' cannot be used as type parameter 'T' in the generic type or method 'Attr2<T>'. The constraint interface 'I1' or its base interface has static abstract members.
+                // (18,8): error CS8920: The interface 'I1' cannot be used as type argument. Static member 'I1.M()' does not have a most specific implementation in the interface.
+                // [Attr1<I1>]
+                Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedInterfaceWithStaticAbstractMembers, "I1").WithArguments("I1", "I1.M()").WithLocation(18, 8),
+                // (19,8): error CS8920: The interface 'I1' cannot be used as type argument. Static member 'I1.M()' does not have a most specific implementation in the interface.
                 // [Attr2<I1>]
-                Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedInterfaceWithStaticAbstractMembers, "I1").WithArguments("Attr2<T>", "I1", "T", "I1").WithLocation(19, 8),
-                // (23,8): error CS8920: The interface 'I2' cannot be used as type parameter 'T' in the generic type or method 'Attr2<T>'. The constraint interface 'I1' or its base interface has static abstract members.
+                Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedInterfaceWithStaticAbstractMembers, "I1").WithArguments("I1", "I1.M()").WithLocation(19, 8),
+                // (22,8): error CS8920: The interface 'I2' cannot be used as type argument. Static member 'I1.M()' does not have a most specific implementation in the interface.
+                // [Attr1<I2>]
+                Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedInterfaceWithStaticAbstractMembers, "I2").WithArguments("I2", "I1.M()").WithLocation(22, 8),
+                // (23,8): error CS8920: The interface 'I2' cannot be used as type argument. Static member 'I1.M()' does not have a most specific implementation in the interface.
                 // [Attr2<I2>]
-                Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedInterfaceWithStaticAbstractMembers, "I2").WithArguments("Attr2<T>", "I1", "T", "I2").WithLocation(23, 8));
+                Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedInterfaceWithStaticAbstractMembers, "I2").WithArguments("I2", "I1.M()").WithLocation(23, 8)
+                );
         }
 
         [Fact]
@@ -10325,7 +10635,7 @@ class Program
     }
 }
 ";
-            var verifier = CompileAndVerify(source, sourceSymbolValidator: verify, symbolValidator: verifyMetadata, expectedOutput: "a");
+            var verifier = CompileAndVerify(source, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), sourceSymbolValidator: verify, symbolValidator: verifyMetadata, expectedOutput: "a");
 
             verifier.VerifyTypeIL("Holder", @"
 .class private auto ansi beforefieldinit Holder
@@ -10463,7 +10773,7 @@ class Program
     }
 }
 ";
-            var verifier = CompileAndVerify(source, expectedOutput: "not found");
+            var verifier = CompileAndVerify(source, expectedOutput: "Attr`1[System.String]");
             verifier.VerifyDiagnostics();
         }
 

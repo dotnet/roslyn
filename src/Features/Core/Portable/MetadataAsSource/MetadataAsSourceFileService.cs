@@ -13,6 +13,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
+using Microsoft.CodeAnalysis.Structure;
 using Microsoft.CodeAnalysis.SymbolMapping;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -28,8 +29,6 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
         /// we simply take this lock around all public entrypoints to enforce sequential access.
         /// </summary>
         private readonly SemaphoreSlim _gate = new(initialCount: 1);
-
-        private readonly Dictionary<string, IMetadataAsSourceFileProvider> _tempFileToProviderMap = new(StringComparer.OrdinalIgnoreCase);
 
         private MetadataAsSourceWorkspace? _workspace;
 
@@ -65,28 +64,29 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
             return _rootTemporaryPathWithGuid;
         }
 
-        public async Task<MetadataAsSourceFile> GetGeneratedFileAsync(Project project, ISymbol symbol, bool signaturesOnly, bool allowDecompilation, CancellationToken cancellationToken = default)
+        public async Task<MetadataAsSourceFile> GetGeneratedFileAsync(
+            Workspace sourceWorkspace,
+            Project sourceProject,
+            ISymbol symbol,
+            bool signaturesOnly,
+            MetadataAsSourceOptions options,
+            CancellationToken cancellationToken = default)
         {
-            if (project == null)
-            {
-                throw new ArgumentNullException(nameof(project));
-            }
+            if (sourceProject == null)
+                throw new ArgumentNullException(nameof(sourceProject));
 
             if (symbol == null)
-            {
                 throw new ArgumentNullException(nameof(symbol));
-            }
 
             if (symbol.Kind == SymbolKind.Namespace)
-            {
                 throw new ArgumentException(FeaturesResources.symbol_cannot_be_a_namespace, nameof(symbol));
-            }
 
             symbol = symbol.GetOriginalUnreducedDefinition();
 
             using (await _gate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
             {
-                InitializeWorkspace(project);
+                _workspace ??= new MetadataAsSourceWorkspace(this, sourceWorkspace.Services.HostServices);
+
                 Contract.ThrowIfNull(_workspace);
                 var tempPath = GetRootPathWithGuid_NoLock();
 
@@ -94,10 +94,9 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
                 {
                     var provider = lazyProvider.Value;
                     var providerTempPath = Path.Combine(tempPath, provider.GetType().Name);
-                    var result = await provider.GetGeneratedFileAsync(_workspace, project, symbol, signaturesOnly, allowDecompilation, providerTempPath, cancellationToken).ConfigureAwait(false);
+                    var result = await provider.GetGeneratedFileAsync(_workspace, sourceWorkspace, sourceProject, symbol, signaturesOnly, options, providerTempPath, cancellationToken).ConfigureAwait(false);
                     if (result is not null)
                     {
-                        _tempFileToProviderMap[result.FilePath] = provider;
                         return result;
                     }
                 }
@@ -111,11 +110,15 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
         {
             using (_gate.DisposableWait())
             {
-                if (_tempFileToProviderMap.TryGetValue(filePath, out var provider))
+                foreach (var provider in _providers)
                 {
+                    if (!provider.IsValueCreated)
+                        continue;
+
                     Contract.ThrowIfNull(_workspace);
 
-                    return provider.TryAddDocumentToWorkspace(_workspace, filePath, sourceTextContainer);
+                    if (provider.Value.TryAddDocumentToWorkspace(_workspace, filePath, sourceTextContainer))
+                        return true;
                 }
             }
 
@@ -126,39 +129,65 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
         {
             using (_gate.DisposableWait())
             {
-                if (_tempFileToProviderMap.TryGetValue(filePath, out var provider))
+                foreach (var provider in _providers)
                 {
+                    if (!provider.IsValueCreated)
+                        continue;
+
                     Contract.ThrowIfNull(_workspace);
 
-                    return provider.TryRemoveDocumentFromWorkspace(_workspace, filePath);
+                    if (provider.Value.TryRemoveDocumentFromWorkspace(_workspace, filePath))
+                        return true;
                 }
             }
 
             return false;
         }
 
-        private void InitializeWorkspace(Project project)
+        public bool ShouldCollapseOnOpen(string? filePath, BlockStructureOptions blockStructureOptions)
         {
-            if (_workspace == null)
+            if (filePath is null)
+                return false;
+
+            using (_gate.DisposableWait())
             {
-                _workspace = new MetadataAsSourceWorkspace(this, project.Solution.Workspace.Services.HostServices);
+                foreach (var provider in _providers)
+                {
+                    if (!provider.IsValueCreated)
+                        continue;
+
+                    Contract.ThrowIfNull(_workspace);
+
+                    if (provider.Value.ShouldCollapseOnOpen(filePath, blockStructureOptions))
+                        return true;
+                }
             }
+
+            return false;
         }
 
         internal async Task<SymbolMappingResult?> MapSymbolAsync(Document document, SymbolKey symbolId, CancellationToken cancellationToken)
         {
             Contract.ThrowIfNull(document.FilePath);
 
-            Project? project;
+            Project? project = null;
             using (await _gate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
             {
-                if (!_tempFileToProviderMap.TryGetValue(document.FilePath, out var provider))
-                    return null;
+                foreach (var provider in _providers)
+                {
+                    if (!provider.IsValueCreated)
+                        continue;
 
-                project = provider.MapDocument(document);
-                if (project == null)
-                    return null;
+                    Contract.ThrowIfNull(_workspace);
+
+                    project = provider.Value.MapDocument(document);
+                    if (project is not null)
+                        break;
+                }
             }
+
+            if (project is null)
+                return null;
 
             var compilation = await project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
             var resolutionResult = symbolId.Resolve(compilation, ignoreAssemblyKey: true, cancellationToken: cancellationToken);
@@ -182,12 +211,13 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
 
                 // Only cleanup for providers that have actually generated a file. This keeps us from
                 // accidentally loading lazy providers on cleanup that weren't used
-                foreach (var provider in _tempFileToProviderMap.Values.Distinct())
+                foreach (var provider in _providers)
                 {
-                    provider.CleanupGeneratedFiles(_workspace);
-                }
+                    if (!provider.IsValueCreated)
+                        continue;
 
-                _tempFileToProviderMap.Clear();
+                    provider.Value.CleanupGeneratedFiles(_workspace);
+                }
 
                 try
                 {
@@ -240,7 +270,7 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
 
         public bool IsNavigableMetadataSymbol(ISymbol symbol)
         {
-            if (!symbol.Locations.Any(l => l.IsInMetadata))
+            if (!symbol.Locations.Any(static l => l.IsInMetadata))
             {
                 return false;
             }

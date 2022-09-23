@@ -7,7 +7,6 @@ Imports System.Diagnostics.CodeAnalysis
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Editor.Shared.Utilities
-Imports Microsoft.CodeAnalysis.Editor.Implementation.Formatting
 Imports Microsoft.CodeAnalysis.Formatting
 Imports Microsoft.CodeAnalysis.Formatting.Rules
 Imports Microsoft.CodeAnalysis.Options
@@ -241,8 +240,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
 
                 Dim document = args.SubjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges()
                 If document IsNot Nothing Then
-                    Dim formattingRuleService = document.Project.Solution.Workspace.Services.GetService(Of IHostDependentFormattingRuleFactoryService)()
-                    If formattingRuleService.ShouldNotFormatOrCommitOnPaste(document) Then
+                    Dim formattingRuleService = document.Project.Solution.Services.GetService(Of IHostDependentFormattingRuleFactoryService)()
+                    If formattingRuleService.ShouldNotFormatOrCommitOnPaste(document.Id) Then
                         transaction.Complete()
                         Return
                     End If

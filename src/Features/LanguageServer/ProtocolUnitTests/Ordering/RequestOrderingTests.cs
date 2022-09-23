@@ -256,7 +256,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.RequestOrdering
             Contract.ThrowIfNull(response);
             if (response.ContextHasSolution)
             {
-                var solution = testLspServer.GetManager().TryGetHostLspSolution();
+                var (_, solution) = await testLspServer.GetManager().GetLspSolutionInfoAsync(CancellationToken.None).ConfigureAwait(false);
                 Contract.ThrowIfNull(solution);
                 return solution;
             }

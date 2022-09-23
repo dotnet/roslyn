@@ -2395,7 +2395,7 @@ class Test : System.Attribute
                 Diagnostic(ErrorCode.ERR_IdentifierExpectedKW, "out").WithArguments("", "out").WithLocation(4, 11),
                 // (4,19): error CS1003: Syntax error, ',' expected
                 //     [Test(out var x3)]
-                Diagnostic(ErrorCode.ERR_SyntaxError, "x3").WithArguments(",", "").WithLocation(4, 19),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "x3").WithArguments(",").WithLocation(4, 19),
                 // (5,11): error CS1041: Identifier expected; 'out' is a keyword
                 //     [Test(out int x4)]
                 Diagnostic(ErrorCode.ERR_IdentifierExpectedKW, "out").WithArguments("", "out").WithLocation(5, 11),
@@ -2404,34 +2404,34 @@ class Test : System.Attribute
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(5, 15),
                 // (5,19): error CS1003: Syntax error, ',' expected
                 //     [Test(out int x4)]
-                Diagnostic(ErrorCode.ERR_SyntaxError, "x4").WithArguments(",", "").WithLocation(5, 19),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "x4").WithArguments(",").WithLocation(5, 19),
                 // (6,14): error CS1525: Invalid expression term 'out'
                 //     [Test(p: out var x5)]
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, "out").WithArguments("out").WithLocation(6, 14),
                 // (6,14): error CS1003: Syntax error, ',' expected
                 //     [Test(p: out var x5)]
-                Diagnostic(ErrorCode.ERR_SyntaxError, "out").WithArguments(",", "out").WithLocation(6, 14),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "out").WithArguments(",").WithLocation(6, 14),
                 // (6,18): error CS1003: Syntax error, ',' expected
                 //     [Test(p: out var x5)]
-                Diagnostic(ErrorCode.ERR_SyntaxError, "var").WithArguments(",", "").WithLocation(6, 18),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "var").WithArguments(",").WithLocation(6, 18),
                 // (6,22): error CS1003: Syntax error, ',' expected
                 //     [Test(p: out var x5)]
-                Diagnostic(ErrorCode.ERR_SyntaxError, "x5").WithArguments(",", "").WithLocation(6, 22),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "x5").WithArguments(",").WithLocation(6, 22),
                 // (7,14): error CS1525: Invalid expression term 'out'
                 //     [Test(p: out int x6)]
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, "out").WithArguments("out").WithLocation(7, 14),
                 // (7,14): error CS1003: Syntax error, ',' expected
                 //     [Test(p: out int x6)]
-                Diagnostic(ErrorCode.ERR_SyntaxError, "out").WithArguments(",", "out").WithLocation(7, 14),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "out").WithArguments(",").WithLocation(7, 14),
                 // (7,18): error CS1003: Syntax error, ',' expected
                 //     [Test(p: out int x6)]
-                Diagnostic(ErrorCode.ERR_SyntaxError, "int").WithArguments(",", "int").WithLocation(7, 18),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "int").WithArguments(",").WithLocation(7, 18),
                 // (7,18): error CS1525: Invalid expression term 'int'
                 //     [Test(p: out int x6)]
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(7, 18),
                 // (7,22): error CS1003: Syntax error, ',' expected
                 //     [Test(p: out int x6)]
-                Diagnostic(ErrorCode.ERR_SyntaxError, "x6").WithArguments(",", "").WithLocation(7, 22),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "x6").WithArguments(",").WithLocation(7, 22),
                 // (4,15): error CS0103: The name 'var' does not exist in the current context
                 //     [Test(out var x3)]
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "var").WithArguments("var").WithLocation(4, 15),
@@ -17816,13 +17816,13 @@ public class Cls
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(6, 14),
                 // (6,18): error CS1003: Syntax error, ',' expected
                 //         Test(int x1);
-                Diagnostic(ErrorCode.ERR_SyntaxError, "x1").WithArguments(",", "").WithLocation(6, 18),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "x1").WithArguments(",").WithLocation(6, 18),
                 // (7,18): error CS1525: Invalid expression term 'int'
                 //         Test(ref int x2);
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(7, 18),
                 // (7,22): error CS1003: Syntax error, ',' expected
                 //         Test(ref int x2);
-                Diagnostic(ErrorCode.ERR_SyntaxError, "x2").WithArguments(",", "").WithLocation(7, 22),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "x2").WithArguments(",").WithLocation(7, 22),
                 // (6,18): error CS0103: The name 'x1' does not exist in the current context
                 //         Test(int x1);
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "x1").WithArguments("x1").WithLocation(6, 18),
@@ -17858,7 +17858,7 @@ public class Cls
             compilation.VerifyDiagnostics(
                 // (6,24): error CS1003: Syntax error, ',' expected
                 //         Test(out int x1.);
-                Diagnostic(ErrorCode.ERR_SyntaxError, ".").WithArguments(",", ".").WithLocation(6, 24)
+                Diagnostic(ErrorCode.ERR_SyntaxError, ".").WithArguments(",").WithLocation(6, 24)
                 );
 
             var tree = compilation.SyntaxTrees.Single();
@@ -19798,7 +19798,7 @@ public class Cls
                                                             options: TestOptions.ReleaseExe,
                                                             parseOptions: TestOptions.Regular);
             compilation.VerifyDiagnostics(
-                // (5,13): error CS7036: There is no argument given that corresponds to the required formal parameter 'i' of 'Program.M(int, out string)'
+                // (5,13): error CS7036: There is no argument given that corresponds to the required parameter 'i' of 'Program.M(int, out string)'
                 //         if (M(s: out var s))
                 Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "M").WithArguments("i", "Program.M(int, out string)").WithLocation(5, 13)
                 );
@@ -20031,7 +20031,7 @@ public class Cls
             var compilation = CreateCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
 
             compilation.VerifyDiagnostics(
-                // (7,9): error CS7036: There is no argument given that corresponds to the required formal parameter 'x' of 'Cls.Test1(int, ref int)'
+                // (7,9): error CS7036: There is no argument given that corresponds to the required parameter 'x' of 'Cls.Test1(int, ref int)'
                 //         Test1(y: ref x, y: out var y);
                 Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "Test1").WithArguments("x", "Cls.Test1(int, ref int)").WithLocation(7, 9));
 
@@ -20657,10 +20657,10 @@ public class Cls
             compilation.VerifyDiagnostics(
                 // (6,13): error CS1003: Syntax error, ',' expected
                 //         int[out var x1] a = null; // fatal syntax error - 'out' is skipped
-                Diagnostic(ErrorCode.ERR_SyntaxError, "out").WithArguments(",", "out").WithLocation(6, 13),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "out").WithArguments(",").WithLocation(6, 13),
                 // (6,21): error CS1003: Syntax error, ',' expected
                 //         int[out var x1] a = null; // fatal syntax error - 'out' is skipped
-                Diagnostic(ErrorCode.ERR_SyntaxError, "x1").WithArguments(",", "").WithLocation(6, 21),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "x1").WithArguments(",").WithLocation(6, 21),
                 // (7,27): error CS1002: ; expected
                 //         int b(out var x2) = null; // parsed as a local function with syntax error
                 Diagnostic(ErrorCode.ERR_SemicolonExpected, "=").WithLocation(7, 27),
@@ -20672,13 +20672,13 @@ public class Cls
                 Diagnostic(ErrorCode.ERR_CStyleArray, "[out var x3]").WithLocation(8, 14),
                 // (8,15): error CS1003: Syntax error, ',' expected
                 //         int c[out var x3] = null; // fatal syntax error - 'out' is skipped
-                Diagnostic(ErrorCode.ERR_SyntaxError, "out").WithArguments(",", "out").WithLocation(8, 15),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "out").WithArguments(",").WithLocation(8, 15),
                 // (8,19): error CS0270: Array size cannot be specified in a variable declaration (try initializing with a 'new' expression)
                 //         int c[out var x3] = null; // fatal syntax error - 'out' is skipped
                 Diagnostic(ErrorCode.ERR_ArraySizeInDeclaration, "var").WithLocation(8, 19),
                 // (8,23): error CS1003: Syntax error, ',' expected
                 //         int c[out var x3] = null; // fatal syntax error - 'out' is skipped
-                Diagnostic(ErrorCode.ERR_SyntaxError, "x3").WithArguments(",", "").WithLocation(8, 23),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "x3").WithArguments(",").WithLocation(8, 23),
                 // (8,23): error CS0270: Array size cannot be specified in a variable declaration (try initializing with a 'new' expression)
                 //         int c[out var x3] = null; // fatal syntax error - 'out' is skipped
                 Diagnostic(ErrorCode.ERR_ArraySizeInDeclaration, "x3").WithLocation(8, 23),
@@ -20687,10 +20687,10 @@ public class Cls
                 Diagnostic(ErrorCode.ERR_BadVarDecl, "(out var x4").WithLocation(10, 17),
                 // (10,17): error CS1003: Syntax error, '[' expected
                 //         int d, e(out var x4); // parsed as a broken bracketed argument list on the declarator
-                Diagnostic(ErrorCode.ERR_SyntaxError, "(").WithArguments("[", "(").WithLocation(10, 17),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "(").WithArguments("[").WithLocation(10, 17),
                 // (10,28): error CS1003: Syntax error, ']' expected
                 //         int d, e(out var x4); // parsed as a broken bracketed argument list on the declarator
-                Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments("]", ")").WithLocation(10, 28),
+                Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments("]").WithLocation(10, 28),
                 // (6,12): error CS0270: Array size cannot be specified in a variable declaration (try initializing with a 'new' expression)
                 //         int[out var x1] a = null; // fatal syntax error - 'out' is skipped
                 Diagnostic(ErrorCode.ERR_ArraySizeInDeclaration, "[out var x1]").WithLocation(6, 12),
@@ -20822,10 +20822,10 @@ unsafe struct S
             compilation.VerifyDiagnostics(
                 // (4,18): error CS1003: Syntax error, ',' expected
                 //     fixed int F1[out var x1, x1];
-                Diagnostic(ErrorCode.ERR_SyntaxError, "out").WithArguments(",", "out").WithLocation(4, 18),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "out").WithArguments(",").WithLocation(4, 18),
                 // (4,26): error CS1003: Syntax error, ',' expected
                 //     fixed int F1[out var x1, x1];
-                Diagnostic(ErrorCode.ERR_SyntaxError, "x1").WithArguments(",", "").WithLocation(4, 26),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "x1").WithArguments(",").WithLocation(4, 26),
                 // (4,17): error CS7092: A fixed buffer may only have one dimension.
                 //     fixed int F1[out var x1, x1];
                 Diagnostic(ErrorCode.ERR_FixedBufferTooManyDimensions, "[out var x1, x1]").WithLocation(4, 17),
@@ -22946,10 +22946,10 @@ public unsafe struct X
             compilation.GetDiagnostics().Where(d => !exclude.Contains(d.Code)).Verify(
                 // (8,28): error CS1003: Syntax error, '[' expected
                 //     fixed bool d[2], Test3 (out var x3);
-                Diagnostic(ErrorCode.ERR_SyntaxError, "(").WithArguments("[", "(").WithLocation(8, 28),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "(").WithArguments("[").WithLocation(8, 28),
                 // (8,39): error CS1003: Syntax error, ']' expected
                 //     fixed bool d[2], Test3 (out var x3);
-                Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments("]", ")").WithLocation(8, 39),
+                Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments("]").WithLocation(8, 39),
                 // (8,33): error CS8185: A declaration is not allowed in this context.
                 //     fixed bool d[2], Test3 (out var x3);
                 Diagnostic(ErrorCode.ERR_DeclarationExpressionNotPermitted, "var x3").WithLocation(8, 33)
@@ -22982,10 +22982,10 @@ public unsafe struct X
             compilation.VerifyDiagnostics(
                 // (8,22): error CS1003: Syntax error, ',' expected
                 //     fixed bool Test3[out var x3];
-                Diagnostic(ErrorCode.ERR_SyntaxError, "out").WithArguments(",", "out").WithLocation(8, 22),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "out").WithArguments(",").WithLocation(8, 22),
                 // (8,30): error CS1003: Syntax error, ',' expected
                 //     fixed bool Test3[out var x3];
-                Diagnostic(ErrorCode.ERR_SyntaxError, "x3").WithArguments(",", "").WithLocation(8, 30),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "x3").WithArguments(",").WithLocation(8, 30),
                 // (8,21): error CS7092: A fixed buffer may only have one dimension.
                 //     fixed bool Test3[out var x3];
                 Diagnostic(ErrorCode.ERR_FixedBufferTooManyDimensions, "[out var x3]").WithLocation(8, 21),
@@ -23021,9 +23021,9 @@ public class Cls
             var compilation = CreateCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
 
             compilation.VerifyDiagnostics(
-                // (9,19): error CS0721: 'Cls.StaticType': static types cannot be used as parameters
+                // (9,29): error CS0721: 'Cls.StaticType': static types cannot be used as parameters
                 //     static object Test1(out StaticType x)
-                Diagnostic(ErrorCode.ERR_ParameterIsStaticClass, "Test1").WithArguments("Cls.StaticType").WithLocation(9, 19),
+                Diagnostic(ErrorCode.ERR_ParameterIsStaticClass, "StaticType").WithArguments("Cls.StaticType").WithLocation(9, 29),
                 // (6,19): error CS0723: Cannot declare a variable of static type 'Cls.StaticType'
                 //         Test1(out StaticType x1);
                 Diagnostic(ErrorCode.ERR_VarDeclIsStaticClass, "StaticType").WithArguments("Cls.StaticType").WithLocation(6, 19)
@@ -25575,11 +25575,6 @@ class H
                 VerifyModelForOutVar(model, x4Decl[0], x4Ref);
                 VerifyModelForOutVarDuplicateInSameScope(model, x4Decl[1]);
             }
-        }
-
-        private static void AssertNoGlobalStatements(SyntaxTree tree)
-        {
-            Assert.Empty(tree.GetRoot().DescendantNodes().OfType<GlobalStatementSyntax>());
         }
 
         [Fact]
@@ -31702,10 +31697,10 @@ class H
                 Diagnostic(ErrorCode.ERR_BadVarDecl, "(out var x1").WithLocation(3, 10),
                 // (3,10): error CS1003: Syntax error, '[' expected
                 // bool a, b(out var x1);
-                Diagnostic(ErrorCode.ERR_SyntaxError, "(").WithArguments("[", "(").WithLocation(3, 10),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "(").WithArguments("[").WithLocation(3, 10),
                 // (3,21): error CS1003: Syntax error, ']' expected
                 // bool a, b(out var x1);
-                Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments("]", ")").WithLocation(3, 21),
+                Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments("]").WithLocation(3, 21),
                 // (3,19): error CS8197: Cannot infer the type of implicitly-typed out variable 'x1'.
                 // bool a, b(out var x1);
                 Diagnostic(ErrorCode.ERR_TypeInferenceFailedForImplicitlyTypedOutVariable, "x1").WithArguments("x1").WithLocation(3, 19)
@@ -31730,10 +31725,10 @@ class H
                     Diagnostic(ErrorCode.ERR_BadVarDecl, "(out var x1").WithLocation(3, 10),
                     // (3,10): error CS1003: Syntax error, '[' expected
                     // bool a, b(out var x1);
-                    Diagnostic(ErrorCode.ERR_SyntaxError, "(").WithArguments("[", "(").WithLocation(3, 10),
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "(").WithArguments("[").WithLocation(3, 10),
                     // (3,21): error CS1003: Syntax error, ']' expected
                     // bool a, b(out var x1);
-                    Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments("]", ")").WithLocation(3, 21),
+                    Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments("]").WithLocation(3, 21),
                     // (3,6): warning CS0168: The variable 'a' is declared but never used
                     // bool a, b(out var x1);
                     Diagnostic(ErrorCode.WRN_UnreferencedVar, "a").WithArguments("a").WithLocation(3, 6),
@@ -31789,10 +31784,10 @@ class H
                 Diagnostic(ErrorCode.ERR_BadVarDecl, "(H.TakeOutParam(1, out var x1)").WithLocation(3, 10),
                 // (3,10): error CS1003: Syntax error, '[' expected
                 // bool a, b(H.TakeOutParam(1, out var x1));
-                Diagnostic(ErrorCode.ERR_SyntaxError, "(").WithArguments("[", "(").WithLocation(3, 10),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "(").WithArguments("[").WithLocation(3, 10),
                 // (3,40): error CS1003: Syntax error, ']' expected
                 // bool a, b(H.TakeOutParam(1, out var x1));
-                Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments("]", ")").WithLocation(3, 40),
+                Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments("]").WithLocation(3, 40),
                 // (2,1): warning CS0164: This label has not been referenced
                 // label: 
                 Diagnostic(ErrorCode.WRN_UnreferencedLabel, "label").WithLocation(2, 1)
@@ -31817,10 +31812,10 @@ class H
                     Diagnostic(ErrorCode.ERR_BadVarDecl, "(H.TakeOutParam(1, out var x1)").WithLocation(3, 10),
                     // (3,10): error CS1003: Syntax error, '[' expected
                     // bool a, b(H.TakeOutParam(1, out var x1));
-                    Diagnostic(ErrorCode.ERR_SyntaxError, "(").WithArguments("[", "(").WithLocation(3, 10),
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "(").WithArguments("[").WithLocation(3, 10),
                     // (3,40): error CS1003: Syntax error, ']' expected
                     // bool a, b(H.TakeOutParam(1, out var x1));
-                    Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments("]", ")").WithLocation(3, 40),
+                    Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments("]").WithLocation(3, 40),
                     // (2,1): warning CS0164: This label has not been referenced
                     // label: 
                     Diagnostic(ErrorCode.WRN_UnreferencedLabel, "label").WithLocation(2, 1),
@@ -31882,10 +31877,10 @@ class H
                 Diagnostic(ErrorCode.ERR_BadVarDecl, "(H.TakeOutParam(1, out var x1)").WithLocation(3, 25),
                 // (3,25): error CS1003: Syntax error, '[' expected
                 // event System.Action a, b(H.TakeOutParam(1, out var x1));
-                Diagnostic(ErrorCode.ERR_SyntaxError, "(").WithArguments("[", "(").WithLocation(3, 25),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "(").WithArguments("[").WithLocation(3, 25),
                 // (3,55): error CS1003: Syntax error, ']' expected
                 // event System.Action a, b(H.TakeOutParam(1, out var x1));
-                Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments("]", ")").WithLocation(3, 55)
+                Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments("]").WithLocation(3, 55)
                     );
 
                 var tree = compilation.SyntaxTrees.Single();
@@ -31907,10 +31902,10 @@ class H
                     Diagnostic(ErrorCode.ERR_BadVarDecl, "(H.TakeOutParam(1, out var x1)").WithLocation(3, 25),
                     // (3,25): error CS1003: Syntax error, '[' expected
                     // event System.Action a, b(H.TakeOutParam(1, out var x1));
-                    Diagnostic(ErrorCode.ERR_SyntaxError, "(").WithArguments("[", "(").WithLocation(3, 25),
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "(").WithArguments("[").WithLocation(3, 25),
                     // (3,55): error CS1003: Syntax error, ']' expected
                     // event System.Action a, b(H.TakeOutParam(1, out var x1));
-                    Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments("]", ")").WithLocation(3, 55),
+                    Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments("]").WithLocation(3, 55),
                     // (4,9): error CS0103: The name 'x1' does not exist in the current context
                     // H.Dummy(x1);
                     Diagnostic(ErrorCode.ERR_NameNotInContext, "x1").WithArguments("x1").WithLocation(4, 9),
@@ -32099,9 +32094,9 @@ static class StaticType{}
                 // (5,31): error CS0723: Cannot declare a variable of static type 'StaticType'
                 // H.TakeOutParam(out StaticType x2);
                 Diagnostic(ErrorCode.ERR_VarDeclIsStaticClass, "x2").WithArguments("StaticType").WithLocation(5, 31),
-                // (9,24): error CS0721: 'StaticType': static types cannot be used as parameters
+                // (9,41): error CS0721: 'StaticType': static types cannot be used as parameters
                 //     public static void TakeOutParam(out StaticType x) 
-                Diagnostic(ErrorCode.ERR_ParameterIsStaticClass, "TakeOutParam").WithArguments("StaticType").WithLocation(9, 24),
+                Diagnostic(ErrorCode.ERR_ParameterIsStaticClass, "StaticType").WithArguments("StaticType").WithLocation(9, 41),
                 // (3,24): error CS0723: Cannot declare a variable of static type 'StaticType'
                 // H.TakeOutParam(out var x1);
                 Diagnostic(ErrorCode.ERR_VarDeclIsStaticClass, "x1").WithArguments("StaticType").WithLocation(3, 24)
@@ -35462,7 +35457,7 @@ class Program
             compilation.VerifyDiagnostics(
                 // (6,16): error CS1003: Syntax error, '(' expected
                 //         foreach 
-                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments("(", "").WithLocation(6, 16),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments("(").WithLocation(6, 16),
                 // (7,60): error CS1515: 'in' expected
                 //         other(some().F(a => TestOutVar(out var x) ? x : 1));
                 Diagnostic(ErrorCode.ERR_InExpected, ";").WithLocation(7, 60),

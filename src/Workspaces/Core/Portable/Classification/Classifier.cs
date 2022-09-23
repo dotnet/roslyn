@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.Classification
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
             // public options do not affect classification:
-            return GetClassifiedSpans(document.Project.Solution.Workspace.Services, semanticModel, textSpan, ClassificationOptions.Default, cancellationToken);
+            return GetClassifiedSpans(document.Project.Solution.Services, document.Project, semanticModel, textSpan, ClassificationOptions.Default, cancellationToken);
         }
 
         /// <summary>
@@ -47,21 +47,24 @@ namespace Microsoft.CodeAnalysis.Classification
             CancellationToken cancellationToken = default)
         {
             // public options do not affect classification:
-            return GetClassifiedSpans(workspace.Services, semanticModel, textSpan, ClassificationOptions.Default, cancellationToken);
+            return GetClassifiedSpans(workspace.Services.SolutionServices, project: null, semanticModel, textSpan, ClassificationOptions.Default, cancellationToken);
         }
 
         internal static IEnumerable<ClassifiedSpan> GetClassifiedSpans(
-            HostWorkspaceServices workspaceServices,
+            SolutionServices services,
+            Project? project,
             SemanticModel semanticModel,
             TextSpan textSpan,
             ClassificationOptions options,
             CancellationToken cancellationToken)
         {
-            var service = workspaceServices.GetLanguageServices(semanticModel.Language).GetRequiredService<ISyntaxClassificationService>();
+            var projectServices = services.GetLanguageServices(semanticModel.Language);
+            var classsificationService = projectServices.GetRequiredService<ISyntaxClassificationService>();
+            var embeddedLanguageService = projectServices.GetRequiredService<IEmbeddedLanguageClassificationService>();
 
-            var syntaxClassifiers = service.GetDefaultSyntaxClassifiers();
+            var syntaxClassifiers = classsificationService.GetDefaultSyntaxClassifiers();
 
-            var extensionManager = workspaceServices.GetRequiredService<IExtensionManager>();
+            var extensionManager = services.GetRequiredService<IExtensionManager>();
             var getNodeClassifiers = extensionManager.CreateNodeExtensionGetter(syntaxClassifiers, c => c.SyntaxNodeTypes);
             var getTokenClassifiers = extensionManager.CreateTokenExtensionGetter(syntaxClassifiers, c => c.SyntaxTokenKinds);
 
@@ -70,8 +73,11 @@ namespace Microsoft.CodeAnalysis.Classification
 
             var root = semanticModel.SyntaxTree.GetRoot(cancellationToken);
 
-            service.AddSyntacticClassifications(root, textSpan, syntacticClassifications, cancellationToken);
-            service.AddSemanticClassifications(semanticModel, textSpan, getNodeClassifiers, getTokenClassifiers, semanticClassifications, options, cancellationToken);
+            classsificationService.AddSyntacticClassifications(root, textSpan, syntacticClassifications, cancellationToken);
+            classsificationService.AddSemanticClassifications(semanticModel, textSpan, getNodeClassifiers, getTokenClassifiers, semanticClassifications, options, cancellationToken);
+
+            // intentionally adding to the semanticClassifications array here.
+            embeddedLanguageService.AddEmbeddedLanguageClassifications(project, semanticModel, textSpan, options, semanticClassifications, cancellationToken);
 
             var allClassifications = new List<ClassifiedSpan>(semanticClassifications.Where(s => s.TextSpan.OverlapsWith(textSpan)));
             var semanticSet = semanticClassifications.Select(s => s.TextSpan).ToSet();
@@ -84,10 +90,10 @@ namespace Microsoft.CodeAnalysis.Classification
         }
 
         internal static async Task<ImmutableArray<SymbolDisplayPart>> GetClassifiedSymbolDisplayPartsAsync(
-            HostWorkspaceServices workspaceServices, SemanticModel semanticModel, TextSpan textSpan, ClassificationOptions options,
+            SolutionServices services, SemanticModel semanticModel, TextSpan textSpan, ClassificationOptions options,
             CancellationToken cancellationToken = default)
         {
-            var classifiedSpans = GetClassifiedSpans(workspaceServices, semanticModel, textSpan, options, cancellationToken);
+            var classifiedSpans = GetClassifiedSpans(services, project: null, semanticModel, textSpan, options, cancellationToken);
             var sourceText = await semanticModel.SyntaxTree.GetTextAsync(cancellationToken).ConfigureAwait(false);
 
             return ConvertClassificationsToParts(sourceText, textSpan.Start, classifiedSpans);

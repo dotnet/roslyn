@@ -679,8 +679,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // and position is more likely to be in the body, so lets check for "inBody" first.
                 if (parent.OpenBraceToken != default &&
                     parent.CloseBraceToken != default &&
-                    (LookupPosition.IsBetweenTokens(_position, parent.OpenBraceToken, parent.CloseBraceToken) ||
-                     LookupPosition.IsInAttributeSpecification(_position, parent.AttributeLists)))
+                    LookupPosition.IsBetweenTokens(_position, parent.OpenBraceToken, parent.CloseBraceToken))
+                {
+                    extraInfo = NodeUsage.NamedTypeBodyOrTypeParameters;
+                }
+                else if (LookupPosition.IsInAttributeSpecification(_position, parent.AttributeLists))
                 {
                     extraInfo = NodeUsage.NamedTypeBodyOrTypeParameters;
                 }

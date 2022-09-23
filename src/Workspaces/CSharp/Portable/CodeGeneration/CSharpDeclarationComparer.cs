@@ -57,6 +57,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             { SyntaxKind.GreaterThanEqualsToken, 19 },
             { SyntaxKind.TrueKeyword, 20 },
             { SyntaxKind.FalseKeyword, 21 },
+            { SyntaxKind.GreaterThanGreaterThanGreaterThanToken, 22 },
         };
 
         public static readonly CSharpDeclarationComparer WithNamesInstance = new(includeName: true);

@@ -21,8 +21,10 @@ namespace Microsoft.CodeAnalysis.CSharp
            BoundExpression sourceExpression,
            TypeSymbol source,
            TypeSymbol target,
+           bool isChecked,
            ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
+            Debug.Assert(sourceExpression is null || Compilation is not null);
             Debug.Assert(sourceExpression != null || (object)source != null);
             Debug.Assert((object)target != null);
 
@@ -31,12 +33,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // SPEC: Find the set of types D from which user-defined conversion operators
             // SPEC: will be considered...
-            var d = ArrayBuilder<TypeSymbol>.GetInstance();
+            var d = ArrayBuilder<(NamedTypeSymbol ParticipatingType, TypeParameterSymbol ConstrainedToTypeOpt)>.GetInstance();
             ComputeUserDefinedExplicitConversionTypeSet(source, target, d, ref useSiteInfo);
 
             // SPEC: Find the set of applicable user-defined and lifted conversion operators, U...
             var ubuild = ArrayBuilder<UserDefinedConversionAnalysis>.GetInstance();
-            ComputeApplicableUserDefinedExplicitConversionSet(sourceExpression, source, target, d, ubuild, ref useSiteInfo);
+            ComputeApplicableUserDefinedExplicitConversionSet(sourceExpression, source, target, isChecked: isChecked, d, ubuild, ref useSiteInfo);
             d.Free();
             ImmutableArray<UserDefinedConversionAnalysis> u = ubuild.ToImmutableAndFree();
 
@@ -69,7 +71,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return UserDefinedConversionResult.Valid(u, best.Value);
         }
 
-        private static void ComputeUserDefinedExplicitConversionTypeSet(TypeSymbol source, TypeSymbol target, ArrayBuilder<TypeSymbol> d, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+        private static void ComputeUserDefinedExplicitConversionTypeSet(TypeSymbol source, TypeSymbol target, ArrayBuilder<(NamedTypeSymbol ParticipatingType, TypeParameterSymbol ConstrainedToTypeOpt)> d, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
             // Spec 6.4.5: User-defined explicit conversions
             //   Find the set of types, D, from which user-defined conversion operators will be considered. 
@@ -84,39 +86,40 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression sourceExpression,
             TypeSymbol source,
             TypeSymbol target,
-            ArrayBuilder<TypeSymbol> d,
+            bool isChecked,
+            ArrayBuilder<(NamedTypeSymbol ParticipatingType, TypeParameterSymbol ConstrainedToTypeOpt)> d,
             ArrayBuilder<UserDefinedConversionAnalysis> u,
             ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
+            Debug.Assert(sourceExpression is null || Compilation is not null);
             Debug.Assert(sourceExpression != null || (object)source != null);
             Debug.Assert((object)target != null);
             Debug.Assert(d != null);
             Debug.Assert(u != null);
 
-            HashSet<NamedTypeSymbol> lookedInInterfaces = null;
+            bool haveInterfaces = false;
 
-            foreach (TypeSymbol declaringType in d)
+            foreach ((NamedTypeSymbol declaringType, TypeParameterSymbol constrainedToTypeOpt) in d)
             {
-                if (declaringType is TypeParameterSymbol typeParameter)
+                if (declaringType.IsInterface)
                 {
-                    ImmutableArray<NamedTypeSymbol> interfaceTypes = typeParameter.AllEffectiveInterfacesWithDefinitionUseSiteDiagnostics(ref useSiteInfo);
-
-                    if (!interfaceTypes.IsEmpty)
-                    {
-                        lookedInInterfaces ??= new HashSet<NamedTypeSymbol>(Symbols.SymbolEqualityComparer.AllIgnoreOptions); // Equivalent to has identity conversion check
-
-                        foreach (var interfaceType in interfaceTypes)
-                        {
-                            if (lookedInInterfaces.Add(interfaceType))
-                            {
-                                addCandidatesFromType(constrainedToTypeOpt: typeParameter, interfaceType, sourceExpression, source, target, u, ref useSiteInfo);
-                            }
-                        }
-                    }
+                    Debug.Assert(constrainedToTypeOpt is not null);
+                    haveInterfaces = true;
                 }
                 else
                 {
-                    addCandidatesFromType(constrainedToTypeOpt: null, (NamedTypeSymbol)declaringType, sourceExpression, source, target, u, ref useSiteInfo);
+                    addCandidatesFromType(constrainedToTypeOpt: null, declaringType, sourceExpression, source, target, isChecked: isChecked, u, ref useSiteInfo);
+                }
+            }
+
+            if (u.Count == 0 && haveInterfaces)
+            {
+                foreach ((NamedTypeSymbol declaringType, TypeParameterSymbol constrainedToTypeOpt) in d)
+                {
+                    if (declaringType.IsInterface)
+                    {
+                        addCandidatesFromType(constrainedToTypeOpt: constrainedToTypeOpt, declaringType, sourceExpression, source, target, isChecked: isChecked, u, ref useSiteInfo);
+                    }
                 }
             }
 
@@ -126,11 +129,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 BoundExpression sourceExpression,
                 TypeSymbol source,
                 TypeSymbol target,
+                bool isChecked,
                 ArrayBuilder<UserDefinedConversionAnalysis> u,
                 ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
             {
-                AddUserDefinedConversionsToExplicitCandidateSet(sourceExpression, source, target, u, constrainedToTypeOpt, declaringType, WellKnownMemberNames.ExplicitConversionName, ref useSiteInfo);
-                AddUserDefinedConversionsToExplicitCandidateSet(sourceExpression, source, target, u, constrainedToTypeOpt, declaringType, WellKnownMemberNames.ImplicitConversionName, ref useSiteInfo);
+                AddUserDefinedConversionsToExplicitCandidateSet(sourceExpression, source, target, u, constrainedToTypeOpt, declaringType, isExplicit: true, isChecked: isChecked, ref useSiteInfo);
+                AddUserDefinedConversionsToExplicitCandidateSet(sourceExpression, source, target, u, constrainedToTypeOpt, declaringType, isExplicit: false, isChecked: isChecked, ref useSiteInfo);
             }
         }
 
@@ -141,14 +145,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             ArrayBuilder<UserDefinedConversionAnalysis> u,
             TypeParameterSymbol constrainedToTypeOpt,
             NamedTypeSymbol declaringType,
-            string operatorName,
+            bool isExplicit,
+            bool isChecked,
             ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
+            Debug.Assert(sourceExpression is null || Compilation is not null);
             Debug.Assert(sourceExpression != null || (object)source != null);
             Debug.Assert((object)target != null);
             Debug.Assert(u != null);
             Debug.Assert((object)declaringType != null);
-            Debug.Assert(operatorName != null);
 
             // SPEC: Find the set of applicable user-defined and lifted conversion operators, U.
             // SPEC: The set consists of the user-defined and lifted implicit or explicit 
@@ -207,7 +212,46 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return;
             }
 
-            foreach (MethodSymbol op in declaringType.GetOperators(operatorName))
+            ImmutableArray<MethodSymbol> operators = declaringType.GetOperators(
+                isExplicit ? (isChecked ? WellKnownMemberNames.CheckedExplicitConversionName : WellKnownMemberNames.ExplicitConversionName) : WellKnownMemberNames.ImplicitConversionName);
+
+            var candidates = ArrayBuilder<MethodSymbol>.GetInstance(operators.Length);
+            candidates.AddRange(operators);
+
+            if (isExplicit && isChecked)
+            {
+                ImmutableArray<MethodSymbol> operators2 = declaringType.GetOperators(WellKnownMemberNames.ExplicitConversionName);
+
+                // Add regular operators as well.
+                if (operators.IsEmpty)
+                {
+                    candidates.AddRange(operators2);
+                }
+                else
+                {
+                    foreach (MethodSymbol op2 in operators2)
+                    {
+                        // Drop operators that have a match among the checked ones.
+                        bool add = true;
+
+                        foreach (MethodSymbol op in operators)
+                        {
+                            if (SourceMemberContainerTypeSymbol.DoOperatorsPair(op, op2))
+                            {
+                                add = false;
+                                break;
+                            }
+                        }
+
+                        if (add)
+                        {
+                            candidates.Add(op2);
+                        }
+                    }
+                }
+            }
+
+            foreach (MethodSymbol op in candidates)
             {
                 // We might have a bad operator and be in an error recovery situation. Ignore it.
                 if (op.ReturnsVoid || op.ParameterCount != 1 || op.ReturnType.TypeKind == TypeKind.Error)
@@ -218,24 +262,24 @@ namespace Microsoft.CodeAnalysis.CSharp
                 TypeSymbol convertsFrom = op.GetParameterType(0);
                 TypeSymbol convertsTo = op.ReturnType;
                 Conversion fromConversion = EncompassingExplicitConversion(sourceExpression, source, convertsFrom, ref useSiteInfo);
-                Conversion toConversion = EncompassingExplicitConversion(null, convertsTo, target, ref useSiteInfo);
+                Conversion toConversion = EncompassingExplicitConversion(convertsTo, target, ref useSiteInfo);
 
                 // We accept candidates for which the parameter type encompasses the *underlying* source type.
                 if (!fromConversion.Exists &&
                     (object)source != null &&
                     source.IsNullableType() &&
-                    EncompassingExplicitConversion(null, source.GetNullableUnderlyingType(), convertsFrom, ref useSiteInfo).Exists)
+                    EncompassingExplicitConversion(source.GetNullableUnderlyingType(), convertsFrom, ref useSiteInfo).Exists)
                 {
-                    fromConversion = ClassifyBuiltInConversion(source, convertsFrom, ref useSiteInfo);
+                    fromConversion = ClassifyBuiltInConversion(source, convertsFrom, isChecked: isChecked, ref useSiteInfo);
                 }
 
                 // As in dev11 (and the revised spec), we also accept candidates for which the return type is encompassed by the *stripped* target type.
                 if (!toConversion.Exists &&
                     (object)target != null &&
                     target.IsNullableType() &&
-                    EncompassingExplicitConversion(null, convertsTo, target.GetNullableUnderlyingType(), ref useSiteInfo).Exists)
+                    EncompassingExplicitConversion(convertsTo, target.GetNullableUnderlyingType(), ref useSiteInfo).Exists)
                 {
-                    toConversion = ClassifyBuiltInConversion(convertsTo, target, ref useSiteInfo);
+                    toConversion = ClassifyBuiltInConversion(convertsTo, target, isChecked: isChecked, ref useSiteInfo);
                 }
 
                 // In the corresponding implicit conversion code we can get away with first 
@@ -270,7 +314,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         TypeSymbol nullableFrom = MakeNullableType(convertsFrom);
                         TypeSymbol nullableTo = convertsTo.IsValidNullableTypeArgument() ? MakeNullableType(convertsTo) : convertsTo;
                         Conversion liftedFromConversion = EncompassingExplicitConversion(sourceExpression, source, nullableFrom, ref useSiteInfo);
-                        Conversion liftedToConversion = EncompassingExplicitConversion(null, nullableTo, target, ref useSiteInfo);
+                        Conversion liftedToConversion = EncompassingExplicitConversion(nullableTo, target, ref useSiteInfo);
                         Debug.Assert(liftedFromConversion.Exists);
                         Debug.Assert(liftedToConversion.Exists);
                         u.Add(UserDefinedConversionAnalysis.Lifted(constrainedToTypeOpt, op, liftedFromConversion, liftedToConversion, nullableFrom, nullableTo));
@@ -296,19 +340,21 @@ namespace Microsoft.CodeAnalysis.CSharp
                         if (target.IsNullableType() && convertsTo.IsValidNullableTypeArgument())
                         {
                             convertsTo = MakeNullableType(convertsTo);
-                            toConversion = EncompassingExplicitConversion(null, convertsTo, target, ref useSiteInfo);
+                            toConversion = EncompassingExplicitConversion(convertsTo, target, ref useSiteInfo);
                         }
 
                         if ((object)source != null && source.IsNullableType() && convertsFrom.IsValidNullableTypeArgument())
                         {
                             convertsFrom = MakeNullableType(convertsFrom);
-                            fromConversion = EncompassingExplicitConversion(null, convertsFrom, source, ref useSiteInfo);
+                            fromConversion = EncompassingExplicitConversion(convertsFrom, source, ref useSiteInfo);
                         }
 
                         u.Add(UserDefinedConversionAnalysis.Normal(constrainedToTypeOpt, op, fromConversion, toConversion, convertsFrom, convertsTo));
                     }
                 }
             }
+
+            candidates.Free();
         }
 
         private TypeSymbol MostSpecificSourceTypeForExplicitUserDefinedConversion(
@@ -349,7 +395,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if ((object)source != null)
             {
-                if (u.Any(conv => TypeSymbol.Equals(conv.FromType, source, TypeCompareKind.ConsiderEverything2)))
+                if (u.Any(static (conv, source) => TypeSymbol.Equals(conv.FromType, source, TypeCompareKind.ConsiderEverything2), source))
                 {
                     return source;
                 }
@@ -404,13 +450,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             // We have already written the "ToType" into the conversion analysis to
             // perpetuate this fiction.
 
-            if (u.Any(conv => TypeSymbol.Equals(conv.ToType, target, TypeCompareKind.ConsiderEverything2)))
+            if (u.Any(static (conv, target) => TypeSymbol.Equals(conv.ToType, target, TypeCompareKind.ConsiderEverything2), target))
             {
                 return target;
             }
 
             CompoundUseSiteInfo<AssemblySymbol> inLambdaUseSiteInfo = useSiteInfo;
-            System.Func<UserDefinedConversionAnalysis, bool> isValid = conv => IsEncompassedBy(null, conv.ToType, target, ref inLambdaUseSiteInfo);
+            System.Func<UserDefinedConversionAnalysis, bool> isValid = conv => IsEncompassedBy(conv.ToType, target, ref inLambdaUseSiteInfo);
             if (u.Any(isValid))
             {
                 var result = MostEncompassingType(u, isValid, conv => conv.ToType, ref inLambdaUseSiteInfo);
@@ -424,6 +470,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private Conversion EncompassingExplicitConversion(BoundExpression expr, TypeSymbol a, TypeSymbol b, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
+            Debug.Assert(expr is null || Compilation is not null);
             Debug.Assert(expr != null || (object)a != null);
             Debug.Assert((object)b != null);
 
@@ -442,6 +489,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var result = ClassifyStandardConversion(expr, a, b, ref useSiteInfo);
             return result.IsEnumeration ? Conversion.NoConversion : result;
+        }
+
+        private Conversion EncompassingExplicitConversion(TypeSymbol a, TypeSymbol b, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+        {
+            return EncompassingExplicitConversion(expr: null, a, b, ref useSiteInfo);
         }
     }
 }

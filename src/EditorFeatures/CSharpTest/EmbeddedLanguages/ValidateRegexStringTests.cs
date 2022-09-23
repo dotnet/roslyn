@@ -15,6 +15,7 @@ using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.EmbeddedLanguages
 {
+    [Trait(Traits.Feature, Traits.Features.ValidateRegexString)]
     public class ValidateRegexStringTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
     {
         public ValidateRegexStringTests(ITestOutputHelper logger)
@@ -25,13 +26,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.EmbeddedLanguages
         internal override (DiagnosticAnalyzer, CodeFixProvider?) CreateDiagnosticProviderAndFixer(Workspace workspace)
             => (new CSharpRegexDiagnosticAnalyzer(), null);
 
-        private static OptionsCollection OptionOn()
-            => new(LanguageNames.CSharp)
-            {
-                { RegularExpressionsOptions.ReportInvalidRegexPatterns, true }
-            };
+        private OptionsCollection OptionOn()
+            => Option(IdeAnalyzerOptionsStorage.ReportInvalidRegexPatterns, true);
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ValidateRegexString)]
+        [Fact]
         public async Task TestWarning1()
         {
             await TestDiagnosticInfoAsync(@"
@@ -44,13 +42,13 @@ class Program
         var r = new Regex(@""[|)|]"");
     }     
 }",
-                options: OptionOn(),
+                globalOptions: OptionOn(),
                 diagnosticId: AbstractRegexDiagnosticAnalyzer.DiagnosticId,
                 diagnosticSeverity: DiagnosticSeverity.Warning,
                 diagnosticMessage: string.Format(FeaturesResources.Regex_issue_0, FeaturesResources.Too_many_close_parens));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ValidateRegexString)]
+        [Fact]
         public async Task TestWarning2()
         {
             await TestDiagnosticInfoAsync(@"
@@ -63,13 +61,13 @@ class Program
         var r = new Regex(""[|\u0029|]"");
     }     
 }",
-                options: OptionOn(),
+                globalOptions: OptionOn(),
                 diagnosticId: AbstractRegexDiagnosticAnalyzer.DiagnosticId,
                 diagnosticSeverity: DiagnosticSeverity.Warning,
                 diagnosticMessage: string.Format(FeaturesResources.Regex_issue_0, FeaturesResources.Too_many_close_parens));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ValidateRegexString)]
+        [Fact]
         public async Task TestWarningMissing1()
         {
             await TestDiagnosticMissingAsync(@"

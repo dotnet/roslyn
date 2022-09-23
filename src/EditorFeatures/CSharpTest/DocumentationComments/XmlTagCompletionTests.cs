@@ -16,9 +16,10 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.DocumentationComments
 {
+    [Trait(Traits.Feature, Traits.Features.XmlTagCompletion)]
     public class XmlTagCompletionTests : AbstractXmlTagCompletionTests
     {
-        [WpfFact, Trait(Traits.Feature, Traits.Features.XmlTagCompletion)]
+        [WpfFact]
         public void SimpleTagCompletion()
         {
             var text = @"
@@ -32,7 +33,7 @@ class c { }";
             Verify(text, expected, '>');
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.XmlTagCompletion)]
+        [WpfFact]
         public void NestedTagCompletion()
         {
             var text = @"
@@ -50,7 +51,7 @@ class c { }";
             Verify(text, expected, '>');
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.XmlTagCompletion)]
+        [WpfFact]
         public void CompleteBeforeIncompleteTag()
         {
             var text = @"
@@ -66,7 +67,7 @@ class c { }";
             Verify(text, expected, '>');
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.XmlTagCompletion)]
+        [WpfFact]
         public void NotEmptyElement()
         {
             var text = @"
@@ -80,7 +81,7 @@ class c { }";
             Verify(text, expected, '>');
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.XmlTagCompletion)]
+        [WpfFact]
         public void NotAlreadyCompleteTag()
         {
             var text = @"
@@ -94,7 +95,7 @@ class c { }";
             Verify(text, expected, '>');
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.XmlTagCompletion)]
+        [WpfFact]
         public void NotAlreadyCompleteTag2()
         {
             var text = @"
@@ -112,7 +113,7 @@ class c { }";
             Verify(text, expected, '>');
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.XmlTagCompletion)]
+        [WpfFact]
         public void SimpleSlashCompletion()
         {
             var text = @"
@@ -126,7 +127,7 @@ class c { }";
             Verify(text, expected, '/');
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.XmlTagCompletion)]
+        [WpfFact]
         public void NestedSlashTagCompletion()
         {
             var text = @"
@@ -144,7 +145,7 @@ class c { }";
             Verify(text, expected, '/');
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.XmlTagCompletion)]
+        [WpfFact]
         public void SlashCompleteBeforeIncompleteTag()
         {
             var text = @"
@@ -160,7 +161,7 @@ class c { }";
             Verify(text, expected, '/');
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.XmlTagCompletion)]
+        [WpfFact]
         public void SlashNotEmptyElement()
         {
             var text = @"
@@ -174,7 +175,7 @@ class c { }";
             Verify(text, expected, '/');
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.XmlTagCompletion)]
+        [WpfFact]
         public void SlashNotAlreadyCompleteTag()
         {
             var text = @"
@@ -188,7 +189,7 @@ class c { }";
             Verify(text, expected, '/');
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.XmlTagCompletion)]
+        [WpfFact]
         public void SlashNotAlreadyCompleteTag2()
         {
             var text = @"
@@ -207,7 +208,7 @@ class c { }";
         }
 
         [WorkItem(638800, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/638800")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.XmlTagCompletion)]
+        [WpfFact]
         public void NestedIdenticalTags()
         {
             var text = @"
@@ -222,7 +223,7 @@ class c { }";
         }
 
         [WorkItem(638800, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/638800")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.XmlTagCompletion)]
+        [WpfFact]
         public void MultipleNestedIdenticalTags()
         {
             var text = @"
@@ -237,7 +238,7 @@ class c { }";
         }
 
         [WorkItem(638235, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/638235")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.XmlTagCompletion)]
+        [WpfFact]
         public void SlashNotIfCloseTagFollows()
         {
             var text = @"

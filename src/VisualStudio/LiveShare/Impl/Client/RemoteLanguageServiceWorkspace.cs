@@ -17,6 +17,7 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Composition;
 using Microsoft.VisualStudio.Editor;
@@ -90,7 +91,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
         {
             _serviceProvider = serviceProvider;
 
-            _remoteDiagnosticListTable = new RemoteDiagnosticListTable(threadingContext, serviceProvider, this, globalOptions, diagnosticService, tableManagerProvider);
+            _remoteDiagnosticListTable = new RemoteDiagnosticListTable(globalOptions, threadingContext, serviceProvider, this, diagnosticService, tableManagerProvider);
 
             var runningDocumentTable = (IVsRunningDocumentTable)serviceProvider.GetService(typeof(SVsRunningDocumentTable));
             _runningDocumentTableEventTracker = new RunningDocumentTableEventTracker(threadingContext, editorAdaptersFactoryService, runningDocumentTable, this);
@@ -101,6 +102,9 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
             _remoteWorkspaceRootPaths = ImmutableHashSet<string>.Empty;
             _registeredExternalPaths = ImmutableHashSet<string>.Empty;
         }
+
+        private IGlobalOptionService GlobalOptions
+            => _remoteDiagnosticListTable.GlobalOptions;
 
         void IRunningDocumentTableEventListener.OnOpenDocument(string moniker, ITextBuffer textBuffer, IVsHierarchy? hierarchy, IVsWindowFrame? windowFrame) => NotifyOnDocumentOpened(moniker, textBuffer);
 
@@ -143,7 +147,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
         /// this means that the remote workpace roots have also changed and need to be updated.
         /// This will not be called concurrently.
         /// </summary>
-        private async Task OnActiveWorkspaceChangedAsync(object sender, EventArgs args)
+        private async Task OnActiveWorkspaceChangedAsync(object? sender, EventArgs args)
         {
             if (IsRemoteSession)
             {
@@ -523,7 +527,12 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
         }
 
         private void StartSolutionCrawler()
-            => DiagnosticProvider.Enable(this, DiagnosticProvider.Options.Syntax);
+        {
+            if (GlobalOptions.GetOption(SolutionCrawlerRegistrationService.EnableSolutionCrawler))
+            {
+                DiagnosticProvider.Enable(this, DiagnosticProvider.Options.Syntax);
+            }
+        }
 
         private void StopSolutionCrawler()
             => DiagnosticProvider.Disable(this);

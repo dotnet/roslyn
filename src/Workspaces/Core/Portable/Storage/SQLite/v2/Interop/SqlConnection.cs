@@ -31,8 +31,8 @@ namespace Microsoft.CodeAnalysis.SQLite.v2.Interop
     /// </summary>
     internal class SqlConnection
     {
-        // Cached utf8 (and null terminated) versions of the common strings we need to pass to sqlite.  Used to prevent
-        // having to convert these names to/from utf16 to utf8 on every call.  Sqlite requires these be null terminated.
+        // Cached UTF-8 (and null terminated) versions of the common strings we need to pass to sqlite.  Used to prevent
+        // having to convert these names to/from utf16 to UTF-8 on every call.  Sqlite requires these be null terminated.
 
         private static readonly byte[] s_mainNameWithTrailingZero = GetUtf8BytesWithTrailingZero(Database.Main.GetName());
         private static readonly byte[] s_writeCacheNameWithTrailingZero = GetUtf8BytesWithTrailingZero(Database.WriteCache.GetName());

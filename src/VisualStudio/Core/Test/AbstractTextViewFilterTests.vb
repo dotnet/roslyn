@@ -4,6 +4,7 @@
 
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
+Imports Microsoft.CodeAnalysis.BraceMatching
 Imports Microsoft.CodeAnalysis.Editor
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Test.Utilities
@@ -252,6 +253,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests
             Assert.Equal(0, AbstractVsTextViewFilter.GetPairExtentsWorker(
                          document.GetTextView(),
                          braceMatcher,
+                         workspace.GlobalOptions,
                          initialLineNumber,
                          initialIndex,
                          spans,
@@ -273,6 +275,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests
             Assert.Equal(0, AbstractVsTextViewFilter.GetPairExtentsWorker(
                          document.GetTextView(),
                          braceMatcher,
+                         workspace.GlobalOptions,
                          initialLineNumber,
                          initialIndex,
                          spans,

@@ -7,12 +7,14 @@ using System.Globalization;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Extensions;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.CodeAnalysis.Telemetry;
 using Microsoft.ServiceHub.Client;
 using Microsoft.ServiceHub.Framework;
@@ -24,7 +26,7 @@ namespace Microsoft.CodeAnalysis.Remote
 {
     internal sealed partial class ServiceHubRemoteHostClient : RemoteHostClient
     {
-        private readonly HostWorkspaceServices _services;
+        private readonly SolutionServices _services;
         private readonly SolutionAssetStorage _assetStorage;
         private readonly HubClient _hubClient;
         private readonly ServiceBrokerClient _serviceBrokerClient;
@@ -35,7 +37,7 @@ namespace Microsoft.CodeAnalysis.Remote
         public readonly RemoteProcessConfiguration Configuration;
 
         private ServiceHubRemoteHostClient(
-            HostWorkspaceServices services,
+            SolutionServices services,
             RemoteProcessConfiguration configuration,
             ServiceBrokerClient serviceBrokerClient,
             HubClient hubClient,
@@ -56,7 +58,7 @@ namespace Microsoft.CodeAnalysis.Remote
         }
 
         public static async Task<RemoteHostClient> CreateAsync(
-            HostWorkspaceServices services,
+            SolutionServices services,
             RemoteProcessConfiguration configuration,
             AsynchronousOperationListenerProvider listenerProvider,
             IServiceBroker serviceBroker,
@@ -74,11 +76,18 @@ namespace Microsoft.CodeAnalysis.Remote
 
                 var client = new ServiceHubRemoteHostClient(services, configuration, serviceBrokerClient, hubClient, callbackDispatchers);
 
-                var syntaxTreeConfigurationService = services.GetService<ISyntaxTreeConfigurationService>();
-                if (syntaxTreeConfigurationService != null)
+                var workspaceConfigurationService = services.GetService<IWorkspaceConfigurationService>();
+                if (workspaceConfigurationService != null)
                 {
                     await client.TryInvokeAsync<IRemoteProcessTelemetryService>(
-                        (service, cancellationToken) => service.SetSyntaxTreeConfigurationOptionsAsync(syntaxTreeConfigurationService.DisableRecoverableTrees, syntaxTreeConfigurationService.DisableProjectCacheService, syntaxTreeConfigurationService.EnableOpeningSourceGeneratedFilesInWorkspace, cancellationToken),
+                        (service, cancellationToken) => service.InitializeWorkspaceConfigurationOptionsAsync(workspaceConfigurationService.Options, cancellationToken),
+                        cancellationToken).ConfigureAwait(false);
+                }
+
+                if (configuration.HasFlag(RemoteProcessConfiguration.EnableSolutionCrawler))
+                {
+                    await client.TryInvokeAsync<IRemoteDiagnosticAnalyzerService>(
+                        (service, cancellationToken) => service.StartSolutionCrawlerAsync(cancellationToken),
                         cancellationToken).ConfigureAwait(false);
                 }
 

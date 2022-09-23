@@ -79,24 +79,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
             End Set
         End Property
 
-        Public Property Style_PreferObjectInitializer_FadeOutCode As Boolean
-            Get
-                Return GetBooleanOption(CodeStyleOptions2.PreferObjectInitializer_FadeOutCode)
-            End Get
-            Set(value As Boolean)
-                SetBooleanOption(CodeStyleOptions2.PreferObjectInitializer_FadeOutCode, value)
-            End Set
-        End Property
-
-        Public Property Style_PreferCollectionInitializer_FadeOutCode As Boolean
-            Get
-                Return GetBooleanOption(CodeStyleOptions2.PreferCollectionInitializer_FadeOutCode)
-            End Get
-            Set(value As Boolean)
-                SetBooleanOption(CodeStyleOptions2.PreferCollectionInitializer_FadeOutCode, value)
-            End Set
-        End Property
-
         Public Property Style_PreferSimplifiedBooleanExpressions As String
             Get
                 Return GetXmlOption(CodeStyleOptions2.PreferSimplifiedBooleanExpressions)
@@ -207,10 +189,10 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
 
         Public Property Style_RequireAccessibilityModifiers As String
             Get
-                Return GetXmlOption(CodeStyleOptions2.RequireAccessibilityModifiers)
+                Return GetXmlOption(CodeStyleOptions2.AccessibilityModifiersRequired)
             End Get
             Set(value As String)
-                SetXmlOption(CodeStyleOptions2.RequireAccessibilityModifiers, value)
+                SetXmlOption(CodeStyleOptions2.AccessibilityModifiersRequired, value)
             End Set
         End Property
 

@@ -14,9 +14,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertTypeOfToNameOf
     using VerifyCS = CSharpCodeFixVerifier<CSharpConvertTypeOfToNameOfDiagnosticAnalyzer,
         CSharpConvertTypeOfToNameOfCodeFixProvider>;
 
+    [Trait(Traits.Feature, Traits.Features.ConvertTypeOfToNameOf)]
     public partial class ConvertTypeOfToNameOfTests
     {
-        [Fact, Trait(Traits.Feature, Traits.Features.ConvertTypeOfToNameOf)]
+        [Fact]
         public async Task BasicType()
         {
             var text = @"
@@ -40,7 +41,7 @@ class Test
             await VerifyCS.VerifyCodeFixAsync(text, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ConvertTypeOfToNameOf)]
+        [Fact]
         public async Task ClassLibraryType()
         {
             var text = @"
@@ -64,7 +65,7 @@ class Test
             await VerifyCS.VerifyCodeFixAsync(text, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ConvertTypeOfToNameOf)]
+        [Fact]
         public async Task ClassLibraryTypeWithUsing()
         {
             var text = @"
@@ -92,7 +93,7 @@ class Test
             await VerifyCS.VerifyCodeFixAsync(text, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ConvertTypeOfToNameOf)]
+        [Fact]
         public async Task NestedCall()
         {
             var text = @"
@@ -128,7 +129,7 @@ class Test
             await VerifyCS.VerifyCodeFixAsync(text, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ConvertTypeOfToNameOf)]
+        [Fact]
         public async Task NotOnVariableContainingType()
         {
             var text = @"using System;
@@ -145,7 +146,7 @@ class Test
             await VerifyCS.VerifyCodeFixAsync(text, text);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ConvertTypeOfToNameOf)]
+        [Fact]
         public async Task PrimitiveType()
         {
             var text = @"class Test
@@ -167,7 +168,7 @@ class Test
             await VerifyCS.VerifyCodeFixAsync(text, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ConvertTypeOfToNameOf)]
+        [Fact]
         public async Task PrimitiveTypeWithUsing()
         {
             var text = @"using System;
@@ -193,7 +194,7 @@ class Test
             await VerifyCS.VerifyCodeFixAsync(text, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ConvertTypeOfToNameOf)]
+        [Fact]
         public async Task NotOnGenericType()
         {
             var text = @"class Test<T>
@@ -207,7 +208,7 @@ class Test
             await VerifyCS.VerifyCodeFixAsync(text, text);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ConvertTypeOfToNameOf)]
+        [Fact]
         public async Task NotOnSimilarStatements()
         {
             var text = @"class Test
@@ -223,8 +224,25 @@ class Test
             await VerifyCS.VerifyCodeFixAsync(text, text);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ConvertTypeOfToNameOf)]
-        public async Task NotOnGenericClass()
+        [Fact]
+        public async Task NotInGenericType()
+        {
+            var text = @"class Test
+{
+    class Goo<T> 
+    { 
+        void M() 
+        {
+            _ = typeof(Goo<int>).Name;
+        }
+    }
+}
+";
+            await VerifyCS.VerifyCodeFixAsync(text, text);
+        }
+
+        [Fact, WorkItem(47129, "https://github.com/dotnet/roslyn/issues/47129")]
+        public async Task NestedInGenericType()
         {
             var text = @"class Test
 {
@@ -234,17 +252,58 @@ class Test
         { 
             void M() 
             {
-                _ = typeof(Bar).Name;
+                _ = [|typeof(Bar).Name|];
             }
         }
     }
 }
 ";
-            await VerifyCS.VerifyCodeFixAsync(text, text);
+            var expected = @"class Test
+{
+    class Goo<T> 
+    { 
+        class Bar 
+        { 
+            void M() 
+            {
+                _ = nameof(Bar);
+            }
+        }
+    }
+}
+";
+            await VerifyCS.VerifyCodeFixAsync(text, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ConvertTypeOfToNameOf)]
-        [WorkItem(54233, "https://github.com/dotnet/roslyn/issues/54233")]
+        [Fact, WorkItem(47129, "https://github.com/dotnet/roslyn/issues/47129")]
+        public async Task NestedInGenericType2()
+        {
+            var text = @"using System;
+using System.Collections.Generic;
+
+class Test
+{
+    public void M()
+    {
+        Console.WriteLine([|typeof(List<int>.Enumerator).Name|]);
+    }
+}
+";
+            var expected = @"using System;
+using System.Collections.Generic;
+
+class Test
+{
+    public void M()
+    {
+        Console.WriteLine(nameof(List<Int32>.Enumerator));
+    }
+}
+";
+            await VerifyCS.VerifyCodeFixAsync(text, expected);
+        }
+
+        [Fact, WorkItem(54233, "https://github.com/dotnet/roslyn/issues/54233")]
         public async Task NotOnVoid()
         {
             var text = @"

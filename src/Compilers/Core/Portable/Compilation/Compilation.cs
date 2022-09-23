@@ -16,6 +16,7 @@ using System.Reflection;
 using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
 using System.Reflection.PortableExecutable;
+using System.Runtime.CompilerServices;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
@@ -242,7 +243,7 @@ namespace Microsoft.CodeAnalysis
                 }
 
                 // Force the previous submission to be analyzed. This is required for anonymous types unification.
-                if (previousScriptCompilation.GetDiagnostics().Any(d => d.Severity == DiagnosticSeverity.Error))
+                if (previousScriptCompilation.GetDiagnostics().Any(static d => d.Severity == DiagnosticSeverity.Error))
                 {
                     throw new InvalidOperationException(CodeAnalysisResources.PreviousSubmissionHasErrors);
                 }
@@ -533,7 +534,7 @@ namespace Microsoft.CodeAnalysis
         /// Gets the syntax trees (parsed from source code) that this compilation was created with.
         /// </summary>
         public IEnumerable<SyntaxTree> SyntaxTrees { get { return CommonSyntaxTrees; } }
-        protected abstract ImmutableArray<SyntaxTree> CommonSyntaxTrees { get; }
+        protected internal abstract ImmutableArray<SyntaxTree> CommonSyntaxTrees { get; }
 
         /// <summary>
         /// Creates a new compilation with additional syntax trees.
@@ -1169,7 +1170,9 @@ namespace Microsoft.CodeAnalysis
             {
                 val = CommonGetTypeByMetadataName(fullyQualifiedMetadataName);
                 var result = _getTypeCache.TryAdd(fullyQualifiedMetadataName, val);
-                Debug.Assert(result || (_getTypeCache.TryGetValue(fullyQualifiedMetadataName, out var addedType) && ReferenceEquals(addedType, val)));
+                Debug.Assert(result
+                 || !_getTypeCache.TryGetValue(fullyQualifiedMetadataName, out var addedType) // Could fail if the type was already evicted from the cache
+                 || ReferenceEquals(addedType, val));
             }
             return val;
         }
@@ -1196,8 +1199,8 @@ namespace Microsoft.CodeAnalysis
                 val = getTypesByMetadataNameImpl();
                 var result = _getTypesCache.TryAdd(fullyQualifiedMetadataName, val);
                 Debug.Assert(result
-                    || (_getTypesCache.TryGetValue(fullyQualifiedMetadataName, out var addedArray)
-                        && Enumerable.SequenceEqual(addedArray, val, ReferenceEqualityComparer.Instance)));
+                    || !_getTypesCache.TryGetValue(fullyQualifiedMetadataName, out var addedArray) // Could fail if the type was already evicted from the cache
+                    || Enumerable.SequenceEqual(addedArray, val, ReferenceEqualityComparer.Instance));
             }
 
             return val;
@@ -1485,6 +1488,58 @@ namespace Microsoft.CodeAnalysis
             ImmutableArray<Location> memberLocations,
             ImmutableArray<bool> memberIsReadOnly,
             ImmutableArray<NullableAnnotation> memberNullableAnnotations);
+
+        /// <summary>
+        /// Creates an <see cref="IMethodSymbol"/> whose <see cref="IMethodSymbol.MethodKind"/> is <see
+        /// cref="MethodKind.BuiltinOperator"/> for a binary operator. Built-in operators are commonly created for
+        /// symbols like <c>bool int.operator ==(int v1, int v2)</c> which the language implicitly supports, even if such
+        /// a symbol is not explicitly defined for that type in either source or metadata.
+        /// </summary>
+        /// <param name="name">The binary operator name.  Should be one of the names from <see cref="WellKnownMemberNames"/>.</param>
+        /// <param name="returnType">The return type of the binary operator.</param>
+        /// <param name="leftType">The type of the left operand of the binary operator.</param>
+        /// <param name="rightType">The type of the right operand of the binary operator.</param>
+        public IMethodSymbol CreateBuiltinOperator(string name, ITypeSymbol returnType, ITypeSymbol leftType, ITypeSymbol rightType)
+        {
+            // Can't check 'name' here as VB and C# support a different subset of names.
+
+            if (returnType is null)
+                throw new ArgumentNullException(nameof(returnType));
+
+            if (leftType is null)
+                throw new ArgumentNullException(nameof(leftType));
+
+            if (rightType is null)
+                throw new ArgumentNullException(nameof(rightType));
+
+            return CommonCreateBuiltinOperator(name, returnType, leftType, rightType);
+        }
+
+        protected abstract IMethodSymbol CommonCreateBuiltinOperator(string name, ITypeSymbol returnType, ITypeSymbol leftType, ITypeSymbol rightType);
+
+        /// <summary>
+        /// Creates an <see cref="IMethodSymbol"/> whose <see cref="IMethodSymbol.MethodKind"/> is <see
+        /// cref="MethodKind.BuiltinOperator"/> for a unary operator. Built-in operators are commonly created for
+        /// symbols like <c>bool int.operator -(int value)</c> which the language implicitly supports, even if such a
+        /// symbol is not explicitly defined for that type in either source or metadata.
+        /// </summary>
+        /// <param name="name">The unary operator name.  Should be one of the names from <see cref="WellKnownMemberNames"/>.</param>
+        /// <param name="returnType">The return type of the unary operator.</param>
+        /// <param name="operandType">The type the operator applies to.</param>
+        public IMethodSymbol CreateBuiltinOperator(string name, ITypeSymbol returnType, ITypeSymbol operandType)
+        {
+            // Can't check 'name' here as VB and C# support a different subset of names.
+
+            if (returnType is null)
+                throw new ArgumentNullException(nameof(returnType));
+
+            if (operandType is null)
+                throw new ArgumentNullException(nameof(operandType));
+
+            return CommonCreateBuiltinOperator(name, returnType, operandType);
+        }
+
+        protected abstract IMethodSymbol CommonCreateBuiltinOperator(string name, ITypeSymbol returnType, ITypeSymbol operandType);
 
         /// <summary>
         /// Classifies a conversion from <paramref name="source"/> to <paramref name="destination"/> according

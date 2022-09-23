@@ -45,11 +45,11 @@ namespace Microsoft.CodeAnalysis
 
         /// <summary>
         /// Displays attributes names without the "Attribute" suffix, if possible.
-        /// </summary>
-        /// <remarks>
+        /// <para>
         /// Has no effect outside <see cref="ISymbol.ToMinimalDisplayString"/> and only applies
         /// if the context location is one where an attribute ca be referenced without the suffix.
-        /// </remarks>
+        /// </para>
+        /// </summary>
         RemoveAttributeSuffix = 1 << 4,
 
         /// <summary>

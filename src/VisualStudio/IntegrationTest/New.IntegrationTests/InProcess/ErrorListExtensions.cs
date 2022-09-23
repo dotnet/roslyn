@@ -19,6 +19,11 @@ namespace Roslyn.VisualStudio.IntegrationTests.InProcess
             return tableEntry.GetValueOrDefault(StandardTableKeyNames.BuildTool, "<unknown>");
         }
 
+        public static ItemOrigin? GetItemOrigin(this ITableEntry tableEntry)
+        {
+            return tableEntry.GetValueOrNull<ItemOrigin>(StandardTableKeyNames.ItemOrigin);
+        }
+
         public static string? GetPath(this ITableEntry tableEntry)
         {
             return tableEntry.GetValueOrDefault<string?>(StandardTableKeyNames.Path, null);
@@ -42,6 +47,11 @@ namespace Roslyn.VisualStudio.IntegrationTests.InProcess
         public static string? GetErrorCode(this ITableEntry tableEntry)
         {
             return tableEntry.GetValueOrDefault<string?>(StandardTableKeyNames.ErrorCode, null);
+        }
+
+        public static ErrorSource? GetErrorSource(this ITableEntry tableEntry)
+        {
+            return tableEntry.GetValueOrNull<ErrorSource>(StandardTableKeyNames.ErrorSource);
         }
 
         public static string? GetText(this ITableEntry tableEntry)

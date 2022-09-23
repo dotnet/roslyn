@@ -8,7 +8,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -22,13 +22,6 @@ namespace Microsoft.CodeAnalysis.InlineHints
             genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters,
             miscellaneousOptions: SymbolDisplayMiscellaneousOptions.AllowDefaultLiteral | SymbolDisplayMiscellaneousOptions.IncludeNullableReferenceTypeModifier | SymbolDisplayMiscellaneousOptions.UseSpecialTypes);
 
-        private readonly IGlobalOptionService _globalOptions;
-
-        public AbstractInlineTypeHintsService(IGlobalOptionService globalOptions)
-        {
-            _globalOptions = globalOptions;
-        }
-
         protected abstract TypeHint? TryGetTypeHint(
             SemanticModel semanticModel, SyntaxNode node,
             bool displayAllOverride,
@@ -40,7 +33,9 @@ namespace Microsoft.CodeAnalysis.InlineHints
         public async Task<ImmutableArray<InlineHint>> GetInlineHintsAsync(
             Document document, TextSpan textSpan, InlineTypeHintsOptions options, SymbolDescriptionOptions displayOptions, CancellationToken cancellationToken)
         {
-            var displayAllOverride = _globalOptions.GetOption(InlineHintsGlobalStateOption.DisplayAllOverride);
+            // TODO: https://github.com/dotnet/roslyn/issues/57283
+            var globalOptions = document.Project.Solution.Services.GetRequiredService<ILegacyGlobalOptionsWorkspaceService>();
+            var displayAllOverride = globalOptions.InlineHintsOptionsDisplayAllOverride;
 
             var enabledForTypes = options.EnabledForTypes;
             if (!enabledForTypes && !displayAllOverride)
