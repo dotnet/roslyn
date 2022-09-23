@@ -3811,7 +3811,7 @@ public class C
                 Assert.Equal(analyzer.Descriptor.Id, diagnostic.Id);
                 Assert.Equal(LocationKind.ExternalFile, diagnostic.Location.Kind);
                 var location = (ExternalFileLocation)diagnostic.Location;
-                Assert.Equal(additionalFile.Path, location.FilePath);
+                Assert.Equal(additionalFile.Path, location.GetLineSpan().Path);
                 Assert.Equal(diagnosticSpan, location.SourceSpan);
             }
         }
