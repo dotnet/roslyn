@@ -853,6 +853,61 @@ ref @scoped F4() { }";
         [Theory]
         [InlineData(LanguageVersion.CSharp10)]
         [InlineData(LanguageVersion.CSharp11)]
+        public void Method_13(LanguageVersion langVersion)
+        {
+            string source = "void F(out scoped ref int a) { }";
+            UsingDeclaration(source, TestOptions.Regular.WithLanguageVersion(langVersion),
+                // (1,19): error CS1001: Identifier expected
+                // void F(out scoped ref int a) { }
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "ref").WithLocation(1, 19),
+                // (1,19): error CS1003: Syntax error, ',' expected
+                // void F(out scoped ref int a) { }
+                Diagnostic(ErrorCode.ERR_SyntaxError, "ref").WithArguments(",").WithLocation(1, 19)
+                );
+
+            N(SyntaxKind.MethodDeclaration);
+            {
+                N(SyntaxKind.PredefinedType);
+                {
+                    N(SyntaxKind.VoidKeyword);
+                }
+                N(SyntaxKind.IdentifierToken, "F");
+                N(SyntaxKind.ParameterList);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.Parameter);
+                    {
+                        N(SyntaxKind.OutKeyword);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "scoped");
+                        }
+                        M(SyntaxKind.IdentifierToken);
+                    }
+                    M(SyntaxKind.CommaToken);
+                    N(SyntaxKind.Parameter);
+                    {
+                        N(SyntaxKind.RefKeyword);
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.IntKeyword);
+                        }
+                        N(SyntaxKind.IdentifierToken, "a");
+                    }
+                    N(SyntaxKind.CloseParenToken);
+                }
+                N(SyntaxKind.Block);
+                {
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.CloseBraceToken);
+                }
+            }
+            EOF();
+        }
+
+        [Theory]
+        [InlineData(LanguageVersion.CSharp10)]
+        [InlineData(LanguageVersion.CSharp11)]
         public void Lambda_01(LanguageVersion langVersion)
         {
             string source = "(scoped x, ref scoped y) => null";
@@ -4870,6 +4925,1483 @@ for (scoped scoped var b;;);
                     }
                 }
                 N(SyntaxKind.SemicolonToken);
+            }
+            EOF();
+        }
+
+        [Theory]
+        [InlineData(LanguageVersion.CSharp10)]
+        [InlineData(LanguageVersion.CSharp11)]
+        public void Foreach_01(LanguageVersion langVersion)
+        {
+            string source =
+@"
+foreach (scoped a in collection);
+";
+            UsingStatement(source, TestOptions.Regular.WithLanguageVersion(langVersion));
+
+            N(SyntaxKind.ForEachStatement);
+            {
+                N(SyntaxKind.ForEachKeyword);
+                N(SyntaxKind.OpenParenToken);
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "scoped");
+                }
+                N(SyntaxKind.IdentifierToken, "a");
+                N(SyntaxKind.InKeyword);
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "collection");
+                }
+                N(SyntaxKind.CloseParenToken);
+                N(SyntaxKind.EmptyStatement);
+                {
+                    N(SyntaxKind.SemicolonToken);
+                }
+            }
+            EOF();
+        }
+
+        [Theory]
+        [InlineData(LanguageVersion.CSharp10)]
+        [InlineData(LanguageVersion.CSharp11)]
+        public void Foreach_02(LanguageVersion langVersion)
+        {
+            string source =
+@"
+foreach (ref scoped b in collection);
+";
+            UsingStatement(source, TestOptions.Regular.WithLanguageVersion(langVersion));
+
+            N(SyntaxKind.ForEachStatement);
+            {
+                N(SyntaxKind.ForEachKeyword);
+                N(SyntaxKind.OpenParenToken);
+                N(SyntaxKind.RefType);
+                {
+                    N(SyntaxKind.RefKeyword);
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "scoped");
+                    }
+                }
+                N(SyntaxKind.IdentifierToken, "b");
+                N(SyntaxKind.InKeyword);
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "collection");
+                }
+                N(SyntaxKind.CloseParenToken);
+                N(SyntaxKind.EmptyStatement);
+                {
+                    N(SyntaxKind.SemicolonToken);
+                }
+            }
+            EOF();
+        }
+
+        [Theory]
+        [InlineData(LanguageVersion.CSharp10)]
+        [InlineData(LanguageVersion.CSharp11)]
+        public void Foreach_04(LanguageVersion langVersion)
+        {
+            string source =
+@"
+foreach (ref scoped int b in collection);
+";
+            UsingStatement(source, TestOptions.Regular.WithLanguageVersion(langVersion),
+                // (2,1): error CS1073: Unexpected token 'in'
+                // foreach (ref scoped int b in collection);
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, "foreach (ref scoped int b ").WithArguments("in").WithLocation(2, 1),
+                // (2,10): error CS1525: Invalid expression term 'ref'
+                // foreach (ref scoped int b in collection);
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "ref scoped").WithArguments("ref").WithLocation(2, 10),
+                // (2,21): error CS1515: 'in' expected
+                // foreach (ref scoped int b in collection);
+                Diagnostic(ErrorCode.ERR_InExpected, "int").WithLocation(2, 21),
+                // (2,21): error CS0230: Type and identifier are both required in a foreach statement
+                // foreach (ref scoped int b in collection);
+                Diagnostic(ErrorCode.ERR_BadForeachDecl, "int").WithLocation(2, 21),
+                // (2,21): error CS1525: Invalid expression term 'int'
+                // foreach (ref scoped int b in collection);
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(2, 21),
+                // (2,25): error CS1026: ) expected
+                // foreach (ref scoped int b in collection);
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, "b").WithLocation(2, 25),
+                // (2,27): error CS1002: ; expected
+                // foreach (ref scoped int b in collection);
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "in").WithLocation(2, 27)
+                );
+
+            N(SyntaxKind.ForEachVariableStatement);
+            {
+                N(SyntaxKind.ForEachKeyword);
+                N(SyntaxKind.OpenParenToken);
+                N(SyntaxKind.RefExpression);
+                {
+                    N(SyntaxKind.RefKeyword);
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "scoped");
+                    }
+                }
+                M(SyntaxKind.InKeyword);
+                N(SyntaxKind.PredefinedType);
+                {
+                    N(SyntaxKind.IntKeyword);
+                }
+                M(SyntaxKind.CloseParenToken);
+                N(SyntaxKind.ExpressionStatement);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "b");
+                    }
+                    M(SyntaxKind.SemicolonToken);
+                }
+            }
+            EOF();
+        }
+
+        [Theory]
+        [InlineData(LanguageVersion.CSharp10)]
+        [InlineData(LanguageVersion.CSharp11)]
+        public void Foreach_05(LanguageVersion langVersion)
+        {
+            string source =
+@"
+foreach (ref readonly scoped c in collection);
+";
+            UsingStatement(source, TestOptions.Regular.WithLanguageVersion(langVersion));
+
+            N(SyntaxKind.ForEachStatement);
+            {
+                N(SyntaxKind.ForEachKeyword);
+                N(SyntaxKind.OpenParenToken);
+                N(SyntaxKind.RefType);
+                {
+                    N(SyntaxKind.RefKeyword);
+                    N(SyntaxKind.ReadOnlyKeyword);
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "scoped");
+                    }
+                }
+                N(SyntaxKind.IdentifierToken, "c");
+                N(SyntaxKind.InKeyword);
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "collection");
+                }
+                N(SyntaxKind.CloseParenToken);
+                N(SyntaxKind.EmptyStatement);
+                {
+                    N(SyntaxKind.SemicolonToken);
+                }
+            }
+            EOF();
+        }
+
+        [Theory]
+        [InlineData(LanguageVersion.CSharp10)]
+        [InlineData(LanguageVersion.CSharp11)]
+        public void Foreach_06(LanguageVersion langVersion)
+        {
+            string source =
+@"
+foreach (ref readonly scoped int c in collection);
+";
+            UsingStatement(source, TestOptions.Regular.WithLanguageVersion(langVersion),
+                // (2,1): error CS1073: Unexpected token ')'
+                // foreach (ref readonly scoped int c in collection);
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, "foreach (ref readonly scoped int c in collection").WithArguments(")").WithLocation(2, 1),
+                // (2,10): error CS1525: Invalid expression term 'ref'
+                // foreach (ref readonly scoped int c in collection);
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "ref ").WithArguments("ref").WithLocation(2, 10),
+                // (2,14): error CS1525: Invalid expression term 'readonly'
+                // foreach (ref readonly scoped int c in collection);
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "readonly").WithArguments("readonly").WithLocation(2, 14),
+                // (2,14): error CS1515: 'in' expected
+                // foreach (ref readonly scoped int c in collection);
+                Diagnostic(ErrorCode.ERR_InExpected, "readonly").WithLocation(2, 14),
+                // (2,14): error CS0230: Type and identifier are both required in a foreach statement
+                // foreach (ref readonly scoped int c in collection);
+                Diagnostic(ErrorCode.ERR_BadForeachDecl, "readonly").WithLocation(2, 14),
+                // (2,14): error CS1525: Invalid expression term 'readonly'
+                // foreach (ref readonly scoped int c in collection);
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "readonly").WithArguments("readonly").WithLocation(2, 14),
+                // (2,14): error CS1026: ) expected
+                // foreach (ref readonly scoped int c in collection);
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, "readonly").WithLocation(2, 14),
+                // (2,14): error CS0106: The modifier 'readonly' is not valid for this item
+                // foreach (ref readonly scoped int c in collection);
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "readonly").WithArguments("readonly").WithLocation(2, 14),
+                // (2,36): error CS1003: Syntax error, ',' expected
+                // foreach (ref readonly scoped int c in collection);
+                Diagnostic(ErrorCode.ERR_SyntaxError, "in").WithArguments(",").WithLocation(2, 36),
+                // (2,49): error CS1002: ; expected
+                // foreach (ref readonly scoped int c in collection);
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, ")").WithLocation(2, 49)
+                );
+
+            N(SyntaxKind.ForEachVariableStatement);
+            {
+                N(SyntaxKind.ForEachKeyword);
+                N(SyntaxKind.OpenParenToken);
+                N(SyntaxKind.RefExpression);
+                {
+                    N(SyntaxKind.RefKeyword);
+                    M(SyntaxKind.IdentifierName);
+                    {
+                        M(SyntaxKind.IdentifierToken);
+                    }
+                }
+                M(SyntaxKind.InKeyword);
+                M(SyntaxKind.IdentifierName);
+                {
+                    M(SyntaxKind.IdentifierToken);
+                }
+                M(SyntaxKind.CloseParenToken);
+                N(SyntaxKind.LocalDeclarationStatement);
+                {
+                    N(SyntaxKind.ReadOnlyKeyword);
+                    N(SyntaxKind.VariableDeclaration);
+                    {
+                        N(SyntaxKind.ScopedType);
+                        {
+                            N(SyntaxKind.ScopedKeyword);
+                            N(SyntaxKind.PredefinedType);
+                            {
+                                N(SyntaxKind.IntKeyword);
+                            }
+                        }
+                        N(SyntaxKind.VariableDeclarator);
+                        {
+                            N(SyntaxKind.IdentifierToken, "c");
+                        }
+                    }
+                    M(SyntaxKind.SemicolonToken);
+                }
+            }
+            EOF();
+        }
+
+        [Theory]
+        [InlineData(LanguageVersion.CSharp10)]
+        [InlineData(LanguageVersion.CSharp11)]
+        public void Foreach_07(LanguageVersion langVersion)
+        {
+            string source =
+@"
+foreach (ref scoped readonly int c in collection);
+";
+            UsingStatement(source, TestOptions.Regular.WithLanguageVersion(langVersion),
+                // (2,1): error CS1073: Unexpected token ')'
+                // foreach (ref scoped readonly int c in collection);
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, "foreach (ref scoped readonly int c in collection").WithArguments(")").WithLocation(2, 1),
+                // (2,10): error CS1525: Invalid expression term 'ref'
+                // foreach (ref scoped readonly int c in collection);
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "ref scoped").WithArguments("ref").WithLocation(2, 10),
+                // (2,21): error CS1515: 'in' expected
+                // foreach (ref scoped readonly int c in collection);
+                Diagnostic(ErrorCode.ERR_InExpected, "readonly").WithLocation(2, 21),
+                // (2,21): error CS0230: Type and identifier are both required in a foreach statement
+                // foreach (ref scoped readonly int c in collection);
+                Diagnostic(ErrorCode.ERR_BadForeachDecl, "readonly").WithLocation(2, 21),
+                // (2,21): error CS1525: Invalid expression term 'readonly'
+                // foreach (ref scoped readonly int c in collection);
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "readonly").WithArguments("readonly").WithLocation(2, 21),
+                // (2,21): error CS1026: ) expected
+                // foreach (ref scoped readonly int c in collection);
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, "readonly").WithLocation(2, 21),
+                // (2,21): error CS0106: The modifier 'readonly' is not valid for this item
+                // foreach (ref scoped readonly int c in collection);
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "readonly").WithArguments("readonly").WithLocation(2, 21),
+                // (2,36): error CS1003: Syntax error, ',' expected
+                // foreach (ref scoped readonly int c in collection);
+                Diagnostic(ErrorCode.ERR_SyntaxError, "in").WithArguments(",").WithLocation(2, 36),
+                // (2,49): error CS1002: ; expected
+                // foreach (ref scoped readonly int c in collection);
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, ")").WithLocation(2, 49)
+                );
+
+            N(SyntaxKind.ForEachVariableStatement);
+            {
+                N(SyntaxKind.ForEachKeyword);
+                N(SyntaxKind.OpenParenToken);
+                N(SyntaxKind.RefExpression);
+                {
+                    N(SyntaxKind.RefKeyword);
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "scoped");
+                    }
+                }
+                M(SyntaxKind.InKeyword);
+                M(SyntaxKind.IdentifierName);
+                {
+                    M(SyntaxKind.IdentifierToken);
+                }
+                M(SyntaxKind.CloseParenToken);
+                N(SyntaxKind.LocalDeclarationStatement);
+                {
+                    N(SyntaxKind.ReadOnlyKeyword);
+                    N(SyntaxKind.VariableDeclaration);
+                    {
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.IntKeyword);
+                        }
+                        N(SyntaxKind.VariableDeclarator);
+                        {
+                            N(SyntaxKind.IdentifierToken, "c");
+                        }
+                    }
+                    M(SyntaxKind.SemicolonToken);
+                }
+            }
+            EOF();
+        }
+
+        [Theory]
+        [InlineData(LanguageVersion.CSharp10)]
+        [InlineData(LanguageVersion.CSharp11)]
+        public void Foreach_08(LanguageVersion langVersion)
+        {
+            string source =
+@"
+foreach (scoped int a in collection);
+";
+            UsingStatement(source, TestOptions.Regular.WithLanguageVersion(langVersion));
+
+            N(SyntaxKind.ForEachStatement);
+            {
+                N(SyntaxKind.ForEachKeyword);
+                N(SyntaxKind.OpenParenToken);
+                N(SyntaxKind.ScopedType);
+                {
+                    N(SyntaxKind.ScopedKeyword);
+                    N(SyntaxKind.PredefinedType);
+                    {
+                        N(SyntaxKind.IntKeyword);
+                    }
+                }
+                N(SyntaxKind.IdentifierToken, "a");
+                N(SyntaxKind.InKeyword);
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "collection");
+                }
+                N(SyntaxKind.CloseParenToken);
+                N(SyntaxKind.EmptyStatement);
+                {
+                    N(SyntaxKind.SemicolonToken);
+                }
+            }
+            EOF();
+        }
+
+        [Theory]
+        [InlineData(LanguageVersion.CSharp10)]
+        [InlineData(LanguageVersion.CSharp11)]
+        public void Foreach_09(LanguageVersion langVersion)
+        {
+            string source =
+@"
+foreach (@scoped int a in collection);
+";
+            UsingStatement(source, TestOptions.Regular.WithLanguageVersion(langVersion),
+                // (2,1): error CS1073: Unexpected token 'in'
+                // foreach (@scoped int a in collection);
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, "foreach (@scoped int a ").WithArguments("in").WithLocation(2, 1),
+                // (2,18): error CS1515: 'in' expected
+                // foreach (@scoped int a in collection);
+                Diagnostic(ErrorCode.ERR_InExpected, "int").WithLocation(2, 18),
+                // (2,18): error CS0230: Type and identifier are both required in a foreach statement
+                // foreach (@scoped int a in collection);
+                Diagnostic(ErrorCode.ERR_BadForeachDecl, "int").WithLocation(2, 18),
+                // (2,18): error CS1525: Invalid expression term 'int'
+                // foreach (@scoped int a in collection);
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(2, 18),
+                // (2,22): error CS1026: ) expected
+                // foreach (@scoped int a in collection);
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, "a").WithLocation(2, 22),
+                // (2,24): error CS1002: ; expected
+                // foreach (@scoped int a in collection);
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "in").WithLocation(2, 24)
+                );
+
+            N(SyntaxKind.ForEachVariableStatement);
+            {
+                N(SyntaxKind.ForEachKeyword);
+                N(SyntaxKind.OpenParenToken);
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "@scoped");
+                }
+                M(SyntaxKind.InKeyword);
+                N(SyntaxKind.PredefinedType);
+                {
+                    N(SyntaxKind.IntKeyword);
+                }
+                M(SyntaxKind.CloseParenToken);
+                N(SyntaxKind.ExpressionStatement);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "a");
+                    }
+                    M(SyntaxKind.SemicolonToken);
+                }
+            }
+            EOF();
+        }
+
+        [Theory]
+        [InlineData(LanguageVersion.CSharp10)]
+        [InlineData(LanguageVersion.CSharp11)]
+        public void Foreach_10(LanguageVersion langVersion)
+        {
+            string source =
+@"
+foreach (scoped ref int b in collection);
+";
+            UsingStatement(source, TestOptions.Regular.WithLanguageVersion(langVersion));
+
+            N(SyntaxKind.ForEachStatement);
+            {
+                N(SyntaxKind.ForEachKeyword);
+                N(SyntaxKind.OpenParenToken);
+                N(SyntaxKind.ScopedType);
+                {
+                    N(SyntaxKind.ScopedKeyword);
+                    N(SyntaxKind.RefType);
+                    {
+                        N(SyntaxKind.RefKeyword);
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.IntKeyword);
+                        }
+                    }
+                }
+                N(SyntaxKind.IdentifierToken, "b");
+                N(SyntaxKind.InKeyword);
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "collection");
+                }
+                N(SyntaxKind.CloseParenToken);
+                N(SyntaxKind.EmptyStatement);
+                {
+                    N(SyntaxKind.SemicolonToken);
+                }
+            }
+            EOF();
+        }
+
+        [Theory]
+        [InlineData(LanguageVersion.CSharp10)]
+        [InlineData(LanguageVersion.CSharp11)]
+        public void Foreach_11(LanguageVersion langVersion)
+        {
+            string source =
+@"
+foreach (@scoped ref int b in collection);
+";
+            UsingStatement(source, TestOptions.Regular.WithLanguageVersion(langVersion),
+                // (2,1): error CS1073: Unexpected token 'in'
+                // foreach (@scoped ref int b in collection);
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, "foreach (@scoped ref int b ").WithArguments("in").WithLocation(2, 1),
+                // (2,18): error CS1515: 'in' expected
+                // foreach (@scoped ref int b in collection);
+                Diagnostic(ErrorCode.ERR_InExpected, "ref").WithLocation(2, 18),
+                // (2,18): error CS0230: Type and identifier are both required in a foreach statement
+                // foreach (@scoped ref int b in collection);
+                Diagnostic(ErrorCode.ERR_BadForeachDecl, "ref").WithLocation(2, 18),
+                // (2,18): error CS1525: Invalid expression term 'ref'
+                // foreach (@scoped ref int b in collection);
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "ref int").WithArguments("ref").WithLocation(2, 18),
+                // (2,22): error CS1525: Invalid expression term 'int'
+                // foreach (@scoped ref int b in collection);
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(2, 22),
+                // (2,26): error CS1026: ) expected
+                // foreach (@scoped ref int b in collection);
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, "b").WithLocation(2, 26),
+                // (2,28): error CS1002: ; expected
+                // foreach (@scoped ref int b in collection);
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "in").WithLocation(2, 28)
+                );
+
+            N(SyntaxKind.ForEachVariableStatement);
+            {
+                N(SyntaxKind.ForEachKeyword);
+                N(SyntaxKind.OpenParenToken);
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "@scoped");
+                }
+                M(SyntaxKind.InKeyword);
+                N(SyntaxKind.RefExpression);
+                {
+                    N(SyntaxKind.RefKeyword);
+                    N(SyntaxKind.PredefinedType);
+                    {
+                        N(SyntaxKind.IntKeyword);
+                    }
+                }
+                M(SyntaxKind.CloseParenToken);
+                N(SyntaxKind.ExpressionStatement);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "b");
+                    }
+                    M(SyntaxKind.SemicolonToken);
+                }
+            }
+            EOF();
+        }
+
+        [Theory]
+        [InlineData(LanguageVersion.CSharp10)]
+        [InlineData(LanguageVersion.CSharp11)]
+        public void Foreach_12(LanguageVersion langVersion)
+        {
+            string source =
+@"
+foreach (scoped ref readonly int a in collection);
+";
+            UsingStatement(source, TestOptions.Regular.WithLanguageVersion(langVersion));
+
+            N(SyntaxKind.ForEachStatement);
+            {
+                N(SyntaxKind.ForEachKeyword);
+                N(SyntaxKind.OpenParenToken);
+                N(SyntaxKind.ScopedType);
+                {
+                    N(SyntaxKind.ScopedKeyword);
+                    N(SyntaxKind.RefType);
+                    {
+                        N(SyntaxKind.RefKeyword);
+                        N(SyntaxKind.ReadOnlyKeyword);
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.IntKeyword);
+                        }
+                    }
+                }
+                N(SyntaxKind.IdentifierToken, "a");
+                N(SyntaxKind.InKeyword);
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "collection");
+                }
+                N(SyntaxKind.CloseParenToken);
+                N(SyntaxKind.EmptyStatement);
+                {
+                    N(SyntaxKind.SemicolonToken);
+                }
+            }
+            EOF();
+        }
+
+        [Theory]
+        [InlineData(LanguageVersion.CSharp10)]
+        [InlineData(LanguageVersion.CSharp11)]
+        public void Foreach_13(LanguageVersion langVersion)
+        {
+            string source =
+@"
+foreach (@scoped ref readonly int a in collection);
+";
+            UsingStatement(source, TestOptions.Regular.WithLanguageVersion(langVersion),
+                // (2,1): error CS1073: Unexpected token ')'
+                // foreach (@scoped ref readonly int a in collection);
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, "foreach (@scoped ref readonly int a in collection").WithArguments(")").WithLocation(2, 1),
+                // (2,18): error CS1515: 'in' expected
+                // foreach (@scoped ref readonly int a in collection);
+                Diagnostic(ErrorCode.ERR_InExpected, "ref").WithLocation(2, 18),
+                // (2,18): error CS0230: Type and identifier are both required in a foreach statement
+                // foreach (@scoped ref readonly int a in collection);
+                Diagnostic(ErrorCode.ERR_BadForeachDecl, "ref").WithLocation(2, 18),
+                // (2,18): error CS1525: Invalid expression term 'ref'
+                // foreach (@scoped ref readonly int a in collection);
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "ref ").WithArguments("ref").WithLocation(2, 18),
+                // (2,22): error CS1525: Invalid expression term 'readonly'
+                // foreach (@scoped ref readonly int a in collection);
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "readonly").WithArguments("readonly").WithLocation(2, 22),
+                // (2,22): error CS1026: ) expected
+                // foreach (@scoped ref readonly int a in collection);
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, "readonly").WithLocation(2, 22),
+                // (2,22): error CS0106: The modifier 'readonly' is not valid for this item
+                // foreach (@scoped ref readonly int a in collection);
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "readonly").WithArguments("readonly").WithLocation(2, 22),
+                // (2,37): error CS1003: Syntax error, ',' expected
+                // foreach (@scoped ref readonly int a in collection);
+                Diagnostic(ErrorCode.ERR_SyntaxError, "in").WithArguments(",").WithLocation(2, 37),
+                // (2,50): error CS1002: ; expected
+                // foreach (@scoped ref readonly int a in collection);
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, ")").WithLocation(2, 50)
+                );
+
+            N(SyntaxKind.ForEachVariableStatement);
+            {
+                N(SyntaxKind.ForEachKeyword);
+                N(SyntaxKind.OpenParenToken);
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "@scoped");
+                }
+                M(SyntaxKind.InKeyword);
+                N(SyntaxKind.RefExpression);
+                {
+                    N(SyntaxKind.RefKeyword);
+                    M(SyntaxKind.IdentifierName);
+                    {
+                        M(SyntaxKind.IdentifierToken);
+                    }
+                }
+                M(SyntaxKind.CloseParenToken);
+                N(SyntaxKind.LocalDeclarationStatement);
+                {
+                    N(SyntaxKind.ReadOnlyKeyword);
+                    N(SyntaxKind.VariableDeclaration);
+                    {
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.IntKeyword);
+                        }
+                        N(SyntaxKind.VariableDeclarator);
+                        {
+                            N(SyntaxKind.IdentifierToken, "a");
+                        }
+                    }
+                    M(SyntaxKind.SemicolonToken);
+                }
+            }
+            EOF();
+        }
+
+        [Theory]
+        [InlineData(LanguageVersion.CSharp10)]
+        [InlineData(LanguageVersion.CSharp11)]
+        public void Foreach_14(LanguageVersion langVersion)
+        {
+            string source =
+@"
+foreach (scoped S a in collection);
+";
+            UsingStatement(source, TestOptions.Regular.WithLanguageVersion(langVersion));
+
+            N(SyntaxKind.ForEachStatement);
+            {
+                N(SyntaxKind.ForEachKeyword);
+                N(SyntaxKind.OpenParenToken);
+                N(SyntaxKind.ScopedType);
+                {
+                    N(SyntaxKind.ScopedKeyword);
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "S");
+                    }
+                }
+                N(SyntaxKind.IdentifierToken, "a");
+                N(SyntaxKind.InKeyword);
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "collection");
+                }
+                N(SyntaxKind.CloseParenToken);
+                N(SyntaxKind.EmptyStatement);
+                {
+                    N(SyntaxKind.SemicolonToken);
+                }
+            }
+            EOF();
+        }
+
+        [Theory]
+        [InlineData(LanguageVersion.CSharp10)]
+        [InlineData(LanguageVersion.CSharp11)]
+        public void Foreach_15(LanguageVersion langVersion)
+        {
+            string source =
+@"
+foreach (scoped ref S b in collection);
+";
+            UsingStatement(source, TestOptions.Regular.WithLanguageVersion(langVersion));
+
+            N(SyntaxKind.ForEachStatement);
+            {
+                N(SyntaxKind.ForEachKeyword);
+                N(SyntaxKind.OpenParenToken);
+                N(SyntaxKind.ScopedType);
+                {
+                    N(SyntaxKind.ScopedKeyword);
+                    N(SyntaxKind.RefType);
+                    {
+                        N(SyntaxKind.RefKeyword);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "S");
+                        }
+                    }
+                }
+                N(SyntaxKind.IdentifierToken, "b");
+                N(SyntaxKind.InKeyword);
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "collection");
+                }
+                N(SyntaxKind.CloseParenToken);
+                N(SyntaxKind.EmptyStatement);
+                {
+                    N(SyntaxKind.SemicolonToken);
+                }
+            }
+            EOF();
+        }
+
+        [Theory]
+        [InlineData(LanguageVersion.CSharp10)]
+        [InlineData(LanguageVersion.CSharp11)]
+        public void Foreach_16(LanguageVersion langVersion)
+        {
+            string source =
+@"
+foreach (scoped ref readonly S a in collection);
+";
+            UsingStatement(source, TestOptions.Regular.WithLanguageVersion(langVersion));
+
+            N(SyntaxKind.ForEachStatement);
+            {
+                N(SyntaxKind.ForEachKeyword);
+                N(SyntaxKind.OpenParenToken);
+                N(SyntaxKind.ScopedType);
+                {
+                    N(SyntaxKind.ScopedKeyword);
+                    N(SyntaxKind.RefType);
+                    {
+                        N(SyntaxKind.RefKeyword);
+                        N(SyntaxKind.ReadOnlyKeyword);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "S");
+                        }
+                    }
+                }
+                N(SyntaxKind.IdentifierToken, "a");
+                N(SyntaxKind.InKeyword);
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "collection");
+                }
+                N(SyntaxKind.CloseParenToken);
+                N(SyntaxKind.EmptyStatement);
+                {
+                    N(SyntaxKind.SemicolonToken);
+                }
+            }
+            EOF();
+        }
+
+        [Theory]
+        [InlineData(LanguageVersion.CSharp10)]
+        [InlineData(LanguageVersion.CSharp11)]
+        public void Foreach_17(LanguageVersion langVersion)
+        {
+            string source =
+@"
+foreach (scoped.nested a in collection);
+";
+            UsingStatement(source, TestOptions.Regular.WithLanguageVersion(langVersion));
+
+            N(SyntaxKind.ForEachStatement);
+            {
+                N(SyntaxKind.ForEachKeyword);
+                N(SyntaxKind.OpenParenToken);
+                N(SyntaxKind.QualifiedName);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "scoped");
+                    }
+                    N(SyntaxKind.DotToken);
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "nested");
+                    }
+                }
+                N(SyntaxKind.IdentifierToken, "a");
+                N(SyntaxKind.InKeyword);
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "collection");
+                }
+                N(SyntaxKind.CloseParenToken);
+                N(SyntaxKind.EmptyStatement);
+                {
+                    N(SyntaxKind.SemicolonToken);
+                }
+            }
+            EOF();
+        }
+
+        [Theory]
+        [InlineData(LanguageVersion.CSharp10)]
+        [InlineData(LanguageVersion.CSharp11)]
+        public void Foreach_18(LanguageVersion langVersion)
+        {
+            string source =
+@"
+foreach (scoped scoped a in collection);
+";
+            UsingStatement(source, TestOptions.Regular.WithLanguageVersion(langVersion));
+
+            N(SyntaxKind.ForEachStatement);
+            {
+                N(SyntaxKind.ForEachKeyword);
+                N(SyntaxKind.OpenParenToken);
+                N(SyntaxKind.ScopedType);
+                {
+                    N(SyntaxKind.ScopedKeyword);
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "scoped");
+                    }
+                }
+                N(SyntaxKind.IdentifierToken, "a");
+                N(SyntaxKind.InKeyword);
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "collection");
+                }
+                N(SyntaxKind.CloseParenToken);
+                N(SyntaxKind.EmptyStatement);
+                {
+                    N(SyntaxKind.SemicolonToken);
+                }
+            }
+            EOF();
+        }
+
+        [Theory]
+        [InlineData(LanguageVersion.CSharp10)]
+        [InlineData(LanguageVersion.CSharp11)]
+        public void Foreach_20(LanguageVersion langVersion)
+        {
+            string source =
+@"
+foreach (scoped var a in collection);
+";
+            UsingStatement(source, TestOptions.Regular.WithLanguageVersion(langVersion));
+
+            N(SyntaxKind.ForEachStatement);
+            {
+                N(SyntaxKind.ForEachKeyword);
+                N(SyntaxKind.OpenParenToken);
+                N(SyntaxKind.ScopedType);
+                {
+                    N(SyntaxKind.ScopedKeyword);
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "var");
+                    }
+                }
+                N(SyntaxKind.IdentifierToken, "a");
+                N(SyntaxKind.InKeyword);
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "collection");
+                }
+                N(SyntaxKind.CloseParenToken);
+                N(SyntaxKind.EmptyStatement);
+                {
+                    N(SyntaxKind.SemicolonToken);
+                }
+            }
+            EOF();
+        }
+
+        [Theory]
+        [InlineData(LanguageVersion.CSharp10)]
+        [InlineData(LanguageVersion.CSharp11)]
+        public void Foreach_21(LanguageVersion langVersion)
+        {
+            string source =
+@"
+foreach (scoped ref var b in collection);
+";
+            UsingStatement(source, TestOptions.Regular.WithLanguageVersion(langVersion));
+
+            N(SyntaxKind.ForEachStatement);
+            {
+                N(SyntaxKind.ForEachKeyword);
+                N(SyntaxKind.OpenParenToken);
+                N(SyntaxKind.ScopedType);
+                {
+                    N(SyntaxKind.ScopedKeyword);
+                    N(SyntaxKind.RefType);
+                    {
+                        N(SyntaxKind.RefKeyword);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "var");
+                        }
+                    }
+                }
+                N(SyntaxKind.IdentifierToken, "b");
+                N(SyntaxKind.InKeyword);
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "collection");
+                }
+                N(SyntaxKind.CloseParenToken);
+                N(SyntaxKind.EmptyStatement);
+                {
+                    N(SyntaxKind.SemicolonToken);
+                }
+            }
+            EOF();
+        }
+
+        [Theory]
+        [InlineData(LanguageVersion.CSharp10)]
+        [InlineData(LanguageVersion.CSharp11)]
+        public void Foreach_22(LanguageVersion langVersion)
+        {
+            string source =
+@"
+foreach (scoped ref readonly var c in collection);
+";
+            UsingStatement(source, TestOptions.Regular.WithLanguageVersion(langVersion));
+
+            N(SyntaxKind.ForEachStatement);
+            {
+                N(SyntaxKind.ForEachKeyword);
+                N(SyntaxKind.OpenParenToken);
+                N(SyntaxKind.ScopedType);
+                {
+                    N(SyntaxKind.ScopedKeyword);
+                    N(SyntaxKind.RefType);
+                    {
+                        N(SyntaxKind.RefKeyword);
+                        N(SyntaxKind.ReadOnlyKeyword);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "var");
+                        }
+                    }
+                }
+                N(SyntaxKind.IdentifierToken, "c");
+                N(SyntaxKind.InKeyword);
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "collection");
+                }
+                N(SyntaxKind.CloseParenToken);
+                N(SyntaxKind.EmptyStatement);
+                {
+                    N(SyntaxKind.SemicolonToken);
+                }
+            }
+            EOF();
+        }
+
+        [Theory]
+        [InlineData(LanguageVersion.CSharp10)]
+        [InlineData(LanguageVersion.CSharp11)]
+        public void Foreach_23(LanguageVersion langVersion)
+        {
+            string source =
+@"
+foreach (scoped var in collection);
+";
+            UsingStatement(source, TestOptions.Regular.WithLanguageVersion(langVersion));
+
+            N(SyntaxKind.ForEachStatement);
+            {
+                N(SyntaxKind.ForEachKeyword);
+                N(SyntaxKind.OpenParenToken);
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "scoped");
+                }
+                N(SyntaxKind.IdentifierToken, "var");
+                N(SyntaxKind.InKeyword);
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "collection");
+                }
+                N(SyntaxKind.CloseParenToken);
+                N(SyntaxKind.EmptyStatement);
+                {
+                    N(SyntaxKind.SemicolonToken);
+                }
+            }
+            EOF();
+        }
+
+        [Theory]
+        [InlineData(LanguageVersion.CSharp10)]
+        [InlineData(LanguageVersion.CSharp11)]
+        public void Foreach_24(LanguageVersion langVersion)
+        {
+            string source =
+@"
+foreach (ref scoped var in collection);
+";
+            UsingStatement(source, TestOptions.Regular.WithLanguageVersion(langVersion));
+
+            N(SyntaxKind.ForEachStatement);
+            {
+                N(SyntaxKind.ForEachKeyword);
+                N(SyntaxKind.OpenParenToken);
+                N(SyntaxKind.RefType);
+                {
+                    N(SyntaxKind.RefKeyword);
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "scoped");
+                    }
+                }
+                N(SyntaxKind.IdentifierToken, "var");
+                N(SyntaxKind.InKeyword);
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "collection");
+                }
+                N(SyntaxKind.CloseParenToken);
+                N(SyntaxKind.EmptyStatement);
+                {
+                    N(SyntaxKind.SemicolonToken);
+                }
+            }
+            EOF();
+        }
+
+        [Theory]
+        [InlineData(LanguageVersion.CSharp10)]
+        [InlineData(LanguageVersion.CSharp11)]
+        public void Foreach_25(LanguageVersion langVersion)
+        {
+            string source =
+@"
+foreach (scoped scoped int a in collection);
+";
+            UsingStatement(source, TestOptions.Regular.WithLanguageVersion(langVersion),
+                // (2,1): error CS1073: Unexpected token 'in'
+                // foreach (scoped scoped int a in collection);
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, "foreach (scoped scoped int a ").WithArguments("in").WithLocation(2, 1),
+                // (2,24): error CS1515: 'in' expected
+                // foreach (scoped scoped int a in collection);
+                Diagnostic(ErrorCode.ERR_InExpected, "int").WithLocation(2, 24),
+                // (2,24): error CS1525: Invalid expression term 'int'
+                // foreach (scoped scoped int a in collection);
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(2, 24),
+                // (2,28): error CS1026: ) expected
+                // foreach (scoped scoped int a in collection);
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, "a").WithLocation(2, 28),
+                // (2,30): error CS1002: ; expected
+                // foreach (scoped scoped int a in collection);
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "in").WithLocation(2, 30)
+                );
+
+            N(SyntaxKind.ForEachStatement);
+            {
+                N(SyntaxKind.ForEachKeyword);
+                N(SyntaxKind.OpenParenToken);
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "scoped");
+                }
+                N(SyntaxKind.IdentifierToken, "scoped");
+                M(SyntaxKind.InKeyword);
+                N(SyntaxKind.PredefinedType);
+                {
+                    N(SyntaxKind.IntKeyword);
+                }
+                M(SyntaxKind.CloseParenToken);
+                N(SyntaxKind.ExpressionStatement);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "a");
+                    }
+                    M(SyntaxKind.SemicolonToken);
+                }
+            }
+            EOF();
+        }
+
+        [Theory]
+        [InlineData(LanguageVersion.CSharp10)]
+        [InlineData(LanguageVersion.CSharp11)]
+        public void Foreach_26(LanguageVersion langVersion)
+        {
+            string source =
+@"
+foreach (scoped scoped var b in collection);
+";
+            UsingStatement(source, TestOptions.Regular.WithLanguageVersion(langVersion),
+                // (2,1): error CS1073: Unexpected token 'in'
+                // foreach (scoped scoped var b in collection);
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, "foreach (scoped scoped var b ").WithArguments("in").WithLocation(2, 1),
+                // (2,28): error CS1515: 'in' expected
+                // foreach (scoped scoped var b in collection);
+                Diagnostic(ErrorCode.ERR_InExpected, "b").WithLocation(2, 28),
+                // (2,30): error CS1026: ) expected
+                // foreach (scoped scoped var b in collection);
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, "in").WithLocation(2, 30),
+                // (2,30): error CS1525: Invalid expression term 'in'
+                // foreach (scoped scoped var b in collection);
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "in").WithArguments("in").WithLocation(2, 30),
+                // (2,30): error CS1002: ; expected
+                // foreach (scoped scoped var b in collection);
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "in").WithLocation(2, 30)
+                );
+
+            N(SyntaxKind.ForEachStatement);
+            {
+                N(SyntaxKind.ForEachKeyword);
+                N(SyntaxKind.OpenParenToken);
+                N(SyntaxKind.ScopedType);
+                {
+                    N(SyntaxKind.ScopedKeyword);
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "scoped");
+                    }
+                }
+                N(SyntaxKind.IdentifierToken, "var");
+                M(SyntaxKind.InKeyword);
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "b");
+                }
+                M(SyntaxKind.CloseParenToken);
+                M(SyntaxKind.ExpressionStatement);
+                {
+                    M(SyntaxKind.IdentifierName);
+                    {
+                        M(SyntaxKind.IdentifierToken);
+                    }
+                    M(SyntaxKind.SemicolonToken);
+                }
+            }
+            EOF();
+        }
+
+        [Theory]
+        [InlineData(LanguageVersion.CSharp10)]
+        [InlineData(LanguageVersion.CSharp11)]
+        public void Foreach_27(LanguageVersion langVersion)
+        {
+            string source =
+@"
+foreach (scoped var (b, c) in collection);
+";
+            UsingStatement(source, TestOptions.Regular.WithLanguageVersion(langVersion),
+                // (2,1): error CS1073: Unexpected token 'in'
+                // foreach (scoped var (b, c) in collection);
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, "foreach (scoped var (b, c) ").WithArguments("in").WithLocation(2, 1),
+                // (2,21): error CS1515: 'in' expected
+                // foreach (scoped var (b, c) in collection);
+                Diagnostic(ErrorCode.ERR_InExpected, "(").WithLocation(2, 21),
+                // (2,28): error CS1026: ) expected
+                // foreach (scoped var (b, c) in collection);
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, "in").WithLocation(2, 28),
+                // (2,28): error CS1525: Invalid expression term 'in'
+                // foreach (scoped var (b, c) in collection);
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "in").WithArguments("in").WithLocation(2, 28),
+                // (2,28): error CS1002: ; expected
+                // foreach (scoped var (b, c) in collection);
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "in").WithLocation(2, 28)
+                );
+
+            N(SyntaxKind.ForEachStatement);
+            {
+                N(SyntaxKind.ForEachKeyword);
+                N(SyntaxKind.OpenParenToken);
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "scoped");
+                }
+                N(SyntaxKind.IdentifierToken, "var");
+                M(SyntaxKind.InKeyword);
+                N(SyntaxKind.TupleExpression);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.Argument);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "b");
+                        }
+                    }
+                    N(SyntaxKind.CommaToken);
+                    N(SyntaxKind.Argument);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "c");
+                        }
+                    }
+                    N(SyntaxKind.CloseParenToken);
+                }
+                M(SyntaxKind.CloseParenToken);
+                M(SyntaxKind.ExpressionStatement);
+                {
+                    M(SyntaxKind.IdentifierName);
+                    {
+                        M(SyntaxKind.IdentifierToken);
+                    }
+                    M(SyntaxKind.SemicolonToken);
+                }
+            }
+            EOF();
+        }
+
+        [Theory]
+        [InlineData(LanguageVersion.CSharp10)]
+        [InlineData(LanguageVersion.CSharp11)]
+        public void Foreach_28(LanguageVersion langVersion)
+        {
+            string source =
+@"
+foreach (scoped (int b, int c) in collection);
+";
+            UsingStatement(source, TestOptions.Regular.WithLanguageVersion(langVersion),
+                // (2,18): error CS1525: Invalid expression term 'int'
+                // foreach (scoped (int b, int c) in collection);
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(2, 18),
+                // (2,22): error CS1003: Syntax error, ',' expected
+                // foreach (scoped (int b, int c) in collection);
+                Diagnostic(ErrorCode.ERR_SyntaxError, "b").WithArguments(",").WithLocation(2, 22),
+                // (2,25): error CS1525: Invalid expression term 'int'
+                // foreach (scoped (int b, int c) in collection);
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(2, 25),
+                // (2,29): error CS1003: Syntax error, ',' expected
+                // foreach (scoped (int b, int c) in collection);
+                Diagnostic(ErrorCode.ERR_SyntaxError, "c").WithArguments(",").WithLocation(2, 29),
+                // (2,32): error CS0230: Type and identifier are both required in a foreach statement
+                // foreach (scoped (int b, int c) in collection);
+                Diagnostic(ErrorCode.ERR_BadForeachDecl, "in").WithLocation(2, 32)
+                );
+
+            N(SyntaxKind.ForEachVariableStatement);
+            {
+                N(SyntaxKind.ForEachKeyword);
+                N(SyntaxKind.OpenParenToken);
+                N(SyntaxKind.InvocationExpression);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "scoped");
+                    }
+                    N(SyntaxKind.ArgumentList);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.Argument);
+                        {
+                            N(SyntaxKind.PredefinedType);
+                            {
+                                N(SyntaxKind.IntKeyword);
+                            }
+                        }
+                        M(SyntaxKind.CommaToken);
+                        N(SyntaxKind.Argument);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "b");
+                            }
+                        }
+                        N(SyntaxKind.CommaToken);
+                        N(SyntaxKind.Argument);
+                        {
+                            N(SyntaxKind.PredefinedType);
+                            {
+                                N(SyntaxKind.IntKeyword);
+                            }
+                        }
+                        M(SyntaxKind.CommaToken);
+                        N(SyntaxKind.Argument);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "c");
+                            }
+                        }
+                        N(SyntaxKind.CloseParenToken);
+                    }
+                }
+                N(SyntaxKind.InKeyword);
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "collection");
+                }
+                N(SyntaxKind.CloseParenToken);
+                N(SyntaxKind.EmptyStatement);
+                {
+                    N(SyntaxKind.SemicolonToken);
+                }
+            }
+            EOF();
+        }
+
+        [Theory]
+        [InlineData(LanguageVersion.CSharp10)]
+        [InlineData(LanguageVersion.CSharp11)]
+        public void Foreach_29(LanguageVersion langVersion)
+        {
+            string source =
+@"
+foreach (scoped (b, c) d in collection);
+";
+            UsingStatement(source, TestOptions.Regular.WithLanguageVersion(langVersion));
+
+            N(SyntaxKind.ForEachStatement);
+            {
+                N(SyntaxKind.ForEachKeyword);
+                N(SyntaxKind.OpenParenToken);
+                N(SyntaxKind.ScopedType);
+                {
+                    N(SyntaxKind.ScopedKeyword);
+                    N(SyntaxKind.TupleType);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.TupleElement);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "b");
+                            }
+                        }
+                        N(SyntaxKind.CommaToken);
+                        N(SyntaxKind.TupleElement);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "c");
+                            }
+                        }
+                        N(SyntaxKind.CloseParenToken);
+                    }
+                }
+                N(SyntaxKind.IdentifierToken, "d");
+                N(SyntaxKind.InKeyword);
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "collection");
+                }
+                N(SyntaxKind.CloseParenToken);
+                N(SyntaxKind.EmptyStatement);
+                {
+                    N(SyntaxKind.SemicolonToken);
+                }
+            }
+            EOF();
+        }
+
+        [Theory]
+        [InlineData(LanguageVersion.CSharp10)]
+        [InlineData(LanguageVersion.CSharp11)]
+        public void Foreach_30(LanguageVersion langVersion)
+        {
+            string source =
+@"
+foreach (scoped ref int[M(out var b)] a in collection);
+";
+            UsingStatement(source, TestOptions.Regular.WithLanguageVersion(langVersion),
+                // (2,1): error CS1073: Unexpected token 'in'
+                // foreach (scoped ref int[M(out var b)] a in collection);
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, "foreach (scoped ref int[M(out var b)] a ").WithArguments("in").WithLocation(2, 1),
+                // (2,17): error CS1515: 'in' expected
+                // foreach (scoped ref int[M(out var b)] a in collection);
+                Diagnostic(ErrorCode.ERR_InExpected, "ref").WithLocation(2, 17),
+                // (2,17): error CS0230: Type and identifier are both required in a foreach statement
+                // foreach (scoped ref int[M(out var b)] a in collection);
+                Diagnostic(ErrorCode.ERR_BadForeachDecl, "ref").WithLocation(2, 17),
+                // (2,17): error CS1525: Invalid expression term 'ref'
+                // foreach (scoped ref int[M(out var b)] a in collection);
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "ref int[M(out var b)]").WithArguments("ref").WithLocation(2, 17),
+                // (2,21): error CS1525: Invalid expression term 'int'
+                // foreach (scoped ref int[M(out var b)] a in collection);
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(2, 21),
+                // (2,39): error CS1026: ) expected
+                // foreach (scoped ref int[M(out var b)] a in collection);
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, "a").WithLocation(2, 39),
+                // (2,41): error CS1002: ; expected
+                // foreach (scoped ref int[M(out var b)] a in collection);
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "in").WithLocation(2, 41)
+                );
+
+            N(SyntaxKind.ForEachVariableStatement);
+            {
+                N(SyntaxKind.ForEachKeyword);
+                N(SyntaxKind.OpenParenToken);
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "scoped");
+                }
+                M(SyntaxKind.InKeyword);
+                N(SyntaxKind.RefExpression);
+                {
+                    N(SyntaxKind.RefKeyword);
+                    N(SyntaxKind.ElementAccessExpression);
+                    {
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.IntKeyword);
+                        }
+                        N(SyntaxKind.BracketedArgumentList);
+                        {
+                            N(SyntaxKind.OpenBracketToken);
+                            N(SyntaxKind.Argument);
+                            {
+                                N(SyntaxKind.InvocationExpression);
+                                {
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "M");
+                                    }
+                                    N(SyntaxKind.ArgumentList);
+                                    {
+                                        N(SyntaxKind.OpenParenToken);
+                                        N(SyntaxKind.Argument);
+                                        {
+                                            N(SyntaxKind.OutKeyword);
+                                            N(SyntaxKind.DeclarationExpression);
+                                            {
+                                                N(SyntaxKind.IdentifierName);
+                                                {
+                                                    N(SyntaxKind.IdentifierToken, "var");
+                                                }
+                                                N(SyntaxKind.SingleVariableDesignation);
+                                                {
+                                                    N(SyntaxKind.IdentifierToken, "b");
+                                                }
+                                            }
+                                        }
+                                        N(SyntaxKind.CloseParenToken);
+                                    }
+                                }
+                            }
+                            N(SyntaxKind.CloseBracketToken);
+                        }
+                    }
+                }
+                M(SyntaxKind.CloseParenToken);
+                N(SyntaxKind.ExpressionStatement);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "a");
+                    }
+                    M(SyntaxKind.SemicolonToken);
+                }
             }
             EOF();
         }

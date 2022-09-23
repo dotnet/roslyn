@@ -10918,6 +10918,621 @@ class Program
             VerifyLocalSymbol(locals[7], "scoped ref R r42", RefKind.Ref, DeclarationScope.RefScoped);
         }
 
+        [Fact]
+        public void LocalScope_01_Foreach()
+        {
+            var source =
+@"#pragma warning disable 219
+ref struct R { }
+class Program
+{
+    static void F(ref R r)
+    {
+        foreach (scoped R r1 in new Enumerable1()) break;
+        foreach (scoped ref R r2 in new Enumerable2()) break;
+        foreach (scoped ref readonly R r5 in new Enumerable2()) break;
+    }
+}
+
+class Enumerable1
+{
+    public Enumerator1 GetEnumerator() => default;
+}
+
+class Enumerator1
+{
+    public R Current => default;
+    public bool MoveNext() => false;
+}
+
+class Enumerable2
+{
+    public Enumerator2 GetEnumerator() => default;
+}
+
+class Enumerator2
+{
+    public ref R Current => throw null;
+    public bool MoveNext() => false;
+}
+";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular10);
+            comp.VerifyEmitDiagnostics(
+                // (7,18): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
+                //         foreach (scoped R r1 in new Enumerable1()) break;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "scoped").WithArguments("ref fields", "11.0").WithLocation(7, 18),
+                // (8,18): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
+                //         foreach (scoped ref R r2 in new Enumerable2()) break;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "scoped").WithArguments("ref fields", "11.0").WithLocation(8, 18),
+                // (9,18): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
+                //         foreach (scoped ref readonly R r5 in new Enumerable2()) break;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "scoped").WithArguments("ref fields", "11.0").WithLocation(9, 18)
+                );
+
+            verify(comp, useUpdatedEscapeRules: false);
+
+            comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics();
+            verify(comp, useUpdatedEscapeRules: true);
+
+            static void verify(CSharpCompilation comp, bool useUpdatedEscapeRules)
+            {
+                var tree = comp.SyntaxTrees[0];
+                var model = comp.GetSemanticModel(tree);
+                var decls = tree.GetRoot().DescendantNodes().OfType<ForEachStatementSyntax>().ToArray();
+                var locals = decls.Select(d => model.GetDeclaredSymbol(d).GetSymbol<LocalSymbol>()).ToArray();
+
+                VerifyLocalSymbol(locals[0], "scoped R r1", RefKind.None, DeclarationScope.ValueScoped);
+                VerifyLocalSymbol(locals[1], "scoped ref R r2", RefKind.Ref, DeclarationScope.RefScoped);
+                VerifyLocalSymbol(locals[2], "scoped ref readonly R r5", RefKind.RefReadOnly, DeclarationScope.RefScoped);
+
+                foreach (var decl in decls)
+                {
+                    var type = decl.Type;
+                    Assert.Null(model.GetTypeInfo(type).Type);
+                    Assert.Equal("R", model.GetSymbolInfo(type.SkipScoped(out _).SkipRef(out _)).Symbol.ToTestDisplayString());
+                    Assert.True(SyntaxFacts.IsInTypeOnlyContext(type));
+                    Assert.True(SyntaxFacts.IsInTypeOnlyContext(type.SkipScoped(out _)));
+                    Assert.True(SyntaxFacts.IsInTypeOnlyContext(type.SkipScoped(out _).SkipRef(out _)));
+                }
+            }
+        }
+
+        [Fact]
+        public void LocalScope_04_Foreach()
+        {
+            var source =
+@"foreach (scoped s1 in new Enumerable1()) {
+foreach (ref scoped s2 in new Enumerable2()) {break;} // 1
+foreach (ref @scoped s3 in new Enumerable2()) {break;}
+foreach (scoped scoped s4 in new Enumerable1()) {break;} // 2
+foreach (scoped ref scoped s5 in new Enumerable2()) {break;} // 3
+foreach (scoped ref @scoped s6 in new Enumerable2()) {break;} // 4
+}
+
+ref struct @scoped { } // 5
+
+class Enumerable1
+{
+    public Enumerator1 GetEnumerator() => default;
+}
+
+class Enumerator1
+{
+    public @scoped Current => default;
+    public bool MoveNext() => false;
+}
+
+class Enumerable2
+{
+    public Enumerator2 GetEnumerator() => default;
+}
+
+class Enumerator2
+{
+    public ref @scoped Current => throw null;
+    public bool MoveNext() => false;
+}
+";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular10);
+            comp.VerifyEmitDiagnostics(
+                // (4,10): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
+                // foreach (scoped scoped s4 in new Enumerable1()) {break;} // 2
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "scoped").WithArguments("ref fields", "11.0").WithLocation(4, 10),
+                // (5,10): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
+                // foreach (scoped ref scoped s5 in new Enumerable2()) {break;} // 3
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "scoped").WithArguments("ref fields", "11.0").WithLocation(5, 10),
+                // (6,10): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
+                // foreach (scoped ref @scoped s6 in new Enumerable2()) {break;} // 4
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "scoped").WithArguments("ref fields", "11.0").WithLocation(6, 10)
+                );
+            verify(comp);
+
+            comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+            verify(comp);
+
+            static void verify(CSharpCompilation comp)
+            {
+                var tree = comp.SyntaxTrees[0];
+                var model = comp.GetSemanticModel(tree);
+                var decls = tree.GetRoot().DescendantNodes().OfType<ForEachStatementSyntax>().ToArray();
+                var locals = decls.Select(d => model.GetDeclaredSymbol(d).GetSymbol<LocalSymbol>()).ToArray();
+
+                VerifyLocalSymbol(locals[0], "scoped s1", RefKind.None, DeclarationScope.Unscoped);
+                VerifyLocalSymbol(locals[1], "ref scoped s2", RefKind.Ref, DeclarationScope.Unscoped);
+                VerifyLocalSymbol(locals[2], "ref scoped s3", RefKind.Ref, DeclarationScope.Unscoped);
+                VerifyLocalSymbol(locals[3], "scoped scoped s4", RefKind.None, DeclarationScope.ValueScoped);
+                VerifyLocalSymbol(locals[4], "scoped ref scoped s5", RefKind.Ref, DeclarationScope.RefScoped);
+                VerifyLocalSymbol(locals[5], "scoped ref scoped s6", RefKind.Ref, DeclarationScope.RefScoped);
+            }
+        }
+
+        [Theory]
+        [InlineData(LanguageVersion.CSharp10)]
+        [InlineData(LanguageVersion.CSharp11)]
+        public void LocalScope_05_Foreach(LanguageVersion langVersion)
+        {
+            var source =
+@"foreach (bool scoped in new bool[] {}) {
+}
+";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(langVersion));
+            comp.VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var decls = tree.GetRoot().DescendantNodes().OfType<ForEachStatementSyntax>().ToArray();
+            var locals = decls.Select(d => model.GetDeclaredSymbol(d).GetSymbol<LocalSymbol>()).ToArray();
+
+            VerifyLocalSymbol(locals[0], "System.Boolean scoped", RefKind.None, DeclarationScope.Unscoped);
+        }
+
+        [Fact]
+        public void LocalScope_06_Foreach()
+        {
+            var source =
+@"ref struct R<T> { }
+class Program
+{
+    static void M(R<int> r0)
+    {
+        foreach (scoped var r1 in new Enumerable1<int>()) break;
+        foreach (scoped ref var r3 in new Enumerable2<int>()) break;
+    }
+}
+
+class Enumerable1<T>
+{
+    public Enumerator1<T> GetEnumerator() => default;
+}
+
+class Enumerator1<T>
+{
+    public R<T> Current => default;
+    public bool MoveNext() => false;
+}
+
+class Enumerable2<T>
+{
+    public Enumerator2<T> GetEnumerator() => default;
+}
+
+class Enumerator2<T>
+{
+    public ref R<T> Current => throw null;
+    public bool MoveNext() => false;
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+
+            verifyModel(comp);
+
+            comp = CreateCompilation(source, parseOptions: TestOptions.RegularDefault.WithFeature("run-nullable-analysis", "never"));
+            verifyModel(comp);
+
+            static void verifyModel(CSharpCompilation comp)
+            {
+                var tree = comp.SyntaxTrees[0];
+                var model = comp.GetSemanticModel(tree);
+                var decls = tree.GetRoot().DescendantNodes().OfType<ForEachStatementSyntax>().ToArray();
+                var locals = decls.Select(d => model.GetDeclaredSymbol(d).GetSymbol<LocalSymbol>()).ToArray();
+
+                foreach (SourceLocalSymbol local in locals)
+                {
+                    Assert.True(local.IsVar);
+                    Assert.Equal("R<System.Int32>", local.Type.ToTestDisplayString());
+                }
+
+                VerifyLocalSymbol(locals[0], "scoped R<System.Int32> r1", RefKind.None, DeclarationScope.ValueScoped);
+                VerifyLocalSymbol(locals[1], "scoped ref R<System.Int32> r3", RefKind.Ref, DeclarationScope.RefScoped);
+
+                foreach (var decl in decls)
+                {
+                    var type = decl.Type.SkipScoped(out _).SkipRef(out _);
+                    Assert.Equal("R<System.Int32>", model.GetSymbolInfo(type).Symbol.ToTestDisplayString());
+                    Assert.Equal("R<System.Int32>", model.GetTypeInfo(type).Type.ToTestDisplayString());
+                }
+            }
+        }
+
+        [Fact]
+        public void LocalScope_09_Foreach_01()
+        {
+            var source =
+@"foreach (scoped s1 in new Enumerable1()) {
+    scoped ref @scoped s2 = ref s1;
+}
+ref struct @scoped { }
+
+class Enumerable1
+{
+    public Enumerator1 GetEnumerator() => default;
+}
+
+class Enumerator1
+{
+    public @scoped Current => default;
+    public bool MoveNext() => false;
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (2,33): error CS1657: Cannot use 's1' as a ref or out value because it is a 'foreach iteration variable'
+                //     scoped ref @scoped s2 = ref s1;
+                Diagnostic(ErrorCode.ERR_RefReadonlyLocalCause, "s1").WithArguments("s1", "foreach iteration variable").WithLocation(2, 33)
+                );
+        }
+
+        [Fact]
+        public void LocalScope_09_Foreach_02()
+        {
+            var source =
+@"scoped s1 = default;
+foreach (scoped ref @scoped s2 in Enumerable1.Create(ref s1)) break;
+
+ref struct @scoped { }
+
+class Enumerable1
+{
+    public static Enumerable1 Create(ref @scoped p) => default;
+    public Enumerator1 GetEnumerator() => default;
+}
+
+class Enumerator1
+{
+    public ref @scoped Current => throw null;
+    public bool MoveNext() => false;
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void LocalScope_10_Foreach_01()
+        {
+            var source =
+@"int i = 0;
+S s1 = new S(ref i);
+foreach (scoped S s2 in Enumerable1.Create(s1)) break;
+
+ref struct S
+{
+    public S(ref int i) { }
+}
+
+class Enumerable1
+{
+    public static Enumerable1 Create(S p) => default;
+    public Enumerator1 GetEnumerator() => default;
+}
+
+class Enumerator1
+{
+    public S Current => throw null;
+    public bool MoveNext() => false;
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void LocalScope_10_Foreach_02()
+        {
+            var source =
+@"int i = 0;
+foreach (S s1 in Enumerable1.Create(ref i)) {
+    scoped S s2 = s1;
+    break;
+}
+ref struct S
+{
+    public S(ref int i) { }
+}
+
+class Enumerable1
+{
+    public static Enumerable1 Create(ref int p) => default;
+    public Enumerator1 GetEnumerator() => default;
+}
+
+class Enumerator1
+{
+    public S Current => throw null;
+    public bool MoveNext() => false;
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void LocalScope_11_Foreach_01()
+        {
+            var source =
+@"class Program
+{
+    static void Main()
+    {
+        S s0 = default;
+        scoped ref S r0 = ref s0;
+        foreach (scoped ref S r1 in Enumerable1.Create(ref s0)) {
+            r0 = ref r1; // 1
+            break;
+        }
+        foreach (scoped ref S r2 in Enumerable1.Create(ref s0)) {
+            r0 = ref r2; // 2
+            break;
+        }
+        foreach (ref S r3 in Enumerable1.Create(ref s0)) {
+            r0 = ref r3;
+            break;
+        }
+        foreach (ref S r4 in Enumerable1.Create(ref s0)) {
+            r0 = ref r4;
+            break;
+        }
+    }
+}
+ref struct S { }
+
+class Enumerable1
+{
+    public static Enumerable1 Create(ref S p) => default;
+    public Enumerator1 GetEnumerator() => default;
+}
+
+class Enumerator1
+{
+    public ref S Current => throw null;
+    public bool MoveNext() => false;
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (8,13): error CS8374: Cannot ref-assign 'r1' to 'r0' because 'r1' has a narrower escape scope than 'r0'.
+                //             r0 = ref r1; // 1
+                Diagnostic(ErrorCode.ERR_RefAssignNarrower, "r0 = ref r1").WithArguments("r0", "r1").WithLocation(8, 13),
+                // (12,13): error CS8374: Cannot ref-assign 'r2' to 'r0' because 'r2' has a narrower escape scope than 'r0'.
+                //             r0 = ref r2; // 2
+                Diagnostic(ErrorCode.ERR_RefAssignNarrower, "r0 = ref r2").WithArguments("r0", "r2").WithLocation(12, 13));
+        }
+
+        [Fact]
+        public void LocalScope_11_Foreach_02()
+        {
+            var source =
+@"class Program
+{
+    static void Main()
+    {
+        S s0 = default;
+        foreach (scoped ref S r0 in Enumerable1.Create(ref s0))
+        {
+            scoped ref S r1 = ref s0;
+            r0 = ref r1;
+
+            scoped ref S r2 = ref r0;
+            r0 = ref r2;
+
+            ref S r3 = ref s0;
+            r0 = ref r3;
+
+            ref S r4 = ref r0;
+            r0 = ref r4;
+
+            break;
+        }
+    }
+}
+ref struct S { }
+
+class Enumerable1
+{
+    public static Enumerable1 Create(ref S p) => default;
+    public Enumerator1 GetEnumerator() => default;
+}
+
+class Enumerator1
+{
+    public ref S Current => throw null;
+    public bool MoveNext() => false;
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (9,13): error CS1656: Cannot assign to 'r0' because it is a 'foreach iteration variable'
+                //             r0 = ref r1;
+                Diagnostic(ErrorCode.ERR_AssgReadonlyLocalCause, "r0").WithArguments("r0", "foreach iteration variable").WithLocation(9, 13),
+                // (12,13): error CS1656: Cannot assign to 'r0' because it is a 'foreach iteration variable'
+                //             r0 = ref r2;
+                Diagnostic(ErrorCode.ERR_AssgReadonlyLocalCause, "r0").WithArguments("r0", "foreach iteration variable").WithLocation(12, 13),
+                // (15,13): error CS1656: Cannot assign to 'r0' because it is a 'foreach iteration variable'
+                //             r0 = ref r3;
+                Diagnostic(ErrorCode.ERR_AssgReadonlyLocalCause, "r0").WithArguments("r0", "foreach iteration variable").WithLocation(15, 13),
+                // (18,13): error CS1656: Cannot assign to 'r0' because it is a 'foreach iteration variable'
+                //             r0 = ref r4;
+                Diagnostic(ErrorCode.ERR_AssgReadonlyLocalCause, "r0").WithArguments("r0", "foreach iteration variable").WithLocation(18, 13)
+                );
+        }
+
+        [Fact]
+        public void LocalScope_12_Foreach_01()
+        {
+            var source =
+@"class Program
+{
+    static void Main()
+    {
+        int i0 = 0;
+        S s0 = new S(ref i0);
+        {
+            int i1 = 1;
+            foreach (S s1 in Enumerable1.Create(ref i1)) {
+                s0 = s1;
+                break;
+            }
+        }
+        foreach (scoped S s2 in Enumerable1.Create(s0)) {
+            s0 = s2; // 2
+            break;
+        }
+        foreach (S s3 in Enumerable1.Create(s0)) {
+            s0 = s3;
+            break;
+        }
+    }
+}
+ref struct S
+{
+    public S(ref int i) { }
+}
+
+class Enumerable1
+{
+    public static Enumerable1 Create(ref int p) => default;
+    public static Enumerable1 Create(S p) => default;
+    public Enumerator1 GetEnumerator() => default;
+}
+
+class Enumerator1
+{
+    public S Current => throw null;
+    public bool MoveNext() => false;
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (15,18): error CS8352: Cannot use variable 's2' in this context because it may expose referenced variables outside of their declaration scope
+                //             s0 = s2; // 2
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "s2").WithArguments("s2").WithLocation(15, 18)
+                );
+        }
+
+        [Fact]
+        public void LocalScope_12_Foreach_02()
+        {
+            var source =
+@"class Program
+{
+    static void Main()
+    {
+        int i0 = 0;
+        foreach (S s0 in Enumerable1.Create(ref i0))
+        {
+            int i1 = 1;
+            S s1 = new S(ref i1);
+            s0 = s1;
+
+            scoped S s2 = s0;
+            s0 = s2;
+
+            S s3 = s0;
+            s0 = s3;
+            
+            break;
+        }
+    }
+}
+ref struct S
+{
+    public S(ref int i) { }
+}
+
+class Enumerable1
+{
+    public static Enumerable1 Create(ref int p) => default;
+    public Enumerator1 GetEnumerator() => default;
+}
+
+class Enumerator1
+{
+    public S Current => throw null;
+    public bool MoveNext() => false;
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (10,13): error CS1656: Cannot assign to 's0' because it is a 'foreach iteration variable'
+                //             s0 = s1;
+                Diagnostic(ErrorCode.ERR_AssgReadonlyLocalCause, "s0").WithArguments("s0", "foreach iteration variable").WithLocation(10, 13),
+                // (13,13): error CS1656: Cannot assign to 's0' because it is a 'foreach iteration variable'
+                //             s0 = s2;
+                Diagnostic(ErrorCode.ERR_AssgReadonlyLocalCause, "s0").WithArguments("s0", "foreach iteration variable").WithLocation(13, 13),
+                // (16,13): error CS1656: Cannot assign to 's0' because it is a 'foreach iteration variable'
+                //             s0 = s3;
+                Diagnostic(ErrorCode.ERR_AssgReadonlyLocalCause, "s0").WithArguments("s0", "foreach iteration variable").WithLocation(16, 13)
+                );
+        }
+
+        [Fact]
+        public void ScopedRefAndRefStructOnly_06_Foreach()
+        {
+            var source =
+@"
+struct S<T> { }
+class Program
+{
+    static void Main()
+    {
+        foreach (scoped var y1 in new Enumerable1<int>()) break;
+        foreach (scoped ref var y3 in new Enumerable2<int>()) break;
+    }
+}
+
+class Enumerable1<T>
+{
+    public Enumerator1<T> GetEnumerator() => default;
+}
+
+class Enumerator1<T>
+{
+    public S<T> Current => default;
+    public bool MoveNext() => false;
+}
+
+class Enumerable2<T>
+{
+    public Enumerator2<T> GetEnumerator() => default;
+}
+
+class Enumerator2<T>
+{
+    public ref S<T> Current => throw null;
+    public bool MoveNext() => false;
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (7,25): error CS9048: The 'scoped' modifier can be used for refs and ref struct values only.
+                //         foreach (scoped var y1 in new Enumerable1<int>()) break;
+                Diagnostic(ErrorCode.ERR_ScopedRefAndRefStructOnly, "var").WithLocation(7, 25)
+                );
+        }
+
         private static void VerifyLocalSymbol(LocalSymbol local, string expectedDisplayString, RefKind expectedRefKind, DeclarationScope expectedScope)
         {
             Assert.Equal(expectedRefKind, local.RefKind);
