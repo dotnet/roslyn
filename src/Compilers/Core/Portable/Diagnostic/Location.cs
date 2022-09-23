@@ -175,7 +175,7 @@ namespace Microsoft.CodeAnalysis
                 throw new ArgumentNullException(nameof(filePath));
             }
 
-            return new ExternalFileLocation(filePath, textSpan, lineSpan);
+            return Create(filePath, textSpan, lineSpan, filePath, lineSpan);
         }
 
         /// <summary>

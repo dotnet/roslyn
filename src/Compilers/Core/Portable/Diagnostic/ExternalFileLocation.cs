@@ -16,13 +16,6 @@ namespace Microsoft.CodeAnalysis
         private readonly TextSpan _sourceSpan;
         private readonly FileLinePositionSpan _lineSpan, _mappedLineSpan;
 
-        internal ExternalFileLocation(string filePath, TextSpan sourceSpan, LinePositionSpan lineSpan)
-        {
-            _sourceSpan = sourceSpan;
-            _lineSpan = new FileLinePositionSpan(filePath, lineSpan);
-            _mappedLineSpan = _lineSpan;
-        }
-
         internal ExternalFileLocation(string filePath, TextSpan sourceSpan, LinePositionSpan lineSpan, string mappedFilePath, LinePositionSpan mappedLineSpan)
         {
             _sourceSpan = sourceSpan;
@@ -39,6 +32,8 @@ namespace Microsoft.CodeAnalysis
         }
 
         public string FilePath => _lineSpan.Path;
+
+        public string MappedFilePath => _mappedLineSpan.Path;
 
         public override FileLinePositionSpan GetLineSpan()
         {
