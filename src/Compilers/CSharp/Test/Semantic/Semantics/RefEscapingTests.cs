@@ -1624,7 +1624,7 @@ class Program
                 //         arg2 = MayWrap(ref arg1);
                 Diagnostic(ErrorCode.WRN_RefReturnOnlyParameter, "arg1").WithArguments("arg1").WithLocation(24, 28)
                 );
-         }
+        }
 
         [Fact]
         public void RefLikeEscapeMixingCallVararg()
