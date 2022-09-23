@@ -23,7 +23,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client.Projects
         private readonly SolutionServices _services;
 
         public WorkspaceFileTextLoaderNoException(SolutionServices services, string path, Encoding defaultEncoding, SourceHashAlgorithm checksumAlgorithm)
-            : base(services, path, defaultEncoding, checksumAlgorithm)
+            : base(services, path, defaultEncoding)
         {
             _services = services;
         }

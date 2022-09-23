@@ -21,10 +21,12 @@ namespace Microsoft.CodeAnalysis
             HostLanguageServices languageServices,
             HostWorkspaceServices solutionServices)
         {
+            var loadTextOptions = new LoadTextOptions(generatedSourceText.ChecksumAlgorithm);
             var textAndVersion = TextAndVersion.Create(generatedSourceText, VersionStamp.Create());
             var textSource = new ConstantTextAndVersionSource(textAndVersion);
             var treeSource = CreateLazyFullyParsedTree(
                 textSource,
+                loadTextOptions,
                 documentIdentity.DocumentId.ProjectId,
                 documentIdentity.FilePath,
                 parseOptions,
@@ -45,6 +47,7 @@ namespace Microsoft.CodeAnalysis
                     designTimeOnly: false),
                 parseOptions,
                 textSource,
+                loadTextOptions,
                 treeSource);
         }
 
@@ -56,8 +59,9 @@ namespace Microsoft.CodeAnalysis
             DocumentInfo.DocumentAttributes attributes,
             ParseOptions options,
             ITextAndVersionSource textSource,
+            LoadTextOptions loadTextOptions,
             ValueSource<TreeAndVersion> treeSource)
-            : base(languageServices, solutionServices, documentServiceProvider, attributes, options, sourceText: null, textSource, treeSource)
+            : base(languageServices, solutionServices, documentServiceProvider, attributes, options, sourceText: null, textSource, loadTextOptions, treeSource)
         {
             Identity = documentIdentity;
         }
@@ -81,6 +85,7 @@ namespace Microsoft.CodeAnalysis
             return Create(
                 Identity,
                 sourceText,
+                LoadTextOptions,
                 parseOptions,
                 this.LanguageServices,
                 this.solutionServices);

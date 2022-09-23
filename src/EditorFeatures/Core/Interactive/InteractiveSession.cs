@@ -234,7 +234,7 @@ namespace Microsoft.CodeAnalysis.Interactive
                     solution = initProject.Solution.AddDocument(
                         DocumentId.CreateNewId(initializationScriptProjectId, debugName: initializationScriptPath),
                         Path.GetFileName(initializationScriptPath),
-                        new WorkspaceFileTextLoader(solution.Services, initializationScriptPath, defaultEncoding: null, initProject.State.ChecksumAlgorithm));
+                        new WorkspaceFileTextLoader(solution.Services, initializationScriptPath, defaultEncoding: null));
                 }
 
                 var newSubmissionProject = CreateSubmissionProjectNoLock(solution, _currentSubmissionProjectId, _lastSuccessfulSubmissionProjectId, languageName, imports, references);

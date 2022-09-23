@@ -105,16 +105,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer
                 _fileUri = fileUri;
             }
 
-            internal override SourceHashAlgorithm ChecksumAlgorithm
-                => _sourceText.ChecksumAlgorithm;
-
             internal override string? FilePath
                 => _fileUri;
 
-            private protected override TextLoader TryUpdateChecksumAlgorithmImpl(SourceHashAlgorithm algorithm)
-                => throw ExceptionUtilities.Unreachable; // TODO: https://github.com/dotnet/roslyn/issues/63583
-
-            public override Task<TextAndVersion> LoadTextAndVersionAsync(CancellationToken cancellationToken)
+            // TODO (https://github.com/dotnet/roslyn/issues/63583): Use options.ChecksumAlgorithm 
+            public override Task<TextAndVersion> LoadTextAndVersionAsync(LoadTextOptions options, CancellationToken cancellationToken)
                 => Task.FromResult(TextAndVersion.Create(_sourceText, VersionStamp.Create(), _fileUri));
         }
     }

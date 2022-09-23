@@ -348,7 +348,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
             var docInfo = DocumentInfo.Create(
                 DocumentId.CreateNewId(project.Id),
                 name: Path.GetFileName(filePath),
-                loader: new WorkspaceFileTextLoader(Services.SolutionServices, filePath, defaultEncoding: null, project.State.ChecksumAlgorithm),
+                loader: new WorkspaceFileTextLoader(Services.SolutionServices, filePath, defaultEncoding: null),
                 filePath: filePath);
 
             OnDocumentAdded(docInfo);

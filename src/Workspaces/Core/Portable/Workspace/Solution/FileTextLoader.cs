@@ -32,11 +32,6 @@ namespace Microsoft.CodeAnalysis
         public Encoding? DefaultEncoding { get; }
 
         /// <summary>
-        /// Algorithm used to calculate content checksum.
-        /// </summary>
-        internal override SourceHashAlgorithm ChecksumAlgorithm { get; }
-
-        /// <summary>
         /// Creates a content loader for specified file.
         /// </summary>
         /// <param name="path">An absolute file path.</param>
@@ -48,34 +43,12 @@ namespace Microsoft.CodeAnalysis
         /// <exception cref="ArgumentNullException"><paramref name="path"/> is null.</exception>
         /// <exception cref="ArgumentException"><paramref name="path"/> is not an absolute path.</exception>
         public FileTextLoader(string path, Encoding? defaultEncoding)
-            : this(path, defaultEncoding, SourceHashAlgorithm.Sha1)
-        {
-        }
-
-        /// <summary>
-        /// Creates a content loader for specified file.
-        /// </summary>
-        /// <param name="path">An absolute file path.</param>
-        /// <param name="defaultEncoding">
-        /// Specifies an encoding to be used if the actual encoding can't be determined from the stream content (the stream doesn't start with Byte Order Mark).
-        /// If not specified auto-detect heuristics are used to determine the encoding.
-        /// Note that if the stream starts with Byte Order Mark the value of <paramref name="defaultEncoding"/> is ignored.
-        /// </param>
-        /// <param name="checksumAlgorithm">Algorithm used to calculate content checksum.</param>
-        /// <exception cref="ArgumentNullException"><paramref name="path"/> is null.</exception>
-        /// <exception cref="ArgumentException"><paramref name="path"/> is not an absolute path.</exception>
-        internal FileTextLoader(string path, Encoding? defaultEncoding, SourceHashAlgorithm checksumAlgorithm)
         {
             CompilerPathUtilities.RequireAbsolutePath(path, "path");
-            Contract.ThrowIfFalse(SourceHashAlgorithms.IsSupportedAlgorithm(checksumAlgorithm));
 
             Path = path;
             DefaultEncoding = defaultEncoding;
-            ChecksumAlgorithm = checksumAlgorithm;
         }
-
-        private protected override TextLoader TryUpdateChecksumAlgorithmImpl(SourceHashAlgorithm algorithm)
-            => new FileTextLoader(Path, DefaultEncoding, algorithm);
 
         /// <summary>
         /// We have this limit on file size to reduce a chance of OOM when user adds massive files to the solution (often by accident).
@@ -97,7 +70,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Creates <see cref="SourceText"/> from <see cref="Stream"/>.
         /// </summary>
-        protected virtual SourceText CreateText(Stream stream, CancellationToken cancellationToken)
+        protected virtual SourceText CreateText(Stream stream, LoadTextOptions options, CancellationToken cancellationToken)
 #pragma warning disable CS0618 // Type or member is obsolete
             => CreateText(stream, workspace: null);
 #pragma warning restore
@@ -107,7 +80,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         /// <exception cref="IOException"></exception>
         /// <exception cref="InvalidDataException"></exception>
-        public override async Task<TextAndVersion> LoadTextAndVersionAsync(CancellationToken cancellationToken)
+        public override async Task<TextAndVersion> LoadTextAndVersionAsync(LoadTextOptions options, CancellationToken cancellationToken)
         {
             ValidateFileLength(Path);
 
@@ -188,7 +161,7 @@ namespace Microsoft.CodeAnalysis
                 // we do this so that we asynchronously read from file. and this should allocate less for IDE case. 
                 // but probably not for command line case where it doesn't use more sophisticated services.
                 using var readStream = await SerializableBytes.CreateReadableStreamAsync(stream, cancellationToken: cancellationToken).ConfigureAwait(false);
-                var text = CreateText(readStream, cancellationToken);
+                var text = CreateText(readStream, options, cancellationToken);
                 textAndVersion = TextAndVersion.Create(text, version, Path);
             }
 
@@ -211,7 +184,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         /// <exception cref="IOException"></exception>
         /// <exception cref="InvalidDataException"></exception>
-        internal override TextAndVersion LoadTextAndVersionSynchronously(CancellationToken cancellationToken)
+        internal override TextAndVersion LoadTextAndVersionSynchronously(LoadTextOptions options, CancellationToken cancellationToken)
         {
             ValidateFileLength(Path);
 
@@ -223,7 +196,7 @@ namespace Microsoft.CodeAnalysis
             using (var stream = FileUtilities.RethrowExceptionsAsIOException(() => new FileStream(Path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite | FileShare.Delete, bufferSize: 4096, useAsync: false)))
             {
                 var version = VersionStamp.Create(prevLastWriteTime);
-                var text = CreateText(stream, cancellationToken);
+                var text = CreateText(stream, options, cancellationToken);
                 textAndVersion = TextAndVersion.Create(text, version, Path);
             }
 

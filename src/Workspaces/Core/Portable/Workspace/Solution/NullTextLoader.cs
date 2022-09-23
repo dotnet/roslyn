@@ -13,22 +13,15 @@ namespace Microsoft.CodeAnalysis;
 
 /// <summary>
 /// <see cref="TextLoader"/> that does not load text.
-/// It only carries <see cref="TextLoader.ChecksumAlgorithm"/>.
 /// </summary>
 internal sealed class NullTextLoader : TextLoader
 {
-    public static readonly NullTextLoader Default = new(SourceHashAlgorithm.Sha1);
+    public static readonly NullTextLoader Default = new();
 
-    internal override SourceHashAlgorithm ChecksumAlgorithm { get; }
-
-    public NullTextLoader(SourceHashAlgorithm checksumAlgorithm)
+    public NullTextLoader()
     {
-        ChecksumAlgorithm = checksumAlgorithm;
     }
 
-    private protected override TextLoader TryUpdateChecksumAlgorithmImpl(SourceHashAlgorithm algorithm)
-        => new NullTextLoader(algorithm);
-
-    public override Task<TextAndVersion> LoadTextAndVersionAsync(CancellationToken cancellationToken)
+    public override Task<TextAndVersion> LoadTextAndVersionAsync(LoadTextOptions options, CancellationToken cancellationToken)
         => throw new NotImplementedException();
 }

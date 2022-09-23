@@ -452,7 +452,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
                         name,
                         folders,
                         info.SourceCodeKind,
-                        new WorkspaceFileTextLoader(_workspaceServices.SolutionServices, info.FilePath, encoding, checksumAlgorithm),
+                        new WorkspaceFileTextLoader(_workspaceServices.SolutionServices, info.FilePath, encoding),
                         info.FilePath,
                         info.IsGenerated);
 

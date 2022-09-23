@@ -21,6 +21,7 @@ namespace Microsoft.CodeAnalysis
     public sealed class DocumentInfo
     {
         private readonly TextLoader _textLoader;
+        internal readonly LoadTextOptions LoadTextOptions;
 
         internal DocumentAttributes Attributes { get; }
 
@@ -62,10 +63,11 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Create a new instance of a <see cref="DocumentInfo"/>.
         /// </summary>
-        internal DocumentInfo(DocumentAttributes attributes, TextLoader loader, IDocumentServiceProvider? documentServiceProvider)
+        internal DocumentInfo(DocumentAttributes attributes, TextLoader loader, LoadTextOptions loadTextOptions, IDocumentServiceProvider? documentServiceProvider)
         {
             Attributes = attributes;
             _textLoader = loader;
+            LoadTextOptions = loadTextOptions;
             DocumentServiceProvider = documentServiceProvider;
         }
 
@@ -91,26 +93,30 @@ namespace Microsoft.CodeAnalysis
                     isGenerated,
                     designTimeOnly: false),
                 loader ?? NullTextLoader.Default,
+                new LoadTextOptions(SourceHashAlgorithm.Sha1),
                 documentServiceProvider: null);
         }
 
         private DocumentInfo With(
             DocumentAttributes? attributes = null,
             TextLoader? loader = null,
+            Optional<LoadTextOptions> loadTextOptions = default,
             Optional<IDocumentServiceProvider?> documentServiceProvider = default)
         {
             var newAttributes = attributes ?? Attributes;
             var newLoader = loader ?? _textLoader;
+            var newLoadTextOptions = loadTextOptions.HasValue ? loadTextOptions.Value : LoadTextOptions;
             var newDocumentServiceProvider = documentServiceProvider.HasValue ? documentServiceProvider.Value : DocumentServiceProvider;
 
             if (newAttributes == Attributes &&
                 newLoader == _textLoader &&
+                newLoadTextOptions == LoadTextOptions &&
                 newDocumentServiceProvider == DocumentServiceProvider)
             {
                 return this;
             }
 
-            return new DocumentInfo(newAttributes, newLoader, newDocumentServiceProvider);
+            return new DocumentInfo(newAttributes, newLoader, newLoadTextOptions, newDocumentServiceProvider);
         }
 
         /// <summary>
@@ -118,12 +124,6 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public TextLoader? TextLoader
             => _textLoader is NullTextLoader ? null : _textLoader;
-
-        /// <summary>
-        /// Algorithm used for calculating the document content checksum.
-        /// </summary>
-        internal SourceHashAlgorithm ChecksumAlgorithm
-            => _textLoader.ChecksumAlgorithm;
 
         public DocumentInfo WithId(DocumentId id)
             => With(attributes: Attributes.With(id: id ?? throw new ArgumentNullException(nameof(id))));
@@ -142,6 +142,9 @@ namespace Microsoft.CodeAnalysis
 
         public DocumentInfo WithTextLoader(TextLoader? loader)
             => With(loader: loader ?? NullTextLoader.Default);
+
+        public DocumentInfo WithLoadTextOptions(LoadTextOptions options)
+            => With(loadTextOptions: options);
 
         internal DocumentInfo WithDesignTimeOnly(bool designTimeOnly)
             => With(attributes: Attributes.With(designTimeOnly: designTimeOnly));

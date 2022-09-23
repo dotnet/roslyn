@@ -940,7 +940,7 @@ namespace Microsoft.CodeAnalysis
                                                 identity,
                                                 generatedSource.SourceText,
                                                 generatedSource.SyntaxTree.Options,
-                                                this.ProjectState.LanguageServices,
+                                                ProjectState.LanguageServices,
                                                 solution.Services));
 
                                         // The count of trees was the same, but something didn't match up. Since we're here, at least one tree

@@ -323,16 +323,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
                             if (solution.GetDocument(documentId) is { } document)
                             {
-                                w.OnDocumentClosed(documentId, new WorkspaceFileTextLoader(w.Services.SolutionServices, moniker, defaultEncoding: null, document.State.ChecksumAlgorithm));
+                                w.OnDocumentClosed(documentId, new WorkspaceFileTextLoader(w.Services.SolutionServices, moniker, defaultEncoding: null));
                             }
                             else if (solution.GetAdditionalDocument(documentId) is { } additionalDocument)
                             {
-                                w.OnAdditionalDocumentClosed(documentId, new WorkspaceFileTextLoader(w.Services.SolutionServices, moniker, defaultEncoding: null, additionalDocument.State.ChecksumAlgorithm));
+                                w.OnAdditionalDocumentClosed(documentId, new WorkspaceFileTextLoader(w.Services.SolutionServices, moniker, defaultEncoding: null));
                             }
                             else
                             {
                                 var analyzerConfigDocument = solution.GetRequiredAnalyzerConfigDocument(documentId);
-                                w.OnAnalyzerConfigDocumentClosed(documentId, new WorkspaceFileTextLoader(w.Services.SolutionServices, moniker, defaultEncoding: null, analyzerConfigDocument.State.ChecksumAlgorithm));
+                                w.OnAnalyzerConfigDocumentClosed(documentId, new WorkspaceFileTextLoader(w.Services.SolutionServices, moniker, defaultEncoding: null));
                             }
                         }
                     }

@@ -86,16 +86,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     End Get
                 End Property
 
-                Public Overrides Function TryGetText(ByRef text As SourceText) As Boolean
-                    Return _info.TryGetText(text)
+                Public Overrides Function TryGetText(options As LoadTextOptions, ByRef text As SourceText) As Boolean
+                    Return _info.TryGetText(options, text)
                 End Function
 
-                Public Overrides Function GetText(Optional cancellationToken As CancellationToken = Nothing) As SourceText
-                    Return _info.TextSource.GetValue(cancellationToken).Text
+                Public Overrides Function GetText(options As LoadTextOptions, cancellationToken As CancellationToken) As SourceText
+                    Return _info.TextSource.GetValue(options, cancellationToken).Text
                 End Function
 
-                Public Overrides Function GetTextAsync(Optional cancellationToken As CancellationToken = Nothing) As Task(Of SourceText)
-                    Return _info.GetTextAsync(cancellationToken)
+                Public Overrides Function GetTextAsync(options As LoadTextOptions, cancellationToken As CancellationToken) As Task(Of SourceText)
+                    Return _info.GetTextAsync(options, cancellationToken)
                 End Function
 
                 Public Overrides ReadOnly Property Encoding As Encoding
