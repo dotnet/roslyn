@@ -41,14 +41,14 @@ namespace Microsoft.CodeAnalysis.Completion
         protected static bool IsSnippetItem(CompletionItem item)
             => item.Tags.Contains(WellKnownTags.Snippet);
 
-        internal override void FilterItems(
+        internal sealed override void FilterItems(
            Document document,
            IReadOnlyList<MatchResult> matchResults,
            string filterText,
            IList<MatchResult> builder)
         {
             var helper = CompletionHelper.GetHelper(document);
-            CompletionService.FilterItems(helper, matchResults, filterText, builder);
+            CompletionService.FilterItemsDefault(helper, matchResults, filterText, builder);
         }
     }
 }

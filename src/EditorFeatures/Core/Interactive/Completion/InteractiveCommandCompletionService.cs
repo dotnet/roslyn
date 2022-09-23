@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Composition;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Host;
@@ -35,5 +36,9 @@ namespace Microsoft.CodeAnalysis.Interactive
 
         internal override CompletionRules GetRules(CompletionOptions options)
             => CompletionRules.Default;
+
+        internal override void FilterItems(Document document, IReadOnlyList<MatchResult> matchResults, string filterText, IList<MatchResult> builder)
+            => CompletionService.FilterItemsDefault(CompletionHelper.GetHelper(document), matchResults, filterText, builder);
+
     }
 }

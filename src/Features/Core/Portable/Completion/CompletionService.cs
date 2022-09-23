@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -258,7 +258,7 @@ namespace Microsoft.CodeAnalysis.Completion
             var builder = s_listOfMatchResultPool.Allocate();
             try
             {
-                FilterItems(helper, filterDataList, filterText, builder);
+                FilterItemsDefault(helper, filterDataList, filterText, builder);
                 return builder.SelectAsArray(result => result.CompletionItem);
             }
             finally
@@ -285,10 +285,10 @@ namespace Microsoft.CodeAnalysis.Completion
         }
 
         /// <summary>
-        /// Determine among the provided items the best match w.r.t. the given filter text, 
+        /// Determine among the provided MatchResult the best match w.r.t. the given filter text, 
         /// those returned would be considered equally good candidates for selection by controller.
         /// </summary>
-        internal static void FilterItems(
+        internal static void FilterItemsDefault(
             CompletionHelper completionHelper,
             IReadOnlyList<MatchResult> matchResults,
             string filterText,

@@ -95,7 +95,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                     // We can change this if get requests from partner teams.
                     _completionHelper = CompletionHelper.GetHelper(_document);
                     _filterMethod = _completionService == null
-                        ? ((matchResults, text, filtereditemsBuilder) => CompletionService.FilterItems(_completionHelper, matchResults, text, filtereditemsBuilder))
+                        ? ((matchResults, text, filtereditemsBuilder) => CompletionService.FilterItemsDefault(_completionHelper, matchResults, text, filtereditemsBuilder))
                         : ((matchResults, text, filtereditemsBuilder) => _completionService.FilterItems(_document, matchResults, text, filtereditemsBuilder));
 
                     // Nothing to highlight if user hasn't typed anything yet.
@@ -112,7 +112,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                     // Let us make the completion Helper used for non-Roslyn items case-sensitive.
                     // We can change this if get requests from partner teams.
                     _completionHelper = new CompletionHelper(isCaseSensitive: true);
-                    _filterMethod = (matchResults, text, filteredMatchResultsBuilder) => CompletionService.FilterItems(_completionHelper, matchResults, text, filteredMatchResultsBuilder);
+                    _filterMethod = (matchResults, text, filteredMatchResultsBuilder) => CompletionService.FilterItemsDefault(_completionHelper, matchResults, text, filteredMatchResultsBuilder);
 
                     _highlightMatchingPortions = false;
                     _showCompletionItemFilters = true;
