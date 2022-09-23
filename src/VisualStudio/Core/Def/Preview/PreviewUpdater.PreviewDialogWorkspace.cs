@@ -54,7 +54,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Preview
                     => throw ExceptionUtilities.Unreachable; // checksum alg should never be changed in preview workspace
 
                 public override Task<TextAndVersion> LoadTextAndVersionAsync(CancellationToken cancellationToken)
-                    => Task.FromResult(LoadTextAndVersionSynchronously(workspace, documentId, cancellationToken));
+                    => Task.FromResult(LoadTextAndVersionSynchronously(cancellationToken));
 
                 internal override TextAndVersion LoadTextAndVersionSynchronously(CancellationToken cancellationToken)
                     => TextAndVersion.Create(_text, VersionStamp.Create());

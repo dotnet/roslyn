@@ -293,7 +293,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             Contract.ThrowIfNull(languageInformation);
 
             var checksumAlgorithm = SourceHashAlgorithms.Default;
-            var fileLoader = new WorkspaceFileTextLoader(filePath, defaultEncoding: null, checksumAlgorithm);
+            var fileLoader = new WorkspaceFileTextLoader(Services.SolutionServices, filePath, defaultEncoding: null, checksumAlgorithm);
             return MiscellaneousFileUtilities.CreateMiscellaneousProjectInfoForDocument(filePath, fileLoader, languageInformation, checksumAlgorithm, Services.SolutionServices, _metadataReferences);
         }
 
@@ -311,7 +311,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 var document = project.Documents.Single();
 
                 // We must close the document prior to deleting the project
-                OnDocumentClosed(document.Id, new WorkspaceFileTextLoader(document.FilePath, defaultEncoding: null, document.State.ChecksumAlgorithm));
+                OnDocumentClosed(document.Id, new WorkspaceFileTextLoader(Services.SolutionServices, document.FilePath, defaultEncoding: null, document.State.ChecksumAlgorithm));
                 OnProjectRemoved(project.Id);
 
                 _monikersToProjectIdAndContainer.Remove(moniker);

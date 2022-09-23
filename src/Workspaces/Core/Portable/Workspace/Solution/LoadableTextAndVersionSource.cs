@@ -15,23 +15,18 @@ internal sealed class LoadableTextAndVersionSource : ValueSource<TextAndVersion>
 {
     private readonly AsyncLazy<TextAndVersion> _lazy;
     private readonly TextLoader _loader;
-    private readonly DocumentId _documentId;
-    private readonly Workspace _workspace;
 
-    public LoadableTextAndVersionSource(TextLoader loader, DocumentId documentId, Workspace workspace, bool cacheResult)
+    public LoadableTextAndVersionSource(TextLoader loader, bool cacheResult)
     {
         _loader = loader;
-        _documentId = documentId;
-        _workspace = workspace;
-
         _lazy = new AsyncLazy<TextAndVersion>(LoadAsync, LoadSynchronously, cacheResult);
     }
 
     private Task<TextAndVersion> LoadAsync(CancellationToken cancellationToken)
-        => _loader.LoadTextAsync(_workspace, _documentId, cancellationToken);
+        => _loader.LoadTextAsync(cancellationToken);
 
     private TextAndVersion LoadSynchronously(CancellationToken cancellationToken)
-        => _loader.LoadTextSynchronously(_workspace, _documentId, cancellationToken);
+        => _loader.LoadTextSynchronously(cancellationToken);
 
     public override TextAndVersion GetValue(CancellationToken cancellationToken)
         => _lazy.GetValue(cancellationToken);
@@ -44,9 +39,6 @@ internal sealed class LoadableTextAndVersionSource : ValueSource<TextAndVersion>
 
     public TextLoader Loader
         => _loader;
-
-    public DocumentId DocumentId
-        => _documentId;
 
     public SourceHashAlgorithm ChecksumAlgorithm
         => _loader.ChecksumAlgorithm;
@@ -64,6 +56,6 @@ internal sealed class LoadableTextAndVersionSource : ValueSource<TextAndVersion>
             return this;
         }
 
-        return new LoadableTextAndVersionSource(newLoader, _documentId, _workspace, _lazy.CacheResult);
+        return new LoadableTextAndVersionSource(newLoader, _lazy.CacheResult);
     }
 }

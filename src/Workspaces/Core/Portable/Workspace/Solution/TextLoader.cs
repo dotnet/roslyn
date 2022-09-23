@@ -228,7 +228,7 @@ namespace Microsoft.CodeAnalysis
                 => _filePath;
 
             public override Task<TextAndVersion> LoadTextAndVersionAsync(CancellationToken cancellationToken)
-                => Task.FromResult(LoadTextAndVersionSynchronously(workspace, documentId, cancellationToken));
+                => Task.FromResult(LoadTextAndVersionSynchronously(cancellationToken));
 
             internal override TextAndVersion LoadTextAndVersionSynchronously(CancellationToken cancellationToken)
                 => TextAndVersion.Create(_container.CurrentText, _version, _filePath);

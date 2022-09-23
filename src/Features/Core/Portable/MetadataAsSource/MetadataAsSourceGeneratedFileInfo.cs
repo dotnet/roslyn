@@ -85,7 +85,7 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
             var generatedDocument = DocumentInfo.Create(
                 generatedDocumentId,
                 Path.GetFileName(TemporaryFilePath),
-                loader: loadFileFromDisk ? new WorkspaceFileTextLoader(workspace.Services.SolutionServices, TemporaryFilePath, Encoding, ChecksumAlgorithm) : null);
+                loader: loadFileFromDisk ? new WorkspaceFileTextLoader(workspace.Services.SolutionServices, TemporaryFilePath, Encoding, ChecksumAlgorithm) : null,
                 filePath: TemporaryFilePath,
                 isGenerated: true).WithDesignTimeOnly(true);
 

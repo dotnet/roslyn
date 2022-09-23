@@ -85,7 +85,6 @@ namespace Microsoft.CodeAnalysis
 
         internal sealed override string FilePath => Path;
 
-<<<<<<< HEAD:src/Workspaces/Core/Portable/Workspace/FileTextLoader.cs
         /// <summary>
         /// Creates <see cref="SourceText"/> from <see cref="Stream"/>.
         /// </summary>
@@ -102,13 +101,6 @@ namespace Microsoft.CodeAnalysis
 #pragma warning disable CS0618 // Type or member is obsolete
             => CreateText(stream, workspace: null);
 #pragma warning restore
-=======
-        protected virtual SourceText CreateText(Stream stream, Workspace workspace)
-        {
-            var factory = workspace.Services.GetRequiredService<ITextFactoryService>();
-            return factory.CreateText(stream, DefaultEncoding, ChecksumAlgorithm, CancellationToken.None);
-        }
->>>>>>> b316947cf73 (Add ChecksumAlgorithm to DocumentAttributes and ProjectAttributes):src/Workspaces/Core/Portable/Workspace/Solution/FileTextLoader.cs
 
         /// <summary>
         /// Load a text and a version of the document in the workspace.
