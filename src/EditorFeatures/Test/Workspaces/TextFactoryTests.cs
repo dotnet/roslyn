@@ -5,7 +5,6 @@
 using System.IO;
 using System.Linq;
 using System.Text;
-using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Implementation.Workspaces;
 using Microsoft.CodeAnalysis.Host;
@@ -120,7 +119,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         private static void TestCreateTextInferredEncoding(ITextFactoryService textFactoryService, byte[] bytes, Encoding? defaultEncoding, Encoding expectedEncoding)
         {
             using var stream = new MemoryStream(bytes);
-            var text = textFactoryService.CreateText(stream, defaultEncoding, CancellationToken.None);
+            var text = textFactoryService.CreateText(stream, defaultEncoding);
             Assert.Equal(expectedEncoding, text.Encoding);
         }
     }

@@ -91,7 +91,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             }
         }
 
-        private sealed class SourceTextLoader : TextLoader
+        private class SourceTextLoader : TextLoader
         {
             private readonly SourceText _sourceText;
             private readonly string _fileUri;
@@ -102,7 +102,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
                 _fileUri = fileUri;
             }
 
-            public override Task<TextAndVersion> LoadTextAndVersionAsync(CancellationToken cancellationToken)
+            public override Task<TextAndVersion> LoadTextAndVersionAsync(Workspace workspace, DocumentId documentId, CancellationToken cancellationToken)
                 => Task.FromResult(TextAndVersion.Create(_sourceText, VersionStamp.Create(), _fileUri));
         }
     }

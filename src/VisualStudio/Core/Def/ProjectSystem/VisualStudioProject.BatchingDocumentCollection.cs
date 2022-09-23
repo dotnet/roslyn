@@ -92,7 +92,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 }
 
                 var documentId = DocumentId.CreateNewId(_project.Id, fullPath);
-                var textLoader = new WorkspaceFileTextLoader(_project._workspace.Services.SolutionServices, fullPath, defaultEncoding: null);
+                var textLoader = new FileTextLoader(fullPath, defaultEncoding: null);
                 var documentInfo = DocumentInfo.Create(
                     documentId,
                     FileNameUtilities.GetFileName(fullPath),
@@ -401,7 +401,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                             // the batch, since those have already been removed out of _documentPathsToDocumentIds.
                             if (!_documentsAddedInBatch.Any(d => d.Id == documentId))
                             {
-                                documentsToChange.Add((documentId, new WorkspaceFileTextLoader(_project._workspace.Services.SolutionServices, filePath, defaultEncoding: null)));
+                                documentsToChange.Add((documentId, new FileTextLoader(filePath, defaultEncoding: null)));
                             }
                         }
                     }
@@ -612,7 +612,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                     _filePath = filePath;
                 }
 
-                public override Task<TextAndVersion> LoadTextAndVersionAsync(CancellationToken cancellationToken)
+                public override Task<TextAndVersion> LoadTextAndVersionAsync(Workspace workspace, DocumentId documentId, CancellationToken cancellationToken)
                     => Task.FromResult(TextAndVersion.Create(_textContainer.CurrentText, VersionStamp.Create(), _filePath));
             }
         }
