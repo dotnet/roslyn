@@ -13038,8 +13038,6 @@ class Program
         public void RefAssignMemberOfReturnOnlyParameter()
         {
             var source = @"
-using System.Diagnostics.CodeAnalysis;
-
 ref struct RS1
 {
     public int I1;
@@ -13052,19 +13050,16 @@ ref struct RS2
 
 class Program
 {
-    static void M([UnscopedRef] ref RS1 rs, ref RS2 rs2)
+    static void M(ref RS1 rs, ref RS2 rs2)
     {
         rs2 = new RS2 { I2 = ref rs.I1 };
     }
 }";
             var comp = CreateCompilation(new[] { source, UnscopedRefAttributeDefinition }, runtimeFeature: RuntimeFlag.ByRefFields);
             comp.VerifyDiagnostics(
-                // (16,20): error CS9063: UnscopedRefAttribute cannot be applied to this item because it is unscoped by default.
-                //     static void M([UnscopedRef] ref RS1 rs, ref RS2 rs2)
-                Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedTarget, "UnscopedRef").WithLocation(16, 20),
-                // (18,34): error CS9078: Cannot return by reference a member of parameter 'rs' through a ref parameter; it can only be returned in a return statement
+                // (16,34): error CS9078: Cannot return by reference a member of parameter 'rs' through a ref parameter; it can only be returned in a return statement
                 //         rs2 = new RS2 { I2 = ref rs.I1 };
-                Diagnostic(ErrorCode.ERR_RefReturnOnlyParameter2, "rs").WithArguments("rs").WithLocation(18, 34)
+                Diagnostic(ErrorCode.ERR_RefReturnOnlyParameter2, "rs").WithArguments("rs").WithLocation(16, 34)
                 );
         }
 
@@ -13072,8 +13067,6 @@ class Program
         public void RefAssignMemberOfReturnOnlyParameter_UnsafeContext()
         {
             var source = @"
-using System.Diagnostics.CodeAnalysis;
-
 ref struct RS1
 {
     public int I1;
@@ -13086,19 +13079,16 @@ ref struct RS2
 
 class Program
 {
-    static unsafe void M([UnscopedRef] ref RS1 rs, ref RS2 rs2)
+    static unsafe void M(ref RS1 rs, ref RS2 rs2)
     {
         rs2 = new RS2 { I2 = ref rs.I1 };
     }
 }";
             var comp = CreateCompilation(new[] { source, UnscopedRefAttributeDefinition }, runtimeFeature: RuntimeFlag.ByRefFields, options: TestOptions.UnsafeDebugDll);
             comp.VerifyDiagnostics(
-                // (16,27): error CS9063: UnscopedRefAttribute cannot be applied to this item because it is unscoped by default.
-                //     static unsafe void M([UnscopedRef] ref RS1 rs, ref RS2 rs2)
-                Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedTarget, "UnscopedRef").WithLocation(16, 27),
-                // (18,34): warning CS9095: This returns by reference a member of parameter 'rs' through a ref parameter; but it can only safely be returned in a return statement
+                // (16,34): warning CS9095: This returns by reference a member of parameter 'rs' through a ref parameter; but it can only safely be returned in a return statement
                 //         rs2 = new RS2 { I2 = ref rs.I1 };
-                Diagnostic(ErrorCode.WRN_RefReturnOnlyParameter2, "rs").WithArguments("rs").WithLocation(18, 34)
+                Diagnostic(ErrorCode.WRN_RefReturnOnlyParameter2, "rs").WithArguments("rs").WithLocation(16, 34)
                 );
         }
 
