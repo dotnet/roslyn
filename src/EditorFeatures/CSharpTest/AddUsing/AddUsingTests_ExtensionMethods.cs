@@ -1107,7 +1107,7 @@ namespace N
 parseOptions: null);
         }
 
-        [Theory]
+        [ConditionalTheory(typeof(IsRelease), Reason = ConditionalSkipReason.TestIsTriggeringMessagePackIssue)]
         [CombinatorialData]
         [WorkItem(16547, "https://github.com/dotnet/roslyn/issues/16547")]
         public async Task TestAddUsingForAddExtentionMethodWithSameNameAsProperty(TestHost testHost)
@@ -1171,7 +1171,7 @@ namespace A.Extensions
 }", testHost);
         }
 
-        [Theory]
+        [ConditionalTheory(typeof(IsRelease), Reason = ConditionalSkipReason.TestIsTriggeringMessagePackIssue)]
         [CombinatorialData]
         [WorkItem(39155, "https://github.com/dotnet/roslyn/issues/39155")]
         public async Task TestExtensionGetAwaiterOverload(TestHost testHost)
@@ -1262,7 +1262,7 @@ namespace A.Extension
 ", testHost);
         }
 
-        [Theory]
+        [ConditionalTheory(typeof(IsRelease), Reason = ConditionalSkipReason.TestIsTriggeringMessagePackIssue)]
         [CombinatorialData]
         [WorkItem(39155, "https://github.com/dotnet/roslyn/issues/39155")]
         public async Task TestExtensionSelectOverload(TestHost testHost)

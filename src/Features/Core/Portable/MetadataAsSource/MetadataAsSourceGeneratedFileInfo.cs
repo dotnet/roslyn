@@ -82,7 +82,7 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
                 generatedDocumentId,
                 Path.GetFileName(TemporaryFilePath),
                 filePath: TemporaryFilePath,
-                loader: loadFileFromDisk ? new WorkspaceFileTextLoader(workspace.Services.SolutionServices, TemporaryFilePath, Encoding) : null);
+                loader: loadFileFromDisk ? new FileTextLoader(TemporaryFilePath, Encoding) : null);
 
             var projectInfo = ProjectInfo.Create(
                 projectId,
