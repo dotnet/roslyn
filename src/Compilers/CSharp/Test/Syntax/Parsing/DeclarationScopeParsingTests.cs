@@ -7382,6 +7382,1536 @@ await using ref scoped R r2;
         [Theory]
         [InlineData(LanguageVersion.CSharp10)]
         [InlineData(LanguageVersion.CSharp11)]
+        public void Using_05(LanguageVersion langVersion)
+        {
+            string source =
+@"using scoped ref scoped r1;
+";
+            UsingTree(source, TestOptions.Regular.WithLanguageVersion(langVersion));
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.GlobalStatement);
+                {
+                    N(SyntaxKind.LocalDeclarationStatement);
+                    {
+                        N(SyntaxKind.UsingKeyword);
+                        N(SyntaxKind.VariableDeclaration);
+                        {
+                            N(SyntaxKind.ScopedType);
+                            {
+                                N(SyntaxKind.ScopedKeyword);
+                                N(SyntaxKind.RefType);
+                                {
+                                    N(SyntaxKind.RefKeyword);
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "scoped");
+                                    }
+                                }
+                            }
+                            N(SyntaxKind.VariableDeclarator);
+                            {
+                                N(SyntaxKind.IdentifierToken, "r1");
+                            }
+                        }
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Theory]
+        [InlineData(LanguageVersion.CSharp10)]
+        [InlineData(LanguageVersion.CSharp11)]
+        public void Using_06(LanguageVersion langVersion)
+        {
+            string source =
+@"await using scoped ref scoped r1;
+";
+            UsingTree(source, TestOptions.Regular.WithLanguageVersion(langVersion));
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.GlobalStatement);
+                {
+                    N(SyntaxKind.LocalDeclarationStatement);
+                    {
+                        N(SyntaxKind.AwaitKeyword);
+                        N(SyntaxKind.UsingKeyword);
+                        N(SyntaxKind.VariableDeclaration);
+                        {
+                            N(SyntaxKind.ScopedType);
+                            {
+                                N(SyntaxKind.ScopedKeyword);
+                                N(SyntaxKind.RefType);
+                                {
+                                    N(SyntaxKind.RefKeyword);
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "scoped");
+                                    }
+                                }
+                            }
+                            N(SyntaxKind.VariableDeclarator);
+                            {
+                                N(SyntaxKind.IdentifierToken, "r1");
+                            }
+                        }
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Theory]
+        [InlineData(LanguageVersion.CSharp10)]
+        [InlineData(LanguageVersion.CSharp11)]
+        public void UsingStmt_01(LanguageVersion langVersion)
+        {
+            string source =
+@"
+using (scoped a);
+";
+            UsingTree(source, TestOptions.Regular.WithLanguageVersion(langVersion));
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.GlobalStatement);
+                {
+                    N(SyntaxKind.UsingStatement);
+                    {
+                        N(SyntaxKind.UsingKeyword);
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.VariableDeclaration);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "scoped");
+                            }
+                            N(SyntaxKind.VariableDeclarator);
+                            {
+                                N(SyntaxKind.IdentifierToken, "a");
+                            }
+                        }
+                        N(SyntaxKind.CloseParenToken);
+                        N(SyntaxKind.EmptyStatement);
+                        {
+                            N(SyntaxKind.SemicolonToken);
+                        }
+                    }
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Theory]
+        [InlineData(LanguageVersion.CSharp10)]
+        [InlineData(LanguageVersion.CSharp11)]
+        public void UsingStmt_02(LanguageVersion langVersion)
+        {
+            string source =
+@"
+using (ref scoped b);
+";
+            UsingTree(source, TestOptions.Regular.WithLanguageVersion(langVersion));
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.GlobalStatement);
+                {
+                    N(SyntaxKind.UsingStatement);
+                    {
+                        N(SyntaxKind.UsingKeyword);
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.VariableDeclaration);
+                        {
+                            N(SyntaxKind.RefType);
+                            {
+                                N(SyntaxKind.RefKeyword);
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "scoped");
+                                }
+                            }
+                            N(SyntaxKind.VariableDeclarator);
+                            {
+                                N(SyntaxKind.IdentifierToken, "b");
+                            }
+                        }
+                        N(SyntaxKind.CloseParenToken);
+                        N(SyntaxKind.EmptyStatement);
+                        {
+                            N(SyntaxKind.SemicolonToken);
+                        }
+                    }
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Theory]
+        [InlineData(LanguageVersion.CSharp10)]
+        [InlineData(LanguageVersion.CSharp11)]
+        public void UsingStmt_03(LanguageVersion langVersion)
+        {
+            string source =
+@"
+using (ref scoped int b);
+";
+            UsingTree(source, TestOptions.Regular.WithLanguageVersion(langVersion),
+                // (2,8): error CS1525: Invalid expression term 'ref'
+                // using (ref scoped int b);
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "ref scoped").WithArguments("ref").WithLocation(2, 8),
+                // (2,19): error CS1026: ) expected
+                // using (ref scoped int b);
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, "int").WithLocation(2, 19),
+                // (2,24): error CS1002: ; expected
+                // using (ref scoped int b);
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, ")").WithLocation(2, 24),
+                // (2,24): error CS1022: Type or namespace definition, or end-of-file expected
+                // using (ref scoped int b);
+                Diagnostic(ErrorCode.ERR_EOFExpected, ")").WithLocation(2, 24)
+                );
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.GlobalStatement);
+                {
+                    N(SyntaxKind.UsingStatement);
+                    {
+                        N(SyntaxKind.UsingKeyword);
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.RefExpression);
+                        {
+                            N(SyntaxKind.RefKeyword);
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "scoped");
+                            }
+                        }
+                        M(SyntaxKind.CloseParenToken);
+                        N(SyntaxKind.LocalDeclarationStatement);
+                        {
+                            N(SyntaxKind.VariableDeclaration);
+                            {
+                                N(SyntaxKind.PredefinedType);
+                                {
+                                    N(SyntaxKind.IntKeyword);
+                                }
+                                N(SyntaxKind.VariableDeclarator);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "b");
+                                }
+                            }
+                            M(SyntaxKind.SemicolonToken);
+                        }
+                    }
+                }
+                N(SyntaxKind.GlobalStatement);
+                {
+                    N(SyntaxKind.EmptyStatement);
+                    {
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Theory]
+        [InlineData(LanguageVersion.CSharp10)]
+        [InlineData(LanguageVersion.CSharp11)]
+        public void UsingStmt_04(LanguageVersion langVersion)
+        {
+            string source =
+@"
+using (ref scoped a b);
+";
+            UsingTree(source, TestOptions.Regular.WithLanguageVersion(langVersion),
+                // (2,21): error CS1026: ) expected
+                // using (ref scoped a b);
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, "b").WithLocation(2, 21),
+                // (2,22): error CS1002: ; expected
+                // using (ref scoped a b);
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, ")").WithLocation(2, 22),
+                // (2,22): error CS1022: Type or namespace definition, or end-of-file expected
+                // using (ref scoped a b);
+                Diagnostic(ErrorCode.ERR_EOFExpected, ")").WithLocation(2, 22)
+                );
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.GlobalStatement);
+                {
+                    N(SyntaxKind.UsingStatement);
+                    {
+                        N(SyntaxKind.UsingKeyword);
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.VariableDeclaration);
+                        {
+                            N(SyntaxKind.RefType);
+                            {
+                                N(SyntaxKind.RefKeyword);
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "scoped");
+                                }
+                            }
+                            N(SyntaxKind.VariableDeclarator);
+                            {
+                                N(SyntaxKind.IdentifierToken, "a");
+                            }
+                        }
+                        M(SyntaxKind.CloseParenToken);
+                        N(SyntaxKind.ExpressionStatement);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "b");
+                            }
+                            M(SyntaxKind.SemicolonToken);
+                        }
+                    }
+                }
+                N(SyntaxKind.GlobalStatement);
+                {
+                    N(SyntaxKind.EmptyStatement);
+                    {
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Theory]
+        [InlineData(LanguageVersion.CSharp10)]
+        [InlineData(LanguageVersion.CSharp11)]
+        public void UsingStmt_05(LanguageVersion langVersion)
+        {
+            string source =
+@"
+using (ref readonly scoped c);
+";
+            UsingTree(source, TestOptions.Regular.WithLanguageVersion(langVersion));
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.GlobalStatement);
+                {
+                    N(SyntaxKind.UsingStatement);
+                    {
+                        N(SyntaxKind.UsingKeyword);
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.VariableDeclaration);
+                        {
+                            N(SyntaxKind.RefType);
+                            {
+                                N(SyntaxKind.RefKeyword);
+                                N(SyntaxKind.ReadOnlyKeyword);
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "scoped");
+                                }
+                            }
+                            N(SyntaxKind.VariableDeclarator);
+                            {
+                                N(SyntaxKind.IdentifierToken, "c");
+                            }
+                        }
+                        N(SyntaxKind.CloseParenToken);
+                        N(SyntaxKind.EmptyStatement);
+                        {
+                            N(SyntaxKind.SemicolonToken);
+                        }
+                    }
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Theory]
+        [InlineData(LanguageVersion.CSharp10)]
+        [InlineData(LanguageVersion.CSharp11)]
+        public void UsingStmt_06(LanguageVersion langVersion)
+        {
+            string source =
+@"
+using (ref readonly scoped int c);
+";
+            UsingTree(source, TestOptions.Regular.WithLanguageVersion(langVersion),
+                // (2,8): error CS1525: Invalid expression term 'ref'
+                // using (ref readonly scoped int c);
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "ref ").WithArguments("ref").WithLocation(2, 8),
+                // (2,12): error CS1525: Invalid expression term 'readonly'
+                // using (ref readonly scoped int c);
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "readonly").WithArguments("readonly").WithLocation(2, 12),
+                // (2,12): error CS1026: ) expected
+                // using (ref readonly scoped int c);
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, "readonly").WithLocation(2, 12),
+                // (2,12): error CS0106: The modifier 'readonly' is not valid for this item
+                // using (ref readonly scoped int c);
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "readonly").WithArguments("readonly").WithLocation(2, 12),
+                // (2,33): error CS1002: ; expected
+                // using (ref readonly scoped int c);
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, ")").WithLocation(2, 33),
+                // (2,33): error CS1022: Type or namespace definition, or end-of-file expected
+                // using (ref readonly scoped int c);
+                Diagnostic(ErrorCode.ERR_EOFExpected, ")").WithLocation(2, 33)
+                );
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.GlobalStatement);
+                {
+                    N(SyntaxKind.UsingStatement);
+                    {
+                        N(SyntaxKind.UsingKeyword);
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.RefExpression);
+                        {
+                            N(SyntaxKind.RefKeyword);
+                            M(SyntaxKind.IdentifierName);
+                            {
+                                M(SyntaxKind.IdentifierToken);
+                            }
+                        }
+                        M(SyntaxKind.CloseParenToken);
+                        N(SyntaxKind.LocalDeclarationStatement);
+                        {
+                            N(SyntaxKind.ReadOnlyKeyword);
+                            N(SyntaxKind.VariableDeclaration);
+                            {
+                                N(SyntaxKind.ScopedType);
+                                {
+                                    N(SyntaxKind.ScopedKeyword);
+                                    N(SyntaxKind.PredefinedType);
+                                    {
+                                        N(SyntaxKind.IntKeyword);
+                                    }
+                                }
+                                N(SyntaxKind.VariableDeclarator);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "c");
+                                }
+                            }
+                            M(SyntaxKind.SemicolonToken);
+                        }
+                    }
+                }
+                N(SyntaxKind.GlobalStatement);
+                {
+                    N(SyntaxKind.EmptyStatement);
+                    {
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Theory]
+        [InlineData(LanguageVersion.CSharp10)]
+        [InlineData(LanguageVersion.CSharp11)]
+        public void UsingStmt_07(LanguageVersion langVersion)
+        {
+            string source =
+@"
+using (ref scoped readonly int c);
+";
+            UsingTree(source, TestOptions.Regular.WithLanguageVersion(langVersion),
+                // (2,8): error CS1525: Invalid expression term 'ref'
+                // using (ref scoped readonly int c);
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "ref scoped").WithArguments("ref").WithLocation(2, 8),
+                // (2,19): error CS1026: ) expected
+                // using (ref scoped readonly int c);
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, "readonly").WithLocation(2, 19),
+                // (2,19): error CS0106: The modifier 'readonly' is not valid for this item
+                // using (ref scoped readonly int c);
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "readonly").WithArguments("readonly").WithLocation(2, 19),
+                // (2,33): error CS1002: ; expected
+                // using (ref scoped readonly int c);
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, ")").WithLocation(2, 33),
+                // (2,33): error CS1022: Type or namespace definition, or end-of-file expected
+                // using (ref scoped readonly int c);
+                Diagnostic(ErrorCode.ERR_EOFExpected, ")").WithLocation(2, 33)
+                );
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.GlobalStatement);
+                {
+                    N(SyntaxKind.UsingStatement);
+                    {
+                        N(SyntaxKind.UsingKeyword);
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.RefExpression);
+                        {
+                            N(SyntaxKind.RefKeyword);
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "scoped");
+                            }
+                        }
+                        M(SyntaxKind.CloseParenToken);
+                        N(SyntaxKind.LocalDeclarationStatement);
+                        {
+                            N(SyntaxKind.ReadOnlyKeyword);
+                            N(SyntaxKind.VariableDeclaration);
+                            {
+                                N(SyntaxKind.PredefinedType);
+                                {
+                                    N(SyntaxKind.IntKeyword);
+                                }
+                                N(SyntaxKind.VariableDeclarator);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "c");
+                                }
+                            }
+                            M(SyntaxKind.SemicolonToken);
+                        }
+                    }
+                }
+                N(SyntaxKind.GlobalStatement);
+                {
+                    N(SyntaxKind.EmptyStatement);
+                    {
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Theory]
+        [InlineData(LanguageVersion.CSharp10)]
+        [InlineData(LanguageVersion.CSharp11)]
+        public void UsingStmt_08(LanguageVersion langVersion)
+        {
+            string source =
+@"
+using (scoped int a);
+";
+            UsingTree(source, TestOptions.Regular.WithLanguageVersion(langVersion));
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.GlobalStatement);
+                {
+                    N(SyntaxKind.UsingStatement);
+                    {
+                        N(SyntaxKind.UsingKeyword);
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.VariableDeclaration);
+                        {
+                            N(SyntaxKind.ScopedType);
+                            {
+                                N(SyntaxKind.ScopedKeyword);
+                                N(SyntaxKind.PredefinedType);
+                                {
+                                    N(SyntaxKind.IntKeyword);
+                                }
+                            }
+                            N(SyntaxKind.VariableDeclarator);
+                            {
+                                N(SyntaxKind.IdentifierToken, "a");
+                            }
+                        }
+                        N(SyntaxKind.CloseParenToken);
+                        N(SyntaxKind.EmptyStatement);
+                        {
+                            N(SyntaxKind.SemicolonToken);
+                        }
+                    }
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Theory]
+        [InlineData(LanguageVersion.CSharp10)]
+        [InlineData(LanguageVersion.CSharp11)]
+        public void UsingStmt_09(LanguageVersion langVersion)
+        {
+            string source =
+@"
+using (@scoped int a);
+";
+            UsingTree(source, TestOptions.Regular.WithLanguageVersion(langVersion),
+                // (2,16): error CS1026: ) expected
+                // using (@scoped int a);
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, "int").WithLocation(2, 16),
+                // (2,21): error CS1002: ; expected
+                // using (@scoped int a);
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, ")").WithLocation(2, 21),
+                // (2,21): error CS1022: Type or namespace definition, or end-of-file expected
+                // using (@scoped int a);
+                Diagnostic(ErrorCode.ERR_EOFExpected, ")").WithLocation(2, 21)
+                );
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.GlobalStatement);
+                {
+                    N(SyntaxKind.UsingStatement);
+                    {
+                        N(SyntaxKind.UsingKeyword);
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "@scoped");
+                        }
+                        M(SyntaxKind.CloseParenToken);
+                        N(SyntaxKind.LocalDeclarationStatement);
+                        {
+                            N(SyntaxKind.VariableDeclaration);
+                            {
+                                N(SyntaxKind.PredefinedType);
+                                {
+                                    N(SyntaxKind.IntKeyword);
+                                }
+                                N(SyntaxKind.VariableDeclarator);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "a");
+                                }
+                            }
+                            M(SyntaxKind.SemicolonToken);
+                        }
+                    }
+                }
+                N(SyntaxKind.GlobalStatement);
+                {
+                    N(SyntaxKind.EmptyStatement);
+                    {
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Theory]
+        [InlineData(LanguageVersion.CSharp10)]
+        [InlineData(LanguageVersion.CSharp11)]
+        public void UsingStmt_10(LanguageVersion langVersion)
+        {
+            string source =
+@"
+using (scoped ref int b);
+";
+            UsingTree(source, TestOptions.Regular.WithLanguageVersion(langVersion));
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.GlobalStatement);
+                {
+                    N(SyntaxKind.UsingStatement);
+                    {
+                        N(SyntaxKind.UsingKeyword);
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.VariableDeclaration);
+                        {
+                            N(SyntaxKind.ScopedType);
+                            {
+                                N(SyntaxKind.ScopedKeyword);
+                                N(SyntaxKind.RefType);
+                                {
+                                    N(SyntaxKind.RefKeyword);
+                                    N(SyntaxKind.PredefinedType);
+                                    {
+                                        N(SyntaxKind.IntKeyword);
+                                    }
+                                }
+                            }
+                            N(SyntaxKind.VariableDeclarator);
+                            {
+                                N(SyntaxKind.IdentifierToken, "b");
+                            }
+                        }
+                        N(SyntaxKind.CloseParenToken);
+                        N(SyntaxKind.EmptyStatement);
+                        {
+                            N(SyntaxKind.SemicolonToken);
+                        }
+                    }
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Theory]
+        [InlineData(LanguageVersion.CSharp10)]
+        [InlineData(LanguageVersion.CSharp11)]
+        public void UsingStmt_11(LanguageVersion langVersion)
+        {
+            string source =
+@"
+using (@scoped ref int b);
+";
+            UsingTree(source, TestOptions.Regular.WithLanguageVersion(langVersion),
+                // (2,16): error CS1026: ) expected
+                // using (@scoped ref int b);
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, "ref").WithLocation(2, 16),
+                // (2,25): error CS1002: ; expected
+                // using (@scoped ref int b);
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, ")").WithLocation(2, 25),
+                // (2,25): error CS1022: Type or namespace definition, or end-of-file expected
+                // using (@scoped ref int b);
+                Diagnostic(ErrorCode.ERR_EOFExpected, ")").WithLocation(2, 25)
+                );
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.GlobalStatement);
+                {
+                    N(SyntaxKind.UsingStatement);
+                    {
+                        N(SyntaxKind.UsingKeyword);
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "@scoped");
+                        }
+                        M(SyntaxKind.CloseParenToken);
+                        N(SyntaxKind.LocalDeclarationStatement);
+                        {
+                            N(SyntaxKind.VariableDeclaration);
+                            {
+                                N(SyntaxKind.RefType);
+                                {
+                                    N(SyntaxKind.RefKeyword);
+                                    N(SyntaxKind.PredefinedType);
+                                    {
+                                        N(SyntaxKind.IntKeyword);
+                                    }
+                                }
+                                N(SyntaxKind.VariableDeclarator);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "b");
+                                }
+                            }
+                            M(SyntaxKind.SemicolonToken);
+                        }
+                    }
+                }
+                N(SyntaxKind.GlobalStatement);
+                {
+                    N(SyntaxKind.EmptyStatement);
+                    {
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Theory]
+        [InlineData(LanguageVersion.CSharp10)]
+        [InlineData(LanguageVersion.CSharp11)]
+        public void UsingStmt_12(LanguageVersion langVersion)
+        {
+            string source =
+@"
+using (scoped ref readonly int a);
+";
+            UsingTree(source, TestOptions.Regular.WithLanguageVersion(langVersion));
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.GlobalStatement);
+                {
+                    N(SyntaxKind.UsingStatement);
+                    {
+                        N(SyntaxKind.UsingKeyword);
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.VariableDeclaration);
+                        {
+                            N(SyntaxKind.ScopedType);
+                            {
+                                N(SyntaxKind.ScopedKeyword);
+                                N(SyntaxKind.RefType);
+                                {
+                                    N(SyntaxKind.RefKeyword);
+                                    N(SyntaxKind.ReadOnlyKeyword);
+                                    N(SyntaxKind.PredefinedType);
+                                    {
+                                        N(SyntaxKind.IntKeyword);
+                                    }
+                                }
+                            }
+                            N(SyntaxKind.VariableDeclarator);
+                            {
+                                N(SyntaxKind.IdentifierToken, "a");
+                            }
+                        }
+                        N(SyntaxKind.CloseParenToken);
+                        N(SyntaxKind.EmptyStatement);
+                        {
+                            N(SyntaxKind.SemicolonToken);
+                        }
+                    }
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Theory]
+        [InlineData(LanguageVersion.CSharp10)]
+        [InlineData(LanguageVersion.CSharp11)]
+        public void UsingStmt_13(LanguageVersion langVersion)
+        {
+            string source =
+@"
+using (@scoped ref readonly int a);
+";
+            UsingTree(source, TestOptions.Regular.WithLanguageVersion(langVersion),
+                // (2,16): error CS1026: ) expected
+                // using (@scoped ref readonly int a);
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, "ref").WithLocation(2, 16),
+                // (2,34): error CS1002: ; expected
+                // using (@scoped ref readonly int a);
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, ")").WithLocation(2, 34),
+                // (2,34): error CS1022: Type or namespace definition, or end-of-file expected
+                // using (@scoped ref readonly int a);
+                Diagnostic(ErrorCode.ERR_EOFExpected, ")").WithLocation(2, 34)
+                );
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.GlobalStatement);
+                {
+                    N(SyntaxKind.UsingStatement);
+                    {
+                        N(SyntaxKind.UsingKeyword);
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "@scoped");
+                        }
+                        M(SyntaxKind.CloseParenToken);
+                        N(SyntaxKind.LocalDeclarationStatement);
+                        {
+                            N(SyntaxKind.VariableDeclaration);
+                            {
+                                N(SyntaxKind.RefType);
+                                {
+                                    N(SyntaxKind.RefKeyword);
+                                    N(SyntaxKind.ReadOnlyKeyword);
+                                    N(SyntaxKind.PredefinedType);
+                                    {
+                                        N(SyntaxKind.IntKeyword);
+                                    }
+                                }
+                                N(SyntaxKind.VariableDeclarator);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "a");
+                                }
+                            }
+                            M(SyntaxKind.SemicolonToken);
+                        }
+                    }
+                }
+                N(SyntaxKind.GlobalStatement);
+                {
+                    N(SyntaxKind.EmptyStatement);
+                    {
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Theory]
+        [InlineData(LanguageVersion.CSharp10)]
+        [InlineData(LanguageVersion.CSharp11)]
+        public void UsingStmt_14(LanguageVersion langVersion)
+        {
+            string source =
+@"
+using (scoped S a);
+";
+            UsingTree(source, TestOptions.Regular.WithLanguageVersion(langVersion));
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.GlobalStatement);
+                {
+                    N(SyntaxKind.UsingStatement);
+                    {
+                        N(SyntaxKind.UsingKeyword);
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.VariableDeclaration);
+                        {
+                            N(SyntaxKind.ScopedType);
+                            {
+                                N(SyntaxKind.ScopedKeyword);
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "S");
+                                }
+                            }
+                            N(SyntaxKind.VariableDeclarator);
+                            {
+                                N(SyntaxKind.IdentifierToken, "a");
+                            }
+                        }
+                        N(SyntaxKind.CloseParenToken);
+                        N(SyntaxKind.EmptyStatement);
+                        {
+                            N(SyntaxKind.SemicolonToken);
+                        }
+                    }
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Theory]
+        [InlineData(LanguageVersion.CSharp10)]
+        [InlineData(LanguageVersion.CSharp11)]
+        public void UsingStmt_15(LanguageVersion langVersion)
+        {
+            string source =
+@"
+using (scoped ref S b);
+";
+            UsingTree(source, TestOptions.Regular.WithLanguageVersion(langVersion));
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.GlobalStatement);
+                {
+                    N(SyntaxKind.UsingStatement);
+                    {
+                        N(SyntaxKind.UsingKeyword);
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.VariableDeclaration);
+                        {
+                            N(SyntaxKind.ScopedType);
+                            {
+                                N(SyntaxKind.ScopedKeyword);
+                                N(SyntaxKind.RefType);
+                                {
+                                    N(SyntaxKind.RefKeyword);
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "S");
+                                    }
+                                }
+                            }
+                            N(SyntaxKind.VariableDeclarator);
+                            {
+                                N(SyntaxKind.IdentifierToken, "b");
+                            }
+                        }
+                        N(SyntaxKind.CloseParenToken);
+                        N(SyntaxKind.EmptyStatement);
+                        {
+                            N(SyntaxKind.SemicolonToken);
+                        }
+                    }
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Theory]
+        [InlineData(LanguageVersion.CSharp10)]
+        [InlineData(LanguageVersion.CSharp11)]
+        public void UsingStmt_16(LanguageVersion langVersion)
+        {
+            string source =
+@"
+using (scoped ref readonly S a);
+";
+            UsingTree(source, TestOptions.Regular.WithLanguageVersion(langVersion));
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.GlobalStatement);
+                {
+                    N(SyntaxKind.UsingStatement);
+                    {
+                        N(SyntaxKind.UsingKeyword);
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.VariableDeclaration);
+                        {
+                            N(SyntaxKind.ScopedType);
+                            {
+                                N(SyntaxKind.ScopedKeyword);
+                                N(SyntaxKind.RefType);
+                                {
+                                    N(SyntaxKind.RefKeyword);
+                                    N(SyntaxKind.ReadOnlyKeyword);
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "S");
+                                    }
+                                }
+                            }
+                            N(SyntaxKind.VariableDeclarator);
+                            {
+                                N(SyntaxKind.IdentifierToken, "a");
+                            }
+                        }
+                        N(SyntaxKind.CloseParenToken);
+                        N(SyntaxKind.EmptyStatement);
+                        {
+                            N(SyntaxKind.SemicolonToken);
+                        }
+                    }
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Theory]
+        [InlineData(LanguageVersion.CSharp10)]
+        [InlineData(LanguageVersion.CSharp11)]
+        public void UsingStmt_17(LanguageVersion langVersion)
+        {
+            string source =
+@"
+using (scoped.nested a);
+";
+            UsingTree(source, TestOptions.Regular.WithLanguageVersion(langVersion));
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.GlobalStatement);
+                {
+                    N(SyntaxKind.UsingStatement);
+                    {
+                        N(SyntaxKind.UsingKeyword);
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.VariableDeclaration);
+                        {
+                            N(SyntaxKind.QualifiedName);
+                            {
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "scoped");
+                                }
+                                N(SyntaxKind.DotToken);
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "nested");
+                                }
+                            }
+                            N(SyntaxKind.VariableDeclarator);
+                            {
+                                N(SyntaxKind.IdentifierToken, "a");
+                            }
+                        }
+                        N(SyntaxKind.CloseParenToken);
+                        N(SyntaxKind.EmptyStatement);
+                        {
+                            N(SyntaxKind.SemicolonToken);
+                        }
+                    }
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Theory]
+        [InlineData(LanguageVersion.CSharp10)]
+        [InlineData(LanguageVersion.CSharp11)]
+        public void UsingStmt_18(LanguageVersion langVersion)
+        {
+            string source =
+@"
+using (scoped scoped a);
+";
+            UsingTree(source, TestOptions.Regular.WithLanguageVersion(langVersion));
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.GlobalStatement);
+                {
+                    N(SyntaxKind.UsingStatement);
+                    {
+                        N(SyntaxKind.UsingKeyword);
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.VariableDeclaration);
+                        {
+                            N(SyntaxKind.ScopedType);
+                            {
+                                N(SyntaxKind.ScopedKeyword);
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "scoped");
+                                }
+                            }
+                            N(SyntaxKind.VariableDeclarator);
+                            {
+                                N(SyntaxKind.IdentifierToken, "a");
+                            }
+                        }
+                        N(SyntaxKind.CloseParenToken);
+                        N(SyntaxKind.EmptyStatement);
+                        {
+                            N(SyntaxKind.SemicolonToken);
+                        }
+                    }
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Theory]
+        [InlineData(LanguageVersion.CSharp10)]
+        [InlineData(LanguageVersion.CSharp11)]
+        public void UsingStmt_19(LanguageVersion langVersion)
+        {
+            string source =
+@"
+using (scoped scoped a = default);
+";
+            UsingTree(source, TestOptions.Regular.WithLanguageVersion(langVersion));
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.GlobalStatement);
+                {
+                    N(SyntaxKind.UsingStatement);
+                    {
+                        N(SyntaxKind.UsingKeyword);
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.VariableDeclaration);
+                        {
+                            N(SyntaxKind.ScopedType);
+                            {
+                                N(SyntaxKind.ScopedKeyword);
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "scoped");
+                                }
+                            }
+                            N(SyntaxKind.VariableDeclarator);
+                            {
+                                N(SyntaxKind.IdentifierToken, "a");
+                                N(SyntaxKind.EqualsValueClause);
+                                {
+                                    N(SyntaxKind.EqualsToken);
+                                    N(SyntaxKind.DefaultLiteralExpression);
+                                    {
+                                        N(SyntaxKind.DefaultKeyword);
+                                    }
+                                }
+                            }
+                        }
+                        N(SyntaxKind.CloseParenToken);
+                        N(SyntaxKind.EmptyStatement);
+                        {
+                            N(SyntaxKind.SemicolonToken);
+                        }
+                    }
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Theory]
+        [InlineData(LanguageVersion.CSharp10)]
+        [InlineData(LanguageVersion.CSharp11)]
+        public void UsingStmt_20(LanguageVersion langVersion)
+        {
+            string source =
+@"
+using (scoped var a);
+";
+            UsingTree(source, TestOptions.Regular.WithLanguageVersion(langVersion));
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.GlobalStatement);
+                {
+                    N(SyntaxKind.UsingStatement);
+                    {
+                        N(SyntaxKind.UsingKeyword);
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.VariableDeclaration);
+                        {
+                            N(SyntaxKind.ScopedType);
+                            {
+                                N(SyntaxKind.ScopedKeyword);
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "var");
+                                }
+                            }
+                            N(SyntaxKind.VariableDeclarator);
+                            {
+                                N(SyntaxKind.IdentifierToken, "a");
+                            }
+                        }
+                        N(SyntaxKind.CloseParenToken);
+                        N(SyntaxKind.EmptyStatement);
+                        {
+                            N(SyntaxKind.SemicolonToken);
+                        }
+                    }
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Theory]
+        [InlineData(LanguageVersion.CSharp10)]
+        [InlineData(LanguageVersion.CSharp11)]
+        public void UsingStmt_21(LanguageVersion langVersion)
+        {
+            string source =
+@"
+using (scoped ref var b);
+";
+            UsingTree(source, TestOptions.Regular.WithLanguageVersion(langVersion));
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.GlobalStatement);
+                {
+                    N(SyntaxKind.UsingStatement);
+                    {
+                        N(SyntaxKind.UsingKeyword);
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.VariableDeclaration);
+                        {
+                            N(SyntaxKind.ScopedType);
+                            {
+                                N(SyntaxKind.ScopedKeyword);
+                                N(SyntaxKind.RefType);
+                                {
+                                    N(SyntaxKind.RefKeyword);
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "var");
+                                    }
+                                }
+                            }
+                            N(SyntaxKind.VariableDeclarator);
+                            {
+                                N(SyntaxKind.IdentifierToken, "b");
+                            }
+                        }
+                        N(SyntaxKind.CloseParenToken);
+                        N(SyntaxKind.EmptyStatement);
+                        {
+                            N(SyntaxKind.SemicolonToken);
+                        }
+                    }
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Theory]
+        [InlineData(LanguageVersion.CSharp10)]
+        [InlineData(LanguageVersion.CSharp11)]
+        public void UsingStmt_22(LanguageVersion langVersion)
+        {
+            string source =
+@"
+using (scoped ref readonly var c);
+";
+            UsingTree(source, TestOptions.Regular.WithLanguageVersion(langVersion));
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.GlobalStatement);
+                {
+                    N(SyntaxKind.UsingStatement);
+                    {
+                        N(SyntaxKind.UsingKeyword);
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.VariableDeclaration);
+                        {
+                            N(SyntaxKind.ScopedType);
+                            {
+                                N(SyntaxKind.ScopedKeyword);
+                                N(SyntaxKind.RefType);
+                                {
+                                    N(SyntaxKind.RefKeyword);
+                                    N(SyntaxKind.ReadOnlyKeyword);
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "var");
+                                    }
+                                }
+                            }
+                            N(SyntaxKind.VariableDeclarator);
+                            {
+                                N(SyntaxKind.IdentifierToken, "c");
+                            }
+                        }
+                        N(SyntaxKind.CloseParenToken);
+                        N(SyntaxKind.EmptyStatement);
+                        {
+                            N(SyntaxKind.SemicolonToken);
+                        }
+                    }
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Theory]
+        [InlineData(LanguageVersion.CSharp10)]
+        [InlineData(LanguageVersion.CSharp11)]
+        public void UsingStmt_23(LanguageVersion langVersion)
+        {
+            string source =
+@"
+using (scoped var);
+";
+            UsingTree(source, TestOptions.Regular.WithLanguageVersion(langVersion));
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.GlobalStatement);
+                {
+                    N(SyntaxKind.UsingStatement);
+                    {
+                        N(SyntaxKind.UsingKeyword);
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.VariableDeclaration);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "scoped");
+                            }
+                            N(SyntaxKind.VariableDeclarator);
+                            {
+                                N(SyntaxKind.IdentifierToken, "var");
+                            }
+                        }
+                        N(SyntaxKind.CloseParenToken);
+                        N(SyntaxKind.EmptyStatement);
+                        {
+                            N(SyntaxKind.SemicolonToken);
+                        }
+                    }
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Theory]
+        [InlineData(LanguageVersion.CSharp10)]
+        [InlineData(LanguageVersion.CSharp11)]
+        public void UsingStmt_24(LanguageVersion langVersion)
+        {
+            string source =
+@"
+using (ref scoped var);
+";
+            UsingTree(source, TestOptions.Regular.WithLanguageVersion(langVersion));
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.GlobalStatement);
+                {
+                    N(SyntaxKind.UsingStatement);
+                    {
+                        N(SyntaxKind.UsingKeyword);
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.VariableDeclaration);
+                        {
+                            N(SyntaxKind.RefType);
+                            {
+                                N(SyntaxKind.RefKeyword);
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "scoped");
+                                }
+                            }
+                            N(SyntaxKind.VariableDeclarator);
+                            {
+                                N(SyntaxKind.IdentifierToken, "var");
+                            }
+                        }
+                        N(SyntaxKind.CloseParenToken);
+                        N(SyntaxKind.EmptyStatement);
+                        {
+                            N(SyntaxKind.SemicolonToken);
+                        }
+                    }
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Theory]
+        [InlineData(LanguageVersion.CSharp10)]
+        [InlineData(LanguageVersion.CSharp11)]
+        public void UsingStmt_25(LanguageVersion langVersion)
+        {
+            string source =
+@"
+using (scoped scoped int a);
+";
+            UsingTree(source, TestOptions.Regular.WithLanguageVersion(langVersion),
+                // (2,22): error CS1026: ) expected
+                // using (scoped scoped int a);
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, "int").WithLocation(2, 22),
+                // (2,27): error CS1002: ; expected
+                // using (scoped scoped int a);
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, ")").WithLocation(2, 27),
+                // (2,27): error CS1022: Type or namespace definition, or end-of-file expected
+                // using (scoped scoped int a);
+                Diagnostic(ErrorCode.ERR_EOFExpected, ")").WithLocation(2, 27)
+                );
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.GlobalStatement);
+                {
+                    N(SyntaxKind.UsingStatement);
+                    {
+                        N(SyntaxKind.UsingKeyword);
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.VariableDeclaration);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "scoped");
+                            }
+                            N(SyntaxKind.VariableDeclarator);
+                            {
+                                N(SyntaxKind.IdentifierToken, "scoped");
+                            }
+                        }
+                        M(SyntaxKind.CloseParenToken);
+                        N(SyntaxKind.LocalDeclarationStatement);
+                        {
+                            N(SyntaxKind.VariableDeclaration);
+                            {
+                                N(SyntaxKind.PredefinedType);
+                                {
+                                    N(SyntaxKind.IntKeyword);
+                                }
+                                N(SyntaxKind.VariableDeclarator);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "a");
+                                }
+                            }
+                            M(SyntaxKind.SemicolonToken);
+                        }
+                    }
+                }
+                N(SyntaxKind.GlobalStatement);
+                {
+                    N(SyntaxKind.EmptyStatement);
+                    {
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Theory]
+        [InlineData(LanguageVersion.CSharp10)]
+        [InlineData(LanguageVersion.CSharp11)]
+        public void UsingStmt_26(LanguageVersion langVersion)
+        {
+            string source =
+@"
+using (scoped scoped var b);
+";
+            UsingTree(source, TestOptions.Regular.WithLanguageVersion(langVersion),
+                // (2,26): error CS1026: ) expected
+                // using (scoped scoped var b);
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, "b").WithLocation(2, 26),
+                // (2,27): error CS1002: ; expected
+                // using (scoped scoped var b);
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, ")").WithLocation(2, 27),
+                // (2,27): error CS1022: Type or namespace definition, or end-of-file expected
+                // using (scoped scoped var b);
+                Diagnostic(ErrorCode.ERR_EOFExpected, ")").WithLocation(2, 27)
+                );
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.GlobalStatement);
+                {
+                    N(SyntaxKind.UsingStatement);
+                    {
+                        N(SyntaxKind.UsingKeyword);
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.VariableDeclaration);
+                        {
+                            N(SyntaxKind.ScopedType);
+                            {
+                                N(SyntaxKind.ScopedKeyword);
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "scoped");
+                                }
+                            }
+                            N(SyntaxKind.VariableDeclarator);
+                            {
+                                N(SyntaxKind.IdentifierToken, "var");
+                            }
+                        }
+                        M(SyntaxKind.CloseParenToken);
+                        N(SyntaxKind.ExpressionStatement);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "b");
+                            }
+                            M(SyntaxKind.SemicolonToken);
+                        }
+                    }
+                }
+                N(SyntaxKind.GlobalStatement);
+                {
+                    N(SyntaxKind.EmptyStatement);
+                    {
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Theory]
+        [InlineData(LanguageVersion.CSharp10)]
+        [InlineData(LanguageVersion.CSharp11)]
         public void Field_01(LanguageVersion langVersion)
         {
             string source =
