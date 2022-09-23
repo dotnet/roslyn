@@ -7539,7 +7539,7 @@ unsafe class C
     }
 }
 ";
-            var allInCoreLib = CreateEmptyCompilation(source1 + source2, parseOptions: TestOptions.Regular9, options: TestOptions.UnsafeReleaseDll);
+            var allInCoreLib = CreateEmptyCompilation(source1 + source2, parseOptions: TestOptions.Regular9.WithNoRefSafetyRulesAttribute(), options: TestOptions.UnsafeReleaseDll);
             allInCoreLib.VerifyDiagnostics(
                 // (23,29): error CS8891: Type 'CallConvTest' must be public to be used as a calling convention.
                 //         delegate* unmanaged[Test]<void> ptr = null;
@@ -7556,10 +7556,10 @@ unsafe class C
                 expectedType: "delegate* unmanaged[Test]<System.Void modopt(System.Runtime.CompilerServices.CallConvTest)>",
                 expectedSymbol: "delegate* unmanaged[Test]<System.Void modopt(System.Runtime.CompilerServices.CallConvTest)>");
 
-            var coreLib = CreateEmptyCompilation(source1);
+            var coreLib = CreateEmptyCompilation(source1, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute());
             coreLib.VerifyDiagnostics();
 
-            var comp1 = CreateEmptyCompilation(source2, references: new[] { coreLib.EmitToImageReference() }, parseOptions: TestOptions.Regular9, options: TestOptions.UnsafeReleaseDll);
+            var comp1 = CreateEmptyCompilation(source2, references: new[] { coreLib.EmitToImageReference() }, parseOptions: TestOptions.Regular9.WithNoRefSafetyRulesAttribute(), options: TestOptions.UnsafeReleaseDll);
             comp1.VerifyDiagnostics(
                 // (7,29): error CS8891: Type 'CallConvTest' must be public to be used as a calling convention.
                 //         delegate* unmanaged[Test]<void> ptr = null;
@@ -7608,7 +7608,7 @@ unsafe class C
     }
 }
 ";
-            var allInCoreLib = CreateEmptyCompilation(source1 + source2, parseOptions: TestOptions.Regular9, options: TestOptions.UnsafeReleaseDll);
+            var allInCoreLib = CreateEmptyCompilation(source1 + source2, parseOptions: TestOptions.Regular9.WithNoRefSafetyRulesAttribute(), options: TestOptions.UnsafeReleaseDll);
             allInCoreLib.VerifyDiagnostics(
                 // (23,29): error CS8890: Type 'CallConvTest' is not defined.
                 //         delegate* unmanaged[Test]<void> ptr = null;
@@ -7625,10 +7625,10 @@ unsafe class C
                 expectedType: "delegate* unmanaged[Test]<System.Void modopt(System.Runtime.CompilerServices.CallConvTest[missing])>",
                 expectedSymbol: "delegate* unmanaged[Test]<System.Void modopt(System.Runtime.CompilerServices.CallConvTest[missing])>");
 
-            var coreLib = CreateEmptyCompilation(source1);
+            var coreLib = CreateEmptyCompilation(source1, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute());
             coreLib.VerifyDiagnostics();
 
-            var comp1 = CreateEmptyCompilation(source2, references: new[] { coreLib.EmitToImageReference() }, parseOptions: TestOptions.Regular9, options: TestOptions.UnsafeReleaseDll);
+            var comp1 = CreateEmptyCompilation(source2, references: new[] { coreLib.EmitToImageReference() }, parseOptions: TestOptions.Regular9.WithNoRefSafetyRulesAttribute(), options: TestOptions.UnsafeReleaseDll);
             comp1.VerifyDiagnostics(
                 // (7,29): error CS8890: Type 'CallConvTest' is not defined.
                 //         delegate* unmanaged[Test]<void> ptr = null;
@@ -10988,10 +10988,7 @@ unsafe
 ");
 
             comp = CreateCompilationWithSpan(source, options: TestOptions.UnsafeReleaseExe);
-            comp.VerifyDiagnostics(
-                // (14,62): error CS8166: Cannot return a parameter by reference 'i' because it is not a ref parameter
-                //     static ref Span<int> ReturnByRef(ref Span<int> i) => ref i;
-                Diagnostic(ErrorCode.ERR_RefReturnParameter, "i").WithArguments("i").WithLocation(14, 62));
+            comp.VerifyDiagnostics();
         }
 
         [Fact, WorkItem(49315, "https://github.com/dotnet/roslyn/issues/49315")]

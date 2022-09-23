@@ -504,6 +504,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.WRN_DuplicateAnalyzerReference:
                 case ErrorCode.WRN_ScopedMismatchInParameterOfTarget:
                 case ErrorCode.WRN_ScopedMismatchInParameterOfOverrideOrImplementation:
+                case ErrorCode.WRN_ManagedAddr:
                     return 1;
                 default:
                     return 0;
@@ -2211,10 +2212,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.ERR_FileTypeNameDisallowed:
                 case ErrorCode.ERR_FeatureNotAvailableInVersion11:
                 case ErrorCode.ERR_RefFieldInNonRefStruct:
-                case ErrorCode.ERR_BadParameterModifiersOrder:
                 case ErrorCode.WRN_AnalyzerReferencesNewerCompiler:
                 case ErrorCode.ERR_CannotMatchOnINumberBase:
-                case ErrorCode.ERR_MisplacedScoped:
                 case ErrorCode.ERR_ScopedTypeNameDisallowed:
                 case ErrorCode.ERR_UnscopedRefAttributeUnsupportedTarget:
                 case ErrorCode.ERR_RuntimeDoesNotSupportRefFields:
@@ -2224,9 +2223,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.ERR_FilePathCannotBeConvertedToUtf8:
                 case ErrorCode.ERR_ReadOnlyNotSuppAsParamModDidYouMeanIn:
                 case ErrorCode.ERR_FileLocalDuplicateNameInNS:
-                case ErrorCode.ERR_ScopedNotBeforeType:
                 case ErrorCode.WRN_ScopedMismatchInParameterOfTarget:
                 case ErrorCode.WRN_ScopedMismatchInParameterOfOverrideOrImplementation:
+                case ErrorCode.ERR_RefReturnScopedParameter:
+                case ErrorCode.ERR_RefReturnScopedParameter2:
+                case ErrorCode.ERR_RefReturnOnlyParameter:
+                case ErrorCode.ERR_RefReturnOnlyParameter2:
+                case ErrorCode.ERR_RefAssignReturnOnly:
+                case ErrorCode.WRN_ManagedAddr:
                     return false;
                 default:
                     // NOTE: All error codes must be explicitly handled in this switch statement

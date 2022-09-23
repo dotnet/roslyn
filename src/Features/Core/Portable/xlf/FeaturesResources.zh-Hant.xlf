@@ -670,6 +670,11 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">啟用所有 JSON 編輯器功能</target>
         <note />
       </trans-unit>
+      <trans-unit id="Enum_members">
+        <source>Enum members</source>
+        <target state="new">Enum members</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ErrorReadingFile">
         <source>Error while reading file '{0}': {1}</source>
         <target state="translated">讀取檔案 '{0}' 時發生錯誤: {1}</target>
@@ -4273,6 +4278,11 @@ When this standard format specifier is used, the formatting or parsing operation
       <trans-unit id="static_constructor">
         <source>static constructor</source>
         <target state="translated">靜態建構函式</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="struct_">
+        <source>struct</source>
+        <target state="new">struct</target>
         <note />
       </trans-unit>
       <trans-unit id="symbol_cannot_be_a_namespace">

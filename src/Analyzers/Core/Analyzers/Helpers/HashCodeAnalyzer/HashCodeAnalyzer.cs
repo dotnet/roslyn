@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
@@ -10,13 +9,12 @@ using System.Linq;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
-namespace Microsoft.CodeAnalysis.UseSystemHashCode
+namespace Microsoft.CodeAnalysis.Shared.Utilities
 {
     /// <summary>
-    /// Helper code to support both "UseSystemHashCodeCodeFixProvider" and
-    /// <see cref="UseSystemHashCodeDiagnosticAnalyzer"/>.
+    /// Helper code to support analysis of HashCode methods
     /// </summary>
-    internal readonly partial struct Analyzer
+    internal readonly partial struct HashCodeAnalyzer
     {
         private readonly Compilation _compilation;
         private readonly IMethodSymbol _objectGetHashCodeMethod;
@@ -24,7 +22,7 @@ namespace Microsoft.CodeAnalysis.UseSystemHashCode
 
         public readonly INamedTypeSymbol SystemHashCodeType;
 
-        private Analyzer(
+        private HashCodeAnalyzer(
             Compilation compilation, IMethodSymbol objectGetHashCodeMethod,
             INamedTypeSymbol? equalityComparerType, INamedTypeSymbol systemHashCodeType)
         {
@@ -34,7 +32,7 @@ namespace Microsoft.CodeAnalysis.UseSystemHashCode
             SystemHashCodeType = systemHashCodeType;
         }
 
-        public static bool TryGetAnalyzer(Compilation compilation, [NotNullWhen(true)] out Analyzer analyzer)
+        public static bool TryGetAnalyzer(Compilation compilation, [NotNullWhen(true)] out HashCodeAnalyzer analyzer)
         {
             analyzer = default;
             var objectType = compilation.GetSpecialType(SpecialType.System_Object);
@@ -49,7 +47,7 @@ namespace Microsoft.CodeAnalysis.UseSystemHashCode
             if (systemHashCodeType == null)
                 return false;
 
-            analyzer = new Analyzer(compilation, objectGetHashCodeMethod, equalityComparerType, systemHashCodeType);
+            analyzer = new HashCodeAnalyzer(compilation, objectGetHashCodeMethod, equalityComparerType, systemHashCodeType);
             return true;
         }
 
