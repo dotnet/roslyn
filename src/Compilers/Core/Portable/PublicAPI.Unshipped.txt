@@ -16,5 +16,6 @@ Microsoft.CodeAnalysis.GeneratorDriver.ReplaceGenerators(System.Collections.Immu
 Microsoft.CodeAnalysis.ILocalSymbol.IsForEach.get -> bool
 Microsoft.CodeAnalysis.ILocalSymbol.IsUsing.get -> bool
 override sealed Microsoft.CodeAnalysis.CompilationOptions.GetHashCode() -> int
+static Microsoft.CodeAnalysis.Location.Create(string! filePath, Microsoft.CodeAnalysis.Text.TextSpan textSpan, Microsoft.CodeAnalysis.Text.LinePositionSpan lineSpan, string! mappedFilePath, Microsoft.CodeAnalysis.Text.LinePositionSpan mappedLineSpan) -> Microsoft.CodeAnalysis.Location!
 static Microsoft.CodeAnalysis.ModuleMetadata.CreateFromMetadata(System.IntPtr metadata, int size, System.Action! onDispose) -> Microsoft.CodeAnalysis.ModuleMetadata!
 Microsoft.CodeAnalysis.INamedTypeSymbol.IsFileLocal.get -> bool
