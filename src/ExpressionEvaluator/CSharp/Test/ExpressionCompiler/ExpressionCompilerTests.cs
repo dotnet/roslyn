@@ -3979,7 +3979,15 @@ class C
                 expr: "sizeof(C)",
                 resultProperties: out resultProperties,
                 error: out error);
-            Assert.Equal("error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('C')", error);
+            Assert.Null(error);
+            testData.GetMethodData("<>x.<>m0").VerifyIL(@"
+{
+  // Code size        7 (0x7)
+  .maxstack  1
+  IL_0000:  sizeof     ""C""
+  IL_0006:  ret
+}
+");
         }
 
         [Fact]

@@ -5051,11 +5051,6 @@
         <target state="translated">Vlastnost nebo indexer nejde předat jako parametr ref nebo out.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_ManagedAddr">
-        <source>Cannot take the address of, get the size of, or declare a pointer to a managed type ('{0}')</source>
-        <target state="translated">Nejde převzít adresu proměnné spravovaného typu ({0}), získat její velikost nebo deklarovat ukazatel na ni.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_BadFixedInitType">
         <source>The type of a local declared in a fixed statement must be a pointer type</source>
         <target state="translated">Lokální proměnná deklarovaná v příkazu fixed musí být typu ukazatel.</target>

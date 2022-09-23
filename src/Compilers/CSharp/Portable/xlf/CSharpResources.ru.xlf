@@ -5051,11 +5051,6 @@
         <target state="translated">Свойство или индексатор не могут передаваться как параметр out или ref.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_ManagedAddr">
-        <source>Cannot take the address of, get the size of, or declare a pointer to a managed type ('{0}')</source>
-        <target state="translated">Не удается получить адрес, определить размер или объявить указатель на управляемый тип ("{0}").</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_BadFixedInitType">
         <source>The type of a local declared in a fixed statement must be a pointer type</source>
         <target state="translated">Локальная переменная, объявленная в операторе fixed, должна иметь тип указателя.</target>

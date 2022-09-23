@@ -5051,11 +5051,6 @@
         <target state="translated">Bir özellik veya dizin erişimcisi, out veya ref parametresi olarak geçilemez</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_ManagedAddr">
-        <source>Cannot take the address of, get the size of, or declare a pointer to a managed type ('{0}')</source>
-        <target state="translated">Yönetilen türün ('{0}') adresi alınamaz, boyutu alınamaz veya işaretçisi bildirilemez</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_BadFixedInitType">
         <source>The type of a local declared in a fixed statement must be a pointer type</source>
         <target state="translated">Bir fixed deyiminde bildirilen yerel öğenin türü işaretçi türünde olmalıdır</target>

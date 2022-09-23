@@ -59,9 +59,9 @@ class C
 ", TestOptions.UnsafeReleaseDll);
 
             comp.VerifyDiagnostics(
-                // (10,29): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('RefG<string>')
+                // (10,29): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('RefG<string>')
                 //         var x2 = stackalloc RefG<string>[10];
-                Diagnostic(ErrorCode.ERR_ManagedAddr, "RefG<string>").WithArguments("RefG<string>").WithLocation(10, 29),
+                Diagnostic(ErrorCode.WRN_ManagedAddr, "RefG<string>").WithArguments("RefG<string>").WithLocation(10, 29),
                 // (16,22): error CS0611: Array elements cannot be of type 'RefS'
                 //         var y1 = new RefS[10];
                 Diagnostic(ErrorCode.ERR_ArrayElementCantBeRefAny, "RefS").WithArguments("RefS").WithLocation(16, 22),
@@ -151,15 +151,15 @@ namespace System {
                 // (13,18): error CS0826: No best type found for implicitly-typed array
                 //         var p4 = stackalloc[] { (1, null) };
                 Diagnostic(ErrorCode.ERR_ImplicitlyTypedArrayNoBestType, "stackalloc[] { (1, null) }").WithLocation(13, 18),
-                // (14,18): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('Action')
+                // (14,18): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('Action')
                 //         var p5 = stackalloc[] { () => { } };
-                Diagnostic(ErrorCode.ERR_ManagedAddr, "stackalloc[] { () => { } }").WithArguments("System.Action").WithLocation(14, 18),
+                Diagnostic(ErrorCode.WRN_ManagedAddr, "stackalloc[] { () => { } }").WithArguments("System.Action").WithLocation(14, 18),
                 // (15,18): error CS0826: No best type found for implicitly-typed array
                 //         var p6 = stackalloc[] { new {} , new { i = 0 } };
                 Diagnostic(ErrorCode.ERR_ImplicitlyTypedArrayNoBestType, "stackalloc[] { new {} , new { i = 0 } }").WithLocation(15, 18),
-                // (16,18): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('dynamic')
+                // (16,18): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('dynamic')
                 //         var p7 = stackalloc[] { d };
-                Diagnostic(ErrorCode.ERR_ManagedAddr, "stackalloc[] { d }").WithArguments("dynamic").WithLocation(16, 18),
+                Diagnostic(ErrorCode.WRN_ManagedAddr, "stackalloc[] { d }").WithArguments("dynamic").WithLocation(16, 18),
                 // (17,33): error CS0103: The name '_' does not exist in the current context
                 //         var p8 = stackalloc[] { _ };
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "_").WithArguments("_").WithLocation(17, 33)
@@ -213,15 +213,15 @@ namespace System {
                 // (13,32): error CS0826: No best type found for implicitly-typed array
                 //         var p4 = c ? default : stackalloc[] { (1, null) };
                 Diagnostic(ErrorCode.ERR_ImplicitlyTypedArrayNoBestType, "stackalloc[] { (1, null) }").WithLocation(13, 32),
-                // (14,32): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('Action')
+                // (14,32): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('Action')
                 //         var p5 = c ? default : stackalloc[] { () => { } };
-                Diagnostic(ErrorCode.ERR_ManagedAddr, "stackalloc[] { () => { } }").WithArguments("System.Action").WithLocation(14, 32),
+                Diagnostic(ErrorCode.WRN_ManagedAddr, "stackalloc[] { () => { } }").WithArguments("System.Action").WithLocation(14, 32),
                 // (15,32): error CS0826: No best type found for implicitly-typed array
                 //         var p6 = c ? default : stackalloc[] { new {} , new { i = 0 } };
                 Diagnostic(ErrorCode.ERR_ImplicitlyTypedArrayNoBestType, "stackalloc[] { new {} , new { i = 0 } }").WithLocation(15, 32),
-                // (16,32): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('dynamic')
+                // (16,32): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('dynamic')
                 //         var p7 = c ? default : stackalloc[] { d };
-                Diagnostic(ErrorCode.ERR_ManagedAddr, "stackalloc[] { d }").WithArguments("dynamic").WithLocation(16, 32),
+                Diagnostic(ErrorCode.WRN_ManagedAddr, "stackalloc[] { d }").WithArguments("dynamic").WithLocation(16, 32),
                 // (17,47): error CS0103: The name '_' does not exist in the current context
                 //         var p8 = c ? default : stackalloc[] { _ };
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "_").WithArguments("_").WithLocation(17, 47)
@@ -350,12 +350,12 @@ unsafe class Test
 }", TestOptions.UnsafeReleaseDll);
 
             comp.VerifyDiagnostics(
-                // (7,20): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('string')
+                // (7,20): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('string')
                 //         var obj1 = stackalloc[] { "" };
-                Diagnostic(ErrorCode.ERR_ManagedAddr, @"stackalloc[] { """" }").WithArguments("string").WithLocation(7, 20),
-                // (8,20): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('<empty anonymous type>')
+                Diagnostic(ErrorCode.WRN_ManagedAddr, @"stackalloc[] { """" }").WithArguments("string").WithLocation(7, 20),
+                // (8,20): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('<empty anonymous type>')
                 //         var obj2 = stackalloc[] { new {} };
-                Diagnostic(ErrorCode.ERR_ManagedAddr, "stackalloc[] { new {} }").WithArguments("<empty anonymous type>").WithLocation(8, 20)
+                Diagnostic(ErrorCode.WRN_ManagedAddr, "stackalloc[] { new {} }").WithArguments("<empty anonymous type>").WithLocation(8, 20)
                 );
 
             var tree = comp.SyntaxTrees.Single();
@@ -423,12 +423,12 @@ unsafe class Test
 }", TestOptions.UnsafeReleaseDll);
 
             comp.VerifyDiagnostics(
-                // (7,34): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('string')
+                // (7,34): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('string')
                 //         var obj1 = c ? default : stackalloc[] { "" };
-                Diagnostic(ErrorCode.ERR_ManagedAddr, @"stackalloc[] { """" }").WithArguments("string").WithLocation(7, 34),
-                // (8,34): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('<empty anonymous type>')
+                Diagnostic(ErrorCode.WRN_ManagedAddr, @"stackalloc[] { """" }").WithArguments("string").WithLocation(7, 34),
+                // (8,34): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('<empty anonymous type>')
                 //         var obj2 = c ? default : stackalloc[] { new {} };
-                Diagnostic(ErrorCode.ERR_ManagedAddr, "stackalloc[] { new {} }").WithArguments("<empty anonymous type>").WithLocation(8, 34),
+                Diagnostic(ErrorCode.WRN_ManagedAddr, "stackalloc[] { new {} }").WithArguments("<empty anonymous type>").WithLocation(8, 34),
                 // (9,34): error CS0306: The type 'Test.S' may not be used as a type argument
                 //         var obj3 = c ? default : stackalloc[] { s };
                 Diagnostic(ErrorCode.ERR_BadTypeArgument, "stackalloc[] { s }").WithArguments("Test.S").WithLocation(9, 34)
@@ -876,9 +876,9 @@ unsafe class Test
 }", TestOptions.UnsafeReleaseDll);
 
             comp.VerifyDiagnostics(
-                // (6,31): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('int[]')
+                // (6,31): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('int[]')
                 //         var obj1 = stackalloc int[][] { 1 };
-                Diagnostic(ErrorCode.ERR_ManagedAddr, "int").WithArguments("int[]").WithLocation(6, 31),
+                Diagnostic(ErrorCode.WRN_ManagedAddr, "int").WithArguments("int[]").WithLocation(6, 31),
                 // (6,31): error CS1575: A stackalloc expression requires [] after type
                 //         var obj1 = stackalloc int[][] { 1 };
                 Diagnostic(ErrorCode.ERR_BadStackAllocExpr, "int[][]").WithLocation(6, 31)
@@ -1792,18 +1792,21 @@ class Program
         var d3 = stackalloc         [ ] { d };
     }
 }").VerifyDiagnostics(
-                // (7,29): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('dynamic')
+                // (7,29): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('dynamic')
                 //         var d1 = stackalloc dynamic [3] { d };
-                Diagnostic(ErrorCode.ERR_ManagedAddr, "dynamic").WithArguments("dynamic").WithLocation(7, 29),
+                Diagnostic(ErrorCode.WRN_ManagedAddr, "dynamic").WithArguments("dynamic").WithLocation(7, 29),
                 // (7,18): error CS0847: An array initializer of length '3' is expected
                 //         var d1 = stackalloc dynamic [3] { d };
                 Diagnostic(ErrorCode.ERR_ArrayInitializerIncorrectLength, "stackalloc dynamic [3] { d }").WithArguments("3").WithLocation(7, 18),
-                // (8,29): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('dynamic')
+                // (8,29): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('dynamic')
                 //         var d2 = stackalloc dynamic [ ] { d };
-                Diagnostic(ErrorCode.ERR_ManagedAddr, "dynamic").WithArguments("dynamic").WithLocation(8, 29),
-                // (9,18): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('dynamic')
+                Diagnostic(ErrorCode.WRN_ManagedAddr, "dynamic").WithArguments("dynamic").WithLocation(8, 29),
+                // (8,18): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                //         var d2 = stackalloc dynamic [ ] { d };
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "stackalloc dynamic [ ] { d }").WithLocation(8, 18),
+                // (9,18): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('dynamic')
                 //         var d3 = stackalloc         [ ] { d };
-                Diagnostic(ErrorCode.ERR_ManagedAddr, "stackalloc         [ ] { d }").WithArguments("dynamic").WithLocation(9, 18),
+                Diagnostic(ErrorCode.WRN_ManagedAddr, "stackalloc         [ ] { d }").WithArguments("dynamic").WithLocation(9, 18),
                 // (9,18): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
                 //         var d3 = stackalloc         [ ] { d };
                 Diagnostic(ErrorCode.ERR_UnsafeNeeded, "stackalloc         [ ] { d }").WithLocation(9, 18)
@@ -1825,18 +1828,18 @@ class Program
         Span<dynamic> d3 = stackalloc         [ ] { d };
     }
 }").VerifyDiagnostics(
-                // (8,39): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('dynamic')
+                // (8,39): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('dynamic')
                 //         Span<dynamic> d1 = stackalloc dynamic [3] { d };
-                Diagnostic(ErrorCode.ERR_ManagedAddr, "dynamic").WithArguments("dynamic").WithLocation(8, 39),
+                Diagnostic(ErrorCode.WRN_ManagedAddr, "dynamic").WithArguments("dynamic").WithLocation(8, 39),
                 // (8,28): error CS0847: An array initializer of length '3' is expected
                 //         Span<dynamic> d1 = stackalloc dynamic [3] { d };
                 Diagnostic(ErrorCode.ERR_ArrayInitializerIncorrectLength, "stackalloc dynamic [3] { d }").WithArguments("3").WithLocation(8, 28),
-                // (9,39): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('dynamic')
+                // (9,39): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('dynamic')
                 //         Span<dynamic> d2 = stackalloc dynamic [ ] { d };
-                Diagnostic(ErrorCode.ERR_ManagedAddr, "dynamic").WithArguments("dynamic").WithLocation(9, 39),
-                // (10,28): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('dynamic')
+                Diagnostic(ErrorCode.WRN_ManagedAddr, "dynamic").WithArguments("dynamic").WithLocation(9, 39),
+                // (10,28): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('dynamic')
                 //         Span<dynamic> d3 = stackalloc         [ ] { d };
-                Diagnostic(ErrorCode.ERR_ManagedAddr, "stackalloc         [ ] { d }").WithArguments("dynamic").WithLocation(10, 28)
+                Diagnostic(ErrorCode.WRN_ManagedAddr, "stackalloc         [ ] { d }").WithArguments("dynamic").WithLocation(10, 28)
                 );
         }
 

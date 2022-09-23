@@ -5051,11 +5051,6 @@
         <target state="translated">プロパティまたはインデクサーを out か ref のパラメーターとして渡すことはできません</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_ManagedAddr">
-        <source>Cannot take the address of, get the size of, or declare a pointer to a managed type ('{0}')</source>
-        <target state="translated">マネージ型 ('{0}') のアドレスの取得、サイズの取得、またはそのマネージ型へのポインターの宣言が実行できません</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_BadFixedInitType">
         <source>The type of a local declared in a fixed statement must be a pointer type</source>
         <target state="translated">fixed ステートメントで宣言されたローカルの型は、ポインター型でなければなりません</target>

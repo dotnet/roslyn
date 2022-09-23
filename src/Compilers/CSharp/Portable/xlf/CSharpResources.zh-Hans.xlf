@@ -5056,11 +5056,6 @@
         <target state="translated">属性或索引器不能作为 out 或 ref 参数传递</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_ManagedAddr">
-        <source>Cannot take the address of, get the size of, or declare a pointer to a managed type ('{0}')</source>
-        <target state="translated">无法获取托管类型(“{0}”)的地址和大小，或者声明指向它的指针</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_BadFixedInitType">
         <source>The type of a local declared in a fixed statement must be a pointer type</source>
         <target state="translated">fixed 语句中声明的局部变量类型必须是指针类型</target>

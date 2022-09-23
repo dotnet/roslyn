@@ -3078,9 +3078,9 @@ public unsafe struct S2
 }
 ";
             CreateCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
-                // (4,12): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('S1')
-                //     public S1* s; //CS0523
-                Diagnostic(ErrorCode.ERR_ManagedAddr, "s").WithArguments("S1"));
+                // (4,16): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('S1')
+                //     public S1* s; //CS0208
+                Diagnostic(ErrorCode.WRN_ManagedAddr, "s").WithArguments("S1").WithLocation(4, 16));
         }
 
         [Fact]
@@ -3104,15 +3104,15 @@ public unsafe struct A
 }
 ";
             CreateCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
-                // (13,20): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('A')
-                //             public A*[,][] aa; //CS0208
-                Diagnostic(ErrorCode.ERR_ManagedAddr, "aa").WithArguments("A"),
-                // (9,16): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('A.B.C')
-                //         public C*[] cc; //CS0208
-                Diagnostic(ErrorCode.ERR_ManagedAddr, "cc").WithArguments("A.B.C"),
-                // (4,12): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('A.B')
+                // (4,16): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('A.B')
                 //     public B** bb; //CS0208
-                Diagnostic(ErrorCode.ERR_ManagedAddr, "bb").WithArguments("A.B"));
+                Diagnostic(ErrorCode.WRN_ManagedAddr, "bb").WithArguments("A.B").WithLocation(4, 16),
+                // (9,21): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('A.B.C')
+                //         public C*[] cc; //CS0208
+                Diagnostic(ErrorCode.WRN_ManagedAddr, "cc").WithArguments("A.B.C").WithLocation(9, 21),
+                // (13,28): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('A')
+                //             public A*[,][] aa; //CS0208
+                Diagnostic(ErrorCode.WRN_ManagedAddr, "aa").WithArguments("A").WithLocation(13, 28));
         }
 
         [Fact]
@@ -3128,9 +3128,9 @@ public unsafe struct S
 }
 ";
             CreateCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
-                // (6,12): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('S')
+                // (6,19): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('S')
                 //     public Alias* s; //CS0208
-                Diagnostic(ErrorCode.ERR_ManagedAddr, "s").WithArguments("S"));
+                Diagnostic(ErrorCode.WRN_ManagedAddr, "s").WithArguments("S").WithLocation(6, 19));
         }
 
         [Fact()]
@@ -3152,24 +3152,24 @@ public unsafe struct S
 }
 ";
             CreateCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
-                // (4,5): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('S')
-                //     S* M() { return M(); }
-                Diagnostic(ErrorCode.ERR_ManagedAddr, "M").WithArguments("S"),
-                // (5,12): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('S')
+                // (5,15): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('S')
                 //     void M(S* p) { }
-                Diagnostic(ErrorCode.ERR_ManagedAddr, "p").WithArguments("S"),
-                // (7,5): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('S')
-                //     S* P { get; set; }
-                Diagnostic(ErrorCode.ERR_ManagedAddr, "P").WithArguments("S"),
-                // (9,5): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('S')
-                //     S* this[int x] { get { return M(); } set { } }
-                Diagnostic(ErrorCode.ERR_ManagedAddr, "this").WithArguments("S"),
-                // (10,14): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('S')
-                //     int this[S* p] { get { return 0; } set { } }
-                Diagnostic(ErrorCode.ERR_ManagedAddr, "p").WithArguments("S"),
-                // (12,12): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('S')
+                Diagnostic(ErrorCode.WRN_ManagedAddr, "p").WithArguments("S").WithLocation(5, 15),
+                // (12,15): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('S')
                 //     public S* s; //CS0208
-                Diagnostic(ErrorCode.ERR_ManagedAddr, "s").WithArguments("S"));
+                Diagnostic(ErrorCode.WRN_ManagedAddr, "s").WithArguments("S").WithLocation(12, 15),
+                // (4,8): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('S')
+                //     S* M() { return M(); }
+                Diagnostic(ErrorCode.WRN_ManagedAddr, "M").WithArguments("S").WithLocation(4, 8),
+                // (7,8): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('S')
+                //     S* P { get; set; }
+                Diagnostic(ErrorCode.WRN_ManagedAddr, "P").WithArguments("S").WithLocation(7, 8),
+                // (9,8): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('S')
+                //     S* this[int x] { get { return M(); } set { } }
+                Diagnostic(ErrorCode.WRN_ManagedAddr, "this").WithArguments("S").WithLocation(9, 8),
+                // (10,17): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('S')
+                //     int this[S* p] { get { return 0; } set { } }
+                Diagnostic(ErrorCode.WRN_ManagedAddr, "p").WithArguments("S").WithLocation(10, 17));
         }
 
         [WorkItem(10195, "https://github.com/dotnet/roslyn/issues/10195")]
@@ -4715,9 +4715,9 @@ unsafe struct S
 }
 ";
             CreateCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
-                // (13,9): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('S')
+                // (13,9): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('S')
                 //         S* p = &s; //CS0208
-                Diagnostic(ErrorCode.ERR_ManagedAddr, "S*").WithArguments("S").WithLocation(13, 9),
+                Diagnostic(ErrorCode.WRN_ManagedAddr, "S*").WithArguments("S").WithLocation(13, 9),
                 // (13,16): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('S')
                 //         S* p = &s; //CS0208
                 Diagnostic(ErrorCode.WRN_ManagedAddr, "&s").WithArguments("S").WithLocation(13, 16),
@@ -6928,9 +6928,9 @@ class Program
 }
 ";
             CreateCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
-                // (8,26): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('string')
-                //         fixed (void* p = a)
-                Diagnostic(ErrorCode.ERR_ManagedAddr, "a").WithArguments("string"));
+                // (8,26): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('string')
+                //         fixed (void* p = a) //string* is not a valid type
+                Diagnostic(ErrorCode.WRN_ManagedAddr, "a").WithArguments("string").WithLocation(8, 26));
         }
 
         [Fact]
@@ -7063,9 +7063,9 @@ class Program
 }
 ";
             CreateCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
-                // (8,26): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('char[]')
+                // (8,26): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('char[]')
                 //         fixed (void* p = a) //char[]* is not a valid type
-                Diagnostic(ErrorCode.ERR_ManagedAddr, "a").WithArguments("char[]"));
+                Diagnostic(ErrorCode.WRN_ManagedAddr, "a").WithArguments("char[]").WithLocation(8, 26));
         }
 
         #endregion Fixed statement diagnostics
@@ -7273,15 +7273,15 @@ public struct S
 }
 ";
             CreateCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
-                // (7,13): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('T')
+                // (7,13): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('T')
                 //         x = sizeof(T); //CS0208
-                Diagnostic(ErrorCode.ERR_ManagedAddr, "sizeof(T)").WithArguments("T"),
-                // (8,13): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('C')
+                Diagnostic(ErrorCode.WRN_ManagedAddr, "sizeof(T)").WithArguments("T").WithLocation(7, 13),
+                // (8,13): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('C')
                 //         x = sizeof(C); //CS0208
-                Diagnostic(ErrorCode.ERR_ManagedAddr, "sizeof(C)").WithArguments("C"),
-                // (9,13): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('S')
+                Diagnostic(ErrorCode.WRN_ManagedAddr, "sizeof(C)").WithArguments("C").WithLocation(8, 13),
+                // (9,13): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('S')
                 //         x = sizeof(S); //CS0208
-                Diagnostic(ErrorCode.ERR_ManagedAddr, "sizeof(S)").WithArguments("S"));
+                Diagnostic(ErrorCode.WRN_ManagedAddr, "sizeof(S)").WithArguments("S").WithLocation(9, 13));
         }
 
         [Fact]
@@ -8028,27 +8028,27 @@ unsafe class C
                 // (7,31): error CS1575: A stackalloc expression requires [] after type
                 //         { int* p = stackalloc int[1, 1]; }
                 Diagnostic(ErrorCode.ERR_BadStackAllocExpr, "int[1, 1]").WithLocation(7, 31),
-                // (8,31): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('int[]')
+                // (8,31): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('int[]')
                 //         { int* p = stackalloc int[][]; }
-                Diagnostic(ErrorCode.ERR_ManagedAddr, "int").WithArguments("int[]").WithLocation(8, 31),
+                Diagnostic(ErrorCode.WRN_ManagedAddr, "int").WithArguments("int[]").WithLocation(8, 31),
                 // (8,31): error CS1575: A stackalloc expression requires [] after type
                 //         { int* p = stackalloc int[][]; }
                 Diagnostic(ErrorCode.ERR_BadStackAllocExpr, "int[][]").WithLocation(8, 31),
-                // (9,31): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('int[]')
+                // (9,31): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('int[]')
                 //         { int* p = stackalloc int[][1]; }
-                Diagnostic(ErrorCode.ERR_ManagedAddr, "int").WithArguments("int[]").WithLocation(9, 31),
+                Diagnostic(ErrorCode.WRN_ManagedAddr, "int").WithArguments("int[]").WithLocation(9, 31),
                 // (9,31): error CS1575: A stackalloc expression requires [] after type
                 //         { int* p = stackalloc int[][1]; }
                 Diagnostic(ErrorCode.ERR_BadStackAllocExpr, "int[][1]").WithLocation(9, 31),
-                // (10,31): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('int[]')
+                // (10,31): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('int[]')
                 //         { int* p = stackalloc int[1][]; }
-                Diagnostic(ErrorCode.ERR_ManagedAddr, "int").WithArguments("int[]").WithLocation(10, 31),
+                Diagnostic(ErrorCode.WRN_ManagedAddr, "int").WithArguments("int[]").WithLocation(10, 31),
                 // (10,31): error CS1575: A stackalloc expression requires [] after type
                 //         { int* p = stackalloc int[1][]; }
                 Diagnostic(ErrorCode.ERR_BadStackAllocExpr, "int[1][]").WithLocation(10, 31),
-                // (11,31): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('int[]')
+                // (11,31): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('int[]')
                 //         { int* p = stackalloc int[1][1]; }
-                Diagnostic(ErrorCode.ERR_ManagedAddr, "int").WithArguments("int[]").WithLocation(11, 31),
+                Diagnostic(ErrorCode.WRN_ManagedAddr, "int").WithArguments("int[]").WithLocation(11, 31),
                 // (11,31): error CS1575: A stackalloc expression requires [] after type
                 //         { int* p = stackalloc int[1][1]; }
                 Diagnostic(ErrorCode.ERR_BadStackAllocExpr, "int[1][1]").WithLocation(11, 31)
@@ -8347,22 +8347,21 @@ class C<T> : A
 ";
             var expected = new[]
             {
-                // (17,22): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('T')
+                // (17,28): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('T')
                 //     private static C<T*[]> c;
-                Diagnostic(ErrorCode.ERR_ManagedAddr, "c").WithArguments("T"),
-
-                // (10,30): warning CS0169: The field 'C<T>.b' is never used
-                //     private static C<T*[]>.B b;
-                Diagnostic(ErrorCode.WRN_UnreferencedField, "b").WithArguments("C<T>.b"),
-                // (13,22): warning CS0169: The field 'C<T>.b1' is never used
-                //     private static B b1;
-                Diagnostic(ErrorCode.WRN_UnreferencedField, "b1").WithArguments("C<T>.b1"),
+                Diagnostic(ErrorCode.WRN_ManagedAddr, "c").WithArguments("T").WithLocation(17, 28),
                 // (14,24): warning CS0169: The field 'C<T>.b2' is never used
                 //     private static A.B b2;
-                Diagnostic(ErrorCode.WRN_UnreferencedField, "b2").WithArguments("C<T>.b2"),
+                Diagnostic(ErrorCode.WRN_UnreferencedField, "b2").WithArguments("C<T>.b2").WithLocation(14, 24),
+                // (13,22): warning CS0169: The field 'C<T>.b1' is never used
+                //     private static B b1;
+                Diagnostic(ErrorCode.WRN_UnreferencedField, "b1").WithArguments("C<T>.b1").WithLocation(13, 22),
+                // (10,30): warning CS0169: The field 'C<T>.b' is never used
+                //     private static C<T*[]>.B b;
+                Diagnostic(ErrorCode.WRN_UnreferencedField, "b").WithArguments("C<T>.b").WithLocation(10, 30),
                 // (17,28): warning CS0169: The field 'C<T>.c' is never used
                 //     private static C<T*[]> c;
-                Diagnostic(ErrorCode.WRN_UnreferencedField, "c").WithArguments("C<T>.c")
+                Diagnostic(ErrorCode.WRN_UnreferencedField, "c").WithArguments("C<T>.c").WithLocation(17, 28)
             };
 
             CreateCompilation(text).VerifyDiagnostics(expected);
@@ -8391,16 +8390,15 @@ class C<T> : A
 ";
             var expected = new[]
             {
-                // (15,22): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('string')
-                //     private static C<T*[]> c;
-                Diagnostic(ErrorCode.ERR_ManagedAddr, "c").WithArguments("string"),
-
-                // (10,30): warning CS0169: The field 'C<T>.b' is never used
-                //     private static C<T*[]>.B b;
-                Diagnostic(ErrorCode.WRN_UnreferencedField, "b").WithArguments("C<T>.b"),
-                // (15,28): warning CS0169: The field 'C<T>.c' is never used
-                //     private static C<T*[]> c;
-                Diagnostic(ErrorCode.WRN_UnreferencedField, "c").WithArguments("C<T>.c")
+                // (13,33): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('string')
+                //     private static C<string*[]> c;
+                Diagnostic(ErrorCode.WRN_ManagedAddr, "c").WithArguments("string").WithLocation(13, 33),
+                // (10,35): warning CS0169: The field 'C<T>.b' is never used
+                //     private static C<string*[]>.B b;
+                Diagnostic(ErrorCode.WRN_UnreferencedField, "b").WithArguments("C<T>.b").WithLocation(10, 35),
+                // (13,33): warning CS0169: The field 'C<T>.c' is never used
+                //     private static C<string*[]> c;
+                Diagnostic(ErrorCode.WRN_UnreferencedField, "c").WithArguments("C<T>.c").WithLocation(13, 33)
             };
 
             CreateCompilation(text).VerifyDiagnostics(expected);

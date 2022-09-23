@@ -177,7 +177,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_AbstractBaseCall = 205,
         ERR_RefProperty = 206,
         // WRN_OldWarning_UnsafeProp = 207,    // This error code is unused.
-        ERR_ManagedAddr = 208,
+        // ERR_ManagedAddr = 208,
         ERR_BadFixedInitType = 209,
         ERR_FixedMustInit = 210,
         ERR_InvalidAddrOp = 211,

@@ -5051,11 +5051,6 @@
         <target state="translated">Impossible de passer une propriété ou un indexeur en tant que paramètre de sortie (out) ni de référence (ref)</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_ManagedAddr">
-        <source>Cannot take the address of, get the size of, or declare a pointer to a managed type ('{0}')</source>
-        <target state="translated">Impossible de prendre l'adresse, d'obtenir la taille ou de déclarer un pointeur vers un type managé ('{0}')</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_BadFixedInitType">
         <source>The type of a local declared in a fixed statement must be a pointer type</source>
         <target state="translated">Le type des variables locales déclaré dans une instruction fixed doit être un type pointeur</target>

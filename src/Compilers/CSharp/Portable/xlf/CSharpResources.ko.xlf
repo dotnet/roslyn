@@ -5050,11 +5050,6 @@
         <target state="translated">속성 또는 인덱서는 out 또는 ref 매개 변수로 전달할 수 없습니다.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_ManagedAddr">
-        <source>Cannot take the address of, get the size of, or declare a pointer to a managed type ('{0}')</source>
-        <target state="translated">관리되는 형식('{0}')의 주소 또는 크기를 가져오거나 해당 형식에 대한 포인터를 선언할 수 없습니다.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_BadFixedInitType">
         <source>The type of a local declared in a fixed statement must be a pointer type</source>
         <target state="translated">fixed 문에 선언된 지역 변수의 형식은 포인터 형식이어야 합니다.</target>
