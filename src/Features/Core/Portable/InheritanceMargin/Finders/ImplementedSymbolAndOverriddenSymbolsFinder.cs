@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin.Finders
         /// For a given type member, get its overridden member in its base classes and the implemented members in its base interfaces in topological order.
         /// For example:
         /// interface IBar { void Goo(); }
-        /// class Bar : IBar { public override void Goo() { } }
+        /// class Bar : IBar { public virtual void Goo() { } }
         /// class Bar2 : Bar { public override void Goo() { } }
         /// For 'Bar2.Goo()', the result would be in the order like 'Bar.Goo()', 'IBar.Goo()'.
         /// </summary>
@@ -34,8 +34,8 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin.Finders
             // We need a 'incomingSymbolsMap', whose key is the vertice of the graph, the value is a set of symbols point to this symbol to perform topological sort.
             // e.g
             // interface IBar { void Goo(); }
-            // class Bar : IBar { void Goo(); }
-            // class Bar2 : IBar { void Goo(); }
+            // class Bar : IBar { virtual void Goo(); }
+            // class Bar2 : Bar { override void Goo(); }
             // the map would be:
             // {
             //    "Bar2.Goo" : [],
@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin.Finders
             //    "IBar.Goo" : ["Bar.Goo"],
             // }
 
-            // Create an entry for the direct implemented member in base interfaces for the given symbol.
+            // 1. Create an entry for the direct implemented member in base interfaces for the given symbol.
             foreach (var implementedMember in symbol.ExplicitOrImplicitInterfaceImplementations())
             {
                 if (!incomingSymbolsMap.ContainsKey(implementedMember))
@@ -56,33 +56,34 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin.Finders
             // 2. Add all the overrriden symbols & the implemented interface members for the overridden symbols.
             for (var i = 0; i < overriddenSymbols.Length; i++)
             {
+                var overriddenSymbol = overriddenSymbols[i];
+                var incomingSymbolsForOverriddenSymbol = s_symbolHashSetPool.Allocate();
+
                 // OverriddenSymbol could only be pointed by the previous overrriden symbol.
                 // e.g
                 //                        [0]                     [1]                     [2]
                 // symbol_we_search -> overridden method1 -> overridden method2 -> overridden method2 ...
                 // There is no edge points to the 'overridden method1'.
-                var overriddenSymbol = overriddenSymbols[i];
-                var incomingSynbolsForOverriddenSymbol = s_symbolHashSetPool.Allocate();
-                incomingSymbolsMap[overriddenSymbol] = incomingSynbolsForOverriddenSymbol;
+                incomingSymbolsMap[overriddenSymbol] = incomingSymbolsForOverriddenSymbol;
                 if (i > 0)
                 {
-                    incomingSynbolsForOverriddenSymbol.Add(overriddenSymbols[i - 1]);
+                    incomingSymbolsForOverriddenSymbol.Add(overriddenSymbols[i - 1]);
                 }
 
                 // Add or update the implemented members in interface for overridden members.
                 // They are pointed by overriddenSymbol.
                 foreach (var implementedMember in overriddenSymbol.ExplicitOrImplicitInterfaceImplementations())
                 {
-                    if (incomingSymbolsMap.TryGetValue(implementedMember, out var indegreeSymbols))
+                    if (incomingSymbolsMap.TryGetValue(implementedMember, out var incomingSymbols))
                     {
-                        indegreeSymbols.Add(overriddenSymbol);
+                        incomingSymbols.Add(overriddenSymbol);
                     }
                     else
                     {
 
-                        var incomingSynbolsForImplementedMember = s_symbolHashSetPool.Allocate();
-                        incomingSynbolsForImplementedMember.Add(overriddenSymbol);
-                        incomingSymbolsMap[implementedMember] = incomingSynbolsForImplementedMember;
+                        var incomingSymbolsForImplementedMember = s_symbolHashSetPool.Allocate();
+                        incomingSymbolsForImplementedMember.Add(overriddenSymbol);
+                        incomingSymbolsMap[implementedMember] = incomingSymbolsForImplementedMember;
                     }
                 }
             }

@@ -61,14 +61,14 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin.Finders
             // Add the entry for all base types.
             for (var i = 0; i < baseTypes.Length; i++)
             {
+                var baseType = baseTypes[i];
+                var incomingSymbolsSetForBaseType = s_symbolHashSetPool.Allocate();
                 // baseTypes are order like,
                 //                        [0]          [1]           [2]
                 // symbol_we_search -> baseClass1 -> baseClass2 -> baseClass3 ...
                 // There is no edge points to the 'baseClass1'.
                 // And since interface can't have base class, the item before a baseClass is just the previous item in the array.
                 // e.g. 'baseClass2' could only be pointed by 'baseClass1'.
-                var baseType = baseTypes[i];
-                var incomingSymbolsSetForBaseType = s_symbolHashSetPool.Allocate();
                 incomingSymbolsMapBuilder[baseType] = incomingSymbolsSetForBaseType;
                 if (i > 0)
                 {
@@ -78,9 +78,9 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin.Finders
                 // Then for the interfaces of this base type, add a set containing this base type
                 foreach (var baseInterface in baseType.Interfaces)
                 {
-                    if (incomingSymbolsMapBuilder.TryGetValue(baseInterface, out var indegreeSymbols))
+                    if (incomingSymbolsMapBuilder.TryGetValue(baseInterface, out var incomingSymbols))
                     {
-                        indegreeSymbols.Add(baseType);
+                        incomingSymbols.Add(baseType);
                     }
                     else
                     {
@@ -91,6 +91,7 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin.Finders
                 }
             }
 
+            // Add entry for all the based interfaces
             foreach (var baseInterface in namedTypeSymbol.AllInterfaces)
             {
                 if (!incomingSymbolsMapBuilder.ContainsKey(baseInterface))
@@ -101,9 +102,9 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin.Finders
                 // For all the interfaces of this interface, add a set containing this interface.
                 foreach (var @interface in baseInterface.Interfaces)
                 {
-                    if (incomingSymbolsMapBuilder.TryGetValue(@interface, out var indegreeSymbols))
+                    if (incomingSymbolsMapBuilder.TryGetValue(@interface, out var incomingSymbols))
                     {
-                        indegreeSymbols.Add(baseInterface);
+                        incomingSymbols.Add(baseInterface);
                     }
                     else
                     {

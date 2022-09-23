@@ -44,26 +44,26 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin.Finders
             {
                 if (!incomingSymbolsMap.ContainsKey(implementingSymbol))
                 {
-                    var indegreeSymbols = s_symbolHashSetPool.Allocate();
+                    var incomingSymbols = s_symbolHashSetPool.Allocate();
 
                     // 1. If this symbol has an overridden member, and it is in implemeting symbols list.
                     // It means overriden member point to this symbol.
                     var overriddenMember = implementingSymbol.GetOverriddenMember();
                     if (overriddenMember != null && implementingSymbols.Contains(overriddenMember))
                     {
-                        indegreeSymbols.Add(overriddenMember);
+                        incomingSymbols.Add(overriddenMember);
                     }
 
-                    // 2. Also check all the implemented interface member. If the i
+                    // 2. Also add al implemented interface members.
                     foreach (var implementedInterfaceMember in implementingSymbol.ExplicitOrImplicitInterfaceImplementations())
                     {
                         if (implementingSymbols.Contains(implementedInterfaceMember))
                         {
-                            indegreeSymbols.Add(implementedInterfaceMember);
+                            incomingSymbols.Add(implementedInterfaceMember);
                         }
                     }
 
-                    incomingSymbolsMap[implementingSymbol] = indegreeSymbols;
+                    incomingSymbolsMap[implementingSymbol] = incomingSymbols;
                 }
             }
 
