@@ -756,9 +756,6 @@ namespace Microsoft.CodeAnalysis
                 documentStates: UpdateDocumentsChecksumAlgorithm(checksumAlgorithm));
         }
 
-        /// <summary>
-        /// Update checksum algorithm of all documents backed by a text loader that supports reloading the content and calculating a new checksum (e.g. file loader).
-        /// </summary>
         private TextDocumentStates<DocumentState> UpdateDocumentsChecksumAlgorithm(SourceHashAlgorithm checksumAlgorithm)
             => DocumentStates.UpdateStates(static (state, checksumAlgorithm) => state.UpdateChecksumAlgorithm(checksumAlgorithm), checksumAlgorithm);
 

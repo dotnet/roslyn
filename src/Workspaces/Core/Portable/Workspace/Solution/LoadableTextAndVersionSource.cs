@@ -11,51 +11,64 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis;
 
-internal sealed class LoadableTextAndVersionSource : ValueSource<TextAndVersion>, ITextAndVersionSource
+internal sealed class LoadableTextAndVersionSource : ITextAndVersionSource
 {
-    private readonly AsyncLazy<TextAndVersion> _lazy;
-    private readonly TextLoader _loader;
+    private sealed class LazyValueWithOptions
+    {
+        public readonly LoadableTextAndVersionSource Source;
+        public readonly AsyncLazy<TextAndVersion> LazyValue;
+        public readonly LoadTextOptions Options;
+
+        public LazyValueWithOptions(LoadableTextAndVersionSource source, LoadTextOptions options)
+        {
+            LazyValue = new AsyncLazy<TextAndVersion>(LoadAsync, LoadSynchronously, source.CacheResult);
+            Source = source;
+            Options = options;
+        }
+
+        private Task<TextAndVersion> LoadAsync(CancellationToken cancellationToken)
+            => Source.Loader.LoadTextAsync(Options, cancellationToken);
+
+        private TextAndVersion LoadSynchronously(CancellationToken cancellationToken)
+            => Source.Loader.LoadTextSynchronously(Options, cancellationToken);
+    }
+
+    public readonly TextLoader Loader;
+    public readonly bool CacheResult;
+
+    private LazyValueWithOptions? _lazyValue;
 
     public LoadableTextAndVersionSource(TextLoader loader, bool cacheResult)
     {
-        _loader = loader;
-        _lazy = new AsyncLazy<TextAndVersion>(LoadAsync, LoadSynchronously, cacheResult);
+        Loader = loader;
+        CacheResult = cacheResult;
     }
 
-    private Task<TextAndVersion> LoadAsync(CancellationToken cancellationToken)
-        => _loader.LoadTextAsync(cancellationToken);
+    /// <summary>
+    /// True if the text content can be reloaded from the underlying binary representation (e.g. on disk).
+    /// </summary>
+    public bool IsReloadable
+        => Loader is FileTextLoader;
 
-    private TextAndVersion LoadSynchronously(CancellationToken cancellationToken)
-        => _loader.LoadTextSynchronously(cancellationToken);
-
-    public override TextAndVersion GetValue(CancellationToken cancellationToken)
-        => _lazy.GetValue(cancellationToken);
-
-    public override bool TryGetValue([MaybeNullWhen(false)] out TextAndVersion value)
-        => _lazy.TryGetValue(out value);
-
-    public override Task<TextAndVersion> GetValueAsync(CancellationToken cancellationToken)
-        => _lazy.GetValueAsync(cancellationToken);
-
-    public TextLoader Loader
-        => _loader;
-
-    public SourceHashAlgorithm ChecksumAlgorithm
-        => _loader.ChecksumAlgorithm;
-
-    public ITextAndVersionSource? TryUpdateChecksumAlgorithm(SourceHashAlgorithm algorithm)
+    private AsyncLazy<TextAndVersion> GetLazyValue(LoadTextOptions options)
     {
-        var newLoader = _loader.TryUpdateChecksumAlgorithm(algorithm);
-        if (newLoader == null)
+        var lazy = _lazyValue;
+
+        if (lazy == null || lazy.Options != options)
         {
-            return null;
+            // drop previous value and replace it with the one that has current options:
+            _lazyValue = lazy = new LazyValueWithOptions(this, options);
         }
 
-        if (newLoader == _loader)
-        {
-            return this;
-        }
-
-        return new LoadableTextAndVersionSource(newLoader, _lazy.CacheResult);
+        return lazy.LazyValue;
     }
+
+    public TextAndVersion GetValue(LoadTextOptions options, CancellationToken cancellationToken)
+        => GetLazyValue(options).GetValue(cancellationToken);
+
+    public bool TryGetValue(LoadTextOptions options, [MaybeNullWhen(false)] out TextAndVersion value)
+        => GetLazyValue(options).TryGetValue(out value);
+
+    public Task<TextAndVersion> GetValueAsync(LoadTextOptions options, CancellationToken cancellationToken)
+        => GetLazyValue(options).GetValueAsync(cancellationToken);
 }

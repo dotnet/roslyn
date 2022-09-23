@@ -11,10 +11,7 @@ namespace Microsoft.CodeAnalysis;
 
 internal interface ITextAndVersionSource
 {
-    bool TryGetValue([MaybeNullWhen(false)] out TextAndVersion value);
-    TextAndVersion GetValue(CancellationToken cancellationToken);
-    Task<TextAndVersion> GetValueAsync(CancellationToken cancellationToken);
-
-    SourceHashAlgorithm ChecksumAlgorithm { get; }
-    ITextAndVersionSource? TryUpdateChecksumAlgorithm(SourceHashAlgorithm algorithm);
+    bool TryGetValue(LoadTextOptions options, [MaybeNullWhen(false)] out TextAndVersion value);
+    TextAndVersion GetValue(LoadTextOptions options, CancellationToken cancellationToken);
+    Task<TextAndVersion> GetValueAsync(LoadTextOptions options, CancellationToken cancellationToken);
 }

@@ -474,13 +474,10 @@ namespace Microsoft.CodeAnalysis
                 _newText = newText;
             }
 
-            internal override SourceHashAlgorithm ChecksumAlgorithm
-                => _newText.ChecksumAlgorithm;
-
             internal override string? FilePath
                 => _oldDocumentState.FilePath;
 
-            public override async Task<TextAndVersion> LoadTextAndVersionAsync(CancellationToken cancellationToken)
+            public override async Task<TextAndVersion> LoadTextAndVersionAsync(LoadTextOptions options, CancellationToken cancellationToken)
             {
                 var oldText = await _oldDocumentState.GetTextAsync(cancellationToken).ConfigureAwait(false);
                 var version = await _oldDocumentState.GetTextVersionAsync(cancellationToken).ConfigureAwait(false);
@@ -488,7 +485,7 @@ namespace Microsoft.CodeAnalysis
                 return GetProperTextAndVersion(oldText, _newText, version, _oldDocumentState.FilePath);
             }
 
-            internal override TextAndVersion LoadTextAndVersionSynchronously(CancellationToken cancellationToken)
+            internal override TextAndVersion LoadTextAndVersionSynchronously(LoadTextOptions options, CancellationToken cancellationToken)
             {
                 var oldText = _oldDocumentState.GetTextSynchronously(cancellationToken);
                 var version = _oldDocumentState.GetTextVersionSynchronously(cancellationToken);

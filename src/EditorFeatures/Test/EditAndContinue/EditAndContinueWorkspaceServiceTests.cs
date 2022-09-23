@@ -374,7 +374,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 
         internal sealed class FailingTextLoader : TextLoader
         {
-            public override Task<TextAndVersion> LoadTextAndVersionAsync(CancellationToken cancellationToken)
+            public override Task<TextAndVersion> LoadTextAndVersionAsync(LoadTextOptions options, CancellationToken cancellationToken)
             {
                 Assert.True(false, $"Content of document should never be loaded");
                 throw ExceptionUtilities.Unreachable;
@@ -498,28 +498,28 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             solution = solution.AddDocument(DocumentInfo.Create(
                 id: documentIdA,
                 name: "A",
-                loader: new WorkspaceFileTextLoader(solution.Services, sourceFileA.Path, encodingA, SourceHashAlgorithm.Sha1),
+                loader: new WorkspaceFileTextLoader(solution.Services, sourceFileA.Path, encodingA),
                 filePath: sourceFileA.Path));
 
             var documentIdB = DocumentId.CreateNewId(projectP.Id, debugName: "B");
             solution = solution.AddDocument(DocumentInfo.Create(
                 id: documentIdB,
                 name: "B",
-                loader: new WorkspaceFileTextLoader(solution.Services, sourceFileB.Path, encodingB, SourceHashAlgorithm.Sha1),
+                loader: new WorkspaceFileTextLoader(solution.Services, sourceFileB.Path, encodingB),
                 filePath: sourceFileB.Path));
 
             var documentIdC = DocumentId.CreateNewId(projectP.Id, debugName: "C");
             solution = solution.AddDocument(DocumentInfo.Create(
                 id: documentIdC,
                 name: "C",
-                loader: new WorkspaceFileTextLoader(solution.Services, sourceFileC.Path, encodingC, SourceHashAlgorithm.Sha1),
+                loader: new WorkspaceFileTextLoader(solution.Services, sourceFileC.Path, encodingC),
                 filePath: sourceFileC.Path));
 
             var documentIdE = DocumentId.CreateNewId(projectP.Id, debugName: "E");
             solution = solution.AddDocument(DocumentInfo.Create(
                 id: documentIdE,
                 name: "E",
-                loader: new WorkspaceFileTextLoader(solution.Services, sourceFileE.Path, encodingE, SourceHashAlgorithm.Sha1),
+                loader: new WorkspaceFileTextLoader(solution.Services, sourceFileE.Path, encodingE),
                 filePath: sourceFileE.Path));
 
             // check that are testing documents whose hash algorithm does not match the PDB (but the hash itself does):
@@ -559,7 +559,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 
             // change content of B on disk again:
             sourceFileB.WriteAllText(sourceB3, encodingB);
-            solution = solution.WithDocumentTextLoader(documentIdB, new WorkspaceFileTextLoader(solution.Services, sourceFileB.Path, encodingB, SourceHashAlgorithms.Default), PreservationMode.PreserveValue);
+            solution = solution.WithDocumentTextLoader(documentIdB, new WorkspaceFileTextLoader(solution.Services, sourceFileB.Path, encodingB), PreservationMode.PreserveValue);
 
             EnterBreakState(debuggingSession);
 
@@ -4393,7 +4393,7 @@ class C
             solution = solution.AddDocument(DocumentInfo.Create(
                 id: documentIdA,
                 name: "A",
-                loader: new WorkspaceFileTextLoader(solution.Services, sourceFileA.Path, Encoding.UTF8, SourceHashAlgorithms.Default),
+                loader: new WorkspaceFileTextLoader(solution.Services, sourceFileA.Path, Encoding.UTF8),
                 filePath: sourceFileA.Path));
 
             var tasks = Enumerable.Range(0, 10).Select(async i =>
@@ -4479,7 +4479,7 @@ class C
             solution = solution.AddDocument(DocumentInfo.Create(
                 id: documentIdA,
                 name: "A",
-                loader: new WorkspaceFileTextLoader(solution.Services, sourceFileA.Path, Encoding.UTF8, SourceHashAlgorithms.Default),
+                loader: new WorkspaceFileTextLoader(solution.Services, sourceFileA.Path, Encoding.UTF8),
                 filePath: sourceFileA.Path));
 
             var hotReload = new WatchHotReloadService(workspace.Services, ImmutableArray.Create("Baseline", "AddDefinitionToExistingType", "NewTypeDefinition"));
@@ -4546,7 +4546,7 @@ class C
             solution = solution.AddDocument(DocumentInfo.Create(
                 id: documentIdA,
                 name: "A",
-                loader: new WorkspaceFileTextLoader(solution.Services, sourceFileA.Path, Encoding.UTF8, SourceHashAlgorithms.Default),
+                loader: new WorkspaceFileTextLoader(solution.Services, sourceFileA.Path, Encoding.UTF8),
                 filePath: sourceFileA.Path));
 
             var hotReload = new UnitTestingHotReloadService(workspace.Services);

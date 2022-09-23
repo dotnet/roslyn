@@ -18,8 +18,9 @@ namespace Microsoft.CodeAnalysis
             IDocumentServiceProvider documentServiceProvider,
             DocumentInfo.DocumentAttributes attributes,
             SourceText? sourceText,
-            ITextAndVersionSource textAndVersionSource)
-            : base(solutionServices, documentServiceProvider, attributes, sourceText, textAndVersionSource)
+            ITextAndVersionSource textAndVersionSource,
+            LoadTextOptions loadTextOptions)
+            : base(solutionServices, documentServiceProvider, attributes, sourceText, textAndVersionSource, loadTextOptions)
         {
             _additionalText = new AdditionalTextWithState(this);
         }
@@ -50,7 +51,8 @@ namespace Microsoft.CodeAnalysis
                 this.Services,
                 this.Attributes,
                 this.sourceText,
-                newTextSource);
+                newTextSource,
+                this.LoadTextOptions);
         }
     }
 }

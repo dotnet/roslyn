@@ -21,8 +21,9 @@ namespace Microsoft.CodeAnalysis
             IDocumentServiceProvider documentServiceProvider,
             DocumentInfo.DocumentAttributes attributes,
             SourceText sourceTextOpt,
-            ITextAndVersionSource textAndVersionSource)
-            : base(solutionServices, documentServiceProvider, attributes, sourceTextOpt, textAndVersionSource)
+            ITextAndVersionSource textAndVersionSource,
+            LoadTextOptions loadTextOptions)
+            : base(solutionServices, documentServiceProvider, attributes, sourceTextOpt, textAndVersionSource, loadTextOptions)
         {
             _analyzerConfigValueSource = CreateAnalyzerConfigValueSource();
         }
@@ -62,7 +63,8 @@ namespace Microsoft.CodeAnalysis
                 this.Services,
                 this.Attributes,
                 this.sourceText,
-                newTextSource);
+                newTextSource,
+                this.LoadTextOptions);
         }
     }
 }

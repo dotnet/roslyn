@@ -40,9 +40,9 @@ namespace Microsoft.CodeAnalysis.Host
                 ContainsDirectives = containsDirectives;
             }
 
-            internal bool TryGetText([NotNullWhen(true)] out SourceText? text)
+            internal bool TryGetText(LoadTextOptions options, [NotNullWhen(true)] out SourceText? text)
             {
-                if (TextSource.TryGetValue(out var textAndVersion))
+                if (TextSource.TryGetValue(options, out var textAndVersion))
                 {
                     text = textAndVersion.Text;
                     return true;
@@ -52,9 +52,9 @@ namespace Microsoft.CodeAnalysis.Host
                 return false;
             }
 
-            internal async Task<SourceText> GetTextAsync(CancellationToken cancellationToken)
+            internal async Task<SourceText> GetTextAsync(LoadTextOptions options, CancellationToken cancellationToken)
             {
-                var textAndVersion = await TextSource.GetValueAsync(cancellationToken).ConfigureAwait(false);
+                var textAndVersion = await TextSource.GetValueAsync(options, cancellationToken).ConfigureAwait(false);
                 return textAndVersion.Text;
             }
 

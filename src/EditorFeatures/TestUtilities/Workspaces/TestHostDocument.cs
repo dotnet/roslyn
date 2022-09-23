@@ -210,14 +210,11 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                 _text = text;
             }
 
-            internal override SourceHashAlgorithm ChecksumAlgorithm
-                => _hostDocument.ChecksumAlgorithm;
-
             internal override string? FilePath
                 => _hostDocument.FilePath;
 
-            public override Task<TextAndVersion> LoadTextAndVersionAsync(CancellationToken cancellationToken)
-                => Task.FromResult(TextAndVersion.Create(SourceText.From(_text, encoding: null, _hostDocument.ChecksumAlgorithm), VersionStamp.Create(), _hostDocument.FilePath));
+            public override Task<TextAndVersion> LoadTextAndVersionAsync(LoadTextOptions options, CancellationToken cancellationToken)
+                => Task.FromResult(TextAndVersion.Create(SourceText.From(_text, encoding: null, options.ChecksumAlgorithm), VersionStamp.Create(), _hostDocument.FilePath));
         }
 
         public TextLoader Loader => _loader;

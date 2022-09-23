@@ -2,6 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Diagnostics.CodeAnalysis;
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -17,15 +20,18 @@ internal sealed class ConstantTextAndVersionSource : ConstantValueSource<TextAnd
     {
     }
 
-    public SourceHashAlgorithm ChecksumAlgorithm
-        => Value.Text.ChecksumAlgorithm;
+    public TextAndVersion GetValue(LoadTextOptions options, CancellationToken cancellationToken)
+        => GetValue(cancellationToken);
+
+    public Task<TextAndVersion> GetValueAsync(LoadTextOptions options, CancellationToken cancellationToken)
+        => GetValueAsync(cancellationToken);
+
+    public bool TryGetValue(LoadTextOptions options, [MaybeNullWhen(false)] out TextAndVersion value)
+        => TryGetValue(out value);
 
     public bool TryGetTextVersion(out VersionStamp version)
     {
         version = Value.Version;
         return true;
     }
-
-    public ITextAndVersionSource? TryUpdateChecksumAlgorithm(SourceHashAlgorithm algorithm)
-        => null;
 }

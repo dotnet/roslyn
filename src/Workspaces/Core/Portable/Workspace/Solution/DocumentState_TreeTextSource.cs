@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// A source for <see cref="TextAndVersion"/> constructed from an syntax tree.
         /// </summary>
-        private sealed class TreeTextSource : ValueSource<TextAndVersion>, ITextAndVersionSource, ITextVersionable
+        private sealed class TreeTextSource : ITextAndVersionSource, ITextVersionable
         {
             private readonly ValueSource<SourceText> _textSource;
             private readonly VersionStamp _version;
@@ -31,19 +31,19 @@ namespace Microsoft.CodeAnalysis
                 ChecksumAlgorithm = checksumAlgorithm;
             }
 
-            public override async Task<TextAndVersion> GetValueAsync(CancellationToken cancellationToken = default)
+            public async Task<TextAndVersion> GetValueAsync(LoadTextOptions options, CancellationToken cancellationToken)
             {
                 var text = await _textSource.GetValueAsync(cancellationToken).ConfigureAwait(false);
                 return TextAndVersion.Create(text, _version, _filePath);
             }
 
-            public override TextAndVersion GetValue(CancellationToken cancellationToken = default)
+            public TextAndVersion GetValue(LoadTextOptions options, CancellationToken cancellationToken)
             {
                 var text = _textSource.GetValue(cancellationToken);
                 return TextAndVersion.Create(text, _version, _filePath);
             }
 
-            public override bool TryGetValue([NotNullWhen(true)] out TextAndVersion? value)
+            public bool TryGetValue(LoadTextOptions options, [NotNullWhen(true)] out TextAndVersion? value)
             {
                 if (_textSource.TryGetValue(out var text))
                 {
@@ -57,14 +57,11 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
-            public bool TryGetTextVersion(out VersionStamp version)
+            public bool TryGetTextVersion(LoadTextOptions options, out VersionStamp version)
             {
                 version = _version;
                 return version != default;
             }
-
-            public ITextAndVersionSource? TryUpdateChecksumAlgorithm(SourceHashAlgorithm algorithm)
-                => null;
         }
     }
 }

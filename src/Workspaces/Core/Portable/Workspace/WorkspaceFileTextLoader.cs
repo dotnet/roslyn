@@ -19,13 +19,13 @@ namespace Microsoft.CodeAnalysis
     {
         private readonly ITextFactoryService _textFactory;
 
-        internal WorkspaceFileTextLoader(SolutionServices services, string path, Encoding? defaultEncoding, SourceHashAlgorithm checksumAlgorithm)
-            : base(path, defaultEncoding, checksumAlgorithm)
+        internal WorkspaceFileTextLoader(SolutionServices services, string path, Encoding? defaultEncoding)
+            : base(path, defaultEncoding)
         {
             _textFactory = services.GetRequiredService<ITextFactoryService>();
         }
 
-        protected override SourceText CreateText(Stream stream, CancellationToken cancellationToken)
-            => _textFactory.CreateText(stream, DefaultEncoding, ChecksumAlgorithm, cancellationToken);
+        protected override SourceText CreateText(Stream stream, LoadTextOptions options, CancellationToken cancellationToken)
+            => _textFactory.CreateText(stream, DefaultEncoding, options.ChecksumAlgorithm, cancellationToken);
     }
 }

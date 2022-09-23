@@ -2223,7 +2223,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var did = DocumentId.CreateNewId(pid);
 
             sol = sol.AddProject(pid, "goo", "goo.dll", LanguageNames.CSharp)
-                     .AddDocument(did, "x", new WorkspaceFileTextLoader(workspace.Services.SolutionServices, file.Path, Encoding.UTF8, SourceHashAlgorithms.Default));
+                     .AddDocument(did, "x", new WorkspaceFileTextLoader(workspace.Services.SolutionServices, file.Path, Encoding.UTF8));
 
             var observedText = GetObservedText(sol, did, text1);
 
@@ -2282,7 +2282,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             using var workspace = CreateWorkspace();
             var sol = workspace.CurrentSolution
                                     .AddProject(pid, "goo", "goo.dll", LanguageNames.CSharp)
-                                    .AddDocument(did, "x", new WorkspaceFileTextLoader(workspace.Services.SolutionServices, file.Path, Encoding.UTF8, SourceHashAlgorithms.Default));
+                                    .AddDocument(did, "x", new WorkspaceFileTextLoader(workspace.Services.SolutionServices, file.Path, Encoding.UTF8));
 
             var doc = sol.GetDocument(did);
 
@@ -2349,7 +2349,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             using var workspace = CreateWorkspace();
             var sol = workspace.CurrentSolution
                                     .AddProject(pid, "goo", "goo.dll", LanguageNames.CSharp)
-                                    .AddDocument(did, "x", new WorkspaceFileTextLoader(workspace.Services.SolutionServices, file.Path, Encoding.UTF8, SourceHashAlgorithms.Default));
+                                    .AddDocument(did, "x", new WorkspaceFileTextLoader(workspace.Services.SolutionServices, file.Path, Encoding.UTF8));
 
             var doc = sol.GetDocument(did);
             var docTree = doc.GetSyntaxTreeAsync().Result;
@@ -2868,7 +2868,7 @@ End Class";
             var did = DocumentId.CreateNewId(pid);
 
             solution = solution.AddProject(pid, "goo", "goo", LanguageNames.CSharp)
-                               .AddDocument(did, "x", new WorkspaceFileTextLoader(solution.Services, @"C:\doesnotexist.cs", Encoding.UTF8, SourceHashAlgorithms.Default))
+                               .AddDocument(did, "x", new WorkspaceFileTextLoader(solution.Services, @"C:\doesnotexist.cs", Encoding.UTF8))
                                .WithDocumentFilePath(did, "document path");
 
             var doc = solution.GetDocument(did);

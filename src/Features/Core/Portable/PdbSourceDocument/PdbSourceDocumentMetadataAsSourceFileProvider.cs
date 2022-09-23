@@ -353,7 +353,7 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
         {
             if (_fileToDocumentInfoMap.TryGetValue(filePath, out var info))
             {
-                workspace.OnDocumentClosed(info.DocumentId, new WorkspaceFileTextLoader(workspace.Services.SolutionServices, filePath, info.Encoding, info.ChecksumAlgorithm));
+                workspace.OnDocumentClosed(info.DocumentId, new WorkspaceFileTextLoader(workspace.Services.SolutionServices, filePath, info.Encoding));
 
                 return true;
             }
