@@ -9086,11 +9086,29 @@ done:;
                 // for a declaration first.
                 VariableDeclarationSyntax decl = null;
                 bool isDeclaration = false;
-                if (this.CurrentToken.Kind == SyntaxKind.RefKeyword)
+                bool haveScopedKeyword = false;
+
+                if (this.CurrentToken.ContextualKind == SyntaxKind.ScopedKeyword)
+                {
+                    if (this.PeekToken(1).Kind == SyntaxKind.RefKeyword)
+                    {
+                        isDeclaration = true;
+                    }
+                    else
+                    {
+                        this.EatToken();
+                        isDeclaration = ScanType() != ScanTypeFlags.NotType && this.CurrentToken.Kind == SyntaxKind.IdentifierToken;
+                        this.Reset(ref resetPoint);
+                    }
+
+                    haveScopedKeyword = isDeclaration;
+                }
+                else if (this.CurrentToken.Kind == SyntaxKind.RefKeyword)
                 {
                     isDeclaration = true;
                 }
-                else
+
+                if (!isDeclaration)
                 {
                     isDeclaration = !this.IsQueryExpression(mayBeVariableDeclaration: true, mayBeMemberDeclaration: false) &&
                                     this.ScanType() != ScanTypeFlags.NotType &&
@@ -9101,12 +9119,29 @@ done:;
 
                 if (isDeclaration)
                 {
-                    decl = ParseVariableDeclaration();
-                    if (decl.Type.Kind == SyntaxKind.RefType)
+                    SyntaxToken scopedKeyword = null;
+
+                    if (haveScopedKeyword)
                     {
-                        decl = decl.Update(
-                            CheckFeatureAvailability(decl.Type, MessageID.IDS_FeatureRefFor),
-                            decl.Variables);
+                        scopedKeyword = EatContextualToken(SyntaxKind.ScopedKeyword);
+                    }
+
+                    decl = ParseVariableDeclaration();
+
+                    var declType = decl.Type;
+                    if (declType.Kind == SyntaxKind.RefType)
+                    {
+                        declType = CheckFeatureAvailability(declType, MessageID.IDS_FeatureRefFor);
+                    }
+
+                    if (scopedKeyword != null)
+                    {
+                        declType = _syntaxFactory.ScopedType(scopedKeyword, declType);
+                    }
+
+                    if (declType != decl.Type)
+                    {
+                        decl = decl.Update(declType, decl.Variables);
                     }
                 }
                 else if (this.CurrentToken.Kind != SyntaxKind.SemicolonToken)
@@ -9221,7 +9256,7 @@ tryAgain:
 
             var openParen = this.EatToken(SyntaxKind.OpenParenToken);
 
-            var variable = ParseExpressionOrDeclaration(ParseTypeMode.Normal, feature: MessageID.IDS_FeatureTuples, permitTupleDesignation: true);
+            var variable = ParseExpressionOrDeclaration(ParseTypeMode.Normal, feature: MessageID.IDS_FeatureTuples, permitTupleDesignation: true, permitScoped: true);
             var @in = this.EatToken(SyntaxKind.InKeyword, ErrorCode.ERR_InExpected);
             if (!IsValidForeachVariable(variable))
             {
@@ -9298,15 +9333,19 @@ tryAgain:
         //
         // See also ScanTypeArgumentList where these disambiguation rules are encoded.
         //
-        private ExpressionSyntax ParseExpressionOrDeclaration(ParseTypeMode mode, MessageID feature, bool permitTupleDesignation)
+        private ExpressionSyntax ParseExpressionOrDeclaration(ParseTypeMode mode, MessageID feature, bool permitTupleDesignation, bool permitScoped)
         {
-            return IsPossibleDeclarationExpression(mode, permitTupleDesignation)
-                ? this.ParseDeclarationExpression(mode, feature)
+            bool isScoped;
+            return IsPossibleDeclarationExpression(mode, permitTupleDesignation, permitScoped, out isScoped)
+                ? this.ParseDeclarationExpression(mode, feature, isScoped)
                 : this.ParseSubExpression(Precedence.Expression);
         }
 
-        private bool IsPossibleDeclarationExpression(ParseTypeMode mode, bool permitTupleDesignation)
+        private bool IsPossibleDeclarationExpression(ParseTypeMode mode, bool permitTupleDesignation, bool permitScoped, out bool isScoped)
         {
+            Debug.Assert(mode == ParseTypeMode.Normal || !permitScoped);
+            isScoped = false;
+
             if (this.IsInAsync && this.CurrentToken.ContextualKind == SyntaxKind.AwaitKeyword)
             {
                 // can't be a declaration expression.
@@ -9316,6 +9355,18 @@ tryAgain:
             var resetPoint = this.GetResetPoint();
             try
             {
+                if (permitScoped && this.CurrentToken.ContextualKind == SyntaxKind.ScopedKeyword && mode == ParseTypeMode.Normal)
+                {
+                    this.EatToken();
+                    if (ScanType() != ScanTypeFlags.NotType && this.CurrentToken.Kind == SyntaxKind.IdentifierToken)
+                    {
+                        isScoped = true;
+                        return true;
+                    }
+
+                    this.Reset(ref resetPoint);
+                }
+
                 bool typeIsVar = IsVarType();
                 SyntaxToken lastTokenOfType;
                 if (ScanType(mode, out lastTokenOfType) == ScanTypeFlags.NotType)
@@ -10816,7 +10867,7 @@ tryAgain:
             }
             else if (this.IsPossibleDeconstructionLeft(precedence))
             {
-                leftOperand = ParseDeclarationExpression(ParseTypeMode.Normal, MessageID.IDS_FeatureTuples);
+                leftOperand = ParseDeclarationExpression(ParseTypeMode.Normal, MessageID.IDS_FeatureTuples, isScoped: false);
             }
             else
             {
@@ -11056,9 +11107,22 @@ tryAgain:
             return leftOperand;
         }
 
-        private ExpressionSyntax ParseDeclarationExpression(ParseTypeMode mode, MessageID feature)
+        private ExpressionSyntax ParseDeclarationExpression(ParseTypeMode mode, MessageID feature, bool isScoped)
         {
+            SyntaxToken scopedKeyword = null;
+
+            if (isScoped)
+            {
+                scopedKeyword = EatContextualToken(SyntaxKind.ScopedKeyword);
+            }
+
             TypeSyntax type = this.ParseType(mode);
+
+            if (scopedKeyword != null)
+            {
+                type = _syntaxFactory.ScopedType(scopedKeyword, type);
+            }
+
             var designation = ParseDesignation(forPattern: false);
             if (feature != MessageID.None)
             {
@@ -11147,7 +11211,7 @@ tryAgain:
                         }
                         else if (this.IsPossibleDeconstructionLeft(precedence))
                         {
-                            return ParseDeclarationExpression(ParseTypeMode.Normal, MessageID.IDS_FeatureTuples);
+                            return ParseDeclarationExpression(ParseTypeMode.Normal, MessageID.IDS_FeatureTuples, isScoped: false);
                         }
                         else
                         {
@@ -11725,7 +11789,7 @@ tryAgain:
                 // that the ref/out of the argument must match the parameter when binding the argument list.
 
                 expression = (refKindKeyword?.Kind == SyntaxKind.OutKeyword)
-                    ? ParseExpressionOrDeclaration(ParseTypeMode.Normal, feature: MessageID.IDS_FeatureOutVar, permitTupleDesignation: false)
+                    ? ParseExpressionOrDeclaration(ParseTypeMode.Normal, feature: MessageID.IDS_FeatureOutVar, permitTupleDesignation: false, permitScoped: false)
                     : ParseSubExpression(Precedence.Expression);
             }
 
@@ -12028,7 +12092,7 @@ tryAgain:
                 {
                     this.Reset(ref resetPoint);
                     var openParen = this.EatToken(SyntaxKind.OpenParenToken);
-                    var expression = this.ParseExpressionOrDeclaration(ParseTypeMode.FirstElementOfPossibleTupleLiteral, feature: 0, permitTupleDesignation: true);
+                    var expression = this.ParseExpressionOrDeclaration(ParseTypeMode.FirstElementOfPossibleTupleLiteral, feature: 0, permitTupleDesignation: true, permitScoped: false);
 
                     //  ( <expr>,    must be a tuple
                     if (this.CurrentToken.Kind == SyntaxKind.CommaToken)
@@ -12041,7 +12105,7 @@ tryAgain:
                     if (expression.Kind == SyntaxKind.IdentifierName && this.CurrentToken.Kind == SyntaxKind.ColonToken)
                     {
                         var nameColon = _syntaxFactory.NameColon((IdentifierNameSyntax)expression, EatToken());
-                        expression = this.ParseExpressionOrDeclaration(ParseTypeMode.FirstElementOfPossibleTupleLiteral, feature: 0, permitTupleDesignation: true);
+                        expression = this.ParseExpressionOrDeclaration(ParseTypeMode.FirstElementOfPossibleTupleLiteral, feature: 0, permitTupleDesignation: true, permitScoped: false);
 
                         var firstArg = _syntaxFactory.Argument(nameColon, refKindKeyword: null, expression: expression);
                         return ParseTupleExpressionTail(openParen, firstArg);
@@ -12071,11 +12135,11 @@ tryAgain:
 
                     ArgumentSyntax arg;
 
-                    var expression = ParseExpressionOrDeclaration(ParseTypeMode.AfterTupleComma, feature: 0, permitTupleDesignation: true);
+                    var expression = ParseExpressionOrDeclaration(ParseTypeMode.AfterTupleComma, feature: 0, permitTupleDesignation: true, permitScoped: false);
                     if (expression.Kind == SyntaxKind.IdentifierName && this.CurrentToken.Kind == SyntaxKind.ColonToken)
                     {
                         var nameColon = _syntaxFactory.NameColon((IdentifierNameSyntax)expression, EatToken());
-                        expression = ParseExpressionOrDeclaration(ParseTypeMode.AfterTupleComma, feature: 0, permitTupleDesignation: true);
+                        expression = ParseExpressionOrDeclaration(ParseTypeMode.AfterTupleComma, feature: 0, permitTupleDesignation: true, permitScoped: false);
                         arg = _syntaxFactory.Argument(nameColon, refKindKeyword: null, expression: expression);
                     }
                     else

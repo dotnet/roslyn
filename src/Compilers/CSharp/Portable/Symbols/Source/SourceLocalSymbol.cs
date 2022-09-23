@@ -695,7 +695,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 SyntaxToken identifierToken,
                 ExpressionSyntax collection,
                 LocalDeclarationKind declarationKind) :
-                    base(containingSymbol, scopeBinder, allowRefKind: true, allowScoped: false, typeSyntax, identifierToken, declarationKind) // https://github.com/dotnet/roslyn/issues/62039: Allow 'scoped' modifier.
+                    base(containingSymbol, scopeBinder, allowRefKind: true, allowScoped: true, typeSyntax, identifierToken, declarationKind)
             {
                 Debug.Assert(declarationKind == LocalDeclarationKind.ForEachIterationVariable);
                 _collection = collection;
