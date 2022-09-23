@@ -462,7 +462,7 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        private sealed class ReuseVersionLoader : TextLoader
+        private class ReuseVersionLoader : TextLoader
         {
             // Capture DocumentState instead of Document so that we don't hold onto the old solution.
             private readonly DocumentState _oldDocumentState;
@@ -474,7 +474,8 @@ namespace Microsoft.CodeAnalysis
                 _newText = newText;
             }
 
-            public override async Task<TextAndVersion> LoadTextAndVersionAsync(CancellationToken cancellationToken)
+            public override async Task<TextAndVersion> LoadTextAndVersionAsync(
+                Workspace workspace, DocumentId documentId, CancellationToken cancellationToken)
             {
                 var oldText = await _oldDocumentState.GetTextAsync(cancellationToken).ConfigureAwait(false);
                 var version = await _oldDocumentState.GetTextVersionAsync(cancellationToken).ConfigureAwait(false);
@@ -482,7 +483,7 @@ namespace Microsoft.CodeAnalysis
                 return GetProperTextAndVersion(oldText, _newText, version, _oldDocumentState.FilePath);
             }
 
-            internal override TextAndVersion LoadTextAndVersionSynchronously(CancellationToken cancellationToken)
+            internal override TextAndVersion LoadTextAndVersionSynchronously(Workspace workspace, DocumentId documentId, CancellationToken cancellationToken)
             {
                 var oldText = _oldDocumentState.GetTextSynchronously(cancellationToken);
                 var version = _oldDocumentState.GetTextVersionSynchronously(cancellationToken);
