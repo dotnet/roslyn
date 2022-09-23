@@ -15,12 +15,12 @@ namespace Microsoft.CodeAnalysis
         None = 0,
 
         /// <summary>
-        /// A ref scoped to the current method or block.
+        /// A ref scoped to the enclosing block or method.
         /// </summary>
         ScopedRef = 1,
 
         /// <summary>
-        /// A value scoped to the current method or block.
+        /// A value scoped to the enclosing block or method.
         /// </summary>
         ScopedValue = 2,
     }

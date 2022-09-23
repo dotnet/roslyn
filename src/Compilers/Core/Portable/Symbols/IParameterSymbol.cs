@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis
         RefKind RefKind { get; }
 
         /// <summary>
-        /// Returns the scoped kind of the local.
+        /// Returns the scoped kind of the parameter.
         /// </summary>
         ScopedKind ScopedKind { get; }
 
