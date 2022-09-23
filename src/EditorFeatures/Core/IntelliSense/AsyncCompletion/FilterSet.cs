@@ -5,6 +5,7 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Collections.Specialized;
+using System.Diagnostics;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -38,6 +39,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
 
         private BitVector32 _vector;
         private static readonly int s_expanderMask;
+        private readonly bool _supportExpander;
 
         public static readonly CompletionFilter NamespaceFilter;
         public static readonly CompletionFilter ClassFilter;
@@ -127,8 +129,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 new ImageElement(new ImageId(imageId.Guid, imageId.Id), EditorFeaturesResources.Filter_image_element));
         }
 
-        public FilterSet()
-            => _vector = new BitVector32();
+        public FilterSet(bool supportExpander)
+        {
+            _supportExpander = supportExpander;
+            _vector = new BitVector32();
+        }
 
         public (ImmutableArray<CompletionFilter> filters, int data) GetFiltersAndAddToSet(RoslynCompletionItem item)
         {
@@ -137,6 +142,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
 
             if (item.Flags.IsExpanded())
             {
+                Debug.Assert(_supportExpander);
                 listBuilder.Add(Expander);
                 vectorForSingleItem[s_expanderMask] = _vector[s_expanderMask] = true;
             }
@@ -170,14 +176,18 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
         }
 
         public void CombineData(int filterSetData)
-            => _vector[filterSetData] = true;
+        {
+            _vector[filterSetData] = true;
+            Debug.Assert(!_vector[s_expanderMask] || (_supportExpander && _vector[s_expanderMask]));
+        }
 
         public ImmutableArray<CompletionFilterWithState> GetFilterStatesInSet()
         {
             using var _ = ArrayBuilder<CompletionFilterWithState>.GetInstance(out var builder);
 
-            // We always show expander but its selection state depends on whether it is in the set.
-            builder.Add(new CompletionFilterWithState(Expander, isAvailable: true, isSelected: _vector[s_expanderMask]));
+            // We always show expander if supported but its selection state depends on whether it is in the set.
+            if (_supportExpander)
+                builder.Add(new CompletionFilterWithState(Expander, isAvailable: true, isSelected: _vector[s_expanderMask]));
 
             foreach (var filterWithMask in s_filters)
             {
