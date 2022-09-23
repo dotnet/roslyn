@@ -7,7 +7,7 @@ namespace Microsoft.CodeAnalysis
     /// <summary>
     /// Enumeration for kinds of scoped modifiers.
     /// </summary>
-    public enum ScopedKind
+    public enum ScopedKind : byte
     {
         /// <summary>
         /// Not scoped.
