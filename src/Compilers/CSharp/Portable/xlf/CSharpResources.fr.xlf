@@ -8175,13 +8175,13 @@ Un bloc catch() après un bloc catch (System.Exception e) peut intercepter des e
         <note />
       </trans-unit>
       <trans-unit id="ERR_AssignReadonlyNotField">
-        <source>Cannot assign to {0} '{1}' because it is a readonly variable</source>
-        <target state="translated">Impossible d'effectuer l'assignation à {0} '{1}', car il s'agit d'une variable en lecture seule</target>
+        <source>Cannot assign to {0} '{1}' or use it as the right hand side of a ref assignment because it is a readonly variable</source>
+        <target state="needs-review-translation">Impossible d'effectuer l'assignation à {0} '{1}', car il s'agit d'une variable en lecture seule</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_AssignReadonlyNotField2">
-        <source>Cannot assign to a member of {0} '{1}' because it is a readonly variable</source>
-        <target state="translated">Impossible d'effectuer l'assignation à un membre de {0} '{1}', car il s'agit d'une variable en lecture seule</target>
+        <source>Cannot assign to a member of {0} '{1}' or use it as the right hand side of a ref assignment because it is a readonly variable</source>
+        <target state="needs-review-translation">Impossible d'effectuer l'assignation à un membre de {0} '{1}', car il s'agit d'une variable en lecture seule</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RefReturnReadonlyNotField">

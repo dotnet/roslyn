@@ -2987,10 +2987,10 @@ A catch() block after a catch (System.Exception e) block can catch non-CLS excep
     <value>Members of {0} '{1}' cannot be used as a ref or out value because it is a readonly variable</value>
   </data>
   <data name="ERR_AssignReadonlyNotField" xml:space="preserve">
-    <value>Cannot assign to {0} '{1}' because it is a readonly variable</value>
+    <value>Cannot assign to {0} '{1}' or use it as the right hand side of a ref assignment because it is a readonly variable</value>
   </data>
   <data name="ERR_AssignReadonlyNotField2" xml:space="preserve">
-    <value>Cannot assign to a member of {0} '{1}' because it is a readonly variable</value>
+    <value>Cannot assign to a member of {0} '{1}' or use it as the right hand side of a ref assignment because it is a readonly variable</value>
   </data>
   <data name="ERR_RefReturnReadonlyNotField" xml:space="preserve">
     <value>Cannot return {0} '{1}' by writable reference because it is a readonly variable</value>

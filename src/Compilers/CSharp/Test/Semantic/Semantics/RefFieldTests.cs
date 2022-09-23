@@ -14638,11 +14638,9 @@ ref struct R
     public ref int field;
 }
 ";
-            // Confusing error message
-            // Tracked by https://github.com/dotnet/roslyn/issues/62756
             var comp = CreateCompilation(source, runtimeFeature: RuntimeFlag.ByRefFields);
             comp.VerifyDiagnostics(
-                // (8,39): error CS8331: Cannot assign to method 'C.Value()' because it is a readonly variable
+                // (8,39): error CS8331: Cannot assign to method 'C.Value()' or use it as the right hand side of a ref assignment because it is a readonly variable
                 //         var r = new R() { field = ref Value() };
                 Diagnostic(ErrorCode.ERR_AssignReadonlyNotField, "Value()").WithArguments("method", "C.Value()").WithLocation(8, 39)
                 );
