@@ -1116,13 +1116,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (format.ParameterOptions.IncludesOption(SymbolDisplayParameterOptions.IncludeParamsRefOut))
             {
                 if (symbol.ScopedKind == ScopedKind.ScopedRef &&
-                    (symbol as Symbols.PublicModel.ParameterSymbol)?.GetSymbol<ParameterSymbol>() is { } parameter &&
-                    !ParameterHelpers.IsRefScopedByDefault(parameter) &&
-                    !parameter.IsThis &&
+                    !symbol.IsThis &&
                     format.CompilerInternalOptions.IncludesOption(SymbolDisplayCompilerInternalOptions.IncludeScoped))
                 {
-                    AddKeyword(SyntaxKind.ScopedKeyword);
-                    AddSpace();
+                    var parameter = (symbol as Symbols.PublicModel.ParameterSymbol)?.GetSymbol<ParameterSymbol>();
+                    if (parameter is null || !ParameterHelpers.IsRefScopedByDefault(parameter))
+                    {
+                        AddKeyword(SyntaxKind.ScopedKeyword);
+                        AddSpace();
+                    }
                 }
 
                 AddParameterRefKind(symbol.RefKind);
