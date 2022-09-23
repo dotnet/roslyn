@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                 .WithFeatures(new[] { new KeyValuePair<string, string>("IOperation", "true") });
             var compilation = CreateCompilation(code, parseOptions: parseOptions);
             var additionalFiles = new[] { new TestAdditionalText() }.ToImmutableArray<AdditionalText>();
-            var analyzerConfigFiles = new[] { new TestAdditionalText() }.ToImmutableArray<AdditionalText>();
+            var analyzerConfigFiles = new[] { new TestAdditionalText(path: "c:\\.editorconfig") }.ToImmutableArray<AdditionalText>();
             var options = new AnalyzerOptions(additionalFiles, analyzerConfigFiles);
 
             Verify(compilation, options, nameof(AnalysisContext.RegisterCodeBlockAction));

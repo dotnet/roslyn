@@ -48,7 +48,7 @@ End Enum
         Public Sub AnalyzerDriverIsSafeAgainstAnalyzerExceptions()
             Dim compilation = CreateCompilationWithMscorlib40({TestResource.AllInOneVisualBasicCode})
             Dim additionalFiles = {DirectCast(New TestAdditionalText(), AdditionalText)}.ToImmutableArray()
-            Dim analyzerConfigFiles = {DirectCast(New TestAdditionalText(), AdditionalText)}.ToImmutableArray()
+            Dim analyzerConfigFiles = {DirectCast(New TestAdditionalText(path:="c:\\.editorconfig"), AdditionalText)}.ToImmutableArray()
             Dim options = New AnalyzerOptions(additionalFiles, analyzerConfigFiles)
             ThrowingDiagnosticAnalyzer(Of SyntaxKind).VerifyAnalyzerEngineIsSafeAgainstExceptions(
                 Function(analyzer) compilation.GetAnalyzerDiagnostics({analyzer}, options))

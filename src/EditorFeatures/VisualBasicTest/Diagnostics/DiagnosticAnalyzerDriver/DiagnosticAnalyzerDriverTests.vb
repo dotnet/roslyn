@@ -25,7 +25,10 @@ Public Class DiagnosticAnalyzerDriverTests
         Using workspace = TestWorkspace.CreateVisualBasic(source, composition:=s_compositionWithMockDiagnosticUpdateSourceRegistrationService)
             Dim analyzerReference = New AnalyzerImageReference(ImmutableArray.Create(Of DiagnosticAnalyzer)(analyzer))
             Dim newSolution = workspace.CurrentSolution.WithAnalyzerReferences({analyzerReference}).
-                Projects.Single().AddAdditionalDocument(name:="dummy.txt", text:="", filePath:="dummy.txt").Project.Solution
+                Projects.Single().
+                AddAdditionalDocument(name:="dummy.txt", text:="", filePath:="dummy.txt").Project.
+                AddAnalyzerConfigDocument(name:=".editorconfig", text:=SourceText.From(""), filePath:="c:\\.editorconfig").Project.
+                Solution
             workspace.TryApplyChanges(newSolution)
 
             Dim document = workspace.CurrentSolution.Projects.Single().Documents.Single()

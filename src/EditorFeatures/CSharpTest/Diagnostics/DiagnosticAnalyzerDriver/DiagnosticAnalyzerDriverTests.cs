@@ -56,7 +56,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UserDiagnos
 
             var analyzerReference = new AnalyzerImageReference(ImmutableArray.Create<DiagnosticAnalyzer>(analyzer));
             var newSolution = workspace.CurrentSolution.WithAnalyzerReferences(new[] { analyzerReference })
-                .Projects.Single().AddAdditionalDocument(name: "dummy.txt", text: "", filePath: "dummy.txt").Project.Solution;
+                .Projects.Single()
+                .AddAdditionalDocument(name: "dummy.txt", text: "", filePath: "dummy.txt").Project
+                .AddAnalyzerConfigDocument(name: ".editorconfig", text: SourceText.From(""), filePath: "c:\\.editorconfig").Project
+                .Solution;
             workspace.TryApplyChanges(newSolution);
 
             var document = workspace.CurrentSolution.Projects.Single().Documents.Single();

@@ -99,7 +99,7 @@ public class C
         {
             var compilation = CreateCompilationWithMscorlib45(TestResource.AllInOneCSharpCode);
             var additionalFiles = new[] { new TestAdditionalText() }.ToImmutableArray<AdditionalText>();
-            var analyzerConfigFiles = new[] { new TestAdditionalText() }.ToImmutableArray<AdditionalText>();
+            var analyzerConfigFiles = new[] { new TestAdditionalText(path: "c:\\.editorconfig") }.ToImmutableArray<AdditionalText>();
             var options = new AnalyzerOptions(additionalFiles, analyzerConfigFiles);
 
             ThrowingDiagnosticAnalyzer<SyntaxKind>.VerifyAnalyzerEngineIsSafeAgainstExceptions(analyzer =>

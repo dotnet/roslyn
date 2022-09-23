@@ -96,10 +96,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 {
                     sb.AppendLine($"{nameof(SyntaxTree)}: {_file.Value.SourceTree.FilePath}");
                 }
+                else if (_file.Value.AdditionalFile != null)
+                {
+                    sb.AppendLine($"{nameof(AdditionalText)}: {_file.Value.AdditionalFile.Path}");
+                }
                 else
                 {
-                    RoslynDebug.Assert(_file.Value.AdditionalFile != null);
-                    sb.AppendLine($"{nameof(AdditionalText)}: {_file.Value.AdditionalFile.Path}");
+                    RoslynDebug.Assert(_file.Value.AnalyzerConfigFile != null);
+                    sb.AppendLine($"{nameof(AdditionalText)}: {_file.Value.AnalyzerConfigFile.Path}");
                 }
             }
 
