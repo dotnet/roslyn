@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -10,7 +10,6 @@ using System.Globalization;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Completion.Providers;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageService;
@@ -240,10 +239,9 @@ namespace Microsoft.CodeAnalysis.Completion
 
         /// <summary>
         /// Given a list of completion items that match the current code typed by the user,
-        /// returns the item that is considered the best match, and whether or not that
-        /// item should be selected or not.
+        /// returns the items that is considered the best match.
         /// 
-        /// itemToFilterText provides the values that each individual completion item should
+        /// filterText provides the values that each individual completion item should
         /// be filtered against.
         /// </summary>
         public virtual ImmutableArray<CompletionItem> FilterItems(
@@ -251,20 +249,22 @@ namespace Microsoft.CodeAnalysis.Completion
             ImmutableArray<CompletionItem> items,
             string filterText)
         {
-            var helper = CompletionHelper.GetHelper(document);
-            var filterDataList = new SegmentedList<MatchResult>(items.Select(
-                item => helper.GetMatchResult(item, filterText, includeMatchSpans: false, CultureInfo.CurrentCulture)));
-
+            var matchResults = s_listOfMatchResultPool.Allocate();
             var builder = s_listOfMatchResultPool.Allocate();
+
             try
             {
-                FilterItemsDefault(helper, filterDataList, filterText, builder);
+                var helper = CompletionHelper.GetHelper(document);
+                matchResults.AddRange(items.Select(item => helper.GetMatchResult(item, filterText, includeMatchSpans: false, CultureInfo.CurrentCulture)));
+                FilterItemsDefault(helper, matchResults, filterText, builder);
                 return builder.SelectAsArray(result => result.CompletionItem);
             }
             finally
             {
                 // Don't call ClearAndFree, which resets the capacity to a default value.
+                matchResults.Clear();
                 builder.Clear();
+                s_listOfMatchResultPool.Free(matchResults);
                 s_listOfMatchResultPool.Free(builder);
             }
         }
@@ -275,13 +275,22 @@ namespace Microsoft.CodeAnalysis.Completion
            string filterText,
            IList<MatchResult> builder)
         {
+            using var _1 = ArrayBuilder<CompletionItem>.GetInstance(matchResults.Count, out var itemBuilder);
+            using var _2 = PooledDictionary<CompletionItem, MatchResult>.GetInstance(out var map);
+
+            foreach (var result in matchResults)
+            {
+                itemBuilder.Add(result.CompletionItem);
+                map.Add(result.CompletionItem, result);
+            }
+
 #pragma warning disable RS0030 // Do not used banned APIs
             // Default implementation just drops the pattern matches and builder, and calls the public overload of FilterItems instead for compatibility.
-            var filteredItems = FilterItems(document, matchResults.SelectAsArray(item => item.CompletionItem), filterText);
+            var filteredItems = FilterItems(document, itemBuilder.ToImmutable(), filterText);
 #pragma warning restore RS0030 // Do not used banned APIs
 
             var helper = CompletionHelper.GetHelper(document);
-            builder.AddRange(filteredItems.Select(item => helper.GetMatchResult(item, filterText, includeMatchSpans: false, CultureInfo.CurrentCulture)));
+            builder.AddRange(filteredItems.Select(item => map[item]));
         }
 
         /// <summary>
