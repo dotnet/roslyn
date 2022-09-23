@@ -1334,7 +1334,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
             }
 
-            if (CheckManagedAddr(Compilation, elementType, initializerSyntax.Location, diagnostics))
+            if (CheckManagedAddr(Compilation, elementType, warnForManaged: false, initializerSyntax.Location, diagnostics))
             {
                 hasErrors = true;
             }
@@ -2686,7 +2686,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var typeSyntax = nodeOpt.Type;
-            Debug.Assert(nodeOpt.Type is not ScopedTypeSyntax);
+            Debug.Assert(typeSyntax is not ScopedTypeSyntax || localKind == LocalDeclarationKind.RegularVariable);
+
+            if (typeSyntax is ScopedTypeSyntax scopedType)
+            {
+                // Check for support for 'scoped'.
+                ModifierUtils.CheckScopedModifierAvailability(typeSyntax, scopedType.ScopedKeyword, diagnostics);
+
+                typeSyntax = scopedType.Type;
+            }
 
             // Fixed and using variables are not allowed to be ref-like, but regular variables are
             if (localKind == LocalDeclarationKind.RegularVariable)

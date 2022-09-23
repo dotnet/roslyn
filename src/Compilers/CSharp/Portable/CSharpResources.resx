@@ -990,6 +990,12 @@
   <data name="ERR_ManagedAddr" xml:space="preserve">
     <value>Cannot take the address of, get the size of, or declare a pointer to a managed type ('{0}')</value>
   </data>
+  <data name="WRN_ManagedAddr" xml:space="preserve">
+    <value>This takes the address of, gets the size of, or declares a pointer to a managed type ('{0}')</value>
+  </data>
+  <data name="WRN_ManagedAddr_Title" xml:space="preserve">
+    <value>This takes the address of, gets the size of, or declares a pointer to a managed type</value>
+  </data>
   <data name="ERR_BadFixedInitType" xml:space="preserve">
     <value>The type of a local declared in a fixed statement must be a pointer type</value>
   </data>
@@ -7224,7 +7230,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>Types and aliases cannot be named 'scoped'.</value>
   </data>
   <data name="ERR_UnscopedRefAttributeUnsupportedTarget" xml:space="preserve">
-    <value>UnscopedRefAttribute can only be applied to 'out' parameters, 'ref' and 'in' parameters that refer to 'ref struct' types, and instance methods and properties on 'struct' types other than constructors and 'init' accessors.</value>
+    <value>UnscopedRefAttribute cannot be applied to this item because it is unscoped by default.</value>
   </data>
   <data name="ERR_RuntimeDoesNotSupportRefFields" xml:space="preserve">
     <value>Target runtime doesn't support ref fields.</value>

@@ -2502,30 +2502,22 @@ namespace Microsoft.CodeAnalysis.CSharp
             ManagedKind managedKind = operandType.GetManagedKind(ref useSiteInfo);
             diagnostics.Add(node.Location, useSiteInfo);
 
-            bool allowManagedAddressOf = Flags.Includes(BinderFlags.AllowManagedAddressOf);
-            if (!allowManagedAddressOf)
+            if (!hasErrors)
             {
-                if (!hasErrors)
-                {
-                    hasErrors = CheckManagedAddr(Compilation, operandType, managedKind, node.Location, diagnostics);
-                }
+                hasErrors = CheckManagedAddr(Compilation, operandType, managedKind, warnForManaged: true, node.Location, diagnostics);
+            }
 
-                if (!hasErrors)
+            bool allowManagedAddressOf = Flags.Includes(BinderFlags.AllowMoveableAddressOf);
+            if (!hasErrors && !allowManagedAddressOf)
+            {
+                if (IsMoveableVariable(operand, accessedLocalOrParameterOpt: out _) != isFixedStatementAddressOfExpression)
                 {
-                    Symbol accessedLocalOrParameterOpt;
-                    if (IsMoveableVariable(operand, out accessedLocalOrParameterOpt) != isFixedStatementAddressOfExpression)
-                    {
-                        Error(diagnostics, isFixedStatementAddressOfExpression ? ErrorCode.ERR_FixedNotNeeded : ErrorCode.ERR_FixedNeeded, node);
-                        hasErrors = true;
-                    }
+                    Error(diagnostics, isFixedStatementAddressOfExpression ? ErrorCode.ERR_FixedNotNeeded : ErrorCode.ERR_FixedNeeded, node);
+                    hasErrors = true;
                 }
             }
 
-            TypeSymbol pointedAtType = managedKind == ManagedKind.Managed && allowManagedAddressOf
-                ? GetSpecialType(SpecialType.System_IntPtr, diagnostics, node)
-                : operandType ?? CreateErrorType();
-            TypeSymbol pointerType = new PointerTypeSymbol(TypeWithAnnotations.Create(pointedAtType));
-
+            TypeSymbol pointerType = new PointerTypeSymbol(TypeWithAnnotations.Create(operandType));
             return new BoundAddressOfOperator(node, operand, pointerType, hasErrors);
         }
 

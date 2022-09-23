@@ -1618,8 +1618,8 @@
         <note>UnmanagedCallersOnly is not localizable.</note>
       </trans-unit>
       <trans-unit id="ERR_UnscopedRefAttributeUnsupportedTarget">
-        <source>UnscopedRefAttribute can only be applied to 'out' parameters, 'ref' and 'in' parameters that refer to 'ref struct' types, and instance methods and properties on 'struct' types other than constructors and 'init' accessors.</source>
-        <target state="translated">UnscopedRefAttribute는 'out' 매개 변수, 'ref struct' 형식을 참조하는 'ref' 및 'in' 매개 변수, 생성자 및 'init' 접근자 이외의 'struct' 형식에 대한 인스턴스 메서드 및 속성에만 적용할 수 있습니다.</target>
+        <source>UnscopedRefAttribute cannot be applied to this item because it is unscoped by default.</source>
+        <target state="needs-review-translation">UnscopedRefAttribute는 'out' 매개 변수, 'ref struct' 형식을 참조하는 'ref' 및 'in' 매개 변수, 생성자 및 'init' 접근자 이외의 'struct' 형식에 대한 인스턴스 메서드 및 속성에만 적용할 수 있습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnscopedScoped">
@@ -1990,6 +1990,16 @@
       <trans-unit id="WRN_LowerCaseTypeName_Title">
         <source>The type name only contains lower-cased ascii characters. Such names may become reserved for the language.</source>
         <target state="translated">형식 이름에는 소문자 ASCII 문자만 포함됩니다. 이러한 이름은 언어에 대해 예약될 수 있습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_ManagedAddr">
+        <source>This takes the address of, gets the size of, or declares a pointer to a managed type ('{0}')</source>
+        <target state="new">This takes the address of, gets the size of, or declares a pointer to a managed type ('{0}')</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_ManagedAddr_Title">
+        <source>This takes the address of, gets the size of, or declares a pointer to a managed type</source>
+        <target state="new">This takes the address of, gets the size of, or declares a pointer to a managed type</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_MethGrpToNonDel">
