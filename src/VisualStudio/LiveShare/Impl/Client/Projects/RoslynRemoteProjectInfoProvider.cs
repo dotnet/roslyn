@@ -93,7 +93,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client.Projects
                 DocumentInfo.Create(
                     DocumentId.CreateNewId(projectId),
                     name: Path.GetFileNameWithoutExtension(path),
-                    loader: new WorkspaceFileTextLoaderNoException(path, defaultEncoding: null, checksumAlgorithm),
+                    loader: new WorkspaceFileTextLoaderNoException(services, path, defaultEncoding: null, checksumAlgorithm),
                     filePath: path));
 
             return ProjectInfo.Create(

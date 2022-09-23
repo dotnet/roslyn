@@ -29,6 +29,6 @@ internal sealed class NullTextLoader : TextLoader
     private protected override TextLoader TryUpdateChecksumAlgorithmImpl(SourceHashAlgorithm algorithm)
         => new NullTextLoader(algorithm);
 
-    public override Task<TextAndVersion> LoadTextAndVersionAsync(Workspace workspace, DocumentId documentId, CancellationToken cancellationToken)
+    public override Task<TextAndVersion> LoadTextAndVersionAsync(CancellationToken cancellationToken)
         => throw new NotImplementedException();
 }

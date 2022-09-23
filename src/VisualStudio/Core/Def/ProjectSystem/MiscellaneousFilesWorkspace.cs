@@ -293,7 +293,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             Contract.ThrowIfNull(languageInformation);
 
             var checksumAlgorithm = SourceHashAlgorithms.Default;
-            var fileLoader = new WorkspaceFileTextLoader(filePath, defaultEncoding: null, checksumAlgorithm);
+            var fileLoader = new WorkspaceFileTextLoader(Services.SolutionServices, filePath, defaultEncoding: null, checksumAlgorithm);
             return MiscellaneousFileUtilities.CreateMiscellaneousProjectInfoForDocument(filePath, fileLoader, languageInformation, checksumAlgorithm, Services.SolutionServices, _metadataReferences);
         }
 

@@ -18,13 +18,13 @@ namespace Microsoft.CodeAnalysis
     /// </summary>
     internal sealed class RecoverableTextAndVersion : ValueSource<TextAndVersion>, ITextVersionable, ITextAndVersionSource
     {
-        private readonly HostWorkspaceServices _services;
+        private readonly SolutionServices _services;
 
         // Starts as ITextAndVersionSource and is replaced with RecoverableText when the TextAndVersion value is requested.
         // At that point the initial source is no longer referenced and can be garbage collected.
         private object _initialSourceOrRecoverableText;
 
-        public RecoverableTextAndVersion(ITextAndVersionSource initialSource, HostWorkspaceServices services)
+        public RecoverableTextAndVersion(ITextAndVersionSource initialSource, SolutionServices services)
         {
             _initialSourceOrRecoverableText = initialSource;
             _services = services;
@@ -90,7 +90,7 @@ namespace Microsoft.CodeAnalysis
                 // replace initial source with recovarable text if it hasn't been replaced already:
                 Interlocked.CompareExchange(
                     ref _initialSourceOrRecoverableText,
-                    value: new RecoverableText(source, source.GetValue(cancellationToken), _services.SolutionServices),
+                    value: new RecoverableText(source, source.GetValue(cancellationToken), _services),
                     comparand: source);
             }
 
@@ -105,7 +105,7 @@ namespace Microsoft.CodeAnalysis
                 // replace initial source with recovarable text if it hasn't been replaced already:
                 Interlocked.CompareExchange(
                     ref _initialSourceOrRecoverableText,
-                    value: new RecoverableText(source, await source.GetValueAsync(cancellationToken).ConfigureAwait(false), _services.SolutionServices),
+                    value: new RecoverableText(source, await source.GetValueAsync(cancellationToken).ConfigureAwait(false), _services),
                     comparand: source);
             }
 
@@ -136,9 +136,7 @@ namespace Microsoft.CodeAnalysis
                 return null;
             }
 
-            Contract.ThrowIfNull(recoverableText.DocumentId);
-
-            return new RecoverableTextAndVersion(new LoadableTextAndVersionSource(newFileLoader, recoverableText.DocumentId, _services.Workspace, cacheResult: false), _services);
+            return new RecoverableTextAndVersion(new LoadableTextAndVersionSource(newFileLoader, cacheResult: false), _services);
         }
 
         private sealed class RecoverableText : WeaklyCachedRecoverableValueSource<SourceText>, ITextVersionable
@@ -147,7 +145,6 @@ namespace Microsoft.CodeAnalysis
             public readonly VersionStamp Version;
             public readonly Diagnostic? LoadDiagnostic;
             public readonly FileTextLoader? FileLoader;
-            public readonly DocumentId? DocumentId;
             public readonly SourceHashAlgorithm ChecksumAlgorithm;
 
             public ITemporaryTextStorageInternal? _storage;
@@ -162,10 +159,9 @@ namespace Microsoft.CodeAnalysis
                 ChecksumAlgorithm = source.ChecksumAlgorithm;
 
                 // preserve file loader so that we can update checksum algorithm later if necessary
-                if (source is LoadableTextAndVersionSource { Loader: FileTextLoader fileLoader, DocumentId: var documentId })
+                if (source is LoadableTextAndVersionSource { Loader: FileTextLoader fileLoader })
                 {
                     FileLoader = fileLoader;
-                    DocumentId = documentId;
                 }
             }
 
