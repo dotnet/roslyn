@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Equal(SourceCodeKind.Script, info.SourceCodeKind);
             Assert.Same(loader, info.TextLoader);
             Assert.True(info.IsGenerated);
-            Assert.Equal(SourceHashAlgorithms.Default, info.ChecksumAlgorithm);
+            Assert.Equal(SourceHashAlgorithms.Default, info.LoadTextOptions.ChecksumAlgorithm);
         }
 
         [Fact]

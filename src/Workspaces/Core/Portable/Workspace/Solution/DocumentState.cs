@@ -83,6 +83,7 @@ namespace Microsoft.CodeAnalysis
         }
 
         [MemberNotNullWhen(true, nameof(_treeSource))]
+        [MemberNotNullWhen(true, nameof(_options))]
         internal bool SupportsSyntaxTree
             => _treeSource != null;
 
@@ -201,7 +202,7 @@ namespace Microsoft.CodeAnalysis
             var root = tree.GetRoot(cancellationToken);
             if (mode == PreservationMode.PreserveValue && treeFactory.CanCreateRecoverableTree(root))
             {
-                tree = treeFactory.CreateRecoverableTree(cacheKey, tree.FilePath, tree.Options, newTextSource, text.Encoding, root);
+                tree = treeFactory.CreateRecoverableTree(cacheKey, tree.FilePath, tree.Options, newTextSource, new LoadTextOptions(text.ChecksumAlgorithm), text.Encoding, root);
             }
 
             Contract.ThrowIfNull(tree);
@@ -339,14 +340,26 @@ namespace Microsoft.CodeAnalysis
         {
             var newLoadTextOptions = new LoadTextOptions(checksumAlgorithm);
 
-            // TODO: we should be able to reuse the tree
-            var newTreeSource = CreateLazyFullyParsedTree(
+            if (LoadTextOptions == newLoadTextOptions)
+            {
+                return this;
+            }
+
+            // To keep the loaded SourceText consistent with the DocumentState,
+            // avoid updating the options if the loader can't apply them on the loaded SourceText.
+            if (!TextAndVersionSource.CanReloadText)
+            {
+                return this;
+            }
+
+            // TODO: we should be able to reuse the tree root
+            var newTreeSource = SupportsSyntaxTree ? CreateLazyFullyParsedTree(
                 TextAndVersionSource,
                 newLoadTextOptions,
                 Id.ProjectId,
                 GetSyntaxTreeFilePath(Attributes),
                 _options,
-                _languageServices);
+                _languageServices) : null;
 
             return new DocumentState(
                 LanguageServices,
@@ -480,7 +493,7 @@ namespace Microsoft.CodeAnalysis
                     LoadTextOptions,
                     Id.ProjectId,
                     GetSyntaxTreeFilePath(newAttributes),
-                    _options!,
+                    _options,
                     _languageServices) : null;
 
             return new DocumentState(
@@ -505,7 +518,7 @@ namespace Microsoft.CodeAnalysis
         {
             ValueSource<TreeAndVersion>? newTreeSource;
 
-            if (_treeSource == null)
+            if (!SupportsSyntaxTree)
             {
                 newTreeSource = null;
             }
@@ -520,7 +533,7 @@ namespace Microsoft.CodeAnalysis
                     LoadTextOptions,
                     Id.ProjectId,
                     GetSyntaxTreeFilePath(Attributes),
-                    _options!,
+                    _options,
                     _languageServices,
                     mode); // TODO: understand why the mode is given here. If we're preserving text by identity, why also preserve the tree?
             }
@@ -654,8 +667,7 @@ namespace Microsoft.CodeAnalysis
                         tree.GetText,
                         cacheResult: true),
                     textVersion,
-                    filePath,
-                    checksumAlgorithm);
+                    filePath);
             }
             else
             {
@@ -674,10 +686,9 @@ namespace Microsoft.CodeAnalysis
                             cancellationToken => tree.GetRoot(cancellationToken).GetText(encoding, checksumAlgorithm),
                             cacheResult: false)),
                     textVersion,
-                    filePath,
-                    checksumAlgorithm);
+                    filePath);
 
-                tree = factory.CreateRecoverableTree(attributes.Id.ProjectId, filePath, options, lazyTextAndVersion, encoding, newRoot);
+                tree = factory.CreateRecoverableTree(attributes.Id.ProjectId, filePath, options, lazyTextAndVersion, new LoadTextOptions(checksumAlgorithm), encoding, newRoot);
             }
 
             return (lazyTextAndVersion, new TreeAndVersion(tree, treeVersion, checksumAlgorithm));

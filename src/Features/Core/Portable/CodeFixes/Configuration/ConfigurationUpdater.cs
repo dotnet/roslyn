@@ -341,7 +341,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Configuration
             var documentInfo = DocumentInfo.Create(
                 id,
                 name: ".editorconfig",
-                filePath: analyzerConfigPath);
+                filePath: analyzerConfigPath,
+                loadTextOptions: new LoadTextOptions(project.State.ChecksumAlgorithm));
 
             var newSolution = project.Solution.AddAnalyzerConfigDocuments(ImmutableArray.Create(documentInfo));
             return newSolution.GetProject(project.Id)?.GetAnalyzerConfigDocument(id);

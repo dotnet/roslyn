@@ -19,10 +19,7 @@ namespace Microsoft.CodeAnalysis
     /// </summary>
     [DebuggerDisplay("{GetDebuggerDisplay() , nq}")]
     public sealed class DocumentInfo
-    {
-        private readonly TextLoader _textLoader;
-        internal readonly LoadTextOptions LoadTextOptions;
-
+    {   
         internal DocumentAttributes Attributes { get; }
 
         /// <summary>
@@ -56,6 +53,16 @@ namespace Microsoft.CodeAnalysis
         public bool IsGenerated => Attributes.IsGenerated;
 
         /// <summary>
+        /// A loader that can retrieve the document text.
+        /// </summary>
+        public TextLoader? TextLoader { get; }
+
+        /// <summary>
+        /// Options used to load <see cref="SourceText"/>.
+        /// </summary>
+        public LoadTextOptions LoadTextOptions { get; }
+
+        /// <summary>
         /// A <see cref="IDocumentServiceProvider"/> associated with this document
         /// </summary>
         internal IDocumentServiceProvider? DocumentServiceProvider { get; }
@@ -63,10 +70,10 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Create a new instance of a <see cref="DocumentInfo"/>.
         /// </summary>
-        internal DocumentInfo(DocumentAttributes attributes, TextLoader loader, LoadTextOptions loadTextOptions, IDocumentServiceProvider? documentServiceProvider)
+        internal DocumentInfo(DocumentAttributes attributes, TextLoader? loader, LoadTextOptions loadTextOptions, IDocumentServiceProvider? documentServiceProvider)
         {
             Attributes = attributes;
-            _textLoader = loader;
+            TextLoader = loader;
             LoadTextOptions = loadTextOptions;
             DocumentServiceProvider = documentServiceProvider;
         }
@@ -74,6 +81,17 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Creates info.
         /// </summary>
+        [Obsolete]
+        public static DocumentInfo Create(
+            DocumentId id,
+            string name,
+            IEnumerable<string>? folders,
+            SourceCodeKind sourceCodeKind,
+            TextLoader? loader,
+            string? filePath,
+            bool isGenerated)
+            => Create(id, name, folders, sourceCodeKind, loader, filePath, isGenerated, loadTextOptions: null);
+
         public static DocumentInfo Create(
             DocumentId id,
             string name,
@@ -81,7 +99,8 @@ namespace Microsoft.CodeAnalysis
             SourceCodeKind sourceCodeKind = SourceCodeKind.Regular,
             TextLoader? loader = null,
             string? filePath = null,
-            bool isGenerated = false)
+            bool isGenerated = false,
+            LoadTextOptions? loadTextOptions = null)
         {
             return new DocumentInfo(
                 new DocumentAttributes(
@@ -92,24 +111,24 @@ namespace Microsoft.CodeAnalysis
                     filePath,
                     isGenerated,
                     designTimeOnly: false),
-                loader ?? NullTextLoader.Default,
-                new LoadTextOptions(SourceHashAlgorithm.Sha1),
+                loader,
+                loadTextOptions ?? new LoadTextOptions(SourceHashAlgorithms.Default),
                 documentServiceProvider: null);
         }
 
         private DocumentInfo With(
             DocumentAttributes? attributes = null,
-            TextLoader? loader = null,
+            Optional<TextLoader?> loader = default,
             Optional<LoadTextOptions> loadTextOptions = default,
             Optional<IDocumentServiceProvider?> documentServiceProvider = default)
         {
             var newAttributes = attributes ?? Attributes;
-            var newLoader = loader ?? _textLoader;
+            var newLoader = loader.HasValue ? loader.Value : TextLoader;
             var newLoadTextOptions = loadTextOptions.HasValue ? loadTextOptions.Value : LoadTextOptions;
             var newDocumentServiceProvider = documentServiceProvider.HasValue ? documentServiceProvider.Value : DocumentServiceProvider;
 
             if (newAttributes == Attributes &&
-                newLoader == _textLoader &&
+                newLoader == TextLoader &&
                 newLoadTextOptions == LoadTextOptions &&
                 newDocumentServiceProvider == DocumentServiceProvider)
             {
@@ -118,12 +137,6 @@ namespace Microsoft.CodeAnalysis
 
             return new DocumentInfo(newAttributes, newLoader, newLoadTextOptions, newDocumentServiceProvider);
         }
-
-        /// <summary>
-        /// A loader that can retrieve the document text.
-        /// </summary>
-        public TextLoader? TextLoader
-            => _textLoader is NullTextLoader ? null : _textLoader;
 
         public DocumentInfo WithId(DocumentId id)
             => With(attributes: Attributes.With(id: id ?? throw new ArgumentNullException(nameof(id))));
@@ -141,7 +154,7 @@ namespace Microsoft.CodeAnalysis
             => With(attributes: Attributes.With(filePath: filePath));
 
         public DocumentInfo WithTextLoader(TextLoader? loader)
-            => With(loader: loader ?? NullTextLoader.Default);
+            => With(loader: loader);
 
         public DocumentInfo WithLoadTextOptions(LoadTextOptions options)
             => With(loadTextOptions: options);

@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.Host
         bool CanCreateRecoverableTree(SyntaxNode root);
 
         // new recoverable tree from root node
-        SyntaxTree CreateRecoverableTree(ProjectId cacheKey, string? filePath, ParseOptions options, ITextAndVersionSource text, Encoding? encoding, SyntaxNode root);
+        SyntaxTree CreateRecoverableTree(ProjectId cacheKey, string? filePath, ParseOptions options, ITextAndVersionSource text, LoadTextOptions loadTextOptions, Encoding? encoding, SyntaxNode root);
 
         SyntaxNode DeserializeNodeFrom(Stream stream, CancellationToken cancellationToken);
     }

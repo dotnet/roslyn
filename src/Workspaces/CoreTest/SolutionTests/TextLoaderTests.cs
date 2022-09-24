@@ -99,7 +99,7 @@ public class TextLoaderTests
     {
         public static readonly TextAndVersion Value = TextAndVersion.Create(SourceText.From(""), VersionStamp.Default);
 
-        public override Task<TextAndVersion> LoadTextAndVersionAsync(CancellationToken cancellationToken)
+        public override Task<TextAndVersion> LoadTextAndVersionAsync(LoadTextOptions options, CancellationToken cancellationToken)
             => Task.FromResult(Value);
     }
 
@@ -107,7 +107,7 @@ public class TextLoaderTests
     [MemberData(nameof(GetNoOverideLoaders))]
     public async Task NoOverride(TextLoader loader)
     {
-        await Assert.ThrowsAsync<NotImplementedException>(() => loader.LoadTextAndVersionAsync(CancellationToken.None));
+        await Assert.ThrowsAsync<NotImplementedException>(() => loader.LoadTextAndVersionAsync(new LoadTextOptions(SourceHashAlgorithms.Default), CancellationToken.None));
         await Assert.ThrowsAsync<NotImplementedException>(() => loader.LoadTextAndVersionAsync(workspace: null, documentId: null, CancellationToken.None));
     }
 
@@ -115,7 +115,7 @@ public class TextLoaderTests
     public async Task OverridesObsolete()
     {
         var loader = new LoaderOverridesObsolete();
-        Assert.Same(LoaderOverridesObsolete.Value, await loader.LoadTextAndVersionAsync(CancellationToken.None));
+        Assert.Same(LoaderOverridesObsolete.Value, await loader.LoadTextAndVersionAsync(new LoadTextOptions(SourceHashAlgorithms.Default), CancellationToken.None));
         Assert.Same(LoaderOverridesObsolete.Value, await loader.LoadTextAndVersionAsync(workspace: null, documentId: null, CancellationToken.None));
     }
 
@@ -123,7 +123,7 @@ public class TextLoaderTests
     public async Task OverridesObsolete2()
     {
         var loader = new LoaderOverridesObsolete2();
-        Assert.Same(LoaderOverridesObsolete2.Value, await loader.LoadTextAndVersionAsync(CancellationToken.None));
+        Assert.Same(LoaderOverridesObsolete2.Value, await loader.LoadTextAndVersionAsync(new LoadTextOptions(SourceHashAlgorithms.Default), CancellationToken.None));
         Assert.Same(LoaderOverridesObsolete2.Value, await loader.LoadTextAndVersionAsync(workspace: null, documentId: null, CancellationToken.None));
     }
 
@@ -131,7 +131,7 @@ public class TextLoaderTests
     public async Task OverridesNew()
     {
         var loader = new LoaderOverridesNew();
-        Assert.Same(LoaderOverridesNew.Value, await loader.LoadTextAndVersionAsync(CancellationToken.None));
+        Assert.Same(LoaderOverridesNew.Value, await loader.LoadTextAndVersionAsync(new LoadTextOptions(SourceHashAlgorithms.Default), CancellationToken.None));
         Assert.Same(LoaderOverridesNew.Value, await loader.LoadTextAndVersionAsync(workspace: null, documentId: null, CancellationToken.None));
     }
 }

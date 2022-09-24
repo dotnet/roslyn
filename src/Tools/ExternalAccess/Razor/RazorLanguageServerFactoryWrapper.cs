@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
                 documentServiceProvider = new RazorDocumentServiceProviderWrapper(razorDocumentServiceProvider);
             }
 
-            return DocumentInfo.Create(id, name, folders, sourceCodeKind, loader, filePath, isGenerated)
+            return DocumentInfo.Create(id, name, folders, sourceCodeKind, loader, filePath, isGenerated, loadTextOptions: new LoadTextOptions(SourceHashAlgorithms.Default))
                 .WithDesignTimeOnly(designTimeOnly)
                 .WithDocumentServiceProvider(documentServiceProvider);
         }

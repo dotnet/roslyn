@@ -44,11 +44,8 @@ internal sealed class LoadableTextAndVersionSource : ITextAndVersionSource
         CacheResult = cacheResult;
     }
 
-    /// <summary>
-    /// True if the text content can be reloaded from the underlying binary representation (e.g. on disk).
-    /// </summary>
-    public bool IsReloadable
-        => Loader is FileTextLoader;
+    public bool CanReloadText
+        => Loader.CanReloadText;
 
     private AsyncLazy<TextAndVersion> GetLazyValue(LoadTextOptions options)
     {

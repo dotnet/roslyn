@@ -20,6 +20,7 @@ namespace Microsoft.CodeAnalysis.Host
             public readonly string FilePath;
             public readonly ParseOptions Options;
             public readonly ITextAndVersionSource TextSource;
+            public readonly LoadTextOptions LoadTextOptions;
             public readonly Encoding Encoding;
             public readonly int Length;
             public readonly bool ContainsDirectives;
@@ -28,6 +29,7 @@ namespace Microsoft.CodeAnalysis.Host
                 string filePath,
                 ParseOptions options,
                 ITextAndVersionSource textSource,
+                LoadTextOptions loadTextOptions,
                 Encoding encoding,
                 int length,
                 bool containsDirectives)
@@ -35,14 +37,15 @@ namespace Microsoft.CodeAnalysis.Host
                 FilePath = filePath ?? string.Empty;
                 Options = options;
                 TextSource = textSource;
+                LoadTextOptions = loadTextOptions;
                 Encoding = encoding;
                 Length = length;
                 ContainsDirectives = containsDirectives;
             }
 
-            internal bool TryGetText(LoadTextOptions options, [NotNullWhen(true)] out SourceText? text)
+            internal bool TryGetText([NotNullWhen(true)] out SourceText? text)
             {
-                if (TextSource.TryGetValue(options, out var textAndVersion))
+                if (TextSource.TryGetValue(LoadTextOptions, out var textAndVersion))
                 {
                     text = textAndVersion.Text;
                     return true;
@@ -52,9 +55,12 @@ namespace Microsoft.CodeAnalysis.Host
                 return false;
             }
 
-            internal async Task<SourceText> GetTextAsync(LoadTextOptions options, CancellationToken cancellationToken)
+            internal SourceText GetText(CancellationToken cancellationToken)
+                => TextSource.GetValue(LoadTextOptions, cancellationToken).Text;
+
+            internal async Task<SourceText> GetTextAsync(CancellationToken cancellationToken)
             {
-                var textAndVersion = await TextSource.GetValueAsync(options, cancellationToken).ConfigureAwait(false);
+                var textAndVersion = await TextSource.GetValueAsync(LoadTextOptions, cancellationToken).ConfigureAwait(false);
                 return textAndVersion.Text;
             }
 
@@ -64,6 +70,7 @@ namespace Microsoft.CodeAnalysis.Host
                     path,
                     Options,
                     TextSource,
+                    LoadTextOptions,
                     Encoding,
                     Length,
                     ContainsDirectives);
@@ -75,6 +82,7 @@ namespace Microsoft.CodeAnalysis.Host
                     FilePath,
                     options,
                     TextSource,
+                    LoadTextOptions,
                     Encoding,
                     length,
                     containsDirectives);
@@ -86,6 +94,7 @@ namespace Microsoft.CodeAnalysis.Host
                     FilePath,
                     options,
                     TextSource,
+                    LoadTextOptions,
                     Encoding,
                     Length,
                     ContainsDirectives);
