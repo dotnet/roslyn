@@ -8229,6 +8229,11 @@ done:;
                 // Skip 'using' keyword
                 EatToken();
 
+                if (IsPossibleScopedKeyword(isFunctionPointerParameter: false))
+                {
+                    return true;
+                }
+
                 if (tk == SyntaxKind.StaticKeyword)
                 {
                     // Skip 'static' keyword
@@ -9764,7 +9769,18 @@ tryAgain:
             }
             else
             {
-                st = this.ScanType();
+                SyntaxToken scopedKeyword = ParsePossibleScopedKeyword(isFunctionPointerParameter: false);
+
+                if (scopedKeyword != null)
+                {
+                    declaration = ParseVariableDeclaration();
+                    declaration = declaration.Update(_syntaxFactory.ScopedType(scopedKeyword, declaration.Type), declaration.Variables);
+                    return;
+                }
+                else
+                {
+                    st = this.ScanType();
+                }
             }
 
             if (st == ScanTypeFlags.NullableType)
