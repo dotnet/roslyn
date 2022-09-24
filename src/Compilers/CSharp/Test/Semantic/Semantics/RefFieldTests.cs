@@ -9903,13 +9903,13 @@ class Program
                 // (9,9): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
                 //         scoped ref readonly R r5 = ref r;
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "scoped").WithArguments("ref fields", "11.0").WithLocation(9, 9));
-            verify(comp, useUpdatedEscapeRules: false);
+            verify(comp);
 
             comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics();
-            verify(comp, useUpdatedEscapeRules: true);
+            verify(comp);
 
-            static void verify(CSharpCompilation comp, bool useUpdatedEscapeRules)
+            static void verify(CSharpCompilation comp)
             {
                 var tree = comp.SyntaxTrees[0];
                 var model = comp.GetSemanticModel(tree);
@@ -9958,13 +9958,13 @@ class Program
                 // (9,14): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
                 //         for (scoped ref readonly R r5 = ref r;;) break;
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "scoped").WithArguments("ref fields", "11.0").WithLocation(9, 14));
-            verify(comp, useUpdatedEscapeRules: false);
+            verify(comp);
 
             comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics();
-            verify(comp, useUpdatedEscapeRules: true);
+            verify(comp);
 
-            static void verify(CSharpCompilation comp, bool useUpdatedEscapeRules)
+            static void verify(CSharpCompilation comp)
             {
                 var tree = comp.SyntaxTrees[0];
                 var model = comp.GetSemanticModel(tree);
@@ -10119,37 +10119,37 @@ ref struct @scoped { } // 5
         {
             var source =
 @"for (scoped s1 = default;;) {
-for (ref scoped s2 = ref s1;;) {break;} // 1
-for (ref @scoped s3 = ref s1;;) {break;}
-for (scoped scoped s4 = default;;) {break;} // 2
-for (scoped ref scoped s5 = ref s1;;) {break;} // 3
-for (scoped ref @scoped s6 = ref s1;;) {break;} // 4
+    for (ref scoped s2 = ref s1;;) {break;} // 1
+    for (ref @scoped s3 = ref s1;;) {break;}
+    for (scoped scoped s4 = default;;) {break;} // 2
+    for (scoped ref scoped s5 = ref s1;;) {break;} // 3
+    for (scoped ref @scoped s6 = ref s1;;) {break;} // 4
 }
 
 ref struct @scoped { } // 5
 ";
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular10);
             comp.VerifyEmitDiagnostics(
-                // (4,16): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
-                // for (scoped scoped s4 = default;;) {break;} // 2
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "scoped").WithArguments("ref fields", "11.0").WithLocation(4, 6),
-                // (4,20): warning CS0219: The variable 's4' is assigned but its value is never used
-                // for (scoped scoped s4 = default;;) {break;} // 2
-                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "s4").WithArguments("s4").WithLocation(4, 20),
-                // (5,6): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
-                // for (scoped ref scoped s5 = ref s1;;) {break;} // 3
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "scoped").WithArguments("ref fields", "11.0").WithLocation(5, 6),
-                // (6,6): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
-                // for (scoped ref @scoped s6 = ref s1;;) {break;} // 4
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "scoped").WithArguments("ref fields", "11.0").WithLocation(6, 6)
+                // (4,10): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
+                //     for (scoped scoped s4 = default;;) {break;} // 2
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "scoped").WithArguments("ref fields", "11.0").WithLocation(4, 10),
+                // (4,24): warning CS0219: The variable 's4' is assigned but its value is never used
+                //     for (scoped scoped s4 = default;;) {break;} // 2
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "s4").WithArguments("s4").WithLocation(4, 24),
+                // (5,10): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
+                //     for (scoped ref scoped s5 = ref s1;;) {break;} // 3
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "scoped").WithArguments("ref fields", "11.0").WithLocation(5, 10),
+                // (6,10): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
+                //     for (scoped ref @scoped s6 = ref s1;;) {break;} // 4
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "scoped").WithArguments("ref fields", "11.0").WithLocation(6, 10)
                 );
             verify(comp);
 
             comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (4,20): warning CS0219: The variable 's4' is assigned but its value is never used
-                // for (scoped scoped s4 = default;;) {break;} // 2
-                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "s4").WithArguments("s4").WithLocation(4, 20)
+                // (4,24): warning CS0219: The variable 's4' is assigned but its value is never used
+                //     for (scoped scoped s4 = default;;) {break;} // 2
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "s4").WithArguments("s4").WithLocation(4, 24)
                 );
             verify(comp);
 
@@ -10927,8 +10927,8 @@ class Program
     static void F(ref R r)
     {
         foreach (scoped R r1 in new Enumerable1()) break;
-        foreach (scoped ref R r2 in new Enumerable2()) break;
-        foreach (scoped ref readonly R r5 in new Enumerable2()) break;
+        foreach (scoped ref R r2 in new Enumerable2(ref r)) break;
+        foreach (scoped ref readonly R r5 in new Enumerable2(ref r)) break;
     }
 }
 
@@ -10945,6 +10945,7 @@ class Enumerator1
 
 class Enumerable2
 {
+    public Enumerable2(ref R x) {}
     public Enumerator2 GetEnumerator() => default;
 }
 
@@ -10960,20 +10961,20 @@ class Enumerator2
                 //         foreach (scoped R r1 in new Enumerable1()) break;
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "scoped").WithArguments("ref fields", "11.0").WithLocation(7, 18),
                 // (8,18): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
-                //         foreach (scoped ref R r2 in new Enumerable2()) break;
+                //         foreach (scoped ref R r2 in new Enumerable2(ref r)) break;
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "scoped").WithArguments("ref fields", "11.0").WithLocation(8, 18),
                 // (9,18): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
-                //         foreach (scoped ref readonly R r5 in new Enumerable2()) break;
+                //         foreach (scoped ref readonly R r5 in new Enumerable2(ref r)) break;
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "scoped").WithArguments("ref fields", "11.0").WithLocation(9, 18)
                 );
 
-            verify(comp, useUpdatedEscapeRules: false);
+            verify(comp);
 
             comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics();
-            verify(comp, useUpdatedEscapeRules: true);
+            verify(comp);
 
-            static void verify(CSharpCompilation comp, bool useUpdatedEscapeRules)
+            static void verify(CSharpCompilation comp)
             {
                 var tree = comp.SyntaxTrees[0];
                 var model = comp.GetSemanticModel(tree);
@@ -11001,11 +11002,11 @@ class Enumerator2
         {
             var source =
 @"foreach (scoped s1 in new Enumerable1()) {
-foreach (ref scoped s2 in new Enumerable2()) {break;} // 1
-foreach (ref @scoped s3 in new Enumerable2()) {break;}
-foreach (scoped scoped s4 in new Enumerable1()) {break;} // 2
-foreach (scoped ref scoped s5 in new Enumerable2()) {break;} // 3
-foreach (scoped ref @scoped s6 in new Enumerable2()) {break;} // 4
+    foreach (ref scoped s2 in new Enumerable2()) {break;} // 1
+    foreach (ref @scoped s3 in new Enumerable2()) {break;}
+    foreach (scoped scoped s4 in new Enumerable1()) {break;} // 2
+    foreach (scoped ref scoped s5 in new Enumerable2()) {break;} // 3
+    foreach (scoped ref @scoped s6 in new Enumerable2()) {break;} // 4
 }
 
 ref struct @scoped { } // 5
@@ -11034,15 +11035,15 @@ class Enumerator2
 ";
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular10);
             comp.VerifyEmitDiagnostics(
-                // (4,10): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
-                // foreach (scoped scoped s4 in new Enumerable1()) {break;} // 2
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "scoped").WithArguments("ref fields", "11.0").WithLocation(4, 10),
-                // (5,10): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
-                // foreach (scoped ref scoped s5 in new Enumerable2()) {break;} // 3
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "scoped").WithArguments("ref fields", "11.0").WithLocation(5, 10),
-                // (6,10): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
-                // foreach (scoped ref @scoped s6 in new Enumerable2()) {break;} // 4
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "scoped").WithArguments("ref fields", "11.0").WithLocation(6, 10)
+                // (4,14): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
+                //     foreach (scoped scoped s4 in new Enumerable1()) {break;} // 2
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "scoped").WithArguments("ref fields", "11.0").WithLocation(4, 14),
+                // (5,14): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
+                //     foreach (scoped ref scoped s5 in new Enumerable2()) {break;} // 3
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "scoped").WithArguments("ref fields", "11.0").WithLocation(5, 14),
+                // (6,14): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
+                //     foreach (scoped ref @scoped s6 in new Enumerable2()) {break;} // 4
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "scoped").WithArguments("ref fields", "11.0").WithLocation(6, 14)
                 );
             verify(comp);
 
@@ -11096,7 +11097,7 @@ class Program
     static void M(R<int> r0)
     {
         foreach (scoped var r1 in new Enumerable1<int>()) break;
-        foreach (scoped ref var r3 in new Enumerable2<int>()) break;
+        foreach (scoped ref var r3 in new Enumerable2<int>(ref r0)) break;
     }
 }
 
@@ -11113,6 +11114,7 @@ class Enumerator1<T>
 
 class Enumerable2<T>
 {
+    public Enumerable2(ref R<T> x) {}
     public Enumerator2<T> GetEnumerator() => default;
 }
 
@@ -11378,6 +11380,7 @@ class Enumerator1
         }
 
         [Fact]
+        [WorkItem(64218, "https://github.com/dotnet/roslyn/issues/64218")]
         public void LocalScope_12_Foreach_01()
         {
             var source =
@@ -11390,7 +11393,7 @@ class Enumerator1
         {
             int i1 = 1;
             foreach (S s1 in Enumerable1.Create(ref i1)) {
-                s0 = s1;
+                s0 = s1; // <-- An error is expected here, see https://github.com/dotnet/roslyn/issues/64218
                 break;
             }
         }
@@ -20271,6 +20274,804 @@ public class C1
                 // (64,12): error CS9075: Cannot return a parameter by reference 'bc' because it is scoped to the current method
                 //         => bc.GetByteRef(); // 4
                 Diagnostic(ErrorCode.ERR_RefReturnScopedParameter, "bc").WithArguments("bc").WithLocation(64, 12));
+        }
+
+        [Fact]
+        public void LocalScope_01_UsingDecl()
+        {
+            var source =
+@"#pragma warning disable 219
+
+class Program
+{
+    static void F(ref R r)
+    {
+        using scoped R r1 = default;
+        using scoped ref R r2 = ref r;
+        using scoped ref readonly R r5 = ref r;
+    }
+}
+
+ref struct R
+{
+    public void Dispose() {}
+}
+";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular10);
+            comp.VerifyEmitDiagnostics(
+                // (7,15): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
+                //         using scoped R r1 = default;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "scoped").WithArguments("ref fields", "11.0").WithLocation(7, 15),
+                // (8,15): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
+                //         using scoped ref R r2 = ref r;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "scoped").WithArguments("ref fields", "11.0").WithLocation(8, 15),
+                // (8,22): error CS1073: Unexpected token 'ref'
+                //         using scoped ref R r2 = ref r;
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, "ref").WithArguments("ref").WithLocation(8, 22),
+                // (9,15): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
+                //         using scoped ref readonly R r5 = ref r;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "scoped").WithArguments("ref fields", "11.0").WithLocation(9, 15),
+                // (9,22): error CS1073: Unexpected token 'ref'
+                //         using scoped ref readonly R r5 = ref r;
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, "ref").WithArguments("ref").WithLocation(9, 22)
+                );
+            verify(comp);
+
+            comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (8,22): error CS1073: Unexpected token 'ref'
+                //         using scoped ref R r2 = ref r;
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, "ref").WithArguments("ref").WithLocation(8, 22),
+                // (9,22): error CS1073: Unexpected token 'ref'
+                //         using scoped ref readonly R r5 = ref r;
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, "ref").WithArguments("ref").WithLocation(9, 22)
+                );
+            verify(comp);
+
+            static void verify(CSharpCompilation comp)
+            {
+                var tree = comp.SyntaxTrees[0];
+                var model = comp.GetSemanticModel(tree);
+                var decls = tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().ToArray();
+                var locals = decls.Select(d => model.GetDeclaredSymbol(d).GetSymbol<LocalSymbol>()).ToArray();
+
+                VerifyLocalSymbol(locals[0], "scoped R r1", RefKind.None, DeclarationScope.ValueScoped);
+                VerifyLocalSymbol(locals[1], "scoped ref R r2", RefKind.Ref, DeclarationScope.RefScoped);
+                VerifyLocalSymbol(locals[2], "scoped ref readonly R r5", RefKind.RefReadOnly, DeclarationScope.RefScoped);
+
+                foreach (var decl in decls)
+                {
+                    var type = ((VariableDeclarationSyntax)decl.Parent).Type;
+                    Assert.Null(model.GetTypeInfo(type).Type);
+                    Assert.Equal("R", model.GetSymbolInfo(type.SkipScoped(out _).SkipRef(out _)).Symbol.ToTestDisplayString());
+                    Assert.True(SyntaxFacts.IsInTypeOnlyContext(type));
+                    Assert.True(SyntaxFacts.IsInTypeOnlyContext(type.SkipScoped(out _)));
+                    Assert.True(SyntaxFacts.IsInTypeOnlyContext(type.SkipScoped(out _).SkipRef(out _)));
+                }
+            }
+        }
+
+        [Fact]
+        public void LocalScope_01_UsingStmt()
+        {
+            var source =
+@"#pragma warning disable 219
+
+class Program
+{
+    static void F(ref R r)
+    {
+        using (scoped R r1 = default) {}
+        using (scoped ref R r2 = ref r) {}
+        using (scoped ref readonly R r5 = ref r) {}
+    }
+}
+
+ref struct R
+{
+    public void Dispose() {}
+}
+";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular10);
+            comp.VerifyEmitDiagnostics(
+                // (7,16): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
+                //         using (scoped R r1 = default) {}
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "scoped").WithArguments("ref fields", "11.0").WithLocation(7, 16),
+                // (8,16): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
+                //         using (scoped ref R r2 = ref r) {}
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "scoped").WithArguments("ref fields", "11.0").WithLocation(8, 16),
+                // (8,23): error CS1073: Unexpected token 'ref'
+                //         using (scoped ref R r2 = ref r) {}
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, "ref").WithArguments("ref").WithLocation(8, 23),
+                // (9,16): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
+                //         using (scoped ref readonly R r5 = ref r) {}
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "scoped").WithArguments("ref fields", "11.0").WithLocation(9, 16),
+                // (9,23): error CS1073: Unexpected token 'ref'
+                //         using (scoped ref readonly R r5 = ref r) {}
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, "ref").WithArguments("ref").WithLocation(9, 23)
+                );
+            verify(comp);
+
+            comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (8,23): error CS1073: Unexpected token 'ref'
+                //         using (scoped ref R r2 = ref r) {}
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, "ref").WithArguments("ref").WithLocation(8, 23),
+                // (9,23): error CS1073: Unexpected token 'ref'
+                //         using (scoped ref readonly R r5 = ref r) {}
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, "ref").WithArguments("ref").WithLocation(9, 23)
+                );
+            verify(comp);
+
+            static void verify(CSharpCompilation comp)
+            {
+                var tree = comp.SyntaxTrees[0];
+                var model = comp.GetSemanticModel(tree);
+                var decls = tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().ToArray();
+                var locals = decls.Select(d => model.GetDeclaredSymbol(d).GetSymbol<LocalSymbol>()).ToArray();
+
+                VerifyLocalSymbol(locals[0], "scoped R r1", RefKind.None, DeclarationScope.ValueScoped);
+                VerifyLocalSymbol(locals[1], "scoped ref R r2", RefKind.Ref, DeclarationScope.RefScoped);
+                VerifyLocalSymbol(locals[2], "scoped ref readonly R r5", RefKind.RefReadOnly, DeclarationScope.RefScoped);
+
+                foreach (var decl in decls)
+                {
+                    var type = ((VariableDeclarationSyntax)decl.Parent).Type;
+                    Assert.Null(model.GetTypeInfo(type).Type);
+                    Assert.Equal("R", model.GetSymbolInfo(type.SkipScoped(out _).SkipRef(out _)).Symbol.ToTestDisplayString());
+                    Assert.True(SyntaxFacts.IsInTypeOnlyContext(type));
+                    Assert.True(SyntaxFacts.IsInTypeOnlyContext(type.SkipScoped(out _)));
+                    Assert.True(SyntaxFacts.IsInTypeOnlyContext(type.SkipScoped(out _).SkipRef(out _)));
+                }
+            }
+        }
+
+        [Fact]
+        public void LocalScope_04_UsingDecl()
+        {
+            var source =
+@"using scoped s1 = default;
+using ref scoped s2 = ref s1; // 1
+using ref @scoped s3 = ref s1;
+using scoped scoped s4 = default; // 2
+using scoped ref scoped s5 = ref s1; // 3
+using scoped ref @scoped s6 = ref s1; // 4
+ref struct @scoped
+{
+    public void Dispose() {}
+}
+";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular10);
+            comp.VerifyEmitDiagnostics(
+                // (2,7): error CS1073: Unexpected token 'ref'
+                // using ref scoped s2 = ref s1; // 1
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, "ref").WithArguments("ref").WithLocation(2, 7),
+                // (2,27): error CS1657: Cannot use 's1' as a ref or out value because it is a 'using variable'
+                // using ref scoped s2 = ref s1; // 1
+                Diagnostic(ErrorCode.ERR_RefReadonlyLocalCause, "s1").WithArguments("s1", "using variable").WithLocation(2, 27),
+                // (3,7): error CS1073: Unexpected token 'ref'
+                // using ref @scoped s3 = ref s1;
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, "ref").WithArguments("ref").WithLocation(3, 7),
+                // (3,28): error CS1657: Cannot use 's1' as a ref or out value because it is a 'using variable'
+                // using ref @scoped s3 = ref s1;
+                Diagnostic(ErrorCode.ERR_RefReadonlyLocalCause, "s1").WithArguments("s1", "using variable").WithLocation(3, 28),
+                // (4,7): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
+                // using scoped scoped s4 = default; // 2
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "scoped").WithArguments("ref fields", "11.0").WithLocation(4, 7),
+                // (5,7): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
+                // using scoped ref scoped s5 = ref s1; // 3
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "scoped").WithArguments("ref fields", "11.0").WithLocation(5, 7),
+                // (5,14): error CS1073: Unexpected token 'ref'
+                // using scoped ref scoped s5 = ref s1; // 3
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, "ref").WithArguments("ref").WithLocation(5, 14),
+                // (5,34): error CS1657: Cannot use 's1' as a ref or out value because it is a 'using variable'
+                // using scoped ref scoped s5 = ref s1; // 3
+                Diagnostic(ErrorCode.ERR_RefReadonlyLocalCause, "s1").WithArguments("s1", "using variable").WithLocation(5, 34),
+                // (6,7): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
+                // using scoped ref @scoped s6 = ref s1; // 4
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "scoped").WithArguments("ref fields", "11.0").WithLocation(6, 7),
+                // (6,14): error CS1073: Unexpected token 'ref'
+                // using scoped ref @scoped s6 = ref s1; // 4
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, "ref").WithArguments("ref").WithLocation(6, 14),
+                // (6,35): error CS1657: Cannot use 's1' as a ref or out value because it is a 'using variable'
+                // using scoped ref @scoped s6 = ref s1; // 4
+                Diagnostic(ErrorCode.ERR_RefReadonlyLocalCause, "s1").WithArguments("s1", "using variable").WithLocation(6, 35)
+                );
+            verify(comp);
+
+            comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (2,7): error CS1073: Unexpected token 'ref'
+                // using ref scoped s2 = ref s1; // 1
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, "ref").WithArguments("ref").WithLocation(2, 7),
+                // (2,27): error CS1657: Cannot use 's1' as a ref or out value because it is a 'using variable'
+                // using ref scoped s2 = ref s1; // 1
+                Diagnostic(ErrorCode.ERR_RefReadonlyLocalCause, "s1").WithArguments("s1", "using variable").WithLocation(2, 27),
+                // (3,7): error CS1073: Unexpected token 'ref'
+                // using ref @scoped s3 = ref s1;
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, "ref").WithArguments("ref").WithLocation(3, 7),
+                // (3,28): error CS1657: Cannot use 's1' as a ref or out value because it is a 'using variable'
+                // using ref @scoped s3 = ref s1;
+                Diagnostic(ErrorCode.ERR_RefReadonlyLocalCause, "s1").WithArguments("s1", "using variable").WithLocation(3, 28),
+                // (5,14): error CS1073: Unexpected token 'ref'
+                // using scoped ref scoped s5 = ref s1; // 3
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, "ref").WithArguments("ref").WithLocation(5, 14),
+                // (5,34): error CS1657: Cannot use 's1' as a ref or out value because it is a 'using variable'
+                // using scoped ref scoped s5 = ref s1; // 3
+                Diagnostic(ErrorCode.ERR_RefReadonlyLocalCause, "s1").WithArguments("s1", "using variable").WithLocation(5, 34),
+                // (6,14): error CS1073: Unexpected token 'ref'
+                // using scoped ref @scoped s6 = ref s1; // 4
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, "ref").WithArguments("ref").WithLocation(6, 14),
+                // (6,35): error CS1657: Cannot use 's1' as a ref or out value because it is a 'using variable'
+                // using scoped ref @scoped s6 = ref s1; // 4
+                Diagnostic(ErrorCode.ERR_RefReadonlyLocalCause, "s1").WithArguments("s1", "using variable").WithLocation(6, 35)
+                );
+            verify(comp);
+
+            static void verify(CSharpCompilation comp)
+            {
+                var tree = comp.SyntaxTrees[0];
+                var model = comp.GetSemanticModel(tree);
+                var decls = tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().ToArray();
+                var locals = decls.Select(d => model.GetDeclaredSymbol(d).GetSymbol<LocalSymbol>()).ToArray();
+
+                VerifyLocalSymbol(locals[0], "scoped s1", RefKind.None, DeclarationScope.Unscoped);
+                VerifyLocalSymbol(locals[1], "ref scoped s2", RefKind.Ref, DeclarationScope.Unscoped);
+                VerifyLocalSymbol(locals[2], "ref scoped s3", RefKind.Ref, DeclarationScope.Unscoped);
+                VerifyLocalSymbol(locals[3], "scoped scoped s4", RefKind.None, DeclarationScope.ValueScoped);
+                VerifyLocalSymbol(locals[4], "scoped ref scoped s5", RefKind.Ref, DeclarationScope.RefScoped);
+                VerifyLocalSymbol(locals[5], "scoped ref scoped s6", RefKind.Ref, DeclarationScope.RefScoped);
+            }
+        }
+
+        [Fact]
+        public void LocalScope_04_UsingStmt()
+        {
+            var source =
+@"
+using (scoped s1 = default)
+    using (ref scoped s2 = ref s1)
+        using (ref @scoped s3 = ref s1)
+            using (scoped scoped s4 = default)
+                using (scoped ref scoped s5 = ref s1)
+                    using (scoped ref @scoped s6 = ref s1)
+                    {}
+
+ref struct @scoped
+{
+    public void Dispose() {}
+}
+";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular10);
+            comp.VerifyEmitDiagnostics(
+                // (3,12): error CS1073: Unexpected token 'ref'
+                //     using (ref scoped s2 = ref s1)
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, "ref").WithArguments("ref").WithLocation(3, 12),
+                // (3,32): error CS1657: Cannot use 's1' as a ref or out value because it is a 'using variable'
+                //     using (ref scoped s2 = ref s1)
+                Diagnostic(ErrorCode.ERR_RefReadonlyLocalCause, "s1").WithArguments("s1", "using variable").WithLocation(3, 32),
+                // (4,16): error CS1073: Unexpected token 'ref'
+                //         using (ref @scoped s3 = ref s1)
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, "ref").WithArguments("ref").WithLocation(4, 16),
+                // (4,37): error CS1657: Cannot use 's1' as a ref or out value because it is a 'using variable'
+                //         using (ref @scoped s3 = ref s1)
+                Diagnostic(ErrorCode.ERR_RefReadonlyLocalCause, "s1").WithArguments("s1", "using variable").WithLocation(4, 37),
+                // (5,20): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
+                //             using (scoped scoped s4 = default)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "scoped").WithArguments("ref fields", "11.0").WithLocation(5, 20),
+                // (6,24): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
+                //                 using (scoped ref scoped s5 = ref s1)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "scoped").WithArguments("ref fields", "11.0").WithLocation(6, 24),
+                // (6,31): error CS1073: Unexpected token 'ref'
+                //                 using (scoped ref scoped s5 = ref s1)
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, "ref").WithArguments("ref").WithLocation(6, 31),
+                // (6,51): error CS1657: Cannot use 's1' as a ref or out value because it is a 'using variable'
+                //                 using (scoped ref scoped s5 = ref s1)
+                Diagnostic(ErrorCode.ERR_RefReadonlyLocalCause, "s1").WithArguments("s1", "using variable").WithLocation(6, 51),
+                // (7,28): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
+                //                     using (scoped ref @scoped s6 = ref s1)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "scoped").WithArguments("ref fields", "11.0").WithLocation(7, 28),
+                // (7,35): error CS1073: Unexpected token 'ref'
+                //                     using (scoped ref @scoped s6 = ref s1)
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, "ref").WithArguments("ref").WithLocation(7, 35),
+                // (7,56): error CS1657: Cannot use 's1' as a ref or out value because it is a 'using variable'
+                //                     using (scoped ref @scoped s6 = ref s1)
+                Diagnostic(ErrorCode.ERR_RefReadonlyLocalCause, "s1").WithArguments("s1", "using variable").WithLocation(7, 56)
+                );
+            verify(comp);
+
+            comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (3,12): error CS1073: Unexpected token 'ref'
+                //     using (ref scoped s2 = ref s1)
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, "ref").WithArguments("ref").WithLocation(3, 12),
+                // (3,32): error CS1657: Cannot use 's1' as a ref or out value because it is a 'using variable'
+                //     using (ref scoped s2 = ref s1)
+                Diagnostic(ErrorCode.ERR_RefReadonlyLocalCause, "s1").WithArguments("s1", "using variable").WithLocation(3, 32),
+                // (4,16): error CS1073: Unexpected token 'ref'
+                //         using (ref @scoped s3 = ref s1)
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, "ref").WithArguments("ref").WithLocation(4, 16),
+                // (4,37): error CS1657: Cannot use 's1' as a ref or out value because it is a 'using variable'
+                //         using (ref @scoped s3 = ref s1)
+                Diagnostic(ErrorCode.ERR_RefReadonlyLocalCause, "s1").WithArguments("s1", "using variable").WithLocation(4, 37),
+                // (6,31): error CS1073: Unexpected token 'ref'
+                //                 using (scoped ref scoped s5 = ref s1)
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, "ref").WithArguments("ref").WithLocation(6, 31),
+                // (6,51): error CS1657: Cannot use 's1' as a ref or out value because it is a 'using variable'
+                //                 using (scoped ref scoped s5 = ref s1)
+                Diagnostic(ErrorCode.ERR_RefReadonlyLocalCause, "s1").WithArguments("s1", "using variable").WithLocation(6, 51),
+                // (7,35): error CS1073: Unexpected token 'ref'
+                //                     using (scoped ref @scoped s6 = ref s1)
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, "ref").WithArguments("ref").WithLocation(7, 35),
+                // (7,56): error CS1657: Cannot use 's1' as a ref or out value because it is a 'using variable'
+                //                     using (scoped ref @scoped s6 = ref s1)
+                Diagnostic(ErrorCode.ERR_RefReadonlyLocalCause, "s1").WithArguments("s1", "using variable").WithLocation(7, 56)
+                );
+            verify(comp);
+
+            static void verify(CSharpCompilation comp)
+            {
+                var tree = comp.SyntaxTrees[0];
+                var model = comp.GetSemanticModel(tree);
+                var decls = tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().ToArray();
+                var locals = decls.Select(d => model.GetDeclaredSymbol(d).GetSymbol<LocalSymbol>()).ToArray();
+
+                VerifyLocalSymbol(locals[0], "scoped s1", RefKind.None, DeclarationScope.Unscoped);
+                VerifyLocalSymbol(locals[1], "ref scoped s2", RefKind.Ref, DeclarationScope.Unscoped);
+                VerifyLocalSymbol(locals[2], "ref scoped s3", RefKind.Ref, DeclarationScope.Unscoped);
+                VerifyLocalSymbol(locals[3], "scoped scoped s4", RefKind.None, DeclarationScope.ValueScoped);
+                VerifyLocalSymbol(locals[4], "scoped ref scoped s5", RefKind.Ref, DeclarationScope.RefScoped);
+                VerifyLocalSymbol(locals[5], "scoped ref scoped s6", RefKind.Ref, DeclarationScope.RefScoped);
+            }
+        }
+
+        [Fact]
+        public void LocalScope_06_UsingDecl()
+        {
+            var source =
+@"#pragma warning disable CS0219 // The variable is assigned but its value is never used
+class Program
+{
+    static void M(R<int> r0)
+    {
+        using scoped var r1 = new R<int>();
+        using scoped var r3 = M(ref r0);
+    }
+
+    static R<int> M(ref R<int> x) => x;
+}
+
+ref struct R<T>
+{
+    public void Dispose() {}
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+
+            verifyModel(comp);
+
+            comp = CreateCompilation(source, parseOptions: TestOptions.RegularDefault.WithFeature("run-nullable-analysis", "never"));
+            verifyModel(comp);
+
+            static void verifyModel(CSharpCompilation comp)
+            {
+                var tree = comp.SyntaxTrees[0];
+                var model = comp.GetSemanticModel(tree);
+                var decls = tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().ToArray();
+                var locals = decls.Select(d => model.GetDeclaredSymbol(d).GetSymbol<LocalSymbol>()).ToArray();
+
+                foreach (SourceLocalSymbol local in locals)
+                {
+                    Assert.True(local.IsVar);
+                    Assert.Equal("R<System.Int32>", local.Type.ToTestDisplayString());
+                }
+
+                VerifyLocalSymbol(locals[0], "scoped R<System.Int32> r1", RefKind.None, DeclarationScope.ValueScoped);
+                VerifyLocalSymbol(locals[1], "scoped R<System.Int32> r3", RefKind.None, DeclarationScope.ValueScoped);
+
+                foreach (var decl in decls)
+                {
+                    var type = ((VariableDeclarationSyntax)decl.Parent).Type.SkipScoped(out _).SkipRef(out _);
+                    Assert.Equal("R<System.Int32>", model.GetSymbolInfo(type).Symbol.ToTestDisplayString());
+                    Assert.Equal("R<System.Int32>", model.GetTypeInfo(type).Type.ToTestDisplayString());
+                }
+            }
+        }
+
+        [Fact]
+        public void LocalScope_06_UsingStmt()
+        {
+            var source =
+@"#pragma warning disable CS0219 // The variable is assigned but its value is never used
+class Program
+{
+    static void M(R<int> r0)
+    {
+        using (scoped var r1 = new R<int>()) {}
+        using (scoped var r3 = M(ref r0)) {}
+    }
+
+    static R<int> M(ref R<int> x) => x;
+}
+
+ref struct R<T>
+{
+    public void Dispose() {}
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+
+            verifyModel(comp);
+
+            comp = CreateCompilation(source, parseOptions: TestOptions.RegularDefault.WithFeature("run-nullable-analysis", "never"));
+            verifyModel(comp);
+
+            static void verifyModel(CSharpCompilation comp)
+            {
+                var tree = comp.SyntaxTrees[0];
+                var model = comp.GetSemanticModel(tree);
+                var decls = tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().ToArray();
+                var locals = decls.Select(d => model.GetDeclaredSymbol(d).GetSymbol<LocalSymbol>()).ToArray();
+
+                foreach (SourceLocalSymbol local in locals)
+                {
+                    Assert.True(local.IsVar);
+                    Assert.Equal("R<System.Int32>", local.Type.ToTestDisplayString());
+                }
+
+                VerifyLocalSymbol(locals[0], "scoped R<System.Int32> r1", RefKind.None, DeclarationScope.ValueScoped);
+                VerifyLocalSymbol(locals[1], "scoped R<System.Int32> r3", RefKind.None, DeclarationScope.ValueScoped);
+
+                foreach (var decl in decls)
+                {
+                    var type = ((VariableDeclarationSyntax)decl.Parent).Type.SkipScoped(out _).SkipRef(out _);
+                    Assert.Equal("R<System.Int32>", model.GetSymbolInfo(type).Symbol.ToTestDisplayString());
+                    Assert.Equal("R<System.Int32>", model.GetTypeInfo(type).Type.ToTestDisplayString());
+                }
+            }
+        }
+
+        [Fact]
+        public void LocalScope_10_UsingDecl_01()
+        {
+            var source =
+@"{
+    int i = 0;
+    using S s1 = new S(ref i);
+    scoped S s2 = s1;
+}
+ref struct S
+{
+    public S(ref int i) { }
+    public void Dispose() {}
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void LocalScope_10_UsingDecl_02()
+        {
+            var source =
+@"{
+    int i = 0;
+    S s1 = new S(ref i);
+    using scoped S s2 = s1;
+}
+ref struct S
+{
+    public S(ref int i) { }
+    public void Dispose() {}
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void LocalScope_10_UsingStmt_01()
+        {
+            var source =
+@"{
+    int i = 0;
+    using (S s1 = new S(ref i))
+    {
+        scoped S s2 = s1;
+    }
+}
+ref struct S
+{
+    public S(ref int i) { }
+    public void Dispose() {}
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void LocalScope_10_UsingStmt_02()
+        {
+            var source =
+@"{
+    int i = 0;
+    S s1 = new S(ref i);
+    using (scoped S s2 = s1) {}
+}
+ref struct S
+{
+    public S(ref int i) { }
+    public void Dispose() {}
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void LocalScope_12_UsingDecl()
+        {
+            var source =
+@"class Program
+{
+    static void Main()
+    {
+        int i0 = 0;
+        S s0 = new S(ref i0);
+        {
+            int i1 = 1;
+            using S s1 = new S(ref i1);
+            s0 = s1; // 1
+        }
+        {
+            using scoped S s2 = s0;
+            s0 = s2; // 2
+        }
+        {
+            using S s3 = s0;
+            s0 = s3;
+        }
+    }
+}
+ref struct S
+{
+    public S(ref int i) { }
+    public void Dispose() {}
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (10,18): error CS8352: Cannot use variable 's1' in this context because it may expose referenced variables outside of their declaration scope
+                //             s0 = s1; // 1
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "s1").WithArguments("s1").WithLocation(10, 18),
+                // (14,18): error CS8352: Cannot use variable 's2' in this context because it may expose referenced variables outside of their declaration scope
+                //             s0 = s2; // 2
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "s2").WithArguments("s2").WithLocation(14, 18));
+        }
+
+        [Fact]
+        public void LocalScope_12_UsingStmt()
+        {
+            var source =
+@"class Program
+{
+    static void Main()
+    {
+        int i0 = 0;
+        S s0 = new S(ref i0);
+        {
+            int i1 = 1;
+            using (S s1 = new S(ref i1))
+            {
+                s0 = s1; // 1
+            }
+        }
+        {
+            using (scoped S s2 = s0)
+            {
+                s0 = s2; // 2
+            }
+        }
+        {
+            using (S s3 = s0)
+            {
+                s0 = s3;
+            }
+        }
+    }
+}
+ref struct S
+{
+    public S(ref int i) { }
+    public void Dispose() {}
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (11,22): error CS8352: Cannot use variable 's1' in this context because it may expose referenced variables outside of their declaration scope
+                //                 s0 = s1; // 1
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "s1").WithArguments("s1").WithLocation(11, 22),
+                // (17,22): error CS8352: Cannot use variable 's2' in this context because it may expose referenced variables outside of their declaration scope
+                //                 s0 = s2; // 2
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "s2").WithArguments("s2").WithLocation(17, 22)
+                );
+        }
+
+        [Fact]
+        public void LocalScope_13_UsingDecl()
+        {
+            var source =
+@"#pragma warning disable 219
+
+class Program
+{
+    static void F(R r)
+    {
+        using scoped  R r2 = r, r5 = r;
+    }
+}
+
+ref struct R
+{
+    public void Dispose() {}
+}
+";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular10);
+            comp.VerifyEmitDiagnostics(
+                // (7,15): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
+                //         using scoped  R r2 = r, r5 = r;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "scoped").WithArguments("ref fields", "11.0").WithLocation(7, 15)
+                );
+
+            verify(comp);
+
+            comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics();
+            verify(comp);
+
+            static void verify(CSharpCompilation comp)
+            {
+                var tree = comp.SyntaxTrees[0];
+                var model = comp.GetSemanticModel(tree);
+                var decls = tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().ToArray();
+                var locals = decls.Select(d => model.GetDeclaredSymbol(d).GetSymbol<LocalSymbol>()).ToArray();
+
+                VerifyLocalSymbol(locals[0], "scoped R r2", RefKind.None, DeclarationScope.ValueScoped);
+                VerifyLocalSymbol(locals[1], "scoped R r5", RefKind.None, DeclarationScope.ValueScoped);
+
+                var type = ((VariableDeclarationSyntax)decls[0].Parent).Type;
+                Assert.Null(model.GetTypeInfo(type).Type);
+                Assert.Equal("R", model.GetSymbolInfo(type.SkipScoped(out _).SkipRef(out _)).Symbol.ToTestDisplayString());
+            }
+        }
+
+        [Fact]
+        public void LocalScope_13_UsingStmt()
+        {
+            var source =
+@"#pragma warning disable 219
+
+class Program
+{
+    static void F(R r)
+    {
+        using (scoped  R r2 = r, r5 = r) {}
+    }
+}
+
+ref struct R
+{
+    public void Dispose() {}
+}
+";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular10);
+            comp.VerifyEmitDiagnostics(
+                // (7,16): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
+                //         using (scoped  R r2 = r, r5 = r) {}
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "scoped").WithArguments("ref fields", "11.0").WithLocation(7, 16)
+                );
+
+            verify(comp);
+
+            comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics();
+            verify(comp);
+
+            static void verify(CSharpCompilation comp)
+            {
+                var tree = comp.SyntaxTrees[0];
+                var model = comp.GetSemanticModel(tree);
+                var decls = tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().ToArray();
+                var locals = decls.Select(d => model.GetDeclaredSymbol(d).GetSymbol<LocalSymbol>()).ToArray();
+
+                VerifyLocalSymbol(locals[0], "scoped R r2", RefKind.None, DeclarationScope.ValueScoped);
+                VerifyLocalSymbol(locals[1], "scoped R r5", RefKind.None, DeclarationScope.ValueScoped);
+
+                var type = ((VariableDeclarationSyntax)decls[0].Parent).Type;
+                Assert.Null(model.GetTypeInfo(type).Type);
+                Assert.Equal("R", model.GetSymbolInfo(type.SkipScoped(out _).SkipRef(out _)).Symbol.ToTestDisplayString());
+            }
+        }
+
+        [Fact]
+        public void ScopedRefAndRefStructOnly_06_UsingDecl()
+        {
+            var source =
+@"
+class Program
+{
+    static void Main()
+    {
+        using scoped var x1 = new R<int>();
+        using scoped var y1 = new S<int>();
+        using scoped S<int> y4 = new S<int>(), y5 = new S<int>();
+    }
+}
+
+ref struct R<T>
+{
+    public void Dispose() {}
+}
+
+struct S<T> : System.IDisposable
+{
+    public void Dispose() {}
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (7,22): error CS9048: The 'scoped' modifier can be used for refs and ref struct values only.
+                //         using scoped var y1 = new S<int>();
+                Diagnostic(ErrorCode.ERR_ScopedRefAndRefStructOnly, "var").WithLocation(7, 22),
+                // (8,22): error CS9048: The 'scoped' modifier can be used for refs and ref struct values only.
+                //         using scoped S<int> y4 = new S<int>(), y5 = new S<int>();
+                Diagnostic(ErrorCode.ERR_ScopedRefAndRefStructOnly, "S<int>").WithLocation(8, 22),
+                // (8,22): error CS9048: The 'scoped' modifier can be used for refs and ref struct values only.
+                //         using scoped S<int> y4 = new S<int>(), y5 = new S<int>();
+                Diagnostic(ErrorCode.ERR_ScopedRefAndRefStructOnly, "S<int>").WithLocation(8, 22)
+                );
+        }
+
+        [Fact]
+        public void ScopedRefAndRefStructOnly_06_UsingStmt()
+        {
+            var source =
+@"
+class Program
+{
+    static void Main()
+    {
+        using (scoped var x1 = new R<int>()) {}
+        using (scoped var y1 = new S<int>()) {}
+        using (scoped S<int> y4 = new S<int>(), y5 = new S<int>()) {}
+    }
+}
+
+ref struct R<T>
+{
+    public void Dispose() {}
+}
+
+struct S<T> : System.IDisposable
+{
+    public void Dispose() {}
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (7,23): error CS9048: The 'scoped' modifier can be used for refs and ref struct values only.
+                //         using (scoped var y1 = new S<int>()) {}
+                Diagnostic(ErrorCode.ERR_ScopedRefAndRefStructOnly, "var").WithLocation(7, 23),
+                // (8,23): error CS9048: The 'scoped' modifier can be used for refs and ref struct values only.
+                //         using (scoped S<int> y4 = new S<int>(), y5 = new S<int>()) {}
+                Diagnostic(ErrorCode.ERR_ScopedRefAndRefStructOnly, "S<int>").WithLocation(8, 23),
+                // (8,23): error CS9048: The 'scoped' modifier can be used for refs and ref struct values only.
+                //         using (scoped S<int> y4 = new S<int>(), y5 = new S<int>()) {}
+                Diagnostic(ErrorCode.ERR_ScopedRefAndRefStructOnly, "S<int>").WithLocation(8, 23)
+                );
         }
 
         [Fact, WorkItem(63526, "https://github.com/dotnet/roslyn/issues/63526")]

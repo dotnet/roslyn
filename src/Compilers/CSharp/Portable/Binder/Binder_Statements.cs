@@ -2686,7 +2686,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var typeSyntax = nodeOpt.Type;
-            Debug.Assert(typeSyntax is not ScopedTypeSyntax || localKind == LocalDeclarationKind.RegularVariable);
+            Debug.Assert(typeSyntax is not ScopedTypeSyntax || localKind is LocalDeclarationKind.RegularVariable or LocalDeclarationKind.UsingVariable);
 
             if (typeSyntax is ScopedTypeSyntax scopedType)
             {
