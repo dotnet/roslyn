@@ -228,7 +228,8 @@ namespace Microsoft.CodeAnalysis.UnitTests.Renamer
                 folders: GetDocumentFolders(s_defaultDocumentPath),
                 loader: TextLoader.From(TextAndVersion.Create(startSourceText, VersionStamp.Create(), documentName)),
                 filePath: s_defaultDocumentPath,
-                isGenerated: true)
+                isGenerated: true,
+                loadTextOptions: new LoadTextOptions(startSourceText.ChecksumAlgorithm))
                 .WithDocumentServiceProvider(new TestDocumentServiceProvider());
 
             solution = solution.AddDocument(documentInfo);

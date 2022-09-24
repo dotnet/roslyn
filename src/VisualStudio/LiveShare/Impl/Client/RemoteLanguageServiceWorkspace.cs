@@ -349,10 +349,11 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
                 DocumentId.CreateNewId(project.Id),
                 name: Path.GetFileName(filePath),
                 loader: new WorkspaceFileTextLoader(Services.SolutionServices, filePath, defaultEncoding: null),
-                filePath: filePath);
+                filePath: filePath,
+                loadTextOptions: new LoadTextOptions(project.State.ChecksumAlgorithm));
 
             OnDocumentAdded(docInfo);
-            return CurrentSolution.GetDocument(docInfo.Id)!;
+            return CurrentSolution.GetRequiredDocument(docInfo.Id);
         }
 
         private static string? GetLanguage(string filePath)
@@ -383,7 +384,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
                 // check if the doc is part of the current Roslyn workspace before notifying Roslyn.
                 if (CurrentSolution.ContainsProject(id.ProjectId))
                 {
-                    OnDocumentClosed(id, new WorkspaceFileTextLoaderNoException(Services.SolutionServices, moniker, null, SourceHashAlgorithms.Default));
+                    OnDocumentClosed(id, new WorkspaceFileTextLoaderNoException(Services.SolutionServices, moniker, defaultEncoding: null));
                     _openedDocs = _openedDocs.Remove(moniker);
                 }
             }

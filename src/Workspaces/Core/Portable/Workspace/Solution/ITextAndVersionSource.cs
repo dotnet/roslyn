@@ -11,6 +11,11 @@ namespace Microsoft.CodeAnalysis;
 
 internal interface ITextAndVersionSource
 {
+    /// <summary>
+    /// True if <see cref="SourceText"/> can be reloaded.
+    /// </summary>
+    bool CanReloadText { get; }
+
     bool TryGetValue(LoadTextOptions options, [MaybeNullWhen(false)] out TextAndVersion value);
     TextAndVersion GetValue(LoadTextOptions options, CancellationToken cancellationToken);
     Task<TextAndVersion> GetValueAsync(LoadTextOptions options, CancellationToken cancellationToken);

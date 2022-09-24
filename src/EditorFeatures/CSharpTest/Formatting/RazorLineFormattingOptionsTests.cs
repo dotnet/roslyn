@@ -60,7 +60,8 @@ void F   () {}
             folders: Array.Empty<string>(),
             sourceCodeKind: SourceCodeKind.Regular,
             loader: TextLoader.From(TextAndVersion.Create(sourceText, VersionStamp.Create(), "file.razor.g.cs")),
-            filePath: "file.razor.g.cs")
+            filePath: "file.razor.g.cs",
+            loadTextOptions: new LoadTextOptions(SourceHashAlgorithms.Default))
             .WithDesignTimeOnly(true)
             .WithDocumentServiceProvider(new TestRazorDocumentServiceProvider());
 

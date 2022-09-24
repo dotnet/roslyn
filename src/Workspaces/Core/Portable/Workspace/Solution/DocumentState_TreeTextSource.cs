@@ -21,14 +21,14 @@ namespace Microsoft.CodeAnalysis
             private readonly VersionStamp _version;
             private readonly string _filePath;
 
-            public SourceHashAlgorithm ChecksumAlgorithm { get; }
+            public bool CanReloadText
+                => false;
 
-            public TreeTextSource(ValueSource<SourceText> textSource, VersionStamp version, string filePath, SourceHashAlgorithm checksumAlgorithm)
+            public TreeTextSource(ValueSource<SourceText> textSource, VersionStamp version, string filePath)
             {
                 _textSource = textSource;
                 _version = version;
                 _filePath = filePath;
-                ChecksumAlgorithm = checksumAlgorithm;
             }
 
             public async Task<TextAndVersion> GetValueAsync(LoadTextOptions options, CancellationToken cancellationToken)

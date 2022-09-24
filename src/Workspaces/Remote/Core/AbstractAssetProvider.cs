@@ -88,14 +88,11 @@ namespace Microsoft.CodeAnalysis.Remote
             var attributes = await GetAssetAsync<DocumentInfo.DocumentAttributes>(documentSnapshot.Info, cancellationToken).ConfigureAwait(false);
             var serializableSourceText = await GetAssetAsync<SerializableSourceText>(documentSnapshot.Text, cancellationToken).ConfigureAwait(false);
 
-            var textLoader = TextLoader.From(
-                TextAndVersion.Create(
-                    await serializableSourceText.GetTextAsync(cancellationToken).ConfigureAwait(false),
-                    VersionStamp.Create(),
-                    attributes.FilePath));
+            var text = await serializableSourceText.GetTextAsync(cancellationToken).ConfigureAwait(false);
+            var textLoader = TextLoader.From(TextAndVersion.Create(text, VersionStamp.Create(), attributes.FilePath));
 
             // TODO: do we need version?
-            return new DocumentInfo(attributes, textLoader, documentServiceProvider: null);
+            return new DocumentInfo(attributes, textLoader, new LoadTextOptions(text.ChecksumAlgorithm), documentServiceProvider: null);
         }
 
         private async Task<IEnumerable<DocumentInfo>> CreateDocumentInfosAsync(ChecksumCollection documentChecksums, CancellationToken cancellationToken)

@@ -72,14 +72,15 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
                 ? string.Format(@"[assembly: System.Reflection.AssemblyVersion(""{0}"")]", AssemblyIdentity.Version)
                 : string.Format(@"<Assembly: System.Reflection.AssemblyVersion(""{0}"")>", AssemblyIdentity.Version);
 
-            var assemblyInfoSourceTextContainer = SourceText.From(assemblyInfoString, Encoding, ChecksumAlgorithm).Container;
+            var assemblyInfoSourceText = SourceText.From(assemblyInfoString, Encoding, ChecksumAlgorithm);
 
             var assemblyInfoDocument = DocumentInfo.Create(
                 assemblyInfoDocumentId,
                 assemblyInfoFileName,
-                loader: TextLoader.From(assemblyInfoSourceTextContainer, VersionStamp.Default),
+                loader: TextLoader.From(assemblyInfoSourceText.Container, VersionStamp.Default),
                 filePath: null,
-                isGenerated: true).WithDesignTimeOnly(true);
+                isGenerated: true,
+                loadTextOptions: new LoadTextOptions(assemblyInfoSourceText.ChecksumAlgorithm)).WithDesignTimeOnly(true);
 
             var generatedDocumentId = DocumentId.CreateNewId(projectId);
             var generatedDocument = DocumentInfo.Create(
@@ -87,7 +88,9 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
                 Path.GetFileName(TemporaryFilePath),
                 loader: loadFileFromDisk ? new WorkspaceFileTextLoader(workspace.Services.SolutionServices, TemporaryFilePath, Encoding) : null,
                 filePath: TemporaryFilePath,
-                isGenerated: true).WithDesignTimeOnly(true);
+                isGenerated: true,
+                loadTextOptions: new LoadTextOptions(ChecksumAlgorithm))
+                .WithDesignTimeOnly(true);
 
             var projectInfo = ProjectInfo.Create(
                 new ProjectInfo.ProjectAttributes(

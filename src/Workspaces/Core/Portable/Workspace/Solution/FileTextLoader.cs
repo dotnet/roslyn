@@ -3,8 +3,10 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.IO;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -18,6 +20,8 @@ namespace Microsoft.CodeAnalysis
     [DebuggerDisplay("{GetDebuggerDisplay(), nq}")]
     public class FileTextLoader : TextLoader
     {
+        private static readonly ConditionalWeakTable<Type, StrongBox<bool>> s_isObsoleteCreateTextOverriden = new();
+
         /// <summary>
         /// Absolute path of the file.
         /// </summary>
@@ -58,6 +62,14 @@ namespace Microsoft.CodeAnalysis
 
         internal sealed override string FilePath => Path;
 
+        public override bool CanReloadText => !IsObsoleteCreateTextOverridden;
+
+#pragma warning disable CS0618 // Type or member is obsolete
+        private bool IsObsoleteCreateTextOverridden
+            => s_isObsoleteCreateTextOverriden.GetValue(
+                GetType(), _ => new StrongBox<bool>(new Func<Stream, Workspace, SourceText>(CreateText).Method.DeclaringType != typeof(FileTextLoader))).Value;
+#pragma warning restore
+
         /// <summary>
         /// Creates <see cref="SourceText"/> from <see cref="Stream"/>.
         /// </summary>
@@ -65,14 +77,16 @@ namespace Microsoft.CodeAnalysis
         /// <param name="workspace">Obsolete. Null.</param>
         [Obsolete("Use CreateText(Stream, CancellationToken)")]
         protected virtual SourceText CreateText(Stream stream, Workspace? workspace)
-            => EncodedStringText.Create(stream, DefaultEncoding);
+            => EncodedStringText.Create(stream, DefaultEncoding, checksumAlgorithm: SourceHashAlgorithms.Default);
 
         /// <summary>
         /// Creates <see cref="SourceText"/> from <see cref="Stream"/>.
         /// </summary>
-        protected virtual SourceText CreateText(Stream stream, LoadTextOptions options, CancellationToken cancellationToken)
 #pragma warning disable CS0618 // Type or member is obsolete
-            => CreateText(stream, workspace: null);
+        protected virtual SourceText CreateText(Stream stream, LoadTextOptions options, CancellationToken cancellationToken)
+            => IsObsoleteCreateTextOverridden ?
+                CreateText(stream, workspace: null) :
+                EncodedStringText.Create(stream, DefaultEncoding, checksumAlgorithm: options.ChecksumAlgorithm);
 #pragma warning restore
 
         /// <summary>

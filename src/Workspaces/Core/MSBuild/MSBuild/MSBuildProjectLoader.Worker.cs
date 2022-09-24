@@ -442,6 +442,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
             private ImmutableArray<DocumentInfo> CreateDocumentInfos(IReadOnlyList<DocumentFileInfo> documentFileInfos, ProjectId projectId, Encoding? encoding, SourceHashAlgorithm checksumAlgorithm)
             {
                 var results = ImmutableArray.CreateBuilder<DocumentInfo>();
+                var loadTextOptions = new LoadTextOptions(checksumAlgorithm);
 
                 foreach (var info in documentFileInfos)
                 {
@@ -454,7 +455,8 @@ namespace Microsoft.CodeAnalysis.MSBuild
                         info.SourceCodeKind,
                         new WorkspaceFileTextLoader(_workspaceServices.SolutionServices, info.FilePath, encoding),
                         info.FilePath,
-                        info.IsGenerated);
+                        info.IsGenerated,
+                        loadTextOptions);
 
                     results.Add(documentInfo);
                 }

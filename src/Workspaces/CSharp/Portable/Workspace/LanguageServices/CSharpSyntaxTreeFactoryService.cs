@@ -7,6 +7,7 @@
 using System;
 using System.Collections.Generic;
 using System.Composition;
+using System.Diagnostics;
 using System.IO;
 using System.Text;
 using System.Threading;
@@ -92,16 +93,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                 string filePath,
                 ParseOptions options,
                 ITextAndVersionSource text,
-                Encoding encoding,
-                SyntaxNode root)
+                LoadTextOptions loadTextOptions,
+                Encoding encoding, SyntaxNode root)
             {
-                System.Diagnostics.Debug.Assert(CanCreateRecoverableTree(root));
+                Debug.Assert(CanCreateRecoverableTree(root));
                 return RecoverableSyntaxTree.CreateRecoverableTree(
                     this,
                     cacheKey,
                     filePath,
                     options ?? GetDefaultParseOptions(),
                     text,
+                    loadTextOptions,
                     encoding,
                     (CompilationUnitSyntax)root);
             }

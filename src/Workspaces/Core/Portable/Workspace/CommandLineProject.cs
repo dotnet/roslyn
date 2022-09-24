@@ -106,6 +106,8 @@ namespace Microsoft.CodeAnalysis
 
             var projectId = ProjectId.CreateNewId(debugName: projectName);
 
+            var loadTextOptions = new LoadTextOptions(commandLineArguments.ChecksumAlgorithm);
+
             // construct file infos
             var docs = new List<DocumentInfo>();
             foreach (var fileArg in commandLineArguments.SourceFiles)
@@ -128,7 +130,8 @@ namespace Microsoft.CodeAnalysis
                    folders: folders,
                    sourceCodeKind: fileArg.IsScript ? SourceCodeKind.Script : SourceCodeKind.Regular,
                    loader: new WorkspaceFileTextLoader(tmpWorkspace.Services.SolutionServices, absolutePath, commandLineArguments.Encoding),
-                   filePath: absolutePath);
+                   filePath: absolutePath,
+                   loadTextOptions: loadTextOptions);
 
                 docs.Add(doc);
             }
@@ -155,7 +158,8 @@ namespace Microsoft.CodeAnalysis
                    folders: folders,
                    sourceCodeKind: SourceCodeKind.Regular,
                    loader: new WorkspaceFileTextLoader(tmpWorkspace.Services.SolutionServices, absolutePath, commandLineArguments.Encoding),
-                   filePath: absolutePath);
+                   filePath: absolutePath,
+                   loadTextOptions: loadTextOptions);
 
                 additionalDocs.Add(doc);
             }

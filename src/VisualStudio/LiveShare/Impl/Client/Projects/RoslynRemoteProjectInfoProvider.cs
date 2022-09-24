@@ -87,14 +87,15 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client.Projects
         private static ProjectInfo CreateProjectInfo(string projectName, string language, ImmutableArray<string> files, SolutionServices services)
         {
             var projectId = ProjectId.CreateNewId();
-            const SourceHashAlgorithm checksumAlgorithm = SourceHashAlgorithms.Default;
+            var checksumAlgorithm = SourceHashAlgorithms.Default;
 
             var docInfos = files.SelectAsArray(path =>
                 DocumentInfo.Create(
                     DocumentId.CreateNewId(projectId),
                     name: Path.GetFileNameWithoutExtension(path),
-                    loader: new WorkspaceFileTextLoaderNoException(services, path, defaultEncoding: null, checksumAlgorithm),
-                    filePath: path));
+                    loader: new WorkspaceFileTextLoaderNoException(services, path, defaultEncoding: null),
+                    filePath: path,
+                    loadTextOptions: new LoadTextOptions(checksumAlgorithm)));
 
             return ProjectInfo.Create(
                 new ProjectInfo.ProjectAttributes(

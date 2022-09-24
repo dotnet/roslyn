@@ -20,6 +20,9 @@ internal sealed class ConstantTextAndVersionSource : ConstantValueSource<TextAnd
     {
     }
 
+    public bool CanReloadText
+        => false;
+
     public TextAndVersion GetValue(LoadTextOptions options, CancellationToken cancellationToken)
         => GetValue(cancellationToken);
 

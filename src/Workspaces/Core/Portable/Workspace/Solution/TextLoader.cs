@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Drawing;
 using System.IO;
 using System.Reflection;
@@ -32,11 +33,17 @@ namespace Microsoft.CodeAnalysis
         internal virtual string? FilePath => null;
 
         /// <summary>
+        /// True if <see cref="LoadTextAndVersionAsync(LoadTextOptions, CancellationToken)"/> reloads <see cref="SourceText"/> from its original binary representation (e.g. file on disk).
+        /// </summary>
+        public virtual bool CanReloadText
+            => false;
+
+        /// <summary>
         /// Load a text and a version of the document.
         /// </summary>
         /// <param name="options">
-        /// Use <see cref="LoadTextOptions.ChecksumAlgorithm"/> when creating <see cref="SourceText"/> from a stream.
-        /// Ignore if the <see cref="SourceText"/> is not created from a binary stream.
+        /// Use <see cref="LoadTextOptions.ChecksumAlgorithm"/> when creating <see cref="SourceText"/> from an original binary representation.
+        /// Ignore if the <see cref="SourceText"/> is not created from a binary representation.
         /// </param>
         /// <param name="cancellationToken">Cancellation token.</param>
         /// <exception cref="IOException" />

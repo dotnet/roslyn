@@ -101,6 +101,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                             filePath As String,
                                                             optionsOpt As ParseOptions,
                                                             text As ITextAndVersionSource,
+                                                            loadTextOptions As LoadTextOptions,
                                                             encoding As Encoding,
                                                             root As SyntaxNode) As SyntaxTree
 
@@ -111,6 +112,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     filePath,
                     If(optionsOpt, GetDefaultParseOptions()),
                     text,
+                    loadTextOptions,
                     encoding,
                     DirectCast(root, CompilationUnitSyntax))
             End Function

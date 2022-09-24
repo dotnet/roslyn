@@ -24,10 +24,13 @@ namespace Microsoft.CodeAnalysis
         // At that point the initial source is no longer referenced and can be garbage collected.
         private object _initialSourceOrRecoverableText;
 
+        public bool CanReloadText { get; }
+
         public RecoverableTextAndVersion(ITextAndVersionSource initialSource, SolutionServices services)
         {
             _initialSourceOrRecoverableText = initialSource;
             _services = services;
+            CanReloadText = initialSource.CanReloadText;
         }
 
         private bool TryGetInitialSourceOrRecoverableText([NotNullWhen(true)] out ITextAndVersionSource? source, [NotNullWhen(false)] out RecoverableText? text)
@@ -152,10 +155,10 @@ namespace Microsoft.CodeAnalysis
                 LoadDiagnostic = textAndVersion.LoadDiagnostic;
                 LoadTextOptions = options;
 
-                if (source is LoadableTextAndVersionSource { IsReloadable: true } reloadableSource)
+                if (source.CanReloadText)
                 {
                     // reloadable source must not cache results
-                    Contract.ThrowIfTrue(reloadableSource.CacheResult);
+                    Contract.ThrowIfTrue(source is LoadableTextAndVersionSource { CacheResult: true });
 
                     InitialSource = source;
                 }

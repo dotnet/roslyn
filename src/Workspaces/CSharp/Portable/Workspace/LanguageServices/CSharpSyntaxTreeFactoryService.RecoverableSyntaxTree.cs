@@ -59,6 +59,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     string filePath,
                     ParseOptions options,
                     ITextAndVersionSource text,
+                    LoadTextOptions loadTextOptions,
                     Encoding encoding,
                     CompilationUnitSyntax root)
                 {
@@ -70,6 +71,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             filePath,
                             options,
                             text,
+                            loadTextOptions,
                             encoding,
                             root.FullSpan.Length,
                             root.ContainsDirectives));
@@ -88,7 +90,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     => _info.TryGetText(out text);
 
                 public override SourceText GetText(CancellationToken cancellationToken)
-                    => _info.TextSource.GetValue(cancellationToken).Text;
+                    => _info.GetText(cancellationToken);
 
                 public override Task<SourceText> GetTextAsync(CancellationToken cancellationToken)
                     => _info.GetTextAsync(cancellationToken);

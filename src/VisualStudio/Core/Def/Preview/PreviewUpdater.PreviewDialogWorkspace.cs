@@ -50,13 +50,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Preview
                 internal PreviewTextLoader(SourceText documentText)
                     => _text = documentText;
 
-                private protected override TextLoader TryUpdateChecksumAlgorithmImpl(SourceHashAlgorithm algorithm)
-                    => throw ExceptionUtilities.Unreachable; // checksum alg should never be changed in preview workspace
+                public override Task<TextAndVersion> LoadTextAndVersionAsync(LoadTextOptions options, CancellationToken cancellationToken)
+                    => Task.FromResult(LoadTextAndVersionSynchronously(options, cancellationToken));
 
-                public override Task<TextAndVersion> LoadTextAndVersionAsync(CancellationToken cancellationToken)
-                    => Task.FromResult(LoadTextAndVersionSynchronously(cancellationToken));
-
-                internal override TextAndVersion LoadTextAndVersionSynchronously(CancellationToken cancellationToken)
+                internal override TextAndVersion LoadTextAndVersionSynchronously(LoadTextOptions options, CancellationToken cancellationToken)
                     => TextAndVersion.Create(_text, VersionStamp.Create());
             }
         }

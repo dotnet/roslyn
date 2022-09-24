@@ -369,7 +369,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                 sourceCodeKind: SourceCodeKind.Regular,
                 loader: TextLoader.From(TextAndVersion.Create(sourceText, VersionStamp.Create(), path)),
                 filePath: path,
-                isGenerated: false).WithDesignTimeOnly(true);
+                isGenerated: false,
+                loadTextOptions: new LoadTextOptions(sourceText.ChecksumAlgorithm))
+                .WithDesignTimeOnly(true);
         }
 
         internal sealed class FailingTextLoader : TextLoader
@@ -499,30 +501,34 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                 id: documentIdA,
                 name: "A",
                 loader: new WorkspaceFileTextLoader(solution.Services, sourceFileA.Path, encodingA),
-                filePath: sourceFileA.Path));
+                filePath: sourceFileA.Path,
+                loadTextOptions: new LoadTextOptions(SourceHashAlgorithm.Sha1)));
 
             var documentIdB = DocumentId.CreateNewId(projectP.Id, debugName: "B");
             solution = solution.AddDocument(DocumentInfo.Create(
                 id: documentIdB,
                 name: "B",
                 loader: new WorkspaceFileTextLoader(solution.Services, sourceFileB.Path, encodingB),
-                filePath: sourceFileB.Path));
+                filePath: sourceFileB.Path,
+                loadTextOptions: new LoadTextOptions(SourceHashAlgorithm.Sha1)));
 
             var documentIdC = DocumentId.CreateNewId(projectP.Id, debugName: "C");
             solution = solution.AddDocument(DocumentInfo.Create(
                 id: documentIdC,
                 name: "C",
                 loader: new WorkspaceFileTextLoader(solution.Services, sourceFileC.Path, encodingC),
-                filePath: sourceFileC.Path));
+                filePath: sourceFileC.Path,
+                loadTextOptions: new LoadTextOptions(SourceHashAlgorithm.Sha1)));
 
             var documentIdE = DocumentId.CreateNewId(projectP.Id, debugName: "E");
             solution = solution.AddDocument(DocumentInfo.Create(
                 id: documentIdE,
                 name: "E",
                 loader: new WorkspaceFileTextLoader(solution.Services, sourceFileE.Path, encodingE),
-                filePath: sourceFileE.Path));
+                filePath: sourceFileE.Path,
+                loadTextOptions: new LoadTextOptions(SourceHashAlgorithm.Sha1)));
 
-            // check that are testing documents whose hash algorithm does not match the PDB (but the hash itself does):
+            // check that we are testing documents whose hash algorithm does not match the PDB (but the hash itself does):
             Assert.Equal(SourceHashAlgorithm.Sha1, solution.GetDocument(documentIdA).GetTextSynchronously(default).ChecksumAlgorithm);
             Assert.Equal(SourceHashAlgorithm.Sha1, solution.GetDocument(documentIdB).GetTextSynchronously(default).ChecksumAlgorithm);
             Assert.Equal(SourceHashAlgorithm.Sha1, solution.GetDocument(documentIdC).GetTextSynchronously(default).ChecksumAlgorithm);
@@ -541,7 +547,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                 id: DocumentId.CreateNewId(projectQ.Id, debugName: "D"),
                 name: "D",
                 loader: new FailingTextLoader(),
-                filePath: sourceFileD.Path));
+                filePath: sourceFileD.Path,
+                loadTextOptions: new LoadTextOptions(SourceHashAlgorithm.Sha256)));
 
             var captureMatchingDocuments = captureAllDocuments ?
                 ImmutableArray<DocumentId>.Empty :
@@ -720,7 +727,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                 name: "design-time-only.cs",
                 loader: TextLoader.From(TextAndVersion.Create(sourceText, VersionStamp.Create(), "design-time-only.cs")),
                 filePath: "design-time-only.cs",
-                isGenerated: false).WithDesignTimeOnly(true);
+                isGenerated: false,
+                loadTextOptions: new LoadTextOptions(sourceText.ChecksumAlgorithm))
+                .WithDesignTimeOnly(true);
 
             solution = solution.AddDocument(documentInfo);
 
@@ -3621,7 +3630,9 @@ class C { int Y => 1; }
                 DocumentId.CreateNewId(project.Id, "test"),
                 name: "test",
                 loader: TextLoader.From(TextAndVersion.Create(sourceText, VersionStamp.Create(), filePath)),
-                filePath: filePath).WithDesignTimeOnly(designTimeOnly);
+                filePath: filePath,
+                loadTextOptions: new LoadTextOptions(sourceText.ChecksumAlgorithm))
+                .WithDesignTimeOnly(designTimeOnly);
 
             var document = project.Solution.AddDocument(documentInfo).GetDocument(documentInfo.Id);
 
@@ -4382,7 +4393,8 @@ class C
                 id: documentIdA,
                 name: "A",
                 loader: new WorkspaceFileTextLoader(solution.Services, sourceFileA.Path, Encoding.UTF8),
-                filePath: sourceFileA.Path));
+                filePath: sourceFileA.Path,
+                loadTextOptions: new LoadTextOptions(SourceHashAlgorithms.Default)));
 
             var tasks = Enumerable.Range(0, 10).Select(async i =>
             {
@@ -4468,7 +4480,8 @@ class C
                 id: documentIdA,
                 name: "A",
                 loader: new WorkspaceFileTextLoader(solution.Services, sourceFileA.Path, Encoding.UTF8),
-                filePath: sourceFileA.Path));
+                filePath: sourceFileA.Path,
+                loadTextOptions: new LoadTextOptions(SourceHashAlgorithms.Default)));
 
             var hotReload = new WatchHotReloadService(workspace.Services, ImmutableArray.Create("Baseline", "AddDefinitionToExistingType", "NewTypeDefinition"));
 
@@ -4535,7 +4548,8 @@ class C
                 id: documentIdA,
                 name: "A",
                 loader: new WorkspaceFileTextLoader(solution.Services, sourceFileA.Path, Encoding.UTF8),
-                filePath: sourceFileA.Path));
+                filePath: sourceFileA.Path,
+                loadTextOptions: new LoadTextOptions(SourceHashAlgorithms.Default)));
 
             var hotReload = new UnitTestingHotReloadService(workspace.Services);
 

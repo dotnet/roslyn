@@ -684,37 +684,37 @@ namespace Microsoft.CodeAnalysis.UnitTests
             solution = solution.AddDocument(documentAId, "a.cs", textLoaderA);
             solution = solution.AddDocument(documentBId, "b.cs", "class B {}");
             solution = solution.AddDocument(documentCId, "c.cs", textC);
-            solution = solution.AddDocument(documentDId, "d.cs", new FileTextLoader(fileD.Path, defaultEncoding: null, SourceHashAlgorithm.Sha1));
+            solution = solution.AddDocument(documentDId, "d.cs", new FileTextLoader(fileD.Path, defaultEncoding: null));
 
-            Assert.Equal(SourceHashAlgorithm.Sha1, solution.GetRequiredDocument(documentAId).GetTextSynchronously(default).ChecksumAlgorithm);
-            Assert.Equal(SourceHashAlgorithm.Sha1, solution.GetRequiredDocument(documentBId).GetTextSynchronously(default).ChecksumAlgorithm);
-            Assert.Equal(SourceHashAlgorithm.Sha1, solution.GetRequiredDocument(documentCId).GetTextSynchronously(default).ChecksumAlgorithm);
+            Verify(solution.GetRequiredDocument(documentAId), SourceHashAlgorithm.Sha1);
+            Verify(solution.GetRequiredDocument(documentBId), SourceHashAlgorithm.Sha1);
+            Verify(solution.GetRequiredDocument(documentCId), SourceHashAlgorithm.Sha1);
+            Verify(solution.GetRequiredDocument(documentDId), SourceHashAlgorithm.Sha1, checksumSHA1);
 
-            var fileText = solution.GetRequiredDocument(documentDId).GetTextSynchronously(default);
-            Assert.Equal(SourceHashAlgorithm.Sha1, fileText.ChecksumAlgorithm);
-            Assert.Equal(checksumSHA1, fileText.GetChecksum());
-
+            // only file loader based documents support updating checksum alg:
             solution = solution.WithProjectChecksumAlgorithm(projectId, SourceHashAlgorithm.Sha256);
+            Verify(solution.GetRequiredDocument(documentAId), SourceHashAlgorithm.Sha1);
+            Verify(solution.GetRequiredDocument(documentBId), SourceHashAlgorithm.Sha1);
+            Verify(solution.GetRequiredDocument(documentCId), SourceHashAlgorithm.Sha1);
+            Verify(solution.GetRequiredDocument(documentDId), SourceHashAlgorithm.Sha256, checksumSHA256);
 
             // only file loader based documents support updating checksum alg:
-            Assert.Equal(SourceHashAlgorithm.Sha1, solution.GetRequiredDocument(documentAId).GetTextSynchronously(default).ChecksumAlgorithm);
-            Assert.Equal(SourceHashAlgorithm.Sha1, solution.GetRequiredDocument(documentBId).GetTextSynchronously(default).ChecksumAlgorithm);
-            Assert.Equal(SourceHashAlgorithm.Sha1, solution.GetRequiredDocument(documentCId).GetTextSynchronously(default).ChecksumAlgorithm);
-
-            fileText = solution.GetRequiredDocument(documentDId).GetTextSynchronously(default);
-            Assert.Equal(SourceHashAlgorithm.Sha256, fileText.ChecksumAlgorithm);
-            Assert.Equal(checksumSHA256, fileText.GetChecksum());
-
             solution = solution.WithProjectChecksumAlgorithm(projectId, SourceHashAlgorithm.Sha1);
+            Verify(solution.GetRequiredDocument(documentAId), SourceHashAlgorithm.Sha1);
+            Verify(solution.GetRequiredDocument(documentBId), SourceHashAlgorithm.Sha1);
+            Verify(solution.GetRequiredDocument(documentCId), SourceHashAlgorithm.Sha1);
+            Verify(solution.GetRequiredDocument(documentDId), SourceHashAlgorithm.Sha1, checksumSHA1);
 
-            // only file loader based documents support updating checksum alg:
-            Assert.Equal(SourceHashAlgorithm.Sha1, solution.GetRequiredDocument(documentAId).GetTextSynchronously(default).ChecksumAlgorithm);
-            Assert.Equal(SourceHashAlgorithm.Sha1, solution.GetRequiredDocument(documentBId).GetTextSynchronously(default).ChecksumAlgorithm);
-            Assert.Equal(SourceHashAlgorithm.Sha1, solution.GetRequiredDocument(documentCId).GetTextSynchronously(default).ChecksumAlgorithm);
+            static void Verify(Document document, SourceHashAlgorithm expectedAlgorithm, byte[]? expectedChecksum = null)
+            {
+                Assert.Equal(expectedAlgorithm, document.State.LoadTextOptions.ChecksumAlgorithm);
+                Assert.Equal(expectedAlgorithm, document.GetTextSynchronously(default).ChecksumAlgorithm);
 
-            fileText = solution.GetRequiredDocument(documentDId).GetTextSynchronously(default);
-            Assert.Equal(SourceHashAlgorithm.Sha1, fileText.ChecksumAlgorithm);
-            Assert.Equal(checksumSHA1, fileText.GetChecksum());
+                if (expectedChecksum != null)
+                {
+                    Assert.Equal(expectedChecksum, document.GetTextSynchronously(default).GetChecksum());
+                }
+            }
         }
 
         [Fact]
@@ -3133,9 +3133,7 @@ public class C : A {
         private sealed class TestSmallFileTextLoader : FileTextLoader
         {
             public TestSmallFileTextLoader(string path, Encoding encoding)
-#pragma warning disable RS0030 // Do not used banned APIs
-                : base(path, encoding, SourceHashAlgorithms.Default)
-#pragma warning restore
+                : base(path, encoding)
             {
             }
 
@@ -3159,7 +3157,7 @@ public class C : A {
             try
             {
                 // test async one
-                var unused = await loader.LoadTextAndVersionAsync(CancellationToken.None);
+                var unused = await loader.LoadTextAndVersionAsync(new LoadTextOptions(SourceHashAlgorithms.Default), CancellationToken.None);
             }
             catch (InvalidDataException ex)
             {
@@ -3173,7 +3171,7 @@ public class C : A {
             try
             {
                 // test sync one
-                var unused = loader.LoadTextAndVersionSynchronously(CancellationToken.None);
+                var unused = loader.LoadTextAndVersionSynchronously(new LoadTextOptions(SourceHashAlgorithms.Default), CancellationToken.None);
             }
             catch (InvalidDataException ex)
             {
@@ -3195,7 +3193,8 @@ public class C : A {
             var factory = dummyProject.Services.GetService<ISyntaxTreeFactoryService>();
 
             // create the origin tree
-            var strongTree = factory.ParseSyntaxTree("dummy", dummyProject.ParseOptions, SourceText.From("// empty", encoding: null, SourceHashAlgorithms.Default), CancellationToken.None);
+            var text = SourceText.From("// empty", encoding: null, SourceHashAlgorithms.Default);
+            var strongTree = factory.ParseSyntaxTree("dummy", dummyProject.ParseOptions, text, CancellationToken.None);
 
             // create recoverable tree off the original tree
             var sourceText = strongTree.GetText();
@@ -3204,8 +3203,8 @@ public class C : A {
                 strongTree.FilePath,
                 strongTree.Options,
                 new ConstantTextAndVersionSource(TextAndVersion.Create(sourceText, VersionStamp.Create(), strongTree.FilePath)),
-                sourceText.Encoding,
-                strongTree.GetRoot());
+                new LoadTextOptions(text.ChecksumAlgorithm),
+                sourceText.Encoding, strongTree.GetRoot());
 
             // create new tree before it ever getting root node
             var newTree = recoverableTree.WithFilePath("different/dummy");

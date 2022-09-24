@@ -13,17 +13,14 @@ namespace Roslyn.Test.Utilities
 {
     internal class TestTextLoader : TextLoader
     {
-        private readonly string _text;
-
-        internal override SourceHashAlgorithm ChecksumAlgorithm { get; }
+        private readonly TextAndVersion _textAndVersion;
 
         public TestTextLoader(string text = "test", SourceHashAlgorithm checksumAlgorithm = SourceHashAlgorithms.Default)
         {
-            _text = text;
-            ChecksumAlgorithm = checksumAlgorithm;
+            _textAndVersion = TextAndVersion.Create(SourceText.From(text, encoding: null, checksumAlgorithm), VersionStamp.Create());
         }
 
-        public override Task<TextAndVersion> LoadTextAndVersionAsync(CancellationToken cancellationToken)
-            => Task.FromResult(TextAndVersion.Create(SourceText.From(_text, encoding: null, ChecksumAlgorithm), VersionStamp.Create()));
+        public override Task<TextAndVersion> LoadTextAndVersionAsync(LoadTextOptions options, CancellationToken cancellationToken)
+            => Task.FromResult(_textAndVersion);
     }
 }

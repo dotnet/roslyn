@@ -20,25 +20,19 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client.Projects
     /// </summary>
     internal sealed class WorkspaceFileTextLoaderNoException : WorkspaceFileTextLoader
     {
-        private readonly SolutionServices _services;
-
-        public WorkspaceFileTextLoaderNoException(SolutionServices services, string path, Encoding defaultEncoding, SourceHashAlgorithm checksumAlgorithm)
+        public WorkspaceFileTextLoaderNoException(SolutionServices services, string path, Encoding defaultEncoding)
             : base(services, path, defaultEncoding)
         {
-            _services = services;
         }
 
-        public override Task<TextAndVersion> LoadTextAndVersionAsync(CancellationToken cancellationToken)
+        public override Task<TextAndVersion> LoadTextAndVersionAsync(LoadTextOptions options, CancellationToken cancellationToken)
         {
             if (!File.Exists(Path))
             {
-                return Task.FromResult(TextAndVersion.Create(SourceText.From(""), VersionStamp.Create()));
+                return Task.FromResult(TextAndVersion.Create(SourceText.From("", encoding: null, options.ChecksumAlgorithm), VersionStamp.Create()));
             }
 
-            return base.LoadTextAndVersionAsync(cancellationToken);
+            return base.LoadTextAndVersionAsync(options, cancellationToken);
         }
-
-        private protected override TextLoader TryUpdateChecksumAlgorithmImpl(SourceHashAlgorithm algorithm)
-            => new WorkspaceFileTextLoaderNoException(_services, Path, DefaultEncoding, algorithm);
     }
 }
