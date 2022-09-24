@@ -3495,8 +3495,8 @@ Class C
         End Class
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Async Function SelectEnumMemberAdditionalFilterTextMatchOverInferiorFilterTextMatch() As Task
-            Using state = TestStateFactory.CreateCSharpTestState(
+        Public Async Function SelectEnumMemberAdditionalFilterTextMatchOverFilterTextMatchWithLowerPriority() As Task
+            Using state = TestStateFactory.CreateVisualBasicTestState(
                               <Document>
 Enum Colors
     Red
@@ -3504,39 +3504,37 @@ Enum Colors
 End Enum
 
 Class Program
-    Property GreenNode As Object
+    Property Green As Program
     Sub M()
         Dim x As Colors = Green$$
     End Sub
 End Class
 </Document>)
                 state.SendInvokeCompletionList()
-                Await state.AssertCompletionItemsContainAll("Colors.Green", "GreenNode")
+                Await state.AssertCompletionItemsContainAll("Colors.Green", "Green")
                 Await state.AssertSelectedCompletionItem("Colors.Green", isHardSelected:=True)
             End Using
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Async Function DoNotSelectEnumMemberAdditionalFilterTextMatchOverEqualFilterTextMatch() As Task
-            Using state = TestStateFactory.CreateCSharpTestState(
+        Public Async Function DoNotSelectEnumMemberAdditionalFilterTextMatchOverBetterFilterTextMatch() As Task
+            Using state = TestStateFactory.CreateVisualBasicTestState(
                               <Document>
-public enum Colors
-{
-    Red,
+Enum Colors
+    Red
     Green
-}
+End Enum
 
-class Program
-{                         
-    void M()
-    {
-        var green = Colors.green;
-        Colors c = gree$$
-    }
-}                               </Document>)
+Class Program
+    Sub M()
+        Dim gree = ""
+        Dim x As Colors = gree$$
+    End Sub
+End Class
+                             </Document>)
                 state.SendInvokeCompletionList()
-                Await state.AssertCompletionItemsContainAll("Colors.Green", "GreenNode")
-                Await state.AssertSelectedCompletionItem("Green", isHardSelected:=True)
+                Await state.AssertCompletionItemsContainAll("Colors.Green", "gree")
+                Await state.AssertSelectedCompletionItem("gree", isHardSelected:=True)
             End Using
         End Function
     End Class
