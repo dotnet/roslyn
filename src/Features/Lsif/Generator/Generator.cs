@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.IO;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -51,7 +52,12 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
 
         public async Task GenerateForCompilationAsync(Compilation compilation, string projectPath, LanguageServices languageServices, GeneratorOptions options)
         {
-            var projectVertex = new Graph.LsifProject(kind: GetLanguageKind(compilation.Language), new Uri(projectPath), _idFactory);
+            var projectVertex = new Graph.LsifProject(
+                kind: GetLanguageKind(compilation.Language),
+                new Uri(projectPath),
+                Path.GetFileNameWithoutExtension(projectPath),
+                _idFactory);
+
             _lsifJsonWriter.Write(projectVertex);
             _lsifJsonWriter.Write(new Event(Event.EventKind.Begin, projectVertex.GetId(), _idFactory));
 
