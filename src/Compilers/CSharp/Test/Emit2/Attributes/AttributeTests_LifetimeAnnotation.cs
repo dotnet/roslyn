@@ -321,8 +321,6 @@ ref struct R { }
     }
 }";
             var comp = CreateCompilation(source1, references: new[] { ref0 });
-            // https://github.com/dotnet/roslyn/issues/61647: If the [ScopedRef] scoped value is an int
-            // rather than a pair of bools, the compiler should reject attribute values that it does not recognize.
             comp.VerifyDiagnostics();
         }
 

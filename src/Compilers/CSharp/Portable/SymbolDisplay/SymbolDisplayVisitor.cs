@@ -190,8 +190,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (symbol.IsRef &&
                 format.LocalOptions.IncludesOption(SymbolDisplayLocalOptions.IncludeRef))
             {
-                // https://github.com/dotnet/roslyn/issues/61647: Use public API.
-                if ((symbol as Symbols.PublicModel.LocalSymbol)?.GetSymbol<LocalSymbol>().Scope == DeclarationScope.RefScoped &&
+                if (symbol.ScopedKind == ScopedKind.ScopedRef &&
                     format.CompilerInternalOptions.IncludesOption(SymbolDisplayCompilerInternalOptions.IncludeScoped))
                 {
                     AddKeyword(SyntaxKind.ScopedKeyword);
@@ -208,8 +207,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            // https://github.com/dotnet/roslyn/issues/61647: Use public API.
-            if ((symbol as Symbols.PublicModel.LocalSymbol)?.GetSymbol<LocalSymbol>().Scope == DeclarationScope.ValueScoped &&
+            if (symbol.ScopedKind == ScopedKind.ScopedValue &&
                 format.CompilerInternalOptions.IncludesOption(SymbolDisplayCompilerInternalOptions.IncludeScoped))
             {
                 AddKeyword(SyntaxKind.ScopedKeyword);

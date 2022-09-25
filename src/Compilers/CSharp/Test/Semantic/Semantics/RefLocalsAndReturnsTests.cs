@@ -4506,5 +4506,29 @@ namespace RefPropCrash
                 Diagnostic(ErrorCode.ERR_RefReturningCallInExpressionTree, "3").WithLocation(11, 52)
                 );
         }
+
+        [Fact]
+        public void RefLocalInUsing()
+        {
+            var code = @"
+var r = new R();
+using (ref R r2 = ref r) {}
+using ref R r1 = ref r;
+
+struct R : System.IDisposable
+{
+    public void Dispose() {}
+}
+";
+
+            CreateCompilation(code).VerifyEmitDiagnostics(
+                // (3,8): error CS1073: Unexpected token 'ref'
+                // using (ref R r2 = ref r) {}
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, "ref").WithArguments("ref").WithLocation(3, 8),
+                // (4,7): error CS1073: Unexpected token 'ref'
+                // using ref R r1 = ref r;
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, "ref").WithArguments("ref").WithLocation(4, 7)
+                );
+        }
     }
 }
