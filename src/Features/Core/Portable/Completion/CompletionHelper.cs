@@ -49,26 +49,36 @@ namespace Microsoft.CodeAnalysis.Completion
         /// results, or false if it should not be.
         /// </summary>
         public bool MatchesPattern(CompletionItem item, string pattern, CultureInfo culture)
-            => GetMatch(item, pattern, includeMatchSpans: false, culture) != null;
+            => GetMatchResult(item, pattern, includeMatchSpans: false, culture).ShouldBeConsideredMatchingFilterText;
 
-        public PatternMatch? GetMatch(
+        public MatchResult GetMatchResult(
             CompletionItem item,
             string pattern,
             bool includeMatchSpans,
             CultureInfo culture)
         {
             var match = GetMatch(item.FilterText, pattern, includeMatchSpans, culture);
+            string? matchedAdditionalFilterText = null;
+
             if (item.HasAdditionalFilterTexts)
             {
                 foreach (var additionalFilterText in item.AdditionalFilterTexts)
                 {
                     var additionalMatch = GetMatch(additionalFilterText, pattern, includeMatchSpans, culture);
                     if (additionalMatch.HasValue && additionalMatch.Value.CompareTo(match, ignoreCase: false) < 0)
+                    {
                         match = additionalMatch;
+                        matchedAdditionalFilterText = additionalFilterText;
+                    }
                 }
             }
 
-            return match;
+            return new MatchResult(
+                item,
+                shouldBeConsideredMatchingFilterText: match is not null,
+                match,
+                index: -1,
+                matchedAdditionalFilterText);
         }
 
         private PatternMatch? GetMatch(
@@ -163,8 +173,14 @@ namespace Microsoft.CodeAnalysis.Completion
         private PatternMatcher GetPatternMatcher(string pattern, CultureInfo culture, bool includeMatchedSpans)
             => GetPatternMatcher(pattern, culture, includeMatchedSpans, _patternMatcherMap);
 
-        public int CompareItems(CompletionItem item1, PatternMatch? match1, CompletionItem item2, PatternMatch? match2, bool filterTextHasNoUpperCase)
+        public int CompareMatchResults(MatchResult matchResult1, MatchResult matchResult2, bool filterTextHasNoUpperCase)
         {
+            var item1 = matchResult1.CompletionItem;
+            var match1 = matchResult1.PatternMatch;
+
+            var item2 = matchResult2.CompletionItem;
+            var match2 = matchResult2.PatternMatch;
+
             if (match1 != null && match2 != null)
             {
                 var result = CompareItems(match1.Value, match2.Value, item1, item2, _isCaseSensitive, filterTextHasNoUpperCase);
@@ -409,17 +425,16 @@ namespace Microsoft.CodeAnalysis.Completion
         public static string ConcatNamespace(string? containingNamespace, string name)
             => string.IsNullOrEmpty(containingNamespace) ? name : containingNamespace + "." + name;
 
-        internal static bool TryCreateMatchResult<T>(
+        internal static bool TryCreateMatchResult(
             CompletionHelper completionHelper,
             CompletionItem item,
-            T editorCompletionItem,
             string pattern,
             CompletionTriggerKind initialTriggerKind,
             CompletionFilterReason filterReason,
-            bool isRecentItem,
+            int recentItemIndex,
             bool includeMatchSpans,
             int currentIndex,
-            out MatchResult<T> matchResult)
+            out MatchResult matchResult)
         {
             // Get the match of the given completion item for the pattern provided so far. 
             // A completion item is checked against the pattern by see if it's 
@@ -438,7 +453,7 @@ namespace Microsoft.CodeAnalysis.Completion
                 item.Rules.MatchPriority,
                 initialTriggerKind,
                 filterReason,
-                isRecentItem,
+                recentItemIndex,
                 patternMatch);
 
             if (pattern.Length > 0 && item.HasAdditionalFilterTexts)
@@ -452,7 +467,7 @@ namespace Microsoft.CodeAnalysis.Completion
                         item.Rules.MatchPriority,
                         initialTriggerKind,
                         filterReason,
-                        isRecentItem,
+                        recentItemIndex,
                         additionalMatch);
 
                     if (!shouldBeConsideredMatchingFilterText ||
@@ -467,9 +482,9 @@ namespace Microsoft.CodeAnalysis.Completion
 
             if (shouldBeConsideredMatchingFilterText || KeepAllItemsInTheList(initialTriggerKind, pattern))
             {
-                matchResult = new MatchResult<T>(
-                    item, editorCompletionItem, shouldBeConsideredMatchingFilterText,
-                    patternMatch, currentIndex, matchedAdditionalFilterText);
+                matchResult = new MatchResult(
+                    item, shouldBeConsideredMatchingFilterText,
+                    patternMatch, currentIndex, matchedAdditionalFilterText, recentItemIndex);
 
                 return true;
             }
@@ -483,7 +498,7 @@ namespace Microsoft.CodeAnalysis.Completion
                 int matchPriority,
                 CompletionTriggerKind initialTriggerKind,
                 CompletionFilterReason filterReason,
-                bool isRecentItem,
+                int recentItemIndex,
                 PatternMatch? patternMatch)
             {
                 // For the deletion we bake in the core logic for how matching should work.
@@ -503,7 +518,7 @@ namespace Microsoft.CodeAnalysis.Completion
                 // MRU list, then we definitely want to include it.
                 if (pattern.Length == 0)
                 {
-                    if (isRecentItem || matchPriority > MatchPriority.Default)
+                    if (recentItemIndex >= 0 || matchPriority > MatchPriority.Default)
                         return true;
                 }
 
