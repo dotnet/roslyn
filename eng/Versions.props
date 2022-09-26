@@ -223,7 +223,7 @@
     <NuGetPackagingVersion>$(NuGetCommonVersion)</NuGetPackagingVersion>
     <NuGetProtocolVersion>$(NuGetCommonVersion)</NuGetProtocolVersion>
     <NuGetVersioningVersion>$(NuGetCommonVersion)</NuGetVersioningVersion>
-    <RoslynToolsVSIXExpInstallerVersion>1.1.0-beta3.21418.3</RoslynToolsVSIXExpInstallerVersion>
+    <RoslynToolsVSIXExpInstallerVersion>1.1.0-beta3.22474.1</RoslynToolsVSIXExpInstallerVersion>
     <RoslynMicrosoftVisualStudioExtensionManagerVersion>0.0.4</RoslynMicrosoftVisualStudioExtensionManagerVersion>
     <SourceBrowserVersion>1.0.21</SourceBrowserVersion>
     <SystemBuffersVersion>4.5.1</SystemBuffersVersion>
