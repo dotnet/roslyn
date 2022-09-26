@@ -22,13 +22,10 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public VersionStamp Version { get; }
 
-        public SourceHashAlgorithm ChecksumAlgorithm { get; }
-
-        public TreeAndVersion(SyntaxTree tree, VersionStamp version, SourceHashAlgorithm checksumAlgorithm)
+        public TreeAndVersion(SyntaxTree tree, VersionStamp version)
         {
             Tree = tree;
             Version = version;
-            ChecksumAlgorithm = checksumAlgorithm;
         }
     }
 }
