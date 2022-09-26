@@ -616,7 +616,8 @@ class D : B
 
                 Using flyout = New RenameFlyout(
                     New RenameFlyoutViewModel(DirectCast(sessionInfo.Session, InlineRenameSession), selectionSpan:=Nothing, registerOleComponent:=False, globalOptions), ' Don't registerOleComponent in tests, it requires OleComponentManagers that don't exist in our host
-                    textView:=cursorDocument.GetTextView())
+                    textView:=cursorDocument.GetTextView(),
+                    themeService:=Nothing)
 
                     Await WaitForRename(workspace)
 

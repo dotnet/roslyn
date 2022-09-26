@@ -568,10 +568,10 @@ class C
         public void RefReassignSpanLifetime(LanguageVersion languageVersion)
         {
             string source = @"using System;
-using System.Diagnostics.CodeAnalysis;
+
 class C
 {
-    void M([UnscopedRef] ref Span<int> s)
+    void M(ref Span<int> s)
     {
         Span<int> s2 = new Span<int>(new int[10]);
         s = ref s2; // Illegal, narrower escape scope
@@ -583,8 +583,7 @@ class C
     }
 }";
             var comp = CreateCompilationWithMscorlibAndSpan(new[] { source, UnscopedRefAttributeDefinition }, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
-            var expectedDiagnostics = new[]
-            {
+            comp.VerifyDiagnostics(
                 // (8,9): error CS8374: Cannot ref-assign 's2' to 's' because 's2' has a narrower escape scope than 's'.
                 //         s = ref s2; // Illegal, narrower escape scope
                 Diagnostic(ErrorCode.ERR_RefAssignNarrower, "s = ref s2").WithArguments("s", "s2").WithLocation(8, 9),
@@ -593,16 +592,7 @@ class C
                 Diagnostic(ErrorCode.ERR_EscapeStackAlloc, "stackalloc int[10]").WithArguments("System.Span<int>").WithLocation(10, 14),
                 // (13,9): error CS8374: Cannot ref-assign 's3' to 's' because 's3' has a narrower escape scope than 's'.
                 //         s = ref s3; // Illegal, narrower escape scope
-                Diagnostic(ErrorCode.ERR_RefAssignNarrower, "s = ref s3").WithArguments("s", "s3").WithLocation(13, 9)
-            };
-            if (languageVersion == LanguageVersion.CSharp10)
-            {
-                expectedDiagnostics = expectedDiagnostics.Append(
-                    // (5,13): error CS9063: UnscopedRefAttribute can only be applied to 'out' parameters, 'ref' and 'in' parameters that refer to 'ref struct' types, and instance methods and properties on 'struct' types other than constructors and 'init' accessors.
-                    //     void M([UnscopedRef] ref Span<int> s)
-                    Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedTarget, "UnscopedRef").WithLocation(5, 13));
-            }
-            comp.VerifyDiagnostics(expectedDiagnostics);
+                Diagnostic(ErrorCode.ERR_RefAssignNarrower, "s = ref s3").WithArguments("s", "s3").WithLocation(13, 9));
         }
 
         [Fact]
@@ -4514,6 +4504,30 @@ namespace RefPropCrash
                 // (11,52): error CS8153: An expression tree lambda may not contain a call to a method, property, or indexer that returns by reference
                 //             TestExpression(() => new Model { 1, 2, 3 });
                 Diagnostic(ErrorCode.ERR_RefReturningCallInExpressionTree, "3").WithLocation(11, 52)
+                );
+        }
+
+        [Fact]
+        public void RefLocalInUsing()
+        {
+            var code = @"
+var r = new R();
+using (ref R r2 = ref r) {}
+using ref R r1 = ref r;
+
+struct R : System.IDisposable
+{
+    public void Dispose() {}
+}
+";
+
+            CreateCompilation(code).VerifyEmitDiagnostics(
+                // (3,8): error CS1073: Unexpected token 'ref'
+                // using (ref R r2 = ref r) {}
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, "ref").WithArguments("ref").WithLocation(3, 8),
+                // (4,7): error CS1073: Unexpected token 'ref'
+                // using ref R r1 = ref r;
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, "ref").WithArguments("ref").WithLocation(4, 7)
                 );
         }
     }

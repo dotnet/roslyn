@@ -4,7 +4,9 @@
 
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
 Imports Microsoft.CodeAnalysis.Navigation
+Imports Microsoft.CodeAnalysis.[Shared].Extensions
 Imports Microsoft.CodeAnalysis.Test.Utilities
+Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.VisualStudio.Language.CallHierarchy
 Imports Roslyn.Test.Utilities
 
@@ -217,7 +219,7 @@ class CSharpIt : IChangeSignatureOptionsService
                 testState.SearchRoot(root,
                                  String.Format(EditorFeaturesResources.Implements_0, "GetChangeSignatureOptions"),
                                  Sub(c)
-                                     Assert.Equal("Assembly2", c.Project.Name)
+                                     Assert.Equal("Assembly2", c.ProjectName)
                                  End Sub,
                                  CallHierarchySearchScope.EntireSolution)
             End Using
@@ -256,7 +258,7 @@ class D
                                  String.Format(EditorFeaturesResources.Calls_To_0, "M"),
                                  Sub(c)
                                      ' The child items should be in the second project
-                                     Assert.Equal("Assembly2", c.Project.Name)
+                                     Assert.Equal("Assembly2", c.ProjectName)
                                  End Sub,
                                  CallHierarchySearchScope.EntireSolution)
             End Using
@@ -305,7 +307,7 @@ public class C
         </Project>
         <Project Language="C#" AssemblyName="Assembly2" CommonReferences="true">
             <ProjectReference>Assembly1</ProjectReference>
-            <Document>
+            <Document FilePath="OtherDoc.cs">
 class D : C
 {
     public override void goo() { }
@@ -314,13 +316,14 @@ class D : C
         </Project>
     </Workspace>
 
-            Using testState = CallHierarchyTestState.Create(input, GetType(MockSymbolNavigationServiceProvider))
+            Using testState = CallHierarchyTestState.Create(input, GetType(MockDocumentNavigationServiceProvider))
                 Dim root = testState.GetRoot()
                 testState.Navigate(root, EditorFeaturesResources.Overrides_, "D.goo()")
 
-                Dim mockNavigationService = DirectCast(testState.Workspace.Services.GetService(Of ISymbolNavigationService)(), MockSymbolNavigationServiceProvider.MockSymbolNavigationService)
-                Assert.NotNull(mockNavigationService.TryNavigateToSymbolProvidedSymbol)
-                Assert.NotNull(mockNavigationService.TryNavigateToSymbolProvidedProject)
+                Dim mockNavigationService = DirectCast(testState.Workspace.Services.GetService(Of IDocumentNavigationService)(), MockDocumentNavigationServiceProvider.MockDocumentNavigationService)
+                Dim document = testState.Workspace.CurrentSolution.GetRequiredDocument(mockNavigationService.ProvidedDocumentId)
+                Assert.Equal("OtherDoc.cs", document.Name)
+                Assert.Equal(TextSpan.FromBounds(43, 46), mockNavigationService.ProvidedTextSpan)
             End Using
         End Sub
 

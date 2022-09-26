@@ -178,7 +178,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             var token = tree.FindTokenOnLeftOfPosition(position, cancellationToken);
             token = token.GetPreviousTokenIfTouchingWord(position);
 
-            if (token.IsKind(SyntaxKind.CommaToken, SyntaxKind.OpenBraceToken))
+            if (token.Kind() is SyntaxKind.CommaToken or SyntaxKind.OpenBraceToken)
             {
                 return token.Parent is PropertyPatternClauseSyntax { Parent: PatternSyntax } propertyPatternClause
                     ? (propertyPatternClause, null)

@@ -8,16 +8,14 @@ using System;
 using System.Collections.Immutable;
 using System.Composition;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
-using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.TaskList;
-using Microsoft.CodeAnalysis.TodoComments;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.TaskList
 {
-    [ExportLanguageService(typeof(ITodoCommentService), LanguageNames.CSharp), Shared]
+    [ExportLanguageService(typeof(ITaskListService), LanguageNames.CSharp), Shared]
     internal class CSharpTaskListService : AbstractTaskListService
     {
         private static readonly int s_multilineCommentPostfixLength = "*/".Length;
@@ -29,10 +27,11 @@ namespace Microsoft.CodeAnalysis.CSharp.TaskList
         {
         }
 
-        protected override void AppendTodoComments(
-            ImmutableArray<TodoCommentDescriptor> commentDescriptors,
-            SyntacticDocument document, SyntaxTrivia trivia,
-            ArrayBuilder<TodoComment> todoList)
+        protected override void AppendTaskListItems(
+            ImmutableArray<TaskListItemDescriptor> commentDescriptors,
+            SyntacticDocument document,
+            SyntaxTrivia trivia,
+            ArrayBuilder<TaskListItem> items)
         {
             if (PreprocessorHasComment(trivia))
             {
@@ -41,19 +40,19 @@ namespace Microsoft.CodeAnalysis.CSharp.TaskList
                 var index = message.IndexOf(SingleLineCommentPrefix, StringComparison.Ordinal);
                 var start = trivia.FullSpan.Start + index;
 
-                AppendTodoCommentInfoFromSingleLine(commentDescriptors, message.Substring(index), start, todoList);
+                AppendTaskListItemsOnSingleLine(commentDescriptors, document, message.Substring(index), start, items);
                 return;
             }
 
             if (IsSingleLineComment(trivia))
             {
-                ProcessMultilineComment(commentDescriptors, document, trivia, postfixLength: 0, todoList: todoList);
+                ProcessMultilineComment(commentDescriptors, document, trivia, postfixLength: 0, items);
                 return;
             }
 
             if (IsMultilineComment(trivia))
             {
-                ProcessMultilineComment(commentDescriptors, document, trivia, s_multilineCommentPostfixLength, todoList);
+                ProcessMultilineComment(commentDescriptors, document, trivia, s_multilineCommentPostfixLength, items);
                 return;
             }
 

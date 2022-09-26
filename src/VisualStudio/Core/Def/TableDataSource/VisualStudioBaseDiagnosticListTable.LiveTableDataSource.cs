@@ -270,14 +270,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 
             public override IEnumerable<DiagnosticTableItem> Order(IEnumerable<DiagnosticTableItem> groupedItems)
             {
-                // this should make order of result always deterministic. we only need these 6 values since data with 
-                // all these same will merged to one.
-                return groupedItems.OrderBy(d => d.Data.DataLocation?.OriginalStartLine ?? 0)
-                                   .ThenBy(d => d.Data.DataLocation?.OriginalStartColumn ?? 0)
+                // Deterministically order the items.
+                //
+                // TODO: unclear why we are comparing OriginalFileSpan and not the final normalized span.  This may
+                // indicate a bug. If it is correct behavior, this should be documented as to why this is the right span
+                // to be considering.
+                return groupedItems.OrderBy(d => d.Data.DataLocation.UnmappedFileSpan.StartLinePosition)
                                    .ThenBy(d => d.Data.Id)
                                    .ThenBy(d => d.Data.Message)
-                                   .ThenBy(d => d.Data.DataLocation?.OriginalEndLine ?? 0)
-                                   .ThenBy(d => d.Data.DataLocation?.OriginalEndColumn ?? 0);
+                                   .ThenBy(d => d.Data.DataLocation.UnmappedFileSpan.EndLinePosition);
             }
 
             private class TableEntriesSource : DiagnosticTableEntriesSource
@@ -366,7 +367,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                             content = (data.GetValidHelpLinkUri() != null) ? string.Format(EditorFeaturesResources.Get_help_for_0, data.Id) : null;
                             return content != null;
                         case StandardTableKeyNames.HelpKeyword:
-                            content = data.Id;
+                            content = data.GetHelpKeyword();
                             return content != null;
                         case StandardTableKeyNames.HelpLink:
                             content = data.GetValidHelpLinkUri()?.AbsoluteUri;
@@ -384,13 +385,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                             content = data.Message;
                             return content != null;
                         case StandardTableKeyNames.DocumentName:
-                            content = data.DataLocation?.GetFilePath();
+                            content = data.DataLocation.MappedFileSpan.Path;
                             return content != null;
                         case StandardTableKeyNames.Line:
-                            content = data.DataLocation?.MappedStartLine ?? 0;
+                            content = data.DataLocation.MappedFileSpan.StartLinePosition.Line;
                             return true;
                         case StandardTableKeyNames.Column:
-                            content = data.DataLocation?.MappedStartColumn ?? 0;
+                            content = data.DataLocation.MappedFileSpan.StartLinePosition.Character;
                             return true;
                         case StandardTableKeyNames.ProjectName:
                             content = item.ProjectName;

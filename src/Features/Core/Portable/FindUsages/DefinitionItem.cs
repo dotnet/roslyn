@@ -249,9 +249,10 @@ namespace Microsoft.CodeAnalysis.FindUsages
             var projectId = solution.GetOriginatingProjectId(symbol);
             Contract.ThrowIfNull(projectId);
 
-            properties = properties.Add(MetadataSymbolKey, symbolKey)
-                                   .Add(MetadataSymbolOriginatingProjectIdGuid, projectId.Id.ToString())
-                                   .Add(MetadataSymbolOriginatingProjectIdDebugName, projectId.DebugName ?? "");
+            properties = properties
+                .Add(MetadataSymbolKey, symbolKey)
+                .Add(MetadataSymbolOriginatingProjectIdGuid, projectId.Id.ToString())
+                .Add(MetadataSymbolOriginatingProjectIdDebugName, projectId.DebugName ?? "");
 
             // Find the highest level containing type to show as the "file name". For metadata locations
             // that come from embedded source or SourceLink this could be wrong, as there is no reason

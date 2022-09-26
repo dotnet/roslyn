@@ -51,10 +51,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Symbol containingSymbol,
             Binder scopeBinder,
             bool allowRefKind,
+            bool allowScoped,
             TypeSyntax typeSyntax,
             SyntaxToken identifierToken,
-            LocalDeclarationKind declarationKind,
-            bool hasScopedModifier)
+            LocalDeclarationKind declarationKind)
         {
             Debug.Assert(identifierToken.Kind() != SyntaxKind.None);
             Debug.Assert(declarationKind != LocalDeclarationKind.None);
@@ -65,19 +65,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             this._containingSymbol = containingSymbol;
             this._identifierToken = identifierToken;
 
+            this._typeSyntax = typeSyntax;
+
+            bool isScoped;
+            typeSyntax = typeSyntax.SkipScoped(out isScoped);
+            isScoped = isScoped && allowScoped;
+
             if (allowRefKind && typeSyntax is RefTypeSyntax refTypeSyntax)
             {
-                this._typeSyntax = refTypeSyntax.Type;
                 this._refKind = refTypeSyntax.ReadOnlyKeyword.Kind() == SyntaxKind.ReadOnlyKeyword ?
                     RefKind.RefReadOnly :
                     RefKind.Ref;
-                this._scope = hasScopedModifier ? DeclarationScope.RefScoped : DeclarationScope.Unscoped;
+                this._scope = isScoped ? DeclarationScope.RefScoped : DeclarationScope.Unscoped;
             }
             else
             {
-                this._typeSyntax = typeSyntax;
                 this._refKind = RefKind.None;
-                this._scope = hasScopedModifier ? DeclarationScope.ValueScoped : DeclarationScope.Unscoped;
+                this._scope = isScoped ? DeclarationScope.ValueScoped : DeclarationScope.Unscoped;
             }
 
             this._declarationKind = declarationKind;
@@ -125,7 +129,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     return _refEscapeScope;
                 }
-                return Binder.TopLevelScope;
+                return _scope == DeclarationScope.RefScoped ?
+                    _scopeBinder.LocalScopeDepth :
+                    Binder.TopLevelScope;
             }
         }
 
@@ -139,7 +145,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     return _valEscapeScope;
                 }
                 return _scope == DeclarationScope.ValueScoped ?
-                    Binder.TopLevelScope :
+                    _scopeBinder.LocalScopeDepth :
                     Binder.ExternalScope;
             }
         }
@@ -206,7 +212,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // https://github.com/dotnet/roslyn/issues/62039: Allow 'scoped' modifier.
             return closestTypeSyntax.IsVar
                 ? new DeconstructionLocalSymbol(containingSymbol, scopeBinder, nodeBinder, closestTypeSyntax, identifierToken, kind, deconstruction)
-                : new SourceLocalSymbol(containingSymbol, scopeBinder, false, closestTypeSyntax, identifierToken, kind, hasScopedModifier: false);
+                : new SourceLocalSymbol(containingSymbol, scopeBinder, allowRefKind: false, allowScoped: false, closestTypeSyntax, identifierToken, kind);
         }
 
         /// <summary>
@@ -238,7 +244,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // https://github.com/dotnet/roslyn/issues/62039: Allow 'scoped' modifier.
             return typeSyntax?.IsVar != false && kind != LocalDeclarationKind.DeclarationExpressionVariable
                 ? new LocalSymbolWithEnclosingContext(containingSymbol, scopeBinder, nodeBinder, typeSyntax, identifierToken, kind, nodeToBind, forbiddenZone)
-                : new SourceLocalSymbol(containingSymbol, scopeBinder, false, typeSyntax, identifierToken, kind, hasScopedModifier: false);
+                : new SourceLocalSymbol(containingSymbol, scopeBinder, allowRefKind: false, allowScoped: false, typeSyntax, identifierToken, kind);
         }
 
         /// <summary>
@@ -249,13 +255,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// Binder that owns the scope for the local, the one that returns it in its <see cref="Binder.Locals"/> array.
         /// </param>
         /// <param name="allowRefKind"></param>
+        /// <param name="allowScoped"></param>
         /// <param name="typeSyntax"></param>
         /// <param name="identifierToken"></param>
         /// <param name="declarationKind"></param>
         /// <param name="initializer"></param>
-        /// <param name="hasScopedModifier">
-        /// scoped modifier from syntax, before ref if any.
-        /// </param>
         /// <param name="initializerBinderOpt">
         /// Binder that should be used to bind initializer, if different from the <paramref name="scopeBinder"/>.
         /// </param>
@@ -264,17 +268,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Symbol containingSymbol,
             Binder scopeBinder,
             bool allowRefKind,
+            bool allowScoped,
             TypeSyntax typeSyntax,
             SyntaxToken identifierToken,
             LocalDeclarationKind declarationKind,
             EqualsValueClauseSyntax initializer,
-            bool hasScopedModifier,
             Binder initializerBinderOpt = null)
         {
             Debug.Assert(declarationKind != LocalDeclarationKind.ForEachIterationVariable);
             return (initializer != null)
-                ? new LocalWithInitializer(containingSymbol, scopeBinder, typeSyntax, identifierToken, initializer, initializerBinderOpt ?? scopeBinder, declarationKind, hasScopedModifier)
-                : new SourceLocalSymbol(containingSymbol, scopeBinder, allowRefKind, typeSyntax, identifierToken, declarationKind, hasScopedModifier);
+                ? new LocalWithInitializer(containingSymbol, scopeBinder, typeSyntax, identifierToken, initializer, initializerBinderOpt ?? scopeBinder, declarationKind, allowScoped)
+                : new SourceLocalSymbol(containingSymbol, scopeBinder, allowRefKind: allowRefKind, allowScoped: allowScoped, typeSyntax, identifierToken, declarationKind);
         }
 
         internal override bool IsImportedFromMetadata
@@ -377,10 +381,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     return true;
                 }
 
-                if (_typeSyntax.IsVar)
+                TypeSyntax typeSyntax = _typeSyntax.SkipScoped(out _).SkipRef(out _);
+
+                if (typeSyntax.IsVar)
                 {
                     bool isVar;
-                    TypeWithAnnotations declType = this.TypeSyntaxBinder.BindTypeOrVarKeyword(_typeSyntax, BindingDiagnosticBag.Discarded, out isVar);
+                    TypeWithAnnotations declType = this.TypeSyntaxBinder.BindTypeOrVarKeyword(typeSyntax, BindingDiagnosticBag.Discarded, out isVar);
                     return isVar;
                 }
 
@@ -411,7 +417,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
             else
             {
-                declType = typeBinder.BindTypeOrVarKeyword(_typeSyntax.SkipRef(out _), diagnostics, out isVar);
+                declType = typeBinder.BindTypeOrVarKeyword(_typeSyntax.SkipScoped(out _).SkipRef(out _), diagnostics, out isVar);
             }
 
             if (isVar)
@@ -588,8 +594,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 EqualsValueClauseSyntax initializer,
                 Binder initializerBinder,
                 LocalDeclarationKind declarationKind,
-                bool hasScopedModifier) :
-                    base(containingSymbol, scopeBinder, true, typeSyntax, identifierToken, declarationKind, hasScopedModifier)
+                bool allowScoped) :
+                    base(containingSymbol, scopeBinder, allowRefKind: true, allowScoped: allowScoped, typeSyntax, identifierToken, declarationKind)
             {
                 Debug.Assert(declarationKind != LocalDeclarationKind.ForEachIterationVariable);
                 Debug.Assert(initializer != null);
@@ -689,7 +695,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 SyntaxToken identifierToken,
                 ExpressionSyntax collection,
                 LocalDeclarationKind declarationKind) :
-                    base(containingSymbol, scopeBinder, allowRefKind: true, typeSyntax, identifierToken, declarationKind, hasScopedModifier: false) // https://github.com/dotnet/roslyn/issues/62039: Allow 'scoped' modifier.
+                    base(containingSymbol, scopeBinder, allowRefKind: true, allowScoped: true, typeSyntax, identifierToken, declarationKind)
             {
                 Debug.Assert(declarationKind == LocalDeclarationKind.ForEachIterationVariable);
                 _collection = collection;
@@ -730,7 +736,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 SyntaxToken identifierToken,
                 LocalDeclarationKind declarationKind,
                 SyntaxNode deconstruction)
-            : base(containingSymbol, scopeBinder, false, typeSyntax, identifierToken, declarationKind, hasScopedModifier: false) // https://github.com/dotnet/roslyn/issues/62039: Allow 'scoped' modifier.
+            : base(containingSymbol, scopeBinder, allowRefKind: false, allowScoped: false, typeSyntax, identifierToken, declarationKind) // https://github.com/dotnet/roslyn/issues/62039: Allow 'scoped' modifier.
             {
                 _deconstruction = deconstruction;
                 _nodeBinder = nodeBinder;
@@ -795,7 +801,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 LocalDeclarationKind declarationKind,
                 SyntaxNode nodeToBind,
                 SyntaxNode forbiddenZone)
-                : base(containingSymbol, scopeBinder, false, typeSyntax, identifierToken, declarationKind, hasScopedModifier: false) // https://github.com/dotnet/roslyn/issues/62039: Allow 'scoped' modifier.
+                : base(containingSymbol, scopeBinder, allowRefKind: false, allowScoped: false, typeSyntax, identifierToken, declarationKind) // https://github.com/dotnet/roslyn/issues/62039: Allow 'scoped' modifier.
             {
                 Debug.Assert(
                     nodeToBind.Kind() == SyntaxKind.CasePatternSwitchLabel ||

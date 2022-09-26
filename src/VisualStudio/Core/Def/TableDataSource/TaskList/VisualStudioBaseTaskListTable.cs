@@ -12,6 +12,7 @@ using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.Editor.TaskList;
 using Microsoft.CodeAnalysis.Navigation;
 using Microsoft.CodeAnalysis.TaskList;
 using Microsoft.CodeAnalysis.Text;
@@ -28,10 +29,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
     {
         private readonly TableDataSource _source;
 
-        protected VisualStudioBaseTaskListTable(Workspace workspace, IThreadingContext threadingContext, ITaskListProvider todoListProvider, string identifier, ITableManagerProvider provider)
+        protected VisualStudioBaseTaskListTable(Workspace workspace, IThreadingContext threadingContext, ITaskListProvider taskProvider, string identifier, ITableManagerProvider provider)
             : base(workspace, provider, StandardTables.TasksTable)
         {
-            _source = new TableDataSource(workspace, threadingContext, todoListProvider, identifier);
+            _source = new TableDataSource(workspace, threadingContext, taskProvider, identifier);
             AddInitialTableSource(workspace.CurrentSolution, _source);
         }
 
@@ -70,16 +71,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
         {
             private readonly Workspace _workspace;
             private readonly string _identifier;
-            private readonly ITaskListProvider _todoListProvider;
+            private readonly ITaskListProvider _taskProvider;
 
-            public TableDataSource(Workspace workspace, IThreadingContext threadingContext, ITaskListProvider todoListProvider, string identifier)
+            public TableDataSource(Workspace workspace, IThreadingContext threadingContext, ITaskListProvider taskProvider, string identifier)
                 : base(workspace, threadingContext)
             {
                 _workspace = workspace;
                 _identifier = identifier;
 
-                _todoListProvider = todoListProvider;
-                _todoListProvider.TaskListUpdated += OnTodoListUpdated;
+                _taskProvider = taskProvider;
+                _taskProvider.TaskListUpdated += OnTaskListUpdated;
             }
 
             public override string DisplayName => ServicesVSResources.CSharp_VB_Todo_List_Table_Data_Source;
@@ -136,7 +137,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             public override IEnumerable<TaskListTableItem> Order(IEnumerable<TaskListTableItem> groupedItems)
                 => groupedItems.OrderBy(d => d.Data.Span.StartLinePosition);
 
-            private void OnTodoListUpdated(object sender, TaskListUpdatedArgs e)
+            private void OnTaskListUpdated(object sender, TaskListUpdatedArgs e)
             {
                 if (_workspace != e.Workspace)
                 {
@@ -177,7 +178,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 
                 public override ImmutableArray<TaskListTableItem> GetItems()
                 {
-                    return _source._todoListProvider.GetTaskListItems(_workspace, _documentId, CancellationToken.None)
+                    return _source._taskProvider.GetTaskListItems(_workspace, _documentId, CancellationToken.None)
                                    .Select(data => TaskListTableItem.Create(_workspace, data))
                                    .ToImmutableArray();
                 }

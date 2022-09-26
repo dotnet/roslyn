@@ -3,22 +3,23 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.CodeAnalysis.SolutionCrawler;
+using Microsoft.CodeAnalysis.TaskList;
 
-namespace Microsoft.CodeAnalysis.LanguageServer.Features.TaskList
+namespace Microsoft.CodeAnalysis.TaskList
 {
     /// <remarks>Note: this is explicitly <b>not</b> exported.  We don't want the workspace
     /// to automatically load this.  Instead, VS waits until it is ready
     /// and then calls into the service to tell it to start analyzing the solution.  At that point we'll get
     /// created and added to the solution crawler.
     /// </remarks>
-    internal sealed class InProcTaskListIncrementalAnalyzerProvider : IIncrementalAnalyzerProvider
+    internal sealed class TaskListIncrementalAnalyzerProvider : IIncrementalAnalyzerProvider
     {
         private readonly TaskListListener _listener;
 
-        public InProcTaskListIncrementalAnalyzerProvider(TaskListListener listener)
+        public TaskListIncrementalAnalyzerProvider(TaskListListener listener)
             => _listener = listener;
 
         public IIncrementalAnalyzer CreateIncrementalAnalyzer(Workspace workspace)
-            => new InProcTaskListIncrementalAnalyzer(_listener);
+            => new TaskListIncrementalAnalyzer(_listener);
     }
 }

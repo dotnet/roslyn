@@ -6,23 +6,25 @@ Imports System.Collections.Immutable
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Editor.[Shared].Utilities
+Imports Microsoft.CodeAnalysis.Editor.TaskList
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.TaskList
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
+Imports Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
 Imports Microsoft.VisualStudio.Shell.TableManager
 Imports Roslyn.Test.Utilities
 Imports Roslyn.Utilities
 
-Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
+Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.TaskList
     <[UseExportProvider]>
     Public Class TaskListTableDataSourceTests
         <Fact>
         Public Sub TestCreation()
             Using workspace = TestWorkspace.CreateCSharp(String.Empty)
                 Dim threadingContext = workspace.GetService(Of IThreadingContext)()
-                Dim provider = New TestTodoListProvider()
+                Dim provider = New TestTaskListProvider()
                 Dim tableManagerProvider = New TestTableManagerProvider()
 
                 Dim table = New VisualStudioTaskListTableWorkspaceEventListener.VisualStudioTaskListTable(workspace, threadingContext, provider, tableManagerProvider)
@@ -56,7 +58,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
             Using workspace = TestWorkspace.CreateCSharp(String.Empty)
                 Dim threadingContext = workspace.GetService(Of IThreadingContext)()
                 Dim documentId = workspace.CurrentSolution.Projects.First().DocumentIds.First()
-                Dim provider = New TestTodoListProvider(CreateItem(documentId))
+                Dim provider = New TestTaskListProvider(CreateItem(documentId))
                 Dim tableManagerProvider = New TestTableManagerProvider()
 
                 Dim table = New VisualStudioTaskListTableWorkspaceEventListener.VisualStudioTaskListTable(workspace, threadingContext, provider, tableManagerProvider)
@@ -76,7 +78,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
             Using workspace = TestWorkspace.CreateCSharp(String.Empty)
                 Dim threadingContext = workspace.GetService(Of IThreadingContext)()
                 Dim documentId = workspace.CurrentSolution.Projects.First().DocumentIds.First()
-                Dim provider = New TestTodoListProvider()
+                Dim provider = New TestTaskListProvider()
                 Dim tableManagerProvider = New TestTableManagerProvider()
 
                 Dim table = New VisualStudioTaskListTableWorkspaceEventListener.VisualStudioTaskListTable(workspace, threadingContext, provider, tableManagerProvider)
@@ -104,7 +106,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                 Dim documentId = workspace.CurrentSolution.Projects.First().DocumentIds.First()
 
                 Dim item = CreateItem(documentId)
-                Dim provider = New TestTodoListProvider(item)
+                Dim provider = New TestTaskListProvider(item)
                 Dim tableManagerProvider = New TestTableManagerProvider()
 
                 Dim table = New VisualStudioTaskListTableWorkspaceEventListener.VisualStudioTaskListTable(workspace, threadingContext, provider, tableManagerProvider)
@@ -146,7 +148,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                 Dim documentId = workspace.CurrentSolution.Projects.First().DocumentIds.First()
 
                 Dim item = CreateItem(documentId)
-                Dim provider = New TestTodoListProvider(item)
+                Dim provider = New TestTaskListProvider(item)
                 Dim tableManagerProvider = New TestTableManagerProvider()
 
                 Dim table = New VisualStudioTaskListTableWorkspaceEventListener.VisualStudioTaskListTable(workspace, threadingContext, provider, tableManagerProvider)
@@ -195,7 +197,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                 Dim documentId = workspace.CurrentSolution.Projects.First().DocumentIds.First()
 
                 Dim item = CreateItem(documentId)
-                Dim provider = New TestTodoListProvider(item)
+                Dim provider = New TestTaskListProvider(item)
                 Dim tableManagerProvider = New TestTableManagerProvider()
 
                 Dim table = New VisualStudioTaskListTableWorkspaceEventListener.VisualStudioTaskListTable(workspace, threadingContext, provider, tableManagerProvider)
@@ -226,7 +228,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                 Dim documentId = workspace.CurrentSolution.Projects.First().DocumentIds.First()
 
                 Dim item = CreateItem(documentId)
-                Dim provider = New TestTodoListProvider(item)
+                Dim provider = New TestTaskListProvider(item)
                 Dim tableManagerProvider = New TestTableManagerProvider()
 
                 Dim table = New VisualStudioTaskListTableWorkspaceEventListener.VisualStudioTaskListTable(workspace, threadingContext, provider, tableManagerProvider)
@@ -242,9 +244,12 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                 Dim factory = TryCast(sink.Entries.First(), TableEntriesFactory(Of TaskListTableItem, TaskListUpdatedArgs))
                 Dim snapshot1 = factory.GetCurrentSnapshot()
 
+                Dim pos = New LinePosition(11, 21)
+                Dim span2 = New FileLinePositionSpan("test2", pos, pos)
+                Dim span1 = New FileLinePositionSpan("test1", pos, pos)
                 provider.Items = New TaskListItem() {
-                    New TaskListItem(priority:=1, message:="test2", documentId:=documentId, New FileLinePositionSpan("test2", New LinePosition(11, 21), New LinePosition(11, 22)), New FileLinePositionSpan("test2", New LinePosition(11, 21), New LinePosition(11, 22))),
-                    New TaskListItem(priority:=0, message:="test", documentId:=documentId, New FileLinePositionSpan("test1", New LinePosition(11, 21), New LinePosition(11, 21)), New FileLinePositionSpan("test1", New LinePosition(11, 21), New LinePosition(11, 21)))
+                    New TaskListItem(priority:=1, message:="test2", documentId:=documentId, span:=span2, mappedSpan:=span2),
+                    New TaskListItem(priority:=0, message:="test", documentId:=documentId, span:=span1, mappedSpan:=span1)
                 }
 
                 provider.RaiseTodoListUpdated(workspace)
@@ -261,7 +266,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                 Dim documentId = workspace.CurrentSolution.Projects.First().DocumentIds.First()
 
                 Dim item = CreateItem(documentId)
-                Dim provider = New TestTodoListProvider(item)
+                Dim provider = New TestTaskListProvider(item)
                 Dim tableManagerProvider = New TestTableManagerProvider()
 
                 Dim table = New VisualStudioTaskListTableWorkspaceEventListener.VisualStudioTaskListTable(workspace, threadingContext, provider, tableManagerProvider)
@@ -277,9 +282,12 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                 Dim factory = TryCast(sink.Entries.First(), TableEntriesFactory(Of TaskListTableItem, TaskListUpdatedArgs))
                 Dim snapshot1 = factory.GetCurrentSnapshot()
 
+                Dim pos = New LinePosition(11, 21)
+                Dim span2 = New FileLinePositionSpan("test2", pos, pos)
+                Dim span3 = New FileLinePositionSpan("test3", pos, pos)
                 provider.Items = New TaskListItem() {
-                    New TaskListItem(priority:=1, message:="test2", documentId:=documentId, New FileLinePositionSpan("test2", New LinePosition(11, 21), New LinePosition(11, 22)), New FileLinePositionSpan("test2", New LinePosition(11, 21), New LinePosition(11, 22))),
-                    New TaskListItem(priority:=0, message:="test3", documentId:=documentId, New FileLinePositionSpan("test3", New LinePosition(11, 21), New LinePosition(11, 21)), New FileLinePositionSpan("test3", New LinePosition(11, 21), New LinePosition(11, 21)))
+                    New TaskListItem(priority:=1, message:="test2", documentId:=documentId, span:=span2, mappedSpan:=span2),
+                    New TaskListItem(priority:=0, message:="test3", documentId:=documentId, span:=span3, mappedSpan:=span3)
                 }
 
                 provider.RaiseTodoListUpdated(workspace)
@@ -296,7 +304,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                 Dim documentId = workspace.CurrentSolution.Projects.First().DocumentIds.First()
 
                 Dim item = CreateItem(documentId)
-                Dim provider = New TestTodoListProvider(item)
+                Dim provider = New TestTaskListProvider(item)
                 Dim tableManagerProvider = New TestTableManagerProvider()
 
                 Dim table = New VisualStudioTaskListTableWorkspaceEventListener.VisualStudioTaskListTable(workspace, threadingContext, provider, tableManagerProvider)
@@ -336,7 +344,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                 Dim item1 = CreateItem(projects(0).DocumentIds.First())
                 Dim item2 = CreateItem(projects(1).DocumentIds.First())
 
-                Dim provider = New TestTodoListProvider()
+                Dim provider = New TestTaskListProvider()
                 Dim tableManagerProvider = New TestTableManagerProvider()
 
                 Dim table = New VisualStudioTaskListTableWorkspaceEventListener.VisualStudioTaskListTable(workspace, threadingContext, provider, tableManagerProvider)
@@ -370,15 +378,17 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
         End Sub
 
         Private Shared Function CreateItem(documentId As DocumentId) As TaskListItem
+            Dim pos = New LinePosition(10, 20)
+            Dim span = New FileLinePositionSpan("test1", pos, pos)
             Return New TaskListItem(
                 priority:=0,
                 message:="test",
                 documentId:=documentId,
-                New FileLinePositionSpan("test1", New LinePosition(10, 20), New LinePosition(10, 20)),
-                New FileLinePositionSpan("test1", New LinePosition(10, 20), New LinePosition(10, 20)))
+                span:=span,
+                mappedSpan:=span)
         End Function
 
-        Private Class TestTodoListProvider
+        Private Class TestTaskListProvider
             Implements ITaskListProvider
 
             Public Items As TaskListItem()
