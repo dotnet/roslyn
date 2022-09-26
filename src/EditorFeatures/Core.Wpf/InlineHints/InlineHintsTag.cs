@@ -56,7 +56,6 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
             _span = span;
             _hint = hint;
             _taggerProvider = taggerProvider;
-
             // Sets the tooltip to a string so that the tool tip opening event can be triggered
             // Tooltip value does not matter at this point because it immediately gets overwritten by the correct
             // information in the Border_ToolTipOpening event handler
@@ -82,10 +81,11 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
             SnapshotSpan span,
             InlineHintsTaggerProvider taggerProvider,
             IClassificationFormatMap formatMap,
-            bool classify)
+            bool classify,
+            int counter)
         {
             return new InlineHintsTag(
-                CreateElement(hint.DisplayParts, textView, format, formatMap, taggerProvider.TypeMap, classify),
+                CreateElement(hint.DisplayParts, textView, format, formatMap, taggerProvider.TypeMap, classify, counter),
                 textView, span, hint, taggerProvider);
         }
 
@@ -117,7 +117,8 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
             TextFormattingRunProperties format,
             IClassificationFormatMap formatMap,
             ClassificationTypeMap typeMap,
-            bool classify)
+            bool classify,
+            int counter)
         {
             // Constructs the hint block which gets assigned parameter name and fontstyles according to the options
             // page. Calculates a inline tag that will be 3/4s the size of a normal line. This shrink size tends to work
@@ -182,7 +183,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
             StackPanel? adornment;
             if (taggedTexts.Length is 1)
             {
-                adornment = new InlineHintsTagAdornment("");
+                adornment = new InlineHintsTagAdornment(trimmedTexts[0].Text + " " + counter);
             }
             else
             {
