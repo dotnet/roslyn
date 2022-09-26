@@ -34,9 +34,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Optional path As String = "",
             Optional encoding As Encoding = Nothing) As SyntaxTree
 
-#Disable Warning RS0030 ' Do not used banned APIs
-            Return VisualBasicSyntaxTree.Create(DirectCast(root, VisualBasicSyntaxNode), DirectCast(options, VisualBasicParseOptions), path, encoding)
-#Enable Warning
+            Return VisualBasicSyntaxTree.Create(DirectCast(root, VisualBasicSyntaxNode), DirectCast(options, VisualBasicParseOptions), path, encoding, SourceHashAlgorithm.Sha1)
         End Function
 
         ''' <summary>
@@ -49,7 +47,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             encoding As Encoding,
             cancellationToken As CancellationToken) As SyntaxTree
 
-            Return ParseSyntaxTree(SourceText.From(text, encoding), options, path, cancellationToken)
+            Return ParseSyntaxTree(SourceText.From(text, encoding, SourceHashAlgorithm.Sha1), options, path, cancellationToken)
         End Function
 
         ''' <summary>

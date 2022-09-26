@@ -654,7 +654,7 @@ namespace Microsoft.CodeAnalysis
 
             if (mode == PreservationMode.PreserveIdentity || !factory.CanCreateRecoverableTree(newRoot))
             {
-                tree = factory.CreateSyntaxTree(GetSyntaxTreeFilePath(Attributes), options, encoding, checksumAlgorithm, newRoot);
+                tree = factory.CreateSyntaxTree(GetSyntaxTreeFilePath(attributes), options, encoding, checksumAlgorithm, newRoot);
 
                 // its okay to use a strong cached AsyncLazy here because the compiler layer SyntaxTree will also keep the text alive once its built.
                 lazyTextAndVersion = new TreeTextSource(
@@ -682,7 +682,7 @@ namespace Microsoft.CodeAnalysis
                             cacheResult: false)),
                     textVersion);
 
-                tree = factory.CreateRecoverableTree(attributes.Id.ProjectId, GetSyntaxTreeFilePath(Attributes), options, lazyTextAndVersion, new LoadTextOptions(checksumAlgorithm), encoding, newRoot);
+                tree = factory.CreateRecoverableTree(attributes.Id.ProjectId, GetSyntaxTreeFilePath(attributes), options, lazyTextAndVersion, new LoadTextOptions(checksumAlgorithm), encoding, newRoot);
             }
 
             return (lazyTextAndVersion, new TreeAndVersion(tree, treeVersion));

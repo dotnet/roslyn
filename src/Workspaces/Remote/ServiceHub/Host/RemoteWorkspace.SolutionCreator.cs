@@ -300,9 +300,61 @@ namespace Microsoft.CodeAnalysis.Remote
                 Contract.ThrowIfFalse(project.State.ProjectInfo.Attributes.Language == newProjectAttributes.Language);
                 Contract.ThrowIfFalse(project.State.ProjectInfo.Attributes.IsSubmission == newProjectAttributes.IsSubmission);
 
-                // do not propagate attribute update to documents - they will be updated by UpdateDocumentsAsync:
-                return project.Solution.WithProjectAttributes(project.Id, newProjectAttributes, updateDocuments: false).GetRequiredProject(project.Id);
+                var projectId = project.Id;
+
+                if (project.State.ProjectInfo.Attributes.Name != newProjectAttributes.Name)
+                {
+                    project = project.Solution.WithProjectName(projectId, newProjectAttributes.Name).GetProject(projectId)!;
+                }
+
+                if (project.State.ProjectInfo.Attributes.AssemblyName != newProjectAttributes.AssemblyName)
+                {
+                    project = project.Solution.WithProjectAssemblyName(projectId, newProjectAttributes.AssemblyName).GetProject(projectId)!;
+                }
+
+                if (project.State.ProjectInfo.Attributes.FilePath != newProjectAttributes.FilePath)
+                {
+                    project = project.Solution.WithProjectFilePath(projectId, newProjectAttributes.FilePath).GetProject(projectId)!;
+                }
+
+                if (project.State.ProjectInfo.Attributes.OutputFilePath != newProjectAttributes.OutputFilePath)
+                {
+                    project = project.Solution.WithProjectOutputFilePath(projectId, newProjectAttributes.OutputFilePath).GetProject(projectId)!;
+                }
+
+                if (project.State.ProjectInfo.Attributes.OutputRefFilePath != newProjectAttributes.OutputRefFilePath)
+                {
+                    project = project.Solution.WithProjectOutputRefFilePath(projectId, newProjectAttributes.OutputRefFilePath).GetProject(projectId)!;
+                }
+
+                if (project.State.ProjectInfo.Attributes.CompilationOutputInfo != newProjectAttributes.CompilationOutputInfo)
+                {
+                    project = project.Solution.WithProjectCompilationOutputInfo(project.Id, newProjectAttributes.CompilationOutputInfo).GetProject(project.Id)!;
+                }
+
+                if (project.State.ProjectInfo.Attributes.DefaultNamespace != newProjectAttributes.DefaultNamespace)
+                {
+                    project = project.Solution.WithProjectDefaultNamespace(projectId, newProjectAttributes.DefaultNamespace).GetProject(projectId)!;
+                }
+
+                if (project.State.ProjectInfo.Attributes.HasAllInformation != newProjectAttributes.HasAllInformation)
+                {
+                    project = project.Solution.WithHasAllInformation(projectId, newProjectAttributes.HasAllInformation).GetProject(projectId)!;
+                }
+
+                if (project.State.ProjectInfo.Attributes.RunAnalyzers != newProjectAttributes.RunAnalyzers)
+                {
+                    project = project.Solution.WithRunAnalyzers(projectId, newProjectAttributes.RunAnalyzers).GetProject(projectId)!;
+                }
+
+                if (project.State.ProjectInfo.Attributes.ChecksumAlgorithm != newProjectAttributes.ChecksumAlgorithm)
+                {
+                    project = project.Solution.WithProjectChecksumAlgorithm(projectId, newProjectAttributes.ChecksumAlgorithm).GetProject(projectId)!;
+                }
+
+                return project;
             }
+
 
             private async Task<Project> UpdateDocumentsAsync(
                 Project project,

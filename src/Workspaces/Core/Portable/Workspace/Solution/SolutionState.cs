@@ -832,23 +832,6 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
-        /// Create a new solution instance with the project specified updated to have
-        /// the specified attributes, except for <see cref="ProjectInfo.ProjectAttributes.Version"/> which is auto-incremented.
-        /// </summary>
-        public SolutionState WithProjectAttributes(ProjectId projectId, ProjectInfo.ProjectAttributes attributes, bool updateDocuments)
-        {
-            var oldProject = GetRequiredProjectState(projectId);
-            var newProject = oldProject.WithAttributes(attributes, updateDocuments);
-
-            if (oldProject == newProject)
-            {
-                return this;
-            }
-
-            return ForkProject(newProject);
-        }
-
-        /// <summary>
         /// Create a new solution instance with the project specified updated to include
         /// the specified project references.
         /// </summary>

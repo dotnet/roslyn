@@ -705,18 +705,6 @@ namespace Microsoft.CodeAnalysis
             return With(projectInfo: ProjectInfo.With(attributes: attributes));
         }
 
-        public ProjectState WithAttributes(ProjectInfo.ProjectAttributes attributes, bool updateDocuments)
-        {
-            if (attributes == Attributes)
-            {
-                return this;
-            }
-
-            return With(
-                projectInfo: ProjectInfo.With(attributes: attributes.With(version: Version.GetNewerVersion())),
-                documentStates: updateDocuments ? UpdateDocumentsChecksumAlgorithm(attributes.ChecksumAlgorithm) : null);
-        }
-
         public ProjectState WithName(string name)
             => (name == Name) ? this : WithNewerAttributes(Attributes.With(name: name, version: Version.GetNewerVersion()));
 

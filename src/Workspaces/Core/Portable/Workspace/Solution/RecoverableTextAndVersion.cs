@@ -33,6 +33,9 @@ namespace Microsoft.CodeAnalysis
             CanReloadText = initialSource.CanReloadText;
         }
 
+        /// <returns>
+        /// True if the <paramref name="source"/> is available, false if <paramref name="text"/> is returned.
+        /// </returns>
         private bool TryGetInitialSourceOrRecoverableText([NotNullWhen(true)] out ITextAndVersionSource? source, [NotNullWhen(false)] out RecoverableText? text)
         {
             // store to local to avoid race:

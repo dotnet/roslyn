@@ -117,8 +117,6 @@ namespace Roslyn.Utilities
             _cacheResult = cacheResult;
         }
 
-        public bool CacheResult => _cacheResult;
-
         #region Lock Wrapper for Invariant Checking
 
         /// <summary>
