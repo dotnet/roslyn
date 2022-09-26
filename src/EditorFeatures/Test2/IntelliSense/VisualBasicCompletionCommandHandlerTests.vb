@@ -3537,5 +3537,26 @@ End Class
                 Await state.AssertSelectedCompletionItem("gree", isHardSelected:=True)
             End Using
         End Function
+
+        <WpfFact, WorkItem(815963, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/815963")>
+        Public Async Function TestEnumMemberContainsLocal() As Task
+            Using state = TestStateFactory.CreateVisualBasicTestState(
+                              <Document>
+Enum E
+    A
+End Enum
+ 
+Class C
+    Sub M()
+        Const e As E = e$$
+    End Sub
+End Class
+                             </Document>)
+
+                state.SendInvokeCompletionList()
+                Await state.AssertCompletionItemsContainAll("e", "E", "E.A")
+                Await state.AssertCompletionItemsDoNotContainAny("e As E")
+            End Using
+        End Function
     End Class
 End Namespace
