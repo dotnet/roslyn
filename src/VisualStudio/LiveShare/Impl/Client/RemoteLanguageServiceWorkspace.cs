@@ -349,8 +349,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
                 DocumentId.CreateNewId(project.Id),
                 name: Path.GetFileName(filePath),
                 loader: new WorkspaceFileTextLoader(Services.SolutionServices, filePath, defaultEncoding: null),
-                filePath: filePath,
-                loadTextOptions: new LoadTextOptions(project.State.ChecksumAlgorithm));
+                filePath: filePath);
 
             OnDocumentAdded(docInfo);
             return CurrentSolution.GetRequiredDocument(docInfo.Id);

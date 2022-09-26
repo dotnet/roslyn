@@ -72,15 +72,15 @@ namespace Microsoft.CodeAnalysis
             _lazyChecksums = new AsyncLazy<DocumentStateChecksums>(ComputeChecksumsAsync, cacheResult: true);
         }
 
-        public TextDocumentState(DocumentInfo info, HostWorkspaceServices services)
+        public TextDocumentState(DocumentInfo info, LoadTextOptions loadTextOptions, HostWorkspaceServices services)
             : this(services,
                    info.DocumentServiceProvider,
                    info.Attributes,
                    sourceText: null,
                    textAndVersionSource: info.TextLoader != null
                     ? CreateRecoverableText(info.TextLoader, services.SolutionServices)
-                    : CreateStrongText(TextAndVersion.Create(SourceText.From(string.Empty, encoding: null, info.LoadTextOptions.ChecksumAlgorithm), VersionStamp.Default, info.FilePath)),
-                   info.LoadTextOptions)
+                    : CreateStrongText(TextAndVersion.Create(SourceText.From(string.Empty, encoding: null, loadTextOptions.ChecksumAlgorithm), VersionStamp.Default, info.FilePath)),
+                   loadTextOptions)
         {
         }
 

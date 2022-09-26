@@ -119,8 +119,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
                     documentId,
                     name: filePath,
                     loader: null,
-                    filePath: filePath,
-                    loadTextOptions: new LoadTextOptions(SourceHashAlgorithms.Default)));
+                    filePath: filePath));
 
                 Workspace.OnDocumentOpened(documentId, SubjectBuffer.AsTextContainer());
             }

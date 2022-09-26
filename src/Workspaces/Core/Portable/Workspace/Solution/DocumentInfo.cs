@@ -58,11 +58,6 @@ namespace Microsoft.CodeAnalysis
         public TextLoader? TextLoader { get; }
 
         /// <summary>
-        /// Options used to load <see cref="SourceText"/>.
-        /// </summary>
-        public LoadTextOptions LoadTextOptions { get; }
-
-        /// <summary>
         /// A <see cref="IDocumentServiceProvider"/> associated with this document
         /// </summary>
         internal IDocumentServiceProvider? DocumentServiceProvider { get; }
@@ -70,28 +65,16 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Create a new instance of a <see cref="DocumentInfo"/>.
         /// </summary>
-        internal DocumentInfo(DocumentAttributes attributes, TextLoader? loader, LoadTextOptions loadTextOptions, IDocumentServiceProvider? documentServiceProvider)
+        internal DocumentInfo(DocumentAttributes attributes, TextLoader? loader, IDocumentServiceProvider? documentServiceProvider)
         {
             Attributes = attributes;
             TextLoader = loader;
-            LoadTextOptions = loadTextOptions;
             DocumentServiceProvider = documentServiceProvider;
         }
 
         /// <summary>
         /// Creates info.
         /// </summary>
-        [Obsolete]
-        public static DocumentInfo Create(
-            DocumentId id,
-            string name,
-            IEnumerable<string>? folders,
-            SourceCodeKind sourceCodeKind,
-            TextLoader? loader,
-            string? filePath,
-            bool isGenerated)
-            => Create(id, name, folders, sourceCodeKind, loader, filePath, isGenerated, loadTextOptions: null);
-
         public static DocumentInfo Create(
             DocumentId id,
             string name,
@@ -99,8 +82,7 @@ namespace Microsoft.CodeAnalysis
             SourceCodeKind sourceCodeKind = SourceCodeKind.Regular,
             TextLoader? loader = null,
             string? filePath = null,
-            bool isGenerated = false,
-            LoadTextOptions? loadTextOptions = null)
+            bool isGenerated = false)
         {
             return new DocumentInfo(
                 new DocumentAttributes(
@@ -112,30 +94,26 @@ namespace Microsoft.CodeAnalysis
                     isGenerated,
                     designTimeOnly: false),
                 loader,
-                loadTextOptions ?? new LoadTextOptions(SourceHashAlgorithms.Default),
                 documentServiceProvider: null);
         }
 
         private DocumentInfo With(
             DocumentAttributes? attributes = null,
             Optional<TextLoader?> loader = default,
-            Optional<LoadTextOptions> loadTextOptions = default,
             Optional<IDocumentServiceProvider?> documentServiceProvider = default)
         {
             var newAttributes = attributes ?? Attributes;
             var newLoader = loader.HasValue ? loader.Value : TextLoader;
-            var newLoadTextOptions = loadTextOptions.HasValue ? loadTextOptions.Value : LoadTextOptions;
             var newDocumentServiceProvider = documentServiceProvider.HasValue ? documentServiceProvider.Value : DocumentServiceProvider;
 
             if (newAttributes == Attributes &&
                 newLoader == TextLoader &&
-                newLoadTextOptions == LoadTextOptions &&
                 newDocumentServiceProvider == DocumentServiceProvider)
             {
                 return this;
             }
 
-            return new DocumentInfo(newAttributes, newLoader, newLoadTextOptions, newDocumentServiceProvider);
+            return new DocumentInfo(newAttributes, newLoader, newDocumentServiceProvider);
         }
 
         public DocumentInfo WithId(DocumentId id)
@@ -155,9 +133,6 @@ namespace Microsoft.CodeAnalysis
 
         public DocumentInfo WithTextLoader(TextLoader? loader)
             => With(loader: loader);
-
-        public DocumentInfo WithLoadTextOptions(LoadTextOptions options)
-            => With(loadTextOptions: options);
 
         internal DocumentInfo WithDesignTimeOnly(bool designTimeOnly)
             => With(attributes: Attributes.With(designTimeOnly: designTimeOnly));

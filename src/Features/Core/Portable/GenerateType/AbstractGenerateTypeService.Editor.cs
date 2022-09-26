@@ -358,8 +358,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
                         documentId,
                         documentName,
                         containers,
-                        sourceCodeKind,
-                        loadTextOptions: new LoadTextOptions(projectToBeUpdated.State.ChecksumAlgorithm)));
+                        sourceCodeKind));
 
                 updatedSolution = updatedSolution.WithDocumentSyntaxRoot(documentId, root, PreservationMode.PreserveIdentity);
 

@@ -361,9 +361,9 @@ namespace Microsoft.CodeAnalysis.MSBuild
                         .WithStrongNameProvider(new DesktopStrongNameProvider(commandLineArgs.KeyFileSearchPaths))
                         .WithAssemblyIdentityComparer(DesktopAssemblyIdentityComparer.Default);
 
-                    var documents = CreateDocumentInfos(projectFileInfo.Documents, projectId, commandLineArgs.Encoding, commandLineArgs.ChecksumAlgorithm);
-                    var additionalDocuments = CreateDocumentInfos(projectFileInfo.AdditionalDocuments, projectId, commandLineArgs.Encoding, commandLineArgs.ChecksumAlgorithm);
-                    var analyzerConfigDocuments = CreateDocumentInfos(projectFileInfo.AnalyzerConfigDocuments, projectId, commandLineArgs.Encoding, commandLineArgs.ChecksumAlgorithm);
+                    var documents = CreateDocumentInfos(projectFileInfo.Documents, projectId, commandLineArgs.Encoding);
+                    var additionalDocuments = CreateDocumentInfos(projectFileInfo.AdditionalDocuments, projectId, commandLineArgs.Encoding);
+                    var analyzerConfigDocuments = CreateDocumentInfos(projectFileInfo.AnalyzerConfigDocuments, projectId, commandLineArgs.Encoding);
                     CheckForDuplicateDocuments(documents.Concat(additionalDocuments).Concat(analyzerConfigDocuments), projectPath, projectId);
 
                     var analyzerReferences = ResolveAnalyzerReferences(commandLineArgs);
@@ -439,10 +439,9 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 return commandLineArgs.ResolveAnalyzerReferences(analyzerLoader).Distinct(AnalyzerReferencePathComparer.Instance);
             }
 
-            private ImmutableArray<DocumentInfo> CreateDocumentInfos(IReadOnlyList<DocumentFileInfo> documentFileInfos, ProjectId projectId, Encoding? encoding, SourceHashAlgorithm checksumAlgorithm)
+            private ImmutableArray<DocumentInfo> CreateDocumentInfos(IReadOnlyList<DocumentFileInfo> documentFileInfos, ProjectId projectId, Encoding? encoding)
             {
                 var results = ImmutableArray.CreateBuilder<DocumentInfo>();
-                var loadTextOptions = new LoadTextOptions(checksumAlgorithm);
 
                 foreach (var info in documentFileInfos)
                 {
@@ -455,8 +454,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
                         info.SourceCodeKind,
                         new WorkspaceFileTextLoader(_workspaceServices.SolutionServices, info.FilePath, encoding),
                         info.FilePath,
-                        info.IsGenerated,
-                        loadTextOptions);
+                        info.IsGenerated);
 
                     results.Add(documentInfo);
                 }

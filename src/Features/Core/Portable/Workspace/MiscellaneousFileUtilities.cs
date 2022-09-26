@@ -50,8 +50,7 @@ namespace Microsoft.CodeAnalysis.Features.Workspaces
                 name: fileName,
                 loader: textLoader,
                 filePath: filePath,
-                sourceCodeKind: sourceCodeKind,
-                loadTextOptions: new LoadTextOptions(checksumAlgorithm));
+                sourceCodeKind: sourceCodeKind);
 
             // The assembly name must be unique for each collection of loose files. Since the name doesn't matter
             // a random GUID can be used.

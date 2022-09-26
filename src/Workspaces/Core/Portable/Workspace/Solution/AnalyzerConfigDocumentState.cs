@@ -30,8 +30,9 @@ namespace Microsoft.CodeAnalysis
 
         public AnalyzerConfigDocumentState(
             DocumentInfo documentInfo,
+            LoadTextOptions loadTextOptions,
             HostWorkspaceServices solutionServices)
-            : base(documentInfo, solutionServices)
+            : base(documentInfo, loadTextOptions, solutionServices)
         {
             _analyzerConfigValueSource = CreateAnalyzerConfigValueSource();
         }
