@@ -648,10 +648,13 @@ namespace Metalama.Compiler
                         var sourcePosition = sourceAncestor.FullSpan.Start + (foundNode.SpanStart - ancestor.FullSpan.Start);
                         var sourceTrivia = sourceAncestor.FindTrivia(sourcePosition);
 
-                        if (sourceTrivia.Position > 0)
+                        var newTextSpan = new TextSpan(sourcePosition, location.SourceSpan.Length);
+                        
+                        if (sourceTrivia.FullSpan.Contains(newTextSpan) && 
+                            location.SourceTree.GetText().GetSubText(location.SourceSpan).ToString() == sourceAncestor.SyntaxTree.GetText().GetSubText(newTextSpan).ToString() )
                         {
                             // The source node indeeds maps to inside the trivia.
-                            var newTextSpan = new TextSpan(sourcePosition, location.SourceSpan.Length);
+                            
                             return (Location.Create(sourceAncestor.SyntaxTree!, newTextSpan), null);
                         }
 
