@@ -34,7 +34,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Optional path As String = "",
             Optional encoding As Encoding = Nothing) As SyntaxTree
 
-            Return VisualBasicSyntaxTree.Create(DirectCast(root, VisualBasicSyntaxNode), DirectCast(options, VisualBasicParseOptions), path, encoding, SourceHashAlgorithm.Sha1)
+            Return VisualBasicSyntaxTree.Create(DirectCast(root, VisualBasicSyntaxNode), If(DirectCast(options, VisualBasicParseOptions), VisualBasicParseOptions.Default), path, encoding, SourceHashAlgorithm.Sha1)
         End Function
 
         ''' <summary>
