@@ -188,10 +188,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override void VisitLocal(ILocalSymbol symbol)
         {
             if (symbol.IsRef &&
-                format.LocalOptions.IncludesOption(SymbolDisplayLocalOptions.IncludeRef))
+                format.LocalOptions.IncludesOption(SymbolDisplayLocalOptions.IncludeModifiers))
             {
-                if (symbol.ScopedKind == ScopedKind.ScopedRef &&
-                    format.CompilerInternalOptions.IncludesOption(SymbolDisplayCompilerInternalOptions.IncludeScoped))
+                if (symbol.ScopedKind == ScopedKind.ScopedRef)
                 {
                     AddKeyword(SyntaxKind.ScopedKeyword);
                     AddSpace();
@@ -208,7 +207,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             if (symbol.ScopedKind == ScopedKind.ScopedValue &&
-                format.CompilerInternalOptions.IncludesOption(SymbolDisplayCompilerInternalOptions.IncludeScoped))
+                format.LocalOptions.IncludesOption(SymbolDisplayLocalOptions.IncludeModifiers))
             {
                 AddKeyword(SyntaxKind.ScopedKeyword);
                 AddSpace();

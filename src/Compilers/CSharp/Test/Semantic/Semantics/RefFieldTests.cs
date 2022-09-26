@@ -3552,13 +3552,12 @@ ref struct R<T> { }
                 // (13,82): error CS9075: Cannot return a parameter by reference 'x' because it is scoped to the current method
                 //     static ref T F20<T>(scoped ref R<T> x) { R<T> y = default; return ref F0(ref x, ref y); } // 2
                 Diagnostic(ErrorCode.ERR_RefReturnScopedParameter, "x").WithArguments("x").WithLocation(13, 82),
-                // (14,75): error CS8347: Cannot use a result of 'Program.F2<T>(ref R<T>, ref R<T>)' in this context because it may expose variables referenced by parameter 'x' outside of their declaration scope
+                // (14,75): error CS8347: Cannot use a result of 'Program.F2<T>(ref R<T>, scoped ref R<T>)' in this context because it may expose variables referenced by parameter 'x' outside of their declaration scope
                 //     static ref T F22<T>(scoped ref R<T> x) { R<T> y = default; return ref F2(ref x, ref y); } // 3 
-                Diagnostic(ErrorCode.ERR_EscapeCall, "F2(ref x, ref y)").WithArguments("Program.F2<T>(ref R<T>, ref R<T>)", "x").WithLocation(14, 75),
+                Diagnostic(ErrorCode.ERR_EscapeCall, "F2(ref x, ref y)").WithArguments("Program.F2<T>(ref R<T>, scoped ref R<T>)", "x").WithLocation(14, 75),
                 // (14,82): error CS9075: Cannot return a parameter by reference 'x' because it is scoped to the current method
                 //     static ref T F22<T>(scoped ref R<T> x) { R<T> y = default; return ref F2(ref x, ref y); } // 3 
-                Diagnostic(ErrorCode.ERR_RefReturnScopedParameter, "x").WithArguments("x").WithLocation(14, 82)
-            );
+                Diagnostic(ErrorCode.ERR_RefReturnScopedParameter, "x").WithArguments("x").WithLocation(14, 82));
         }
 
         [Fact]
@@ -3594,15 +3593,15 @@ class Program
                 // (15,68): error CS8347: Cannot use a result of 'Program.F0(R, R)' in this context because it may expose variables referenced by parameter 'x' outside of their declaration scope
                 //     static R F10(scoped R x, int i) { var y = new R(ref i); return F0(x, y); } // 2
                 Diagnostic(ErrorCode.ERR_EscapeCall, "F0(x, y)").WithArguments("Program.F0(R, R)", "x").WithLocation(15, 68),
-                // (15,71): error CS8352: Cannot use variable 'R' in this context because it may expose referenced variables outside of their declaration scope
+                // (15,71): error CS8352: Cannot use variable 'scoped R' in this context because it may expose referenced variables outside of their declaration scope
                 //     static R F10(scoped R x, int i) { var y = new R(ref i); return F0(x, y); } // 2
-                Diagnostic(ErrorCode.ERR_EscapeVariable, "x").WithArguments("R").WithLocation(15, 71),
-                // (16,68): error CS8347: Cannot use a result of 'Program.F1(R, R)' in this context because it may expose variables referenced by parameter 'x' outside of their declaration scope
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "x").WithArguments("scoped R").WithLocation(15, 71),
+                // (16,68): error CS8347: Cannot use a result of 'Program.F1(R, scoped R)' in this context because it may expose variables referenced by parameter 'x' outside of their declaration scope
                 //     static R F11(scoped R x, int i) { var y = new R(ref i); return F1(x, y); } // 3
-                Diagnostic(ErrorCode.ERR_EscapeCall, "F1(x, y)").WithArguments("Program.F1(R, R)", "x").WithLocation(16, 68),
-                // (16,71): error CS8352: Cannot use variable 'R' in this context because it may expose referenced variables outside of their declaration scope
+                Diagnostic(ErrorCode.ERR_EscapeCall, "F1(x, y)").WithArguments("Program.F1(R, scoped R)", "x").WithLocation(16, 68),
+                // (16,71): error CS8352: Cannot use variable 'scoped R' in this context because it may expose referenced variables outside of their declaration scope
                 //     static R F11(scoped R x, int i) { var y = new R(ref i); return F1(x, y); } // 3
-                Diagnostic(ErrorCode.ERR_EscapeVariable, "x").WithArguments("R").WithLocation(16, 71));
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "x").WithArguments("scoped R").WithLocation(16, 71));
         }
 
         [Fact]
@@ -3750,15 +3749,15 @@ class Program
                 // (20,23): error CS8352: Cannot use variable 'y' in this context because it may expose referenced variables outside of their declaration scope
                 //         F0(ref x, ref y); // 1
                 Diagnostic(ErrorCode.ERR_EscapeVariable, "y").WithArguments("y").WithLocation(20, 23),
-                // (21,9): error CS8350: This combination of arguments to 'Program.F2<T>(ref R<T>, ref R<T>)' is disallowed because it may expose variables referenced by parameter 'b' outside of their declaration scope
+                // (21,9): error CS8350: This combination of arguments to 'Program.F2<T>(ref R<T>, scoped ref R<T>)' is disallowed because it may expose variables referenced by parameter 'b' outside of their declaration scope
                 //         F2(ref x, ref y); // 2
-                Diagnostic(ErrorCode.ERR_CallArgMixing, "F2(ref x, ref y)").WithArguments("Program.F2<T>(ref R<T>, ref R<T>)", "b").WithLocation(21, 9),
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "F2(ref x, ref y)").WithArguments("Program.F2<T>(ref R<T>, scoped ref R<T>)", "b").WithLocation(21, 9),
                 // (21,23): error CS8352: Cannot use variable 'y' in this context because it may expose referenced variables outside of their declaration scope
                 //         F2(ref x, ref y); // 2
                 Diagnostic(ErrorCode.ERR_EscapeVariable, "y").WithArguments("y").WithLocation(21, 23),
-                // (22,9): error CS8350: This combination of arguments to 'Program.F5<T>(ref R<T>, ref R<T>)' is disallowed because it may expose variables referenced by parameter 'b' outside of their declaration scope
+                // (22,9): error CS8350: This combination of arguments to 'Program.F5<T>(scoped ref R<T>, scoped ref R<T>)' is disallowed because it may expose variables referenced by parameter 'b' outside of their declaration scope
                 //         F5(ref x, ref y); // 3
-                Diagnostic(ErrorCode.ERR_CallArgMixing, "F5(ref x, ref y)").WithArguments("Program.F5<T>(ref R<T>, ref R<T>)", "b").WithLocation(22, 9),
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "F5(ref x, ref y)").WithArguments("Program.F5<T>(scoped ref R<T>, scoped ref R<T>)", "b").WithLocation(22, 9),
                 // (22,23): error CS8352: Cannot use variable 'y' in this context because it may expose referenced variables outside of their declaration scope
                 //         F5(ref x, ref y); // 3
                 Diagnostic(ErrorCode.ERR_EscapeVariable, "y").WithArguments("y").WithLocation(22, 23),
@@ -3768,15 +3767,15 @@ class Program
                 // (24,16): error CS8352: Cannot use variable 'y' in this context because it may expose referenced variables outside of their declaration scope
                 //         F0(ref y, ref x); // 4
                 Diagnostic(ErrorCode.ERR_EscapeVariable, "y").WithArguments("y").WithLocation(24, 16),
-                // (25,9): error CS8350: This combination of arguments to 'Program.F2<T>(ref R<T>, ref R<T>)' is disallowed because it may expose variables referenced by parameter 'a' outside of their declaration scope
+                // (25,9): error CS8350: This combination of arguments to 'Program.F2<T>(ref R<T>, scoped ref R<T>)' is disallowed because it may expose variables referenced by parameter 'a' outside of their declaration scope
                 //         F2(ref y, ref x); // 5
-                Diagnostic(ErrorCode.ERR_CallArgMixing, "F2(ref y, ref x)").WithArguments("Program.F2<T>(ref R<T>, ref R<T>)", "a").WithLocation(25, 9),
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "F2(ref y, ref x)").WithArguments("Program.F2<T>(ref R<T>, scoped ref R<T>)", "a").WithLocation(25, 9),
                 // (25,16): error CS8352: Cannot use variable 'y' in this context because it may expose referenced variables outside of their declaration scope
                 //         F2(ref y, ref x); // 5
                 Diagnostic(ErrorCode.ERR_EscapeVariable, "y").WithArguments("y").WithLocation(25, 16),
-                // (26,9): error CS8350: This combination of arguments to 'Program.F5<T>(ref R<T>, ref R<T>)' is disallowed because it may expose variables referenced by parameter 'a' outside of their declaration scope
+                // (26,9): error CS8350: This combination of arguments to 'Program.F5<T>(scoped ref R<T>, scoped ref R<T>)' is disallowed because it may expose variables referenced by parameter 'a' outside of their declaration scope
                 //         F5(ref y, ref x); // 6
-                Diagnostic(ErrorCode.ERR_CallArgMixing, "F5(ref y, ref x)").WithArguments("Program.F5<T>(ref R<T>, ref R<T>)", "a").WithLocation(26, 9),
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "F5(ref y, ref x)").WithArguments("Program.F5<T>(scoped ref R<T>, scoped ref R<T>)", "a").WithLocation(26, 9),
                 // (26,16): error CS8352: Cannot use variable 'y' in this context because it may expose referenced variables outside of their declaration scope
                 //         F5(ref y, ref x); // 6
                 Diagnostic(ErrorCode.ERR_EscapeVariable, "y").WithArguments("y").WithLocation(26, 16));
@@ -3906,9 +3905,9 @@ class Program
                 // (9,79): error CS9075: Cannot return a parameter by reference 'y' because it is scoped to the current method
                 //     static void F01(scoped ref R x, scoped ref R y) { F1(ref x, __arglist(ref y)); } // 2
                 Diagnostic(ErrorCode.ERR_RefReturnScopedParameter, "y").WithArguments("y").WithLocation(9, 79),
-                // (9,55): error CS8350: This combination of arguments to 'Program.F1(ref R, __arglist)' is disallowed because it may expose variables referenced by parameter '__arglist' outside of their declaration scope
+                // (9,55): error CS8350: This combination of arguments to 'Program.F1(scoped ref R, __arglist)' is disallowed because it may expose variables referenced by parameter '__arglist' outside of their declaration scope
                 //     static void F01(scoped ref R x, scoped ref R y) { F1(ref x, __arglist(ref y)); } // 2
-                Diagnostic(ErrorCode.ERR_CallArgMixing, "F1(ref x, __arglist(ref y))").WithArguments("Program.F1(ref R, __arglist)", "__arglist").WithLocation(9, 55),
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "F1(ref x, __arglist(ref y))").WithArguments("Program.F1(scoped ref R, __arglist)", "__arglist").WithLocation(9, 55),
                 // (10,65): error CS9075: Cannot return a parameter by reference 'x' because it is scoped to the current method
                 //     static void F20(scoped ref R x, ref R y) { F0(__arglist(ref x, ref y)); } // 3
                 Diagnostic(ErrorCode.ERR_RefReturnScopedParameter, "x").WithArguments("x").WithLocation(10, 65),
@@ -3918,9 +3917,9 @@ class Program
                 // (11,72): error CS9077: Cannot return a parameter by reference 'y' through a ref parameter; it can only be returned in a return statement
                 //     static void F21(scoped ref R x, ref R y) { F1(ref x, __arglist(ref y)); } // 4
                 Diagnostic(ErrorCode.ERR_RefReturnOnlyParameter, "y").WithArguments("y").WithLocation(11, 72),
-                // (11,48): error CS8350: This combination of arguments to 'Program.F1(ref R, __arglist)' is disallowed because it may expose variables referenced by parameter '__arglist' outside of their declaration scope
+                // (11,48): error CS8350: This combination of arguments to 'Program.F1(scoped ref R, __arglist)' is disallowed because it may expose variables referenced by parameter '__arglist' outside of their declaration scope
                 //     static void F21(scoped ref R x, ref R y) { F1(ref x, __arglist(ref y)); } // 4
-                Diagnostic(ErrorCode.ERR_CallArgMixing, "F1(ref x, __arglist(ref y))").WithArguments("Program.F1(ref R, __arglist)", "__arglist").WithLocation(11, 48),
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "F1(ref x, __arglist(ref y))").WithArguments("Program.F1(scoped ref R, __arglist)", "__arglist").WithLocation(11, 48),
                 // (12,58): error CS9077: Cannot return a parameter by reference 'x' through a ref parameter; it can only be returned in a return statement
                 //     static void F50(ref R x, ref R y) { F0(__arglist(ref x, ref y)); } // 5
                 Diagnostic(ErrorCode.ERR_RefReturnOnlyParameter, "x").WithArguments("x").WithLocation(12, 58),
@@ -3930,9 +3929,9 @@ class Program
                 // (13,65): error CS9077: Cannot return a parameter by reference 'y' through a ref parameter; it can only be returned in a return statement
                 //     static void F51(ref R x, ref R y) { F1(ref x, __arglist(ref y)); } // 6
                 Diagnostic(ErrorCode.ERR_RefReturnOnlyParameter, "y").WithArguments("y").WithLocation(13, 65),
-                // (13,41): error CS8350: This combination of arguments to 'Program.F1(ref R, __arglist)' is disallowed because it may expose variables referenced by parameter '__arglist' outside of their declaration scope
+                // (13,41): error CS8350: This combination of arguments to 'Program.F1(scoped ref R, __arglist)' is disallowed because it may expose variables referenced by parameter '__arglist' outside of their declaration scope
                 //     static void F51(ref R x, ref R y) { F1(ref x, __arglist(ref y)); } // 6
-                Diagnostic(ErrorCode.ERR_CallArgMixing, "F1(ref x, __arglist(ref y))").WithArguments("Program.F1(ref R, __arglist)", "__arglist").WithLocation(13, 41));
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "F1(ref x, __arglist(ref y))").WithArguments("Program.F1(scoped ref R, __arglist)", "__arglist").WithLocation(13, 41));
         }
 
         [Fact]
@@ -4460,21 +4459,21 @@ class Program
 
             var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
-                // (11,20): error CS8347: Cannot use a result of 'Program.F<int>(in int, in int)' in this context because it may expose variables referenced by parameter 'x' outside of their declaration scope
+                // (11,20): error CS8347: Cannot use a result of 'Program.F<int>(in int, scoped in int)' in this context because it may expose variables referenced by parameter 'x' outside of their declaration scope
                 //         return ref F(in x1, in y1); // 1
-                Diagnostic(ErrorCode.ERR_EscapeCall, "F(in x1, in y1)").WithArguments("Program.F<int>(in int, in int)", "x").WithLocation(11, 20),
+                Diagnostic(ErrorCode.ERR_EscapeCall, "F(in x1, in y1)").WithArguments("Program.F<int>(in int, scoped in int)", "x").WithLocation(11, 20),
                 // (11,25): error CS8168: Cannot return local 'x1' by reference because it is not a ref local
                 //         return ref F(in x1, in y1); // 1
                 Diagnostic(ErrorCode.ERR_RefReturnLocal, "x1").WithArguments("x1").WithLocation(11, 25),
-                // (17,20): error CS8347: Cannot use a result of 'Program.F<int>(in int, in int)' in this context because it may expose variables referenced by parameter 'x' outside of their declaration scope
+                // (17,20): error CS8347: Cannot use a result of 'Program.F<int>(in int, scoped in int)' in this context because it may expose variables referenced by parameter 'x' outside of their declaration scope
                 //         return ref F(x2, in y2); // 2
-                Diagnostic(ErrorCode.ERR_EscapeCall, "F(x2, in y2)").WithArguments("Program.F<int>(in int, in int)", "x").WithLocation(17, 20),
+                Diagnostic(ErrorCode.ERR_EscapeCall, "F(x2, in y2)").WithArguments("Program.F<int>(in int, scoped in int)", "x").WithLocation(17, 20),
                 // (17,22): error CS8168: Cannot return local 'x2' by reference because it is not a ref local
                 //         return ref F(x2, in y2); // 2
                 Diagnostic(ErrorCode.ERR_RefReturnLocal, "x2").WithArguments("x2").WithLocation(17, 22),
-                // (22,20): error CS8347: Cannot use a result of 'Program.F<int>(in int, in int)' in this context because it may expose variables referenced by parameter 'x' outside of their declaration scope
+                // (22,20): error CS8347: Cannot use a result of 'Program.F<int>(in int, scoped in int)' in this context because it may expose variables referenced by parameter 'x' outside of their declaration scope
                 //         return ref F(3, in y3); // 3
-                Diagnostic(ErrorCode.ERR_EscapeCall, "F(3, in y3)").WithArguments("Program.F<int>(in int, in int)", "x").WithLocation(22, 20),
+                Diagnostic(ErrorCode.ERR_EscapeCall, "F(3, in y3)").WithArguments("Program.F<int>(in int, scoped in int)", "x").WithLocation(22, 20),
                 // (22,22): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
                 //         return ref F(3, in y3); // 3
                 Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "3").WithLocation(22, 22));
@@ -8941,9 +8940,9 @@ public static class A
 }";
             comp = CreateCompilation(sourceB, references: new[] { refA });
             comp.VerifyEmitDiagnostics(
-                // (7,9): error CS8350: This combination of arguments to 'A.F2(ref R, ref R)' is disallowed because it may expose variables referenced by parameter 'y2' outside of their declaration scope
+                // (7,9): error CS8350: This combination of arguments to 'A.F2(ref R, scoped ref R)' is disallowed because it may expose variables referenced by parameter 'y2' outside of their declaration scope
                 //         A.F2(ref x, ref y);
-                Diagnostic(ErrorCode.ERR_CallArgMixing, "A.F2(ref x, ref y)").WithArguments("A.F2(ref R, ref R)", "y2").WithLocation(7, 9),
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "A.F2(ref x, ref y)").WithArguments("A.F2(ref R, scoped ref R)", "y2").WithLocation(7, 9),
                 // (7,25): error CS8352: Cannot use variable 'y' in this context because it may expose referenced variables outside of their declaration scope
                 //         A.F2(ref x, ref y);
                 Diagnostic(ErrorCode.ERR_EscapeVariable, "y").WithArguments("y").WithLocation(7, 25));
@@ -9536,9 +9535,9 @@ class Program
 }";
             var comp = CreateCompilation(source, runtimeFeature: RuntimeFlag.ByRefFields);
             comp.VerifyDiagnostics(
-                // (12,20): error CS8347: Cannot use a result of 'Program.ReturnRef(ref R)' in this context because it may expose variables referenced by parameter 'r' outside of their declaration scope
+                // (12,20): error CS8347: Cannot use a result of 'Program.ReturnRef(scoped ref R)' in this context because it may expose variables referenced by parameter 'r' outside of their declaration scope
                 //         return ref ReturnRef(ref r1); // 1
-                Diagnostic(ErrorCode.ERR_EscapeCall, "ReturnRef(ref r1)").WithArguments("Program.ReturnRef(ref R)", "r").WithLocation(12, 20),
+                Diagnostic(ErrorCode.ERR_EscapeCall, "ReturnRef(ref r1)").WithArguments("Program.ReturnRef(scoped ref R)", "r").WithLocation(12, 20),
                 // (12,34): error CS8352: Cannot use variable 'r1' in this context because it may expose referenced variables outside of their declaration scope
                 //         return ref ReturnRef(ref r1); // 1
                 Diagnostic(ErrorCode.ERR_EscapeVariable, "r1").WithArguments("r1").WithLocation(12, 34));
@@ -9980,8 +9979,8 @@ public class A
         }
 
         private static readonly SymbolDisplayFormat displayFormatWithScoped = SymbolDisplayFormat.TestFormat.
-            WithCompilerInternalOptions(SymbolDisplayCompilerInternalOptions.IncludeScoped).
-            AddLocalOptions(SymbolDisplayLocalOptions.IncludeRef);
+            AddParameterOptions(SymbolDisplayParameterOptions.IncludeModifiers).
+            AddLocalOptions(SymbolDisplayLocalOptions.IncludeModifiers);
 
         private static void VerifyParameterSymbol(ParameterSymbol parameter, string expectedDisplayString, RefKind expectedRefKind, DeclarationScope expectedScope)
         {
@@ -11728,12 +11727,12 @@ class Program
 }";
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (4,39): error CS8352: Cannot use variable 'R' in this context because it may expose referenced variables outside of their declaration scope
+                // (4,39): error CS8352: Cannot use variable 'scoped R' in this context because it may expose referenced variables outside of their declaration scope
                 //     static R Implicit1(scoped R r) => r;
-                Diagnostic(ErrorCode.ERR_EscapeVariable, "r").WithArguments("R").WithLocation(4, 39),
-                // (7,39): error CS8352: Cannot use variable 'R' in this context because it may expose referenced variables outside of their declaration scope
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "r").WithArguments("scoped R").WithLocation(4, 39),
+                // (7,39): error CS8352: Cannot use variable 'scoped R' in this context because it may expose referenced variables outside of their declaration scope
                 //     static R Explicit1(scoped R r) => (R)r;
-                Diagnostic(ErrorCode.ERR_EscapeVariable, "(R)r").WithArguments("R").WithLocation(7, 39));
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "(R)r").WithArguments("scoped R").WithLocation(7, 39));
         }
 
         [Fact]
@@ -12752,21 +12751,21 @@ class B2 : A<string>
 }";
             comp = CreateCompilation(sourceB, references: new[] { refA });
             comp.VerifyEmitDiagnostics(
-                // (11,17): warning CS0108: 'B2.M1(R<string>)' hides inherited member 'A<string>.M1(R<string>)'. Use the new keyword if hiding was intended.
+                // (11,17): warning CS0108: 'B2.M1(scoped R<string>)' hides inherited member 'A<string>.M1(R<string>)'. Use the new keyword if hiding was intended.
                 //     public void M1(scoped R<string> r) { } // 1
-                Diagnostic(ErrorCode.WRN_NewRequired, "M1").WithArguments("B2.M1(R<string>)", "A<string>.M1(R<string>)").WithLocation(11, 17),
-                // (12,17): warning CS0108: 'B2.M2(R<string>)' hides inherited member 'A<string>.M2(R<string>)'. Use the new keyword if hiding was intended.
+                Diagnostic(ErrorCode.WRN_NewRequired, "M1").WithArguments("B2.M1(scoped R<string>)", "A<string>.M1(R<string>)").WithLocation(11, 17),
+                // (12,17): warning CS0108: 'B2.M2(R<string>)' hides inherited member 'A<string>.M2(scoped R<string>)'. Use the new keyword if hiding was intended.
                 //     public void M2(R<string> r) { } // 2
-                Diagnostic(ErrorCode.WRN_NewRequired, "M2").WithArguments("B2.M2(R<string>)", "A<string>.M2(R<string>)").WithLocation(12, 17),
-                // (13,17): warning CS0108: 'B2.M3(ref R<string>)' hides inherited member 'A<string>.M3(ref R<string>)'. Use the new keyword if hiding was intended.
+                Diagnostic(ErrorCode.WRN_NewRequired, "M2").WithArguments("B2.M2(R<string>)", "A<string>.M2(scoped R<string>)").WithLocation(12, 17),
+                // (13,17): warning CS0108: 'B2.M3(scoped ref R<string>)' hides inherited member 'A<string>.M3(ref R<string>)'. Use the new keyword if hiding was intended.
                 //     public void M3(scoped ref R<string> r) { } // 3
-                Diagnostic(ErrorCode.WRN_NewRequired, "M3").WithArguments("B2.M3(ref R<string>)", "A<string>.M3(ref R<string>)").WithLocation(13, 17),
-                // (14,19): warning CS0108: 'B2.this[R<string>]' hides inherited member 'A<string>.this[R<string>]'. Use the new keyword if hiding was intended.
+                Diagnostic(ErrorCode.WRN_NewRequired, "M3").WithArguments("B2.M3(scoped ref R<string>)", "A<string>.M3(ref R<string>)").WithLocation(13, 17),
+                // (14,19): warning CS0108: 'B2.this[scoped R<string>]' hides inherited member 'A<string>.this[R<string>]'. Use the new keyword if hiding was intended.
                 //     public object this[scoped R<string> r] { get { return null; } set { } } // 4
-                Diagnostic(ErrorCode.WRN_NewRequired, "this").WithArguments("B2.this[R<string>]", "A<string>.this[R<string>]").WithLocation(14, 19),
-                // (15,19): warning CS0108: 'B2.this[int, R<string>]' hides inherited member 'A<string>.this[int, R<string>]'. Use the new keyword if hiding was intended.
+                Diagnostic(ErrorCode.WRN_NewRequired, "this").WithArguments("B2.this[scoped R<string>]", "A<string>.this[R<string>]").WithLocation(14, 19),
+                // (15,19): warning CS0108: 'B2.this[int, R<string>]' hides inherited member 'A<string>.this[int, scoped R<string>]'. Use the new keyword if hiding was intended.
                 //     public object this[int x, R<string> y] => null; // 5
-                Diagnostic(ErrorCode.WRN_NewRequired, "this").WithArguments("B2.this[int, R<string>]", "A<string>.this[int, R<string>]").WithLocation(15, 19));
+                Diagnostic(ErrorCode.WRN_NewRequired, "this").WithArguments("B2.this[int, R<string>]", "A<string>.this[int, scoped R<string>]").WithLocation(15, 19));
         }
 
         [CombinatorialData]
@@ -13284,12 +13283,12 @@ class Program
 }";
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (4,53): error CS8352: Cannot use variable 'R' in this context because it may expose referenced variables outside of their declaration scope
+                // (4,53): error CS8352: Cannot use variable 'scoped R' in this context because it may expose referenced variables outside of their declaration scope
                 //     static R F1(bool b, R x, scoped R y) => b ? x : y;
-                Diagnostic(ErrorCode.ERR_EscapeVariable, "y").WithArguments("R").WithLocation(4, 53),
-                // (5,49): error CS8352: Cannot use variable 'R' in this context because it may expose referenced variables outside of their declaration scope
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "y").WithArguments("scoped R").WithLocation(4, 53),
+                // (5,49): error CS8352: Cannot use variable 'scoped R' in this context because it may expose referenced variables outside of their declaration scope
                 //     static R F2(bool b, R x, scoped R y) => b ? y : x;
-                Diagnostic(ErrorCode.ERR_EscapeVariable, "y").WithArguments("R").WithLocation(5, 49));
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "y").WithArguments("scoped R").WithLocation(5, 49));
         }
 
         [Fact]
@@ -13304,12 +13303,12 @@ unsafe class Program
 }";
             var comp = CreateCompilation(source, options: TestOptions.UnsafeDebugDll);
             comp.VerifyDiagnostics(
-                // (4,53): warning CS9077: Use of variable 'R' in this context may expose referenced variables outside of their declaration scope
+                // (4,53): warning CS9080: Use of variable 'scoped R' in this context may expose referenced variables outside of their declaration scope
                 //     static R F1(bool b, R x, scoped R y) => b ? x : y;
-                Diagnostic(ErrorCode.WRN_EscapeVariable, "y").WithArguments("R").WithLocation(4, 53),
-                // (5,49): warning CS9077: Use of variable 'R' in this context may expose referenced variables outside of their declaration scope
+                Diagnostic(ErrorCode.WRN_EscapeVariable, "y").WithArguments("scoped R").WithLocation(4, 53),
+                // (5,49): warning CS9080: Use of variable 'scoped R' in this context may expose referenced variables outside of their declaration scope
                 //     static R F2(bool b, R x, scoped R y) => b ? y : x;
-                Diagnostic(ErrorCode.WRN_EscapeVariable, "y").WithArguments("R").WithLocation(5, 49));
+                Diagnostic(ErrorCode.WRN_EscapeVariable, "y").WithArguments("scoped R").WithLocation(5, 49));
         }
 
         [Fact]
@@ -13381,12 +13380,12 @@ class Program
             var comp = CreateCompilation(source);
             // https://github.com/dotnet/roslyn/issues/62768: Improve error message for `scoped ref` parameter returned by reference.
             comp.VerifyDiagnostics(
-                // (9,13): error CS8347: Cannot use a result of '<anonymous delegate>.Invoke(R, R)' in this context because it may expose variables referenced by parameter '0' outside of their declaration scope
+                // (9,13): error CS8347: Cannot use a result of '<anonymous delegate>.Invoke(R, scoped R)' in this context because it may expose variables referenced by parameter '0' outside of their declaration scope
                 //         z = f(y1, x1); // 1
-                Diagnostic(ErrorCode.ERR_EscapeCall, "f(y1, x1)").WithArguments("<anonymous delegate>.Invoke(R, R)", "0").WithLocation(9, 13),
-                // (9,15): error CS8352: Cannot use variable 'R' in this context because it may expose referenced variables outside of their declaration scope
+                Diagnostic(ErrorCode.ERR_EscapeCall, "f(y1, x1)").WithArguments("<anonymous delegate>.Invoke(R, scoped R)", "0").WithLocation(9, 13),
+                // (9,15): error CS8352: Cannot use variable 'scoped R' in this context because it may expose referenced variables outside of their declaration scope
                 //         z = f(y1, x1); // 1
-                Diagnostic(ErrorCode.ERR_EscapeVariable, "y1").WithArguments("R").WithLocation(9, 15));
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "y1").WithArguments("scoped R").WithLocation(9, 15));
 
             var tree = comp.SyntaxTrees[0];
             var model = comp.GetSemanticModel(tree);
@@ -13424,12 +13423,12 @@ class Program
 }";
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (17,18): error CS0121: The call is ambiguous between the following methods or properties: 'E1.F1(object, R)' and 'E2.F1(object, R)'
+                // (17,18): error CS0121: The call is ambiguous between the following methods or properties: 'E1.F1(object, R)' and 'E2.F1(object, scoped R)'
                 //         var d1 = o.F1;
-                Diagnostic(ErrorCode.ERR_AmbigCall, "o.F1").WithArguments("E1.F1(object, R)", "E2.F1(object, R)").WithLocation(17, 18),
-                // (18,18): error CS0121: The call is ambiguous between the following methods or properties: 'E1.F2(object, ref R)' and 'E2.F2(object, ref R)'
+                Diagnostic(ErrorCode.ERR_AmbigCall, "o.F1").WithArguments("E1.F1(object, R)", "E2.F1(object, scoped R)").WithLocation(17, 18),
+                // (18,18): error CS0121: The call is ambiguous between the following methods or properties: 'E1.F2(object, ref R)' and 'E2.F2(object, scoped ref R)'
                 //         var d2 = o.F2;
-                Diagnostic(ErrorCode.ERR_AmbigCall, "o.F2").WithArguments("E1.F2(object, ref R)", "E2.F2(object, ref R)").WithLocation(18, 18));
+                Diagnostic(ErrorCode.ERR_AmbigCall, "o.F2").WithArguments("E1.F2(object, ref R)", "E2.F2(object, scoped ref R)").WithLocation(18, 18));
         }
 
         [Fact]
@@ -13744,9 +13743,9 @@ class Program
 }";
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (5,43): error CS8352: Cannot use variable 'R<int>' in this context because it may expose referenced variables outside of their declaration scope
+                // (5,43): error CS8352: Cannot use variable 'scoped R<int>' in this context because it may expose referenced variables outside of their declaration scope
                 //     static R<int> F1(scoped R<int> r1) => r1; // 1
-                Diagnostic(ErrorCode.ERR_EscapeVariable, "r1").WithArguments("R<int>").WithLocation(5, 43));
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "r1").WithArguments("scoped R<int>").WithLocation(5, 43));
         }
 
         [Fact]
@@ -14042,9 +14041,9 @@ class Program
 }";
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (11,36): error CS8352: Cannot use variable 'R<int>' in this context because it may expose referenced variables outside of their declaration scope
+                // (11,36): error CS8352: Cannot use variable 'scoped R<int>' in this context because it may expose referenced variables outside of their declaration scope
                 //         scoped ref R<int> l1 = ref r1; // 1
-                Diagnostic(ErrorCode.ERR_EscapeVariable, "r1").WithArguments("R<int>").WithLocation(11, 36));
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "r1").WithArguments("scoped R<int>").WithLocation(11, 36));
         }
 
         [Fact]
@@ -14080,9 +14079,9 @@ class Program
                 // (7,20): error CS8157: Cannot return 'l0' by reference because it was initialized to a value that cannot be returned by reference
                 //         return ref l0; // 1
                 Diagnostic(ErrorCode.ERR_RefReturnNonreturnableLocal, "l0").WithArguments("l0").WithLocation(7, 20),
-                // (11,36): error CS8352: Cannot use variable 'R<int>' in this context because it may expose referenced variables outside of their declaration scope
+                // (11,36): error CS8352: Cannot use variable 'scoped R<int>' in this context because it may expose referenced variables outside of their declaration scope
                 //         scoped ref R<int> l1 = ref r1; // 2
-                Diagnostic(ErrorCode.ERR_EscapeVariable, "r1").WithArguments("R<int>").WithLocation(11, 36),
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "r1").WithArguments("scoped R<int>").WithLocation(11, 36),
                 // (12,20): error CS8157: Cannot return 'l1' by reference because it was initialized to a value that cannot be returned by reference
                 //         return ref l1; // 3
                 Diagnostic(ErrorCode.ERR_RefReturnNonreturnableLocal, "l1").WithArguments("l1").WithLocation(12, 20),
@@ -14375,9 +14374,9 @@ class Program
 }}";
             var comp = CreateCompilation(source, runtimeFeature: RuntimeFlag.ByRefFields);
             comp.VerifyDiagnostics(
-                // (12,55): error CS8352: Cannot use variable 'R<T>' in this context because it may expose referenced variables outside of their declaration scope
+                // (12,55): error CS8352: Cannot use variable 'scoped R<T>' in this context because it may expose referenced variables outside of their declaration scope
                 //     static ref          T F4<T>(scoped R<T> r) => ref r.F; // 1
-                Diagnostic(ErrorCode.ERR_EscapeVariable, "r.F").WithArguments("R<T>").WithLocation(12, 55));
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "r.F").WithArguments("scoped R<T>").WithLocation(12, 55));
         }
 
         [Fact]
@@ -14509,9 +14508,9 @@ class Program
 }";
             var comp = CreateCompilation(source, runtimeFeature: RuntimeFlag.ByRefFields);
             comp.VerifyDiagnostics(
-                // (14,44): error CS8352: Cannot use variable 'R1<T>' in this context because it may expose referenced variables outside of their declaration scope
+                // (14,44): error CS8352: Cannot use variable 'scoped R1<T>' in this context because it may expose referenced variables outside of their declaration scope
                 //     static R0<T> F1<T>(scoped R1<T> r1) => r1.F1; // 1
-                Diagnostic(ErrorCode.ERR_EscapeVariable, "r1.F1").WithArguments("R1<T>").WithLocation(14, 44));
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "r1.F1").WithArguments("scoped R1<T>").WithLocation(14, 44));
         }
 
         [Fact]
@@ -15390,9 +15389,9 @@ class C : I
                 // (6,11): error CS0535: 'C' does not implement interface member 'I.M<T>(T)'
                 // class C : I
                 Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I").WithArguments("C", "I.M<T>(T)").WithLocation(6, 11),
-                // (8,12): error CS0539: 'C.M<T>(T?)' in explicit interface declaration is not found among members of the interface that can be implemented
+                // (8,12): error CS0539: 'C.M<T>(scoped T?)' in explicit interface declaration is not found among members of the interface that can be implemented
                 //     void I.M<T>(scoped T? s) {}
-                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "M").WithArguments("C.M<T>(T?)").WithLocation(8, 12),
+                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "M").WithArguments("C.M<T>(scoped T?)").WithLocation(8, 12),
                 // (8,17): error CS9048: The 'scoped' modifier can be used for refs and ref struct values only.
                 //     void I.M<T>(scoped T? s) {}
                 Diagnostic(ErrorCode.ERR_ScopedRefAndRefStructOnly, "scoped T? s").WithLocation(8, 17),
@@ -18357,9 +18356,9 @@ public class A<T>
                 // (7,28): error CS8352: Cannot use variable 'r' in this context because it may expose referenced variables outside of their declaration scope
                 //         return ref F1A(ref r); // 1
                 Diagnostic(ErrorCode.ERR_EscapeVariable, "r").WithArguments("r").WithLocation(7, 28),
-                // (13,20): error CS8347: Cannot use a result of 'A<int>.F2A(ref R<int>)' in this context because it may expose variables referenced by parameter 'r2' outside of their declaration scope
+                // (13,20): error CS8347: Cannot use a result of 'A<int>.F2A(scoped ref R<int>)' in this context because it may expose variables referenced by parameter 'r2' outside of their declaration scope
                 //         return ref F2A(ref r); // 2
-                Diagnostic(ErrorCode.ERR_EscapeCall, "F2A(ref r)").WithArguments("A<int>.F2A(ref R<int>)", "r2").WithLocation(13, 20),
+                Diagnostic(ErrorCode.ERR_EscapeCall, "F2A(ref r)").WithArguments("A<int>.F2A(scoped ref R<int>)", "r2").WithLocation(13, 20),
                 // (13,28): error CS8352: Cannot use variable 'r' in this context because it may expose referenced variables outside of their declaration scope
                 //         return ref F2A(ref r); // 2
                 Diagnostic(ErrorCode.ERR_EscapeVariable, "r").WithArguments("r").WithLocation(13, 28));
@@ -19604,11 +19603,11 @@ unsafe public class A
 
             bool useUpdatedRules = languageVersionA == LanguageVersion.CSharp11;
 
-            VerifyParameterSymbol(getFunctionPointerMethod(comp, "A.F1").Parameters[0], "out System.Int32", RefKind.Out, useUpdatedRules ? DeclarationScope.RefScoped : DeclarationScope.Unscoped);
+            VerifyParameterSymbol(getFunctionPointerMethod(comp, "A.F1").Parameters[0], "out modreq(System.Runtime.InteropServices.OutAttribute) System.Int32", RefKind.Out, useUpdatedRules ? DeclarationScope.RefScoped : DeclarationScope.Unscoped);
             VerifyParameterSymbol(getFunctionPointerMethod(comp, "A.F2").Parameters[0], "R", RefKind.None, DeclarationScope.Unscoped);
             VerifyParameterSymbol(getFunctionPointerMethod(comp, "A.F3").Parameters[0], "ref R", RefKind.Ref, DeclarationScope.Unscoped);
-            VerifyParameterSymbol(getFunctionPointerMethod(comp, "A.F4").Parameters[0], "in R", RefKind.In, DeclarationScope.Unscoped);
-            VerifyParameterSymbol(getFunctionPointerMethod(comp, "A.F5").Parameters[0], "out R", RefKind.Out, useUpdatedRules ? DeclarationScope.RefScoped : DeclarationScope.Unscoped);
+            VerifyParameterSymbol(getFunctionPointerMethod(comp, "A.F4").Parameters[0], "in modreq(System.Runtime.InteropServices.InAttribute) R", RefKind.In, DeclarationScope.Unscoped);
+            VerifyParameterSymbol(getFunctionPointerMethod(comp, "A.F5").Parameters[0], "out modreq(System.Runtime.InteropServices.OutAttribute) R", RefKind.Out, useUpdatedRules ? DeclarationScope.RefScoped : DeclarationScope.Unscoped);
 
             static MethodSymbol getFunctionPointerMethod(CSharpCompilation comp, string qualifiedName) =>
                 ((FunctionPointerTypeSymbol)comp.GetMember<FieldSymbol>(qualifiedName).Type).Signature;

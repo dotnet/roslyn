@@ -31,8 +31,14 @@ namespace Microsoft.CodeAnalysis
         IncludeConstantValue = 1 << 1,
 
         /// <summary>
-        /// Includes the <c>ref</c> keyword for ref-locals.
+        /// Includes the <c>ref</c> keyword for ref-locals and the <c>scoped</c> keyword for scoped locals.
         /// </summary>
-        IncludeRef = 1 << 2,
+        IncludeModifiers = 1 << 2,
+
+        /// <summary>
+        /// Includes the <c>ref</c> keyword for ref-locals and the <c>scoped</c> keyword for scoped locals.
+        /// Replaced by <see cref="IncludeModifiers"/>.
+        /// </summary>
+        IncludeRef = IncludeModifiers,
     }
 }

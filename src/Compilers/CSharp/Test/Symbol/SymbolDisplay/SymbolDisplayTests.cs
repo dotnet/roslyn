@@ -8204,12 +8204,10 @@ class Program
             var method = comp.GetMember<MethodSymbol>("Program.F");
 
             var formatTypeOnly = SymbolDisplayFormat.TestFormat.WithParameterOptions(SymbolDisplayParameterOptions.IncludeType | SymbolDisplayParameterOptions.IncludeName);
-            var formatTypeAndRef = formatTypeOnly.AddParameterOptions(SymbolDisplayParameterOptions.IncludeParamsRefOut);
-            var formatTypeAndScoped = formatTypeOnly.WithCompilerInternalOptions(SymbolDisplayCompilerInternalOptions.IncludeScoped);
-            var formatTypeRefAndScoped = formatTypeOnly.AddParameterOptions(SymbolDisplayParameterOptions.IncludeParamsRefOut).WithCompilerInternalOptions(SymbolDisplayCompilerInternalOptions.IncludeScoped); ;
+            var formatTypeRefAndScoped = formatTypeOnly.AddParameterOptions(SymbolDisplayParameterOptions.IncludeParamsRefOut);
 
-            Verify(method.ToDisplayParts(formatTypeAndRef),
-                "void Program.F(R r1, ref R r2, in R r3)",
+            Verify(method.ToDisplayParts(formatTypeOnly),
+                "void Program.F(R r1, R r2, R r3)",
                 SymbolDisplayPartKind.Keyword,
                 SymbolDisplayPartKind.Space,
                 SymbolDisplayPartKind.ClassName,
@@ -8221,22 +8219,15 @@ class Program
                 SymbolDisplayPartKind.ParameterName,
                 SymbolDisplayPartKind.Punctuation,
                 SymbolDisplayPartKind.Space,
-                SymbolDisplayPartKind.Keyword,
-                SymbolDisplayPartKind.Space,
                 SymbolDisplayPartKind.StructName,
                 SymbolDisplayPartKind.Space,
                 SymbolDisplayPartKind.ParameterName,
                 SymbolDisplayPartKind.Punctuation,
                 SymbolDisplayPartKind.Space,
-                SymbolDisplayPartKind.Keyword,
-                SymbolDisplayPartKind.Space,
                 SymbolDisplayPartKind.StructName,
                 SymbolDisplayPartKind.Space,
                 SymbolDisplayPartKind.ParameterName,
                 SymbolDisplayPartKind.Punctuation);
-
-            Verify(method.ToDisplayParts(formatTypeAndScoped),
-                "void Program.F(scoped R r1, R r2, R r3)");
 
             Verify(method.ToDisplayParts(formatTypeRefAndScoped),
                 "void Program.F(scoped R r1, scoped ref R r2, scoped in R r3)",
@@ -8285,15 +8276,10 @@ delegate void D(scoped R r1, scoped ref R r2, scoped in R r3);
             var delegateType = comp.GetMember<NamedTypeSymbol>("D");
 
             var formatTypeOnly = s_fullDelegateFormat.WithParameterOptions(SymbolDisplayParameterOptions.IncludeType | SymbolDisplayParameterOptions.IncludeName);
-            var formatTypeAndRef = formatTypeOnly.AddParameterOptions(SymbolDisplayParameterOptions.IncludeParamsRefOut);
-            var formatTypeAndScoped = formatTypeOnly.WithCompilerInternalOptions(SymbolDisplayCompilerInternalOptions.IncludeScoped);
-            var formatTypeRefAndScoped = formatTypeOnly.AddParameterOptions(SymbolDisplayParameterOptions.IncludeParamsRefOut).WithCompilerInternalOptions(SymbolDisplayCompilerInternalOptions.IncludeScoped);
+            var formatTypeRefAndScoped = formatTypeOnly.AddParameterOptions(SymbolDisplayParameterOptions.IncludeParamsRefOut);
 
-            Verify(delegateType.ToDisplayParts(formatTypeAndRef),
-                "delegate void D(R r1, ref R r2, in R r3)");
-
-            Verify(delegateType.ToDisplayParts(formatTypeAndScoped),
-                "delegate void D(scoped R r1, R r2, R r3)");
+            Verify(delegateType.ToDisplayParts(formatTypeOnly),
+                "delegate void D(R r1, R r2, R r3)");
 
             Verify(delegateType.ToDisplayParts(formatTypeRefAndScoped),
                 "delegate void D(scoped R r1, scoped ref R r2, scoped in R r3)");
@@ -8327,7 +8313,7 @@ unsafe class Program
 
             var formatMinimal = new SymbolDisplayFormat();
             var formatTypeRefAndScoped = s_fullDelegateFormat.
-                WithParameterOptions(SymbolDisplayParameterOptions.IncludeType | SymbolDisplayParameterOptions.IncludeName | SymbolDisplayParameterOptions.IncludeParamsRefOut).WithCompilerInternalOptions(SymbolDisplayCompilerInternalOptions.IncludeScoped);
+                WithParameterOptions(SymbolDisplayParameterOptions.IncludeType | SymbolDisplayParameterOptions.IncludeName | SymbolDisplayParameterOptions.IncludeParamsRefOut);
 
             Verify(type.ToDisplayParts(formatMinimal),
                 "delegate*<R, in R, ref R, Void>");
@@ -8352,8 +8338,7 @@ class Program
             comp.VerifyDiagnostics();
 
             var format = SymbolDisplayFormat.TestFormat.
-                WithParameterOptions(SymbolDisplayParameterOptions.IncludeType | SymbolDisplayParameterOptions.IncludeName | SymbolDisplayParameterOptions.IncludeParamsRefOut).
-                WithCompilerInternalOptions(SymbolDisplayCompilerInternalOptions.IncludeScoped);
+                WithParameterOptions(SymbolDisplayParameterOptions.IncludeType | SymbolDisplayParameterOptions.IncludeName | SymbolDisplayParameterOptions.IncludeParamsRefOut);
 
             Verify(comp.GetMember<MethodSymbol>("Program.F1").ToDisplayParts(format),
                 "void Program.F1(out System.Int32 i1, out System.Int32 i2)");
@@ -8384,11 +8369,9 @@ class Program
             var locals = decls.Select(d => model.GetDeclaredSymbol(d)).ToArray();
 
             var formatTypeOnly = SymbolDisplayFormat.TestFormat.WithLocalOptions(SymbolDisplayLocalOptions.IncludeType);
-            var formatTypeAndRef = formatTypeOnly.AddLocalOptions(SymbolDisplayLocalOptions.IncludeRef);
-            var formatTypeAndScoped = formatTypeOnly.WithCompilerInternalOptions(SymbolDisplayCompilerInternalOptions.IncludeScoped);
-            var formatTypeRefAndScoped = formatTypeOnly.AddLocalOptions(SymbolDisplayLocalOptions.IncludeRef).WithCompilerInternalOptions(SymbolDisplayCompilerInternalOptions.IncludeScoped);
+            var formatTypeRefAndScoped = formatTypeOnly.AddLocalOptions(SymbolDisplayLocalOptions.IncludeRef);
 
-            Verify(locals[0].ToDisplayParts(formatTypeAndRef),
+            Verify(locals[0].ToDisplayParts(formatTypeOnly),
                 "R r1",
                 SymbolDisplayPartKind.StructName,
                 SymbolDisplayPartKind.Space,
@@ -8402,12 +8385,8 @@ class Program
                 SymbolDisplayPartKind.Space,
                 SymbolDisplayPartKind.LocalName);
 
-            Verify(locals[1].ToDisplayParts(formatTypeAndRef),
-                "ref readonly R r3",
-                SymbolDisplayPartKind.Keyword,
-                SymbolDisplayPartKind.Space,
-                SymbolDisplayPartKind.Keyword,
-                SymbolDisplayPartKind.Space,
+            Verify(locals[1].ToDisplayParts(formatTypeOnly),
+                "R r3",
                 SymbolDisplayPartKind.StructName,
                 SymbolDisplayPartKind.Space,
                 SymbolDisplayPartKind.LocalName);
@@ -8420,12 +8399,6 @@ class Program
                 SymbolDisplayPartKind.Space,
                 SymbolDisplayPartKind.Keyword,
                 SymbolDisplayPartKind.Space,
-                SymbolDisplayPartKind.StructName,
-                SymbolDisplayPartKind.Space,
-                SymbolDisplayPartKind.LocalName);
-
-            Verify(locals[1].ToDisplayParts(formatTypeAndScoped),
-                "R r3",
                 SymbolDisplayPartKind.StructName,
                 SymbolDisplayPartKind.Space,
                 SymbolDisplayPartKind.LocalName);

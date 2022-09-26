@@ -5324,7 +5324,7 @@ ref struct S<T>
         End Sub
 
         ''' <summary>
-        ''' IParameterSymbol.IsRefScoped and IsValueScoped are ignored in VisualBasic.SymbolDisplayVisitor.
+        ''' IParameterSymbol.ScopedKind is ignored in VisualBasic.SymbolDisplayVisitor.
         ''' </summary>
         <Theory>
         <InlineData(False)>
@@ -5340,9 +5340,9 @@ class Program
             comp.VerifyDiagnostics()
             Dim method = comp.GlobalNamespace.GetTypeMembers("Program").Single().GetMembers("F").Single()
 
-            Dim format = SymbolDisplayFormat.TestFormat
+            Dim format = SymbolDisplayFormat.TestFormat.WithParameterOptions(SymbolDisplayParameterOptions.IncludeType Or SymbolDisplayParameterOptions.IncludeName)
             If includeScoped Then
-                format = format.WithCompilerInternalOptions(SymbolDisplayCompilerInternalOptions.IncludeScoped)
+                format = format.AddParameterOptions(SymbolDisplayParameterOptions.IncludeParamsRefOut)
             End If
 
             Verify(SymbolDisplay.ToDisplayParts(method, format),
@@ -5369,7 +5369,7 @@ class Program
         End Sub
 
         ''' <summary>
-        ''' ILocalSymbol.IsRefScoped and IsValueScoped are ignored in VisualBasic.SymbolDisplayVisitor.
+        ''' ILocalSymbol.ScopedKind is ignored in VisualBasic.SymbolDisplayVisitor.
         ''' </summary>
         <Theory>
         <InlineData(False)>
@@ -5392,9 +5392,9 @@ class Program
             Dim decls = tree.GetRoot().DescendantNodes().OfType(Of Microsoft.CodeAnalysis.CSharp.Syntax.VariableDeclaratorSyntax)().ToArray()
             Dim locals = decls.Select(Function(d) model.GetDeclaredSymbol(d)).ToArray()
 
-            Dim format = SymbolDisplayFormat.TestFormat.AddLocalOptions(SymbolDisplayLocalOptions.IncludeRef)
+            Dim format = SymbolDisplayFormat.TestFormat.WithLocalOptions(SymbolDisplayLocalOptions.IncludeType)
             If includeScoped Then
-                format = format.WithCompilerInternalOptions(SymbolDisplayCompilerInternalOptions.IncludeScoped)
+                format = format.AddLocalOptions(SymbolDisplayLocalOptions.IncludeRef)
             End If
 
             Verify(SymbolDisplay.ToDisplayParts(locals(0), format),

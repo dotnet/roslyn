@@ -816,13 +816,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 AddCustomModifiersIfNeeded(symbol.RefCustomModifiers, leadingSpace: false, trailingSpace: true);
 
                 if (symbol.ScopedKind == ScopedKind.ScopedValue &&
-                    format.CompilerInternalOptions.IncludesOption(SymbolDisplayCompilerInternalOptions.IncludeScoped))
+                    format.ParameterOptions.IncludesOption(SymbolDisplayParameterOptions.IncludeModifiers))
                 {
                     AddKeyword(SyntaxKind.ScopedKeyword);
                     AddSpace();
                 }
 
-                if (symbol.IsParams && format.ParameterOptions.IncludesOption(SymbolDisplayParameterOptions.IncludeParamsRefOut))
+                if (symbol.IsParams && format.ParameterOptions.IncludesOption(SymbolDisplayParameterOptions.IncludeModifiers))
                 {
                     AddKeyword(SyntaxKind.ParamsKeyword);
                     AddSpace();
@@ -1113,11 +1113,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private void AddParameterRefKindIfNeeded(IParameterSymbol symbol)
         {
-            if (format.ParameterOptions.IncludesOption(SymbolDisplayParameterOptions.IncludeParamsRefOut))
+            if (format.ParameterOptions.IncludesOption(SymbolDisplayParameterOptions.IncludeModifiers))
             {
                 if (symbol.ScopedKind == ScopedKind.ScopedRef &&
-                    !symbol.IsThis &&
-                    format.CompilerInternalOptions.IncludesOption(SymbolDisplayCompilerInternalOptions.IncludeScoped))
+                    !symbol.IsThis)
                 {
                     var parameter = (symbol as Symbols.PublicModel.ParameterSymbol)?.GetSymbol<ParameterSymbol>();
                     if (parameter is null || !ParameterHelpers.IsRefScopedByDefault(parameter))
