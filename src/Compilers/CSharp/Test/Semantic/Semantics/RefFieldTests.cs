@@ -11318,7 +11318,13 @@ class Enumerator1
                 Diagnostic(ErrorCode.ERR_RefAssignNarrower, "r0 = ref r1").WithArguments("r0", "r1").WithLocation(8, 13),
                 // (12,13): error CS8374: Cannot ref-assign 'r2' to 'r0' because 'r2' has a narrower escape scope than 'r0'.
                 //             r0 = ref r2; // 2
-                Diagnostic(ErrorCode.ERR_RefAssignNarrower, "r0 = ref r2").WithArguments("r0", "r2").WithLocation(12, 13));
+                Diagnostic(ErrorCode.ERR_RefAssignNarrower, "r0 = ref r2").WithArguments("r0", "r2").WithLocation(12, 13),
+                // (16,22): error CS8352: Cannot use variable 'r3' in this context because it may expose referenced variables outside of their declaration scope
+                //             r0 = ref r3;
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "r3").WithArguments("r3").WithLocation(16, 22),
+                // (20,22): error CS8352: Cannot use variable 'r4' in this context because it may expose referenced variables outside of their declaration scope
+                //             r0 = ref r4;
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "r4").WithArguments("r4").WithLocation(20, 22));
         }
 
         [Fact]
@@ -11393,7 +11399,7 @@ class Enumerator1
         {
             int i1 = 1;
             foreach (S s1 in Enumerable1.Create(ref i1)) {
-                s0 = s1; // <-- An error is expected here, see https://github.com/dotnet/roslyn/issues/64218
+                s0 = s1; // 1
                 break;
             }
         }
@@ -11427,6 +11433,9 @@ class Enumerator1
 ";
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
+                // (10,22): error CS8352: Cannot use variable 's1' in this context because it may expose referenced variables outside of their declaration scope
+                //                 s0 = s1; // 1
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "s1").WithArguments("s1").WithLocation(10, 22),
                 // (15,18): error CS8352: Cannot use variable 's2' in this context because it may expose referenced variables outside of their declaration scope
                 //             s0 = s2; // 2
                 Diagnostic(ErrorCode.ERR_EscapeVariable, "s2").WithArguments("s2").WithLocation(15, 18)
