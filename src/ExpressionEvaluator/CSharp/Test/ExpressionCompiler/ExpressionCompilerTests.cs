@@ -6662,8 +6662,24 @@ class C
             WithRuntimeInstance(comp, runtime =>
             {
                 var context = CreateMethodContext(runtime, "C.Main");
-                context.CompileExpression("M(() => ref local)", out var error);
-                Assert.Equal("error CS8168: Cannot return local 'local' by reference because it is not a ref local", error);
+                var testData = new CompilationTestData();
+                context.CompileExpression("M(() => ref local)", out var error, testData);
+                Assert.Null(error);
+                testData.GetMethodData("<>x.<>m0").VerifyIL(
+@"{
+  // Code size       30 (0x1e)
+  .maxstack  3
+  .locals init (int V_0) //local
+  IL_0000:  newobj     ""<>x.<>c__DisplayClass0_0..ctor()""
+  IL_0005:  dup
+  IL_0006:  ldloc.0
+  IL_0007:  stfld      ""int <>x.<>c__DisplayClass0_0.local""
+  IL_000c:  ldftn      ""ref int <>x.<>c__DisplayClass0_0.<<>m0>b__0()""
+  IL_0012:  newobj     ""D..ctor(object, System.IntPtr)""
+  IL_0017:  call       ""ref int C.M(D)""
+  IL_001c:  ldind.i4
+  IL_001d:  ret
+}");
             });
         }
 

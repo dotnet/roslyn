@@ -162,7 +162,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                                 content = (data.GetValidHelpLinkUri() != null) ? string.Format(EditorFeaturesResources.Get_help_for_0, data.Id) : null;
                                 return content != null;
                             case StandardTableKeyNames.HelpKeyword:
-                                content = data.Id;
+                                content = data.GetHelpKeyword();
                                 return content != null;
                             case StandardTableKeyNames.HelpLink:
                                 content = data.GetValidHelpLinkUri()?.AbsoluteUri;

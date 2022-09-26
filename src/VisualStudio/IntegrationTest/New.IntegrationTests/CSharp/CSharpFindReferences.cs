@@ -50,7 +50,7 @@ class SomeOtherClass
 }
 ", HangMitigatingCancellationToken);
 
-            await TestServices.Input.SendAsync((VirtualKeyCode.F12, VirtualKeyCode.SHIFT));
+            await TestServices.Input.SendAsync((VirtualKeyCode.F12, VirtualKeyCode.SHIFT), HangMitigatingCancellationToken);
 
             var results = await TestServices.FindReferencesWindow.GetContentsAsync(HangMitigatingCancellationToken);
 
@@ -96,7 +96,7 @@ class Program
 }
 ", HangMitigatingCancellationToken);
 
-            await TestServices.Input.SendAsync((VirtualKeyCode.F12, VirtualKeyCode.SHIFT));
+            await TestServices.Input.SendAsync((VirtualKeyCode.F12, VirtualKeyCode.SHIFT), HangMitigatingCancellationToken);
 
             var results = await TestServices.FindReferencesWindow.GetContentsAsync(HangMitigatingCancellationToken);
 
@@ -134,7 +134,7 @@ class Program
 }
 ", HangMitigatingCancellationToken);
 
-            await TestServices.Input.SendAsync((VirtualKeyCode.F12, VirtualKeyCode.SHIFT));
+            await TestServices.Input.SendAsync((VirtualKeyCode.F12, VirtualKeyCode.SHIFT), HangMitigatingCancellationToken);
 
             var results = await TestServices.FindReferencesWindow.GetContentsAsync(HangMitigatingCancellationToken);
 

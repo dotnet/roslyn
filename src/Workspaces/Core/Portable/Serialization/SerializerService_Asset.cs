@@ -24,40 +24,9 @@ namespace Microsoft.CodeAnalysis.Serialization
             text.Serialize(writer, context, cancellationToken);
         }
 
-        private SerializableSourceText DeserializeSerializableSourceText(ObjectReader reader, CancellationToken cancellationToken)
-        {
-            cancellationToken.ThrowIfCancellationRequested();
-
-            var checksumAlgorithm = (SourceHashAlgorithm)reader.ReadInt32();
-            var encoding = (Encoding)reader.ReadValue();
-
-            var kind = (SerializationKinds)reader.ReadInt32();
-            if (kind == SerializationKinds.MemoryMapFile)
-            {
-                var storage2 = (ITemporaryStorageService2)_storageService;
-
-                var name = reader.ReadString();
-                var offset = reader.ReadInt64();
-                var size = reader.ReadInt64();
-
-                var storage = storage2.AttachTemporaryTextStorage(name, offset, size, checksumAlgorithm, encoding);
-                if (storage is ITemporaryTextStorageWithName storageWithName)
-                {
-                    return new SerializableSourceText(storageWithName);
-                }
-                else
-                {
-                    return new SerializableSourceText(storage.ReadText(cancellationToken));
-                }
-            }
-
-            Contract.ThrowIfFalse(kind == SerializationKinds.Bits);
-            return new SerializableSourceText(SourceTextExtensions.ReadFrom(_textService, reader, encoding, cancellationToken));
-        }
-
         private SourceText DeserializeSourceText(ObjectReader reader, CancellationToken cancellationToken)
         {
-            var serializableSourceText = DeserializeSerializableSourceText(reader, cancellationToken);
+            var serializableSourceText = SerializableSourceText.Deserialize(reader, _storageService, _textService, cancellationToken);
             return serializableSourceText.GetText(cancellationToken);
         }
 

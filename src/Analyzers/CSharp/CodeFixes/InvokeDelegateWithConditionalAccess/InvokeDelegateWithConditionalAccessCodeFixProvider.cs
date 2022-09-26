@@ -98,7 +98,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InvokeDelegateWithConditionalAccess
             newStatement = newStatement.WithPrependedLeadingTrivia(ifStatement.GetLeadingTrivia());
 
             if (ifStatement.Parent.IsKind(SyntaxKind.ElseClause) &&
-                ifStatement.Statement.IsKind(SyntaxKind.Block, out BlockSyntax? block))
+                ifStatement.Statement is BlockSyntax block)
             {
                 newStatement = block.WithStatements(SyntaxFactory.SingletonList(newStatement));
             }
