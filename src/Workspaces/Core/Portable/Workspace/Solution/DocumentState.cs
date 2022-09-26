@@ -605,10 +605,8 @@ namespace Microsoft.CodeAnalysis
 
             var syntaxTreeFactory = _languageServices.GetRequiredService<ISyntaxTreeFactoryService>();
 
-            var filePath = GetSyntaxTreeFilePath(Attributes);
-
             Contract.ThrowIfNull(_options);
-            var (text, treeAndVersion) = CreateRecoverableTextAndTree(newRoot, filePath, newTextVersion, newTreeVersion, encoding, LoadTextOptions.ChecksumAlgorithm, Attributes, _options, syntaxTreeFactory, mode);
+            var (text, treeAndVersion) = CreateRecoverableTextAndTree(newRoot, newTextVersion, newTreeVersion, encoding, LoadTextOptions.ChecksumAlgorithm, Attributes, _options, syntaxTreeFactory, mode);
 
             return new DocumentState(
                 LanguageServices,
@@ -642,7 +640,6 @@ namespace Microsoft.CodeAnalysis
         // use static method so we don't capture references to this
         private static (ITextAndVersionSource, TreeAndVersion) CreateRecoverableTextAndTree(
             SyntaxNode newRoot,
-            string filePath,
             VersionStamp textVersion,
             VersionStamp treeVersion,
             Encoding? encoding,
@@ -657,7 +654,7 @@ namespace Microsoft.CodeAnalysis
 
             if (mode == PreservationMode.PreserveIdentity || !factory.CanCreateRecoverableTree(newRoot))
             {
-                tree = factory.CreateSyntaxTree(GetSyntaxTreeFilePath(attributes), options, encoding, checksumAlgorithm, newRoot);
+                tree = factory.CreateSyntaxTree(GetSyntaxTreeFilePath(Attributes), options, encoding, checksumAlgorithm, newRoot);
 
                 // its okay to use a strong cached AsyncLazy here because the compiler layer SyntaxTree will also keep the text alive once its built.
                 lazyTextAndVersion = new TreeTextSource(
@@ -665,8 +662,7 @@ namespace Microsoft.CodeAnalysis
                         tree.GetTextAsync,
                         tree.GetText,
                         cacheResult: true),
-                    textVersion,
-                    filePath);
+                    textVersion);
             }
             else
             {
@@ -684,10 +680,9 @@ namespace Microsoft.CodeAnalysis
                             async cancellationToken => (await tree.GetRootAsync(cancellationToken).ConfigureAwait(false)).GetText(encoding, checksumAlgorithm),
                             cancellationToken => tree.GetRoot(cancellationToken).GetText(encoding, checksumAlgorithm),
                             cacheResult: false)),
-                    textVersion,
-                    filePath);
+                    textVersion);
 
-                tree = factory.CreateRecoverableTree(attributes.Id.ProjectId, filePath, options, lazyTextAndVersion, new LoadTextOptions(checksumAlgorithm), encoding, newRoot);
+                tree = factory.CreateRecoverableTree(attributes.Id.ProjectId, GetSyntaxTreeFilePath(Attributes), options, lazyTextAndVersion, new LoadTextOptions(checksumAlgorithm), encoding, newRoot);
             }
 
             return (lazyTextAndVersion, new TreeAndVersion(tree, treeVersion));
