@@ -659,7 +659,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var documentAId = DocumentId.CreateNewId(projectId);
             var documentBId = DocumentId.CreateNewId(projectId);
             var documentCId = DocumentId.CreateNewId(projectId);
-            var documentDId = DocumentId.CreateNewId(projectId);
+            var fileDocumentId = DocumentId.CreateNewId(projectId);
 
             var fileD = Temp.CreateFile();
             var bytes = new UTF8Encoding(encoderShouldEmitUTF8Identifier: true).GetBytes("Text");
@@ -677,33 +677,33 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var textLoaderA = new TestTextLoader("class A {}", SourceHashAlgorithm.Sha1);
             var textC = SourceText.From("class C {}", encoding: null, checksumAlgorithm: SourceHashAlgorithm.Sha1);
 
-            var solution = workspace.CurrentSolution.
-                AddProject(projectId, "proj1", "proj1.dll", LanguageNames.CSharp).
-                WithProjectChecksumAlgorithm(projectId, SourceHashAlgorithm.Sha1);
+            var solution = workspace.CurrentSolution
+                .AddProject(projectId, "proj1", "proj1.dll", LanguageNames.CSharp)
+                .WithProjectChecksumAlgorithm(projectId, SourceHashAlgorithm.Sha1);
 
             solution = solution.AddDocument(documentAId, "a.cs", textLoaderA);
             solution = solution.AddDocument(documentBId, "b.cs", "class B {}");
             solution = solution.AddDocument(documentCId, "c.cs", textC);
-            solution = solution.AddDocument(documentDId, "d.cs", new FileTextLoader(fileD.Path, defaultEncoding: null));
+            solution = solution.AddDocument(fileDocumentId, "d.cs", new FileTextLoader(fileD.Path, defaultEncoding: null));
 
             Verify(solution.GetRequiredDocument(documentAId), SourceHashAlgorithm.Sha1);
             Verify(solution.GetRequiredDocument(documentBId), SourceHashAlgorithm.Sha1);
             Verify(solution.GetRequiredDocument(documentCId), SourceHashAlgorithm.Sha1);
-            Verify(solution.GetRequiredDocument(documentDId), SourceHashAlgorithm.Sha1, checksumSHA1);
+            Verify(solution.GetRequiredDocument(fileDocumentId), SourceHashAlgorithm.Sha1, checksumSHA1);
 
             // only file loader based documents support updating checksum alg:
             solution = solution.WithProjectChecksumAlgorithm(projectId, SourceHashAlgorithm.Sha256);
             Verify(solution.GetRequiredDocument(documentAId), SourceHashAlgorithm.Sha1);
             Verify(solution.GetRequiredDocument(documentBId), SourceHashAlgorithm.Sha1);
             Verify(solution.GetRequiredDocument(documentCId), SourceHashAlgorithm.Sha1);
-            Verify(solution.GetRequiredDocument(documentDId), SourceHashAlgorithm.Sha256, checksumSHA256);
+            Verify(solution.GetRequiredDocument(fileDocumentId), SourceHashAlgorithm.Sha256, checksumSHA256);
 
             // only file loader based documents support updating checksum alg:
             solution = solution.WithProjectChecksumAlgorithm(projectId, SourceHashAlgorithm.Sha1);
             Verify(solution.GetRequiredDocument(documentAId), SourceHashAlgorithm.Sha1);
             Verify(solution.GetRequiredDocument(documentBId), SourceHashAlgorithm.Sha1);
             Verify(solution.GetRequiredDocument(documentCId), SourceHashAlgorithm.Sha1);
-            Verify(solution.GetRequiredDocument(documentDId), SourceHashAlgorithm.Sha1, checksumSHA1);
+            Verify(solution.GetRequiredDocument(fileDocumentId), SourceHashAlgorithm.Sha1, checksumSHA1);
 
             static void Verify(Document document, SourceHashAlgorithm expectedAlgorithm, byte[]? expectedChecksum = null)
             {

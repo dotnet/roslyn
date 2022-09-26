@@ -72,7 +72,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Public Overrides Function WithRootAndOptions(root As SyntaxNode, options As ParseOptions) As SyntaxTree
                     Return If(ReferenceEquals(root, _root) AndAlso options = Me.Options,
                         Me,
-                        New ParsedSyntaxTree(lazyText:=Nothing, DirectCast(root, VisualBasicSyntaxNode), DirectCast(options, VisualBasicParseOptions), FilePath, Encoding, _checksumAlgorithm))
+                        New ParsedSyntaxTree(If(ReferenceEquals(root, _root), _lazyText, Nothing), DirectCast(root, VisualBasicSyntaxNode), DirectCast(options, VisualBasicParseOptions), FilePath, Encoding, _checksumAlgorithm))
                 End Function
 
                 Public Overrides Function WithFilePath(path As String) As SyntaxTree

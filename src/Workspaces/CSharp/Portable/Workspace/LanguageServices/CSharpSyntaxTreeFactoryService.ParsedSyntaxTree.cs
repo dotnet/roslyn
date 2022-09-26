@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 public override SyntaxTree WithRootAndOptions(SyntaxNode root, ParseOptions options)
-                    => (root == _root && options == Options) ? this : new ParsedSyntaxTree(lazyText: null, (CSharpSyntaxNode)root, (CSharpParseOptions)options, FilePath, Encoding, _checksumAlgorithm);
+                    => (root == _root && options == Options) ? this : new ParsedSyntaxTree((root == _root) ? _lazyText : null, (CSharpSyntaxNode)root, (CSharpParseOptions)options, FilePath, Encoding, _checksumAlgorithm);
 
                 public override SyntaxTree WithFilePath(string path)
                     => (path == FilePath) ? this : new ParsedSyntaxTree(_lazyText, _root, Options, path, Encoding, _checksumAlgorithm);

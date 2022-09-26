@@ -567,23 +567,6 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
-        /// Creates a new solution instance with the project specified updated to have the attributes,
-        /// except for <see cref="ProjectInfo.ProjectAttributes.Version"/> which is auto-incremented.
-        /// </summary>
-        internal Solution WithProjectAttributes(ProjectId projectId, ProjectInfo.ProjectAttributes attributes, bool updateDocuments)
-        {
-            CheckContainsProject(projectId);
-
-            var newState = _state.WithProjectAttributes(projectId, attributes, updateDocuments);
-            if (newState == _state)
-            {
-                return this;
-            }
-
-            return new Solution(newState);
-        }
-
-        /// <summary>
         /// Creates a new solution instance with the project documents in the order by the specified document ids.
         /// The specified document ids must be the same as what is already in the project; no adding or removing is allowed.
         /// </summary>
