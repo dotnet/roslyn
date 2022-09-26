@@ -1629,7 +1629,7 @@ namespace Microsoft.CodeAnalysis
                 // ApplyDocumentInfoChanged ignores the loader information, so we can pass null for it
                 ApplyDocumentInfoChanged(
                     documentId,
-                    new DocumentInfo(newDoc.State.Attributes, loader: null, newDoc.State.LoadTextOptions, documentServiceProvider: newDoc.State.Services));
+                    new DocumentInfo(newDoc.State.Attributes, loader: null, documentServiceProvider: newDoc.State.Services));
             }
         }
 
@@ -1668,8 +1668,7 @@ namespace Microsoft.CodeAnalysis
                 doc is Document sourceDoc ? sourceDoc.SourceCodeKind : SourceCodeKind.Regular,
                 loader: null,
                 filePath: doc.FilePath,
-                isGenerated: doc.State.Attributes.IsGenerated,
-                loadTextOptions: doc.State.LoadTextOptions)
+                isGenerated: doc.State.Attributes.IsGenerated)
                 .WithDesignTimeOnly(doc.State.Attributes.DesignTimeOnly)
                 .WithDocumentServiceProvider(doc.Services);
 

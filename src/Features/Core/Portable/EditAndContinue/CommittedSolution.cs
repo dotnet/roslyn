@@ -292,8 +292,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                             folders: document.Folders,
                             loader: TextLoader.From(TextAndVersion.Create(sourceText, sourceTextVersion, document.Name)),
                             filePath: document.FilePath,
-                            isGenerated: document.State.Attributes.IsGenerated,
-                            loadTextOptions: new LoadTextOptions(sourceText.ChecksumAlgorithm))
+                            isGenerated: document.State.Attributes.IsGenerated)
                             .WithDesignTimeOnly(document.State.Attributes.DesignTimeOnly)
                             .WithDocumentServiceProvider(document.State.Services));
                     }

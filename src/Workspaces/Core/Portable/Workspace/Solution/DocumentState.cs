@@ -55,9 +55,10 @@ namespace Microsoft.CodeAnalysis
         public DocumentState(
             DocumentInfo info,
             ParseOptions? options,
+            LoadTextOptions loadTextOptions,
             HostLanguageServices languageServices,
             HostWorkspaceServices services)
-            : base(info, services)
+            : base(info, loadTextOptions, services)
         {
             _languageServices = languageServices;
             _options = options;

@@ -1054,8 +1054,7 @@ namespace Microsoft.CodeAnalysis
                 sourceCodeKind: GetSourceCodeKind(project),
                 loader: TextLoader.From(TextAndVersion.Create(text, VersionStamp.Create(), name)),
                 filePath: filePath,
-                isGenerated: isGenerated,
-                loadTextOptions: new LoadTextOptions(project.ChecksumAlgorithm)));
+                isGenerated: isGenerated));
 
         /// <summary>
         /// Creates a new solution instance with the project updated to include a new document with
@@ -1079,8 +1078,7 @@ namespace Microsoft.CodeAnalysis
                 name,
                 folders,
                 GetSourceCodeKind(project),
-                loader,
-                loadTextOptions: new LoadTextOptions(project.ChecksumAlgorithm)));
+                loader));
         }
 
         /// <summary>
@@ -1192,8 +1190,7 @@ namespace Microsoft.CodeAnalysis
                 folders: folders,
                 sourceCodeKind: GetSourceCodeKind(project),
                 loader: loader,
-                filePath: filePath,
-                loadTextOptions: new LoadTextOptions(text.ChecksumAlgorithm));
+                filePath: filePath);
         }
 
         private ProjectState GetRequiredProjectState(ProjectId projectId)

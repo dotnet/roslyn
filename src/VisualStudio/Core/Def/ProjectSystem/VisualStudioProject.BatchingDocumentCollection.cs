@@ -99,8 +99,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                     folders: folders.IsDefault ? null : folders,
                     sourceCodeKind: sourceCodeKind,
                     loader: textLoader,
-                    filePath: fullPath,
-                    loadTextOptions: new LoadTextOptions(_project.ChecksumAlgorithm));
+                    filePath: fullPath);
 
                 using (_project._gate.DisposableWait())
                 {
@@ -150,8 +149,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                     folders: folders.NullToEmpty(),
                     sourceCodeKind: sourceCodeKind,
                     loader: textLoader,
-                    filePath: fullPath,
-                    loadTextOptions: new LoadTextOptions(_project.ChecksumAlgorithm))
+                    filePath: fullPath)
                     .WithDesignTimeOnly(designTimeOnly)
                     .WithDocumentServiceProvider(documentServiceProvider);
 
@@ -481,7 +479,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                             // Right now we're only supporting dynamic files as actual source files, so it's OK to call GetDocument here
                             var attributes = w.CurrentSolution.GetRequiredDocument(documentId).State.Attributes;
 
-                            var documentInfo = new DocumentInfo(attributes, fileInfo.TextLoader, new LoadTextOptions(_project.ChecksumAlgorithm), fileInfo.DocumentServiceProvider);
+                            var documentInfo = new DocumentInfo(attributes, fileInfo.TextLoader, fileInfo.DocumentServiceProvider);
 
                             w.OnDocumentReloaded(documentInfo);
                         });
@@ -590,8 +588,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                     sourceCodeKind: fileInfo.SourceCodeKind,
                     loader: fileInfo.TextLoader,
                     filePath: filePath,
-                    isGenerated: false,
-                    loadTextOptions: new LoadTextOptions(SourceHashAlgorithms.Default))
+                    isGenerated: false)
                     .WithDesignTimeOnly(true)
                     .WithDocumentServiceProvider(fileInfo.DocumentServiceProvider);
             }

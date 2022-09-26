@@ -310,8 +310,8 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
                     name: Path.GetFileName(info.FilePath),
                     loader: info.Loader,
                     filePath: info.FilePath,
-                    isGenerated: true,
-                    loadTextOptions: new LoadTextOptions(info.ChecksumAlgorithm)).WithDesignTimeOnly(true));
+                    isGenerated: true)
+                    .WithDesignTimeOnly(true));
 
                 // If we successfully got something from SourceLink for this project then its nice to wait a bit longer
                 // if the user performs subsequent navigation
