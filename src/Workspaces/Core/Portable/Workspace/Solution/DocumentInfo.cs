@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis
     /// </summary>
     [DebuggerDisplay("{GetDebuggerDisplay() , nq}")]
     public sealed class DocumentInfo
-    {   
+    {
         internal DocumentAttributes Attributes { get; }
 
         /// <summary>
