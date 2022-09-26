@@ -3594,6 +3594,57 @@ public ref struct S
                 );
         }
 
+        [WorkItem(64218, "https://github.com/dotnet/roslyn/issues/64218")]
+        [Fact]
+        public void RefLikeForeach_EnumerableCreate()
+        {
+            var text = @"
+class Program
+{
+    static void Main()
+    {
+        int i0 = 0;
+        S s0 = new S(ref i0);
+        {
+            int i1 = 1;
+            for (S s1 = new S(ref i1);;) {
+                s0 = s1; // 1
+                break;
+            }
+        }
+        {
+            int i1 = 1;
+            foreach (S s2 in Enumerable1.Create(ref i1)) {
+                s0 = s2; // 2
+                break;
+            }
+        }
+    }
+}
+ref struct S
+{
+    public S(ref int i) { }
+}
+class Enumerable1
+{
+    public static Enumerable1 Create(ref int p) => default;
+    public Enumerator1 GetEnumerator() => default;
+}
+class Enumerator1
+{
+    public S Current => throw null;
+    public bool MoveNext() => false;
+}
+";
+            CreateCompilation(text).VerifyDiagnostics(
+                // (11,22): error CS8352: Cannot use variable 's1' in this context because it may expose referenced variables outside of their declaration scope
+                //                 s0 = s1; // 1
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "s1").WithArguments("s1").WithLocation(11, 22),
+                // (18,22): error CS8352: Cannot use variable 's2' in this context because it may expose referenced variables outside of their declaration scope
+                //                 s0 = s2; // 2
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "s2").WithArguments("s2").WithLocation(18, 22));
+        }
+
         [Theory]
         [InlineData(LanguageVersion.CSharp10)]
         [InlineData(LanguageVersion.CSharp11)]
