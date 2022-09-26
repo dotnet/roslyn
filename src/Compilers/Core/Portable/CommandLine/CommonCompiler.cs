@@ -1112,7 +1112,7 @@ namespace Microsoft.CodeAnalysis
                         analyzerExceptionDiagnostics.Add,
                         Arguments.ReportAnalyzer,
                         severityFilter,
-                        trackSuppressedDescriptors: errorLogger != null,
+                        trackSuppressedDiagnosticIds: errorLogger != null,
                         out compilation,
                         analyzerCts.Token);
                 }
