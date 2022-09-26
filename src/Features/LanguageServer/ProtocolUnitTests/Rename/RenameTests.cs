@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Rename
         {|renamed:M|}()
     }
 }";
-            using var testLspServer = await CreateTestLspServerAsync(markup);
+            await using var testLspServer = await CreateTestLspServerAsync(markup);
             var renameLocation = testLspServer.GetLocations("caret").First();
             var renameValue = "$RENAMED$";
 
