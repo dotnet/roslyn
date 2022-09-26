@@ -9,6 +9,7 @@ using System.Diagnostics;
 using System.Drawing;
 using System.IO;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -24,7 +25,7 @@ namespace Microsoft.CodeAnalysis
     /// </summary>
     public abstract class TextLoader
     {
-        private static ImmutableDictionary<Type, bool> s_isObsoleteLoadTextAndVersionAsyncOverriden = ImmutableDictionary<Type, bool>.Empty;
+        private static readonly ConditionalWeakTable<Type, StrongBox<bool>> s_isObsoleteLoadTextAndVersionAsyncOverriden = new();
 
         private const double MaxDelaySecs = 1.0;
         private const int MaxRetries = 5;
@@ -52,16 +53,15 @@ namespace Microsoft.CodeAnalysis
         public virtual Task<TextAndVersion> LoadTextAndVersionAsync(LoadTextOptions options, CancellationToken cancellationToken)
         {
 #pragma warning disable CS0618 // Type or member is obsolete
-            if (ImmutableInterlocked.GetOrAdd(
-                ref s_isObsoleteLoadTextAndVersionAsyncOverriden,
+            if (s_isObsoleteLoadTextAndVersionAsyncOverriden.GetValue(
                 GetType(),
-                _ => new Func<Workspace, DocumentId, CancellationToken, Task<TextAndVersion>>(LoadTextAndVersionAsync).Method.DeclaringType != typeof(TextLoader)))
+                _ => new StrongBox<bool>(new Func<Workspace, DocumentId, CancellationToken, Task<TextAndVersion>>(LoadTextAndVersionAsync).Method.DeclaringType != typeof(TextLoader))).Value)
             {
                 return LoadTextAndVersionAsync(workspace: null, documentId: null, cancellationToken);
             }
 #pragma warning restore
 
-            throw new NotImplementedException($"{GetType()} must override LoadTextAndVersionAsync");
+            throw new NotImplementedException($"{GetType()} must override {nameof(LoadTextAndVersionAsync)}");
         }
 
         /// <summary>
@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis
         /// <exception cref="OperationCanceledException"/>
         [Obsolete("Use LoadTextAndVersionAsync(CancellationToken) instead")]
         public virtual Task<TextAndVersion> LoadTextAndVersionAsync(Workspace? workspace, DocumentId? documentId, CancellationToken cancellationToken)
-            => throw new NotImplementedException("The API is obsolete, call LoadTextAndVersionAsync(CancellationToken) instead");
+            => LoadTextAndVersionAsync(new LoadTextOptions(SourceHashAlgorithms.Default), cancellationToken);
 
         /// <summary>
         /// Load a text and a version of the document in the workspace.
