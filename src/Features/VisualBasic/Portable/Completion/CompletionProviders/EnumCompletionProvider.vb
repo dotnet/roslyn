@@ -25,6 +25,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
         Public Sub New()
         End Sub
 
+        Private Shared ReadOnly s_enumMemberCompletionItemRules As CompletionItemRules = CompletionItemRules.Default.WithMatchPriority(MatchPriority.Preselect)
+
         Friend Overrides ReadOnly Property Language As String
             Get
                 Return LanguageNames.VisualBasic
@@ -128,7 +130,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
                 supportedPlatformData As SupportedPlatformData) As CompletionItem
 
             Dim preselect = symbols.Any(Function(t) t.Preselect)
-            Dim rules = CompletionItemRules.Default.WithMatchPriority(If(preselect, MatchPriority.Preselect, MatchPriority.Default))
+            Dim rules = If(preselect, s_enumMemberCompletionItemRules, CompletionItemRules.Default)
 
             Dim item = SymbolCompletionItem.CreateWithSymbolId(
                 displayText:=displayText,
