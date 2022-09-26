@@ -25,8 +25,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
         Public Sub New()
         End Sub
 
-        Private Shared ReadOnly s_defaultWithPreselectCompletionItemRules As CompletionItemRules = CompletionItemRules.Default.WithMatchPriority(MatchPriority.Preselect)
-
         Friend Overrides ReadOnly Property Language As String
             Get
                 Return LanguageNames.VisualBasic
@@ -60,6 +58,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
                 If enumType.TypeKind <> TypeKind.Enum Then
                     Return SpecializedTasks.EmptyImmutableArray(Of SymbolAndSelectionInfo)()
                 End If
+
+                builder.Add(New SymbolAndSelectionInfo(enumType, Preselect:=False))
 
                 For Each member In enumType.GetMembers()
                     If member.Kind = SymbolKind.Field AndAlso DirectCast(member, IFieldSymbol).IsConst AndAlso member.IsEditorBrowsable(options.HideAdvancedMembers, syntaxContext.SemanticModel.Compilation) Then
@@ -127,7 +127,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
                 context As VisualBasicSyntaxContext,
                 supportedPlatformData As SupportedPlatformData) As CompletionItem
 
-            Debug.Assert(symbols.Any(Function(t) t.Preselect) AndAlso symbols(0).Symbol.Kind = SymbolKind.Field)
+            Dim preselect = symbols.Any(Function(t) t.Preselect)
+            Dim rules = CompletionItemRules.Default.WithMatchPriority(If(preselect, MatchPriority.Preselect, MatchPriority.Default))
 
             Dim item = SymbolCompletionItem.CreateWithSymbolId(
                 displayText:=displayText,
@@ -138,7 +139,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
                 contextPosition:=context.Position,
                 sortText:=insertionText,
                 supportedPlatforms:=supportedPlatformData,
-                rules:=s_defaultWithPreselectCompletionItemRules).WithAdditionalFilterTexts(ImmutableArray.Create(symbols(0).Symbol.Name))
+                rules:=rules)
+
+            If symbols(0).Symbol.Kind = SymbolKind.Field Then
+                item = item.WithAdditionalFilterTexts(ImmutableArray.Create(symbols(0).Symbol.Name))
+            End If
 
             Return item
         End Function
