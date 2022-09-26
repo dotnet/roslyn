@@ -11393,12 +11393,12 @@ class Enumerator1
         {
             int i1 = 1;
             foreach (S s1 in Enumerable1.Create(ref i1)) {
-                s0 = s1; // <-- An error is expected here, see https://github.com/dotnet/roslyn/issues/64218
+                s0 = s1;
                 break;
             }
         }
         foreach (scoped S s2 in Enumerable1.Create(s0)) {
-            s0 = s2; // 2
+            s0 = s2; // 1
             break;
         }
         foreach (S s3 in Enumerable1.Create(s0)) {
@@ -11428,7 +11428,7 @@ class Enumerator1
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (15,18): error CS8352: Cannot use variable 's2' in this context because it may expose referenced variables outside of their declaration scope
-                //             s0 = s2; // 2
+                //             s0 = s2; // 1
                 Diagnostic(ErrorCode.ERR_EscapeVariable, "s2").WithArguments("s2").WithLocation(15, 18)
                 );
         }
@@ -11486,6 +11486,49 @@ class Enumerator1
                 // (16,13): error CS1656: Cannot assign to 's0' because it is a 'foreach iteration variable'
                 //             s0 = s3;
                 Diagnostic(ErrorCode.ERR_AssgReadonlyLocalCause, "s0").WithArguments("s0", "foreach iteration variable").WithLocation(16, 13)
+                );
+        }
+
+        [Fact]
+        [WorkItem(64218, "https://github.com/dotnet/roslyn/issues/64218")]
+        public void LocalScope_12_Foreach_03()
+        {
+            var source =
+@"class Program
+{
+    static void Main()
+    {
+        int i0 = 0;
+        S s0 = new S(ref i0);
+        {
+            int i1 = 1;
+            foreach (S s1 in Enumerable1.Create(ref i1)) {
+                s0 = s1;
+                break;
+            }
+        }
+    }
+}
+ref struct S
+{
+    public S(ref int i) { }
+}
+ref struct Enumerable1
+{
+    public static Enumerable1 Create(ref int p) => default;
+    public Enumerator1 GetEnumerator() => default;
+}
+ref struct Enumerator1
+{
+    public S Current => throw null;
+    public bool MoveNext() => false;
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (10,22): error CS8352: Cannot use variable 's1' in this context because it may expose referenced variables outside of their declaration scope
+                //                 s0 = s1;
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "s1").WithArguments("s1").WithLocation(10, 22)
                 );
         }
 
