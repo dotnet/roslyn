@@ -3014,7 +3014,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// 
         /// NOTE: unless the type of expression is ref-like, the result is Binder.ExternalScope since ordinary values can always be returned from methods. 
         /// </summary>
-        internal uint GetValEscape(BoundExpression expr, uint scopeOfTheContainingExpression)
+        internal uint GetValEscape(BoundExpression expr, uint scopeOfTheContainingExpression, TypeSymbol targetType = null)
         {
             // cannot infer anything from errors
             if (expr.HasAnyErrors)
@@ -3029,7 +3029,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // to have local-referring values an expression must have a ref-like type
-            if (expr.Type?.IsRefLikeType != true)
+            var isRefEscape = targetType?.IsRefLikeType == true;
+            if (!isRefEscape && expr.Type?.IsRefLikeType != true)
             {
                 return Binder.ExternalScope;
             }
@@ -3125,7 +3126,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             call.ArgumentRefKindsOpt,
                             call.ArgsToParamsOpt,
                             scopeOfTheContainingExpression,
-                            isRefEscape: false);
+                            isRefEscape: isRefEscape);
                     }
 
                 case BoundKind.FunctionPointerInvocation:
@@ -3140,7 +3141,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         ptrInvocation.ArgumentRefKindsOpt,
                         argsToParamsOpt: default,
                         scopeOfTheContainingExpression,
-                        isRefEscape: false);
+                        isRefEscape: isRefEscape);
 
                 case BoundKind.IndexerAccess:
                     {
@@ -3155,7 +3156,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             indexerAccess.ArgumentRefKindsOpt,
                             indexerAccess.ArgsToParamsOpt,
                             scopeOfTheContainingExpression,
-                            isRefEscape: false);
+                            isRefEscape: isRefEscape);
                     }
 
                 case BoundKind.ImplicitIndexerReceiverPlaceholder:
@@ -3185,7 +3186,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 indexerAccess.ArgumentRefKindsOpt,
                                 indexerAccess.ArgsToParamsOpt,
                                 scopeOfTheContainingExpression,
-                                isRefEscape: false);
+                                isRefEscape: isRefEscape);
 
                         case BoundArrayAccess:
                             // only possible in error cases (if possible at all)
@@ -3200,7 +3201,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 call.ArgumentRefKindsOpt,
                                 call.ArgsToParamsOpt,
                                 scopeOfTheContainingExpression,
-                                isRefEscape: false);
+                                isRefEscape: isRefEscape);
 
                         default:
                             throw ExceptionUtilities.UnexpectedValue(implicitIndexerAccess.IndexerOrSliceAccess.Kind);
@@ -3218,7 +3219,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         default,
                         default,
                         scopeOfTheContainingExpression,
-                        isRefEscape: false);
+                        isRefEscape: isRefEscape);
 
                 case BoundKind.ObjectCreationExpression:
                     var objectCreation = (BoundObjectCreationExpression)expr;
@@ -3232,7 +3233,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         objectCreation.ArgumentRefKindsOpt,
                         objectCreation.ArgsToParamsOpt,
                         scopeOfTheContainingExpression,
-                        isRefEscape: false);
+                        isRefEscape: isRefEscape);
 
                     var initializerOpt = objectCreation.InitializerExpressionOpt;
                     if (initializerOpt != null)

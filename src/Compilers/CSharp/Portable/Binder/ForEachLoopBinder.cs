@@ -255,7 +255,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool hasNameConflicts = false;
             BoundForEachDeconstructStep deconstructStep = null;
             BoundExpression iterationErrorExpression = null;
-            uint collectionEscape = GetValEscape(collectionExpr, this.LocalScopeDepth);
+            uint collectionEscape = GetValEscape(collectionExpr, this.LocalScopeDepth, this.IterationVariable?.Type);
             switch (_syntax.Kind())
             {
                 case SyntaxKind.ForEachStatement:
