@@ -70,4 +70,4 @@ All property setters now throw an exception.
 `Workspace.OnWorkspaceFailed` is no longer called when an error occurs while reading source file content from disk.
 
 The `Workspace` and `DocumentId` parameters of `TextLoader.LoadTextAndVersionAsync(Workspace, DocumentId, CancellationToken)` are deprecated.
-The method now receives an instance of an immutable empty `Workspace` with default workspace services, and a fake `DocumentId`.
+The method now receives `null` `Workspace` and `DocumentId`.
