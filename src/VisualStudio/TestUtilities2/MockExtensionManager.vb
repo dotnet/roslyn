@@ -2,44 +2,38 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
-Imports System.ComponentModel
 Imports System.Globalization
 Imports System.IO
 Imports System.Xml
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Test.Utilities
-Imports Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
 Imports Moq
 Imports Roslyn.Utilities
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
     Public Class MockExtensionManager
-
         Private ReadOnly _contentType As String
-        Private ReadOnly _locations() As String
+        Private ReadOnly _extensions As (Paths As String(), Id As String)()
 
-        Public Sub New(contentType As String, ParamArray locations() As String)
+        Public Sub New(Optional extensions As (Paths As String(), Id As String)() = Nothing,
+                       Optional contentType As String = "Microsoft.VisualStudio.Analyzer")
             _contentType = contentType
-            _locations = locations
+            _extensions = If(extensions, Array.Empty(Of (Paths As String(), Id As String)))
         End Sub
-
-        Public Function GetEnabledExtensionContentLocations(contentTypeName As String) As IEnumerable(Of String)
-            Assert.Equal(_contentType, contentTypeName)
-            Return _locations
-        End Function
 
         Public Iterator Function GetEnabledExtensions(contentTypeName As String) As IEnumerable(Of Object)
             Assert.Equal(_contentType, contentTypeName)
 
-            For Each location In _locations
-                Dim installedExtensionMock As New Mock(Of IMockInstalledExtension)(MockBehavior.Strict)
+            For Each extension In _extensions
+                For Each extensionPath In extension.Paths
+                    Dim installedExtensionMock As New Mock(Of IMockInstalledExtension)(MockBehavior.Strict)
 
-                installedExtensionMock.SetupGet(Function(m) m.Content).Returns(
+                    installedExtensionMock.SetupGet(Function(m) m.Content).Returns(
                     New MockContent() {
-                        New MockContent(_contentType, location)
+                        New MockContent(_contentType, extensionPath)
                     })
 
-                installedExtensionMock.Setup(Function(m) m.GetContentLocation(It.IsAny(Of MockContent))).Returns(
+                    installedExtensionMock.Setup(Function(m) m.GetContentLocation(It.IsAny(Of MockContent))).Returns(
                     Function(content As MockContent)
                         If content.RelativePath.IndexOf("$RootFolder$") >= 0 Then
                             Return content.RelativePath.Replace("$RootFolder$", Path.Combine(TempRoot.Root, "ResolvedRootFolder"))
@@ -50,12 +44,13 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                         End If
                     End Function)
 
-                Dim headerMock As New Mock(Of IMockHeader)(MockBehavior.Strict)
-                headerMock.SetupGet(Function(h) h.LocalizedName).Returns("Vsix")
+                    Dim headerMock As New Mock(Of IMockHeader)(MockBehavior.Strict)
+                    headerMock.SetupGet(Function(h) h.Identifier).Returns(extension.Id)
 
-                installedExtensionMock.SetupGet(Function(m) m.Header).Returns(headerMock.Object)
+                    installedExtensionMock.SetupGet(Function(m) m.Header).Returns(headerMock.Object)
 
-                Yield installedExtensionMock.Object
+                    Yield installedExtensionMock.Object
+                Next
             Next
         End Function
 
@@ -66,16 +61,16 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
         End Interface
 
         Public Interface IMockHeader
-            ReadOnly Property LocalizedName As String
+            ReadOnly Property Identifier As String
         End Interface
 
         Public Class MockContent
             Private ReadOnly _contentType As String
-            Private ReadOnly _location As String
+            Private ReadOnly _path As String
 
-            Public Sub New(contentType As String, location As String)
+            Public Sub New(contentType As String, path As String)
                 _contentType = contentType
-                _location = location
+                _path = path
             End Sub
 
             Public ReadOnly Property ContentTypeName As String
@@ -86,7 +81,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
 
             Public ReadOnly Property RelativePath As String
                 Get
-                    Return _location
+                    Return _path
                 End Get
             End Property
         End Class

@@ -125,7 +125,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 customTags: ImmutableArray<string>.Empty,
                 properties: ImmutableDictionary<string, string?>.Empty,
                 projectId: projectId,
-                location: new DiagnosticDataLocation(fullPath),
+                location: new DiagnosticDataLocation(new FileLinePositionSpan(fullPath, span: default)),
                 description: description,
                 language: language);
         }
@@ -160,7 +160,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             // in IDE, we always set concurrentAnalysis == false otherwise, we can get into thread starvation due to
             // async being used with synchronous blocking concurrency.
             var analyzerOptions = new CompilationWithAnalyzersOptions(
-                options: new WorkspaceAnalyzerOptions(project.AnalyzerOptions, project.Solution, ideOptions),
+                options: new WorkspaceAnalyzerOptions(project.AnalyzerOptions, ideOptions),
                 onAnalyzerException: null,
                 analyzerExceptionFilter: GetAnalyzerExceptionFilter(),
                 concurrentAnalysis: false,

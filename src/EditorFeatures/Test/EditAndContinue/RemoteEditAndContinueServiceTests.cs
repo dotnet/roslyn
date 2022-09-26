@@ -35,10 +35,11 @@ namespace Roslyn.VisualStudio.Next.UnitTests.EditAndContinue
     {
         private static string Inspect(DiagnosticData d)
             => $"[{d.ProjectId}] {d.Severity} {d.Id}:" +
-                (!string.IsNullOrWhiteSpace(d.DataLocation.OriginalFilePath) ? $" {d.DataLocation.OriginalFilePath}({d.DataLocation.OriginalStartLine}, {d.DataLocation.OriginalStartColumn}, {d.DataLocation.OriginalEndLine}, {d.DataLocation.OriginalEndColumn}):" : "") +
+                (!string.IsNullOrWhiteSpace(d.DataLocation.UnmappedFileSpan.Path) ? $" {d.DataLocation.UnmappedFileSpan.Path}({d.DataLocation.UnmappedFileSpan.StartLinePosition.Line}, {d.DataLocation.UnmappedFileSpan.StartLinePosition.Character}, {d.DataLocation.UnmappedFileSpan.EndLinePosition.Line}, {d.DataLocation.UnmappedFileSpan.EndLinePosition.Character}):" : "") +
                 $" {d.Message}";
 
-        [Theory, CombinatorialData]
+        [ConditionalTheory(typeof(IsRelease), Reason = ConditionalSkipReason.TestIsTriggeringMessagePackIssue)]
+        [CombinatorialData]
         public async Task Proxy(TestHost testHost)
         {
             var localComposition = EditorTestCompositions.EditorFeatures.WithTestHostParts(testHost)

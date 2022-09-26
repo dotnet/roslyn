@@ -20,7 +20,10 @@ namespace Roslyn.VisualStudio.IntegrationTests.InProcess
     [TestService]
     internal partial class InputInProcess
     {
-        internal Task SendAsync(params InputKey[] keys)
+        internal Task SendAsync(InputKey key, CancellationToken cancellationToken)
+            => SendAsync(new InputKey[] { key }, cancellationToken);
+
+        internal Task SendAsync(InputKey[] keys, CancellationToken cancellationToken)
         {
             return SendAsync(
                 simulator =>
@@ -29,28 +32,31 @@ namespace Roslyn.VisualStudio.IntegrationTests.InProcess
                     {
                         key.Apply(simulator);
                     }
-                });
+                }, cancellationToken);
         }
 
-        internal async Task SendAsync(Action<IInputSimulator> callback)
+        internal async Task SendAsync(Action<IInputSimulator> callback, CancellationToken cancellationToken)
         {
             // AbstractSendKeys runs synchronously, so switch to a background thread before the call
             await TaskScheduler.Default;
 
             TestServices.JoinableTaskFactory.Run(async () =>
             {
-                await TestServices.Editor.ActivateAsync(CancellationToken.None);
+                await TestServices.Editor.ActivateAsync(cancellationToken);
             });
 
             callback(new InputSimulator());
 
             TestServices.JoinableTaskFactory.Run(async () =>
             {
-                await WaitForApplicationIdleAsync(CancellationToken.None);
+                await WaitForApplicationIdleAsync(cancellationToken);
             });
         }
 
-        internal Task SendWithoutActivateAsync(params InputKey[] keys)
+        internal Task SendWithoutActivateAsync(InputKey key, CancellationToken cancellationToken)
+            => SendWithoutActivateAsync(new[] { key }, cancellationToken);
+
+        internal Task SendWithoutActivateAsync(InputKey[] keys, CancellationToken cancellationToken)
         {
             return SendWithoutActivateAsync(
                 simulator =>
@@ -59,10 +65,10 @@ namespace Roslyn.VisualStudio.IntegrationTests.InProcess
                     {
                         key.Apply(simulator);
                     }
-                });
+                }, cancellationToken);
         }
 
-        internal async Task SendWithoutActivateAsync(Action<IInputSimulator> callback)
+        internal async Task SendWithoutActivateAsync(Action<IInputSimulator> callback, CancellationToken cancellationToken)
         {
             // AbstractSendKeys runs synchronously, so switch to a background thread before the call
             await TaskScheduler.Default;
@@ -71,7 +77,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.InProcess
 
             TestServices.JoinableTaskFactory.Run(async () =>
             {
-                await WaitForApplicationIdleAsync(CancellationToken.None);
+                await WaitForApplicationIdleAsync(cancellationToken);
             });
         }
 
@@ -108,13 +114,13 @@ namespace Roslyn.VisualStudio.IntegrationTests.InProcess
             });
         }
 
-        internal async Task MoveMouseAsync(Point point)
+        internal async Task MoveMouseAsync(Point point, CancellationToken cancellationToken)
         {
             var horizontalResolution = NativeMethods.GetSystemMetrics(NativeMethods.SM_CXSCREEN);
             var verticalResolution = NativeMethods.GetSystemMetrics(NativeMethods.SM_CYSCREEN);
             var virtualPoint = new ScaleTransform(65535.0 / horizontalResolution, 65535.0 / verticalResolution).Transform(point);
 
-            await SendAsync(simulator => simulator.Mouse.MoveMouseTo(virtualPoint.X, virtualPoint.Y));
+            await SendAsync(simulator => simulator.Mouse.MoveMouseTo(virtualPoint.X, virtualPoint.Y), cancellationToken);
 
             // ⚠ The call to GetCursorPos is required for correct behavior.
             var actualPoint = NativeMethods.GetCursorPos();

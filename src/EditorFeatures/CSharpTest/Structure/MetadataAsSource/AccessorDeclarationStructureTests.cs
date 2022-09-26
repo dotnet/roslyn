@@ -75,9 +75,9 @@ class C
 {
     public string Text
     {
-        {|span1:/* My
-           Getter */|}
-        $${|#0:get{|textspan2:
+        /* My
+           Getter */
+        $${|#0:get{|textspan1:
         {
         }|#0}
 |}
@@ -89,8 +89,7 @@ class C
 ";
 
             await VerifyBlockSpansAsync(code,
-                Region("span1", "/* My ...", autoCollapse: true),
-                Region("textspan2", "#0", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
+                Region("textspan1", "#0", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
         }
     }
 }

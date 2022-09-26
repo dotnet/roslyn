@@ -61,6 +61,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             var renameLocationSet = await renameInfo.FindRenameLocationsAsync(options, cancellationToken).ConfigureAwait(false);
             var renameReplacementInfo = await renameLocationSet.GetReplacementsAsync(request.NewName, options, cancellationToken).ConfigureAwait(false);
 
+            if (!renameReplacementInfo.ReplacementTextValid)
+            {
+                return null;
+            }
+
             var renamedSolution = renameReplacementInfo.NewSolution;
             var solutionChanges = renamedSolution.GetChanges(oldSolution);
 

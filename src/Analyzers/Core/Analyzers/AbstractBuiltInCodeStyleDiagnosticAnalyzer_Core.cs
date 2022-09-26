@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
         }
 
         public CodeActionRequestPriority RequestPriority => CodeActionRequestPriority.Normal;
-        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; }
+        public sealed override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; }
 
         protected static DiagnosticDescriptor CreateDescriptorWithId(
             string id,

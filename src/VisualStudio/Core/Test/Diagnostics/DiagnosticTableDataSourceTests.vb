@@ -135,7 +135,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
 
                 Dim filename = Nothing
                 Assert.True(snapshot.TryGetValue(0, StandardTableKeyNames.DocumentName, filename))
-                Assert.Equal(item.DataLocation.OriginalFilePath, filename)
+                Assert.Equal(item.DataLocation.UnmappedFileSpan.Path, filename)
 
                 Dim text = Nothing
                 Assert.True(snapshot.TryGetValue(0, StandardTableKeyNames.Text, text))
@@ -143,11 +143,11 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
 
                 Dim line = Nothing
                 Assert.True(snapshot.TryGetValue(0, StandardTableKeyNames.Line, line))
-                Assert.Equal(item.DataLocation.MappedStartLine, line)
+                Assert.Equal(item.DataLocation.MappedFileSpan.StartLinePosition.Line, line)
 
                 Dim column = Nothing
                 Assert.True(snapshot.TryGetValue(0, StandardTableKeyNames.Column, column))
-                Assert.Equal(item.DataLocation.MappedStartColumn, column)
+                Assert.Equal(item.DataLocation.MappedFileSpan.StartLinePosition.Character, column)
             End Using
         End Sub
 
@@ -185,7 +185,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
 
                 Dim filename = Nothing
                 Assert.True(snapshot1.TryGetValue(0, StandardTableKeyNames.DocumentName, filename))
-                Assert.Equal(item.DataLocation.OriginalFilePath, filename)
+                Assert.Equal(item.DataLocation.UnmappedFileSpan.Path, filename)
 
                 Dim text = Nothing
                 Assert.True(snapshot1.TryGetValue(0, StandardTableKeyNames.Text, text))
@@ -193,11 +193,11 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
 
                 Dim line = Nothing
                 Assert.True(snapshot1.TryGetValue(0, StandardTableKeyNames.Line, line))
-                Assert.Equal(item.DataLocation.MappedStartLine, line)
+                Assert.Equal(item.DataLocation.MappedFileSpan.StartLinePosition.Line, line)
 
                 Dim column = Nothing
                 Assert.True(snapshot1.TryGetValue(0, StandardTableKeyNames.Column, column))
-                Assert.Equal(item.DataLocation.MappedStartColumn, column)
+                Assert.Equal(item.DataLocation.MappedFileSpan.StartLinePosition.Character, column)
             End Using
         End Sub
 
@@ -474,7 +474,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                 Dim projectId = documentId.ProjectId
 
                 Dim item1 = CreateItem(workspace.CurrentSolution, projectId, documentId, DiagnosticSeverity.Error, "http://link/")
-                Dim provider = New TestDiagnosticService(item1)
+                Dim item2 = CreateItem(workspace.CurrentSolution, projectId, documentId, DiagnosticSeverity.Error, customTags:={WellKnownDiagnosticCustomTags.DoesNotSupportF1Help})
+                Dim provider = New TestDiagnosticService(item1, item2)
 
                 Dim tableManagerProvider = New TestTableManagerProvider()
 
@@ -487,12 +488,13 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
 
                 Dim sink = DirectCast(sinkAndSubscription.Key, TestTableManagerProvider.TestTableManager.TestSink)
                 Dim snapshot = sink.Entries.First().GetCurrentSnapshot()
-                Assert.Equal(1, snapshot.Count)
+                Assert.Equal(2, snapshot.Count)
 
                 Dim keyword As Object = Nothing
                 Assert.True(snapshot.TryGetValue(0, StandardTableKeyNames.HelpKeyword, keyword))
-
                 Assert.Equal(item1.Id, keyword.ToString())
+
+                Assert.False(snapshot.TryGetValue(1, StandardTableKeyNames.HelpKeyword, keyword))
             End Using
         End Sub
 
@@ -691,18 +693,9 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                             diagnostic1.Properties,
                             diagnostic1.ProjectId,
                             New DiagnosticDataLocation(
-                                diagnostic1.DataLocation.OriginalFilePath,
+                                diagnostic1.DataLocation.UnmappedFileSpan,
                                 Nothing,
-                                diagnostic1.DataLocation.SourceSpan,
-                                diagnostic1.DataLocation.OriginalStartLine,
-                                diagnostic1.DataLocation.OriginalStartColumn,
-                                diagnostic1.DataLocation.OriginalEndLine,
-                                diagnostic1.DataLocation.OriginalEndColumn,
-                                diagnostic1.DataLocation.MappedFilePath,
-                                diagnostic1.DataLocation.MappedStartLine,
-                                diagnostic1.DataLocation.MappedStartColumn,
-                                diagnostic1.DataLocation.MappedEndLine,
-                                diagnostic1.DataLocation.MappedEndColumn),
+                                diagnostic1.DataLocation.MappedFileSpan),
                             diagnostic1.AdditionalLocations,
                             diagnostic1.Language,
                             diagnostic1.Title,
@@ -724,18 +717,9 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                             diagnostic2.Properties,
                             diagnostic2.ProjectId,
                             New DiagnosticDataLocation(
-                                diagnostic2.DataLocation.OriginalFilePath,
+                                diagnostic2.DataLocation.UnmappedFileSpan,
                                 Nothing,
-                                diagnostic2.DataLocation.SourceSpan,
-                                diagnostic2.DataLocation.OriginalStartLine,
-                                diagnostic2.DataLocation.OriginalStartColumn,
-                                diagnostic2.DataLocation.OriginalEndLine,
-                                diagnostic2.DataLocation.OriginalEndColumn,
-                                diagnostic2.DataLocation.MappedFilePath,
-                                diagnostic2.DataLocation.MappedStartLine,
-                                diagnostic2.DataLocation.MappedStartColumn,
-                                diagnostic2.DataLocation.MappedEndLine,
-                                diagnostic2.DataLocation.MappedEndColumn),
+                                diagnostic2.DataLocation.MappedFileSpan),
                             diagnostic2.AdditionalLocations,
                             diagnostic2.Language,
                             diagnostic2.Title,
@@ -780,7 +764,12 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
             Return CreateItem(solution, documentId.ProjectId, documentId, severity)
         End Function
 
-        Private Shared Function CreateItem(solution As Solution, projectId As ProjectId, documentId As DocumentId, Optional severity As DiagnosticSeverity = DiagnosticSeverity.Error, Optional link As String = Nothing) As DiagnosticData
+        Private Shared Function CreateItem(solution As Solution, projectId As ProjectId, documentId As DocumentId, Optional severity As DiagnosticSeverity = DiagnosticSeverity.Error, Optional link As String = Nothing, Optional customTags As String() = Nothing) As DiagnosticData
+            Dim location =
+                If(documentId Is Nothing,
+                    If(projectId Is Nothing, New DiagnosticDataLocation(New FileLinePositionSpan("", Nothing)), New DiagnosticDataLocation(New FileLinePositionSpan(solution.GetProject(projectId).FilePath, Nothing))),
+                    New DiagnosticDataLocation(New FileLinePositionSpan("test", New LinePosition(20, 20), New LinePosition(20, 20)), documentId))
+
             Return New DiagnosticData(
                 id:="test",
                 category:="test",
@@ -789,12 +778,10 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                 defaultSeverity:=severity,
                 isEnabledByDefault:=True,
                 warningLevel:=0,
-                customTags:=ImmutableArray(Of String).Empty,
+                customTags:=If(customTags IsNot Nothing, customTags.ToImmutableArray(), ImmutableArray(Of String).Empty),
                 properties:=ImmutableDictionary(Of String, String).Empty,
                 projectId,
-                location:=If(documentId Is Nothing,
-                    If(projectId Is Nothing, New DiagnosticDataLocation(""), New DiagnosticDataLocation(solution.GetProject(projectId).FilePath)),
-                    New DiagnosticDataLocation("test", documentId, TextSpan.FromBounds(0, 10), 20, 20, 20, 20)),
+                location:=location,
                 language:=LanguageNames.VisualBasic,
                 title:="Title",
                 description:="Description",

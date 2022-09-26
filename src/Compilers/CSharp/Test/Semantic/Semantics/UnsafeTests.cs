@@ -3288,12 +3288,12 @@ public class C
             var compilation = CreateCompilation(tree, new[] { metadata }, TestOptions.UnsafeReleaseDll);
 
             compilation.VerifyDiagnostics(
-                // (13,22): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('External<object>')
+                // (13,22): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('External<object>')
                 //         var badPtr = &bad;
-                Diagnostic(ErrorCode.ERR_ManagedAddr, "&bad").WithArguments("External<object>").WithLocation(13, 22),
-                // (16,23): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('External<U>')
+                Diagnostic(ErrorCode.WRN_ManagedAddr, "&bad").WithArguments("External<object>").WithLocation(13, 22),
+                // (16,23): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('External<U>')
                 //         var badPtr2 = &bad2;
-                Diagnostic(ErrorCode.ERR_ManagedAddr, "&bad2").WithArguments("External<U>").WithLocation(16, 23)
+                Diagnostic(ErrorCode.WRN_ManagedAddr, "&bad2").WithArguments("External<U>").WithLocation(16, 23)
             );
 
             var model = compilation.GetSemanticModel(tree);
@@ -3646,9 +3646,12 @@ enum Color
                 // (53,19): error CS0211: Cannot take the address of the given expression
                 //         var s = &(array as object); //CS0208, CS0211 (managed)
                 Diagnostic(ErrorCode.ERR_InvalidAddrOp, "array as object").WithLocation(53, 19),
-                // (54,17): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('Action')
+                // (54,17): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('Action')
                 //         var t = &E; //CS0208
-                Diagnostic(ErrorCode.ERR_ManagedAddr, "&E").WithArguments("System.Action").WithLocation(54, 17),
+                Diagnostic(ErrorCode.WRN_ManagedAddr, "&E").WithArguments("System.Action").WithLocation(54, 17),
+                // (54,17): error CS0212: You can only take the address of an unfixed expression inside of a fixed statement initializer
+                //         var t = &E; //CS0208
+                Diagnostic(ErrorCode.ERR_FixedNeeded, "&E").WithLocation(54, 17),
                 // (55,18): error CS0079: The event 'C.F' can only appear on the left hand side of += or -=
                 //         var u = &F; //CS0079 (can't use event like that)
                 Diagnostic(ErrorCode.ERR_BadEventUsageNoField, "F").WithArguments("C.F").WithLocation(55, 18),
@@ -3688,16 +3691,16 @@ unsafe class C
 {
     void M<T>(T t)
     {
-        var p0 = &t; //CS0208
+        var p0 = &t; // 1
 
         C c = new C();
-        var p1 = &c; //CS0208
+        var p1 = &c; // 2
 
         S s = new S();
-        var p2 = &s; //CS0208
+        var p2 = &s; // 3
         
         var anon = new { };
-        var p3 = &anon; //CS0208
+        var p3 = &anon; // 4
     }
 }
 
@@ -3707,18 +3710,18 @@ public struct S
 }
 ";
             CreateCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
-                // (6,18): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('T')
-                //         var p0 = &t; //CS0208
-                Diagnostic(ErrorCode.ERR_ManagedAddr, "&t").WithArguments("T"),
-                // (9,18): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('C')
-                //         var p1 = &c; //CS0208
-                Diagnostic(ErrorCode.ERR_ManagedAddr, "&c").WithArguments("C"),
-                // (12,18): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('S')
-                //         var p2 = &s; //CS0208
-                Diagnostic(ErrorCode.ERR_ManagedAddr, "&s").WithArguments("S"),
-                // (15,18): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('<empty anonymous type>')
-                //         var p3 = &anon; //CS0208
-                Diagnostic(ErrorCode.ERR_ManagedAddr, "&anon").WithArguments("<empty anonymous type>"));
+                // (6,18): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('T')
+                //         var p0 = &t; // 1
+                Diagnostic(ErrorCode.WRN_ManagedAddr, "&t").WithArguments("T").WithLocation(6, 18),
+                // (9,18): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('C')
+                //         var p1 = &c; // 2
+                Diagnostic(ErrorCode.WRN_ManagedAddr, "&c").WithArguments("C").WithLocation(9, 18),
+                // (12,18): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('S')
+                //         var p2 = &s; // 3
+                Diagnostic(ErrorCode.WRN_ManagedAddr, "&s").WithArguments("S").WithLocation(12, 18),
+                // (15,18): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('<empty anonymous type>')
+                //         var p3 = &anon; // 4
+                Diagnostic(ErrorCode.WRN_ManagedAddr, "&anon").WithArguments("<empty anonymous type>").WithLocation(15, 18));
         }
 
         [Fact]
@@ -3743,10 +3746,10 @@ public struct S
             CreateCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
                 // (13,14): error CS0523: Struct member 'S.s' of type 'S' causes a cycle in the struct layout
                 //     public S s; //CS0523
-                Diagnostic(ErrorCode.ERR_StructLayoutCycle, "s").WithArguments("S.s", "S"),
-                // (7,17): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('S')
+                Diagnostic(ErrorCode.ERR_StructLayoutCycle, "s").WithArguments("S.s", "S").WithLocation(13, 14),
+                // (7,17): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('S')
                 //         var p = &s; //CS0208
-                Diagnostic(ErrorCode.ERR_ManagedAddr, "&s").WithArguments("S"));
+                Diagnostic(ErrorCode.WRN_ManagedAddr, "&s").WithArguments("S").WithLocation(7, 17));
         }
 
         [Fact]
@@ -4714,22 +4717,22 @@ unsafe struct S
             CreateCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
                 // (13,9): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('S')
                 //         S* p = &s; //CS0208
-                Diagnostic(ErrorCode.ERR_ManagedAddr, "S*").WithArguments("S"),
-                // (13,16): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('S')
+                Diagnostic(ErrorCode.ERR_ManagedAddr, "S*").WithArguments("S").WithLocation(13, 9),
+                // (13,16): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('S')
                 //         S* p = &s; //CS0208
-                Diagnostic(ErrorCode.ERR_ManagedAddr, "&s").WithArguments("S"),
+                Diagnostic(ErrorCode.WRN_ManagedAddr, "&s").WithArguments("S").WithLocation(13, 16),
                 // (16,9): error CS0176: Member 'S.StaticFieldLikeEvent' cannot be accessed with an instance reference; qualify it with a type name instead
                 //         p->StaticFieldLikeEvent += null; //CS0176
-                Diagnostic(ErrorCode.ERR_ObjectProhibited, "p->StaticFieldLikeEvent").WithArguments("S.StaticFieldLikeEvent"),
+                Diagnostic(ErrorCode.ERR_ObjectProhibited, "p->StaticFieldLikeEvent").WithArguments("S.StaticFieldLikeEvent").WithLocation(16, 9),
                 // (19,9): error CS0176: Member 'S.StaticCustomEvent' cannot be accessed with an instance reference; qualify it with a type name instead
                 //         p->StaticCustomEvent += null; //CS0176
-                Diagnostic(ErrorCode.ERR_ObjectProhibited, "p->StaticCustomEvent").WithArguments("S.StaticCustomEvent"),
+                Diagnostic(ErrorCode.ERR_ObjectProhibited, "p->StaticCustomEvent").WithArguments("S.StaticCustomEvent").WithLocation(19, 9),
                 // (5,32): warning CS0067: The event 'S.StaticFieldLikeEvent' is never used
                 //     static event System.Action StaticFieldLikeEvent;
-                Diagnostic(ErrorCode.WRN_UnreferencedEvent, "StaticFieldLikeEvent").WithArguments("S.StaticFieldLikeEvent"),
+                Diagnostic(ErrorCode.WRN_UnreferencedEvent, "StaticFieldLikeEvent").WithArguments("S.StaticFieldLikeEvent").WithLocation(5, 32),
                 // (4,25): warning CS0067: The event 'S.InstanceFieldLikeEvent' is never used
                 //     event System.Action InstanceFieldLikeEvent;
-                Diagnostic(ErrorCode.WRN_UnreferencedEvent, "InstanceFieldLikeEvent").WithArguments("S.InstanceFieldLikeEvent")
+                Diagnostic(ErrorCode.WRN_UnreferencedEvent, "InstanceFieldLikeEvent").WithArguments("S.InstanceFieldLikeEvent").WithLocation(4, 25)
                 );
         }
 

@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                     // We associate the body of expression-bodied property/indexer with the ArrowExpressionClause
                     // since that's the syntax node associated with the getter symbol.
                     // The property/indexer itself is considered to not have a body unless the property has an initializer.
-                    result = node.Parent.IsKind(SyntaxKind.PropertyDeclaration, SyntaxKind.IndexerDeclaration) ?
+                    result = node.Parent.Kind() is SyntaxKind.PropertyDeclaration or SyntaxKind.IndexerDeclaration ?
                         ((ArrowExpressionClauseSyntax)node).Expression : null;
                     break;
 
@@ -194,12 +194,12 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
         public static SyntaxNode TryGetEffectiveGetterBody(SyntaxNode declaration)
         {
-            if (declaration.IsKind(SyntaxKind.PropertyDeclaration, out PropertyDeclarationSyntax property))
+            if (declaration is PropertyDeclarationSyntax property)
             {
                 return TryGetEffectiveGetterBody(property.ExpressionBody, property.AccessorList);
             }
 
-            if (declaration.IsKind(SyntaxKind.IndexerDeclaration, out IndexerDeclarationSyntax indexer))
+            if (declaration is IndexerDeclarationSyntax indexer)
             {
                 return TryGetEffectiveGetterBody(indexer.ExpressionBody, indexer.AccessorList);
             }
@@ -225,10 +225,10 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
         public static SyntaxTokenList? TryGetFieldOrPropertyModifiers(SyntaxNode node)
         {
-            if (node.IsKind(SyntaxKind.FieldDeclaration, out FieldDeclarationSyntax fieldDecl))
+            if (node is FieldDeclarationSyntax fieldDecl)
                 return fieldDecl.Modifiers;
 
-            if (node.IsKind(SyntaxKind.PropertyDeclaration, out PropertyDeclarationSyntax propertyDecl))
+            if (node is PropertyDeclarationSyntax propertyDecl)
                 return propertyDecl.Modifiers;
 
             return null;
@@ -236,7 +236,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
         public static bool IsParameterlessConstructor(SyntaxNode declaration)
         {
-            if (!declaration.IsKind(SyntaxKind.ConstructorDeclaration, out ConstructorDeclarationSyntax ctor))
+            if (declaration is not ConstructorDeclarationSyntax ctor)
             {
                 return false;
             }

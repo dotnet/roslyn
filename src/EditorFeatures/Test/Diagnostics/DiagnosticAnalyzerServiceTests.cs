@@ -698,8 +698,9 @@ dotnet_diagnostic.{NamedTypeAnalyzer.DiagnosticId}.severity = warning
                 foreach (var additionalDoc in project.AdditionalDocuments)
                 {
                     var applicableDiagnostics = diagnostics.Where(
-                        d => d.Id == analyzer.Descriptor.Id && d.DataLocation.OriginalFilePath == additionalDoc.FilePath);
+                        d => d.Id == analyzer.Descriptor.Id && d.DataLocation.UnmappedFileSpan.Path == additionalDoc.FilePath);
 
+                    var text = await additionalDoc.GetTextAsync();
                     if (analysisScope is BackgroundAnalysisScope.ActiveFile or BackgroundAnalysisScope.None)
                     {
                         Assert.Empty(applicableDiagnostics);
@@ -712,7 +713,7 @@ dotnet_diagnostic.{NamedTypeAnalyzer.DiagnosticId}.severity = warning
                     else
                     {
                         var diagnostic = Assert.Single(applicableDiagnostics);
-                        Assert.Equal(diagnosticSpan, diagnostic.GetTextSpan());
+                        Assert.Equal(diagnosticSpan, diagnostic.DataLocation.UnmappedFileSpan.GetClampedTextSpan(text));
                         diagnostics.Remove(diagnostic);
                     }
                 }
@@ -893,12 +894,13 @@ class A
             var service = Assert.IsType<DiagnosticAnalyzerService>(workspace.GetService<IDiagnosticAnalyzerService>());
 
             var diagnostics = ArrayBuilder<DiagnosticData>.GetInstance();
+            var text = await document.GetTextAsync();
             service.DiagnosticsUpdated += (s, e) =>
             {
                 diagnostics.AddRange(
                     e.GetPushDiagnostics(workspace.GlobalOptions, InternalDiagnosticsOptions.NormalDiagnosticMode)
                      .Where(d => d.Id == IDEDiagnosticIds.RemoveUnnecessarySuppressionDiagnosticId)
-                     .OrderBy(d => d.GetTextSpan()));
+                     .OrderBy(d => d.DataLocation.UnmappedFileSpan.GetClampedTextSpan(text)));
             };
 
             var incrementalAnalyzer = (DiagnosticIncrementalAnalyzer)service.CreateIncrementalAnalyzer(workspace);
@@ -934,6 +936,7 @@ class A
             await ((AsynchronousOperationListener)service.Listener).ExpeditedWaitAsync();
 
             var root = await document.GetSyntaxRootAsync();
+            text = await document.GetTextAsync();
             if (analysisScope == BackgroundAnalysisScope.None)
             {
                 // Anayzers are disabled for BackgroundAnalysisScope.None.
@@ -944,16 +947,16 @@ class A
                 Assert.Equal(2, diagnostics.Count);
                 if (testPragma)
                 {
-                    var pragma1 = root.FindTrivia(diagnostics[0].GetTextSpan().Start).ToString();
+                    var pragma1 = root.FindTrivia(diagnostics[0].DataLocation.UnmappedFileSpan.GetClampedTextSpan(text).Start).ToString();
                     Assert.Equal($"#pragma warning disable {NamedTypeAnalyzer.DiagnosticId} // Unnecessary", pragma1);
-                    var pragma2 = root.FindTrivia(diagnostics[1].GetTextSpan().Start).ToString();
+                    var pragma2 = root.FindTrivia(diagnostics[1].DataLocation.UnmappedFileSpan.GetClampedTextSpan(text).Start).ToString();
                     Assert.Equal($"#pragma warning disable CS0168 // Variable is declared but never used - Unnecessary", pragma2);
                 }
                 else
                 {
-                    var attribute1 = root.FindNode(diagnostics[0].GetTextSpan()).ToString();
+                    var attribute1 = root.FindNode(diagnostics[0].DataLocation.UnmappedFileSpan.GetClampedTextSpan(text)).ToString();
                     Assert.Equal($@"System.Diagnostics.CodeAnalysis.SuppressMessage(""Category2"", ""{NamedTypeAnalyzer.DiagnosticId}"")", attribute1);
-                    var attribute2 = root.FindNode(diagnostics[1].GetTextSpan()).ToString();
+                    var attribute2 = root.FindNode(diagnostics[1].DataLocation.UnmappedFileSpan.GetClampedTextSpan(text)).ToString();
                     Assert.Equal($@"System.Diagnostics.CodeAnalysis.SuppressMessage(""Category3"", ""CS0168"")", attribute2);
                 }
             }
