@@ -179,7 +179,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CommandLine.UnitTests
           }},
           ""suppressions"": [
             {{
-              ""kind"": ""inSource""
+              ""kind"": ""inSource"",
+              ""properties"": {{
+                ""suppressionType"": ""Pragma Directive""
+              }}
             }}
           ],
           ""locations"": [
@@ -289,7 +292,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CommandLine.UnitTests
                 AnalyzerForErrorLogTest.GetExpectedV2ErrorLogRulesText());
         }
 
-        internal override string GetExpectedOutputForAnalyzerDiagnosticsWithSuppression(MockCSharpCompiler cmd, string justification)
+        internal override string GetExpectedOutputForAnalyzerDiagnosticsWithSuppression(MockCSharpCompiler cmd, string justification, string suppressionType)
         {
             string expectedOutput =
 @"{{
@@ -315,7 +318,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CommandLine.UnitTests
             return FormatOutputText(
                 expectedOutput,
                 cmd,
-                AnalyzerForErrorLogTest.GetExpectedV2ErrorLogWithSuppressionResultsText(cmd.Compilation, justification),
+                AnalyzerForErrorLogTest.GetExpectedV2ErrorLogWithSuppressionResultsText(cmd.Compilation, justification, suppressionType),
                 AnalyzerForErrorLogTest.GetExpectedV2ErrorLogRulesText());
         }
 

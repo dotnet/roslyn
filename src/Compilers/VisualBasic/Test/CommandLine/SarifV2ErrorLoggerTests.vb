@@ -174,7 +174,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CommandLine.UnitTests
           }},
           ""suppressions"": [
             {{
-              ""kind"": ""inSource""
+              ""kind"": ""inSource"",
+              ""properties"": {{
+                ""suppressionType"": ""Pragma Directive""
+              }}
             }}
           ],
           ""locations"": [

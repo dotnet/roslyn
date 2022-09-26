@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CommandLine.UnitTests
         internal abstract string GetExpectedOutputForSimpleCompilerDiagnostics(CommonCompiler cmd, string sourceFile);
         internal abstract string GetExpectedOutputForSimpleCompilerDiagnosticsSuppressed(CommonCompiler cmd, string sourceFile);
         internal abstract string GetExpectedOutputForAnalyzerDiagnosticsWithAndWithoutLocation(MockCSharpCompiler cmd);
-        internal abstract string GetExpectedOutputForAnalyzerDiagnosticsWithSuppression(MockCSharpCompiler cmd, string justification);
+        internal abstract string GetExpectedOutputForAnalyzerDiagnosticsWithSuppression(MockCSharpCompiler cmd, string justification, string suppressionType);
 
         protected void NoDiagnosticsImpl()
         {
@@ -188,7 +188,7 @@ class C
             Assert.NotEqual(0, exitCode);
 
             var actualOutput = File.ReadAllText(errorLogFile).Trim();
-            string expectedOutput = GetExpectedOutputForAnalyzerDiagnosticsWithSuppression(cmd, "Justification1");
+            string expectedOutput = GetExpectedOutputForAnalyzerDiagnosticsWithSuppression(cmd, "Justification1", suppressionType: "SuppressMessageAttribute");
 
             Assert.Equal(expectedOutput, actualOutput);
 
@@ -223,7 +223,7 @@ class C
             Assert.NotEqual(0, exitCode);
 
             var actualOutput = File.ReadAllText(errorLogFile).Trim();
-            string expectedOutput = GetExpectedOutputForAnalyzerDiagnosticsWithSuppression(cmd, null);
+            string expectedOutput = GetExpectedOutputForAnalyzerDiagnosticsWithSuppression(cmd, null, suppressionType: "SuppressMessageAttribute");
 
             Assert.Equal(expectedOutput, actualOutput);
 
@@ -258,7 +258,7 @@ class C
             Assert.NotEqual(0, exitCode);
 
             var actualOutput = File.ReadAllText(errorLogFile).Trim();
-            string expectedOutput = GetExpectedOutputForAnalyzerDiagnosticsWithSuppression(cmd, "");
+            string expectedOutput = GetExpectedOutputForAnalyzerDiagnosticsWithSuppression(cmd, "", suppressionType: "SuppressMessageAttribute");
 
             Assert.Equal(expectedOutput, actualOutput);
 
@@ -293,7 +293,7 @@ class C
             Assert.NotEqual(0, exitCode);
 
             var actualOutput = File.ReadAllText(errorLogFile).Trim();
-            string expectedOutput = GetExpectedOutputForAnalyzerDiagnosticsWithSuppression(cmd, null);
+            string expectedOutput = GetExpectedOutputForAnalyzerDiagnosticsWithSuppression(cmd, null, suppressionType: "SuppressMessageAttribute");
 
             Assert.Equal(expectedOutput, actualOutput);
 

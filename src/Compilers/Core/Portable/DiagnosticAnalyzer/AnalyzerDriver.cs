@@ -269,6 +269,22 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
         }
 
+        private ConcurrentSet<string>? _lazySuppressedDiagnosticIdsForUnsuppressedAnalyzers;
+
+        /// <summary>
+        /// Lazily populated set of diagnostic IDs which are suppressed for some part of the compilation (tree/folder/entire compilation),
+        /// but the analyzer reporting the diagnostic is itself not suppressed for the entire compilation, i.e. the analyzer
+        /// belongs to <see cref="UnsuppressedAnalyzers"/>.
+        /// </summary>
+        private ConcurrentSet<string> SuppressedDiagnosticIdsForUnsuppressedAnalyzers
+        {
+            get
+            {
+                Debug.Assert(_lazySuppressedDiagnosticIdsForUnsuppressedAnalyzers != null);
+                return _lazySuppressedDiagnosticIdsForUnsuppressedAnalyzers;
+            }
+        }
+
         private ConcurrentDictionary<ISymbol, bool>? _lazyIsGeneratedCodeSymbolMap;
 
         /// <summary>
@@ -369,7 +385,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// It kicks off the <see cref="WhenInitializedTask"/> task for initialization.
         /// Note: This method must be invoked exactly once on the driver.
         /// </summary>
-        private void Initialize(AnalyzerExecutor analyzerExecutor, DiagnosticQueue diagnosticQueue, CompilationData compilationData, CancellationToken cancellationToken)
+        private void Initialize(AnalyzerExecutor analyzerExecutor, DiagnosticQueue diagnosticQueue, CompilationData compilationData, ConcurrentSet<string>? suppressedDiagnosticIds, CancellationToken cancellationToken)
         {
             try
             {
@@ -378,6 +394,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 _lazyAnalyzerExecutor = analyzerExecutor;
                 _lazyCurrentCompilationData = compilationData;
                 _lazyDiagnosticQueue = diagnosticQueue;
+                _lazySuppressedDiagnosticIdsForUnsuppressedAnalyzers = suppressedDiagnosticIds;
 
                 // Compute the set of effective actions based on suppression, and running the initial analyzers
                 _lazyInitializeTask = Task.Run(async () =>
@@ -437,30 +454,32 @@ namespace Microsoft.CodeAnalysis.Diagnostics
            CompilationWithAnalyzersOptions analysisOptions,
            CompilationData compilationData,
            bool categorizeDiagnostics,
+           bool trackSuppressedDiagnosticIds,
            CancellationToken cancellationToken)
         {
             Debug.Assert(_lazyInitializeTask == null);
             Debug.Assert(compilation.SemanticModelProvider != null);
 
             var diagnosticQueue = DiagnosticQueue.Create(categorizeDiagnostics);
+            var suppressedDiagnosticIds = trackSuppressedDiagnosticIds ? new ConcurrentSet<string>() : null;
 
             Action<Diagnostic>? addNotCategorizedDiagnostic = null;
             Action<Diagnostic, DiagnosticAnalyzer, bool>? addCategorizedLocalDiagnostic = null;
             Action<Diagnostic, DiagnosticAnalyzer>? addCategorizedNonLocalDiagnostic = null;
             if (categorizeDiagnostics)
             {
-                addCategorizedLocalDiagnostic = GetDiagnosticSink(diagnosticQueue.EnqueueLocal, compilation, analysisOptions.Options, _severityFilter, cancellationToken);
-                addCategorizedNonLocalDiagnostic = GetDiagnosticSink(diagnosticQueue.EnqueueNonLocal, compilation, analysisOptions.Options, _severityFilter, cancellationToken);
+                addCategorizedLocalDiagnostic = GetDiagnosticSink(diagnosticQueue.EnqueueLocal, compilation, analysisOptions.Options, _severityFilter, suppressedDiagnosticIds, cancellationToken);
+                addCategorizedNonLocalDiagnostic = GetDiagnosticSink(diagnosticQueue.EnqueueNonLocal, compilation, analysisOptions.Options, _severityFilter, suppressedDiagnosticIds, cancellationToken);
             }
             else
             {
-                addNotCategorizedDiagnostic = GetDiagnosticSink(diagnosticQueue.Enqueue, compilation, analysisOptions.Options, _severityFilter, cancellationToken);
+                addNotCategorizedDiagnostic = GetDiagnosticSink(diagnosticQueue.Enqueue, compilation, analysisOptions.Options, _severityFilter, suppressedDiagnosticIds, cancellationToken);
             }
 
             // Wrap onAnalyzerException to pass in filtered diagnostic.
             Action<Exception, DiagnosticAnalyzer, Diagnostic> newOnAnalyzerException = (ex, analyzer, diagnostic) =>
             {
-                var filteredDiagnostic = GetFilteredDiagnostic(diagnostic, compilation, analysisOptions.Options, _severityFilter, cancellationToken);
+                var filteredDiagnostic = GetFilteredDiagnostic(diagnostic, compilation, analysisOptions.Options, _severityFilter, suppressedDiagnosticIds, cancellationToken);
                 if (filteredDiagnostic != null)
                 {
                     if (analysisOptions.OnAnalyzerException != null)
@@ -484,7 +503,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 getSemanticModel: GetOrCreateSemanticModel,
                 analysisOptions.LogAnalyzerExecutionTime, addCategorizedLocalDiagnostic, addCategorizedNonLocalDiagnostic, s => _programmaticSuppressions!.Add(s), cancellationToken);
 
-            Initialize(analyzerExecutor, diagnosticQueue, compilationData, cancellationToken);
+            Initialize(analyzerExecutor, diagnosticQueue, compilationData, suppressedDiagnosticIds, cancellationToken);
         }
 
         private SemaphoreSlim? GetAnalyzerGate(DiagnosticAnalyzer analyzer)
@@ -603,7 +622,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <param name="analysisScope">Scope of analysis.</param>
         /// <param name="analysisState">An optional object to track partial analysis state.</param>
         /// <param name="cancellationToken">Cancellation token to abort analysis.</param>
-        /// <remarks>Driver must be initialized before invoking this method, i.e. <see cref="Initialize(AnalyzerExecutor, DiagnosticQueue, CompilationData, CancellationToken)"/> method must have been invoked and <see cref="WhenInitializedTask"/> must be non-null.</remarks>
+        /// <remarks>Driver must be initialized before invoking this method, i.e. <see cref="Initialize(AnalyzerExecutor, DiagnosticQueue, CompilationData, ConcurrentSet{string}, CancellationToken)"/> method must have been invoked and <see cref="WhenInitializedTask"/> must be non-null.</remarks>
         internal async Task AttachQueueAndProcessAllEventsAsync(AsyncQueue<CompilationEvent> eventQueue, AnalysisScope analysisScope, AnalysisState? analysisState, CancellationToken cancellationToken)
         {
             try
@@ -634,7 +653,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <param name="eventQueue">Compilation events to analyze.</param>
         /// <param name="analysisScope">Scope of analysis.</param>
         /// <param name="cancellationToken">Cancellation token to abort analysis.</param>
-        /// <remarks>Driver must be initialized before invoking this method, i.e. <see cref="Initialize(AnalyzerExecutor, DiagnosticQueue, CompilationData, CancellationToken)"/> method must have been invoked and <see cref="WhenInitializedTask"/> must be non-null.</remarks>
+        /// <remarks>Driver must be initialized before invoking this method, i.e. <see cref="Initialize(AnalyzerExecutor, DiagnosticQueue, CompilationData, ConcurrentSet{string}, CancellationToken)"/> method must have been invoked and <see cref="WhenInitializedTask"/> must be non-null.</remarks>
         internal void AttachQueueAndStartProcessingEvents(AsyncQueue<CompilationEvent> eventQueue, AnalysisScope analysisScope, CancellationToken cancellationToken)
         {
             try
@@ -802,6 +821,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <param name="addExceptionDiagnostic">Delegate to add diagnostics generated for exceptions from third party analyzers.</param>
         /// <param name="reportAnalyzer">Report additional information related to analyzers, such as analyzer execution time.</param>
         /// <param name="severityFilter">Filtered diagnostic severities in the compilation, i.e. diagnostics with effective severity from this set should not be reported.</param>
+        /// <param name="trackSuppressedDiagnosticIds">Track diagnostic ids which are suppressed through options.</param>
         /// <param name="newCompilation">The new compilation with the analyzer driver attached.</param>
         /// <param name="cancellationToken">A cancellation token that can be used to abort analysis.</param>
         /// <returns>A newly created analyzer driver</returns>
@@ -817,6 +837,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             Action<Diagnostic> addExceptionDiagnostic,
             bool reportAnalyzer,
             SeverityFilter severityFilter,
+            bool trackSuppressedDiagnosticIds,
             out Compilation newCompilation,
             CancellationToken cancellationToken)
         {
@@ -824,7 +845,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 (ex, analyzer, diagnostic) => addExceptionDiagnostic?.Invoke(diagnostic);
 
             Func<Exception, bool>? nullFilter = null;
-            return CreateAndAttachToCompilation(compilation, analyzers, options, analyzerManager, onAnalyzerException, nullFilter, reportAnalyzer, severityFilter, out newCompilation, cancellationToken: cancellationToken);
+            return CreateAndAttachToCompilation(compilation, analyzers, options, analyzerManager, onAnalyzerException, nullFilter, reportAnalyzer, severityFilter, trackSuppressedDiagnosticIds, out newCompilation, cancellationToken: cancellationToken);
         }
 
         // internal for testing purposes
@@ -837,6 +858,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             Func<Exception, bool>? analyzerExceptionFilter,
             bool reportAnalyzer,
             SeverityFilter severityFilter,
+            bool trackSuppressedDiagnosticIds,
             out Compilation newCompilation,
             CancellationToken cancellationToken)
         {
@@ -847,7 +869,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             var categorizeDiagnostics = false;
             var analysisOptions = new CompilationWithAnalyzersOptions(options, onAnalyzerException, analyzerExceptionFilter: analyzerExceptionFilter, concurrentAnalysis: true, logAnalyzerExecutionTime: reportAnalyzer, reportSuppressedDiagnostics: false);
-            analyzerDriver.Initialize(newCompilation, analysisOptions, new CompilationData(newCompilation), categorizeDiagnostics, cancellationToken);
+            analyzerDriver.Initialize(newCompilation, analysisOptions, new CompilationData(newCompilation), categorizeDiagnostics, trackSuppressedDiagnosticIds, cancellationToken);
 
             var analysisScope = new AnalysisScope(newCompilation, options, analyzers, hasAllAnalyzers: true, concurrentAnalysis: newCompilation.Options.ConcurrentBuild, categorizeDiagnostics: categorizeDiagnostics);
             analyzerDriver.AttachQueueAndStartProcessingEvents(newCompilation.EventQueue!, analysisScope, cancellationToken: cancellationToken);
@@ -884,6 +906,40 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
 
             return allDiagnostics.ToReadOnlyAndFree();
+        }
+
+        public ImmutableDictionary<DiagnosticDescriptor, bool /*isEverSuppressed*/> GetAllDescriptors()
+        {
+            var uniqueDiagnosticIds = PooledHashSet<string>.GetInstance();
+            var analyzersSuppressedForSomeTree = SuppressedAnalyzersForTreeMap.SelectMany(kvp => kvp.Value).ToImmutableHashSet();
+
+            var builder = PooledDictionary<DiagnosticDescriptor, bool>.GetInstance();
+            foreach (var analyzer in Analyzers)
+            {
+                var descriptors = AnalyzerManager.GetSupportedDiagnosticDescriptors(analyzer, AnalyzerExecutor);
+
+                // Check if this analyzer is suppressed for the entire compilation via global project level options
+                // or for one or more syntax trees via editorconfig.
+                bool isAnalyzerEverSuppressed = !UnsuppressedAnalyzers.Contains(analyzer) ||
+                    analyzersSuppressedForSomeTree.Contains(analyzer);
+                foreach (var descriptor in descriptors)
+                {
+                    if (!uniqueDiagnosticIds.Add(descriptor.Id))
+                        continue;
+
+                    // Analyzers which were executed for the entire compilation might report
+                    // multiple diagnostic IDs, such that a strict subset of those ids are suppressed
+                    // for the entire compilation or for one or more syntax trees.
+                    // We want to report these diagnostic IDs as suppressed.
+                    var isDiagnosticIdEverSuppressed = isAnalyzerEverSuppressed ||
+                        SuppressedDiagnosticIdsForUnsuppressedAnalyzers.Contains(descriptor.Id);
+
+                    builder.Add(descriptor, isDiagnosticIdEverSuppressed);
+                }
+            }
+
+            uniqueDiagnosticIds.Free();
+            return builder.ToImmutableDictionaryAndFree();
         }
 
         private SemanticModel GetOrCreateSemanticModel(SyntaxTree tree)
@@ -1916,11 +1972,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
         }
 
-        internal static Action<Diagnostic> GetDiagnosticSink(Action<Diagnostic> addDiagnosticCore, Compilation compilation, AnalyzerOptions? analyzerOptions, SeverityFilter severityFilter, CancellationToken cancellationToken)
+        internal static Action<Diagnostic> GetDiagnosticSink(Action<Diagnostic> addDiagnosticCore, Compilation compilation, AnalyzerOptions? analyzerOptions, SeverityFilter severityFilter, ConcurrentSet<string>? suppressedDiagnosticIds, CancellationToken cancellationToken)
         {
             return diagnostic =>
             {
-                var filteredDiagnostic = GetFilteredDiagnostic(diagnostic, compilation, analyzerOptions, severityFilter, cancellationToken);
+                var filteredDiagnostic = GetFilteredDiagnostic(diagnostic, compilation, analyzerOptions, severityFilter, suppressedDiagnosticIds, cancellationToken);
                 if (filteredDiagnostic != null)
                 {
                     addDiagnosticCore(filteredDiagnostic);
@@ -1928,11 +1984,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             };
         }
 
-        internal static Action<Diagnostic, DiagnosticAnalyzer, bool> GetDiagnosticSink(Action<Diagnostic, DiagnosticAnalyzer, bool> addLocalDiagnosticCore, Compilation compilation, AnalyzerOptions? analyzerOptions, SeverityFilter severityFilter, CancellationToken cancellationToken)
+        internal static Action<Diagnostic, DiagnosticAnalyzer, bool> GetDiagnosticSink(Action<Diagnostic, DiagnosticAnalyzer, bool> addLocalDiagnosticCore, Compilation compilation, AnalyzerOptions? analyzerOptions, SeverityFilter severityFilter, ConcurrentSet<string>? suppressedDiagnosticIds, CancellationToken cancellationToken)
         {
             return (diagnostic, analyzer, isSyntaxDiagnostic) =>
             {
-                var filteredDiagnostic = GetFilteredDiagnostic(diagnostic, compilation, analyzerOptions, severityFilter, cancellationToken);
+                var filteredDiagnostic = GetFilteredDiagnostic(diagnostic, compilation, analyzerOptions, severityFilter, suppressedDiagnosticIds, cancellationToken);
                 if (filteredDiagnostic != null)
                 {
                     addLocalDiagnosticCore(filteredDiagnostic, analyzer, isSyntaxDiagnostic);
@@ -1940,11 +1996,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             };
         }
 
-        internal static Action<Diagnostic, DiagnosticAnalyzer> GetDiagnosticSink(Action<Diagnostic, DiagnosticAnalyzer> addDiagnosticCore, Compilation compilation, AnalyzerOptions? analyzerOptions, SeverityFilter severityFilter, CancellationToken cancellationToken)
+        internal static Action<Diagnostic, DiagnosticAnalyzer> GetDiagnosticSink(Action<Diagnostic, DiagnosticAnalyzer> addDiagnosticCore, Compilation compilation, AnalyzerOptions? analyzerOptions, SeverityFilter severityFilter, ConcurrentSet<string>? suppressedDiagnosticIds, CancellationToken cancellationToken)
         {
             return (diagnostic, analyzer) =>
             {
-                var filteredDiagnostic = GetFilteredDiagnostic(diagnostic, compilation, analyzerOptions, severityFilter, cancellationToken);
+                var filteredDiagnostic = GetFilteredDiagnostic(diagnostic, compilation, analyzerOptions, severityFilter, suppressedDiagnosticIds, cancellationToken);
                 if (filteredDiagnostic != null)
                 {
                     addDiagnosticCore(filteredDiagnostic, analyzer);
@@ -1952,10 +2008,16 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             };
         }
 
-        private static Diagnostic? GetFilteredDiagnostic(Diagnostic diagnostic, Compilation compilation, AnalyzerOptions? analyzerOptions, SeverityFilter severityFilter, CancellationToken cancellationToken)
+        private static Diagnostic? GetFilteredDiagnostic(Diagnostic diagnostic, Compilation compilation, AnalyzerOptions? analyzerOptions, SeverityFilter severityFilter, ConcurrentSet<string>? suppressedDiagnosticIds, CancellationToken cancellationToken)
         {
             var filteredDiagnostic = compilation.Options.FilterDiagnostic(diagnostic, cancellationToken);
-            return applyFurtherFiltering(filteredDiagnostic);
+            filteredDiagnostic = applyFurtherFiltering(filteredDiagnostic);
+
+            // Track diagnostics suppressed through compilation options or syntax tree options.
+            if (filteredDiagnostic == null)
+                suppressedDiagnosticIds?.Add(diagnostic.Id);
+
+            return filteredDiagnostic;
 
             Diagnostic? applyFurtherFiltering(Diagnostic? diagnostic)
             {

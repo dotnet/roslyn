@@ -295,13 +295,16 @@ namespace Microsoft.CodeAnalysis
       ]";
             }
 
-            public static string GetExpectedV2ErrorLogWithSuppressionResultsText(Compilation compilation, string justification)
+            public static string GetExpectedV2ErrorLogWithSuppressionResultsText(Compilation compilation, string justification, string suppressionType)
             {
                 var tree = compilation.SyntaxTrees.First();
                 var root = tree.GetRoot();
                 var expectedLineSpan = root.GetLocation().GetLineSpan();
                 var filePath = GetUriForPath(tree.FilePath);
-
+                var expectedSuppressionPropertyMap = @",
+              ""properties"": {
+                ""suppressionType"": """ + suppressionType + @"""
+              }";
                 return
 @"      ""results"": [
         {
@@ -314,7 +317,7 @@ namespace Microsoft.CodeAnalysis
           ""suppressions"": [
             {
               ""kind"": ""inSource""" + (justification == null ? "" : @",
-              ""justification"": """ + (justification) + @"""") + @"
+              ""justification"": """ + (justification) + @"""") + (suppressionType == null ? "" : expectedSuppressionPropertyMap) + @"
             }
           ],
           ""locations"": [
