@@ -80,7 +80,8 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
                 loader: TextLoader.From(assemblyInfoSourceText.Container, VersionStamp.Default),
                 filePath: null,
                 isGenerated: true,
-                loadTextOptions: new LoadTextOptions(assemblyInfoSourceText.ChecksumAlgorithm)).WithDesignTimeOnly(true);
+                loadTextOptions: new LoadTextOptions(assemblyInfoSourceText.ChecksumAlgorithm))
+                .WithDesignTimeOnly(true);
 
             var generatedDocumentId = DocumentId.CreateNewId(projectId);
             var generatedDocument = DocumentInfo.Create(

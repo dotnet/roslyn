@@ -20,7 +20,9 @@ namespace Microsoft.CodeAnalysis
         private readonly ITextFactoryService _textFactory;
 
         internal WorkspaceFileTextLoader(SolutionServices services, string path, Encoding? defaultEncoding)
+#pragma warning disable RS0030 // Do not used banned APIs
             : base(path, defaultEncoding)
+#pragma warning restore
         {
             _textFactory = services.GetRequiredService<ITextFactoryService>();
         }
