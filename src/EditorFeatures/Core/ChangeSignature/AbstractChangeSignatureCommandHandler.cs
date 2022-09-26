@@ -46,17 +46,17 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
             => IsAvailable(subjectBuffer, out _) ? CommandState.Available : CommandState.Unspecified;
 
         public bool ExecuteCommand(RemoveParametersCommandArgs args, CommandExecutionContext context)
-            => _threadingContext.JoinableTaskFactory.Run(() => ExecuteCommandAsync(args.TextView, args.SubjectBuffer, context));
+            => _threadingContext.JoinableTaskFactory.Run(() => ExecuteCommandAsync(args.TextView, args.SubjectBuffer, context).AsTask());
 
         public bool ExecuteCommand(ReorderParametersCommandArgs args, CommandExecutionContext context)
-            => _threadingContext.JoinableTaskFactory.Run(() => ExecuteCommandAsync(args.TextView, args.SubjectBuffer, context));
+            => _threadingContext.JoinableTaskFactory.Run(() => ExecuteCommandAsync(args.TextView, args.SubjectBuffer, context).AsTask());
 
         private static bool IsAvailable(ITextBuffer subjectBuffer, [NotNullWhen(true)] out Workspace? workspace)
             => subjectBuffer.TryGetWorkspace(out workspace) &&
                workspace.CanApplyChange(ApplyChangesKind.ChangeDocument) &&
                subjectBuffer.SupportsRefactorings();
 
-        private async Task<bool> ExecuteCommandAsync(ITextView textView, ITextBuffer subjectBuffer, CommandExecutionContext context)
+        private async ValueTask<bool> ExecuteCommandAsync(ITextView textView, ITextBuffer subjectBuffer, CommandExecutionContext context)
         {
             using (context.OperationContext.AddScope(allowCancellation: true, FeaturesResources.Change_signature))
             {
