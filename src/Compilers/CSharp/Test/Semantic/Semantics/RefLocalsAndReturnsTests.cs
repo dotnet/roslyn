@@ -501,7 +501,7 @@ class RefEnumerable
                 // (10,40): error CS1510: A ref or out value must be an assignable variable
                 //         foreach (ref readonly var v in new int[0])
                 Diagnostic(ErrorCode.ERR_RefLvalueExpected, "new int[0]").WithLocation(10, 40),
-                // (13,31): error CS8331: Cannot assign to method 'RefEnumerable.StructEnum.Current.get' because it is a readonly variable
+                // (13,31): error CS8331: Cannot assign to method 'RefEnumerable.StructEnum.Current.get' or use it as the right hand side of a ref assignment because it is a readonly variable
                 //         foreach (ref var v in new RefEnumerable())
                 Diagnostic(ErrorCode.ERR_AssignReadonlyNotField, "new RefEnumerable()").WithArguments("method", "RefEnumerable.StructEnum.Current.get").WithLocation(13, 31));
         }
