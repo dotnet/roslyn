@@ -179,21 +179,28 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
             dockPanel.Children.Add(border);
             DockPanel.SetDock(border, Dock.Bottom);
 
-            var stackPanel = new StackPanel
+            StackPanel? adornment;
+            if (taggedTexts.Length is 1)
             {
-                // Height set to align the baseline of the text within the TextBlock with the baseline of text in the editor
-                Height = dockPanelHeight + (block.DesiredSize.Height - (block.FontFamily.Baseline * block.FontSize)),
-                Orientation = Orientation.Vertical
-            };
+                adornment = new InlineHintsTagAdornment(taggedTexts[0].Text);
+            }
+            else
+            {
+                adornment = new StackPanel();
+            }
 
-            stackPanel.Children.Add(dockPanel);
+            // Height set to align the baseline of the text within the TextBlock with the baseline of text in the editor
+            adornment.Height = dockPanelHeight + (block.DesiredSize.Height - (block.FontFamily.Baseline * block.FontSize));
+            adornment.Orientation = Orientation.Vertical;
+
+            adornment.Children.Add(dockPanel);
             // Need to set these properties to avoid unnecessary reformatting because some dependancy properties
             // affect layout
-            TextOptions.SetTextFormattingMode(stackPanel, TextOptions.GetTextFormattingMode(textView.VisualElement));
-            TextOptions.SetTextHintingMode(stackPanel, TextOptions.GetTextHintingMode(textView.VisualElement));
-            TextOptions.SetTextRenderingMode(stackPanel, TextOptions.GetTextRenderingMode(textView.VisualElement));
+            TextOptions.SetTextFormattingMode(adornment, TextOptions.GetTextFormattingMode(textView.VisualElement));
+            TextOptions.SetTextHintingMode(adornment, TextOptions.GetTextHintingMode(textView.VisualElement));
+            TextOptions.SetTextRenderingMode(adornment, TextOptions.GetTextRenderingMode(textView.VisualElement));
 
-            return stackPanel;
+            return adornment;
         }
 
         private static (ImmutableArray<TaggedText> texts, int leftPadding, int rightPadding) Trim(ImmutableArray<TaggedText> taggedTexts)
