@@ -2037,6 +2037,47 @@ class Program
         }
 
         [Fact]
+        public void RefFields_RefEscape_UnsafeContext()
+        {
+            var source =
+@"ref struct R<T>
+{
+    ref T F;
+    R(ref T t) { F = ref t; }
+    ref T F0() => ref this.F;
+    static unsafe ref T F2(T t)
+    {
+        var r2 = new R<T>(ref t);
+        return ref r2.F;
+    }
+}";
+            var comp = CreateCompilation(source, runtimeFeature: RuntimeFlag.ByRefFields, options: TestOptions.UnsafeDebugDll);
+            comp.VerifyEmitDiagnostics(
+                // (9,20): warning CS9077: Use of variable 'r2' in this context may expose referenced variables outside of their declaration scope
+                //         return ref r2.F;
+                Diagnostic(ErrorCode.WRN_EscapeVariable, "r2.F").WithArguments("r2").WithLocation(9, 20));
+            var verifier = CompileAndVerify(comp, verify: Verification.Skipped);
+            verifier.VerifyIL("R<T>.F2", @"
+{
+  // Code size       21 (0x15)
+  .maxstack  1
+  .locals init (R<T> V_0, //r2
+                T& V_1)
+  IL_0000:  nop
+  IL_0001:  ldarga.s   V_0
+  IL_0003:  newobj     ""R<T>..ctor(ref T)""
+  IL_0008:  stloc.0
+  IL_0009:  ldloca.s   V_0
+  IL_000b:  ldfld      ""ref T R<T>.F""
+  IL_0010:  stloc.1
+  IL_0011:  br.s       IL_0013
+  IL_0013:  ldloc.1
+  IL_0014:  ret
+}
+");
+        }
+
+        [Fact]
         public void RefFields_RefReassignment_01()
         {
             var source =
@@ -2296,6 +2337,30 @@ ref struct R<T>
 
             comp = CreateCompilation(source);
             comp.VerifyDiagnostics(expectedDiagnostics);
+        }
+
+        [Fact]
+        public void RefThis_UnsafeContext()
+        {
+            var source =
+@"struct S<T>
+{
+    unsafe ref S<T> F() => ref this;
+}
+ref struct R<T>
+{
+    unsafe ref R<T> F() => ref this;
+}";
+
+            var comp = CreateCompilation(source, options: TestOptions.UnsafeDebugDll);
+            comp.VerifyEmitDiagnostics(
+                // (3,32): warning CS9081: Struct member returns 'this' or other instance members by reference
+                //     unsafe ref S<T> F() => ref this;
+                Diagnostic(ErrorCode.WRN_RefReturnStructThis, "this").WithLocation(3, 32),
+                // (7,32): warning CS9081: Struct member returns 'this' or other instance members by reference
+                //     unsafe ref R<T> F() => ref this;
+                Diagnostic(ErrorCode.WRN_RefReturnStructThis, "this").WithLocation(7, 32)
+                );
         }
 
         [Fact]
@@ -4561,6 +4626,69 @@ class Program
                 // (40,26): error CS8166: Cannot return a parameter by reference 't4' because it is not a ref parameter
                 //         s = new S<T>(ref t4);
                 Diagnostic(ErrorCode.ERR_RefReturnParameter, "t4").WithArguments("t4").WithLocation(40, 26));
+        }
+
+        [Fact]
+        public void Constructors_UnsafeContext()
+        {
+            var source = @"
+unsafe ref struct S<T>
+{
+    public ref T F;
+    public S(ref T t)
+    {
+        F = ref t;
+    }
+    S(object unused, T t0)
+    {
+        this = default;
+        this = new S<T>();
+        this = new S<T>(ref t0);
+        this = new S<T> { F = t0 };
+    }
+    void M1(T t1)
+    {
+        this = default;
+        this = new S<T>();
+        this = new S<T>(ref t1);
+        this = new S<T> { F = t1 };
+    }
+    static void M2(T t2)
+    {
+        S<T> s2;
+        s2 = default;
+        s2 = new S<T>();
+        s2 = new S<T>(ref t2);
+        s2 = new S<T> { F = t2 };
+    }
+    static void M3(ref T t3)
+    {
+        S<T> s3;
+        s3 = new S<T>(ref t3);
+        s3 = new S<T> { F = t3 };
+    }
+    static void M4(T t4)
+    {
+        S<T> s;
+        s = new S<T>();
+        s = new S<T>(ref t4);
+        s = new S<T> { F = t4 };
+    }
+}";
+            var comp = CreateCompilation(source, runtimeFeature: RuntimeFlag.ByRefFields, options: TestOptions.UnsafeDebugDll);
+            comp.VerifyEmitDiagnostics(
+                // (13,29): warning CS9084: This returns a parameter by reference 't0' but it is not a ref parameter
+                //         this = new S<T>(ref t0);
+                Diagnostic(ErrorCode.WRN_RefReturnParameter, "t0").WithArguments("t0").WithLocation(13, 29),
+                // (20,29): warning CS9084: This returns a parameter by reference 't1' but it is not a ref parameter
+                //         this = new S<T>(ref t1);
+                Diagnostic(ErrorCode.WRN_RefReturnParameter, "t1").WithArguments("t1").WithLocation(20, 29),
+                // (28,27): warning CS9084: This returns a parameter by reference 't2' but it is not a ref parameter
+                //         s2 = new S<T>(ref t2);
+                Diagnostic(ErrorCode.WRN_RefReturnParameter, "t2").WithArguments("t2").WithLocation(28, 27),
+                // (41,26): warning CS9084: This returns a parameter by reference 't4' but it is not a ref parameter
+                //         s = new S<T>(ref t4);
+                Diagnostic(ErrorCode.WRN_RefReturnParameter, "t4").WithArguments("t4").WithLocation(41, 26));
         }
 
         [Fact]
@@ -8713,12 +8841,9 @@ unsafe public class A
             else
             {
                 comp.VerifyEmitDiagnostics(
-                    // (6,16): error CS8347: Cannot use a result of 'delegate*<ref int, R>' in this context because it may expose variables referenced by parameter '0' outside of their declaration scope
+                    // (6,34): warning CS9091: This returns local 'i' by reference but it is not a ref local
                     //         return MayCaptureArg(ref i);
-                    Diagnostic(ErrorCode.ERR_EscapeCall, "MayCaptureArg(ref i)").WithArguments("delegate*<ref int, R>", "0").WithLocation(6, 16),
-                    // (6,34): error CS8168: Cannot return local 'i' by reference because it is not a ref local
-                    //         return MayCaptureArg(ref i);
-                    Diagnostic(ErrorCode.ERR_RefReturnLocal, "i").WithArguments("i").WithLocation(6, 34));
+                    Diagnostic(ErrorCode.WRN_RefReturnLocal, "i").WithArguments("i").WithLocation(6, 34));
             }
         }
 
@@ -13168,6 +13293,26 @@ class Program
         }
 
         [Fact]
+        public void BestCommonType_01_UnsafeContext()
+        {
+            var source =
+@"ref struct R { }
+unsafe class Program
+{
+    static R F1(bool b, R x, scoped R y) => b ? x : y;
+    static R F2(bool b, R x, scoped R y) => b ? y : x;
+}";
+            var comp = CreateCompilation(source, options: TestOptions.UnsafeDebugDll);
+            comp.VerifyDiagnostics(
+                // (4,53): warning CS9077: Use of variable 'R' in this context may expose referenced variables outside of their declaration scope
+                //     static R F1(bool b, R x, scoped R y) => b ? x : y;
+                Diagnostic(ErrorCode.WRN_EscapeVariable, "y").WithArguments("R").WithLocation(4, 53),
+                // (5,49): warning CS9077: Use of variable 'R' in this context may expose referenced variables outside of their declaration scope
+                //     static R F2(bool b, R x, scoped R y) => b ? y : x;
+                Diagnostic(ErrorCode.WRN_EscapeVariable, "y").WithArguments("R").WithLocation(5, 49));
+        }
+
+        [Fact]
         public void BestCommonType_03()
         {
             var source =
@@ -14074,6 +14219,112 @@ class Program
             // https://github.com/dotnet/roslyn/issues/62780: Test additional cases with [UnscopedRef].
         }
 
+        [Fact]
+        public void RefAssignMemberOfReturnOnlyParameter()
+        {
+            var source = @"
+ref struct RS1
+{
+    public int I1;
+}
+
+ref struct RS2
+{
+    public ref int I2;
+}
+
+class Program
+{
+    static void M(ref RS1 rs, ref RS2 rs2)
+    {
+        rs2 = new RS2 { I2 = ref rs.I1 };
+    }
+}";
+            var comp = CreateCompilation(new[] { source, UnscopedRefAttributeDefinition }, runtimeFeature: RuntimeFlag.ByRefFields);
+            comp.VerifyDiagnostics(
+                // (16,34): error CS9078: Cannot return by reference a member of parameter 'rs' through a ref parameter; it can only be returned in a return statement
+                //         rs2 = new RS2 { I2 = ref rs.I1 };
+                Diagnostic(ErrorCode.ERR_RefReturnOnlyParameter2, "rs").WithArguments("rs").WithLocation(16, 34)
+                );
+        }
+
+        [Fact]
+        public void RefAssignMemberOfReturnOnlyParameter_UnsafeContext()
+        {
+            var source = @"
+ref struct RS1
+{
+    public int I1;
+}
+
+ref struct RS2
+{
+    public ref int I2;
+}
+
+class Program
+{
+    static unsafe void M(ref RS1 rs, ref RS2 rs2)
+    {
+        rs2 = new RS2 { I2 = ref rs.I1 };
+    }
+}";
+            var comp = CreateCompilation(new[] { source, UnscopedRefAttributeDefinition }, runtimeFeature: RuntimeFlag.ByRefFields, options: TestOptions.UnsafeDebugDll);
+            comp.VerifyDiagnostics(
+                // (16,34): warning CS9095: This returns by reference a member of parameter 'rs' through a ref parameter; but it can only safely be returned in a return statement
+                //         rs2 = new RS2 { I2 = ref rs.I1 };
+                Diagnostic(ErrorCode.WRN_RefReturnOnlyParameter2, "rs").WithArguments("rs").WithLocation(16, 34)
+                );
+        }
+
+        [Fact]
+        public void ReturnValueFieldByRef_UnsafeContext()
+        {
+            var source =
+@"ref struct R<T>
+{
+    public T F;
+}
+unsafe class Program
+{
+    static ref T F0<T>(R<T> r0) => ref r0.F; // 1
+    static ref T F1<T>(scoped R<T> r1) => ref r1.F; // 2
+    static ref T F2<T>(ref R<T> r2) => ref r2.F;
+    static ref T F3<T>(scoped ref R<T> r3) => ref r3.F; // 3
+}";
+            var comp = CreateCompilation(source, options: TestOptions.UnsafeDebugDll);
+            comp.VerifyDiagnostics(
+                // (7,40): warning CS9089: This returns by reference a member of parameter 'r0' that is not a ref or out parameter
+                //     static ref T F0<T>(R<T> r0) => ref r0.F; // 1
+                Diagnostic(ErrorCode.WRN_RefReturnParameter2, "r0").WithArguments("r0").WithLocation(7, 40),
+                // (8,47): warning CS9089: This returns by reference a member of parameter 'r1' that is not a ref or out parameter
+                //     static ref T F1<T>(scoped R<T> r1) => ref r1.F; // 2
+                Diagnostic(ErrorCode.WRN_RefReturnParameter2, "r1").WithArguments("r1").WithLocation(8, 47),
+                // (10,51): warning CS9090: This returns by reference a member of parameter 'r3' that is scoped to the current method
+                //     static ref T F3<T>(scoped ref R<T> r3) => ref r3.F; // 3
+                Diagnostic(ErrorCode.WRN_RefReturnScopedParameter2, "r3").WithArguments("r3").WithLocation(10, 51));
+
+            var verifier = CompileAndVerify(comp, verify: Verification.Skipped);
+            verifier.VerifyIL("Program.F0<T>", @"
+{
+  // Code size        8 (0x8)
+  .maxstack  1
+  IL_0000:  ldarga.s   V_0
+  IL_0002:  ldflda     ""T R<T>.F""
+  IL_0007:  ret
+}
+");
+            verifier.VerifyIL("Program.F2<T>", @"
+{
+  // Code size        7 (0x7)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  ldflda     ""T R<T>.F""
+  IL_0006:  ret
+}
+");
+        }
+
         [Theory]
         [InlineData("ref         ")]
         [InlineData("ref readonly")]
@@ -14612,7 +14863,8 @@ class Program
                 Diagnostic(ErrorCode.ERR_RefAssignNarrower, "r3.F = ref t").WithArguments("F", "t").WithLocation(29, 9),
                 // (59,9): error CS8374: Cannot ref-assign 't' to 'F' because 't' has a narrower escape scope than 'F'.
                 //         r7.F = ref t;
-                Diagnostic(ErrorCode.ERR_RefAssignNarrower, "r7.F = ref t").WithArguments("F", "t").WithLocation(59, 9));
+                Diagnostic(ErrorCode.ERR_RefAssignNarrower, "r7.F = ref t").WithArguments("F", "t").WithLocation(59, 9)
+                );
         }
 
         [Fact]
@@ -21285,6 +21537,109 @@ struct S<T> : System.IDisposable
         }
 
         [Fact, WorkItem(63526, "https://github.com/dotnet/roslyn/issues/63526")]
+        public void ReturnOnlyScope_02_UnsafeContext()
+        {
+            var source = """
+                using System.Diagnostics.CodeAnalysis;
+
+                #pragma warning disable 8321 // unused local function
+                static bool condition() => false;
+
+                static unsafe void M1(scoped ref S p1, ref S p2) {
+                    p2.refField = ref p1.field; // 1
+                    p2.refField = ref p1.refField; // Okay
+                }
+
+                static unsafe void M2(scoped ref S p1, out S p2) {
+                    p2 = default;
+                    p2.refField = ref p1.field; // 2
+                    p2.refField = ref p1.refField; // Okay
+                }
+
+                static unsafe void M3(out S p1, ref S p2) {
+                    p1 = default;
+                    p2.refField = ref p1.field; // 3
+                    p2.refField = ref p1.refField; // Okay
+                }
+
+                // The [UnscopedRef] moves `out` to default RSTE which is *return only*
+                static unsafe void M4([UnscopedRef] out S p1, ref S p2) {
+                    p1 = default;
+                    p2.refField = ref p1.field; // 4
+                    p2.refField = ref p1.refField; // Okay
+                }
+
+                static unsafe void M5(ref S p1, ref S2 p2) {
+                    p2 = Inner1(ref p1); // 5
+                    p2 = Inner2(ref p1); // Okay
+                }
+
+                static unsafe void M6(ref S p1, out S2 p2) {
+                    p2 = Inner1(ref p1); // 6
+                    p2 = Inner2(ref p1); // Okay
+                }
+
+                static unsafe void M7(scoped ref S p1, ref S2 p2) {
+                    p2 = Inner1(ref p1); // 7
+                    p2 = Inner2(ref p1); // Okay
+                }
+
+                static unsafe S2 M8(scoped ref S p) {
+                    if (condition()) return Inner1(ref p); // 8
+                    if (condition()) return Inner2(ref p); // Okay
+
+                    throw null!;
+                }
+
+                static S2 M9(ref S p) {
+                    if (condition()) return Inner1(ref p); // Okay
+                    if (condition()) return Inner2(ref p); // Okay
+
+                    throw null!;
+                }
+
+                static S2 Inner1(ref S s) => new S2 { S = s };
+                static S2 Inner2(scoped ref S s) => new S2 { S = s };
+
+                ref struct S {
+                    public int field;
+                    public ref int refField;
+                }
+
+                ref struct S2 {
+                    public S S;
+                }
+                """;
+
+            var comp = CreateCompilation(new[] { source, UnscopedRefAttributeDefinition }, runtimeFeature: RuntimeFlag.ByRefFields, options: TestOptions.UnsafeDebugExe);
+            comp.VerifyDiagnostics(
+                // (7,5): warning CS9085: This ref-assigns 'p1.field' to 'refField' but 'p1.field' has a narrower escape scope than 'refField'.
+                //     p2.refField = ref p1.field; // 1
+                Diagnostic(ErrorCode.WRN_RefAssignNarrower, "p2.refField = ref p1.field").WithArguments("refField", "p1.field").WithLocation(7, 5),
+                // (13,5): warning CS9085: This ref-assigns 'p1.field' to 'refField' but 'p1.field' has a narrower escape scope than 'refField'.
+                //     p2.refField = ref p1.field; // 2
+                Diagnostic(ErrorCode.WRN_RefAssignNarrower, "p2.refField = ref p1.field").WithArguments("refField", "p1.field").WithLocation(13, 5),
+                // (19,5): warning CS9085: This ref-assigns 'p1.field' to 'refField' but 'p1.field' has a narrower escape scope than 'refField'.
+                //     p2.refField = ref p1.field; // 3
+                Diagnostic(ErrorCode.WRN_RefAssignNarrower, "p2.refField = ref p1.field").WithArguments("refField", "p1.field").WithLocation(19, 5),
+                // (26,5): warning CS9093: This ref-assigns 'p1.field' to 'refField' but 'p1.field' can only escape the current method through a return statement.
+                //     p2.refField = ref p1.field; // 4
+                Diagnostic(ErrorCode.WRN_RefAssignReturnOnly, "p2.refField = ref p1.field").WithArguments("refField", "p1.field").WithLocation(26, 5),
+                // (31,21): warning CS9094: This returns a parameter by reference 'p1' through a ref parameter; but it can only safely be returned in a return statement
+                //     p2 = Inner1(ref p1); // 5
+                Diagnostic(ErrorCode.WRN_RefReturnOnlyParameter, "p1").WithArguments("p1").WithLocation(31, 21),
+                // (36,21): warning CS9094: This returns a parameter by reference 'p1' through a ref parameter; but it can only safely be returned in a return statement
+                //     p2 = Inner1(ref p1); // 6
+                Diagnostic(ErrorCode.WRN_RefReturnOnlyParameter, "p1").WithArguments("p1").WithLocation(36, 21),
+                // (41,21): warning CS9088: This returns a parameter by reference 'p1' but it is scoped to the current method
+                //     p2 = Inner1(ref p1); // 7
+                Diagnostic(ErrorCode.WRN_RefReturnScopedParameter, "p1").WithArguments("p1").WithLocation(41, 21),
+                // (46,40): warning CS9088: This returns a parameter by reference 'p' but it is scoped to the current method
+                //     if (condition()) return Inner1(ref p); // 8
+                Diagnostic(ErrorCode.WRN_RefReturnScopedParameter, "p").WithArguments("p").WithLocation(46, 40));
+        }
+
+        [Fact, WorkItem(63526, "https://github.com/dotnet/roslyn/issues/63526")]
         public void ReturnOnlyScope_03()
         {
             var source = """
@@ -21355,6 +21710,73 @@ struct S<T> : System.IDisposable
                 // (36,24): error CS8170: Struct members cannot return 'this' or other instance members by reference
                 //         p = Inner1(ref this); // 5
                 Diagnostic(ErrorCode.ERR_RefReturnStructThis, "this").WithLocation(36, 24));
+        }
+
+        [Fact]
+        public void ReturnOnlyScope_03_UnsafeContext()
+        {
+            var source = """
+                using System.Diagnostics.CodeAnalysis;
+
+                #pragma warning disable 8321 // unused local function
+                ref struct S2 {
+                    public S S;
+                }
+
+                unsafe ref struct S {
+                    public int field;
+                    public ref int refField;
+
+                    void M1(ref S p) {
+                        p.refField = ref this.field; // 1
+                        p.refField = ref this.refField; // Okay
+                    }
+
+                    [UnscopedRef]
+                    void M2(ref S p) {
+                        p.refField = ref this.field; // 2
+                        p.refField = ref this.refField; // Okay
+                    }
+
+                    [UnscopedRef]
+                    void M3(out S p) {
+                        p = default;
+                        p.refField = ref this.field; // 3
+                        p.refField = ref this.refField; // Okay
+                    }
+
+                    void M4(ref S2 p) {
+                        p = Inner1(ref this); // 4
+                        p = Inner2(ref this); // Okay
+                    }
+
+                    void M5(out S2 p) {
+                        p = Inner1(ref this); // 5
+                        p = Inner2(ref this); // Okay
+                    }
+
+                    static S2 Inner1(ref S s) => new S2 { S = s };
+                    static S2 Inner2(scoped ref S s) => new S2 { S = s };
+                }
+                """;
+            var comp = CreateCompilation(new[] { source, UnscopedRefAttributeDefinition }, runtimeFeature: RuntimeFlag.ByRefFields, options: TestOptions.UnsafeDebugDll);
+            comp.VerifyDiagnostics(
+                // (13,9): warning CS9085: The right-hand-side expression 'this.field' has a narrower escape scope than the left-hand-side expression 'refField' in ref-assignment.
+                //         p.refField = ref this.field; // 1
+                Diagnostic(ErrorCode.WRN_RefAssignNarrower, "p.refField = ref this.field").WithArguments("refField", "this.field").WithLocation(13, 9),
+                // (19,9): warning CS9093: This ref-assigns 'this.field' to 'refField' but 'this.field' can only escape the current method through a return statement.
+                //         p.refField = ref this.field; // 2
+                Diagnostic(ErrorCode.WRN_RefAssignReturnOnly, "p.refField = ref this.field").WithArguments("refField", "this.field").WithLocation(19, 9),
+                // (26,9): warning CS9093: This ref-assigns 'this.field' to 'refField' but 'this.field' can only escape the current method through a return statement.
+                //         p.refField = ref this.field; // 3
+                Diagnostic(ErrorCode.WRN_RefAssignReturnOnly, "p.refField = ref this.field").WithArguments("refField", "this.field").WithLocation(26, 9),
+                // (31,24): warning CS9084: Struct member returns 'this' or other instance members by reference
+                //         p = Inner1(ref this); // 4
+                Diagnostic(ErrorCode.WRN_RefReturnStructThis, "this").WithLocation(31, 24),
+                // (36,24): warning CS9084: Struct member returns 'this' or other instance members by reference
+                //         p = Inner1(ref this); // 5
+                Diagnostic(ErrorCode.WRN_RefReturnStructThis, "this").WithLocation(36, 24)
+                );
         }
 
         [Fact]

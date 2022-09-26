@@ -2132,6 +2132,23 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_RefReturnOnlyParameter2 = 9078,
         ERR_RefAssignReturnOnly = 9079,
 
+        WRN_EscapeVariable = 9080,
+        WRN_EscapeStackAlloc = 9081,
+        WRN_RefReturnNonreturnableLocal = 9082,
+        WRN_RefReturnNonreturnableLocal2 = 9083,
+        WRN_RefReturnStructThis = 9084,
+        WRN_RefAssignNarrower = 9085,
+        WRN_MismatchedRefEscapeInTernary = 9086,
+        WRN_RefReturnParameter = 9087,
+        WRN_RefReturnScopedParameter = 9088,
+        WRN_RefReturnParameter2 = 9089,
+        WRN_RefReturnScopedParameter2 = 9090,
+        WRN_RefReturnLocal = 9091,
+        WRN_RefReturnLocal2 = 9092,
+        WRN_RefAssignReturnOnly = 9093,
+        WRN_RefReturnOnlyParameter = 9094,
+        WRN_RefReturnOnlyParameter2 = 9095,
+
         #endregion
 
         // Note: you will need to do the following after adding any code:

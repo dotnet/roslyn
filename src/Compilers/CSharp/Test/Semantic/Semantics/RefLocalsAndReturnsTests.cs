@@ -819,6 +819,31 @@ class C
         }
 
         [Fact]
+        public void RefReassignParamEscape_UnsafeContext()
+        {
+            var comp = CreateCompilation(@"
+class C
+{
+    unsafe void M(ref int x)
+    {
+        int y = 0;
+        x = ref y;
+
+        ref int z = ref y;
+        x = ref z;
+    }
+}", options: TestOptions.UnsafeDebugDll);
+            comp.VerifyDiagnostics(
+                // (7,9): warning CS9085: This ref-assigns 'y' to 'x' but 'y' has a narrower escape scope than 'x'.
+                //         x = ref y;
+                Diagnostic(ErrorCode.WRN_RefAssignNarrower, "x = ref y").WithArguments("x", "y").WithLocation(7, 9),
+                // (10,9): warning CS9085: This ref-assigns 'z' to 'x' but 'z' has a narrower escape scope than 'x'.
+                //         x = ref z;
+                Diagnostic(ErrorCode.WRN_RefAssignNarrower, "x = ref z").WithArguments("x", "z").WithLocation(10, 9)
+                );
+        }
+
+        [Fact]
         public void RefReassignThisStruct()
         {
             var comp = CreateCompilation(@"
@@ -1737,6 +1762,60 @@ public class Test
         }
 
         [Fact]
+        public void RefByValLocalParam_UnsafeContext()
+        {
+            var text = @"
+public unsafe class Test
+{
+    public struct S1
+    {
+        public char x;
+    }
+
+    ref char Test1()
+    {
+        char l = default(char);
+        ref char r = ref l;
+        return ref l; // 1
+    }
+
+    ref char Test2()
+    {
+        S1 l = default(S1);
+        ref char r = ref l.x;
+        return ref l.x; // 2
+    }
+
+    ref char Test2(char arg1)
+    {
+        ref char r = ref arg1;
+        return ref arg1; // 3
+    }
+
+    ref char Test2(S1 arg2)
+    {
+        ref char r = ref arg2.x;
+        return ref arg2.x; // 4
+    }
+}";
+            var comp = CreateCompilation(text, options: TestOptions.UnsafeDebugDll);
+            comp.VerifyDiagnostics(
+                // (13,20): warning CS9088: This returns local 'l' by reference but it is not a ref local
+                //         return ref l; // 1
+                Diagnostic(ErrorCode.WRN_RefReturnLocal, "l").WithArguments("l").WithLocation(13, 20),
+                // (20,20): warning CS9089: This returns a member of local 'l' by reference but it is not a ref local
+                //         return ref l.x; // 2
+                Diagnostic(ErrorCode.WRN_RefReturnLocal2, "l").WithArguments("l").WithLocation(20, 20),
+                // (26,20): warning CS9084: This returns a parameter by reference 'arg1' but it is not a ref parameter
+                //         return ref arg1; // 3
+                Diagnostic(ErrorCode.WRN_RefReturnParameter, "arg1").WithArguments("arg1").WithLocation(26, 20),
+                // (32,20): warning CS9086: This returns by reference a member of parameter 'arg2' that is not a ref or out parameter
+                //         return ref arg2.x; // 4
+                Diagnostic(ErrorCode.WRN_RefReturnParameter2, "arg2").WithArguments("arg2").WithLocation(32, 20)
+                );
+        }
+
+        [Fact]
         public void RefReadonlyLocal()
         {
             var text = @"
@@ -2210,8 +2289,174 @@ public class Test
     // (65,24): error CS8158: Cannot return by reference a member of 'r' because it was initialized to a value that cannot be returned by reference
     //             return ref r.x;
     Diagnostic(ErrorCode.ERR_RefReturnNonreturnableLocal2, "r").WithArguments("r").WithLocation(65, 24)
-
             );
+        }
+
+        [Fact]
+        public void RefReturnUnreturnableLocalParam_UnsafeContext()
+        {
+            var text = @"
+public unsafe class Test
+{
+    public struct S1
+    {
+        public char x;
+    }
+
+    ref char Test1()
+    {
+        char l = default(char);
+        ref char r = ref l;
+        return ref r; // 1
+    }
+
+    ref char Test2()
+    {
+        S1 l = default(S1);
+        ref char r = ref l.x;
+        return ref r; // 2
+    }
+
+    ref char Test3()
+    {
+        S1 l = default(S1);
+        ref var r = ref l;
+        return ref r.x; // 3
+    }
+
+    ref char Test4(char arg1)
+    {
+        ref char r = ref arg1;
+        return ref r; // 4
+    }
+
+    ref char Test5(S1 arg2)
+    {
+        ref char r = ref arg2.x;
+        return ref r; // 5
+    }
+
+    ref char Test6(S1 arg2)
+    {
+        ref S1 r = ref arg2;
+        return ref r.x; // 6
+    }
+}";
+            var comp = CreateCompilation(text, options: TestOptions.UnsafeDebugDll);
+            comp.VerifyDiagnostics(
+                // (13,20): warning CS9079: Local 'r' is returned by reference but was initialized to a value that cannot be returned by reference
+                //         return ref r; // 1
+                Diagnostic(ErrorCode.WRN_RefReturnNonreturnableLocal, "r").WithArguments("r").WithLocation(13, 20),
+                // (20,20): warning CS9079: Local 'r' is returned by reference but was initialized to a value that cannot be returned by reference
+                //         return ref r; // 2
+                Diagnostic(ErrorCode.WRN_RefReturnNonreturnableLocal, "r").WithArguments("r").WithLocation(20, 20),
+                // (27,20): warning CS9080: A member of 'r' is returned by reference but was initialized to a value that cannot be returned by reference
+                //         return ref r.x; // 3
+                Diagnostic(ErrorCode.WRN_RefReturnNonreturnableLocal2, "r").WithArguments("r").WithLocation(27, 20),
+                // (33,20): warning CS9079: Local 'r' is returned by reference but was initialized to a value that cannot be returned by reference
+                //         return ref r; // 4
+                Diagnostic(ErrorCode.WRN_RefReturnNonreturnableLocal, "r").WithArguments("r").WithLocation(33, 20),
+                // (39,20): warning CS9079: Local 'r' is returned by reference but was initialized to a value that cannot be returned by reference
+                //         return ref r; // 5
+                Diagnostic(ErrorCode.WRN_RefReturnNonreturnableLocal, "r").WithArguments("r").WithLocation(39, 20),
+                // (45,20): warning CS9080: A member of 'r' is returned by reference but was initialized to a value that cannot be returned by reference
+                //         return ref r.x; // 6
+                Diagnostic(ErrorCode.WRN_RefReturnNonreturnableLocal2, "r").WithArguments("r").WithLocation(45, 20)
+                );
+
+            var verifier = CompileAndVerify(comp, verify: Verification.Skipped);
+            verifier.VerifyIL("Test.Test1", @"
+{
+  // Code size       12 (0xc)
+  .maxstack  1
+  .locals init (char V_0, //l
+                char& V_1, //r
+                char& V_2)
+  IL_0000:  nop
+  IL_0001:  ldc.i4.0
+  IL_0002:  stloc.0
+  IL_0003:  ldloca.s   V_0
+  IL_0005:  stloc.1
+  IL_0006:  ldloc.1
+  IL_0007:  stloc.2
+  IL_0008:  br.s       IL_000a
+  IL_000a:  ldloc.2
+  IL_000b:  ret
+}
+");
+            verifier.VerifyIL("Test.Test6", @"
+{
+  // Code size       15 (0xf)
+  .maxstack  1
+  .locals init (Test.S1& V_0, //r
+                char& V_1)
+  IL_0000:  nop
+  IL_0001:  ldarga.s   V_1
+  IL_0003:  stloc.0
+  IL_0004:  ldloc.0
+  IL_0005:  ldflda     ""char Test.S1.x""
+  IL_000a:  stloc.1
+  IL_000b:  br.s       IL_000d
+  IL_000d:  ldloc.1
+  IL_000e:  ret
+}
+");
+        }
+
+        [Fact]
+        public void RefAssignUnreturnableLocalParam_UnsafeContext()
+        {
+            var text = @"
+public unsafe class Test
+{
+    public struct S1
+    {
+        public char x;
+    }
+
+    void Test1()
+    {
+        char c = default;
+        ref char outer = ref c;
+        {
+            char l = default;
+            ref char r = ref l;
+            outer = ref r; // 1
+        }
+    }
+}";
+            var comp = CreateCompilation(text, options: TestOptions.UnsafeDebugDll);
+            comp.VerifyDiagnostics(
+                // (16,13): warning CS9082: The right-hand-side expression 'r' has a narrower escape scope than the left-hand-side expression 'outer' in ref-assignment.
+                //             outer = ref r; // 1
+                Diagnostic(ErrorCode.WRN_RefAssignNarrower, "outer = ref r").WithArguments("outer", "r").WithLocation(16, 13)
+                );
+
+            var verifier = CompileAndVerify(comp, verify: Verification.Skipped);
+            verifier.VerifyIL("Test.Test1", @"
+{
+  // Code size       16 (0x10)
+  .maxstack  1
+  .locals init (char V_0, //c
+                char& V_1, //outer
+                char V_2, //l
+                char& V_3) //r
+  IL_0000:  nop
+  IL_0001:  ldc.i4.0
+  IL_0002:  stloc.0
+  IL_0003:  ldloca.s   V_0
+  IL_0005:  stloc.1
+  IL_0006:  nop
+  IL_0007:  ldc.i4.0
+  IL_0008:  stloc.2
+  IL_0009:  ldloca.s   V_2
+  IL_000b:  stloc.3
+  IL_000c:  ldloc.3
+  IL_000d:  stloc.1
+  IL_000e:  nop
+  IL_000f:  ret
+}
+");
         }
 
         [Fact]
