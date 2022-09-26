@@ -1,9 +1,11 @@
 ﻿<!-- Licensed to the .NET Foundation under one or more agreements. The .NET Foundation licenses this file to you under the MIT license. See the LICENSE file in the project root for more information. -->
 
-<!-- Originally, this file is named Microsoft.Net.Compilers.Toolset.props and it's been located in ..\build folder. -->
-<!-- The renaming is done because NuGet requires the .props file to be named equaly to the containing NuGet package to be imported automatically. -->
-<!-- The move has been done because we want this file to be imported transitively. -->
-<!-- File ..\build\Microsoft.Net.Compilers.Toolset.props has been removed a we want the props to be imported transitively. -->
+<!--
+<Metalama>
+  Originally, this file is named Microsoft.Net.Compilers.Toolset.props and it's been located in ..\build folder. 
+  The renaming is done because NuGet requires the .props file to be named equaly to the containing NuGet package to be imported automatically.
+</Metalama>
+ -->
 
 <Project>
 
@@ -15,14 +17,13 @@
     <UseSharedCompilation Condition="'$(UseSharedCompilation)' == ''">true</UseSharedCompilation>
     <CSharpCoreTargetsPath>$(_RoslynTasksDirectory)Microsoft.CSharp.Core.targets</CSharpCoreTargetsPath>
     <VisualBasicCoreTargetsPath>$(_RoslynTasksDirectory)Microsoft.VisualBasic.Core.targets</VisualBasicCoreTargetsPath>
-
-    <!-- MetalamaSourceOnlyAnalyzers must be on one line and without semicolon because it is a compiler-visible property -->
-    <MetalamaSourceOnlyAnalyzers>$(MetalamaSourceOnlyAnalyzers),Microsoft.CodeAnalysis.CodeStyle,Microsoft.CodeAnalysis.CSharp.CodeStyle,StyleCop.Analyzers</MetalamaSourceOnlyAnalyzers>
   </PropertyGroup>
 
   <UsingTask TaskName="Microsoft.CodeAnalysis.BuildTasks.Csc" AssemblyFile="$(RoslynTasksAssembly)" />
   <UsingTask TaskName="Microsoft.CodeAnalysis.BuildTasks.Vbc" AssemblyFile="$(RoslynTasksAssembly)" />
   <UsingTask TaskName="Microsoft.CodeAnalysis.BuildTasks.CopyRefAssembly" AssemblyFile="$(RoslynTasksAssembly)" />
+
+  <!-- <Metalama> -->
 
   <ItemGroup>
     <CompilerVisibleProperty Include="MetalamaDebugTransformedCode" />
@@ -34,4 +35,6 @@
     <CompilerVisibleProperty Include="NETCoreSdkBundledVersionsProps" />
     <CompilerVisibleProperty Include="MSBuildProjectFullPath"/>
   </ItemGroup>
+  <!-- </Metalama> -->
+
 </Project>
