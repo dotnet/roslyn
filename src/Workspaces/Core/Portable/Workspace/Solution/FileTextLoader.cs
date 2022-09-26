@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis
 
         internal sealed override string FilePath => Path;
 
-        public override bool CanReloadText => !IsObsoleteCreateTextOverridden;
+        internal override bool CanReloadText => !IsObsoleteCreateTextOverridden;
 
 #pragma warning disable CS0618 // Type or member is obsolete
         private bool IsObsoleteCreateTextOverridden

@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// True if <see cref="LoadTextAndVersionAsync(LoadTextOptions, CancellationToken)"/> reloads <see cref="SourceText"/> from its original binary representation (e.g. file on disk).
         /// </summary>
-        public virtual bool CanReloadText
+        internal virtual bool CanReloadText
             => false;
 
         /// <summary>
