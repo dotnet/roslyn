@@ -182,7 +182,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
             StackPanel? adornment;
             if (taggedTexts.Length is 1)
             {
-                adornment = new InlineHintsTagAdornment(taggedTexts[0].Text);
+                adornment = new InlineHintsTagAdornment("");
             }
             else
             {
