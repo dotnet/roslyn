@@ -2242,7 +2242,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     if (!valid)
                     {
-                        string parameterName = GetInvocationParameterName(mixableArg.Parameter);
+                        string parameterName = GetInvocationParameterName(fromParameter);
                         Error(diagnostics, ErrorCode.ERR_CallArgMixing, syntax, symbol, parameterName);
                         break;
                     }
