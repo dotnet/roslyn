@@ -139,8 +139,21 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var info = CommandLineProject.CreateProjectInfo("TestProject", LanguageNames.CSharp, commandLine, assemblyBaseDir);
 
             var firstDoc = info.Documents.Single();
-            var analyzerRef = info.AnalyzerReferences.First();
+            var analyzerRef = info.AnalyzerReferences.Single();
             Assert.Equal("goo.cs", firstDoc.Name);
+            Assert.Equal(pathToAssembly, analyzerRef.FullPath);
+        }
+
+        [Fact]
+        public void TestDuplicateAnalyzerReferences()
+        {
+            var pathToAssembly = typeof(object).Assembly.Location;
+            var assemblyBaseDir = Path.GetDirectoryName(pathToAssembly);
+            var relativePath = Path.Combine(".", Path.GetFileName(pathToAssembly));
+            var commandLine = $@"goo.cs /a:{relativePath} /a:{relativePath}";
+            var info = CommandLineProject.CreateProjectInfo("TestProject", LanguageNames.CSharp, commandLine, assemblyBaseDir);
+
+            var analyzerRef = info.AnalyzerReferences.Single();
             Assert.Equal(pathToAssembly, analyzerRef.FullPath);
         }
 

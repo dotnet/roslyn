@@ -3,14 +3,18 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio;
+using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.PlatformUI;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Text.Editor;
+using Microsoft.VisualStudio.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 {
@@ -21,15 +25,23 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
     {
         private readonly RenameFlyoutViewModel _viewModel;
         private readonly IWpfTextView _textView;
+        private readonly IAsyncQuickInfoBroker _asyncQuickInfoBroker;
+        private readonly IAsynchronousOperationListener _listener;
 
-        public RenameFlyout(RenameFlyoutViewModel viewModel, IWpfTextView textView, IWpfThemeService? themeService)
+        public RenameFlyout(
+            RenameFlyoutViewModel viewModel,
+            IWpfTextView textView,
+            IWpfThemeService? themeService,
+            IAsyncQuickInfoBroker asyncQuickInfoBroker,
+            IAsynchronousOperationListenerProvider listenerProvider)
         {
             DataContext = _viewModel = viewModel;
             _textView = textView;
-
+            _asyncQuickInfoBroker = asyncQuickInfoBroker;
             _textView.LayoutChanged += TextView_LayoutChanged;
             _textView.ViewportHeightChanged += TextView_ViewPortChanged;
             _textView.ViewportWidthChanged += TextView_ViewPortChanged;
+            _listener = listenerProvider.GetListener(FeatureAttribute.InlineRenameFlyout);
 
             // On load focus the first tab target
             Loaded += (s, e) =>
@@ -50,6 +62,24 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 Outline.BorderBrush = new SolidColorBrush(themeService.GetThemeColor(EnvironmentColors.AccentBorderColorKey));
                 Background = new SolidColorBrush(themeService.GetThemeColor(EnvironmentColors.ToolWindowBackgroundColorKey));
             }
+
+            // Dismiss any current tooltips. Note that this does not disable tooltips
+            // from showing up again, so if a user has the mouse unmoved another
+            // tooltip will pop up. https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1611398
+            // tracks when we can handle this with IFeaturesService in VS
+            var token = _listener.BeginAsyncOperation(nameof(DismissToolTipsAsync));
+            _ = DismissToolTipsAsync().CompletesAsyncOperation(token);
+        }
+
+        private async Task DismissToolTipsAsync()
+        {
+            var infoSession = _asyncQuickInfoBroker.GetSession(_textView);
+            if (infoSession is null)
+            {
+                return;
+            }
+
+            await infoSession.DismissAsync().ConfigureAwait(false);
         }
 
 #pragma warning disable CA1822 // Mark members as static - used in xaml
@@ -64,14 +94,36 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
         private void RenameFlyout_IsKeyboardFocusWithinChanged(object sender, DependencyPropertyChangedEventArgs e)
         {
-            if (!IsKeyboardFocusWithin)
+            // When previewing changes, focus will be lost and put 
+            // into a preview changes window. If we're returning back
+            // to this UI, reset the flag to false. Otherwise, just ignore
+            // this focus change. No need to cancel in that case 
+            if (_viewModel.PreviewChangesFlag)
+            {
+                if (IsKeyboardFocused)
+                {
+                    _viewModel.PreviewChangesFlag = false;
+                }
+
+                return;
+            }
+
+            if (!IsKeyboardFocused)
             {
                 _viewModel.Cancel();
             }
         }
 
         private void TextView_LostFocus(object sender, EventArgs e)
-            => _viewModel.Cancel();
+        {
+            // Preview changes is happening, no need to act on focus changes.
+            if (_viewModel.PreviewChangesFlag)
+            {
+                return;
+            }
+
+            _viewModel.Cancel();
+        }
 
         private void TextView_ViewPortChanged(object sender, EventArgs e)
             => PositionAdornment();
