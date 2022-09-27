@@ -4,7 +4,6 @@
 
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
 {
@@ -13,6 +12,8 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
         protected UnitTestingIncrementalAnalyzerBase()
         {
         }
+
+#if false // Not used in unit testing crawling
 
         public virtual Task NewSolutionSnapshotAsync(Solution solution, CancellationToken cancellationToken)
             => Task.CompletedTask;
@@ -32,6 +33,8 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
         public virtual Task AnalyzeSyntaxAsync(Document document, UnitTestingInvocationReasons reasons, CancellationToken cancellationToken)
             => Task.CompletedTask;
 
+#endif
+
         public virtual Task AnalyzeDocumentAsync(Document document, SyntaxNode bodyOpt, UnitTestingInvocationReasons reasons, CancellationToken cancellationToken)
             => Task.CompletedTask;
 
@@ -40,6 +43,8 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
 
         public virtual Task RemoveDocumentAsync(DocumentId documentId, CancellationToken cancellationToken)
             => Task.CompletedTask;
+
+#if false // Not used in unit testing crawling
 
         public virtual Task RemoveProjectAsync(ProjectId projectId, CancellationToken cancellation)
             => Task.CompletedTask;
@@ -68,5 +73,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
         public virtual void Shutdown()
         {
         }
+
+#endif
     }
 }
