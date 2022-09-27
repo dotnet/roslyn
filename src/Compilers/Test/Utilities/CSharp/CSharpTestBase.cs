@@ -41,6 +41,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
         {
             None,
             ByRefFields,
+            NumericIntPtr,
         }
 
         protected const string NullableAttributeDefinition = @"
@@ -1241,6 +1242,21 @@ namespace System.Diagnostics.CodeAnalysis
                     options, parseOptions, assemblyName, sourceFileName, skipUsesIsNullable, experimentalFeature: null, skipExtraValidation: true);
 
                 comp.Assembly.RuntimeSupportsByRefFields = true;
+                return comp;
+            }
+
+            if (runtimeFeature == RuntimeFlag.NumericIntPtr)
+            {
+                // Avoid sharing mscorlib symbols with other tests since we are about to change
+                // RuntimeSupportsNumericIntPtr property for it.
+                var mscorlibWithoutSharing = new[] { GetMscorlibRefWithoutSharingCachedSymbols() };
+
+                // Note: we use skipExtraValidation so that nobody pulls
+                // on the compilation or its references before we set the RuntimeSupportsNumericIntPtr flag.
+                var comp = CreateCompilationCore(source, references is not null ? references.Concat(mscorlibWithoutSharing) : mscorlibWithoutSharing,
+                    options, parseOptions, assemblyName, sourceFileName, skipUsesIsNullable, experimentalFeature: null, skipExtraValidation: true);
+
+                comp.Assembly.RuntimeSupportsNumericIntPtr = true;
                 return comp;
             }
 

@@ -1556,7 +1556,7 @@ public class A
         }
 
         [Theory, CombinatorialData]
-        public void BuiltInOperators_NativeIntegers(bool useCompilationReference, bool useSystemTypes)
+        public void BuiltInOperators_NativeIntegers(bool useCSharp9, bool useCompilationReference, bool useSystemTypes)
         {
             var nintType = useSystemTypes ? "System.IntPtr" : "nint";
             var nuintType = useSystemTypes ? "System.UIntPtr" : "nuint";
@@ -1590,7 +1590,7 @@ public class A
         F4 = F4 / F2;
     }
 }";
-            comp = CreateEmptyCompilation(sourceB, references: new[] { refA, mscorlibRefWithoutSharing }, parseOptions: TestOptions.Regular9);
+            comp = CreateEmptyCompilation(sourceB, references: new[] { refA, mscorlibRefWithoutSharing }, parseOptions: useCSharp9 ? TestOptions.Regular9 : TestOptions.Regular8);
             comp.VerifyDiagnostics();
             var verifier = CompileAndVerify(comp);
             verifier.VerifyIL("B.Main",
@@ -1679,33 +1679,6 @@ public class A
   IL_00f1:  stsfld     ""nuint? A.F4""
   IL_00f6:  ret
 }");
-
-            comp = CreateEmptyCompilation(sourceB, references: new[] { refA, mscorlibRefWithoutSharing }, parseOptions: TestOptions.Regular8);
-            comp.VerifyDiagnostics(
-                // (5,14): error CS8400: Feature 'native-sized integers' is not available in C# 8.0. Please use language version 9.0 or greater.
-                //         F1 = -F1;
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "-F1").WithArguments("native-sized integers", "9.0").WithLocation(5, 14),
-                // (6,14): error CS8400: Feature 'native-sized integers' is not available in C# 8.0. Please use language version 9.0 or greater.
-                //         F2 = +F2;
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "+F2").WithArguments("native-sized integers", "9.0").WithLocation(6, 14),
-                // (7,14): error CS8400: Feature 'native-sized integers' is not available in C# 8.0. Please use language version 9.0 or greater.
-                //         F3 = -F3;
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "-F3").WithArguments("native-sized integers", "9.0").WithLocation(7, 14),
-                // (8,14): error CS8400: Feature 'native-sized integers' is not available in C# 8.0. Please use language version 9.0 or greater.
-                //         F4 = +F4;
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "+F4").WithArguments("native-sized integers", "9.0").WithLocation(8, 14),
-                // (9,14): error CS8400: Feature 'native-sized integers' is not available in C# 8.0. Please use language version 9.0 or greater.
-                //         F1 = F1 * F1;
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "F1 * F1").WithArguments("native-sized integers", "9.0").WithLocation(9, 14),
-                // (10,14): error CS8400: Feature 'native-sized integers' is not available in C# 8.0. Please use language version 9.0 or greater.
-                //         F2 = F2 / F2;
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "F2 / F2").WithArguments("native-sized integers", "9.0").WithLocation(10, 14),
-                // (11,14): error CS8400: Feature 'native-sized integers' is not available in C# 8.0. Please use language version 9.0 or greater.
-                //         F3 = F3 * F1;
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "F3 * F1").WithArguments("native-sized integers", "9.0").WithLocation(11, 14),
-                // (12,14): error CS8400: Feature 'native-sized integers' is not available in C# 8.0. Please use language version 9.0 or greater.
-                //         F4 = F4 / F2;
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "F4 / F2").WithArguments("native-sized integers", "9.0").WithLocation(12, 14));
         }
 
         [Theory]
@@ -11544,6 +11517,27 @@ static class C
   IL_000f:  ret
 }
 ");
+        }
+
+        [Fact, WorkItem(63860, "https://github.com/dotnet/roslyn/issues/63860")]
+        public void IntPtrOperatorOnNewPlatform()
+        {
+            var source = """
+using System;
+
+class C
+{
+    public static void M()
+    {
+        IntPtr a = default;
+        bool b = a == IntPtr.Zero;
+        a += 1;
+        _ = a + 1;
+    }
+}
+""";
+            var comp = CreateCompilation(source, runtimeFeature: RuntimeFlag.ByRefFields, parseOptions: TestOptions.Regular7_3);
+            comp.VerifyDiagnostics();
         }
 
         [WorkItem(63348, "https://github.com/dotnet/roslyn/issues/63348")]

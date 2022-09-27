@@ -175,7 +175,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             BinaryOperatorSignature bestSignature = best.Signature;
 
-            CheckNativeIntegerFeatureAvailability(bestSignature.Kind, node, diagnostics);
             CheckConstraintLanguageVersionAndRuntimeSupportForOperator(node, bestSignature.Method,
                 isUnsignedRightShift: bestSignature.Kind.Operator() == BinaryOperatorKind.UnsignedRightShift, bestSignature.ConstrainedToTypeOpt, diagnostics);
 
@@ -622,7 +621,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (foundOperator)
             {
-                CheckNativeIntegerFeatureAvailability(resultOperatorKind, node, diagnostics);
                 CheckConstraintLanguageVersionAndRuntimeSupportForOperator(node, signature.Method,
                     isUnsignedRightShift: resultOperatorKind.Operator() == BinaryOperatorKind.UnsignedRightShift, signature.ConstrainedToTypeOpt, diagnostics);
             }
@@ -2298,7 +2296,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var signature = best.Signature;
 
-            CheckNativeIntegerFeatureAvailability(signature.Kind, node, diagnostics);
             CheckConstraintLanguageVersionAndRuntimeSupportForOperator(node, signature.Method, isUnsignedRightShift: false, signature.ConstrainedToTypeOpt, diagnostics);
 
             var resultPlaceholder = new BoundValuePlaceholder(node, signature.ReturnType).MakeCompilerGenerated();
@@ -2730,7 +2727,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             UnaryOperatorKind resultOperatorKind = signature.Kind;
             var resultConstant = FoldUnaryOperator(node, resultOperatorKind, resultOperand, resultType, diagnostics);
 
-            CheckNativeIntegerFeatureAvailability(resultOperatorKind, node, diagnostics);
             CheckConstraintLanguageVersionAndRuntimeSupportForOperator(node, signature.Method, isUnsignedRightShift: false, signature.ConstrainedToTypeOpt, diagnostics);
 
             return new BoundUnaryOperator(
@@ -4332,28 +4328,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             else
             {
                 return ConstantValue.Bad;
-            }
-        }
-
-        private static void CheckNativeIntegerFeatureAvailability(BinaryOperatorKind operatorKind, SyntaxNode syntax, BindingDiagnosticBag diagnostics)
-        {
-            switch (operatorKind & BinaryOperatorKind.TypeMask)
-            {
-                case BinaryOperatorKind.NInt:
-                case BinaryOperatorKind.NUInt:
-                    CheckFeatureAvailability(syntax, MessageID.IDS_FeatureNativeInt, diagnostics);
-                    break;
-            }
-        }
-
-        private static void CheckNativeIntegerFeatureAvailability(UnaryOperatorKind operatorKind, SyntaxNode syntax, BindingDiagnosticBag diagnostics)
-        {
-            switch (operatorKind & UnaryOperatorKind.TypeMask)
-            {
-                case UnaryOperatorKind.NInt:
-                case UnaryOperatorKind.NUInt:
-                    CheckFeatureAvailability(syntax, MessageID.IDS_FeatureNativeInt, diagnostics);
-                    break;
             }
         }
     }
