@@ -747,11 +747,11 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 
         [Theory]
         [CombinatorialData]
-        public async Task DesignTimeOnlyDocument_Wpf(bool delayLoad, bool open)
+        public async Task DesignTimeOnlyDocument_Wpf([CombinatorialValues(LanguageNames.CSharp, LanguageNames.VisualBasic)] string language, bool delayLoad, bool open)
         {
             var sourceA = "class A { }";
-            var sourceB = "class B { }";
-            var sourceC = "Class C : End Class";
+            var sourceB = (language == LanguageNames.CSharp) ? "class B { }" : "Class C : End Class";
+            var sourceB2 = (language == LanguageNames.CSharp) ? "class B2 { }" : "Class C2 : End Class";
 
             var dir = Temp.CreateDirectory();
             var sourceFileA = dir.CreateFile("a.cs").WriteAllText(sourceA);
@@ -759,22 +759,18 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             using var _ = CreateWorkspace(out var solution, out var service);
 
             // the workspace starts with a version of the source that's not updated with the output of single file generator (or design-time build):
-            var csProjectId = ProjectId.CreateNewId();
-            var vbProjectId = ProjectId.CreateNewId();
-            var documentAId = DocumentId.CreateNewId(csProjectId);
-            var documentBId = DocumentId.CreateNewId(csProjectId);
-            var documentCId = DocumentId.CreateNewId(vbProjectId);
+
+            var projectId = ProjectId.CreateNewId();
+            var documentAId = DocumentId.CreateNewId(projectId);
+            var documentBId = DocumentId.CreateNewId(projectId);
 
             solution = solution.
-                AddProject(csProjectId, "test_cs", "test_cs", LanguageNames.CSharp).
-                AddDocument(documentAId, "a.cs", SourceText.From(sourceA, Encoding.UTF8), filePath: sourceFileA.Path).
-                AddDocument(documentBId, "b.g.i.cs", SourceText.From(sourceB, Encoding.UTF8), filePath: "b.g.i.cs").
-                AddMetadataReferences(csProjectId, TargetFrameworkUtil.GetReferences(TargetFramework.Mscorlib40)).
-                AddProject(vbProjectId, "test_vb", "test_vb", LanguageNames.VisualBasic).
-                AddDocument(documentCId, "c.g.i.vb", SourceText.From(sourceC, Encoding.UTF8), filePath: "c.g.i.vb").
-                AddMetadataReferences(vbProjectId, TargetFrameworkUtil.GetReferences(TargetFramework.Mscorlib40));
+                AddProject(projectId, "test", "test", language).
+                AddDocument(documentAId, "a.xx", SourceText.From(sourceA, Encoding.UTF8), filePath: sourceFileA.Path).
+                AddDocument(documentBId, "b.g.i.xx", SourceText.From(sourceB, Encoding.UTF8), filePath: Path.Combine(dir.Path, "b.g.i.xx")).
+                AddMetadataReferences(projectId, TargetFrameworkUtil.GetReferences(TargetFramework.Mscorlib40));
 
-            // only compile A; B and C are design-time-only:
+            // only compile A; B is design-time-only:
             var moduleId = EmitLibrary(sourceA, sourceFilePath: sourceFileA.Path);
 
             if (!delayLoad)
@@ -785,23 +781,39 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             // make sure renames are not supported:
             _debuggerService.GetCapabilitiesImpl = () => ImmutableArray.Create("Baseline");
 
-            var openDocumentIds = open ? ImmutableArray.Create(documentBId, documentCId) : ImmutableArray<DocumentId>.Empty;
+            var openDocumentIds = open ? ImmutableArray.Create(documentBId) : ImmutableArray<DocumentId>.Empty;
             var sessionId = await service.StartDebuggingSessionAsync(solution, _debuggerService, captureMatchingDocuments: openDocumentIds, captureAllMatchingDocuments: false, reportDiagnostics: true, CancellationToken.None);
             var debuggingSession = service.GetTestAccessor().GetDebuggingSession(sessionId);
 
-            EnterBreakState(debuggingSession);
+            var documentB = solution.GetDocument(documentBId);
+
+            var activeLineSpan = new LinePositionSpan(new(0, 0), new(0, 1));
+            var activeStatements = ImmutableArray.Create(
+                new ManagedActiveStatementDebugInfo(
+                    new ManagedInstructionId(new ManagedMethodId(moduleId, token: 0x06000001, version: 1), ilOffset: 1),
+                    documentB.FilePath,
+                    activeLineSpan.ToSourceSpan(),
+                    ActiveStatementFlags.NonLeafFrame | ActiveStatementFlags.MethodUpToDate));
+
+            EnterBreakState(debuggingSession, activeStatements);
 
             // change the source (rude edit):
-            solution = solution.
-                WithDocumentText(documentBId, SourceText.From("class B1 { }")).
-                WithDocumentText(documentCId, SourceText.From("Class C2 : End Class"));
+            solution = solution.WithDocumentText(documentBId, SourceText.From(sourceB2));
 
             var documentB2 = solution.GetDocument(documentBId);
-            var documentC2 = solution.GetDocument(documentCId);
+
+            Assert.True(documentB2.State.SupportsEditAndContinue());
+            Assert.True(documentB2.Project.SupportsEditAndContinue());
+
+            var activeStatementMap = await debuggingSession.EditSession.BaseActiveStatements.GetValueAsync(CancellationToken.None);
+            Assert.NotEmpty(activeStatementMap.DocumentPathMap);
+
+            // Active statements in design-time documents should be left unchanged.
+            var asSpans = await debuggingSession.GetBaseActiveStatementSpansAsync(solution, ImmutableArray.Create(documentBId), CancellationToken.None);
+            Assert.Equal(activeLineSpan, asSpans.Single().Single().LineSpan);
 
             // no Rude Edits reported:
             Assert.Empty(await service.GetDocumentDiagnosticsAsync(documentB2, s_noActiveSpans, CancellationToken.None));
-            Assert.Empty(await service.GetDocumentDiagnosticsAsync(documentC2, s_noActiveSpans, CancellationToken.None));
 
             // validate solution update status and emit:
             var (updates, emitDiagnostics) = await EmitSolutionUpdateAsync(debuggingSession, solution);
