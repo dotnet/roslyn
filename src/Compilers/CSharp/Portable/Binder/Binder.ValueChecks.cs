@@ -2208,6 +2208,20 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         if (mixableArg.IsOut || (fromParameter is { Type: { IsRefLikeType: false } }))
                         {
+                            valid = CheckRefEscape(fromArg.Syntax, fromArg, scopeOfTheContainingExpression, toArgEscape, checkingReceiver: false, diagnostics);
+                        }
+                    }
+                    else
+                    {
+                        valid = CheckValEscape(fromArg.Syntax, fromArg, scopeOfTheContainingExpression, toArgEscape, checkingReceiver: false, diagnostics);
+                    }
+
+                    /*
+
+                    if (isRefEscape)
+                    {
+                        if (mixableArg.IsOut || (fromParameter is { Type: { IsRefLikeType: false } }))
+                        {
                             var fromArgRefEscape = GetRefEscape(fromArg, scopeOfTheContainingExpression);
                             if (fromArgRefEscape > toArgEscape)
                             {
@@ -2223,6 +2237,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                             valid = false;
                         }
                     }
+
+                    */
 
                     if (!valid)
                     {
