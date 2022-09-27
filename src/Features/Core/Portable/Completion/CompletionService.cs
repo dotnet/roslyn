@@ -15,7 +15,6 @@ using Microsoft.CodeAnalysis.Completion.Providers;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.PatternMatching;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -235,6 +234,10 @@ namespace Microsoft.CodeAnalysis.Completion
             }
         }
 
+        // The FilterItems method might need to handle a large list of items when import completion is enabled and filter text is
+        // very short, i.e. <= 1. Therefore, use pooled list to avoid repeated (potentially LOH) allocations.
+        private static readonly ObjectPool<List<MatchResult>> s_listOfMatchResultPool = new(factory: () => new());
+
         /// <summary>
         /// Given a list of completion items that match the current code typed by the user,
         /// returns the item that is considered the best match, and whether or not that
@@ -249,29 +252,37 @@ namespace Microsoft.CodeAnalysis.Completion
             string filterText)
         {
             var helper = CompletionHelper.GetHelper(document);
-            var itemsWithPatternMatch = new SegmentedList<(CompletionItem, PatternMatch?)>(items.Select(
-                item => (item, helper.GetMatch(item, filterText, includeMatchSpans: false, CultureInfo.CurrentCulture))));
+            var filterDataList = new SegmentedList<MatchResult>(items.Select(
+                item => helper.GetMatchResult(item, filterText, includeMatchSpans: false, CultureInfo.CurrentCulture)));
 
-            var builder = ImmutableArray.CreateBuilder<CompletionItem>();
-            FilterItems(helper, itemsWithPatternMatch, filterText, builder);
-            return builder.ToImmutable();
+            var builder = s_listOfMatchResultPool.Allocate();
+            try
+            {
+                FilterItems(helper, filterDataList, filterText, builder);
+                return builder.SelectAsArray(result => result.CompletionItem);
+            }
+            finally
+            {
+                // Don't call ClearAndFree, which resets the capacity to a default value.
+                builder.Clear();
+                s_listOfMatchResultPool.Free(builder);
+            }
         }
 
         internal virtual void FilterItems(
            Document document,
-           IReadOnlyList<(CompletionItem, PatternMatch?)> itemsWithPatternMatch,
+           IReadOnlyList<MatchResult> matchResults,
            string filterText,
-           IList<CompletionItem> builder)
+           IList<MatchResult> builder)
         {
 #pragma warning disable RS0030 // Do not used banned APIs
             // Default implementation just drops the pattern matches and builder, and calls the public overload of FilterItems instead for compatibility.
-            builder.AddRange(FilterItems(document, itemsWithPatternMatch.SelectAsArray(item => item.Item1), filterText));
+            var filteredItems = FilterItems(document, matchResults.SelectAsArray(item => item.CompletionItem), filterText);
 #pragma warning restore RS0030 // Do not used banned APIs
-        }
 
-        // The FilterItems method might need to handle a large list of items when import completion is enabled and filter text is
-        // very short, i.e. <= 1. Therefore, use pooled list to avoid repeated (potentially LOH) allocations.
-        private static readonly ObjectPool<List<(CompletionItem item, PatternMatch? match)>> s_listOfItemMatchPairPool = new(factory: () => new());
+            var helper = CompletionHelper.GetHelper(document);
+            builder.AddRange(filteredItems.Select(item => helper.GetMatchResult(item, filterText, includeMatchSpans: false, CultureInfo.CurrentCulture)));
+        }
 
         /// <summary>
         /// Determine among the provided items the best match w.r.t. the given filter text, 
@@ -279,9 +290,9 @@ namespace Microsoft.CodeAnalysis.Completion
         /// </summary>
         internal static void FilterItems(
             CompletionHelper completionHelper,
-            IReadOnlyList<(CompletionItem item, PatternMatch? match)> itemsWithPatternMatch,
+            IReadOnlyList<MatchResult> matchResults,
             string filterText,
-            IList<CompletionItem> builder)
+            IList<MatchResult> builder)
         {
             // It's very common for people to type expecting completion to fix up their casing,
             // so if no uppercase characters were typed so far, we'd loosen our standard on comparing items
@@ -291,43 +302,32 @@ namespace Microsoft.CodeAnalysis.Completion
             // item2 a better match.
             var filterTextHasNoUpperCase = !filterText.Any(char.IsUpper);
 
-            var bestItems = s_listOfItemMatchPairPool.Allocate();
-
-            try
+            foreach (var matchResult in matchResults)
             {
-                foreach (var pair in itemsWithPatternMatch)
+                if (!matchResult.ShouldBeConsideredMatchingFilterText)
+                    continue;
+
+                if (builder.Count == 0)
                 {
-                    if (bestItems.Count == 0)
-                    {
-                        // We've found no good items yet.  So this is the best item currently.
-                        bestItems.Add(pair);
-                        continue;
-                    }
-
-                    var (bestItem, bestItemMatch) = bestItems[0];
-                    var comparison = completionHelper.CompareItems(pair.item, pair.match, bestItem, bestItemMatch, filterTextHasNoUpperCase);
-
-                    if (comparison == 0)
-                    {
-                        // This item is as good as the items we've been collecting.  We'll return it and let the controller
-                        // decide what to do.  (For example, it will pick the one that has the best MRU index).
-                        bestItems.Add(pair);
-                    }
-                    else if (comparison < 0)
-                    {
-                        // This item is strictly better than the best items we've found so far.
-                        bestItems.Clear();
-                        bestItems.Add(pair);
-                    }
+                    // We've found no good items yet.  So this is the best item currently.
+                    builder.Add(matchResult);
+                    continue;
                 }
 
-                builder.AddRange(bestItems.Select(itemWithPatternMatch => itemWithPatternMatch.item));
-            }
-            finally
-            {
-                // Don't call ClearAndFree, which resets the capacity to a default value.
-                bestItems.Clear();
-                s_listOfItemMatchPairPool.Free(bestItems);
+                var comparison = completionHelper.CompareMatchResults(matchResult, builder[0], filterTextHasNoUpperCase);
+
+                if (comparison == 0)
+                {
+                    // This item is as good as the items we've been collecting.  We'll return it and let the controller
+                    // decide what to do.  (For example, it will pick the one that has the best MRU index).
+                    builder.Add(matchResult);
+                }
+                else if (comparison < 0)
+                {
+                    // This item is strictly better than the best items we've found so far.
+                    builder.Clear();
+                    builder.Add(matchResult);
+                }
             }
         }
 

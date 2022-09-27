@@ -41,6 +41,11 @@ namespace Microsoft.CodeAnalysis
         RefKind RefKind { get; }
 
         /// <summary>
+        /// Returns the scoped kind of the local.
+        /// </summary>
+        ScopedKind ScopedKind { get; }
+
+        /// <summary>
         /// Returns false if the local variable wasn't declared as "const", or constant value was omitted or erroneous.
         /// True otherwise.
         /// </summary>
