@@ -8,6 +8,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Dynamic;
 using Microsoft.CodeAnalysis.CSharp.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -19,6 +20,101 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     internal partial class Binder
     {
+#nullable enable
+        /// <summary>
+        /// This is an argument that needs to be considered for MAMM rules. It's at least an 
+        /// output argument of the function and very often also an input. Essentially this 
+        /// represents all the in, ref and out arguments.
+        /// </summary>
+        internal readonly struct MixableArgument
+        {
+            internal BoundExpression Argument { get; }
+
+            /// <summary>
+            /// In the case this is the argument for a ref / out parameter this will refer
+            /// to the corresponding parameter. This will be null in cases like arguments 
+            /// passed to an arglist
+            /// </summary>
+            internal ParameterSymbol? Parameter { get; }
+
+            internal bool IsOut => Parameter is { RefKind: RefKind.Out };
+
+            internal MixableArgument(ParameterSymbol? parameter, BoundExpression argument)
+            {
+                Argument = argument;
+                Parameter = parameter;
+            }
+
+            public override string? ToString() => Parameter is { } p
+                ? p.ToString()
+                : Argument.ToString();
+        }
+
+        internal readonly struct EscapeArgument
+        {
+            /// <summary>
+            /// This will be null in cases like arglist or a function pointer receiver.
+            /// </summary>
+            internal ParameterSymbol? Parameter { get; }
+
+            internal BoundExpression Argument { get; }
+
+            internal RefKind RefKind { get; }
+            internal bool IsArgList { get; }
+
+            internal EscapeArgument(ParameterSymbol? parameter, BoundExpression argument, RefKind refKind, bool isArgList = false)
+            {
+                Debug.Assert(!isArgList || parameter is null);
+                Argument = argument;
+                Parameter = parameter;
+                RefKind = refKind;
+                IsArgList = isArgList;
+            }
+
+            public void Deconstruct(out ParameterSymbol? parameter, out BoundExpression argument, out RefKind refKind)
+            {
+                parameter = Parameter;
+                argument = Argument;
+                refKind = RefKind;
+            }
+
+            public override string? ToString() => Parameter is { } p
+                ? p.ToString()
+                : Argument.ToString();
+        }
+
+        internal readonly struct EscapeValue
+        {
+            /// <summary>
+            /// This will be null in cases like arglist or a function pointer receiver.
+            /// </summary>
+            internal ParameterSymbol? Parameter { get; }
+
+            internal BoundExpression Argument { get; }
+
+            internal bool IsRefEscape { get; }
+
+            internal EscapeValue(ParameterSymbol? parameter, BoundExpression argument, bool isRefEscape)
+            {
+                Argument = argument;
+                Parameter = parameter;
+                IsRefEscape = isRefEscape;
+            }
+
+            public void Deconstruct(out ParameterSymbol? parameter, out BoundExpression argument, out bool isRefEscape)
+            {
+                parameter = Parameter;
+                argument = Argument;
+                isRefEscape = IsRefEscape;
+            }
+
+            public override string? ToString() => Parameter is { } p
+                ? p.ToString()
+                : Argument.ToString();
+        }
+
+#nullable disable
+
         /// <summary>
         /// For the purpose of escape verification we operate with the depth of local scopes.
         /// The depth is a uint, with smaller number representing shallower/wider scopes.
@@ -1508,7 +1604,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             //by default it is safe to escape
             uint escapeScope = Binder.CallingMethodScope;
 
-            var argsAndParams = ArrayBuilder<(ParameterSymbol? Parameter, BoundExpression Argument, RefKind RefKind)>.GetInstance();
+            var escapeArguments = ArrayBuilder<EscapeArgument>.GetInstance();
             GetInvocationArgumentsForEscape(
                 symbol,
                 receiver: null, // receiver handled explicitly below
@@ -1520,11 +1616,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // __refvalue is not ref-returnable, so ref varargs can't come back from a call
                 ignoreArglistRefKinds: true,
                 mixableArguments: null,
-                argsAndParams);
+                escapeArguments);
 
             try
             {
-                foreach (var (parameter, argument, effectiveRefKind) in argsAndParams)
+                foreach (var (parameter, argument, effectiveRefKind) in escapeArguments)
                 {
                     // ref escape scope is the narrowest of 
                     // - ref escape of all byref arguments
@@ -1548,7 +1644,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             finally
             {
-                argsAndParams.Free();
+                escapeArguments.Free();
             }
 
             // check receiver if ref-like
@@ -1573,7 +1669,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             //by default it is safe to escape
             uint escapeScope = Binder.CallingMethodScope;
 
-            var argsAndParamsAll = ArrayBuilder<(ParameterSymbol? Parameter, BoundExpression Argument, bool IsRefEscape)>.GetInstance();
+            var argsAndParamsAll = ArrayBuilder<EscapeValue>.GetInstance();
             GetFilteredInvocationArgumentsForEscapeWithUpdatedRules(
                 symbol,
                 receiver,
@@ -1582,7 +1678,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 argRefKindsOpt,
                 argsToParamsOpt,
                 isRefEscape,
-                checkingMethodArgumentsMustMatch: false,
                 ignoreArglistRefKinds: true, // https://github.com/dotnet/roslyn/issues/63325: for compatibility with C#10 implementation.
                 argsAndParamsAll);
             foreach (var argAndParam in argsAndParamsAll)
@@ -1648,7 +1743,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 receiver = null;
             }
 
-            var argsAndParams = ArrayBuilder<(ParameterSymbol? Parameter, BoundExpression Argument, RefKind RefKind)>.GetInstance();
+            var escapeArguments = ArrayBuilder<EscapeArgument>.GetInstance();
             GetInvocationArgumentsForEscape(
                 symbol,
                 receiver: null, // receiver handled explicitly below
@@ -1660,11 +1755,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // __refvalue is not ref-returnable, so ref varargs can't come back from a call
                 ignoreArglistRefKinds: true,
                 mixableArguments: null,
-                argsAndParams);
+                escapeArguments);
 
             try
             {
-                foreach (var (parameter, argument, effectiveRefKind) in argsAndParams)
+                foreach (var (parameter, argument, effectiveRefKind) in escapeArguments)
                 {
                     // ref escape scope is the narrowest of 
                     // - ref escape of all byref arguments
@@ -1686,7 +1781,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             finally
             {
-                argsAndParams.Free();
+                escapeArguments.Free();
             }
 
             // check receiver if ref-like
@@ -1714,7 +1809,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             bool result = true;
 
-            var argsAndParamsAll = ArrayBuilder<(ParameterSymbol? Parameter, BoundExpression Argument, bool IsRefEscape)>.GetInstance();
+            var argsAndParamsAll = ArrayBuilder<EscapeValue>.GetInstance();
             GetFilteredInvocationArgumentsForEscapeWithUpdatedRules(
                 symbol,
                 receiver,
@@ -1723,7 +1818,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 argRefKindsOpt,
                 argsToParamsOpt,
                 isRefEscape,
-                checkingMethodArgumentsMustMatch: false,
                 ignoreArglistRefKinds: true, // https://github.com/dotnet/roslyn/issues/63325: for compatibility with C#10 implementation.
                 argsAndParamsAll);
             foreach (var argAndParam in argsAndParamsAll)
@@ -1751,30 +1845,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             return result;
         }
 
-        internal readonly struct MixableArgument
-        {
-            internal BoundExpression Argument { get; }
-
-            /// <summary>
-            /// In the case this is the argument for a ref / out parameter this will refer
-            /// to the corresponding parameter. This will be null in cases like arguments 
-            /// passed to an arglist
-            /// </summary>
-            internal ParameterSymbol? Parameter { get; }
-
-            internal bool IsOut => Parameter is { RefKind: RefKind.Out };
-
-            internal MixableArgument(BoundExpression argument, ParameterSymbol? parameter)
-            {
-                Argument = argument;
-                Parameter = parameter;
-            }
-
-            public override string? ToString() => Parameter is { } p
-                ? p.ToString()
-                : Argument.ToString();
-        }
-
         /// <summary>
         /// Returns the set of arguments to be considered for escape analysis of a method invocation.
         /// Each argument is returned with the correponding parameter and ref kind. Arguments are not
@@ -1791,16 +1861,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<int> argsToParamsOpt,
             bool ignoreArglistRefKinds,
             ArrayBuilder<MixableArgument>? mixableArguments,
-            ArrayBuilder<(ParameterSymbol? Parameter, BoundExpression Argument, RefKind RefKind)> argsAndParams)
+            ArrayBuilder<EscapeArgument> escapeArguments)
         {
             if (receiver is { })
             {
                 var tuple = getReceiver(symbol, receiver);
-                argsAndParams.Add(tuple);
+                escapeArguments.Add(tuple);
 
                 if (tuple.Parameter is not null && receiver.Type is { IsRefLikeType: true } && mixableArguments is not null)
                 {
-                    mixableArguments.Add(new MixableArgument(receiver, tuple.Parameter));
+                    mixableArguments.Add(new MixableArgument(tuple.Parameter, receiver));
                 }
             }
 
@@ -1817,7 +1887,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         getArgList(
                             argList.Arguments,
                             ignoreArglistRefKinds ? default : argList.ArgumentRefKindsOpt,
-                            argsAndParams);
+                            mixableArguments,
+                            escapeArguments);
                         break;
                     }
 
@@ -1828,7 +1899,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (mixableArguments is not null &&
                         parameter is { RefKind: RefKind.Out or RefKind.Ref, Type: { IsRefLikeType: true } })
                     {
-                        mixableArguments.Add(new MixableArgument(argument, parameter));
+                        mixableArguments.Add(new MixableArgument(parameter, argument));
                     }
 
                     var refKind = parameter?.RefKind ?? RefKind.None;
@@ -1842,15 +1913,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                         refKind = RefKind.In;
                     }
 
-                    argsAndParams.Add((parameter, argument, refKind));
+                    escapeArguments.Add(new EscapeArgument(parameter, argument, refKind));
                 }
             }
 
-            static (ParameterSymbol? Parameter, BoundExpression Argument, RefKind RefKind) getReceiver(Symbol symbol, BoundExpression receiver)
+            static EscapeArgument getReceiver(Symbol symbol, BoundExpression receiver)
             {
                 if (symbol is FunctionPointerMethodSymbol)
                 {
-                    return (null, receiver, RefKind.None);
+                    return new EscapeArgument(parameter: null, receiver, RefKind.None);
                 }
                 var method = symbol switch
                 {
@@ -1868,23 +1939,24 @@ namespace Microsoft.CodeAnalysis.CSharp
                     refKind = thisParameter.RefKind;
                 }
 
-                return (thisParameter, receiver, refKind);
+                return new EscapeArgument(thisParameter, receiver, refKind);
             }
 
-            void getArgList(
+            static void getArgList(
                 ImmutableArray<BoundExpression> argsOpt,
                 ImmutableArray<RefKind> argRefKindsOpt,
-                ArrayBuilder<(ParameterSymbol? Parameter, BoundExpression Argument, RefKind RefKind)> argsAndParams)
+                ArrayBuilder<MixableArgument>? mixableArguments,
+                ArrayBuilder<EscapeArgument> escapeArguments)
             {
                 for (int argIndex = 0; argIndex < argsOpt.Length; argIndex++)
                 {
                     var argument = argsOpt[argIndex];
                     var refKind = argRefKindsOpt.IsDefault ? RefKind.None : argRefKindsOpt[argIndex];
-                    argsAndParams.Add((null, argument, refKind));
+                    escapeArguments.Add(new EscapeArgument(parameter: null, argument, refKind, isArgList: true));
 
                     if (refKind == RefKind.Ref && mixableArguments is not null)
                     {
-                        mixableArguments.Add(new MixableArgument(argument, parameter: null));
+                        mixableArguments.Add(new MixableArgument(parameter: null, argument));
                     }
                 }
             }
@@ -1904,9 +1976,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<RefKind> argRefKindsOpt,
             ImmutableArray<int> argsToParamsOpt,
             bool isRefEscape,
-            bool checkingMethodArgumentsMustMatch,
             bool ignoreArglistRefKinds,
-            ArrayBuilder<(ParameterSymbol? Parameter, BoundExpression Argument, bool IsRefEsacpe)> result)
+            ArrayBuilder<EscapeValue> escapeValues)
         {
             GetFilteredArguments(
                 symbol,
@@ -1917,16 +1988,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                 argsToParamsOpt,
                 ignoreArglistRefKinds,
                 mixableArguments: null,
-                result);
+                escapeValues);
 
             bool includeRefScopes = shouldIncludeRefScopes();
             int index = 0;
-            while (index < result.Count)
+            while (index < escapeValues.Count)
             {
-                var tuple = result[index];
-                if (!includeRefScopes && tuple.IsRefEsacpe)
+                var tuple = escapeValues[index];
+                if (!includeRefScopes && tuple.IsRefEscape)
                 {
-                    result.RemoveAt(index);
+                    escapeValues.RemoveAt(index);
                 }
                 else
                 {
@@ -1966,7 +2037,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         /// <summary>
         /// Returns the set of arguments to an invocation that impact ref analysis. This will 
-        /// filter out everything that could never meaningfully contribute to ref analysis
+        /// filter out everything that could never meaningfully contribute to ref analysis. For
+        /// example it will remove anything which corresponds to scope parameters. For ref
+        /// parameters it will place in two values representing both the RSTS and STS
         /// </summary>
         private void GetFilteredArguments(
             Symbol symbol,
@@ -1977,7 +2050,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<int> argsToParamsOpt,
             bool ignoreArglistRefKinds,
             ArrayBuilder<MixableArgument>? mixableArguments,
-            ArrayBuilder<(ParameterSymbol? Parameter, BoundExpression Argument, bool IsRefEscape)> result)
+            ArrayBuilder<EscapeValue> escapeValues)
         {
             if (!symbol.RequiresInstanceReceiver())
             {
@@ -1985,7 +2058,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 receiver = null;
             }
 
-            var argsAndParams = ArrayBuilder<(ParameterSymbol? Parameter, BoundExpression Argument, RefKind RefKind)>.GetInstance();
+            var escapeArguments = ArrayBuilder<EscapeArgument>.GetInstance();
             GetInvocationArgumentsForEscape(
                 symbol,
                 receiver,
@@ -1995,21 +2068,21 @@ namespace Microsoft.CodeAnalysis.CSharp
                 argsToParamsOpt,
                 ignoreArglistRefKinds,
                 mixableArguments,
-                argsAndParams);
+                escapeArguments);
 
-            foreach (var (parameter, argument, refKind) in argsAndParams)
+            foreach (var (parameter, argument, refKind) in escapeArguments)
             {
                 if (parameter is null)
                 {
-                    // This means it's part of an __arglist. 
+                    // This means it's part of an __arglist or function pointer receiver. 
                     if (refKind != RefKind.None)
                     {
-                        result.Add((null, argument, IsRefEscape: true));
+                        escapeValues.Add(new EscapeValue(parameter: null, argument, isRefEscape: true));
                     }
 
                     if (argument.Type?.IsRefLikeType == true)
                     {
-                        result.Add((null, argument, IsRefEscape: false));
+                        escapeValues.Add(new EscapeValue(parameter: null, argument, isRefEscape: false));
                     }
 
                     continue;
@@ -2019,21 +2092,21 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     if (parameter.EffectiveScope == DeclarationScope.Unscoped)
                     {
-                        result.Add((parameter, argument, IsRefEscape: true));
+                        escapeValues.Add(new EscapeValue(parameter, argument, isRefEscape: true));
                     }
 
                     if (parameter.RefKind != RefKind.Out && parameter.Type.IsRefLikeType)
                     {
-                        result.Add((parameter, argument, IsRefEscape: false));
+                        escapeValues.Add(new EscapeValue(parameter, argument, isRefEscape: false));
                     }
                 }
                 else if (parameter.Type.IsRefLikeType && parameter.EffectiveScope == DeclarationScope.Unscoped)
                 {
-                    result.Add((parameter, argument, IsRefEscape: false));
+                    escapeValues.Add(new EscapeValue(parameter, argument, isRefEscape: false));
                 }
             }
 
-            argsAndParams.Free();
+            escapeArguments.Free();
         }
 
         private static string GetInvocationParameterName(ParameterSymbol? parameter)
@@ -2114,7 +2187,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 escapeTo = GetValEscape(receiverOpt, scopeOfTheContainingExpression);
             }
 
-            var argsAndParams = ArrayBuilder<(ParameterSymbol? Parameter, BoundExpression Argument, RefKind RefKind)>.GetInstance();
+            var escapeArguments = ArrayBuilder<EscapeArgument>.GetInstance();
             GetInvocationArgumentsForEscape(
                 symbol,
                 receiver: null, // receiver handled explicitly below
@@ -2124,11 +2197,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 argsToParamsOpt,
                 ignoreArglistRefKinds: false,
                 mixableArguments: null,
-                argsAndParams);
+                escapeArguments);
 
             try
             {
-                foreach (var (_, argument, refKind) in argsAndParams)
+                foreach (var (_, argument, refKind) in escapeArguments)
                 {
                     if (refKind.IsWritableReference() && argument.Type?.IsRefLikeType == true)
                     {
@@ -2142,7 +2215,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return true;
                 }
 
-                foreach (var (parameter, argument, _) in argsAndParams)
+                foreach (var (parameter, argument, _) in escapeArguments)
                 {
                     var valid = CheckValEscape(argument.Syntax, argument, scopeOfTheContainingExpression, escapeTo, false, diagnostics);
 
@@ -2156,7 +2229,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             finally
             {
-                argsAndParams.Free();
+                escapeArguments.Free();
             }
 
             // check val escape of receiver if ref-like
@@ -2181,7 +2254,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BindingDiagnosticBag diagnostics)
         {
             var mixableArguments = ArrayBuilder<MixableArgument>.GetInstance();
-            var argList = ArrayBuilder<(ParameterSymbol? Parameter, BoundExpression Argument, bool IsRefEscape)>.GetInstance();
+            var escapeValues = ArrayBuilder<EscapeValue>.GetInstance();
             GetFilteredArguments(
                 symbol,
                 receiverOpt,
@@ -2191,13 +2264,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 argsToParamsOpt,
                 ignoreArglistRefKinds: false,
                 mixableArguments,
-                argList);
+                escapeValues);
 
             var valid = true;
             foreach (var mixableArg in mixableArguments)
             {
                 var toArgEscape = GetValEscape(mixableArg.Argument, symbol, scopeOfTheContainingExpression);
-                foreach (var (fromParameter, fromArg, isRefEscape) in argList)
+                foreach (var (fromParameter, fromArg, isRefEscape) in escapeValues)
                 {
                     if (mixableArg.Parameter is not null && object.ReferenceEquals(mixableArg.Parameter, fromParameter))
                     {
@@ -2216,30 +2289,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                         valid = CheckValEscape(fromArg.Syntax, fromArg, scopeOfTheContainingExpression, toArgEscape, checkingReceiver: false, diagnostics);
                     }
 
-                    /*
-
-                    if (isRefEscape)
-                    {
-                        if (mixableArg.IsOut || (fromParameter is { Type: { IsRefLikeType: false } }))
-                        {
-                            var fromArgRefEscape = GetRefEscape(fromArg, scopeOfTheContainingExpression);
-                            if (fromArgRefEscape > toArgEscape)
-                            {
-                                valid = false;
-                            }
-                        }
-                    }
-                    else
-                    {
-                        var fromArgValEscape = GetValEscape(fromArg, scopeOfTheContainingExpression);
-                        if (fromArgValEscape > toArgEscape)
-                        {
-                            valid = false;
-                        }
-                    }
-
-                    */
-
                     if (!valid)
                     {
                         string parameterName = GetInvocationParameterName(fromParameter);
@@ -2255,7 +2304,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             mixableArguments.Free();
-            argList.Free();
+            escapeValues.Free();
             return valid;
         }
 
@@ -3095,8 +3144,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal uint GetValEscape(BoundExpression expr, Symbol? symbol, uint scopeOfTheContainingExpression)
         {
-            if (expr.Kind == BoundKind.ThisReference && 
-                symbol is MethodSymbol {  MethodKind: MethodKind.Constructor })
+            if (expr.Kind == BoundKind.ThisReference &&
+                symbol is MethodSymbol { MethodKind: MethodKind.Constructor })
             {
                 return Binder.ReturnOnlyScope;
             }

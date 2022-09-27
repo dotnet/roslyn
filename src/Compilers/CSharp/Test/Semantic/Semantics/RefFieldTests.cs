@@ -21523,7 +21523,6 @@ struct S<T> : System.IDisposable
                 // (46,40): warning CS9088: This returns a parameter by reference 'p' but it is scoped to the current method
                 //     if (condition()) return Inner1(ref p); // 8
                 Diagnostic(ErrorCode.WRN_RefReturnScopedParameter, "p").WithArguments("p").WithLocation(46, 40));
- 
         }
 
         [Fact, WorkItem(63526, "https://github.com/dotnet/roslyn/issues/63526")]
