@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
                 Assert.Null(error);
 
                 var methodData = testData.GetMethodData("<>x.<>m0");
-                AssertIsIntPtrPointer(((MethodSymbol)methodData.Method).ReturnType);
+                AssertIsStringPointer(((MethodSymbol)methodData.Method).ReturnType);
                 methodData.VerifyIL(@"
 {
   // Code size        4 (0x4)
@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
                 Assert.Null(error);
 
                 var methodData = testData.GetMethodData("<>x.<>m0");
-                AssertIsIntPtrPointer(((MethodSymbol)methodData.Method).ReturnType);
+                AssertIsStringPointer(((MethodSymbol)methodData.Method).ReturnType);
                 methodData.VerifyIL(@"
 {
   // Code size        4 (0x4)
@@ -105,7 +105,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
                 Assert.Null(error);
 
                 var methodData = testData.GetMethodData("<>x.<>m0");
-                AssertIsIntPtrPointer(((MethodSymbol)methodData.Method).ReturnType);
+                AssertIsStringPointer(((MethodSymbol)methodData.Method).ReturnType);
                 methodData.VerifyIL(@"
 {
   // Code size        8 (0x8)
@@ -196,7 +196,7 @@ enum E
         }
 
         [Fact]
-        public void DisallowPointerType()
+        public void PointerTypeOfManagedType()
         {
             var source =
 @"class C
@@ -212,8 +212,19 @@ enum E
                 var testData = new CompilationTestData();
                 string error;
                 context.CompileExpression("(string*)null", out error, testData);
-                // CONSIDER: change error code to make text less confusing?
-                Assert.Equal("error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('string')", error);
+                Assert.Null(error);
+
+                var methodData = testData.GetMethodData("<>x.<>m0");
+                AssertIsStringPointer(((MethodSymbol)methodData.Method).ReturnType);
+                methodData.VerifyIL(@"
+{
+  // Code size        3 (0x3)
+  .maxstack  1
+  IL_0000:  ldc.i4.0
+  IL_0001:  conv.u
+  IL_0002:  ret
+}
+");
             });
         }
 
@@ -243,10 +254,10 @@ enum E
             });
         }
 
-        private static void AssertIsIntPtrPointer(TypeSymbol returnType)
+        private static void AssertIsStringPointer(TypeSymbol returnType)
         {
             Assert.Equal(TypeKind.Pointer, returnType.TypeKind);
-            Assert.Equal(SpecialType.System_IntPtr, ((PointerTypeSymbol)returnType).PointedAtType.SpecialType);
+            Assert.Equal(SpecialType.System_String, ((PointerTypeSymbol)returnType).PointedAtType.SpecialType);
         }
     }
 }

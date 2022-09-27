@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 foreach (var vdecl in _syntax.Declaration.Variables)
                 {
-                    var localSymbol = MakeLocal(_syntax.Declaration, vdecl, LocalDeclarationKind.RegularVariable, allowScoped: false); // https://github.com/dotnet/roslyn/issues/62039: Allow 'scoped' modifier.
+                    var localSymbol = MakeLocal(_syntax.Declaration, vdecl, LocalDeclarationKind.RegularVariable, allowScoped: true);
                     locals.Add(localSymbol);
 
                     // also gather expression-declared variables from the bracketed argument lists and the initializers

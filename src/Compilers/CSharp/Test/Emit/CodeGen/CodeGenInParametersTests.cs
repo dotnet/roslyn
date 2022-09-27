@@ -1128,22 +1128,22 @@ class Program
 
             var comp = CreateCompilationWithMscorlib45(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef });
             comp.VerifyDiagnostics(
-                // (6,9): error CS8331: Cannot assign to variable 'arg1' because it is a readonly variable
+                // (6,9): error CS8331: Cannot assign to variable 'arg1' or use it as the right hand side of a ref assignment because it is a readonly variable
                 //         arg1 = 1;
                 Diagnostic(ErrorCode.ERR_AssignReadonlyNotField, "arg1").WithArguments("variable", "arg1").WithLocation(6, 9),
-                // (7,9): error CS8332: Cannot assign to a member of variable 'arg2' because it is a readonly variable
+                // (7,9): error CS8332: Cannot assign to a member of variable 'arg2' or use it as the right hand side of a ref assignment because it is a readonly variable
                 //         arg2.Alice = 2;
                 Diagnostic(ErrorCode.ERR_AssignReadonlyNotField2, "arg2.Alice").WithArguments("variable", "arg2").WithLocation(7, 9),
-                // (9,9): error CS8331: Cannot assign to variable 'arg1' because it is a readonly variable
+                // (9,9): error CS8331: Cannot assign to variable 'arg1' or use it as the right hand side of a ref assignment because it is a readonly variable
                 //         arg1 ++;
                 Diagnostic(ErrorCode.ERR_AssignReadonlyNotField, "arg1").WithArguments("variable", "arg1").WithLocation(9, 9),
-                // (10,9): error CS8332: Cannot assign to a member of variable 'arg2' because it is a readonly variable
+                // (10,9): error CS8332: Cannot assign to a member of variable 'arg2' or use it as the right hand side of a ref assignment because it is a readonly variable
                 //         arg2.Alice --;
                 Diagnostic(ErrorCode.ERR_AssignReadonlyNotField2, "arg2.Alice").WithArguments("variable", "arg2").WithLocation(10, 9),
-                // (12,9): error CS8331: Cannot assign to variable 'arg1' because it is a readonly variable
+                // (12,9): error CS8331: Cannot assign to variable 'arg1' or use it as the right hand side of a ref assignment because it is a readonly variable
                 //         arg1 += 1;
                 Diagnostic(ErrorCode.ERR_AssignReadonlyNotField, "arg1").WithArguments("variable", "arg1").WithLocation(12, 9),
-                // (13,9): error CS8332: Cannot assign to a member of variable 'arg2' because it is a readonly variable
+                // (13,9): error CS8332: Cannot assign to a member of variable 'arg2' or use it as the right hand side of a ref assignment because it is a readonly variable
                 //         arg2.Alice -= 2;
                 Diagnostic(ErrorCode.ERR_AssignReadonlyNotField2, "arg2.Alice").WithArguments("variable", "arg2").WithLocation(13, 9));
         }

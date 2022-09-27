@@ -504,6 +504,23 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.WRN_DuplicateAnalyzerReference:
                 case ErrorCode.WRN_ScopedMismatchInParameterOfTarget:
                 case ErrorCode.WRN_ScopedMismatchInParameterOfOverrideOrImplementation:
+                case ErrorCode.WRN_ManagedAddr:
+                case ErrorCode.WRN_EscapeVariable:
+                case ErrorCode.WRN_EscapeStackAlloc:
+                case ErrorCode.WRN_RefReturnNonreturnableLocal:
+                case ErrorCode.WRN_RefReturnNonreturnableLocal2:
+                case ErrorCode.WRN_RefReturnStructThis:
+                case ErrorCode.WRN_RefAssignNarrower:
+                case ErrorCode.WRN_MismatchedRefEscapeInTernary:
+                case ErrorCode.WRN_RefReturnParameter:
+                case ErrorCode.WRN_RefReturnScopedParameter:
+                case ErrorCode.WRN_RefReturnParameter2:
+                case ErrorCode.WRN_RefReturnScopedParameter2:
+                case ErrorCode.WRN_RefReturnLocal:
+                case ErrorCode.WRN_RefReturnLocal2:
+                case ErrorCode.WRN_RefAssignReturnOnly:
+                case ErrorCode.WRN_RefReturnOnlyParameter:
+                case ErrorCode.WRN_RefReturnOnlyParameter2:
                     return 1;
                 default:
                     return 0;
@@ -2229,6 +2246,23 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.ERR_RefReturnOnlyParameter:
                 case ErrorCode.ERR_RefReturnOnlyParameter2:
                 case ErrorCode.ERR_RefAssignReturnOnly:
+                case ErrorCode.WRN_ManagedAddr:
+                case ErrorCode.WRN_EscapeVariable:
+                case ErrorCode.WRN_EscapeStackAlloc:
+                case ErrorCode.WRN_RefReturnNonreturnableLocal:
+                case ErrorCode.WRN_RefReturnNonreturnableLocal2:
+                case ErrorCode.WRN_RefReturnStructThis:
+                case ErrorCode.WRN_RefAssignNarrower:
+                case ErrorCode.WRN_MismatchedRefEscapeInTernary:
+                case ErrorCode.WRN_RefReturnParameter:
+                case ErrorCode.WRN_RefReturnScopedParameter:
+                case ErrorCode.WRN_RefReturnParameter2:
+                case ErrorCode.WRN_RefReturnScopedParameter2:
+                case ErrorCode.WRN_RefReturnLocal:
+                case ErrorCode.WRN_RefReturnLocal2:
+                case ErrorCode.WRN_RefAssignReturnOnly:
+                case ErrorCode.WRN_RefReturnOnlyParameter:
+                case ErrorCode.WRN_RefReturnOnlyParameter2:
                     return false;
                 default:
                     // NOTE: All error codes must be explicitly handled in this switch statement

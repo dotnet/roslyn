@@ -1497,7 +1497,7 @@ public static class Program
 }";
 
             CreateCompilationWithMscorlib40AndSystemCore(code).VerifyDiagnostics(
-                // (6,9): error CS8331: Cannot assign to variable 'p' because it is a readonly variable
+                // (6,9): error CS8331: Cannot assign to variable 'p' or use it as the right hand side of a ref assignment because it is a readonly variable
                 //         p++;
                 Diagnostic(ErrorCode.ERR_AssignReadonlyNotField, "p").WithArguments("variable", "p").WithLocation(6, 9));
         }

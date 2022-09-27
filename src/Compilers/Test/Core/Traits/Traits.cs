@@ -78,6 +78,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             public const string CodeActionsConvertSwitchStatementToExpression = "CodeActions.ConvertSwitchStatementToExpression";
             public const string CodeActionsConvertToInterpolatedString = "CodeActions.ConvertToInterpolatedString";
             public const string CodeActionsConvertToIterator = "CodeActions.ConvertToIterator";
+            public const string CodeActionsConvertToRecord = "CodeActions.ConvertToRecord";
             public const string CodeActionsConvertTupleToStruct = "CodeActions.ConvertTupleToStruct";
             public const string CodeActionsCorrectExitContinue = "CodeActions.CorrectExitContinue";
             public const string CodeActionsCorrectFunctionReturnType = "CodeActions.CorrectFunctionReturnType";

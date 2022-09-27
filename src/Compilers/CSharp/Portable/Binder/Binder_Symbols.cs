@@ -575,7 +575,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (!Flags.HasFlag(BinderFlags.SuppressConstraintChecks))
                 {
-                    CheckManagedAddr(Compilation, elementType.Type, node.Location, diagnostics);
+                    CheckManagedAddr(Compilation, elementType.Type, warnForManaged: Flags.HasFlag(BinderFlags.AllowManagedPointer), node.Location, diagnostics);
                 }
 
                 return TypeWithAnnotations.Create(new PointerTypeSymbol(elementType));
@@ -1173,22 +1173,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             else
             {
                 var boundTypeArguments = BindTypeArguments(typeArguments, diagnostics, basesBeingResolved);
-                if (unconstructedType.IsGenericType
-                    && options.IsAttributeTypeLookup())
-                {
-                    foreach (var typeArgument in boundTypeArguments)
-                    {
-                        var type = typeArgument.Type;
-                        if (type.IsUnboundGenericType() || type.ContainsTypeParameter())
-                        {
-                            diagnostics.Add(ErrorCode.ERR_AttrTypeArgCannotBeTypeVar, node.Location, type.ToDisplayString(SymbolDisplayFormat.CSharpErrorMessageFormat));
-                        }
-                        else
-                        {
-                            CheckDisallowedAttributeDependentType(typeArgument, node.Location, diagnostics);
-                        }
-                    }
-                }
 
                 // It's not an unbound type expression, so we must have type arguments, and we have a
                 // generic type of the correct arity in hand (possibly an error type). Bind the type
