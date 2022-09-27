@@ -143,6 +143,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
                 supportedPlatforms:=supportedPlatformData,
                 rules:=rules)
 
+            ' Use member name (w/o enum type name) as additional filter text, which would
+            ' promote this item during matching when user types member name only, Like "Red"
+            ' instead of "Colors.Empty"
             If symbols(0).Symbol.Kind = SymbolKind.Field Then
                 item = item.WithAdditionalFilterTexts(ImmutableArray.Create(symbols(0).Symbol.Name))
             End If

@@ -97,6 +97,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
                 context As VisualBasicSyntaxContext,
                 supportedPlatformData As SupportedPlatformData) As CompletionItem
 
+            ' Use symbol name (w/o containing type) as additional filter text, which would
+            ' promote this item during matching when user types member name only, Like "Empty"
+            ' instead of "ImmutableArray.Empty"
+            Dim additionalFilterTexts = ImmutableArray.Create(symbols(0).Symbol.Name)
             Return SymbolCompletionItem.CreateWithSymbolId(
                 displayText:=displayText,
                 displayTextSuffix:=displayTextSuffix,
@@ -106,7 +110,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
                 rules:=CompletionItemRules.Default.WithMatchPriority(MatchPriority.Preselect),
                 contextPosition:=context.Position,
                 sortText:=displayText,
-                supportedPlatforms:=supportedPlatformData).WithAdditionalFilterTexts(ImmutableArray.Create(symbols(0).Symbol.Name))
+                supportedPlatforms:=supportedPlatformData).WithAdditionalFilterTexts(additionalFilterTexts)
         End Function
     End Class
 End Namespace
