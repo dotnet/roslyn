@@ -29,10 +29,15 @@
     <CompilerVisibleProperty Include="MetalamaCompilerTransformerOrder" />
     <CompilerVisibleProperty Include="MetalamaCompilerTransformedFilesOutputPath" />
     <CompilerVisibleProperty Include="MetalamaDebugCompiler" />
-    <CompilerVisibleProperty Include="MetalamaSourceOnlyAnalyzers" />
+    <CompilerVisibleProperty Include="MetalamaTransformedCodeAnalyzers" />
     <CompilerVisibleProperty Include="MetalamaLicense" />
     <CompilerVisibleProperty Include="NETCoreSdkBundledVersionsProps" />
     <CompilerVisibleProperty Include="MSBuildProjectFullPath"/>
+
+    <MetalamaTransformedCodeAnalyzer Include="Microsoft.CodeAnalysis.CSharp.RemoveUnusedMembers"/>
+    <MetalamaTransformedCodeAnalyzer Include="Microsoft.CodeAnalysis.CSharp.RemoveUnusedParametersAndValues"/>
+    <MetalamaTransformedCodeAnalyzer Include="Microsoft.CodeQuality.Analyzers.Maintainability.AvoidUnusedPrivateFieldsAnalyzer"/>
+    
   </ItemGroup>
   <!-- </Metalama> -->
   
