@@ -554,6 +554,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     sourceOnlyAnalyzersOptions with { AnalyzerOptions = mappedOptions}, 
                     annotatedInputCompilation,
                     diagnostics, 
+                    GetLogger(services),
                     cancellationToken);
             }
 

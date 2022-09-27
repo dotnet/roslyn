@@ -144,12 +144,11 @@ namespace Metalama.Compiler
         private static (SyntaxNode? ancestor, SyntaxAnnotation? annotation) FindAncestorWithAnnotation(SyntaxNode node)
         {
             var ancestor = node;
-            SyntaxAnnotation? annotation = null;
 
             // find an ancestor that contains the annotation
             while (ancestor != null)
             {
-                if (ancestor.TryGetAnnotationFast(MetalamaCompilerAnnotations.OriginalLocationAnnotationKind, out annotation))
+                if (ancestor.TryGetAnnotationFast(MetalamaCompilerAnnotations.OriginalLocationAnnotationKind, out var annotation))
                 {
                     return (ancestor, annotation);
                 }
@@ -631,7 +630,7 @@ namespace Metalama.Compiler
 
                 if (sourceNode != null)
                 {
-                    return (sourceNode?.Location, sourceNode);
+                    return (sourceNode.Location, sourceNode);
                 }
                 else
                 {
@@ -651,7 +650,7 @@ namespace Metalama.Compiler
                         var newTextSpan = new TextSpan(sourcePosition, location.SourceSpan.Length);
                         
                         if (sourceTrivia.FullSpan.Contains(newTextSpan) && 
-                            location.SourceTree.GetText().GetSubText(location.SourceSpan).ToString() == sourceAncestor.SyntaxTree.GetText().GetSubText(newTextSpan).ToString() )
+                            tree.GetText().GetSubText(location.SourceSpan).ToString() == sourceAncestor.SyntaxTree.GetText().GetSubText(newTextSpan).ToString() )
                         {
                             // The source node indeeds maps to inside the trivia.
                             

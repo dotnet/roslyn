@@ -192,14 +192,39 @@ namespace Metalama.Compiler.UnitTests
         }
 
         [Fact]
-        public void SourceOnlyAnalyzerSeesSourceCode()
+        public void SourceOnlyAnalyzersSeeSourceCode()
+        {
+            var dir = Temp.CreateDirectory();
+            var src = dir.CreateFile("temp.cs").WriteAllText("class C {  }");
+
+
+            var args = new[] { "/t:library", src.Path };
+
+            var transformers = ImmutableArray.Create<ISourceTransformer>(new AppendTransformer("class D { }"));
+            var analyzers =
+                ImmutableArray.Create<DiagnosticAnalyzer>(new ReportWarningIfTwoCompilationUnitMembersAnalyzer());
+
+            var csc = CreateCSharpCompiler(null, dir.Path, args, transformers: transformers, analyzers: analyzers);
+
+            var outWriter = new StringWriter(CultureInfo.InvariantCulture);
+            var exitCode = csc.Run(outWriter);
+            var output = outWriter.ToString();
+
+            Assert.Contains("warning MY002", output);
+            Assert.DoesNotContain("warning MY001", output);
+
+            Assert.Equal(0, exitCode);
+        }
+        
+        [Fact]
+        public void TransformedCodeAnalyzersSeeTransformedCode()
         {
             var dir = Temp.CreateDirectory();
             var src = dir.CreateFile("temp.cs").WriteAllText("class C {  }");
 
             var analyzerConfig = dir.CreateFile(".editorconfig").WriteAllText($@"
 is_global = true
-build_property.MetalamaSourceOnlyAnalyzers = all");
+build_property.MetalamaTransformedCodeAnalyzers = {typeof(ReportWarningIfTwoCompilationUnitMembersAnalyzer).FullName}");
 
             var args = new[] { "/t:library", $"/analyzerconfig:{analyzerConfig.Path}", src.Path };
 
@@ -214,7 +239,35 @@ build_property.MetalamaSourceOnlyAnalyzers = all");
             var output = outWriter.ToString();
 
             Assert.Contains("warning MY002", output);
-            Assert.DoesNotContain("warning MY001", output);
+            Assert.Contains("warning MY001", output);
+
+            Assert.Equal(0, exitCode);
+        }
+        
+        [Fact]
+        public void TransformedCodeAnalyzersSeeTransformedCode_NamespaceRule()
+        {
+            var dir = Temp.CreateDirectory();
+            var src = dir.CreateFile("temp.cs").WriteAllText("class C {  }");
+
+            var analyzerConfig = dir.CreateFile(".editorconfig").WriteAllText($@"
+is_global = true
+build_property.MetalamaTransformedCodeAnalyzers = {typeof(ReportWarningIfTwoCompilationUnitMembersAnalyzer).Namespace}");
+
+            var args = new[] { "/t:library", $"/analyzerconfig:{analyzerConfig.Path}", src.Path };
+
+            var transformers = ImmutableArray.Create<ISourceTransformer>(new AppendTransformer("class D { }"));
+            var analyzers =
+                ImmutableArray.Create<DiagnosticAnalyzer>(new ReportWarningIfTwoCompilationUnitMembersAnalyzer());
+
+            var csc = CreateCSharpCompiler(null, dir.Path, args, transformers: transformers, analyzers: analyzers);
+
+            var outWriter = new StringWriter(CultureInfo.InvariantCulture);
+            var exitCode = csc.Run(outWriter);
+            var output = outWriter.ToString();
+
+            Assert.Contains("warning MY002", output);
+            Assert.Contains("warning MY001", output);
 
             Assert.Equal(0, exitCode);
         }
