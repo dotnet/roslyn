@@ -1240,7 +1240,7 @@ namespace Microsoft.CodeAnalysis
                     .ToImmutableHashSet(StringComparer.OrdinalIgnoreCase);
 
                 var cache = new Dictionary<string, bool>(StringComparer.Ordinal);
-                var nameSplitChars = new[] {',', '.'};
+                var nameSplitChars = new[] {'+', '.'};
 
                 bool MatchesAnyRule(string? name)
                 {
@@ -1268,7 +1268,7 @@ namespace Microsoft.CodeAnalysis
                         }
                         else
                         {
-                            var parent = name.Substring(0, indexOfDot - 1);
+                            var parent = name.Substring(0, indexOfDot);
                             value = MatchesAnyRule(parent);
                         }
                     }
