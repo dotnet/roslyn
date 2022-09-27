@@ -25,10 +25,10 @@ internal sealed partial class NewUnitTestingIncrementalAnalyzerProvider
         public Task AnalyzeProjectAsync(Project project, bool semanticsChanged, UnitTestingInvocationReasons reasons, CancellationToken cancellationToken)
             => _implementation.AnalyzeProjectAsync(project, semanticsChanged, reasons, cancellationToken);
 
+#if false // Not used in unit testing crawling
         public Task AnalyzeSyntaxAsync(Document document, UnitTestingInvocationReasons reasons, CancellationToken cancellationToken)
             => Task.CompletedTask;
 
-#if false // Not used in unit testing crawling
         public Task DocumentCloseAsync(Document document, CancellationToken cancellationToken)
             => Task.CompletedTask;
 
