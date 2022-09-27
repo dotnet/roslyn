@@ -91,11 +91,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             _refEscapeScope = this._refKind == RefKind.None ?
                                         scopeBinder.LocalScopeDepth :
-                                        Binder.ExternalScope; // default to returnable, unless there is initializer
+                                        Binder.CallingMethodScope; // default to returnable, unless there is initializer
 
             // we do not know the type yet. 
             // assume this is returnable in case we never get to know our type.
-            _valEscapeScope = Binder.ExternalScope;
+            _valEscapeScope = Binder.CallingMethodScope;
         }
 
         /// <summary>
@@ -131,7 +131,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
                 return _scope == DeclarationScope.RefScoped ?
                     _scopeBinder.LocalScopeDepth :
-                    Binder.TopLevelScope;
+                    Binder.CurrentMethodScope;
             }
         }
 
@@ -146,7 +146,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
                 return _scope == DeclarationScope.ValueScoped ?
                     _scopeBinder.LocalScopeDepth :
-                    Binder.ExternalScope;
+                    Binder.CallingMethodScope;
             }
         }
 
