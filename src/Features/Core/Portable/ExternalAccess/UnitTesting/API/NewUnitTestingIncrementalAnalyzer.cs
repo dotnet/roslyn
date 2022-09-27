@@ -26,7 +26,7 @@ internal sealed partial class NewUnitTestingIncrementalAnalyzerProvider
             => _implementation.AnalyzeProjectAsync(project, semanticsChanged, reasons, cancellationToken);
 
         public Task AnalyzeSyntaxAsync(Document document, UnitTestingInvocationReasons reasons, CancellationToken cancellationToken)
-            => _implementation.AnalyzeSyntaxAsync(document, reasons, cancellationToken);
+            => Task.CompletedTask;
 
         public Task DocumentCloseAsync(Document document, CancellationToken cancellationToken)
             => Task.CompletedTask;

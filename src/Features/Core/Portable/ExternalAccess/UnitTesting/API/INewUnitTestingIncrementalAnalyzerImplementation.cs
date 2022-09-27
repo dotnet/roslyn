@@ -19,9 +19,10 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.Api
 
         // [Obsolete]
         // bool NeedsReanalysisOnOptionChanged(object sender, UnitTestingOptionChangedEventArgsWrapper e);
-#endif
 
         Task AnalyzeSyntaxAsync(Document document, UnitTestingInvocationReasons reasons, CancellationToken cancellationToken);
+#endif
+
         Task AnalyzeDocumentAsync(Document document, SyntaxNode bodyOpt, UnitTestingInvocationReasons reasons, CancellationToken cancellationToken);
         Task AnalyzeProjectAsync(Project project, bool semanticsChanged, UnitTestingInvocationReasons reasons, CancellationToken cancellationToken);
         void RemoveDocument(DocumentId documentId);
