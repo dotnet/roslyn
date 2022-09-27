@@ -89,6 +89,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 : Argument.ToString();
         }
 
+        internal enum EscapeKind
+        {
+            Value,
+            RefCallingMethod,
+            RefReturnOnly,
+        }
+
         /// <summary>
         /// Represents a value being analyzed for escape analysis purposes. This represents the value 
         /// as it contributes to escape analysis which means arguments can show up multiple times. For
@@ -103,20 +110,22 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             internal BoundExpression Argument { get; }
 
-            internal bool IsRefEscape { get; }
+            internal EscapeKind EscapeKind { get; }
 
-            internal EscapeValue(ParameterSymbol? parameter, BoundExpression argument, bool isRefEscape)
+            internal bool IsRefEscape => EscapeKind is EscapeKind.RefReturnOnly or EscapeKind.RefCallingMethod;
+
+            internal EscapeValue(ParameterSymbol? parameter, BoundExpression argument, EscapeKind escapeKind)
             {
                 Argument = argument;
                 Parameter = parameter;
-                IsRefEscape = isRefEscape;
+                EscapeKind = escapeKind;
             }
 
-            public void Deconstruct(out ParameterSymbol? parameter, out BoundExpression argument, out bool isRefEscape)
+            public void Deconstruct(out ParameterSymbol? parameter, out BoundExpression argument, out EscapeKind escapeKind)
             {
                 parameter = Parameter;
                 argument = Argument;
-                isRefEscape = IsRefEscape;
+                escapeKind = EscapeKind;
             }
 
             public override string? ToString() => Parameter is { } p
@@ -2088,12 +2097,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // This means it's part of an __arglist or function pointer receiver. 
                     if (refKind != RefKind.None)
                     {
-                        escapeValues.Add(new EscapeValue(parameter: null, argument, isRefEscape: true));
+                        escapeValues.Add(new EscapeValue(parameter: null, argument, EscapeKind.RefReturnOnly));
                     }
 
                     if (argument.Type?.IsRefLikeType == true)
                     {
-                        escapeValues.Add(new EscapeValue(parameter: null, argument, isRefEscape: false));
+                        escapeValues.Add(new EscapeValue(parameter: null, argument, EscapeKind.Value));
                     }
 
                     continue;
@@ -2103,17 +2112,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     if (parameter.EffectiveScope == DeclarationScope.Unscoped)
                     {
-                        escapeValues.Add(new EscapeValue(parameter, argument, isRefEscape: true));
+                        var kind = parameter.Type.IsRefLikeType ? EscapeKind.RefReturnOnly : EscapeKind.RefCallingMethod;
+                        escapeValues.Add(new EscapeValue(parameter, argument, kind));
                     }
 
                     if (parameter.RefKind != RefKind.Out && parameter.Type.IsRefLikeType)
                     {
-                        escapeValues.Add(new EscapeValue(parameter, argument, isRefEscape: false));
+                        escapeValues.Add(new EscapeValue(parameter, argument, EscapeKind.Value));
                     }
                 }
                 else if (parameter.Type.IsRefLikeType && parameter.EffectiveScope == DeclarationScope.Unscoped)
                 {
-                    escapeValues.Add(new EscapeValue(parameter, argument, isRefEscape: false));
+                    escapeValues.Add(new EscapeValue(parameter, argument, EscapeKind.Value));
                 }
             }
 
@@ -2280,25 +2290,23 @@ namespace Microsoft.CodeAnalysis.CSharp
             var valid = true;
             foreach (var mixableArg in mixableArguments)
             {
-                var toArgEscape = GetValEscape(mixableArg.Argument, symbol, scopeOfTheContainingExpression);
-                foreach (var (fromParameter, fromArg, isRefEscape) in escapeValues)
+                var toArgEscape = GetValEscape(mixableArg.Argument, scopeOfTheContainingExpression);
+                foreach (var (fromParameter, fromArg, escapeKind) in escapeValues)
                 {
                     if (mixableArg.Parameter is not null && object.ReferenceEquals(mixableArg.Parameter, fromParameter))
                     {
                         continue;
                     }
 
-                    if (isRefEscape)
+                    valid = escapeKind switch
                     {
-                        if (mixableArg.IsOut || (fromParameter is { Type: { IsRefLikeType: false } }))
-                        {
-                            valid = CheckRefEscape(fromArg.Syntax, fromArg, scopeOfTheContainingExpression, toArgEscape, checkingReceiver: false, diagnostics);
-                        }
-                    }
-                    else
-                    {
-                        valid = CheckValEscape(fromArg.Syntax, fromArg, scopeOfTheContainingExpression, toArgEscape, checkingReceiver: false, diagnostics);
-                    }
+                        EscapeKind.RefReturnOnly => mixableArg.IsOut
+                            ? CheckRefEscape(fromArg.Syntax, fromArg, scopeOfTheContainingExpression, toArgEscape, checkingReceiver: false, diagnostics)
+                            : true,
+                        EscapeKind.RefCallingMethod => CheckRefEscape(fromArg.Syntax, fromArg, scopeOfTheContainingExpression, toArgEscape, checkingReceiver: false, diagnostics),
+                        EscapeKind.Value => CheckValEscape(fromArg.Syntax, fromArg, scopeOfTheContainingExpression, toArgEscape, checkingReceiver: false, diagnostics),
+                        _ => throw ExceptionUtilities.UnexpectedValue(escapeKind),
+                    };
 
                     if (!valid)
                     {
@@ -3151,21 +3159,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             return broadest;
         }
 
-#nullable enable 
-
-        internal uint GetValEscape(BoundExpression expr, Symbol? symbol, uint scopeOfTheContainingExpression)
-        {
-            if (expr.Kind == BoundKind.ThisReference &&
-                symbol is MethodSymbol { MethodKind: MethodKind.Constructor })
-            {
-                return Binder.ReturnOnlyScope;
-            }
-
-            return GetValEscape(expr, scopeOfTheContainingExpression);
-        }
-
-#nullable disable
-
         /// <summary>
         /// Computes the widest scope depth to which the given expression can escape by value.
         /// 
@@ -3195,9 +3188,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             // otherwise default to ExternalScope (ordinary values)
             switch (expr.Kind)
             {
+                case BoundKind.ThisReference:
+                    if (this.ContainingMember() is MethodSymbol { MethodKind: MethodKind.Constructor })
+                    {
+                        return Binder.ReturnOnlyScope;
+                    }
+                    return Binder.CallingMethodScope;
                 case BoundKind.DefaultLiteral:
                 case BoundKind.DefaultExpression:
-                case BoundKind.ThisReference:
                 case BoundKind.Utf8String:
                     // always returnable
                     return Binder.CallingMethodScope;

@@ -7310,10 +7310,7 @@ class Program
             comp.VerifyEmitDiagnostics(
                 // (10,12): error CS9050: A ref field cannot refer to a ref struct.
                 //     public ref R1<T> R1;
-                Diagnostic(ErrorCode.ERR_RefFieldCannotReferToRefStruct, "ref R1<T>").WithLocation(10, 12),
-                // (11,31): error CS9079: Cannot ref-assign 'r1' to 'R1' because 'r1' can only escape the current method through a return statement.
-                //     public R2(ref R1<T> r1) { R1 = ref r1; }
-                Diagnostic(ErrorCode.ERR_RefAssignReturnOnly, "R1 = ref r1").WithArguments("R1", "r1").WithLocation(11, 31));
+                Diagnostic(ErrorCode.ERR_RefFieldCannotReferToRefStruct, "ref R1<T>").WithLocation(10, 12));
         }
 
         [Fact]
@@ -21687,10 +21684,7 @@ struct S<T> : System.IDisposable
                 """;
 
             var comp = CreateCompilation(source, runtimeFeature: RuntimeFlag.ByRefFields);
-            comp.VerifyDiagnostics(
-                // (12,9): error CS9079: Cannot ref-assign 'bc.B' to 'RB' because 'bc.B' can only escape the current method through a return statement.
-                //         RB = ref bc.B; // 1
-                Diagnostic(ErrorCode.ERR_RefAssignReturnOnly, "RB = ref bc.B").WithArguments("RB", "bc.B").WithLocation(12, 9));
+            comp.VerifyDiagnostics();
         }
 
         [Fact]
