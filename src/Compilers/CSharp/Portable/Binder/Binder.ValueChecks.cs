@@ -50,6 +50,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 : Argument.ToString();
         }
 
+        /// <summary>
+        /// Represents an argument being analyzed for escape analysis purposes. This represents the
+        /// argument as written. For example a `ref x` will only be represented by a single 
+        /// <see cref="EscapeArgument"/>
+        /// </summary>
         internal readonly struct EscapeArgument
         {
             /// <summary>
@@ -60,6 +65,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             internal BoundExpression Argument { get; }
 
             internal RefKind RefKind { get; }
+
             internal bool IsArgList { get; }
 
             internal EscapeArgument(ParameterSymbol? parameter, BoundExpression argument, RefKind refKind, bool isArgList = false)
@@ -83,6 +89,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 : Argument.ToString();
         }
 
+        /// <summary>
+        /// Represents a value being analyzed for escape analysis purposes. This represents the value 
+        /// as it contributes to escape analysis which means arguments can show up multiple times. For
+        /// example `ref x` will be represented as both a val and ref escape
+        /// </summary>
         internal readonly struct EscapeValue
         {
             /// <summary>
