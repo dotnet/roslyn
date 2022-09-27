@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 EscapeLevel = escapeLevel;
             }
 
-            internal bool IsApplicableTo(EscapeLevel level) => EscapeLevel switch
+            internal bool IsAssigableFrom(EscapeLevel level) => EscapeLevel switch
             {
                 EscapeLevel.CallingMethod => level == EscapeLevel.CallingMethod,
                 EscapeLevel.ReturnOnly => true,
@@ -2335,7 +2335,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                         continue;
                     }
 
-                    if (!mixableArg.IsApplicableTo(escapeKind))
+                    // This checks to see if the value could even be assigned to this argument. For example
+                    // a `ref` to a `ref` can't ever be assigned to the value of any `ref` parameter. The
+                    // rules of the method signature prevent it. Ignore these entirely.
+                    if (!mixableArg.IsAssigableFrom(escapeKind))
                     {
                         continue;
                     }
