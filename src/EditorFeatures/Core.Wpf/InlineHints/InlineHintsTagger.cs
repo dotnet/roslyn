@@ -53,7 +53,6 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
 
         private readonly ITextBuffer _buffer;
         private readonly IWpfTextView _textView;
-        private int _counter;
         public event EventHandler<SnapshotSpanEventArgs>? TagsChanged;
 
         public InlineHintsTagger(
@@ -66,7 +65,6 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
 
             _textView = textView;
             _buffer = buffer;
-            _counter = 0;
             _tagAggregator = tagAggregator;
             _formatMap = taggerProvider.ClassificationFormatMapService.GetClassificationFormatMap(textView);
             _hintClassification = taggerProvider.ClassificationTypeRegistryService.GetClassificationType(InlineHintsTag.TagId);
@@ -160,8 +158,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
                             if (_cache[i].tagSpan is not { } hintTagSpan)
                             {
                                 var hintUITag = InlineHintsTag.Create(
-                                        _cache[i].mappingTagSpan.Tag.Hint, Format, _textView, tagSpan, _taggerProvider, _formatMap, classify, _counter);
-                                _counter++;
+                                        _cache[i].mappingTagSpan.Tag.Hint, Format, _textView, tagSpan, _taggerProvider, _formatMap, classify);
 
                                 hintTagSpan = new TagSpan<IntraTextAdornmentTag>(tagSpan, hintUITag);
                                 _cache[i] = (_cache[i].mappingTagSpan, hintTagSpan);

@@ -81,11 +81,10 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
             SnapshotSpan span,
             InlineHintsTaggerProvider taggerProvider,
             IClassificationFormatMap formatMap,
-            bool classify,
-            int counter)
+            bool classify)
         {
             return new InlineHintsTag(
-                CreateElement(hint.DisplayParts, textView, format, formatMap, taggerProvider.TypeMap, classify, counter),
+                CreateElement(hint.DisplayParts, textView, format, formatMap, taggerProvider.TypeMap, classify),
                 textView, span, hint, taggerProvider);
         }
 
@@ -117,8 +116,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
             TextFormattingRunProperties format,
             IClassificationFormatMap formatMap,
             ClassificationTypeMap typeMap,
-            bool classify,
-            int counter)
+            bool classify)
         {
             // Constructs the hint block which gets assigned parameter name and fontstyles according to the options
             // page. Calculates a inline tag that will be 3/4s the size of a normal line. This shrink size tends to work
@@ -183,7 +181,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
             StackPanel? adornment;
             if (taggedTexts.Length is 1)
             {
-                adornment = new InlineHintsTagAdornment(trimmedTexts[0].Text + " " + counter);
+                adornment = new InlineHintsTagAdornment(trimmedTexts[0].Text);
             }
             else
             {
