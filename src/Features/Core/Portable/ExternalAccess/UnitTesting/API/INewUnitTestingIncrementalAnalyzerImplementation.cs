@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler;
@@ -21,9 +19,10 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.Api
 
         // [Obsolete]
         // bool NeedsReanalysisOnOptionChanged(object sender, UnitTestingOptionChangedEventArgsWrapper e);
-#endif
 
         Task AnalyzeSyntaxAsync(Document document, UnitTestingInvocationReasons reasons, CancellationToken cancellationToken);
+#endif
+
         Task AnalyzeDocumentAsync(Document document, SyntaxNode bodyOpt, UnitTestingInvocationReasons reasons, CancellationToken cancellationToken);
         Task AnalyzeProjectAsync(Project project, bool semanticsChanged, UnitTestingInvocationReasons reasons, CancellationToken cancellationToken);
         void RemoveDocument(DocumentId documentId);
