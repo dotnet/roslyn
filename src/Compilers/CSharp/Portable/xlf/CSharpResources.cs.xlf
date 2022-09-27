@@ -1619,7 +1619,7 @@
       </trans-unit>
       <trans-unit id="ERR_UnscopedRefAttributeUnsupportedTarget">
         <source>UnscopedRefAttribute cannot be applied to this item because it is unscoped by default.</source>
-        <target state="needs-review-translation">UnscopedRefAttribute se dá použít jenom pro parametry „out“, „ref“ a „in“, které odkazují na typy „ref struct“, a metody a vlastnosti instance u jiných typů „struct než“ konstruktorů a přístupových objektů „init“.</target>
+        <target state="new">UnscopedRefAttribute cannot be applied to this item because it is unscoped by default.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnscopedScoped">
@@ -5348,7 +5348,7 @@
       </trans-unit>
       <trans-unit id="ERR_ParamsLast">
         <source>A params parameter must be the last parameter in a parameter list</source>
-        <target state="needs-review-translation">Parametr params musí být posledním parametrem v seznamu formálních parametrů.</target>
+        <target state="new">A params parameter must be the last parameter in a parameter list</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_SizeofUnsafe">
@@ -5463,7 +5463,7 @@
       </trans-unit>
       <trans-unit id="ERR_VarargsLast">
         <source>An __arglist parameter must be the last parameter in a parameter list</source>
-        <target state="needs-review-translation">Parametr __arglist musí být posledním parametrem v seznamu formálních parametrů.</target>
+        <target state="new">An __arglist parameter must be the last parameter in a parameter list</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MissingPartial">
@@ -8366,12 +8366,12 @@ Blok catch() po bloku catch (System.Exception e) může zachytit výjimky, kter�
       </trans-unit>
       <trans-unit id="ERR_AssignReadonlyNotField">
         <source>Cannot assign to {0} '{1}' or use it as the right hand side of a ref assignment because it is a readonly variable</source>
-        <target state="needs-review-translation">Nejde přiřadit k položce {0} {1}, protože to je proměnná jen pro čtení.</target>
+        <target state="new">Cannot assign to {0} '{1}' or use it as the right hand side of a ref assignment because it is a readonly variable</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_AssignReadonlyNotField2">
         <source>Cannot assign to a member of {0} '{1}' or use it as the right hand side of a ref assignment because it is a readonly variable</source>
-        <target state="needs-review-translation">Nejde přiřadit členovi {0} {1}, protože to je proměnná jen pro čtení.</target>
+        <target state="new">Cannot assign to a member of {0} '{1}' or use it as the right hand side of a ref assignment because it is a readonly variable</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RefReturnReadonlyNotField">
@@ -10176,7 +10176,7 @@ Potlačení upozornění zvažte jenom v případě, když určitě nechcete če
       </trans-unit>
       <trans-unit id="ERR_NoCorrespondingArgument">
         <source>There is no argument given that corresponds to the required parameter '{0}' of '{1}'</source>
-        <target state="needs-review-translation">Není dán žádný argument, který by odpovídal požadovanému formálnímu parametru {0} v {1}.</target>
+        <target state="new">There is no argument given that corresponds to the required parameter '{0}' of '{1}'</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_UnimplementedCommandLineSwitch">

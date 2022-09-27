@@ -1619,7 +1619,7 @@
       </trans-unit>
       <trans-unit id="ERR_UnscopedRefAttributeUnsupportedTarget">
         <source>UnscopedRefAttribute cannot be applied to this item because it is unscoped by default.</source>
-        <target state="needs-review-translation">UnscopedRefAttribute só pode ser aplicado a parâmetros 'out', parâmetros 'ref' e 'in' que se referem a tipos 'ref struct' e métodos de instância e propriedades em tipos 'struct' que não sejam construtores e acessadores 'init'.</target>
+        <target state="new">UnscopedRefAttribute cannot be applied to this item because it is unscoped by default.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnscopedScoped">
@@ -5348,7 +5348,7 @@
       </trans-unit>
       <trans-unit id="ERR_ParamsLast">
         <source>A params parameter must be the last parameter in a parameter list</source>
-        <target state="needs-review-translation">Um parâmetro params deve ser o último parâmetro na lista de parâmetros formal</target>
+        <target state="new">A params parameter must be the last parameter in a parameter list</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_SizeofUnsafe">
@@ -5463,7 +5463,7 @@
       </trans-unit>
       <trans-unit id="ERR_VarargsLast">
         <source>An __arglist parameter must be the last parameter in a parameter list</source>
-        <target state="needs-review-translation">Um parâmetro __arglist deve ser o último em uma lista formal de parâmetros</target>
+        <target state="new">An __arglist parameter must be the last parameter in a parameter list</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MissingPartial">
@@ -8366,12 +8366,12 @@ Um bloco catch() depois de um bloco catch (System.Exception e) poderá capturar 
       </trans-unit>
       <trans-unit id="ERR_AssignReadonlyNotField">
         <source>Cannot assign to {0} '{1}' or use it as the right hand side of a ref assignment because it is a readonly variable</source>
-        <target state="needs-review-translation">Não é possível atribuir a {0} '{1}' porque não é uma variável somente leitura</target>
+        <target state="new">Cannot assign to {0} '{1}' or use it as the right hand side of a ref assignment because it is a readonly variable</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_AssignReadonlyNotField2">
         <source>Cannot assign to a member of {0} '{1}' or use it as the right hand side of a ref assignment because it is a readonly variable</source>
-        <target state="needs-review-translation">Não é possível atribuir a um membro de {0} '{1}' porque é uma variável somente leitura</target>
+        <target state="new">Cannot assign to a member of {0} '{1}' or use it as the right hand side of a ref assignment because it is a readonly variable</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RefReturnReadonlyNotField">
@@ -10176,7 +10176,7 @@ Você pode suprimir o aviso se tiver certeza de que não vai querer aguardar a c
       </trans-unit>
       <trans-unit id="ERR_NoCorrespondingArgument">
         <source>There is no argument given that corresponds to the required parameter '{0}' of '{1}'</source>
-        <target state="needs-review-translation">Não há nenhum argumento fornecido que corresponde ao parâmetro formal necessário "{0}" de "{1}"</target>
+        <target state="new">There is no argument given that corresponds to the required parameter '{0}' of '{1}'</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_UnimplementedCommandLineSwitch">

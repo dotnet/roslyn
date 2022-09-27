@@ -1619,7 +1619,7 @@
       </trans-unit>
       <trans-unit id="ERR_UnscopedRefAttributeUnsupportedTarget">
         <source>UnscopedRefAttribute cannot be applied to this item because it is unscoped by default.</source>
-        <target state="needs-review-translation">UnscopedRefAttribute yalnızca 'out' parametrelerine, 'ref struct' türlerine başvuran 'ref' ve 'in' parametrelerine ve oluşturucular ve 'init' erişimcileri dışındaki 'struct' türlerde örnek metotları ve özelliklerine uygulanabilir.</target>
+        <target state="new">UnscopedRefAttribute cannot be applied to this item because it is unscoped by default.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnscopedScoped">
@@ -5348,7 +5348,7 @@
       </trans-unit>
       <trans-unit id="ERR_ParamsLast">
         <source>A params parameter must be the last parameter in a parameter list</source>
-        <target state="needs-review-translation">Bir params parametresi resmi bir parametre listesindeki son parametre olmalıdır</target>
+        <target state="new">A params parameter must be the last parameter in a parameter list</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_SizeofUnsafe">
@@ -5463,7 +5463,7 @@
       </trans-unit>
       <trans-unit id="ERR_VarargsLast">
         <source>An __arglist parameter must be the last parameter in a parameter list</source>
-        <target state="needs-review-translation">Bir __arglist parametresi, biçimsel parametre listesindeki son parametre olmalıdır</target>
+        <target state="new">An __arglist parameter must be the last parameter in a parameter list</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MissingPartial">
@@ -8366,12 +8366,12 @@ RuntimeCompatibilityAttribute AssemblyInfo.cs dosyasında false olarak ayarlanm�
       </trans-unit>
       <trans-unit id="ERR_AssignReadonlyNotField">
         <source>Cannot assign to {0} '{1}' or use it as the right hand side of a ref assignment because it is a readonly variable</source>
-        <target state="needs-review-translation">Salt okunur değişken olduğundan {0} '{1}' hedefine atama yapılamaz</target>
+        <target state="new">Cannot assign to {0} '{1}' or use it as the right hand side of a ref assignment because it is a readonly variable</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_AssignReadonlyNotField2">
         <source>Cannot assign to a member of {0} '{1}' or use it as the right hand side of a ref assignment because it is a readonly variable</source>
-        <target state="needs-review-translation">Salt okunur değişken olduğundan bir {0} '{1}' üyesine atama yapılamaz</target>
+        <target state="new">Cannot assign to a member of {0} '{1}' or use it as the right hand side of a ref assignment because it is a readonly variable</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RefReturnReadonlyNotField">
@@ -10176,7 +10176,7 @@ Yalnızca asenkron çağrının tamamlanmasını beklemek istemediğinizden ve �
       </trans-unit>
       <trans-unit id="ERR_NoCorrespondingArgument">
         <source>There is no argument given that corresponds to the required parameter '{0}' of '{1}'</source>
-        <target state="needs-review-translation">'{1}' öğesinin gereken resmi '{0}' parametresine karşılık gelen hiçbir bağımsız değişken yok</target>
+        <target state="new">There is no argument given that corresponds to the required parameter '{0}' of '{1}'</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_UnimplementedCommandLineSwitch">

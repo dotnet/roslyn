@@ -1619,7 +1619,7 @@
       </trans-unit>
       <trans-unit id="ERR_UnscopedRefAttributeUnsupportedTarget">
         <source>UnscopedRefAttribute cannot be applied to this item because it is unscoped by default.</source>
-        <target state="needs-review-translation">Следует применять только к параметрам "out", "ref" и "in", которые ссылаются на типы "ref struct", а также к методам экземпляров и свойствам типов "struct", отличных от конструкторов и методов доступа "init".</target>
+        <target state="new">UnscopedRefAttribute cannot be applied to this item because it is unscoped by default.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnscopedScoped">
@@ -5348,7 +5348,7 @@
       </trans-unit>
       <trans-unit id="ERR_ParamsLast">
         <source>A params parameter must be the last parameter in a parameter list</source>
-        <target state="needs-review-translation">Параметр params должен быть указан последним в списке формальных параметров.</target>
+        <target state="new">A params parameter must be the last parameter in a parameter list</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_SizeofUnsafe">
@@ -5463,7 +5463,7 @@
       </trans-unit>
       <trans-unit id="ERR_VarargsLast">
         <source>An __arglist parameter must be the last parameter in a parameter list</source>
-        <target state="needs-review-translation">Параметр __arglist должен быть указан последним в списке формальных параметров.</target>
+        <target state="new">An __arglist parameter must be the last parameter in a parameter list</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MissingPartial">
@@ -8366,12 +8366,12 @@ A catch() block after a catch (System.Exception e) block can catch non-CLS excep
       </trans-unit>
       <trans-unit id="ERR_AssignReadonlyNotField">
         <source>Cannot assign to {0} '{1}' or use it as the right hand side of a ref assignment because it is a readonly variable</source>
-        <target state="needs-review-translation">Не удается присвоить значение {0} "{1}", так как это переменная только для чтения</target>
+        <target state="new">Cannot assign to {0} '{1}' or use it as the right hand side of a ref assignment because it is a readonly variable</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_AssignReadonlyNotField2">
         <source>Cannot assign to a member of {0} '{1}' or use it as the right hand side of a ref assignment because it is a readonly variable</source>
-        <target state="needs-review-translation">Не удается присвоить значение члену {0} "{1}", так как это переменная только для чтения</target>
+        <target state="new">Cannot assign to a member of {0} '{1}' or use it as the right hand side of a ref assignment because it is a readonly variable</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RefReturnReadonlyNotField">
@@ -10176,7 +10176,7 @@ You should consider suppressing the warning only if you're sure that you don't w
       </trans-unit>
       <trans-unit id="ERR_NoCorrespondingArgument">
         <source>There is no argument given that corresponds to the required parameter '{0}' of '{1}'</source>
-        <target state="needs-review-translation">Отсутствует аргумент, соответствующий требуемому формальному параметру "{0}" из "{1}".</target>
+        <target state="new">There is no argument given that corresponds to the required parameter '{0}' of '{1}'</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_UnimplementedCommandLineSwitch">

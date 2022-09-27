@@ -1619,7 +1619,7 @@
       </trans-unit>
       <trans-unit id="ERR_UnscopedRefAttributeUnsupportedTarget">
         <source>UnscopedRefAttribute cannot be applied to this item because it is unscoped by default.</source>
-        <target state="needs-review-translation">Das UnscopedRefAttribute kann nur auf "out"-Parameter, "ref"- und "in"-Parameter angewendet werden, die auf "ref struct"-Typen verweisen, sowie auf Instanzmethoden und -eigenschaften für andere "struct"-Typen als Konstruktoren und "init"-Accessoren.</target>
+        <target state="new">UnscopedRefAttribute cannot be applied to this item because it is unscoped by default.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnscopedScoped">
@@ -5348,7 +5348,7 @@
       </trans-unit>
       <trans-unit id="ERR_ParamsLast">
         <source>A params parameter must be the last parameter in a parameter list</source>
-        <target state="needs-review-translation">Ein params-Parameter muss der letzte Parameter in einer formellen Parameterliste sein.</target>
+        <target state="new">A params parameter must be the last parameter in a parameter list</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_SizeofUnsafe">
@@ -5463,7 +5463,7 @@
       </trans-unit>
       <trans-unit id="ERR_VarargsLast">
         <source>An __arglist parameter must be the last parameter in a parameter list</source>
-        <target state="needs-review-translation">Ein __arglist-Parameter muss der letzte Parameter in einer formellen Parameterliste sein.</target>
+        <target state="new">An __arglist parameter must be the last parameter in a parameter list</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MissingPartial">
@@ -8366,12 +8366,12 @@ Ein catch()-Block nach einem catch (System.Exception e)-Block kann nicht-CLS-Aus
       </trans-unit>
       <trans-unit id="ERR_AssignReadonlyNotField">
         <source>Cannot assign to {0} '{1}' or use it as the right hand side of a ref assignment because it is a readonly variable</source>
-        <target state="needs-review-translation">Eine Zuweisung zu {0} "{1}" ist nicht möglich, weil es sich um eine schreibgeschützte Variable handelt.</target>
+        <target state="new">Cannot assign to {0} '{1}' or use it as the right hand side of a ref assignment because it is a readonly variable</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_AssignReadonlyNotField2">
         <source>Cannot assign to a member of {0} '{1}' or use it as the right hand side of a ref assignment because it is a readonly variable</source>
-        <target state="needs-review-translation">Eine Zuweisung zu einem Member von {0} "{1}" ist nicht möglich, weil es sich um eine schreibgeschützte Variable handelt.</target>
+        <target state="new">Cannot assign to a member of {0} '{1}' or use it as the right hand side of a ref assignment because it is a readonly variable</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RefReturnReadonlyNotField">
@@ -10176,7 +10176,7 @@ Sie sollten das Unterdrücken der Warnung nur in Betracht ziehen, wenn Sie siche
       </trans-unit>
       <trans-unit id="ERR_NoCorrespondingArgument">
         <source>There is no argument given that corresponds to the required parameter '{0}' of '{1}'</source>
-        <target state="needs-review-translation">Es wurde kein Argument angegeben, das dem formalen Parameter "{0}" von "{1}" entspricht.</target>
+        <target state="new">There is no argument given that corresponds to the required parameter '{0}' of '{1}'</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_UnimplementedCommandLineSwitch">
