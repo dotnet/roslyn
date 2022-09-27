@@ -89,19 +89,20 @@ namespace Microsoft.CodeAnalysis.Classification
                 {
                     _cancellationToken.ThrowIfCancellationRequested();
                     var currentNodeOrToken = stack.Pop();
-                    if (currentNodeOrToken.Span.IntersectsWith(_textSpan))
+                    if (currentNodeOrToken.IsNode)
                     {
-                        foreach (var child in currentNodeOrToken.ChildNodesAndTokens().Reverse())
+                        if (currentNodeOrToken.Span.IntersectsWith(_textSpan))
                         {
-                            if (child.IsNode)
+                            foreach (var child in currentNodeOrToken.ChildNodesAndTokens().Reverse())
                             {
-                                stack.Push(child.AsNode());
-                            }
-                            else
-                            {
-                                ProcessToken(child.AsToken());
+                                stack.Push(child);
                             }
                         }
+                    }
+                    else
+                    {
+                        ProcessToken(currentNodeOrToken.AsToken());
+
                     }
                 }
             }
