@@ -11,6 +11,7 @@ namespace Xunit.Harness
     using System.Linq;
     using System.Reflection;
     using System.Text;
+    using System.Threading;
     using System.Threading.Tasks;
     using Microsoft.VisualStudio.Setup.Configuration;
     using Microsoft.Win32;
@@ -20,6 +21,8 @@ namespace Xunit.Harness
 
     internal sealed class VisualStudioInstanceFactory : MarshalByRefObject, IDisposable
     {
+        private const int ReportTimeMinute = 5;
+        private static readonly TimeSpan ReportTimeInterval = TimeSpan.FromMinutes(ReportTimeMinute);
         private static readonly Dictionary<Version, Assembly> _installerAssemblies = new Dictionary<Version, Assembly>();
 
         private readonly bool _leaveRunning;
@@ -389,11 +392,15 @@ namespace Xunit.Harness
             //      So, run clearcache and updateconfiguration to workaround https://devdiv.visualstudio.com/DevDiv/_workitems?id=385351.
             if (version.Major >= 12)
             {
-                Process.Start(CreateSilentStartInfo(vsExeFile, $"/clearcache {vsLaunchArgs}")).WaitForExit();
+                var clearCacheProcess = Process.Start(CreateSilentStartInfo(vsExeFile, $"/clearcache {vsLaunchArgs}"));
+                TakeSnapshotEveryTimeSpanUntilProcessExit(clearCacheProcess, "clearcache");
             }
 
-            Process.Start(CreateSilentStartInfo(vsExeFile, $"/updateconfiguration {vsLaunchArgs}")).WaitForExit();
-            Process.Start(CreateSilentStartInfo(vsExeFile, $"/resetsettings General.vssettings /command \"File.Exit\" {vsLaunchArgs}")).WaitForExit();
+            var updateConfigProcess = Process.Start(CreateSilentStartInfo(vsExeFile, $"/updateconfiguration {vsLaunchArgs}"));
+            TakeSnapshotEveryTimeSpanUntilProcessExit(updateConfigProcess, "updateconfiguration");
+
+            var resetSettingsProcess = Process.Start(CreateSilentStartInfo(vsExeFile, $"/resetsettings General.vssettings /command \"File.Exit\" {vsLaunchArgs}"));
+            TakeSnapshotEveryTimeSpanUntilProcessExit(resetSettingsProcess, "resetsettings");
 
             // Make sure we kill any leftover processes spawned by the host
             IntegrationHelper.KillProcess("DbgCLR");
@@ -438,6 +445,38 @@ namespace Xunit.Harness
             }
 
             return path;
+        }
+
+        private static void TakeSnapshotEveryTimeSpanUntilProcessExit(Process process, string commandBeingExecuted)
+        {
+            var dir = DataCollectionService.GetLogDirectory();
+            if (!Directory.Exists(dir))
+            {
+                Directory.CreateDirectory(dir);
+            }
+
+            using var cancellatokenSource = new CancellationTokenSource();
+
+            try
+            {
+                _ = Task.Run(() => TakeScreenShotEveryTimeIntervalAsync(dir, commandBeingExecuted, cancellatokenSource.Token));
+                process.WaitForExit();
+            }
+            finally
+            {
+                cancellatokenSource.Cancel();
+            }
+
+            static async Task TakeScreenShotEveryTimeIntervalAsync(string directory, string commandBeingExecuted, CancellationToken cancellationToken)
+            {
+                var count = 1;
+                while (!cancellationToken.IsCancellationRequested)
+                {
+                    await Task.Delay(ReportTimeInterval, cancellationToken).ConfigureAwait(false);
+                    ScreenshotService.TakeScreenshot(Path.Combine(Path.GetFullPath(directory), commandBeingExecuted, $"_after_{count * ReportTimeMinute}_min.png"));
+                    count++;
+                }
+            }
         }
 
         public void Dispose()
