@@ -207,6 +207,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             switch (code)
             {
                 case ErrorCode.WRN_LowerCaseTypeName:
+                case ErrorCode.WRN_ParameterCouldBeScoped:
                     // Warning level 7 is exclusively for warnings introduced in the compiler
                     // shipped with dotnet 7 (C# 11) and that can be reported for pre-existing code.
                     return 7;
@@ -2263,6 +2264,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.WRN_RefAssignReturnOnly:
                 case ErrorCode.WRN_RefReturnOnlyParameter:
                 case ErrorCode.WRN_RefReturnOnlyParameter2:
+                case ErrorCode.WRN_ParameterCouldBeScoped:
                     return false;
                 default:
                     // NOTE: All error codes must be explicitly handled in this switch statement

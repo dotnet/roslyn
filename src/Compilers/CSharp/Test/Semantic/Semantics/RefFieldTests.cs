@@ -19424,6 +19424,90 @@ ref struct A
                 );
         }
 
+        [Fact]
+        public void ParameterCouldBeScoped_01()
+        {
+            var source =
+@"class Program
+{
+    static ref T F1<T>(ref T x, ref T y) => ref x;
+    static ref T F2<T>(scoped ref T x, ref T y) => ref x;
+}";
+
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (3,39): error CS9096: Parameter 'y' could be marked scoped.
+                //     static ref T F1<T>(ref T x, ref T y) => ref x;
+                Diagnostic(ErrorCode.WRN_ParameterCouldBeScoped, "y").WithArguments("y").WithLocation(3, 39),
+                // (4,56): error CS9075: Cannot return a parameter by reference 'x' because it is scoped to the current method
+                //     static ref T F2<T>(scoped ref T x, ref T y) => ref x;
+                Diagnostic(ErrorCode.ERR_RefReturnScopedParameter, "x").WithArguments("x").WithLocation(4, 56));
+
+            comp = CreateCompilation(source, options: TestOptions.ReleaseDll.WithWarningLevel(6));
+            comp.VerifyDiagnostics(
+                // (4,56): error CS9075: Cannot return a parameter by reference 'x' because it is scoped to the current method
+                //     static ref T F2<T>(scoped ref T x, ref T y) => ref x;
+                Diagnostic(ErrorCode.ERR_RefReturnScopedParameter, "x").WithArguments("x").WithLocation(4, 56));
+        }
+
+        // No errors for virtual or override methods.
+        [Fact]
+        public void ParameterCouldBeScoped_02()
+        {
+            var source =
+@"abstract class A
+{
+    public abstract ref T F1<T>(ref T x, ref T y);
+    public virtual ref T F2<T>(ref T x, ref T y) => ref x;
+    public ref T F3<T>(ref T x, ref T y) => ref x; // 1
+}
+class B : A
+{
+    public override ref T F1<T>(ref T x, ref T y) => ref x;
+    public override ref T F2<T>(ref T x, ref T y) => ref x;
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (5,39): warning CS9096: Parameter 'y' could be marked scoped.
+                //     public ref T F3<T>(ref T x, ref T y) => ref x; // 1
+                Diagnostic(ErrorCode.WRN_ParameterCouldBeScoped, "y").WithArguments("y").WithLocation(5, 39));
+        }
+
+        // No errors for explicit interface implementations.
+        [Fact]
+        public void ParameterCouldBeScoped_03()
+        {
+            // PROTOTYPE: 
+        }
+
+        // No errors for implicit interface implementations.
+        [Fact]
+        public void ParameterCouldBeScoped_04()
+        {
+            // PROTOTYPE: 
+        }
+
+        // No errors for "ref" source.
+        [Fact]
+        public void ParameterCouldBeScoped_05()
+        {
+            var sourceA =
+@"class A
+{
+    static ref T F1<T>(ref T x, ref T y) => ref x;
+}";
+            var sourceB =
+@"class B
+{
+    static ref T F2<T>(ref T x, ref T y) => ref x;
+}";
+            var comp = CreateCompilation(new[] { Parse(sourceA, @"A\ref\libs\a.cs"), Parse(sourceB, @"B\libs\b.cs") });
+            comp.VerifyDiagnostics(
+                // B\libs\b.cs(3,39): warning CS9096: Parameter 'y' could be marked scoped.
+                //     static ref T F2<T>(ref T x, ref T y) => ref x;
+                Diagnostic(ErrorCode.WRN_ParameterCouldBeScoped, "y").WithArguments("y").WithLocation(3, 39));
+        }
+
         [Theory]
         [InlineData(LanguageVersion.CSharp10)]
         [InlineData(LanguageVersion.CSharp11)]

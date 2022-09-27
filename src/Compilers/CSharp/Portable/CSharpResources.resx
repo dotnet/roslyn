@@ -7367,4 +7367,10 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_ReadOnlyNotSuppAsParamModDidYouMeanIn" xml:space="preserve">
     <value>'readonly' is not supported as a parameter modifier. Did you mean 'in'?</value>
   </data>
+  <data name="WRN_ParameterCouldBeScoped" xml:space="preserve">
+    <value>Parameter '{0}' could be marked scoped.</value>
+  </data>
+  <data name="WRN_ParameterCouldBeScoped_Title" xml:space="preserve">
+    <value>Parameter could be marked scoped.</value>
+  </data>
 </root>

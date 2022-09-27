@@ -2082,6 +2082,16 @@
         <target state="translated">Les membres attribués avec 'ObsoleteAttribute' ne doivent pas être obligatoires, sauf si le type conteneur est obsolète ou si tous les constructeurs sont obsolètes.</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_ParameterCouldBeScoped">
+        <source>Parameter '{0}' could be marked scoped.</source>
+        <target state="new">Parameter '{0}' could be marked scoped.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_ParameterCouldBeScoped_Title">
+        <source>Parameter could be marked scoped.</source>
+        <target state="new">Parameter could be marked scoped.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_ParameterNotNullIfNotNull">
         <source>Parameter '{0}' must have a non-null value when exiting because parameter '{1}' is non-null.</source>
         <target state="translated">Le paramètre '{0}' doit avoir une valeur non null au moment de la sortie, car le paramètre '{1}' a une valeur non null.</target>

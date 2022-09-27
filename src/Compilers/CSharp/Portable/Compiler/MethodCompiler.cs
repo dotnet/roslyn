@@ -1039,10 +1039,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                         processedInitializers.HasErrors = processedInitializers.HasErrors || analyzedInitializers.HasAnyErrors;
                     }
 
+                    var diags = BindingDiagnosticBag.GetInstance(_diagnostics);
                     body = BindMethodBody(
                         methodSymbol,
                         compilationState,
-                        diagsForCurrentMethod,
+                        diags,
                         includeInitializersInBody,
                         analyzedInitializers,
                         ReportNullableDiagnostics,
@@ -1053,6 +1054,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     Debug.Assert(!prependedDefaultValueTypeConstructorInitializer || originalBodyNested);
                     Debug.Assert(!prependedDefaultValueTypeConstructorInitializer || methodSymbol.ContainingType.IsStructType());
+
+                    AddParametersCouldBeScopedWarnings(methodSymbol, diagsForCurrentMethod, diags);
 
                     if (diagsForCurrentMethod.HasAnyErrors() && body != null)
                     {
@@ -1346,6 +1349,132 @@ namespace Microsoft.CodeAnalysis.CSharp
                 compilationState.CurrentImportChain = oldImportChain;
             }
         }
+
+        private static void AddParametersCouldBeScopedWarnings(MethodSymbol method, BindingDiagnosticBag diagnostics, BindingDiagnosticBag methodBodyDiagnostics)
+        {
+            int n = method.ParameterCount;
+            BitVector paramsReferenced = BitVector.Create(n);
+
+            bool hasAnyErrors = false;
+            foreach (var diag in methodBodyDiagnostics.DiagnosticBag.AsEnumerable())
+            {
+                if (diag.Code == (int)ErrorCode.WRN_ParameterCouldBeScoped)
+                {
+                    var parameter = (ParameterSymbol)diag.Arguments[0];
+                    if (method == parameter.ContainingSymbol)
+                    {
+                        int ordinal = parameter.Ordinal;
+                        if (ordinal >= 0)
+                        {
+                            paramsReferenced[parameter.Ordinal] = true;
+                        }
+                    }
+                }
+                else
+                {
+                    if (diag.Severity == DiagnosticSeverity.Error)
+                    {
+                        hasAnyErrors = true;
+                    }
+                    diagnostics.Add(diag);
+                }
+            }
+            diagnostics.AddDependencies(methodBodyDiagnostics);
+
+            if (!hasAnyErrors &&
+                shouldReportWarnings(method) &&
+                MayCaptureRefParameters(method))
+            {
+                foreach (var parameter in method.Parameters)
+                {
+                    int ordinal = parameter.Ordinal;
+                    if (ordinal >= 0 && paramsReferenced[ordinal])
+                    {
+                        continue;
+                    }
+                    switch (parameter.RefKind)
+                    {
+                        case RefKind.Ref:
+                        case RefKind.In:
+                            if (parameter.EffectiveScope != DeclarationScope.RefScoped)
+                            {
+                                reportWarning(diagnostics, parameter);
+                            }
+                            break;
+                        case RefKind.None:
+                            if (parameter.Type.IsRefLikeType && parameter.EffectiveScope != DeclarationScope.ValueScoped)
+                            {
+                                reportWarning(diagnostics, parameter);
+                            }
+                            break;
+                    }
+                }
+            }
+
+            static bool shouldReportWarnings(MethodSymbol method)
+            {
+                if (method.IsVirtual || method.IsOverride)
+                {
+                    return false;
+                }
+                var location = method.Locations.FirstOrDefault();
+                if (location is null)
+                {
+                    return false;
+                }
+                var path = location.SourceTree?.FilePath;
+                if (path is { } && path.IndexOf(@"\ref\", StringComparison.OrdinalIgnoreCase) >= 0) // PROTOTYPE: Windows-specific path.
+                {
+                    return false;
+                }
+                return true;
+            }
+
+            static void reportWarning(BindingDiagnosticBag diagnostics, ParameterSymbol parameter)
+            {
+                diagnostics.Add(ErrorCode.WRN_ParameterCouldBeScoped, parameter.Locations[0], new FormattedSymbol(parameter, SymbolDisplayFormat.ShortFormat));
+            }
+        }
+
+        // PROTOTYPE: Re-use RequiresValidScopedOverrideForRefSafety?
+        private static bool MayCaptureRefParameters(MethodSymbol method)
+        {
+            var parameters = method.Parameters;
+
+            // https://github.com/dotnet/csharplang/blob/main/proposals/low-level-struct-improvements.md#scoped-mismatch
+            // The compiler will report a diagnostic for _unsafe scoped mismatches_ across overrides, interface implementations, and delegate conversions when:
+            // - The method returns a `ref struct` or returns a `ref` or `ref readonly`, or the method has a `ref` or `out` parameter of `ref struct` type, and
+            // ...
+            int nRefParametersRequired;
+            if (method.ReturnType.IsRefLikeType ||
+                (method.RefKind is RefKind.Ref or RefKind.RefReadOnly))
+            {
+                nRefParametersRequired = 1;
+            }
+            else if (parameters.Any(p => (p.RefKind is RefKind.Ref or RefKind.Out) && p.Type.IsRefLikeType))
+            {
+                nRefParametersRequired = 2; // including the parameter found above
+            }
+            else
+            {
+                return false;
+            }
+
+            // ...
+            // - The method has at least one additional `ref`, `in`, or `out` parameter, or a parameter of `ref struct` type.
+            int nRefParameters = parameters.Count(p => p.RefKind is RefKind.Ref or RefKind.In or RefKind.Out);
+            if (nRefParameters >= nRefParametersRequired)
+            {
+                return true;
+            }
+            else if (parameters.Any(p => p.RefKind == RefKind.None && p.Type.IsRefLikeType))
+            {
+                return true;
+            }
+
+            return false;
+        }
+
 
         // internal for testing
         internal static BoundStatement LowerBodyOrInitializer(
