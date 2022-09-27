@@ -3783,7 +3783,7 @@ class Program
             comp.VerifyEmitDiagnostics();
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/64308")]
         public void MethodArgumentsMustMatch_05()
         {
             var source =
@@ -3802,7 +3802,7 @@ class Program
             comp.VerifyEmitDiagnostics();
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/64308")]
         public void MethodArgumentsMustMatch_06()
         {
             var source =
@@ -3859,7 +3859,7 @@ class Program
                 Diagnostic(ErrorCode.ERR_RefReturnScopedParameter, "y").WithArguments("y").WithLocation(12, 79));
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/64308")]
         public void MethodArgumentsMustMatch_07_1()
         {
             var source =
@@ -3917,7 +3917,7 @@ class Program
                 Diagnostic(ErrorCode.ERR_CallArgMixing, "F1(ref x, __arglist(ref y))").WithArguments("Program.F1(ref R, __arglist)", "__arglist").WithLocation(13, 41));
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/64308")]
         public void MethodArgumentsMustMatch_07_2()
         {
             var source =
@@ -3982,7 +3982,7 @@ class Program
                 Diagnostic(ErrorCode.ERR_CallArgMixing, "F0(__arglist(ref y))").WithArguments("Program.F0(__arglist)", "__arglist").WithLocation(25, 35));
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/64308")]
         public void MethodArgumentsMustMatch_07_3()
         {
             // demonstrate the non-ref-fields behavior.
@@ -4015,7 +4015,7 @@ class Program
         /// <summary>
         /// ref to ref struct in __arglist is unscoped ref.
         /// </summary>
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/64308")]
         public void MethodArgumentsMustMatch_08()
         {
             var source =
@@ -4074,7 +4074,7 @@ class Program
         /// <summary>
         /// ref to ref struct in __arglist is unscoped ref.
         /// </summary>
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/64308")]
         public void MethodArgumentsMustMatch_09()
         {
             var source =
@@ -8813,7 +8813,7 @@ unsafe public class A
 
         // Breaking change in C#11: A ref to ref struct argument is considered
         // an unscoped reference when passed to an __arglist.
-        [Theory]
+        [Theory(Skip = "https://github.com/dotnet/roslyn/issues/64308")]
         [CombinatorialData]
         public void BreakingChange_RefToRefStructInArglist(
             [CombinatorialValues(LanguageVersion.CSharp10, LanguageVersion.CSharp11)] LanguageVersion languageVersionA,
@@ -8905,12 +8905,9 @@ public static class A
 }";
             comp = CreateCompilation(sourceB, references: new[] { refA });
             comp.VerifyEmitDiagnostics(
-                // (7,9): error CS8350: This combination of arguments to 'A.F2(ref R, ref R)' is disallowed because it may expose variables referenced by parameter 'y2' outside of their declaration scope
+                // (7,9): error CS8350: This combination of arguments to 'A.F2(ref R, ref R)' is disallowed because it may expose variables referenced by parameter 'x2' outside of their declaration scope
                 //         A.F2(ref x, ref y);
-                Diagnostic(ErrorCode.ERR_CallArgMixing, "A.F2(ref x, ref y)").WithArguments("A.F2(ref R, ref R)", "y2").WithLocation(7, 9),
-                // (7,25): error CS8352: Cannot use variable 'y' in this context because it may expose referenced variables outside of their declaration scope
-                //         A.F2(ref x, ref y);
-                Diagnostic(ErrorCode.ERR_EscapeVariable, "y").WithArguments("y").WithLocation(7, 25));
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "A.F2(ref x, ref y)").WithArguments("A.F2(ref R, ref R)", "x2").WithLocation(7, 9));
 
             verify(comp, useUpdatedEscapeRules: true);
 
@@ -9459,7 +9456,7 @@ public class A
         R a = new R();
         R b = new R();
         R c = new R();
-        R d;
+        scoped R d;
         A.F(a, ref b, in c, out d);
     }
 }";
@@ -15516,12 +15513,9 @@ class Program
 }";
             var comp = CreateCompilation(source, runtimeFeature: RuntimeFlag.ByRefFields);
             comp.VerifyDiagnostics(
-                // (7,9): error CS8350: This combination of arguments to 'R.M2(ref int)' is disallowed because it may expose variables referenced by parameter 'i' outside of their declaration scope
+                // (7,9): error CS8350: This combination of arguments to 'R.M2(ref int)' is disallowed because it may expose variables referenced by parameter 'this' outside of their declaration scope
                 //         M2(ref i);
-                Diagnostic(ErrorCode.ERR_CallArgMixing, "M2(ref i)").WithArguments("R.M2(ref int)", "i").WithLocation(7, 9),
-                // (7,16): error CS8168: Cannot return local 'i' by reference because it is not a ref local
-                //         M2(ref i);
-                Diagnostic(ErrorCode.ERR_RefReturnLocal, "i").WithArguments("i").WithLocation(7, 16));
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "M2(ref i)").WithArguments("R.M2(ref int)", "this").WithLocation(7, 9));
         }
 
         [WorkItem(63016, "https://github.com/dotnet/roslyn/issues/63016")]
@@ -15555,12 +15549,9 @@ ref struct S
 }";
             var comp = CreateCompilation(new[] { sourceA, sourceB }, options: TestOptions.UnsafeReleaseDll, runtimeFeature: RuntimeFlag.ByRefFields);
             comp.VerifyDiagnostics(
-                // (8,9): error CS8350: This combination of arguments to 'S.M2(ref int)' is disallowed because it may expose variables referenced by parameter 'i' outside of their declaration scope
+                // (8,9): error CS8350: This combination of arguments to 'S.M2(ref int)' is disallowed because it may expose variables referenced by parameter 'this' outside of their declaration scope
                 //         M2(ref s[0]);
-                Diagnostic(ErrorCode.ERR_CallArgMixing, "M2(ref s[0])").WithArguments("S.M2(ref int)", "i").WithLocation(8, 9),
-                // (8,16): error CS8352: Cannot use variable 's' in this context because it may expose referenced variables outside of their declaration scope
-                //         M2(ref s[0]);
-                Diagnostic(ErrorCode.ERR_EscapeVariable, "s").WithArguments("s").WithLocation(8, 16));
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "M2(ref s[0])").WithArguments("S.M2(ref int)", "this").WithLocation(8, 9));
         }
 
         [Fact]
@@ -18335,9 +18326,9 @@ public class A<T>
                 // (7,20): error CS8347: Cannot use a result of 'A<int>.F1A(ref R<int>)' in this context because it may expose variables referenced by parameter 'r1' outside of their declaration scope
                 //         return ref F1A(ref r); // 1
                 Diagnostic(ErrorCode.ERR_EscapeCall, "F1A(ref r)").WithArguments("A<int>.F1A(ref R<int>)", "r1").WithLocation(7, 20),
-                // (7,28): error CS8352: Cannot use variable 'r' in this context because it may expose referenced variables outside of their declaration scope
+                // (7,28): error CS8168: Cannot return local 'r' by reference because it is not a ref local
                 //         return ref F1A(ref r); // 1
-                Diagnostic(ErrorCode.ERR_EscapeVariable, "r").WithArguments("r").WithLocation(7, 28),
+                Diagnostic(ErrorCode.ERR_RefReturnLocal, "r").WithArguments("r").WithLocation(7, 28),
                 // (13,20): error CS8347: Cannot use a result of 'A<int>.F2A(ref R<int>)' in this context because it may expose variables referenced by parameter 'r2' outside of their declaration scope
                 //         return ref F2A(ref r); // 2
                 Diagnostic(ErrorCode.ERR_EscapeCall, "F2A(ref r)").WithArguments("A<int>.F2A(ref R<int>)", "r2").WithLocation(13, 20),
