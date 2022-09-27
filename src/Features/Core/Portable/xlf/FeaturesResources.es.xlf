@@ -722,7 +722,7 @@ Asegúrese de usar el especificador "tt" para los idiomas para los que es necesa
       </trans-unit>
       <trans-unit id="Extract_base_record">
         <source>Extract base record...</source>
-        <target state="new">Extract base record...</target>
+        <target state="translated">Extraer record base...</target>
         <note>{Locked="record"} "record" is a language construct for C# and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Extract_interface">
