@@ -32,6 +32,7 @@ namespace Microsoft.CodeAnalysis.Shared.TestHooks
         public const string InlineDiagnostics = nameof(InlineDiagnostics);
         public const string InheritanceMargin = nameof(InheritanceMargin);
         public const string InlineHints = nameof(InlineHints);
+        public const string InlineRenameFlyout = nameof(InlineRenameFlyout);
         public const string InteractiveEvaluator = nameof(InteractiveEvaluator);
         public const string KeywordHighlighting = nameof(KeywordHighlighting);
         public const string LibraryManager = nameof(LibraryManager);

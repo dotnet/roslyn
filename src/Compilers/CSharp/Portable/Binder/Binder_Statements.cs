@@ -1546,8 +1546,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var rightEscape = GetRefEscape(op2, LocalScopeDepth);
                         if (leftEscape < rightEscape)
                         {
-                            Error(diagnostics, rightEscape == Binder.ReturnOnlyScope ? ErrorCode.ERR_RefAssignReturnOnly : ErrorCode.ERR_RefAssignNarrower, node, getName(op1), op2.Syntax);
-                            op2 = ToBadExpression(op2);
+                            var errorCode = (rightEscape, this.InUnsafeRegion) switch
+                            {
+                                (Binder.ReturnOnlyScope, false) => ErrorCode.ERR_RefAssignReturnOnly,
+                                (Binder.ReturnOnlyScope, true) => ErrorCode.WRN_RefAssignReturnOnly,
+                                (_, false) => ErrorCode.ERR_RefAssignNarrower,
+                                (_, true) => ErrorCode.WRN_RefAssignNarrower
+                            };
+
+                            Error(diagnostics, errorCode, node, getName(op1), op2.Syntax);
+                            if (!this.InUnsafeRegion)
+                            {
+                                op2 = ToBadExpression(op2);
+                            }
                         }
                     }
 
