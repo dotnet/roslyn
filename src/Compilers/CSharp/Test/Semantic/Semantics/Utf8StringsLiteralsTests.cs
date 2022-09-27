@@ -3553,7 +3553,7 @@ class C
         public void PassAround_02()
         {
             var source = @"using System;
-using System.Diagnostics.CodeAnalysis;
+
 class C
 {
     static ref readonly ReadOnlySpan<byte> Test2()
@@ -3561,7 +3561,7 @@ class C
         return ref Test3(""cat""u8);
     }
 
-    static ref readonly ReadOnlySpan<byte> Test3([UnscopedRef] in ReadOnlySpan<byte> x) => ref x;
+    static ref readonly ReadOnlySpan<byte> Test3(in ReadOnlySpan<byte> x) => ref x;
 }
 ";
             var comp = CreateCompilation(new[] { source + HelpersSource, UnscopedRefAttributeDefinition }, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.DebugDll);

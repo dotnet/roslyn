@@ -15,6 +15,12 @@ Microsoft.CodeAnalysis.Diagnostics.SyntaxTreeAnalysisContext.IsGeneratedCode.get
 Microsoft.CodeAnalysis.GeneratorDriver.ReplaceGenerators(System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.ISourceGenerator!> generators) -> Microsoft.CodeAnalysis.GeneratorDriver!
 Microsoft.CodeAnalysis.ILocalSymbol.IsForEach.get -> bool
 Microsoft.CodeAnalysis.ILocalSymbol.IsUsing.get -> bool
+Microsoft.CodeAnalysis.ILocalSymbol.ScopedKind.get -> Microsoft.CodeAnalysis.ScopedKind
+Microsoft.CodeAnalysis.IParameterSymbol.ScopedKind.get -> Microsoft.CodeAnalysis.ScopedKind
+Microsoft.CodeAnalysis.ScopedKind
+Microsoft.CodeAnalysis.ScopedKind.None = 0 -> Microsoft.CodeAnalysis.ScopedKind
+Microsoft.CodeAnalysis.ScopedKind.ScopedRef = 1 -> Microsoft.CodeAnalysis.ScopedKind
+Microsoft.CodeAnalysis.ScopedKind.ScopedValue = 2 -> Microsoft.CodeAnalysis.ScopedKind
 override sealed Microsoft.CodeAnalysis.CompilationOptions.GetHashCode() -> int
 static Microsoft.CodeAnalysis.ModuleMetadata.CreateFromMetadata(System.IntPtr metadata, int size, System.Action! onDispose) -> Microsoft.CodeAnalysis.ModuleMetadata!
 Microsoft.CodeAnalysis.INamedTypeSymbol.IsFileLocal.get -> bool
