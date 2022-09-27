@@ -786,6 +786,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (UseUpdatedEscapeRules)
             {
+                if (parameter.RefKind == RefKind.Out)
+                {
+                    return Binder.ReturnOnlyScope;
+                }
+
                 return parameter.EffectiveScope == DeclarationScope.ValueScoped ?
                     Binder.CurrentMethodScope :
                     Binder.CallingMethodScope;
@@ -2156,7 +2161,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     continue;
                 }
 
-                var toArgEscape = GetValEscape(toArg, scopeOfTheContainingExpression);
+                var toArgEscape = GetValEscape(toArg, symbol, scopeOfTheContainingExpression);
                 foreach (var (fromParameter, fromArg, isRefEscape) in argList)
                 {
                     if (object.ReferenceEquals(toParameter, fromParameter))
@@ -3033,6 +3038,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return broadest;
+        }
+
+        internal uint GetValEscape(BoundExpression expr, Symbol? symbol, uint scopeOfTheContainingExpression)
+        {
+            if (expr.Kind == BoundKind.ThisReference && 
+                symbol is MethodSymbol {  MethodKind: MethodKind.Constructor })
+            {
+                return Binder.ReturnOnlyScope;
+            }
+
+            return GetValEscape(expr, scopeOfTheContainingExpression);
         }
 
         /// <summary>

@@ -21783,5 +21783,82 @@ struct S<T> : System.IDisposable
                 //         RB = ref bc.B; // 1
                 Diagnostic(ErrorCode.ERR_RefAssignReturnOnly, "RB = ref bc.B").WithArguments("RB", "bc.B").WithLocation(12, 9));
         }
+
+        [Fact]
+        public void OutReturnOnly_Ctor1()
+        {
+            var source = """
+                ref struct RS
+                {
+                    ref int field;
+                    public RS(ref int i)
+                    {
+                        field = ref i;
+                    }
+
+                    static RS M1(ref int i) => new RS(ref i);
+                    static RS M2()
+                    {
+                        int i = 0;
+                        return new RS(ref i);
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source, runtimeFeature: RuntimeFlag.ByRefFields);
+            comp.VerifyDiagnostics(
+                // (13,16): error CS8347: Cannot use a result of 'RS.RS(ref int)' in this context because it may expose variables referenced by parameter 'i' outside of their declaration scope
+                //         return new RS(ref i);
+                Diagnostic(ErrorCode.ERR_EscapeCall, "new RS(ref i)").WithArguments("RS.RS(ref int)", "i").WithLocation(13, 16),
+                // (13,27): error CS8168: Cannot return local 'i' by reference because it is not a ref local
+                //         return new RS(ref i);
+                Diagnostic(ErrorCode.ERR_RefReturnLocal, "i").WithArguments("i").WithLocation(13, 27));
+        }
+
+        /// <summary>
+        /// Out and ref have different return scopes
+        /// </summary>
+        [Fact]
+        public void OutReturnOnly_1()
+        {
+            var source = """
+                ref struct RS
+                {
+                    ref int field;
+                    public RS(ref int i)
+                    {
+                        field = ref i;
+                    }
+
+                    static void M1(ref int i, ref RS rs) => rs = new RS(ref i);
+                    static void M2(ref int i, out RS rs) => rs = new RS(ref i);
+                }
+                """;
+            var comp = CreateCompilation(source, runtimeFeature: RuntimeFlag.ByRefFields);
+            comp.VerifyDiagnostics();
+        }
+
+        /// <summary>
+        /// Out and ref have different return scopes
+        /// </summary>
+        [Fact]
+        public void OutReturnOnly_2()
+        {
+            var source = """
+                ref struct RS
+                {
+                    int field;
+                    ref int refField;
+                    public RS(ref int i)
+                    {
+                        refField = ref i;
+                    }
+
+                    static void M1(ref RS i, ref RS rs) => rs = new RS(ref i.field); // 1
+                    static void M2(ref RS i, out RS rs) => rs = new RS(ref i.field);
+                }
+                """;
+            var comp = CreateCompilation(source, runtimeFeature: RuntimeFlag.ByRefFields);
+            comp.VerifyDiagnostics();
+        }
     }
 }
