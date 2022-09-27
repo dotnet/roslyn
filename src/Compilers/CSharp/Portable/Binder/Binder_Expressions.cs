@@ -2811,7 +2811,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         Debug.Assert(isVar != declType.HasType);
 
                         // ValEscape is the same as for an uninitialized local
-                        return new BoundDiscardExpression(declarationExpression, Binder.ExternalScope, declType.Type);
+                        return new BoundDiscardExpression(declarationExpression, Binder.CallingMethodScope, declType.Type);
                     }
                 case SyntaxKind.SingleVariableDesignation:
                     return BindOutVariableDeclarationArgument(declarationExpression, diagnostics);

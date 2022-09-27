@@ -4289,8 +4289,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     else
                         CheckValEscape(trueExpr.Syntax, trueExpr, currentScope, whenFalseEscape, checkingReceiver: false, diagnostics: diagnostics);
 
-                    diagnostics.Add(ErrorCode.ERR_MismatchedRefEscapeInTernary, node.Location);
-                    hasErrors = true;
+                    diagnostics.Add(this.InUnsafeRegion ? ErrorCode.WRN_MismatchedRefEscapeInTernary : ErrorCode.ERR_MismatchedRefEscapeInTernary, node.Location);
+                    hasErrors = !this.InUnsafeRegion;
                 }
             }
 
