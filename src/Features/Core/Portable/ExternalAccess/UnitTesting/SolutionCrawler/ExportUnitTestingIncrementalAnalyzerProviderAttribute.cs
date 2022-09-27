@@ -29,12 +29,12 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
 #endif
         }
 
+#if false // Not used in unit testing crawling
         public ExportUnitTestingIncrementalAnalyzerProviderAttribute(bool highPriorityForActiveFile, string name, string[] workspaceKinds)
             : this(name, workspaceKinds)
         {
-#if false // Not used in unit testing crawling
             this.HighPriorityForActiveFile = highPriorityForActiveFile;
-#endif
         }
+#endif
     }
 }
