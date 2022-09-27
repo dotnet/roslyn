@@ -4118,6 +4118,46 @@ class Program
                 Diagnostic(ErrorCode.ERR_EscapeVariable, "y1").WithArguments("y1").WithLocation(13, 16));
         }
 
+        /// <summary>
+        /// Ensure that readonly members / types is properly accounted for
+        /// </summary>
+        [Fact]
+        public void MethodArgumentsMustMatch_13()
+        {
+            var source = """
+                ref struct RWRS
+                {
+                    public void M1(RS rs) { }
+                    public readonly void M2(RS rs) { }
+                }
+                readonly ref struct RORS
+                {
+                    public void M3(RS rs) { }
+                }
+                ref struct RS
+                {
+                    static void Test()
+                    {
+                        scoped RS local = default;
+                        RWRS rwLocal = default;
+                        rwLocal.M1(local); // 1
+                        rwLocal.M2(local);
+                        RORS roLocal = default;
+                        roLocal.M3(local);
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation(new[] { source });
+            comp.VerifyDiagnostics(
+                // (16,9): error CS8350: This combination of arguments to 'RWRS.M1(RS)' is disallowed because it may expose variables referenced by parameter 'rs' outside of their declaration scope
+                //         rwLocal.M1(local); // 1
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "rwLocal.M1(local)").WithArguments("RWRS.M1(RS)", "rs").WithLocation(16, 9),
+                // (16,20): error CS8352: Cannot use variable 'local' in this context because it may expose referenced variables outside of their declaration scope
+                //         rwLocal.M1(local); // 1
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "local").WithArguments("local").WithLocation(16, 20));
+        }
+
         [Theory]
         [InlineData(LanguageVersion.CSharp10)]
         [InlineData(LanguageVersion.CSharp11)]

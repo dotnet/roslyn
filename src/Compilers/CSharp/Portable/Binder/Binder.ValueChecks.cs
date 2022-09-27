@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// This is an argument that needs to be considered for MAMM rules. It's at least an 
         /// output argument of the function and very often also an input. Essentially this 
-        /// represents all the in, ref and out arguments.
+        /// represents all the writable ref and out arguments.
         /// </summary>
         internal readonly struct MixableArgument
         {
@@ -66,15 +66,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             internal RefKind RefKind { get; }
 
-            internal bool IsArgList { get; }
-
             internal EscapeArgument(ParameterSymbol? parameter, BoundExpression argument, RefKind refKind, bool isArgList = false)
             {
                 Debug.Assert(!isArgList || parameter is null);
                 Argument = argument;
                 Parameter = parameter;
                 RefKind = refKind;
-                IsArgList = isArgList;
             }
 
             public void Deconstruct(out ParameterSymbol? parameter, out BoundExpression argument, out RefKind refKind)
@@ -1888,7 +1885,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var tuple = getReceiver(symbol, receiver);
                 escapeArguments.Add(tuple);
 
-                if (tuple.Parameter is not null && receiver.Type is { IsRefLikeType: true } && mixableArguments is not null)
+                if (mixableArguments is not null && isMixableParameter(tuple.Parameter))
                 {
                     mixableArguments.Add(new MixableArgument(tuple.Parameter, receiver));
                 }
@@ -1916,8 +1913,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         parameters[argsToParamsOpt.IsDefault ? argIndex : argsToParamsOpt[argIndex]] :
                         null;
 
-                    if (mixableArguments is not null &&
-                        parameter is { RefKind: RefKind.Out or RefKind.Ref, Type: { IsRefLikeType: true } })
+                    if (mixableArguments is not null && isMixableParameter(parameter))
                     {
                         mixableArguments.Add(new MixableArgument(parameter, argument));
                     }
@@ -1936,6 +1932,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     escapeArguments.Add(new EscapeArgument(parameter, argument, refKind));
                 }
             }
+
+            static bool isMixableParameter(ParameterSymbol? parameter) =>
+                parameter is not null &&
+                parameter.Type.IsRefLikeType &&
+                parameter.RefKind.IsWritableReference();
 
             static EscapeArgument getReceiver(Symbol symbol, BoundExpression receiver)
             {
