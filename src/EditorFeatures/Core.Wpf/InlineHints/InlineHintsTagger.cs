@@ -53,6 +53,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
 
         private readonly ITextBuffer _buffer;
         private readonly IWpfTextView _textView;
+
         public event EventHandler<SnapshotSpanEventArgs>? TagsChanged;
 
         public InlineHintsTagger(
@@ -65,6 +66,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
 
             _textView = textView;
             _buffer = buffer;
+
             _tagAggregator = tagAggregator;
             _formatMap = taggerProvider.ClassificationFormatMapService.GetClassificationFormatMap(textView);
             _hintClassification = taggerProvider.ClassificationTypeRegistryService.GetClassificationType(InlineHintsTag.TagId);
