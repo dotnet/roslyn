@@ -25,26 +25,6 @@ namespace Microsoft.CodeAnalysis.Remote
         {
         }
 
-        public ValueTask OnTextDocumentOpenedAsync(Checksum solutionChecksum, DocumentId documentId, CancellationToken cancellationToken)
-        {
-            return RunServiceAsync(solutionChecksum, async solution =>
-            {
-                var aggregationService = solution.Services.GetRequiredService<ILegacySolutionEventsAggregationService>();
-                await aggregationService.OnTextDocumentOpenedAsync(
-                    new TextDocumentEventArgs(solution.GetRequiredDocument(documentId)), cancellationToken).ConfigureAwait(false);
-            }, cancellationToken);
-        }
-
-        public ValueTask OnTextDocumentClosedAsync(Checksum solutionChecksum, DocumentId documentId, CancellationToken cancellationToken)
-        {
-            return RunServiceAsync(solutionChecksum, async solution =>
-            {
-                var aggregationService = solution.Services.GetRequiredService<ILegacySolutionEventsAggregationService>();
-                await aggregationService.OnTextDocumentClosedAsync(
-                    new TextDocumentEventArgs(solution.GetRequiredDocument(documentId)), cancellationToken).ConfigureAwait(false);
-            }, cancellationToken);
-        }
-
         public ValueTask OnWorkspaceChangedAsync(
             Checksum oldSolutionChecksum,
             Checksum newSolutionChecksum,
