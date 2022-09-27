@@ -10,6 +10,7 @@ using System.Text;
 using PostSharp.Engineering.BuildTools.Build;
 using PostSharp.Engineering.BuildTools.Build.Model;
 using PostSharp.Engineering.BuildTools.Utilities;
+using Spectre.Console.Cli;
 
 namespace Build
 {
@@ -69,9 +70,14 @@ namespace Build
                 filter = "Category!=OuterLoop";
             }
 
+            var binaryLogFilePath = Path.Combine(
+               context.RepoDirectory,
+               context.Product.LogsDirectory.ToString(),
+               $"{this.Name}.test.binlog");
+
             // We run Metalama's unit tests.
             var project = Path.Combine(context.RepoDirectory, "src", "Metalama", "Metalama.Compiler.UnitTests", "Metalama.Compiler.UnitTests.csproj");
-            return DotNetHelper.Run(context, settings, project, "test", $"--filter \"{filter}\"");
+            return DotNetHelper.Run(context, settings, project, "test", $"--no-restore --filter \"{filter}\" -bl:{binaryLogFilePath}");
         }
     }
 }
