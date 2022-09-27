@@ -210,15 +210,14 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
 
                     // process all analyzers for each categories in this order - syntax, body, document
                     var reasons = workItem.InvocationReasons;
-                    if (
+
 #if false // Not used in unit testing crawling
-                        workItem.MustRefresh || 
-#endif
-                        reasons.Contains(UnitTestingPredefinedInvocationReasons.SyntaxChanged))
+                    if (workItem.MustRefresh || reasons.Contains(UnitTestingPredefinedInvocationReasons.SyntaxChanged))
                     {
                         await RunAnalyzersAsync(analyzers, textDocument, workItem, (analyzer, document, cancellationToken) =>
                             AnalyzeSyntaxAsync(analyzer, document, reasons, cancellationToken), cancellationToken).ConfigureAwait(false);
                     }
+#endif
 
                     if (textDocument is not Document document)
                     {
@@ -243,6 +242,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
 
                     return;
 
+#if false // Not used in unit testing crawling
                     static async Task AnalyzeSyntaxAsync(IUnitTestingIncrementalAnalyzer analyzer, TextDocument textDocument, UnitTestingInvocationReasons reasons, CancellationToken cancellationToken)
                     {
                         if (textDocument is Document document)
@@ -251,11 +251,10 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                         }
                         else
                         {
-#if false // Not used in unit testing crawling
                             await analyzer.AnalyzeNonSourceDocumentAsync(textDocument, reasons, cancellationToken).ConfigureAwait(false);
-#endif
                         }
                     }
+#endif
 
                     bool ProcessActiveDocumentSwitched(ImmutableArray<IUnitTestingIncrementalAnalyzer> analyzers, UnitTestingWorkItem workItem, TextDocument document, CancellationToken cancellationToken)
                     {

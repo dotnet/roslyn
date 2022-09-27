@@ -481,10 +481,12 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
 
                             // No request to re-run syntax change analysis. run it here
                             var reasons = workItem.InvocationReasons;
+#if false // Not used in unit testing crawling
                             if (!reasons.Contains(UnitTestingPredefinedInvocationReasons.SyntaxChanged))
                             {
                                 await Processor.RunAnalyzersAsync(reanalyzers, document, workItem, (a, d, c) => AnalyzeSyntaxAsync(a, d, reasons, c), cancellationToken).ConfigureAwait(false);
                             }
+#endif
 
                             // No request to re-run semantic change analysis. run it here
                             // Note: Semantic analysis is not supported for non-source documents.
@@ -515,6 +517,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                         }
 #endif
 
+#if false // Not used in unit testing crawling
                         static async Task AnalyzeSyntaxAsync(IUnitTestingIncrementalAnalyzer analyzer, TextDocument textDocument, UnitTestingInvocationReasons reasons, CancellationToken cancellationToken)
                         {
                             if (textDocument is Document document)
@@ -523,11 +526,10 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                             }
                             else
                             {
-#if false // Not used in unit testing crawling
                                 await analyzer.AnalyzeNonSourceDocumentAsync(textDocument, reasons, cancellationToken).ConfigureAwait(false);
-#endif
                             }
                         }
+#endif
                     }
 
                     private Task RemoveDocumentAsync(DocumentId documentId, CancellationToken cancellationToken)
