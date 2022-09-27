@@ -176,7 +176,7 @@ namespace Microsoft.CodeAnalysis.Completion
                 => item.Tags.Contains(WellKnownTags.Keyword);
 
             static bool TagsEqual(CompletionItem item1, CompletionItem item2)
-                => item1.Tags == item2.Tags || item1.Tags.SequenceEqual(item2.Tags, arg: true, static (a, b, _) => a == b);
+                => System.Linq.ImmutableArrayExtensions.SequenceEqual(item1.Tags, item2.Tags);
         }
 
         private static int CompareItems(
