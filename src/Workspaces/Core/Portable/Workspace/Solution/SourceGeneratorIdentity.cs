@@ -8,16 +8,16 @@ using System.Text;
 
 namespace Microsoft.CodeAnalysis
 {
-    internal record struct SourceGeneratorIdentity(string AssemblyName, string TypeName)
+    internal record struct SourceGeneratorIdentity(string AssemblyName, Version AssemblyVersion, string TypeName)
     {
         public SourceGeneratorIdentity(ISourceGenerator generator)
-            : this(GetGeneratorAssemblyName(generator), GetGeneratorTypeName(generator))
+            : this(GetGeneratorAssemblyName(generator), generator.GetGeneratorType().Assembly.GetName().Version!, GetGeneratorTypeName(generator))
         {
         }
 
         public static string GetGeneratorAssemblyName(ISourceGenerator generator)
         {
-            return generator.GetGeneratorType().Assembly.FullName!;
+            return generator.GetGeneratorType().Assembly.GetName().Name!;
         }
 
         public static string GetGeneratorTypeName(ISourceGenerator generator)

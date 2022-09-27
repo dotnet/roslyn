@@ -107,9 +107,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 if (reference != null)
                 {
                     var info = await SymbolTreeInfo.GetInfoForMetadataReferenceAsync(
-                        project.Solution, reference, loadOnly: false, cancellationToken).ConfigureAwait(false);
+                        project.Solution, reference, cancellationToken).ConfigureAwait(false);
 
-                    // We must have an index since we passed in loadOnly: false here.
                     Contract.ThrowIfNull(info);
 
                     var symbols = await info.FindAsync(query, assembly, filter, cancellationToken).ConfigureAwait(false);

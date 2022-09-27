@@ -6413,7 +6413,7 @@ public partial struct CustomHandler
                     // (1,5): error CS1503: Argument 3: cannot convert from 'int' to 'string'
                     // C.M(1, $"");
                     Diagnostic(ErrorCode.ERR_BadArgType, "1").WithArguments("3", "int", "string").WithLocation(1, 5),
-                    // (1,8): error CS7036: There is no argument given that corresponds to the required formal parameter 'success' of 'CustomHandler.CustomHandler(int, int, string, out bool)'
+                    // (1,8): error CS7036: There is no argument given that corresponds to the required parameter 'success' of 'CustomHandler.CustomHandler(int, int, string, out bool)'
                     // C.M(1, $"");
                     Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, expression).WithArguments("success", "CustomHandler.CustomHandler(int, int, string, out bool)").WithLocation(1, 8)
             };
@@ -7353,7 +7353,7 @@ public struct CustomHandler
             (extraConstructorArg == "")
             ? new[]
             {
-                    // (1,12): error CS7036: There is no argument given that corresponds to the required formal parameter 'i' of 'CustomHandler.CustomHandler(int, int, int)'
+                    // (1,12): error CS7036: There is no argument given that corresponds to the required parameter 'i' of 'CustomHandler.CustomHandler(int, int, int)'
                     // C.M(1, "", $"");
                     Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, expression).WithArguments("i", "CustomHandler.CustomHandler(int, int, int)").WithLocation(1, 12),
                     // (1,12): error CS1615: Argument 3 may not be passed with the 'out' keyword
@@ -7362,10 +7362,10 @@ public struct CustomHandler
             }
             : new[]
             {
-                    // (1,12): error CS7036: There is no argument given that corresponds to the required formal parameter 'i' of 'CustomHandler.CustomHandler(int, int, int, out bool)'
+                    // (1,12): error CS7036: There is no argument given that corresponds to the required parameter 'i' of 'CustomHandler.CustomHandler(int, int, int, out bool)'
                     // C.M(1, "", $"");
                     Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, expression).WithArguments("i", "CustomHandler.CustomHandler(int, int, int, out bool)").WithLocation(1, 12),
-                    // (1,12): error CS7036: There is no argument given that corresponds to the required formal parameter 'success' of 'CustomHandler.CustomHandler(int, int, int, out bool)'
+                    // (1,12): error CS7036: There is no argument given that corresponds to the required parameter 'success' of 'CustomHandler.CustomHandler(int, int, int, out bool)'
                     // C.M(1, "", $"");
                     Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, expression).WithArguments("success", "CustomHandler.CustomHandler(int, int, int, out bool)").WithLocation(1, 12)
             }
@@ -7860,7 +7860,7 @@ public partial struct CustomHandler
                 // (6,1): error CS1620: Argument 3 must be passed with the 'ref' keyword
                 // GetC(ref c).M($"""literal""" + $"""
                 Diagnostic(ErrorCode.ERR_BadArgRef, "GetC(ref c)").WithArguments("3", "ref").WithLocation(6, 1),
-                // (6,15): error CS7036: There is no argument given that corresponds to the required formal parameter 'success' of 'CustomHandler.CustomHandler(int, int, ref C, out bool)'
+                // (6,15): error CS7036: There is no argument given that corresponds to the required parameter 'success' of 'CustomHandler.CustomHandler(int, int, ref C, out bool)'
                 // GetC(ref c).M($"""literal""" + $"""
                 Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, expression).WithArguments("success", "CustomHandler.CustomHandler(int, int, ref C, out bool)").WithLocation(6, 15)
             }
@@ -11074,7 +11074,7 @@ public ref struct CustomHandler
 {
     S1 s1;
 
-    public CustomHandler(int literalLength, int formattedCount, ref S1 s1) : this() { this.s1 = s1; }
+    public CustomHandler(int literalLength, int formattedCount, scoped ref S1 s1) : this() { this.s1 = s1; }
 
     public void AppendFormatted(Span<char> s) => this.s1.s = s;
 
@@ -11096,16 +11096,10 @@ public ref struct S1
         var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerAttribute, InterpolatedStringHandlerArgumentAttribute }, targetFramework: TargetFramework.NetCoreApp);
         comp.VerifyDiagnostics(
             // (17,9): error CS8350: This combination of arguments to 'CustomHandler.M2(ref S1, ref CustomHandler)' is disallowed because it may expose variables referenced by parameter 'handler' outside of their declaration scope
-            //         M2(ref s1, $"{s}");
+            //         M2(ref s1, $"""{s}""" + $"""
             Diagnostic(ErrorCode.ERR_CallArgMixing, @"M2(ref s1, " + expression + @")").WithArguments("CustomHandler.M2(ref S1, ref CustomHandler)", "handler").WithLocation(17, 9),
-            // (17,16): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
+            // (17,25): error CS8352: Cannot use variable 's' in this context because it may expose referenced variables outside of their declaration scope
             //         M2(ref s1, $"""{s}""" + $"""
-            Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "s1").WithLocation(17, 16),
-            // (17,20): error CS8347: Cannot use a result of 'CustomHandler.CustomHandler(int, int, ref S1)' in this context because it may expose variables referenced by parameter 's1' outside of their declaration scope
-            //         M2(ref s1, $"""{s}""" + $"""
-            Diagnostic(ErrorCode.ERR_EscapeCall, expression).WithArguments("CustomHandler.CustomHandler(int, int, ref S1)", "s1").WithLocation(17, 20),
-            // (17,23): error CS8352: Cannot use variable 's' in this context because it may expose referenced variables outside of their declaration scope
-            //         M2(ref s1, $"{s}");
             Diagnostic(ErrorCode.ERR_EscapeVariable, "s").WithArguments("s").WithLocation(17, 25));
     }
 
@@ -11246,7 +11240,7 @@ public ref struct CustomHandler
 
         var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerAttribute, InterpolatedStringHandlerArgumentAttribute }, targetFramework: TargetFramework.NetCoreApp);
         comp.VerifyDiagnostics(
-            // (16,16): error CS8352: Cannot use variable 'c' in this context because it may expose referenced variables outside of their declaration scope
+            // (18,16): error CS8352: Cannot use variable 'c' in this context because it may expose referenced variables outside of their declaration scope
             //         return c;
             Diagnostic(ErrorCode.ERR_EscapeVariable, "c").WithArguments("c").WithLocation(18, 16));
     }
@@ -11263,7 +11257,7 @@ public ref struct CustomHandler
 {
     Span<char> s;
 
-    public CustomHandler(int literalLength, int formattedCount, ref S1 s1) : this() { s1.Handler = this; }
+    public CustomHandler(int literalLength, int formattedCount, scoped ref S1 s1) : this() { s1.Handler = this; }
 
     public static void M(ref S1 s1)
     {
@@ -11285,16 +11279,10 @@ public ref struct S1
         var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerAttribute, InterpolatedStringHandlerArgumentAttribute }, targetFramework: TargetFramework.NetCoreApp);
         comp.VerifyDiagnostics(
             // (15,9): error CS8350: This combination of arguments to 'CustomHandler.M2(ref S1, CustomHandler)' is disallowed because it may expose variables referenced by parameter 'handler' outside of their declaration scope
-            //         M2(ref s1, $"{s2}");
+            //         M2(ref s1, $"""{s2}""");
             Diagnostic(ErrorCode.ERR_CallArgMixing, @"M2(ref s1, $""""""{s2}"""""")").WithArguments("CustomHandler.M2(ref S1, CustomHandler)", "handler").WithLocation(15, 9),
-            // (15,16): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
+            // (15,25): error CS8352: Cannot use variable 's2' in this context because it may expose referenced variables outside of their declaration scope
             //         M2(ref s1, $"""{s2}""");
-            Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "s1").WithLocation(15, 16),
-            // (15,20): error CS8347: Cannot use a result of 'CustomHandler.CustomHandler(int, int, ref S1)' in this context because it may expose variables referenced by parameter 's1' outside of their declaration scope
-            //         M2(ref s1, $"""{s2}""");
-            Diagnostic(ErrorCode.ERR_EscapeCall, @"$""""""{s2}""""""").WithArguments("CustomHandler.CustomHandler(int, int, ref S1)", "s1").WithLocation(15, 20),
-            // (15,23): error CS8352: Cannot use variable 's2' in this context because it may expose referenced variables outside of their declaration scope
-            //         M2(ref s1, $"{s2}");
             Diagnostic(ErrorCode.ERR_EscapeVariable, "s2").WithArguments("s2").WithLocation(15, 25));
     }
 
@@ -11306,7 +11294,7 @@ public ref struct S1
 [InterpolatedStringHandler]
 ref struct CustomHandler
 {
-    public CustomHandler(int literalLength, int formattedCount, ref S s) : this() { s.Handler = this; }
+    public CustomHandler(int literalLength, int formattedCount, scoped ref S s) : this() { s.Handler = this; }
     public void AppendFormatted(int i) { } 
 }
 ref struct S
@@ -11324,13 +11312,7 @@ class Program
 }";
 
         var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerAttribute, InterpolatedStringHandlerArgumentAttribute }, targetFramework: TargetFramework.NetCoreApp);
-        comp.VerifyDiagnostics(
-            // (17,15): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
-            //         M(ref s, $"""{1}""");
-            Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "s").WithLocation(17, 15),
-            // (17,18): error CS8347: Cannot use a result of 'CustomHandler.CustomHandler(int, int, ref S)' in this context because it may expose variables referenced by parameter 's' outside of their declaration scope
-            //         M(ref s, $"""{1}""");
-            Diagnostic(ErrorCode.ERR_EscapeCall, @"$""""""{1}""""""").WithArguments("CustomHandler.CustomHandler(int, int, ref S)", "s").WithLocation(17, 18));
+        comp.VerifyDiagnostics();
     }
 
     [Theory, WorkItem(54703, "https://github.com/dotnet/roslyn/issues/54703")]
@@ -13460,7 +13442,7 @@ struct CustomHandler
 
         var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerAttribute });
         comp.VerifyDiagnostics(
-            // (4,19): error CS7036: There is no argument given that corresponds to the required formal parameter 's' of 'CustomHandler.CustomHandler(int, int, string)'
+            // (4,19): error CS7036: There is no argument given that corresponds to the required parameter 's' of 'CustomHandler.CustomHandler(int, int, string)'
             // CustomHandler c = $"";
             Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, @"$""""""
 

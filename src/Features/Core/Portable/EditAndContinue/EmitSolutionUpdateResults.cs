@@ -83,7 +83,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 foreach (var diagnostic in diagnostics)
                 {
                     var document = solution.GetDocument(diagnostic.Location.SourceTree);
-                    var data = (document != null) ? DiagnosticData.Create(diagnostic, document) : DiagnosticData.Create(diagnostic, project);
+                    var data = (document != null) ? DiagnosticData.Create(diagnostic, document) : DiagnosticData.Create(solution, diagnostic, project);
                     result.Add(data);
                 }
             }
@@ -149,16 +149,16 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     continue;
                 }
 
-                var fileSpan = data.DataLocation?.GetFileLinePositionSpan();
+                var fileSpan = data.DataLocation.MappedFileSpan;
 
                 builder.Add(new ManagedHotReloadDiagnostic(
                     data.Id,
                     data.Message ?? FeaturesResources.Unknown_error_occurred,
-                    (updateStatus == ModuleUpdateStatus.RestartRequired) ?
-                        ManagedHotReloadDiagnosticSeverity.RestartRequired :
-                        ManagedHotReloadDiagnosticSeverity.Error,
-                    fileSpan?.Path ?? "",
-                    fileSpan?.Span.ToSourceSpan() ?? default));
+                    updateStatus == ModuleUpdateStatus.RestartRequired
+                        ? ManagedHotReloadDiagnosticSeverity.RestartRequired
+                        : ManagedHotReloadDiagnosticSeverity.Error,
+                    fileSpan.Path ?? "",
+                    fileSpan.Span.ToSourceSpan()));
 
                 // only report first error
                 break;
@@ -169,7 +169,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 Debug.Assert(syntaxError.DataLocation != null);
                 Debug.Assert(syntaxError.Message != null);
 
-                var fileSpan = syntaxError.DataLocation.GetFileLinePositionSpan();
+                var fileSpan = syntaxError.DataLocation.MappedFileSpan;
 
                 builder.Add(new ManagedHotReloadDiagnostic(
                     syntaxError.Id,

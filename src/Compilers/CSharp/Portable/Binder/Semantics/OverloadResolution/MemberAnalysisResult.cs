@@ -13,7 +13,7 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.CSharp
 {
     [SuppressMessage("Performance", "CA1067", Justification = "Equality not actually implemented")]
-    internal struct MemberAnalysisResult
+    internal readonly struct MemberAnalysisResult
     {
         // put these first for better packing
         public readonly ImmutableArray<Conversion> ConversionsOpt;

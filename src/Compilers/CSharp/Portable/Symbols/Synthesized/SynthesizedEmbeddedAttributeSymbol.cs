@@ -99,7 +99,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override bool MangleName => false;
 
-        internal override SyntaxTree AssociatedSyntaxTree => null;
+        internal override FileIdentifier? AssociatedFileIdentifier => null;
 
         internal override bool HasCodeAnalysisEmbeddedAttribute => true;
 

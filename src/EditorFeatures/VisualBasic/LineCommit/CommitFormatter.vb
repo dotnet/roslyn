@@ -85,7 +85,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
                     baseSnapshot,
                     baseTree,
                     dirtyRegion,
-                    document.GetSyntaxTreeSynchronously(cancellationToken),
+                    tree,
                     cancellationToken)
 
                 Dim codeCleanups = CodeCleaner.GetDefaultProviders(document).
@@ -126,7 +126,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
                     End If
                 End If
 
-                finalDocument.Project.Solution.Workspace.ApplyDocumentChanges(finalDocument, cancellationToken)
+                Dim changes = finalDocument.GetTextChangesAsync(document, cancellationToken).WaitAndGetResult(cancellationToken)
+                buffer.ApplyChanges(changes)
             End Using
         End Sub
 

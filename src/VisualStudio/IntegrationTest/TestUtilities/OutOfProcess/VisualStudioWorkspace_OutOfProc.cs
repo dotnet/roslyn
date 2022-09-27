@@ -19,11 +19,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
         {
             _inProc = CreateInProcComponent<VisualStudioWorkspace_InProc>(visualStudioInstance);
         }
-        public void SetOptionInfer(string projectName, bool value)
-        {
-            _inProc.SetOptionInfer(projectName, value);
-            WaitForAsyncOperations(Helper.HangMitigatingTimeout, FeatureAttribute.Workspace);
-        }
 
         public bool IsPrettyListingOn(string languageName)
             => _inProc.IsPrettyListingOn(languageName);
@@ -68,20 +63,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
 
         public void SetTriggerCompletionInArgumentLists(bool value)
             => SetGlobalOption(WellKnownGlobalOption.CompletionOptions_TriggerInArgumentLists, LanguageNames.CSharp, value);
-
-        public void SetFullSolutionAnalysis(bool value)
-        {
-            var scope = value ? BackgroundAnalysisScope.FullSolution : BackgroundAnalysisScope.Default;
-            SetGlobalOption(WellKnownGlobalOption.SolutionCrawlerOptions_BackgroundAnalysisScopeOption, LanguageNames.CSharp, scope);
-            SetGlobalOption(WellKnownGlobalOption.SolutionCrawlerOptions_BackgroundAnalysisScopeOption, LanguageNames.VisualBasic, scope);
-
-            var compilerScope = value ? CompilerDiagnosticsScope.FullSolution : CompilerDiagnosticsScope.OpenFiles;
-            SetGlobalOption(WellKnownGlobalOption.SolutionCrawlerOptions_CompilerDiagnosticsScopeOption, LanguageNames.CSharp, compilerScope);
-            SetGlobalOption(WellKnownGlobalOption.SolutionCrawlerOptions_CompilerDiagnosticsScopeOption, LanguageNames.VisualBasic, compilerScope);
-        }
-
-        public void SetFileScopedNamespaces(bool value)
-            => _inProc.SetFileScopedNamespaces(value);
 
         public void SetGlobalOption(WellKnownGlobalOption option, string? language, object? value)
             => _inProc.SetGlobalOption(option, language, value);

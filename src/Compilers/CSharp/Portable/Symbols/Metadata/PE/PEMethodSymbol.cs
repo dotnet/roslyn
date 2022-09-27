@@ -982,7 +982,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                         filteredOutAttribute4: out _,
                         filterOut4: (checkForRequiredMembers && ObsoleteAttributeData is null) ? AttributeDescription.ObsoleteAttribute : default,
                         filteredOutAttribute5: out _,
-                        filterOut5: default);
+                        filterOut5: default,
+                        filteredOutAttribute6: out _,
+                        filterOut6: default);
 
                     isExtensionMethod = !extensionAttribute.IsNil;
                     isReadOnly = !isReadOnlyAttribute.IsNil;
@@ -1639,5 +1641,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 return _packedFlags.IsUnscopedRef;
             }
         }
+
+        internal sealed override bool UseUpdatedEscapeRules => ContainingModule.UseUpdatedEscapeRules;
     }
 }

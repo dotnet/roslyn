@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 }";
             var comp = CreateCompilation(new[] { ScopedRefAttributeDefinition, source });
             var expected =
-@" void Program.F(ref System.Int32 i)
+@"void Program.F(ref System.Int32 i)
     [ScopedRef] ref System.Int32 i
 ";
             CompileAndVerify(comp, symbolValidator: module =>
@@ -137,7 +137,7 @@ using System.Runtime.CompilerServices;
     [ScopedRef] event EventHandler E;
     [ScopedRef] object P { get; }
     [ScopedRef] static object M1() => throw null;
-    [ScopedRef] static object M2() => throw null;
+    [return: ScopedRef] static object M2() => throw null;
     static void M3<[ScopedRef] T>() { }
 }
 namespace System.Runtime.CompilerServices
@@ -189,7 +189,16 @@ ref struct R { }
         public void ExplicitAttribute_UnexpectedParameterTargets()
         {
             var source0 =
-@".class private System.Runtime.CompilerServices.ScopedRefAttribute extends [mscorlib]System.Attribute
+@".assembly extern mscorlib { .ver 4:0:0:0 .publickeytoken = (B7 7A 5C 56 19 34 E0 89) }
+.assembly '<<GeneratedFileName>>' { }
+.module '<<GeneratedFileName>>.dll'
+.custom instance void System.Runtime.CompilerServices.RefSafetyRulesAttribute::.ctor(int32) = { int32(11) }
+.class private System.Runtime.CompilerServices.RefSafetyRulesAttribute extends [mscorlib]System.Attribute
+{
+  .method public hidebysig specialname rtspecialname instance void .ctor(int32 version) cil managed { ret }
+  .field public int32 Version
+}
+.class private System.Runtime.CompilerServices.ScopedRefAttribute extends [mscorlib]System.Attribute
 {
   .method public hidebysig specialname rtspecialname instance void .ctor() cil managed { ret }
 }
@@ -226,7 +235,7 @@ ref struct R { }
   }
 }
 ";
-            var ref0 = CompileIL(source0);
+            var ref0 = CompileIL(source0, prependDefaultHeader: false);
 
             var source1 =
 @"class Program
@@ -251,22 +260,22 @@ ref struct R { }
             var method = comp.GetMember<MethodSymbol>("A.F1");
             Assert.Equal("void A.F1(scoped R r)", method.ToDisplayString(SymbolDisplayFormat.TestFormat.WithCompilerInternalOptions(SymbolDisplayCompilerInternalOptions.IncludeScoped)));
             var parameter = method.Parameters[0];
-            Assert.Equal(DeclarationScope.ValueScoped, parameter.DeclaredScope);
+            Assert.Equal(DeclarationScope.ValueScoped, parameter.EffectiveScope);
 
             method = comp.GetMember<MethodSymbol>("A.F2");
             Assert.Equal("void A.F2(System.Int32 y)", method.ToDisplayString(SymbolDisplayFormat.TestFormat.WithCompilerInternalOptions(SymbolDisplayCompilerInternalOptions.IncludeScoped)));
             parameter = method.Parameters[0];
-            Assert.Equal(DeclarationScope.Unscoped, parameter.DeclaredScope);
+            Assert.Equal(DeclarationScope.Unscoped, parameter.EffectiveScope);
 
             method = comp.GetMember<MethodSymbol>("A.F3");
             Assert.Equal("void A.F3(System.Object x, scoped ref System.Int32 y)", method.ToDisplayString(SymbolDisplayFormat.TestFormat.WithCompilerInternalOptions(SymbolDisplayCompilerInternalOptions.IncludeScoped)));
             parameter = method.Parameters[1];
-            Assert.Equal(DeclarationScope.RefScoped, parameter.DeclaredScope);
+            Assert.Equal(DeclarationScope.RefScoped, parameter.EffectiveScope);
 
             method = comp.GetMember<MethodSymbol>("A.F4");
             Assert.Equal("void A.F4(scoped ref R r)", method.ToDisplayString(SymbolDisplayFormat.TestFormat.WithCompilerInternalOptions(SymbolDisplayCompilerInternalOptions.IncludeScoped)));
             parameter = method.Parameters[0];
-            Assert.Equal(DeclarationScope.RefScoped, parameter.DeclaredScope);
+            Assert.Equal(DeclarationScope.RefScoped, parameter.EffectiveScope);
         }
 
         [Fact]
@@ -312,8 +321,6 @@ ref struct R { }
     }
 }";
             var comp = CreateCompilation(source1, references: new[] { ref0 });
-            // https://github.com/dotnet/roslyn/issues/61647: If the [ScopedRef] scoped value is an int
-            // rather than a pair of bools, the compiler should reject attribute values that it does not recognize.
             comp.VerifyDiagnostics();
         }
 
@@ -388,6 +395,36 @@ class Program
                 Assert.Null(GetScopedRefType(module));
                 AssertScopedRefAttributes(module, "");
             });
+        }
+
+        [Fact]
+        public void EmitAttribute_RefToRefStructParameters()
+        {
+            var source =
+@"ref struct R { }
+class Program
+{
+    public static void F0(R r) { }
+    public static void F1(ref R r) { }
+    public static void F2(in R r) { }
+    public static void F3(out R r) { r = default; }
+    public static void F4(scoped ref R r) { }
+    public static void F5(scoped in R r) { }
+    public static void F6(scoped out R r) { r = default; }
+}";
+            var comp = CreateCompilation(source);
+            var expected =
+@"void Program.F4(ref R r)
+    [ScopedRef] ref R r
+void Program.F5(in R r)
+    [ScopedRef] in R r";
+            CompileAndVerify(comp, symbolValidator: module =>
+            {
+                Assert.Equal("System.Runtime.CompilerServices.ScopedRefAttribute", GetScopedRefType(module).ToTestDisplayString());
+                AssertScopedRefAttributes(module, expected);
+            });
+
+            // https://github.com/dotnet/roslyn/issues/62780: Test additional cases with [UnscopedRef].
         }
 
         [Fact]

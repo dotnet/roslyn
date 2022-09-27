@@ -11,9 +11,10 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.MoveType
 {
+    [Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)]
     public partial class MoveTypeTests : CSharpMoveTypeTestsBase
     {
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)]
+        [WpfFact]
         public async Task MoveType_ActionCounts_RenameOnly()
         {
             var code =
@@ -27,7 +28,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.MoveType
             await TestActionCountAsync(code, count: 2);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)]
+        [WpfFact]
         public async Task MoveType_AvailableBeforeHeader()
         {
             var code =
@@ -41,7 +42,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.MoveType
             await TestActionCountAsync(code, count: 2);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)]
+        [WpfFact]
         public async Task MoveType_AvailableBeforeAttributeOnHeader()
         {
             var code =
@@ -55,7 +56,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.MoveType
             await TestActionCountAsync(code, count: 2);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)]
+        [WpfFact]
         public async Task MoveType_AvailableOnHeaderIncludingWhitespaceAndAttribute()
         {
             var code =
@@ -69,7 +70,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.MoveType
             await TestActionCountAsync(code, count: 2);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)]
+        [WpfFact]
         public async Task MoveType_AvailableAfterHeader()
         {
             var code =
@@ -82,7 +83,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.MoveType
             await TestActionCountAsync(code, count: 2);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)]
+        [WpfFact]
         public async Task MoveType_AvailableIncludingDocumentationCommentAndHeader()
         {
             var code =
@@ -98,7 +99,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.MoveType
             await TestActionCountAsync(code, count: 2);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)]
+        [WpfFact]
         public async Task MoveType_AvailableIncludingDocumentationCommentAndAttributeAndHeader()
         {
             var code =
@@ -116,7 +117,7 @@ namespace N1
             await TestActionCountAsync(code, count: 2);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)]
+        [WpfFact]
         public async Task MoveType_NotAvailableBeforeType()
         {
             var code =
@@ -129,7 +130,7 @@ namespace N1
             await TestMissingInRegularAndScriptAsync(code);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)]
+        [WpfFact]
         public async Task MoveType_NotAvailableInsideType()
         {
             var code =
@@ -145,7 +146,7 @@ namespace N1
             await TestMissingInRegularAndScriptAsync(code);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)]
+        [WpfFact]
         public async Task MoveType_NotAvailableAfterType()
         {
             var code =
@@ -165,7 +166,7 @@ namespace N1
             await TestMissingInRegularAndScriptAsync(code);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)]
+        [WpfFact]
         public async Task MoveType_NotAvailableAroundDocumentationCommentAboveHeader()
         {
             var code =
@@ -181,7 +182,7 @@ namespace N1
             await TestMissingInRegularAndScriptAsync(code);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)]
+        [WpfFact]
         public async Task MoveType_NotAvailableAroundAttributeAboveHeader()
         {
             var code =
@@ -196,7 +197,7 @@ namespace N1
             await TestMissingInRegularAndScriptAsync(code);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)]
+        [WpfFact]
         public async Task MoveType_NotAvailableAroundDocumentationCommentAndAttributeAboveHeader()
         {
             var code =
@@ -214,7 +215,7 @@ namespace N1
             await TestMissingInRegularAndScriptAsync(code);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)]
+        [WpfFact]
         public async Task MoveType_NotAvailableInsideDocumentationCommentAndAttributeAboveHeader()
         {
             var code =
@@ -232,7 +233,7 @@ namespace N1
             await TestMissingInRegularAndScriptAsync(code);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)]
+        [WpfFact]
         public async Task MoveType_ActionCounts_MoveOnly()
         {
             var code =
@@ -250,7 +251,7 @@ namespace N1
             await TestActionCountAsync(code, count: 1);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)]
+        [WpfFact]
         public async Task MoveType_ActionCounts_RenameAndMove()
         {
             var code =
@@ -268,7 +269,7 @@ namespace N1
             await TestActionCountAsync(code, count: 3);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)]
+        [WpfFact]
         public async Task MoveType_ActionCounts_All()
         {
             var code =

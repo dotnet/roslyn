@@ -1013,7 +1013,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
                 // Accessing a volatile field is sideeffecting because it establishes an acquire fence.
                 // Otherwise, accessing an unused instance field on a struct is a noop. Just emit an unused receiver.
-                if (!field.IsVolatile && !field.IsStatic && fieldAccess.ReceiverOpt.Type.IsVerifierValue())
+                if (!field.IsVolatile && !field.IsStatic && fieldAccess.ReceiverOpt.Type.IsVerifierValue() && field.RefKind == RefKind.None)
                 {
                     EmitExpression(fieldAccess.ReceiverOpt, used: false);
                     return;
@@ -1025,7 +1025,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
             EmitFieldLoadNoIndirection(fieldAccess, used);
 
-            if (used && field.RefKind != RefKind.None)
+            if (field.RefKind != RefKind.None)
             {
                 EmitLoadIndirect(field.Type, fieldAccess.Syntax);
             }
@@ -1274,14 +1274,15 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
         private void EmitLocalLoad(BoundLocal local, bool used)
         {
+            bool isRefLocal = local.LocalSymbol.RefKind != RefKind.None;
             if (IsStackLocal(local.LocalSymbol))
             {
                 // local must be already on the stack
-                EmitPopIfUnused(used);
+                EmitPopIfUnused(used || isRefLocal);
             }
             else
             {
-                if (used)
+                if (used || isRefLocal)
                 {
                     LocalDefinition definition = GetLocal(local);
                     _builder.EmitLocalLoad(definition);
@@ -1293,9 +1294,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 }
             }
 
-            if (used && local.LocalSymbol.RefKind != RefKind.None)
+            if (isRefLocal)
             {
                 EmitLoadIndirect(local.LocalSymbol.Type, local.Syntax);
+                EmitPopIfUnused(used);
             }
         }
 

@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.Host
 {
     internal abstract partial class AbstractSyntaxTreeFactoryService
     {
-        internal struct SyntaxTreeInfo
+        internal readonly struct SyntaxTreeInfo
         {
             public readonly string FilePath;
             public readonly ParseOptions Options;
@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.Host
                     ContainsDirectives);
             }
 
-            internal SyntaxTreeInfo WithOptionsAndLength(ParseOptions options, int length)
+            internal SyntaxTreeInfo WithOptionsAndLengthAndContainsDirectives(ParseOptions options, int length, bool containsDirectives)
             {
                 return new SyntaxTreeInfo(
                     FilePath,
@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis.Host
                     TextSource,
                     Encoding,
                     length,
-                    ContainsDirectives);
+                    containsDirectives);
             }
 
             internal SyntaxTreeInfo WithOptions(ParseOptions options)

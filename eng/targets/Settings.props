@@ -24,7 +24,7 @@
     <ProduceReferenceAssembly>true</ProduceReferenceAssembly>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <GenerateFullPaths>true</GenerateFullPaths>
-    <EnableWindowsTargeting>true</EnableWindowsTargeting>
+    <EnableWindowsTargeting Condition="'$(DotNetBuildFromSource)' != 'true'">true</EnableWindowsTargeting>
 
     <!-- Set to non-existent file to prevent common targets from importing Microsoft.CodeAnalysis.targets -->
     <CodeAnalysisTargets>NON_EXISTENT_FILE</CodeAnalysisTargets>

@@ -86,7 +86,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                     await GetUpToDateCacheEntryAsync(relevantProject, cacheService, cancellationToken).ConfigureAwait(false);
 
                 foreach (var peReference in GetAllRelevantPeReferences(project))
-                    await SymbolTreeInfo.GetInfoForMetadataReferenceAsync(project.Solution, peReference, loadOnly: false, cancellationToken).ConfigureAwait(false);
+                    await SymbolTreeInfo.GetInfoForMetadataReferenceAsync(project.Solution, peReference, cancellationToken).ConfigureAwait(false);
             }
 
             public async Task<(ImmutableArray<IMethodSymbol> symbols, bool isPartialResult)> GetExtensionMethodSymbolsAsync(bool forceCacheCreation, bool hideAdvancedMembers, CancellationToken cancellationToken)
@@ -199,7 +199,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 if (forceCacheCreation)
                 {
                     symbolInfo = await SymbolTreeInfo.GetInfoForMetadataReferenceAsync(
-                        _originatingDocument.Project.Solution, peReference, loadOnly: false, cancellationToken).ConfigureAwait(false);
+                        _originatingDocument.Project.Solution, peReference, cancellationToken).ConfigureAwait(false);
                 }
                 else
                 {

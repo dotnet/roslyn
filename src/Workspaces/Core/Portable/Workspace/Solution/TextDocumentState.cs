@@ -95,9 +95,9 @@ namespace Microsoft.CodeAnalysis
                 cacheResult: true);
         }
 
-        protected static ValueSource<TextAndVersion> CreateRecoverableText(TextAndVersion text, HostWorkspaceServices services)
+        protected static ValueSource<TextAndVersion> CreateRecoverableText(TextAndVersion text, SolutionServices services)
         {
-            var result = new RecoverableTextAndVersion(CreateStrongText(text), services.GetRequiredService<ITemporaryStorageServiceInternal>());
+            var result = new RecoverableTextAndVersion(CreateStrongText(text), services);
 
             // This RecoverableTextAndVersion is created directly from a TextAndVersion instance. In its initial state,
             // the RecoverableTextAndVersion keeps a strong reference to the initial TextAndVersion, and only
@@ -117,22 +117,11 @@ namespace Microsoft.CodeAnalysis
                     asynchronousComputeFunction: cancellationToken => loader.LoadTextAsync(services.Workspace, documentId, cancellationToken),
                     synchronousComputeFunction: cancellationToken => loader.LoadTextSynchronously(services.Workspace, documentId, cancellationToken),
                     cacheResult: false),
-                services.GetRequiredService<ITemporaryStorageServiceInternal>());
+                services.SolutionServices);
         }
 
         public ITemporaryTextStorageInternal? Storage
-        {
-            get
-            {
-                var recoverableText = this.TextAndVersionSource as RecoverableTextAndVersion;
-                if (recoverableText == null)
-                {
-                    return null;
-                }
-
-                return recoverableText.Storage;
-            }
-        }
+            => (TextAndVersionSource as RecoverableTextAndVersion)?.Storage;
 
         public bool TryGetText([NotNullWhen(returnValue: true)] out SourceText? text)
         {
@@ -224,7 +213,7 @@ namespace Microsoft.CodeAnalysis
         {
             var newTextSource = mode == PreservationMode.PreserveIdentity
                 ? CreateStrongText(newTextAndVersion)
-                : CreateRecoverableText(newTextAndVersion, this.solutionServices);
+                : CreateRecoverableText(newTextAndVersion, this.solutionServices.SolutionServices);
 
             return UpdateText(newTextSource, mode, incremental: true);
         }

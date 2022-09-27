@@ -35,6 +35,10 @@ Namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.UnitTests
 
             Assert.Equal(expectedMoniker, monikerVertex?.Identifier)
             Assert.Equal(expectedMonikerScheme, monikerVertex?.Scheme)
+
+            If monikerVertex IsNot Nothing Then
+                Assert.Equal("scheme", monikerVertex.Unique)
+            End If
         End Function
 
         <Theory>

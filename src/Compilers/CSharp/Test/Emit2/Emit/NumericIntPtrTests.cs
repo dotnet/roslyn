@@ -217,6 +217,15 @@ class Program
             return false;
         }
     }
+    public class Attribute { }
+    public class AttributeUsageAttribute : Attribute
+    {
+        public AttributeUsageAttribute(AttributeTargets validOn) { }
+        public bool AllowMultiple { get; set; }
+        public bool Inherited { get; set; }
+    }
+    public struct Enum { }
+    public enum AttributeTargets { }
 }
 " + RuntimeFeature_NumericIntPtr;
 
@@ -303,6 +312,15 @@ class Program
         public string ToString(IFormatProvider provider) => default;
         public string ToString(string format, IFormatProvider provider) => default;
     }
+    public class Attribute { }
+    public class AttributeUsageAttribute : Attribute
+    {
+        public AttributeUsageAttribute(AttributeTargets t) { }
+        public bool AllowMultiple { get; set; }
+        public bool Inherited { get; set; }
+    }
+    public struct Enum { }
+    public enum AttributeTargets { }
 }
 " + RuntimeFeature_NumericIntPtr;
 
@@ -396,6 +414,15 @@ class Program
         public static bool operator==(UIntPtr x, UIntPtr y) => default;
         public static bool operator!=(UIntPtr x, UIntPtr y) => default;
     }
+    public class Attribute { }
+    public class AttributeUsageAttribute : Attribute
+    {
+        public AttributeUsageAttribute(AttributeTargets t) { }
+        public bool AllowMultiple { get; set; }
+        public bool Inherited { get; set; }
+    }
+    public struct Enum { }
+    public enum AttributeTargets { }
 }
 " + RuntimeFeature_NumericIntPtr;
             var comp = CreateEmptyCompilation(sourceA, options: TestOptions.UnsafeReleaseDll);
@@ -497,6 +524,15 @@ class Program
         public override int GetHashCode() => 0;
         public override bool Equals(object obj) => false;
     }
+    public class Attribute { }
+    public class AttributeUsageAttribute : Attribute
+    {
+        public AttributeUsageAttribute(AttributeTargets t) { }
+        public bool AllowMultiple { get; set; }
+        public bool Inherited { get; set; }
+    }
+    public struct Enum { }
+    public enum AttributeTargets { }
 }
 " + RuntimeFeature_NumericIntPtr;
 
@@ -573,6 +609,15 @@ class Program
         UIntPtr I<UIntPtr>.P => this;
         UIntPtr I<UIntPtr>.F() => this;
     }
+    public class Attribute { }
+    public class AttributeUsageAttribute : Attribute
+    {
+        public AttributeUsageAttribute(AttributeTargets t) { }
+        public bool AllowMultiple { get; set; }
+        public bool Inherited { get; set; }
+    }
+    public struct Enum { }
+    public enum AttributeTargets { }
 }
 " + RuntimeFeature_NumericIntPtr;
 
@@ -748,6 +793,15 @@ class Program
         internal UIntPtr F2() => default;
         public static UIntPtr F3() => default;
     }
+    public class Attribute { }
+    public class AttributeUsageAttribute : Attribute
+    {
+        public AttributeUsageAttribute(AttributeTargets t) { }
+        public bool AllowMultiple { get; set; }
+        public bool Inherited { get; set; }
+    }
+    public struct Enum { }
+    public enum AttributeTargets { }
 }
 " + RuntimeFeature_NumericIntPtr;
 
@@ -10086,7 +10140,7 @@ interface I
     void M(nint x1, System.IntPtr x2, nuint x3, System.UIntPtr x4);
 }
 ";
-            var parseOptions = useCSharp11 ? TestOptions.Regular11 : TestOptions.Regular10;
+            var parseOptions = (useCSharp11 ? TestOptions.Regular11 : TestOptions.Regular10).WithNoRefSafetyRulesAttribute();
 
             var comp = CreateEmptyCompilation(new[] { source, corlib_cs }, parseOptions: parseOptions);
             verify(comp);
@@ -10857,6 +10911,14 @@ namespace System
     public struct RuntimeTypeHandle { }
     public class MulticastDelegate : Delegate { }
     public class Attribute { }
+    public class AttributeUsageAttribute : Attribute
+    {
+        public AttributeUsageAttribute(AttributeTargets t) { }
+        public bool AllowMultiple { get; set; }
+        public bool Inherited { get; set; }
+    }
+    public class Enum { }
+    public enum AttributeTargets { }
 
     public delegate void Action();
 
@@ -11482,6 +11544,75 @@ static class C
   IL_000f:  ret
 }
 ");
+        }
+
+        [WorkItem(63348, "https://github.com/dotnet/roslyn/issues/63348")]
+        [Fact]
+        public void ConditionalStackalloc()
+        {
+            var source =
+@"using System;
+class Program
+{
+    static int F(int n)
+    {
+        Span<char> s = n < 10 ? stackalloc char[n] : new char[n];
+        return s[n - 1];
+    }
+    static void Main()
+    {
+        Console.Write(F(1));
+        Console.Write(F(11));
+    }
+}";
+
+            var comp = CreateCompilation(new[] { SpanSource, source }, options: TestOptions.UnsafeReleaseExe);
+            verify(comp);
+
+            comp = CreateNumericIntPtrCompilation(new[] { SpanSource, source }, references: new[] { MscorlibRefWithoutSharingCachedSymbols }, options: TestOptions.UnsafeReleaseExe);
+            verify(comp);
+
+            void verify(CSharpCompilation comp)
+            {
+                comp.VerifyEmitDiagnostics();
+                var verifier = CompileAndVerify(comp, verify: Verification.Skipped, expectedOutput: "00");
+                verifier.VerifyIL("Program.F", """
+{
+  // Code size       48 (0x30)
+  .maxstack  3
+  .locals init (System.Span<char> V_0, //s
+                System.Span<char> V_1,
+                int V_2)
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.i4.s   10
+  IL_0003:  bge.s      IL_0016
+  IL_0005:  ldarg.0
+  IL_0006:  stloc.2
+  IL_0007:  ldloc.2
+  IL_0008:  conv.u
+  IL_0009:  ldc.i4.2
+  IL_000a:  mul.ovf.un
+  IL_000b:  localloc
+  IL_000d:  ldloc.2
+  IL_000e:  newobj     "System.Span<char>..ctor(void*, int)"
+  IL_0013:  stloc.1
+  IL_0014:  br.s       IL_0022
+  IL_0016:  ldarg.0
+  IL_0017:  newarr     "char"
+  IL_001c:  call       "System.Span<char> System.Span<char>.op_Implicit(char[])"
+  IL_0021:  stloc.1
+  IL_0022:  ldloc.1
+  IL_0023:  stloc.0
+  IL_0024:  ldloca.s   V_0
+  IL_0026:  ldarg.0
+  IL_0027:  ldc.i4.1
+  IL_0028:  sub
+  IL_0029:  call       "ref char System.Span<char>.this[int].get"
+  IL_002e:  ldind.u2
+  IL_002f:  ret
+}
+""");
+            }
         }
 
         private void VerifyNoNativeIntegerAttributeEmitted(CSharpCompilation comp)

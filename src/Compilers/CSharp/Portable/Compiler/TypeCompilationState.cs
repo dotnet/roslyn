@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     internal sealed class TypeCompilationState
     {
         /// <summary> Synthesized method info </summary>
-        internal struct MethodWithBody
+        internal readonly struct MethodWithBody
         {
             public readonly MethodSymbol Method;
             public readonly BoundStatement Body;

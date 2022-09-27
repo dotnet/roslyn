@@ -4023,7 +4023,7 @@ class C
 ";
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (26,18): error CS7036: There is no argument given that corresponds to the required formal parameter 'i3' of 'C.Deconstruct(out int, out string, out int?)'
+                // (26,18): error CS7036: There is no argument given that corresponds to the required parameter 'i3' of 'C.Deconstruct(out int, out string, out int?)'
                 //             case (< 10, object): // 1, 2
                 Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "(< 10, object)").WithArguments("i3", "C.Deconstruct(out int, out string, out int?)").WithLocation(26, 18),
                 // (26,18): error CS8129: No suitable 'Deconstruct' instance or extension method was found for type 'C', with 2 out parameters and a void return type.

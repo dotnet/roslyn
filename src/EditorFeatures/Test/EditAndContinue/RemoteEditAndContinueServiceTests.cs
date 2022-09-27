@@ -7,7 +7,6 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Composition;
 using System.Linq;
 using System.Text;
 using System.Threading;
@@ -18,9 +17,8 @@ using Microsoft.CodeAnalysis.EditAndContinue;
 using Microsoft.CodeAnalysis.EditAndContinue.Contracts;
 using Microsoft.CodeAnalysis.EditAndContinue.UnitTests;
 using Microsoft.CodeAnalysis.Editor.UnitTests;
+using Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
-using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Remote.Testing;
@@ -37,13 +35,16 @@ namespace Roslyn.VisualStudio.Next.UnitTests.EditAndContinue
     {
         private static string Inspect(DiagnosticData d)
             => $"[{d.ProjectId}] {d.Severity} {d.Id}:" +
-                (d.DataLocation != null ? $" {d.DataLocation.OriginalFilePath}({d.DataLocation.OriginalStartLine}, {d.DataLocation.OriginalStartColumn}, {d.DataLocation.OriginalEndLine}, {d.DataLocation.OriginalEndColumn}):" : "") +
+                (!string.IsNullOrWhiteSpace(d.DataLocation.UnmappedFileSpan.Path) ? $" {d.DataLocation.UnmappedFileSpan.Path}({d.DataLocation.UnmappedFileSpan.StartLinePosition.Line}, {d.DataLocation.UnmappedFileSpan.StartLinePosition.Character}, {d.DataLocation.UnmappedFileSpan.EndLinePosition.Line}, {d.DataLocation.UnmappedFileSpan.EndLinePosition.Character}):" : "") +
                 $" {d.Message}";
 
-        [Theory, CombinatorialData]
+        [ConditionalTheory(typeof(IsRelease), Reason = ConditionalSkipReason.TestIsTriggeringMessagePackIssue)]
+        [CombinatorialData]
         public async Task Proxy(TestHost testHost)
         {
-            var localComposition = EditorTestCompositions.EditorFeatures.WithTestHostParts(testHost);
+            var localComposition = EditorTestCompositions.EditorFeatures.WithTestHostParts(testHost)
+                .AddExcludedPartTypes(typeof(DiagnosticAnalyzerService))
+                .AddParts(typeof(MockDiagnosticAnalyzerService));
             if (testHost == TestHost.InProcess)
             {
                 localComposition = localComposition.AddParts(typeof(MockEditAndContinueWorkspaceService));
@@ -80,7 +81,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.EditAndContinue
             var project = solution.Projects.Single();
             var document = project.Documents.Single();
 
-            var mockDiagnosticService = new MockDiagnosticAnalyzerService(globalOptions);
+            var mockDiagnosticService = (MockDiagnosticAnalyzerService)localWorkspace.GetService<IDiagnosticAnalyzerService>();
 
             void VerifyReanalyzeInvocation(ImmutableArray<DocumentId> documentIds)
             {

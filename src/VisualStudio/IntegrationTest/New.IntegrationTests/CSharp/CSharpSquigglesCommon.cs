@@ -56,7 +56,7 @@ namespace ConsoleApplication1
               HangMitigatingCancellationToken);
         }
 
-        [IdeFact]
+        [IdeFact(Skip = "https://github.com/dotnet/roslyn/issues/61367")]
         public virtual async Task VerifySemanticErrorSquiggles()
         {
             await TestServices.Editor.SetTextAsync(@"using System;

@@ -323,7 +323,7 @@ namespace Roslyn.Utilities
         /// <summary>
         /// A reference-id to object map, that can share base data efficiently.
         /// </summary>
-        private struct ReaderReferenceMap<T> : IDisposable
+        private readonly struct ReaderReferenceMap<T> : IDisposable
             where T : class
         {
             private readonly SegmentedList<T> _values;

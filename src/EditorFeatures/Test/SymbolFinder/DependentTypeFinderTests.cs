@@ -720,5 +720,76 @@ namespace N_Main
                 Assert.True(typesThatDerive.Any(t => t.Name == "T_DependProject_Class"));
             }
         }
+
+        [Theory, CombinatorialData, WorkItem(1598801, "https://devdiv.visualstudio.com/DevDiv/_queries/edit/1598801")]
+        public async Task ImplementedInterface_CSharp1(TestHost host)
+        {
+            using var workspace = CreateWorkspace(host);
+            var solution = workspace.CurrentSolution;
+
+            solution = AddProjectWithMetadataReferences(solution, "PortableProject1", LanguageNames.CSharp, @"
+namespace N
+{
+    public interface I
+    {
+        void M();
+    }
+}
+", MscorlibRefPortable);
+
+            var portableProject1 = solution.Projects.Single(p => p.Name == "PortableProject1");
+
+            solution = AddProjectWithMetadataReferences(solution, "PortableProject2", LanguageNames.CSharp, @"
+using N;
+namespace M
+{
+    public class C : I
+    {
+        public void M() { }
+    }
+}
+", MscorlibRefPortable, portableProject1.Id);
+
+            // get symbols for types
+            var compilation1 = await solution.Projects.Single(p => p.Name == "PortableProject1").GetCompilationAsync();
+            var compilation2 = await solution.Projects.Single(p => p.Name == "PortableProject2").GetCompilationAsync();
+
+            var classSymbol = compilation2.GetTypeByMetadataName("M.C");
+            var methodSymbol = classSymbol.GetMembers("M").Single();
+
+            var interfaceSymbol = compilation1.GetTypeByMetadataName("N.I");
+
+            var interfaceMembers = await SymbolFinder.FindImplementedInterfaceMembersArrayAsync(methodSymbol, solution, CancellationToken.None);
+            var interfaceMember = Assert.Single(interfaceMembers);
+            Assert.Equal(interfaceSymbol, interfaceMember.ContainingType);
+        }
+
+        [Theory, CombinatorialData, WorkItem(1598801, "https://devdiv.visualstudio.com/DevDiv/_queries/edit/1598801")]
+        public async Task ImplementedInterface_CSharp2(TestHost host)
+        {
+            using var workspace = CreateWorkspace(host);
+            var solution = workspace.CurrentSolution;
+
+            // create portable assembly with an abstract base class
+            solution = AddProjectWithMetadataReferences(solution, "PortableProject", LanguageNames.CSharp, @"
+namespace N
+{
+    public interface I
+    {
+        void M();
+    }
+}
+", MscorlibRefPortable);
+
+            var portableProject1 = GetPortableProject(solution);
+
+            // get symbols for types
+            var portableCompilation = await GetPortableProject(solution).GetCompilationAsync();
+            var baseInterfaceSymbol = portableCompilation.GetTypeByMetadataName("N.I");
+            var namespaceSymbol = baseInterfaceSymbol.ContainingNamespace;
+
+            // verify that we don't crash here.
+            var implementedMembers = await SymbolFinder.FindImplementedInterfaceMembersArrayAsync(namespaceSymbol, solution, CancellationToken.None);
+        }
     }
 }

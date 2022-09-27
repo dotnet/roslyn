@@ -540,13 +540,12 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         {
             var log = EditAndContinueWorkspaceService.Log;
 
-            log.Write("Solution update status: {0}",
-                ((int)update.ModuleUpdates.Status, typeof(ModuleUpdateStatus)));
+            log.Write("Solution update status: {0}", update.ModuleUpdates.Status);
 
             foreach (var moduleUpdate in update.ModuleUpdates.Updates)
             {
                 log.Write("Module update: capabilities=[{0}], types=[{1}], methods=[{2}]",
-                    ((int)moduleUpdate.RequiredCapabilities, typeof(EditAndContinueCapabilities)),
+                    moduleUpdate.RequiredCapabilities,
                     moduleUpdate.UpdatedTypes,
                     moduleUpdate.UpdatedMethods);
             }

@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
 
             var sourceTextLoader = new SourceTextLoader(documentText, uriAbsolutePath);
 
-            var projectInfo = MiscellaneousFileUtilities.CreateMiscellaneousProjectInfoForDocument(uri.AbsolutePath, sourceTextLoader, languageInformation, Services, ImmutableArray<MetadataReference>.Empty);
+            var projectInfo = MiscellaneousFileUtilities.CreateMiscellaneousProjectInfoForDocument(uri.AbsolutePath, sourceTextLoader, languageInformation, Services.SolutionServices, ImmutableArray<MetadataReference>.Empty);
             OnProjectAdded(projectInfo);
 
             var id = projectInfo.Documents.Single().Id;

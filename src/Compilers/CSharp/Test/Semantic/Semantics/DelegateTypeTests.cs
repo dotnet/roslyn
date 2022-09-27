@@ -2796,7 +2796,7 @@ class Program
         d = (ref int i) => i;
     }
 }";
-            var comp = CreateEmptyCompilation(new[] { sourceA, sourceB });
+            var comp = CreateEmptyCompilation(new[] { sourceA, sourceB }, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute());
             comp.VerifyEmitDiagnostics(
                 // warning CS8021: No value for RuntimeMetadataVersion found. No assembly containing System.Object was found nor was a value for RuntimeMetadataVersion specified through options.
                 Diagnostic(ErrorCode.WRN_NoRuntimeMetadataVersion).WithLocation(1, 1),
@@ -2832,7 +2832,7 @@ class Program
         d = (int* p) => p;
     }
 }";
-            var comp = CreateEmptyCompilation(new[] { sourceA, sourceB }, options: TestOptions.UnsafeReleaseExe);
+            var comp = CreateEmptyCompilation(new[] { sourceA, sourceB }, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), options: TestOptions.UnsafeReleaseExe);
             comp.VerifyEmitDiagnostics(
                 // warning CS8021: No value for RuntimeMetadataVersion found. No assembly containing System.Object was found nor was a value for RuntimeMetadataVersion specified through options.
                 Diagnostic(ErrorCode.WRN_NoRuntimeMetadataVersion).WithLocation(1, 1),
@@ -2868,7 +2868,7 @@ class Program
         var d2 = (ref int i) => i;
     }
 }";
-            var comp = CreateEmptyCompilation(new[] { sourceA, sourceB });
+            var comp = CreateEmptyCompilation(new[] { sourceA, sourceB }, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute());
             comp.VerifyEmitDiagnostics(
                 // warning CS8021: No value for RuntimeMetadataVersion found. No assembly containing System.Object was found nor was a value for RuntimeMetadataVersion specified through options.
                 Diagnostic(ErrorCode.WRN_NoRuntimeMetadataVersion).WithLocation(1, 1),
@@ -2901,7 +2901,7 @@ class Program
         d = (ref int i) => i;
     }
 }";
-            var comp = CreateEmptyCompilation(new[] { sourceA, sourceB });
+            var comp = CreateEmptyCompilation(new[] { sourceA, sourceB }, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute());
             comp.VerifyEmitDiagnostics(
                 // warning CS8021: No value for RuntimeMetadataVersion found. No assembly containing System.Object was found nor was a value for RuntimeMetadataVersion specified through options.
                 Diagnostic(ErrorCode.WRN_NoRuntimeMetadataVersion).WithLocation(1, 1),
@@ -9294,7 +9294,7 @@ class Program
                 var reader = assembly.GetMetadataReader();
                 var actualTypes = reader.GetTypeDefNames().Select(h => reader.GetString(h)).ToArray();
 
-                string[] expectedTypes = new[] { "<Module>", "Program", "<>c", };
+                string[] expectedTypes = new[] { "<Module>", "EmbeddedAttribute", "RefSafetyRulesAttribute", "Program", "<>c", };
                 AssertEx.Equal(expectedTypes, actualTypes);
             }
         }
@@ -10088,7 +10088,10 @@ class Program
 {
     static R F1(ref R r) { Console.WriteLine(r._i); return new R(); }
     static R F2(scoped ref R r) { Console.WriteLine(r._i); return new R(); }
-    static R F4(scoped ref R r) { Console.WriteLine(r._i); return new R(); }
+    static R F3(in R r) { Console.WriteLine(r._i); return new R(); }
+    static R F4(scoped in R r) { Console.WriteLine(r._i); return new R(); }
+    static R F5(out R r) { r = new R(-5); Console.WriteLine(r._i); return new R(); }
+    static R F6(scoped out R r) { r = new R(-6); Console.WriteLine(r._i); return new R(); }
     static void Main()
     {
         var d1 = F1;
@@ -10099,10 +10102,22 @@ class Program
         var r2 = new R(2);
         d2(ref r2);
         Report(d2);
+        var d3 = F3;
+        var r3 = new R(3);
+        d3(r3);
+        Report(d3);
         var d4 = F4;
         var r4 = new R(4);
-        d4(ref r4);
+        d4(r4);
         Report(d4);
+        var d5 = F5;
+        var r5 = new R(5);
+        d5(out r5);
+        Report(d5);
+        var d6 = F6;
+        var r6 = new R(6);
+        d6(out r6);
+        Report(d6);
     }
     static void Report(Delegate d) => Console.WriteLine(d.GetType());
 }";
@@ -10111,8 +10126,14 @@ class Program
 <>f__AnonymousDelegate0
 2
 <>f__AnonymousDelegate1
+3
+<>f__AnonymousDelegate2
 4
-<>f__AnonymousDelegate1
+<>f__AnonymousDelegate3
+-5
+<>f__AnonymousDelegate4
+-6
+<>f__AnonymousDelegate4
 ");
         }
 

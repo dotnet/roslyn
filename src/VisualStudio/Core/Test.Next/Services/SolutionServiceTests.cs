@@ -822,7 +822,6 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
 
             Assert.Equal(WorkspaceKind.RemoteWorkspace, recoveredSolution.WorkspaceKind);
             Assert.Equal(solutionChecksum, await recoveredSolution.State.GetChecksumAsync(CancellationToken.None));
-            Assert.Same(remoteWorkspace.PrimaryBranchId, recoveredSolution.BranchId);
 
             // get new solution
             var newSolution = newSolutionGetter(solution);
@@ -833,14 +832,12 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             var recoveredNewSolution = await remoteWorkspace.GetTestAccessor().GetSolutionAsync(assetProvider, newSolutionChecksum, updatePrimaryBranch: false, workspaceVersion: -1, CancellationToken.None);
 
             Assert.Equal(newSolutionChecksum, await recoveredNewSolution.State.GetChecksumAsync(CancellationToken.None));
-            Assert.NotSame(remoteWorkspace.PrimaryBranchId, recoveredNewSolution.BranchId);
 
             // do same once updating primary workspace
             await remoteWorkspace.UpdatePrimaryBranchSolutionAsync(assetProvider, newSolutionChecksum, solution.WorkspaceVersion + 1, CancellationToken.None);
             var third = await remoteWorkspace.GetTestAccessor().GetSolutionAsync(assetProvider, newSolutionChecksum, updatePrimaryBranch: false, workspaceVersion: -1, CancellationToken.None);
 
             Assert.Equal(newSolutionChecksum, await third.State.GetChecksumAsync(CancellationToken.None));
-            Assert.Same(remoteWorkspace.PrimaryBranchId, third.BranchId);
 
             newSolutionValidator?.Invoke(recoveredNewSolution);
         }

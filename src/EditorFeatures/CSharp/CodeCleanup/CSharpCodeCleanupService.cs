@@ -187,6 +187,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeCleanup
                 new DiagnosticSet(FeaturesResources.Sort_accessibility_modifiers,
                     IDEDiagnosticIds.OrderModifiersDiagnosticId,
                     "CS0267"),
+                new DiagnosticSet(CSharpFeaturesResources.Apply_readonly_struct_preferences,
+                    IDEDiagnosticIds.MakeStructReadOnlyDiagnosticId),
 
                 // Code-block preferences
                 //   csharp_prefer_braces

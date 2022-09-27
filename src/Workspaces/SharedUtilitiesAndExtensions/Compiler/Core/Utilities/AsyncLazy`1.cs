@@ -129,7 +129,7 @@ namespace Roslyn.Utilities
             return new WaitThatValidatesInvariants(this);
         }
 
-        private struct WaitThatValidatesInvariants : IDisposable
+        private readonly struct WaitThatValidatesInvariants : IDisposable
         {
             private readonly AsyncLazy<T> _asyncLazy;
 
@@ -366,7 +366,7 @@ namespace Roslyn.Utilities
             return new AsynchronousComputationToStart(_asynchronousComputeFunction, _asynchronousComputationCancellationSource);
         }
 
-        private struct AsynchronousComputationToStart
+        private readonly struct AsynchronousComputationToStart
         {
             public readonly Func<CancellationToken, Task<T>> AsynchronousComputeFunction;
             public readonly CancellationTokenSource CancellationTokenSource;

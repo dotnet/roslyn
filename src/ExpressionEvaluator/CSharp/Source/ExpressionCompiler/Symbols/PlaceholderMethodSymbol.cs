@@ -220,6 +220,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 
         internal override bool HasUnscopedRefAttribute => false;
 
+        internal override bool UseUpdatedEscapeRules => false;
+
         internal override bool RequiresSecurityObject
         {
             get { return false; }

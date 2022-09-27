@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
@@ -72,6 +71,7 @@ internal sealed class CSharpIdeCodeStyleOptions : IdeCodeStyleOptions, IEquatabl
     [DataMember] public CodeStyleOption2<bool> PreferMethodGroupConversion { get; init; } = s_trueWithSilentEnforcement;
 
     // the following are also used in code generation features, consider sharing:
+    [DataMember] public CodeStyleOption2<bool> PreferReadOnlyStruct { get; init; } = s_trueWithSuggestionEnforcement;
     [DataMember] public CodeStyleOption2<bool> PreferStaticLocalFunction { get; init; } = s_trueWithSuggestionEnforcement;
     [DataMember] public CodeStyleOption2<ExpressionBodyPreference> PreferExpressionBodiedLambdas { get; init; } = s_whenPossibleWithSilentEnforcement;
 
@@ -80,32 +80,33 @@ internal sealed class CSharpIdeCodeStyleOptions : IdeCodeStyleOptions, IEquatabl
 
     public bool Equals([AllowNull] CSharpIdeCodeStyleOptions other)
         => other is not null &&
-           Common.Equals(Common) &&
-           ImplicitObjectCreationWhenTypeIsApparent.Equals(ImplicitObjectCreationWhenTypeIsApparent) &&
-           PreferNullCheckOverTypeCheck.Equals(PreferNullCheckOverTypeCheck) &&
-           AllowBlankLinesBetweenConsecutiveBraces.Equals(AllowBlankLinesBetweenConsecutiveBraces) &&
-           AllowBlankLineAfterColonInConstructorInitializer.Equals(AllowBlankLineAfterColonInConstructorInitializer) &&
-           PreferConditionalDelegateCall.Equals(PreferConditionalDelegateCall) &&
-           PreferSwitchExpression.Equals(PreferSwitchExpression) &&
-           PreferPatternMatching.Equals(PreferPatternMatching) &&
-           PreferPatternMatchingOverAsWithNullCheck.Equals(PreferPatternMatchingOverAsWithNullCheck) &&
-           PreferPatternMatchingOverIsWithCastCheck.Equals(PreferPatternMatchingOverIsWithCastCheck) &&
-           PreferNotPattern.Equals(PreferNotPattern) &&
-           PreferExtendedPropertyPattern.Equals(PreferExtendedPropertyPattern) &&
-           PreferInlinedVariableDeclaration.Equals(PreferInlinedVariableDeclaration) &&
-           PreferDeconstructedVariableDeclaration.Equals(PreferDeconstructedVariableDeclaration) &&
-           PreferIndexOperator.Equals(PreferIndexOperator) &&
-           PreferRangeOperator.Equals(PreferRangeOperator) &&
-           PreferUtf8StringLiterals.Equals(PreferUtf8StringLiterals) &&
-           PreferredModifierOrder.Equals(PreferredModifierOrder) &&
-           PreferSimpleUsingStatement.Equals(PreferSimpleUsingStatement) &&
-           PreferLocalOverAnonymousFunction.Equals(PreferLocalOverAnonymousFunction) &&
-           PreferTupleSwap.Equals(PreferTupleSwap) &&
-           UnusedValueExpressionStatement.Equals(UnusedValueExpressionStatement) &&
-           UnusedValueAssignment.Equals(UnusedValueAssignment) &&
-           PreferMethodGroupConversion.Equals(PreferMethodGroupConversion) &&
-           PreferStaticLocalFunction.Equals(PreferStaticLocalFunction) &&
-           PreferExpressionBodiedLambdas.Equals(PreferExpressionBodiedLambdas);
+           Common.Equals(other.Common) &&
+           ImplicitObjectCreationWhenTypeIsApparent.Equals(other.ImplicitObjectCreationWhenTypeIsApparent) &&
+           PreferNullCheckOverTypeCheck.Equals(other.PreferNullCheckOverTypeCheck) &&
+           AllowBlankLinesBetweenConsecutiveBraces.Equals(other.AllowBlankLinesBetweenConsecutiveBraces) &&
+           AllowBlankLineAfterColonInConstructorInitializer.Equals(other.AllowBlankLineAfterColonInConstructorInitializer) &&
+           PreferConditionalDelegateCall.Equals(other.PreferConditionalDelegateCall) &&
+           PreferSwitchExpression.Equals(other.PreferSwitchExpression) &&
+           PreferPatternMatching.Equals(other.PreferPatternMatching) &&
+           PreferPatternMatchingOverAsWithNullCheck.Equals(other.PreferPatternMatchingOverAsWithNullCheck) &&
+           PreferPatternMatchingOverIsWithCastCheck.Equals(other.PreferPatternMatchingOverIsWithCastCheck) &&
+           PreferNotPattern.Equals(other.PreferNotPattern) &&
+           PreferExtendedPropertyPattern.Equals(other.PreferExtendedPropertyPattern) &&
+           PreferInlinedVariableDeclaration.Equals(other.PreferInlinedVariableDeclaration) &&
+           PreferDeconstructedVariableDeclaration.Equals(other.PreferDeconstructedVariableDeclaration) &&
+           PreferIndexOperator.Equals(other.PreferIndexOperator) &&
+           PreferRangeOperator.Equals(other.PreferRangeOperator) &&
+           PreferUtf8StringLiterals.Equals(other.PreferUtf8StringLiterals) &&
+           PreferredModifierOrder.Equals(other.PreferredModifierOrder) &&
+           PreferSimpleUsingStatement.Equals(other.PreferSimpleUsingStatement) &&
+           PreferLocalOverAnonymousFunction.Equals(other.PreferLocalOverAnonymousFunction) &&
+           PreferTupleSwap.Equals(other.PreferTupleSwap) &&
+           UnusedValueExpressionStatement.Equals(other.UnusedValueExpressionStatement) &&
+           UnusedValueAssignment.Equals(other.UnusedValueAssignment) &&
+           PreferMethodGroupConversion.Equals(other.PreferMethodGroupConversion) &&
+           PreferReadOnlyStruct.Equals(other.PreferReadOnlyStruct) &&
+           PreferStaticLocalFunction.Equals(other.PreferStaticLocalFunction) &&
+           PreferExpressionBodiedLambdas.Equals(other.PreferExpressionBodiedLambdas);
 
     public override int GetHashCode()
         => Hash.Combine(Common,
@@ -132,6 +133,7 @@ internal sealed class CSharpIdeCodeStyleOptions : IdeCodeStyleOptions, IEquatabl
            Hash.Combine(UnusedValueExpressionStatement,
            Hash.Combine(UnusedValueAssignment,
            Hash.Combine(PreferMethodGroupConversion,
+           Hash.Combine(PreferReadOnlyStruct,
            Hash.Combine(PreferStaticLocalFunction,
-           Hash.Combine(PreferExpressionBodiedLambdas, 0))))))))))))))))))))))))));
+           Hash.Combine(PreferExpressionBodiedLambdas, 0)))))))))))))))))))))))))));
 }

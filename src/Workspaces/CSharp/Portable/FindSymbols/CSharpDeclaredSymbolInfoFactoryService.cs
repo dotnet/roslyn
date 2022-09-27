@@ -5,6 +5,7 @@
 #nullable disable
 
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
@@ -97,7 +98,7 @@ namespace Microsoft.CodeAnalysis.CSharp.FindSymbols
                 {
                     ProcessUsings(aliasMaps, nsDecl.Usings);
                 }
-                else if (current.IsKind(SyntaxKind.CompilationUnit, out CompilationUnitSyntax compilationUnit))
+                else if (current is CompilationUnitSyntax compilationUnit)
                 {
                     ProcessUsings(aliasMaps, compilationUnit.Usings);
                 }
@@ -166,21 +167,22 @@ namespace Microsoft.CodeAnalysis.CSharp.FindSymbols
             string fullyQualifiedContainerName,
             CancellationToken cancellationToken)
         {
-            AddLocalFunctionInfosRecurse(memberDeclaration);
-
-            return;
-
-            void AddLocalFunctionInfosRecurse(SyntaxNode node)
+            using var pooledQueue = SharedPools.Default<Queue<SyntaxNodeOrToken>>().GetPooledObject();
+            var queue = pooledQueue.Object;
+            queue.Enqueue(memberDeclaration);
+            while (!queue.IsEmpty())
             {
                 cancellationToken.ThrowIfCancellationRequested();
-
+                var node = queue.Dequeue();
                 foreach (var child in node.ChildNodesAndTokens())
                 {
                     if (child.IsNode)
-                        AddLocalFunctionInfosRecurse(child.AsNode()!);
+                    {
+                        queue.Enqueue(child);
+                    }
                 }
 
-                if (node is LocalFunctionStatementSyntax localFunction)
+                if (node.AsNode() is LocalFunctionStatementSyntax localFunction)
                 {
                     declaredSymbolInfos.Add(DeclaredSymbolInfo.Create(
                         stringTable,

@@ -34,6 +34,7 @@ namespace Microsoft.CodeAnalysis.UseNullPropagation
         TInvocationExpressionSyntax,
         TConditionalAccessExpressionSyntax,
         TElementAccessExpressionSyntax,
+        TMemberAccessExpressionSyntax,
         TIfStatementSyntax,
         TExpressionStatementSyntax> : AbstractBuiltInCodeStyleDiagnosticAnalyzer
         where TSyntaxKind : struct
@@ -44,6 +45,7 @@ namespace Microsoft.CodeAnalysis.UseNullPropagation
         where TInvocationExpressionSyntax : TExpressionSyntax
         where TConditionalAccessExpressionSyntax : TExpressionSyntax
         where TElementAccessExpressionSyntax : TExpressionSyntax
+        where TMemberAccessExpressionSyntax : TExpressionSyntax
         where TIfStatementSyntax : TStatementSyntax
         where TExpressionStatementSyntax : TStatementSyntax
     {

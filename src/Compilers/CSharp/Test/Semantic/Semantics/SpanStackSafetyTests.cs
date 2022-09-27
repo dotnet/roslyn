@@ -264,9 +264,9 @@ class C
     }
 }");
             comp.VerifyDiagnostics(
-                // (7,13): warning CS0184: The given expression is never of the provided ('Span<int>') type
+                // (7,13): error CS0019: Operator 'is' cannot be applied to operands of type 'T' and 'Span<int>'
                 //         if (t is Span<int>)
-                Diagnostic(ErrorCode.WRN_IsAlwaysFalse, "t is Span<int>").WithArguments("System.Span<int>").WithLocation(7, 13),
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "t is Span<int>").WithArguments("is", "T", "System.Span<int>").WithLocation(7, 13),
                 // (9,18): error CS8121: An expression of type 'T' cannot be handled by a pattern of type 'Span<int>'.
                 //         if (t is Span<int> s)
                 Diagnostic(ErrorCode.ERR_PatternWrongType, "Span<int>").WithArguments("T", "System.Span<int>").WithLocation(9, 18));
@@ -308,9 +308,9 @@ class C
     }
 }");
             comp.VerifyDiagnostics(
-                // (7,13): warning CS0184: The given expression is never of the provided ('T') type
+                // (7,13): error CS0019: Operator 'is' cannot be applied to operands of type 'Span<int>' and 'T'
                 //         if (s is T) { }
-                Diagnostic(ErrorCode.WRN_IsAlwaysFalse, "s is T").WithArguments("T").WithLocation(7, 13),
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "s is T").WithArguments("is", "System.Span<int>", "T").WithLocation(7, 13),
                 // (8,18): error CS8121: An expression of type 'Span<int>' cannot be handled by a pattern of type 'T'.
                 //         if (s is T t) { }
                 Diagnostic(ErrorCode.ERR_PatternWrongType, "T").WithArguments("System.Span<int>", "T").WithLocation(8, 18));
@@ -330,9 +330,9 @@ class C
     }
 }");
             comp.VerifyDiagnostics(
-                // (7,13): warning CS0184: The given expression is never of the provided ('T') type
+                // (7,13): error CS0019: Operator 'is' cannot be applied to operands of type 'Span<int>' and 'T'
                 //         if (s is T) { }
-                Diagnostic(ErrorCode.WRN_IsAlwaysFalse, "s is T").WithArguments("T").WithLocation(7, 13),
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "s is T").WithArguments("is", "System.Span<int>", "T").WithLocation(7, 13),
                 // (8,18): error CS8121: An expression of type 'Span<int>' cannot be handled by a pattern of type 'T'.
                 //         if (s is T t) { }
                 Diagnostic(ErrorCode.ERR_PatternWrongType, "T").WithArguments("System.Span<int>", "T").WithLocation(8, 18));
@@ -485,8 +485,7 @@ class Program
         [Fact]
         public void ByrefParam()
         {
-            var text = @"
-using System;
+            var text = @"using System;
 
 class Program
 {
@@ -495,7 +494,7 @@ class Program
     }
 
     // OK
-    static void M1(ref Span<string> ss)
+    static void M1(scoped ref Span<string> ss)
     {
     }
 
@@ -506,12 +505,12 @@ class Program
     }
 
     // OK
-    static void M3(in Span<string> ss)
+    static void M3(scoped in Span<string> ss)
     {
     }
 
     // OK
-    static void M3l(in SpanLike<string> ss)
+    static void M3l(scoped in SpanLike<string> ss)
     {
     }
 
@@ -527,15 +526,33 @@ class Program
 }
 ";
 
-            CSharpCompilation comp = CreateCompilationWithMscorlibAndSpan(text);
-
+            var comp = CreateCompilationWithMscorlibAndSpan(new[] { text, UnscopedRefAttributeDefinition }, parseOptions: TestOptions.Regular10);
             comp.VerifyDiagnostics(
-                // (39,34): error CS1601: Cannot make reference to variable of type 'TypedReference'
+                // (10,20): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
+                //     static void M1(scoped ref Span<string> ss)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "scoped").WithArguments("ref fields", "11.0").WithLocation(10, 20),
+                // (38,34): error CS1601: Cannot make reference to variable of type 'TypedReference'
                 //     static ref TypedReference M1(ref TypedReference ss) => ref ss;
-                Diagnostic(ErrorCode.ERR_MethodArgCantBeRefAny, "ref TypedReference ss").WithArguments("System.TypedReference").WithLocation(39, 34),
-                // (39,12): error CS1599: The return type of a method, delegate, or function pointer cannot be 'TypedReference'
+                Diagnostic(ErrorCode.ERR_MethodArgCantBeRefAny, "ref TypedReference ss").WithArguments("System.TypedReference").WithLocation(38, 34),
+                // (38,12): error CS1599: The return type of a method, delegate, or function pointer cannot be 'TypedReference'
                 //     static ref TypedReference M1(ref TypedReference ss) => ref ss;
-                Diagnostic(ErrorCode.ERR_MethodReturnCantBeRefAny, "ref TypedReference").WithArguments("System.TypedReference").WithLocation(39, 12)
+                Diagnostic(ErrorCode.ERR_MethodReturnCantBeRefAny, "ref TypedReference").WithArguments("System.TypedReference").WithLocation(38, 12),
+                // (21,20): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
+                //     static void M3(scoped in Span<string> ss)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "scoped").WithArguments("ref fields", "11.0").WithLocation(21, 20),
+                // (26,21): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
+                //     static void M3l(scoped in SpanLike<string> ss)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "scoped").WithArguments("ref fields", "11.0").WithLocation(26, 21)
+            );
+
+            comp = CreateCompilationWithMscorlibAndSpan(new[] { text, UnscopedRefAttributeDefinition });
+            comp.VerifyDiagnostics(
+                // (38,34): error CS1601: Cannot make reference to variable of type 'TypedReference'
+                //     static ref TypedReference M1(ref TypedReference ss) => ref ss;
+                Diagnostic(ErrorCode.ERR_MethodArgCantBeRefAny, "ref TypedReference ss").WithArguments("System.TypedReference").WithLocation(38, 34),
+                // (38,12): error CS1599: The return type of a method, delegate, or function pointer cannot be 'TypedReference'
+                //     static ref TypedReference M1(ref TypedReference ss) => ref ss;
+                Diagnostic(ErrorCode.ERR_MethodReturnCantBeRefAny, "ref TypedReference").WithArguments("System.TypedReference").WithLocation(38, 12)
             );
         }
 
@@ -1448,13 +1465,13 @@ class Program
                 );
         }
 
-        [Fact]
         [WorkItem(27874, "https://github.com/dotnet/roslyn/issues/27874")]
-        public void PassingSpansToLocals_EscapeScope()
+        [Theory]
+        [InlineData(LanguageVersion.CSharp10)]
+        [InlineData(LanguageVersion.CSharp11)]
+        public void PassingSpansToLocals_EscapeScope_01(LanguageVersion languageVersion)
         {
-            CompileAndVerify(
-                CreateCompilationWithMscorlibAndSpan(@"
-using System;
+            var source = @"using System;
 class C
 {
     static void Main()
@@ -1475,8 +1492,46 @@ class C
     {
         return ref x;
     }
-}",
-                options: TestOptions.ReleaseExe), verify: Verification.Fails, expectedOutput: @"
+}";
+
+            var comp = CreateCompilationWithMscorlibAndSpan(source, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion), options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp, verify: Verification.Fails, expectedOutput: @"
+10
+10");
+        }
+
+        [WorkItem(27874, "https://github.com/dotnet/roslyn/issues/27874")]
+        [Theory]
+        [InlineData(LanguageVersion.CSharp10)]
+        [InlineData(LanguageVersion.CSharp11)]
+        public void PassingSpansToLocals_EscapeScope_02(LanguageVersion languageVersion)
+        {
+            var source = @"using System;
+
+class C
+{
+    static void Main()
+    {
+        Span<int> x = stackalloc int [10];
+        
+        Console.WriteLine(M1(ref x).Length);
+        Console.WriteLine(M2(ref x).Length);
+    }
+    
+    static ref Span<int> M1(ref Span<int> x)
+    {
+        ref Span<int> q = ref x;
+        return ref q;
+    }
+    
+    static ref Span<int> M2(ref Span<int> x)
+    {
+        return ref x;
+    }
+}";
+
+            var comp = CreateCompilationWithMscorlibAndSpan(source, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion), options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp, verify: Verification.Fails, expectedOutput: @"
 10
 10");
         }

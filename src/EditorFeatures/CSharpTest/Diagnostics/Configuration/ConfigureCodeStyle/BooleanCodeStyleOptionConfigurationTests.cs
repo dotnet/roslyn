@@ -30,11 +30,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.Configurati
                         new CSharpUseObjectInitializerDiagnosticAnalyzer(), new ConfigureCodeStyleOptionCodeFixProvider());
         }
 
+        [Trait(Traits.Feature, Traits.Features.CodeActionsConfiguration)]
         public class TrueConfigurationTests : BooleanCodeStyleOptionConfigurationTests
         {
             protected override int CodeActionIndex => 0;
 
-            [ConditionalFact(typeof(IsEnglishLocal)), Trait(Traits.Feature, Traits.Features.CodeActionsConfiguration)]
+            [ConditionalFact(typeof(IsEnglishLocal))]
             public async Task ConfigureEditorconfig_Empty_True()
             {
                 var input = @"
@@ -106,7 +107,7 @@ dotnet_style_object_initializer = true
                 await TestInRegularAndScriptAsync(input, expected, CodeActionIndex);
             }
 
-            [Fact(Skip = "https://github.com/dotnet/roslyn/issues/39466"), Trait(Traits.Feature, Traits.Features.CodeActionsConfiguration)]
+            [Fact(Skip = "https://github.com/dotnet/roslyn/issues/39466")]
             public async Task ConfigureEditorconfig_RuleExists_True()
             {
                 var input = @"
@@ -178,7 +179,7 @@ dotnet_style_object_initializer = true:suggestion    ; Comment2
                 await TestInRegularAndScriptAsync(input, expected, CodeActionIndex);
             }
 
-            [ConditionalFact(typeof(IsEnglishLocal)), Trait(Traits.Feature, Traits.Features.CodeActionsConfiguration)]
+            [ConditionalFact(typeof(IsEnglishLocal))]
             public async Task ConfigureEditorconfig_InvalidHeader_True()
             {
                 var input = @"
@@ -255,7 +256,7 @@ dotnet_style_object_initializer = true
                 await TestInRegularAndScriptAsync(input, expected, CodeActionIndex);
             }
 
-            [Fact(Skip = "https://github.com/dotnet/roslyn/issues/39466"), Trait(Traits.Feature, Traits.Features.CodeActionsConfiguration)]
+            [Fact(Skip = "https://github.com/dotnet/roslyn/issues/39466")]
             public async Task ConfigureEditorconfig_MaintainSeverity_True()
             {
                 var input = @"
@@ -327,7 +328,7 @@ dotnet_style_object_initializer = true:suggestion
                 await TestInRegularAndScriptAsync(input, expected, CodeActionIndex);
             }
 
-            [ConditionalFact(typeof(IsEnglishLocal)), Trait(Traits.Feature, Traits.Features.CodeActionsConfiguration)]
+            [ConditionalFact(typeof(IsEnglishLocal))]
             public async Task ConfigureEditorconfig_InvalidRule_True()
             {
                 var input = @"
@@ -405,11 +406,12 @@ dotnet_style_object_initializer = true
             }
         }
 
+        [Trait(Traits.Feature, Traits.Features.CodeActionsConfiguration)]
         public class FalseConfigurationTests : BooleanCodeStyleOptionConfigurationTests
         {
             protected override int CodeActionIndex => 1;
 
-            [ConditionalFact(typeof(IsEnglishLocal)), Trait(Traits.Feature, Traits.Features.CodeActionsConfiguration)]
+            [ConditionalFact(typeof(IsEnglishLocal))]
             public async Task ConfigureEditorconfig_Empty_False()
             {
                 var input = @"
@@ -481,7 +483,7 @@ dotnet_style_object_initializer = false
                 await TestInRegularAndScriptAsync(input, expected, CodeActionIndex);
             }
 
-            [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConfiguration)]
+            [Fact]
             public async Task ConfigureEditorconfig_RuleExists_False()
             {
                 var input = @"
@@ -553,7 +555,7 @@ dotnet_style_object_initializer = false:suggestion
                 await TestInRegularAndScriptAsync(input, expected, CodeActionIndex);
             }
 
-            [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConfiguration)]
+            [Fact]
             public async Task ConfigureEditorconfig_RuleExists_False_NoSeveritySuffix()
             {
                 var input = @"
@@ -625,7 +627,7 @@ dotnet_style_object_initializer = false
                 await TestInRegularAndScriptAsync(input, expected, CodeActionIndex);
             }
 
-            [ConditionalFact(typeof(IsEnglishLocal)), Trait(Traits.Feature, Traits.Features.CodeActionsConfiguration)]
+            [ConditionalFact(typeof(IsEnglishLocal))]
             public async Task ConfigureEditorconfig_RuleExists_DotnetDiagnosticEntry()
             {
                 var input = @"
@@ -700,7 +702,7 @@ dotnet_style_object_initializer = false
                 await TestInRegularAndScriptAsync(input, expected, CodeActionIndex);
             }
 
-            [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConfiguration)]
+            [Fact]
             public async Task ConfigureEditorconfig_RuleExists_ConflitingDotnetDiagnosticEntry()
             {
                 var input = @"
@@ -774,7 +776,7 @@ dotnet_style_object_initializer = false:warning
                 await TestInRegularAndScriptAsync(input, expected, CodeActionIndex);
             }
 
-            [ConditionalFact(typeof(IsEnglishLocal)), Trait(Traits.Feature, Traits.Features.CodeActionsConfiguration)]
+            [ConditionalFact(typeof(IsEnglishLocal))]
             public async Task ConfigureEditorconfig_InvalidHeader_False()
             {
                 var input = @"
@@ -851,7 +853,7 @@ dotnet_style_object_initializer = false
                 await TestInRegularAndScriptAsync(input, expected, CodeActionIndex);
             }
 
-            [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConfiguration)]
+            [Fact]
             public async Task ConfigureEditorconfig_MaintainSeverity_False()
             {
                 var input = @"
@@ -923,7 +925,7 @@ dotnet_style_object_initializer = false:suggestion
                 await TestInRegularAndScriptAsync(input, expected, CodeActionIndex);
             }
 
-            [ConditionalFact(typeof(IsEnglishLocal)), Trait(Traits.Feature, Traits.Features.CodeActionsConfiguration)]
+            [ConditionalFact(typeof(IsEnglishLocal))]
             public async Task ConfigureEditorconfig_InvalidRule_False()
             {
                 var input = @"

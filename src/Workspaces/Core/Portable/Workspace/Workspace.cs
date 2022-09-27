@@ -35,7 +35,6 @@ namespace Microsoft.CodeAnalysis
     {
         private readonly string? _workspaceKind;
         private readonly HostWorkspaceServices _services;
-        private readonly BranchId _primaryBranchId;
 
         private readonly ILegacyWorkspaceOptionService _legacyOptions;
 
@@ -71,7 +70,6 @@ namespace Microsoft.CodeAnalysis
         /// <param name="workspaceKind">A string that can be used to identify the kind of workspace. Usually this matches the name of the class.</param>
         protected Workspace(HostServices host, string? workspaceKind)
         {
-            _primaryBranchId = BranchId.GetNextId();
             _workspaceKind = workspaceKind;
 
             _services = host.CreateWorkspaceServices(this);
@@ -106,11 +104,6 @@ namespace Microsoft.CodeAnalysis
         /// Services provider by the host for implementing workspace features.
         /// </summary>
         public HostWorkspaceServices Services => _services;
-
-        /// <summary>
-        /// primary branch id that current solution has
-        /// </summary>
-        internal BranchId PrimaryBranchId => _primaryBranchId;
 
         /// <summary>
         /// Override this property if the workspace supports partial semantics for documents.
@@ -1202,16 +1195,6 @@ namespace Microsoft.CodeAnalysis
                     return false;
                 }
 
-                // make sure that newSolution is a branch of the current solution
-
-                // the given solution must be a branched one.
-                // otherwise, there should be no change to apply.
-                if (oldSolution.BranchId == newSolution.BranchId)
-                {
-                    CheckNoChanges(oldSolution, newSolution);
-                    return true;
-                }
-
                 var solutionChanges = newSolution.GetChanges(oldSolution);
                 this.CheckAllowedSolutionChanges(solutionChanges);
 
@@ -1272,25 +1255,42 @@ namespace Microsoft.CodeAnalysis
 
         private void CheckAllowedSolutionChanges(SolutionChanges solutionChanges)
         {
-            if (solutionChanges.GetRemovedProjects().Any() && !this.CanApplyChange(ApplyChangesKind.RemoveProject))
+            // Note: For each kind of change first check if the change is disallowed and only if it is determine whether the change is actually made.
+            // This is more efficient since most workspaces allow most changes and CanApplyChange is implementation is usually trivial.
+
+            if (!CanApplyChange(ApplyChangesKind.RemoveProject) && solutionChanges.GetRemovedProjects().Any())
             {
                 throw new NotSupportedException(WorkspacesResources.Removing_projects_is_not_supported);
             }
 
-            if (solutionChanges.GetAddedProjects().Any() && !this.CanApplyChange(ApplyChangesKind.AddProject))
+            if (!CanApplyChange(ApplyChangesKind.AddProject) && solutionChanges.GetAddedProjects().Any())
             {
                 throw new NotSupportedException(WorkspacesResources.Adding_projects_is_not_supported);
             }
 
+            if (!CanApplyChange(ApplyChangesKind.AddSolutionAnalyzerReference) && solutionChanges.GetAddedAnalyzerReferences().Any())
+            {
+                throw new NotSupportedException(WorkspacesResources.Adding_analyzer_references_is_not_supported);
+            }
+
+            if (!CanApplyChange(ApplyChangesKind.RemoveSolutionAnalyzerReference) && solutionChanges.GetRemovedAnalyzerReferences().Any())
+            {
+                throw new NotSupportedException(WorkspacesResources.Removing_analyzer_references_is_not_supported);
+            }
+
             foreach (var projectChanges in solutionChanges.GetProjectChanges())
             {
-                this.CheckAllowedProjectChanges(projectChanges);
+                CheckAllowedProjectChanges(projectChanges);
             }
         }
 
         private void CheckAllowedProjectChanges(ProjectChanges projectChanges)
         {
-            if (projectChanges.OldProject.CompilationOptions != projectChanges.NewProject.CompilationOptions)
+            // If CanApplyChange is true for ApplyChangesKind.ChangeCompilationOptions we allow any change to the compilaton options.
+            // If only subset of changes is allowed CanApplyChange shall return false and CanApplyCompilationOptionChange
+            // determines the outcome for the particular option change.
+            if (!CanApplyChange(ApplyChangesKind.ChangeCompilationOptions) &&
+                projectChanges.OldProject.CompilationOptions != projectChanges.NewProject.CompilationOptions)
             {
                 // It's OK to assert this: if they were both null, the if check above would have been false right away
                 // since they didn't change. Thus, at least one is non-null, and once you have a non-null CompilationOptions
@@ -1313,34 +1313,31 @@ namespace Microsoft.CodeAnalysis
                     // We will pass into the CanApplyCompilationOptionChange newOptionsWithoutSyntaxTreeOptionsChange,
                     // which means it's only having to validate that the changes it's expected to apply are changing.
                     // The common pattern is to reject all changes not recognized, so this keeps existing code running just fine.
-                    if (!this.CanApplyChange(ApplyChangesKind.ChangeCompilationOptions)
-                        && !this.CanApplyCompilationOptionChange(
-                                projectChanges.OldProject.CompilationOptions, newOptionsWithoutSyntaxTreeOptionsChange, projectChanges.NewProject))
+                    if (!CanApplyCompilationOptionChange(projectChanges.OldProject.CompilationOptions, newOptionsWithoutSyntaxTreeOptionsChange, projectChanges.NewProject))
                     {
                         throw new NotSupportedException(WorkspacesResources.Changing_compilation_options_is_not_supported);
                     }
                 }
             }
 
-            if (projectChanges.OldProject.ParseOptions != projectChanges.NewProject.ParseOptions
-                && !this.CanApplyChange(ApplyChangesKind.ChangeParseOptions)
-                && !this.CanApplyParseOptionChange(
-                    projectChanges.OldProject.ParseOptions!, projectChanges.NewProject.ParseOptions!, projectChanges.NewProject))
+            if (!CanApplyChange(ApplyChangesKind.ChangeParseOptions) &&
+                projectChanges.OldProject.ParseOptions != projectChanges.NewProject.ParseOptions &&
+                !CanApplyParseOptionChange(projectChanges.OldProject.ParseOptions!, projectChanges.NewProject.ParseOptions!, projectChanges.NewProject))
             {
                 throw new NotSupportedException(WorkspacesResources.Changing_parse_options_is_not_supported);
             }
 
-            if (projectChanges.GetAddedDocuments().Any() && !this.CanApplyChange(ApplyChangesKind.AddDocument))
+            if (!CanApplyChange(ApplyChangesKind.AddDocument) && projectChanges.GetAddedDocuments().Any())
             {
                 throw new NotSupportedException(WorkspacesResources.Adding_documents_is_not_supported);
             }
 
-            if (projectChanges.GetRemovedDocuments().Any() && !this.CanApplyChange(ApplyChangesKind.RemoveDocument))
+            if (!CanApplyChange(ApplyChangesKind.RemoveDocument) && projectChanges.GetRemovedDocuments().Any())
             {
                 throw new NotSupportedException(WorkspacesResources.Removing_documents_is_not_supported);
             }
 
-            if (!this.CanApplyChange(ApplyChangesKind.ChangeDocumentInfo)
+            if (!CanApplyChange(ApplyChangesKind.ChangeDocumentInfo)
                 && projectChanges.GetChangedDocuments().Any(id => projectChanges.NewProject.GetDocument(id)!.HasInfoChanged(projectChanges.OldProject.GetDocument(id)!)))
             {
                 throw new NotSupportedException(WorkspacesResources.Changing_document_property_is_not_supported);
@@ -1348,7 +1345,7 @@ namespace Microsoft.CodeAnalysis
 
             var changedDocumentIds = projectChanges.GetChangedDocuments(onlyGetDocumentsWithTextChanges: true, IgnoreUnchangeableDocumentsWhenApplyingChanges).ToImmutableArray();
 
-            if (!this.CanApplyChange(ApplyChangesKind.ChangeDocument) && changedDocumentIds.Length > 0)
+            if (!CanApplyChange(ApplyChangesKind.ChangeDocument) && changedDocumentIds.Length > 0)
             {
                 throw new NotSupportedException(WorkspacesResources.Changing_documents_is_not_supported);
             }
@@ -1365,62 +1362,62 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
-            if (projectChanges.GetAddedAdditionalDocuments().Any() && !this.CanApplyChange(ApplyChangesKind.AddAdditionalDocument))
+            if (!CanApplyChange(ApplyChangesKind.AddAdditionalDocument) && projectChanges.GetAddedAdditionalDocuments().Any())
             {
                 throw new NotSupportedException(WorkspacesResources.Adding_additional_documents_is_not_supported);
             }
 
-            if (projectChanges.GetRemovedAdditionalDocuments().Any() && !this.CanApplyChange(ApplyChangesKind.RemoveAdditionalDocument))
+            if (!CanApplyChange(ApplyChangesKind.RemoveAdditionalDocument) && projectChanges.GetRemovedAdditionalDocuments().Any())
             {
                 throw new NotSupportedException(WorkspacesResources.Removing_additional_documents_is_not_supported);
             }
 
-            if (projectChanges.GetChangedAdditionalDocuments().Any() && !this.CanApplyChange(ApplyChangesKind.ChangeAdditionalDocument))
+            if (!CanApplyChange(ApplyChangesKind.ChangeAdditionalDocument) && projectChanges.GetChangedAdditionalDocuments().Any())
             {
                 throw new NotSupportedException(WorkspacesResources.Changing_additional_documents_is_not_supported);
             }
 
-            if (projectChanges.GetAddedAnalyzerConfigDocuments().Any() && !this.CanApplyChange(ApplyChangesKind.AddAnalyzerConfigDocument))
+            if (!CanApplyChange(ApplyChangesKind.AddAnalyzerConfigDocument) && projectChanges.GetAddedAnalyzerConfigDocuments().Any())
             {
                 throw new NotSupportedException(WorkspacesResources.Adding_analyzer_config_documents_is_not_supported);
             }
 
-            if (projectChanges.GetRemovedAnalyzerConfigDocuments().Any() && !this.CanApplyChange(ApplyChangesKind.RemoveAnalyzerConfigDocument))
+            if (!CanApplyChange(ApplyChangesKind.RemoveAnalyzerConfigDocument) && projectChanges.GetRemovedAnalyzerConfigDocuments().Any())
             {
                 throw new NotSupportedException(WorkspacesResources.Removing_analyzer_config_documents_is_not_supported);
             }
 
-            if (projectChanges.GetChangedAnalyzerConfigDocuments().Any() && !this.CanApplyChange(ApplyChangesKind.ChangeAnalyzerConfigDocument))
+            if (!CanApplyChange(ApplyChangesKind.ChangeAnalyzerConfigDocument) && projectChanges.GetChangedAnalyzerConfigDocuments().Any())
             {
                 throw new NotSupportedException(WorkspacesResources.Changing_analyzer_config_documents_is_not_supported);
             }
 
-            if (projectChanges.GetAddedProjectReferences().Any() && !this.CanApplyChange(ApplyChangesKind.AddProjectReference))
+            if (!CanApplyChange(ApplyChangesKind.AddProjectReference) && projectChanges.GetAddedProjectReferences().Any())
             {
                 throw new NotSupportedException(WorkspacesResources.Adding_project_references_is_not_supported);
             }
 
-            if (projectChanges.GetRemovedProjectReferences().Any() && !this.CanApplyChange(ApplyChangesKind.RemoveProjectReference))
+            if (!CanApplyChange(ApplyChangesKind.RemoveProjectReference) && projectChanges.GetRemovedProjectReferences().Any())
             {
                 throw new NotSupportedException(WorkspacesResources.Removing_project_references_is_not_supported);
             }
 
-            if (projectChanges.GetAddedMetadataReferences().Any() && !this.CanApplyChange(ApplyChangesKind.AddMetadataReference))
+            if (!CanApplyChange(ApplyChangesKind.AddMetadataReference) && projectChanges.GetAddedMetadataReferences().Any())
             {
                 throw new NotSupportedException(WorkspacesResources.Adding_project_references_is_not_supported);
             }
 
-            if (projectChanges.GetRemovedMetadataReferences().Any() && !this.CanApplyChange(ApplyChangesKind.RemoveMetadataReference))
+            if (!CanApplyChange(ApplyChangesKind.RemoveMetadataReference) && projectChanges.GetRemovedMetadataReferences().Any())
             {
                 throw new NotSupportedException(WorkspacesResources.Removing_project_references_is_not_supported);
             }
 
-            if (projectChanges.GetAddedAnalyzerReferences().Any() && !this.CanApplyChange(ApplyChangesKind.AddAnalyzerReference))
+            if (!CanApplyChange(ApplyChangesKind.AddAnalyzerReference) && projectChanges.GetAddedAnalyzerReferences().Any())
             {
                 throw new NotSupportedException(WorkspacesResources.Adding_analyzer_references_is_not_supported);
             }
 
-            if (projectChanges.GetRemovedAnalyzerReferences().Any() && !this.CanApplyChange(ApplyChangesKind.RemoveAnalyzerReference))
+            if (!CanApplyChange(ApplyChangesKind.RemoveAnalyzerReference) && projectChanges.GetRemovedAnalyzerReferences().Any())
             {
                 throw new NotSupportedException(WorkspacesResources.Removing_analyzer_references_is_not_supported);
             }
@@ -1436,7 +1433,7 @@ namespace Microsoft.CodeAnalysis
         /// <param name="oldOptions">The old <see cref="CompilationOptions"/> of the project from prior to the change.</param>
         /// <param name="newOptions">The new <see cref="CompilationOptions"/> of the project that was passed to <see cref="TryApplyChanges(Solution)"/>.</param>
         /// <param name="project">The project contained in the <see cref="Solution"/> passed to <see cref="TryApplyChanges(Solution)"/>.</param>
-        protected virtual bool CanApplyCompilationOptionChange(CompilationOptions oldOptions, CompilationOptions newOptions, Project project)
+        public virtual bool CanApplyCompilationOptionChange(CompilationOptions oldOptions, CompilationOptions newOptions, Project project)
             => false;
 
         /// <summary>
