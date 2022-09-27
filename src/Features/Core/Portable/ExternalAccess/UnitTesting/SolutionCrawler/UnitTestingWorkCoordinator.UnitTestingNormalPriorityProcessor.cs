@@ -145,7 +145,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                             await WaitForHigherPriorityOperationsAsync().ConfigureAwait(false);
 
                             // okay, there must be at least one item in the map
-                            await ResetStatesAsync().ConfigureAwait(false);
+                            ResetStates();
 
                             if (await TryProcessOneHigherPriorityDocumentAsync().ConfigureAwait(false))
                             {
@@ -543,13 +543,13 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                         }
                     }
 
-                    private Task ResetStatesAsync()
+                    private void ResetStates()
                     {
                         try
                         {
                             if (!IsSolutionChanged())
                             {
-                                return Task.CompletedTask;
+                                return;
                             }
 
 #if false // Not used in unit testing crawling
@@ -573,7 +573,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                             throw ExceptionUtilities.Unreachable;
                         }
 
-                        return Task.CompletedTask;
+                        return;
 
                         bool IsSolutionChanged()
                         {
