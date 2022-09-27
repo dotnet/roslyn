@@ -48,21 +48,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             foreach (var document in documents)
             {
                 var project = document.Project;
-                var projectContext = new VSProjectContext
-                {
-                    Id = ProtocolConversions.ProjectIdToProjectContextId(project.Id),
-                    Label = project.Name
-                };
-
-                if (project.Language == LanguageNames.CSharp)
-                {
-                    projectContext.Kind = VSProjectKind.CSharp;
-                }
-                else if (project.Language == LanguageNames.VisualBasic)
-                {
-                    projectContext.Kind = VSProjectKind.VisualBasic;
-                }
-
+                var projectContext = ProtocolConversions.ProjectToProjectContext(project);
                 contexts.Add(projectContext);
             }
 

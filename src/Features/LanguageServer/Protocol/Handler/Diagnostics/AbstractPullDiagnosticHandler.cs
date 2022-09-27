@@ -161,7 +161,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
                 }
                 else
                 {
-                    context.TraceInformation($"Diagnostics were unchanged for document: {diagnosticSource.GetUri()}");
+                    context.TraceInformation($"Diagnostics were unchanged for {diagnosticSource.GetDocumentIdentifier().Uri} in {diagnosticSource.GetProject().Name}");
 
                     // Nothing changed between the last request and this one.  Report a (null-diagnostics,
                     // same-result-id) response to the client as that means they should just preserve the current
@@ -251,12 +251,12 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
         {
             using var _ = ArrayBuilder<LSP.Diagnostic>.GetInstance(out var result);
             var diagnostics = await diagnosticSource.GetDiagnosticsAsync(DiagnosticAnalyzerService, context, cancellationToken).ConfigureAwait(false);
-            context.TraceInformation($"Found {diagnostics.Length} diagnostics for {diagnosticSource.GetUri()}");
+            context.TraceInformation($"Found {diagnostics.Length} diagnostics for {diagnosticSource.GetDocumentIdentifier().Uri} in {diagnosticSource.GetProject().Name}");
 
             foreach (var diagnostic in diagnostics)
                 result.AddRange(ConvertDiagnostic(diagnosticSource, diagnostic, clientCapabilities));
 
-            return CreateReport(new LSP.TextDocumentIdentifier { Uri = diagnosticSource.GetUri() }, result.ToArray(), resultId);
+            return CreateReport(diagnosticSource.GetDocumentIdentifier(), result.ToArray(), resultId);
         }
 
         private void HandleRemovedDocuments(RequestContext context, ImmutableArray<PreviousPullResult> removedPreviousResults, BufferedProgress<TReport> progress)
