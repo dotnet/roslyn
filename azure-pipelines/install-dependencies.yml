@@ -6,7 +6,8 @@ steps:
 - task: NuGetAuthenticate@1
   displayName: 🔏 Authenticate NuGet feeds
   inputs:
-    nuGetServiceConnections: azure-public/msft_consumption
+    ${{ if eq(variables['system.collectionId'], '011b8bdf-6d56-4f87-be0d-0092136884d9') }}:
+      nuGetServiceConnections: azure-public/msft_consumption
     forceReinstallCredentialProvider: true
 
 - powershell: |
