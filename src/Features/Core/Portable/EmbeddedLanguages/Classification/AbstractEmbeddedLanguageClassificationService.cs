@@ -82,7 +82,8 @@ namespace Microsoft.CodeAnalysis.Classification
 
             public void VisitTokens(SyntaxNode node)
             {
-                var stack = new Stack<SyntaxNodeOrToken>();
+                using var pooledStack = SharedPools.Default<Stack<SyntaxNodeOrToken>>().GetPooledObject();
+                var stack = pooledStack.Object;
                 stack.Push(node);
                 while (!stack.IsEmpty())
                 {
