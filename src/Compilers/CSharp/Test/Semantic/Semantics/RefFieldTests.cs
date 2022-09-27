@@ -8616,12 +8616,9 @@ public ref struct StructWithRefField
             else
             {
                 comp.VerifyEmitDiagnostics(
-                    // (6,9): error CS8350: This combination of arguments to 'R<int>.MayCaptureArg(ref int)' is disallowed because it may expose variables referenced by parameter 't' outside of their declaration scope
+                    // (6,9): error CS8350: This combination of arguments to 'R<int>.MayCaptureArg(ref int)' is disallowed because it may expose variables referenced by parameter 'this' outside of their declaration scope
                     //         r.MayCaptureArg(ref i);
-                    Diagnostic(ErrorCode.ERR_CallArgMixing, "r.MayCaptureArg(ref i)").WithArguments("R<int>.MayCaptureArg(ref int)", "t").WithLocation(6, 9),
-                    // (6,29): error CS8168: Cannot return local 'i' by reference because it is not a ref local
-                    //         r.MayCaptureArg(ref i);
-                    Diagnostic(ErrorCode.ERR_RefReturnLocal, "i").WithArguments("i").WithLocation(6, 29));
+                    Diagnostic(ErrorCode.ERR_CallArgMixing, "r.MayCaptureArg(ref i)").WithArguments("R<int>.MayCaptureArg(ref int)", "this").WithLocation(6, 9));
             }
         }
 
