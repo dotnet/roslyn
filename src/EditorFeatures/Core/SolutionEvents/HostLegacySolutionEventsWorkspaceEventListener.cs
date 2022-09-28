@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.LegacySolutionEvents
         private void OnWorkspaceChanged(object? sender, WorkspaceChangeEventArgs e)
             => _eventQueue.AddWork(e);
 
-        private async ValueTask ProcessWorkspaceChangeEventsAsync(ImmutableSegmentedList<WorkspaceChangeEventArgs> eventArgs, CancellationToken cancellationToken)
+        private async ValueTask ProcessWorkspaceChangeEventsAsync(ImmutableSegmentedList<WorkspaceChangeEventArgs> events, CancellationToken cancellationToken)
         {
             if (events.IsEmpty)
                 return;
@@ -72,7 +72,7 @@ namespace Microsoft.CodeAnalysis.LegacySolutionEvents
                 var aggregationService = workspace.Services.GetRequiredService<ILegacySolutionEventsAggregationService>();
 
                 foreach (var args in events)
-                    await aggregationService.OnWorkspaceChangedAsync(ev, cancellationToken).ConfigureAwait(false);
+                    await aggregationService.OnWorkspaceChangedAsync(args, cancellationToken).ConfigureAwait(false);
             }
             else
             {
