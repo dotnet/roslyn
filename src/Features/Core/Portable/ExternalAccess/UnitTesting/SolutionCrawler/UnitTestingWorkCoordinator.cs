@@ -596,7 +596,11 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                 }
                 else
                 {
+#if false // Not used in unit testing crawling
                     var differenceResult = await differenceService.GetDifferenceAsync(oldDocument, newDocument, _shutdownToken).ConfigureAwait(false);
+#else
+                    var differenceResult = differenceService.GetDifference(oldDocument, newDocument, _shutdownToken);
+#endif
 
                     if (differenceResult != null)
                         await EnqueueDocumentWorkItemAsync(newDocument.Project, newDocument.Id, newDocument, differenceResult.ChangeType, differenceResult.ChangedMember).ConfigureAwait(false);
