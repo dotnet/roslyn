@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             internal MixableDestination(ParameterSymbol parameter, BoundExpression argument)
             {
-                Debug.Assert(parameter.RefKind.IsWritableReference());
+                Debug.Assert(parameter.RefKind.IsWritableReference() && parameter.Type.IsRefLikeType);
                 Argument = argument;
                 Parameter = parameter;
                 EscapeLevel = parameter.RefKind == RefKind.Out ? EscapeLevel.ReturnOnly : EscapeLevel.CallingMethod;
@@ -73,9 +73,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 _ => throw ExceptionUtilities.UnexpectedValue(EscapeLevel)
             };
 
-            public override string? ToString() => Parameter is { } p
-                ? p.ToString()
-                : Argument.ToString();
+            public override string? ToString() => (Parameter, Argument, EscapeLevel).ToString();
         }
 
         /// <summary>
@@ -129,8 +127,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             internal BoundExpression Argument { get; }
 
             /// <summary>
-            /// This differentiates whethere the value can only escape to <see cref="EscapeLevel.CallingMethod"/>
-            /// locations or to any return spot.
+            /// This is _only_ useful when calculating MAMM as it dictates to what level the value 
+            /// escaped to. That allows it to be filtered against the parameters it could possibly
+            /// write to
             /// </summary>
             internal EscapeLevel EscapeLevel { get; }
 
@@ -149,7 +148,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Argument = argument;
                 Parameter = null;
                 EscapeLevel = escapeLevel;
-                IsRefEscape = false;
+                IsRefEscape = isRefEscape;
             }
 
             public void Deconstruct(out ParameterSymbol? parameter, out BoundExpression argument, out EscapeLevel escapeLevel, out bool isRefEscape)
@@ -930,6 +929,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             return true;
         }
 
+        private EscapeLevel? EscapeLevelFromScope(uint scope) => scope switch
+        {
+            Binder.ReturnOnlyScope => EscapeLevel.ReturnOnly,
+            Binder.CallingMethodScope => EscapeLevel.CallingMethod,
+            _ => null,
+        };
+
         private uint GetParameterValEscape(ParameterSymbol parameter)
         {
             if (UseUpdatedEscapeRules)
@@ -949,6 +955,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        private EscapeLevel? GetParameterValEscapeLevel(ParameterSymbol parameter) =>
+            EscapeLevelFromScope(GetParameterValEscape(parameter));
+
         private uint GetParameterRefEscape(ParameterSymbol parameter)
         {
             return parameter switch
@@ -958,6 +967,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 _ => Binder.CallingMethodScope
             };
         }
+
+        private EscapeLevel? GetParameterRefEscapeLevel(ParameterSymbol parameter) =>
+            EscapeLevelFromScope(GetParameterRefEscape(parameter));
 
         private bool CheckParameterValEscape(SyntaxNode node, BoundParameter parameter, uint escapeTo, BindingDiagnosticBag diagnostics)
         {
@@ -2094,8 +2106,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Returns the set of arguments to an invocation that impact ref analysis. This will 
         /// filter out everything that could never meaningfully contribute to ref analysis. For
-        /// example it will remove anything which corresponds to scope parameters. For ref
-        /// parameters it will place in two values representing both the RSTS and STS
+        /// example 
+        ///   - It will remove anything which corresponds to scope parameters. 
+        ///   - For refparameters it will return an <see cref="EscapeValue"/> for both STS and RSTS (if 
+        ///     approriate)
+        ///   - Removes values for non-ref struct 
         /// </summary>
         private void GetFilteredArguments(
             Symbol symbol,
@@ -2144,22 +2159,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                     continue;
                 }
 
-                if (parameter.RefKind != RefKind.None)
+                if (parameter.RefKind != RefKind.None && GetParameterRefEscapeLevel(parameter) is { } refEscapeLevel)
                 {
-                    if (parameter.EffectiveScope == DeclarationScope.Unscoped)
-                    {
-                        var kind = parameter.Type.IsRefLikeType ? EscapeLevel.ReturnOnly : EscapeLevel.CallingMethod;
-                        escapeValues.Add(new EscapeValue(parameter, argument, kind, isRefEscape: true));
-                    }
-
-                    if (parameter.RefKind != RefKind.Out && parameter.Type.IsRefLikeType)
-                    {
-                        escapeValues.Add(new EscapeValue(parameter, argument, EscapeLevel.CallingMethod, isRefEscape: false));
-                    }
+                    escapeValues.Add(new EscapeValue(parameter, argument, refEscapeLevel, isRefEscape: true));
                 }
-                else if (parameter.Type.IsRefLikeType && parameter.EffectiveScope == DeclarationScope.Unscoped)
+
+                if (parameter.Type.IsRefLikeType && GetParameterValEscapeLevel(parameter) is { } valEscapeLevel)
                 {
-                    escapeValues.Add(new EscapeValue(parameter, argument, EscapeLevel.CallingMethod, isRefEscape: false));
+                    escapeValues.Add(new EscapeValue(parameter, argument, valEscapeLevel, isRefEscape: false));
                 }
             }
 
