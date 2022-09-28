@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Immutable;
 using System.Collections.ObjectModel;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
@@ -51,6 +52,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
             _languageName = languageName;
 
             Workspace.DocumentOpened += InitializeServiceOnDocumentOpened;
+
+            // Explicltly handle already opened documents, in case we missed the events
+            InitializeServiceOnAlreadyOpenedDocuments(Workspace.GetOpenDocumentIds().ToImmutableArray());
         }
 
         void IWpfTextViewConnectionListener.SubjectBuffersConnected(IWpfTextView textView, ConnectionReason reason, Collection<ITextBuffer> subjectBuffers)
@@ -69,14 +73,29 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
         }
 
         private void InitializeServiceOnDocumentOpened(object sender, DocumentEventArgs e)
+            => InitializeServiceForDocument(e.Document);
+
+        private void InitializeServiceOnAlreadyOpenedDocuments(ImmutableArray<DocumentId> documentIds)
         {
-            if (e.Document.Project.Language != _languageName)
+            foreach (var id in documentIds)
+            {
+                var document = Workspace.CurrentSolution.GetDocument(id);
+                if (document != null)
+                {
+                    InitializeServiceForDocument(document);
+                }
+            }
+        }
+
+        private void InitializeServiceForDocument(Document document)
+        {
+            if (document.Project.Language != _languageName)
             {
                 return;
             }
 
             var token = _listener.BeginAsyncOperation(nameof(InitializeServiceForOpenedDocumentOnBackgroundAsync));
-            InitializeServiceForOpenedDocumentOnBackgroundAsync(e.Document).CompletesAsyncOperation(token);
+            InitializeServiceForOpenedDocumentOnBackgroundAsync(document).CompletesAsyncOperation(token);
 
             async Task InitializeServiceForOpenedDocumentOnBackgroundAsync(Document document)
             {
