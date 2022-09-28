@@ -134,7 +134,7 @@
       </trans-unit>
       <trans-unit id="FeatureName_TaskList">
         <source>Task list</source>
-        <target state="new">Task list</target>
+        <target state="translated">Список задач</target>
         <note />
       </trans-unit>
       <trans-unit id="FeatureName_UnusedReferenceAnalysis">
