@@ -32,7 +32,6 @@ namespace Microsoft.CodeAnalysis.CodeActions
                 HideAdvancedMembers = globalOptions.GetOption(CompletionOptionsStorage.HideAdvancedMembers, languageServices.Language),
                 WrappingColumn = globalOptions.GetOption(WrappingColumn, languageServices.Language),
                 ConditionalExpressionWrappingLength = globalOptions.GetOption(ConditionalExpressionWrappingLength, languageServices.Language),
-                EnableConvertToRecord = globalOptions.GetOption(EnableConvertToRecord),
             };
 
         internal static CodeActionOptionsProvider GetCodeActionOptionsProvider(this IGlobalOptionService globalOptions)
@@ -45,9 +44,5 @@ namespace Microsoft.CodeAnalysis.CodeActions
             "UseConditionalExpressionOptions",
             "ConditionalExpressionWrappingLength", CodeActionOptions.DefaultConditionalExpressionWrappingLength,
             storageLocation: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.ConditionalExpressionWrappingLength"));
-
-        public static Option2<bool> EnableConvertToRecord = new(
-            "ConvertToRecord", "EnableConvertToRecord", defaultValue: false,
-            storageLocation: new FeatureFlagStorageLocation("Roslyn.EnableConvertToRecord"));
     }
 }
