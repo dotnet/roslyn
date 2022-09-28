@@ -1849,7 +1849,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                             {
                                 Debug.Assert(constructor.Initializer is null);
                                 Debug.Assert(constructor.Locals.IsEmpty);
-                                Debug.Assert(method.IsExtern || method.MethodKind == MethodKind.StaticConstructor);
                                 constructorInitializer = null;
                             }
                             break;
