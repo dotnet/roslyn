@@ -41,11 +41,13 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                                     UnitTestingPredefinedInvocationReasons.SyntaxChanged,
                                     UnitTestingPredefinedInvocationReasons.SemanticChanged));
 
+#if false
         public static readonly UnitTestingInvocationReasons SolutionRemoved =
             new(
                 ImmutableHashSet.Create<string>(
                                     UnitTestingPredefinedInvocationReasons.SolutionRemoved,
                                     UnitTestingPredefinedInvocationReasons.DocumentRemoved));
+#endif
 
 #if false // Not used in unit testing crawling
         public static readonly UnitTestingInvocationReasons DocumentOpened =

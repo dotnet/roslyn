@@ -21,12 +21,15 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
     {
         internal sealed partial class UnitTestingWorkCoordinator : IUnitTestingWorkCoordinator
         {
-            private readonly UnitTestingRegistration _registration;
+#if false // Not used in unit testing crawling
             private readonly object _gate = new();
+            private readonly IUnitTestingDocumentTrackingService _documentTrackingService;
+#endif
+
+            private readonly UnitTestingRegistration _registration;
 
             private readonly CountLogAggregator<WorkspaceChangeKind> _logAggregator = new();
             private readonly IAsynchronousOperationListener _listener;
-            private readonly IUnitTestingDocumentTrackingService _documentTrackingService;
             private readonly IWorkspaceConfigurationService? _workspaceConfigurationService;
 
             private readonly CancellationTokenSource _shutdownNotificationSource = new();
@@ -48,7 +51,9 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                 _registration = registration;
 
                 _listener = listener;
+#if false // Not used in unit testing crawling
                 _documentTrackingService = _registration.Services.GetRequiredService<IUnitTestingDocumentTrackingService>();
+#endif
                 _workspaceConfigurationService = _registration.Services.GetService<IWorkspaceConfigurationService>();
 
                 // event and worker queues
@@ -229,12 +234,9 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                         EnqueueSolutionChangedEvent(args.OldSolution, args.NewSolution, eventName);
                         break;
 
-                    case WorkspaceChangeKind.SolutionRemoved:
-                        EnqueueFullSolutionEvent(args.OldSolution, UnitTestingInvocationReasons.SolutionRemoved, eventName);
-                        break;
-
                     case WorkspaceChangeKind.SolutionCleared:
-                        EnqueueFullSolutionEvent(args.OldSolution, UnitTestingInvocationReasons.SolutionRemoved, eventName);
+                    case WorkspaceChangeKind.SolutionRemoved:
+                        // Not used in unit testing crawling
                         break;
 
                     case WorkspaceChangeKind.ProjectAdded:

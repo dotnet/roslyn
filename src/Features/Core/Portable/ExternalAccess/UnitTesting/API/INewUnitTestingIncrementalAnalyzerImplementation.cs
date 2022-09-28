@@ -24,7 +24,14 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.Api
 #endif
 
         Task AnalyzeDocumentAsync(Document document, SyntaxNode bodyOpt, UnitTestingInvocationReasons reasons, CancellationToken cancellationToken);
-        Task AnalyzeProjectAsync(Project project, bool semanticsChanged, UnitTestingInvocationReasons reasons, CancellationToken cancellationToken);
+
+        Task AnalyzeProjectAsync(Project project,
+#if false // Not used in unit testing crawling
+            bool semanticsChanged,
+#endif
+            UnitTestingInvocationReasons reasons,
+            CancellationToken cancellationToken);
+
         void RemoveDocument(DocumentId documentId);
     }
 }
