@@ -45,6 +45,11 @@ namespace Microsoft.CodeAnalysis.Snippets
             return Task.FromResult(ImmutableArray.Create(snippetTextChange));
         }
 
+        protected override Func<SyntaxNode?, bool> GetSnippetContainerFunction(ISyntaxFacts syntaxFacts)
+        {
+            return syntaxFacts.IsIfStatement;
+        }
+
         private static TextChange GenerateSnippetTextChange(Document document, int position)
         {
             var generator = SyntaxGenerator.GetGenerator(document);
@@ -62,21 +67,6 @@ namespace Microsoft.CodeAnalysis.Snippets
             return cursorPosition;
         }
 
-        protected override async Task<SyntaxNode> AnnotateNodesToReformatAsync(Document document,
-            SyntaxAnnotation findSnippetAnnotation, SyntaxAnnotation cursorAnnotation, int position, CancellationToken cancellationToken)
-        {
-            var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
-            var snippetExpressionNode = FindAddedSnippetSyntaxNode(root, position, syntaxFacts);
-            if (snippetExpressionNode is null)
-            {
-                return root;
-            }
-
-            var reformatSnippetNode = snippetExpressionNode.WithAdditionalAnnotations(findSnippetAnnotation, cursorAnnotation, Simplifier.Annotation, Formatter.Annotation);
-            return root.ReplaceNode(snippetExpressionNode, reformatSnippetNode);
-        }
-
         protected override ImmutableArray<SnippetPlaceholder> GetPlaceHolderLocationsList(SyntaxNode node, ISyntaxFacts syntaxFacts, CancellationToken cancellationToken)
         {
             using var _ = ArrayBuilder<SnippetPlaceholder>.GetInstance(out var arrayBuilder);
@@ -84,28 +74,6 @@ namespace Microsoft.CodeAnalysis.Snippets
             arrayBuilder.Add(new SnippetPlaceholder(identifier: condition.ToString(), placeholderPositions: ImmutableArray.Create(condition.SpanStart)));
 
             return arrayBuilder.ToImmutableArray();
-        }
-
-        protected override SyntaxNode? FindAddedSnippetSyntaxNode(SyntaxNode root, int position, ISyntaxFacts syntaxFacts)
-        {
-            var closestNode = root.FindNode(TextSpan.FromBounds(position, position), getInnermostNodeForTie: true);
-
-            var nearestStatement = closestNode.DescendantNodesAndSelf(syntaxFacts.IsIfStatement).FirstOrDefault();
-
-            if (nearestStatement is null)
-            {
-                return null;
-            }
-
-            // Checking to see if that expression statement that we found is
-            // starting at the same position as the position we inserted
-            // the if statement.
-            if (nearestStatement.SpanStart != position)
-            {
-                return null;
-            }
-
-            return nearestStatement;
         }
     }
 }

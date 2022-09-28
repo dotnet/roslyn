@@ -13,7 +13,7 @@ namespace Microsoft.Cci
     /// Represents the portion of a <see cref="DebugSourceDocument"/> that are derived
     /// from the source document content, and which can be computed asynchronously.
     /// </summary>
-    internal struct DebugSourceInfo
+    internal readonly struct DebugSourceInfo
     {
         /// <summary>
         /// The ID of the hash algorithm used.

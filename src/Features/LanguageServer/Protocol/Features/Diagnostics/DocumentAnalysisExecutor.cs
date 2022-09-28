@@ -156,9 +156,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             // Remap diagnostic locations, if required.
             diagnostics = await RemapDiagnosticLocationsIfRequiredAsync(textDocument, diagnostics, cancellationToken).ConfigureAwait(false);
 
-            if (span.HasValue)
+            if (span.HasValue && document != null)
             {
-                diagnostics = diagnostics.WhereAsArray(d => !d.HasTextSpan || span.Value.IntersectsWith(d.GetTextSpan()));
+                var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+
+                // TODO: Unclear if using the unmapped span here is correct.  It does feel somewhat appropriate as the
+                // caller should be asking about diagnostics in an actual document, and not where they were remapped to.
+                diagnostics = diagnostics.WhereAsArray(
+                    d => d.DocumentId is null || span.Value.IntersectsWith(d.DataLocation.UnmappedFileSpan.GetClampedTextSpan(sourceText)));
             }
 
 #if DEBUG

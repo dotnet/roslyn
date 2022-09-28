@@ -177,8 +177,8 @@
   <data name="FeatureName_SymbolSearchUpdate" xml:space="preserve">
     <value>Symbol search</value>
   </data>
-  <data name="FeatureName_TodoCommentsDiscovery" xml:space="preserve">
-    <value>TODO comments discovery</value>
+  <data name="FeatureName_TaskList" xml:space="preserve">
+    <value>Task list</value>
   </data>
   <data name="FeatureName_AsynchronousOperationListener" xml:space="preserve">
     <value>Asynchronous operation listener</value>

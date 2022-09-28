@@ -780,8 +780,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests
         {
         }
 
-        [Fact]
-        [WorkItem(10838, "https://github.com/mono/mono/issues/10838")]
+        [Fact, WorkItem(10838, "https://github.com/mono/mono/issues/10838")]
         public void DebuggerProxy_FrameworkTypes_Task()
         {
             var obj = new MockDesktopTask(TaskMethod);
@@ -874,8 +873,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests
             );
         }
 
-        [WorkItem(8542, "https://github.com/dotnet/roslyn/issues/8452")]
-        [Fact]
+        [Fact, WorkItem(8542, "https://github.com/dotnet/roslyn/issues/8452")]
         public void FormatConstructorSignature()
         {
             var constructor = typeof(object).GetTypeInfo().DeclaredConstructors.Single();

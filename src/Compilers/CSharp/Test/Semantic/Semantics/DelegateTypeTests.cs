@@ -2796,7 +2796,7 @@ class Program
         d = (ref int i) => i;
     }
 }";
-            var comp = CreateEmptyCompilation(new[] { sourceA, sourceB });
+            var comp = CreateEmptyCompilation(new[] { sourceA, sourceB }, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute());
             comp.VerifyEmitDiagnostics(
                 // warning CS8021: No value for RuntimeMetadataVersion found. No assembly containing System.Object was found nor was a value for RuntimeMetadataVersion specified through options.
                 Diagnostic(ErrorCode.WRN_NoRuntimeMetadataVersion).WithLocation(1, 1),
@@ -2832,7 +2832,7 @@ class Program
         d = (int* p) => p;
     }
 }";
-            var comp = CreateEmptyCompilation(new[] { sourceA, sourceB }, options: TestOptions.UnsafeReleaseExe);
+            var comp = CreateEmptyCompilation(new[] { sourceA, sourceB }, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), options: TestOptions.UnsafeReleaseExe);
             comp.VerifyEmitDiagnostics(
                 // warning CS8021: No value for RuntimeMetadataVersion found. No assembly containing System.Object was found nor was a value for RuntimeMetadataVersion specified through options.
                 Diagnostic(ErrorCode.WRN_NoRuntimeMetadataVersion).WithLocation(1, 1),
@@ -2868,7 +2868,7 @@ class Program
         var d2 = (ref int i) => i;
     }
 }";
-            var comp = CreateEmptyCompilation(new[] { sourceA, sourceB });
+            var comp = CreateEmptyCompilation(new[] { sourceA, sourceB }, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute());
             comp.VerifyEmitDiagnostics(
                 // warning CS8021: No value for RuntimeMetadataVersion found. No assembly containing System.Object was found nor was a value for RuntimeMetadataVersion specified through options.
                 Diagnostic(ErrorCode.WRN_NoRuntimeMetadataVersion).WithLocation(1, 1),
@@ -2901,7 +2901,7 @@ class Program
         d = (ref int i) => i;
     }
 }";
-            var comp = CreateEmptyCompilation(new[] { sourceA, sourceB });
+            var comp = CreateEmptyCompilation(new[] { sourceA, sourceB }, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute());
             comp.VerifyEmitDiagnostics(
                 // warning CS8021: No value for RuntimeMetadataVersion found. No assembly containing System.Object was found nor was a value for RuntimeMetadataVersion specified through options.
                 Diagnostic(ErrorCode.WRN_NoRuntimeMetadataVersion).WithLocation(1, 1),
@@ -9294,7 +9294,7 @@ class Program
                 var reader = assembly.GetMetadataReader();
                 var actualTypes = reader.GetTypeDefNames().Select(h => reader.GetString(h)).ToArray();
 
-                string[] expectedTypes = new[] { "<Module>", "Program", "<>c", };
+                string[] expectedTypes = new[] { "<Module>", "EmbeddedAttribute", "RefSafetyRulesAttribute", "Program", "<>c", };
                 AssertEx.Equal(expectedTypes, actualTypes);
             }
         }
@@ -10125,18 +10125,16 @@ class Program
 @"1
 <>f__AnonymousDelegate0
 2
-<>f__AnonymousDelegate0
+<>f__AnonymousDelegate1
 3
-<>f__AnonymousDelegate1
+<>f__AnonymousDelegate2
 4
-<>f__AnonymousDelegate1
+<>f__AnonymousDelegate3
 -5
-<>f__AnonymousDelegate2
+<>f__AnonymousDelegate4
 -6
-<>f__AnonymousDelegate2
+<>f__AnonymousDelegate4
 ");
-
-            // https://github.com/dotnet/roslyn/issues/62780: Test with [UnscopedRef].
         }
 
         [Fact]

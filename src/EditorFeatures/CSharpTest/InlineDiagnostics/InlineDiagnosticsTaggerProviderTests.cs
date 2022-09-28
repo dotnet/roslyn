@@ -21,9 +21,10 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InlineDiagnostics
 {
     [UseExportProvider]
+    [Trait(Traits.Feature, Traits.Features.ErrorSquiggles)]
     public class InlineDiagnosticsTaggerProviderTests
     {
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ErrorSquiggles)]
+        [WpfFact]
         public async Task ErrorTagGeneratedForError()
         {
             var spans = await GetTagSpansAsync("class C {");
@@ -31,7 +32,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InlineDiagnostics
             Assert.Equal(PredefinedErrorTypeNames.SyntaxError, firstSpan.Tag.ErrorType);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ErrorSquiggles)]
+        [WpfFact]
         public async Task ErrorTagGeneratedForErrorInSourceGeneratedDocument()
         {
             var spans = await GetTagSpansInSourceGeneratedDocumentAsync("class C {");

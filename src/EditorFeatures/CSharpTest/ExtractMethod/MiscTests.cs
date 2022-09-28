@@ -22,10 +22,10 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ExtractMethod
 {
     [UseExportProvider]
+    [Trait(Traits.Feature, Traits.Features.ExtractMethod)]
     public class MiscTests
     {
         [Fact]
-        [Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public void ServiceTest1()
         {
             var markupCode = @"class A
@@ -63,7 +63,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ExtractMethod
         }
 
         [Fact]
-        [Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public void ServiceTest2()
         {
             var markupCode = @"class A
@@ -109,7 +108,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ExtractMethod
         }
 
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public void TestExtractMethodCommandHandlerErrorMessage()
         {
             var markupCode = @"class A

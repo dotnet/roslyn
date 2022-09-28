@@ -286,5 +286,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         internal sealed override bool HasUnscopedRefAttribute => false;
+
+        internal sealed override bool UseUpdatedEscapeRules => false;
     }
 }

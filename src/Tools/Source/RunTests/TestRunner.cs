@@ -17,7 +17,7 @@ using Newtonsoft.Json;
 
 namespace RunTests
 {
-    internal struct RunAllResult
+    internal readonly struct RunAllResult
     {
         internal bool Succeeded { get; }
         internal ImmutableArray<TestResult> TestResults { get; }

@@ -777,6 +777,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.RefType:
                     return BindRefType(node, diagnostics);
 
+                case SyntaxKind.ScopedType:
+                    return BindScopedType(node, diagnostics);
+
                 case SyntaxKind.RefExpression:
                     return BindRefExpression(node, diagnostics);
 
@@ -820,6 +823,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             var firstToken = node.GetFirstToken();
             diagnostics.Add(ErrorCode.ERR_UnexpectedToken, firstToken.GetLocation(), firstToken.ValueText);
             return new BoundTypeExpression(node, null, CreateErrorType("ref"));
+        }
+
+        private BoundExpression BindScopedType(ExpressionSyntax node, BindingDiagnosticBag diagnostics)
+        {
+            var firstToken = node.GetFirstToken();
+            diagnostics.Add(ErrorCode.ERR_UnexpectedToken, firstToken.GetLocation(), firstToken.ValueText);
+            return new BoundTypeExpression(node, null, CreateErrorType("scoped"));
         }
 
         private BoundExpression BindThrowExpression(ThrowExpressionSyntax node, BindingDiagnosticBag diagnostics)
@@ -1355,19 +1365,25 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             typeArgument.VisitType(type: null, static (typeWithAnnotations, arg, _) =>
             {
-                var (topLevelType, errorLocation, diagnostics) = arg;
+                var (errorLocation, diagnostics) = arg;
                 var type = typeWithAnnotations.Type;
                 if (type.IsDynamic()
                     || (typeWithAnnotations.NullableAnnotation.IsAnnotated() && !type.IsValueType)
                     || type.IsNativeIntegerWrapperType
                     || (type.IsTupleType && !type.TupleElementNames.IsDefault))
                 {
-                    diagnostics.Add(ErrorCode.ERR_AttrDependentTypeNotAllowed, errorLocation, topLevelType.ToDisplayString(SymbolDisplayFormat.CSharpShortErrorMessageFormat));
+                    diagnostics.Add(ErrorCode.ERR_AttrDependentTypeNotAllowed, errorLocation, type);
+                    return true;
+                }
+
+                if (type.IsUnboundGenericType() || type.Kind == SymbolKind.TypeParameter)
+                {
+                    diagnostics.Add(ErrorCode.ERR_AttrTypeArgCannotBeTypeVar, errorLocation, type);
                     return true;
                 }
 
                 return false;
-            }, typePredicate: null, arg: (typeArgument, errorLocation, diagnostics));
+            }, typePredicate: null, arg: (errorLocation, diagnostics));
         }
 
         private BoundExpression BindSizeOf(SizeOfExpressionSyntax node, BindingDiagnosticBag diagnostics)
@@ -1377,7 +1393,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeWithAnnotations typeWithAnnotations = this.BindType(typeSyntax, diagnostics, out alias);
             TypeSymbol type = typeWithAnnotations.Type;
 
-            bool typeHasErrors = type.IsErrorType() || CheckManagedAddr(Compilation, type, node.Location, diagnostics);
+            bool typeHasErrors = type.IsErrorType() || CheckManagedAddr(Compilation, type, warnForManaged: false, node.Location, diagnostics);
 
             BoundTypeExpression boundType = new BoundTypeExpression(typeSyntax, alias, typeWithAnnotations, typeHasErrors);
             ConstantValue constantValue = GetConstantSizeOf(type);
@@ -1387,23 +1403,31 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <returns>true if managed type-related errors were found, otherwise false.</returns>
-        internal static bool CheckManagedAddr(CSharpCompilation compilation, TypeSymbol type, Location location, BindingDiagnosticBag diagnostics)
+        internal static bool CheckManagedAddr(CSharpCompilation compilation, TypeSymbol type, bool warnForManaged, Location location, BindingDiagnosticBag diagnostics)
         {
             var useSiteInfo = new CompoundUseSiteInfo<AssemblySymbol>(diagnostics, compilation.Assembly);
             var managedKind = type.GetManagedKind(ref useSiteInfo);
             diagnostics.Add(location, useSiteInfo);
 
-            return CheckManagedAddr(compilation, type, managedKind, location, diagnostics);
+            return CheckManagedAddr(compilation, type, managedKind, warnForManaged, location, diagnostics);
         }
 
         /// <returns>true if managed type-related errors were found, otherwise false.</returns>
-        internal static bool CheckManagedAddr(CSharpCompilation compilation, TypeSymbol type, ManagedKind managedKind, Location location, BindingDiagnosticBag diagnostics)
+        internal static bool CheckManagedAddr(CSharpCompilation compilation, TypeSymbol type, ManagedKind managedKind, bool warnForManaged, Location location, BindingDiagnosticBag diagnostics)
         {
             switch (managedKind)
             {
                 case ManagedKind.Managed:
-                    diagnostics.Add(ErrorCode.ERR_ManagedAddr, location, type);
-                    return true;
+                    if (warnForManaged)
+                    {
+                        diagnostics.Add(ErrorCode.WRN_ManagedAddr, location, type);
+                        return false;
+                    }
+                    else
+                    {
+                        diagnostics.Add(ErrorCode.ERR_ManagedAddr, location, type);
+                        return true;
+                    }
                 case ManagedKind.UnmanagedWithGenerics when MessageID.IDS_FeatureUnmanagedConstructedTypes.GetFeatureAvailabilityDiagnosticInfo(compilation) is CSDiagnosticInfo diagnosticInfo:
                     diagnostics.Add(diagnosticInfo, location);
                     return true;
@@ -2209,7 +2233,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private BoundExpression BindCast(CastExpressionSyntax node, BindingDiagnosticBag diagnostics)
         {
             BoundExpression operand = this.BindValue(node.Expression, diagnostics, BindValueKind.RValue);
-            TypeWithAnnotations targetTypeWithAnnotations = this.BindType(node.Type, diagnostics);
+            TypeWithAnnotations targetTypeWithAnnotations = this.WithAdditionalFlags(BinderFlags.AllowManagedPointer).BindType(node.Type, diagnostics);
             TypeSymbol targetType = targetTypeWithAnnotations.Type;
 
             if (targetType.IsNullableType() &&
@@ -2770,7 +2794,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeSyntax typeSyntax = declarationExpression.Type;
             VariableDesignationSyntax designation = declarationExpression.Designation;
 
-            if (typeSyntax.GetRefKind() != RefKind.None)
+            Debug.Assert(typeSyntax is not ScopedTypeSyntax);
+            if (typeSyntax.SkipScoped(out _).GetRefKind() != RefKind.None)
             {
                 diagnostics.Add(ErrorCode.ERR_OutVariableCannotBeByRef, declarationExpression.Type.Location);
             }
@@ -2786,7 +2811,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         Debug.Assert(isVar != declType.HasType);
 
                         // ValEscape is the same as for an uninitialized local
-                        return new BoundDiscardExpression(declarationExpression, Binder.ExternalScope, declType.Type);
+                        return new BoundDiscardExpression(declarationExpression, Binder.CallingMethodScope, declType.Type);
                     }
                 case SyntaxKind.SingleVariableDesignation:
                     return BindOutVariableDeclarationArgument(declarationExpression, diagnostics);
@@ -3288,7 +3313,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (!bestType.IsErrorType())
             {
-                CheckManagedAddr(Compilation, bestType, node.Location, diagnostics);
+                CheckManagedAddr(Compilation, bestType, warnForManaged: false, node.Location, diagnostics);
             }
 
             return BindStackAllocWithInitializer(
@@ -3645,7 +3670,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeSymbol type = GetStackAllocType(node, elementType, diagnostics, out bool hasErrors);
             if (!elementType.Type.IsErrorType())
             {
-                hasErrors = hasErrors || CheckManagedAddr(Compilation, elementType.Type, elementTypeSyntax.Location, diagnostics);
+                hasErrors = hasErrors || CheckManagedAddr(Compilation, elementType.Type, warnForManaged: false, elementTypeSyntax.Location, diagnostics);
             }
 
             SyntaxList<ArrayRankSpecifierSyntax> rankSpecifiers = arrayTypeSyntax.RankSpecifiers;

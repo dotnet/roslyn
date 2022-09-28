@@ -17,7 +17,7 @@ parameters:
   default: ''
 - name: queueName
   type: string
-  default: 'Build.Windows.10.Amd64.Open'
+  default: 'windows.vs2022.amd64.open'
 
 jobs:
 - job: ${{ parameters.jobName }}

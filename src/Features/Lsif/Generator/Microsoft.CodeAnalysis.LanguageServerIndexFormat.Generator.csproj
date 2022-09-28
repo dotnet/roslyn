@@ -57,6 +57,10 @@
     <PackageReference Include="Microsoft.Build.Framework" Version="$(RefOnlyMicrosoftBuildFrameworkVersion)" ExcludeAssets="runtime" PrivateAssets="all" />
     <PackageReference Include="Microsoft.Build.Tasks.Core" Version="$(RefOnlyMicrosoftBuildTasksCoreVersion)" ExcludeAssets="runtime" PrivateAssets="all" />
     <PackageReference Include="Microsoft.Build.Utilities.Core" Version="$(RefOnlyMicrosoftBuildUtilitiesCoreVersion)" ExcludeAssets="runtime" PrivateAssets="all" />
+
+    <!-- Work around https://github.com/dotnet/msbuild/issues/7873; without this we won't have a new enough System.Memory and we'll get
+         method missing exceptions when we are running with some newer MSBuild versions. -->
+    <PackageReference Include="System.Memory" Version="$(SystemMemoryVersion)" />
   </ItemGroup>
 
   <ItemGroup>

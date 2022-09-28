@@ -1885,7 +1885,7 @@ Additional information: {1}</value>
     <value>End of line</value>
   </data>
   <data name="Paste_valid_stack_trace" xml:space="preserve">
-    <value>Paste a stack trace to view and navigate its values.</value>
+    <value>Paste a stack trace to view and navigate it's values.</value>
     <comment>"Stack Trace" is a language term and should be kept the same. </comment>
   </data>
   <data name="Stack_Trace_Explorer" xml:space="preserve">
@@ -2022,5 +2022,8 @@ Additional information: {1}</value>
   <data name="Where_should_the_rename_UI_be_shown" xml:space="preserve">
     <value>Where should the rename UI be shown?</value>
     <comment>"UI" is an acronym for "User Interface"</comment>
+  </data>
+  <data name="Prefer_read_only_struct" xml:space="preserve">
+    <value>Prefer read-only struct</value>
   </data>
 </root>

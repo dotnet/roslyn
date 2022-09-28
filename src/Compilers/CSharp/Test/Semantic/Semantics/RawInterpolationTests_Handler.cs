@@ -6413,7 +6413,7 @@ public partial struct CustomHandler
                     // (1,5): error CS1503: Argument 3: cannot convert from 'int' to 'string'
                     // C.M(1, $"");
                     Diagnostic(ErrorCode.ERR_BadArgType, "1").WithArguments("3", "int", "string").WithLocation(1, 5),
-                    // (1,8): error CS7036: There is no argument given that corresponds to the required formal parameter 'success' of 'CustomHandler.CustomHandler(int, int, string, out bool)'
+                    // (1,8): error CS7036: There is no argument given that corresponds to the required parameter 'success' of 'CustomHandler.CustomHandler(int, int, string, out bool)'
                     // C.M(1, $"");
                     Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, expression).WithArguments("success", "CustomHandler.CustomHandler(int, int, string, out bool)").WithLocation(1, 8)
             };
@@ -7353,7 +7353,7 @@ public struct CustomHandler
             (extraConstructorArg == "")
             ? new[]
             {
-                    // (1,12): error CS7036: There is no argument given that corresponds to the required formal parameter 'i' of 'CustomHandler.CustomHandler(int, int, int)'
+                    // (1,12): error CS7036: There is no argument given that corresponds to the required parameter 'i' of 'CustomHandler.CustomHandler(int, int, int)'
                     // C.M(1, "", $"");
                     Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, expression).WithArguments("i", "CustomHandler.CustomHandler(int, int, int)").WithLocation(1, 12),
                     // (1,12): error CS1615: Argument 3 may not be passed with the 'out' keyword
@@ -7362,10 +7362,10 @@ public struct CustomHandler
             }
             : new[]
             {
-                    // (1,12): error CS7036: There is no argument given that corresponds to the required formal parameter 'i' of 'CustomHandler.CustomHandler(int, int, int, out bool)'
+                    // (1,12): error CS7036: There is no argument given that corresponds to the required parameter 'i' of 'CustomHandler.CustomHandler(int, int, int, out bool)'
                     // C.M(1, "", $"");
                     Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, expression).WithArguments("i", "CustomHandler.CustomHandler(int, int, int, out bool)").WithLocation(1, 12),
-                    // (1,12): error CS7036: There is no argument given that corresponds to the required formal parameter 'success' of 'CustomHandler.CustomHandler(int, int, int, out bool)'
+                    // (1,12): error CS7036: There is no argument given that corresponds to the required parameter 'success' of 'CustomHandler.CustomHandler(int, int, int, out bool)'
                     // C.M(1, "", $"");
                     Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, expression).WithArguments("success", "CustomHandler.CustomHandler(int, int, int, out bool)").WithLocation(1, 12)
             }
@@ -7860,7 +7860,7 @@ public partial struct CustomHandler
                 // (6,1): error CS1620: Argument 3 must be passed with the 'ref' keyword
                 // GetC(ref c).M($"""literal""" + $"""
                 Diagnostic(ErrorCode.ERR_BadArgRef, "GetC(ref c)").WithArguments("3", "ref").WithLocation(6, 1),
-                // (6,15): error CS7036: There is no argument given that corresponds to the required formal parameter 'success' of 'CustomHandler.CustomHandler(int, int, ref C, out bool)'
+                // (6,15): error CS7036: There is no argument given that corresponds to the required parameter 'success' of 'CustomHandler.CustomHandler(int, int, ref C, out bool)'
                 // GetC(ref c).M($"""literal""" + $"""
                 Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, expression).WithArguments("success", "CustomHandler.CustomHandler(int, int, ref C, out bool)").WithLocation(6, 15)
             }
@@ -11074,7 +11074,7 @@ public ref struct CustomHandler
 {
     S1 s1;
 
-    public CustomHandler(int literalLength, int formattedCount, ref S1 s1) : this() { this.s1 = s1; }
+    public CustomHandler(int literalLength, int formattedCount, scoped ref S1 s1) : this() { this.s1 = s1; }
 
     public void AppendFormatted(Span<char> s) => this.s1.s = s;
 
@@ -11242,10 +11242,7 @@ public ref struct CustomHandler
         comp.VerifyDiagnostics(
             // (18,16): error CS8352: Cannot use variable 'c' in this context because it may expose referenced variables outside of their declaration scope
             //         return c;
-            Diagnostic(ErrorCode.ERR_EscapeVariable, "c").WithArguments("c").WithLocation(18, 16),
-            // (23,20): error CS8166: Cannot return a parameter by reference 'handler' because it is not a ref parameter
-            //         return ref handler;
-            Diagnostic(ErrorCode.ERR_RefReturnParameter, "handler").WithArguments("handler").WithLocation(23, 20));
+            Diagnostic(ErrorCode.ERR_EscapeVariable, "c").WithArguments("c").WithLocation(18, 16));
     }
 
     [Fact]
@@ -11260,7 +11257,7 @@ public ref struct CustomHandler
 {
     Span<char> s;
 
-    public CustomHandler(int literalLength, int formattedCount, ref S1 s1) : this() { s1.Handler = this; }
+    public CustomHandler(int literalLength, int formattedCount, scoped ref S1 s1) : this() { s1.Handler = this; }
 
     public static void M(ref S1 s1)
     {
@@ -11297,7 +11294,7 @@ public ref struct S1
 [InterpolatedStringHandler]
 ref struct CustomHandler
 {
-    public CustomHandler(int literalLength, int formattedCount, ref S s) : this() { s.Handler = this; }
+    public CustomHandler(int literalLength, int formattedCount, scoped ref S s) : this() { s.Handler = this; }
     public void AppendFormatted(int i) { } 
 }
 ref struct S
@@ -13445,7 +13442,7 @@ struct CustomHandler
 
         var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerAttribute });
         comp.VerifyDiagnostics(
-            // (4,19): error CS7036: There is no argument given that corresponds to the required formal parameter 's' of 'CustomHandler.CustomHandler(int, int, string)'
+            // (4,19): error CS7036: There is no argument given that corresponds to the required parameter 's' of 'CustomHandler.CustomHandler(int, int, string)'
             // CustomHandler c = $"";
             Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, @"$""""""
 

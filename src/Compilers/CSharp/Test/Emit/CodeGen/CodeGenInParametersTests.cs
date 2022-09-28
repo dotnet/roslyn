@@ -1128,22 +1128,22 @@ class Program
 
             var comp = CreateCompilationWithMscorlib45(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef });
             comp.VerifyDiagnostics(
-                // (6,9): error CS8408: Cannot assign to variable 'in int' because it is a readonly variable
+                // (6,9): error CS8408: Cannot assign to variable 'in int' or use it as the right hand side of a ref assignment because it is a readonly variable
                 //         arg1 = 1;
                 Diagnostic(ErrorCode.ERR_AssignReadonlyNotField, "arg1").WithArguments("variable", "in int").WithLocation(6, 9),
-                // (7,9): error CS8409: Cannot assign to a member of variable 'in (int Alice, int Bob)' because it is a readonly variable
+                // (7,9): error CS8409: Cannot assign to a member of variable 'in (int Alice, int Bob)' or use it as the right hand side of a ref assignment because it is a readonly variable
                 //         arg2.Alice = 2;
                 Diagnostic(ErrorCode.ERR_AssignReadonlyNotField2, "arg2.Alice").WithArguments("variable", "in (int Alice, int Bob)").WithLocation(7, 9),
-                // (9,9): error CS8408: Cannot assign to variable 'in int' because it is a readonly variable
+                // (9,9): error CS8408: Cannot assign to variable 'in int' or use it as the right hand side of a ref assignment because it is a readonly variable
                 //         arg1 ++;
                 Diagnostic(ErrorCode.ERR_AssignReadonlyNotField, "arg1").WithArguments("variable", "in int").WithLocation(9, 9),
-                // (10,9): error CS8409: Cannot assign to a member of variable 'in (int Alice, int Bob)' because it is a readonly variable
+                // (10,9): error CS8409: Cannot assign to a member of variable 'in (int Alice, int Bob)' or use it as the right hand side of a ref assignment because it is a readonly variable
                 //         arg2.Alice --;
                 Diagnostic(ErrorCode.ERR_AssignReadonlyNotField2, "arg2.Alice").WithArguments("variable", "in (int Alice, int Bob)").WithLocation(10, 9),
-                // (12,9): error CS8408: Cannot assign to variable 'in int' because it is a readonly variable
+                // (12,9): error CS8408: Cannot assign to variable 'in int' or use it as the right hand side of a ref assignment because it is a readonly variable
                 //         arg1 += 1;
                 Diagnostic(ErrorCode.ERR_AssignReadonlyNotField, "arg1").WithArguments("variable", "in int"),
-                // (13,9): error CS8409: Cannot assign to a member of variable 'in (int Alice, int Bob)' because it is a readonly variable
+                // (13,9): error CS8409: Cannot assign to a member of variable 'in (int Alice, int Bob)' or use it as the right hand side of a ref assignment because it is a readonly variable
                 //         arg2.Alice -= 2;
                 Diagnostic(ErrorCode.ERR_AssignReadonlyNotField2, "arg2.Alice").WithArguments("variable", "in (int Alice, int Bob)"));
         }

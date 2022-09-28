@@ -15,6 +15,7 @@ using Xunit;
 
 namespace Roslyn.VisualStudio.CSharp.UnitTests.DocumentOutline
 {
+    [Trait(Traits.Feature, Traits.Features.DocumentOutline)]
     public class DocumentOutlineTests : DocumentOutlineTestsBase
     {
         private const string TestCode = @"
@@ -48,7 +49,7 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.DocumentOutline
 
         private async Task<(DocumentOutlineTestMocks mocks, DocumentSymbolDataModel model, ImmutableArray<DocumentSymbolUIItem> uiItems)> InitializeMocksAndDataModelAndUIItems(string testCode)
         {
-            using var mocks = await CreateMocksAsync(testCode);
+            await using var mocks = await CreateMocksAsync(testCode);
             var response = await DocumentOutlineHelper.DocumentSymbolsRequestAsync(mocks.TextBuffer, mocks.LanguageServiceBroker, mocks.FilePath, CancellationToken.None);
             AssertEx.NotNull(response.Value);
 
@@ -63,19 +64,19 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.DocumentOutline
             return (mocks, model, uiItems);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentOutline)]
+        [WpfFact]
         public async Task TestSortDocumentSymbolDataByName()
         {
             await CheckSorting(SortOption.Name);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentOutline)]
+        [WpfFact]
         public async Task TestSortDocumentSymbolDataByType()
         {
             await CheckSorting(SortOption.Type);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentOutline)]
+        [WpfFact]
         public async Task TestSortDocumentSymbolDataByLocation()
         {
             await CheckSorting(SortOption.Location);
@@ -113,7 +114,7 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.DocumentOutline
             }
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentOutline)]
+        [WpfFact]
         public async Task TestSearchDocumentSymbolData()
         {
             var (_, model, _) = await InitializeMocksAndDataModelAndUIItems(TestCode);
@@ -144,7 +145,7 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.DocumentOutline
             Assert.Equal(0, searchedSymbols.Length);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentOutline)]
+        [WpfFact]
         public async Task TestGetDocumentNodeToSelect()
         {
             var (mocks, model, uiItems) = await InitializeMocksAndDataModelAndUIItems(TestCode);
@@ -171,7 +172,7 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.DocumentOutline
             Assert.Equal("App", nodeToSelect?.Name);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentOutline)]
+        [WpfFact]
         public async Task TestSetIsExpanded()
         {
             var (mocks, model, originalUIItems) = await InitializeMocksAndDataModelAndUIItems(TestCode);
@@ -215,7 +216,7 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.DocumentOutline
             }
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentOutline)]
+        [WpfFact]
         public async Task TestExpandAncestors()
         {
             var (mocks, model, uiItems) = await InitializeMocksAndDataModelAndUIItems(TestCode);
@@ -240,7 +241,7 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.DocumentOutline
             }
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentOutline)]
+        [WpfFact]
         public async Task TestUnselectAll()
         {
             var (_, _, uiItems) = await InitializeMocksAndDataModelAndUIItems(TestCode);

@@ -14,6 +14,7 @@ using ProjectUtils = Microsoft.VisualStudio.IntegrationTest.Utilities.Common.Pro
 namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
 {
     [Collection(nameof(SharedIntegrationHostFixture))]
+    [Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
     public class BasicGenerateTypeDialog : AbstractEditorTest
     {
         protected override string LanguageName => LanguageNames.VisualBasic;
@@ -25,7 +26,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
         {
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [WpfFact]
         public void BasicToCSharp()
         {
             var csProj = new ProjectUtils.Project("CSProj");
@@ -72,7 +73,7 @@ End Class
 }", actualText);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [WpfFact]
         public void SameProject()
         {
             SetUpEditor(@"
@@ -111,7 +112,7 @@ End Class
 ", actualText);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [WpfFact]
         public void CheckFoldersPopulateComboBox()
         {
             var project = new ProjectUtils.Project(ProjectName);

@@ -613,6 +613,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                         WellKnownType.System_Runtime_CompilerServices_ScopedRefAttribute,
                         WellKnownMember.System_Runtime_CompilerServices_ScopedRefAttribute__ctor);
 
+                case EmbeddableAttributes.RefSafetyRulesAttribute:
+                    return CheckIfAttributeShouldBeEmbedded(
+                        diagnosticsOpt,
+                        locationOpt,
+                        WellKnownType.System_Runtime_CompilerServices_RefSafetyRulesAttribute,
+                        WellKnownMember.System_Runtime_CompilerServices_RefSafetyRulesAttribute__ctor);
+
                 default:
                     throw ExceptionUtilities.UnexpectedValue(attribute);
             }

@@ -1713,7 +1713,7 @@ class C
                 // (7,41): error CS0246: The type or namespace name 'D' could not be found (are you missing a using directive or an assembly reference?)
                 //         void Local<[A, B, CLSCompliant, D]T>() 
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "D").WithArguments("D").WithLocation(7, 41),
-                // (7,27): error CS7036: There is no argument given that corresponds to the required formal parameter 'isCompliant' of 'CLSCompliantAttribute.CLSCompliantAttribute(bool)'
+                // (7,27): error CS7036: There is no argument given that corresponds to the required parameter 'isCompliant' of 'CLSCompliantAttribute.CLSCompliantAttribute(bool)'
                 //         void Local<[A, B, CLSCompliant, D]T>() 
                 Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "CLSCompliant").WithArguments("isCompliant", "System.CLSCompliantAttribute.CLSCompliantAttribute(bool)").WithLocation(7, 27));
 
@@ -1754,7 +1754,7 @@ class C
                 // (7,21): error CS0246: The type or namespace name 'A' could not be found (are you missing a using directive or an assembly reference?)
                 //         void Local<[A]T, [CLSCompliant]U>() { }
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "A").WithArguments("A").WithLocation(7, 21),
-                // (7,27): error CS7036: There is no argument given that corresponds to the required formal parameter 'isCompliant' of 'CLSCompliantAttribute.CLSCompliantAttribute(bool)'
+                // (7,27): error CS7036: There is no argument given that corresponds to the required parameter 'isCompliant' of 'CLSCompliantAttribute.CLSCompliantAttribute(bool)'
                 //         void Local<[A]T, [CLSCompliant]U>() { }
                 Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "CLSCompliant").WithArguments("isCompliant", "System.CLSCompliantAttribute.CLSCompliantAttribute(bool)").WithLocation(7, 27),
                 // (7,14): warning CS8321: The local function 'Local' is declared but never used
@@ -1829,7 +1829,7 @@ class C
                 // (7,21): error CS0246: The type or namespace name 'A' could not be found (are you missing a using directive or an assembly reference?)
                 //         void Local([A]int x, [CLSCompliant]int y) { }
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "A").WithArguments("A").WithLocation(7, 21),
-                // (7,31): error CS7036: There is no argument given that corresponds to the required formal parameter 'isCompliant' of 'CLSCompliantAttribute.CLSCompliantAttribute(bool)'
+                // (7,31): error CS7036: There is no argument given that corresponds to the required parameter 'isCompliant' of 'CLSCompliantAttribute.CLSCompliantAttribute(bool)'
                 //         void Local([A]int x, [CLSCompliant]int y) { }
                 Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "CLSCompliant").WithArguments("isCompliant", "System.CLSCompliantAttribute.CLSCompliantAttribute(bool)").WithLocation(7, 31),
                 // (7,14): warning CS8321: The local function 'Local' is declared but never used
@@ -1919,7 +1919,7 @@ class C
                 // (7,41): error CS0246: The type or namespace name 'D' could not be found (are you missing a using directive or an assembly reference?)
                 //         void Local<[A, B, CLSCompliant, D]T>() { }
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "D").WithArguments("D").WithLocation(7, 41),
-                // (7,27): error CS7036: There is no argument given that corresponds to the required formal parameter 'isCompliant' of 'CLSCompliantAttribute.CLSCompliantAttribute(bool)'
+                // (7,27): error CS7036: There is no argument given that corresponds to the required parameter 'isCompliant' of 'CLSCompliantAttribute.CLSCompliantAttribute(bool)'
                 //         void Local<[A, B, CLSCompliant, D]T>() { }
                 Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "CLSCompliant").WithArguments("isCompliant", "System.CLSCompliantAttribute.CLSCompliantAttribute(bool)").WithLocation(7, 27));
 
@@ -1969,7 +1969,7 @@ class C
                 // (7,24): error CS0246: The type or namespace name 'B' could not be found (are you missing a using directive or an assembly reference?)
                 //         void Local([A, B]int x, [CLSCompliant]string s = "") { }
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "B").WithArguments("B").WithLocation(7, 24),
-                // (7,34): error CS7036: There is no argument given that corresponds to the required formal parameter 'isCompliant' of 'CLSCompliantAttribute.CLSCompliantAttribute(bool)'
+                // (7,34): error CS7036: There is no argument given that corresponds to the required parameter 'isCompliant' of 'CLSCompliantAttribute.CLSCompliantAttribute(bool)'
                 //         void Local([A, B]int x, [CLSCompliant]string s = "") { }
                 Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "CLSCompliant").WithArguments("isCompliant", "System.CLSCompliantAttribute.CLSCompliantAttribute(bool)").WithLocation(7, 34));
 

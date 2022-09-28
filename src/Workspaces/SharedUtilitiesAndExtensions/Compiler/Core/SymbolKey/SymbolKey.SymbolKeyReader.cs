@@ -522,6 +522,7 @@ namespace Microsoft.CodeAnalysis
                     SymbolKeyType.Field => FieldSymbolKey.Instance.Resolve(this, out failureReason),
                     SymbolKeyType.FunctionPointer => FunctionPointerTypeSymbolKey.Instance.Resolve(this, out failureReason),
                     SymbolKeyType.DynamicType => DynamicTypeSymbolKey.Instance.Resolve(this, out failureReason),
+                    SymbolKeyType.BuiltinOperator => BuiltinOperatorSymbolKey.Instance.Resolve(this, out failureReason),
                     SymbolKeyType.Method => MethodSymbolKey.Instance.Resolve(this, out failureReason),
                     SymbolKeyType.Namespace => NamespaceSymbolKey.Instance.Resolve(this, out failureReason),
                     SymbolKeyType.PointerType => PointerTypeSymbolKey.Instance.Resolve(this, out failureReason),

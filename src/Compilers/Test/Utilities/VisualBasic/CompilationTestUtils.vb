@@ -408,8 +408,9 @@ Friend Module CompilationUtils
         Return s
     End Function
 
-    Public Function FindBindingText(Of TNode As SyntaxNode)(compilation As Compilation, fileName As String, Optional which As Integer = 0, Optional prefixMatch As Boolean = False) As TNode
-        Dim tree = (From t In compilation.SyntaxTrees Where t.FilePath = fileName).Single()
+    Public Function FindBindingText(Of TNode As SyntaxNode)(compilation As Compilation, Optional fileName As String = Nothing, Optional which As Integer = 0, Optional prefixMatch As Boolean = False) As TNode
+        Dim trees = If(fileName Is Nothing, compilation.SyntaxTrees, compilation.SyntaxTrees.Where(Function(t) t.FilePath = fileName))
+        Dim tree = trees.Single()
 
         Dim bindText As String = Nothing
         Dim bindPoint = FindBindingTextPosition(compilation, fileName, bindText, which)

@@ -8,10 +8,11 @@ Imports Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
 Imports Microsoft.CodeAnalysis.Test.Utilities.ChangeSignature
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.ChangeSignature
+    <Trait(Traits.Feature, Traits.Features.ChangeSignature)>
     Partial Public Class ChangeSignatureTests
         Inherits AbstractChangeSignatureTests
 
-        <Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
+        <Fact>
         Public Async Function AddOptionalParameter_CallsiteInferred_NoOptions() As Task
             Dim markup = <Text><![CDATA[
 Class C
@@ -31,7 +32,7 @@ End Class]]></Text>.NormalizedValue()
             Await TestChangeSignatureViaCommandAsync(LanguageNames.VisualBasic, markup, updatedSignature:=updatedSignature, expectedUpdatedInvocationDocumentCode:=updatedCode)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
+        <Fact>
         Public Async Function AddOptionalParameter_CallsiteInferred_SingleLocal() As Task
             Dim markup = <Text><![CDATA[
 Class C
@@ -53,7 +54,7 @@ End Class]]></Text>.NormalizedValue()
             Await TestChangeSignatureViaCommandAsync(LanguageNames.VisualBasic, markup, updatedSignature:=updatedSignature, expectedUpdatedInvocationDocumentCode:=updatedCode)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
+        <Fact>
         Public Async Function AddOptionalParameter_CallsiteInferred_MultipleLocals() As Task
             Dim markup = <Text><![CDATA[
 Class C
@@ -77,7 +78,7 @@ End Class]]></Text>.NormalizedValue()
             Await TestChangeSignatureViaCommandAsync(LanguageNames.VisualBasic, markup, updatedSignature:=updatedSignature, expectedUpdatedInvocationDocumentCode:=updatedCode)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
+        <Fact>
         Public Async Function AddOptionalParameter_CallsiteInferred_SingleParameter() As Task
             Dim markup = <Text><![CDATA[
 Class C
@@ -98,7 +99,7 @@ End Class]]></Text>.NormalizedValue()
             Await TestChangeSignatureViaCommandAsync(LanguageNames.VisualBasic, markup, updatedSignature:=updatedSignature, expectedUpdatedInvocationDocumentCode:=updatedCode)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
+        <Fact>
         Public Async Function AddOptionalParameter_CallsiteInferred_SingleField() As Task
             Dim markup = <Text><![CDATA[
 Class C
@@ -122,7 +123,7 @@ End Class]]></Text>.NormalizedValue()
             Await TestChangeSignatureViaCommandAsync(LanguageNames.VisualBasic, markup, updatedSignature:=updatedSignature, expectedUpdatedInvocationDocumentCode:=updatedCode)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
+        <Fact>
         Public Async Function AddOptionalParameter_CallsiteInferred_SingleProperty() As Task
             Dim markup = <Text><![CDATA[
 Class C
@@ -146,7 +147,7 @@ End Class]]></Text>.NormalizedValue()
             Await TestChangeSignatureViaCommandAsync(LanguageNames.VisualBasic, markup, updatedSignature:=updatedSignature, expectedUpdatedInvocationDocumentCode:=updatedCode)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
+        <Fact>
         Public Async Function AddOptionalParameter_CallsiteInferred_ImplicitlyConvertable() As Task
             Dim markup = <Text><![CDATA[
 Class B

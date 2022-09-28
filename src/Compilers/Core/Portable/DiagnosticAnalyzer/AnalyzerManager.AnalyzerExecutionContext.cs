@@ -128,6 +128,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             public Task<HostSymbolStartAnalysisScope> GetSymbolAnalysisScopeAsync(
                 ISymbol symbol,
+                bool isGeneratedCodeSymbol,
                 ImmutableArray<SymbolStartAnalyzerAction> symbolStartActions,
                 AnalyzerExecutor analyzerExecutor)
             {
@@ -145,7 +146,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     HostSymbolStartAnalysisScope getSymbolAnalysisScopeCore()
                     {
                         var symbolAnalysisScope = new HostSymbolStartAnalysisScope();
-                        analyzerExecutor.ExecuteSymbolStartActions(symbol, _analyzer, symbolStartActions, symbolAnalysisScope);
+                        analyzerExecutor.ExecuteSymbolStartActions(symbol, _analyzer, symbolStartActions, symbolAnalysisScope, isGeneratedCodeSymbol);
 
                         var symbolEndActions = symbolAnalysisScope.GetAnalyzerActions(_analyzer);
                         if (symbolEndActions.SymbolEndActionsCount > 0)

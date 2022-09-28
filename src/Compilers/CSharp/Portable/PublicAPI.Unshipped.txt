@@ -5,3 +5,17 @@
 *REMOVED*static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.RefType(Microsoft.CodeAnalysis.SyntaxToken refKeyword, Microsoft.CodeAnalysis.SyntaxToken readOnlyKeyword, Microsoft.CodeAnalysis.SyntaxToken scopedKeyword, Microsoft.CodeAnalysis.CSharp.Syntax.TypeSyntax! type) -> Microsoft.CodeAnalysis.CSharp.Syntax.RefTypeSyntax!
 Microsoft.CodeAnalysis.CSharp.LanguageVersion.CSharp11 = 1100 -> Microsoft.CodeAnalysis.CSharp.LanguageVersion
 Microsoft.CodeAnalysis.CSharp.SyntaxKind.FileKeyword = 8449 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
+Microsoft.CodeAnalysis.CSharp.Syntax.ScopedTypeSyntax
+Microsoft.CodeAnalysis.CSharp.Syntax.ScopedTypeSyntax.ScopedKeyword.get -> Microsoft.CodeAnalysis.SyntaxToken
+Microsoft.CodeAnalysis.CSharp.Syntax.ScopedTypeSyntax.Type.get -> Microsoft.CodeAnalysis.CSharp.Syntax.TypeSyntax!
+Microsoft.CodeAnalysis.CSharp.Syntax.ScopedTypeSyntax.Update(Microsoft.CodeAnalysis.SyntaxToken scopedKeyword, Microsoft.CodeAnalysis.CSharp.Syntax.TypeSyntax! type) -> Microsoft.CodeAnalysis.CSharp.Syntax.ScopedTypeSyntax!
+Microsoft.CodeAnalysis.CSharp.Syntax.ScopedTypeSyntax.WithScopedKeyword(Microsoft.CodeAnalysis.SyntaxToken scopedKeyword) -> Microsoft.CodeAnalysis.CSharp.Syntax.ScopedTypeSyntax!
+Microsoft.CodeAnalysis.CSharp.Syntax.ScopedTypeSyntax.WithType(Microsoft.CodeAnalysis.CSharp.Syntax.TypeSyntax! type) -> Microsoft.CodeAnalysis.CSharp.Syntax.ScopedTypeSyntax!
+Microsoft.CodeAnalysis.CSharp.SyntaxKind.ScopedType = 9075 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
+override Microsoft.CodeAnalysis.CSharp.CSharpSyntaxRewriter.VisitScopedType(Microsoft.CodeAnalysis.CSharp.Syntax.ScopedTypeSyntax! node) -> Microsoft.CodeAnalysis.SyntaxNode?
+override Microsoft.CodeAnalysis.CSharp.Syntax.ScopedTypeSyntax.Accept(Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor! visitor) -> void
+override Microsoft.CodeAnalysis.CSharp.Syntax.ScopedTypeSyntax.Accept<TResult>(Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor<TResult>! visitor) -> TResult?
+static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.ScopedType(Microsoft.CodeAnalysis.CSharp.Syntax.TypeSyntax! type) -> Microsoft.CodeAnalysis.CSharp.Syntax.ScopedTypeSyntax!
+static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.ScopedType(Microsoft.CodeAnalysis.SyntaxToken scopedKeyword, Microsoft.CodeAnalysis.CSharp.Syntax.TypeSyntax! type) -> Microsoft.CodeAnalysis.CSharp.Syntax.ScopedTypeSyntax!
+virtual Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor.VisitScopedType(Microsoft.CodeAnalysis.CSharp.Syntax.ScopedTypeSyntax! node) -> void
+virtual Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor<TResult>.VisitScopedType(Microsoft.CodeAnalysis.CSharp.Syntax.ScopedTypeSyntax! node) -> TResult?

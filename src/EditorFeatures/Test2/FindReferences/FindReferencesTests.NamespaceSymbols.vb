@@ -6,8 +6,9 @@ Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis.Remote.Testing
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
+    <Trait(Traits.Feature, Traits.Features.FindReferences)>
     Partial Public Class FindReferencesTests
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestNamespace1(host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -29,7 +30,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
             Await TestAPI(input, host)
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestNamespace2(host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -63,7 +64,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
             Await TestAPI(input, host)
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestNamespace3(host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -97,7 +98,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
             Await TestAPI(input, host)
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestNamespace5(host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -118,7 +119,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
             Await TestAPI(input, host)
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestNamespaceCaseSensitivity1(host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -142,7 +143,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
             Await TestAPI(input, host)
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestNamespaceCaseSensitivity2(host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -170,7 +171,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
             Await TestAPI(input, host)
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestNamespaceThroughAlias1(host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -195,7 +196,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
             Await TestAPI(input, host)
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestNamespaceThroughAlias2(host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -220,7 +221,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
             Await TestAPI(input, host)
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestNamespaceThroughAlias3(host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -250,7 +251,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
         End Function
 
         <WorkItem(541162, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541162")>
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestNamespaceCalledVar1(host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -274,7 +275,7 @@ namespace {|Definition:$$[|var|]|} { }
         End Function
 
         <WorkItem(541162, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541162")>
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestNamespaceCalledVar2(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -297,7 +298,7 @@ namespace var { }
             Await TestAPIAndFeature(input, kind, host)
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestNamespaceWithUnicodeCharacter(host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -318,7 +319,7 @@ namespace var { }
             Await TestAPI(input, host)
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestNamespaceWithComment(host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -337,7 +338,7 @@ namespace var { }
             Await TestAPI(input, host)
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestNamespaceWithVerbatimIdentifier(host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -356,7 +357,7 @@ namespace var { }
             Await TestAPI(input, host)
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestGlobalNamespace(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -374,7 +375,7 @@ namespace var { }
             Await TestAPIAndFeature(input, kind, host)
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestNamespace_TypeOrNamespaceUsageInfo(host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -405,7 +406,7 @@ namespace var { }
         End Function
 
         <WorkItem(44288, "https://github.com/dotnet/roslyn/issues/44288")>
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestNamespaceReferenceInGlobalSuppression(host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -431,7 +432,7 @@ namespace var { }
         End Function
 
         <WorkItem(44288, "https://github.com/dotnet/roslyn/issues/44288")>
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestNamespaceReferenceInGlobalSuppression_OuterNamespace(host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -458,7 +459,7 @@ namespace var { }
         End Function
 
         <WorkItem(44288, "https://github.com/dotnet/roslyn/issues/44288")>
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestNamespaceReferenceInGlobalSuppression_InnerNamespace(host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -483,7 +484,7 @@ namespace var { }
             Await TestAPI(input, host)
         End Function
 
-        <WpfFact, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, CombinatorialData>
         Public Async Function TestNamespaceUsedInSourceGeneratedDocument() As Task
             Dim input =
 <Workspace>

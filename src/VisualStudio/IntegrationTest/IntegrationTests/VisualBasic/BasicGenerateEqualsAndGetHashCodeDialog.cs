@@ -13,6 +13,7 @@ using Xunit.Abstractions;
 namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
 {
     [Collection(nameof(SharedIntegrationHostFixture))]
+    [Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
     public class BasicGenerateEqualsAndGetHashCodeDialog : AbstractEditorTest
     {
         private const string DialogName = "PickMembersDialog";
@@ -24,7 +25,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
         {
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
+        [WpfFact]
         public void VerifyCodeRefactoringOfferedAndCanceled()
         {
             SetUpEditor(@"
@@ -52,7 +53,7 @@ End Class";
             Assert.Contains(expectedText, actualText);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
+        [WpfFact]
         public void VerifyCodeRefactoringOfferedAndAccepted()
         {
             SetUpEditor(@"

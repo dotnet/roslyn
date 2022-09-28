@@ -4,8 +4,9 @@
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGeneration
     <[UseExportProvider]>
+    <Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
     Public Class ForLoopTests
-        <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
+        <WpfFact>
         Public Sub TestVerifyForWithIndex()
             VerifyStatementEndConstructApplied(
                 before:="Class c1
@@ -24,7 +25,7 @@ End Class",
                 afterCaret:={3, -1})
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
+        <WpfFact>
         Public Sub TestVerifyForEach()
             VerifyStatementEndConstructApplied(
                 before:="Class c1
@@ -43,7 +44,7 @@ End Class",
                 afterCaret:={3, -1})
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration), WorkItem(527481, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527481")>
+        <WpfFact, WorkItem(527481, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527481")>
         Public Sub VerifyIndexMatchedInner1()
             VerifyStatementEndConstructNotApplied(
                 text:="Class c1
@@ -56,7 +57,7 @@ End Class",
                  caret:={3, -1})
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration), WorkItem(527481, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527481")>
+        <WpfFact, WorkItem(527481, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527481")>
         Public Sub TestVerifyIndexMatchedInner2()
             VerifyStatementEndConstructApplied(
                 before:="Class c1
@@ -79,7 +80,7 @@ End Class",
                 afterCaret:={3, -1})
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration), WorkItem(527481, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527481")>
+        <WpfFact, WorkItem(527481, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527481")>
         Public Sub VerifyIndexSharedNext()
             VerifyStatementEndConstructNotApplied(
                 text:="Class c1
@@ -92,7 +93,7 @@ End Class",
                  caret:={3, -1})
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
+        <WpfFact>
         Public Sub TestVerifyNestedFor()
             VerifyStatementEndConstructApplied(
                 before:="' NestedFor
@@ -117,7 +118,7 @@ End Class",
                 afterCaret:={5, -1})
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
+        <WpfFact>
         Public Sub TestVerifyNestedForEach()
             VerifyStatementEndConstructApplied(
                 before:="Class C
@@ -144,7 +145,7 @@ End Class",
                 afterCaret:={5, -1})
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
+        <WpfFact>
         Public Sub VerifyReCommitForEach()
             VerifyStatementEndConstructNotApplied(
                 text:="Class C
@@ -156,7 +157,7 @@ End Class",
                 caret:={2, -1})
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
+        <WpfFact>
         Public Sub VerifyForAtIncorrectLocation()
             VerifyStatementEndConstructNotApplied(
                 text:="Class C
@@ -164,7 +165,7 @@ End Class",
                 caret:={1, -1})
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
+        <WpfFact>
         Public Sub VerifyInvalidForSyntax()
             VerifyStatementEndConstructNotApplied(
                 text:="Class C

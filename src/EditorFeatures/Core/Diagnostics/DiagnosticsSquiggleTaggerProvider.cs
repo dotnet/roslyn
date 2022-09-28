@@ -37,10 +37,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public DiagnosticsSquiggleTaggerProvider(
             IThreadingContext threadingContext,
             IDiagnosticService diagnosticService,
+            IDiagnosticAnalyzerService analyzerService,
             IGlobalOptionService globalOptions,
             [Import(AllowDefault = true)] ITextBufferVisibilityTracker? visibilityTracker,
             IAsynchronousOperationListenerProvider listenerProvider)
-            : base(threadingContext, diagnosticService, globalOptions, visibilityTracker, listenerProvider)
+            : base(threadingContext, diagnosticService, analyzerService, globalOptions, visibilityTracker, listenerProvider)
         {
         }
 
