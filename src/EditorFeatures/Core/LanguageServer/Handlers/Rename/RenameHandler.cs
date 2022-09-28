@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
     /// </summary>
     [ExportCSharpVisualBasicStatelessLspService(typeof(RenameHandler)), Shared]
     [Method(LSP.Methods.TextDocumentRenameName)]
-    internal class RenameHandler : IRequestHandler<LSP.RenameParams, WorkspaceEdit?>
+    internal class RenameHandler : ILspServiceDocumentRequestHandler<LSP.RenameParams, WorkspaceEdit?>
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         public bool MutatesSolutionState => false;
         public bool RequiresLSPSolution => true;
 
-        public TextDocumentIdentifier? GetTextDocumentIdentifier(RenameParams request) => request.TextDocument;
+        public TextDocumentIdentifier GetTextDocumentIdentifier(RenameParams request) => request.TextDocument;
 
         public async Task<WorkspaceEdit?> HandleRequestAsync(RenameParams request, RequestContext context, CancellationToken cancellationToken)
         {
