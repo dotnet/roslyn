@@ -144,7 +144,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     return _valEscapeScope;
                 }
-
                 return _scope == DeclarationScope.ValueScoped ?
                     _scopeBinder.LocalScopeDepth :
                     Binder.CallingMethodScope;

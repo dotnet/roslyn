@@ -9,7 +9,6 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
-using System.Dynamic;
 using Microsoft.CodeAnalysis.CSharp.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -30,9 +29,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// This is an argument that needs to be considered for MAMM rules. It's at least an 
-        /// output argument of the function and very often also an input. Essentially this 
-        /// represents all the writable ref and out arguments.
+        /// The destination in a method arguments must match (MAMM) check. This is 
+        /// created primarily for a ref and out arguments of a ref struct. It also applies
+        /// to function pointer this and arglist arguments.
         /// </summary>
         internal readonly struct MixableDestination
         {
@@ -46,8 +45,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             internal ParameterSymbol? Parameter { get; }
 
             /// <summary>
-            /// This destination can only be written to by arguments that have at least 
-            /// this escape level. An destination that is <see cref="EscapeLevel.CallingMethod"/>
+            /// This destination can only be written to by arguments that have an equal or
+            /// wider this escape level. An destination that is <see cref="EscapeLevel.CallingMethod"/>
             /// can never be written to by an argument that has a level of <see cref="EscapeLevel.ReturnOnly"/>
             /// </summary>
             internal EscapeLevel EscapeLevel { get; }
@@ -67,7 +66,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 EscapeLevel = escapeLevel;
             }
 
-            internal bool IsAssigableFrom(EscapeLevel level) => EscapeLevel switch
+            internal bool IsAssignableFrom(EscapeLevel level) => EscapeLevel switch
             {
                 EscapeLevel.CallingMethod => level == EscapeLevel.CallingMethod,
                 EscapeLevel.ReturnOnly => true,
@@ -2338,7 +2337,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // This checks to see if the value could even be assigned to this argument. For example
                     // a `ref` to a `ref` can't ever be assigned to the value of any `ref` parameter. The
                     // rules of the method signature prevent it. Ignore these entirely.
-                    if (!mixableArg.IsAssigableFrom(escapeKind))
+                    if (!mixableArg.IsAssignableFrom(escapeKind))
                     {
                         continue;
                     }
