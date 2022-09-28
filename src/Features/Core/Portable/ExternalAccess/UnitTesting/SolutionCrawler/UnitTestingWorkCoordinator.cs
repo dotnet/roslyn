@@ -157,10 +157,18 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
             }
 #endif
 
-            public void Reanalyze(IUnitTestingIncrementalAnalyzer analyzer, UnitTestingReanalyzeScope scope, bool highPriority = false)
+            public void Reanalyze(IUnitTestingIncrementalAnalyzer analyzer, UnitTestingReanalyzeScope scope
+#if false // Not used in unit testing crawling
+                , bool highPriority = false
+#endif
+                )
             {
                 _eventProcessingQueue.ScheduleTask("Reanalyze",
-                    () => EnqueueWorkItemAsync(analyzer, scope, highPriority), _shutdownToken);
+                    () => EnqueueWorkItemAsync(analyzer, scope
+#if false // Not used in unit testing crawling
+                    , highPriority
+#endif
+                    ), _shutdownToken);
 
                 if (scope.HasMultipleDocuments)
                 {
@@ -168,7 +176,11 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                     // we are not interested in 1 file re-analysis request which can happen from like venus typing
                     var solution = _registration.GetSolutionToAnalyze();
                     UnitTestingSolutionCrawlerLogger.LogReanalyze(
-                        CorrelationId, analyzer, scope.GetDocumentCount(solution), scope.GetLanguagesStringForTelemetry(solution), highPriority);
+                        CorrelationId, analyzer, scope.GetDocumentCount(solution), scope.GetLanguagesStringForTelemetry(solution)
+#if false // Not used in unit testing crawling
+                        , highPriority
+#endif
+                        );
                 }
             }
 
@@ -486,10 +498,18 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                 }
             }
 
-            private async Task EnqueueWorkItemAsync(IUnitTestingIncrementalAnalyzer analyzer, UnitTestingReanalyzeScope scope, bool highPriority)
+            private async Task EnqueueWorkItemAsync(IUnitTestingIncrementalAnalyzer analyzer, UnitTestingReanalyzeScope scope
+#if false // Not used in unit testing crawling
+                , bool highPriority
+#endif
+                )
             {
                 var solution = _registration.GetSolutionToAnalyze();
-                var invocationReasons = highPriority ? UnitTestingInvocationReasons.ReanalyzeHighPriority : UnitTestingInvocationReasons.Reanalyze;
+                var invocationReasons =
+#if false // Not used in unit testing crawling
+                    highPriority ? UnitTestingInvocationReasons.ReanalyzeHighPriority :
+#endif
+                    UnitTestingInvocationReasons.Reanalyze;
 
                 foreach (var (project, documentId) in scope.GetDocumentIds(solution))
                     await EnqueueWorkItemAsync(analyzer, project, documentId, document: null, invocationReasons).ConfigureAwait(false);

@@ -160,11 +160,19 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                 if (projectIds == null && documentIds == null)
                 {
                     var solution = coordinator.Registration.GetSolutionToAnalyze();
-                    coordinator.Reanalyze(analyzer, new UnitTestingReanalyzeScope(solution.Id), highPriority);
+                    coordinator.Reanalyze(analyzer, new UnitTestingReanalyzeScope(solution.Id)
+#if false // Not used in unit testing crawling
+                        , highPriority
+#endif
+                        );
                     return;
                 }
 
-                coordinator.Reanalyze(analyzer, new UnitTestingReanalyzeScope(projectIds, documentIds), highPriority);
+                coordinator.Reanalyze(analyzer, new UnitTestingReanalyzeScope(projectIds, documentIds)
+#if false // Not used in unit testing crawling
+                    , highPriority
+#endif
+                    );
             }
         }
 

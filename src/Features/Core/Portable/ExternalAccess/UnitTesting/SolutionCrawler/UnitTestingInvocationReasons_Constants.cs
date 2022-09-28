@@ -88,10 +88,10 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
         public static readonly UnitTestingInvocationReasons Reanalyze =
             new(UnitTestingPredefinedInvocationReasons.Reanalyze);
 
+#if false // Not used in unit testing crawling
         public static readonly UnitTestingInvocationReasons ReanalyzeHighPriority =
             Reanalyze.With(UnitTestingPredefinedInvocationReasons.HighPriority);
 
-#if false // Not used in unit testing crawling
         public static readonly UnitTestingInvocationReasons ActiveDocumentSwitched =
             new(UnitTestingPredefinedInvocationReasons.ActiveDocumentSwitched);
 #endif

@@ -64,15 +64,20 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
             int correlationId,
             IUnitTestingIncrementalAnalyzer analyzer,
             int documentCount,
-            string languages,
-            bool highPriority)
+            string languages
+#if false // Not used in unit testing crawling
+            , bool highPriority
+#endif
+            )
         {
             Logger.Log(FunctionId.WorkCoordinatorRegistrationService_Reanalyze, KeyValueLogMessage.Create(m =>
             {
                 m[Id] = correlationId;
                 m[Analyzer] = analyzer.ToString();
                 m[DocumentCount] = documentCount;
+#if false // Not used in unit testing crawling
                 m[HighPriority] = highPriority;
+#endif
                 m[Languages] = languages;
             }));
         }
