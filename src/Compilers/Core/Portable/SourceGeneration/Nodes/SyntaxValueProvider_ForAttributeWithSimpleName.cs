@@ -28,8 +28,8 @@ internal enum SourceGeneratorSyntaxTreeInfo
 
 public partial struct SyntaxValueProvider
 {
-    private static readonly ObjectPool<Stack<string>> s_stringStackPool = new(static () => new());
-    private static readonly ObjectPool<Stack<SyntaxNode>> s_nodeStackPool = new(static () => new());
+    private static readonly ObjectPool<Stack<string>> s_stringStackPool = new ObjectPool<Stack<string>>(static () => new Stack<string>());
+    private static readonly ObjectPool<Stack<SyntaxNode>> s_nodeStackPool = new ObjectPool<Stack<SyntaxNode>>(static () => new Stack<SyntaxNode>());
 
     /// <summary>
     /// Returns all syntax nodes of that match <paramref name="predicate"/> if that node has an attribute on it that
