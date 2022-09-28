@@ -1,7 +1,7 @@
 <!-- Licensed to the .NET Foundation under one or more agreements. The .NET Foundation licenses this file to you under the MIT license. See the LICENSE file in the project root for more information. -->
 <Project>
   <!-- use the source-built version of the reference packs if building in source-build -->
-  <ItemGroup Condition="'$(DotNetBuidlFromSource)' == 'true'">
+  <ItemGroup Condition="'$(DotNetBuildFromSource)' == 'true'">
     <KnownFrameworkReference Update="Microsoft.NETCore.App">
       <TargetingPackVersion Condition="'%(TargetFramework)' == 'net6.0'">6.0.0</TargetingPackVersion>
     </KnownFrameworkReference>
