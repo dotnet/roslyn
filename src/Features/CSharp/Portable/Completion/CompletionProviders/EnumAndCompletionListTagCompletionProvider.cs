@@ -228,9 +228,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                     }
 
                     // We only show static properties/fields of compatible type if containing type is NOT marked with completionlist tag.
-                    if (!isEnumOrCompletionListType && !SymbolEqualityComparer.Default.Equals(type, symbolType)
-                        || !staticSymbol.IsAccessibleWithin(enclosingNamedType)
-                        || !staticSymbol.IsEditorBrowsable(hideAdvancedMembers, semanticModel.Compilation))
+                    if (!isEnumOrCompletionListType && !SymbolEqualityComparer.Default.Equals(type, symbolType))
+                    {
+                        continue;
+                    }
+
+                    if (!staticSymbol.IsAccessibleWithin(enclosingNamedType) ||
+                        !staticSymbol.IsEditorBrowsable(hideAdvancedMembers, semanticModel.Compilation))
                     {
                         continue;
                     }
