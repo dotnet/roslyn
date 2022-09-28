@@ -991,14 +991,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             if (fullPath.LastIndexOf(s_razorSourceGeneratorSdkDirectory, StringComparison.OrdinalIgnoreCase) + s_razorSourceGeneratorSdkDirectory.Length - 1 ==
                 fullPath.LastIndexOf(Path.DirectorySeparatorChar))
             {
-                var vsixRazorAnalyzers = _vsixAnalyzerProvider.GetAnalyzerReferencesInExtensions();
+                var vsixRazorAnalyzers = _vsixAnalyzerProvider.GetAnalyzerReferencesInExtensions().SelectAsArray(
+                    predicate: item => item.extensionId == RazorVsixExtensionId,
+                    selector: item => item.reference.FullPath);
+
                 if (!vsixRazorAnalyzers.IsEmpty)
                 {
                     if (fullPath.EndsWith(s_razorSourceGeneratorMainAssemblyRootedFileName, StringComparison.OrdinalIgnoreCase))
                     {
-                        return OneOrMany.Create(vsixRazorAnalyzers.SelectAsArray(
-                            predicate: item => item.extensionId == RazorVsixExtensionId,
-                            selector: item => item.reference.FullPath));
+                        return OneOrMany.Create(vsixRazorAnalyzers);
                     }
 
                     return OneOrMany.Create(ImmutableArray<string>.Empty);

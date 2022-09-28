@@ -196,6 +196,15 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
         <WpfFact>
         Public Async Function RazorSourceGenerator_FromSdk() As Task
             Using environment = New TestEnvironment()
+                Dim providerFactory = DirectCast(environment.ExportProvider.GetExportedValue(Of IVisualStudioDiagnosticAnalyzerProviderFactory), MockVisualStudioDiagnosticAnalyzerProviderFactory)
+                providerFactory.Extensions =
+                {
+                     ({
+                        Path.Combine(TempRoot.Root, "File.dll")
+                     },
+                     "AnotherExtension")
+                }
+
                 Dim project = Await environment.ProjectFactory.CreateAndAddToWorkspaceAsync(
                     "Project", LanguageNames.CSharp, CancellationToken.None)
 
