@@ -41,13 +41,13 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.Api
     {
         private readonly DocumentSpan _documentSpan;
 
-        internal UnitTestingDocumentSpan(DocumentSpan documentSpan)
+        internal UnitTestingDocumentSpan(DocumentSpan documentSpan, FileLinePositionSpan span)
         {
             _documentSpan = documentSpan;
+            Span = span;
         }
 
-        public Document Document => _documentSpan.Document;
-        public TextSpan SourceSpan => _documentSpan.SourceSpan;
+        public FileLinePositionSpan Span { get; }
 
         public async Task NavigateToAsync(UnitTestingNavigationOptions options, CancellationToken cancellationToken)
         {
