@@ -355,7 +355,6 @@ namespace Microsoft.CodeAnalysis.Remote
                 return project;
             }
 
-
             private async Task<Project> UpdateDocumentsAsync(
                 Project project,
                 ProjectStateChecksums projectChecksums,
