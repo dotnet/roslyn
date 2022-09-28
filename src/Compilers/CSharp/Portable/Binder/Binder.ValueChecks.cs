@@ -54,10 +54,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             internal MixableDestination(ParameterSymbol parameter, BoundExpression argument)
             {
                 Debug.Assert(parameter.RefKind.IsWritableReference() && parameter.Type.IsRefLikeType);
-                Debug.Assert(GetParameterValEscapeLevel(parameter, useUpdatedEscapeRules: true).HasValue);
+                Debug.Assert(GetParameterValEscapeLevel(parameter).HasValue);
                 Argument = argument;
                 Parameter = parameter;
-                EscapeLevel = GetParameterValEscapeLevel(parameter, useUpdatedEscapeRules: true)!.Value;
+                EscapeLevel = GetParameterValEscapeLevel(parameter)!.Value;
             }
 
             internal MixableDestination(BoundExpression argument, EscapeLevel escapeLevel)
@@ -929,30 +929,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             _ => null,
         };
 
-        private uint GetParameterValEscape(ParameterSymbol parameter) =>
-            GetParameterValEscape(parameter, UseUpdatedEscapeRules);
-
-        private static uint GetParameterValEscape(ParameterSymbol parameter, bool useUpdatedEcapeRules)
+        private static uint GetParameterValEscape(ParameterSymbol parameter)
         {
-            if (useUpdatedEcapeRules)
+            return parameter switch
             {
-                if (parameter.RefKind == RefKind.Out)
-                {
-                    return Binder.ReturnOnlyScope;
-                }
-
-                return parameter.EffectiveScope == DeclarationScope.ValueScoped ?
-                    Binder.CurrentMethodScope :
-                    Binder.CallingMethodScope;
-            }
-            else
-            {
-                return Binder.CallingMethodScope;
-            }
+                { EffectiveScope: DeclarationScope.ValueScoped } => Binder.CurrentMethodScope,
+                { RefKind: RefKind.Out, UseUpdatedEscapeRules: true } => Binder.ReturnOnlyScope,
+                _ => Binder.CallingMethodScope
+            };
         }
 
-        private static EscapeLevel? GetParameterValEscapeLevel(ParameterSymbol parameter, bool useUpdatedEscapeRules) =>
-            EscapeLevelFromScope(GetParameterValEscape(parameter, useUpdatedEscapeRules));
+        private static EscapeLevel? GetParameterValEscapeLevel(ParameterSymbol parameter) =>
+            EscapeLevelFromScope(GetParameterValEscape(parameter));
 
         private static uint GetParameterRefEscape(ParameterSymbol parameter)
         {
@@ -2154,7 +2142,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     continue;
                 }
 
-                if (parameter.Type.IsRefLikeType && GetParameterValEscapeLevel(parameter, useUpdatedEscapeRules: true) is { } valEscapeLevel)
+                if (parameter.Type.IsRefLikeType && GetParameterValEscapeLevel(parameter) is { } valEscapeLevel)
                 {
                     escapeValues.Add(new EscapeValue(parameter, argument, valEscapeLevel, isRefEscape: false));
                 }
