@@ -1254,7 +1254,7 @@ namespace System.Diagnostics.CodeAnalysis
                 // Note: we use skipExtraValidation so that nobody pulls
                 // on the compilation or its references before we set the RuntimeSupportsNumericIntPtr flag.
                 var comp = CreateCompilationCore(source, references is not null ? references.Concat(mscorlibWithoutSharing) : mscorlibWithoutSharing,
-                    options, parseOptions, assemblyName, sourceFileName, skipUsesIsNullable, experimentalFeature: null, skipExtraValidation: true);
+                    options, parseOptions, assemblyName, sourceFileName, skipUsesIsNullable: true, experimentalFeature: null, skipExtraValidation: true);
 
                 comp.Assembly.RuntimeSupportsNumericIntPtr = true;
                 return comp;

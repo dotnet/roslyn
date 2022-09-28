@@ -11520,7 +11520,7 @@ static class C
         }
 
         [Fact, WorkItem(63860, "https://github.com/dotnet/roslyn/issues/63860")]
-        public void IntPtrOperatorOnNewPlatform()
+        public void IntPtrOperatorOnPlatformWithNumericIntPtrWithLangVer73()
         {
             var source = """
 using System;
@@ -11536,7 +11536,7 @@ class C
     }
 }
 """;
-            var comp = CreateCompilation(source, runtimeFeature: RuntimeFlag.ByRefFields, parseOptions: TestOptions.Regular7_3);
+            var comp = CreateCompilation(source, runtimeFeature: RuntimeFlag.NumericIntPtr, parseOptions: TestOptions.Regular7_3);
             comp.VerifyDiagnostics();
         }
 
