@@ -955,15 +955,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         private static EscapeLevel? GetParameterRefEscapeLevel(ParameterSymbol parameter) =>
             EscapeLevelFromScope(GetParameterRefEscape(parameter));
 
-        private bool CheckParameterValEscape(SyntaxNode node, BoundParameter parameter, uint escapeTo, BindingDiagnosticBag diagnostics)
+        private bool CheckParameterValEscape(SyntaxNode node, ParameterSymbol parameter, uint escapeTo, BindingDiagnosticBag diagnostics)
         {
             Debug.Assert(escapeTo is Binder.CallingMethodScope or Binder.ReturnOnlyScope);
             if (UseUpdatedEscapeRules)
             {
-                var parameterSymbol = parameter.ParameterSymbol;
-                if (GetParameterValEscape(parameterSymbol) > escapeTo)
+                if (GetParameterValEscape(parameter) > escapeTo)
                 {
-                    Error(diagnostics, this.InUnsafeRegion ? ErrorCode.WRN_EscapeVariable : ErrorCode.ERR_EscapeVariable, node, parameterSymbol);
+                    Error(diagnostics, this.InUnsafeRegion ? ErrorCode.WRN_EscapeVariable : ErrorCode.ERR_EscapeVariable, node, parameter);
                     return this.InUnsafeRegion;
                 }
                 return true;
@@ -3634,15 +3633,19 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             switch (expr.Kind)
             {
+                case BoundKind.ThisReference:
+                    var thisParam = ((MethodSymbol)this.ContainingMember()).ThisParameter;
+                    Debug.Assert(thisParam.Type.Equals(((BoundThisReference)expr).Type, TypeCompareKind.ConsiderEverything));
+                    return CheckParameterValEscape(node, thisParam, escapeTo, diagnostics);
+
                 case BoundKind.DefaultLiteral:
                 case BoundKind.DefaultExpression:
-                case BoundKind.ThisReference:
                 case BoundKind.Utf8String:
                     // always returnable
                     return true;
 
                 case BoundKind.Parameter:
-                    return CheckParameterValEscape(node, (BoundParameter)expr, escapeTo, diagnostics);
+                    return CheckParameterValEscape(node, ((BoundParameter)expr).ParameterSymbol, escapeTo, diagnostics);
 
                 case BoundKind.TupleLiteral:
                 case BoundKind.ConvertedTupleLiteral:
