@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
         /// Stores the snapshot associated with the cached tags in <see cref="_cache" />
         /// </summary>
         private ITextSnapshot? _cacheSnapshot;
-        private SnapshotSpan _snapshotSpan;
+        private SnapshotSpan? _snapshotSpan;
 
         private readonly IClassificationFormatMap _formatMap;
 
@@ -142,7 +142,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
                         if (dataTagSpans.Count == 1)
                         {
                             var tagSpanSnapshot = dataTagSpans[0].Snapshot;
-                            var canTrackSpan = CanTrackSpanForwardInTime(_snapshotSpan!, SpanTrackingMode.EdgeInclusive, tagSpanSnapshot);
+                            var canTrackSpan = CanTrackSpanForwardInTime(_snapshotSpan, SpanTrackingMode.EdgeInclusive, tagSpanSnapshot);
 
                             if (canTrackSpan)
                             {
@@ -188,10 +188,15 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
             }
         }
 
-        private static bool CanTrackSpanForwardInTime(SnapshotSpan original, SpanTrackingMode mode, ITextSnapshot target)
+        private static bool CanTrackSpanForwardInTime(SnapshotSpan? original, SpanTrackingMode mode, ITextSnapshot target)
         {
-            var version = original.Snapshot.Version;
-            var span = original.Span;
+            if (original is null)
+            {
+                return false;
+            }
+
+            var version = original.Value.Snapshot.Version;
+            var span = original.Value.Span;
 
             while (version.VersionNumber < target.Version.VersionNumber)
             {
