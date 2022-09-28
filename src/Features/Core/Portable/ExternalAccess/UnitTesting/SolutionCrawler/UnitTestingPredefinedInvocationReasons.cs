@@ -12,8 +12,6 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
 
         public const string SolutionRemoved = nameof(SolutionRemoved);
 
-        public const string ProjectParseOptionsChanged = nameof(ProjectParseOptionsChanged);
-
         public const string DocumentAdded = nameof(DocumentAdded);
         public const string DocumentRemoved = nameof(DocumentRemoved);
 
@@ -21,6 +19,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
         public const string DocumentOpened = nameof(DocumentOpened);
         public const string DocumentClosed = nameof(DocumentClosed);
         public const string ActiveDocumentSwitched = nameof(ActiveDocumentSwitched);
+        public const string ProjectParseOptionsChanged = nameof(ProjectParseOptionsChanged);
 #endif
         public const string HighPriority = nameof(HighPriority);
 

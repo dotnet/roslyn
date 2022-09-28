@@ -25,12 +25,14 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                                     UnitTestingPredefinedInvocationReasons.SemanticChanged,
                                     UnitTestingPredefinedInvocationReasons.HighPriority));
 
+#if false // Not used in unit testing crawling
         public static readonly UnitTestingInvocationReasons ProjectParseOptionChanged =
             new(
                 ImmutableHashSet.Create<string>(
                                     UnitTestingPredefinedInvocationReasons.ProjectParseOptionsChanged,
                                     UnitTestingPredefinedInvocationReasons.SyntaxChanged,
                                     UnitTestingPredefinedInvocationReasons.SemanticChanged));
+#endif
 
         public static readonly UnitTestingInvocationReasons ProjectConfigurationChanged =
             new(

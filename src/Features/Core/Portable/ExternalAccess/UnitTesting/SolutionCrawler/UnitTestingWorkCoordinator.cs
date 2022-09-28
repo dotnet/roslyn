@@ -530,10 +530,12 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                 // TODO: why solution changes return Project not ProjectId but ProjectChanges return DocumentId not Document?
                 var projectConfigurationChange = UnitTestingInvocationReasons.Empty;
 
+#if false // Not used in unit testing crawling
                 if (!object.Equals(oldProject.ParseOptions, newProject.ParseOptions))
                 {
                     projectConfigurationChange = projectConfigurationChange.With(UnitTestingInvocationReasons.ProjectParseOptionChanged);
                 }
+#endif
 
                 if (projectChanges.GetAddedMetadataReferences().Any() ||
                     projectChanges.GetAddedProjectReferences().Any() ||
