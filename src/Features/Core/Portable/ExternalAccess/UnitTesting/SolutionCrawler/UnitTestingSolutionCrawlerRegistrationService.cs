@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
             _analyzerProviders = analyzerProviders.GroupBy(kv => kv.Metadata.Name).ToImmutableDictionary(g => g.Key, g => g.ToImmutableArray());
             AssertAnalyzerProviders(_analyzerProviders);
 
-            _listener = listenerProvider.GetListener(FeatureAttribute.SolutionCrawler);
+            _listener = listenerProvider.GetListener(FeatureAttribute.SolutionCrawlerUnitTesting);
         }
 
         /// <summary>
