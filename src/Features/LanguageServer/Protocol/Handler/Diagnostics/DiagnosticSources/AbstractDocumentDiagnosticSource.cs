@@ -8,11 +8,9 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.LanguageServer.Features.TaskList;
-using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.TaskList;
-using Microsoft.CodeAnalysis.TodoComments;
+using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics;
 
@@ -21,8 +19,8 @@ internal abstract class AbstractDocumentDiagnosticSource<TDocument> : IDiagnosti
 {
     private static readonly ImmutableArray<string> s_todoCommentCustomTags = ImmutableArray.Create(PullDiagnosticConstants.TaskItemCustomTag);
 
-    private static Tuple<ImmutableArray<string>, ImmutableArray<TodoCommentDescriptor>> s_lastRequestedTokens =
-        Tuple.Create(ImmutableArray<string>.Empty, ImmutableArray<TodoCommentDescriptor>.Empty);
+    private static Tuple<ImmutableArray<string>, ImmutableArray<TaskListItemDescriptor>> s_lastRequestedTokens =
+        Tuple.Create(ImmutableArray<string>.Empty, ImmutableArray<TaskListItemDescriptor>.Empty);
 
     protected readonly TDocument Document;
 
@@ -33,19 +31,20 @@ internal abstract class AbstractDocumentDiagnosticSource<TDocument> : IDiagnosti
 
     public ProjectOrDocumentId GetId() => new(Document.Id);
     public Project GetProject() => Document.Project;
-    public Uri GetUri() => Document.GetURI();
+    public TextDocumentIdentifier GetDocumentIdentifier()
+        => new VSTextDocumentIdentifier { ProjectContext = ProtocolConversions.ProjectToProjectContext(Document.Project), Uri = Document.GetURI() };
 
     protected abstract bool IncludeTaskListItems { get; }
     protected abstract bool IncludeStandardDiagnostics { get; }
 
     protected abstract Task<ImmutableArray<DiagnosticData>> GetDiagnosticsWorkerAsync(
-        IDiagnosticAnalyzerService diagnosticAnalyzerService, RequestContext context, DiagnosticMode diagnosticMode, CancellationToken cancellationToken);
+        IDiagnosticAnalyzerService diagnosticAnalyzerService, RequestContext context, CancellationToken cancellationToken);
 
     public async Task<ImmutableArray<DiagnosticData>> GetDiagnosticsAsync(
-        IDiagnosticAnalyzerService diagnosticAnalyzerService, RequestContext context, DiagnosticMode diagnosticMode, CancellationToken cancellationToken)
+        IDiagnosticAnalyzerService diagnosticAnalyzerService, RequestContext context, CancellationToken cancellationToken)
     {
         var taskListItems = IncludeTaskListItems ? await this.GetTaskListDiagnosticsAsync(cancellationToken).ConfigureAwait(false) : ImmutableArray<DiagnosticData>.Empty;
-        var diagnostics = IncludeStandardDiagnostics ? await this.GetDiagnosticsWorkerAsync(diagnosticAnalyzerService, context, diagnosticMode, cancellationToken).ConfigureAwait(false) : ImmutableArray<DiagnosticData>.Empty;
+        var diagnostics = IncludeStandardDiagnostics ? await this.GetDiagnosticsWorkerAsync(diagnosticAnalyzerService, context, cancellationToken).ConfigureAwait(false) : ImmutableArray<DiagnosticData>.Empty;
         return taskListItems.AddRange(diagnostics);
     }
 
@@ -54,24 +53,21 @@ internal abstract class AbstractDocumentDiagnosticSource<TDocument> : IDiagnosti
         if (this.Document is not Document document)
             return ImmutableArray<DiagnosticData>.Empty;
 
-        var service = document.GetLanguageService<ITodoCommentService>();
+        var service = document.GetLanguageService<ITaskListService>();
         if (service == null)
             return ImmutableArray<DiagnosticData>.Empty;
 
         var tokenList = document.Project.Solution.Options.GetOption(TaskListOptionsStorage.Descriptors);
         var descriptors = GetAndCacheDescriptors(tokenList);
 
-        var comments = await service.GetTodoCommentsAsync(document, descriptors, cancellationToken).ConfigureAwait(false);
-        if (comments.Length == 0)
+        var items = await service.GetTaskListItemsAsync(document, descriptors, cancellationToken).ConfigureAwait(false);
+        if (items.Length == 0)
             return ImmutableArray<DiagnosticData>.Empty;
 
-        using var _ = ArrayBuilder<TaskListItem>.GetInstance(out var converted);
-        await TodoComment.ConvertAsync(document, comments, converted, cancellationToken).ConfigureAwait(false);
-
-        return converted.SelectAsArray(comment => new DiagnosticData(
+        return items.SelectAsArray(i => new DiagnosticData(
             id: "TODO",
             category: "TODO",
-            message: comment.Message,
+            message: i.Message,
             severity: DiagnosticSeverity.Info,
             defaultSeverity: DiagnosticSeverity.Info,
             isEnabledByDefault: true,
@@ -80,26 +76,15 @@ internal abstract class AbstractDocumentDiagnosticSource<TDocument> : IDiagnosti
             properties: ImmutableDictionary<string, string?>.Empty,
             projectId: document.Project.Id,
             language: document.Project.Language,
-            location: new DiagnosticDataLocation(
-                document.Id,
-                originalFilePath: comment.OriginalFilePath,
-                mappedFilePath: comment.MappedFilePath,
-                originalStartLine: comment.OriginalLine,
-                originalStartColumn: comment.OriginalColumn,
-                originalEndLine: comment.OriginalLine,
-                originalEndColumn: comment.OriginalColumn,
-                mappedStartLine: comment.MappedLine,
-                mappedStartColumn: comment.MappedColumn,
-                mappedEndLine: comment.MappedLine,
-                mappedEndColumn: comment.MappedColumn)));
+            location: new DiagnosticDataLocation(i.Span, document.Id, mappedFileSpan: i.MappedSpan)));
     }
 
-    private static ImmutableArray<TodoCommentDescriptor> GetAndCacheDescriptors(ImmutableArray<string> tokenList)
+    private static ImmutableArray<TaskListItemDescriptor> GetAndCacheDescriptors(ImmutableArray<string> tokenList)
     {
         var lastRequested = s_lastRequestedTokens;
         if (!lastRequested.Item1.SequenceEqual(tokenList))
         {
-            var descriptors = TodoCommentDescriptor.Parse(tokenList);
+            var descriptors = TaskListItemDescriptor.Parse(tokenList);
             lastRequested = Tuple.Create(tokenList, descriptors);
             s_lastRequestedTokens = lastRequested;
         }

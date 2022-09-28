@@ -7,6 +7,7 @@ using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics;
@@ -15,17 +16,15 @@ internal sealed record class ProjectDiagnosticSource(Project Project) : IDiagnos
 {
     public ProjectOrDocumentId GetId() => new(Project.Id);
     public Project GetProject() => Project;
-
-    public Uri GetUri()
+    public TextDocumentIdentifier GetDocumentIdentifier()
     {
         Contract.ThrowIfNull(Project.FilePath);
-        return ProtocolConversions.GetUriFromFilePath(Project.FilePath);
+        return new VSTextDocumentIdentifier { ProjectContext = ProtocolConversions.ProjectToProjectContext(Project), Uri = ProtocolConversions.GetUriFromFilePath(Project.FilePath) };
     }
 
     public async Task<ImmutableArray<DiagnosticData>> GetDiagnosticsAsync(
         IDiagnosticAnalyzerService diagnosticAnalyzerService,
         RequestContext context,
-        DiagnosticMode diagnosticMode,
         CancellationToken cancellationToken)
     {
         // Directly use the IDiagnosticAnalyzerService.  This will use the actual snapshots

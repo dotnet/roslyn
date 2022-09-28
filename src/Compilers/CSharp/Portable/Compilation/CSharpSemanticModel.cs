@@ -101,6 +101,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.OmittedTypeArgument:
                 case SyntaxKind.RefExpression:
                 case SyntaxKind.RefType:
+                case SyntaxKind.ScopedType:
                     // These are just placeholders and are not separately meaningful.
                     return false;
 

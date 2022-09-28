@@ -3542,10 +3542,11 @@ namespace System
 public class C {}
 ";
 
-            var corlib = CreateEmptyCompilation(corlibSource);
+            var parseOptions = TestOptions.Regular.WithNoRefSafetyRulesAttribute();
+            var corlib = CreateEmptyCompilation(corlibSource, parseOptions: parseOptions);
             var corlibReference = corlib.EmitToImageReference();
 
-            var other = CreateEmptyCompilation(@"public class C {}", new[] { corlibReference });
+            var other = CreateEmptyCompilation(@"public class C {}", new[] { corlibReference }, parseOptions: parseOptions);
             var otherReference = other.EmitToImageReference();
 
             var current = CreateEmptyCompilation(@"public class C {}", new[] { otherReference, corlibReference });
@@ -3576,10 +3577,11 @@ namespace System
 public class C {}
 ";
 
-            var corlib = CreateEmptyCompilation(corlibSource);
+            var parseOptions = TestOptions.Regular.WithNoRefSafetyRulesAttribute();
+            var corlib = CreateEmptyCompilation(corlibSource, parseOptions: parseOptions);
             var corlibReference = corlib.EmitToImageReference(aliases: ImmutableArray.Create("corlib"));
 
-            var current = CreateEmptyCompilation(@"", new[] { corlibReference });
+            var current = CreateEmptyCompilation(@"", new[] { corlibReference }, parseOptions: parseOptions);
             current.VerifyDiagnostics();
 
             var type = ((Compilation)current).GetTypeByMetadataName("C");
@@ -3600,10 +3602,11 @@ namespace System
 }
 ";
 
-            var corlib = CreateEmptyCompilation(corlibSource);
+            var parseOptions = TestOptions.Regular.WithNoRefSafetyRulesAttribute();
+            var corlib = CreateEmptyCompilation(corlibSource, parseOptions: parseOptions);
             var corlibReference = corlib.EmitToImageReference();
 
-            var other = CreateEmptyCompilation(@"public class C {}", new[] { corlibReference });
+            var other = CreateEmptyCompilation(@"public class C {}", new[] { corlibReference }, parseOptions: parseOptions);
             var otherReference = other.EmitToImageReference(aliases: ImmutableArray.Create("other"));
 
             var current = CreateEmptyCompilation(@"", new[] { otherReference, corlibReference });

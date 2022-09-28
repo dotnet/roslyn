@@ -5,18 +5,18 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.ComponentModel.Composition.Hosting;
-using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Microsoft.CodeAnalysis.ErrorReporting;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
+using Microsoft.CommonLanguageServerProtocol.Framework;
+using Microsoft.Extensions.DependencyInjection;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServer;
 
-internal class LspServices : IDisposable
+internal class LspServices : ILspServices
 {
     private readonly ImmutableDictionary<Type, Lazy<ILspService, LspServiceMetadataView>> _lazyLspServices;
+    private readonly IServiceProvider _serviceProvider;
 
     /// <summary>
     /// Gates access to <see cref="_servicesToDispose"/>.
@@ -28,7 +28,8 @@ internal class LspServices : IDisposable
         ImmutableArray<Lazy<ILspService, LspServiceMetadataView>> mefLspServices,
         ImmutableArray<Lazy<ILspServiceFactory, LspServiceMetadataView>> mefLspServiceFactories,
         WellKnownLspServerKinds serverKind,
-        ImmutableArray<Lazy<ILspService, LspServiceMetadataView>> baseServices)
+        ImmutableArray<Lazy<ILspService, LspServiceMetadataView>> baseServices,
+        IServiceCollection serviceCollection)
     {
         // Convert MEF exported service factories to the lazy LSP services that they create.
         var servicesFromFactories = mefLspServiceFactories.Select(lz => new Lazy<ILspService, LspServiceMetadataView>(() => lz.Value.CreateILspService(this, serverKind), lz.Metadata));
@@ -41,24 +42,50 @@ internal class LspServices : IDisposable
         // Include the base level services that were passed in.
         services = services.Concat(baseServices);
 
+        // This will throw if the same service is registered twice
         _lazyLspServices = services.ToImmutableDictionary(lazyService => lazyService.Metadata.Type, lazyService => lazyService);
+
+        // Bit cheaky, but lets make an this ILspService available on the serviceCollection to make constructors that take an ILspServices instance possible.
+        serviceCollection = serviceCollection.AddSingleton<ILspServices>(this);
+        _serviceProvider = serviceCollection.BuildServiceProvider();
     }
 
-    public T GetRequiredService<T>() where T : class, ILspService
+    public T GetRequiredLspService<T>() where T : class, ILspService
     {
-        var service = GetService<T>();
+        return GetRequiredService<T>();
+    }
+
+    public T GetRequiredService<T>() where T : notnull
+    {
+        T? service;
+
+        // Check the ServiceProvider first
+        service = _serviceProvider.GetService<T>();
+        service ??= GetService<T>();
+
         Contract.ThrowIfNull(service, $"Missing required LSP service {typeof(T).FullName}");
         return service;
     }
 
-    public T? GetService<T>() where T : class, ILspService
+    public T? GetService<T>()
     {
         var type = typeof(T);
-        return TryGetService(type, out var service) ? (T)service : null;
+        var service = (T?)TryGetService(type);
+
+        return service;
     }
 
-    public bool TryGetService(Type type, [NotNullWhen(true)] out object? lspService)
+    public IEnumerable<T> GetRequiredServices<T>()
     {
+        var services = _serviceProvider.GetServices<T>();
+        var mefServices = GetMefServices<T>();
+
+        return services.Concat(mefServices);
+    }
+
+    public object? TryGetService(Type type)
+    {
+        object? lspService;
         if (_lazyLspServices.TryGetValue(type, out var lazyService))
         {
             // If we are creating a stateful LSP service for the first time, we need to check
@@ -75,14 +102,47 @@ internal class LspServices : IDisposable
                 }
             }
 
-            return true;
+            return lspService;
         }
 
         lspService = null;
-        return false;
+        return lspService;
     }
 
     public ImmutableArray<Type> GetRegisteredServices() => _lazyLspServices.Keys.ToImmutableArray();
+
+    public bool SupportsGetRegisteredServices()
+    {
+        return true;
+    }
+
+    private IEnumerable<T> GetMefServices<T>()
+    {
+        if (typeof(T) == typeof(IMethodHandler))
+        {
+            // HACK: There is special handling for the IMethodHandler to make sure that its types remain lazy
+            // Special case this to avoid providing them twice.
+            yield break;
+        }
+
+        var allServices = GetRegisteredServices();
+        foreach (var service in allServices)
+        {
+            var @interface = service.GetInterface(typeof(T).Name);
+            if (@interface is not null)
+            {
+                var instance = TryGetService(service);
+                if (instance is not null)
+                {
+                    yield return (T)instance;
+                }
+                else
+                {
+                    throw new Exception("Service failed to construct");
+                }
+            }
+        }
+    }
 
     public void Dispose()
     {

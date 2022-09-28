@@ -19,9 +19,9 @@ using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.CodeAnalysis.TaskList;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.LanguageServer.Features.TaskList
+namespace Microsoft.CodeAnalysis.TaskList
 {
-    internal sealed class TaskListListener : ITaskListListener, IDisposable
+    internal sealed class TaskListListener : ITaskListListener
     {
         private readonly CancellationToken _disposalToken;
         private readonly IGlobalOptionService _globalOptions;
@@ -29,12 +29,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Features.TaskList
         private readonly IAsynchronousOperationListener _asyncListener;
         private readonly Action<DocumentId, ImmutableArray<TaskListItem>, ImmutableArray<TaskListItem>> _onTaskListItemsUpdated;
         private readonly ConcurrentDictionary<DocumentId, ImmutableArray<TaskListItem>> _documentToTaskListItems = new();
-
-        /// <summary>
-        /// Remote service connection. Created on demand when we startup and then
-        /// kept around for the lifetime of this service.
-        /// </summary>
-        private RemoteServiceConnection<IRemoteTaskListService>? _lazyConnection;
 
         /// <summary>
         /// Queue where we enqueue the information we get from OOP to process in batch in the future.
@@ -56,85 +50,37 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Features.TaskList
 
             _workQueue = new AsyncBatchingWorkQueue<(DocumentId documentId, ImmutableArray<TaskListItem> items)>(
                 TimeSpan.FromSeconds(1),
-                ProcessTodoCommentInfosAsync,
+                ProcessTaskListItemsAsync,
                 _asyncListener,
                 _disposalToken);
         }
 
-        public void Dispose()
+        public void Start()
         {
-            _globalOptions.OptionChanged -= GlobalOptionChanged;
-
-            var connection = _lazyConnection;
-            _lazyConnection = null;
-
-            connection?.Dispose();
-        }
-
-        public async ValueTask StartAsync()
-        {
-            // Should only be started once.
-            Contract.ThrowIfTrue(_lazyConnection != null);
-
             // If we're in pull-diagnostics mode, then todo-comments will be handled by LSP.
             var diagnosticMode = _globalOptions.GetDiagnosticMode(InternalDiagnosticsOptions.NormalDiagnosticMode);
             if (diagnosticMode == DiagnosticMode.Pull)
                 return;
 
-            var cancellationToken = _disposalToken;
-
-            var client = await RemoteHostClient.TryGetClientAsync(_services, cancellationToken).ConfigureAwait(false);
-            if (client == null)
-            {
-                ComputeTaskListItemsInCurrentProcess(cancellationToken);
-                return;
-            }
-
-            _globalOptions.OptionChanged += GlobalOptionChanged;
-
-            // Pass ourselves in as the callback target for the OOP service.  As it discovers
-            // todo comments it will call back into us to notify VS about it.
-            _lazyConnection = client.CreateConnection<IRemoteTaskListService>(callbackTarget: this);
-
-            // Now kick off scanning in the OOP process.
-            // If the call fails an error has already been reported and there is nothing more to do.
-            _ = await _lazyConnection.TryInvokeAsync(
-                (service, callbackId, cancellationToken) => service.ComputeTaskListItemsAsync(callbackId, cancellationToken),
-                cancellationToken).ConfigureAwait(false);
-        }
-
-        private void ComputeTaskListItemsInCurrentProcess(CancellationToken cancellationToken)
-        {
             var registrationService = _services.GetRequiredService<ISolutionCrawlerRegistrationService>();
-            var analyzerProvider = new InProcTaskListIncrementalAnalyzerProvider(this);
+            var analyzerProvider = new TaskListIncrementalAnalyzerProvider(this);
 
             registrationService.AddAnalyzerProvider(
                 analyzerProvider,
                 new IncrementalAnalyzerProviderMetadata(
-                    nameof(InProcTaskListIncrementalAnalyzerProvider),
+                    nameof(TaskListIncrementalAnalyzerProvider),
                     highPriorityForActiveFile: false,
                     workspaceKinds: WorkspaceKind.Host));
-        }
-
-        private void GlobalOptionChanged(object? sender, OptionChangedEventArgs e)
-        {
-            // Notify remote service that TokenList changed and the solution needs to be re-analyzed:
-            if (e.Option == TaskListOptionsStorage.Descriptors && _lazyConnection != null)
-            {
-                // only perform the call if connection has not been disposed:
-                _ = Task.Run(() => _lazyConnection?.TryInvokeAsync((service, cancellationToken) => service.ReanalyzeAsync(cancellationToken), _disposalToken))
-                    .ReportNonFatalErrorUnlessCancelledAsync(_disposalToken);
-            }
         }
 
         /// <summary>
         /// Callback from the OOP service back into us.
         /// </summary>
-        public ValueTask ReportTaskListItemsAsync(DocumentId documentId, ImmutableArray<TaskListItem> infos, CancellationToken cancellationToken)
+        public ValueTask ReportTaskListItemsAsync(DocumentId documentId, ImmutableArray<TaskListItem> items, CancellationToken cancellationToken)
         {
             try
             {
-                _workQueue.AddWork((documentId, infos));
+                _workQueue.AddWork((documentId, items));
                 return ValueTaskFactory.CompletedTask;
             }
             catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
@@ -150,7 +96,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Features.TaskList
         public ValueTask<TaskListOptions> GetOptionsAsync(CancellationToken cancellationToken)
             => ValueTaskFactory.FromResult(_globalOptions.GetTaskListOptions());
 
-        private ValueTask ProcessTodoCommentInfosAsync(
+        private ValueTask ProcessTaskListItemsAsync(
             ImmutableSegmentedList<(DocumentId documentId, ImmutableArray<TaskListItem> items)> docAndCommentsArray, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
@@ -158,7 +104,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Features.TaskList
             using var _1 = ArrayBuilder<(DocumentId documentId, ImmutableArray<TaskListItem> items)>.GetInstance(out var filteredArray);
             AddFilteredItems(docAndCommentsArray, filteredArray);
 
-            foreach (var (documentId, newComments) in filteredArray)
+            foreach (var (documentId, newItems) in filteredArray)
             {
                 var oldComments = _documentToTaskListItems.TryGetValue(documentId, out var oldBoxedInfos)
                     ? oldBoxedInfos
@@ -166,18 +112,18 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Features.TaskList
 
                 // only one thread can be executing ProcessTodoCommentInfosAsync at a time,
                 // so it's safe to remove/add here.
-                if (newComments.IsEmpty)
+                if (newItems.IsEmpty)
                 {
                     _documentToTaskListItems.TryRemove(documentId, out _);
                 }
                 else
                 {
-                    _documentToTaskListItems[documentId] = newComments;
+                    _documentToTaskListItems[documentId] = newItems;
                 }
 
                 // If we have someone listening for updates, and our new items are different from
                 // our old ones, then notify them of the change.
-                _onTaskListItemsUpdated(documentId, oldComments, newComments);
+                _onTaskListItemsUpdated(documentId, oldComments, newItems);
             }
 
             return ValueTaskFactory.CompletedTask;
@@ -200,7 +146,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Features.TaskList
             }
         }
 
-        public ImmutableArray<TaskListItem> GetTodoItems(DocumentId documentId)
+        public ImmutableArray<TaskListItem> GetTaskListItems(DocumentId documentId)
         {
             return _documentToTaskListItems.TryGetValue(documentId, out var values)
                 ? values

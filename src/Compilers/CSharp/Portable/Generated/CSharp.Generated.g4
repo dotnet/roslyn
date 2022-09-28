@@ -352,6 +352,7 @@ type
   | pointer_type
   | predefined_type
   | ref_type
+  | scoped_type
   | tuple_type
   ;
 
@@ -421,6 +422,10 @@ predefined_type
 
 ref_type
   : 'ref' 'readonly'? type
+  ;
+
+scoped_type
+  : 'scoped' type
   ;
 
 tuple_type

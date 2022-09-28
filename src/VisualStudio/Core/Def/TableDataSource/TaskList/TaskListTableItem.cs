@@ -43,10 +43,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             => Data.DocumentId.ProjectId;
 
         public override LinePosition GetOriginalPosition()
-            => new(Data.OriginalLine, Data.OriginalColumn);
+            => Data.Span.StartLinePosition;
 
-        public override string? GetOriginalFilePath()
-            => Data.OriginalFilePath;
+        public override string GetOriginalFilePath()
+            => Data.Span.Path;
 
         public override bool EqualsIgnoringLocation(TableItem other)
         {
@@ -70,15 +70,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             public static readonly GroupingComparer Instance = new();
 
             public bool Equals(TaskListItem left, TaskListItem right)
-            {
                 // We don't need to compare OriginalFilePath since TODO items are only aggregated within a single file.
-                return
-                    left.OriginalLine == right.OriginalLine &&
-                    left.OriginalColumn == right.OriginalColumn;
-            }
+                => left.Span == right.Span;
 
             public int GetHashCode(TaskListItem data)
-                => Hash.Combine(data.OriginalLine, data.OriginalColumn);
+                => data.Span.GetHashCode();
 
             public bool Equals(TaskListTableItem left, TaskListTableItem right)
             {

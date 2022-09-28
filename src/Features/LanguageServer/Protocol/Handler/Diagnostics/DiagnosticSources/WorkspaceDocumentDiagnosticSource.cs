@@ -30,7 +30,6 @@ internal sealed class WorkspaceDocumentDiagnosticSource : AbstractDocumentDiagno
     protected override async Task<ImmutableArray<DiagnosticData>> GetDiagnosticsWorkerAsync(
         IDiagnosticAnalyzerService diagnosticAnalyzerService,
         RequestContext context,
-        DiagnosticMode diagnosticMode,
         CancellationToken cancellationToken)
     {
         if (Document is SourceGeneratedDocument sourceGeneratedDocument)

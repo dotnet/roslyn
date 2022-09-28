@@ -11,27 +11,22 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.Editor.TaskList;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.LanguageServer.Features.TaskList;
 using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.TaskList;
-using Microsoft.CodeAnalysis.TodoComments;
 using Microsoft.VisualStudio.LanguageServices.ExternalAccess.VSTypeScript.Api;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 
 namespace Microsoft.VisualStudio.LanguageServices.TaskList
 {
-    [Export(typeof(IVsTypeScriptTodoCommentService))]
     [ExportEventListener(WellKnownEventListeners.Workspace, WorkspaceKind.Host), Shared]
     internal class VisualStudioTaskListService :
         ITaskListProvider,
-        IVsTypeScriptTodoCommentService,
-        IEventListener<object>,
-        IDisposable
+        IEventListener<object>
     {
         private readonly IThreadingContext _threadingContext;
         private readonly VisualStudioWorkspaceImpl _workspace;
@@ -65,11 +60,6 @@ namespace Microsoft.VisualStudio.LanguageServices.TaskList
                 threadingContext.DisposalToken);
         }
 
-        public void Dispose()
-        {
-            _listener.Dispose();
-        }
-
         void IEventListener<object>.StartListening(Workspace workspace, object _)
         {
             if (workspace is VisualStudioWorkspace)
@@ -90,7 +80,7 @@ namespace Microsoft.VisualStudio.LanguageServices.TaskList
                 // Now that we've started, let the VS todo list know to start listening to us
                 _eventListenerTracker.EnsureEventListener(_workspace, this);
 
-                await _listener.StartAsync().ConfigureAwait(false);
+                _listener.Start();
             }
             catch (OperationCanceledException)
             {
@@ -103,21 +93,7 @@ namespace Microsoft.VisualStudio.LanguageServices.TaskList
             }
         }
 
-        /// <inheritdoc cref="IVsTypeScriptTodoCommentService.ReportTodoCommentsAsync(Document, ImmutableArray{TodoComment}, CancellationToken)"/>
-        async Task IVsTypeScriptTodoCommentService.ReportTodoCommentsAsync(
-            Document document, ImmutableArray<TodoComment> todoComments, CancellationToken cancellationToken)
-        {
-            using var _ = ArrayBuilder<TaskListItem>.GetInstance(out var converted);
-
-            var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
-
-            await TodoComment.ConvertAsync(document, todoComments, converted, cancellationToken).ConfigureAwait(false);
-
-            await _listener.ReportTaskListItemsAsync(
-                document.Id, converted.ToImmutable(), cancellationToken).ConfigureAwait(false);
-        }
-
         public ImmutableArray<TaskListItem> GetTaskListItems(Workspace workspace, DocumentId documentId, CancellationToken cancellationToken)
-            => _listener.GetTodoItems(documentId);
+            => _listener.GetTaskListItems(documentId);
     }
 }

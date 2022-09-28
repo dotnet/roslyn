@@ -11,13 +11,11 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryImports;
 using Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryParentheses;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
-using Microsoft.CodeAnalysis.LanguageServer.Features.TaskList;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics.Experimental;
 using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.SolutionCrawler;
+using Microsoft.CodeAnalysis.TaskList;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -52,7 +50,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Diagnostics
         private protected static async Task<ImmutableArray<TestDiagnosticResult>> RunGetWorkspacePullDiagnosticsAsync(
             TestLspServer testLspServer,
             bool useVSDiagnostics,
-            ImmutableArray<(string resultId, Uri uri)>? previousResults = null,
+            ImmutableArray<(string resultId, TextDocumentIdentifier identifier)>? previousResults = null,
             bool useProgress = false,
             bool includeTaskListItems = false)
         {
@@ -75,7 +73,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Diagnostics
                 }
 
                 AssertEx.NotNull(diagnostics);
-                return diagnostics.Select(d => new TestDiagnosticResult(d.TextDocument!.Uri, d.ResultId!, d.Diagnostics)).ToImmutableArray();
+                return diagnostics.Select(d => new TestDiagnosticResult(d.TextDocument!, d.ResultId!, d.Diagnostics)).ToImmutableArray();
             }
             else
             {
@@ -99,10 +97,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Diagnostics
             }
 
             static WorkspaceDiagnosticParams CreateProposedWorkspaceDiagnosticParams(
-                ImmutableArray<(string resultId, Uri uri)>? previousResults = null,
+                ImmutableArray<(string resultId, TextDocumentIdentifier identifier)>? previousResults = null,
                 IProgress<WorkspaceDiagnosticReport[]>? progress = null)
             {
-                var previousResultsLsp = previousResults?.Select(r => new PreviousResultId(r.uri, r.resultId)).ToArray() ?? Array.Empty<PreviousResultId>();
+                var previousResultsLsp = previousResults?.Select(r => new PreviousResultId(r.identifier.Uri, r.resultId)).ToArray() ?? Array.Empty<PreviousResultId>();
                 return new WorkspaceDiagnosticParams(identifier: null, previousResultsLsp, workDoneToken: null, partialResultToken: progress);
             }
 
@@ -110,21 +108,22 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Diagnostics
             {
                 if (workspaceReport.Value is WorkspaceFullDocumentDiagnosticReport fullReport)
                 {
-                    return new TestDiagnosticResult(fullReport.Uri, fullReport.ResultId!, fullReport.Items);
+                    return new TestDiagnosticResult(new TextDocumentIdentifier { Uri = fullReport.Uri }, fullReport.ResultId!, fullReport.Items);
                 }
                 else
                 {
                     var unchangedReport = (WorkspaceUnchangedDocumentDiagnosticReport)workspaceReport.Value!;
-                    return new TestDiagnosticResult(unchangedReport.Uri, unchangedReport.ResultId!, null);
+                    return new TestDiagnosticResult(new TextDocumentIdentifier { Uri = unchangedReport.Uri }, unchangedReport.ResultId!, null);
                 }
             }
         }
 
         private protected static Task CloseDocumentAsync(TestLspServer testLspServer, Document document) => testLspServer.CloseDocumentAsync(document.GetURI());
 
-        private protected static ImmutableArray<(string resultId, Uri uri)> CreateDiagnosticParamsFromPreviousReports(ImmutableArray<TestDiagnosticResult> results)
+        private protected static ImmutableArray<(string resultId, TextDocumentIdentifier identifier)> CreateDiagnosticParamsFromPreviousReports(ImmutableArray<TestDiagnosticResult> results)
         {
-            return results.Select(r => (r.ResultId, r.Uri)).ToImmutableArray();
+
+            return results.Select(r => (r.ResultId, r.TextDocument)).ToImmutableArray();
         }
 
         private protected static VSInternalDocumentDiagnosticsParams CreateDocumentDiagnosticParams(
@@ -141,12 +140,12 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Diagnostics
         }
 
         private protected static VSInternalWorkspaceDiagnosticsParams CreateWorkspaceDiagnosticParams(
-            ImmutableArray<(string resultId, Uri uri)>? previousResults = null,
+            ImmutableArray<(string resultId, TextDocumentIdentifier identifier)>? previousResults = null,
             IProgress<VSInternalWorkspaceDiagnosticReport[]>? progress = null)
         {
             return new VSInternalWorkspaceDiagnosticsParams
             {
-                PreviousResults = previousResults?.Select(r => new VSInternalDiagnosticParams { PreviousResultId = r.resultId, TextDocument = new TextDocumentIdentifier { Uri = r.uri } }).ToArray(),
+                PreviousResults = previousResults?.Select(r => new VSInternalDiagnosticParams { PreviousResultId = r.resultId, TextDocument = r.identifier }).ToArray(),
                 PartialResultToken = progress,
             };
         }
@@ -199,7 +198,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Diagnostics
                 }
 
                 AssertEx.NotNull(diagnostics);
-                return diagnostics.Select(d => new TestDiagnosticResult(vsTextDocumentIdentifier.Uri, d.ResultId!, d.Diagnostics)).ToImmutableArray();
+                return diagnostics.Select(d => new TestDiagnosticResult(vsTextDocumentIdentifier, d.ResultId!, d.Diagnostics)).ToImmutableArray();
             }
             else
             {
@@ -222,11 +221,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Diagnostics
                 else if (diagnostics.Value.Value is UnchangedDocumentDiagnosticReport)
                 {
                     // The public LSP spec returns different types when unchanged in contrast to VS which just returns null diagnostic array.
-                    return ImmutableArray.Create(new TestDiagnosticResult(vsTextDocumentIdentifier.Uri, diagnostics.Value.Second.ResultId!, null));
+                    return ImmutableArray.Create(new TestDiagnosticResult(vsTextDocumentIdentifier, diagnostics.Value.Second.ResultId!, null));
                 }
                 else
                 {
-                    return ImmutableArray.Create(new TestDiagnosticResult(vsTextDocumentIdentifier.Uri, diagnostics.Value.First.ResultId!, diagnostics.Value.First.Items));
+                    return ImmutableArray.Create(new TestDiagnosticResult(vsTextDocumentIdentifier, diagnostics.Value.First.ResultId!, diagnostics.Value.First.Items));
                 }
             }
 
@@ -274,9 +273,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Diagnostics
         /// Helper type to store unified LSP diagnostic results.
         /// Diagnostics are null when unchanged.
         /// </summary>
-        private protected record TestDiagnosticResult(Uri Uri, string ResultId, LSP.Diagnostic[]? Diagnostics)
+        private protected record TestDiagnosticResult(TextDocumentIdentifier TextDocument, string ResultId, LSP.Diagnostic[]? Diagnostics)
         {
-            public TextDocumentIdentifier TextDocument { get; } = new TextDocumentIdentifier { Uri = Uri };
+            public Uri Uri { get; } = TextDocument.Uri;
         }
 
         [DiagnosticAnalyzer(InternalLanguageNames.TypeScript), PartNotDiscoverable]

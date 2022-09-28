@@ -16,8 +16,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Workspaces
     [Shared]
     internal partial class VisualStudioProjectCacheHostServiceFactory : IWorkspaceServiceFactory
     {
-        private static readonly TimeSpan ImplicitCacheTimeout = TimeSpan.FromMilliseconds(10000);
-
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public VisualStudioProjectCacheHostServiceFactory()
@@ -39,27 +37,16 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Workspaces
         {
             if (workspaceServices.Workspace.Kind != WorkspaceKind.Host)
             {
-                return new ProjectCacheService(workspaceServices.Workspace);
+                return new ProjectCacheService(workspaceServices.Workspace, createImplicitCache: false);
             }
 
-            var projectCacheService = new ProjectCacheService(workspaceServices.Workspace, ImplicitCacheTimeout);
-
-            // Also clear the cache when the solution is cleared or removed.
-            workspaceServices.Workspace.WorkspaceChanged += (s, e) =>
-            {
-                if (e.Kind is WorkspaceChangeKind.SolutionCleared or WorkspaceChangeKind.SolutionRemoved)
-                {
-                    projectCacheService.ClearImplicitCache();
-                }
-            };
-
-            return projectCacheService;
+            return new ProjectCacheService(workspaceServices.Workspace, createImplicitCache: true);
         }
 
         private static IWorkspaceService GetVisualStudioProjectCache(HostWorkspaceServices workspaceServices)
         {
             // We will finish setting this up in VisualStudioWorkspaceImpl.DeferredInitializationState
-            return new ProjectCacheService(workspaceServices.Workspace, ImplicitCacheTimeout);
+            return new ProjectCacheService(workspaceServices.Workspace, createImplicitCache: true);
         }
 
         internal static void ConnectProjectCacheServiceToDocumentTracking(HostWorkspaceServices workspaceServices, ProjectCacheService projectCacheService)

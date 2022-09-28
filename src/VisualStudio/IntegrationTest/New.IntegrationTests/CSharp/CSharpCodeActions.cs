@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Extensibility.Testing;
 using Roslyn.Test.Utilities;
 using Roslyn.VisualStudio.IntegrationTests;
+using Roslyn.VisualStudio.IntegrationTests.InProcess;
 using WindowsInput.Native;
 using Xunit;
 
@@ -492,7 +493,7 @@ public class Program
 
 public class P2 { }", HangMitigatingCancellationToken);
 
-            await TestServices.Input.SendAsync(VirtualKeyCode.BACK, VirtualKeyCode.BACK, "Stream");
+            await TestServices.Input.SendAsync(new InputKey[] { VirtualKeyCode.BACK, VirtualKeyCode.BACK, "Stream" }, HangMitigatingCancellationToken);
             await TestServices.Workspace.WaitForAllAsyncOperationsAsync(
                 new[]
                 {
@@ -557,8 +558,7 @@ namespace NS
         }
     }
 }", HangMitigatingCancellationToken);
-            await TestServices.Input.SendAsync(VirtualKeyCode.BACK, VirtualKeyCode.BACK,
-                "Foober");
+            await TestServices.Input.SendAsync(new InputKey[] { VirtualKeyCode.BACK, VirtualKeyCode.BACK, "Foober" }, HangMitigatingCancellationToken);
             await TestServices.Workspace.WaitForAllAsyncOperationsAsync(
                 new[]
                 {
@@ -865,7 +865,7 @@ class C
             await TestServices.SolutionExplorer.AddFileAsync(ProjectName, ".editorconfig", open: true, cancellationToken: HangMitigatingCancellationToken);
             await TestServices.Input.SendAsync(@"
 [*.cs]
-dotnet_diagnostic.CS0168.severity = ");
+dotnet_diagnostic.CS0168.severity = ", HangMitigatingCancellationToken);
 
             // NOTE: Below wait is a critical step in repro-ing the original regression.
             await TestServices.Workspace.WaitForAllAsyncOperationsAsync(
@@ -878,7 +878,7 @@ dotnet_diagnostic.CS0168.severity = ");
                 },
                 HangMitigatingCancellationToken);
 
-            await TestServices.Input.SendAsync("error");
+            await TestServices.Input.SendAsync("error", HangMitigatingCancellationToken);
 
             await TestServices.Workspace.WaitForAllAsyncOperationsAsync(
                 new[]
