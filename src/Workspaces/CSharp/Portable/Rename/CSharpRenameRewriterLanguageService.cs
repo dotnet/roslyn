@@ -697,7 +697,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
                 }
 
                 // Rename in string
-                if (newToken.IsKind(SyntaxKind.StringLiteralToken, SyntaxKind.InterpolatedStringTextToken))
+                if (newToken.Kind() is SyntaxKind.StringLiteralToken or SyntaxKind.InterpolatedStringTextToken)
                 {
                     Func<SyntaxTriviaList, string, string, SyntaxTriviaList, SyntaxToken> newStringTokenFactory = newToken.Kind() switch
                     {
