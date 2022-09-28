@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.IO;
@@ -68,7 +66,7 @@ namespace Microsoft.CodeAnalysis.Remote
                     {
                         var documentId = arguments.DocumentId;
                         var projectId = arguments.ProjectId;
-                        var project = solution.GetProject(projectId);
+                        var project = solution.GetRequiredProject(projectId);
                         var document = arguments.DocumentId != null
                             ? solution.GetTextDocument(arguments.DocumentId) ?? await solution.GetSourceGeneratedDocumentAsync(arguments.DocumentId, cancellationToken).ConfigureAwait(false)
                             : null;

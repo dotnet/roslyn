@@ -11074,7 +11074,7 @@ public ref struct CustomHandler
 {
     S1 s1;
 
-    public CustomHandler(int literalLength, int formattedCount, ref S1 s1) : this() { this.s1 = s1; }
+    public CustomHandler(int literalLength, int formattedCount, scoped ref S1 s1) : this() { this.s1 = s1; }
 
     public void AppendFormatted(Span<char> s) => this.s1.s = s;
 
@@ -11242,10 +11242,7 @@ public ref struct CustomHandler
         comp.VerifyDiagnostics(
             // (18,16): error CS8352: Cannot use variable 'c' in this context because it may expose referenced variables outside of their declaration scope
             //         return c;
-            Diagnostic(ErrorCode.ERR_EscapeVariable, "c").WithArguments("c").WithLocation(18, 16),
-            // (23,20): error CS8166: Cannot return a parameter by reference 'handler' because it is not a ref parameter
-            //         return ref handler;
-            Diagnostic(ErrorCode.ERR_RefReturnParameter, "handler").WithArguments("handler").WithLocation(23, 20));
+            Diagnostic(ErrorCode.ERR_EscapeVariable, "c").WithArguments("c").WithLocation(18, 16));
     }
 
     [Fact]
@@ -11260,7 +11257,7 @@ public ref struct CustomHandler
 {
     Span<char> s;
 
-    public CustomHandler(int literalLength, int formattedCount, ref S1 s1) : this() { s1.Handler = this; }
+    public CustomHandler(int literalLength, int formattedCount, scoped ref S1 s1) : this() { s1.Handler = this; }
 
     public static void M(ref S1 s1)
     {
@@ -11297,7 +11294,7 @@ public ref struct S1
 [InterpolatedStringHandler]
 ref struct CustomHandler
 {
-    public CustomHandler(int literalLength, int formattedCount, ref S s) : this() { s.Handler = this; }
+    public CustomHandler(int literalLength, int formattedCount, scoped ref S s) : this() { s.Handler = this; }
     public void AppendFormatted(int i) { } 
 }
 ref struct S

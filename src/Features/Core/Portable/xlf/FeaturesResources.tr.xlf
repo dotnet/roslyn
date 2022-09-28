@@ -670,6 +670,11 @@ AM ve PM arasındaki farkın korunmasının gerekli olduğu diller için "tt" be
         <target state="translated">Tüm JSON düzenleyicisi özelliklerini etkinleştir</target>
         <note />
       </trans-unit>
+      <trans-unit id="Enum_members">
+        <source>Enum members</source>
+        <target state="new">Enum members</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ErrorReadingFile">
         <source>Error while reading file '{0}': {1}</source>
         <target state="translated">'{0}' dosyası okunurken hata: {1}</target>
@@ -4273,6 +4278,11 @@ Bu standart biçim belirticisi kullanıldığında, biçimlendirme veya ayrışt
       <trans-unit id="static_constructor">
         <source>static constructor</source>
         <target state="translated">statik oluşturucu</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="struct_">
+        <source>struct</source>
+        <target state="new">struct</target>
         <note />
       </trans-unit>
       <trans-unit id="symbol_cannot_be_a_namespace">

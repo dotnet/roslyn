@@ -9,6 +9,9 @@ Imports Microsoft.CodeAnalysis.Editor.InlineRename
 Imports Microsoft.CodeAnalysis.InlineRename
 Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Rename
+Imports Microsoft.CodeAnalysis.[Shared].TestHooks
+Imports Microsoft.VisualStudio.Language.Intellisense
+Imports Microsoft.VisualStudio.Utilities
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
     <[UseExportProvider]>
@@ -614,10 +617,15 @@ class D : B
                     Assert.Equal(severity, model.Severity)
                 End Using
 
+                Dim TestQuickInfoBroker = New TestQuickInfoBroker()
+                Dim listenerProvider = workspace.ExportProvider.GetExport(Of IAsynchronousOperationListenerProvider)().Value
+
                 Using flyout = New RenameFlyout(
                     New RenameFlyoutViewModel(DirectCast(sessionInfo.Session, InlineRenameSession), selectionSpan:=Nothing, registerOleComponent:=False, globalOptions), ' Don't registerOleComponent in tests, it requires OleComponentManagers that don't exist in our host
                     textView:=cursorDocument.GetTextView(),
-                    themeService:=Nothing)
+                    themeService:=Nothing,
+                    TestQuickInfoBroker,
+                    listenerProvider)
 
                     Await WaitForRename(workspace)
 
@@ -629,6 +637,12 @@ class D : B
                     If Not isRenameOverloadsEditable Then
                         Assert.True(model.RenameOverloadsFlag)
                     End If
+
+                    Dim waiter = listenerProvider.GetWaiter(FeatureAttribute.InlineRenameFlyout)
+                    Await waiter.ExpeditedWaitAsync()
+
+                    Dim QuickInfoSession = DirectCast(TestQuickInfoBroker.GetSession(cursorDocument.GetTextView()), TestQuickInfoBroker.TestSession)
+                    Assert.True(QuickInfoSession.Dismissed)
                 End Using
 
                 sessionInfo.Session.Cancel()
@@ -703,5 +717,91 @@ class D : B
 
             End Using
         End Sub
+    End Class
+
+    Friend Class TestQuickInfoBroker
+        Implements IAsyncQuickInfoBroker
+
+        Private ReadOnly Session As TestSession = New TestSession()
+
+        Public Function IsQuickInfoActive(textView As VisualStudio.Text.Editor.ITextView) As Boolean Implements IAsyncQuickInfoBroker.IsQuickInfoActive
+            Return False
+        End Function
+
+        Public Function TriggerQuickInfoAsync(textView As VisualStudio.Text.Editor.ITextView, Optional triggerPoint As VisualStudio.Text.ITrackingPoint = Nothing, Optional options As QuickInfoSessionOptions = QuickInfoSessionOptions.None, Optional cancellationToken As CancellationToken = Nothing) As Task(Of IAsyncQuickInfoSession) Implements IAsyncQuickInfoBroker.TriggerQuickInfoAsync
+            Throw New NotImplementedException()
+        End Function
+
+        Public Function GetQuickInfoItemsAsync(textView As VisualStudio.Text.Editor.ITextView, triggerPoint As VisualStudio.Text.ITrackingPoint, cancellationToken As CancellationToken) As Task(Of QuickInfoItemsCollection) Implements IAsyncQuickInfoBroker.GetQuickInfoItemsAsync
+            Throw New NotImplementedException()
+        End Function
+
+        Public Function GetSession(textView As VisualStudio.Text.Editor.ITextView) As IAsyncQuickInfoSession Implements IAsyncQuickInfoBroker.GetSession
+            Return Session
+        End Function
+
+        Public Class TestSession
+            Implements IAsyncQuickInfoSession
+
+            Public Dismissed As Boolean = False
+
+            Public ReadOnly Property ApplicableToSpan As VisualStudio.Text.ITrackingSpan Implements IAsyncQuickInfoSession.ApplicableToSpan
+                Get
+                    Throw New NotImplementedException()
+                End Get
+            End Property
+
+            Public ReadOnly Property Content As IEnumerable(Of Object) Implements IAsyncQuickInfoSession.Content
+                Get
+                    Throw New NotImplementedException()
+                End Get
+            End Property
+
+            Public ReadOnly Property HasInteractiveContent As Boolean Implements IAsyncQuickInfoSession.HasInteractiveContent
+                Get
+                    Throw New NotImplementedException()
+                End Get
+            End Property
+
+            Public ReadOnly Property Options As QuickInfoSessionOptions Implements IAsyncQuickInfoSession.Options
+                Get
+                    Throw New NotImplementedException()
+                End Get
+            End Property
+
+            Public ReadOnly Property State As QuickInfoSessionState Implements IAsyncQuickInfoSession.State
+                Get
+                    Throw New NotImplementedException()
+                End Get
+            End Property
+
+            Public ReadOnly Property TextView As VisualStudio.Text.Editor.ITextView Implements IAsyncQuickInfoSession.TextView
+                Get
+                    Throw New NotImplementedException()
+                End Get
+            End Property
+
+            Public ReadOnly Property Properties As PropertyCollection Implements IPropertyOwner.Properties
+                Get
+                    Throw New NotImplementedException()
+                End Get
+            End Property
+
+            Public Event StateChanged As EventHandler(Of QuickInfoSessionStateChangedEventArgs) Implements IAsyncQuickInfoSession.StateChanged
+
+            Public Function GetTriggerPoint(textBuffer As VisualStudio.Text.ITextBuffer) As VisualStudio.Text.ITrackingPoint Implements IAsyncQuickInfoSession.GetTriggerPoint
+                Throw New NotImplementedException()
+            End Function
+
+            Public Function GetTriggerPoint(snapshot As VisualStudio.Text.ITextSnapshot) As VisualStudio.Text.SnapshotPoint? Implements IAsyncQuickInfoSession.GetTriggerPoint
+                Throw New NotImplementedException()
+            End Function
+
+            Public Function DismissAsync() As Task Implements IAsyncQuickInfoSession.DismissAsync
+                Dismissed = True
+
+                Return Task.CompletedTask
+            End Function
+        End Class
     End Class
 End Namespace

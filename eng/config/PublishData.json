@@ -120,9 +120,9 @@
         "Shipping",
         "NonShipping"
       ],
-      "vsBranch": "rel/d17.4",
+      "vsBranch": "main",
       "vsMajorVersion": 17,
-      "insertionTitlePrefix": "[d17.4p2]"
+      "insertionTitlePrefix": "[d17.4]"
     },
     "main": {
       "nugetKind": [
@@ -141,8 +141,8 @@
       ],
       "vsBranch": "main",
       "vsMajorVersion": 17,
-      "insertionCreateDraftPR": false,
-      "insertionTitlePrefix": "[d17.4p3]"
+      "insertionCreateDraftPR": true,
+      "insertionTitlePrefix": "[d17.5]"
     }
   }
 }

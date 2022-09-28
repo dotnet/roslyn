@@ -460,7 +460,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                 Dim projectId = documentId.ProjectId
 
                 Dim item1 = CreateItem(workspace.CurrentSolution, projectId, documentId, DiagnosticSeverity.Error, "http://link/")
-                Dim provider = New TestDiagnosticService(item1)
+                Dim item2 = CreateItem(workspace.CurrentSolution, projectId, documentId, DiagnosticSeverity.Error, customTags:={WellKnownDiagnosticCustomTags.DoesNotSupportF1Help})
+                Dim provider = New TestDiagnosticService(item1, item2)
 
                 Dim tableManagerProvider = New TestTableManagerProvider()
 
@@ -473,12 +474,13 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
 
                 Dim sink = DirectCast(sinkAndSubscription.Key, TestTableManagerProvider.TestTableManager.TestSink)
                 Dim snapshot = sink.Entries.First().GetCurrentSnapshot()
-                Assert.Equal(1, snapshot.Count)
+                Assert.Equal(2, snapshot.Count)
 
                 Dim keyword As Object = Nothing
                 Assert.True(snapshot.TryGetValue(0, StandardTableKeyNames.HelpKeyword, keyword))
-
                 Assert.Equal(item1.Id, keyword.ToString())
+
+                Assert.False(snapshot.TryGetValue(1, StandardTableKeyNames.HelpKeyword, keyword))
             End Using
         End Sub
 
@@ -743,7 +745,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
             Return CreateItem(solution, documentId.ProjectId, documentId, severity)
         End Function
 
-        Private Shared Function CreateItem(solution As Solution, projectId As ProjectId, documentId As DocumentId, Optional severity As DiagnosticSeverity = DiagnosticSeverity.Error, Optional link As String = Nothing) As DiagnosticData
+        Private Shared Function CreateItem(solution As Solution, projectId As ProjectId, documentId As DocumentId, Optional severity As DiagnosticSeverity = DiagnosticSeverity.Error, Optional link As String = Nothing, Optional customTags As String() = Nothing) As DiagnosticData
             Dim location =
                 If(documentId Is Nothing,
                     If(projectId Is Nothing, New DiagnosticDataLocation(New FileLinePositionSpan("", Nothing)), New DiagnosticDataLocation(New FileLinePositionSpan(solution.GetProject(projectId).FilePath, Nothing))),
@@ -757,7 +759,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                 defaultSeverity:=severity,
                 isEnabledByDefault:=True,
                 warningLevel:=0,
-                customTags:=ImmutableArray(Of String).Empty,
+                customTags:=If(customTags IsNot Nothing, customTags.ToImmutableArray(), ImmutableArray(Of String).Empty),
                 properties:=ImmutableDictionary(Of String, String).Empty,
                 projectId,
                 location:=location,
