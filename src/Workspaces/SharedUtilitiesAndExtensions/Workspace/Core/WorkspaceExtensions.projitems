@@ -9,8 +9,6 @@
     <Import_RootNamespace>Microsoft.CodeAnalysis.Shared</Import_RootNamespace>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="$(MSBuildThisFileDirectory)CodeFixesAndRefactorings\CodeRefactoringExtensions.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)CodeFixesAndRefactorings\CodeFixContextExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CodeFixesAndRefactorings\FixAllHelper.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)AddImport\AddImportPlacementOptionsProviders.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CodeActions\CodeFixOptionsProvider.cs" />
@@ -55,8 +53,6 @@
     <Compile Include="$(MSBuildThisFileDirectory)LanguageServices\TypeInferenceService\AbstractTypeInferenceService.AbstractTypeInferrer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)LanguageServices\TypeInferenceService\AbstractTypeInferenceService.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)LanguageServices\TypeInferenceService\ITypeInferenceService.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Log\CountLogAggregator.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Log\AbstractLogAggregator.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)LanguageServices\SemanticsFactsService\AbstractSemanticFactsService.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)LanguageServices\SemanticsFactsService\ISemanticFactsService.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)LanguageServices\SymbolDeclarationService\ISymbolDeclarationService.cs" />

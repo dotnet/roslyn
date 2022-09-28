@@ -8,7 +8,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
-    internal struct NamespaceOrTypeAndUsingDirective
+    internal readonly struct NamespaceOrTypeAndUsingDirective
     {
         public readonly NamespaceOrTypeSymbol NamespaceOrType;
         public readonly SyntaxReference? UsingDirectiveReference;

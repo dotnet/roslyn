@@ -182,7 +182,7 @@ class C
             var comp = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
             comp.VerifyEmitDiagnostics(
-                // (6,13): error CS9100: The input string cannot be converted into the equivalent UTF-8 byte representation. Unable to translate Unicode character \\uD801 at index 6 to specified code page.
+                // (6,13): error CS9026: The input string cannot be converted into the equivalent UTF-8 byte representation. Unable to translate Unicode character \\uD801 at index 6 to specified code page.
                 //         _ = "hello \uD801\uD802"u8;
                 Diagnostic(ErrorCode.ERR_CannotBeConvertedToUtf8, @"""hello \uD801\uD802""u8").WithArguments(@"Unable to translate Unicode character \\uD801 at index 6 to specified code page.").WithLocation(6, 13)
                 );
@@ -1760,7 +1760,7 @@ class C
     }
 }
 ";
-            var comp = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.DebugExe);
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), options: TestOptions.DebugExe);
             comp.MakeTypeMissing(SpecialType.System_Int32);
             comp.VerifyDiagnostics();
             comp.VerifyEmitDiagnostics(
@@ -3121,7 +3121,9 @@ class C
             var comp = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseDll);
             var verifier = CompileAndVerify(comp, verify: Verification.Fails).VerifyDiagnostics();
 
-            string blobId = ExecutionConditionUtil.IsWindows ? "I_000025B8" : "I_00002600";
+            string blobId = ExecutionConditionUtil.IsWindows ?
+                (ExecutionConditionUtil.IsCoreClr ? "I_000026F8" : "I_000026F4") :
+                "I_00002738";
 
             verifier.VerifyTypeIL("<PrivateImplementationDetails>", @"
 .class private auto ansi sealed '<PrivateImplementationDetails>'
@@ -3165,7 +3167,9 @@ class C
   IL_000b:  ret
 }
 ");
-            string blobId = ExecutionConditionUtil.IsWindows ? "I_000025B8" : "I_00002600";
+            string blobId = ExecutionConditionUtil.IsWindows ?
+                (ExecutionConditionUtil.IsCoreClr ? "I_000026F8" : "I_000026F4") :
+                "I_00002738";
 
             verifier.VerifyTypeIL("<PrivateImplementationDetails>", @"
 .class private auto ansi sealed '<PrivateImplementationDetails>'
@@ -3549,7 +3553,7 @@ class C
         public void PassAround_02()
         {
             var source = @"using System;
-using System.Diagnostics.CodeAnalysis;
+
 class C
 {
     static ref readonly ReadOnlySpan<byte> Test2()
@@ -3557,7 +3561,7 @@ class C
         return ref Test3(""cat""u8);
     }
 
-    static ref readonly ReadOnlySpan<byte> Test3([UnscopedRef] in ReadOnlySpan<byte> x) => ref x;
+    static ref readonly ReadOnlySpan<byte> Test3(in ReadOnlySpan<byte> x) => ref x;
 }
 ";
             var comp = CreateCompilation(new[] { source + HelpersSource, UnscopedRefAttributeDefinition }, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.DebugDll);
@@ -3853,6 +3857,10 @@ class C
                 Assert.Equal("System.ReadOnlySpan<System.Byte> System.ReadOnlySpan<System.Byte>.op_Addition(System.ReadOnlySpan<System.Byte> left, System.ReadOnlySpan<System.Byte> right)", method.ToTestDisplayString());
                 Assert.True(method.IsImplicitlyDeclared);
                 Assert.Equal(MethodKind.BuiltinOperator, method.MethodKind);
+
+                var synthesizedMethod = comp.CreateBuiltinOperator(
+                    method.Name, method.ReturnType, method.Parameters[0].Type, method.Parameters[1].Type);
+                Assert.Equal(synthesizedMethod, method);
             }
         }
 
@@ -4045,7 +4053,7 @@ class C
                 );
         }
 
-        [ConditionalFact(typeof(CoreClrOnly)), WorkItem(62361, "https://github.com/dotnet/roslyn/issues/62361")]
+        [ConditionalFact(typeof(CoreClrOnly), typeof(NoIOperationValidation)), WorkItem(62361, "https://github.com/dotnet/roslyn/issues/62361")]
         public void DeeplyNestedConcatenation()
         {
             var longConcat = new StringBuilder();

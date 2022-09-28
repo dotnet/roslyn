@@ -17,6 +17,7 @@ using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
 {
+    [Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
     public class UseExpressionBodyForLambdasAnalyzerTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
     {
         public UseExpressionBodyForLambdasAnalyzerTests(ITestOutputHelper logger)
@@ -33,7 +34,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
         private OptionsCollection UseBlockBody =>
             this.Option(CSharpCodeStyleOptions.PreferExpressionBodiedLambdas, CSharpCodeStyleOptions.NeverWithSuggestionEnforcement);
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
+        [Fact]
         public async Task UseExpressionBodyInMethod()
         {
             await TestInRegularAndScriptAsync(
@@ -60,7 +61,7 @@ class C
 }", options: UseExpressionBody);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
+        [Fact]
         public async Task TestMissingWhenAlreadyAndExpressionBody()
         {
             await TestMissingAsync(
@@ -75,7 +76,7 @@ class C
 }", new TestParameters(options: UseExpressionBody));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
+        [Fact]
         public async Task UseBlockBodyInMethod()
         {
             await TestInRegularAndScriptAsync(
@@ -102,7 +103,7 @@ class C
 }", options: UseBlockBody);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
+        [Fact]
         public async Task MissingWhenAlreadyHasBlockBody()
         {
             await TestMissingAsync(
@@ -117,7 +118,7 @@ class C
 }", new TestParameters(options: UseBlockBody));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
+        [Fact]
         public async Task UseExpressionBodyInArgument()
         {
             await TestInRegularAndScriptAsync(
@@ -148,7 +149,7 @@ class C
 }", options: UseExpressionBody);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
+        [Fact]
         public async Task UseBlockBodyInArgument()
         {
             await TestInRegularAndScriptAsync(
@@ -179,7 +180,7 @@ class C
 }", options: UseBlockBody);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
+        [Fact]
         public async Task UseExpressionBodyFromReturnKeyword()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -197,7 +198,7 @@ class C
 }", new TestParameters(options: UseExpressionBody));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
+        [Fact]
         public async Task UseExpressionBodyFromLambdaOpeningBrace()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -215,7 +216,7 @@ class C
 }", new TestParameters(options: UseExpressionBody));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
+        [Fact]
         public async Task UseExpressionBodyFromLambdaClosingBrace()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -233,7 +234,7 @@ class C
 }", new TestParameters(options: UseExpressionBody));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
+        [Fact]
         public async Task UseExpressionBodyThrowing()
         {
             await TestInRegularAndScriptAsync(
@@ -260,7 +261,7 @@ class C
 }", options: UseExpressionBody);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
+        [Fact]
         public async Task UseBlockBodyThrowing()
         {
             await TestInRegularAndScriptAsync(
@@ -287,7 +288,7 @@ class C
 }", options: UseBlockBody);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
+        [Fact]
         public async Task UseExpressionBodyWithVoidReturn()
         {
             await TestInRegularAndScriptAsync(
@@ -314,7 +315,7 @@ class C
 }", options: UseExpressionBody);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
+        [Fact]
         public async Task UseExpressionBodyWithVoidReturnThrowing()
         {
             await TestInRegularAndScriptAsync(
@@ -341,7 +342,7 @@ class C
 }", options: UseExpressionBody);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
+        [Fact]
         public async Task UseBlockBodyWithVoidReturn()
         {
             await TestInRegularAndScriptAsync(
@@ -368,7 +369,7 @@ class C
 }", options: UseBlockBody);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
+        [Fact]
         public async Task UseBlockBodyWithVoidReturnThrowing()
         {
             await TestInRegularAndScriptAsync(
@@ -395,7 +396,7 @@ class C
 }", options: UseBlockBody);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
+        [Fact]
         public async Task UseExpressionBodyWithAsyncVoidReturn()
         {
             await TestInRegularAndScriptAsync(
@@ -422,7 +423,7 @@ class C
 }", options: UseExpressionBody);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
+        [Fact]
         public async Task UseExpressionBodyWithAsyncVoidReturnThrowing()
         {
             await TestInRegularAndScriptAsync(
@@ -449,7 +450,7 @@ class C
 }", options: UseExpressionBody);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
+        [Fact]
         public async Task UseBlockBodyWithAsyncVoidReturn()
         {
             await TestInRegularAndScriptAsync(
@@ -476,7 +477,7 @@ class C
 }", options: UseBlockBody);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
+        [Fact]
         public async Task UseBlockBodyWithAsyncVoidReturnThrowing()
         {
             await TestInRegularAndScriptAsync(
@@ -503,7 +504,7 @@ class C
 }", options: UseBlockBody);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
+        [Fact]
         public async Task UseExpressionBodyWithTaskReturn()
         {
             await TestInRegularAndScriptAsync(
@@ -532,7 +533,7 @@ class C
 }", options: UseExpressionBody);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
+        [Fact]
         public async Task UseExpressionBodyWithTaskReturnThrowing()
         {
             await TestInRegularAndScriptAsync(
@@ -561,7 +562,7 @@ class C
 }", options: UseExpressionBody);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
+        [Fact]
         public async Task UseBlockBodyWithTaskReturn()
         {
             await TestInRegularAndScriptAsync(
@@ -590,7 +591,7 @@ class C
 }", options: UseBlockBody);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
+        [Fact]
         public async Task UseBlockBodyWithTaskReturnThrowing()
         {
             await TestInRegularAndScriptAsync(
@@ -619,7 +620,7 @@ class C
 }", options: UseBlockBody);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
+        [Fact]
         public async Task UseExpressionBodyWithAsyncTaskReturn()
         {
             await TestInRegularAndScriptAsync(
@@ -648,7 +649,7 @@ class C
 }", options: UseExpressionBody);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
+        [Fact]
         public async Task UseExpressionBodyWithAsyncTaskReturnThrowing()
         {
             await TestInRegularAndScriptAsync(
@@ -677,7 +678,7 @@ class C
 }", options: UseExpressionBody);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
+        [Fact]
         public async Task UseBlockBodyWithAsyncTaskReturn()
         {
             await TestInRegularAndScriptAsync(
@@ -706,7 +707,7 @@ class C
 }", options: UseBlockBody);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
+        [Fact]
         public async Task UseBlockBodyWithAsyncTaskReturnThrowing()
         {
             await TestInRegularAndScriptAsync(
@@ -735,7 +736,7 @@ class C
 }", options: UseBlockBody);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
+        [Fact]
         public async Task UseExpressionBodyWithTaskTReturn()
         {
             await TestInRegularAndScriptAsync(
@@ -764,7 +765,7 @@ class C
 }", options: UseExpressionBody);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
+        [Fact]
         public async Task UseExpressionBodyWithTaskTReturnThrowing()
         {
             await TestInRegularAndScriptAsync(
@@ -793,7 +794,7 @@ class C
 }", options: UseExpressionBody);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
+        [Fact]
         public async Task UseBlockBodyWithTaskTReturn()
         {
             await TestInRegularAndScriptAsync(
@@ -822,7 +823,7 @@ class C
 }", options: UseBlockBody);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
+        [Fact]
         public async Task UseBlockBodyWithTaskTReturnThrowing()
         {
             await TestInRegularAndScriptAsync(
@@ -851,7 +852,7 @@ class C
 }", options: UseBlockBody);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
+        [Fact]
         public async Task UseExpressionBodyWithAsyncTaskTReturn()
         {
             await TestInRegularAndScriptAsync(
@@ -880,7 +881,7 @@ class C
 }", options: UseExpressionBody);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
+        [Fact]
         public async Task UseExpressionBodyWithAsyncTaskTReturnThrowing()
         {
             await TestInRegularAndScriptAsync(
@@ -909,7 +910,7 @@ class C
 }", options: UseExpressionBody);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
+        [Fact]
         public async Task UseBlockBodyWithAsyncTaskTReturn()
         {
             await TestInRegularAndScriptAsync(
@@ -938,7 +939,7 @@ class C
 }", options: UseBlockBody);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
+        [Fact]
         public async Task UseBlockBodyWithAsyncTaskTReturnThrowing()
         {
             await TestInRegularAndScriptAsync(
@@ -967,7 +968,7 @@ class C
 }", options: UseBlockBody);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
+        [Fact]
         public async Task UseExpressionBodyWithPrecedingComment()
         {
             await TestInRegularAndScriptAsync(
@@ -999,7 +1000,7 @@ class C
 }", options: UseExpressionBody);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
+        [Fact]
         public async Task UseExpressionBodyWithEndingComment()
         {
             await TestInRegularAndScriptAsync(
@@ -1028,7 +1029,7 @@ class C
 }", options: UseExpressionBody);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
+        [Fact]
         public async Task UseBlockBodyWithEndingComment()
         {
             await TestInRegularAndScriptAsync(
@@ -1057,7 +1058,7 @@ class C
 }", options: UseBlockBody);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
+        [Fact]
         public async Task UseExpressionBodyInMethod_FixAll1()
         {
             await TestInRegularAndScriptAsync(
@@ -1087,7 +1088,7 @@ class C
 }", options: UseExpressionBody);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
+        [Fact]
         public async Task UseExpressionBodyInMethod_FixAll2()
         {
             await TestInRegularAndScriptAsync(
@@ -1117,7 +1118,7 @@ class C
 }", options: UseExpressionBody);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
+        [Fact]
         public async Task UseBlockBodyInMethod_FixAll1()
         {
             await TestInRegularAndScriptAsync(
@@ -1147,7 +1148,7 @@ class C
 }", options: UseBlockBody);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
+        [Fact]
         public async Task UseBlockBodyInMethod_FixAll2()
         {
             await TestInRegularAndScriptAsync(
@@ -1177,7 +1178,7 @@ class C
 }", options: UseBlockBody);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
+        [Fact]
         public async Task FixAllNested1()
         {
             await TestInRegularAndScriptAsync(
@@ -1207,7 +1208,7 @@ class C
 }", options: UseExpressionBody);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
+        [Fact]
         public async Task FixAllNested2()
         {
             await TestInRegularAndScriptAsync(
@@ -1237,7 +1238,7 @@ class C
 }", options: UseExpressionBody);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
+        [Fact]
         public async Task FixAllNested3()
         {
             await TestInRegularAndScriptAsync(
@@ -1267,7 +1268,7 @@ class C
 }", options: UseBlockBody);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
+        [Fact]
         public async Task FixAllNested4()
         {
             await TestInRegularAndScriptAsync(

@@ -17,13 +17,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddAccessibilityModifie
         CSharpAddAccessibilityModifiersDiagnosticAnalyzer,
         CSharpAddAccessibilityModifiersCodeFixProvider>;
 
+    [Trait(Traits.Feature, Traits.Features.CodeActionsAddAccessibilityModifiers)]
     public class AddAccessibilityModifiersTests
     {
-        [Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.CodeActionsAddAccessibilityModifiers)]
+        [Theory, CombinatorialData]
         public void TestStandardProperty(AnalyzerProperty property)
             => VerifyCS.VerifyStandardProperty(property);
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAccessibilityModifiers)]
+        [Fact]
         public async Task TestAllConstructs()
         {
             await VerifyCS.VerifyCodeFixAsync(
@@ -148,7 +149,7 @@ namespace Outer
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAccessibilityModifiers)]
+        [Fact]
         public async Task TestRefStructs()
         {
             await VerifyCS.VerifyCodeFixAsync(@"
@@ -162,7 +163,7 @@ namespace Test
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAccessibilityModifiers)]
+        [Fact]
         public async Task TestRecords()
         {
             var source = @"
@@ -198,7 +199,7 @@ namespace System.Runtime.CompilerServices
             await test.RunAsync();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAccessibilityModifiers)]
+        [Fact]
         public async Task TestRecordStructs()
         {
             var source = @"
@@ -224,7 +225,7 @@ internal record struct Record
             await test.RunAsync();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAccessibilityModifiers)]
+        [Fact]
         public async Task TestReadOnlyStructs()
         {
             await VerifyCS.VerifyCodeFixAsync(@"
@@ -238,7 +239,7 @@ namespace Test
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAccessibilityModifiers)]
+        [Fact]
         public async Task TestAllConstructsWithOmit()
         {
             await new VerifyCS.Test
@@ -382,7 +383,7 @@ namespace Outer
             }.RunAsync();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAccessibilityModifiers)]
+        [Fact]
         public async Task TestRefStructsWithOmit()
         {
             await new VerifyCS.Test
@@ -404,7 +405,7 @@ namespace Test
             }.RunAsync();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAccessibilityModifiers)]
+        [Fact]
         public async Task TestReadOnlyStructsWithOmit()
         {
             await new VerifyCS.Test
@@ -426,7 +427,7 @@ namespace Test
             }.RunAsync();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAccessibilityModifiers)]
+        [Fact]
         public async Task TestClassOutsideNamespace()
         {
             await new VerifyCS.Test
@@ -442,7 +443,7 @@ class C1 { }",
             }.RunAsync();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAccessibilityModifiers)]
+        [Fact]
         public async Task TestExternMethod()
         {
             await VerifyCS.VerifyCodeFixAsync(@"
@@ -467,7 +468,7 @@ internal class Program
 ");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAccessibilityModifiers)]
+        [Fact]
         public async Task TestVolatile()
         {
             await VerifyCS.VerifyCodeFixAsync(@"
@@ -484,8 +485,7 @@ internal class Program
 ");
         }
 
-        [WorkItem(48899, "https://github.com/dotnet/roslyn/issues/48899")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAccessibilityModifiers)]
+        [Fact, WorkItem(48899, "https://github.com/dotnet/roslyn/issues/48899")]
         public async Task TestAbstractMethod()
         {
             await VerifyCS.VerifyCodeFixAsync(@"
@@ -502,8 +502,7 @@ public abstract class TestClass
 ");
         }
 
-        [WorkItem(48899, "https://github.com/dotnet/roslyn/issues/48899")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAccessibilityModifiers)]
+        [Fact, WorkItem(48899, "https://github.com/dotnet/roslyn/issues/48899")]
         public async Task TestOverriddenMethod()
         {
             await VerifyCS.VerifyCodeFixAsync(@"
@@ -530,7 +529,7 @@ public class Derived : TestClass
 ");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAccessibilityModifiers)]
+        [Fact]
         public async Task TestFileScopedNamespaces()
         {
             await new VerifyCS.Test
@@ -549,8 +548,7 @@ internal struct S1 { }
             }.RunAsync();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAccessibilityModifiers)]
-        [WorkItem(55703, "https://github.com/dotnet/roslyn/issues/55703")]
+        [Fact, WorkItem(55703, "https://github.com/dotnet/roslyn/issues/55703")]
         public async Task TestPartial_WithExistingModifier()
         {
             var source = @"
@@ -582,8 +580,7 @@ public partial class C
             await test.RunAsync();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAccessibilityModifiers)]
-        [WorkItem(58914, "https://github.com/dotnet/roslyn/issues/58914")]
+        [Fact, WorkItem(58914, "https://github.com/dotnet/roslyn/issues/58914")]
         public async Task TestStaticOperatorInInterface()
         {
             var source = @"
@@ -612,7 +609,7 @@ internal class C : I<C>
             await test.RunAsync();
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsAddAccessibilityModifiers)]
+        [Theory]
         [InlineData("class")]
         [InlineData("struct")]
         [InlineData("record")]
@@ -632,8 +629,7 @@ internal class C : I<C>
             }.RunAsync();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAccessibilityModifiers)]
-        [WorkItem(62259, "https://github.com/dotnet/roslyn/issues/62259")]
+        [Fact, WorkItem(62259, "https://github.com/dotnet/roslyn/issues/62259")]
         public async Task TestFileDelegate()
         {
             var source = "file delegate void M();";
@@ -646,7 +642,7 @@ internal class C : I<C>
             }.RunAsync();
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsAddAccessibilityModifiers)]
+        [Theory]
         [InlineData("class")]
         [InlineData("struct")]
         [InlineData("record")]

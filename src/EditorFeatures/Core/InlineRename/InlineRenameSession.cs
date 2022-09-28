@@ -812,6 +812,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 {
                     var previewService = _workspace.Services.GetService<IPreviewDialogService>();
 
+                    // The preview service needs to be called from the UI thread, since it's doing COM calls underneath.
+                    await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
                     newSolution = previewService.PreviewChanges(
                         string.Format(EditorFeaturesResources.Preview_Changes_0, EditorFeaturesResources.Rename),
                         "vs.csharp.refactoring.rename",
@@ -945,7 +947,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         internal TestAccessor GetTestAccessor()
             => new TestAccessor(this);
 
-        public struct TestAccessor
+        public readonly struct TestAccessor
         {
             private readonly InlineRenameSession _inlineRenameSession;
 

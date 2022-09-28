@@ -4,20 +4,21 @@
 
 using System;
 using System.Composition;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Host.Mef;
-using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.CodeAnalysis.Debugging;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Roslyn.Utilities;
-using System.Linq;
+using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 {
     [ExportCSharpVisualBasicStatelessLspService(typeof(ValidateBreakableRangeHandler)), Shared]
     [Method(LSP.VSInternalMethods.TextDocumentValidateBreakableRangeName)]
-    internal sealed class ValidateBreakableRangeHandler : IRequestHandler<LSP.VSInternalValidateBreakableRangeParams, LSP.Range?>
+    internal sealed class ValidateBreakableRangeHandler : ILspServiceDocumentRequestHandler<VSInternalValidateBreakableRangeParams, LSP.Range?>
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -28,13 +29,12 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         public bool MutatesSolutionState => false;
         public bool RequiresLSPSolution => true;
 
-        public LSP.TextDocumentIdentifier? GetTextDocumentIdentifier(LSP.VSInternalValidateBreakableRangeParams request)
+        public TextDocumentIdentifier GetTextDocumentIdentifier(LSP.VSInternalValidateBreakableRangeParams request)
             => request.TextDocument;
 
         public async Task<LSP.Range?> HandleRequestAsync(LSP.VSInternalValidateBreakableRangeParams request, RequestContext context, CancellationToken cancellationToken)
         {
-            var document = context.Document;
-            Contract.ThrowIfNull(document);
+            var document = context.GetRequiredDocument();
 
             var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
             var span = ProtocolConversions.RangeToTextSpan(request.Range, text);
@@ -80,7 +80,43 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             // zero-width range means line breakpoint:
             var breakpointSpan = result.IsLineBreakpoint ? new TextSpan(span.Start, length: 0) : result.TextSpan;
 
-            return ProtocolConversions.TextSpanToRange(breakpointSpan, text);
+            var breakpointRange = ProtocolConversions.TextSpanToRange(breakpointSpan, text);
+
+            // if the breakpoint we get is smaller than what was requested, then we might be in a situation where
+            // the breakpoint was expanded due to the user typing some code above the placement. For example:
+            //
+            //     $$
+            // BP: Console.WriteLine(1);
+            //
+            // If the user types "int a =" we'll expand the breakpoint, as syntactically its an assigment expression, but then
+            // when they continue to type "1;" we'll get a request for a breakpoint that spans two lines, and then the above
+            // resolve call will shrink it to one. In that case, we prefer to stick to the end of the requested range.
+            //
+            // Similar exists for a single line, for example give:
+            //
+            // BP: int a = $$ GetData();
+            //
+            // If the user types "1;" we'd shrink the breakpoint, so stick to the end of the range.
+            if (!result.IsLineBreakpoint && BreakpointRangeIsSmaller(breakpointRange, request.Range))
+            {
+                var secondResult = await breakpointService.ResolveBreakpointAsync(document, new TextSpan(span.End, length: 0), cancellationToken).ConfigureAwait(false);
+                if (secondResult is not null)
+                {
+                    breakpointSpan = secondResult.IsLineBreakpoint ? new TextSpan(span.Start, length: 0) : secondResult.TextSpan;
+                    breakpointRange = ProtocolConversions.TextSpanToRange(breakpointSpan, text);
+                }
+            }
+
+            return breakpointRange;
+        }
+
+        private static bool BreakpointRangeIsSmaller(LSP.Range breakpointRange, LSP.Range existingRange)
+        {
+            var breakpointLineDelta = breakpointRange.End.Line - breakpointRange.Start.Line;
+            var existingLineDelta = existingRange.End.Line - existingRange.Start.Line;
+            return breakpointLineDelta < existingLineDelta ||
+                (breakpointLineDelta == existingLineDelta &&
+                breakpointRange.End.Character - breakpointRange.Start.Character < existingRange.End.Character - existingRange.Start.Character);
         }
     }
 }

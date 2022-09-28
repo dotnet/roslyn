@@ -22,31 +22,28 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         protected AbstractDiagnosticsAdornmentTaggerProvider(
             IThreadingContext threadingContext,
             IDiagnosticService diagnosticService,
+            IDiagnosticAnalyzerService analyzerService,
             IGlobalOptionService globalOptions,
             ITextBufferVisibilityTracker? visibilityTracker,
             IAsynchronousOperationListenerProvider listenerProvider)
-            : base(threadingContext, diagnosticService, globalOptions, visibilityTracker, listenerProvider.GetListener(FeatureAttribute.ErrorSquiggles))
+            : base(threadingContext, diagnosticService, analyzerService, globalOptions, visibilityTracker, listenerProvider.GetListener(FeatureAttribute.ErrorSquiggles))
         {
         }
 
         protected internal sealed override bool IsEnabled => true;
 
         protected internal sealed override ITagSpan<TTag>? CreateTagSpan(
-            Workspace workspace, bool isLiveUpdate, SnapshotSpan span, DiagnosticData data)
+            Workspace workspace, SnapshotSpan span, DiagnosticData data)
         {
             var errorTag = CreateTag(workspace, data);
             if (errorTag == null)
-            {
                 return null;
-            }
 
-            // Live update squiggles have to be at least 1 character long.
-            var minimumLength = isLiveUpdate ? 1 : 0;
-            var adjustedSpan = AdjustSnapshotSpan(span, minimumLength);
+            // Ensure the diagnostic has at least length 1.  Tags must have a non-empty length in order to actually show
+            // up in the editor.
+            var adjustedSpan = AdjustSnapshotSpan(span);
             if (adjustedSpan.Length == 0)
-            {
                 return null;
-            }
 
             return new TagSpan<TTag>(adjustedSpan, errorTag);
         }
@@ -78,8 +75,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     new ClassifiedTextRun(ClassificationTypeNames.Text, diagnostic.Message)));
         }
 
-        protected virtual SnapshotSpan AdjustSnapshotSpan(SnapshotSpan span, int minimumLength)
-            => AdjustSnapshotSpan(span, minimumLength, int.MaxValue);
+        // By default, tags must have at least length '1' so that they can be visible in the UI layer.
+        protected virtual SnapshotSpan AdjustSnapshotSpan(SnapshotSpan span)
+            => AdjustSnapshotSpan(span, minimumLength: 1, maximumLength: int.MaxValue);
 
         protected static SnapshotSpan AdjustSnapshotSpan(SnapshotSpan span, int minimumLength, int maximumLength)
         {

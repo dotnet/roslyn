@@ -11,13 +11,13 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.UnusedReferences.ProjectAssets
 {
+    [Trait(Traits.Feature, Traits.Features.Packaging)]
     public partial class ProjectAssetsReaderTests
     {
         private const string TargetFramework = ".NETCoreApp,Version=v3.1";
         private const int Version3 = 3;
 
         [Theory]
-        [Trait(Traits.Feature, Traits.Features.Packaging)]
         [InlineData(0)]
         [InlineData(1)]
         [InlineData(2)]
@@ -33,7 +33,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.UnusedReferences.ProjectAssets
         }
 
         [Fact]
-        [Trait(Traits.Feature, Traits.Features.Packaging)]
         public void ReferencesReadWhenProjectAssetsVersionIs3()
         {
             var myPackage = PackageReference("MyPackage.dll");
@@ -45,7 +44,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.UnusedReferences.ProjectAssets
         }
 
         [Fact]
-        [Trait(Traits.Feature, Traits.Features.Packaging)]
         public void ReferenceNotReadWhenReferenceNotPresent()
         {
             var references = ImmutableArray.Create(PackageReference("MyPackage.dll"));
@@ -56,7 +54,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.UnusedReferences.ProjectAssets
         }
 
         [Fact]
-        [Trait(Traits.Feature, Traits.Features.Packaging)]
         public void ProjectReferencesReadHaveTheirPathAsTheItemSpecification()
         {
             const string mylibraryPath = @".\Library\MyLibrary.csproj";

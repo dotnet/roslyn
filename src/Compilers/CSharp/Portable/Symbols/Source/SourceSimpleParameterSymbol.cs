@@ -129,6 +129,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return ConstantValue.NotAvailable; }
         }
 
-        internal override DeclarationScope EffectiveScope => ParameterHelpers.CalculateEffectiveScopeIgnoringAttributes(this);
+        internal override DeclarationScope EffectiveScope => CalculateEffectiveScopeIgnoringAttributes();
     }
 }

@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 get { return false; }
             }
 
-            internal sealed override SyntaxTree? AssociatedSyntaxTree => null;
+            internal sealed override FileIdentifier? AssociatedFileIdentifier => null;
 
             public sealed override int Arity
             {

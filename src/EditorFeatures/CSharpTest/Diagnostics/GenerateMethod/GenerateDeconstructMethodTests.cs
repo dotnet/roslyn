@@ -15,6 +15,7 @@ using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.GenerateDeconstructMethod
 {
+    [Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
     public class GenerateDeconstructMethodTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
     {
         public GenerateDeconstructMethodTests(ITestOutputHelper logger)
@@ -25,7 +26,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.GenerateDec
         internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
             => (null, new GenerateDeconstructMethodCodeFixProvider());
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        [Fact]
         public async Task TestDeconstructionDeclaration_Simple()
         {
             await TestInRegularAndScriptAsync(
@@ -52,7 +53,7 @@ class Class
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        [Fact]
         public async Task TestDeconstructionDeclaration_Simple_Record()
         {
             await TestInRegularAndScriptAsync(
@@ -79,7 +80,7 @@ record R
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        [Fact]
         public async Task TestDeconstructionDeclaration_TypeParameters()
         {
             await TestInRegularAndScriptAsync(
@@ -106,7 +107,7 @@ class Class<T>
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        [Fact]
         public async Task TestDeconstructionDeclaration_OtherDeconstructMethods()
         {
             await TestInRegularAndScriptAsync(
@@ -137,7 +138,7 @@ class Class
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        [Fact]
         public async Task TestDeconstructionDeclaration_AlreadySuccessfull()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -151,7 +152,7 @@ class Class
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        [Fact]
         public async Task TestDeconstructionDeclaration_UndeterminedType()
         {
             await TestInRegularAndScript1Async(
@@ -178,7 +179,7 @@ class Class
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        [Fact]
         public async Task TestDeconstructionDeclaration_UndeterminedType2()
         {
             await TestInRegularAndScript1Async(
@@ -205,7 +206,7 @@ class Class
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        [Fact]
         public async Task TestDeconstructionDeclaration_BuiltinType()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -218,7 +219,7 @@ class Class
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        [Fact]
         public async Task TestDeconstructionAssignment()
         {
             await TestInRegularAndScriptAsync(
@@ -247,7 +248,7 @@ class Class
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        [Fact]
         public async Task TestDeconstructionAssignment_Nested()
         {
             // We only offer a fix for non-nested deconstruction, at the moment
@@ -262,7 +263,7 @@ class Class
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        [Fact]
         public async Task TestDeconstructionAssignment_Array()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -276,7 +277,7 @@ class Class
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        [Fact]
         public async Task TestSimpleDeconstructionForeach()
         {
             await TestInRegularAndScriptAsync(
@@ -303,7 +304,7 @@ class Class
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        [Fact]
         public async Task TestSimpleDeconstructionForeach_AnotherType()
         {
             await TestInRegularAndScriptAsync(
@@ -335,8 +336,7 @@ class D
 }");
         }
 
-        [WorkItem(32510, "https://github.com/dotnet/roslyn/issues/32510")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        [Fact, WorkItem(32510, "https://github.com/dotnet/roslyn/issues/32510")]
         public async Task TestDeconstructionAssignment_InvalidDeclaration()
         {
             await TestMissingInRegularAndScriptAsync(

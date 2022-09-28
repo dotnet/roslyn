@@ -389,4 +389,10 @@
   <data name="Use_block_body_for_lambda_expressions" xml:space="preserve">
     <value>Use block body for lambda expressions</value>
   </data>
+  <data name="Make_struct_readonly" xml:space="preserve">
+    <value>Make struct 'readonly'</value>
+  </data>
+  <data name="Struct_can_be_made_readonly" xml:space="preserve">
+    <value>Struct can be made 'readonly'</value>
+  </data>
 </root>

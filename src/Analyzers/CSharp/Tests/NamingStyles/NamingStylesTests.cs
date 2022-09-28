@@ -20,6 +20,7 @@ using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.NamingStyles
 {
+    [Trait(Traits.Feature, Traits.Features.NamingStyle)]
     public class NamingStylesTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
     {
         public NamingStylesTests(ITestOutputHelper logger)
@@ -35,7 +36,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.NamingStyle
         protected override TestComposition GetComposition()
             => base.GetComposition().AddParts(typeof(TestSymbolRenamedCodeActionOperationFactoryWorkspaceService));
 
-        [Fact, Trait(Traits.Feature, Traits.Features.NamingStyle)]
+        [Fact]
         public async Task TestPascalCaseClass_CorrectName()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -44,7 +45,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.NamingStyle
 }", new TestParameters(options: s_options.ClassNamesArePascalCase));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.NamingStyle)]
+        [Fact]
         public async Task TestPascalCaseClass_NameGetsCapitalized()
         {
             await TestInRegularAndScriptAsync(
@@ -57,7 +58,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.NamingStyle
                 options: s_options.ClassNamesArePascalCase);
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.NamingStyle)]
+        [Theory]
         [InlineData("M_bar", "bar")]
         [InlineData("S_bar", "bar")]
         [InlineData("T_bar", "bar")]
@@ -90,7 +91,7 @@ $@"class C
                 options: s_options.FieldNamesAreCamelCase);
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.NamingStyle)]
+        [Theory]
         [InlineData("M_bar", "_bar")]
         [InlineData("S_bar", "_bar")]
         [InlineData("T_bar", "_bar")]
@@ -124,7 +125,7 @@ $@"class C
                 options: s_options.FieldNamesAreCamelCaseWithUnderscorePrefix);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.NamingStyle)]
+        [Fact]
         public async Task TestPascalCaseMethod_CorrectName()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -136,7 +137,7 @@ $@"class C
 }", new TestParameters(options: s_options.MethodNamesArePascalCase));
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.NamingStyle)]
+        [Theory]
         [InlineData("")]
         [InlineData("public")]
         [InlineData("protected")]
@@ -170,7 +171,7 @@ $@"class C
 }}", options: s_options.MethodNamesWithAccessibilityArePascalCase(accessibilities: default));
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.NamingStyle)]
+        [Theory]
         [InlineData("} namespace [|c2|] {", "} namespace C2 {")]
         [InlineData("class [|c2|] { }", "class C2 { }")]
         [InlineData("struct [|c2|] { }", "struct C2 { }")]
@@ -206,7 +207,7 @@ $@"class C
 }}", options: s_options.SymbolKindsArePascalCase(symbolKinds: default));
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.NamingStyle)]
+        [Theory]
         [InlineData("} namespace [|c2|] {", "} namespace C2 {", SymbolKind.Namespace, Accessibility.Public)]
         [InlineData("class [|c2|] { }", "class C2 { }", TypeKind.Class, Accessibility.Private)]
         [InlineData("struct [|c2|] { }", "struct C2 { }", TypeKind.Struct, Accessibility.Private)]
@@ -258,7 +259,7 @@ $@"class C
 }}", options: s_options.AccessibilitiesArePascalCase(ImmutableArray.Create(accessibility)));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.NamingStyle)]
+        [Fact]
         public async Task TestPascalCaseMethod_NameGetsCapitalized()
         {
             await TestInRegularAndScriptAsync(
@@ -277,7 +278,7 @@ $@"class C
                 options: s_options.MethodNamesArePascalCase);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.NamingStyle)]
+        [Fact]
         public async Task TestPascalCaseMethod_ConstructorsAreIgnored()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -289,7 +290,7 @@ $@"class C
 }", new TestParameters(options: s_options.MethodNamesArePascalCase));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.NamingStyle)]
+        [Fact]
         public async Task TestPascalCaseMethod_PropertyAccessorsAreIgnored()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -299,7 +300,7 @@ $@"class C
 }", new TestParameters(options: s_options.MethodNamesArePascalCase));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.NamingStyle)]
+        [Fact]
         public async Task TestPascalCaseMethod_IndexerNameIsIgnored()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -315,7 +316,7 @@ $@"class C
 }", new TestParameters(options: s_options.MethodNamesArePascalCase));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.NamingStyle)]
+        [Fact]
         public async Task TestPascalCaseMethod_LocalFunctionIsIgnored()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -330,7 +331,7 @@ $@"class C
 }", new TestParameters(options: s_options.MethodNamesArePascalCase));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.NamingStyle)]
+        [Fact]
         public async Task TestCamelCaseParameters()
         {
             await TestInRegularAndScriptAsync(
@@ -349,7 +350,7 @@ $@"class C
                 options: s_options.ParameterNamesAreCamelCase);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.NamingStyle)]
+        [Fact]
         public async Task TestCamelCaseLocals_LocalDeclaration1()
         {
             await TestInRegularAndScriptAsync(
@@ -370,7 +371,7 @@ $@"class C
                 options: s_options.LocalNamesAreCamelCase);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.NamingStyle)]
+        [Fact]
         public async Task TestCamelCaseLocals_LocalDeclaration2()
         {
             await TestInRegularAndScriptAsync(
@@ -391,7 +392,7 @@ $@"class C
                 options: s_options.LocalNamesAreCamelCase);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.NamingStyle)]
+        [Fact]
         public async Task TestCamelCaseLocals_UsingVariable1()
         {
             await TestInRegularAndScriptAsync(
@@ -416,7 +417,7 @@ $@"class C
                 options: s_options.LocalNamesAreCamelCase);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.NamingStyle)]
+        [Fact]
         public async Task TestCamelCaseLocals_UsingVariable2()
         {
             await TestInRegularAndScriptAsync(
@@ -441,7 +442,7 @@ $@"class C
                 options: s_options.LocalNamesAreCamelCase);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.NamingStyle)]
+        [Fact]
         public async Task TestCamelCaseLocals_ForVariable1()
         {
             await TestInRegularAndScriptAsync(
@@ -466,7 +467,7 @@ $@"class C
                 options: s_options.LocalNamesAreCamelCase);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.NamingStyle)]
+        [Fact]
         public async Task TestCamelCaseLocals_ForVariable2()
         {
             await TestInRegularAndScriptAsync(
@@ -491,7 +492,7 @@ $@"class C
                 options: s_options.LocalNamesAreCamelCase);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.NamingStyle)]
+        [Fact]
         public async Task TestCamelCaseLocals_ForEachVariable()
         {
             await TestInRegularAndScriptAsync(
@@ -516,7 +517,7 @@ $@"class C
                 options: s_options.LocalNamesAreCamelCase);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.NamingStyle)]
+        [Fact]
         public async Task TestCamelCaseLocals_CatchVariable()
         {
             await TestInRegularAndScriptAsync(
@@ -549,7 +550,7 @@ class C
                 options: s_options.LocalNamesAreCamelCase);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.NamingStyle)]
+        [Fact]
         public async Task TestCamelCaseLocals_CatchWithoutVariableIgnored()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -568,7 +569,7 @@ class C
 }", new TestParameters(options: s_options.LocalNamesAreCamelCase));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.NamingStyle)]
+        [Fact]
         public async Task TestCamelCaseLocals_CatchWithoutDeclarationIgnored()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -587,7 +588,7 @@ class C
 }", new TestParameters(options: s_options.LocalNamesAreCamelCase));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.NamingStyle)]
+        [Fact]
         public async Task TestCamelCaseLocals_Deconstruction1()
         {
             await TestInRegularAndScriptAsync(
@@ -610,7 +611,7 @@ class C
                 options: s_options.LocalNamesAreCamelCase);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.NamingStyle)]
+        [Fact]
         public async Task TestCamelCaseLocals_Deconstruction2()
         {
             await TestInRegularAndScriptAsync(
@@ -633,7 +634,7 @@ class C
                 options: s_options.LocalNamesAreCamelCase);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.NamingStyle)]
+        [Fact]
         public async Task TestCamelCaseLocals_ForEachDeconstruction1()
         {
             await TestInRegularAndScriptAsync(
@@ -656,7 +657,7 @@ class C
                 options: s_options.LocalNamesAreCamelCase);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.NamingStyle)]
+        [Fact]
         public async Task TestCamelCaseLocals_ForEachDeconstruction2()
         {
             await TestInRegularAndScriptAsync(
@@ -679,7 +680,7 @@ class C
                 options: s_options.LocalNamesAreCamelCase);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.NamingStyle)]
+        [Fact]
         public async Task TestCamelCaseLocals_OutVariable()
         {
             await TestInRegularAndScriptAsync(
@@ -702,7 +703,7 @@ class C
                 options: s_options.LocalNamesAreCamelCase);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.NamingStyle)]
+        [Fact]
         public async Task TestCamelCaseLocals_PatternVariable()
         {
             await TestInRegularAndScriptAsync(
@@ -725,7 +726,7 @@ class C
                 options: s_options.LocalNamesAreCamelCase);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.NamingStyle)]
+        [Fact]
         public async Task TestCamelCaseLocals_QueryFromClauseIgnored()
         {
             // This is an IRangeVariableSymbol, not ILocalSymbol
@@ -744,7 +745,7 @@ class C
 }", new TestParameters(options: s_options.LocalNamesAreCamelCase));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.NamingStyle)]
+        [Fact]
         public async Task TestCamelCaseLocals_QueryLetClauseIgnored()
         {
             // This is an IRangeVariableSymbol, not ILocalSymbol
@@ -763,7 +764,7 @@ class C
 }", new TestParameters(options: s_options.LocalNamesAreCamelCase));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.NamingStyle)]
+        [Fact]
         public async Task TestCamelCaseLocals_ParameterIgnored()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -775,7 +776,7 @@ class C
 }", new TestParameters(options: s_options.LocalNamesAreCamelCase));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.NamingStyle)]
+        [Fact]
         public async Task TestCamelCaseLocals_TupleTypeElementNameIgnored1()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -788,7 +789,7 @@ class C
 }", new TestParameters(options: s_options.LocalNamesAreCamelCase));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.NamingStyle)]
+        [Fact]
         public async Task TestCamelCaseLocals_TupleTypeElementNameIgnored2()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -801,7 +802,7 @@ class C
 }", new TestParameters(options: s_options.LocalNamesAreCamelCase));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.NamingStyle)]
+        [Fact]
         public async Task TestCamelCaseLocals_TupleExpressionElementNameIgnored()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -814,7 +815,7 @@ class C
 }", new TestParameters(options: s_options.LocalNamesAreCamelCase));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.NamingStyle)]
+        [Fact]
         public async Task TestUpperCaseConstants_ConstField()
         {
             await TestInRegularAndScriptAsync(
@@ -829,7 +830,7 @@ class C
                 options: s_options.ConstantsAreUpperCase);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.NamingStyle)]
+        [Fact]
         public async Task TestUpperCaseConstants_ConstLocal()
         {
             await TestInRegularAndScriptAsync(
@@ -850,7 +851,7 @@ class C
                 options: s_options.ConstantsAreUpperCase);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.NamingStyle)]
+        [Fact]
         public async Task TestUpperCaseConstants_NonConstFieldIgnored()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -860,7 +861,7 @@ class C
 }", new TestParameters(options: s_options.ConstantsAreUpperCase));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.NamingStyle)]
+        [Fact]
         public async Task TestUpperCaseConstants_NonConstLocalIgnored()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -873,7 +874,7 @@ class C
 }", new TestParameters(options: s_options.ConstantsAreUpperCase));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.NamingStyle)]
+        [Fact]
         public async Task TestCamelCaseLocalsUpperCaseConstants_ConstLocal()
         {
             await TestInRegularAndScriptAsync(
@@ -894,7 +895,7 @@ class C
                 options: s_options.LocalsAreCamelCaseConstantsAreUpperCase);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.NamingStyle)]
+        [Fact]
         public async Task TestCamelCaseLocalsUpperCaseConstants_NonConstLocal()
         {
             await TestInRegularAndScriptAsync(
@@ -915,7 +916,7 @@ class C
                 options: s_options.LocalsAreCamelCaseConstantsAreUpperCase);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.NamingStyle)]
+        [Fact]
         public async Task TestCamelCaseLocalFunctions()
         {
             await TestInRegularAndScriptAsync(
@@ -940,7 +941,7 @@ class C
                 options: s_options.LocalFunctionNamesAreCamelCase);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.NamingStyle)]
+        [Fact]
         public async Task TestCamelCaseLocalFunctions_MethodIsIgnored()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -952,7 +953,7 @@ class C
 }", new TestParameters(options: s_options.LocalFunctionNamesAreCamelCase));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.NamingStyle)]
+        [Fact]
         public async Task TestAsyncFunctions_AsyncMethod()
         {
             await TestInRegularAndScriptAsync(
@@ -971,7 +972,7 @@ class C
                 options: s_options.AsyncFunctionNamesEndWithAsync);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.NamingStyle)]
+        [Fact]
         public async Task TestAsyncFunctions_AsyncLocalFunction()
         {
             await TestInRegularAndScriptAsync(
@@ -996,7 +997,7 @@ class C
                 options: s_options.AsyncFunctionNamesEndWithAsync);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.NamingStyle)]
+        [Fact]
         public async Task TestAsyncFunctions_NonAsyncMethodIgnored()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -1011,7 +1012,7 @@ class C
 }", new TestParameters(options: s_options.AsyncFunctionNamesEndWithAsync));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.NamingStyle)]
+        [Fact]
         public async Task TestAsyncFunctions_NonAsyncLocalFunctionIgnored()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -1026,7 +1027,7 @@ class C
 }", new TestParameters(options: s_options.AsyncFunctionNamesEndWithAsync));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.NamingStyle)]
+        [Fact]
         public async Task TestPascalCaseMethod_InInterfaceWithImplicitImplementation()
         {
             await TestInRegularAndScriptAsync(
@@ -1051,7 +1052,7 @@ class C : I
                 options: s_options.MethodNamesArePascalCase);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.NamingStyle)]
+        [Fact]
         public async Task TestPascalCaseMethod_InInterfaceWithExplicitImplementation()
         {
             await TestInRegularAndScriptAsync(
@@ -1076,7 +1077,7 @@ class C : I
                 options: s_options.MethodNamesArePascalCase);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.NamingStyle)]
+        [Fact]
         public async Task TestPascalCaseMethod_NotInImplicitInterfaceImplementation()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -1091,7 +1092,7 @@ class C : I
 }", new TestParameters(options: s_options.MethodNamesArePascalCase));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.NamingStyle)]
+        [Fact]
         public async Task TestPascalCaseMethod_NotInExplicitInterfaceImplementation()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -1106,7 +1107,7 @@ class C : I
 }", new TestParameters(options: s_options.MethodNamesArePascalCase));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.NamingStyle)]
+        [Fact]
         public async Task TestPascalCaseMethod_InAbstractType()
         {
             await TestInRegularAndScriptAsync(
@@ -1133,7 +1134,7 @@ class D : C
                 options: s_options.MethodNamesArePascalCase);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.NamingStyle)]
+        [Fact]
         public async Task TestPascalCaseMethod_NotInAbstractMethodImplementation()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -1149,7 +1150,7 @@ class D : C
 }", new TestParameters(options: s_options.MethodNamesArePascalCase));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.NamingStyle)]
+        [Fact]
         public async Task TestPascalCaseProperty_InInterface()
         {
             await TestInRegularAndScriptAsync(
@@ -1176,7 +1177,7 @@ class C : I
                 options: s_options.PropertyNamesArePascalCase);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.NamingStyle)]
+        [Fact]
         public async Task TestPascalCaseProperty_NotInImplicitInterfaceImplementation()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -1192,7 +1193,7 @@ class C : I
 }", new TestParameters(options: s_options.PropertyNamesArePascalCase));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.NamingStyle)]
+        [Fact]
         public async Task TestPascalCaseMethod_OverrideInternalMethod()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -1208,8 +1209,7 @@ class D : C
 }", new TestParameters(options: s_options.MethodNamesArePascalCase));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.NamingStyle)]
-        [WorkItem(19106, "https://github.com/dotnet/roslyn/issues/19106")]
+        [Fact, WorkItem(19106, "https://github.com/dotnet/roslyn/issues/19106")]
         public async Task TestMissingOnSymbolsWithNoName()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -1226,7 +1226,6 @@ namespace Microsoft.CodeAnalysis.Host
 #else
         [Fact]
 #endif
-        [Trait(Traits.Feature, Traits.Features.NamingStyle)]
         [WorkItem(16562, "https://github.com/dotnet/roslyn/issues/16562")]
         public async Task TestRefactorNotify()
         {
@@ -1252,7 +1251,6 @@ namespace Microsoft.CodeAnalysis.Host
 #else
         [Fact]
 #endif
-        [Trait(Traits.Feature, Traits.Features.NamingStyle)]
         [WorkItem(38513, "https://github.com/dotnet/roslyn/issues/38513")]
         public async Task TestRefactorNotifyInterfaceNamesStartWithI()
         {
@@ -1278,7 +1276,6 @@ namespace Microsoft.CodeAnalysis.Host
 #else
         [Fact]
 #endif
-        [Trait(Traits.Feature, Traits.Features.NamingStyle)]
         [WorkItem(38513, "https://github.com/dotnet/roslyn/issues/38513")]
         public async Task TestRefactorNotifyTypeParameterNamesStartWithT()
         {
@@ -1302,8 +1299,7 @@ namespace Microsoft.CodeAnalysis.Host
             Assert.Equal("TArg", symbolRenamedOperation._newName);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.NamingStyle)]
-        [WorkItem(47508, "https://github.com/dotnet/roslyn/issues/47508")]
+        [Fact, WorkItem(47508, "https://github.com/dotnet/roslyn/issues/47508")]
         public async Task TestRecordParameter_NoDiagnosticWhenCorrect()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -1311,8 +1307,7 @@ namespace Microsoft.CodeAnalysis.Host
                 new TestParameters(options: s_options.MergeStyles(s_options.PropertyNamesArePascalCase, s_options.ParameterNamesAreCamelCaseWithPUnderscorePrefix)));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.NamingStyle)]
-        [WorkItem(47508, "https://github.com/dotnet/roslyn/issues/47508")]
+        [Fact, WorkItem(47508, "https://github.com/dotnet/roslyn/issues/47508")]
         public async Task TestRecordConstructorParameter_NoDiagnosticWhenCorrect()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -1325,8 +1320,7 @@ namespace Microsoft.CodeAnalysis.Host
                 new TestParameters(options: s_options.MergeStyles(s_options.PropertyNamesArePascalCase, s_options.ParameterNamesAreCamelCaseWithPUnderscorePrefix)));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.NamingStyle)]
-        [WorkItem(47508, "https://github.com/dotnet/roslyn/issues/47508")]
+        [Fact, WorkItem(47508, "https://github.com/dotnet/roslyn/issues/47508")]
         public async Task TestRecordParameter_ParameterFormattedAsProperties()
         {
             await TestInRegularAndScriptAsync(
@@ -1366,8 +1360,7 @@ $@"class C
 }}", new TestParameters(options: s_options.LocalNamesAreCamelCase));
         }
 
-        [Fact]
-        [WorkItem(49535, "https://github.com/dotnet/roslyn/issues/49535")]
+        [Fact, WorkItem(49535, "https://github.com/dotnet/roslyn/issues/49535")]
         public async Task TestGlobalDirectiveAsync()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -1383,8 +1376,7 @@ class C : I
 }", new TestParameters(options: s_options.PropertyNamesArePascalCase));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.NamingStyle)]
-        [WorkItem(50734, "https://github.com/dotnet/roslyn/issues/50734")]
+        [Fact, WorkItem(50734, "https://github.com/dotnet/roslyn/issues/50734")]
         public async Task TestAsyncEntryPoint()
         {
             await TestMissingInRegularAndScriptAsync(@"
@@ -1399,8 +1391,7 @@ class C
 }", new TestParameters(options: s_options.AsyncFunctionNamesEndWithAsync));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.NamingStyle)]
-        [WorkItem(49648, "https://github.com/dotnet/roslyn/issues/49648")]
+        [Fact, WorkItem(49648, "https://github.com/dotnet/roslyn/issues/49648")]
         public async Task TestAsyncEntryPoint_TopLevel()
         {
             await TestMissingInRegularAndScriptAsync(@"
@@ -1410,8 +1401,7 @@ using System.Threading.Tasks;
 ", new TestParameters(options: s_options.AsyncFunctionNamesEndWithAsync));
         }
 
-        [Fact]
-        [WorkItem(51727, "https://github.com/dotnet/roslyn/issues/51727")]
+        [Fact, WorkItem(51727, "https://github.com/dotnet/roslyn/issues/51727")]
         public async Task TestExternAsync()
         {
             await TestMissingInRegularAndScriptAsync(

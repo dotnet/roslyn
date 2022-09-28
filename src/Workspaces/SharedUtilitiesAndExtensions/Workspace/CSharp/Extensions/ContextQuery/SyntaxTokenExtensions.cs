@@ -153,10 +153,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                     return false;
 
                 case SyntaxKind.ColonToken:
-                    return token.Parent.IsKind(SyntaxKind.CaseSwitchLabel,
-                                               SyntaxKind.DefaultSwitchLabel,
-                                               SyntaxKind.CasePatternSwitchLabel,
-                                               SyntaxKind.LabeledStatement);
+                    return token.Parent is (kind: SyntaxKind.CaseSwitchLabel or SyntaxKind.DefaultSwitchLabel or SyntaxKind.CasePatternSwitchLabel or SyntaxKind.LabeledStatement);
 
                 case SyntaxKind.DoKeyword when token.Parent.IsKind(SyntaxKind.DoStatement):
                     return true;
@@ -278,7 +275,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                     return true;
                 }
 
-                if (token.Parent.IsKind(SyntaxKind.ParenthesizedExpression, out ParenthesizedExpressionSyntax? parenExpr))
+                if (token.Parent is ParenthesizedExpressionSyntax parenExpr)
                 {
                     var expr = parenExpr.Expression;
 
@@ -362,7 +359,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             //   orderby a, b |
             //   orderby a, b a|
 
-            if (!targetToken.IsKind(SyntaxKind.IdentifierToken, SyntaxKind.CloseParenToken, SyntaxKind.CloseBracketToken))
+            if (targetToken.Kind() is not (SyntaxKind.IdentifierToken or SyntaxKind.CloseParenToken or SyntaxKind.CloseBracketToken))
             {
                 return false;
             }
@@ -402,8 +399,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
 
             if (targetToken.Kind() == SyntaxKind.ColonToken)
             {
-                if (targetToken.Parent.IsKind(
-                        SyntaxKind.CaseSwitchLabel, SyntaxKind.DefaultSwitchLabel, SyntaxKind.CasePatternSwitchLabel))
+                if (targetToken.Parent is (kind: SyntaxKind.CaseSwitchLabel or SyntaxKind.DefaultSwitchLabel or SyntaxKind.CasePatternSwitchLabel))
                 {
                     return true;
                 }
@@ -430,8 +426,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
 
         public static bool IsXmlCrefParameterModifierContext(this SyntaxToken targetToken)
         {
-            return targetToken.IsKind(SyntaxKind.CommaToken, SyntaxKind.OpenParenToken)
-                && targetToken.Parent.IsKind(SyntaxKind.CrefBracketedParameterList, SyntaxKind.CrefParameterList);
+            return targetToken.Kind() is SyntaxKind.CommaToken or SyntaxKind.OpenParenToken &&
+                   targetToken.Parent is (kind: SyntaxKind.CrefBracketedParameterList or SyntaxKind.CrefParameterList);
         }
 
         public static bool IsConstructorOrMethodParameterArgumentContext(this SyntaxToken targetToken)
@@ -615,9 +611,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
         {
             if (node.IsKind(SyntaxKind.TypeParameterList))
             {
-                if (node.IsParentKind(SyntaxKind.InterfaceDeclaration, out TypeDeclarationSyntax? typeDecl))
+                if (node?.Parent is TypeDeclarationSyntax(SyntaxKind.InterfaceDeclaration) typeDecl)
                     return typeDecl.TypeParameterList == node;
-                else if (node.IsParentKind(SyntaxKind.DelegateDeclaration, out DelegateDeclarationSyntax? delegateDecl))
+                else if (node?.Parent is DelegateDeclarationSyntax delegateDecl)
                     return delegateDecl.TypeParameterList == node;
             }
 

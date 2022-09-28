@@ -573,5 +573,8 @@ namespace Microsoft.CodeAnalysis.Internal.Log
         SpellCheckFixer_RenameSpanNotWithinTokenSpan = 603,
         SpellCheckFixer_ReplacementTextInvalid = 604,
         SpellCheckFixer_TryApplyChangesFailure = 605,
+
+        SourceGenerator_SolutionStatistics = 620,
+        SourceGenerator_OtherWorkspaceSessionStatistics = 621
     }
 }

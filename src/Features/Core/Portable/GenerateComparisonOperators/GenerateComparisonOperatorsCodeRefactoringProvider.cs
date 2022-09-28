@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.GenerateComparisonOperators
         private const string LeftName = "left";
         private const string RightName = "right";
 
-        private static ImmutableArray<CodeGenerationOperatorKind> s_operatorKinds =
+        private static readonly ImmutableArray<CodeGenerationOperatorKind> s_operatorKinds =
             ImmutableArray.Create(
                 CodeGenerationOperatorKind.LessThan,
                 CodeGenerationOperatorKind.LessThanOrEqual,

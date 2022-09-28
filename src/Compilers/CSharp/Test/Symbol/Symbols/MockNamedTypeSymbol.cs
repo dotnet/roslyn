@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             }
         }
 
-        internal override SyntaxTree AssociatedSyntaxTree => null;
+        internal override FileIdentifier? AssociatedFileIdentifier => null;
 
         public override ImmutableArray<TypeParameterSymbol> TypeParameters
         {

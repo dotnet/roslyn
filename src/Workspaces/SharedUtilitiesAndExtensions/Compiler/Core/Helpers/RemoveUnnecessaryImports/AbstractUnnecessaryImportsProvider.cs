@@ -2,36 +2,29 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 
 namespace Microsoft.CodeAnalysis.RemoveUnnecessaryImports
 {
-    internal abstract class AbstractUnnecessaryImportsProvider<T>
-        : IUnnecessaryImportsProvider, IEqualityComparer<T> where T : SyntaxNode
+    internal abstract class AbstractUnnecessaryImportsProvider<TSyntaxNode> :
+        IUnnecessaryImportsProvider<TSyntaxNode>,
+        IEqualityComparer<TSyntaxNode>
+        where TSyntaxNode : SyntaxNode
     {
-        public ImmutableArray<SyntaxNode> GetUnnecessaryImports(
-            SemanticModel model, CancellationToken cancellationToken)
-        {
-            var root = model.SyntaxTree.GetRoot(cancellationToken);
-            return GetUnnecessaryImports(model, root, predicate: null, cancellationToken: cancellationToken);
-        }
+        public abstract ImmutableArray<TSyntaxNode> GetUnnecessaryImports(
+            SemanticModel model, Func<SyntaxNode, bool>? predicate, CancellationToken cancellationToken);
 
-        protected abstract ImmutableArray<SyntaxNode> GetUnnecessaryImports(
-            SemanticModel model, SyntaxNode root,
-            Func<SyntaxNode, bool> predicate, CancellationToken cancellationToken);
+        public ImmutableArray<TSyntaxNode> GetUnnecessaryImports(SemanticModel model, CancellationToken cancellationToken)
+            => GetUnnecessaryImports(model, predicate: null, cancellationToken: cancellationToken);
 
-        ImmutableArray<SyntaxNode> IUnnecessaryImportsProvider.GetUnnecessaryImports(SemanticModel model, SyntaxNode root, Func<SyntaxNode, bool> predicate, CancellationToken cancellationToken)
-            => GetUnnecessaryImports(model, root, predicate, cancellationToken);
+        bool IEqualityComparer<TSyntaxNode>.Equals([AllowNull] TSyntaxNode x, [AllowNull] TSyntaxNode y)
+            => x?.Span == y?.Span;
 
-        bool IEqualityComparer<T>.Equals(T x, T y)
-            => x.Span == y.Span;
-
-        int IEqualityComparer<T>.GetHashCode(T obj)
+        int IEqualityComparer<TSyntaxNode>.GetHashCode([DisallowNull] TSyntaxNode obj)
             => obj.Span.GetHashCode();
     }
 }

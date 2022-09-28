@@ -3083,7 +3083,7 @@ outerDefault:
             parameterRefKinds = effectiveParameters.ParameterRefKinds;
         }
 
-        private struct EffectiveParameters
+        private readonly struct EffectiveParameters
         {
             internal readonly ImmutableArray<TypeWithAnnotations> ParameterTypes;
             internal readonly ImmutableArray<RefKind> ParameterRefKinds;

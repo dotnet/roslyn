@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -37,11 +35,11 @@ namespace Microsoft.CodeAnalysis.Remote
             // need to be revisited if we someday support FAR between these languages.
             return RunServiceAsync(solutionChecksum, async solution =>
             {
-                var document = await solution.GetDocumentAsync(documentId, includeSourceGenerated: true, cancellationToken).ConfigureAwait(false);
+                var document = await solution.GetRequiredDocumentAsync(documentId, includeSourceGenerated: true, cancellationToken).ConfigureAwait(false);
                 var documentsToSearch = await documentIdsToSearch.SelectAsArrayAsync(id => solution.GetDocumentAsync(id, includeSourceGenerated: true, cancellationToken)).ConfigureAwait(false);
                 var documentsToSearchSet = ImmutableHashSet.CreateRange(documentsToSearch.WhereNotNull());
 
-                var service = document.GetLanguageService<IDocumentHighlightsService>();
+                var service = document.GetRequiredLanguageService<IDocumentHighlightsService>();
                 var result = await service.GetDocumentHighlightsAsync(
                     document, position, documentsToSearchSet, options, cancellationToken).ConfigureAwait(false);
 

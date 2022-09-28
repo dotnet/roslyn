@@ -8122,26 +8122,26 @@ public class MyClass
             CreateCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
                 // (25,9): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('myClass')
                 //         myClass* s2 = &s;    // CS0208
-                Diagnostic(ErrorCode.ERR_ManagedAddr, "myClass*").WithArguments("myClass"),
-                // (25,23): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('myClass')
+                Diagnostic(ErrorCode.ERR_ManagedAddr, "myClass*").WithArguments("myClass").WithLocation(25, 9),
+                // (25,23): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('myClass')
                 //         myClass* s2 = &s;    // CS0208
-                Diagnostic(ErrorCode.ERR_ManagedAddr, "&s").WithArguments("myClass"),
+                Diagnostic(ErrorCode.WRN_ManagedAddr, "&s").WithArguments("myClass").WithLocation(25, 23),
                 // (28,17): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('myProblemStruct')
                 //         int i = sizeof(myProblemStruct); //CS0208
-                Diagnostic(ErrorCode.ERR_ManagedAddr, "sizeof(myProblemStruct)").WithArguments("myProblemStruct"),
+                Diagnostic(ErrorCode.ERR_ManagedAddr, "sizeof(myProblemStruct)").WithArguments("myProblemStruct").WithLocation(28, 17),
 
                 // (9,12): warning CS0169: The field 'myProblemStruct.s' is never used
                 //     string s;
-                Diagnostic(ErrorCode.WRN_UnreferencedField, "s").WithArguments("myProblemStruct.s"),
+                Diagnostic(ErrorCode.WRN_UnreferencedField, "s").WithArguments("myProblemStruct.s").WithLocation(9, 12),
                 // (10,11): warning CS0169: The field 'myProblemStruct.f' is never used
                 //     float f;
-                Diagnostic(ErrorCode.WRN_UnreferencedField, "f").WithArguments("myProblemStruct.f"),
+                Diagnostic(ErrorCode.WRN_UnreferencedField, "f").WithArguments("myProblemStruct.f").WithLocation(10, 11),
                 // (15,9): warning CS0169: The field 'myGoodStruct.i' is never used
                 //     int i;
-                Diagnostic(ErrorCode.WRN_UnreferencedField, "i").WithArguments("myGoodStruct.i"),
+                Diagnostic(ErrorCode.WRN_UnreferencedField, "i").WithArguments("myGoodStruct.i").WithLocation(15, 9),
                 // (16,11): warning CS0169: The field 'myGoodStruct.f' is never used
                 //     float f;
-                Diagnostic(ErrorCode.WRN_UnreferencedField, "f").WithArguments("myGoodStruct.f"));
+                Diagnostic(ErrorCode.WRN_UnreferencedField, "f").WithArguments("myGoodStruct.f").WithLocation(16, 11));
         }
 
         [Fact]
@@ -9927,7 +9927,7 @@ struct S
 }";
 
             // Note that none of these errors except the first one are reported by the native compiler, because
-            // it does not report additional errors after an error is found in a formal parameter of a method.
+            // it does not report additional errors after an error is found in a parameter of a method.
 
             CreateCompilationWithMscorlib40(text, references: new[] { Net40.SystemCore }).VerifyDiagnostics(
                 // (9,36): error CS0310: 'U' must be a non-abstract type with a public parameterless constructor in order to use it as parameter 'T' in the generic type or method 'D<T>'
@@ -9967,8 +9967,8 @@ struct S
                 // But what about the overload resolution problem in error recovery? Even though the argument is bad we still
                 // might want to try to get an overload resolution result. Thus we must infer a type for T in E.F<T>(D<T>). 
                 // We must do overload resolution on an invocation S.F<C<B>>(). Overload resolution succeeds; it has no reason
-                // to fail. (Overload resolution would fail if a formal parameter type of S.F<C<B>>() did not satisfy one of its
-                // constraints, but there are no formal parameters. Also, there are no constraints at all on T in S.F<T>.)
+                // to fail. (Overload resolution would fail if a parameter type of S.F<C<B>>() did not satisfy one of its
+                // constraints, but there are no parameters. Also, there are no constraints at all on T in S.F<T>.)
                 //
                 // Thus T in D<T> is inferred to be C<B>, and thus T in E.F<T> is inferred to be C<B>. 
                 //
@@ -9982,12 +9982,12 @@ struct S
                 //
                 // This is arguably a "cascading" error; we have already reported an error for C<B> when the 
                 // argument was bound. Normally we avoid reporting "cascading" errors in overload resolution by
-                // saying that an erroneous argument is implicitly convertible to any formal parameter type;
+                // saying that an erroneous argument is implicitly convertible to any parameter type;
                 // thus we avoid an erroneous expression from causing overload resolution to make every
                 // candidate method inapplicable. (Though it might cause overload resolution to fail by making
                 // every candidate method applicable, causing an ambiguity!)  But the overload resolution 
                 // error here is not caused by an argument *conversion* in the first place; the overload
-                // resolution error is caused because *the deduced formal parameter type is illegal.*
+                // resolution error is caused because *the deduced parameter type is illegal.*
                 //
                 // We might want to put some gear in place to suppress this cascading error. It is not
                 // entirely clear what that machinery might look like.
@@ -13267,7 +13267,7 @@ End Interface";
             compilation2.VerifyDiagnostics(
                 // (8,9): error CS0856: Indexed property 'I.R' has non-optional arguments which must be provided
                 Diagnostic(ErrorCode.ERR_IndexedPropertyRequiresParams, "i.R").WithArguments("I.R").WithLocation(8, 9),
-                // (9,9): error CS7036: There is no argument given that corresponds to the required formal parameter 'y' of 'I.R[int, int, int]'
+                // (9,9): error CS7036: There is no argument given that corresponds to the required parameter 'y' of 'I.R[int, int, int]'
                 Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "i.R[1]").WithArguments("y", "I.R[int, int, int]").WithLocation(9, 9));
 
             var tree = compilation2.SyntaxTrees.Single();
@@ -14773,7 +14773,7 @@ class Program
 }
 ";
             CreateCompilation(text).VerifyDiagnostics(
-                // (11,9): error CS7036: There is no argument given that corresponds to the required formal parameter 'y' of 'MyDelegate1'
+                // (11,9): error CS7036: There is no argument given that corresponds to the required parameter 'y' of 'MyDelegate1'
                 //         md1(1);
                 Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "md1").WithArguments("y", "MyDelegate1").WithLocation(11, 9));
         }
@@ -16569,7 +16569,7 @@ public class Child2 : Parent
             var compilation = CreateCompilation(text);
 
             DiagnosticDescription[] expected = {
-                // (21,14): error CS7036: There is no argument given that corresponds to the required formal parameter 'i' of 'Parent.Parent(int, int)'
+                // (21,14): error CS7036: There is no argument given that corresponds to the required parameter 'i' of 'Parent.Parent(int, int)'
                 // public class Child : Parent { } // CS1729
                 Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "Child").WithArguments("i", "Parent.Parent(int, int)").WithLocation(21, 14),
                 // (6,24): error CS1729: 'double' does not contain a constructor that takes 1 arguments
@@ -16578,7 +16578,7 @@ public class Child2 : Parent
                 // (7,26): error CS1729: 'Test' does not contain a constructor that takes 1 arguments
                 //         Test test1 = new Test(2); // CS1729
                 Diagnostic(ErrorCode.ERR_BadCtorArgCount, "Test").WithArguments("Test", "1").WithLocation(7, 26),
-                // (9,37): error CS7036: There is no argument given that corresponds to the required formal parameter 'j' of 'Parent.Parent(int, int)'
+                // (9,37): error CS7036: There is no argument given that corresponds to the required parameter 'j' of 'Parent.Parent(int, int)'
                 //         Parent exampleParent1 = new Parent(10); // CS1729
                 Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "Parent").WithArguments("j", "Parent.Parent(int, int)").WithLocation(9, 37)
             };

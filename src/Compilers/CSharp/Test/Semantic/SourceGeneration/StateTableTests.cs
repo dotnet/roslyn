@@ -1021,7 +1021,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.SourceGeneration
                     SyntaxStore.Empty,
                     disabledOutputs: IncrementalGeneratorOutputKind.None,
                     runtime: TimeSpan.Zero,
-                    trackIncrementalGeneratorSteps: trackIncrementalGeneratorSteps);
+                    trackIncrementalGeneratorSteps: trackIncrementalGeneratorSteps,
+                    parseOptionsChanged: false);
 
             return new DriverStateTable.Builder(c, state, SyntaxStore.Empty.ToBuilder(c, ImmutableArray<SyntaxInputNode>.Empty, trackIncrementalGeneratorSteps, cancellationToken: default));
         }

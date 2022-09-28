@@ -18,6 +18,7 @@ using ProjectUtils = Microsoft.VisualStudio.IntegrationTest.Utilities.Common.Pro
 namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
 {
     [Collection(nameof(SharedIntegrationHostFixture))]
+    [Trait(Traits.Feature, Traits.Features.DebuggingEditAndContinue)]
     public class BasicEditAndContinue : AbstractEditorTest
     {
         private const string module1FileName = "Module1.vb";
@@ -40,7 +41,6 @@ namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
 
         // Also "https://github.com/dotnet/roslyn/issues/37689")]
         [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/35965")]
-        [Trait(Traits.Feature, Traits.Features.DebuggingEditAndContinue)]
         public void UpdateActiveStatementLeafNode()
         {
             VisualStudio.Editor.SetText(@"
@@ -74,7 +74,6 @@ End Module
 
         // Also "https://github.com/dotnet/roslyn/issues/37689")]
         [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/35965")]
-        [Trait(Traits.Feature, Traits.Features.DebuggingEditAndContinue)]
         public void AddTryCatchAroundActiveStatement()
         {
             VisualStudio.Editor.SetText(@"
@@ -105,7 +104,6 @@ End Try");
 
         // Also "https://github.com/dotnet/roslyn/issues/37689")]
         [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/35965")]
-        [Trait(Traits.Feature, Traits.Features.DebuggingEditAndContinue)]
         public void EditLambdaExpression()
         {
             VisualStudio.Editor.SetText(@"
@@ -140,7 +138,6 @@ End Module");
 
         // Also "https://github.com/dotnet/roslyn/issues/37689")]
         [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/35965")]
-        [Trait(Traits.Feature, Traits.Features.DebuggingEditAndContinue)]
         public void EnCWhileDebuggingFromImmediateWindow()
         {
             VisualStudio.Editor.SetText(@"
@@ -206,7 +203,6 @@ End Module
 
         // Also https://github.com/dotnet/roslyn/issues/36763
         [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/35965")]
-        [Trait(Traits.Feature, Traits.Features.DebuggingEditAndContinue)]
         public void MultiProjectDebuggingWhereNotAllModulesAreLoaded()
         {
             SetupMultiProjectSolution();
@@ -220,7 +216,6 @@ End Module
 
         // Also "https://github.com/dotnet/roslyn/issues/37689")]
         [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/35965")]
-        [Trait(Traits.Feature, Traits.Features.DebuggingEditAndContinue)]
         public void LocalsWindowUpdatesAfterLocalGetsItsTypeUpdatedDuringEnC()
         {
             VisualStudio.Editor.SetText(@"
@@ -246,7 +241,6 @@ End Module
 
         // Also "https://github.com/dotnet/roslyn/issues/37689")]
         [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/35965")]
-        [Trait(Traits.Feature, Traits.Features.DebuggingEditAndContinue)]
         public void LocalsWindowUpdatesCorrectlyDuringEnC()
         {
             VisualStudio.Editor.SetText(@"
@@ -282,7 +276,6 @@ End Module
 
         // Also "https://github.com/dotnet/roslyn/issues/37689")]
         [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/35965")]
-        [Trait(Traits.Feature, Traits.Features.DebuggingEditAndContinue)]
         public void WatchWindowUpdatesCorrectlyDuringEnC()
         {
             VisualStudio.Editor.SetText(@"

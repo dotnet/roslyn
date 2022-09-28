@@ -266,7 +266,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 return null;
 
             // These diagnostics are hidden and not configurable, so help link can never be shown and is not applicable.
-            if (id == RemoveUnnecessaryImports.AbstractRemoveUnnecessaryImportsDiagnosticAnalyzer.DiagnosticFixableId ||
+            if (id == RemoveUnnecessaryImports.RemoveUnnecessaryImportsConstants.DiagnosticFixableId ||
                 id == "IDE0005_gen")
             {
                 return null;

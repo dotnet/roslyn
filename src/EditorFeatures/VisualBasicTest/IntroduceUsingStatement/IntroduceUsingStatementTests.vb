@@ -364,8 +364,7 @@ End Class")
 End Class")
         End Function
 
-        <Fact>
-        <WorkItem(35237, "https://github.com/dotnet/roslyn/issues/35237")>
+        <Fact, WorkItem(35237, "https://github.com/dotnet/roslyn/issues/35237")>
         Public Async Function ExpandsToIncludeSurroundedVariableDeclarations() As Task
             Await TestInRegularAndScriptAsync(
 "Imports System.IO
@@ -392,8 +391,7 @@ Class C
 End Class")
         End Function
 
-        <Fact>
-        <WorkItem(35237, "https://github.com/dotnet/roslyn/issues/35237")>
+        <Fact, WorkItem(35237, "https://github.com/dotnet/roslyn/issues/35237")>
         Public Async Function ExpandsToIncludeSurroundedMultiVariableDeclarations() As Task
             Await TestInRegularAndScriptAsync(
 "Imports System.IO
@@ -422,8 +420,7 @@ Class C
 End Class")
         End Function
 
-        <Fact>
-        <WorkItem(43373, "https://github.com/dotnet/roslyn/issues/43373")>
+        <Fact, WorkItem(43373, "https://github.com/dotnet/roslyn/issues/43373")>
         Public Async Function HandleTrailingComma() As Task
             Await TestInRegularAndScriptAsync(
 "Imports System

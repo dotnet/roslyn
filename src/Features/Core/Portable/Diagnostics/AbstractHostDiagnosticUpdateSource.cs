@@ -37,7 +37,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public void ReportAnalyzerDiagnostic(DiagnosticAnalyzer analyzer, Diagnostic diagnostic, ProjectId? projectId)
         {
             // check whether we are reporting project specific diagnostic or workspace wide diagnostic
-            var project = (projectId != null) ? Workspace.CurrentSolution.GetProject(projectId) : null;
+            var solution = Workspace.CurrentSolution;
+            var project = projectId != null ? solution.GetProject(projectId) : null;
 
             // check whether project the diagnostic belong to still exist
             if (projectId != null && project == null)
@@ -47,7 +48,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 return;
             }
 
-            ReportAnalyzerDiagnostic(analyzer, DiagnosticData.Create(diagnostic, project), project);
+            ReportAnalyzerDiagnostic(analyzer, DiagnosticData.Create(solution, diagnostic, project), project);
         }
 
         public void ReportAnalyzerDiagnostic(DiagnosticAnalyzer analyzer, DiagnosticData diagnosticData, Project? project)

@@ -9,9 +9,9 @@ Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
     <[UseExportProvider]>
+    <Trait(Traits.Feature, Traits.Features.ProjectSystemShims)>
     Public Class VisualBasicProjectTests
         <WpfFact()>
-        <Trait(Traits.Feature, Traits.Features.ProjectSystemShims)>
         Public Sub RenameProjectUpdatesWorkspace()
             Using environment = New TestEnvironment()
                 Dim project = CreateVisualBasicProject(environment, "Test")
@@ -28,7 +28,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
         End Sub
 
         <WpfFact()>
-        <Trait(Traits.Feature, Traits.Features.ProjectSystemShims)>
         Public Sub DisconnectingAProjectDoesNotLeak()
             Using environment = New TestEnvironment()
                 Dim project = ObjectReference.CreateFromFactory(Function() CreateVisualBasicProject(environment, "Test"))
