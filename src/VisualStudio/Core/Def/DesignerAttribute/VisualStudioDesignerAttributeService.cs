@@ -101,7 +101,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
 
         private void OnWorkspaceChanged(object sender, WorkspaceChangeEventArgs e)
         {
-            _workQueue.AddWork();
+            _workQueue.AddWork(cancelExistingWork: true);
         }
 
         private async ValueTask ProcessWorkspaceChangeAsync(CancellationToken cancellationToken)
