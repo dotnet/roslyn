@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     }
     static void M2(ref T t2)
     {
-        S<T> s2;
+        scoped S<T> s2;
         s2 = new S<T>(ref t2);
         s2 = new S<T> { F1 = t2 };
     }
@@ -111,7 +111,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "ref T").WithArguments("ref fields", "11.0").WithLocation(3, 12),
                 // (4,12): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
                 //     public ref readonly T F2;
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "ref readonly T").WithArguments("ref fields", "11.0").WithLocation(4, 12));
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "ref readonly T").WithArguments("ref fields", "11.0").WithLocation(4, 12),
+                // (25,9): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
+                //         scoped S<T> s2;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "scoped").WithArguments("ref fields", "11.0").WithLocation(25, 9));
 
             comp = CreateEmptyCompilation(sourceA, references: new[] { mscorlibRefWithRefFields });
             comp.VerifyEmitDiagnostics();
@@ -129,7 +132,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     }
     static void M2<T>(ref T t)
     {
-        S<T> s2;
+        scoped S<T> s2;
         s2 = new S<T>(ref t);
         s2 = new S<T> { F1 = t };
     }
@@ -147,6 +150,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 // (8,25): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
                 //         s1 = new S<T> { F1 = t };
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "F1").WithArguments("ref fields", "11.0").WithLocation(8, 25),
+                // (12,9): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
+                //         scoped S<T> s2;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "scoped").WithArguments("ref fields", "11.0").WithLocation(12, 9),
                 // (14,25): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
                 //         s2 = new S<T> { F1 = t };
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "F1").WithArguments("ref fields", "11.0").WithLocation(14, 25),
@@ -2107,6 +2113,12 @@ class Program
                 // (3,5): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
                 //     ref T F;
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "ref T").WithArguments("ref fields", "11.0").WithLocation(3, 5),
+                // (7,9): error CS9079: Cannot ref-assign 't' to 'F' because 't' can only escape the current method through a return statement.
+                //         F = ref t;
+                Diagnostic(ErrorCode.ERR_RefAssignReturnOnly, "F = ref t").WithArguments("F", "t").WithLocation(7, 9),
+                // (12,9): error CS9079: Cannot ref-assign 't' to 'F' because 't' can only escape the current method through a return statement.
+                //         r1.F = ref t;
+                Diagnostic(ErrorCode.ERR_RefAssignReturnOnly, "r1.F = ref t").WithArguments("F", "t").WithLocation(12, 9),
                 // (18,9): error CS8374: Cannot ref-assign 't' to 'F' because 't' has a narrower escape scope than 'F'.
                 //         r2.F = ref t;
                 Diagnostic(ErrorCode.ERR_RefAssignNarrower, "r2.F = ref t").WithArguments("F", "t").WithLocation(18, 9)
@@ -2114,6 +2126,12 @@ class Program
 
             comp = CreateCompilation(source, runtimeFeature: RuntimeFlag.ByRefFields);
             comp.VerifyEmitDiagnostics(
+                // (7,9): error CS9079: Cannot ref-assign 't' to 'F' because 't' can only escape the current method through a return statement.
+                //         F = ref t;
+                Diagnostic(ErrorCode.ERR_RefAssignReturnOnly, "F = ref t").WithArguments("F", "t").WithLocation(7, 9),
+                // (12,9): error CS9079: Cannot ref-assign 't' to 'F' because 't' can only escape the current method through a return statement.
+                //         r1.F = ref t;
+                Diagnostic(ErrorCode.ERR_RefAssignReturnOnly, "r1.F = ref t").WithArguments("F", "t").WithLocation(12, 9),
                 // (18,9): error CS8374: Cannot ref-assign 't' to 'F' because 't' has a narrower escape scope than 'F'.
                 //         r2.F = ref t;
                 Diagnostic(ErrorCode.ERR_RefAssignNarrower, "r2.F = ref t").WithArguments("F", "t").WithLocation(18, 9)
@@ -2276,7 +2294,7 @@ class Program
 
     static void Test(ref int i)
     {
-        var r = new R();
+        scoped var r = new R();
         r.Field = ref i;
         Console.WriteLine(r.Field);
     }
@@ -4262,20 +4280,20 @@ class Program
     {
         var r1 = new R<int>();
         int i = 1;
-        r1.F(in i); // 1
+        r1.F(in i);
         return r1;
     }
     static R<int> F2()
     {
         var r2 = new R<int>();
         int i = 2;
-        r2.F(i); // 2
+        r2.F(i);
         return r2;
     }
     static R<int> F3()
     {
         var r3 = new R<int>();
-        r3.F(3); // 3
+        r3.F(3);
         return r3;
     }
 }";
@@ -4284,25 +4302,7 @@ class Program
             comp.VerifyEmitDiagnostics();
 
             comp = CreateCompilation(source);
-            comp.VerifyEmitDiagnostics(
-                // (11,9): error CS8350: This combination of arguments to 'R<int>.F(in int)' is disallowed because it may expose variables referenced by parameter 't' outside of their declaration scope
-                //         r1.F(in i); // 1
-                Diagnostic(ErrorCode.ERR_CallArgMixing, "r1.F(in i)").WithArguments("R<int>.F(in int)", "t").WithLocation(11, 9),
-                // (11,17): error CS8168: Cannot return local 'i' by reference because it is not a ref local
-                //         r1.F(in i); // 1
-                Diagnostic(ErrorCode.ERR_RefReturnLocal, "i").WithArguments("i").WithLocation(11, 17),
-                // (18,9): error CS8350: This combination of arguments to 'R<int>.F(in int)' is disallowed because it may expose variables referenced by parameter 't' outside of their declaration scope
-                //         r2.F(i); // 2
-                Diagnostic(ErrorCode.ERR_CallArgMixing, "r2.F(i)").WithArguments("R<int>.F(in int)", "t").WithLocation(18, 9),
-                // (18,14): error CS8168: Cannot return local 'i' by reference because it is not a ref local
-                //         r2.F(i); // 2
-                Diagnostic(ErrorCode.ERR_RefReturnLocal, "i").WithArguments("i").WithLocation(18, 14),
-                // (24,9): error CS8350: This combination of arguments to 'R<int>.F(in int)' is disallowed because it may expose variables referenced by parameter 't' outside of their declaration scope
-                //         r3.F(3); // 3
-                Diagnostic(ErrorCode.ERR_CallArgMixing, "r3.F(3)").WithArguments("R<int>.F(in int)", "t").WithLocation(24, 9),
-                // (24,14): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
-                //         r3.F(3); // 3
-                Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "3").WithLocation(24, 14));
+            comp.VerifyEmitDiagnostics();
         }
 
         [Theory]
@@ -4514,7 +4514,7 @@ class Program
     }
     static void M3(ref T t3)
     {
-        S<T> s3;
+        scoped S<T> s3;
         s3 = new S<T>(ref t3);
         s3 = new S<T> { F = t3 };
     }
@@ -4589,7 +4589,7 @@ unsafe ref struct S<T>
     }
     static void M3(ref T t3)
     {
-        S<T> s3;
+        scoped S<T> s3;
         s3 = new S<T>(ref t3);
         s3 = new S<T> { F = t3 };
     }
@@ -5931,30 +5931,33 @@ class Program
 class Program
 {
     static void AssignValueToValue<T>(S<T> s, T tValue) { s.F = ref tValue; } // 1
-    static void AssignRefToValue<T>(S<T> s, ref T tRef) { s.F = ref tRef; }
-    static void AssignOutToValue<T>(S<T> s, out T tOut) { tOut = default; s.F = ref tOut; } // 2
-    static void AssignInToValue<T>(S<T> s, in T tIn)    { s.F = ref tIn; } // 3
+    static void AssignRefToValue<T>(S<T> s, ref T tRef) { s.F = ref tRef; } // 2
+    static void AssignOutToValue<T>(S<T> s, out T tOut) { tOut = default; s.F = ref tOut; } // 3
+    static void AssignInToValue<T>(S<T> s, in T tIn)    { s.F = ref tIn; } // 4
 
-    static void AssignValueToRef<T>(ref S<T> sRef, T tValue) { sRef.F = ref tValue; } // 4
-    static void AssignRefToRef<T>(ref S<T> sRef, ref T tRef) { sRef.F = ref tRef; }
-    static void AssignOutToRef<T>(ref S<T> sRef, out T tOut) { tOut = default; sRef.F = ref tOut; } // 5
-    static void AssignInToRef<T>(ref S<T> sRef, in T tIn)    { sRef.F = ref tIn; } // 6
+    static void AssignValueToRef<T>(ref S<T> sRef, T tValue) { sRef.F = ref tValue; } // 5
+    static void AssignRefToRef<T>(ref S<T> sRef, ref T tRef) { sRef.F = ref tRef; } // 6
+    static void AssignOutToRef<T>(ref S<T> sRef, out T tOut) { tOut = default; sRef.F = ref tOut; } // 7
+    static void AssignInToRef<T>(ref S<T> sRef, in T tIn)    { sRef.F = ref tIn; } // 8
 
-    static void AssignValueToOut<T>(out S<T> sOut, T tValue) { sOut = default; sOut.F = ref tValue; } // 7
+    static void AssignValueToOut<T>(out S<T> sOut, T tValue) { sOut = default; sOut.F = ref tValue; } // 9
     static void AssignRefToOut<T>(out S<T> sOut, ref T tRef) { sOut = default; sOut.F = ref tRef; }
-    static void AssignOutToOut<T>(out S<T> sOut, out T tOut) { sOut = default; tOut = default; sOut.F = ref tOut; } // 8
-    static void AssignInToOut<T>(out S<T> sOut, in T tIn)    { sOut = default; sOut.F = ref tIn; } // 9
+    static void AssignOutToOut<T>(out S<T> sOut, out T tOut) { sOut = default; tOut = default; sOut.F = ref tOut; } // 10 
+    static void AssignInToOut<T>(out S<T> sOut, in T tIn)    { sOut = default; sOut.F = ref tIn; } // 11 
 
-    static void AssignValueToIn<T>(in S<T> sIn, T tValue) { sIn.F = ref tValue; } // 10
-    static void AssignRefToIn<T>(in S<T> sIn, ref T tRef) { sIn.F = ref tRef; } // 11
-    static void AssignOutToIn<T>(in S<T> sIn, out T tOut) { tOut = default; sIn.F = ref tOut; } // 12
-    static void AssignInToIn<T>(in S<T> sIn, in T tIn)    { sIn.F = ref tIn; } // 13
+    static void AssignValueToIn<T>(in S<T> sIn, T tValue) { sIn.F = ref tValue; } // 12
+    static void AssignRefToIn<T>(in S<T> sIn, ref T tRef) { sIn.F = ref tRef; } // 13
+    static void AssignOutToIn<T>(in S<T> sIn, out T tOut) { tOut = default; sIn.F = ref tOut; } // 14
+    static void AssignInToIn<T>(in S<T> sIn, in T tIn)    { sIn.F = ref tIn; } // 15
 }";
             var comp = CreateCompilation(source, runtimeFeature: RuntimeFlag.ByRefFields);
             comp.VerifyEmitDiagnostics(
                 // (9,59): error CS8374: Cannot ref-assign 'tValue' to 'F' because 'tValue' has a narrower escape scope than 'F'.
                 //     static void AssignValueToValue<T>(S<T> s, T tValue) { s.F = ref tValue; } // 1
                 Diagnostic(ErrorCode.ERR_RefAssignNarrower, "s.F = ref tValue").WithArguments("F", "tValue").WithLocation(9, 59),
+                // (10,59): error CS9079: Cannot ref-assign 'tRef' to 'F' because 'tRef' can only escape the current method through a return statement.
+                //     static void AssignRefToValue<T>(S<T> s, ref T tRef) { s.F = ref tRef; } // 14
+                Diagnostic(ErrorCode.ERR_RefAssignReturnOnly, "s.F = ref tRef").WithArguments("F", "tRef").WithLocation(10, 59),
                 // (11,75): error CS8374: Cannot ref-assign 'tOut' to 'F' because 'tOut' has a narrower escape scope than 'F'.
                 //     static void AssignOutToValue<T>(S<T> s, out T tOut) { tOut = default; s.F = ref tOut; } // 2
                 Diagnostic(ErrorCode.ERR_RefAssignNarrower, "s.F = ref tOut").WithArguments("F", "tOut").WithLocation(11, 75),
@@ -5964,6 +5967,9 @@ class Program
                 // (14,64): error CS8374: Cannot ref-assign 'tValue' to 'F' because 'tValue' has a narrower escape scope than 'F'.
                 //     static void AssignValueToRef<T>(ref S<T> sRef, T tValue) { sRef.F = ref tValue; } // 4
                 Diagnostic(ErrorCode.ERR_RefAssignNarrower, "sRef.F = ref tValue").WithArguments("F", "tValue").WithLocation(14, 64),
+                // (15,64): error CS9079: Cannot ref-assign 'tRef' to 'F' because 'tRef' can only escape the current method through a return statement.
+                //     static void AssignRefToRef<T>(ref S<T> sRef, ref T tRef) { sRef.F = ref tRef; } // 15
+                Diagnostic(ErrorCode.ERR_RefAssignReturnOnly, "sRef.F = ref tRef").WithArguments("F", "tRef").WithLocation(15, 64),
                 // (16,80): error CS8374: Cannot ref-assign 'tOut' to 'F' because 'tOut' has a narrower escape scope than 'F'.
                 //     static void AssignOutToRef<T>(ref S<T> sRef, out T tOut) { tOut = default; sRef.F = ref tOut; } // 5
                 Diagnostic(ErrorCode.ERR_RefAssignNarrower, "sRef.F = ref tOut").WithArguments("F", "tOut").WithLocation(16, 80),
@@ -6004,26 +6010,12 @@ ref struct S<T>
 
 class Program
 {
-    static void AssignRefToValue<T>(S<T> s, ref T tRef) { s.F = ref tRef; }
-
-    static void AssignRefToRef<T>(ref S<T> sRef, ref T tRef) { sRef.F = ref tRef; }
-
     static void AssignRefToOut<T>(out S<T> sOut, ref T tRef) { sOut = default; sOut.F = ref tRef; }
 
     static void Main()
     {
         int x, y;
         scoped S<int> s;
-
-        x = 1; y = 2;
-        s = new S<int>(ref x);
-        AssignRefToValue(s, ref y);
-        Console.WriteLine(s.F);
-
-        x = 3; y = 4;
-        s = new S<int>(ref x);
-        AssignRefToRef(ref s, ref y);
-        Console.WriteLine(s.F);
 
         x = 5; y = 6;
         s = new S<int>(ref x);
@@ -6033,28 +6025,9 @@ class Program
 }";
             comp = CreateCompilation(source, options: TestOptions.ReleaseExe, runtimeFeature: RuntimeFlag.ByRefFields);
             var verifier = CompileAndVerify(comp, verify: Verification.Skipped, expectedOutput: IncludeExpectedOutput(
-@"1
-4
-6"));
+@"6"));
+
             verifier.VerifyILMultiple(
-                "Program.AssignRefToValue<T>",
-@"{
-  // Code size        9 (0x9)
-  .maxstack  2
-  IL_0000:  ldarga.s   V_0
-  IL_0002:  ldarg.1
-  IL_0003:  stfld      ""ref T S<T>.F""
-  IL_0008:  ret
-}",
-                "Program.AssignRefToRef<T>",
-@"{
-  // Code size        8 (0x8)
-  .maxstack  2
-  IL_0000:  ldarg.0
-  IL_0001:  ldarg.1
-  IL_0002:  stfld      ""ref T S<T>.F""
-  IL_0007:  ret
-}",
                 "Program.AssignRefToOut<T>",
 @"{
   // Code size       15 (0xf)
@@ -6105,15 +6078,27 @@ class Program
                 // (9,59): error CS8374: Cannot ref-assign 'tValue' to 'F' because 'tValue' has a narrower escape scope than 'F'.
                 //     static void AssignValueToValue<T>(S<T> s, T tValue) { s.F = ref tValue; } // 1
                 Diagnostic(ErrorCode.ERR_RefAssignNarrower, "s.F = ref tValue").WithArguments("F", "tValue").WithLocation(9, 59),
+                // (10,59): error CS9079: Cannot ref-assign 'tRef' to 'F' because 'tRef' can only escape the current method through a return statement.
+                //     static void AssignRefToValue<T>(S<T> s, ref T tRef) { s.F = ref tRef; }
+                Diagnostic(ErrorCode.ERR_RefAssignReturnOnly, "s.F = ref tRef").WithArguments("F", "tRef").WithLocation(10, 59),
                 // (11,75): error CS8374: Cannot ref-assign 'tOut' to 'F' because 'tOut' has a narrower escape scope than 'F'.
                 //     static void AssignOutToValue<T>(S<T> s, out T tOut) { tOut = default; s.F = ref tOut; } // 2
                 Diagnostic(ErrorCode.ERR_RefAssignNarrower, "s.F = ref tOut").WithArguments("F", "tOut").WithLocation(11, 75),
+                // (12,59): error CS9079: Cannot ref-assign 'tIn' to 'F' because 'tIn' can only escape the current method through a return statement.
+                //     static void AssignInToValue<T>(S<T> s, in T tIn)    { s.F = ref tIn; }
+                Diagnostic(ErrorCode.ERR_RefAssignReturnOnly, "s.F = ref tIn").WithArguments("F", "tIn").WithLocation(12, 59),
                 // (14,64): error CS8374: Cannot ref-assign 'tValue' to 'F' because 'tValue' has a narrower escape scope than 'F'.
                 //     static void AssignValueToRef<T>(ref S<T> sRef, T tValue) { sRef.F = ref tValue; } // 3
                 Diagnostic(ErrorCode.ERR_RefAssignNarrower, "sRef.F = ref tValue").WithArguments("F", "tValue").WithLocation(14, 64),
+                // (15,64): error CS9079: Cannot ref-assign 'tRef' to 'F' because 'tRef' can only escape the current method through a return statement.
+                //     static void AssignRefToRef<T>(ref S<T> sRef, ref T tRef) { sRef.F = ref tRef; }
+                Diagnostic(ErrorCode.ERR_RefAssignReturnOnly, "sRef.F = ref tRef").WithArguments("F", "tRef").WithLocation(15, 64),
                 // (16,80): error CS8374: Cannot ref-assign 'tOut' to 'F' because 'tOut' has a narrower escape scope than 'F'.
                 //     static void AssignOutToRef<T>(ref S<T> sRef, out T tOut) { tOut = default; sRef.F = ref tOut; } // 4
                 Diagnostic(ErrorCode.ERR_RefAssignNarrower, "sRef.F = ref tOut").WithArguments("F", "tOut").WithLocation(16, 80),
+                // (17,64): error CS9079: Cannot ref-assign 'tIn' to 'F' because 'tIn' can only escape the current method through a return statement.
+                //     static void AssignInToRef<T>(ref S<T> sRef, in T tIn)    { sRef.F = ref tIn; }
+                Diagnostic(ErrorCode.ERR_RefAssignReturnOnly, "sRef.F = ref tIn").WithArguments("F", "tIn").WithLocation(17, 64),
                 // (19,80): error CS8374: Cannot ref-assign 'tValue' to 'F' because 'tValue' has a narrower escape scope than 'F'.
                 //     static void AssignValueToOut<T>(out S<T> sOut, T tValue) { sOut = default; sOut.F = ref tValue; } // 5
                 Diagnostic(ErrorCode.ERR_RefAssignNarrower, "sOut.F = ref tValue").WithArguments("F", "tValue").WithLocation(19, 80),
@@ -6145,12 +6130,6 @@ ref struct S<T>
 
 class Program
 {
-    static void AssignRefToValue<T>(S<T> s, ref T tRef) { s.F = ref tRef; }
-    static void AssignInToValue<T>(S<T> s, in T tIn)    { s.F = ref tIn; }
-
-    static void AssignRefToRef<T>(ref S<T> sRef, ref T tRef) { sRef.F = ref tRef; }
-    static void AssignInToRef<T>(ref S<T> sRef, in T tIn)    { sRef.F = ref tIn; }
-
     static void AssignRefToOut<T>(out S<T> sOut, ref T tRef) { sOut = default; sOut.F = ref tRef; }
     static void AssignInToOut<T>(out S<T> sOut, in T tIn)    { sOut = default; sOut.F = ref tIn; }
 
@@ -6158,24 +6137,6 @@ class Program
     {
         int x, y;
         scoped S<int> s;
-
-        x = 1; y = 2;
-        s = new S<int>(ref x);
-        AssignRefToValue(s, ref y);
-        Console.WriteLine(s.F);
-        x = 1; y = 2;
-        s = new S<int>(ref x);
-        AssignInToValue(s, y);
-        Console.WriteLine(s.F);
-
-        x = 3; y = 4;
-        s = new S<int>(ref x);
-        AssignRefToRef(ref s, ref y);
-        Console.WriteLine(s.F);
-        x = 3; y = 4;
-        s = new S<int>(ref x);
-        AssignInToRef(ref s, y);
-        Console.WriteLine(s.F);
 
         x = 5; y = 6;
         s = new S<int>(ref x);
@@ -6189,49 +6150,9 @@ class Program
 }";
             comp = CreateCompilation(source, options: TestOptions.ReleaseExe, runtimeFeature: RuntimeFlag.ByRefFields);
             var verifier = CompileAndVerify(comp, verify: Verification.Skipped, expectedOutput: IncludeExpectedOutput(
-@"1
-1
-4
-4
-6
+@"6
 6"));
             verifier.VerifyILMultiple(
-                "Program.AssignRefToValue<T>",
-@"{
-  // Code size        9 (0x9)
-  .maxstack  2
-  IL_0000:  ldarga.s   V_0
-  IL_0002:  ldarg.1
-  IL_0003:  stfld      ""ref readonly T S<T>.F""
-  IL_0008:  ret
-}",
-                "Program.AssignInToValue<T>",
-@"{
-  // Code size        9 (0x9)
-  .maxstack  2
-  IL_0000:  ldarga.s   V_0
-  IL_0002:  ldarg.1
-  IL_0003:  stfld      ""ref readonly T S<T>.F""
-  IL_0008:  ret
-}",
-                "Program.AssignRefToRef<T>",
-@"{
-  // Code size        8 (0x8)
-  .maxstack  2
-  IL_0000:  ldarg.0
-  IL_0001:  ldarg.1
-  IL_0002:  stfld      ""ref readonly T S<T>.F""
-  IL_0007:  ret
-}",
-                "Program.AssignInToRef<T>",
-@"{
-  // Code size        8 (0x8)
-  .maxstack  2
-  IL_0000:  ldarg.0
-  IL_0001:  ldarg.1
-  IL_0002:  stfld      ""ref readonly T S<T>.F""
-  IL_0007:  ret
-}",
                 "Program.AssignRefToOut<T>",
 @"{
   // Code size       15 (0xf)
@@ -8538,9 +8459,10 @@ public ref struct StructWithRefField
         }
 
         // Breaking change in C#11: Instance method on ref struct instance may capture unscoped ref or in arguments.
+        // No longer a breaking change
         [Theory]
         [CombinatorialData]
-        public void BreakingChange_RefStructInstanceMethodMayCaptureRef(
+        public void InstanceMethodCannotCaptureRefByRef(
             [CombinatorialValues(LanguageVersion.CSharp10, LanguageVersion.CSharp11)] LanguageVersion languageVersionA,
             [CombinatorialValues(LanguageVersion.CSharp10, LanguageVersion.CSharp11)] LanguageVersion languageVersionB,
             bool useCompilationReference)
@@ -8565,20 +8487,7 @@ public ref struct StructWithRefField
     }
 }";
             comp = CreateCompilation(sourceB, references: new[] { refA }, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersionB));
-            if (languageVersionA == LanguageVersion.CSharp10)
-            {
-                comp.VerifyEmitDiagnostics();
-            }
-            else
-            {
-                comp.VerifyEmitDiagnostics(
-                    // (6,9): error CS8350: This combination of arguments to 'R<int>.MayCaptureArg(ref int)' is disallowed because it may expose variables referenced by parameter 't' outside of their declaration scope
-                    //         r.MayCaptureArg(ref i);
-                    Diagnostic(ErrorCode.ERR_CallArgMixing, "r.MayCaptureArg(ref i)").WithArguments("R<int>.MayCaptureArg(ref int)", "t").WithLocation(6, 9),
-                    // (6,29): error CS8168: Cannot return local 'i' by reference because it is not a ref local
-                    //         r.MayCaptureArg(ref i);
-                    Diagnostic(ErrorCode.ERR_RefReturnLocal, "i").WithArguments("i").WithLocation(6, 29));
-            }
+            comp.VerifyEmitDiagnostics();
         }
 
         [Theory]
@@ -15468,12 +15377,9 @@ class Program
 }";
             var comp = CreateCompilation(source, runtimeFeature: RuntimeFlag.ByRefFields);
             comp.VerifyDiagnostics(
-                // (7,9): error CS8350: This combination of arguments to 'R.M2(ref int)' is disallowed because it may expose variables referenced by parameter 'i' outside of their declaration scope
-                //         M2(ref i);
-                Diagnostic(ErrorCode.ERR_CallArgMixing, "M2(ref i)").WithArguments("R.M2(ref int)", "i").WithLocation(7, 9),
-                // (7,16): error CS8168: Cannot return local 'i' by reference because it is not a ref local
-                //         M2(ref i);
-                Diagnostic(ErrorCode.ERR_RefReturnLocal, "i").WithArguments("i").WithLocation(7, 16));
+                // (11,9): error CS9079: Cannot ref-assign 'i' to '_i' because 'i' can only escape the current method through a return statement.
+                //         _i = ref i;
+                Diagnostic(ErrorCode.ERR_RefAssignReturnOnly, "_i = ref i").WithArguments("_i", "i").WithLocation(11, 9));
         }
 
         [WorkItem(63016, "https://github.com/dotnet/roslyn/issues/63016")]
@@ -15507,12 +15413,9 @@ ref struct S
 }";
             var comp = CreateCompilation(new[] { sourceA, sourceB }, options: TestOptions.UnsafeReleaseDll, runtimeFeature: RuntimeFlag.ByRefFields);
             comp.VerifyDiagnostics(
-                // (8,9): error CS8350: This combination of arguments to 'S.M2(ref int)' is disallowed because it may expose variables referenced by parameter 'i' outside of their declaration scope
-                //         M2(ref s[0]);
-                Diagnostic(ErrorCode.ERR_CallArgMixing, "M2(ref s[0])").WithArguments("S.M2(ref int)", "i").WithLocation(8, 9),
-                // (8,16): error CS8352: Cannot use variable 's' in this context because it may expose referenced variables outside of their declaration scope
-                //         M2(ref s[0]);
-                Diagnostic(ErrorCode.ERR_EscapeVariable, "s").WithArguments("s").WithLocation(8, 16));
+                // (12,9): error CS9079: Cannot ref-assign 'i' to '_i' because 'i' can only escape the current method through a return statement.
+                //         _i = ref i;
+                Diagnostic(ErrorCode.ERR_RefAssignReturnOnly, "_i = ref i").WithArguments("_i", "i").WithLocation(12, 9));
         }
 
         [Fact]
@@ -17939,14 +17842,17 @@ struct B
     {
         get { return default; }
         [UnscopedRef]
-        set { value.F = ref this; }
+        set { value.F = ref this; } // 2
     }
 }";
             var comp = CreateCompilation(new[] { source, UnscopedRefAttributeDefinition }, runtimeFeature: RuntimeFlag.ByRefFields);
             comp.VerifyDiagnostics(
                 // (11,15): error CS8374: Cannot ref-assign 'this' to 'F' because 'this' has a narrower escape scope than 'F'.
                 //         set { value.F = ref this; } // 1
-                Diagnostic(ErrorCode.ERR_RefAssignNarrower, "value.F = ref this").WithArguments("F", "this").WithLocation(11, 15));
+                Diagnostic(ErrorCode.ERR_RefAssignNarrower, "value.F = ref this").WithArguments("F", "this").WithLocation(11, 15),
+                // (20,15): error CS9079: Cannot ref-assign 'this' to 'F' because 'this' can only escape the current method through a return statement.
+                //         set { value.F = ref this; } // 2
+                Diagnostic(ErrorCode.ERR_RefAssignReturnOnly, "value.F = ref this").WithArguments("F", "this").WithLocation(20, 15));
         }
 
         [Fact]
@@ -21772,19 +21678,54 @@ struct S<T> : System.IDisposable
                         field = ref i;
                     }
 
-                    static void M1(ref int i, ref RS rs) => rs = new RS(ref i);
+                    static void M1(ref int i, ref RS rs) => rs = new RS(ref i); // 1
                     static void M2(ref int i, out RS rs) => rs = new RS(ref i);
                 }
                 """;
             var comp = CreateCompilation(source, runtimeFeature: RuntimeFlag.ByRefFields);
-            comp.VerifyDiagnostics();
+            comp.VerifyDiagnostics(
+                // (9,50): error CS8347: Cannot use a result of 'RS.RS(ref int)' in this context because it may expose variables referenced by parameter 'i' outside of their declaration scope
+                //     static void M1(ref int i, ref RS rs) => rs = new RS(ref i); // 1
+                Diagnostic(ErrorCode.ERR_EscapeCall, "new RS(ref i)").WithArguments("RS.RS(ref int)", "i").WithLocation(9, 50),
+                // (9,61): error CS9077: Cannot return a parameter by reference 'i' through a ref parameter; it can only be returned in a return statement
+                //     static void M1(ref int i, ref RS rs) => rs = new RS(ref i); // 1
+                Diagnostic(ErrorCode.ERR_RefReturnOnlyParameter, "i").WithArguments("i").WithLocation(9, 61));
+        }
+
+        /// <summary>
+        /// Out and in have different return scopes
+        /// </summary>
+        [Fact]
+        public void OutReturnOnly_2()
+        {
+            var source = """
+                readonly ref struct RS
+                {
+                    readonly ref readonly int field;
+                    public RS(in int i)
+                    {
+                        field = ref i;
+                    }
+
+                    static void M1(in int i, ref RS rs) => rs = new RS(in i); // 1
+                    static void M2(in int i, out RS rs) => rs = new RS(in i);
+                }
+                """;
+            var comp = CreateCompilation(source, runtimeFeature: RuntimeFlag.ByRefFields);
+            comp.VerifyDiagnostics(
+                // (9,49): error CS8347: Cannot use a result of 'RS.RS(in int)' in this context because it may expose variables referenced by parameter 'i' outside of their declaration scope
+                //     static void M1(in int i, ref RS rs) => rs = new RS(in i); // 1
+                Diagnostic(ErrorCode.ERR_EscapeCall, "new RS(in i)").WithArguments("RS.RS(in int)", "i").WithLocation(9, 49),
+                // (9,59): error CS9077: Cannot return a parameter by reference 'i' through a ref parameter; it can only be returned in a return statement
+                //     static void M1(in int i, ref RS rs) => rs = new RS(in i); // 1
+                Diagnostic(ErrorCode.ERR_RefReturnOnlyParameter, "i").WithArguments("i").WithLocation(9, 59));
         }
 
         /// <summary>
         /// Out and ref have different return scopes
         /// </summary>
         [Fact]
-        public void OutReturnOnly_2()
+        public void OutReturnOnly_3()
         {
             var source = """
                 using System.Diagnostics.CodeAnalysis;
@@ -21814,7 +21755,7 @@ struct S<T> : System.IDisposable
 
         [Fact]
         [WorkItem(62094, "https://github.com/dotnet/roslyn/issues/62094")]
-        public void OutReturnOnly_3()
+        public void OutReturnOnly_4()
         {
             var source = """
                 ref struct R

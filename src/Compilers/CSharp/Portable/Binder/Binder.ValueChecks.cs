@@ -958,9 +958,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             return parameter switch
             {
-                { RefKind: RefKind.None } or { EffectiveScope: not DeclarationScope.Unscoped } => Binder.CurrentMethodScope,
-                { Type.IsRefLikeType: true } => Binder.ReturnOnlyScope,
-                _ => Binder.CallingMethodScope
+                { RefKind: RefKind.None } => Binder.CurrentMethodScope,
+                { EffectiveScope: DeclarationScope.RefScoped } => Binder.CurrentMethodScope,
+                _ => Binder.ReturnOnlyScope
             };
         }
 
