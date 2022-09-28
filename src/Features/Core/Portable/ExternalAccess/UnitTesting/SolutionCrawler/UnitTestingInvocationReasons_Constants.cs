@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                                     UnitTestingPredefinedInvocationReasons.SolutionRemoved,
                                     UnitTestingPredefinedInvocationReasons.DocumentRemoved));
 
-        #if false // Not used in unit testing crawling
+#if false // Not used in unit testing crawling
         public static readonly UnitTestingInvocationReasons DocumentOpened =
             new(
                 ImmutableHashSet.Create<string>(
