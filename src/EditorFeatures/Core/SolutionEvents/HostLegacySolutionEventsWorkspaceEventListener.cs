@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.LegacySolutionEvents
         private void OnWorkspaceChanged(object? sender, WorkspaceChangeEventArgs e)
             => _eventQueue.AddWork(e);
 
-        private async ValueTask ProcessWorkspaceChangeEventsAsync(ImmutableSegmentedList<WorkspaceChangeEventArgs> events, CancellationToken cancellationToken)
+        private async ValueTask ProcessWorkspaceChangeEventsAsync(ImmutableSegmentedList<WorkspaceChangeEventArgs> eventArgs, CancellationToken cancellationToken)
         {
             if (events.IsEmpty)
                 return;
@@ -71,23 +71,20 @@ namespace Microsoft.CodeAnalysis.LegacySolutionEvents
             {
                 var aggregationService = workspace.Services.GetRequiredService<ILegacySolutionEventsAggregationService>();
 
-                foreach (var ev in events)
+                foreach (var args in events)
                     await aggregationService.OnWorkspaceChangedAsync(ev, cancellationToken).ConfigureAwait(false);
             }
             else
             {
-                foreach (var ev in events)
-                    await ProcessEventAsync(client, ev, cancellationToken).ConfigureAwait(false);
+                foreach (var args in events)
+                {
+                    await client.TryInvokeAsync<IRemoteLegacySolutionEventsAggregationService>(
+                        args.OldSolution, args.NewSolution,
+                        (service, oldSolutionChecksum, newSolutionChecksum, cancellationToken) =>
+                            service.OnWorkspaceChangedAsync(oldSolutionChecksum, newSolutionChecksum, args.Kind, args.ProjectId, args.DocumentId, cancellationToken),
+                        cancellationToken).ConfigureAwait(false);
+                }
             }
-        }
-
-        private static async ValueTask ProcessEventAsync(RemoteHostClient client, WorkspaceChangeEventArgs args, CancellationToken cancellationToken)
-        {
-            await client.TryInvokeAsync<IRemoteLegacySolutionEventsAggregationService>(
-                args.OldSolution, args.NewSolution,
-                (service, oldSolutionChecksum, newSolutionChecksum, cancellationToken) =>
-                    service.OnWorkspaceChangedAsync(oldSolutionChecksum, newSolutionChecksum, args.Kind, args.ProjectId, args.DocumentId, cancellationToken),
-                cancellationToken).ConfigureAwait(false);
         }
     }
 }
