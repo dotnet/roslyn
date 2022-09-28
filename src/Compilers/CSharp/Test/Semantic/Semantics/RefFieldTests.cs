@@ -4119,7 +4119,7 @@ class Program
         }
 
         /// <summary>
-        /// Ensure that readonly members / types is properly accounted for
+        /// Ensure that readonly members / types are properly accounted for
         /// </summary>
         [Fact]
         public void MethodArgumentsMustMatch_13()
@@ -21370,33 +21370,33 @@ struct S<T> : System.IDisposable
                 static void M3(out S p1, ref S p2) {
                     p1 = default;
                     p2.refField = ref p1.field; // 3
-                    p2.refField = ref p1.refField; // 9
+                    p2.refField = ref p1.refField; // 4
                 }
 
                 // The [UnscopedRef] moves `out` to default RSTE which is *return only*
                 static void M4([UnscopedRef] out S p1, ref S p2) {
                     p1 = default;
-                    p2.refField = ref p1.field; // 4
-                    p2.refField = ref p1.refField; // Okay
+                    p2.refField = ref p1.field; // 5
+                    p2.refField = ref p1.refField; // 6
                 }
 
                 static void M5(ref S p1, ref S2 p2) {
-                    p2 = Inner1(ref p1); // 5
-                    p2 = Inner2(ref p1); // Okay
-                }
-
-                static void M6(ref S p1, out S2 p2) {
-                    p2 = Inner1(ref p1); // Okay (was 6)
-                    p2 = Inner2(ref p1); // Okay
-                }
-
-                static void M7(scoped ref S p1, ref S2 p2) {
                     p2 = Inner1(ref p1); // 7
                     p2 = Inner2(ref p1); // Okay
                 }
 
+                static void M6(ref S p1, out S2 p2) {
+                    p2 = Inner1(ref p1); // Okay
+                    p2 = Inner2(ref p1); // Okay
+                }
+
+                static void M7(scoped ref S p1, ref S2 p2) {
+                    p2 = Inner1(ref p1); // 8
+                    p2 = Inner2(ref p1); // Okay
+                }
+
                 static S2 M8(scoped ref S p) {
-                    if (condition()) return Inner1(ref p); // 8
+                    if (condition()) return Inner1(ref p); // 9
                     if (condition()) return Inner2(ref p); // Okay
 
                     throw null!;
@@ -21434,29 +21434,33 @@ struct S<T> : System.IDisposable
                 //     p2.refField = ref p1.field; // 3
                 Diagnostic(ErrorCode.ERR_RefAssignNarrower, "p2.refField = ref p1.field").WithArguments("refField", "p1.field").WithLocation(19, 5),
                 // (20,5): error CS9079: Cannot ref-assign 'p1.refField' to 'refField' because 'p1.refField' can only escape the current method through a return statement.
-                //     p2.refField = ref p1.refField; // 9
+                //     p2.refField = ref p1.refField; // 4
                 Diagnostic(ErrorCode.ERR_RefAssignReturnOnly, "p2.refField = ref p1.refField").WithArguments("refField", "p1.refField").WithLocation(20, 5),
                 // (26,5): error CS9079: Cannot ref-assign 'p1.field' to 'refField' because 'p1.field' can only escape the current method through a return statement.
-                //     p2.refField = ref p1.field; // 4
+                //     p2.refField = ref p1.field; // 5
                 Diagnostic(ErrorCode.ERR_RefAssignReturnOnly, "p2.refField = ref p1.field").WithArguments("refField", "p1.field").WithLocation(26, 5),
+                // (27,5): error CS9079: Cannot ref-assign 'p1.refField' to 'refField' because 'p1.refField' can only escape the current method through a return statement.
+                //     p2.refField = ref p1.refField; // 6
+                Diagnostic(ErrorCode.ERR_RefAssignReturnOnly, "p2.refField = ref p1.refField").WithArguments("refField", "p1.refField").WithLocation(27, 5),
                 // (31,10): error CS8347: Cannot use a result of 'Inner1(ref S)' in this context because it may expose variables referenced by parameter 's' outside of their declaration scope
-                //     p2 = Inner1(ref p1); // 5
+                //     p2 = Inner1(ref p1); // 7
                 Diagnostic(ErrorCode.ERR_EscapeCall, "Inner1(ref p1)").WithArguments("Inner1(ref S)", "s").WithLocation(31, 10),
                 // (31,21): error CS9077: Cannot return a parameter by reference 'p1' through a ref parameter; it can only be returned in a return statement
-                //     p2 = Inner1(ref p1); // 5
+                //     p2 = Inner1(ref p1); // 7
                 Diagnostic(ErrorCode.ERR_RefReturnOnlyParameter, "p1").WithArguments("p1").WithLocation(31, 21),
                 // (41,10): error CS8347: Cannot use a result of 'Inner1(ref S)' in this context because it may expose variables referenced by parameter 's' outside of their declaration scope
-                //     p2 = Inner1(ref p1); // 7
+                //     p2 = Inner1(ref p1); // 8
                 Diagnostic(ErrorCode.ERR_EscapeCall, "Inner1(ref p1)").WithArguments("Inner1(ref S)", "s").WithLocation(41, 10),
                 // (41,21): error CS9075: Cannot return a parameter by reference 'p1' because it is scoped to the current method
-                //     p2 = Inner1(ref p1); // 7
+                //     p2 = Inner1(ref p1); // 8
                 Diagnostic(ErrorCode.ERR_RefReturnScopedParameter, "p1").WithArguments("p1").WithLocation(41, 21),
                 // (46,29): error CS8347: Cannot use a result of 'Inner1(ref S)' in this context because it may expose variables referenced by parameter 's' outside of their declaration scope
-                //     if (condition()) return Inner1(ref p); // 8
+                //     if (condition()) return Inner1(ref p); // 9
                 Diagnostic(ErrorCode.ERR_EscapeCall, "Inner1(ref p)").WithArguments("Inner1(ref S)", "s").WithLocation(46, 29),
                 // (46,40): error CS9075: Cannot return a parameter by reference 'p' because it is scoped to the current method
-                //     if (condition()) return Inner1(ref p); // 8
-                Diagnostic(ErrorCode.ERR_RefReturnScopedParameter, "p").WithArguments("p").WithLocation(46, 40));
+                //     if (condition()) return Inner1(ref p); // 9
+                Diagnostic(ErrorCode.ERR_RefReturnScopedParameter, "p").WithArguments("p").WithLocation(46, 40)
+                );
         }
 
         [Fact, WorkItem(63526, "https://github.com/dotnet/roslyn/issues/63526")]
@@ -21482,33 +21486,33 @@ struct S<T> : System.IDisposable
                 static unsafe void M3(out S p1, ref S p2) {
                     p1 = default;
                     p2.refField = ref p1.field; // 3
-                    p2.refField = ref p1.refField; // 9
+                    p2.refField = ref p1.refField; // 4
                 }
 
                 // The [UnscopedRef] moves `out` to default RSTE which is *return only*
                 static unsafe void M4([UnscopedRef] out S p1, ref S p2) {
                     p1 = default;
-                    p2.refField = ref p1.field; // 4
-                    p2.refField = ref p1.refField; // Okay
+                    p2.refField = ref p1.field; // 5
+                    p2.refField = ref p1.refField; // 6
                 }
 
                 static unsafe void M5(ref S p1, ref S2 p2) {
-                    p2 = Inner1(ref p1); // 5
-                    p2 = Inner2(ref p1); // Okay
-                }
-
-                static unsafe void M6(ref S p1, out S2 p2) {
-                    p2 = Inner1(ref p1); // Okay (was 6)
-                    p2 = Inner2(ref p1); // Okay
-                }
-
-                static unsafe void M7(scoped ref S p1, ref S2 p2) {
                     p2 = Inner1(ref p1); // 7
                     p2 = Inner2(ref p1); // Okay
                 }
 
+                static unsafe void M6(ref S p1, out S2 p2) {
+                    p2 = Inner1(ref p1); // Okay
+                    p2 = Inner2(ref p1); // Okay
+                }
+
+                static unsafe void M7(scoped ref S p1, ref S2 p2) {
+                    p2 = Inner1(ref p1); // 8
+                    p2 = Inner2(ref p1); // Okay
+                }
+
                 static unsafe S2 M8(scoped ref S p) {
-                    if (condition()) return Inner1(ref p); // 8
+                    if (condition()) return Inner1(ref p); // 9
                     if (condition()) return Inner2(ref p); // Okay
 
                     throw null!;
@@ -21546,20 +21550,24 @@ struct S<T> : System.IDisposable
                 //     p2.refField = ref p1.field; // 3
                 Diagnostic(ErrorCode.WRN_RefAssignNarrower, "p2.refField = ref p1.field").WithArguments("refField", "p1.field").WithLocation(19, 5),
                 // (20,5): warning CS9093: This ref-assigns 'p1.refField' to 'refField' but 'p1.refField' can only escape the current method through a return statement.
-                //     p2.refField = ref p1.refField; // 9
+                //     p2.refField = ref p1.refField; // 4
                 Diagnostic(ErrorCode.WRN_RefAssignReturnOnly, "p2.refField = ref p1.refField").WithArguments("refField", "p1.refField").WithLocation(20, 5),
                 // (26,5): warning CS9093: This ref-assigns 'p1.field' to 'refField' but 'p1.field' can only escape the current method through a return statement.
-                //     p2.refField = ref p1.field; // 4
+                //     p2.refField = ref p1.field; // 5
                 Diagnostic(ErrorCode.WRN_RefAssignReturnOnly, "p2.refField = ref p1.field").WithArguments("refField", "p1.field").WithLocation(26, 5),
+                // (27,5): warning CS9093: This ref-assigns 'p1.refField' to 'refField' but 'p1.refField' can only escape the current method through a return statement.
+                //     p2.refField = ref p1.refField; // 6
+                Diagnostic(ErrorCode.WRN_RefAssignReturnOnly, "p2.refField = ref p1.refField").WithArguments("refField", "p1.refField").WithLocation(27, 5),
                 // (31,21): warning CS9094: This returns a parameter by reference 'p1' through a ref parameter; but it can only safely be returned in a return statement
-                //     p2 = Inner1(ref p1); // 5
+                //     p2 = Inner1(ref p1); // 7
                 Diagnostic(ErrorCode.WRN_RefReturnOnlyParameter, "p1").WithArguments("p1").WithLocation(31, 21),
                 // (41,21): warning CS9088: This returns a parameter by reference 'p1' but it is scoped to the current method
-                //     p2 = Inner1(ref p1); // 7
+                //     p2 = Inner1(ref p1); // 8
                 Diagnostic(ErrorCode.WRN_RefReturnScopedParameter, "p1").WithArguments("p1").WithLocation(41, 21),
                 // (46,40): warning CS9088: This returns a parameter by reference 'p' but it is scoped to the current method
-                //     if (condition()) return Inner1(ref p); // 8
-                Diagnostic(ErrorCode.WRN_RefReturnScopedParameter, "p").WithArguments("p").WithLocation(46, 40));
+                //     if (condition()) return Inner1(ref p); // 9
+                Diagnostic(ErrorCode.WRN_RefReturnScopedParameter, "p").WithArguments("p").WithLocation(46, 40)
+                );
         }
 
         [Fact, WorkItem(63526, "https://github.com/dotnet/roslyn/issues/63526")]
@@ -21727,6 +21735,10 @@ struct S<T> : System.IDisposable
             comp.VerifyDiagnostics();
         }
 
+        /// <summary>
+        /// Validate that this is properly represented as an  out parameter in a constructor and
+        /// can capture ref as ref.
+        /// </summary>
         [Fact]
         public void OutReturnOnly_Ctor1()
         {
@@ -21787,6 +21799,7 @@ struct S<T> : System.IDisposable
         public void OutReturnOnly_2()
         {
             var source = """
+                using System.Diagnostics.CodeAnalysis;
                 ref struct RS
                 {
                     int field;
@@ -21798,16 +21811,17 @@ struct S<T> : System.IDisposable
 
                     static void M1(ref RS i, ref RS rs) => rs = new RS(ref i.field); // 1
                     static void M2(ref RS i, out RS rs) => rs = new RS(ref i.field);
+                    static void M3(ref RS i, [UnscopedRef] out RS rs) => rs = new RS(ref i.field);
                 }
                 """;
-            var comp = CreateCompilation(source, runtimeFeature: RuntimeFlag.ByRefFields);
+            var comp = CreateCompilation(new[] { source, UnscopedRefAttributeDefinition }, runtimeFeature: RuntimeFlag.ByRefFields);
             comp.VerifyDiagnostics(
-                // (10,49): error CS8347: Cannot use a result of 'RS.RS(ref int)' in this context because it may expose variables referenced by parameter 'i' outside of their declaration scope
+                // (11,49): error CS8347: Cannot use a result of 'RS.RS(ref int)' in this context because it may expose variables referenced by parameter 'i' outside of their declaration scope
                 //     static void M1(ref RS i, ref RS rs) => rs = new RS(ref i.field); // 1
-                Diagnostic(ErrorCode.ERR_EscapeCall, "new RS(ref i.field)").WithArguments("RS.RS(ref int)", "i").WithLocation(10, 49),
-                // (10,60): error CS9078: Cannot return by reference a member of parameter 'i' through a ref parameter; it can only be returned in a return statement
+                Diagnostic(ErrorCode.ERR_EscapeCall, "new RS(ref i.field)").WithArguments("RS.RS(ref int)", "i").WithLocation(11, 49),
+                // (11,60): error CS9078: Cannot return by reference a member of parameter 'i' through a ref parameter; it can only be returned in a return statement
                 //     static void M1(ref RS i, ref RS rs) => rs = new RS(ref i.field); // 1
-                Diagnostic(ErrorCode.ERR_RefReturnOnlyParameter2, "i").WithArguments("i").WithLocation(10, 60));
+                Diagnostic(ErrorCode.ERR_RefReturnOnlyParameter2, "i").WithArguments("i").WithLocation(11, 60));
         }
     }
 }
