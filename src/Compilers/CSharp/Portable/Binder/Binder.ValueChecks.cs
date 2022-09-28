@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         /// <summary>
         /// The destination in a method arguments must match (MAMM) check. This is 
-        /// created primarily for a ref and out arguments of a ref struct. It also applies
+        /// created primarily for ref and out arguments of a ref struct. It also applies
         /// to function pointer this and arglist arguments.
         /// </summary>
         private readonly struct MixableDestination
@@ -40,23 +40,24 @@ namespace Microsoft.CodeAnalysis.CSharp
             /// <summary>
             /// In the case this is the argument for a ref / out parameter this will refer
             /// to the corresponding parameter. This will be null in cases like arguments 
-            /// passed to an arglist
+            /// passed to an arglist.
             /// </summary>
             internal ParameterSymbol? Parameter { get; }
 
             /// <summary>
             /// This destination can only be written to by arguments that have an equal or
-            /// wider this escape level. An destination that is <see cref="EscapeLevel.CallingMethod"/>
-            /// can never be written to by an argument that has a level of <see cref="EscapeLevel.ReturnOnly"/>
+            /// wider escape level. An destination that is <see cref="EscapeLevel.CallingMethod"/>
+            /// can never be written to by an argument that has a level of <see cref="EscapeLevel.ReturnOnly"/>.
             /// </summary>
             internal EscapeLevel EscapeLevel { get; }
 
             internal MixableDestination(ParameterSymbol parameter, BoundExpression argument)
             {
                 Debug.Assert(parameter.RefKind.IsWritableReference() && parameter.Type.IsRefLikeType);
+                Debug.Assert(GetParameterValEscapeLevel(parameter, useUpdatedEscapeRules: true).HasValue);
                 Argument = argument;
                 Parameter = parameter;
-                EscapeLevel = parameter.RefKind == RefKind.Out ? EscapeLevel.ReturnOnly : EscapeLevel.CallingMethod;
+                EscapeLevel = GetParameterValEscapeLevel(parameter, useUpdatedEscapeRules: true)!.Value; ;
             }
 
             internal MixableDestination(BoundExpression argument, EscapeLevel escapeLevel)
@@ -79,7 +80,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Represents an argument being analyzed for escape analysis purposes. This represents the
         /// argument as written. For example a `ref x` will only be represented by a single 
-        /// <see cref="EscapeArgument"/>
+        /// <see cref="EscapeArgument"/>.
         /// </summary>
         private readonly struct EscapeArgument
         {
@@ -115,7 +116,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Represents a value being analyzed for escape analysis purposes. This represents the value 
         /// as it contributes to escape analysis which means arguments can show up multiple times. For
-        /// example `ref x` will be represented as both a val and ref escape
+        /// example `ref x` will be represented as both a val and ref escape.
         /// </summary>
         private readonly struct EscapeValue
         {
@@ -129,7 +130,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             /// <summary>
             /// This is _only_ useful when calculating MAMM as it dictates to what level the value 
             /// escaped to. That allows it to be filtered against the parameters it could possibly
-            /// write to
+            /// write to.
             /// </summary>
             internal EscapeLevel EscapeLevel { get; }
 
@@ -2087,14 +2088,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Returns the set of <see cref="EscapeValue"/> to an invocation that impact ref analysis. 
         /// This will filter out everything that could never meaningfully contribute to ref analysis. For
-        /// example 
+        /// example: 
         ///   - For ref arguments it will return an <see cref="EscapeValue"/> for both ref and 
-        ///     value escape (if appropriate based on scoped-ness of associated parameters)
+        ///     value escape (if appropriate based on scoped-ness of associated parameters).
         ///   - It will remove value escape for args which correspond to scoped parameters. 
         ///   - It will remove value escape for non-ref struct.
         ///   - It will remove ref escape for args which correspond to scoped refs.
-        /// Optionall this will also return all of the <see cref="MixableDestination" /> that 
-        /// result from this invocation. That is useful for MAMM analysis
+        /// Optional this will also return all of the <see cref="MixableDestination" /> that 
+        /// result from this invocation. That is useful for MAMM analysis.
         /// </summary>
         private void GetEscapeValuesForUpdatedRules(
             Symbol symbol,
@@ -2144,14 +2145,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                     continue;
                 }
 
-                if (parameter.RefKind != RefKind.None && includeRefEscape && GetParameterRefEscapeLevel(parameter) is { } refEscapeLevel)
-                {
-                    escapeValues.Add(new EscapeValue(parameter, argument, refEscapeLevel, isRefEscape: true));
-                }
-
                 if (parameter.Type.IsRefLikeType && GetParameterValEscapeLevel(parameter, useUpdatedEscapeRules: true) is { } valEscapeLevel)
                 {
                     escapeValues.Add(new EscapeValue(parameter, argument, valEscapeLevel, isRefEscape: false));
+                }
+
+                // It's important to check values then references. Flipping will change the set of errors 
+                // produced by MAMM because of the CheckRefEscape / CheckValEscape calls.
+                if (parameter.RefKind != RefKind.None && includeRefEscape && GetParameterRefEscapeLevel(parameter) is { } refEscapeLevel)
+                {
+                    escapeValues.Add(new EscapeValue(parameter, argument, refEscapeLevel, isRefEscape: true));
                 }
             }
 
@@ -2329,7 +2332,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     // This checks to see if the EscapeValue could ever be assigned to this argument based 
                     // on comparing the EscapeLevel of both. If this could never be assigned due to 
-                    // this then we don't need to consider it for MAMM analysis
+                    // this then we don't need to consider it for MAMM analysis.
                     if (!mixableArg.IsAssignableFrom(escapeKind))
                     {
                         continue;
@@ -3220,11 +3223,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             switch (expr.Kind)
             {
                 case BoundKind.ThisReference:
-                    if (this.ContainingMember() is MethodSymbol { MethodKind: MethodKind.Constructor })
-                    {
-                        return Binder.ReturnOnlyScope;
-                    }
-                    return Binder.CallingMethodScope;
+                    var thisParam = ((MethodSymbol)this.ContainingMember()).ThisParameter;
+                    Debug.Assert(thisParam.Type.Equals(((BoundThisReference)expr).Type, TypeCompareKind.ConsiderEverything));
+                    return GetParameterValEscape(thisParam);
                 case BoundKind.DefaultLiteral:
                 case BoundKind.DefaultExpression:
                 case BoundKind.Utf8String:
