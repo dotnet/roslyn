@@ -4,12 +4,13 @@
 
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CommonLanguageServerProtocol.Framework;
 using StreamJsonRpc;
 
 namespace Microsoft.CodeAnalysis.LanguageServer
 {
-    internal interface ILspLoggerFactory
+    internal interface ILspServiceLoggerFactory
     {
-        Task<ILspLogger> CreateLoggerAsync(string serverTypeName, JsonRpc jsonRpc, CancellationToken cancellationToken);
+        Task<ILspServiceLogger> CreateLoggerAsync(string serverTypeName, JsonRpc jsonRpc, CancellationToken cancellationToken);
     }
 }
