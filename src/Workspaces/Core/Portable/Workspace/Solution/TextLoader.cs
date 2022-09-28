@@ -18,7 +18,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
-    public readonly record struct LoadTextOptions(SourceHashAlgorithm ChecksumAlgorithm);
+    internal readonly record struct LoadTextOptions(SourceHashAlgorithm ChecksumAlgorithm);
 
     /// <summary>
     /// A class that represents access to a source text and its version from a storage location.
@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis
         /// <exception cref="IOException" />
         /// <exception cref="InvalidDataException"/>
         /// <exception cref="OperationCanceledException"/>
-        public virtual Task<TextAndVersion> LoadTextAndVersionAsync(LoadTextOptions options, CancellationToken cancellationToken)
+        internal virtual Task<TextAndVersion> LoadTextAndVersionAsync(LoadTextOptions options, CancellationToken cancellationToken)
         {
 #pragma warning disable CS0618 // Type or member is obsolete
             if (s_isObsoleteLoadTextAndVersionAsyncOverriden.GetValue(
@@ -72,7 +72,6 @@ namespace Microsoft.CodeAnalysis
         /// <exception cref="IOException" />
         /// <exception cref="InvalidDataException"/>
         /// <exception cref="OperationCanceledException"/>
-        [Obsolete("Use LoadTextAndVersionAsync(CancellationToken) instead")]
         public virtual Task<TextAndVersion> LoadTextAndVersionAsync(Workspace? workspace, DocumentId? documentId, CancellationToken cancellationToken)
             => LoadTextAndVersionAsync(new LoadTextOptions(SourceHashAlgorithms.Default), cancellationToken);
 
@@ -208,7 +207,7 @@ namespace Microsoft.CodeAnalysis
             internal TextDocumentLoader(TextAndVersion textAndVersion)
                 => _textAndVersion = textAndVersion;
 
-            public override Task<TextAndVersion> LoadTextAndVersionAsync(LoadTextOptions options, CancellationToken cancellationToken)
+            internal override Task<TextAndVersion> LoadTextAndVersionAsync(LoadTextOptions options, CancellationToken cancellationToken)
                 => Task.FromResult(_textAndVersion);
 
             internal override TextAndVersion LoadTextAndVersionSynchronously(LoadTextOptions options, CancellationToken cancellationToken)
@@ -231,7 +230,7 @@ namespace Microsoft.CodeAnalysis
             internal override string? FilePath
                 => _filePath;
 
-            public override Task<TextAndVersion> LoadTextAndVersionAsync(LoadTextOptions options, CancellationToken cancellationToken)
+            internal override Task<TextAndVersion> LoadTextAndVersionAsync(LoadTextOptions options, CancellationToken cancellationToken)
                 => Task.FromResult(LoadTextAndVersionSynchronously(options, cancellationToken));
 
             internal override TextAndVersion LoadTextAndVersionSynchronously(LoadTextOptions options, CancellationToken cancellationToken)

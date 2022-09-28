@@ -81,7 +81,6 @@ public class TextLoaderTests
     {
         public static readonly TextAndVersion Value = TextAndVersion.Create(SourceText.From(""), VersionStamp.Default);
 
-        [Obsolete]
         public override Task<TextAndVersion> LoadTextAndVersionAsync(Workspace? workspace, DocumentId? documentId, CancellationToken cancellationToken)
             => Task.FromResult(Value);
     }
@@ -90,7 +89,6 @@ public class TextLoaderTests
     {
         public static new readonly TextAndVersion Value = TextAndVersion.Create(SourceText.From(""), VersionStamp.Default);
 
-        [Obsolete]
         public override Task<TextAndVersion> LoadTextAndVersionAsync(Workspace? workspace, DocumentId? documentId, CancellationToken cancellationToken)
             => Task.FromResult(Value);
     }
@@ -99,7 +97,7 @@ public class TextLoaderTests
     {
         public static readonly TextAndVersion Value = TextAndVersion.Create(SourceText.From(""), VersionStamp.Default);
 
-        public override Task<TextAndVersion> LoadTextAndVersionAsync(LoadTextOptions options, CancellationToken cancellationToken)
+        internal override Task<TextAndVersion> LoadTextAndVersionAsync(LoadTextOptions options, CancellationToken cancellationToken)
             => Task.FromResult(Value);
     }
 

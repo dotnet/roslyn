@@ -213,7 +213,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             internal override string? FilePath
                 => _hostDocument.FilePath;
 
-            public override Task<TextAndVersion> LoadTextAndVersionAsync(LoadTextOptions options, CancellationToken cancellationToken)
+            internal override Task<TextAndVersion> LoadTextAndVersionAsync(LoadTextOptions options, CancellationToken cancellationToken)
                 => Task.FromResult(TextAndVersion.Create(SourceText.From(_text, encoding: null, options.ChecksumAlgorithm), VersionStamp.Create(), _hostDocument.FilePath));
         }
 

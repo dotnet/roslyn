@@ -1,5 +1,3 @@
-Microsoft.CodeAnalysis.DocumentInfo.LoadTextOptions.get -> Microsoft.CodeAnalysis.LoadTextOptions
-Microsoft.CodeAnalysis.DocumentInfo.WithLoadTextOptions(Microsoft.CodeAnalysis.LoadTextOptions options) -> Microsoft.CodeAnalysis.DocumentInfo
 Microsoft.CodeAnalysis.Editing.DeclarationModifiers.IsFile.get -> bool
 Microsoft.CodeAnalysis.Editing.DeclarationModifiers.WithIsFile(bool isFile) -> Microsoft.CodeAnalysis.Editing.DeclarationModifiers
 *REMOVED*static Microsoft.CodeAnalysis.Editing.SyntaxGenerator.DefaultRemoveOptions -> Microsoft.CodeAnalysis.SyntaxRemoveOptions
@@ -21,11 +19,6 @@ Microsoft.CodeAnalysis.ISupportedChangesService
 Microsoft.CodeAnalysis.ISupportedChangesService.CanApplyChange(Microsoft.CodeAnalysis.ApplyChangesKind kind) -> bool
 Microsoft.CodeAnalysis.ISupportedChangesService.CanApplyCompilationOptionChange(Microsoft.CodeAnalysis.CompilationOptions oldOptions, Microsoft.CodeAnalysis.CompilationOptions newOptions, Microsoft.CodeAnalysis.Project project) -> bool
 Microsoft.CodeAnalysis.ISupportedChangesService.CanApplyParseOptionChange(Microsoft.CodeAnalysis.ParseOptions oldOptions, Microsoft.CodeAnalysis.ParseOptions newOptions, Microsoft.CodeAnalysis.Project project) -> bool
-Microsoft.CodeAnalysis.LoadTextOptions
-Microsoft.CodeAnalysis.LoadTextOptions.ChecksumAlgorithm.get -> Microsoft.CodeAnalysis.Text.SourceHashAlgorithm
-Microsoft.CodeAnalysis.LoadTextOptions.ChecksumAlgorithm.init -> void
-Microsoft.CodeAnalysis.LoadTextOptions.LoadTextOptions() -> void
-Microsoft.CodeAnalysis.LoadTextOptions.LoadTextOptions(Microsoft.CodeAnalysis.Text.SourceHashAlgorithm ChecksumAlgorithm) -> void
 Microsoft.CodeAnalysis.Project.Services.get -> Microsoft.CodeAnalysis.Host.LanguageServices
 Microsoft.CodeAnalysis.Solution.Services.get -> Microsoft.CodeAnalysis.Host.SolutionServices
 Microsoft.CodeAnalysis.TextDocumentEventArgs
@@ -35,10 +28,6 @@ Microsoft.CodeAnalysis.Workspace.RaiseTextDocumentClosedEventAsync(Microsoft.Cod
 Microsoft.CodeAnalysis.Workspace.RaiseTextDocumentOpenedEventAsync(Microsoft.CodeAnalysis.TextDocument document) -> System.Threading.Tasks.Task
 Microsoft.CodeAnalysis.Workspace.TextDocumentClosed -> System.EventHandler<Microsoft.CodeAnalysis.TextDocumentEventArgs>
 Microsoft.CodeAnalysis.Workspace.TextDocumentOpened -> System.EventHandler<Microsoft.CodeAnalysis.TextDocumentEventArgs>
-override Microsoft.CodeAnalysis.FileTextLoader.LoadTextAndVersionAsync(Microsoft.CodeAnalysis.LoadTextOptions options, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<Microsoft.CodeAnalysis.TextAndVersion>
 static Microsoft.CodeAnalysis.Editing.DeclarationModifiers.File.get -> Microsoft.CodeAnalysis.Editing.DeclarationModifiers
-virtual Microsoft.CodeAnalysis.FileTextLoader.CreateText(System.IO.Stream stream, Microsoft.CodeAnalysis.LoadTextOptions options, System.Threading.CancellationToken cancellationToken) -> Microsoft.CodeAnalysis.Text.SourceText
-*REMOVED*override Microsoft.CodeAnalysis.FileTextLoader.LoadTextAndVersionAsync(Microsoft.CodeAnalysis.Workspace workspace, Microsoft.CodeAnalysis.DocumentId documentId, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<Microsoft.CodeAnalysis.TextAndVersion>
 *REMOVED*abstract Microsoft.CodeAnalysis.TextLoader.LoadTextAndVersionAsync(Microsoft.CodeAnalysis.Workspace workspace, Microsoft.CodeAnalysis.DocumentId documentId, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<Microsoft.CodeAnalysis.TextAndVersion>
-virtual Microsoft.CodeAnalysis.TextLoader.LoadTextAndVersionAsync(Microsoft.CodeAnalysis.LoadTextOptions options, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<Microsoft.CodeAnalysis.TextAndVersion>
 virtual Microsoft.CodeAnalysis.TextLoader.LoadTextAndVersionAsync(Microsoft.CodeAnalysis.Workspace workspace, Microsoft.CodeAnalysis.DocumentId documentId, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<Microsoft.CodeAnalysis.TextAndVersion>

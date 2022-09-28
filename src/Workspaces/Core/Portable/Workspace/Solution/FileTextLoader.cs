@@ -75,7 +75,6 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         /// <param name="stream">Stream.</param>
         /// <param name="workspace">Obsolete. Null.</param>
-        [Obsolete("Use CreateText(Stream, CancellationToken)")]
         protected virtual SourceText CreateText(Stream stream, Workspace? workspace)
             => EncodedStringText.Create(stream, DefaultEncoding, checksumAlgorithm: SourceHashAlgorithms.Default);
 
@@ -83,18 +82,21 @@ namespace Microsoft.CodeAnalysis
         /// Creates <see cref="SourceText"/> from <see cref="Stream"/>.
         /// </summary>
 #pragma warning disable CS0618 // Type or member is obsolete
-        protected virtual SourceText CreateText(Stream stream, LoadTextOptions options, CancellationToken cancellationToken)
+        private protected virtual SourceText CreateText(Stream stream, LoadTextOptions options, CancellationToken cancellationToken)
             => IsObsoleteCreateTextOverridden ?
                 CreateText(stream, workspace: null) :
                 EncodedStringText.Create(stream, DefaultEncoding, checksumAlgorithm: options.ChecksumAlgorithm);
 #pragma warning restore
+
+        public override Task<TextAndVersion> LoadTextAndVersionAsync(Workspace? workspace, DocumentId? documentId, CancellationToken cancellationToken)
+            => base.LoadTextAndVersionAsync(workspace, documentId, cancellationToken);
 
         /// <summary>
         /// Load a text and a version of the document in the workspace.
         /// </summary>
         /// <exception cref="IOException"></exception>
         /// <exception cref="InvalidDataException"></exception>
-        public override async Task<TextAndVersion> LoadTextAndVersionAsync(LoadTextOptions options, CancellationToken cancellationToken)
+        internal override async Task<TextAndVersion> LoadTextAndVersionAsync(LoadTextOptions options, CancellationToken cancellationToken)
         {
             ValidateFileLength(Path);
 

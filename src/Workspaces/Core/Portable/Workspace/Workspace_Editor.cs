@@ -477,7 +477,7 @@ namespace Microsoft.CodeAnalysis
             internal override string? FilePath
                 => _oldDocumentState.FilePath;
 
-            public override async Task<TextAndVersion> LoadTextAndVersionAsync(LoadTextOptions options, CancellationToken cancellationToken)
+            internal override async Task<TextAndVersion> LoadTextAndVersionAsync(LoadTextOptions options, CancellationToken cancellationToken)
             {
                 var oldText = await _oldDocumentState.GetTextAsync(cancellationToken).ConfigureAwait(false);
                 var version = await _oldDocumentState.GetTextVersionAsync(cancellationToken).ConfigureAwait(false);

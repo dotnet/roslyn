@@ -375,7 +375,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 
         internal sealed class FailingTextLoader : TextLoader
         {
-            public override Task<TextAndVersion> LoadTextAndVersionAsync(LoadTextOptions options, CancellationToken cancellationToken)
+            internal override Task<TextAndVersion> LoadTextAndVersionAsync(LoadTextOptions options, CancellationToken cancellationToken)
             {
                 Assert.True(false, $"Content of document should never be loaded");
                 throw ExceptionUtilities.Unreachable;
