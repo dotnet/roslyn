@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Immutable;
 using System.Runtime.Serialization;
 using System.Threading;
@@ -11,6 +10,12 @@ using Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.Api;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting
 {
+    internal interface IRemoteUnitTestingSearchService
+    {
+        ValueTask<ImmutableArray<UnitTestingSourceLocation>> GetSourceLocationsAsync(
+            Checksum solutionChecksum, ProjectId projectId, UnitTestingSearchQuery query, CancellationToken cancellationToken);
+    }
+
     [DataContract]
     internal readonly struct UnitTestingSourceLocation
     {
@@ -31,13 +36,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting
             if (documentSpan == null)
                 return null;
 
-            return new UnitTestingDocumentSpan(documentSpan, Span);
+            return new UnitTestingDocumentSpan(documentSpan.Value, Span);
         }
-    }
-
-    internal interface IRemoteUnitTestingSearchService
-    {
-        ValueTask<ImmutableArray<UnitTestingSourceLocation>> GetSourceLocationsAsync(
-            Checksum solutionChecksum, UnitTestingSearchQuery query, CancellationToken cancellationToken);
     }
 }
