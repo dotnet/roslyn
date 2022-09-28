@@ -1,0 +1,43 @@
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+using System;
+using System.Collections.Immutable;
+using System.Runtime.Serialization;
+using System.Threading;
+using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.Api;
+
+namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting
+{
+    [DataContract]
+    internal readonly struct UnitTestingSourceLocation
+    {
+        [DataMember(Order = 0)]
+        public readonly DocumentIdSpan DocumentIdSpan;
+        [DataMember(Order = 1)]
+        public readonly FileLinePositionSpan Span;
+
+        public UnitTestingSourceLocation(DocumentIdSpan documentIdSpan, FileLinePositionSpan span)
+        {
+            DocumentIdSpan = documentIdSpan;
+            Span = span;
+        }
+
+        public async Task<UnitTestingDocumentSpan?> TryRehydrateAsync(Solution solution, CancellationToken cancellationToken)
+        {
+            var documentSpan = await DocumentIdSpan.TryRehydrateAsync(solution, cancellationToken).ConfigureAwait(false);
+            if (documentSpan == null)
+                return null;
+
+            return new UnitTestingDocumentSpan(documentSpan, Span);
+        }
+    }
+
+    internal interface IRemoteUnitTestingSearchService
+    {
+        ValueTask<ImmutableArray<UnitTestingSourceLocation>> GetSourceLocationsAsync(
+            Checksum solutionChecksum, UnitTestingSearchQuery query, CancellationToken cancellationToken);
+    }
+}
