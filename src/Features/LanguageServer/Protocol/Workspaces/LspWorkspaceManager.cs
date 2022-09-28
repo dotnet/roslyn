@@ -183,7 +183,7 @@ internal class LspWorkspaceManager : IDocumentChangeTracker, ILspService
             var documents = lspSolution.GetDocuments(uri);
             if (documents.Any())
             {
-                var document = documents.FindDocumentInProjectContext(textDocumentIdentifier);
+                var document = documents.FindDocumentInProjectContext(textDocumentIdentifier, (sln, id) => sln.GetRequiredDocument(id));
 
                 // Record metadata on how we got this document.
                 var workspaceKind = document.Project.Solution.WorkspaceKind;
