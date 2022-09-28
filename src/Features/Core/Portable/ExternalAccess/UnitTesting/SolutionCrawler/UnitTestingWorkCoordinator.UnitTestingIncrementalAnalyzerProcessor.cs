@@ -202,11 +202,13 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                 private async Task ProcessDocumentAnalyzersAsync(
                     TextDocument textDocument, ImmutableArray<IUnitTestingIncrementalAnalyzer> analyzers, UnitTestingWorkItem workItem, CancellationToken cancellationToken)
                 {
+#if false // Not used in unit testing crawling
                     // process special active document switched request, if any.
                     if (ProcessActiveDocumentSwitched(analyzers, workItem, textDocument, cancellationToken))
                     {
                         return;
                     }
+#endif
 
                     // process all analyzers for each categories in this order - syntax, body, document
                     var reasons = workItem.InvocationReasons;
@@ -256,6 +258,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                     }
 #endif
 
+#if false // Not used in unit testing crawling
                     bool ProcessActiveDocumentSwitched(ImmutableArray<IUnitTestingIncrementalAnalyzer> analyzers, UnitTestingWorkItem workItem, TextDocument document, CancellationToken cancellationToken)
                     {
                         try
@@ -265,10 +268,9 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                                 return false;
                             }
 
-#if false // Not used in unit testing crawling
                             await RunAnalyzersAsync(analyzers, document, workItem, (analyzer, document, cancellationToken) =>
                                 analyzer.ActiveDocumentSwitchedAsync(document, cancellationToken), cancellationToken).ConfigureAwait(false);
-#endif
+
                             return true;
                         }
                         catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
@@ -276,6 +278,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                             throw ExceptionUtilities.Unreachable;
                         }
                     }
+#endif
                 }
 
                 private async Task RunAnalyzersAsync<T>(

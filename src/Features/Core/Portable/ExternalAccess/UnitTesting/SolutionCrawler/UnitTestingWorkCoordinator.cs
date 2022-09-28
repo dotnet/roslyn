@@ -77,8 +77,10 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
 
                 _semanticChangeProcessor = new UnitTestingSemanticChangeProcessor(listener, _registration, _documentAndProjectWorkerProcessor, semanticBackOffTimeSpan, projectBackOffTimeSpan, _shutdownToken);
 
+#if false // Not used in unit testing crawling
                 // subscribe to active document changed event for active file background analysis scope.
                 _documentTrackingService.ActiveDocumentChanged += OnActiveDocumentSwitched;
+#endif
             }
 
             public UnitTestingRegistration Registration => _registration;
@@ -165,6 +167,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                 }
             }
 
+#if false // Not used in unit testing crawling
             private void OnActiveDocumentSwitched(object? sender, DocumentId? activeDocumentId)
             {
                 if (activeDocumentId == null)
@@ -173,6 +176,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                 var solution = _registration.GetSolutionToAnalyze();
                 EnqueueFullDocumentEvent(solution, activeDocumentId, UnitTestingInvocationReasons.ActiveDocumentSwitched, eventName: nameof(OnActiveDocumentSwitched));
             }
+#endif
 
             public void OnWorkspaceChanged(WorkspaceChangeEventArgs args)
             {

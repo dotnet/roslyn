@@ -20,11 +20,10 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
 #if false // Not used in unit testing crawling
         public const string DocumentOpened = nameof(DocumentOpened);
         public const string DocumentClosed = nameof(DocumentClosed);
+        public const string ActiveDocumentSwitched = nameof(ActiveDocumentSwitched);
 #endif
         public const string HighPriority = nameof(HighPriority);
 
         public const string SyntaxChanged = nameof(SyntaxChanged);
-
-        public const string ActiveDocumentSwitched = nameof(ActiveDocumentSwitched);
     }
 }
