@@ -102,6 +102,27 @@ Possible workarounds are:
 Also, implicit conversions between `IntPtr`/`UIntPtr` and other numeric types are treated as standard
 conversions on such platforms. This can affect overload resolution in some cases.
 
+## Addition of System.UIntPtr and System.Int32
+
+***Introduced in .NET SDK 7.0.100, Visual Studio 2022 version 17.3.***
+
+When the platform supports __numeric__ `IntPtr` and `UIntPtr` types (as indicated by the presence of
+`System.Runtime.CompilerServices.RuntimeFeature.NumericIntPtr`), the operator `+(UIntPtr, int)` defined in `System.UIntPtr`
+can no longer be used.
+Instead, adding expressions of types `System.UIntPtr` and a `System.Int32` results in an error:
+
+```csharp
+UIntPtr M(UIntPtr x, int y)
+{
+    return x + y; // error: Operator '+' is ambiguous on operands of type 'nuint' and 'int'
+}
+```
+
+Possible workarounds are:
+
+1. Use the `UIntPtr.Add(UIntPtr, int)` method: `UIntPtr.Add(x, y)`
+2. Apply an unchecked cast to type `nuint` on the second operand: `x + unchecked((nuint)y)`
+
 ## Nameof operator in attribute on method or local function
 
 ***Introduced in .NET SDK 6.0.400, Visual Studio 2022 version 17.3.***
