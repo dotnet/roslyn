@@ -991,14 +991,18 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             if (fullPath.LastIndexOf(s_razorSourceGeneratorSdkDirectory, StringComparison.OrdinalIgnoreCase) + s_razorSourceGeneratorSdkDirectory.Length - 1 ==
                 fullPath.LastIndexOf(Path.DirectorySeparatorChar))
             {
-                if (fullPath.EndsWith(s_razorSourceGeneratorMainAssemblyRootedFileName, StringComparison.OrdinalIgnoreCase))
+                var vsixRazorAnalyzers = _vsixAnalyzerProvider.GetAnalyzerReferencesInExtensions();
+                if (!vsixRazorAnalyzers.IsEmpty)
                 {
-                    return OneOrMany.Create(_vsixAnalyzerProvider.GetAnalyzerReferencesInExtensions().SelectAsArray(
-                        predicate: item => item.extensionId == RazorVsixExtensionId,
-                        selector: item => item.reference.FullPath));
-                }
+                    if (fullPath.EndsWith(s_razorSourceGeneratorMainAssemblyRootedFileName, StringComparison.OrdinalIgnoreCase))
+                    {
+                        return OneOrMany.Create(vsixRazorAnalyzers.SelectAsArray(
+                            predicate: item => item.extensionId == RazorVsixExtensionId,
+                            selector: item => item.reference.FullPath));
+                    }
 
-                return OneOrMany.Create(ImmutableArray<string>.Empty);
+                    return OneOrMany.Create(ImmutableArray<string>.Empty);
+                }
             }
 
             return OneOrMany.Create(fullPath);
