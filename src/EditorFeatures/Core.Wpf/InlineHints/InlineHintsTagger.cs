@@ -40,6 +40,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
         /// Stores the snapshot associated with the cached tags in <see cref="_cache" />
         /// </summary>
         private ITextSnapshot? _cacheSnapshot;
+        private SnapshotSpan _snapshotSpan;
 
         private readonly IClassificationFormatMap _formatMap;
 
@@ -140,9 +141,17 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
                         var dataTagSpans = tag.Span.GetSpans(snapshot);
                         if (dataTagSpans.Count == 1)
                         {
-                            _cache.Add((tag, tagSpan: null));
+                            var tagSpanSnapshot = dataTagSpans[0].Snapshot;
+                            var canTrackSpan = CanTrackSpanForwardInTime(_snapshotSpan!, SpanTrackingMode.EdgeInclusive, tagSpanSnapshot);
+
+                            if (canTrackSpan)
+                            {
+                                _cache.Add((tag, tagSpan: null));
+                            }
                         }
                     }
+
+                    _snapshotSpan = spans[0];
                 }
 
                 var document = snapshot.GetOpenDocumentInCurrentContextWithChanges();
@@ -177,6 +186,26 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
             {
                 throw ExceptionUtilities.Unreachable;
             }
+        }
+
+        private static bool CanTrackSpanForwardInTime(SnapshotSpan original, SpanTrackingMode mode, ITextSnapshot target)
+        {
+            var version = original.Snapshot.Version;
+            var span = original.Span;
+
+            while (version.VersionNumber < target.Version.VersionNumber)
+            {
+                foreach (var c in version.Changes)
+                {
+                    if ((c.OldPosition <= span.Start) && (c.OldEnd >= span.End))
+                        return false;
+                }
+
+                span = Tracking.TrackSpanForwardInTime(mode, span, version, version.Next);
+                version = version.Next;
+            }
+
+            return true;
         }
 
         public void Dispose()
