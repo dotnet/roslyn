@@ -76,18 +76,13 @@ internal sealed partial class NewUnitTestingIncrementalAnalyzerProvider
         /// </summary>
         public int Priority => 1;
 
-#if false
-
-    // Unit testing incremental analyzer only supports full solution analysis scope.
-    // In future, we should add a separate option to allow users to configure background analysis scope for unit testing.
-    public static BackgroundAnalysisScope GetBackgroundAnalysisScope(OptionSet _) => BackgroundAnalysisScope.FullSolution;
-
-#endif
+        // Unit testing incremental analyzer only supports full solution analysis scope.
+        // In future, we should add a separate option to allow users to configure background analysis scope for unit testing.
+        public static BackgroundAnalysisScope GetBackgroundAnalysisScope(OptionSet _) => BackgroundAnalysisScope.FullSolution;
 
         public void Shutdown()
         {
         }
-
 #endif
     }
 }
