@@ -5,7 +5,6 @@
 using System;
 using System.Composition;
 using System.Linq;
-using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Collections;
@@ -25,7 +24,7 @@ namespace Microsoft.CodeAnalysis.LegacySolutionEvents
     {
         private readonly IGlobalOptionService _globalOptions;
         private readonly IThreadingContext _threadingContext;
-        private readonly AsyncBatchingWorkQueue<LegacySolutionEvent> _eventQueue;
+        private readonly AsyncBatchingWorkQueue<WorkspaceChangeEventArgs> _eventQueue;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -36,7 +35,7 @@ namespace Microsoft.CodeAnalysis.LegacySolutionEvents
         {
             _globalOptions = globalOptions;
             _threadingContext = threadingContext;
-            _eventQueue = new AsyncBatchingWorkQueue<LegacySolutionEvent>(
+            _eventQueue = new AsyncBatchingWorkQueue<WorkspaceChangeEventArgs>(
                 DelayTimeSpan.Short,
                 ProcessWorkspaceChangeEventsAsync,
                 listenerProvider.GetListener(FeatureAttribute.SolutionCrawlerUnitTesting),
@@ -48,33 +47,23 @@ namespace Microsoft.CodeAnalysis.LegacySolutionEvents
             if (_globalOptions.GetOption(SolutionCrawlerRegistrationService.EnableSolutionCrawler))
             {
                 workspace.WorkspaceChanged += OnWorkspaceChanged;
-                workspace.TextDocumentOpened += OnDocumentOpened;
-                workspace.TextDocumentClosed += OnDocumentClosed;
                 _threadingContext.DisposalToken.Register(() =>
                 {
-                    workspace.TextDocumentClosed -= OnDocumentClosed;
-                    workspace.TextDocumentOpened -= OnDocumentOpened;
                     workspace.WorkspaceChanged -= OnWorkspaceChanged;
                 });
             }
         }
 
         private void OnWorkspaceChanged(object? sender, WorkspaceChangeEventArgs e)
-            => _eventQueue.AddWork(new LegacySolutionEvent(e, null, null));
+            => _eventQueue.AddWork(e);
 
-        private void OnDocumentOpened(object? sender, TextDocumentEventArgs e)
-            => _eventQueue.AddWork(new LegacySolutionEvent(null, e, null));
-
-        private void OnDocumentClosed(object? sender, TextDocumentEventArgs e)
-            => _eventQueue.AddWork(new LegacySolutionEvent(null, null, e));
-
-        private async ValueTask ProcessWorkspaceChangeEventsAsync(ImmutableSegmentedList<LegacySolutionEvent> events, CancellationToken cancellationToken)
+        private async ValueTask ProcessWorkspaceChangeEventsAsync(ImmutableSegmentedList<WorkspaceChangeEventArgs> events, CancellationToken cancellationToken)
         {
             if (events.IsEmpty)
                 return;
 
-            var workspace = events[0].Workspace;
-            Contract.ThrowIfTrue(events.Any(e => e.Workspace != workspace));
+            var workspace = events[0].OldSolution.Workspace;
+            Contract.ThrowIfTrue(events.Any(e => e.OldSolution.Workspace != workspace || e.NewSolution.Workspace != workspace));
 
             var client = await RemoteHostClient.TryGetClientAsync(workspace, cancellationToken).ConfigureAwait(false);
 
@@ -82,61 +71,19 @@ namespace Microsoft.CodeAnalysis.LegacySolutionEvents
             {
                 var aggregationService = workspace.Services.GetRequiredService<ILegacySolutionEventsAggregationService>();
 
-                foreach (var ev in events)
-                    await ProcessEventAsync(aggregationService, ev, cancellationToken).ConfigureAwait(false);
+                foreach (var args in events)
+                    await aggregationService.OnWorkspaceChangedAsync(args, cancellationToken).ConfigureAwait(false);
             }
             else
             {
-                foreach (var ev in events)
-                    await ProcessEventAsync(client, ev, cancellationToken).ConfigureAwait(false);
-            }
-        }
-
-        private static async ValueTask ProcessEventAsync(ILegacySolutionEventsAggregationService aggregationService, LegacySolutionEvent ev, CancellationToken cancellationToken)
-        {
-            if (ev.DocumentOpenArgs != null)
-            {
-                await aggregationService.OnTextDocumentOpenedAsync(ev.DocumentOpenArgs, cancellationToken).ConfigureAwait(false);
-            }
-            else if (ev.DocumentCloseArgs != null)
-            {
-                await aggregationService.OnTextDocumentOpenedAsync(ev.DocumentCloseArgs, cancellationToken).ConfigureAwait(false);
-            }
-            else
-            {
-                Contract.ThrowIfNull(ev.WorkspaceChangeArgs);
-                await aggregationService.OnWorkspaceChangedAsync(ev.WorkspaceChangeArgs, cancellationToken).ConfigureAwait(false);
-            }
-        }
-
-        private static async ValueTask ProcessEventAsync(RemoteHostClient client, LegacySolutionEvent ev, CancellationToken cancellationToken)
-        {
-            if (ev.DocumentOpenArgs != null)
-            {
-                var document = ev.DocumentOpenArgs.Document;
-                await client.TryInvokeAsync<IRemoteLegacySolutionEventsAggregationService>(
-                    document.Project.Solution,
-                    (service, solutionChecksum, cancellationToken) => service.OnTextDocumentOpenedAsync(solutionChecksum, document.Id, cancellationToken),
-                    cancellationToken).ConfigureAwait(false);
-            }
-            else if (ev.DocumentCloseArgs != null)
-            {
-                var document = ev.DocumentCloseArgs.Document;
-                await client.TryInvokeAsync<IRemoteLegacySolutionEventsAggregationService>(
-                    document.Project.Solution,
-                    (service, solutionChecksum, cancellationToken) => service.OnTextDocumentClosedAsync(solutionChecksum, document.Id, cancellationToken),
-                    cancellationToken).ConfigureAwait(false);
-            }
-            else
-            {
-                Contract.ThrowIfNull(ev.WorkspaceChangeArgs);
-                var args = ev.WorkspaceChangeArgs;
-
-                await client.TryInvokeAsync<IRemoteLegacySolutionEventsAggregationService>(
-                    args.OldSolution, args.NewSolution,
-                    (service, oldSolutionChecksum, newSolutionChecksum, cancellationToken) =>
-                        service.OnWorkspaceChangedAsync(oldSolutionChecksum, newSolutionChecksum, args.Kind, args.ProjectId, args.DocumentId, cancellationToken),
-                    cancellationToken).ConfigureAwait(false);
+                foreach (var args in events)
+                {
+                    await client.TryInvokeAsync<IRemoteLegacySolutionEventsAggregationService>(
+                        args.OldSolution, args.NewSolution,
+                        (service, oldSolutionChecksum, newSolutionChecksum, cancellationToken) =>
+                            service.OnWorkspaceChangedAsync(oldSolutionChecksum, newSolutionChecksum, args.Kind, args.ProjectId, args.DocumentId, cancellationToken),
+                        cancellationToken).ConfigureAwait(false);
+                }
             }
         }
     }

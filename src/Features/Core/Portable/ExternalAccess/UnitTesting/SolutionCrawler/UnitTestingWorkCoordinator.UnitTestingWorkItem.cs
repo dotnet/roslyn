@@ -51,6 +51,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                 // common
                 public readonly IAsyncToken AsyncToken;
 
+#if false // Not used in unit testing crawling
                 public bool MustRefresh
                 {
                     get
@@ -62,6 +63,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                                InvocationReasons.Contains(UnitTestingPredefinedInvocationReasons.DocumentClosed);
                     }
                 }
+#endif
 
                 private UnitTestingWorkItem(
                     DocumentId? documentId,

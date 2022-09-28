@@ -7,7 +7,9 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
     internal interface IUnitTestingWorkCoordinator
     {
         void OnWorkspaceChanged(WorkspaceChangeEventArgs args);
+#if false // Not used in unit testing crawling
         void OnTextDocumentOpened(TextDocumentEventArgs args);
         void OnTextDocumentClosed(TextDocumentEventArgs args);
+#endif
     }
 }

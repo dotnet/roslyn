@@ -21,8 +21,10 @@ namespace Microsoft.CodeAnalysis.LegacySolutionEvents
     internal interface ILegacySolutionEventsAggregationService : IWorkspaceService
     {
         ValueTask OnWorkspaceChangedAsync(WorkspaceChangeEventArgs args, CancellationToken cancellationToken);
+#if false // Not used in unit testing crawling
         ValueTask OnTextDocumentOpenedAsync(TextDocumentEventArgs args, CancellationToken cancellationToken);
         ValueTask OnTextDocumentClosedAsync(TextDocumentEventArgs args, CancellationToken cancellationToken);
+#endif
     }
 
     [ExportWorkspaceService(typeof(ILegacySolutionEventsAggregationService)), Shared]
@@ -44,6 +46,7 @@ namespace Microsoft.CodeAnalysis.LegacySolutionEvents
                 await service.Value.OnWorkspaceChangedAsync(args, cancellationToken).ConfigureAwait(false);
         }
 
+#if false // Not used in unit testing crawling
         public async ValueTask OnTextDocumentOpenedAsync(TextDocumentEventArgs args, CancellationToken cancellationToken)
         {
             foreach (var service in _eventsServices)
@@ -55,5 +58,6 @@ namespace Microsoft.CodeAnalysis.LegacySolutionEvents
             foreach (var service in _eventsServices)
                 await service.Value.OnTextDocumentClosedAsync(args, cancellationToken).ConfigureAwait(false);
         }
+#endif
     }
 }

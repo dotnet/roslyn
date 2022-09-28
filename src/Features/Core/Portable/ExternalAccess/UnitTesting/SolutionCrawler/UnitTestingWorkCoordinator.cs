@@ -283,6 +283,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                 }
             }
 
+#if false // Not used in unit testing crawling
             public void OnTextDocumentOpened(TextDocumentEventArgs e)
             {
                 _eventProcessingQueue.ScheduleTask("OnTextDocumentOpened",
@@ -294,6 +295,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                 _eventProcessingQueue.ScheduleTask("OnTextDocumentClosed",
                     () => EnqueueDocumentWorkItemAsync(e.Document.Project, e.Document.Id, e.Document, UnitTestingInvocationReasons.DocumentClosed), _shutdownToken);
             }
+#endif
 
             private void EnqueueSolutionChangedEvent(Solution oldSolution, Solution newSolution, string eventName)
             {

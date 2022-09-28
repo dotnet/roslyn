@@ -225,7 +225,11 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                         return;
                     }
 
-                    if (workItem.MustRefresh || reasons.Contains(UnitTestingPredefinedInvocationReasons.SemanticChanged))
+                    if (
+#if false // Not used in unit testing crawling
+                        workItem.MustRefresh ||
+#endif
+                        reasons.Contains(UnitTestingPredefinedInvocationReasons.SemanticChanged))
                     {
                         await RunAnalyzersAsync(analyzers, document, workItem, (analyzer, document, cancellationToken) =>
                             analyzer.AnalyzeDocumentAsync(document, null, reasons, cancellationToken), cancellationToken).ConfigureAwait(false);
