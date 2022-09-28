@@ -96,16 +96,21 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
                 return;
 
             _workspace.WorkspaceChanged += OnWorkspaceChanged;
-            _workQueue.AddWork(cancelExistingWork: true);
+            _workQueue.AddWork();
         }
 
         private void OnWorkspaceChanged(object sender, WorkspaceChangeEventArgs e)
         {
-            _workQueue.AddWork(cancelExistingWork: true);
+            _workQueue.AddWork();
         }
 
         private async ValueTask ProcessWorkspaceChangeAsync(CancellationToken cancellationToken)
         {
+            var statusService = _workspace.Services.GetRequiredService<IWorkspaceStatusService>();
+            await statusService.WaitUntilFullyLoadedAsync(cancellationToken).ConfigureAwait(false);
+
+            cancellationToken.ThrowIfCancellationRequested();
+
             var solution = _workspace.CurrentSolution;
             foreach (var (projectId, _) in _cpsProjects)
             {
