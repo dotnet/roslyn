@@ -118,7 +118,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             // When true, this completion provider shows both the type (e.g. DayOfWeek) and its qualified members (e.g.
             // DayOfWeek.Friday). We set this to false for enum-like cases (static members of structs and classes) so we
             // only show the qualified members in these cases.
-            var showType = true;
+            var isEnumOrCompletionListType = true;
             var position = context.Position;
             var enclosingNamedType = semanticModel.GetEnclosingNamedType(position, cancellationToken);
             if (type.TypeKind != TypeKind.Enum)
@@ -138,7 +138,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                     // If this isn't an enum or marked with completionlist, also check if it contains static members of
                     // a matching type. These 'enum-like' types have similar characteristics to enum completion, but do
                     // not show the containing type as a separate item in completion.
-                    showType = false;
+                    isEnumOrCompletionListType = false;
                     enumType = TryGetTypeWithStaticMembers(type);
                     if (enumType == null)
                     {
@@ -164,7 +164,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             var symbol = alias ?? type;
             var sortText = symbol.Name;
 
-            if (showType)
+            if (isEnumOrCompletionListType)
             {
                 context.AddItem(SymbolCompletionItem.CreateWithSymbolId(
                     displayText,
@@ -227,9 +227,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                         continue;
                     }
 
-                    if (!SymbolEqualityComparer.Default.Equals(type, symbolType)
-                        || !staticSymbol.IsAccessibleWithin(enclosingNamedType)
-                        || !staticSymbol.IsEditorBrowsable(hideAdvancedMembers, semanticModel.Compilation))
+                    // We only show static properties/fields of compatible type if containing type is NOT marked with completionlist tag.
+                    if (!isEnumOrCompletionListType && !SymbolEqualityComparer.Default.Equals(type, symbolType))
+                    {
+                        continue;
+                    }
+
+                    if (!staticSymbol.IsAccessibleWithin(enclosingNamedType) ||
+                        !staticSymbol.IsEditorBrowsable(hideAdvancedMembers, semanticModel.Compilation))
                     {
                         continue;
                     }
