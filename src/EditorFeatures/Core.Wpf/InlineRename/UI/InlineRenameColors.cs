@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         // but in Visual Studio we will change these keys (since they are settable) to the keys for
         // the actual Visual Studio resource keys.
         //
-        // Each entry here should have a corresponding entry in DashboardColors.xaml to specify the
+        // Each entry here should have a corresponding entry in InlineRenameColors.xaml to specify the
         // default color.
 
         public static object SystemCaptionTextColorKey { get; set; } = "SystemCaptionTextColor";
@@ -21,5 +21,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         public static object AccentBarColorKey { get; set; } = "AccentBarBrush";
         public static object ButtonStyleKey { get; set; } = "ButtonStyle";
         public static object ButtonBorderBrush { get; set; } = "ButtonBorderBrush";
+        public static object GrayTextKey { get; set; } = "GrayTextBrush";
     }
 }

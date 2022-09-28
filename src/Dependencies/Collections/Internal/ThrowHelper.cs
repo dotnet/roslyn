@@ -239,6 +239,8 @@ namespace Microsoft.CodeAnalysis.Collections.Internal
                     return "dictionary";
                 case ExceptionArgument.array:
                     return "array";
+                case ExceptionArgument.info:
+                    return "info";
                 case ExceptionArgument.key:
                     return "key";
                 case ExceptionArgument.value:
@@ -269,6 +271,8 @@ namespace Microsoft.CodeAnalysis.Collections.Internal
                     return "length";
                 case ExceptionArgument.destinationArray:
                     return "destinationArray";
+                case ExceptionArgument.other:
+                    return "other";
                 default:
                     Debug.Fail("The enum value is not defined, please check the ExceptionArgument Enum.");
                     return "";
@@ -319,6 +323,7 @@ namespace Microsoft.CodeAnalysis.Collections.Internal
     {
         dictionary,
         array,
+        info,
         key,
         value,
         startIndex,
@@ -334,6 +339,7 @@ namespace Microsoft.CodeAnalysis.Collections.Internal
         source,
         length,
         destinationArray,
+        other,
     }
 
     //

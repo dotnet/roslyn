@@ -185,7 +185,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             // NOTE: This conversion can fail if some of the types involved are from not-yet-loaded modules.
             // For example, if System.Exception hasn't been loaded, then this call will fail for $stowedexception.
             var useSiteInfo = new CompoundUseSiteInfo<AssemblySymbol>(diagnostics, compilation.Assembly);
-            var conversion = compilation.Conversions.ClassifyConversionFromExpression(expr, type, ref useSiteInfo);
+            var conversion = compilation.Conversions.ClassifyConversionFromExpression(expr, type, isChecked: false, ref useSiteInfo);
             diagnostics.Add(expr.Syntax, useSiteInfo);
             Debug.Assert(conversion.IsValid || diagnostics.HasAnyErrors());
 

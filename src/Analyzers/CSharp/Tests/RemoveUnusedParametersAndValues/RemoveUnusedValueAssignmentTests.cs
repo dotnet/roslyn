@@ -7121,6 +7121,18 @@ class C
     Diagnostic("IDE0059"));
         }
 
+        [WorkItem(60030, "https://github.com/dotnet/roslyn/issues/60030")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
+        public async Task UnusedLocal_ForEach_TopLevelStatement()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"var items = new[] { new { x = 1 } };
+
+foreach (var [|item|] in items)
+{
+}", PreferDiscard, new CSharpParseOptions(LanguageVersion.CSharp9));
+        }
+
         [WorkItem(32923, "https://github.com/dotnet/roslyn/issues/32923")]
         [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
         [InlineData("_", nameof(PreferDiscard))]
@@ -8738,6 +8750,28 @@ class C
             await TestExactActionSetOfferedAsync(source, new[] { CodeFixesResources.Remove_redundant_assignment });
         }
 
+        [WorkItem(38507, "https://github.com/dotnet/roslyn/issues/38507")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
+        public async Task TestCodeFixTitleForPatternMatching()
+        {
+            var source = @"
+class C
+{
+    void M()
+    {
+        var c = M2();
+        if [|(c is object obj)|]
+        {
+        }
+    }
+
+    C M2() => new C();
+}
+";
+
+            await TestExactActionSetOfferedAsync(source, new[] { CodeFixesResources.Remove_redundant_assignment });
+        }
+
         [WorkItem(38507, "https://github.com/dotnet/roslyn/issues/46251")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
         public async Task TestCodeFixForAllInDocumentForNestedDiagnostic()
@@ -8787,6 +8821,89 @@ namespace ConsoleApp
 	}
 }";
             await TestInRegularAndScriptAsync(source, expected, options: PreferDiscard).ConfigureAwait(false);
+        }
+
+        [WorkItem(45768, "https://github.com/dotnet/roslyn/issues/45768")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
+        public async Task UnusedVarPattern_PartOfCase()
+        {
+            await TestInRegularAndScriptAsync(
+@"static class Program
+{
+    public static void Main()
+    {
+        switch (string.Empty.Length)
+        {
+            case var [|i|] when string.Empty.Length switch { var y => y > 0 }:
+            {
+                break;
+            }
+        }
+    }
+}",
+@"static class Program
+{
+    public static void Main()
+    {
+        switch (string.Empty.Length)
+        {
+            case var _ when string.Empty.Length switch { var y => y > 0 }:
+            {
+                break;
+            }
+        }
+    }
+}", options: PreferDiscard);
+        }
+
+        [WorkItem(45768, "https://github.com/dotnet/roslyn/issues/45768")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
+        public async Task UnusedVarPattern_PartOfIs()
+        {
+            await TestInRegularAndScriptAsync(
+@"static class Program
+{
+    public static void Main()
+    {
+        if (string.Empty.Length is var [|x|])
+        {
+        }
+    }
+}",
+@"static class Program
+{
+    public static void Main()
+    {
+        if (string.Empty.Length is var _)
+        {
+        }
+    }
+}", options: PreferDiscard);
+        }
+
+        [WorkItem(45768, "https://github.com/dotnet/roslyn/issues/45768")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
+        public async Task UnusedVarPattern_TestTrivia()
+        {
+            await TestInRegularAndScriptAsync(
+@"static class Program
+{
+    public static void Main()
+    {
+        if (string.Empty.Length is var [|/*1*/x/*2*/|])
+        {
+        }
+    }
+}",
+@"static class Program
+{
+    public static void Main()
+    {
+        if (string.Empty.Length is var /*1*/_/*2*/)
+        {
+        }
+    }
+}", options: PreferDiscard);
         }
     }
 }

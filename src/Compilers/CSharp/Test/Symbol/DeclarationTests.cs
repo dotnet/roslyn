@@ -23,11 +23,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     public class DeclarationTests : CSharpTestBase
     {
-        private CompilationUnitSyntax ParseFile(string text)
-        {
-            return SyntaxFactory.ParseCompilationUnit(text);
-        }
-
         [Fact]
         public void TestSimpleDeclarations()
         {

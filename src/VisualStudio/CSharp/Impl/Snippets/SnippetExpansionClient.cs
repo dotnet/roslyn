@@ -88,7 +88,11 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Snippets
         protected override string FallbackDefaultLiteral => "default";
 
         internal override Document AddImports(
-            Document document, AddImportPlacementOptions options, int position, XElement snippetNode,
+            Document document,
+            AddImportPlacementOptions addImportOptions,
+            SyntaxFormattingOptions formattingOptions,
+            int position,
+            XElement snippetNode,
             CancellationToken cancellationToken)
         {
             var importsNode = snippetNode.Element(XName.Get("Imports", snippetNode.Name.NamespaceName));
@@ -117,11 +121,11 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Snippets
             var addImportService = document.GetRequiredLanguageService<IAddImportsService>();
             var generator = document.GetRequiredLanguageService<SyntaxGenerator>();
             var compilation = document.Project.GetRequiredCompilationAsync(cancellationToken).WaitAndGetResult(cancellationToken);
-            var newRoot = addImportService.AddImports(compilation, root, contextLocation, newUsingDirectives, generator, options, cancellationToken);
+            var newRoot = addImportService.AddImports(compilation, root, contextLocation, newUsingDirectives, generator, addImportOptions, cancellationToken);
 
             var newDocument = document.WithSyntaxRoot(newRoot);
 
-            var formattedDocument = Formatter.FormatAsync(newDocument, Formatter.Annotation, cancellationToken: cancellationToken).WaitAndGetResult(cancellationToken);
+            var formattedDocument = Formatter.FormatAsync(newDocument, Formatter.Annotation, formattingOptions, cancellationToken).WaitAndGetResult(cancellationToken);
             document.Project.Solution.Workspace.ApplyDocumentChanges(formattedDocument, cancellationToken);
 
             return formattedDocument;

@@ -60,3 +60,7 @@ Roslyn does not support implementing completion for arbitrary languages.
 
 The constructors of Microsoft.CodeAnalysis.QuickInfoService are now internal.
 Roslyn does not support implementing completion for arbitrary languages.
+
+### `Microsoft.CodeAnalysis.CodeStyle.NotificationOption` is now immutable
+
+All property setters now throw an exception.

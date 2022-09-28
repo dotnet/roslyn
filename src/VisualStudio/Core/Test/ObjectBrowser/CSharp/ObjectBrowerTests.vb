@@ -1526,5 +1526,86 @@ namespace EditorFunctionalityHelper
             End Using
         End Sub
 
+        <WorkItem(59458, "https://github.com/dotnet/roslyn/issues/59458")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.ObjectBrowser)>
+        Public Sub TestCheckedBinaryOperator()
+            Dim code =
+<Code>
+class C
+{
+    public static C operator +(C x, C y) => throw new System.Exception();
+
+    public static C operator checked +(C x, C y) => throw new System.Exception();
+}
+</Code>
+
+            Using state = CreateLibraryManager(GetWorkspaceDefinition(code))
+                Dim library = state.GetLibrary()
+
+                Dim list = library.GetProjectList()
+                list.VerifyNames("CSharpAssembly1")
+
+                list = list.GetTypeList(0)
+                list.VerifyNames("C")
+
+                list = list.GetMemberList(0)
+                list.VerifyNames(AddressOf IsImmediateMember, "operator +(C, C)", "operator checked +(C, C)")
+            End Using
+        End Sub
+
+        <WorkItem(59458, "https://github.com/dotnet/roslyn/issues/59458")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.ObjectBrowser)>
+        Public Sub TestCheckedUnaryOperator()
+            Dim code =
+<Code>
+class C
+{
+    public static C operator -(C x) => throw new System.Exception();
+
+    public static C operator checked -(C x) => throw new System.Exception();
+}
+</Code>
+
+            Using state = CreateLibraryManager(GetWorkspaceDefinition(code))
+                Dim library = state.GetLibrary()
+
+                Dim list = library.GetProjectList()
+                list.VerifyNames("CSharpAssembly1")
+
+                list = list.GetTypeList(0)
+                list.VerifyNames("C")
+
+                list = list.GetMemberList(0)
+                list.VerifyNames(AddressOf IsImmediateMember, "operator -(C)", "operator checked -(C)")
+            End Using
+        End Sub
+
+        <WorkItem(59458, "https://github.com/dotnet/roslyn/issues/59458")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.ObjectBrowser)>
+        Public Sub TestCheckedCastOperator()
+            Dim code =
+<Code>
+class C
+{
+    public static explicit operator string(C x) => throw new System.Exception();
+
+    public static explicit operator checked string(C x) => throw new System.Exception();$$
+}
+</Code>
+
+            Using state = CreateLibraryManager(GetWorkspaceDefinition(code))
+                Dim library = state.GetLibrary()
+
+                Dim list = library.GetProjectList()
+                list.VerifyNames("CSharpAssembly1")
+
+                list = list.GetTypeList(0)
+                list.VerifyNames("C")
+
+                list = list.GetMemberList(0)
+                list.VerifyNames(AddressOf IsImmediateMember, "explicit operator string(C)", "explicit operator checked string(C)")
+            End Using
+        End Sub
+
     End Class
 End Namespace

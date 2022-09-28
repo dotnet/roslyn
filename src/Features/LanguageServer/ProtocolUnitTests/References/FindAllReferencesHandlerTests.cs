@@ -171,7 +171,7 @@ class B
 }"
             };
 
-            using var testLspServer = await CreateTestLspServerAsync(markups, CapabilitiesWithVSExtensions);
+            using var testLspServer = await CreateTestLspServerAsync(markups, new InitializationOptions { ClientCapabilities = CapabilitiesWithVSExtensions });
 
             var results = await RunFindAllReferencesAsync(testLspServer, testLspServer.GetLocations("caret").First());
             AssertLocationsEqual(testLspServer.GetLocations("reference"), results.Select(result => result.Location));

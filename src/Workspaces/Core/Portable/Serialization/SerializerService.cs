@@ -78,7 +78,6 @@ namespace Microsoft.CodeAnalysis.Serialization
                     case WellKnownSynchronizationKind.CompilationOptions:
                     case WellKnownSynchronizationKind.ParseOptions:
                     case WellKnownSynchronizationKind.ProjectReference:
-                    case WellKnownSynchronizationKind.OptionSet:
                     case WellKnownSynchronizationKind.SourceGeneratedDocumentIdentity:
                         return Checksum.Create(value, this);
 
@@ -158,10 +157,6 @@ namespace Microsoft.CodeAnalysis.Serialization
                         SerializeSourceText(new SerializableSourceText((SourceText)value), writer, context, cancellationToken);
                         return;
 
-                    case WellKnownSynchronizationKind.OptionSet:
-                        SerializeOptionSet((SerializableOptionSet)value, writer, cancellationToken);
-                        return;
-
                     default:
                         // object that is not part of solution is not supported since we don't know what inputs are required to
                         // serialize it
@@ -209,8 +204,6 @@ namespace Microsoft.CodeAnalysis.Serialization
                         return (T)(object)DeserializeSerializableSourceText(reader, cancellationToken);
                     case WellKnownSynchronizationKind.SourceText:
                         return (T)(object)DeserializeSourceText(reader, cancellationToken);
-                    case WellKnownSynchronizationKind.OptionSet:
-                        return (T)(object)DeserializeOptionSet(reader, cancellationToken);
 
                     default:
                         throw ExceptionUtilities.UnexpectedValue(kind);

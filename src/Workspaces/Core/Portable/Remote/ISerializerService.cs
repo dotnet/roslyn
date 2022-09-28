@@ -28,8 +28,6 @@ namespace Microsoft.CodeAnalysis.Serialization
 
         void SerializeChecksumWithChildren(ChecksumWithChildren checksums, ObjectWriter writer, CancellationToken cancellationToken);
 
-        void SerializeOptionSet(SerializableOptionSet options, ObjectWriter writer, CancellationToken cancellationToken);
-
         T? Deserialize<T>(WellKnownSynchronizationKind kind, ObjectReader reader, CancellationToken cancellationToken);
 
         Checksum CreateChecksum(object value, CancellationToken cancellationToken);

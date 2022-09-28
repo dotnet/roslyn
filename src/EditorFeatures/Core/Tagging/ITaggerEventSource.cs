@@ -30,6 +30,18 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
         void Disconnect();
 
         /// <summary>
+        /// Pauses this event source and prevents it from firing the <see cref="Changed"/> event. Can be called many
+        /// times (but subsequence calls have no impact if already paused).  Must be called on the UI thread.
+        /// </summary>
+        void Pause();
+
+        /// <summary>
+        /// Resumes this event source and allows firing the <see cref="Changed"/> event. Can be called many times (but
+        /// subsequence calls have no impact if already resumed).  Must be called on the UI thread.
+        /// </summary>
+        void Resume();
+
+        /// <summary>
         /// An event has happened on the thing the tagger is attached to.  The tagger should
         /// recompute tags.
         /// </summary>

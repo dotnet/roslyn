@@ -8,6 +8,7 @@ using System;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.CSharp.Completion.Providers;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -864,7 +865,7 @@ class Program
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task OkAfterAsync()
+        public async Task NotOkAfterAsync()
         {
             var markup = @"
 using System.Threading.Tasks;
@@ -873,7 +874,7 @@ class Program
     async $$
 }";
 
-            await VerifyItemExistsAsync(markup, "T");
+            await VerifyItemIsAbsentAsync(markup, "T");
         }
 
         [WorkItem(968256, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/968256")]

@@ -1,0 +1,5 @@
+<Project>
+ <PropertyGroup>
+    <MetalamaTransformedCodeAnalyzers>@(MetalamaTransformedCodeAnalyzer)</MetalamaTransformedCodeAnalyzers>
+ </PropertyGroup>
+</Project>

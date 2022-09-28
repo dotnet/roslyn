@@ -11,8 +11,7 @@ using Microsoft.CodeAnalysis.Options.Providers;
 
 namespace Microsoft.CodeAnalysis.Diagnostics
 {
-    [ExportSolutionOptionProvider, Shared]
-    internal sealed class DiagnosticOptions : IOptionProvider
+    internal sealed class DiagnosticOptions
     {
         private const string FeatureName = "DiagnosticOptions";
 
@@ -23,15 +22,5 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public static readonly Option2<bool> LogTelemetryForBackgroundAnalyzerExecution = new(
             FeatureName, nameof(LogTelemetryForBackgroundAnalyzerExecution), defaultValue: false,
             new FeatureFlagStorageLocation($"Roslyn.LogTelemetryForBackgroundAnalyzerExecution"));
-
-        public ImmutableArray<IOption> Options { get; } = ImmutableArray.Create<IOption>(
-            LspPullDiagnosticsFeatureFlag,
-            LogTelemetryForBackgroundAnalyzerExecution);
-
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public DiagnosticOptions()
-        {
-        }
     }
 }

@@ -34,8 +34,10 @@ namespace Microsoft.CodeAnalysis.NewLines.MultipleBlankLines
         {
             var document = context.Document;
             var diagnostic = context.Diagnostics.First();
-            context.RegisterCodeFix(new MyCodeAction(
-                c => UpdateDocumentAsync(document, diagnostic, c)),
+            context.RegisterCodeFix(CodeAction.Create(
+                CodeFixesResources.Remove_extra_blank_lines,
+                c => UpdateDocumentAsync(document, diagnostic, c),
+                nameof(CodeFixesResources.Remove_extra_blank_lines)),
                 context.Diagnostics);
             return Task.CompletedTask;
         }
@@ -146,13 +148,5 @@ namespace Microsoft.CodeAnalysis.NewLines.MultipleBlankLines
 
         public override FixAllProvider? GetFixAllProvider()
             => FixAllProvider.Create(async (context, document, diagnostics) => await FixAllAsync(document, diagnostics, context.CancellationToken).ConfigureAwait(false));
-
-        private class MyCodeAction : CustomCodeActions.DocumentChangeAction
-        {
-            public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(CodeFixesResources.Remove_extra_blank_lines, createChangedDocument, CodeFixesResources.Remove_extra_blank_lines)
-            {
-            }
-        }
     }
 }

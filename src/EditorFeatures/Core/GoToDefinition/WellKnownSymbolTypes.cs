@@ -2,10 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
+namespace Microsoft.CodeAnalysis.GoToDefinition;
+
+internal static class WellKnownSymbolTypes
 {
-    internal static class WellKnownSymbolTypes
-    {
-        public const string Definition = nameof(Definition);
-    }
+    public const string Definition = nameof(Definition);
 }

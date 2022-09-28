@@ -161,7 +161,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             return new BoundArrayCreation(
                 syntax,
                 ImmutableArray.Create<BoundExpression>(lengthExpr),
-                new BoundArrayInitialization(syntax, initializerExprs.ToImmutableAndFree()),
+                new BoundArrayInitialization(syntax, isInferred: false, initializerExprs.ToImmutableAndFree()),
                 byteArrayType);
         }
     }

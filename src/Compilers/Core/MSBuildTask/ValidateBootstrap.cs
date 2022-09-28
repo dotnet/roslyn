@@ -70,18 +70,13 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                 }
             }
 
-            // This represents the maximum number of failed build attempts on the server before we will declare
-            // that the overall build itself failed. 
+            // This represents the maximum number of failed connection attempts on the server before we will declare
+            // that the overall build itself failed. Keeping this at zero is not realistic because even in a fully
+            // functioning server connection failures are expected. The server could be too busy to accept connections
+            // fast enough. Anything above this count though is considered worth investigating by the compiler team.
             //
-            // The goal is to keep this at zero. The errors here are a mix of repository construction errors (having
-            // incompatible NuGet analyzers) and product errors (having flaky behavior in the server). Any time this
-            // number goes above zero it means we are dropping connections during developer inner loop builds and 
-            // hence measurably slowing down our productivity.
-            //
-            // When we find issues in the server or our infra we can temporarily raise this number while it is
-            // being worked out but should file a bug to track getting this to zero.
-            const int maxRejectCount = 0;
-            var rejectCount = 0;
+            const int maxCannotConnectCount = 2;
+            var cannotConnectCount = 0;
             foreach (var tuple in s_failedQueue.ToList())
             {
                 switch (tuple.ResponseType)
@@ -96,10 +91,14 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                         allGood = false;
                         break;
                     case ResponseType.Rejected:
-                        rejectCount++;
-                        if (rejectCount > maxRejectCount)
+                        Log.LogError($"Compiler request rejected");
+                        allGood = false;
+                        break;
+                    case ResponseType.CannotConnect:
+                        cannotConnectCount++;
+                        if (cannotConnectCount > maxCannotConnectCount)
                         {
-                            Log.LogError($"Too many compiler server connection failures detected");
+                            Log.LogError("Too many errors connecting to the server");
                             allGood = false;
                         }
                         break;

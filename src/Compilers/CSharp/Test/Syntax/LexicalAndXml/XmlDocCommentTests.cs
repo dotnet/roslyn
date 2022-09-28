@@ -3327,11 +3327,6 @@ public class Program
             VerifyDiagnostics(node.ErrorsAndWarnings(), errors);
         }
 
-        private void VerifyDiagnostics(SyntaxToken token, List<TestError> errors)
-        {
-            VerifyDiagnostics(token.ErrorsAndWarnings(), errors);
-        }
-
         private void VerifyDiagnostics(SyntaxTrivia trivia, List<TestError> errors)
         {
             VerifyDiagnostics(trivia.ErrorsAndWarnings(), errors);

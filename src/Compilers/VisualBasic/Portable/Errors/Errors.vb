@@ -1764,7 +1764,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ERR_MultipleAnalyzerConfigsInSameDir = 37317
         ERR_StdInOptionProvidedButConsoleInputIsNotRedirected = 37318
 
-        ERR_NextAvailable = 37319
+        ERR_UnsupportedCompilerFeature = 37319
+        ERR_DoNotUseCompilerFeatureRequired = 37320
+
+        ERR_NextAvailable = 37321
 
         '// WARNINGS BEGIN HERE
         WRN_UseOfObsoleteSymbol2 = 40000
@@ -1993,6 +1996,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         WRN_CallerArgumentExpressionAttributeSelfReferential = 42504
         WRN_CallerArgumentExpressionAttributeHasInvalidParameterName = 42505
+
+        WRN_AnalyzerReferencesNewerCompiler = 42506
 
         ' // AVAILABLE                             42600 - 49998
         WRN_NextAvailable = 42600

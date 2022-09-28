@@ -526,10 +526,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (!shouldDebugTransformedCode)
             {
-                // mark old trees as debuggable
                 foreach (var tree in inputCompilation.SyntaxTrees)
                 {
                     SyntaxTree annotatedTree = tree.WithRootAndOptions(TreeTracker.AnnotateNodeAndChildren(tree.GetRoot(cancellationToken)), tree.Options);
+                    
                     SyntaxTreeHistory.Update(tree, annotatedTree );
                     annotatedInputCompilation = annotatedInputCompilation.ReplaceSyntaxTree(tree, annotatedTree);
                     oldTreeToNewTrees[tree] = (annotatedTree,false);
@@ -554,13 +554,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                     sourceOnlyAnalyzersOptions with { AnalyzerOptions = mappedOptions}, 
                     annotatedInputCompilation,
                     diagnostics, 
+                    GetLogger(services),
                     cancellationToken);
             }
 
             // Execute the transformers.
             var outputCompilation = annotatedInputCompilation;
-            
-            
+
+
             foreach (var transformer in transformers)
             {
                 try

@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
 
             var baseline = EmitBaseline.CreateInitialBaseline(md, EditAndContinueTestBase.EmptyLocalsProvider);
 
-            _generations.Add(new GenerationInfo(compilation, md.MetadataReader, baseline, validator));
+            _generations.Add(new GenerationInfo(compilation, md.MetadataReader, diff: null, baseline, validator));
 
             return this;
         }
@@ -62,12 +62,20 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
 
             var semanticEdits = GetSemanticEdits(edits, prevGeneration.Compilation, compilation);
 
-            var diff = compilation.EmitDifference(prevGeneration.Baseline, semanticEdits);
+            CompilationDifference diff;
+            try
+            {
+                diff = compilation.EmitDifference(prevGeneration.Baseline, semanticEdits);
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"Exception during generation #{_generations.Count}. See inner stack trace for details.", ex);
+            }
 
             var md = diff.GetMetadata();
             _disposables.Add(md);
 
-            _generations.Add(new GenerationInfo(compilation, md.Reader, diff.NextGeneration, validator));
+            _generations.Add(new GenerationInfo(compilation, md.Reader, diff, diff.NextGeneration, validator));
 
             return this;
         }
@@ -88,7 +96,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
                 }
 
                 readers.Add(generation.MetadataReader);
-                var verifier = new GenerationVerifier(index, generation.MetadataReader, readers);
+                var verifier = new GenerationVerifier(index, generation, readers);
                 generation.Verifier(verifier);
 
                 index++;
@@ -99,7 +107,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
 
         private ImmutableArray<SemanticEdit> GetSemanticEdits(SemanticEditDescription[] edits, Compilation oldCompilation, Compilation newCompilation)
         {
-            return ImmutableArray.CreateRange(edits.Select(e => new SemanticEdit(e.Kind, e.SymbolProvider(oldCompilation), e.SymbolProvider(newCompilation))));
+            return ImmutableArray.CreateRange(edits.Select(e => new SemanticEdit(e.Kind, e.SymbolProvider(oldCompilation), e.NewSymbolProvider(newCompilation))));
         }
 
         public void Dispose()

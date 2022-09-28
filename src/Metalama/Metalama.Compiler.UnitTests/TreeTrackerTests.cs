@@ -47,6 +47,29 @@ namespace Metalama.Compiler.UnitTests
         }
 
         [Fact]
+        public void Cref()
+        {
+            var originalCompilationUnit = SyntaxFactory.ParseCompilationUnit(@"
+/// <seealso cref=""some_cref""/>
+class C {} 
+");
+            var originalCref = originalCompilationUnit.DescendantNodes(descendIntoTrivia: true).OfType<CrefSyntax>()
+                .Single();
+
+            var trackedCompilationUnit = TreeTracker.AnnotateNodeAndChildren(originalCompilationUnit);
+            
+
+            var trackedClass = trackedCompilationUnit.DescendantNodes().OfType<ClassDeclarationSyntax>().Single();
+            var modifiedClass = trackedClass.WithIdentifier(SyntaxFactory.Identifier("D"))
+                .WithLeadingTrivia(trackedClass.GetLeadingTrivia().Insert(0, SyntaxFactory.Comment("// My two cents.")));
+            var modifiedCompilationUnit = trackedCompilationUnit.ReplaceNode(trackedClass, modifiedClass);
+            var modifiedCref = modifiedCompilationUnit.DescendantNodes(descendIntoTrivia:true).OfType<CrefSyntax>().Single();
+            var mappedLocation = modifiedCref.Location.GetSourceLocation();
+            Assert.Same(originalCompilationUnit.SyntaxTree, mappedLocation.SourceTree);
+            Assert.Equal(originalCref.Location.SourceSpan, mappedLocation.SourceSpan);
+        }
+
+        [Fact]
         public void CopyOriginalLocation()
         {
             var originalBlock = (BlockSyntax)SyntaxFactory.ParseStatement("{ return 5; }");

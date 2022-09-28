@@ -77,6 +77,11 @@
         <target state="translated">Toujours pour plus de clarté</target>
         <note />
       </trans-unit>
+      <trans-unit id="Always_use_default_symbol_servers_for_navigation">
+        <source>Always use default symbol servers for navigation</source>
+        <target state="translated">Toujours utiliser les serveurs de symboles par défaut pour la navigation</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Analyzer_Defaults">
         <source>Analyzer Defaults</source>
         <target state="translated">Valeurs par défaut de l’analyseur</target>
@@ -167,6 +172,11 @@
         <target state="translated">Calcul des dépendants...</target>
         <note />
       </trans-unit>
+      <trans-unit id="Call_Hierarchy">
+        <source>Call Hierarchy</source>
+        <target state="translated">Hiérarchie d'appels</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Call_site_value">
         <source>Call site value:</source>
         <target state="translated">Valeur du site d'appel :</target>
@@ -232,6 +242,21 @@
         <target state="translated">L'analyse du code s'est terminée avant la fin de la solution.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Collapse_metadata_signature_files_on_open">
+        <source>Collapse metadata signature files to definitions on file open</source>
+        <target state="translated">Réduire les fichiers de signature de métadonnées aux définitions à l’ouverture du fichier</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Collapse_regions_on_file_open">
+        <source>Collapse #regions on file open</source>
+        <target state="translated">Réduire #regions sur le fichier ouvert</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Collapse_sourcelink_embedded_decompiled_files_on_open">
+        <source>Collapse Source Link, Embedded, and Decompiled source to definitions on file open</source>
+        <target state="translated">Réduire Source Link, la source incorporée et décompilée aux définitions sur le fichier ouvert</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Color_hints">
         <source>Color hints</source>
         <target state="translated">Indicateurs de couleurs</target>
@@ -239,7 +264,7 @@
       </trans-unit>
       <trans-unit id="Colorize_JSON_strings">
         <source>Colorize JSON strings</source>
-        <target state="new">Colorize JSON strings</target>
+        <target state="translated">Coloriser les chaînes JSON</target>
         <note />
       </trans-unit>
       <trans-unit id="Colorize_regular_expressions">
@@ -294,7 +319,7 @@
       </trans-unit>
       <trans-unit id="Default_None">
         <source>Default (None)</source>
-        <target state="new">Default (None)</target>
+        <target state="translated">Par défaut (aucun)</target>
         <note>This text is a menu command</note>
       </trans-unit>
       <trans-unit id="Default_Open_Documents">
@@ -404,7 +429,7 @@
       </trans-unit>
       <trans-unit id="Entire_solution_and_external_sources">
         <source>Entire Solution and External Sources</source>
-        <target state="new">Entire Solution and External Sources</target>
+        <target state="translated">Solution entière et sources externes</target>
         <note />
       </trans-unit>
       <trans-unit id="Error">
@@ -424,7 +449,7 @@
       </trans-unit>
       <trans-unit id="External_sources">
         <source>External Sources</source>
-        <target state="new">External Sources</target>
+        <target state="translated">Sources externes</target>
         <note />
       </trans-unit>
       <trans-unit id="Extract_Base_Class">
@@ -435,6 +460,26 @@
       <trans-unit id="Finish">
         <source>Finish</source>
         <target state="translated">Terminer</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Fix_text_pasted_into_string_literals_experimental">
+        <source>Fix text pasted into string literals (experimental)</source>
+        <target state="translated">Corriger le texte collé dans des littéraux de chaîne (expérimental)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Fix_analyzer_warnings_and_errors">
+        <source>Fix analyzer warnings and errors</source>
+        <target state="translated">Corriger les erreurs et les avertissements de l’analyseur</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Fix_all_warnings_and_errors_set_in_EditorConfig">
+        <source>Fix all warnings and errors set in EditorConfig</source>
+        <target state="translated">Corriger tous les avertissements et erreurs définis dans EditorConfig</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Fix_analyzer_warnings_and_errors_set_in_EditorConfig">
+        <source>Fix analyzer warnings and errors set in EditorConfig</source>
+        <target state="translated">Corriger les avertissements et les erreurs définis par l’analyseur dans EditorConfig</target>
         <note />
       </trans-unit>
       <trans-unit id="For_non_interface_members">
@@ -450,6 +495,11 @@
       <trans-unit id="Generate_dot_editorconfig_file_from_settings">
         <source>Generate .editorconfig file from settings</source>
         <target state="translated">Générer le fichier .editorconfig à partir des paramètres</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Go_To_Definition">
+        <source>Go To Definition</source>
+        <target state="translated">Accéder à la définition</target>
         <note />
       </trans-unit>
       <trans-unit id="Highlight_related_components_under_cursor">
@@ -485,6 +535,11 @@
       <trans-unit id="In_other_operators">
         <source>In other operators</source>
         <target state="translated">Dans les autres opérateurs</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Include_global_imports">
+        <source>Include global imports</source>
+        <target state="translated">Inclure les importations globales</target>
         <note />
       </trans-unit>
       <trans-unit id="Index">
@@ -559,7 +614,7 @@
       </trans-unit>
       <trans-unit id="JSON_strings">
         <source>JSON strings</source>
-        <target state="new">JSON strings</target>
+        <target state="translated">Chaînes JSON</target>
         <note />
       </trans-unit>
       <trans-unit id="Keep">
@@ -822,6 +877,11 @@
         <target state="translated">Règles de nommage</target>
         <note />
       </trans-unit>
+      <trans-unit id="Navigate_asynchronously_exerimental">
+        <source>Navigate asynchronously (experimental)</source>
+        <target state="translated">Naviguer de façon asynchrone (expérimental)</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Navigate_to_0">
         <source>Navigate to '{0}'</source>
         <target state="translated">Accéder à « {0} »</target>
@@ -830,6 +890,11 @@
       <trans-unit id="Navigate_to_external_sources">
         <source>Navigate to External Sources</source>
         <target state="translated">Accéder aux sources externes</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Navigating">
+        <source>Navigating</source>
+        <target state="translated">Navigation</target>
         <note />
       </trans-unit>
       <trans-unit id="Never">
@@ -983,8 +1048,8 @@
         <note />
       </trans-unit>
       <trans-unit id="Paste_valid_stack_trace">
-        <source>Paste a valid stack trace to view and navigate it's values</source>
-        <target state="translated">Collez une trace de pile valide pour afficher et parcourir ses valeurs</target>
+        <source>Paste a stack trace to view and navigate its values.</source>
+        <target state="translated">Collez une trace de pile pour afficher et parcourir ses valeurs.</target>
         <note>"Stack Trace" is a language term and should be kept the same. </note>
       </trans-unit>
       <trans-unit id="Paused_0_tasks_in_queue">
@@ -1002,6 +1067,11 @@
         <target state="translated">Préférer 'System.HashCode' dans 'GetHashCode'</target>
         <note />
       </trans-unit>
+      <trans-unit id="Prefer_Utf8_string_literals">
+        <source>Prefer UTF-8 string literals</source>
+        <target state="translated">Préférer les littéraux de chaîne UTF-8</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Prefer_compound_assignments">
         <source>Prefer compound assignments</source>
         <target state="translated">Préférer les affectations composées</target>
@@ -1014,7 +1084,7 @@
       </trans-unit>
       <trans-unit id="Prefer_method_group_conversion">
         <source>Prefer method group conversion</source>
-        <target state="new">Prefer method group conversion</target>
+        <target state="translated">Préférer la conversion de groupe de méthodes</target>
         <note />
       </trans-unit>
       <trans-unit id="Prefer_namespace_and_folder_match_structure">
@@ -1050,6 +1120,11 @@
       <trans-unit id="Prefer_static_local_functions">
         <source>Prefer static local functions</source>
         <target state="translated">Préférer les fonctions locales statiques</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Prefer_top_level_statements">
+        <source>Prefer top-level statements</source>
+        <target state="translated">Préférer les instructions de niveau supérieur</target>
         <note />
       </trans-unit>
       <trans-unit id="Prefer_tuple_swap">
@@ -1102,14 +1177,24 @@
         <target state="translated">Supprimer les Usings inutiles</target>
         <note />
       </trans-unit>
+      <trans-unit id="Rename">
+        <source>Rename</source>
+        <target state="translated">renommer</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Rename_0_to_1">
         <source>Rename {0} to {1}</source>
         <target state="translated">Renommer {0} en {1}</target>
         <note />
       </trans-unit>
+      <trans-unit id="Rename_asynchronously_experimental">
+        <source>Rename asynchronously experimental</source>
+        <target state="translated">Renommer de façon asynchrone expérimentale</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Report_invalid_JSON_strings">
         <source>Report invalid JSON strings</source>
-        <target state="new">Report invalid JSON strings</target>
+        <target state="translated">Signaler les chaînes JSON non valides</target>
         <note />
       </trans-unit>
       <trans-unit id="Report_invalid_regular_expressions">
@@ -1159,7 +1244,7 @@
       </trans-unit>
       <trans-unit id="Run_background_code_analysis_for_colon">
         <source>Run background code analysis for:</source>
-        <target state="new">Run background code analysis for:</target>
+        <target state="translated">Exécuter une analyse de code en arrière-plan pour :</target>
         <note />
       </trans-unit>
       <trans-unit id="Run_code_analysis_in_separate_process_requires_restart">
@@ -1237,6 +1322,11 @@
         <target state="translated">Afficher la commande Supprimer les références inutilisées dans l'Explorateur de solutions (expérimental)</target>
         <note />
       </trans-unit>
+      <trans-unit id="Show_compiler_errors_and_warnings_for_colon">
+        <source>Show compiler errors and warnings for:</source>
+        <target state="translated">Afficher les erreurs et avertissements du compilateur pour :</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Show_completion_list">
         <source>Show completion list</source>
         <target state="translated">Afficher la liste de saisie semi-automatique</target>
@@ -1290,6 +1380,11 @@
       <trans-unit id="Sort_usings">
         <source>Sort usings</source>
         <target state="translated">Trier les instructions using</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Stack_Trace">
+        <source>Stack Trace</source>
+        <target state="translated">Trace de la pile</target>
         <note />
       </trans-unit>
       <trans-unit id="Stack_Trace_Explorer">
@@ -1631,6 +1726,11 @@
         <source>Not a valid value</source>
         <target state="translated">Valeur non valide</target>
         <note />
+      </trans-unit>
+      <trans-unit id="_0_1">
+        <source>{0} ({1})</source>
+        <target state="translated">{0} ({1})</target>
+        <note>Used to show a symbol name, followed by the project name it came from</note>
       </trans-unit>
       <trans-unit id="_0_is_inherited">
         <source>'{0}' is inherited</source>

@@ -3,7 +3,9 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Threading;
+using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
+using Microsoft.CodeAnalysis.CSharp.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Shared.Extensions;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -18,6 +20,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UseThrowExpression
             : base(CSharpCodeStyleOptions.PreferThrowExpression, LanguageNames.CSharp)
         {
         }
+
+        protected override CodeStyleOption2<bool> PreferThrowExpressionStyle(OperationAnalysisContext context)
+            => context.GetCSharpAnalyzerOptions().PreferThrowExpression;
 
         protected override bool IsSupported(Compilation compilation)
             => compilation.LanguageVersion() >= LanguageVersion.CSharp7;

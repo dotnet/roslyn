@@ -541,7 +541,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, "?").WithArguments("?").WithLocation(1, 9),
                 // (1,12): error CS1003: Syntax error, ':' expected
                 // x as T??? y
-                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments(":", "").WithLocation(1, 12),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments(":").WithLocation(1, 12),
                 // (1,12): error CS1733: Expected expression
                 // x as T??? y
                 Diagnostic(ErrorCode.ERR_ExpressionExpected, "").WithLocation(1, 12));
@@ -672,7 +672,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, "break").WithArguments("break").WithLocation(1, 25),
                 // (1,25): error CS1003: Syntax error, ':' expected
                 // switch (e) { case T? t: break; }
-                Diagnostic(ErrorCode.ERR_SyntaxError, "break").WithArguments(":", "break").WithLocation(1, 25));
+                Diagnostic(ErrorCode.ERR_SyntaxError, "break").WithArguments(":").WithLocation(1, 25));
             N(SyntaxKind.SwitchStatement);
             {
                 N(SyntaxKind.SwitchKeyword);
@@ -727,7 +727,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "T[]").WithArguments("type pattern", "9.0").WithLocation(1, 19),
                 // (1,22): error CS1003: Syntax error, ':' expected
                 // switch (e) { case T[]? t: break; }
-                Diagnostic(ErrorCode.ERR_SyntaxError, "?").WithArguments(":", "?").WithLocation(1, 22),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "?").WithArguments(":").WithLocation(1, 22),
                 // (1,22): error CS1513: } expected
                 // switch (e) { case T[]? t: break; }
                 Diagnostic(ErrorCode.ERR_RbraceExpected, "?").WithLocation(1, 22));
@@ -1273,7 +1273,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 Diagnostic(ErrorCode.ERR_ExpressionExpected, "").WithLocation(1, 17),
                 // (1,17): error CS1003: Syntax error, ':' expected
                 // new object[,][]?
-                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments(":", "").WithLocation(1, 17),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments(":").WithLocation(1, 17),
                 // (1,17): error CS1733: Expected expression
                 // new object[,][]?
                 Diagnostic(ErrorCode.ERR_ExpressionExpected, "").WithLocation(1, 17)

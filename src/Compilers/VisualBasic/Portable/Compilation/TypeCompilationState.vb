@@ -4,6 +4,7 @@
 
 Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis.Emit
+Imports Microsoft.CodeAnalysis.CodeGen
 Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Emit
@@ -25,10 +26,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Structure MethodWithBody
             Public ReadOnly Method As MethodSymbol
             Public ReadOnly Body As BoundStatement
+            Public ReadOnly StateMachineType As StateMachineTypeSymbol
+            Public ReadOnly StateMachineStatesDebugInfo As ImmutableArray(Of StateMachineStateDebugInfo)
 
-            Friend Sub New(_method As MethodSymbol, _body As BoundStatement)
-                Me.Method = _method
-                Me.Body = _body
+            Friend Sub New(method As MethodSymbol,
+                           body As BoundStatement,
+                           stateMachineType As StateMachineTypeSymbol,
+                           stateMachineStatesDebugInfo As ImmutableArray(Of StateMachineStateDebugInfo))
+
+                Debug.Assert(Not stateMachineStatesDebugInfo.IsDefault)
+
+                Me.Method = method
+                Me.Body = body
+                Me.StateMachineType = stateMachineType
+                Me.StateMachineStatesDebugInfo = stateMachineStatesDebugInfo
             End Sub
         End Structure
 
@@ -86,12 +97,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        Public Sub AddSynthesizedMethod(method As MethodSymbol, body As BoundStatement)
+        Public Sub AddSynthesizedMethod(method As MethodSymbol,
+                                        body As BoundStatement,
+                                        stateMachineType As StateMachineTypeSymbol,
+                                        stateMachineStatesDebugInfo As ImmutableArray(Of StateMachineStateDebugInfo))
             If _synthesizedMethods Is Nothing Then
                 _synthesizedMethods = ArrayBuilder(Of MethodWithBody).GetInstance()
             End If
 
-            _synthesizedMethods.Add(New MethodWithBody(method, body))
+            _synthesizedMethods.Add(New MethodWithBody(method, body, stateMachineType, stateMachineStatesDebugInfo))
         End Sub
 
         Public Function HasMethodWrapper(method As MethodSymbol) As Boolean
@@ -104,7 +118,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             _methodWrappers(method) = wrapper
-            AddSynthesizedMethod(wrapper, body)
+            AddSynthesizedMethod(wrapper, body, stateMachineType:=Nothing, ImmutableArray(Of StateMachineStateDebugInfo).Empty)
         End Sub
 
         Public Function GetMethodWrapper(method As MethodSymbol) As MethodSymbol

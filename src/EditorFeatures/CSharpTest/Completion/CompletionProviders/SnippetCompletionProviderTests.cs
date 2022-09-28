@@ -148,19 +148,15 @@ class C
             }
 
             public IEnumerable<SnippetInfo> GetSnippetsIfAvailable()
-            {
-                return new List<SnippetInfo>
+                => new List<SnippetInfo>
                     {
                         new SnippetInfo(SnippetShortcut, SnippetTitle, SnippetDescription, SnippetPath),
                         new SnippetInfo(PreProcessorSnippetShortcut, PreProcessorSnippetTitle, PreProcessorSnippetDescription, PreProcessorSnippetPath)
                     };
-            }
 
             public bool SnippetShortcutExists_NonBlocking(string shortcut)
-            {
-                return string.Equals(shortcut, SnippetShortcut, StringComparison.OrdinalIgnoreCase) ||
-                       string.Equals(shortcut, PreProcessorSnippetShortcut, StringComparison.OrdinalIgnoreCase);
-            }
+                => string.Equals(shortcut, SnippetShortcut, StringComparison.OrdinalIgnoreCase) ||
+                   string.Equals(shortcut, PreProcessorSnippetShortcut, StringComparison.OrdinalIgnoreCase);
 
             public bool ShouldFormatSnippet(SnippetInfo snippetInfo)
                 => false;

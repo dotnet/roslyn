@@ -2604,7 +2604,7 @@ class Module1
                 current = (NamespaceOrTypeSymbol)matchingSym.First();
             }
 
-            return current is TypeSymbol && ((TypeSymbol)current).TypeKind == kind;
+            return current is TypeSymbol type && type.TypeKind == kind;
         }
 
         [Fact]

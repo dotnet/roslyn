@@ -67,6 +67,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override IEnumerable<string> MemberNames => Constructors.Select(m => m.Name);
 
+        internal override bool HasDeclaredRequiredMembers => false;
+
         public override Accessibility DeclaredAccessibility => Accessibility.Internal;
 
         public override TypeKind TypeKind => TypeKind.Class;
@@ -157,6 +159,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override ImmutableArray<NamedTypeSymbol> InterfacesNoUseSiteDiagnostics(ConsList<TypeSymbol> basesBeingResolved = null) => ImmutableArray<NamedTypeSymbol>.Empty;
 
+        internal sealed override bool IsRecord => false;
+        internal sealed override bool IsRecordStruct => false;
+        internal sealed override bool HasPossibleWellKnownCloneMethod() => false;
+
         internal override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<SynthesizedAttributeData> attributes)
         {
             base.AddSynthesizedAttributes(moduleBuilder, ref attributes);
@@ -206,10 +212,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         public override ImmutableArray<MethodSymbol> Constructors => _constructors;
-
-        internal override bool IsRecord => false;
-        internal override bool IsRecordStruct => false;
-        internal override bool HasPossibleWellKnownCloneMethod() => false;
     }
 
     internal sealed class SynthesizedEmbeddedAttributeConstructorSymbol : SynthesizedInstanceConstructor

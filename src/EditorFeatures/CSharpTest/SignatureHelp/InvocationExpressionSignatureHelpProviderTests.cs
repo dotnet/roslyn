@@ -2449,6 +2449,57 @@ class Goo
             await TestAsync(markup, expectedOrderedItems);
         }
 
+        [WorkItem(33549, "https://github.com/dotnet/roslyn/issues/33549")]
+        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        public async Task ShowOnlyStaticMethodsForBuildInTypes()
+        {
+            var markup = @"
+class C
+{
+    void M()
+    {
+        string.Equals($$
+    }
+}";
+
+            var expectedOrderedItems = new List<SignatureHelpTestItem>()
+            {
+                new SignatureHelpTestItem("bool object.Equals(object objA, object objB)"),
+                new SignatureHelpTestItem("bool string.Equals(string a, string b)"),
+                new SignatureHelpTestItem("bool string.Equals(string a, string b, System.StringComparison comparisonType)")
+            };
+            await TestAsync(markup, expectedOrderedItems);
+        }
+
+        [WorkItem(23133, "https://github.com/dotnet/roslyn/issues/23133")]
+        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        public async Task ShowOnlyStaticMethodsForNotImportedTypes()
+        {
+            var markup = @"
+class C
+{
+    void M()
+    {
+        Test.Goo.Bar($$
+    }
+}
+namespace Test
+{
+    class Goo
+    {
+        public void Bar(int x) { }
+        public static void Bar(string s) { }
+    }
+}
+";
+
+            var expectedOrderedItems = new List<SignatureHelpTestItem>()
+            {
+                new SignatureHelpTestItem("void Test.Goo.Bar(string s)")
+            };
+            await TestAsync(markup, expectedOrderedItems);
+        }
+
         [WorkItem(1067933, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1067933")]
         [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
         public async Task InvokedWithNoToken()

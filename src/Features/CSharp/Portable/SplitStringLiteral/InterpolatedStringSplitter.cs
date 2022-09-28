@@ -9,6 +9,7 @@ using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Formatting;
+using Microsoft.CodeAnalysis.Indentation;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.SplitStringLiteral
@@ -25,11 +26,11 @@ namespace Microsoft.CodeAnalysis.CSharp.SplitStringLiteral
                 SyntaxNode root,
                 SourceText sourceText,
                 InterpolatedStringExpressionSyntax interpolatedStringExpression,
+                IndentationOptions options,
                 bool useTabs,
                 int tabSize,
-                FormattingOptions.IndentStyle indentStyle,
                 CancellationToken cancellationToken)
-                : base(document, position, root, sourceText, useTabs, tabSize, indentStyle, cancellationToken)
+                : base(document, position, root, sourceText, options, useTabs, tabSize, cancellationToken)
             {
                 _interpolatedStringExpression = interpolatedStringExpression;
             }

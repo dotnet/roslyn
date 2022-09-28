@@ -11,6 +11,7 @@ using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.SourceGeneration;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
@@ -158,6 +159,12 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
+        public GeneratorDriverTimingInfo GetTimingInfo()
+        {
+            var generatorTimings = _state.Generators.ZipAsArray(_state.GeneratorStates, (generator, generatorState) => new GeneratorTimingInfo(generator, generatorState.ElapsedTime));
+            return new GeneratorDriverTimingInfo(_state.RunTime, generatorTimings);
+        }
+
         internal GeneratorDriverState RunGeneratorsCore(Compilation compilation, DiagnosticBag? diagnosticsBag, CancellationToken cancellationToken = default)
         {
             // with no generators, there is no work to do
@@ -185,7 +192,8 @@ namespace Microsoft.CodeAnalysis
                     var outputBuilder = ArrayBuilder<IIncrementalGeneratorOutputNode>.GetInstance();
                     var inputBuilder = ArrayBuilder<SyntaxInputNode>.GetInstance();
                     var postInitSources = ImmutableArray<GeneratedSyntaxTree>.Empty;
-                    var pipelineContext = new IncrementalGeneratorInitializationContext(inputBuilder, outputBuilder, SourceExtension);
+                    var pipelineContext = new IncrementalGeneratorInitializationContext(
+                        inputBuilder, outputBuilder, this.SyntaxHelper, this.SourceExtension);
 
                     Exception? ex = null;
                     try
@@ -215,8 +223,8 @@ namespace Microsoft.CodeAnalysis
                     }
 
                     generatorState = ex is null
-                                     ? new GeneratorState(generatorState.Info, postInitSources, inputNodes, outputNodes)
-                                     : SetGeneratorException(MessageProvider, generatorState, sourceGenerator, ex, diagnosticsBag, isInit: true);
+                                     ? new GeneratorState(postInitSources, inputNodes, outputNodes)
+                                     : SetGeneratorException(MessageProvider, GeneratorState.Empty, sourceGenerator, ex, diagnosticsBag, isInit: true);
                 }
 
                 // if the pipeline registered any syntax input nodes, record them
@@ -226,7 +234,7 @@ namespace Microsoft.CodeAnalysis
                 }
 
                 // record any constant sources
-                if (generatorState.Exception is null && generatorState.PostInitTrees.Length > 0)
+                if (generatorState.PostInitTrees.Length > 0)
                 {
                     constantSourcesBuilder.AddRange(generatorState.PostInitTrees.Select(t => t.Tree));
                 }
@@ -247,12 +255,12 @@ namespace Microsoft.CodeAnalysis
             for (int i = 0; i < state.IncrementalGenerators.Length; i++)
             {
                 var generatorState = stateBuilder[i];
-                if (generatorState.Exception is object)
+                if (generatorState.OutputNodes.Length == 0)
                 {
                     continue;
                 }
 
-                using var generatorTimer = CodeAnalysisEventSource.Log.CreateSingleGeneratorRunTimer(state.Generators[i]);
+                using var generatorTimer = CodeAnalysisEventSource.Log.CreateSingleGeneratorRunTimer(state.Generators[i], (t) => t.Add(syntaxStoreBuilder.GetRuntimeAdjustment(stateBuilder[i].InputNodes)));
                 try
                 {
                     // We do not support incremental step tracking for v1 generators, as the pipeline is implicitly defined.
@@ -260,11 +268,11 @@ namespace Microsoft.CodeAnalysis
                     (var sources, var generatorDiagnostics, var generatorRunStateTable) = context.ToImmutableAndFree();
                     generatorDiagnostics = FilterDiagnostics(compilation, generatorDiagnostics, driverDiagnostics: diagnosticsBag, cancellationToken);
 
-                    stateBuilder[i] = new GeneratorState(generatorState.Info, generatorState.PostInitTrees, generatorState.InputNodes, generatorState.OutputNodes, ParseAdditionalSources(state.Generators[i], sources, cancellationToken), generatorDiagnostics, generatorRunStateTable.ExecutedSteps, generatorRunStateTable.OutputSteps, generatorTimer.Elapsed);
+                    stateBuilder[i] = generatorState.WithResults(ParseAdditionalSources(state.Generators[i], sources, cancellationToken), generatorDiagnostics, generatorRunStateTable.ExecutedSteps, generatorRunStateTable.OutputSteps, generatorTimer.Elapsed);
                 }
                 catch (UserFunctionException ufe)
                 {
-                    stateBuilder[i] = SetGeneratorException(MessageProvider, stateBuilder[i], state.Generators[i], ufe.InnerException, diagnosticsBag, generatorTimer.Elapsed);
+                    stateBuilder[i] = SetGeneratorException(MessageProvider, generatorState, state.Generators[i], ufe.InnerException, diagnosticsBag, generatorTimer.Elapsed);
                 }
             }
 
@@ -323,7 +331,7 @@ namespace Microsoft.CodeAnalysis
             var diagnostic = Diagnostic.Create(descriptor, Location.None, generator.GetGeneratorType().Name, e.GetType().Name, e.Message);
 
             diagnosticBag?.Add(diagnostic);
-            return new GeneratorState(generatorState.Info, e, diagnostic, runTime ?? TimeSpan.Zero);
+            return generatorState.WithError(e, diagnostic, runTime ?? TimeSpan.Zero);
         }
 
         private static ImmutableArray<Diagnostic> FilterDiagnostics(Compilation compilation, ImmutableArray<Diagnostic> generatorDiagnostics, DiagnosticBag? driverDiagnostics, CancellationToken cancellationToken)
@@ -365,5 +373,7 @@ namespace Microsoft.CodeAnalysis
         internal abstract SyntaxTree ParseGeneratedSourceText(GeneratedSourceText input, string fileName, CancellationToken cancellationToken);
 
         internal abstract string SourceExtension { get; }
+
+        internal abstract ISyntaxHelper SyntaxHelper { get; }
     }
 }

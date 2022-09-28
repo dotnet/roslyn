@@ -10,8 +10,10 @@ using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Completion.Providers;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
+using Microsoft.CodeAnalysis.CSharp.LanguageServices;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -82,20 +84,45 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             var expression = (ExpressionSyntax)dotToken.GetRequiredParent();
             expression = expression.GetRootConditionalAccessExpression() ?? expression;
 
-            var replacement = questionToken != null
-                ? $"(({item.DisplayText}){text.ToString(TextSpan.FromBounds(expression.SpanStart, questionToken.Value.FullSpan.Start))}){questionToken.Value}"
-                : $"(({item.DisplayText}){text.ToString(TextSpan.FromBounds(expression.SpanStart, dotToken.SpanStart))})";
+            using var _ = ArrayBuilder<TextChange>.GetInstance(out var builder);
 
-            // If we're at `x.$$.y` then we only want to replace up through the first dot.
+            // First, add the cast prior to the expression.
+            var castText = $"(({item.DisplayText})";
+            builder.Add(new TextChange(new TextSpan(expression.SpanStart, 0), castText));
+
+            // The expression went up to either a `.`, `..`, `?.` or `?..`
+            //
+            // In the case of `expr.` produce `((T)expr)$$`
+            //
+            // In the case of `expr..` produce ((T)expr)$$.
+            //
+            // In the case of `expr?.` produce `((T)expr)?$$`
+            if (questionToken == null)
+            {
+                // Always eat the first dot in `.` or `..` and replace that with the paren.
+                builder.Add(new TextChange(new TextSpan(dotToken.SpanStart, 1), ")"));
+            }
+            else
+            {
+                // Place a paren before the question.
+                builder.Add(new TextChange(new TextSpan(questionToken.Value.SpanStart, 0), ")"));
+                // then remove the first dot that comes after.
+                builder.Add(new TextChange(new TextSpan(dotToken.SpanStart, 1), ""));
+            }
+
+            // If the user partially wrote out the conversion type, delete what they've written.
             var tokenOnLeft = root.FindTokenOnLeftOfPosition(position, includeSkipped: true);
-            var fullTextChange = new TextChange(
-                TextSpan.FromBounds(
-                    expression.SpanStart,
-                    tokenOnLeft.Kind() == SyntaxKind.DotDotToken ? tokenOnLeft.SpanStart + 1 : tokenOnLeft.Span.End),
-                replacement);
+            if (CSharpSyntaxFacts.Instance.IsWord(tokenOnLeft))
+                builder.Add(new TextChange(tokenOnLeft.Span, ""));
 
-            var newPosition = expression.SpanStart + replacement.Length;
-            return CompletionChange.Create(fullTextChange, newPosition);
+            var newText = text.WithChanges(builder);
+            var allChanges = builder.ToImmutable();
+
+            // Collapse all text changes down to a single change (for clients that only care about that), but also keep
+            // all the individual changes around for clients that prefer the fine-grained information.
+            return CompletionChange.Create(
+                CodeAnalysis.Completion.Utilities.Collapse(newText, allChanges),
+                allChanges);
         }
 
         private static async Task<CompletionDescription?> GetConversionDescriptionAsync(Document document, CompletionItem item, SymbolDescriptionOptions displayOptions, CancellationToken cancellationToken)

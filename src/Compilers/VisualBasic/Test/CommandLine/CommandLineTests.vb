@@ -4093,7 +4093,7 @@ End Module
         End Sub
 
         <Fact, WorkItem(705173, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/705173")>
-        Public Sub Ensure_UTF8_Explicit_Prefix_In_Documentation_Comment_File()
+        Public Sub Ensure_Utf8_Explicit_Prefix_In_Documentation_Comment_File()
             Dim dir = Temp.CreateDirectory()
             Dim src = dir.CreateFile("src.vb")
             src.WriteAllText(
@@ -6430,7 +6430,7 @@ End Module
 
         <Fact()>
         Public Sub SpecifyProperCodePage()
-            ' Class <UTF8 Cyrillic Character>
+            ' Class <UTF-8 Cyrillic Character>
             ' End Class
             Dim source() As Byte = {
                                     &H43, &H6C, &H61, &H73, &H73, &H20, &HD0, &H96, &HD, &HA,
@@ -6443,7 +6443,7 @@ End Module
             file.WriteAllBytes(source)
 
             Dim output = ProcessUtilities.RunAndGetOutput(s_basicCompilerExecutable, "/nologo /t:library " & file.ToString(), startFolder:=dir.Path)
-            Assert.Equal("", output) ' Autodetected UTF8, NO ERROR
+            Assert.Equal("", output) ' Autodetected UTF-8, NO ERROR
 
             output = ProcessUtilities.RunAndGetOutput(s_basicCompilerExecutable, "/nologo /preferreduilang:en /t:library /codepage:20127 " & file.ToString(), expectedRetCode:=1, startFolder:=dir.Path) ' 20127: US-ASCII
             ' 0xd0, 0x96 ==> 'Ð–' ==> ERROR

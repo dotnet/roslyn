@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.DocumentationComments;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Utilities;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Formatting;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.Commanding;
 using Microsoft.VisualStudio.Text;
@@ -126,13 +127,12 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.DocumentationComments
             using (var workspace = CreateTestWorkspace(initialMarkup))
             {
                 var testDocument = workspace.Documents.Single();
+                workspace.GlobalOptions.SetGlobalOption(new OptionKey(DocumentationCommentOptionsStorage.AutoXmlDocCommentGeneration, testDocument.Project.Language), autoGenerateXmlDocComments);
 
                 var options = workspace.Options;
 
                 options = options.WithChangedOption(FormattingOptions.UseTabs, testDocument.Project.Language, useTabs);
-                options = options.WithChangedOption(DocumentationCommentOptions.Metadata.AutoXmlDocCommentGeneration, testDocument.Project.Language, autoGenerateXmlDocComments);
                 options = options.WithChangedOption(FormattingOptions.NewLine, testDocument.Project.Language, newLine);
-
                 workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(options));
 
                 setOptionsOpt?.Invoke(workspace);
@@ -159,13 +159,15 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.DocumentationComments
                     workspace,
                     view,
                     workspace.GetService<IEditorOperationsFactoryService>());
-                MarkupTestFile.GetPosition(expectedMarkup, out var expectedCode, out int expectedPosition);
+                MarkupTestFile.GetPosition(expectedMarkup, out var expectedCode, out int _);
 
-                Assert.Equal(expectedCode, view.TextSnapshot.GetText());
+                var actual = view.TextSnapshot.GetText();
+                Assert.Equal(expectedCode, actual);
 
                 var endCaretPosition = view.Caret.Position.BufferPosition.Position;
-                Assert.True(expectedPosition == endCaretPosition,
-                    string.Format("Caret positioned incorrectly. Should have been {0}, but was {1}.", expectedPosition, endCaretPosition));
+                var actualWithCaret = actual.Insert(endCaretPosition, "$$");
+
+                Assert.Equal(expectedMarkup, actualWithCaret);
             }
         }
     }

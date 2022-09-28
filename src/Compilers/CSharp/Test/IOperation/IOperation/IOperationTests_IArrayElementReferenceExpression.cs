@@ -771,7 +771,7 @@ IArrayElementReferenceOperation (OperationKind.ArrayElementReference, Type: Syst
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS1003: Syntax error, ']' expected
                 //         var a = /*<bind>*/args[/*</bind>*/;
-                Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments("]", ";").WithLocation(6, 43),
+                Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments("]").WithLocation(6, 43),
                 // CS0022: Wrong number of indices inside []; expected 1
                 //         var a = /*<bind>*/args[/*</bind>*/;
                 Diagnostic(ErrorCode.ERR_BadIndexCount, "args[/*</bind>*/").WithArguments("1").WithLocation(6, 27)
@@ -803,7 +803,7 @@ IArrayElementReferenceOperation (OperationKind.ArrayElementReference, Type: Syst
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS1003: Syntax error, ']' expected
                 //         var a = /*<bind>*/args[0/*</bind>*/;
-                Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments("]", ";").WithLocation(6, 44)
+                Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments("]").WithLocation(6, 44)
             };
 
             VerifyOperationTreeAndDiagnosticsForTest<ElementAccessExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);

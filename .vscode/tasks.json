@@ -30,6 +30,23 @@
       "problemMatcher": "$msCompile",
       "group": "build"
   },
+  {
+    "label": "run tests",
+    "command": "dotnet",
+    "type": "shell",
+    "args": [
+      "test"
+    ],
+    "windows": {
+      "command": "powershell",
+      "args": [
+        "${workspaceFolder}/Build.ps1",
+        "test"
+      ],
+    },
+    "problemMatcher": "$msCompile",
+    "group": "build"
+},
     {
         "label": "generate compiler code",
         "command": "${workspaceFolder}/.dotnet/dotnet",

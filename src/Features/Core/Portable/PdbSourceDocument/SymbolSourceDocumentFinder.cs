@@ -11,14 +11,9 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
 {
     internal static class SymbolSourceDocumentFinder
     {
-        public static HashSet<DocumentHandle> FindDocumentHandles(ISymbol symbol, MetadataReader dllReader, MetadataReader pdbReader)
+        public static HashSet<DocumentHandle> FindDocumentHandles(EntityHandle handle, MetadataReader dllReader, MetadataReader pdbReader)
         {
             var docList = new HashSet<DocumentHandle>();
-
-            // There is no way to go from parameter metadata to its containing method or type, so we need use the symbol API first to
-            // get the method it belongs to.
-            var token = symbol is IParameterSymbol parameterSymbol ? parameterSymbol.ContainingSymbol.MetadataToken : symbol.MetadataToken;
-            var handle = MetadataTokens.EntityHandle(token);
 
             switch (handle.Kind)
             {

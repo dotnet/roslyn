@@ -22,7 +22,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.InProcess
     {
         // Guid of the FindRefs window.  Defined here:
         // https://devdiv.visualstudio.com/DevDiv/_git/VS?path=/src/env/ErrorList/Pkg/Guids.cs&version=GBmain&line=24
-        private static readonly Guid FindReferencesWindowGuid = new("{a80febb4-e7e0-4147-b476-21aaf2453969}");
+        internal static readonly Guid FindReferencesWindowGuid = new("{a80febb4-e7e0-4147-b476-21aaf2453969}");
 
         public async Task<ImmutableArray<ITableEntryHandle2>> GetContentsAsync(CancellationToken cancellationToken)
         {
@@ -57,6 +57,19 @@ namespace Roslyn.VisualStudio.IntegrationTests.InProcess
 
             // Extract the basic text of the results.
             return forcedUpdateResult.AllEntries.Cast<ITableEntryHandle2>().ToImmutableArray();
+        }
+
+        public async Task NavigateToAsync(ITableEntryHandle2 referenceInGeneratedFile, bool isPreview, bool shouldActivate, CancellationToken cancellationToken)
+        {
+            await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
+            referenceInGeneratedFile.NavigateTo(isPreview, shouldActivate);
+
+            // Navigation operations handled by Roslyn are tracked by FeatureAttribute.FindReferences
+            await TestServices.Workspace.WaitForAllAsyncOperationsAsync(new[] { FeatureAttribute.Workspace, FeatureAttribute.FindReferences }, cancellationToken);
+
+            // Navigation operations handled by the editor are tracked within its own JoinableTaskFactory instance
+            await TestServices.Editor.WaitForEditorOperationsAsync(cancellationToken);
         }
 
         private async Task<IWpfTableControl2> GetFindReferencesWindowAsync(CancellationToken cancellationToken)

@@ -4,6 +4,7 @@
 
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Structure;
 using Microsoft.CodeAnalysis.SymbolMapping;
 using Microsoft.CodeAnalysis.Text;
 
@@ -14,10 +15,10 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
         /// <summary>
         /// Generates a file from metadata. Will be called under a lock to prevent concurrent access.
         /// </summary>
-        Task<MetadataAsSourceFile?> GetGeneratedFileAsync(Workspace workspace, Project project, ISymbol symbol, bool signaturesOnly, bool allowDecompilation, string tempPath, CancellationToken cancellationToken);
+        Task<MetadataAsSourceFile?> GetGeneratedFileAsync(Workspace workspace, Project project, ISymbol symbol, bool signaturesOnly, MetadataAsSourceOptions options, string tempPath, CancellationToken cancellationToken);
 
         /// <summary>
-        /// Called when the file returned from <see cref="GetGeneratedFileAsync(Workspace, Project, ISymbol, bool, bool, string, CancellationToken)"/>
+        /// Called when the file returned from <see cref="GetGeneratedFileAsync(Workspace, Project, ISymbol, bool, MetadataAsSourceOptions, string, CancellationToken)"/>
         /// needs to be added to the workspace, to be opened. Will be called under a lock to prevent concurrent access.
         /// </summary>
         bool TryAddDocumentToWorkspace(Workspace workspace, string filePath, SourceTextContainer sourceTextContainer);
@@ -37,5 +38,10 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
         /// Maps from a document to its project for the purposes of symbol mapping via <see cref="ISymbolMappingService"/>
         /// </summary>
         Project? MapDocument(Document document);
+
+        /// <summary>
+        /// Called to determine if the file should be collapsed by default when opened for the first time
+        /// </summary>
+        bool ShouldCollapseOnOpen(string filePath, BlockStructureOptions blockStructureOptions);
     }
 }

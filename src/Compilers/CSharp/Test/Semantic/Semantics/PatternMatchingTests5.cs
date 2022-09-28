@@ -312,10 +312,10 @@ class C
                     Diagnostic(ErrorCode.ERR_ArraySizeInDeclaration, "[0]").WithLocation(10, 31),
                     // (10,34): error CS1003: Syntax error, ',' expected
                     //         _ = new C() is { Prop1[0]: {} };
-                    Diagnostic(ErrorCode.ERR_SyntaxError, ":").WithArguments(",", ":").WithLocation(10, 34),
+                    Diagnostic(ErrorCode.ERR_SyntaxError, ":").WithArguments(",").WithLocation(10, 34),
                     // (10,36): error CS1003: Syntax error, ',' expected
                     //         _ = new C() is { Prop1[0]: {} };
-                    Diagnostic(ErrorCode.ERR_SyntaxError, "{").WithArguments(",", "{").WithLocation(10, 36),
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "{").WithArguments(",").WithLocation(10, 36),
                     // (11,26): error CS8918: Identifier or a simple member access expected.
                     //         _ = new C() is { 1: {} };
                     Diagnostic(ErrorCode.ERR_InvalidNameInSubpattern, "1").WithLocation(11, 26));
@@ -1948,38 +1948,6 @@ _ = x is { Length.Error: > 0 };
                 // _ = x is { Length.Error: > 0 };
                 Diagnostic(ErrorCode.ERR_NoSuchMember, "Error").WithArguments("int", "Error").WithLocation(7, 19)
                 );
-        }
-
-        public class FlowAnalysisTests : FlowTestBase
-        {
-            [Fact]
-            public void RegionInIsPattern01()
-            {
-                var dataFlowAnalysisResults = CompileAndAnalyzeDataFlowExpression(@"
-class C
-{
-    static void M(object o)
-    {
-        _ = o switch
-        {
-            string { Length: 0 } s => /*<bind>*/s.ToString()/*</bind>*/,
-            _ = throw null
-        };
-    }
-}");
-                Assert.Null(GetSymbolNamesJoined(dataFlowAnalysisResults.VariablesDeclared));
-                Assert.Equal("s", GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsIn));
-                Assert.Null(GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsOut));
-                Assert.Null(GetSymbolNamesJoined(dataFlowAnalysisResults.AlwaysAssigned));
-                Assert.Equal("s", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadInside));
-                Assert.Null(GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenInside));
-                Assert.Equal("o", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadOutside));
-                Assert.Equal("o, s", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenOutside));
-                Assert.Null(GetSymbolNamesJoined(dataFlowAnalysisResults.Captured));
-                Assert.Null(GetSymbolNamesJoined(dataFlowAnalysisResults.CapturedInside));
-                Assert.Null(GetSymbolNamesJoined(dataFlowAnalysisResults.CapturedOutside));
-                Assert.Null(GetSymbolNamesJoined(dataFlowAnalysisResults.UnsafeAddressTaken));
-            }
         }
     }
 }

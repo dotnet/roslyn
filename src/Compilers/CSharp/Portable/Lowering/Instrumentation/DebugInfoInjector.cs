@@ -209,11 +209,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             // </Metalama>
         }
 
-        private static BoundExpression AddConditionSequencePoint(BoundExpression condition, BoundStatement containingStatement, SyntheticBoundNodeFactory factory)
-        {
-            return AddConditionSequencePoint(condition, containingStatement.Syntax, factory);
-        }
-
         /// <summary>
         /// Add sequence point |here|:
         /// 

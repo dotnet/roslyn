@@ -11,7 +11,7 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.ConvertNamespace;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Editor.Implementation.AutomaticCompletion;
+using Microsoft.CodeAnalysis.AutomaticCompletion;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
@@ -41,16 +41,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
     internal sealed class ConvertNamespaceCommandHandler : IChainedCommandHandler<TypeCharCommandArgs>
     {
         /// <summary>
-        /// A fake option set where the 'use file scoped' namespace option is on.  That way we can call into the helpers
+        /// Option setting 'use file scoped'.  That way we can call into the helpers
         /// and have the results come back positive for converting to file-scoped regardless of the current option
         /// value.
         /// </summary>
-        private static readonly OptionSet s_optionSet = new OptionValueSet(
-            ImmutableDictionary<OptionKey, object?>.Empty.Add(
-                new OptionKey(CSharpCodeStyleOptions.NamespaceDeclarations.ToPublicOption()),
-                new CodeStyleOption2<NamespaceDeclarationPreference>(
-                    NamespaceDeclarationPreference.FileScoped,
-                    NotificationOption2.Suggestion)));
+        private static readonly CodeStyleOption2<NamespaceDeclarationPreference> s_fileScopedNamespacePreferenceOption =
+            new(NamespaceDeclarationPreference.FileScoped, NotificationOption2.Suggestion);
 
         private readonly ITextUndoHistoryRegistry _textUndoHistoryRegistry;
         private readonly IEditorOperationsFactoryService _editorOperationsFactoryService;
@@ -148,10 +144,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
                 return default;
 
             // Pass in our special options, and C#10 so that if we can convert this to file-scoped, we will.
-            if (!ConvertNamespaceAnalysis.CanOfferUseFileScoped(s_optionSet, root, namespaceDecl, forAnalyzer: true, LanguageVersion.CSharp10))
+            if (!ConvertNamespaceAnalysis.CanOfferUseFileScoped(s_fileScopedNamespacePreferenceOption, root, namespaceDecl, forAnalyzer: true, LanguageVersion.CSharp10))
                 return default;
 
-            var (converted, semicolonSpan) = ConvertNamespaceTransform.ConvertNamespaceDeclarationAsync(document, namespaceDecl, cancellationToken).WaitAndGetResult(cancellationToken);
+            var formattingOptions = document.GetSyntaxFormattingOptionsAsync(_globalOptions, cancellationToken).AsTask().WaitAndGetResult(cancellationToken);
+            var (converted, semicolonSpan) = ConvertNamespaceTransform.ConvertNamespaceDeclarationAsync(document, namespaceDecl, formattingOptions, cancellationToken).WaitAndGetResult(cancellationToken);
             var text = converted.GetTextSynchronously(cancellationToken);
             return (text, semicolonSpan);
         }

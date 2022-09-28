@@ -60,7 +60,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.InlineTemporary
             End If
 
             context.RegisterRefactoring(
-                New MyCodeAction(Function(c) InlineTemporaryAsync(document, modifiedIdentifier, c)), variableDeclarator.Span)
+                CodeAction.Create(
+                    VBFeaturesResources.Inline_temporary_variable,
+                    Function(c) InlineTemporaryAsync(document, modifiedIdentifier, c),
+                    NameOf(VBFeaturesResources.Inline_temporary_variable)),
+                variableDeclarator.Span)
         End Function
 
         Private Shared Function HasConflict(
@@ -465,13 +469,5 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.InlineTemporary
 
             Return Await inlinedDocument.ReplaceNodesAsync(replacementNodesWithChangedSemantics.Keys, conflictAnnotationAdder, cancellationToken).ConfigureAwait(False)
         End Function
-
-        Private Class MyCodeAction
-            Inherits CodeAction.DocumentChangeAction
-
-            Public Sub New(createChangedDocument As Func(Of CancellationToken, Task(Of Document)))
-                MyBase.New(VBFeaturesResources.Inline_temporary_variable, createChangedDocument, NameOf(VBFeaturesResources.Inline_temporary_variable))
-            End Sub
-        End Class
     End Class
 End Namespace

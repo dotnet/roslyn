@@ -61,19 +61,6 @@ namespace Roslyn.Test.Utilities
 
         #region Metadata References
 
-        /// <summary>
-        /// Helper for atomically acquiring and saving a metadata reference. Necessary
-        /// if the acquired reference will ever be used in object identity comparisons.
-        /// </summary>
-        private static MetadataReference GetOrCreateMetadataReference(ref MetadataReference field, Func<MetadataReference> getReference)
-        {
-            if (field == null)
-            {
-                Interlocked.CompareExchange(ref field, getReference(), null);
-            }
-            return field;
-        }
-
         private static readonly Lazy<MetadataReference[]> s_lazyDefaultVbReferences = new Lazy<MetadataReference[]>(
             () => new[] { Net40.mscorlib, Net40.System, Net40.SystemCore, Net40.MicrosoftVisualBasic },
             LazyThreadSafetyMode.PublicationOnly);

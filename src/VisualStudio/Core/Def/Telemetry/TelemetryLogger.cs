@@ -22,12 +22,10 @@ namespace Microsoft.CodeAnalysis.Telemetry
         {
             private readonly TelemetrySession _session;
 
-            public Implementation(TelemetrySession session, IGlobalOptionService globalOptions)
+            public Implementation(TelemetrySession session, bool logDelta)
             {
                 _session = session;
-
-                // Only log "delta" property for block end events if feature flag is enabled.
-                LogDelta = globalOptions.GetOption(DiagnosticOptions.LogTelemetryForBackgroundAnalyzerExecution);
+                LogDelta = logDelta;
             }
 
             protected override bool LogDelta { get; }
@@ -86,8 +84,8 @@ namespace Microsoft.CodeAnalysis.Telemetry
         private static string GetTelemetryName(FunctionId id, char separator)
             => Enum.GetName(typeof(FunctionId), id)!.Replace('_', separator).ToLowerInvariant();
 
-        public static TelemetryLogger Create(TelemetrySession session, IGlobalOptionService globalOptions)
-            => new Implementation(session, globalOptions);
+        public static TelemetryLogger Create(TelemetrySession session, bool logDelta)
+            => new Implementation(session, logDelta);
 
         public abstract bool IsEnabled(FunctionId functionId);
         protected abstract void PostEvent(TelemetryEvent telemetryEvent);

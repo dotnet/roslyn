@@ -37,7 +37,28 @@ namespace Microsoft.CodeAnalysis
     {
         internal static bool AnyRequired<TypeSymbol>(this ImmutableArray<ModifierInfo<TypeSymbol>> modifiers) where TypeSymbol : class
         {
-            return !modifiers.IsDefaultOrEmpty && modifiers.Any(m => !m.IsOptional);
+            return !modifiers.IsDefaultOrEmpty && modifiers.Any(static m => !m.IsOptional);
+        }
+    }
+
+    internal struct FieldInfo<TypeSymbol>
+        where TypeSymbol : class
+    {
+        internal readonly bool IsByRef;
+        internal readonly ImmutableArray<ModifierInfo<TypeSymbol>> RefCustomModifiers;
+        internal readonly TypeSymbol Type;
+        internal readonly ImmutableArray<ModifierInfo<TypeSymbol>> CustomModifiers;
+
+        internal FieldInfo(bool isByRef, ImmutableArray<ModifierInfo<TypeSymbol>> refCustomModifiers, TypeSymbol type, ImmutableArray<ModifierInfo<TypeSymbol>> customModifiers)
+        {
+            IsByRef = isByRef;
+            RefCustomModifiers = refCustomModifiers;
+            Type = type;
+            CustomModifiers = customModifiers;
+        }
+
+        internal FieldInfo(TypeSymbol type) : this(isByRef: false, refCustomModifiers: default, type, customModifiers: default)
+        {
         }
     }
 
@@ -1884,7 +1905,7 @@ tryAgain:
             parameterCount = signatureReader.ReadCompressedInteger();
         }
 
-        internal TypeSymbol DecodeFieldSignature(FieldDefinitionHandle fieldHandle, out ImmutableArray<ModifierInfo<TypeSymbol>> customModifiers)
+        internal FieldInfo<TypeSymbol> DecodeFieldSignature(FieldDefinitionHandle fieldHandle)
         {
             try
             {
@@ -1895,40 +1916,50 @@ tryAgain:
 
                 if (signatureHeader.Kind != SignatureKind.Field)
                 {
-                    customModifiers = default(ImmutableArray<ModifierInfo<TypeSymbol>>);
-                    return GetUnsupportedMetadataTypeSymbol(); // unsupported signature content
+                    return new FieldInfo<TypeSymbol>(GetUnsupportedMetadataTypeSymbol()); // unsupported signature content
                 }
-
-                return DecodeFieldSignature(ref signatureReader, out customModifiers);
+                else
+                {
+                    return DecodeFieldSignature(ref signatureReader);
+                }
             }
             catch (BadImageFormatException mrEx)
             {
-                customModifiers = default(ImmutableArray<ModifierInfo<TypeSymbol>>);
-                return GetUnsupportedMetadataTypeSymbol(mrEx);
+                return new FieldInfo<TypeSymbol>(GetUnsupportedMetadataTypeSymbol(mrEx));
             }
         }
 
         // MetaImport::DecodeFieldSignature
-        protected TypeSymbol DecodeFieldSignature(ref BlobReader signatureReader, out ImmutableArray<ModifierInfo<TypeSymbol>> customModifiers)
+        protected FieldInfo<TypeSymbol> DecodeFieldSignature(ref BlobReader signatureReader)
         {
-            customModifiers = default;
-
             try
             {
                 SignatureTypeCode typeCode;
-                customModifiers = DecodeModifiersOrThrow(
+                bool isByRef = false;
+                ImmutableArray<ModifierInfo<TypeSymbol>> refCustomModifiers = default;
+                ImmutableArray<ModifierInfo<TypeSymbol>> customModifiers = DecodeModifiersOrThrow(
                     ref signatureReader,
                     out typeCode);
 
-                return DecodeTypeOrThrow(ref signatureReader, typeCode, out _);
+                if (typeCode == SignatureTypeCode.ByReference)
+                {
+                    isByRef = true;
+                    refCustomModifiers = customModifiers;
+                    customModifiers = DecodeModifiersOrThrow(
+                        ref signatureReader,
+                        out typeCode);
+                }
+
+                var type = DecodeTypeOrThrow(ref signatureReader, typeCode, out _);
+                return new FieldInfo<TypeSymbol>(isByRef, refCustomModifiers, type, customModifiers);
             }
             catch (UnsupportedSignatureContent)
             {
-                return GetUnsupportedMetadataTypeSymbol(); // unsupported signature content
+                return new FieldInfo<TypeSymbol>(GetUnsupportedMetadataTypeSymbol()); // unsupported signature content
             }
             catch (BadImageFormatException mrEx)
             {
-                return GetUnsupportedMetadataTypeSymbol(mrEx);
+                return new FieldInfo<TypeSymbol>(GetUnsupportedMetadataTypeSymbol(mrEx));
             }
         }
 

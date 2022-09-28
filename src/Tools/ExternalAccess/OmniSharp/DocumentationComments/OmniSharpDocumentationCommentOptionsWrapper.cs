@@ -4,7 +4,9 @@
 
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.DocumentationComments;
+using Microsoft.CodeAnalysis.Formatting;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.DocumentationComments
 {
@@ -20,7 +22,11 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.DocumentationComments
             int tabSize,
             bool useTabs,
             string newLine)
-            : this(new(autoXmlDocCommentGeneration, tabSize, useTabs, newLine))
+            : this(new DocumentationCommentOptions()
+            {
+                LineFormatting = new LineFormattingOptions() { UseTabs = useTabs, TabSize = tabSize, IndentationSize = tabSize, NewLine = newLine },
+                AutoXmlDocCommentGeneration = autoXmlDocCommentGeneration
+            })
         {
         }
 
@@ -29,8 +35,9 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.DocumentationComments
             bool autoXmlDocCommentGeneration,
             CancellationToken cancellationToken)
         {
-            var documentOptions = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
-            return new(DocumentationCommentOptions.From(documentOptions) with { AutoXmlDocCommentGeneration = autoXmlDocCommentGeneration });
+            var formattingOptions = await document.GetSyntaxFormattingOptionsAsync(CodeActionOptions.DefaultProvider, cancellationToken).ConfigureAwait(false);
+
+            return new(new() { LineFormatting = formattingOptions.LineFormatting, AutoXmlDocCommentGeneration = autoXmlDocCommentGeneration });
         }
     }
 }

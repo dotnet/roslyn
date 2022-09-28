@@ -703,7 +703,7 @@ record R
                 Assert.Empty(ctor[1].GetAttributes()); // shouldn't have attribute.
 
                 var equalityContract = record.GetMember("EqualityContract");
-                Assert.Empty(equalityContract.GetAttributes());
+                validateCompilerGeneratedAttribute(equalityContract);
 
                 var myProperty = record.GetMember("MyProperty");
                 Assert.Empty(myProperty.GetAttributes());
@@ -848,7 +848,7 @@ namespace System.Runtime.CompilerServices
                 validateCompilerGeneratedAttribute(deconstruct);
 
                 var equalityContract = record.GetMember("EqualityContract");
-                Assert.Empty(equalityContract.GetAttributes());
+                validateCompilerGeneratedAttribute(equalityContract);
 
                 var p1 = record.GetMember("P1");
                 Assert.Empty(p1.GetAttributes());

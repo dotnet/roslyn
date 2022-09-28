@@ -175,7 +175,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             // Also check the base project snapshot since the analysis uses semantic information from the base project as well.
             // 
             // It would be possible to reuse analysis results of documents whose content does not change in between two solution snapshots.
-            // However, we'd need rather sophisticated caching logic. The smantic analysis gathers information from other documents when
+            // However, we'd need rather sophisticated caching logic. The semantic analysis gathers information from other documents when
             // calculating results for a specific document. In some cases it's easy to record the set of documents the analysis depends on.
             // For example, when analyzing a partial class we can record all documents its declaration spans. However, in other cases the analysis
             // checks for absence of a top-level type symbol. Adding a symbol to any document thus invalidates such analysis. It'd be possible

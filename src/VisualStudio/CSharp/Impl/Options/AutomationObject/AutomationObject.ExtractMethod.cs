@@ -10,14 +10,14 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
     {
         public int ExtractMethod_AllowBestEffort
         {
-            get { return GetBooleanOption(ExtractMethodPresentationOptions.AllowBestEffort); }
-            set { SetBooleanOption(ExtractMethodPresentationOptions.AllowBestEffort, value); }
+            get { return GetBooleanOption(ExtractMethodPresentationOptionsStorage.AllowBestEffort); }
+            set { SetBooleanOption(ExtractMethodPresentationOptionsStorage.AllowBestEffort, value); }
         }
 
         public int ExtractMethod_DoNotPutOutOrRefOnStruct
         {
-            get { return GetBooleanOption(ExtractMethodOptions.Metadata.DontPutOutOrRefOnStruct); }
-            set { SetBooleanOption(ExtractMethodOptions.Metadata.DontPutOutOrRefOnStruct, value); }
+            get { return GetBooleanOption(ExtractMethodOptionsStorage.DontPutOutOrRefOnStruct); }
+            set { SetBooleanOption(ExtractMethodOptionsStorage.DontPutOutOrRefOnStruct, value); }
         }
     }
 }

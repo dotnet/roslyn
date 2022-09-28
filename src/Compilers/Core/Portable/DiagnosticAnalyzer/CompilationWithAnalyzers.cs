@@ -173,7 +173,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 throw new ArgumentException(CodeAnalysisResources.ArgumentCannotBeEmpty, nameof(analyzers));
             }
 
-            if (analyzers.Any(a => a == null))
+            if (analyzers.Any(static a => a == null))
             {
                 throw new ArgumentException(CodeAnalysisResources.ArgumentElementCannotBeNull, nameof(analyzers));
             }
@@ -207,7 +207,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
             VerifyAnalyzersArgumentForStaticApis(analyzers);
 
-            if (analyzers.Any(a => !_analyzers.Contains(a)))
+            if (analyzers.Any(static (a, self) => !self._analyzers.Contains(a), this))
             {
                 throw new ArgumentException(CodeAnalysisResources.UnsupportedAnalyzerInstance, nameof(_analyzers));
             }
@@ -468,7 +468,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 var compDiags = compilation.GetDiagnostics(cancellationToken);
                 var analyzerDiags = await driver.GetDiagnosticsAsync(compilation).ConfigureAwait(false);
                 var reportedDiagnostics = compDiags.AddRange(analyzerDiags);
-                return driver.ApplyProgrammaticSuppressions(reportedDiagnostics, compilation);
+                return driver.ApplyProgrammaticSuppressionsAndFilterDiagnostics(reportedDiagnostics, compilation);
             }
             finally
             {

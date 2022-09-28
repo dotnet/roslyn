@@ -116,8 +116,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.Suppression
                     attributeName,
                     diagnostic,
                     isAssemblyAttribute: true,
-                    leadingTrivia: default,
-                    needsLeadingEndOfLine: true));
+                    leadingTrivia: default));
 
             if (isFirst && !newRoot.HasLeadingTrivia)
                 compilationRoot = compilationRoot.WithLeadingTrivia(SyntaxFactory.Comment(GlobalSuppressionsFileHeaderComment));
@@ -131,22 +130,19 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.Suppression
             var memberNode = (MemberDeclarationSyntax)targetNode;
 
             SyntaxTriviaList leadingTriviaForAttributeList;
-            bool needsLeadingEndOfLine;
             if (!memberNode.GetAttributes().Any())
             {
                 leadingTriviaForAttributeList = memberNode.GetLeadingTrivia();
                 memberNode = memberNode.WithoutLeadingTrivia();
-                needsLeadingEndOfLine = !leadingTriviaForAttributeList.Any() || !IsEndOfLine(leadingTriviaForAttributeList.Last());
             }
             else
             {
                 leadingTriviaForAttributeList = default;
-                needsLeadingEndOfLine = true;
             }
 
             var attributeName = suppressMessageAttribute.GenerateNameSyntax();
             var attributeList = CreateAttributeList(
-                targetSymbol, attributeName, diagnostic, isAssemblyAttribute: false, leadingTrivia: leadingTriviaForAttributeList, needsLeadingEndOfLine: needsLeadingEndOfLine);
+                targetSymbol, attributeName, diagnostic, isAssemblyAttribute: false, leadingTrivia: leadingTriviaForAttributeList);
             return memberNode.AddAttributeLists(attributeList);
         }
 
@@ -155,8 +151,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.Suppression
             NameSyntax attributeName,
             Diagnostic diagnostic,
             bool isAssemblyAttribute,
-            SyntaxTriviaList leadingTrivia,
-            bool needsLeadingEndOfLine)
+            SyntaxTriviaList leadingTrivia)
         {
             var attributeArguments = CreateAttributeArguments(targetSymbol, diagnostic, isAssemblyAttribute);
 
@@ -174,15 +169,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.Suppression
                 attributeList = SyntaxFactory.AttributeList(attributes);
             }
 
-            var endOfLineTrivia = SyntaxFactory.ElasticCarriageReturnLineFeed;
-            var triviaList = SyntaxFactory.TriviaList();
-
-            if (needsLeadingEndOfLine)
-            {
-                triviaList = triviaList.Add(endOfLineTrivia);
-            }
-
-            return attributeList.WithLeadingTrivia(leadingTrivia.AddRange(triviaList));
+            return attributeList.WithLeadingTrivia(leadingTrivia);
         }
 
         private static AttributeArgumentListSyntax CreateAttributeArguments(ISymbol targetSymbol, Diagnostic diagnostic, bool isAssemblyAttribute)

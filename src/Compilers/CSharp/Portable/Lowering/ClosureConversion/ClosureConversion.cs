@@ -552,7 +552,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             F.Assignment(
                                 F.Field(null, frame.SingletonCache),
                                 F.New(frame.Constructor)),
-                            new BoundReturnStatement(syntax, RefKind.None, null));
+                            new BoundReturnStatement(syntax, RefKind.None, null, @checked: false));
 
                     AddSynthesizedMethod(frame.StaticConstructor, body);
                 }

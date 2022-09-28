@@ -34,7 +34,8 @@ var product = new Product( Dependencies.MetalamaCompiler )
     SupportedProperties = new() { ["TestAll"] = "Supported by the 'test' command. Run all tests instead of just Metalama's unit tests." },
     ExportedProperties = new[] { "RoslynVersion" },
     KeepEditorConfig = true,
-    Configurations = Product.DefaultConfigurations.WithValue( BuildConfiguration.Release, Product.DefaultConfigurations[BuildConfiguration.Release] with { ExportsToTeamCityBuild = true })
+    Configurations = Product.DefaultConfigurations.WithValue( BuildConfiguration.Release, Product.DefaultConfigurations[BuildConfiguration.Release] with { ExportsToTeamCityBuild = true }),
+	BuildAgentType = "caravela03"
 };
 
 product.BuildCompleted += OnBuildCompleted;

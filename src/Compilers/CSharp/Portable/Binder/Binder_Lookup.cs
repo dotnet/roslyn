@@ -1311,7 +1311,7 @@ symIsHidden:;
         /// </remarks>
         internal SingleLookupResult CheckViability(Symbol symbol, int arity, LookupOptions options, TypeSymbol accessThroughType, bool diagnose, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo, ConsList<TypeSymbol> basesBeingResolved = null)
         {
-            Debug.Assert((options & LookupOptions.MustBeAbstract) == 0 || (options & LookupOptions.MustNotBeInstance) != 0);
+            Debug.Assert((options & LookupOptions.MustBeAbstractOrVirtual) == 0 || (options & LookupOptions.MustNotBeInstance) != 0);
             bool inaccessibleViaQualifier;
             DiagnosticInfo diagInfo;
 
@@ -1327,8 +1327,8 @@ symIsHidden:;
             {
                 return LookupResult.Empty();
             }
-            else if ((options & (LookupOptions.MustNotBeInstance | LookupOptions.MustBeAbstract)) == (LookupOptions.MustNotBeInstance | LookupOptions.MustBeAbstract) &&
-                (unwrappedSymbol is not TypeSymbol && IsInstance(unwrappedSymbol) || !unwrappedSymbol.IsAbstract))
+            else if ((options & (LookupOptions.MustNotBeInstance | LookupOptions.MustBeAbstractOrVirtual)) == (LookupOptions.MustNotBeInstance | LookupOptions.MustBeAbstractOrVirtual) &&
+                (unwrappedSymbol is not TypeSymbol && IsInstance(unwrappedSymbol) || !(unwrappedSymbol.IsAbstract || unwrappedSymbol.IsVirtual)))
             {
                 return LookupResult.Empty();
             }
@@ -1486,15 +1486,6 @@ symIsHidden:;
             return (((object)method1 != null) && ((object)method2 != null)) ?
                 new CSDiagnosticInfo(ErrorCode.ERR_BindToBogusProp2, symbol, method1, method2) :
                 new CSDiagnosticInfo(ErrorCode.ERR_BindToBogusProp1, symbol, method1 ?? method2);
-        }
-
-        internal void CheckViability<TSymbol>(LookupResult result, ImmutableArray<TSymbol> symbols, int arity, LookupOptions options, TypeSymbol accessThroughType, bool diagnose, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo, ConsList<TypeSymbol> basesBeingResolved) where TSymbol : Symbol
-        {
-            foreach (var symbol in symbols)
-            {
-                var res = this.CheckViability(symbol, arity, options, accessThroughType, diagnose, ref useSiteInfo, basesBeingResolved);
-                result.MergeEqual(res);
-            }
         }
 
         /// <summary>
@@ -1764,7 +1755,7 @@ symIsHidden:;
             }
         }
 
-        protected virtual void AddLookupSymbolsInfoInSingleBinder(LookupSymbolsInfo info, LookupOptions options, Binder originalBinder)
+        internal virtual void AddLookupSymbolsInfoInSingleBinder(LookupSymbolsInfo info, LookupOptions options, Binder originalBinder)
         {
             // overridden in other binders
         }

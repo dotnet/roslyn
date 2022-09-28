@@ -11,11 +11,13 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery;
 
 namespace Microsoft.CodeAnalysis.Recommendations
 {
     public static class Recommender
     {
+        [Obsolete("Use GetRecommendedSymbolsAtPositionAsync(Document, ...)")]
         public static IEnumerable<ISymbol> GetRecommendedSymbolsAtPosition(
             SemanticModel semanticModel,
             int position,
@@ -26,32 +28,13 @@ namespace Microsoft.CodeAnalysis.Recommendations
             var solution = workspace.CurrentSolution;
             options ??= solution.Options;
             var document = solution.GetRequiredDocument(semanticModel.SyntaxTree);
+            var context = document.GetRequiredLanguageService<ISyntaxContextService>().CreateContext(document, semanticModel, position, cancellationToken);
+
             var languageRecommender = document.GetRequiredLanguageService<IRecommendationService>();
-            return languageRecommender.GetRecommendedSymbolsAtPosition(document, semanticModel, position, RecommendationServiceOptions.From(options, document.Project.Language), cancellationToken).NamedSymbols;
+            return languageRecommender.GetRecommendedSymbolsInContext(context, RecommendationServiceOptions.From(options, document.Project.Language), cancellationToken).NamedSymbols;
         }
 
-        // <Metalama> -- GetRecommendedSymbolsAtPosition requires the SyntaxTree to be a part of Workspace.CurrentSolution, but this assumption is not met in Metalama.Try
-        public static async Task<IEnumerable<ISymbol>> GetRecommendedSymbolsAtPositionAsync(
-            Document document,
-            int position,
-            OptionSet? options = null,
-            CancellationToken cancellationToken = default)
-        {
-            var solution = document.Project.Solution;
-            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            if (semanticModel == null)
-            {
-                return Enumerable.Empty<ISymbol>();
-            }
-
-            options ??= solution.Options;
-            var languageRecommender = document.GetRequiredLanguageService<IRecommendationService>();
-            return languageRecommender.GetRecommendedSymbolsAtPosition(document, semanticModel, position,
-                RecommendationServiceOptions.From(options, document.Project.Language), cancellationToken).NamedSymbols;
-        }
-        // </Metalama>
-
-        [Obsolete("Use GetRecommendedSymbolsAtPosition")]
+        [Obsolete("Use GetRecommendedSymbolsAtPositionAsync(Document, ...)")]
         public static Task<IEnumerable<ISymbol>> GetRecommendedSymbolsAtPositionAsync(
              SemanticModel semanticModel,
              int position,
@@ -60,6 +43,20 @@ namespace Microsoft.CodeAnalysis.Recommendations
              CancellationToken cancellationToken = default)
         {
             return Task.FromResult(GetRecommendedSymbolsAtPosition(semanticModel, position, workspace, options, cancellationToken));
+        }
+
+        public static async Task<ImmutableArray<ISymbol>> GetRecommendedSymbolsAtPositionAsync(
+            Document document,
+            int position,
+            OptionSet? options = null,
+            CancellationToken cancellationToken = default)
+        {
+            var solution = document.Project.Solution;
+            var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            options ??= solution.Options;
+            var context = document.GetRequiredLanguageService<ISyntaxContextService>().CreateContext(document, semanticModel, position, cancellationToken);
+            var languageRecommender = document.GetRequiredLanguageService<IRecommendationService>();
+            return languageRecommender.GetRecommendedSymbolsInContext(context, RecommendationServiceOptions.From(options, document.Project.Language), cancellationToken).NamedSymbols;
         }
     }
 }

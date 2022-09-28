@@ -22,25 +22,21 @@ namespace Microsoft.CodeAnalysis.OrderModifiers
     internal abstract class AbstractOrderModifiersCodeFixProvider : SyntaxEditorBasedCodeFixProvider
     {
         private readonly ISyntaxFacts _syntaxFacts;
-        private readonly Option2<CodeStyleOption2<string>> _option;
         private readonly AbstractOrderModifiersHelpers _helpers;
 
         protected AbstractOrderModifiersCodeFixProvider(
             ISyntaxFacts syntaxFacts,
-            Option2<CodeStyleOption2<string>> option,
             AbstractOrderModifiersHelpers helpers)
         {
             _syntaxFacts = syntaxFacts;
-            _option = option;
             _helpers = helpers;
         }
 
         protected abstract ImmutableArray<string> FixableCompilerErrorIds { get; }
+        protected abstract CodeStyleOption2<string> GetCodeStyleOption(AnalyzerOptionsProvider options);
 
         public sealed override ImmutableArray<string> FixableDiagnosticIds
             => FixableCompilerErrorIds.Add(IDEDiagnosticIds.OrderModifiersDiagnosticId);
-
-        internal sealed override CodeFixCategory CodeFixCategory => CodeFixCategory.CodeStyle;
 
         public override async Task RegisterCodeFixesAsync(CodeFixContext context)
         {
@@ -49,17 +45,15 @@ namespace Microsoft.CodeAnalysis.OrderModifiers
 
             if (_syntaxFacts.GetModifiers(syntaxNode) != default)
             {
-                context.RegisterCodeFix(
-                    new MyCodeAction(c => FixAsync(context.Document, context.Diagnostics[0], c)),
-                    context.Diagnostics);
+                RegisterCodeFix(context, AnalyzersResources.Order_modifiers, nameof(AnalyzersResources.Order_modifiers));
             }
         }
 
         protected override async Task FixAllAsync(
-            Document document, ImmutableArray<Diagnostic> diagnostics, SyntaxEditor editor, CancellationToken cancellationToken)
+            Document document, ImmutableArray<Diagnostic> diagnostics, SyntaxEditor editor, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
         {
-            var tree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
-            var option = document.Project.AnalyzerOptions.GetOption(_option, tree, cancellationToken);
+            var options = await document.GetAnalyzerOptionsProviderAsync(cancellationToken).ConfigureAwait(false);
+            var option = GetCodeStyleOption(options);
             if (!_helpers.TryGetOrComputePreferredOrder(option.Value, out var preferredOrder))
             {
                 return;
@@ -90,14 +84,6 @@ namespace Microsoft.CodeAnalysis.OrderModifiers
 
             int GetOrder(SyntaxToken token)
                 => preferredOrder.TryGetValue(token.RawKind, out var value) ? value : int.MaxValue;
-        }
-
-        private class MyCodeAction : CustomCodeActions.DocumentChangeAction
-        {
-            public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(AnalyzersResources.Order_modifiers, createChangedDocument, AnalyzersResources.Order_modifiers)
-            {
-            }
         }
     }
 }

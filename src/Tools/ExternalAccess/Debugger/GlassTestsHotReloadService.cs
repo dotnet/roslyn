@@ -6,7 +6,6 @@ using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.EditAndContinue;
-using Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.VisualStudio.Debugger.Contracts.EditAndContinue;
 using Microsoft.VisualStudio.Debugger.Contracts.HotReload;
@@ -81,17 +80,6 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Debugger
         {
             _encService.EndDebuggingSession(GetSessionId(), out _);
             _sessionId = default;
-        }
-
-        public async ValueTask<bool> HasChangesAsync(Solution solution, string? sourceFilePath, CancellationToken cancellationToken)
-        {
-            var sessionId = _sessionId;
-            if (sessionId == default)
-            {
-                return false;
-            }
-
-            return await _encService.HasChangesAsync(sessionId, solution, s_noActiveStatementSpanProvider, sourceFilePath, cancellationToken).ConfigureAwait(false);
         }
 
         public async ValueTask<ManagedModuleUpdates> GetEditAndContinueUpdatesAsync(Solution solution, CancellationToken cancellationToken)

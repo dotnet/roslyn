@@ -222,7 +222,7 @@ class C {
                 Diagnostic(ErrorCode.ERR_InvalidStackAllocArray, ",").WithLocation(4, 28),
                 // (4,31): error CS1003: Syntax error, ']' expected
                 //         var x = stackalloc[,3 { 1, 2, 3 };
-                Diagnostic(ErrorCode.ERR_SyntaxError, "{").WithArguments("]", "{").WithLocation(4, 31)
+                Diagnostic(ErrorCode.ERR_SyntaxError, "{").WithArguments("]").WithLocation(4, 31)
                 );
         }
 
@@ -243,7 +243,7 @@ class C {
                 Diagnostic(ErrorCode.ERR_InvalidStackAllocArray, "3").WithLocation(4, 28),
                 // (4,30): error CS1003: Syntax error, ']' expected
                 //         var x = stackalloc[3 { 1, 2, 3 };
-                Diagnostic(ErrorCode.ERR_SyntaxError, "{").WithArguments("]", "{").WithLocation(4, 30)
+                Diagnostic(ErrorCode.ERR_SyntaxError, "{").WithArguments("]").WithLocation(4, 30)
                 );
         }
 
@@ -267,7 +267,7 @@ class C {
                 Diagnostic(ErrorCode.ERR_InvalidStackAllocArray, ",").WithLocation(4, 29),
                 // (4,31): error CS1003: Syntax error, ']' expected
                 //         var x = stackalloc[3, { 1, 2, 3 };
-                Diagnostic(ErrorCode.ERR_SyntaxError, "{").WithArguments("]", "{").WithLocation(4, 31)
+                Diagnostic(ErrorCode.ERR_SyntaxError, "{").WithArguments("]").WithLocation(4, 31)
                 );
         }
 
@@ -384,7 +384,7 @@ class C {
             ParseAndValidate(test,
                 // (4,29): error CS1003: Syntax error, ']' expected
                 //         var x = stackalloc[ { 1, 2, 3 };
-                Diagnostic(ErrorCode.ERR_SyntaxError, "{").WithArguments("]", "{").WithLocation(4, 29)
+                Diagnostic(ErrorCode.ERR_SyntaxError, "{").WithArguments("]").WithLocation(4, 29)
                 );
         }
     }

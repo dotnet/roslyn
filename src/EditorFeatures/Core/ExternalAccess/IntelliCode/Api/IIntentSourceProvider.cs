@@ -76,9 +76,9 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.IntelliCode.Api
         public readonly string Title { get; }
 
         /// <summary>
-        /// The text changes that should be applied to the <see cref="IntentRequestContext.CurrentSnapshotSpan"/>
+        /// The text changes that should be applied to each document.
         /// </summary>
-        public readonly ImmutableArray<TextChange> TextChanges { get; }
+        public readonly ImmutableDictionary<DocumentId, ImmutableArray<TextChange>> DocumentChanges;
 
         /// <summary>
         /// Contains metadata that can be used to identify the kind of sub-action these edits
@@ -87,11 +87,11 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.IntelliCode.Api
         /// </summary>
         public readonly string ActionName { get; }
 
-        public IntentSource(string title, ImmutableArray<TextChange> textChanges, string actionName)
+        public IntentSource(string title, string actionName, ImmutableDictionary<DocumentId, ImmutableArray<TextChange>> documentChanges)
         {
-            TextChanges = textChanges;
             Title = title ?? throw new ArgumentNullException(nameof(title));
             ActionName = actionName ?? throw new ArgumentNullException(nameof(actionName));
+            DocumentChanges = documentChanges;
         }
     }
 }

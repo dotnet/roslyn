@@ -514,7 +514,7 @@ class MainClass
             var node = SyntaxFactory.IdentifierName(SyntaxFactory.Identifier(SyntaxFactory.TriviaList(SyntaxFactory.Whitespace("    ")), "x", default(SyntaxTriviaList)));
 
             // create node with error that would place itself outside the tree.
-            var nodeWithBadError = node.Green.WithDiagnosticsGreen(new DiagnosticInfo[] { new SyntaxDiagnosticInfo(10, 10, ErrorCode.ERR_AbstractAndExtern) }).CreateRed();
+            var nodeWithBadError = node.Green.WithDiagnosticsGreen(new DiagnosticInfo[] { new SyntaxDiagnosticInfo(10, 10, ErrorCode.ERR_NoBaseClass) }).CreateRed();
 
             var tree = SyntaxFactory.SyntaxTree(nodeWithBadError);
 
@@ -543,7 +543,7 @@ class MainClass
             var node = SyntaxFactory.MissingToken(SyntaxKind.IdentifierToken);
 
             // create node with error that would place itself outside the tree.
-            var nodeWithBadError = SyntaxFactory.IdentifierName(new SyntaxToken(node.Node.WithDiagnosticsGreen(new DiagnosticInfo[] { new SyntaxDiagnosticInfo(10, 10, ErrorCode.ERR_AbstractAndExtern) })));
+            var nodeWithBadError = SyntaxFactory.IdentifierName(new SyntaxToken(node.Node.WithDiagnosticsGreen(new DiagnosticInfo[] { new SyntaxDiagnosticInfo(10, 10, ErrorCode.ERR_NoBaseClass) })));
             var tree = SyntaxFactory.SyntaxTree(nodeWithBadError);
 
             var treeSpan = tree.GetRoot().FullSpan;

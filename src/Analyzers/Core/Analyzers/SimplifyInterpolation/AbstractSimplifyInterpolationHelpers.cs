@@ -82,7 +82,7 @@ namespace Microsoft.CodeAnalysis.SimplifyInterpolation
         {
             Contract.ThrowIfNull(expression.SemanticModel);
 
-            if (expression is IInvocationOperation { TargetMethod: { Name: nameof(ToString) } } invocation &&
+            if (expression is IInvocationOperation { TargetMethod.Name: nameof(ToString) } invocation &&
                 HasNonImplicitInstance(invocation) &&
                 !syntaxFacts.IsBaseExpression(invocation.Instance!.Syntax) &&
                 !invocation.Instance.Type!.IsRefLikeType)
@@ -219,7 +219,7 @@ namespace Microsoft.CodeAnalysis.SimplifyInterpolation
                             var alignmentOp = invocation.Arguments[0].Value;
 
                             if (PermitNonLiteralAlignmentComponents
-                                ? alignmentOp is { ConstantValue: { HasValue: true } }
+                                ? alignmentOp is { ConstantValue.HasValue: true }
                                 : alignmentOp is { Kind: OperationKind.Literal })
                             {
                                 var alignmentSyntax = alignmentOp.Syntax;

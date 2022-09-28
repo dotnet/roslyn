@@ -146,7 +146,15 @@ namespace Microsoft.CodeAnalysis.Simplification
             }
 
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+#pragma warning disable RS0030 // Do not used banned APIs
             return await ReduceAsync(document, root.FullSpan, optionSet, cancellationToken).ConfigureAwait(false);
+#pragma warning restore
+        }
+
+        internal static async Task<Document> ReduceAsync(Document document, SimplifierOptions options, CancellationToken cancellationToken)
+        {
+            var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            return await ReduceAsync(document, root.FullSpan, options, cancellationToken).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -166,7 +174,15 @@ namespace Microsoft.CodeAnalysis.Simplification
             }
 
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+#pragma warning disable RS0030 // Do not used banned APIs
             return await ReduceAsync(document, root.GetAnnotatedNodesAndTokens(annotation).Select(t => t.FullSpan), optionSet, cancellationToken).ConfigureAwait(false);
+#pragma warning restore
+        }
+
+        internal static async Task<Document> ReduceAsync(Document document, SyntaxAnnotation annotation, SimplifierOptions options, CancellationToken cancellationToken)
+        {
+            var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            return await ReduceAsync(document, root.GetAnnotatedNodesAndTokens(annotation).Select(t => t.FullSpan), options, cancellationToken).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -180,14 +196,19 @@ namespace Microsoft.CodeAnalysis.Simplification
                 throw new ArgumentNullException(nameof(document));
             }
 
+#pragma warning disable RS0030 // Do not used banned APIs
             return ReduceAsync(document, SpecializedCollections.SingletonEnumerable(span), optionSet, cancellationToken);
         }
+#pragma warning restore
+
+        internal static Task<Document> ReduceAsync(Document document, TextSpan span, SimplifierOptions options, CancellationToken cancellationToken)
+            => ReduceAsync(document, SpecializedCollections.SingletonEnumerable(span), options, cancellationToken);
 
         /// <summary>
         /// Reduce the sub-trees annotated with <see cref="Annotation" /> found within the specified spans.
         /// The annotated node and all child nodes will be reduced.
         /// </summary>
-        public static Task<Document> ReduceAsync(Document document, IEnumerable<TextSpan> spans, OptionSet? optionSet = null, CancellationToken cancellationToken = default)
+        public static async Task<Document> ReduceAsync(Document document, IEnumerable<TextSpan> spans, OptionSet? optionSet = null, CancellationToken cancellationToken = default)
         {
             if (document == null)
             {
@@ -199,17 +220,34 @@ namespace Microsoft.CodeAnalysis.Simplification
                 throw new ArgumentNullException(nameof(spans));
             }
 
-            return document.GetRequiredLanguageService<ISimplificationService>().ReduceAsync(
-                document, spans.ToImmutableArrayOrEmpty(), optionSet, cancellationToken: cancellationToken);
+            var options = await GetOptionsAsync(document, optionSet, cancellationToken).ConfigureAwait(false);
+
+            return await document.GetRequiredLanguageService<ISimplificationService>().ReduceAsync(
+                document, spans.ToImmutableArrayOrEmpty(), options, reducers: default, cancellationToken).ConfigureAwait(false);
         }
 
+        internal static Task<Document> ReduceAsync(Document document, IEnumerable<TextSpan> spans, SimplifierOptions options, CancellationToken cancellationToken)
+            => document.GetRequiredLanguageService<ISimplificationService>().ReduceAsync(
+                document, spans.ToImmutableArrayOrEmpty(), options, reducers: default, cancellationToken);
+
         internal static async Task<Document> ReduceAsync(
-            Document document, ImmutableArray<AbstractReducer> reducers, OptionSet? optionSet = null, CancellationToken cancellationToken = default)
+            Document document, ImmutableArray<AbstractReducer> reducers, SimplifierOptions options, CancellationToken cancellationToken)
         {
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             return await document.GetRequiredLanguageService<ISimplificationService>()
-                .ReduceAsync(document, ImmutableArray.Create(root.FullSpan), optionSet,
+                .ReduceAsync(document, ImmutableArray.Create(root.FullSpan), options,
                              reducers, cancellationToken).ConfigureAwait(false);
         }
+
+#pragma warning disable RS0030 // Do not used banned APIs (backwards compatibility)
+        internal static async Task<SimplifierOptions> GetOptionsAsync(Document document, OptionSet? optionSet, CancellationToken cancellationToken)
+        {
+            var services = document.Project.Solution.Workspace.Services;
+            var optionService = services.GetRequiredService<IEditorConfigOptionMappingService>();
+            var configOptionSet = (optionSet ?? await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false)).AsAnalyzerConfigOptions(optionService, document.Project.Language);
+            var simplificationService = services.GetRequiredLanguageService<ISimplificationService>(document.Project.Language);
+            return simplificationService.GetSimplifierOptions(configOptionSet, fallbackOptions: null);
+        }
+#pragma warning restore
     }
 }

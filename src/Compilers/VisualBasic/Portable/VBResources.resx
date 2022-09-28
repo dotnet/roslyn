@@ -5226,7 +5226,7 @@
                                   (mscorlib.dll).
 -subsystemversion:&lt;version&gt;       Specify subsystem version of the output PE.
                                   version:&lt;number&gt;[.&lt;number&gt;]
--utf8output[+|-]                  Emit compiler output in UTF8 character
+-utf8output[+|-]                  Emit compiler output in UTF-8 character
                                   encoding.
 @&lt;file&gt;                           Insert command-line settings from a text file
 -vbruntime[+|-|*]                 Compile with/without the default Visual Basic
@@ -5614,6 +5614,12 @@
   <data name="WRN_AnalyzerReferencesFramework_Title" xml:space="preserve">
     <value>The loaded assembly references .NET Framework, which is not supported.</value>
   </data>
+  <data name="WRN_AnalyzerReferencesNewerCompiler" xml:space="preserve">
+    <value>The analyzer assembly '{0}' references version '{1}' of the compiler, which is newer than the currently running version '{2}'.</value>
+  </data>
+  <data name="WRN_AnalyzerReferencesNewerCompiler_Title" xml:space="preserve">
+    <value>The analyzer assembly references a newer version of the compiler than the currently running version.</value>
+  </data>
   <data name="FEATURE_InitOnlySettersUsage" xml:space="preserve">
     <value>assigning to or passing 'ByRef' properties with init-only setters</value>
   </data>
@@ -5645,9 +5651,15 @@
     <value>The CallerArgumentExpressionAttribute applied to parameter will have no effect. It is applied with an invalid parameter name.</value>
   </data>
   <data name="ERR_BadAbstractStaticMemberAccess" xml:space="preserve">
-    <value>A shared abstract interface member cannot be accessed.</value>
+    <value>A shared abstract or virtual interface member cannot be accessed.</value>
   </data>
   <data name="ERR_UnimplementedSharedMember" xml:space="preserve">
-    <value>{0} '{1}' cannot implement interface '{3}' because it contains shared abstract '{2}'.</value>
+    <value>{0} '{1}' cannot implement interface '{3}' because it contains shared abstract or virtual '{2}'.</value>
+  </data>
+  <data name="ERR_UnsupportedCompilerFeature" xml:space="preserve">
+    <value>'{0}' requires compiler feature '{1}', which is not supported by this version of the Visual Basic compiler.</value>
+  </data>
+  <data name="ERR_DoNotUseCompilerFeatureRequired" xml:space="preserve">
+    <value>'System.Runtime.CompilerServices.CompilerFeatureRequiredAttribute' is reserved for compiler usage only.</value>
   </data>
 </root>

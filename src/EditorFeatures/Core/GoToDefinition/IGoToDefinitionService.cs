@@ -8,20 +8,19 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Navigation;
 
-namespace Microsoft.CodeAnalysis.Editor
-{
-    internal interface IGoToDefinitionService : ILanguageService
-    {
-        /// <inheritdoc cref="CodeAnalysis.GoToDefinition.IFindDefinitionService.FindDefinitionsAsync(Document, int, CancellationToken)"/>
-        // Keep changes to this method in sync with CodeAnalysis.GoToDefinition.IFindDefinitionService
-        // Obsoletion is tracked with https://github.com/dotnet/roslyn/issues/50391
-        Task<IEnumerable<INavigableItem>?> FindDefinitionsAsync(Document document, int position, CancellationToken cancellationToken);
+namespace Microsoft.CodeAnalysis.GoToDefinition;
 
-        /// <summary>
-        /// Finds the definitions for the symbol at the specific position in the document and then 
-        /// navigates to them.
-        /// </summary>
-        /// <returns>True if navigating to the definition of the symbol at the provided position succeeds.  False, otherwise.</returns>
-        bool TryGoToDefinition(Document document, int position, CancellationToken cancellationToken);
-    }
+internal interface IGoToDefinitionService : ILanguageService
+{
+    /// <inheritdoc cref="CodeAnalysis.GoToDefinition.IFindDefinitionService.FindDefinitionsAsync(Document, int, CancellationToken)"/>
+    // Keep changes to this method in sync with CodeAnalysis.GoToDefinition.IFindDefinitionService
+    // Obsoletion is tracked with https://github.com/dotnet/roslyn/issues/50391
+    Task<IEnumerable<INavigableItem>?> FindDefinitionsAsync(Document document, int position, CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Finds the definitions for the symbol at the specific position in the document and then 
+    /// navigates to them.
+    /// </summary>
+    /// <returns>True if navigating to the definition of the symbol at the provided position succeeds.  False, otherwise.</returns>
+    bool TryGoToDefinition(Document document, int position, CancellationToken cancellationToken);
 }

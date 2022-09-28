@@ -487,17 +487,6 @@ namespace Metalama.Compiler.UnitTests.Diagnostics
         }
     }
 
-    [Trait("Category", "OuterLoop")]
-    public class MetalamaCompilerInteractiveUsingTests : InteractiveUsingTests
-    {
-        public MetalamaCompilerInteractiveUsingTests() => MetalamaCompilerTest.ShouldExecuteTransformer = true;
-
-        public override void Dispose()
-        {
-            MetalamaCompilerTest.ShouldExecuteTransformer = false;
-            base.Dispose();
-        }
-    }
 
     [Trait("Category", "OuterLoop")]
     public class MetalamaCompilerInterpolationTests : InterpolationTests

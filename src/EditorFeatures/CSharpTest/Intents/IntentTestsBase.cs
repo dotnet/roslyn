@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
@@ -12,6 +14,8 @@ using Microsoft.CodeAnalysis.Editor.UnitTests.Extensions;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.ExternalAccess.IntelliCode.Api;
 using Microsoft.CodeAnalysis.Features.Intents;
+using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
@@ -22,12 +26,25 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Intents
 {
     public class IntentTestsBase
     {
-        internal static Task VerifyExpectedTextAsync(string intentName, string markup, string expectedText, OptionsCollection? options = null, string? intentData = null)
+        internal static Task VerifyExpectedTextAsync(
+            string intentName,
+            string markup,
+            string expectedText,
+            OptionsCollection? options = null,
+            string? intentData = null,
+            string? priorText = null)
         {
-            return VerifyExpectedTextAsync(intentName, markup, new string[] { }, expectedText, options, intentData);
+            return VerifyExpectedTextAsync(intentName, markup, new string[] { }, new string[] { expectedText }, options, intentData, priorText);
         }
 
-        internal static async Task VerifyExpectedTextAsync(string intentName, string activeDocument, string[] additionalDocuments, string expectedText, OptionsCollection? options = null, string? intentData = null)
+        internal static async Task VerifyExpectedTextAsync(
+            string intentName,
+            string activeDocument,
+            string[] additionalDocuments,
+            string[] expectedTexts,
+            OptionsCollection? options = null,
+            string? intentData = null,
+            string? priorText = null)
         {
             var documentSet = additionalDocuments.Prepend(activeDocument).ToArray();
             using var workspace = TestWorkspace.CreateCSharp(documentSet, exportProvider: EditorTestCompositions.EditorFeatures.ExportProviderFactory.CreateExportProvider());
@@ -41,19 +58,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Intents
             // The first document will be the active document.
             var document = workspace.Documents.Single(d => d.Name == "test1.cs");
             var textBuffer = document.GetTextBuffer();
-            var typedSpan = document.AnnotatedSpans["typed"].Single();
 
-            // Get the current snapshot span and selection.
-            var currentSelectedSpan = document.SelectedSpans.FirstOrDefault();
-            if (currentSelectedSpan.IsEmpty)
-            {
-                currentSelectedSpan = TextSpan.FromBounds(typedSpan.End, typedSpan.End);
-            }
+            // Get the text change to rewind the document to the correct pre-intent location.
+            var rewindTextChange = new TextChange(document.AnnotatedSpans["typed"].Single(), priorText ?? string.Empty);
 
-            var currentSnapshotSpan = new SnapshotSpan(textBuffer.CurrentSnapshot, currentSelectedSpan.ToSpan());
+            // Get the current snapshot span to pass in.
+            var currentSnapshot = new SnapshotSpan(textBuffer.CurrentSnapshot, new Span(0, textBuffer.CurrentSnapshot.Length));
 
-            // Determine the edits to rewind to the prior snapshot by removing the changes in the annotated span.
-            var rewindTextChange = new TextChange(typedSpan, "");
             var priorSelection = TextSpan.FromBounds(rewindTextChange.Span.Start, rewindTextChange.Span.Start);
             if (document.AnnotatedSpans.ContainsKey("priorSelection"))
             {
@@ -62,7 +73,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Intents
 
             var intentContext = new IntentRequestContext(
                 intentName,
-                currentSnapshotSpan,
+                currentSnapshot,
                 ImmutableArray.Create(rewindTextChange),
                 priorSelection,
                 intentData: intentData);
@@ -71,15 +82,28 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Intents
             // For now, we're just taking the first result to match intellicode behavior.
             var result = results.First();
 
-            using var edit = textBuffer.CreateEdit();
-            foreach (var change in result.TextChanges)
+            var actualDocumentTexts = new List<string>();
+            foreach (var documentChange in result.DocumentChanges)
             {
-                edit.Replace(change.Span.ToSpan(), change.NewText);
+                // Get the document and open it.  Since we're modifying the text buffer we don't care about linked documents.
+                var documentBuffer = workspace.GetTestDocument(documentChange.Key).GetTextBuffer();
+
+                using var edit = documentBuffer.CreateEdit();
+                foreach (var change in documentChange.Value)
+                {
+                    edit.Replace(change.Span.ToSpan(), change.NewText);
+                }
+
+                edit.Apply();
+
+                actualDocumentTexts.Add(documentBuffer.CurrentSnapshot.GetText());
             }
 
-            edit.Apply();
-
-            Assert.Equal(expectedText, textBuffer.CurrentSnapshot.GetText());
+            Assert.Equal(expectedTexts.Length, actualDocumentTexts.Count);
+            foreach (var expectedText in expectedTexts)
+            {
+                Assert.True(actualDocumentTexts.Contains(expectedText));
+            }
         }
     }
 }

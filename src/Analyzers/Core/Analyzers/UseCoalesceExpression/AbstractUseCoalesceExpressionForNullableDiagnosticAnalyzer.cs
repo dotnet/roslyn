@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.UseCoalesceExpression
 
             var cancellationToken = context.CancellationToken;
 
-            var option = context.GetOption(CodeStyleOptions2.PreferCoalesceExpression, conditionalExpression.Language);
+            var option = context.GetAnalyzerOptions().PreferCoalesceExpression;
             if (!option.Value)
             {
                 return;

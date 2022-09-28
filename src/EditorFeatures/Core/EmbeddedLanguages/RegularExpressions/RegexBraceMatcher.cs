@@ -2,18 +2,19 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Immutable;
+using System.Composition;
 using System.Threading;
-using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.BraceMatching;
+using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.Common;
-using Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars;
 using Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions.LanguageServices;
+using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 
-namespace Microsoft.CodeAnalysis.Editor.EmbeddedLanguages.RegularExpressions
+namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
 {
     using RegexToken = EmbeddedSyntaxToken<RegexKind>;
     using RegexTrivia = EmbeddedSyntaxTrivia<RegexKind>;
@@ -21,20 +22,34 @@ namespace Microsoft.CodeAnalysis.Editor.EmbeddedLanguages.RegularExpressions
     /// <summary>
     /// Brace matching impl for embedded regex strings.
     /// </summary>
-    internal sealed class RegexBraceMatcher : IBraceMatcher
+    [ExportEmbeddedLanguageBraceMatcher(
+        PredefinedEmbeddedLanguageNames.Regex,
+        new[] { LanguageNames.CSharp, LanguageNames.VisualBasic },
+        supportsUnannotatedAPIs: true,
+        "Regex", "Regexp"), Shared]
+    internal sealed class RegexBraceMatcher : IEmbeddedLanguageBraceMatcher
     {
-        private readonly RegexEmbeddedLanguage _language;
-
-        public RegexBraceMatcher(RegexEmbeddedLanguage language)
-            => _language = language;
-
-        public async Task<BraceMatchingResult?> FindBracesAsync(
-            Document document, int position, BraceMatchingOptions options, CancellationToken cancellationToken)
+        [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+        public RegexBraceMatcher()
         {
-            if (!options.HighlightRelatedRegexComponentsUnderCursor)
+        }
+
+        public BraceMatchingResult? FindBraces(
+            Project project,
+            SemanticModel semanticModel,
+            SyntaxToken token,
+            int position,
+            BraceMatchingOptions options,
+            CancellationToken cancellationToken)
+        {
+            if (!options.HighlightingOptions.HighlightRelatedRegexComponentsUnderCursor)
                 return null;
 
-            var tree = await _language.TryGetTreeAtPositionAsync(document, position, cancellationToken).ConfigureAwait(false);
+            var info = project.GetRequiredLanguageService<IEmbeddedLanguagesProvider>().EmbeddedLanguageInfo;
+            var detector = RegexLanguageDetector.GetOrCreate(semanticModel.Compilation, info);
+            var tree = detector.TryParseString(token, semanticModel, cancellationToken);
+
             return tree == null ? null : GetMatchingBraces(tree, position);
         }
 
@@ -83,15 +98,15 @@ namespace Microsoft.CodeAnalysis.Editor.EmbeddedLanguages.RegularExpressions
             return node == null ? null : CreateResult(node.OpenBracketToken, node.CloseBracketToken);
         }
 
-        private static RegexGroupingNode FindGroupingNode(RegexNode node, VirtualChar ch)
+        private static RegexGroupingNode? FindGroupingNode(RegexNode node, VirtualChar ch)
             => FindNode<RegexGroupingNode>(node, ch, (grouping, c) =>
                     grouping.OpenParenToken.VirtualChars.Contains(c) || grouping.CloseParenToken.VirtualChars.Contains(c));
 
-        private static RegexBaseCharacterClassNode FindCharacterClassNode(RegexNode node, VirtualChar ch)
+        private static RegexBaseCharacterClassNode? FindCharacterClassNode(RegexNode node, VirtualChar ch)
             => FindNode<RegexBaseCharacterClassNode>(node, ch, (grouping, c) =>
                     grouping.OpenBracketToken.VirtualChars.Contains(c) || grouping.CloseBracketToken.VirtualChars.Contains(c));
 
-        private static TNode FindNode<TNode>(RegexNode node, VirtualChar ch, Func<TNode, VirtualChar, bool> predicate)
+        private static TNode? FindNode<TNode>(RegexNode node, VirtualChar ch, Func<TNode, VirtualChar, bool> predicate)
             where TNode : RegexNode
         {
             if (node is TNode nodeMatch && predicate(nodeMatch, ch))

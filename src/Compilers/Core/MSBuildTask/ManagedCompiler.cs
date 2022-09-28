@@ -677,6 +677,10 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                     LogCompilationMessage(logger, requestId, CompilationKind.FatalError, "server reports different hash version than build task");
                     return base.ExecuteTool(pathToTool, responseFileCommands, commandLineCommands);
 
+                case BuildResponse.ResponseType.CannotConnect:
+                    LogCompilationMessage(logger, requestId, CompilationKind.ToolFallback, $"cannot connect to the server");
+                    return base.ExecuteTool(pathToTool, responseFileCommands, commandLineCommands);
+
                 case BuildResponse.ResponseType.Rejected:
                     var rejectedResponse = (RejectedBuildResponse)response;
                     LogCompilationMessage(logger, requestId, CompilationKind.ToolFallback, $"server rejected the request '{rejectedResponse.Reason}'");

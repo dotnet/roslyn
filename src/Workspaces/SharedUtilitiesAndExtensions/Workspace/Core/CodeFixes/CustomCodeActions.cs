@@ -9,6 +9,19 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeActions
 {
+    // Define dummy priority to avoid ifdefs.
+    // 'CodeActionPriority' is not a public API, hence not supported in CodeStyle layer.
+    // https://github.com/dotnet/roslyn/issues/42431 tracks adding a public API.
+#if CODE_STYLE
+    internal enum CodeActionPriority
+    {
+        Lowest = 0,
+        Low = 1,
+        Medium = 2,
+        High = 3
+    }
+#endif
+
     internal static class CustomCodeActions
     {
         internal abstract class SimpleCodeAction : CodeAction
@@ -29,13 +42,21 @@ namespace Microsoft.CodeAnalysis.CodeActions
         {
             private readonly Func<CancellationToken, Task<Document>> _createChangedDocument;
 
+#if CODE_STYLE
+            internal CodeActionPriority Priority { get; }
+#else
+            internal override CodeActionPriority Priority { get; }
+#endif
+
             public DocumentChangeAction(
                 string title,
                 Func<CancellationToken, Task<Document>> createChangedDocument,
-                string? equivalenceKey)
+                string? equivalenceKey,
+                CodeActionPriority priority)
                 : base(title, equivalenceKey)
             {
                 _createChangedDocument = createChangedDocument;
+                Priority = priority;
             }
 
             protected sealed override Task<Document> GetChangedDocumentAsync(CancellationToken cancellationToken)

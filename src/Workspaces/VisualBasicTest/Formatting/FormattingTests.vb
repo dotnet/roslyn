@@ -4338,8 +4338,11 @@ End Module
 End Class</text>.Value)
 
             Dim propertyBlock = (Await document.GetSyntaxRootAsync()).DescendantNodes().OfType(Of PropertyBlockSyntax).Single()
-            document = Await Formatter.FormatAsync(document.WithSyntaxRoot(
-                (Await document.GetSyntaxRootAsync()).ReplaceNode(propertyBlock, propertyBlock.WithAccessors(SyntaxFactory.SingletonList(setter)))))
+
+            Dim newDocument = document.WithSyntaxRoot(
+                (Await document.GetSyntaxRootAsync()).ReplaceNode(propertyBlock, propertyBlock.WithAccessors(SyntaxFactory.SingletonList(setter))))
+
+            document = Await Formatter.FormatAsync(newDocument, VisualBasicSyntaxFormattingOptions.Default, CancellationToken.None)
 
             Dim actual = (Await document.GetTextAsync()).ToString()
             Assert.Equal(actual, actual)
@@ -4730,10 +4733,16 @@ End Class
                 ' replace all EOL trivia with elastic markers to force the formatter to add EOL back
                 tree = tree.ReplaceTrivia(tree.DescendantTrivia().Where(Function(tr) tr.IsKind(SyntaxKind.EndOfLineTrivia)), Function(o, r) SyntaxFactory.ElasticMarker)
 
-                Dim options = SyntaxFormattingOptions.Create(
-                    workspace.Options.WithChangedOption(FormattingOptions.NewLine, LanguageNames.VisualBasic, vbLf),
-                    workspace.Services,
-                    tree.Language)
+                Dim options = New VisualBasicSyntaxFormattingOptions() With
+                {
+                    .Common = New SyntaxFormattingOptions.CommonOptions() With
+                    {
+                        .LineFormatting = New LineFormattingOptions() With
+                        {
+                            .NewLine = vbLf
+                        }
+                    }
+                }
 
                 Dim formatted = Formatter.Format(tree, workspace.Services, options, CancellationToken.None)
                 Dim actual = formatted.ToFullString()

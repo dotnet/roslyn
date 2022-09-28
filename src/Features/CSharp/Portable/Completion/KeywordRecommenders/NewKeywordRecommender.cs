@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -58,7 +56,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
                 context.IsStatementContext ||
                 context.IsGlobalStatementContext ||
                 IsMemberDeclarationContext(context, cancellationToken) ||
-                IsTypeDeclarationContext(context, cancellationToken);
+                IsTypeDeclarationContext(context, cancellationToken) ||
+                context.LeftToken.IsInCastExpressionTypeWhereExpressionIsMissingOrInNextLine();
         }
 
         private static bool IsTypeDeclarationContext(CSharpSyntaxContext context, CancellationToken cancellationToken)
@@ -102,7 +101,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
             var token = context.TargetToken;
 
             if (token.Kind() == SyntaxKind.CommaToken &&
-                token.Parent.IsKind(SyntaxKind.TypeParameterConstraintClause, out TypeParameterConstraintClauseSyntax constraintClause))
+                token.Parent.IsKind<TypeParameterConstraintClauseSyntax>(SyntaxKind.TypeParameterConstraintClause, out var constraintClause))
             {
                 if (!constraintClause.Constraints
                         .OfType<ClassOrStructConstraintSyntax>()

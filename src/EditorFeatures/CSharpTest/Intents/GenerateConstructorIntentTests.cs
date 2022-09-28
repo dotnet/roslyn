@@ -140,7 +140,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Intents
     }
 }";
 
-            await VerifyExpectedTextAsync(WellKnownIntents.GenerateConstructor, initialText, additionalDocuments, expectedText).ConfigureAwait(false);
+            await VerifyExpectedTextAsync(WellKnownIntents.GenerateConstructor, initialText, additionalDocuments, new[] { expectedText }).ConfigureAwait(false);
         }
 
         [Fact]

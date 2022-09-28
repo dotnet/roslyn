@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.LanguageServices;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -210,5 +211,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             => token
                     .WithTrailingTrivia(token.TrailingTrivia.FilterComments(addElasticMarker: true))
                     .WithLeadingTrivia(token.LeadingTrivia.FilterComments(addElasticMarker: true));
+
+        public static bool IsInCastExpressionTypeWhereExpressionIsMissingOrInNextLine(this SyntaxToken token)
+        {
+            // If there's a string in the parenthesis in the code below, the parser would return
+            // a CastExpression instead of ParenthesizedExpression. However, some features like keyword completion
+            // might be able tolerate this and still want to treat it as a ParenthesizedExpression.
+            //
+            //         var data = (n$$)
+            //         M();
+
+            var node = token.Parent;
+            return node.IsKind(SyntaxKind.IdentifierName)
+                && node.Parent is CastExpressionSyntax castExpression
+                && castExpression.Type == node
+                && (castExpression.Expression.IsMissing || castExpression.CloseParenToken.TrailingTrivia.GetFirstNewLine().HasValue);
+        }
     }
 }

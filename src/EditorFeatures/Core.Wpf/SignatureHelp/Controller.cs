@@ -74,13 +74,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
 
         private SnapshotPoint GetCaretPointInViewBuffer()
         {
-            AssertIsForeground();
+            this.ThreadingContext.ThrowIfNotOnUIThread();
             return this.TextView.Caret.Position.BufferPosition;
         }
 
         internal override void OnModelUpdated(Model modelOpt, bool updateController)
         {
-            AssertIsForeground();
+            this.ThreadingContext.ThrowIfNotOnUIThread();
 
             if (updateController)
             {
@@ -111,7 +111,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
         private void StartSession(
             ImmutableArray<ISignatureHelpProvider> providers, SignatureHelpTriggerInfo triggerInfo)
         {
-            AssertIsForeground();
+            this.ThreadingContext.ThrowIfNotOnUIThread();
             VerifySessionIsInactive();
 
             this.sessionOpt = new Session(this, Presenter.CreateSession(TextView, SubjectBuffer, null));
@@ -120,7 +120,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
 
         private ImmutableArray<ISignatureHelpProvider> GetProviders()
         {
-            this.AssertIsForeground();
+            this.ThreadingContext.ThrowIfNotOnUIThread();
 
             var snapshot = this.SubjectBuffer.CurrentSnapshot;
             var currentContentType = snapshot.ContentType;
@@ -142,7 +142,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
 
         private void Retrigger()
         {
-            AssertIsForeground();
+            this.ThreadingContext.ThrowIfNotOnUIThread();
             if (!IsSessionActive)
             {
                 return;

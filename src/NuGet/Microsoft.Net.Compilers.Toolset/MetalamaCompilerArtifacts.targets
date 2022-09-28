@@ -59,13 +59,14 @@
       <DesktopMetalamaCompilerBinArtifact Include="$(ArtifactsBinDir)csc\$(Configuration)\net472\Metalama.Backstage.dll" />
       <DesktopMetalamaCompilerBinArtifact Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.CSharp.Workspaces\$(Configuration)\netstandard2.0\Microsoft.CodeAnalysis.CSharp.Workspaces.dll" />
       <DesktopMetalamaCompilerBinArtifact Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.Workspaces\$(Configuration)\netstandard2.0\Microsoft.CodeAnalysis.Workspaces.dll" />
-      <DesktopMetalamaCompilerBinArtifact Include="$(PkgSystem_Composition_AttributedModel)\lib\portable-net45+win8+wp8+wpa81\System.Composition.AttributedModel.dll"/>
-      <DesktopMetalamaCompilerBinArtifact Include="$(PkgSystem_Composition_Convention)\lib\portable-net45+win8+wp8+wpa81\System.Composition.Convention.dll"/>
-      <DesktopMetalamaCompilerBinArtifact Include="$(PkgSystem_Composition_Hosting)\lib\portable-net45+win8+wp8+wpa81\System.Composition.Hosting.dll"/>
-      <DesktopMetalamaCompilerBinArtifact Include="$(PkgSystem_Composition_Runtime)\lib\portable-net45+win8+wp8+wpa81\System.Composition.Runtime.dll"/>
-      <DesktopMetalamaCompilerBinArtifact Include="$(PkgSystem_Composition_TypedParts)\lib\portable-net45+win8+wp8+wpa81\System.Composition.TypedParts.dll"/>
+      <DesktopMetalamaCompilerBinArtifact Include="$(PkgSystem_Composition_AttributedModel)\lib\net461\System.Composition.AttributedModel.dll"/>
+      <DesktopMetalamaCompilerBinArtifact Include="$(PkgSystem_Composition_Convention)\lib\net461\System.Composition.Convention.dll"/>
+      <DesktopMetalamaCompilerBinArtifact Include="$(PkgSystem_Composition_Hosting)\lib\net461\System.Composition.Hosting.dll"/>
+      <DesktopMetalamaCompilerBinArtifact Include="$(PkgSystem_Composition_Runtime)\lib\net461\System.Composition.Runtime.dll"/>
+      <DesktopMetalamaCompilerBinArtifact Include="$(PkgSystem_Composition_TypedParts)\lib\net461\System.Composition.TypedParts.dll"/>
       <DesktopMetalamaCompilerBinArtifact Include="$(PkgMicrosoft_Bcl_AsyncInterfaces)\lib\net461\Microsoft.Bcl.AsyncInterfaces.dll"/>
     </ItemGroup>
+
 
   </Target>
 </Project>

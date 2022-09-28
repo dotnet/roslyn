@@ -196,7 +196,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public bool ContainsAnySynthesizedNodes()
         {
-            return this.TopologicallySortedNodes.Any(node => node is BoundEvaluationDecisionDagNode e && e.Evaluation.Kind == BoundKind.DagAssignmentEvaluation);
+            return this.TopologicallySortedNodes.Any(static node => node is BoundEvaluationDecisionDagNode e && e.Evaluation.Kind == BoundKind.DagAssignmentEvaluation);
         }
 
 #if DEBUG

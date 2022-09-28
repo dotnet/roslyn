@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Diagnostics;
+using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace Microsoft.CodeAnalysis.CSharp
@@ -49,6 +50,22 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        internal static bool MayBeNameofOperator(this InvocationExpressionSyntax node)
+        {
+            if (node.Expression.Kind() == SyntaxKind.IdentifierName &&
+                ((IdentifierNameSyntax)node.Expression).Identifier.ContextualKind() == SyntaxKind.NameOfKeyword &&
+                node.ArgumentList.Arguments.Count == 1)
+            {
+                ArgumentSyntax argument = node.ArgumentList.Arguments[0];
+                if (argument.NameColon == null && argument.RefOrOutKeyword == default)
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
         /// <summary>
         /// This method is used to keep the code that generates binders in sync
         /// with the code that searches for binders.  We don't want the searcher
@@ -63,6 +80,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             SyntaxKind kind = syntax.Kind();
             switch (kind)
             {
+                case SyntaxKind.InvocationExpression when ((InvocationExpressionSyntax)syntax).MayBeNameofOperator():
+                    return true;
                 case SyntaxKind.CatchClause:
                 case SyntaxKind.ParenthesizedLambdaExpression:
                 case SyntaxKind.SimpleLambdaExpression:
@@ -79,6 +98,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.ThisConstructorInitializer:
                 case SyntaxKind.ConstructorDeclaration:
                 case SyntaxKind.PrimaryConstructorBaseType:
+                case SyntaxKind.CheckedExpression:
+                case SyntaxKind.UncheckedExpression:
                     return true;
 
                 case SyntaxKind.RecordDeclaration:
@@ -89,7 +110,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 default:
                     return syntax is StatementSyntax || IsValidScopeDesignator(syntax as ExpressionSyntax);
-
             }
         }
 
@@ -208,29 +228,31 @@ namespace Microsoft.CodeAnalysis.CSharp
             return refKind;
         }
 
-        internal static TypeSyntax SkipRef(this TypeSyntax syntax)
-        {
-            if (syntax.Kind() == SyntaxKind.RefType)
-            {
-                syntax = ((RefTypeSyntax)syntax).Type;
-            }
-
-            return syntax;
-        }
-
         internal static TypeSyntax SkipRef(this TypeSyntax syntax, out RefKind refKind)
         {
-            refKind = RefKind.None;
+            return SkipRef(syntax, out refKind, allowScoped: true, diagnostics: null);
+        }
+
+        internal static TypeSyntax SkipRef(this TypeSyntax syntax, out RefKind refKind, bool allowScoped, BindingDiagnosticBag? diagnostics)
+        {
+            Debug.Assert(allowScoped || diagnostics is { });
+
             if (syntax.Kind() == SyntaxKind.RefType)
             {
                 var refType = (RefTypeSyntax)syntax;
                 refKind = refType.ReadOnlyKeyword.Kind() == SyntaxKind.ReadOnlyKeyword ?
                     RefKind.RefReadOnly :
                     RefKind.Ref;
-
-                syntax = refType.Type;
+                if (refType.ScopedKeyword.Kind() == SyntaxKind.ScopedKeyword &&
+                    !allowScoped &&
+                    diagnostics is { })
+                {
+                    diagnostics.Add(ErrorCode.ERR_BadMemberFlag, refType.ScopedKeyword.GetLocation(), SyntaxFacts.GetText(SyntaxKind.ScopedKeyword));
+                }
+                return refType.Type;
             }
 
+            refKind = RefKind.None;
             return syntax;
         }
 

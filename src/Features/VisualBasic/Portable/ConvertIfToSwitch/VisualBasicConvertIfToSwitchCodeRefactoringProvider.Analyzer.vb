@@ -4,6 +4,7 @@
 
 Imports Microsoft.CodeAnalysis.LanguageServices
 Imports Microsoft.CodeAnalysis.Operations
+Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.ConvertIfToSwitch
     Partial Friend NotInheritable Class VisualBasicConvertIfToSwitchCodeRefactoringProvider
@@ -28,6 +29,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ConvertIfToSwitch
                     Case Else
                         Return False
                 End Select
+            End Function
+
+            Public Overrides Function CanImplicitlyConvert(semanticModel As SemanticModel, syntax As SyntaxNode, targetType As ITypeSymbol) As Boolean
+                Dim expressionSyntax = TryCast(syntax, ExpressionSyntax)
+
+                Return expressionSyntax IsNot Nothing AndAlso
+                    semanticModel.ClassifyConversion(expressionSyntax, targetType).IsWidening
             End Function
         End Class
     End Class

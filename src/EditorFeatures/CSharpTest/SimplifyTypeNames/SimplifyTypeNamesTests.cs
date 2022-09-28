@@ -124,6 +124,63 @@ namespace Root
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        public async Task UseGlobalAlias00()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+global using MyType = System.IO.File;
+
+namespace Root
+{
+    class A
+    {
+        [|System.IO.File|] c;
+    }
+}",
+@"
+global using MyType = System.IO.File;
+
+namespace Root
+{
+    class A
+    {
+        MyType c;
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        public async Task UseGlobalAlias01()
+        {
+            await TestInRegularAndScriptAsync(
+@"<Workspace>
+    <Project Language=""C#"" CommonReferences=""true"">
+        <Document>
+global using MyType = System.IO.File;
+        </Document>
+        <Document>
+namespace Root
+{
+    class A
+    {
+        [|System.IO.File|] c;
+    }
+}
+</Document>
+    </Project>
+</Workspace>",
+@"
+namespace Root
+{
+    class A
+    {
+        MyType c;
+    }
+}
+");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task UseAlias00_FileScopedNamespace()
         {
             await TestInRegularAndScriptAsync(
@@ -3465,7 +3522,7 @@ class M
 
         [WorkItem(568043, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/568043")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
-        public async Task DontSimplifyNamesWhenThereAreParseErrors()
+        public async Task DoNotSimplifyNamesWhenThereAreParseErrors()
         {
             var markup =
 @"
@@ -3601,7 +3658,7 @@ namespace C
 
         [WorkItem(578686, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/578686")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
-        public async Task DontUseAlias1()
+        public async Task DoNotUseAlias1()
         {
             await TestMissingInRegularAndScriptAsync(
 @"using System.Collections.Generic;
@@ -3950,7 +4007,7 @@ class Program
 
         [WorkItem(736377, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/736377")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
-        public async Task DontSimplifyTypeNameBrokenCode()
+        public async Task DoNotSimplifyTypeNameBrokenCode()
         {
             await TestMissingInRegularAndScriptAsync(
 @"using System;
@@ -3970,7 +4027,7 @@ class Program
 
         [WorkItem(813385, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/813385")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
-        public async Task DontSimplifyAliases()
+        public async Task DoNotSimplifyAliases()
         {
             await TestMissingInRegularAndScriptAsync(
 @"using Goo = System.Int32;
@@ -4008,7 +4065,7 @@ namespace A
 
         [WorkItem(878773, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/878773")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
-        public async Task DontSimplifyAttributeNameWithJustAttribute()
+        public async Task DoNotSimplifyAttributeNameWithJustAttribute()
         {
             await TestMissingInRegularAndScriptAsync(
 @"[[|Attribute|]]
@@ -4842,7 +4899,7 @@ namespace N
 /// </summary>
 class Base
 {
-}", new OptionsCollection(GetLanguage()), IDEDiagnosticIds.PreferBuiltInOrFrameworkTypeDiagnosticId, DiagnosticSeverity.Hidden);
+}", IDEDiagnosticIds.PreferBuiltInOrFrameworkTypeDiagnosticId, DiagnosticSeverity.Hidden);
         }
 
         [WorkItem(40639, "https://github.com/dotnet/roslyn/issues/40639")]
@@ -4856,7 +4913,7 @@ class Base
 class Base
 {
     public void Foo(string s) { }
-}", new OptionsCollection(GetLanguage()), IDEDiagnosticIds.PreferBuiltInOrFrameworkTypeDiagnosticId, DiagnosticSeverity.Hidden);
+}", IDEDiagnosticIds.PreferBuiltInOrFrameworkTypeDiagnosticId, DiagnosticSeverity.Hidden);
         }
 
         [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
@@ -6195,7 +6252,7 @@ class Base
     {
         var v = nameof([|System|].Int32);
     }
-}", new OptionsCollection(GetLanguage()), IDEDiagnosticIds.SimplifyMemberAccessDiagnosticId, DiagnosticSeverity.Hidden);
+}", IDEDiagnosticIds.SimplifyMemberAccessDiagnosticId, DiagnosticSeverity.Hidden);
         }
 
         [WorkItem(11380, "https://github.com/dotnet/roslyn/issues/11380")]

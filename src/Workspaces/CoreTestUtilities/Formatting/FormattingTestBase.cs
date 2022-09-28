@@ -53,24 +53,17 @@ namespace Microsoft.CodeAnalysis.UnitTests.Formatting
 
                 var document = project.AddDocument("Document", SourceText.From(code));
 
+                var formattingService = document.GetRequiredLanguageService<ISyntaxFormattingService>();
+                var formattingOptions = changedOptionSet != null ?
+                    formattingService.GetFormattingOptions(changedOptionSet.ToAnalyzerConfigOptions(document.Project.LanguageServices), fallbackOptions: null) :
+                    formattingService.DefaultOptions;
+
                 var syntaxTree = await document.GetRequiredSyntaxTreeAsync(CancellationToken.None);
-
-                var optionSet = workspace.Options;
-                if (changedOptionSet != null)
-                {
-                    foreach (var entry in changedOptionSet)
-                    {
-                        optionSet = optionSet.WithChangedOption(entry.Key, entry.Value);
-                    }
-                }
-
                 var root = await syntaxTree.GetRootAsync();
-                var options = SyntaxFormattingOptions.Create(optionSet, workspace.Services, root.Language);
-
-                await AssertFormatAsync(workspace.Services, expected, root, spans.AsImmutable(), options, await document.GetTextAsync());
+                await AssertFormatAsync(workspace.Services, expected, root, spans.AsImmutable(), formattingOptions, await document.GetTextAsync());
 
                 // format with node and transform
-                AssertFormatWithTransformation(workspace.Services, expected, root, spans, options, treeCompare, parseOptions);
+                AssertFormatWithTransformation(workspace.Services, expected, root, spans, formattingOptions, treeCompare, parseOptions);
             }
         }
 

@@ -192,17 +192,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             return result;
         }
 
-        protected override ITypeSymbolInternal? TryGetStateMachineType(EntityHandle methodHandle)
-        {
-            string typeName;
-            if (_metadataDecoder.Module.HasStringValuedAttribute(methodHandle, AttributeDescription.AsyncStateMachineAttribute, out typeName) ||
-                _metadataDecoder.Module.HasStringValuedAttribute(methodHandle, AttributeDescription.IteratorStateMachineAttribute, out typeName))
-            {
-                return _metadataDecoder.GetTypeSymbolForSerializedType(typeName);
-            }
-
-            return null;
-        }
+        protected override ITypeSymbolInternal? TryGetStateMachineType(MethodDefinitionHandle methodHandle)
+            => _metadataDecoder.Module.HasStateMachineAttribute(methodHandle, out var typeName) ? _metadataDecoder.GetTypeSymbolForSerializedType(typeName) : null;
 
         /// <summary>
         /// Match local declarations to names to generate a map from

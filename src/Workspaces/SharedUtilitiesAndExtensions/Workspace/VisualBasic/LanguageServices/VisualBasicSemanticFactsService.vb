@@ -34,6 +34,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Shared ReadOnly Instance As New VisualBasicSemanticFactsService()
 
         Public Overrides ReadOnly Property SyntaxFacts As ISyntaxFacts = VisualBasicSyntaxFacts.Instance
+        Public Overrides ReadOnly Property BlockFacts As IBlockFacts = VisualBasicBlockFacts.Instance
+
         Protected Overrides ReadOnly Property SemanticFacts As ISemanticFacts = VisualBasicSemanticFacts.Instance
 
         Private Sub New()

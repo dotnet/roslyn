@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 // Without parenthesis: variable span is of type `byte*` which can only be used in unsafe context.
                 if (nodeParent is EqualsValueClauseSyntax { Parent: VariableDeclaratorSyntax { Parent: VariableDeclarationSyntax varDecl } })
                 {
-                    // we have either `var x = (stackalloc byte[8])` or `Span<byte> x = (stackalloc byte[8])`.  The former
+                    // We have either `var x = (stackalloc byte[8])` or `Span<byte> x = (stackalloc byte[8])`.  The former
                     // is not safe to remove. the latter is.
                     if (semanticModel.GetTypeInfo(varDecl.Type, cancellationToken).Type is
                         {
@@ -84,6 +84,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 }
 
                 return false;
+            }
+
+            // Don't remove parentheses around `<` and `>` if there's a reasonable chance that it might
+            // pair with the opposite form, causing them to be reinterpreted as generic syntax. See
+            // https://github.com/dotnet/roslyn/issues/43934 for examples.
+            if (expression.IsKind(SyntaxKind.GreaterThanExpression, SyntaxKind.LessThanExpression) &&
+                nodeParent is ArgumentSyntax)
+            {
+                var opposite = expression.IsKind(SyntaxKind.GreaterThanExpression) ? SyntaxKind.LessThanExpression : SyntaxKind.GreaterThanExpression;
+                if (nodeParent.GetRequiredParent().ChildNodes().OfType<ArgumentSyntax>().Any(a => a.Expression.IsKind(opposite)))
+                    return false;
             }
 
             // (throw ...) -> throw ...

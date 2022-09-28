@@ -43,6 +43,7 @@ class C
 
         <WpfFact, CombinatorialData>
         <Trait(Traits.Feature, Traits.Features.Completion)>
+        <WorkItem(61120, "https://github.com/dotnet/roslyn/issues/61120")>
         Public Async Function SelectFirstMatchingDefaultIfNoFilterText() As Task
             Using state = CreateTestStateWithAdditionalDocument(
                               <Document>
@@ -57,7 +58,7 @@ class C
                               </Document>)
 
                 state.SendInvokeCompletionList()
-                Await state.AssertSelectedCompletionItem("MyAB", isHardSelected:=False) ' Not hard-selected since filter text is empty
+                Await state.AssertSelectedCompletionItem("MyAB", isHardSelected:=True) ' hard-selected since filter text is empty
             End Using
         End Function
 

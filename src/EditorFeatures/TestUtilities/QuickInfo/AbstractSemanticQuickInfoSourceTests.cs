@@ -126,12 +126,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.QuickInfo
         }
 
         protected static Action<QuickInfoItem> NoTypeParameterMap
-        {
-            get
-            {
-                return item => AssertSection(string.Empty, item.Sections, QuickInfoSectionKinds.TypeParameters);
-            }
-        }
+            => item => AssertSection(string.Empty, item.Sections, QuickInfoSectionKinds.TypeParameters);
 
         protected static Action<QuickInfoItem> Usage(string expectedText, bool expectsWarningGlyph = false)
         {

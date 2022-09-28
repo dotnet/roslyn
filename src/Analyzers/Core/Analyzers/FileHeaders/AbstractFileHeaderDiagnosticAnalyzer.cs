@@ -50,8 +50,8 @@ namespace Microsoft.CodeAnalysis.FileHeaders
                 return;
             }
 
-            if (!context.Options.TryGetEditorConfigOption<string>(CodeStyleOptions2.FileHeaderTemplate, tree, out var fileHeaderTemplate)
-                || string.IsNullOrEmpty(fileHeaderTemplate))
+            var fileHeaderTemplate = context.GetAnalyzerOptions().FileHeaderTemplate;
+            if (string.IsNullOrEmpty(fileHeaderTemplate))
             {
                 return;
             }
