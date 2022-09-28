@@ -84,15 +84,15 @@ namespace Microsoft.CodeAnalysis.DesignerAttribute
             if (designerCategoryType == null)
                 return;
 
-            await ProcessProjectAsync(
+            await ScanForDesignerCategoryUsageAsync(
                 project, specificDocument, callback, designerCategoryType, cancellationToken).ConfigureAwait(false);
 
             // If we scanned just a specific document in the project, now scan the rest of the files.
             if (specificDocument != null)
-                await ProcessProjectAsync(project, specificDocument: null, callback, designerCategoryType, cancellationToken).ConfigureAwait(false);
+                await ScanForDesignerCategoryUsageAsync(project, specificDocument: null, callback, designerCategoryType, cancellationToken).ConfigureAwait(false);
         }
 
-        private async Task ProcessProjectAsync(
+        private async Task ScanForDesignerCategoryUsageAsync(
             Project project,
             Document? specificDocument,
             IDesignerAttributeDiscoveryService.ICallback callback,
@@ -129,7 +129,6 @@ namespace Microsoft.CodeAnalysis.DesignerAttribute
             INamedTypeSymbol designerCategoryType,
             CancellationToken cancellationToken)
         {
-
             using var _1 = ArrayBuilder<Task<DesignerAttributeData?>>.GetInstance(out var tasks);
             foreach (var document in project.Documents)
             {
