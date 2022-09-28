@@ -6,6 +6,7 @@ using System;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Navigation;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.Api
@@ -26,6 +27,16 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.Api
         }
     }
 
+    internal readonly record struct UnitTestingNavigationOptions(
+        bool PreferProvisionalTab = false,
+        bool ActivateTab = true)
+    {
+        public UnitTestingNavigationOptions()
+            : this(PreferProvisionalTab: false)
+        {
+        }
+    }
+
     internal readonly struct UnitTestingDocumentSpan
     {
         private readonly DocumentSpan _documentSpan;
@@ -37,6 +48,12 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.Api
 
         public Document Document => _documentSpan.Document;
         public TextSpan SourceSpan => _documentSpan.SourceSpan;
+
+        public async Task NavigateToAsync(UnitTestingNavigationOptions options, CancellationToken cancellationToken)
+        {
+            var location = await _documentSpan.GetNavigableLocationAsync(cancellationToken).ConfigureAwait(false);
+            if (location != null)
+                await location.NavigateToAsync(new NavigationOptions(options.PreferProvisionalTab, options.ActivateTab), cancellationToken).ConfigureAwait(false);
     }
 
     internal static class UnitTestingSearchHelpers
