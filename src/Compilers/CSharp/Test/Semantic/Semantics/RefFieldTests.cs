@@ -21781,5 +21781,50 @@ struct S<T> : System.IDisposable
             var comp = CreateCompilation(source, runtimeFeature: RuntimeFlag.ByRefFields);
             comp.VerifyDiagnostics();
         }
+
+        [Fact]
+        public void OutReturnOnly_5()
+        {
+            var source = """
+                ref struct R
+                {
+                    public R(ref int i) { }
+                }
+
+                class Program
+                {
+                    public static void F1(R a, out R d) => throw null;
+                    public static void F2(ref R a, out R d) => throw null;
+                    public static void F3(in R a, out R d) => throw null;
+                    public static void F4(scoped ref R a, out R d) => throw null;
+                    public static void F5(scoped in R a, out R d) => throw null;
+
+                    public void Test()
+                    {
+                        R local = default;
+                        F1(local, out local);
+                        F2(ref local, out local); // 1
+                        F3(in local, out local); // 2
+                        F4(ref local, out local);
+                        F5(in local, out local);
+                    }
+                }
+                """;
+            var comp = CreateCompilation(new[] { source, UnscopedRefAttributeDefinition }, runtimeFeature: RuntimeFlag.ByRefFields);
+            comp.VerifyDiagnostics(
+                // (18,9): error CS8350: This combination of arguments to 'Program.F2(ref R, out R)' is disallowed because it may expose variables referenced by parameter 'a' outside of their declaration scope
+                //         F2(ref local, out local); // 1
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "F2(ref local, out local)").WithArguments("Program.F2(ref R, out R)", "a").WithLocation(18, 9),
+                // (18,16): error CS8168: Cannot return local 'local' by reference because it is not a ref local
+                //         F2(ref local, out local); // 1
+                Diagnostic(ErrorCode.ERR_RefReturnLocal, "local").WithArguments("local").WithLocation(18, 16),
+                // (19,9): error CS8350: This combination of arguments to 'Program.F3(in R, out R)' is disallowed because it may expose variables referenced by parameter 'a' outside of their declaration scope
+                //         F3(in local, out local); // 2
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "F3(in local, out local)").WithArguments("Program.F3(in R, out R)", "a").WithLocation(19, 9),
+                // (19,15): error CS8168: Cannot return local 'local' by reference because it is not a ref local
+                //         F3(in local, out local); // 2
+                Diagnostic(ErrorCode.ERR_RefReturnLocal, "local").WithArguments("local").WithLocation(19, 15)
+                );
+        }
     }
 }
