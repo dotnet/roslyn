@@ -145,7 +145,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                             await WaitForHigherPriorityOperationsAsync().ConfigureAwait(false);
 
                             // okay, there must be at least one item in the map
-                            await ResetStatesAsync().ConfigureAwait(false);
+                            ResetStates();
 
                             if (await TryProcessOneHigherPriorityDocumentAsync().ConfigureAwait(false))
                             {
@@ -190,20 +190,28 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                     }
 
                     protected override Task HigherQueueOperationTask
+#if false // Not used in unit testing crawling
                     {
                         get
                         {
                             return Processor._highPriorityProcessor.Running;
                         }
                     }
+#else
+                        => Task.CompletedTask;
+#endif
 
                     protected override bool HigherQueueHasWorkItem
+#if false // Not used in unit testing crawling
                     {
                         get
                         {
                             return Processor._highPriorityProcessor.HasAnyWork;
                         }
                     }
+#else
+                        => false;
+#endif
 
                     protected override void OnPaused()
                     {
@@ -342,6 +350,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
 
                                 if (textDocument != null)
                                 {
+#if false // Not used in unit testing crawling
                                     // if we are called because a document is opened, we invalidate the document so that
                                     // it can be re-analyzed. otherwise, since newly opened document has same version as before
                                     // analyzer will simply return same data back
@@ -352,6 +361,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                                         await ProcessOpenDocumentIfNeededAsync(analyzers, workItem, textDocument, isOpen, cancellationToken).ConfigureAwait(false);
                                         await ProcessCloseDocumentIfNeededAsync(analyzers, workItem, textDocument, isOpen, cancellationToken).ConfigureAwait(false);
                                     }
+#endif
 
                                     // check whether we are having special reanalyze request
                                     await ProcessReanalyzeDocumentAsync(workItem, textDocument, cancellationToken).ConfigureAwait(false);
@@ -393,6 +403,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                         }
                     }
 
+#if false // Not used in unit testing crawling
                     private async Task ProcessOpenDocumentIfNeededAsync(ImmutableArray<IUnitTestingIncrementalAnalyzer> analyzers, UnitTestingWorkItem workItem, TextDocument textDocument, bool isOpen, CancellationToken cancellationToken)
                     {
                         if (!isOpen || !workItem.InvocationReasons.Contains(UnitTestingPredefinedInvocationReasons.DocumentOpened))
@@ -442,6 +453,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                             }
                         }
                     }
+#endif
 
                     private async Task ProcessReanalyzeDocumentAsync(UnitTestingWorkItem workItem, TextDocument document, CancellationToken cancellationToken)
                     {
@@ -459,14 +471,18 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
 
                             // First reset the document state in analyzers.
                             var reanalyzers = workItem.SpecificAnalyzers.ToImmutableArray();
+#if false // Not used in unit testing crawling
                             await Processor.RunAnalyzersAsync(reanalyzers, document, workItem, DocumentResetAsync, cancellationToken).ConfigureAwait(false);
+#endif
 
                             // No request to re-run syntax change analysis. run it here
                             var reasons = workItem.InvocationReasons;
+#if false // Not used in unit testing crawling
                             if (!reasons.Contains(UnitTestingPredefinedInvocationReasons.SyntaxChanged))
                             {
                                 await Processor.RunAnalyzersAsync(reanalyzers, document, workItem, (a, d, c) => AnalyzeSyntaxAsync(a, d, reasons, c), cancellationToken).ConfigureAwait(false);
                             }
+#endif
 
                             // No request to re-run semantic change analysis. run it here
                             // Note: Semantic analysis is not supported for non-source documents.
@@ -483,6 +499,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
 
                         return;
 
+#if false // Not used in unit testing crawling
                         static async Task DocumentResetAsync(IUnitTestingIncrementalAnalyzer analyzer, TextDocument textDocument, CancellationToken cancellationToken)
                         {
                             if (textDocument is Document document)
@@ -494,7 +511,9 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                                 await analyzer.NonSourceDocumentResetAsync(textDocument, cancellationToken).ConfigureAwait(false);
                             }
                         }
+#endif
 
+#if false // Not used in unit testing crawling
                         static async Task AnalyzeSyntaxAsync(IUnitTestingIncrementalAnalyzer analyzer, TextDocument textDocument, UnitTestingInvocationReasons reasons, CancellationToken cancellationToken)
                         {
                             if (textDocument is Document document)
@@ -506,6 +525,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                                 await analyzer.AnalyzeNonSourceDocumentAsync(textDocument, reasons, cancellationToken).ConfigureAwait(false);
                             }
                         }
+#endif
                     }
 
                     private Task RemoveDocumentAsync(DocumentId documentId, CancellationToken cancellationToken)
@@ -519,7 +539,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                         }
                     }
 
-                    private async Task ResetStatesAsync()
+                    private void ResetStates()
                     {
                         try
                         {
@@ -528,10 +548,12 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                                 return;
                             }
 
+#if false // Not used in unit testing crawling
                             await Processor.RunAnalyzersAsync(
                                 Analyzers,
                                 Processor._registration.GetSolutionToAnalyze(),
                                 workItem: new UnitTestingWorkItem(), (a, s, c) => a.NewSolutionSnapshotAsync(s, c), CancellationToken).ConfigureAwait(false);
+#endif
 
 #if false // Not used in unit testing crawling
                             foreach (var id in Processor.GetOpenDocumentIds())
@@ -546,6 +568,8 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                         {
                             throw ExceptionUtilities.Unreachable;
                         }
+
+                        return;
 
                         bool IsSolutionChanged()
                         {

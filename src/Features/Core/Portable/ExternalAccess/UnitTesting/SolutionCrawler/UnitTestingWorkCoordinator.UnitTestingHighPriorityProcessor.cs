@@ -20,6 +20,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
         {
             private sealed partial class UnitTestingIncrementalAnalyzerProcessor
             {
+#if false // Not used in unit testing crawling
                 private sealed class UnitTestingHighPriorityProcessor : UnitTestingIdleProcessor
                 {
                     private readonly UnitTestingIncrementalAnalyzerProcessor _processor;
@@ -234,6 +235,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                     public void Shutdown()
                         => _workItemQueue.Dispose();
                 }
+#endif
             }
         }
     }

@@ -11,10 +11,12 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
 {
     internal interface IUnitTestingIncrementalAnalyzer
     {
+#if false // Not used in unit testing crawling
         Task NewSolutionSnapshotAsync(Solution solution, CancellationToken cancellationToken);
 
         Task DocumentOpenAsync(Document document, CancellationToken cancellationToken);
         Task DocumentCloseAsync(Document document, CancellationToken cancellationToken);
+
         Task ActiveDocumentSwitchedAsync(TextDocument document, CancellationToken cancellationToken);
 
         /// <summary>
@@ -23,10 +25,14 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
         Task DocumentResetAsync(Document document, CancellationToken cancellationToken);
 
         Task AnalyzeSyntaxAsync(Document document, UnitTestingInvocationReasons reasons, CancellationToken cancellationToken);
+#endif
+
         Task AnalyzeDocumentAsync(Document document, SyntaxNode bodyOpt, UnitTestingInvocationReasons reasons, CancellationToken cancellationToken);
         Task AnalyzeProjectAsync(Project project, bool semanticsChanged, UnitTestingInvocationReasons reasons, CancellationToken cancellationToken);
 
         Task RemoveDocumentAsync(DocumentId documentId, CancellationToken cancellationToken);
+
+#if false // Not used in unit testing crawling
         Task RemoveProjectAsync(ProjectId projectId, CancellationToken cancellationToken);
 
         Task NonSourceDocumentOpenAsync(TextDocument textDocument, CancellationToken cancellationToken);
@@ -42,5 +48,6 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
         void LogAnalyzerCountSummary();
         int Priority { get; }
         void Shutdown();
+#endif
     }
 }

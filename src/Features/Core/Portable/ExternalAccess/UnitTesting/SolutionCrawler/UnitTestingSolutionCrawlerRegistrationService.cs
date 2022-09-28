@@ -70,7 +70,9 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                     coordinator = new UnitTestingWorkCoordinator(
                         _listener,
                         GetAnalyzerProviders(workspaceKind),
+#if false // Not used in unit testing crawling
                         initializeLazily: true,
+#endif
                         new UnitTestingRegistration(this, correlationId, workspaceKind, solutionServices, _progressReporter));
 
                     _documentWorkCoordinatorMap.Add((workspaceKind, solutionServices), coordinator);
@@ -130,7 +132,11 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                     var analyzer = lazyProvider.Value.CreateIncrementalAnalyzer();
                     if (analyzer != null)
                     {
-                        coordinator.AddAnalyzer(analyzer, metadata.HighPriorityForActiveFile);
+                        coordinator.AddAnalyzer(analyzer
+#if false // Not used in unit testing crawling
+                            , metadata.HighPriorityForActiveFile
+#endif
+                            );
                     }
                 }
             }

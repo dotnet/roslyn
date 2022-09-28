@@ -40,7 +40,9 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
             public UnitTestingWorkCoordinator(
                  IAsynchronousOperationListener listener,
                  IEnumerable<Lazy<IUnitTestingIncrementalAnalyzerProvider, UnitTestingIncrementalAnalyzerProviderMetadata>> analyzerProviders,
+#if false // Not used in unit testing crawling
                  bool initializeLazily,
+#endif
                  UnitTestingRegistration registration)
             {
                 _registration = registration;
@@ -59,8 +61,16 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                 var entireProjectWorkerBackOffTimeSpan = UnitTestingSolutionCrawlerTimeSpan.EntireProjectWorkerBackOff;
 
                 _documentAndProjectWorkerProcessor = new UnitTestingIncrementalAnalyzerProcessor(
-                    listener, analyzerProviders, initializeLazily, _registration,
-                    activeFileBackOffTimeSpan, allFilesWorkerBackOffTimeSpan, entireProjectWorkerBackOffTimeSpan, _shutdownToken);
+                    listener,
+                    analyzerProviders,
+#if false // Not used in unit testing crawling
+                    initializeLazily,
+#endif
+                    _registration,
+                    activeFileBackOffTimeSpan,
+                    allFilesWorkerBackOffTimeSpan,
+                    entireProjectWorkerBackOffTimeSpan,
+                    _shutdownToken);
 
                 var semanticBackOffTimeSpan = UnitTestingSolutionCrawlerTimeSpan.SemanticChangeBackOff;
                 var projectBackOffTimeSpan = UnitTestingSolutionCrawlerTimeSpan.ProjectPropagationBackOff;
@@ -74,10 +84,20 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
             public UnitTestingRegistration Registration => _registration;
             public int CorrelationId => _registration.CorrelationId;
 
-            public void AddAnalyzer(IUnitTestingIncrementalAnalyzer analyzer, bool highPriorityForActiveFile)
+            public void AddAnalyzer(
+                IUnitTestingIncrementalAnalyzer analyzer
+#if false // Not used in unit testing crawling
+                , bool highPriorityForActiveFile
+#endif
+                )
             {
                 // add analyzer
-                _documentAndProjectWorkerProcessor.AddAnalyzer(analyzer, highPriorityForActiveFile);
+                _documentAndProjectWorkerProcessor.AddAnalyzer(
+                    analyzer
+#if false // Not used in unit testing crawling
+                    , highPriorityForActiveFile
+#endif
+                    );
 
                 // and ask to re-analyze whole solution for the given analyzer
                 var scope = new UnitTestingReanalyzeScope(_registration.GetSolutionToAnalyze().Id);

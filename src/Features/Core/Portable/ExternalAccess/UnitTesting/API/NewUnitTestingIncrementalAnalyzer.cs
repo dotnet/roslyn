@@ -25,6 +25,7 @@ internal sealed partial class NewUnitTestingIncrementalAnalyzerProvider
         public Task AnalyzeProjectAsync(Project project, bool semanticsChanged, UnitTestingInvocationReasons reasons, CancellationToken cancellationToken)
             => _implementation.AnalyzeProjectAsync(project, semanticsChanged, reasons, cancellationToken);
 
+#if false // Not used in unit testing crawling
         public Task AnalyzeSyntaxAsync(Document document, UnitTestingInvocationReasons reasons, CancellationToken cancellationToken)
             => Task.CompletedTask;
 
@@ -42,6 +43,7 @@ internal sealed partial class NewUnitTestingIncrementalAnalyzerProvider
 
         public Task NewSolutionSnapshotAsync(Solution solution, CancellationToken cancellationToken)
             => Task.CompletedTask;
+#endif
 
         public Task RemoveDocumentAsync(DocumentId documentId, CancellationToken cancellationToken)
         {
@@ -49,6 +51,7 @@ internal sealed partial class NewUnitTestingIncrementalAnalyzerProvider
             return Task.CompletedTask;
         }
 
+#if false // Not used in unit testing crawling
         public Task RemoveProjectAsync(ProjectId projectId, CancellationToken cancellationToken)
             => Task.CompletedTask;
 
@@ -73,16 +76,13 @@ internal sealed partial class NewUnitTestingIncrementalAnalyzerProvider
         /// </summary>
         public int Priority => 1;
 
-#if false
-
-    // Unit testing incremental analyzer only supports full solution analysis scope.
-    // In future, we should add a separate option to allow users to configure background analysis scope for unit testing.
-    public static BackgroundAnalysisScope GetBackgroundAnalysisScope(OptionSet _) => BackgroundAnalysisScope.FullSolution;
-
-#endif
+        // Unit testing incremental analyzer only supports full solution analysis scope.
+        // In future, we should add a separate option to allow users to configure background analysis scope for unit testing.
+        public static BackgroundAnalysisScope GetBackgroundAnalysisScope(OptionSet _) => BackgroundAnalysisScope.FullSolution;
 
         public void Shutdown()
         {
         }
+#endif
     }
 }

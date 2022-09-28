@@ -77,7 +77,11 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                     {
                         get
                         {
+#if false // Not used in unit testing crawling
                             return Task.WhenAll(Processor._highPriorityProcessor.Running, Processor._normalPriorityProcessor.Running);
+#else
+                            return Processor._normalPriorityProcessor.Running;
+#endif
                         }
                     }
 
@@ -85,7 +89,11 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                     {
                         get
                         {
-                            return Processor._highPriorityProcessor.HasAnyWork || Processor._normalPriorityProcessor.HasAnyWork;
+                            return
+#if false // Not used in unit testing crawling
+                                Processor._highPriorityProcessor.HasAnyWork ||
+#endif
+                                Processor._normalPriorityProcessor.HasAnyWork;
                         }
                     }
 
@@ -156,7 +164,9 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                                 {
                                     UnitTestingSolutionCrawlerLogger.LogProcessProjectNotExist(Processor._logAggregator);
 
+#if false // Not used in unit testing crawling
                                     await RemoveProjectAsync(projectId, cancellationToken).ConfigureAwait(false);
+#endif
                                 }
 
                                 if (!cancellationToken.IsCancellationRequested)
@@ -187,6 +197,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                         }
                     }
 
+#if false // Not used in unit testing crawling
                     private async Task RemoveProjectAsync(ProjectId projectId, CancellationToken cancellationToken)
                     {
                         foreach (var analyzer in Analyzers)
@@ -194,6 +205,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                             await analyzer.RemoveProjectAsync(projectId, cancellationToken).ConfigureAwait(false);
                         }
                     }
+#endif
 
                     public override void Shutdown()
                     {
