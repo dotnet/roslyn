@@ -822,8 +822,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
             var listenerProvider = GetListenerProvider(workspace.ExportProvider);
 
             // start an operation that allows an expedited wait to cover the remainder of the delayed operations in the test
-            var token = listenerProvider.GetListener(FeatureAttribute.SolutionCrawler).BeginAsyncOperation("Test operation");
-            var expeditedWait = listenerProvider.GetWaiter(FeatureAttribute.SolutionCrawler).ExpeditedWaitAsync();
+            var token = listenerProvider.GetListener(FeatureAttribute.SolutionCrawlerLegacy).BeginAsyncOperation("Test operation");
+            var expeditedWait = listenerProvider.GetWaiter(FeatureAttribute.SolutionCrawlerLegacy).ExpeditedWaitAsync();
 
             workspace.ChangeDocument(document.Id, SourceText.From("//"));
             if (expectedDocumentSyntaxEvents > 0 || expectedDocumentSemanticEvents > 0)
@@ -877,8 +877,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
             var listenerProvider = GetListenerProvider(workspace.ExportProvider);
 
             // start an operation that allows an expedited wait to cover the remainder of the delayed operations in the test
-            var token = listenerProvider.GetListener(FeatureAttribute.SolutionCrawler).BeginAsyncOperation("Test operation");
-            var expeditedWait = listenerProvider.GetWaiter(FeatureAttribute.SolutionCrawler).ExpeditedWaitAsync();
+            var token = listenerProvider.GetListener(FeatureAttribute.SolutionCrawlerLegacy).BeginAsyncOperation("Test operation");
+            var expeditedWait = listenerProvider.GetWaiter(FeatureAttribute.SolutionCrawlerLegacy).ExpeditedWaitAsync();
 
             workspace.ChangeDocument(document.Id, SourceText.From("//"));
             if (expectedDocumentSyntaxEvents > 0 || expectedDocumentSemanticEvents > 0)
@@ -1392,8 +1392,8 @@ class C
             var listenerProvider = GetListenerProvider(workspace.ExportProvider);
 
             // start an operation that allows an expedited wait to cover the remainder of the delayed operations in the test
-            var token = listenerProvider.GetListener(FeatureAttribute.SolutionCrawler).BeginAsyncOperation("Test operation");
-            var expeditedWait = listenerProvider.GetWaiter(FeatureAttribute.SolutionCrawler).ExpeditedWaitAsync();
+            var token = listenerProvider.GetListener(FeatureAttribute.SolutionCrawlerLegacy).BeginAsyncOperation("Test operation");
+            var expeditedWait = listenerProvider.GetWaiter(FeatureAttribute.SolutionCrawlerLegacy).ExpeditedWaitAsync();
 
             // we want to test order items processed by solution crawler.
             // but since everything async, lazy and cancellable, order is not 100% deterministic. an item might 
@@ -1425,7 +1425,7 @@ class C
                 await workspaceWaiter.ExpeditedWaitAsync();
 
                 // now wait for semantic processor to finish
-                var crawlerListener = (AsynchronousOperationListener)GetListenerProvider(workspace.ExportProvider).GetListener(FeatureAttribute.SolutionCrawler);
+                var crawlerListener = (AsynchronousOperationListener)GetListenerProvider(workspace.ExportProvider).GetListener(FeatureAttribute.SolutionCrawlerLegacy);
 
                 // first, wait for first work to be queued.
                 //
@@ -1538,7 +1538,7 @@ class C
             var workspaceWaiter = GetListenerProvider(provider).GetWaiter(FeatureAttribute.Workspace);
             await workspaceWaiter.ExpeditedWaitAsync();
 
-            var solutionCrawlerWaiter = GetListenerProvider(provider).GetWaiter(FeatureAttribute.SolutionCrawler);
+            var solutionCrawlerWaiter = GetListenerProvider(provider).GetWaiter(FeatureAttribute.SolutionCrawlerLegacy);
             await solutionCrawlerWaiter.ExpeditedWaitAsync();
         }
 
@@ -1623,7 +1623,7 @@ class C
                 : base(composition: incrementalAnalyzer is null ? s_composition : s_composition.AddParts(incrementalAnalyzer), workspaceKind: workspaceKind, disablePartialSolutions: disablePartialSolutions)
             {
                 _workspaceWaiter = GetListenerProvider(ExportProvider).GetWaiter(FeatureAttribute.Workspace);
-                _solutionCrawlerWaiter = GetListenerProvider(ExportProvider).GetWaiter(FeatureAttribute.SolutionCrawler);
+                _solutionCrawlerWaiter = GetListenerProvider(ExportProvider).GetWaiter(FeatureAttribute.SolutionCrawlerLegacy);
 
                 Assert.False(_workspaceWaiter.HasPendingWork);
                 Assert.False(_solutionCrawlerWaiter.HasPendingWork);
@@ -1961,7 +1961,7 @@ class C
             sb.AppendLine("workspace");
             sb.AppendLine(workspaceWaiter.Trace());
 
-            var solutionCrawlerWaiter = GetListeners(provider).First(l => l.Metadata.FeatureName == FeatureAttribute.SolutionCrawler).Value as TestAsynchronousOperationListener;
+            var solutionCrawlerWaiter = GetListeners(provider).First(l => l.Metadata.FeatureName == FeatureAttribute.SolutionCrawlerLegacy).Value as TestAsynchronousOperationListener;
             sb.AppendLine("solutionCrawler");
             sb.AppendLine(solutionCrawlerWaiter.Trace());
 
