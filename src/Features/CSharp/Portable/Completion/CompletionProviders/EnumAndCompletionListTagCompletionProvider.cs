@@ -188,7 +188,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                     if (!field.IsEditorBrowsable(hideAdvancedMembers, semanticModel.Compilation))
                         continue;
 
+                    // Use enum member name as an additional filter text, which would promote this item
+                    // during matching when user types member name only, like "Red" instead of 
+                    // "Colors.Red"
                     var memberDisplayName = $"{displayText}.{field.Name}";
+                    var additionalFilterTexts = ImmutableArray.Create(field.Name);
+
                     context.AddItem(SymbolCompletionItem.CreateWithSymbolId(
                         displayText: memberDisplayName,
                         displayTextSuffix: "",
@@ -196,7 +201,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                         rules: CompletionItemRules.Default,
                         contextPosition: position,
                         sortText: $"{sortText}_{index:0000}",
-                        filterText: memberDisplayName));
+                        filterText: memberDisplayName).WithAdditionalFilterTexts(additionalFilterTexts));
                 }
             }
             else if (enclosingNamedType is not null)
@@ -230,7 +235,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                         continue;
                     }
 
+                    // Use member name as an additional filter text, which would promote this item
+                    // during matching when user types member name only, like "Empty" instead of 
+                    // "ImmutableArray.Empty"
                     var memberDisplayName = $"{displayText}.{staticSymbol.Name}";
+                    var additionalFilterTexts = ImmutableArray.Create(staticSymbol.Name);
+
                     context.AddItem(SymbolCompletionItem.CreateWithSymbolId(
                         displayText: memberDisplayName,
                         displayTextSuffix: "",
@@ -238,7 +248,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                         rules: CompletionItemRules.Default,
                         contextPosition: position,
                         sortText: memberDisplayName,
-                        filterText: memberDisplayName));
+                        filterText: memberDisplayName)
+                        .WithAdditionalFilterTexts(additionalFilterTexts));
                 }
             }
         }
