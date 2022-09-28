@@ -50,6 +50,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                     return null;
                 }
 
+#if false // Not used in unit testing crawling
                 var incrementalParsingCandidate = range.NewLength != newText.Length;
                 // see whether we can get it without explicit parsing
                 if (!oldDocument.TryGetSyntaxRoot(out var oldRoot) ||
@@ -91,6 +92,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                 {
                     return new UnitTestingDocumentDifferenceResult(UnitTestingInvocationReasons.SyntaxChanged);
                 }
+#endif
 
                 return new UnitTestingDocumentDifferenceResult(UnitTestingInvocationReasons.DocumentChanged);
             }

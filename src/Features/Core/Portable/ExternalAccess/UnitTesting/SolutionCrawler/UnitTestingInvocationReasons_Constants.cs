@@ -13,15 +13,19 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
         public static readonly UnitTestingInvocationReasons DocumentAdded =
             new(
                 ImmutableHashSet.Create<string>(
+#if false // Not used in unit testing crawling
                                     UnitTestingPredefinedInvocationReasons.DocumentAdded,
                                     UnitTestingPredefinedInvocationReasons.SyntaxChanged,
+#endif
                                     UnitTestingPredefinedInvocationReasons.SemanticChanged));
 
         public static readonly UnitTestingInvocationReasons DocumentRemoved =
             new(
                 ImmutableHashSet.Create<string>(
+#if false // Not used in unit testing crawling
                                     UnitTestingPredefinedInvocationReasons.DocumentRemoved,
                                     UnitTestingPredefinedInvocationReasons.SyntaxChanged,
+#endif
                                     UnitTestingPredefinedInvocationReasons.SemanticChanged,
                                     UnitTestingPredefinedInvocationReasons.HighPriority));
 
@@ -38,7 +42,9 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
             new(
                 ImmutableHashSet.Create<string>(
                                     UnitTestingPredefinedInvocationReasons.ProjectConfigurationChanged,
+#if false // Not used in unit testing crawling
                                     UnitTestingPredefinedInvocationReasons.SyntaxChanged,
+#endif
                                     UnitTestingPredefinedInvocationReasons.SemanticChanged));
 
 #if false
@@ -66,19 +72,25 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
         public static readonly UnitTestingInvocationReasons DocumentChanged =
             new(
                 ImmutableHashSet.Create<string>(
+#if false // Not used in unit testing crawling
                                     UnitTestingPredefinedInvocationReasons.SyntaxChanged,
+#endif
                                     UnitTestingPredefinedInvocationReasons.SemanticChanged));
 
         public static readonly UnitTestingInvocationReasons AdditionalDocumentChanged =
             new(
                 ImmutableHashSet.Create<string>(
+#if false // Not used in unit testing crawling
                                     UnitTestingPredefinedInvocationReasons.SyntaxChanged,
+#endif
                                     UnitTestingPredefinedInvocationReasons.SemanticChanged));
 
+#if false // Not used in unit testing crawling
         public static readonly UnitTestingInvocationReasons SyntaxChanged =
             new(
                 ImmutableHashSet.Create<string>(
                                     UnitTestingPredefinedInvocationReasons.SyntaxChanged));
+#endif
 
         public static readonly UnitTestingInvocationReasons SemanticChanged =
             new(
