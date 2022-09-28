@@ -21630,7 +21630,7 @@ struct S<T> : System.IDisposable
         }
 
         /// <summary>
-        /// Validate that this is properly represented as an  out parameter in a constructor and
+        /// Validate that this is properly represented as an out parameter in a constructor and
         /// can capture ref as ref.
         /// </summary>
         [Fact]
