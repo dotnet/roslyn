@@ -2074,7 +2074,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 argsToParamsOpt,
                 ignoreArglistRefKinds,
                 mixableArguments: null,
-                escapeValues); ;
+                escapeValues);
 
             static bool hasRefLikeReturn(Symbol symbol)
             {
