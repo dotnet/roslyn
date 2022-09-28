@@ -54,14 +54,15 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.Api
             var location = await _documentSpan.GetNavigableLocationAsync(cancellationToken).ConfigureAwait(false);
             if (location != null)
                 await location.NavigateToAsync(new NavigationOptions(options.PreferProvisionalTab, options.ActivateTab), cancellationToken).ConfigureAwait(false);
-    }
+        }
 
-    internal static class UnitTestingSearchHelpers
-    {
-        public static async Task<ImmutableArray<UnitTestingDocumentSpan>> GetSourceLocations(
-            Solution solution, UnitTestingSearchQuery query, CancellationToken cancellationToken)
+        internal static class UnitTestingSearchHelpers
         {
+            public static async Task<ImmutableArray<UnitTestingDocumentSpan>> GetSourceLocations(
+                Solution solution, UnitTestingSearchQuery query, CancellationToken cancellationToken)
+            {
 
+            }
         }
     }
 }
