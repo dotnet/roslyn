@@ -461,16 +461,17 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                         {
                             if (!_analyzerMap.TryGetValue((workspaceKind, services), out var analyzers))
                             {
-                                analyzers = _analyzerProviders
-                                    .Select(p => p.Value.CreateIncrementalAnalyzer())
-                                    .WhereNotNull()
-                                    .ToImmutableArray();
 #if false // Not used in unit testing crawling
                                 // Sort list so DiagnosticIncrementalAnalyzers (if any) come first.
                                 analyzers = _analyzerProviders.Select(p => (analyzer: p.Value.CreateIncrementalAnalyzer(), highPriorityForActiveFile: p.Metadata.HighPriorityForActiveFile))
                                                 .Where(t => t.analyzer != null)
                                                 .OrderBy(t => t.analyzer!.Priority)
                                                 .ToImmutableArray()!;
+#else
+                                analyzers = _analyzerProviders
+                                    .Select(p => p.Value.CreateIncrementalAnalyzer())
+                                    .WhereNotNull()
+                                    .ToImmutableArray();
 #endif
 
                                 _analyzerMap[(workspaceKind, services)] = analyzers;
