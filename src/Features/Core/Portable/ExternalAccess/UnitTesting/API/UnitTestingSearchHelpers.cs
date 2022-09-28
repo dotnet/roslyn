@@ -18,8 +18,19 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.Api
         public readonly int MethodArity;
         public readonly int MethodParameterCount;
 
-        public UnitTestingSearchQuery(string fullyQualifiedTypeName, string? methodName, int methodArity, int methodParameterCount)
+        public UnitTestingSearchQuery(string fullyQualifiedTypeName)
+            : this(fullyQualifiedTypeName, methodName: null, methodArity: 0, methodParameterCount: 0, unused: false)
         {
+        }
+
+        public UnitTestingSearchQuery(string fullyQualifiedTypeName, string methodName, int methodArity, int methodParameterCount)
+            : this(fullyQualifiedTypeName, methodName, methodArity, methodParameterCount, unused: false)
+        {
+        }
+
+        private UnitTestingSearchQuery(string fullyQualifiedTypeName, string methodName, int methodArity, int methodParameterCount, bool unused)
+        {
+            _ = unused;
             FullyQualifiedTypeName = fullyQualifiedTypeName;
             MethodName = methodName;
             MethodArity = methodArity;
