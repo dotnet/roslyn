@@ -8772,7 +8772,7 @@ unsafe public class A
 
         // Breaking change in C#11: A ref to ref struct argument is considered
         // an unscoped reference when passed to an __arglist.
-        [Theory(Skip = "https://github.com/dotnet/roslyn/issues/64308")]
+        [Theory]
         [CombinatorialData]
         public void BreakingChange_RefToRefStructInArglist(
             [CombinatorialValues(LanguageVersion.CSharp10, LanguageVersion.CSharp11)] LanguageVersion languageVersionA,
@@ -8799,20 +8799,7 @@ public class A
     }
 }";
             comp = CreateCompilation(sourceB, references: new[] { refA }, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersionB));
-            if (languageVersionA == LanguageVersion.CSharp10)
-            {
-                comp.VerifyEmitDiagnostics();
-            }
-            else
-            {
-                comp.VerifyEmitDiagnostics(
-                    // (7,9): error CS8350: This combination of arguments to 'A.F2(ref R, ref R)' is disallowed because it may expose variables referenced by parameter 'x2' outside of their declaration scope
-                    //         A.F2(ref x, ref y);
-                    Diagnostic(ErrorCode.ERR_CallArgMixing, "A.F2(ref x, ref y)").WithArguments("A.F2(ref R, ref R)", "x2").WithLocation(7, 9),
-                    // (7,25): error CS8352: Cannot use variable 'y' in this context because it may expose referenced variables outside of their declaration scope
-                    //         A.F2(ref x, ref y);
-                    Diagnostic(ErrorCode.ERR_EscapeVariable, "y").WithArguments("y").WithLocation(7, 25));
-            }
+            comp.VerifyEmitDiagnostics();
         }
 
         [Theory]
