@@ -79,15 +79,6 @@ namespace Microsoft.CodeAnalysis.DesignerAttribute
             if (!project.SupportsCompilation)
                 return;
 
-            // We're looking for "System.ComponentModel.DesignerCategoryAttribute", which is defined only in
-            // System.ComponentModel.Primitives.dll.  Avoid looking at any project that doesn't have a reference to that
-            // assembly.
-            if (!project.MetadataReferences.OfType<PortableExecutableReference>().Any(
-                    pe => pe.FilePath != null && pe.FilePath.EndsWith("System.ComponentModel.Primitives.dll", StringComparison.OrdinalIgnoreCase)))
-            {
-                return;
-            }
-
             var compilation = await project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
             var designerCategoryType = compilation.DesignerCategoryAttributeType();
             if (designerCategoryType == null)
