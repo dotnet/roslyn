@@ -3164,4 +3164,10 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
     <value>Extract base record...</value>
     <comment>{Locked="record"} "record" is a language construct for C# and should not be localized.</comment>
   </data>
+  <data name="Enum_members" xml:space="preserve">
+    <value>Enum members</value>
+  </data>
+  <data name="struct_" xml:space="preserve">
+    <value>struct</value>
+  </data>
 </root>

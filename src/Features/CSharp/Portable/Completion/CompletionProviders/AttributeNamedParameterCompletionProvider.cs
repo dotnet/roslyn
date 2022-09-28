@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 var token = syntaxTree.FindTokenOnLeftOfPosition(position, cancellationToken);
                 token = token.GetPreviousTokenIfTouchingWord(position);
 
-                if (!token.IsKind(SyntaxKind.OpenParenToken, SyntaxKind.CommaToken))
+                if (token.Kind() is not (SyntaxKind.OpenParenToken or SyntaxKind.CommaToken))
                 {
                     return;
                 }

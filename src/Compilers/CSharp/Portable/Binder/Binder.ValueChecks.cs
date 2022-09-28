@@ -22,17 +22,20 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// For the purpose of escape verification we operate with the depth of local scopes.
         /// The depth is a uint, with smaller number representing shallower/wider scopes.
-        /// The 0 and 1 are special scopes - 
-        /// 0 is the "external" or "return" scope that is outside of the containing method/lambda. 
-        ///   If something can escape to scope 0, it can escape to any scope in a given method or can be returned.
-        /// 1 is the "parameter" or "top" scope that is just inside the containing method/lambda. 
+        /// 0, 1 and 2 are special scopes - 
+        /// 0 is the "calling method" scope that is outside of the containing method/lambda. 
+        ///   If something can escape to scope 0, it can escape to any scope in a given method through a ref parameter or return.
+        /// 1 is the "return-only" scope that is outside of the containing method/lambda. 
+        ///   If something can escape to scope 1, it can escape to any scope in a given method or can be returned, but it can't escape through a ref parameter.
+        /// 2 is the "current method" scope that is just inside the containing method/lambda. 
         ///   If something can escape to scope 1, it can escape to any scope in a given method, but cannot be returned.
         /// n + 1 corresponds to scopes immediately inside a scope of depth n. 
         ///   Since sibling scopes do not intersect and a value cannot escape from one to another without 
         ///   escaping to a wider scope, we can use simple depth numbering without ambiguity.
         /// </summary>
-        internal const uint ExternalScope = 0;
-        internal const uint TopLevelScope = 1;
+        internal const uint CallingMethodScope = 0;
+        internal const uint ReturnOnlyScope = 1;
+        internal const uint CurrentMethodScope = 2;
 
         // Some value kinds are semantically the same and the only distinction is how errors are reported
         // for those purposes we reserve lowest 2 bits
@@ -708,7 +711,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return true;
         }
 
-        private static bool CheckLocalRefEscape(SyntaxNode node, BoundLocal local, uint escapeTo, bool checkingReceiver, BindingDiagnosticBag diagnostics)
+        private bool CheckLocalRefEscape(SyntaxNode node, BoundLocal local, uint escapeTo, bool checkingReceiver, BindingDiagnosticBag diagnostics)
         {
             LocalSymbol localSymbol = local.LocalSymbol;
 
@@ -719,34 +722,35 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return true;
             }
 
-            if (escapeTo == Binder.ExternalScope)
+            var inUnsafeRegion = this.InUnsafeRegion;
+            if (escapeTo is Binder.CallingMethodScope or Binder.ReturnOnlyScope)
             {
                 if (localSymbol.RefKind == RefKind.None)
                 {
                     if (checkingReceiver)
                     {
-                        Error(diagnostics, ErrorCode.ERR_RefReturnLocal2, local.Syntax, localSymbol);
+                        Error(diagnostics, inUnsafeRegion ? ErrorCode.WRN_RefReturnLocal2 : ErrorCode.ERR_RefReturnLocal2, local.Syntax, localSymbol);
                     }
                     else
                     {
-                        Error(diagnostics, ErrorCode.ERR_RefReturnLocal, node, localSymbol);
+                        Error(diagnostics, inUnsafeRegion ? ErrorCode.WRN_RefReturnLocal : ErrorCode.ERR_RefReturnLocal, node, localSymbol);
                     }
-                    return false;
+                    return inUnsafeRegion;
                 }
 
                 if (checkingReceiver)
                 {
-                    Error(diagnostics, ErrorCode.ERR_RefReturnNonreturnableLocal2, local.Syntax, localSymbol);
+                    Error(diagnostics, inUnsafeRegion ? ErrorCode.WRN_RefReturnNonreturnableLocal2 : ErrorCode.ERR_RefReturnNonreturnableLocal2, local.Syntax, localSymbol);
                 }
                 else
                 {
-                    Error(diagnostics, ErrorCode.ERR_RefReturnNonreturnableLocal, node, localSymbol);
+                    Error(diagnostics, inUnsafeRegion ? ErrorCode.WRN_RefReturnNonreturnableLocal : ErrorCode.ERR_RefReturnNonreturnableLocal, node, localSymbol);
                 }
-                return false;
+                return inUnsafeRegion;
             }
 
-            Error(diagnostics, ErrorCode.ERR_EscapeVariable, node, localSymbol);
-            return false;
+            Error(diagnostics, inUnsafeRegion ? ErrorCode.WRN_EscapeVariable : ErrorCode.ERR_EscapeVariable, node, localSymbol);
+            return inUnsafeRegion;
         }
 
         private bool CheckParameterValueKind(SyntaxNode node, BoundParameter parameter, BindValueKind valueKind, bool checkingReceiver, BindingDiagnosticBag diagnostics)
@@ -783,39 +787,35 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (UseUpdatedEscapeRules)
             {
                 return parameter.EffectiveScope == DeclarationScope.ValueScoped ?
-                    Binder.TopLevelScope :
-                    Binder.ExternalScope;
+                    Binder.CurrentMethodScope :
+                    Binder.CallingMethodScope;
             }
             else
             {
-                return Binder.ExternalScope;
+                return Binder.CallingMethodScope;
             }
         }
 
         private uint GetParameterRefEscape(ParameterSymbol parameter)
         {
-            if (UseUpdatedEscapeRules)
+            return parameter switch
             {
-                return parameter.RefKind is RefKind.None || parameter.EffectiveScope != DeclarationScope.Unscoped ? Binder.TopLevelScope : Binder.ExternalScope;
-            }
-            else
-            {
-                // byval parameters can escape to method's top level. Others can escape further.
-                // NOTE: "method" here means nearest containing method, lambda or local function.
-                return parameter.RefKind == RefKind.None ? Binder.TopLevelScope : Binder.ExternalScope;
-            }
+                { RefKind: RefKind.None } or { EffectiveScope: not DeclarationScope.Unscoped } => Binder.CurrentMethodScope,
+                { Type.IsRefLikeType: true } => Binder.ReturnOnlyScope,
+                _ => Binder.CallingMethodScope
+            };
         }
 
         private bool CheckParameterValEscape(SyntaxNode node, BoundParameter parameter, uint escapeTo, BindingDiagnosticBag diagnostics)
         {
-            Debug.Assert(escapeTo == Binder.ExternalScope);
+            Debug.Assert(escapeTo is Binder.CallingMethodScope or Binder.ReturnOnlyScope);
             if (UseUpdatedEscapeRules)
             {
                 var parameterSymbol = parameter.ParameterSymbol;
                 if (GetParameterValEscape(parameterSymbol) > escapeTo)
                 {
-                    Error(diagnostics, ErrorCode.ERR_EscapeVariable, node, parameterSymbol);
-                    return false;
+                    Error(diagnostics, this.InUnsafeRegion ? ErrorCode.WRN_EscapeVariable : ErrorCode.ERR_EscapeVariable, node, parameterSymbol);
+                    return this.InUnsafeRegion;
                 }
                 return true;
             }
@@ -826,21 +826,40 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private bool CheckParameterRefEscape(SyntaxNode node, BoundParameter parameter, uint escapeTo, bool checkingReceiver, BindingDiagnosticBag diagnostics)
+        private bool CheckParameterRefEscape(SyntaxNode node, BoundExpression parameter, ParameterSymbol parameterSymbol, uint escapeTo, bool checkingReceiver, BindingDiagnosticBag diagnostics)
         {
-            var parameterSymbol = parameter.ParameterSymbol;
-
-            if (GetParameterRefEscape(parameterSymbol) > escapeTo)
+            var refSafeToEscape = GetParameterRefEscape(parameterSymbol);
+            if (refSafeToEscape > escapeTo)
             {
-                if (checkingReceiver)
+                var isRefScoped = parameterSymbol.EffectiveScope == DeclarationScope.RefScoped;
+                Debug.Assert(parameterSymbol.RefKind == RefKind.None || isRefScoped || refSafeToEscape == Binder.ReturnOnlyScope);
+                var inUnsafeRegion = this.InUnsafeRegion;
+
+                if (parameter is BoundThisReference)
                 {
-                    Error(diagnostics, ErrorCode.ERR_RefReturnParameter2, parameter.Syntax, parameterSymbol.Name);
+                    Error(diagnostics, inUnsafeRegion ? ErrorCode.WRN_RefReturnStructThis : ErrorCode.ERR_RefReturnStructThis, node);
+                    return inUnsafeRegion;
                 }
-                else
+
+#pragma warning disable format
+                var (errorCode, syntax) = (checkingReceiver, isRefScoped, inUnsafeRegion, refSafeToEscape) switch
                 {
-                    Error(diagnostics, ErrorCode.ERR_RefReturnParameter, node, parameterSymbol.Name);
-                }
-                return false;
+                    (checkingReceiver: true,  isRefScoped: true,  inUnsafeRegion: false, _)                      => (ErrorCode.ERR_RefReturnScopedParameter2, parameter.Syntax),
+                    (checkingReceiver: true,  isRefScoped: true,  inUnsafeRegion: true,  _)                      => (ErrorCode.WRN_RefReturnScopedParameter2, parameter.Syntax),
+                    (checkingReceiver: true,  isRefScoped: false, inUnsafeRegion: false, Binder.ReturnOnlyScope) => (ErrorCode.ERR_RefReturnOnlyParameter2,   parameter.Syntax),
+                    (checkingReceiver: true,  isRefScoped: false, inUnsafeRegion: true,  Binder.ReturnOnlyScope) => (ErrorCode.WRN_RefReturnOnlyParameter2,   parameter.Syntax),
+                    (checkingReceiver: true,  isRefScoped: false, inUnsafeRegion: false, _)                      => (ErrorCode.ERR_RefReturnParameter2,       parameter.Syntax),
+                    (checkingReceiver: true,  isRefScoped: false, inUnsafeRegion: true,  _)                      => (ErrorCode.WRN_RefReturnParameter2,       parameter.Syntax),
+                    (checkingReceiver: false, isRefScoped: true,  inUnsafeRegion: false, _)                      => (ErrorCode.ERR_RefReturnScopedParameter,  node),
+                    (checkingReceiver: false, isRefScoped: true,  inUnsafeRegion: true,  _)                      => (ErrorCode.WRN_RefReturnScopedParameter,  node),
+                    (checkingReceiver: false, isRefScoped: false, inUnsafeRegion: false, Binder.ReturnOnlyScope) => (ErrorCode.ERR_RefReturnOnlyParameter,    node),
+                    (checkingReceiver: false, isRefScoped: false, inUnsafeRegion: true,  Binder.ReturnOnlyScope) => (ErrorCode.WRN_RefReturnOnlyParameter,    node),
+                    (checkingReceiver: false, isRefScoped: false, inUnsafeRegion: false, _)                      => (ErrorCode.ERR_RefReturnParameter,        node),
+                    (checkingReceiver: false, isRefScoped: false, inUnsafeRegion: true,  _)                      => (ErrorCode.WRN_RefReturnParameter,        node)
+                };
+#pragma warning restore format
+                Error(diagnostics, errorCode, syntax, parameterSymbol.Name);
+                return inUnsafeRegion;
             }
 
             // can ref-escape to any scope otherwise
@@ -981,7 +1000,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // fields that are static or belong to reference types can ref escape anywhere
             if (fieldSymbol.IsStatic || fieldSymbol.ContainingType.IsReferenceType)
             {
-                return Binder.ExternalScope;
+                return Binder.CallingMethodScope;
             }
 
             if (UseUpdatedEscapeRules)
@@ -1482,7 +1501,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             //by default it is safe to escape
-            uint escapeScope = Binder.ExternalScope;
+            uint escapeScope = Binder.CallingMethodScope;
 
             var argsAndParams = ArrayBuilder<(ParameterSymbol? Parameter, BoundExpression Argument, RefKind RefKind)>.GetInstance();
             GetInvocationArgumentsForEscape(
@@ -1546,7 +1565,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool isRefEscape)
         {
             //by default it is safe to escape
-            uint escapeScope = Binder.ExternalScope;
+            uint escapeScope = Binder.CallingMethodScope;
 
             var argsAndParamsAll = ArrayBuilder<(ParameterSymbol? Parameter, BoundExpression Argument, bool IsRefEscape)>.GetInstance();
             GetFilteredInvocationArgumentsForEscapeWithUpdatedRules(
@@ -2085,7 +2104,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // 1. Calculate the *safe-to-escape* of the method return.
             //     - Ignore the *ref-safe-to-escape* of arguments to `in / ref / out` parameters of `ref struct` types. The corresponding parameters *ref-safe-to-escape* are at most *return only* and hence cannot be returned via `ref` or `out` parameters.
             //     - Assume the method has a `ref struct` return type.
-            uint escapeScope = Binder.ExternalScope;
+            uint escapeScope = Binder.CallingMethodScope;
             (ParameterSymbol? Parameter, BoundExpression Argument, bool IsRefEscape)? argAndParamToEscape = null;
             var argsAndParamsAll = ArrayBuilder<(ParameterSymbol? Parameter, BoundExpression Argument, bool IsRefEscape)>.GetInstance();
             GetFilteredInvocationArgumentsForEscapeWithUpdatedRules(
@@ -2360,7 +2379,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private static ErrorCode GetStandardRValueRefEscapeError(uint escapeTo)
         {
-            if (escapeTo == Binder.ExternalScope)
+            if (escapeTo is Binder.CallingMethodScope or Binder.ReturnOnlyScope)
             {
                 return ErrorCode.ERR_RefReturnLvalueExpected;
             }
@@ -2473,13 +2492,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             // cannot infer anything from errors
             if (expr.HasAnyErrors)
             {
-                return Binder.ExternalScope;
+                return Binder.CallingMethodScope;
             }
 
             // cannot infer anything from Void (broken code)
             if (expr.Type?.GetSpecialTypeSafe() == SpecialType.System_Void)
             {
-                return Binder.ExternalScope;
+                return Binder.CallingMethodScope;
             }
 
             // constants/literals cannot ref-escape current scope
@@ -2496,13 +2515,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.PointerIndirectionOperator:
                 case BoundKind.PointerElementAccess:
                     // array elements and pointer dereferencing are readwrite variables
-                    return Binder.ExternalScope;
+                    return Binder.CallingMethodScope;
 
                 case BoundKind.RefValueOperator:
                     // The undocumented __refvalue(tr, T) expression results in an lvalue of type T.
                     // for compat reasons it is not ref-returnable (since TypedReference is not val-returnable)
                     // it can, however, ref-escape to any other level (since TypedReference can val-escape to any other level)
-                    return Binder.TopLevelScope;
+                    return Binder.CurrentMethodScope;
 
                 case BoundKind.DiscardExpression:
                     // same as write-only byval local
@@ -2522,28 +2541,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return ((BoundLocal)expr).LocalSymbol.RefEscapeScope;
 
                 case BoundKind.ThisReference:
-                    Debug.Assert(this.ContainingMember() is MethodSymbol { ThisParameter: not null });
-
-                    var thisref = (BoundThisReference)expr;
-
-                    // "this" is an RValue, unless in a struct.
-                    if (!thisref.Type.IsValueType)
-                    {
-                        break;
-                    }
-
-                    if (UseUpdatedEscapeRules)
-                    {
-                        if (this.ContainingMember() is MethodSymbol { ThisParameter: var thisParameter } &&
-                            thisParameter.EffectiveScope == DeclarationScope.Unscoped)
-                        {
-                            return Binder.ExternalScope;
-                        }
-                    }
-
-                    //"this" is not returnable by reference in a struct.
-                    // can ref escape to any other level
-                    return Binder.TopLevelScope;
+                    var thisParam = ((MethodSymbol)this.ContainingMember()).ThisParameter;
+                    Debug.Assert(thisParam.Type.Equals(((BoundThisReference)expr).Type, TypeCompareKind.ConsiderEverything));
+                    return GetParameterRefEscape(thisParam);
 
                 case BoundKind.ConditionalOperator:
                     var conditional = (BoundConditionalOperator)expr;
@@ -2574,7 +2574,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // field-like events that are static or belong to reference types can ref escape anywhere
                     if (eventSymbol.IsStatic || eventSymbol.ContainingType.IsReferenceType)
                     {
-                        return Binder.ExternalScope;
+                        return Binder.CallingMethodScope;
                     }
 
                     // for other events defer to the receiver.
@@ -2660,7 +2660,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         case BoundArrayAccess:
                             // array elements are readwrite variables
-                            return Binder.ExternalScope;
+                            return Binder.CallingMethodScope;
 
                         case BoundCall call:
                             var methodSymbol = call.Method;
@@ -2759,7 +2759,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.RefValueOperator:
                     // The undocumented __refvalue(tr, T) expression results in an lvalue of type T.
                     // for compat reasons it is not ref-returnable (since TypedReference is not val-returnable)
-                    if (escapeTo == Binder.ExternalScope)
+                    if (escapeTo is Binder.CallingMethodScope or Binder.ReturnOnlyScope)
                     {
                         break;
                     }
@@ -2780,41 +2780,16 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case BoundKind.Parameter:
                     var parameter = (BoundParameter)expr;
-                    return CheckParameterRefEscape(node, parameter, escapeTo, checkingReceiver, diagnostics);
+                    return CheckParameterRefEscape(node, parameter, parameter.ParameterSymbol, escapeTo, checkingReceiver, diagnostics);
 
                 case BoundKind.Local:
                     var local = (BoundLocal)expr;
                     return CheckLocalRefEscape(node, local, escapeTo, checkingReceiver, diagnostics);
 
                 case BoundKind.ThisReference:
-                    Debug.Assert(this.ContainingMember() is MethodSymbol { ThisParameter: not null });
-
-                    var thisref = (BoundThisReference)expr;
-
-                    // "this" is an RValue, unless in a struct.
-                    if (!thisref.Type.IsValueType)
-                    {
-                        break;
-                    }
-
-                    //"this" is not returnable by reference in a struct.
-                    if (escapeTo == Binder.ExternalScope)
-                    {
-                        if (UseUpdatedEscapeRules)
-                        {
-                            if (this.ContainingMember() is MethodSymbol { ThisParameter: var thisParameter } &&
-                                thisParameter.EffectiveScope == DeclarationScope.Unscoped)
-                            {
-                                // can ref escape to any other level
-                                return true;
-                            }
-                        }
-                        Error(diagnostics, ErrorCode.ERR_RefReturnStructThis, node);
-                        return false;
-                    }
-
-                    // can ref escape to any other level
-                    return true;
+                    var thisParam = ((MethodSymbol)this.ContainingMember()).ThisParameter;
+                    Debug.Assert(thisParam.Type.Equals(((BoundThisReference)expr).Type, TypeCompareKind.ConsiderEverything));
+                    return CheckParameterRefEscape(node, expr, thisParam, escapeTo, checkingReceiver, diagnostics);
 
                 case BoundKind.ConditionalOperator:
                     var conditional = (BoundConditionalOperator)expr;
@@ -3052,19 +3027,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             // cannot infer anything from errors
             if (expr.HasAnyErrors)
             {
-                return Binder.ExternalScope;
+                return Binder.CallingMethodScope;
             }
 
             // constants/literals cannot refer to local state
             if (expr.ConstantValue != null)
             {
-                return Binder.ExternalScope;
+                return Binder.CallingMethodScope;
             }
 
             // to have local-referring values an expression must have a ref-like type
             if (expr.Type?.IsRefLikeType != true)
             {
-                return Binder.ExternalScope;
+                return Binder.CallingMethodScope;
             }
 
             // cover case that can refer to local state
@@ -3076,7 +3051,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.ThisReference:
                 case BoundKind.Utf8String:
                     // always returnable
-                    return Binder.ExternalScope;
+                    return Binder.CallingMethodScope;
 
                 case BoundKind.Parameter:
                     return GetParameterValEscape(((BoundParameter)expr).ParameterSymbol);
@@ -3084,7 +3059,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.FromEndIndexExpression:
                     // We are going to call a constructor that takes an integer and a bool. Cannot leak any references through them.
                     // always returnable
-                    return Binder.ExternalScope;
+                    return Binder.CallingMethodScope;
 
                 case BoundKind.TupleLiteral:
                 case BoundKind.ConvertedTupleLiteral:
@@ -3096,7 +3071,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // for compat reasons
                     // NB: it also means can`t assign stackalloc spans to a __refvalue
                     //     we are ok with that.
-                    return Binder.ExternalScope;
+                    return Binder.CallingMethodScope;
 
                 case BoundKind.DiscardExpression:
                     return ((BoundDiscardExpression)expr).ValEscape;
@@ -3109,7 +3084,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case BoundKind.StackAllocArrayCreation:
                 case BoundKind.ConvertedStackAllocExpression:
-                    return Binder.TopLevelScope;
+                    return Binder.CurrentMethodScope;
 
                 case BoundKind.ConditionalOperator:
                     var conditional = (BoundConditionalOperator)expr;
@@ -3140,7 +3115,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (fieldSymbol.IsStatic || !fieldSymbol.ContainingType.IsRefLikeType)
                     {
                         // Already an error state.
-                        return Binder.ExternalScope;
+                        return Binder.CallingMethodScope;
                     }
 
                     // for ref-like fields defer to the receiver.
@@ -3316,8 +3291,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.RangeExpression:
                     var range = (BoundRangeExpression)expr;
 
-                    return Math.Max((range.LeftOperandOpt is { } left ? GetValEscape(left, scopeOfTheContainingExpression) : Binder.ExternalScope),
-                                    (range.RightOperandOpt is { } right ? GetValEscape(right, scopeOfTheContainingExpression) : Binder.ExternalScope));
+                    return Math.Max((range.LeftOperandOpt is { } left ? GetValEscape(left, scopeOfTheContainingExpression) : Binder.CallingMethodScope),
+                                    (range.RightOperandOpt is { } right ? GetValEscape(right, scopeOfTheContainingExpression) : Binder.CallingMethodScope));
 
                 case BoundKind.UserDefinedConditionalLogicalOperator:
                     var uo = (BoundUserDefinedConditionalLogicalOperator)expr;
@@ -3375,7 +3350,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.PointerElementAccess:
                 case BoundKind.PointerIndirectionOperator:
                     // Unsafe code will always be allowed to escape.
-                    return Binder.ExternalScope;
+                    return Binder.CallingMethodScope;
 
                 case BoundKind.AsOperator:
                 case BoundKind.AwaitExpression:
@@ -3412,7 +3387,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private uint GetValEscapeOfObjectInitializer(BoundObjectInitializerExpression initExpr, uint scopeOfTheContainingExpression)
         {
-            var result = Binder.ExternalScope;
+            var result = Binder.CallingMethodScope;
             foreach (var expression in initExpr.Initializers)
             {
                 if (expression.Kind == BoundKind.AssignmentOperator)
@@ -3438,7 +3413,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private uint GetValEscape(ImmutableArray<BoundExpression> expressions, uint scopeOfTheContainingExpression)
         {
-            var result = Binder.ExternalScope;
+            var result = Binder.CallingMethodScope;
             foreach (var expression in expressions)
             {
                 result = Math.Max(result, GetValEscape(expression, scopeOfTheContainingExpression));
@@ -3480,6 +3455,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return true;
             }
 
+            bool inUnsafeRegion = this.InUnsafeRegion;
+
             switch (expr.Kind)
             {
                 case BoundKind.DefaultLiteral:
@@ -3509,24 +3486,24 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.DeconstructValuePlaceholder:
                     if (((BoundDeconstructValuePlaceholder)expr).ValEscape > escapeTo)
                     {
-                        Error(diagnostics, ErrorCode.ERR_EscapeVariable, node, expr.Syntax);
-                        return false;
+                        Error(diagnostics, inUnsafeRegion ? ErrorCode.WRN_EscapeVariable : ErrorCode.ERR_EscapeVariable, node, expr.Syntax);
+                        return inUnsafeRegion;
                     }
                     return true;
 
                 case BoundKind.AwaitableValuePlaceholder:
                     if (((BoundAwaitableValuePlaceholder)expr).ValEscape > escapeTo)
                     {
-                        Error(diagnostics, ErrorCode.ERR_EscapeVariable, node, expr.Syntax);
-                        return false;
+                        Error(diagnostics, inUnsafeRegion ? ErrorCode.WRN_EscapeVariable : ErrorCode.ERR_EscapeVariable, node, expr.Syntax);
+                        return inUnsafeRegion;
                     }
                     return true;
 
                 case BoundKind.InterpolatedStringArgumentPlaceholder:
                     if (((BoundInterpolatedStringArgumentPlaceholder)expr).ValSafeToEscape > escapeTo)
                     {
-                        Error(diagnostics, ErrorCode.ERR_EscapeVariable, node, expr.Syntax);
-                        return false;
+                        Error(diagnostics, inUnsafeRegion ? ErrorCode.WRN_EscapeVariable : ErrorCode.ERR_EscapeVariable, node, expr.Syntax);
+                        return inUnsafeRegion;
                     }
                     return true;
 
@@ -3534,17 +3511,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var localSymbol = ((BoundLocal)expr).LocalSymbol;
                     if (localSymbol.ValEscapeScope > escapeTo)
                     {
-                        Error(diagnostics, ErrorCode.ERR_EscapeVariable, node, localSymbol);
-                        return false;
+                        Error(diagnostics, inUnsafeRegion ? ErrorCode.WRN_EscapeVariable : ErrorCode.ERR_EscapeVariable, node, localSymbol);
+                        return inUnsafeRegion;
                     }
                     return true;
 
                 case BoundKind.StackAllocArrayCreation:
                 case BoundKind.ConvertedStackAllocExpression:
-                    if (escapeTo < Binder.TopLevelScope)
+                    if (escapeTo < Binder.CurrentMethodScope)
                     {
-                        Error(diagnostics, ErrorCode.ERR_EscapeStackAlloc, node, expr.Type);
-                        return false;
+                        Error(diagnostics, inUnsafeRegion ? ErrorCode.WRN_EscapeStackAlloc : ErrorCode.ERR_EscapeStackAlloc, node, expr.Type);
+                        return inUnsafeRegion;
                     }
                     return true;
 
@@ -3651,24 +3628,24 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.ImplicitIndexerReceiverPlaceholder:
                     if (((BoundImplicitIndexerReceiverPlaceholder)expr).ValEscape > escapeTo)
                     {
-                        Error(diagnostics, ErrorCode.ERR_EscapeVariable, node, expr.Syntax);
-                        return false;
+                        Error(diagnostics, inUnsafeRegion ? ErrorCode.WRN_EscapeVariable : ErrorCode.ERR_EscapeVariable, node, expr.Syntax);
+                        return inUnsafeRegion;
                     }
                     return true;
 
                 case BoundKind.ListPatternReceiverPlaceholder:
                     if (((BoundListPatternReceiverPlaceholder)expr).ValEscape > escapeTo)
                     {
-                        Error(diagnostics, ErrorCode.ERR_EscapeVariable, node, expr.Syntax);
-                        return false;
+                        Error(diagnostics, inUnsafeRegion ? ErrorCode.WRN_EscapeVariable : ErrorCode.ERR_EscapeVariable, node, expr.Syntax);
+                        return inUnsafeRegion;
                     }
                     return true;
 
                 case BoundKind.SlicePatternReceiverPlaceholder:
                     if (((BoundSlicePatternReceiverPlaceholder)expr).ValEscape > escapeTo)
                     {
-                        Error(diagnostics, ErrorCode.ERR_EscapeVariable, node, expr.Syntax);
-                        return false;
+                        Error(diagnostics, inUnsafeRegion ? ErrorCode.WRN_EscapeVariable : ErrorCode.ERR_EscapeVariable, node, expr.Syntax);
+                        return inUnsafeRegion;
                     }
                     return true;
 

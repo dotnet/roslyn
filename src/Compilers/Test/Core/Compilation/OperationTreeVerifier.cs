@@ -50,6 +50,13 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         {
             var walker = new OperationTreeVerifier(compilation, operation, initialIndent);
             walker.Visit(operation);
+
+            var visitor = TestOperationVisitor.Singleton;
+            foreach (var op in operation.DescendantsAndSelf())
+            {
+                visitor.Visit(op);
+            }
+
             return walker._builder.ToString();
         }
 

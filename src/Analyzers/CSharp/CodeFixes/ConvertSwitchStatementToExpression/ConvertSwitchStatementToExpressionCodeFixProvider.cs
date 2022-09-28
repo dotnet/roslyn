@@ -106,7 +106,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertSwitchStatementToExpression
                     // Already morphed into the top-level switch expression.
                     var nextStatement = switchStatement.GetNextStatement();
                     Contract.ThrowIfNull(nextStatement);
-                    Debug.Assert(nextStatement.IsKind(SyntaxKind.ThrowStatement, SyntaxKind.ReturnStatement));
+                    Debug.Assert(nextStatement.Kind() is SyntaxKind.ThrowStatement or SyntaxKind.ReturnStatement);
                     editor.RemoveNode(nextStatement.IsParentKind(SyntaxKind.GlobalStatement) ? nextStatement.GetRequiredParent() : nextStatement);
                 }
             }

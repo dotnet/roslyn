@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.Text
 
         private static readonly Encoding s_utf8EncodingWithNoBOM = new UTF8Encoding(encoderShouldEmitUTF8Identifier: false, throwOnInvalidBytes: false);
 
-        protected SourceText(ImmutableArray<byte> checksum = default(ImmutableArray<byte>), SourceHashAlgorithm checksumAlgorithm = SourceHashAlgorithm.Sha1, SourceTextContainer? container = null)
+        protected SourceText(ImmutableArray<byte> checksum = default, SourceHashAlgorithm checksumAlgorithm = SourceHashAlgorithm.Sha1, SourceTextContainer? container = null)
         {
             ValidateChecksumAlgorithm(checksumAlgorithm);
 
