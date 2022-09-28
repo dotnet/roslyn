@@ -182,10 +182,8 @@ public partial struct SyntaxValueProvider
         finally
         {
             localAliases.Free();
-
             seenNames.Clear();
             s_stringStackPool.Free(seenNames);
-
             attributeTargets.Free();
         }
 
@@ -211,8 +209,8 @@ public partial struct SyntaxValueProvider
                 if (child.IsNode)
                 {
                     var childNode = child.AsNode()!;
-                    if (syntaxHelper.IsAnyNamespaceBlock(child.AsNode()!))
-                        processNamespaceBlock(child.AsNode()!);
+                    if (syntaxHelper.IsAnyNamespaceBlock(childNode))
+                        processNamespaceBlock(childNode);
                     else
                         processMember(childNode);
                 }
