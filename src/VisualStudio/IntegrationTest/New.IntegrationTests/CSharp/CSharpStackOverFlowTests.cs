@@ -22,7 +22,7 @@ namespace Roslyn.VisualStudio.NewIntegrationTests.CSharp
         {
         }
 
-        [IdeFact(Skip = "https://github.com/dotnet/roslyn/issues/63349")]
+        [IdeFact]
         public async Task TestDevenvDoNotCrash()
         {
             var sampleCode = await GetSampleCodeAsync();
@@ -36,7 +36,7 @@ namespace Roslyn.VisualStudio.NewIntegrationTests.CSharp
             await TestServices.Editor.ShowLightBulbAsync(HangMitigatingCancellationToken);
         }
 
-        [IdeFact(Skip = "https://github.com/dotnet/roslyn/issues/63349")]
+        [IdeFact]
         public async Task TestSyntaxIndex()
         {
             var sampleCode = await GetSampleCodeAsync();
