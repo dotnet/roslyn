@@ -16,6 +16,9 @@
     <!-- https://github.com/dotnet/msbuild/blob/main/documentation/ProjectReference-Protocol.md#setplatform-negotiation -->
     <EnableDynamicPlatformResolution>true</EnableDynamicPlatformResolution>
 
+    <!-- Opt in till https://github.com/NuGet/Home/issues/9803 makes this the default. -->
+    <RestoreUseStaticGraphEvaluation>true</RestoreUseStaticGraphEvaluation>
+
     <!-- This entire repo has just one version.json file, so compute the version once and share with all projects in a large build. -->
     <GitVersionBaseDirectory>$(MSBuildThisFileDirectory)</GitVersionBaseDirectory>
 
