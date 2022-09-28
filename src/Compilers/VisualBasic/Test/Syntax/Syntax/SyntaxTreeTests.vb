@@ -18,14 +18,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
             Assert.Equal(SourceHashAlgorithm.Sha1, tree.GetText().ChecksumAlgorithm)
         End Sub
 
-        <Fact, Obsolete("Testing obsolete API")>
+        ' Diagnostic options on syntax trees are now obsolete
+#Disable Warning BC40000
+        <Fact>
         Public Sub Create_WithDiagnosticOptions()
             Dim options = CreateImmutableDictionary(("BC000", ReportDiagnostic.Suppress))
             Dim tree = VisualBasicSyntaxTree.Create(SyntaxFactory.ParseCompilationUnit(""), options:=Nothing, path:=Nothing, encoding:=Nothing, diagnosticOptions:=options)
             Assert.Same(options, tree.DiagnosticOptions)
         End Sub
 
-        <Fact, Obsolete("Testing obsolete API")>
+        <Fact>
         Public Sub ParseTreeWithChangesPreservesDiagnosticOptions()
             Dim options = CreateImmutableDictionary(("BC000", ReportDiagnostic.Suppress))
             Dim tree = VisualBasicSyntaxTree.ParseText(
@@ -36,7 +38,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
             Assert.Same(options, newTree.DiagnosticOptions)
         End Sub
 
-        <Fact, Obsolete("Testing obsolete API")>
+        <Fact>
         Public Sub ParseTreeNullDiagnosticOptions()
             Dim tree = VisualBasicSyntaxTree.ParseText(
                 SourceText.From(""),
@@ -47,7 +49,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
             Assert.NotSame(ImmutableDictionary(Of String, ReportDiagnostic).Empty, tree.DiagnosticOptions)
         End Sub
 
-        <Fact, Obsolete("Testing obsolete API")>
+        <Fact>
         Public Sub ParseTreeEmptyDiagnosticOptions()
             Dim tree = VisualBasicSyntaxTree.ParseText(
                 SourceText.From(""),
@@ -57,7 +59,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
             Assert.Same(ImmutableDictionary(Of String, ReportDiagnostic).Empty, tree.DiagnosticOptions)
         End Sub
 
-        <Fact, Obsolete("Testing obsolete API")>
+        <Fact>
         Public Sub ParseTreeCustomDiagnosticOptions()
             Dim options = CreateImmutableDictionary(("BC000", ReportDiagnostic.Suppress))
             Dim tree = VisualBasicSyntaxTree.ParseText(
@@ -66,14 +68,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
             Assert.Same(options, tree.DiagnosticOptions)
         End Sub
 
-        <Fact, Obsolete("Testing obsolete API")>
+        <Fact>
         Public Sub DefaultTreeDiagnosticOptions()
             Dim tree = SyntaxFactory.SyntaxTree(SyntaxFactory.CompilationUnit())
             Assert.NotNull(tree.DiagnosticOptions)
             Assert.True(tree.DiagnosticOptions.IsEmpty)
         End Sub
 
-        <Fact, Obsolete("Testing obsolete API")>
+        <Fact>
         Public Sub WithDiagnosticOptionsNull()
             Dim tree = SyntaxFactory.SyntaxTree(SyntaxFactory.CompilationUnit())
             Dim newTree = tree.WithDiagnosticOptions(Nothing)
@@ -82,7 +84,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
             Assert.Same(tree, newTree)
         End Sub
 
-        <Fact, Obsolete("Testing obsolete API")>
+        <Fact>
         Public Sub WithDiagnosticOptionsEmpty()
             Dim tree = SyntaxFactory.SyntaxTree(SyntaxFactory.CompilationUnit())
             Dim newTree = tree.WithDiagnosticOptions(ImmutableDictionary(Of String, ReportDiagnostic).Empty)
@@ -92,7 +94,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
             Assert.NotSame(tree.DiagnosticOptions, newTree.DiagnosticOptions)
         End Sub
 
-        <Fact, Obsolete("Testing obsolete API")>
+        <Fact>
         Public Sub PerTreeDiagnosticOptionsNewDict()
             Dim tree = SyntaxFactory.SyntaxTree(SyntaxFactory.CompilationUnit())
             Dim map = CreateImmutableDictionary(("BC000", ReportDiagnostic.Suppress))
@@ -101,6 +103,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
             Assert.Same(map, newTree.DiagnosticOptions)
             Assert.NotEqual(tree, newTree)
         End Sub
+#Enable Warning BC40000
 
         <Fact>
         Public Sub WithRootAndOptions_ParsedTree()
