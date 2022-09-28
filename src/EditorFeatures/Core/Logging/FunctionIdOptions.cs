@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.Internal.Log
 
         private static Option2<bool> CreateOption(FunctionId id)
         {
-            var name = Enum.GetName(typeof(FunctionId), id) ?? throw ExceptionUtilities.UnexpectedValue(id);
+            var name = id.ToString();
 
             return new(nameof(FunctionIdOptions), name, defaultValue: false,
                 storageLocation: new LocalUserProfileStorageLocation(@"Roslyn\Internal\Performance\FunctionId\" + name));
