@@ -6,7 +6,7 @@ using System;
 using System.Collections.Immutable;
 using System.IO;
 
-namespace RunTests;
+namespace HelixTestRunner;
 
 public readonly record struct AssemblyInfo(string AssemblyPath) : IComparable<AssemblyInfo>
 {

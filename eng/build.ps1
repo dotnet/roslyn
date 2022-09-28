@@ -369,82 +369,117 @@ function TestUsingRunTests() {
     $env:ROSLYN_TEST_USEDASSEMBLIES = "true"
   }
 
-  $runTests = GetProjectOutputBinary "RunTests.dll" -tfm "net6.0"
+  $testAssemblyFinder = GetProjectOutputBinary "TestAssemblyFinder.dll" -tfm "net6.0"
 
-  if (!(Test-Path $runTests)) {
-    Write-Host "Test runner not found: '$runTests'. Run Build.cmd first." -ForegroundColor Red
+  if (!(Test-Path $testAssemblyFinder)) {
+    Write-Host "Test runner not found: '$testAssemblyFinder'. Run Build.cmd first." -ForegroundColor Red
     ExitWithExitCode 1
   }
 
   $dotnetExe = Join-Path $dotnet "dotnet.exe"
-  $args += " --dotnet `"$dotnetExe`""
-  $args += " --logs `"$LogDir`""
-  $args += " --configuration $configuration"
+  
+  $testAssemblyFinderArgs += " --artifactsDirectory `"$ArtifactsDir`""
+  $testAssemblyFinderArgs += " --configuration $configuration"
+
+  $testAssembliesPath = Join-Path $ArtifactsDir "testassemblies.txt"
+  $testAssemblyFinderArgs += " --outputFilePath `"$testAssembliesPath`""
 
   if ($testCoreClr) {
-    $args += " --tfm net6.0"
-    $args += " --timeout 90"
+    $testAssemblyFinderArgs += " --targetFrameworks net6.0"
     if ($testCompilerOnly) {
-      $args += GetCompilerTestAssembliesIncludePaths
+      $testAssemblyFinderArgs += GetCompilerTestAssembliesIncludePaths
     } else {
-      $args += " --tfm net6.0-windows"
-      $args += " --include '\.UnitTests'"
+      $testAssemblyFinderArgs += " --targetFrameworks net6.0-windows"
+      $testAssemblyFinderArgs += " --include '\.UnitTests'"
     }
   }
   elseif ($testDesktop -or ($testIOperation -and -not $testCoreClr)) {
-    $args += " --tfm net472"
-    $args += " --timeout 90"
+    $testAssemblyFinderArgs += " --targetFrameworks net472"
 
     if ($testCompilerOnly) {
-      $args += GetCompilerTestAssembliesIncludePaths
+      $testAssemblyFinderArgs += GetCompilerTestAssembliesIncludePaths
     } else {
-      $args += " --include '\.UnitTests'"
+      $testAssemblyFinderArgs += " --include '\.UnitTests'"
     }
 
     if ($testArch -ne "x86") {
-      $args += " --exclude '\.InteractiveHost'"
+      $testAssemblyFinderArgs += " --exclude '\.InteractiveHost'"
     }
 
   } elseif ($testVsi) {
-    $args += " --timeout 110"
-    $args += " --tfm net472"
-    $args += " --retry"
-    $args += " --sequential"
-    $args += " --include '\.IntegrationTests'"
-    $args += " --include 'Microsoft.CodeAnalysis.Workspaces.MSBuild.UnitTests'"
-
-    if ($lspEditor) {
-      $args += " --testfilter Editor=LanguageServerProtocol"
-    }
-  }
-
-  if (-not $ci -and -not $testVsi) {
-    $args += " --html"
+    $testAssemblyFinderArgs += " --targetFrameworks net472"
+    $testAssemblyFinderArgs += " --include '\.IntegrationTests'"
+    $testAssemblyFinderArgs += " --include 'Microsoft.CodeAnalysis.Workspaces.MSBuild.UnitTests'"
   }
 
   if ($collectDumps) {
     $procdumpFilePath = Ensure-ProcDump
-    $args += " --procdumppath $procDumpFilePath"
-    $args += " --collectdumps";
+    EnableRegistryDumpCollection
   }
 
-  $args += " --arch $testArch"
+  # Figure out which assemblies we need to run tests on.
+  Write-Host "$testAssemblyFinder $testAssemblyFinderArgs"
+  Exec-Console $dotnetExe "$testAssemblyFinder $testAssemblyFinderArgs"
 
-  if ($sequential) {
-    $args += " --sequential"
+  $dotnetTestAdditionalArgs = GetCommonDotnetTestArgs
+  
+  $testRunnerExecutableArgs = $null
+  if ($testVsi)
+  {
+    # If we're running integration tests we need to execute tests via RunTests.
+    $runTests = GetProjectOutputBinary "RunTests.dll" -tfm "net6.0"
+    if (!(Test-Path $runTests)) {
+      Write-Host "Test runner not found: '$runTests'. Run Build.cmd first." -ForegroundColor Red
+      ExitWithExitCode 1
+    }
+
+    $testRunnerExecutableArgs = "$runTests --dotnet `"$dotnetExe`" --logs `"$LogDir`" artifactsPath `"$ArtifactsDir`" --procdumpPath `"$procdumpFilePath`" --dotnetTestArgs `"$dotnetTestAdditionalArgs`" --testAssembliesPath `"$testAssembliesPath`""
+    if ($collectDumps)
+    {
+      $testRunnerExecutableArgs += " --collectDumps"
+    }
   }
+  elseif ($helix)
+  {
+    # If we're running tests on helix we need to partition and execute them on remote machines.
+    $helixRunner = GetProjectOutputBinary "HelixTestRunner.dll" -tfm "net6.0"
+    if (!(Test-Path $helixRunner)) {
+      Write-Host "Test runner not found: '$helixRunner'. Run Build.cmd first." -ForegroundColor Red
+      ExitWithExitCode 1
+    }
 
-  if ($helix) {
-    $args += " --helix"
+    $testRunnerExecutableArgs = "$helixRunner --artifactsDirectory `"$ArtifactsDir`" --architecture $testArch --logDirectory `"$LogDir`" --dotnetExecutablePath `"$dotnetExe`" --testAssembliesPath `"$testAssembliesPath`""
+    if ($helixQueueName)
+    {
+      $testRunnerExecutableArgs += " --helixQueueName $helixQueueName"
+    }
   }
+  else
+  {
+    # Otherwise we just run tests via 'dotnet test'.
+    $testRunnerExecutableArgs = "test"
+    # Add all the test assemblies to the command line arguments.
+    foreach($line in Get-Content $testAssembliesPath)
+    {
+      $testRunnerExecutableArgs += " `"$line`""
+    }
 
-  if ($helixQueueName) {
-    $args += " --helixQueueName $helixQueueName"
+    $logFile = Join-Path $LogDir "TestResults.xml"
+    $testRunnerExecutableArgs += " --logger `"xunit;LogFilePath=$logFile`""
+    if (-not $ci -and -not $testVsi) {
+      $htmlLogFile = Join-Path $LogDir "TestResults.html"
+      $testRunnerExecutableArgs += " --logger `"html;LogFileName=$htmlLogFile`""
+    }
+
+    $testRunnerExecutableArgs += $dotnetTestAdditionalArgs
+
+    # Tell vstestconsole to parallelize assemblies when running tests.
+    $testRunnerExecutableArgs += " -- RunConfiguration.MaxCpuCount=0"
   }
 
   try {
-    Write-Host "$runTests $args"
-    Exec-Console $dotnetExe "$runTests $args"
+    Write-Host "$dotnetExe $testRunnerExecutableArgs"
+    Exec-Console $dotnetExe "$testRunnerExecutableArgs"
   } finally {
     Get-Process "xunit*" -ErrorAction SilentlyContinue | Stop-Process
     if ($ci) {
@@ -459,6 +494,11 @@ function TestUsingRunTests() {
 
     if ($testUsedAssemblies) {
       Remove-Item env:\ROSLYN_TEST_USEDASSEMBLIES
+    }
+
+    if ($collectDumps)
+    {
+      DisableRegistryDumpCollection
     }
 
     if ($testVsi) {
@@ -489,6 +529,70 @@ function TestUsingRunTests() {
       }
     }
   }
+}
+
+function EnableRegistryDumpCollection()
+{
+  $elevated = ([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
+  if (-not $elevated)
+  {
+    Write-Host "User is not an administrator so cannot modify registry" -ForegroundColor Yellow
+    return
+  }
+
+  New-Item -Path $localDumpsRegKey -Force
+  New-ItemProperty -Path $localDumpsRegKey -Name DumpType -PropertyType DWord -Value 2 -Force
+  New-ItemProperty -Path $localDumpsRegKey -Name DumpCount -PropertyType DWord -Value 2 -Force
+  New-ItemProperty -Path $localDumpsRegKey -Name DumpFolder -PropertyType String -Value $LogDir -Force
+
+  Write-Host (Get-ItemProperty -Path $localDumpsRegKey)
+}
+
+function DisableRegistryDumpCollection()
+{
+  $elevated = ([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
+  if (-not $elevated)
+  {
+    Write-Host "User is not an administrator so cannot modify registry" -ForegroundColor Yellow
+    return
+  }
+
+  if (Test-Path $localDumpsRegKey)
+  {
+    Write-Host "Deleting local dumps registry values at $localDumpsRegKey"
+    Remove-ItemProperty -Path $localDumpsRegKey -Name DumpType -Force
+    Remove-ItemProperty -Path $localDumpsRegKey -Name DumpCount -Force
+    Remove-ItemProperty -Path $localDumpsRegKey -Name DumpFolder -Force
+  }
+  
+}
+
+function GetCommonDotnetTestArgs()
+{
+  # Determine a common set of parameters that we'll pass to dotnet test based on the input options.
+  $dotnetTestAdditionalArgs = " --arch $testArch"
+
+  # The blame collector in dotnet test relies on tests completing events to reset the timeout timer.
+  # There are a couple scenarios where we can hit pretty long periods of time between tests, for example
+  #   1.  Installing vsix's and launching VS on integration test machines
+  #   2.  When running single machine tests with assembly parallelism we can end up saturating the CI machine CPU
+  #       and long running unit tests like NumericIntPtrTests.BinaryOperators will sometimes take 20 minutes to complete.
+  $blameTimeoutArg = "25minutes"
+
+  $dotnetTestAdditionalArgs += " --blame-hang-dump-type full --blame-hang-timeout $blameTimeoutArg"
+  if ($lspEditor)
+  {
+    $dotnetTestAdditionalArgs += " --testfilter Editor=LanguageServerProtocol"
+  }
+
+  if (-not $collectDumps) {
+    # The 'CollectDumps' option uses operating system features to collect dumps when a process crashes. We
+    # only enable the test executor blame feature in remaining cases, as the latter relies on ProcDump and
+    # interferes with automatic crash dump collection on Windows.
+    $dotnetTestAdditionalArgs += " --blame-crash"
+  }
+
+  return $dotnetTestAdditionalArgs
 }
 
 function EnablePreviewSdks() {
@@ -682,6 +786,8 @@ try {
     Write-Host "PowerShell version must be 5 or greater (version $($PSVersionTable.PSVersion) detected)"
     exit 1
   }
+
+  $localDumpsRegKey = 'HKLM:\SOFTWARE\Microsoft\Windows\Windows Error Reporting\LocalDumps'
 
   $regKeyProperty = Get-ItemProperty -Path HKLM:\SYSTEM\CurrentControlSet\Control\FileSystem -Name "LongPathsEnabled" -ErrorAction Ignore
   if (($null -eq $regKeyProperty) -or ($regKeyProperty.LongPathsEnabled -ne 1)) {

@@ -14,8 +14,9 @@ using Microsoft.TeamFoundation.Build.WebApi;
 using Microsoft.TeamFoundation.TestManagement.WebApi;
 using Microsoft.VisualStudio.Services.TestResults.WebApi;
 using Microsoft.VisualStudio.Services.WebApi;
+using RunTestsUtils;
 
-namespace RunTests;
+namespace HelixTestRunner;
 internal class TestHistoryManager
 {
     /// <summary>
@@ -26,7 +27,7 @@ internal class TestHistoryManager
     /// <summary>
     /// Looks up the last passing test run for the current build and stage to estimate execution times for each test.
     /// </summary>
-    public static async Task<ImmutableDictionary<string, TimeSpan>> GetTestHistoryAsync(Options options, CancellationToken cancellationToken)
+    public static async Task<ImmutableDictionary<string, TimeSpan>> GetTestHistoryAsync(HelixOptions options, CancellationToken cancellationToken)
     {
         // Access token that has permissions to lookup test history.  This typically comes from the pipeline.
         var accessToken = options.AccessToken ?? GetEnvironmentVariable("SYSTEM_ACCESSTOKEN");
@@ -46,7 +47,7 @@ internal class TestHistoryManager
         var targetBranch = options.TargetBranchName ?? GetEnvironmentVariable("SYSTEM_PULLREQUEST_TARGETBRANCH") ?? GetEnvironmentVariable("BUILD_SOURCEBRANCHNAME");
         if (string.IsNullOrEmpty(accessToken) || string.IsNullOrEmpty(projectUri) || string.IsNullOrEmpty(phaseName) || string.IsNullOrEmpty(targetBranch) || !int.TryParse(pipelineDefinitionIdStr, out var pipelineDefinitionId))
         {
-            ConsoleUtil.WriteLine($"Missing required options to lookup test history, accessToken={accessToken}, projectUri={projectUri}, phaseName={phaseName}, targetBranchName={targetBranch}, pipelineDefinitionId={pipelineDefinitionIdStr}");
+            Console.WriteLine($"Missing required options to lookup test history, accessToken={accessToken}, projectUri={projectUri}, phaseName={phaseName}, targetBranchName={targetBranch}, pipelineDefinitionId={pipelineDefinitionIdStr}");
             return ImmutableDictionary<string, TimeSpan>.Empty;
         }
 
@@ -56,13 +57,13 @@ internal class TestHistoryManager
 
         using var buildClient = connection.GetClient<BuildHttpClient>();
 
-        ConsoleUtil.WriteLine($"Getting last successful build for branch {targetBranch}");
+        Console.WriteLine($"Getting last successful build for branch {targetBranch}");
         var adoBranch = $"refs/heads/{targetBranch}";
         var lastSuccessfulBuild = await GetLastSuccessfulBuildAsync(pipelineDefinitionId, adoBranch, buildClient, cancellationToken);
         if (lastSuccessfulBuild == null)
         {
             // If this is a new branch we may not have any historical data for it.
-            ConsoleUtil.WriteLine($"Unable to get the last successful build for definition {pipelineDefinitionId} in {projectUri} and branch {targetBranch}");
+            Console.WriteLine($"Unable to get the last successful build for definition {pipelineDefinitionId} in {projectUri} and branch {targetBranch}");
             return ImmutableDictionary<string, TimeSpan>.Empty;
         }
 
@@ -71,11 +72,11 @@ internal class TestHistoryManager
         if (runForThisStage == null)
         {
             // If this is a new stage, historical runs will not have any data for it.
-            ConsoleUtil.WriteLine($"Unable to get a run with name {phaseName} from build {lastSuccessfulBuild.Url}.");
+            Console.WriteLine($"Unable to get a run with name {phaseName} from build {lastSuccessfulBuild.Url}.");
             return ImmutableDictionary<string, TimeSpan>.Empty;
         }
 
-        ConsoleUtil.WriteLine($"Looking up test execution data for build {lastSuccessfulBuild.Id} on branch {targetBranch} and stage {phaseName}");
+        Console.WriteLine($"Looking up test execution data for build {lastSuccessfulBuild.Id} on branch {targetBranch} and stage {phaseName}");
 
         var totalTests = runForThisStage.TotalTests;
 
@@ -120,7 +121,7 @@ internal class TestHistoryManager
         }
 
         var totalTestRuntime = TimeSpan.FromMilliseconds(testInfos.Values.Sum(t => t.TotalMilliseconds));
-        ConsoleUtil.WriteLine($"Retrieved {testInfos.Keys.Count} tests from AzureDevops in {timer.Elapsed}.  Total runtime of all tests is {totalTestRuntime}");
+        Console.WriteLine($"Retrieved {testInfos.Keys.Count} tests from AzureDevops in {timer.Elapsed}.  Total runtime of all tests is {totalTestRuntime}");
         return testInfos.ToImmutableDictionary();
     }
 
@@ -129,7 +130,7 @@ internal class TestHistoryManager
         var envVar = Environment.GetEnvironmentVariable(envVarName);
         if (string.IsNullOrEmpty(envVar))
         {
-            ConsoleUtil.WriteLine($"Missing environment variable {envVarName}");
+            Console.WriteLine($"Missing environment variable {envVarName}");
         }
 
         return envVar;
@@ -160,7 +161,7 @@ internal class TestHistoryManager
         catch (Exception ex)
         {
             // We will fallback to test count partitioning if we fail to query ADO.
-            ConsoleUtil.WriteLine($"Caught exception querying ADO for passing build: {ex}");
+            Console.WriteLine($"Caught exception querying ADO for passing build: {ex}");
             return null;
         }
     }
@@ -180,7 +181,7 @@ internal class TestHistoryManager
         catch (Exception ex)
         {
             // We will fallback to test count partitioning if we fail to query ADO.
-            ConsoleUtil.WriteLine($"Caught exception querying ADO for test runs: {ex}");
+            Console.WriteLine($"Caught exception querying ADO for test runs: {ex}");
             return null;
         }
     }
@@ -195,8 +196,9 @@ internal class TestHistoryManager
         catch (Exception ex)
         {
             // We will fallback to test count partitioning if we fail to query ADO.
-            ConsoleUtil.WriteLine($"Caught exception querying ADO for test runs: {ex}");
+            Console.WriteLine($"Caught exception querying ADO for test runs: {ex}");
             return new List<TestCaseResult>();
         }
     }
 }
+

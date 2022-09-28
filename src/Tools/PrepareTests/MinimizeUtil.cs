@@ -58,6 +58,8 @@ internal static class MinimizeUtil
             var artifactsDir = Path.Combine(sourceDirectory, "artifacts/bin");
             directories = directories.Concat(Directory.EnumerateDirectories(artifactsDir, "*.UnitTests"));
             directories = directories.Concat(Directory.EnumerateDirectories(artifactsDir, "RunTests"));
+            directories = directories.Concat(Directory.EnumerateDirectories(artifactsDir, "TestAssemblyFinder"));
+            directories = directories.Concat(Directory.EnumerateDirectories(artifactsDir, "HelixTestRunner"));
 
             var idToFilePathMap = directories.AsParallel()
                 .SelectMany(unitDirPath => walkDirectory(unitDirPath, sourceDirectory, destinationDirectory))
@@ -128,7 +130,7 @@ internal static class MinimizeUtil
             var fileList = new List<string>();
             var grouping = idToFilePathMap
                 .Where(x => x.Value.Count > 1)
-                .SelectMany(pair => pair.Value.Select(fp => (Id: pair.Key, FilePath: fp)))
+                .SelectMany(pair => pair.Value.Select(fp => (Id: pair.Key, FilePath: fp, Count: pair.Value.Count)))
                 .GroupBy(fp => getGroupDirectory(fp.FilePath.RelativeDirectory));
 
             // The "rehydrate-all" script assumes we are running all tests on a single machine instead of on Helix.
@@ -144,30 +146,39 @@ internal static class MinimizeUtil
             }
 
             var builder = new StringBuilder();
+            var fileName = isUnix ? "rehydrate.sh" : "rehydrate.cmd";
             foreach (var group in grouping)
             {
-                string filename;
                 builder.Clear();
-                if (isUnix)
+
+                if (group.Any(g => g.Count > 1))
                 {
-                    filename = "rehydrate.sh";
-                    writeUnixRehydrateContent(builder, group);
-                    rehydrateAllBuilder.AppendLine(@"bash """ + Path.Combine("$scriptroot", group.Key, "rehydrate.sh") + @"""");
+                    // We have duplicates for this assembly folder, write the rehydrate script.
+                    if (isUnix)
+                    {
+                        writeUnixRehydrateContent(builder, group);
+                        rehydrateAllBuilder.AppendLine(@"bash """ + Path.Combine("$scriptroot", group.Key, fileName) + @"""");
+                    }
+                    else
+                    {
+                        writeWindowsRehydrateContent(builder, group);
+                        rehydrateAllBuilder.AppendLine("call " + Path.Combine("%~dp0", group.Key, fileName));
+                    }
+
+                    File.WriteAllText(Path.Combine(destinationDirectory, group.Key, fileName), builder.ToString());
                 }
                 else
                 {
-                    filename = "rehydrate.cmd";
-                    writeWindowsRehydrateContent(builder, group);
-                    rehydrateAllBuilder.AppendLine("call " + Path.Combine("%~dp0", group.Key, "rehydrate.cmd"));
+                    // No duplicates for this folder - write out a no-op rehydrate script since later steps rely on its existence.
+                    var file = Path.Combine(destinationDirectory, group.Key, fileName);
+                    File.WriteAllText(file, "echo \"Nothing to rehydrate\"");
                 }
-
-                File.WriteAllText(Path.Combine(destinationDirectory, group.Key, filename), builder.ToString());
             }
 
             string rehydrateAllFilename = isUnix ? "rehydrate-all.sh" : "rehydrate-all.cmd";
             File.WriteAllText(Path.Combine(destinationDirectory, rehydrateAllFilename), rehydrateAllBuilder.ToString());
 
-            static void writeWindowsRehydrateContent(StringBuilder builder, IGrouping<string, (Guid Id, FilePathInfo FilePath)> group)
+            static void writeWindowsRehydrateContent(StringBuilder builder, IGrouping<string, (Guid Id, FilePathInfo FilePath, int Count)> group)
             {
                 builder.AppendLine("@echo off");
                 var count = 0;
@@ -212,7 +223,7 @@ scriptroot=""$( cd -P ""$( dirname ""$source"" )"" && pwd )""
 ");
             }
 
-            static void writeUnixRehydrateContent(StringBuilder builder, IGrouping<string, (Guid Id, FilePathInfo FilePath)> group)
+            static void writeUnixRehydrateContent(StringBuilder builder, IGrouping<string, (Guid Id, FilePathInfo FilePath, int Count)> group)
             {
                 writeUnixHeaderContent(builder);
 

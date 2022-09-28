@@ -59,7 +59,7 @@ jobs:
       displayName: Publish xUnit Test Results
       inputs:
         testRunner: XUnit
-        testResultsFiles: '$(Build.SourcesDirectory)/artifacts/TestResults/${{ parameters.configuration }}/*.xml'
+        testResultsFiles: '$(Build.SourcesDirectory)/artifacts/log/${{ parameters.configuration }}/*.xml'
         mergeTestResults: true
         testRunTitle: ${{ parameters.testRunName }}
       condition: always()

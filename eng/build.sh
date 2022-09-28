@@ -315,18 +315,27 @@ if [[ "$restore" == true || "$build" == true || "$rebuild" == true || "$test_mon
 fi
 
 if [[ "$test_core_clr" == true ]]; then
-  runtests_args=""
-  if [[ -n "$helix_queue_name" ]]; then
-    runtests_args="$runtests_args --helixQueueName $helix_queue_name"
-  fi
+  testAssembliesFilePath="${artifacts_dir}/testassemblies.txt"
+  dotnet exec "${artifacts_dir}/bin/TestAssemblyFinder/${configuration}/net6.0/TestAssemblyFinder.dll" --artifactsDirectory $artifacts_dir --configuration $configuration --targetFrameworks net6.0 --outputFilePath $testAssembliesFilePath
 
   if [[ "$helix" == true ]]; then
-    runtests_args="$runtests_args --helix"
-  fi
+    helixQueueNameArgs=""
+    if [[ -n "$helix_queue_name" ]]; then
+      helixQueueNameArgs="--helixQueueName $helix_queue_name"
+    fi
+    dotnet exec ${artifacts_dir}/bin/HelixTestRunner/${configuration}/net6.0/HelixTestRunner.dll --artifactsDirectory $artifacts_dir --architecture "x64" --logDirectory $log_dir --dotnetExecutablePath ${_InitializeDotNetCli}/dotnet --testAssembliesPath $testAssembliesFilePath $helixQueueNameArgs
+  else
+    assemblyArgs=""
+    while read line; do
+      assemblyArgs="$assemblyArgs $line"
+    done < "$testAssembliesFilePath"
+    logArgs="--logger xunit;LogFilePath=${log_dir}/TestResults.xml"
 
-  if [[ "$ci" != true ]]; then
-    runtests_args="$runtests_args --html"
+    if [[ "$ci" != true ]]; then
+      logArgs="$logArgs --logger html;LogFilePath=${log_dir}/TestResults.html"
+    fi
+
+    dotnet test --blame-hang-dump-type full --blame-hang-timeout 25minutes $assemblyArgs $logArgs -- RunConfiguration.MaxCpuCount=0
   fi
-  dotnet exec "$scriptroot/../artifacts/bin/RunTests/${configuration}/net6.0/RunTests.dll" --tfm net6.0 --configuration ${configuration} --logs ${log_dir} --dotnet ${_InitializeDotNetCli}/dotnet $runtests_args
 fi
 ExitWithExitCode 0

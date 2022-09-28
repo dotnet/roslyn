@@ -5,32 +5,28 @@
 #nullable disable
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
-using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
+using RunTestsUtils;
 
 namespace RunTests
 {
     internal sealed partial class Program
     {
-        private static readonly ImmutableHashSet<string> PrimaryProcessNames = ImmutableHashSet.Create(
-            StringComparer.OrdinalIgnoreCase,
-            "devenv",
-            "xunit.console",
-            "xunit.console.x86",
-            "ServiceHub.RoslynCodeAnalysisService",
-            "ServiceHub.RoslynCodeAnalysisService32");
-
         internal const int ExitSuccess = 0;
         internal const int ExitFailure = 1;
 
         private const long MaxTotalDumpSizeInMegabytes = 8196;
+
+        /// <summary>
+        /// Timeout used to kill the integration test run if it exceeds this time.
+        /// </summary>
+        private static readonly TimeSpan s_timeout = TimeSpan.FromMinutes(110);
 
         internal static async Task<int> Main(string[] args)
         {
@@ -47,60 +43,24 @@ namespace RunTests
             ConsoleUtil.WriteLine(string.Join(Environment.NewLine, dotnetResult.OutputLines));
             ConsoleUtil.WriteLine(ConsoleColor.Red, string.Join(Environment.NewLine, dotnetResult.ErrorLines));
 
-            if (options.CollectDumps)
+            // Setup cancellation for ctrl-c key presses
+            using var cts = new CancellationTokenSource();
+            Console.CancelKeyPress += delegate
             {
-                if (!DumpUtil.IsAdministrator())
-                {
-                    ConsoleUtil.WriteLine(ConsoleColor.Yellow, "Dump collection specified but user is not administrator so cannot modify registry");
-                }
-                else
-                {
-                    DumpUtil.EnableRegistryDumpCollection(options.LogFilesDirectory);
-                }
-            }
+                cts.Cancel();
+            };
 
-            try
-            {
-                // Setup cancellation for ctrl-c key presses
-                using var cts = new CancellationTokenSource();
-                Console.CancelKeyPress += delegate
-                {
-                    cts.Cancel();
-                    DisableRegistryDumpCollection();
-                };
+            int result = await RunWithoutTimeoutAsync(options, cts.Token);
 
-                int result;
-                if (options.Timeout is { } timeout)
-                {
-                    result = await RunAsync(options, timeout, cts.Token);
-                }
-                else
-                {
-                    result = await RunAsync(options, cts.Token);
-                }
-
-                CheckTotalDumpFilesSize();
-                return result;
-            }
-            finally
-            {
-                DisableRegistryDumpCollection();
-            }
-
-            void DisableRegistryDumpCollection()
-            {
-                if (options.CollectDumps && DumpUtil.IsAdministrator())
-                {
-                    DumpUtil.DisableRegistryDumpCollection();
-                }
-            }
+            CheckTotalDumpFilesSize();
+            return result;
         }
 
-        private static async Task<int> RunAsync(Options options, TimeSpan timeout, CancellationToken cancellationToken)
+        private static async Task<int> RunWithoutTimeoutAsync(Options options, CancellationToken cancellationToken)
         {
             using var cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
             var runTask = RunAsync(options, cts.Token);
-            var timeoutTask = Task.Delay(options.Timeout.Value, cancellationToken);
+            var timeoutTask = Task.Delay(s_timeout, cancellationToken);
 
             var finishedTask = await Task.WhenAny(timeoutTask, runTask);
             if (finishedTask == timeoutTask)
@@ -127,11 +87,9 @@ namespace RunTests
 
         private static async Task<int> RunAsync(Options options, CancellationToken cancellationToken)
         {
-            var testExecutor = new ProcessTestExecutor();
-            var testRunner = new TestRunner(options, testExecutor);
             var start = DateTime.Now;
-            var workItems = await GetWorkItemsAsync(options, cancellationToken);
-            if (workItems.Length == 0)
+            var assemblies = GetAssemblies(options);
+            if (assemblies.Length == 0)
             {
                 WriteLogFile(options);
                 ConsoleUtil.WriteLine(ConsoleColor.Red, "No assemblies to test");
@@ -139,18 +97,15 @@ namespace RunTests
             }
 
             ConsoleUtil.WriteLine($"Proc dump location: {options.ProcDumpFilePath}");
-            ConsoleUtil.WriteLine($"Running tests in {workItems.Length} partitions");
+            ConsoleUtil.WriteLine($"Running tests in {assemblies.Length} partitions");
 
-            var result = options.UseHelix
-                ? await testRunner.RunAllOnHelixAsync(workItems, options, cancellationToken).ConfigureAwait(true)
-                : await testRunner.RunAllAsync(workItems, cancellationToken).ConfigureAwait(true);
+            var result = await TestRunner.RunAllAsync(assemblies, options, cancellationToken).ConfigureAwait(true);
             var elapsed = DateTime.Now - start;
 
             ConsoleUtil.WriteLine($"Test execution time: {elapsed}");
 
             LogProcessResultDetails(result.ProcessResults);
             WriteLogFile(options);
-            DisplayResults(options.Display, result.TestResults);
 
             if (!result.Succeeded)
             {
@@ -280,112 +235,18 @@ namespace RunTests
             WriteLogFile(options);
         }
 
-        private static async Task<ImmutableArray<WorkItemInfo>> GetWorkItemsAsync(Options options, CancellationToken cancellationToken)
+        private static ImmutableArray<string> GetAssemblies(Options options)
         {
-            var scheduler = new AssemblyScheduler(options);
-            var assemblyPaths = GetAssemblyFilePaths(options);
-            var workItems = await scheduler.ScheduleAsync(assemblyPaths, cancellationToken);
-            return workItems;
-        }
-
-        private static ImmutableArray<AssemblyInfo> GetAssemblyFilePaths(Options options)
-        {
-            var list = new List<AssemblyInfo>();
-            var binDirectory = Path.Combine(options.ArtifactsDirectory, "bin");
-            foreach (var project in Directory.EnumerateDirectories(binDirectory, "*", SearchOption.TopDirectoryOnly))
+            var assemblies = File.ReadAllLines(options.TestAssembliesPath).ToImmutableArray();
+            foreach (var assembly in assemblies)
             {
-                var name = Path.GetFileName(project);
-                if (!shouldInclude(name, options) || shouldExclude(name, options))
+                if (!File.Exists(assembly))
                 {
-                    continue;
-                }
-
-                var fileName = $"{name}.dll";
-                // Find the dlls matching the request configuration and target frameworks.
-                foreach (var targetFramework in options.TargetFrameworks)
-                {
-                    var targetFrameworkDirectory = Path.Combine(project, options.Configuration, targetFramework);
-                    var filePath = Path.Combine(targetFrameworkDirectory, fileName);
-                    if (File.Exists(filePath))
-                    {
-                        list.Add(new AssemblyInfo(filePath));
-                    }
-                    else if (Directory.Exists(targetFrameworkDirectory) && Directory.GetFiles(targetFrameworkDirectory, searchPattern: "*.UnitTests.dll") is { Length: > 0 } matches)
-                    {
-                        // If the unit test assembly name doesn't match the project folder name, but still matches our "unit test" name pattern, we want to run it.
-                        // If more than one such assembly is present in a project output folder, we assume something is wrong with the build configuration.
-                        // For example, one unit test project might be referencing another unit test project.
-                        if (matches.Length > 1)
-                        {
-                            var message = $"Multiple unit test assemblies found in '{targetFrameworkDirectory}'. Please adjust the build to prevent this. Matches:{Environment.NewLine}{string.Join(Environment.NewLine, matches)}";
-                            throw new Exception(message);
-                        }
-                        list.Add(new AssemblyInfo(matches[0]));
-                    }
+                    throw new ArgumentException($"{assembly} does not exist on disk");
                 }
             }
 
-            if (list.Count == 0)
-            {
-                throw new InvalidOperationException($"Did not find any test assemblies");
-            }
-
-            list.Sort();
-            return list.ToImmutableArray();
-
-            static bool shouldInclude(string name, Options options)
-            {
-                foreach (var pattern in options.IncludeFilter)
-                {
-                    if (Regex.IsMatch(name, pattern.Trim('\'', '"')))
-                    {
-                        return true;
-                    }
-                }
-
-                return false;
-            }
-
-            static bool shouldExclude(string name, Options options)
-            {
-                foreach (var pattern in options.ExcludeFilter)
-                {
-                    if (Regex.IsMatch(name, pattern.Trim('\'', '"')))
-                    {
-                        return true;
-                    }
-                }
-
-                return false;
-            }
-        }
-
-        private static void DisplayResults(Display display, ImmutableArray<TestResult> testResults)
-        {
-            foreach (var cur in testResults)
-            {
-                var open = false;
-                switch (display)
-                {
-                    case Display.All:
-                        open = true;
-                        break;
-                    case Display.None:
-                        open = false;
-                        break;
-                    case Display.Succeeded:
-                        open = cur.Succeeded;
-                        break;
-                    case Display.Failed:
-                        open = !cur.Succeeded;
-                        break;
-                }
-
-                if (open)
-                {
-                    ProcessRunner.OpenFile(cur.ResultsDisplayFilePath);
-                }
-            }
+            return assemblies;
         }
 
         /// <summary>

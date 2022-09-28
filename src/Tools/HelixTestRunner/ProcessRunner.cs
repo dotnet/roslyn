@@ -10,7 +10,7 @@ using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace RunTests
+namespace RunTestsUtils
 {
     public readonly struct ProcessResult
     {
