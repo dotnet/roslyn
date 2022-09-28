@@ -102,7 +102,6 @@ namespace Microsoft.CodeAnalysis.Classification
                     else
                     {
                         ProcessToken(currentNodeOrToken.AsToken());
-
                     }
                 }
             }
