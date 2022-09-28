@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert(GetParameterValEscapeLevel(parameter, useUpdatedEscapeRules: true).HasValue);
                 Argument = argument;
                 Parameter = parameter;
-                EscapeLevel = GetParameterValEscapeLevel(parameter, useUpdatedEscapeRules: true)!.Value; ;
+                EscapeLevel = GetParameterValEscapeLevel(parameter, useUpdatedEscapeRules: true)!.Value;
             }
 
             internal MixableDestination(BoundExpression argument, EscapeLevel escapeLevel)
@@ -2039,10 +2039,32 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<BoundExpression> argsOpt,
             ImmutableArray<RefKind> argRefKindsOpt,
             ImmutableArray<int> argsToParamsOpt,
-            bool isRefEscape,
+            bool isInvokedWithRef,
             bool ignoreArglistRefKinds,
             ArrayBuilder<EscapeValue> escapeValues)
         {
+            // This code is attempting to implement the following portion of the spec. Essentially if we're not 
+            // either invoking a method by ref or have a ref struct return then all of the ref arguments. 
+            //
+            // > A value resulting from a method invocation `e1.M(e2, ...)` is *safe-to-escape* from the narrowest of the following scopes:
+            // > 1. The *calling method*
+            // > 2. When the return is a `ref struct` the *safe-to-escape* contributed by all argument expressions
+            // > 3. When the return is a `ref struct` the *ref-safe-to-escape* contributed by all `ref` arguments
+            // 
+            // The `ref` calling rules can be simplified to:
+            // 
+            // > A value resulting from a method invocation `ref e1.M(e2, ...)` is *ref-safe-to-escape* the narrowest of the following scopes:
+            // > 1. The *calling method*
+            // > 2. The *safe-to-escape* contributed by all argument expressions
+            // > 3. The *ref-safe-to-escape* contributed by all `ref` arguments
+
+            // If we're not invoking with ref or returning a ref struct then the spec does not consider
+            // any arguments hence the filter is always empty.
+            if (!isInvokedWithRef && !hasRefLikeReturn(symbol))
+            {
+                return;
+            }
+
             GetEscapeValuesForUpdatedRules(
                 symbol,
                 receiver,
@@ -2050,12 +2072,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 argsOpt,
                 argRefKindsOpt,
                 argsToParamsOpt,
-                includeRefEscape: shouldIncludeRefScopes(symbol, isRefEscape),
                 ignoreArglistRefKinds,
                 mixableArguments: null,
                 escapeValues); ;
 
-            static bool shouldIncludeRefScopes(Symbol symbol, bool isRefEscape)
+            static bool hasRefLikeReturn(Symbol symbol)
             {
                 switch (symbol)
                 {
@@ -2065,20 +2086,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                             return method.ContainingType.IsRefLikeType;
                         }
 
-                        if (method.ReturnType.IsRefLikeType)
-                        {
-                            return true;
-                        }
-
-                        return method.RefKind != RefKind.None && isRefEscape;
+                        return method.ReturnType.IsRefLikeType;
                     case PropertySymbol property:
-                        if (property.Type.IsRefLikeType)
-                        {
-                            return true;
-                        }
-
-                        return property.RefKind != RefKind.None && isRefEscape;
-
+                        return property.Type.IsRefLikeType;
                     default:
                         return false;
                 }
@@ -2094,7 +2104,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ///   - It will remove value escape for args which correspond to scoped parameters. 
         ///   - It will remove value escape for non-ref struct.
         ///   - It will remove ref escape for args which correspond to scoped refs.
-        /// Optional this will also return all of the <see cref="MixableDestination" /> that 
+        /// Optionally this will also return all of the <see cref="MixableDestination" /> that 
         /// result from this invocation. That is useful for MAMM analysis.
         /// </summary>
         private void GetEscapeValuesForUpdatedRules(
@@ -2104,7 +2114,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<BoundExpression> argsOpt,
             ImmutableArray<RefKind> argRefKindsOpt,
             ImmutableArray<int> argsToParamsOpt,
-            bool includeRefEscape,
             bool ignoreArglistRefKinds,
             ArrayBuilder<MixableDestination>? mixableArguments,
             ArrayBuilder<EscapeValue> escapeValues)
@@ -2132,7 +2141,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // This means it's part of an __arglist or function pointer receiver. 
                 if (parameter is null)
                 {
-                    if (refKind != RefKind.None && includeRefEscape)
+                    if (refKind != RefKind.None)
                     {
                         escapeValues.Add(new EscapeValue(parameter: null, argument, EscapeLevel.ReturnOnly, isRefEscape: true));
                     }
@@ -2152,7 +2161,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 // It's important to check values then references. Flipping will change the set of errors 
                 // produced by MAMM because of the CheckRefEscape / CheckValEscape calls.
-                if (parameter.RefKind != RefKind.None && includeRefEscape && GetParameterRefEscapeLevel(parameter) is { } refEscapeLevel)
+                if (parameter.RefKind != RefKind.None && GetParameterRefEscapeLevel(parameter) is { } refEscapeLevel)
                 {
                     escapeValues.Add(new EscapeValue(parameter, argument, refEscapeLevel, isRefEscape: true));
                 }
@@ -2314,7 +2323,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 argsOpt,
                 argRefKindsOpt,
                 argsToParamsOpt,
-                includeRefEscape: true,
                 ignoreArglistRefKinds: false,
                 mixableArguments,
                 escapeValues);

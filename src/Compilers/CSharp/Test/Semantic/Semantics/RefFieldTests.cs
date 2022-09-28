@@ -21811,5 +21811,34 @@ struct S<T> : System.IDisposable
                 //     static void M1(ref RS i, ref RS rs) => rs = new RS(ref i.field); // 1
                 Diagnostic(ErrorCode.ERR_RefReturnOnlyParameter2, "i").WithArguments("i").WithLocation(11, 60));
         }
+
+        [Fact]
+        [WorkItem(62094, "https://github.com/dotnet/roslyn/issues/62094")]
+        public void OutReturnOnly_3()
+        {
+            var source = """
+                ref struct R
+                {
+                    public R(ref int i) { }
+                }
+
+                class Program
+                {
+                    static void F0(ref R a, out R b)
+                    {
+                        b = a;
+                    }
+
+                    static void F1(ref R x)
+                    {
+                        int i = 1;
+                        R y = new R(ref i);
+                        F0(ref x, out y);
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source, runtimeFeature: RuntimeFlag.ByRefFields);
+            comp.VerifyDiagnostics();
+        }
     }
 }
