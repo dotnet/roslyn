@@ -57,12 +57,7 @@ namespace Microsoft.CodeAnalysis.DesignerAttribute
                 // Handle the priority doc first.
                 var priorityDocument = solution.GetDocument(priorityDocumentId);
                 if (priorityDocument != null)
-                {
                     await ProcessProjectAsync(priorityDocument.Project, priorityDocument, callback, cancellationToken).ConfigureAwait(false);
-
-                    // now scan all the other files from that project in case they were affected by the edited document.
-                    await ProcessProjectAsync(priorityDocument.Project, specificDocument: null, callback, cancellationToken).ConfigureAwait(false);
-                }
 
                 // Process the rest of the projects in dependency order so that their data is ready when we hit the 
                 // projects that depend on them.
@@ -84,6 +79,32 @@ namespace Microsoft.CodeAnalysis.DesignerAttribute
             if (!project.SupportsCompilation)
                 return;
 
+            // We're looking for "System.ComponentModel.DesignerCategoryAttribute", which is defined only in
+            // System.ComponentModel.Primitives.dll.  Avoid looking at any project that doesn't have a reference to that
+            // assembly.
+            if (!project.MetadataReferences.OfType<PortableExecutableReference>().Any(pe => pe.FilePath.EndsWith("System.ComponentModel.Primitives.dll", StringComparison.OrdinalIgnoreCase)))
+                return;
+
+            var compilation = await project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
+            var designerCategoryType = compilation.DesignerCategoryAttributeType();
+            if (designerCategoryType == null)
+                return;
+
+            await ProcessProjectAsync(
+                project, specificDocument, callback, designerCategoryType, cancellationToken).ConfigureAwait(false);
+
+            // If we scanned just a specific document in the project, now scan the rest of the files.
+            if (specificDocument != null)
+                await ProcessProjectAsync(project, specificDocument: null, callback, designerCategoryType, cancellationToken).ConfigureAwait(false);
+        }
+
+        private async Task ProcessProjectAsync(
+            Project project,
+            Document? specificDocument,
+            IDesignerAttributeDiscoveryService.ICallback callback,
+            INamedTypeSymbol? designerCategoryType,
+            CancellationToken cancellationToken)
+        {
             // We need to reanalyze the project whenever it (or any of its dependencies) have
             // changed.  We need to know about dependencies since if a downstream project adds the
             // DesignerCategory attribute to a class, that can affect us when we examine the classes
@@ -94,7 +115,7 @@ namespace Microsoft.CodeAnalysis.DesignerAttribute
             // to tell it about the ones that didn't change since that will have no effect on the
             // user experience.
             var changedData = await ComputeChangedDataAsync(
-                project, specificDocument, projectVersion, cancellationToken).ConfigureAwait(false);
+                project, specificDocument, projectVersion, designerCategoryType, cancellationToken).ConfigureAwait(false);
 
             // Only bother reporting non-empty information to save an unnecessary RPC.
             if (!changedData.IsEmpty)
@@ -108,10 +129,12 @@ namespace Microsoft.CodeAnalysis.DesignerAttribute
         }
 
         private async Task<ImmutableArray<DesignerAttributeData>> ComputeChangedDataAsync(
-            Project project, Document? specificDocument, VersionStamp projectVersion, CancellationToken cancellationToken)
+            Project project,
+            Document? specificDocument,
+            VersionStamp projectVersion,
+            INamedTypeSymbol designerCategoryType,
+            CancellationToken cancellationToken)
         {
-            var compilation = await project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
-            var designerCategoryType = compilation.DesignerCategoryAttributeType();
 
             using var _1 = ArrayBuilder<Task<DesignerAttributeData?>>.GetInstance(out var tasks);
             foreach (var document in project.Documents)
