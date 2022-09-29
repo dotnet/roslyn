@@ -6,6 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.EditAndContinue.Contracts;
 using Microsoft.CodeAnalysis.Navigation;
+using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.Api
 {
@@ -17,7 +18,15 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.Api
             Span = span;
         }
 
+        /// <summary>
+        /// The raw <see cref="Document"/> and <see cref="TextSpan"/> that the symbol is located at.
+        /// </summary>
         public DocumentSpan DocumentSpan { get; }
+
+        /// <summary>
+        /// The line and character the symbol is located.  If this is a mapped location (e.g. affected by a <c>#line</c>
+        /// directive), this will be the final location the symbol was mapped to.
+        /// </summary>
         public FileLinePositionSpan Span { get; }
 
         public async Task NavigateToAsync(UnitTestingNavigationOptions options, CancellationToken cancellationToken)
