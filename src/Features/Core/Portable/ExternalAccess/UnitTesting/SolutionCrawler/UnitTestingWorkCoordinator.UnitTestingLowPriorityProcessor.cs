@@ -152,12 +152,19 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                                 if (project != null)
                                 {
                                     var reasons = workItem.InvocationReasons;
+#if false // Not used in unit testing crawling
                                     var semanticsChanged = reasons.Contains(UnitTestingPredefinedInvocationReasons.SemanticChanged) ||
                                                            reasons.Contains(UnitTestingPredefinedInvocationReasons.SolutionRemoved);
+#endif
 
                                     using (Processor.EnableCaching(project.Id))
                                     {
-                                        await Processor.RunAnalyzersAsync(analyzers, project, workItem, (a, p, c) => a.AnalyzeProjectAsync(p, semanticsChanged, reasons, c), cancellationToken).ConfigureAwait(false);
+                                        await Processor.RunAnalyzersAsync(analyzers, project, workItem,
+                                            (a, p, c) => a.AnalyzeProjectAsync(p,
+#if false // Not used in unit testing crawling
+                                                semanticsChanged,
+#endif
+                                                reasons, c), cancellationToken).ConfigureAwait(false);
                                     }
                                 }
                                 else

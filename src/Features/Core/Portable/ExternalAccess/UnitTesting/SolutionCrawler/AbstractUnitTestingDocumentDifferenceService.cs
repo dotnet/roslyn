@@ -4,18 +4,16 @@
 
 using System;
 using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
 {
     internal abstract class AbstractUnitTestingDocumentDifferenceService : IUnitTestingDocumentDifferenceService
     {
-        public async Task<UnitTestingDocumentDifferenceResult?> GetDifferenceAsync(Document oldDocument, Document newDocument, CancellationToken cancellationToken)
+        public UnitTestingDocumentDifferenceResult? GetDifference(Document oldDocument, Document newDocument, CancellationToken cancellationToken)
         {
             try
             {
@@ -50,6 +48,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                     return null;
                 }
 
+#if false // Not used in unit testing crawling
                 var incrementalParsingCandidate = range.NewLength != newText.Length;
                 // see whether we can get it without explicit parsing
                 if (!oldDocument.TryGetSyntaxRoot(out var oldRoot) ||
@@ -91,6 +90,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                 {
                     return new UnitTestingDocumentDifferenceResult(UnitTestingInvocationReasons.SyntaxChanged);
                 }
+#endif
 
                 return new UnitTestingDocumentDifferenceResult(UnitTestingInvocationReasons.DocumentChanged);
             }
@@ -100,6 +100,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
             }
         }
 
+#if false // Not used in unit testing crawling
         private static SyntaxNode? GetChangedMember(
             ISyntaxFactsService syntaxFactsService, SyntaxNode oldRoot, SyntaxNode newRoot, TextChangeRange range)
         {
@@ -176,5 +177,6 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
 
             return (oldMember.Span.Length + lengthDelta) == newMember.Span.Length ? newMember : null;
         }
+#endif
     }
 }
