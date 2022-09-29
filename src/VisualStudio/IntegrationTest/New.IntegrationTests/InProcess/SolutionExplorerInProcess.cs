@@ -710,8 +710,7 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
         private uint _cookie;
         private readonly IVsSolutionBuildManager2 _solutionBuildManager;
 
-        internal delegate void UpdateSolutionDoneEvent();
-        public event UpdateSolutionDoneEvent? OnUpdateSolutionDone;
+        public event Action? OnUpdateSolutionDone;
 
         internal UpdateSolutionEvents(IVsSolutionBuildManager2 solutionBuildManager)
         {
