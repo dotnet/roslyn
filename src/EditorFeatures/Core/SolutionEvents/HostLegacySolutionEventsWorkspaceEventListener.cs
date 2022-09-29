@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.LegacySolutionEvents
             _eventQueue = new AsyncBatchingWorkQueue<WorkspaceChangeEventArgs>(
                 DelayTimeSpan.Short,
                 ProcessWorkspaceChangeEventsAsync,
-                listenerProvider.GetListener(FeatureAttribute.SolutionCrawler),
+                listenerProvider.GetListener(FeatureAttribute.SolutionCrawlerUnitTesting),
                 _threadingContext.DisposalToken);
         }
 

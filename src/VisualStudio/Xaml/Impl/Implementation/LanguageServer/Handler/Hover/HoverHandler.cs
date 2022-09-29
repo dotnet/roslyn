@@ -25,7 +25,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer.Handler
 {
     [ExportStatelessXamlLspService(typeof(HoverHandler)), Shared]
     [Method(Methods.TextDocumentHoverName)]
-    internal sealed class HoverHandler : IRequestHandler<TextDocumentPositionParams, Hover?>
+    internal sealed class HoverHandler : ILspServiceRequestHandler<TextDocumentPositionParams, Hover?>
     {
         private readonly IGlobalOptionService _globalOptions;
 
@@ -39,7 +39,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer.Handler
         public bool MutatesSolutionState => false;
         public bool RequiresLSPSolution => true;
 
-        public TextDocumentIdentifier? GetTextDocumentIdentifier(TextDocumentPositionParams request) => request.TextDocument;
+        public TextDocumentIdentifier GetTextDocumentIdentifier(TextDocumentPositionParams request) => request.TextDocument;
 
         public async Task<Hover?> HandleRequestAsync(TextDocumentPositionParams request, RequestContext context, CancellationToken cancellationToken)
         {
