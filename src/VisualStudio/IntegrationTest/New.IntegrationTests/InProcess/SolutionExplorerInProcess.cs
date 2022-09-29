@@ -580,7 +580,7 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
             }
 
             // Find the build summary line
-            for (var index = lines.Count - 1; index > 0; index--)
+            for (var index = lines.Count - 1; index >= 0; index--)
             {
                 var lineText = lines[index].Extent.GetText();
                 if (lineText.StartsWith("========== Build:"))
