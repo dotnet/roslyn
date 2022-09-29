@@ -157,7 +157,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 return ImmutableArray<CompletionItem>.Empty;
 
             var snippets = service.GetSnippetsIfAvailable();
-            if (context.CompletionOptions.ShouldShowNewSnippetExperience())
+            if (context.CompletionOptions.ShouldShowNewSnippetExperience() && !context.Document.IsRazorDocument())
             {
                 snippets = snippets.Where(snippet => !s_builtInSnippets.Contains(snippet.Shortcut));
             }
