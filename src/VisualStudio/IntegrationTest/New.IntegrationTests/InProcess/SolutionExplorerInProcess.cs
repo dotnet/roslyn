@@ -559,7 +559,7 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
             using var solutionEvents = new UpdateSolutionEvents(buildManager);
             var buildCompleteTaskCompletionSource = new TaskCompletionSource<bool>();
 
-            void HandleUpdateSolutionDone(bool succeeded, bool modified, bool canceled) => buildCompleteTaskCompletionSource.SetResult(succeeded);
+            void HandleUpdateSolutionDone() => buildCompleteTaskCompletionSource.SetResult(true);
             solutionEvents.OnUpdateSolutionDone += HandleUpdateSolutionDone;
             try
             {
@@ -712,21 +712,8 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
         private uint _cookie;
         private readonly IVsSolutionBuildManager2 _solutionBuildManager;
 
-        internal delegate void UpdateSolutionDoneEvent(bool succeeded, bool modified, bool canceled);
-
-        internal delegate void UpdateSolutionBeginEvent(ref bool cancel);
-
-        internal delegate void UpdateSolutionStartUpdateEvent(ref bool cancel);
-
+        internal delegate void UpdateSolutionDoneEvent();
         public event UpdateSolutionDoneEvent? OnUpdateSolutionDone;
-
-        public event UpdateSolutionBeginEvent? OnUpdateSolutionBegin;
-
-        public event UpdateSolutionStartUpdateEvent? OnUpdateSolutionStartUpdate;
-
-        public event Action? OnActiveProjectConfigurationChange;
-
-        public event Action? OnUpdateSolutionCancel;
 
         internal UpdateSolutionEvents(IVsSolutionBuildManager2 solutionBuildManager)
         {
@@ -736,55 +723,14 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
             ErrorHandler.ThrowOnFailure(solutionBuildManager.AdviseUpdateSolutionEvents(this, out _cookie));
         }
 
-        int IVsUpdateSolutionEvents.UpdateSolution_Begin(ref int pfCancelUpdate)
-        {
-            var cancel = false;
-            OnUpdateSolutionBegin?.Invoke(ref cancel);
-            if (cancel)
-            {
-                pfCancelUpdate = 1;
-            }
-
-            return 0;
-        }
+        int IVsUpdateSolutionEvents.UpdateSolution_Begin(ref int pfCancelUpdate) => 0;
+        int IVsUpdateSolutionEvents.UpdateSolution_StartUpdate(ref int pfCancelUpdate) => 0;
+        int IVsUpdateSolutionEvents.UpdateSolution_Cancel() => 0;
+        int IVsUpdateSolutionEvents.OnActiveProjectCfgChange(IVsHierarchy pIVsHierarchy) => 0;
 
         int IVsUpdateSolutionEvents.UpdateSolution_Done(int fSucceeded, int fModified, int fCancelCommand)
         {
-            OnUpdateSolutionDone?.Invoke(fSucceeded != 0, fModified != 0, fCancelCommand != 0);
-            return 0;
-        }
-
-        int IVsUpdateSolutionEvents.UpdateSolution_StartUpdate(ref int pfCancelUpdate)
-        {
-            return UpdateSolution_StartUpdate(ref pfCancelUpdate);
-        }
-
-        int IVsUpdateSolutionEvents.UpdateSolution_Cancel()
-        {
-            OnUpdateSolutionCancel?.Invoke();
-            return 0;
-        }
-
-        int IVsUpdateSolutionEvents.OnActiveProjectCfgChange(IVsHierarchy pIVsHierarchy)
-        {
-            return OnActiveProjectCfgChange(pIVsHierarchy);
-        }
-
-        private int UpdateSolution_StartUpdate(ref int pfCancelUpdate)
-        {
-            var cancel = false;
-            OnUpdateSolutionStartUpdate?.Invoke(ref cancel);
-            if (cancel)
-            {
-                pfCancelUpdate = 1;
-            }
-
-            return 0;
-        }
-
-        private int OnActiveProjectCfgChange(IVsHierarchy pIVsHierarchy)
-        {
-            OnActiveProjectConfigurationChange?.Invoke();
+            OnUpdateSolutionDone?.Invoke();
             return 0;
         }
 
@@ -793,10 +739,6 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
             ThreadHelper.ThrowIfNotOnUIThread();
 
             OnUpdateSolutionDone = null;
-            OnUpdateSolutionBegin = null;
-            OnUpdateSolutionStartUpdate = null;
-            OnActiveProjectConfigurationChange = null;
-            OnUpdateSolutionCancel = null;
 
             if (_cookie != 0)
             {
