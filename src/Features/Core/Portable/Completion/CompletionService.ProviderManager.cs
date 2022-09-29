@@ -268,7 +268,7 @@ namespace Microsoft.CodeAnalysis.Completion
 
                     if (project != null)
                     {
-                        _providerManager._projectProvidersWorkQueue.AddWork(project);
+                        _providerManager._projectProvidersWorkQueue.AddWork(project.AnalyzerReferences);
                         _providerManager._projectProvidersWorkQueue.WaitUntilCurrentBatchCompletesAsync().Wait();
                         providers.AddRange(_providerManager.GetProjectCompletionProviders(project));
                     }
