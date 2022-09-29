@@ -17,6 +17,7 @@ using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -38,10 +39,10 @@ namespace Microsoft.CodeAnalysis.Completion
         private bool _suppressPartialSemantics;
 
         // Prevent inheritance outside of Roslyn.
-        internal CompletionService(SolutionServices services)
+        internal CompletionService(SolutionServices services, IAsynchronousOperationListenerProvider? listenerProvider = null)
         {
             _services = services;
-            _providerManager = new(this);
+            _providerManager = new(this, listenerProvider);
         }
 
         /// <summary>
@@ -336,12 +337,6 @@ namespace Microsoft.CodeAnalysis.Completion
         /// </summary>
         internal IReadOnlyList<Lazy<CompletionProvider, CompletionProviderMetadata>> GetLazyImportedProviders()
             => _providerManager.GetLazyImportedProviders();
-
-        /// <summary>
-        /// Don't call. Used for pre-populating NuGet providers only.
-        /// </summary>
-        internal static ImmutableArray<CompletionProvider> GetProjectCompletionProviders(Project project)
-            => ProviderManager.GetProjectCompletionProviders(project);
 
         internal CompletionProvider? GetProvider(CompletionItem item, Project? project)
             => _providerManager.GetProvider(item, project);

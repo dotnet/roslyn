@@ -8,11 +8,13 @@ using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Completion.Providers;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
 
@@ -25,14 +27,21 @@ namespace Microsoft.CodeAnalysis.Completion
             private readonly object _gate = new();
             private readonly Dictionary<string, CompletionProvider?> _nameToProvider = new();
             private readonly Dictionary<ImmutableHashSet<string>, ImmutableArray<CompletionProvider>> _rolesToProviders;
-
             private IReadOnlyList<Lazy<CompletionProvider, CompletionProviderMetadata>>? _lazyImportedProviders;
             private readonly CompletionService _service;
 
-            public ProviderManager(CompletionService service)
+            private readonly AsyncBatchingWorkQueue<Project> _projectProvidersWorkQueue;
+
+            public ProviderManager(CompletionService service, IAsynchronousOperationListenerProvider? listenerProvider)
             {
                 _service = service;
                 _rolesToProviders = new Dictionary<ImmutableHashSet<string>, ImmutableArray<CompletionProvider>>(this);
+
+                _projectProvidersWorkQueue = new AsyncBatchingWorkQueue<Project>(
+                        TimeSpan.FromSeconds(1),
+                        ProcessBatchAsync,
+                        listenerProvider?.GetListener(FeatureAttribute.CompletionSet) ?? AsynchronousOperationListenerProvider.NullListener,
+                        CancellationToken.None);
             }
 
             public IReadOnlyList<Lazy<CompletionProvider, CompletionProviderMetadata>> GetLazyImportedProviders()
@@ -53,7 +62,18 @@ namespace Microsoft.CodeAnalysis.Completion
                 return _lazyImportedProviders;
             }
 
-            public static ImmutableArray<CompletionProvider> GetProjectCompletionProviders(Project? project)
+            private ValueTask ProcessBatchAsync(ImmutableSegmentedList<Project> projects, CancellationToken cancellationToken)
+            {
+                foreach (var project in projects)
+                {
+                    cancellationToken.ThrowIfCancellationRequested();
+                    _ = ProjectCompletionProvider.GetExtensions(project);
+                }
+
+                return ValueTaskFactory.CompletedTask;
+            }
+
+            public ImmutableArray<CompletionProvider> GetProjectCompletionProviders(Project? project)
             {
                 if (project is null || project.Solution.WorkspaceKind == WorkspaceKind.Interactive)
                 {
@@ -61,7 +81,15 @@ namespace Microsoft.CodeAnalysis.Completion
                     return ImmutableArray<CompletionProvider>.Empty;
                 }
 
-                return ProjectCompletionProvider.GetExtensions(project);
+                // Don't load providers if they are not already cached,
+                // return immediately and load them in background instead.
+                // https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1620947
+
+                if (ProjectCompletionProvider.TryGetCachedExtensions(project, out var providers))
+                    return providers;
+
+                _projectProvidersWorkQueue.AddWork(project);
+                return ImmutableArray<CompletionProvider>.Empty;
             }
 
             private ImmutableArray<CompletionProvider> GetImportedAndBuiltInProviders(ImmutableHashSet<string>? roles)
@@ -234,8 +262,16 @@ namespace Microsoft.CodeAnalysis.Completion
                 public ImmutableArray<CompletionProvider> GetProviders(ImmutableHashSet<string> roles, Project? project)
                 {
                     using var _ = ArrayBuilder<CompletionProvider>.GetInstance(out var providers);
+
                     providers.AddRange(_providerManager.GetImportedAndBuiltInProviders(roles));
-                    providers.AddRange(GetProjectCompletionProviders(project));
+
+                    if (project != null)
+                    {
+                        _providerManager._projectProvidersWorkQueue.AddWork(project);
+                        _providerManager._projectProvidersWorkQueue.WaitUntilCurrentBatchCompletesAsync().Wait();
+                        providers.AddRange(_providerManager.GetProjectCompletionProviders(project));
+                    }
+
                     return providers.ToImmutable();
                 }
             }

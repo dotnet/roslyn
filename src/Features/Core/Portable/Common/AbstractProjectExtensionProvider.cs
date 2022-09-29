@@ -29,13 +29,25 @@ namespace Microsoft.CodeAnalysis
         protected abstract ImmutableArray<string> GetLanguages(TExportAttribute exportAttribute);
         protected abstract bool TryGetExtensionsFromReference(AnalyzerReference reference, out ImmutableArray<TExtension> extensions);
 
+        public static bool TryGetCachedExtensions(Project project, out ImmutableArray<TExtension> extensions)
+        {
+            if (s_referencesToExtensionsMap.TryGetValue(project.AnalyzerReferences, out var providers))
+            {
+                extensions = providers.Value;
+                return true;
+            }
+
+            extensions = ImmutableArray<TExtension>.Empty;
+            return false;
+        }
+
         public static ImmutableArray<TExtension> GetExtensions(Project? project)
         {
             if (project is null)
                 return ImmutableArray<TExtension>.Empty;
 
-            if (s_referencesToExtensionsMap.TryGetValue(project.AnalyzerReferences, out var providers))
-                return providers.Value;
+            if (TryGetCachedExtensions(project, out var providers))
+                return providers;
 
             return GetExtensionsSlow(project);
 
