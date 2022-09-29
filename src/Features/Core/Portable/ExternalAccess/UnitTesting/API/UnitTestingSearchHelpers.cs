@@ -138,10 +138,12 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.Api
 
             SyntaxTree? tree = null;
 
+            // Walk each of the top-level-index infos we've got for this tree.
             foreach (var info in index.DeclaredSymbolInfos)
             {
-                if (info.Name == symbolName &&
-                    info.TypeParameterCount == symbolArity)
+                // Fast check to see if this looks like a candidate.
+                if (info.TypeParameterCount == symbolArity &&
+                    info.Name == symbolName)
                 {
                     // If it's a method, the parameter count much match.
                     if (query.MethodName != null)
@@ -153,9 +155,12 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.Api
                         }
                     }
 
+                    // Looking promising so far.  Check that the container matches what the caller needs.
                     if (info.FullyQualifiedContainerName != container)
                         continue;
 
+                    // Unit testing needs to know the final span a location may be mapped to (e.g. with `#line` taken
+                    // into consideration).  So map that information here for them.
                     tree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
                     var mappedSpan = tree.GetMappedLineSpan(info.Span, cancellationToken);
 
