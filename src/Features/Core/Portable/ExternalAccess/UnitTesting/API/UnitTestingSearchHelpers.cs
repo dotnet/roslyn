@@ -5,7 +5,6 @@
 using System.Collections.Immutable;
 using System.Globalization;
 using System.Linq;
-using System.Runtime.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.FindSymbols;
@@ -15,33 +14,6 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.Api
 {
-    [DataContract]
-    internal sealed class UnitTestingSearchQuery
-    {
-        [DataMember(Order = 0)]
-        public readonly string FullyQualifiedTypeName;
-        [DataMember(Order = 1)]
-        public readonly string? MethodName;
-        [DataMember(Order = 2)]
-        public readonly int MethodArity;
-        [DataMember(Order = 3)]
-        public readonly int MethodParameterCount;
-
-        public static UnitTestingSearchQuery ForType(string fullyQualifiedTypeName)
-            => new(fullyQualifiedTypeName, methodName: null, methodArity: 0, methodParameterCount: 0);
-
-        public static UnitTestingSearchQuery ForMethod(string fullyQualifiedTypeName, string methodName, int methodArity, int methodParameterCount)
-            => new(fullyQualifiedTypeName, methodName, methodArity, methodParameterCount);
-
-        private UnitTestingSearchQuery(string fullyQualifiedTypeName, string? methodName, int methodArity, int methodParameterCount)
-        {
-            FullyQualifiedTypeName = fullyQualifiedTypeName;
-            MethodName = methodName;
-            MethodArity = methodArity;
-            MethodParameterCount = methodParameterCount;
-        }
-    }
-
     internal static class UnitTestingSearchHelpers
     {
         private static readonly char[] s_splitCharacters = { '.', '+' };
