@@ -32,6 +32,7 @@ using Reference5 = VSLangProj110.Reference5;
 using Reference2 = VSLangProj2.Reference2;
 using VSProject3 = VSLangProj140.VSProject3;
 using Microsoft.VisualStudio.LanguageServices.Interactive;
+using Microsoft.CodeAnalysis.AddFileBanner;
 
 namespace Microsoft.VisualStudio.Extensibility.Testing
 {
@@ -555,14 +556,14 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
             await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
             var buildManager = await GetRequiredGlobalServiceAsync<SVsSolutionBuildManager, IVsSolutionBuildManager2>(cancellationToken);
-            using var semaphore = new SemaphoreSlim(1);
             using var solutionEvents = new UpdateSolutionEvents(buildManager);
-            await semaphore.WaitAsync();
-            void HandleUpdateSolutionDone(bool succeeded, bool modified, bool canceled) => semaphore.Release();
+            var buildCompleteTaskCompletionSource = new TaskCompletionSource<bool>();
+
+            void HandleUpdateSolutionDone(bool succeeded, bool modified, bool canceled) => buildCompleteTaskCompletionSource.SetResult(succeeded);
             solutionEvents.OnUpdateSolutionDone += HandleUpdateSolutionDone;
             try
             {
-                await semaphore.WaitAsync();
+                await buildCompleteTaskCompletionSource.Task;
             }
             finally
             {
@@ -572,11 +573,7 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
             // Force the error list to update
             ErrorHandler.ThrowOnFailure(buildOutputWindowPane.FlushToTaskList());
 
-            if (buildOutputWindowPane is not IVsTextView textView)
-            {
-                throw new InvalidOperationException($"{nameof(IVsOutputWindowPane)} should implement {nameof(IVsTextView)}");
-            }
-
+            var textView = (IVsTextView)buildOutputWindowPane;
             var wpfTextViewHost = await textView.GetTextViewHostAsync(JoinableTaskFactory, cancellationToken);
             var lines = wpfTextViewHost.TextView.TextViewLines;
             if (lines.Count < 1)
@@ -585,7 +582,7 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
             }
 
             // Find the build summary line
-            for (int index = lines.Count - 1; index > 0; index--)
+            for (var index = lines.Count - 1; index > 0; index--)
             {
                 var lineText = lines[index].Extent.GetText();
                 if (lineText.StartsWith("========== Build:"))
@@ -710,7 +707,7 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
         }
     }
 
-    internal sealed class UpdateSolutionEvents : IVsUpdateSolutionEvents, IVsUpdateSolutionEvents2, IDisposable
+    internal sealed class UpdateSolutionEvents : IVsUpdateSolutionEvents, IDisposable
     {
         private uint _cookie;
         private readonly IVsSolutionBuildManager2 _solutionBuildManager;
@@ -721,10 +718,6 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
 
         internal delegate void UpdateSolutionStartUpdateEvent(ref bool cancel);
 
-        internal delegate void UpdateProjectConfigDoneEvent(IVsHierarchy projectHierarchy, IVsCfg projectConfig, int success);
-
-        internal delegate void UpdateProjectConfigBeginEvent(IVsHierarchy projectHierarchy, IVsCfg projectConfig);
-
         public event UpdateSolutionDoneEvent? OnUpdateSolutionDone;
 
         public event UpdateSolutionBeginEvent? OnUpdateSolutionBegin;
@@ -734,10 +727,6 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
         public event Action? OnActiveProjectConfigurationChange;
 
         public event Action? OnUpdateSolutionCancel;
-
-        public event UpdateProjectConfigDoneEvent? OnUpdateProjectConfigDone;
-
-        public event UpdateProjectConfigBeginEvent? OnUpdateProjectConfigBegin;
 
         internal UpdateSolutionEvents(IVsSolutionBuildManager2 solutionBuildManager)
         {
@@ -781,52 +770,6 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
             return OnActiveProjectCfgChange(pIVsHierarchy);
         }
 
-        int IVsUpdateSolutionEvents2.UpdateSolution_Begin(ref int pfCancelUpdate)
-        {
-            var cancel = false;
-            OnUpdateSolutionBegin?.Invoke(ref cancel);
-            if (cancel)
-            {
-                pfCancelUpdate = 1;
-            }
-
-            return 0;
-        }
-
-        int IVsUpdateSolutionEvents2.UpdateSolution_Done(int fSucceeded, int fModified, int fCancelCommand)
-        {
-            OnUpdateSolutionDone?.Invoke(fSucceeded != 0, fModified != 0, fCancelCommand != 0);
-            return 0;
-        }
-
-        int IVsUpdateSolutionEvents2.UpdateSolution_StartUpdate(ref int pfCancelUpdate)
-        {
-            return UpdateSolution_StartUpdate(ref pfCancelUpdate);
-        }
-
-        int IVsUpdateSolutionEvents2.UpdateSolution_Cancel()
-        {
-            OnUpdateSolutionCancel?.Invoke();
-            return 0;
-        }
-
-        int IVsUpdateSolutionEvents2.OnActiveProjectCfgChange(IVsHierarchy pIVsHierarchy)
-        {
-            return OnActiveProjectCfgChange(pIVsHierarchy);
-        }
-
-        int IVsUpdateSolutionEvents2.UpdateProjectCfg_Begin(IVsHierarchy pHierProj, IVsCfg pCfgProj, IVsCfg pCfgSln, uint dwAction, ref int pfCancel)
-        {
-            OnUpdateProjectConfigBegin?.Invoke(pHierProj, pCfgProj);
-            return 0;
-        }
-
-        int IVsUpdateSolutionEvents2.UpdateProjectCfg_Done(IVsHierarchy pHierProj, IVsCfg pCfgProj, IVsCfg pCfgSln, uint dwAction, int fSuccess, int fCancel)
-        {
-            OnUpdateProjectConfigDone?.Invoke(pHierProj, pCfgProj, fSuccess);
-            return 0;
-        }
-
         private int UpdateSolution_StartUpdate(ref int pfCancelUpdate)
         {
             var cancel = false;
@@ -854,8 +797,6 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
             OnUpdateSolutionStartUpdate = null;
             OnActiveProjectConfigurationChange = null;
             OnUpdateSolutionCancel = null;
-            OnUpdateProjectConfigDone = null;
-            OnUpdateProjectConfigBegin = null;
 
             if (_cookie != 0)
             {
