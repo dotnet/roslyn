@@ -49,6 +49,9 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.Api
         {
             if (query.MethodName == null)
             {
+                // if we don't have a method name, then the fully qualified type name needs to be broken into two parts:
+                // 1. the name of the type symbol we're looking for (the last name portion of the qualified name)
+                // 2. the container of the type symbol we're looking for (all but the last name portion).
                 var fullyQualifiedTypeName = query.FullyQualifiedTypeName;
                 var lastPlus = fullyQualifiedTypeName.LastIndexOf('+');
                 var lastDot = fullyQualifiedTypeName.LastIndexOf('.');
@@ -64,10 +67,17 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.Api
             }
             else
             {
+                // If we have a method name, then that's the name we'll search in the index for. The fully qualified
+                // type name is what we'll use to check the container of any methods we find.
                 return (ConvertTypeName(query.FullyQualifiedTypeName), query.MethodName, query.MethodArity);
             }
         }
 
+        /// <summary>
+        /// Converts from a metadata-name into the internal simple dotted name we store in our index as the container
+        /// for a symbol.  In the future, we could consider storing the fully-qualified-metadata-name in our index as
+        /// it's trivial to compute it as we're walking down the syntax tree.
+        /// </summary>
         private static string ConvertTypeName(string fullyQualifiedTypeName)
         {
             var pieces = fullyQualifiedTypeName.Split(s_splitCharacters);
