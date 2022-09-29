@@ -214,6 +214,7 @@ namespace Microsoft.CodeAnalysis.Remote.Testing
                 RegisterRemoteBrokeredService(new RemoteCompilationAvailableService.Factory());
                 RegisterRemoteBrokeredService(new RemoteLegacySolutionEventsAggregationService.Factory());
                 RegisterRemoteBrokeredService(new RemoteStackTraceExplorerService.Factory());
+                RegisterRemoteBrokeredService(new RemoteUnitTestingSearchService.Factory());
             }
 
             public void Dispose()

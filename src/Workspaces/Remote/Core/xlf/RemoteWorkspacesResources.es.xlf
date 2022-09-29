@@ -142,6 +142,11 @@
         <target state="new">Task list</target>
         <note />
       </trans-unit>
+      <trans-unit id="FeatureName_UnitTestingSearch">
+        <source>Unit testing search</source>
+        <target state="new">Unit testing search</target>
+        <note />
+      </trans-unit>
       <trans-unit id="FeatureName_UnusedReferenceAnalysis">
         <source>Unused reference analysis</source>
         <target state="translated">Análisis de referencia inutilizado</target>
