@@ -32,16 +32,12 @@ namespace Build
 
             var argsBuilder = new StringBuilder();
 
-            argsBuilder.Append( CultureInfo.InvariantCulture, $"-c {configuration.MSBuildName}");
+            argsBuilder.Append(CultureInfo.InvariantCulture, $"-c {configuration.MSBuildName}");
             argsBuilder.Append(' ');
             argsBuilder.Append(args);
 
             // The DOTNET_ROOT_X64 environment variable is used by Arcade.
-            var msbuildEnvironmentVariables = DotNetHelper.GetMsBuildFixingEnvironmentVariables()
-                .Where(e => e.Key != "DOTNET_ROOT_X64")
-                .ToImmutableDictionary();
-
-            var toolOptions = new ToolInvocationOptions(msbuildEnvironmentVariables);
+            var toolOptions = new ToolInvocationOptions() { BlockedEnvironmentVariables = ImmutableArray.Create("MSBuildSDKsPath", "MSBUILD_EXE_PATH") };
 
             return ToolInvocationHelper.InvokePowershell(
                            context.Console,
