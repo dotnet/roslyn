@@ -63,13 +63,13 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.Api
 
                 GetNameAndArity(type, out type, out var typeArity);
 
-                return (ConvertTypeName(container), type, typeArity);
+                return (ConvertFromMetadataTypeName(container), type, typeArity);
             }
             else
             {
                 // If we have a method name, then that's the name we'll search in the index for. The fully qualified
                 // type name is what we'll use to check the container of any methods we find.
-                return (ConvertTypeName(query.FullyQualifiedTypeName), query.MethodName, query.MethodArity);
+                return (ConvertFromMetadataTypeName(query.FullyQualifiedTypeName), query.MethodName, query.MethodArity);
             }
         }
 
@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.Api
         /// for a symbol.  In the future, we could consider storing the fully-qualified-metadata-name in our index as
         /// it's trivial to compute it as we're walking down the syntax tree.
         /// </summary>
-        private static string ConvertTypeName(string fullyQualifiedTypeName)
+        private static string ConvertFromMetadataTypeName(string fullyQualifiedTypeName)
         {
             var pieces = fullyQualifiedTypeName.Split(s_splitCharacters);
             using var _ = PooledStringBuilder.GetInstance(out var result);
