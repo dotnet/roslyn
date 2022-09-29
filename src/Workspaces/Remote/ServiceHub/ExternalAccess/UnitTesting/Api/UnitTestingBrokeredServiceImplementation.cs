@@ -72,13 +72,13 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.Api
             public Task AnalyzeDocumentAsync(Document document, SyntaxNode bodyOpt, UnitTestingInvocationReasons reasons, CancellationToken cancellationToken)
             {
                 return _analyzer.AnalyzeDocumentAsync(document, bodyOpt, new UnitTestingInvocationReasonsWrapper(
-                    new CodeAnalysis.SolutionCrawler.InvocationReasons(reasons.Reasons)), cancellationToken);
+                    new CodeAnalysis.SolutionCrawler.InvocationReasons(reasons.GetReasons())), cancellationToken);
             }
 
             public Task AnalyzeProjectAsync(Project project, bool semanticsChanged, UnitTestingInvocationReasons reasons, CancellationToken cancellationToken)
             {
                 return _analyzer.AnalyzeProjectAsync(project, semanticsChanged, new UnitTestingInvocationReasonsWrapper(
-                    new CodeAnalysis.SolutionCrawler.InvocationReasons(reasons.Reasons)), cancellationToken);
+                    new CodeAnalysis.SolutionCrawler.InvocationReasons(reasons.GetReasons())), cancellationToken);
             }
 
             public void RemoveDocument(DocumentId documentId)
