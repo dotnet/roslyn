@@ -11239,8 +11239,10 @@ class Enumerator1
             comp.VerifyDiagnostics();
         }
 
-        [Fact]
-        public void LocalScope_10_Foreach_02()
+        [Theory]
+        [InlineData("class")]
+        [InlineData("ref struct")]
+        public void LocalScope_10_Foreach_02(string kind)
         {
             var source =
 @"int i = 0;
@@ -11253,7 +11255,7 @@ ref struct S
     public S(ref int i) { }
 }
 
-class Enumerable1
+" + kind + @" Enumerable1
 {
     public static Enumerable1 Create(ref int p) => default;
     public Enumerator1 GetEnumerator() => default;
@@ -11279,33 +11281,47 @@ class Enumerator1
     {
         S s0 = default;
         scoped ref S r0 = ref s0;
-        foreach (scoped ref S r1 in Enumerable1.Create(ref s0)) {
+        foreach (scoped ref S r1 in ClassEnumerable.Create(ref s0)) {
             r0 = ref r1; // 1
             break;
         }
-        foreach (scoped ref S r2 in Enumerable1.Create(ref s0)) {
+        foreach (scoped ref S r2 in ClassEnumerable.Create(ref s0)) {
             r0 = ref r2; // 2
             break;
         }
-        foreach (ref S r3 in Enumerable1.Create(ref s0)) {
+        foreach (ref S r3 in ClassEnumerable.Create(ref s0)) {
             r0 = ref r3;
             break;
         }
-        foreach (ref S r4 in Enumerable1.Create(ref s0)) {
+        foreach (ref S r4 in ClassEnumerable.Create(ref s0)) {
             r0 = ref r4;
+            break;
+        }
+        foreach (scoped ref S r5 in RefStructEnumerable.Create(ref s0)) {
+            r0 = ref r5; // 3
+            break;
+        }
+        foreach (ref S r6 in RefStructEnumerable.Create(ref s0)) {
+            r0 = ref r6; // 4
             break;
         }
     }
 }
 ref struct S { }
 
-class Enumerable1
+class ClassEnumerable
 {
-    public static Enumerable1 Create(ref S p) => default;
-    public Enumerator1 GetEnumerator() => default;
+    public static ClassEnumerable Create(ref S p) => default;
+    public ClassEnumerator GetEnumerator() => default;
 }
 
-class Enumerator1
+ref struct RefStructEnumerable
+{
+    public static RefStructEnumerable Create(ref S p) => default;
+    public ClassEnumerator GetEnumerator() => default;
+}
+
+class ClassEnumerator
 {
     public ref S Current => throw null;
     public bool MoveNext() => false;
@@ -11318,11 +11334,19 @@ class Enumerator1
                 Diagnostic(ErrorCode.ERR_RefAssignNarrower, "r0 = ref r1").WithArguments("r0", "r1").WithLocation(8, 13),
                 // (12,13): error CS8374: Cannot ref-assign 'r2' to 'r0' because 'r2' has a narrower escape scope than 'r0'.
                 //             r0 = ref r2; // 2
-                Diagnostic(ErrorCode.ERR_RefAssignNarrower, "r0 = ref r2").WithArguments("r0", "r2").WithLocation(12, 13));
+                Diagnostic(ErrorCode.ERR_RefAssignNarrower, "r0 = ref r2").WithArguments("r0", "r2").WithLocation(12, 13),
+                // (24,13): error CS8374: Cannot ref-assign 'r5' to 'r0' because 'r5' has a narrower escape scope than 'r0'.
+                //             r0 = ref r5; // 3
+                Diagnostic(ErrorCode.ERR_RefAssignNarrower, "r0 = ref r5").WithArguments("r0", "r5").WithLocation(24, 13),
+                // (28,22): error CS8352: Cannot use variable 'r6' in this context because it may expose referenced variables outside of their declaration scope
+                //             r0 = ref r6; // 4
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "r6").WithArguments("r6").WithLocation(28, 22));
         }
 
-        [Fact]
-        public void LocalScope_11_Foreach_02()
+        [Theory]
+        [InlineData("class")]
+        [InlineData("ref struct")]
+        public void LocalScope_11_Foreach_02(string kind)
         {
             var source =
 @"class Program
@@ -11350,7 +11374,7 @@ class Enumerator1
 }
 ref struct S { }
 
-class Enumerable1
+" + kind + @" Enumerable1
 {
     public static Enumerable1 Create(ref S p) => default;
     public Enumerator1 GetEnumerator() => default;
@@ -11433,8 +11457,10 @@ class Enumerator1
                 );
         }
 
-        [Fact]
-        public void LocalScope_12_Foreach_02()
+        [Theory]
+        [InlineData("class")]
+        [InlineData("ref struct")]
+        public void LocalScope_12_Foreach_02(string kind)
         {
             var source =
 @"class Program
@@ -11463,7 +11489,7 @@ ref struct S
     public S(ref int i) { }
 }
 
-class Enumerable1
+" + kind + @" Enumerable1
 {
     public static Enumerable1 Create(ref int p) => default;
     public Enumerator1 GetEnumerator() => default;
