@@ -2031,7 +2031,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             ArrayBuilder<EscapeValue> escapeValues)
         {
             // This code is attempting to implement the following portion of the spec. Essentially if we're not 
-            // either invoking a method by ref or have a ref struct return then all of the ref arguments. 
+            // either invoking a method by ref or have a ref struct return then there is no need to consider the 
+            // argument escape scopes when calculating the return escape scope.
             //
             // > A value resulting from a method invocation `e1.M(e2, ...)` is *safe-to-escape* from the narrowest of the following scopes:
             // > 1. The *calling method*
