@@ -162,10 +162,13 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.Api
                     info.TypeParameterCount == symbolArity)
                 {
                     // If it's a method, the parameter count much match.
-                    if (query.MethodName != null &&
-                        info.ParameterCount != query.MethodParameterCount)
+                    if (query.MethodName != null)
                     {
-                        continue;
+                        if (info.Kind is not (DeclaredSymbolInfoKind.Method or DeclaredSymbolInfoKind.ExtensionMethod) ||
+                            info.ParameterCount != query.MethodParameterCount)
+                        {
+                            continue;
+                        }
                     }
 
                     if (info.FullyQualifiedContainerName != container)

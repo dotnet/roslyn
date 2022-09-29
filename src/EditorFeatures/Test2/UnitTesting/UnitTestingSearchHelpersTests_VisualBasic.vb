@@ -8,12 +8,12 @@ Imports Microsoft.CodeAnalysis.Remote.Testing
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.UnitTesting
     <UseExportProvider>
-    Public Class UnitTestingSearchHelpersTests_CSharp
+    Public Class UnitTestingSearchHelpersTests_VisualBasic
         Private Shared ReadOnly s_inProcessComposition As TestComposition = EditorTestCompositions.EditorFeatures
         Private Shared ReadOnly s_outOffProcessComposition As TestComposition = s_inProcessComposition.WithTestHostParts(TestHost.OutOfProcess)
 
-        Private Shared Async Function TestCSharp(text As String, query As UnitTestingSearchQuery, host As TestHost) As Task
-            Using workspace = TestWorkspace.CreateCSharp(text,
+        Private Shared Async Function TestVisualBasic(text As String, query As UnitTestingSearchQuery, host As TestHost) As Task
+            Using workspace = TestWorkspace.CreateVisualBasic(text,
                 composition:=If(host = TestHost.OutOfProcess, s_outOffProcessComposition, s_inProcessComposition))
 
                 Dim project = workspace.CurrentSolution.Projects.Single()
@@ -36,280 +36,276 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.UnitTesting
 
         <Theory, CombinatorialData>
         Public Async Function TestType1(host As TestHost) As Task
-            Await TestCSharp("
+            Await TestVisualBasic("
 class [|Outer|]
-{
-}", UnitTestingSearchQuery.ForType("Outer"), host)
+end class
+", UnitTestingSearchQuery.ForType("Outer"), host)
         End Function
 
         <Theory, CombinatorialData>
         Public Async Function TestGenericType1(host As TestHost) As Task
-            Await TestCSharp("
-class [|Outer|]<T>
-{
-}", UnitTestingSearchQuery.ForType("Outer`1"), host)
+            Await TestVisualBasic("
+class [|Outer|](of T)
+end class
+", UnitTestingSearchQuery.ForType("Outer`1"), host)
         End Function
 
         <Theory, CombinatorialData>
         Public Async Function TestGenericType2(host As TestHost) As Task
-            Await TestCSharp("
-class Outer<T>
-{
-}", UnitTestingSearchQuery.ForType("Outer"), host)
+            Await TestVisualBasic("
+class Outer(of T)
+end class
+", UnitTestingSearchQuery.ForType("Outer"), host)
         End Function
 
         <Theory, CombinatorialData>
         Public Async Function TestGenericType3(host As TestHost) As Task
-            Await TestCSharp("
-class Outer<T>
-{
-}", UnitTestingSearchQuery.ForType("Outer`2"), host)
+            Await TestVisualBasic("
+class Outer(of T)
+end class
+", UnitTestingSearchQuery.ForType("Outer`2"), host)
         End Function
 
         <Theory, CombinatorialData>
         Public Async Function TestNestedType1(host As TestHost) As Task
-            Await TestCSharp("
+            Await TestVisualBasic("
 class Outer
-{
     class [|Inner|]
-    {
-    }
-}", UnitTestingSearchQuery.ForType("Outer.Inner"), host)
+    end class
+end class
+", UnitTestingSearchQuery.ForType("Outer.Inner"), host)
         End Function
 
         <Theory, CombinatorialData>
         Public Async Function TestNestedType2(host As TestHost) As Task
-            Await TestCSharp("
+            Await TestVisualBasic("
 class Outer
-{
     class [|Inner|]
-    {
-    }
-}", UnitTestingSearchQuery.ForType("Outer+Inner"), host)
+    end class
+end class
+", UnitTestingSearchQuery.ForType("Outer+Inner"), host)
         End Function
 
         <Theory, CombinatorialData>
         Public Async Function TestNestedType3(host As TestHost) As Task
-            Await TestCSharp("
+            Await TestVisualBasic("
 class Outer
-{
-    class [|Inner|]<T>
-    {
-    }
-}", UnitTestingSearchQuery.ForType("Outer+Inner`1"), host)
+    class [|Inner|](of T)
+    end class
+end class
+", UnitTestingSearchQuery.ForType("Outer+Inner`1"), host)
         End Function
 
         <Theory, CombinatorialData>
         Public Async Function TestNestedType4(host As TestHost) As Task
-            Await TestCSharp("
-class Outer<T>
-{
+            Await TestVisualBasic("
+class Outer(of T)
     class [|Inner|]
-    {
-    }
-}", UnitTestingSearchQuery.ForType("Outer`1+Inner"), host)
+    end class
+end class
+", UnitTestingSearchQuery.ForType("Outer`1+Inner"), host)
         End Function
 
         <Theory, CombinatorialData>
         Public Async Function TestNestedType5(host As TestHost) As Task
-            Await TestCSharp("
-class Outer<T>
-{
-    class [|Inner|]<U>
-    {
-    }
-}", UnitTestingSearchQuery.ForType("Outer`1+Inner`1"), host)
+            Await TestVisualBasic("
+class Outer(of T)
+    class [|Inner|](of U)
+    end class
+end class
+", UnitTestingSearchQuery.ForType("Outer`1+Inner`1"), host)
         End Function
 
         <Theory, CombinatorialData>
         Public Async Function TestTypeWithNamespace1(host As TestHost) As Task
-            Await TestCSharp("
+            Await TestVisualBasic("
 namespace N
-{
     class [|Outer|]
-    {
-    }
-}", UnitTestingSearchQuery.ForType("N.Outer"), host)
+    end class
+end namespace", UnitTestingSearchQuery.ForType("N.Outer"), host)
         End Function
 
         <Theory, CombinatorialData>
         Public Async Function TestTypeWithNamespace2(host As TestHost) As Task
-            Await TestCSharp("
+            Await TestVisualBasic("
 namespace N
-{
     class Outer
-    {
-    }
-}", UnitTestingSearchQuery.ForType("Outer"), host)
+    end class
+end namespace
+", UnitTestingSearchQuery.ForType("Outer"), host)
         End Function
 
         <Theory, CombinatorialData>
         Public Async Function TestTypeWithNamespace3(host As TestHost) As Task
-            Await TestCSharp("
+            Await TestVisualBasic("
 namespace N1.N2
-{
     class [|Outer|]
-    {
-    }
-}", UnitTestingSearchQuery.ForType("N1.N2.Outer"), host)
+    end class
+end namespace", UnitTestingSearchQuery.ForType("N1.N2.Outer"), host)
         End Function
 
         <Theory, CombinatorialData>
         Public Async Function TestTypeWithNamespace4(host As TestHost) As Task
-            Await TestCSharp("
+            Await TestVisualBasic("
 namespace N1
-{
     namespace N2
-    {
         class [|Outer|]
-        {
-        }
-    }
-}", UnitTestingSearchQuery.ForType("N1.N2.Outer"), host)
+        end class
+    end namespace
+end namespace
+", UnitTestingSearchQuery.ForType("N1.N2.Outer"), host)
         End Function
 
         <Theory, CombinatorialData>
         Public Async Function TestMethod1(host As TestHost) As Task
-            Await TestCSharp("
+            Await TestVisualBasic("
 class Outer
-{
-    void [|Goo|]() { }
-}", UnitTestingSearchQuery.ForMethod("Outer", "Goo", methodArity:=0, methodParameterCount:=0), host)
+    sub [|Goo|]()
+    end sub
+end class
+", UnitTestingSearchQuery.ForMethod("Outer", "Goo", methodArity:=0, methodParameterCount:=0), host)
         End Function
 
         <Theory, CombinatorialData>
         Public Async Function TestMethod2(host As TestHost) As Task
-            Await TestCSharp("
+            Await TestVisualBasic("
 class Outer
-{
-    void Goo() { }
-}", UnitTestingSearchQuery.ForMethod("Outer", "Goo", methodArity:=1, methodParameterCount:=0), host)
+    sub Goo()
+    end sub
+end class
+", UnitTestingSearchQuery.ForMethod("Outer", "Goo", methodArity:=1, methodParameterCount:=0), host)
         End Function
 
         <Theory, CombinatorialData>
         Public Async Function TestMethod3(host As TestHost) As Task
-            Await TestCSharp("
+            Await TestVisualBasic("
 class Outer
-{
-    void Goo() { }
-}", UnitTestingSearchQuery.ForMethod("Outer", "Goo", methodArity:=0, methodParameterCount:=1), host)
+    sub Goo()
+    end sub
+end class
+", UnitTestingSearchQuery.ForMethod("Outer", "Goo", methodArity:=0, methodParameterCount:=1), host)
         End Function
 
         <Theory, CombinatorialData>
         Public Async Function TestMethod4(host As TestHost) As Task
-            Await TestCSharp("
+            Await TestVisualBasic("
 class Outer
-{
-    void Goo<T>() { }
-}", UnitTestingSearchQuery.ForMethod("Outer", "Goo", methodArity:=0, methodParameterCount:=0), host)
+    sub Goo(of T)()
+    end sub
+end class
+", UnitTestingSearchQuery.ForMethod("Outer", "Goo", methodArity:=0, methodParameterCount:=0), host)
         End Function
 
         <Theory, CombinatorialData>
         Public Async Function TestMethod5(host As TestHost) As Task
-            Await TestCSharp("
+            Await TestVisualBasic("
 class Outer
-{
-    void Goo(int i) { }
-}", UnitTestingSearchQuery.ForMethod("Outer", "Goo", methodArity:=0, methodParameterCount:=0), host)
+    sub Goo(i as integer)
+    end sub
+end class
+", UnitTestingSearchQuery.ForMethod("Outer", "Goo", methodArity:=0, methodParameterCount:=0), host)
         End Function
 
         <Theory, CombinatorialData>
         Public Async Function TestMethod6(host As TestHost) As Task
-            Await TestCSharp("
+            Await TestVisualBasic("
 class Outer
-{
-    void [|Goo|]<T>() { }
-}", UnitTestingSearchQuery.ForMethod("Outer", "Goo", methodArity:=1, methodParameterCount:=0), host)
+    sub [|Goo|](of T)()
+    end sub
+end class
+", UnitTestingSearchQuery.ForMethod("Outer", "Goo", methodArity:=1, methodParameterCount:=0), host)
         End Function
 
         <Theory, CombinatorialData>
         Public Async Function TestMethod7(host As TestHost) As Task
-            Await TestCSharp("
+            Await TestVisualBasic("
 class Outer
-{
-    void [|Goo|](int a) { }
-}", UnitTestingSearchQuery.ForMethod("Outer", "Goo", methodArity:=0, methodParameterCount:=1), host)
+    sub [|Goo|](a as integer)
+    end sub
+end class
+", UnitTestingSearchQuery.ForMethod("Outer", "Goo", methodArity:=0, methodParameterCount:=1), host)
         End Function
 
         <Theory, CombinatorialData>
         Public Async Function TestMethod8(host As TestHost) As Task
-            Await TestCSharp("
+            Await TestVisualBasic("
 class Outer
-{
-    void [|Goo|]<T>(int a) { }
-}", UnitTestingSearchQuery.ForMethod("Outer", "Goo", methodArity:=1, methodParameterCount:=1), host)
+    sub [|Goo|](of T)(a as integer)
+    end sub
+end class
+", UnitTestingSearchQuery.ForMethod("Outer", "Goo", methodArity:=1, methodParameterCount:=1), host)
         End Function
 
         <Theory, CombinatorialData>
         Public Async Function TestMethod9(host As TestHost) As Task
-            Await TestCSharp("
+            Await TestVisualBasic("
 class Outer
-{
     class Inner
-    {
-        void [|Goo|]() { }
-    }
-}", UnitTestingSearchQuery.ForMethod("Outer+Inner", "Goo", methodArity:=0, methodParameterCount:=0), host)
+        sub [|Goo|]()
+        end sub
+    end class
+end class
+", UnitTestingSearchQuery.ForMethod("Outer+Inner", "Goo", methodArity:=0, methodParameterCount:=0), host)
         End Function
 
         <Theory, CombinatorialData>
         Public Async Function TestMethod10(host As TestHost) As Task
-            Await TestCSharp("
+            Await TestVisualBasic("
 class Outer
-{
-    class Inner<T>
-    {
-        void [|Goo|]() { }
-    }
-}", UnitTestingSearchQuery.ForMethod("Outer+Inner`1", "Goo", methodArity:=0, methodParameterCount:=0), host)
+    class Inner(of T)
+        sub [|Goo|]()
+        end sub
+    end class
+end class
+", UnitTestingSearchQuery.ForMethod("Outer+Inner`1", "Goo", methodArity:=0, methodParameterCount:=0), host)
         End Function
 
         <Theory, CombinatorialData>
         Public Async Function TestMethod11(host As TestHost) As Task
-            Await TestCSharp("
-class Outer<T>
-{
+            Await TestVisualBasic("
+class Outer(of T)
     class Inner
-    {
-        void [|Goo|]() { }
-    }
-}", UnitTestingSearchQuery.ForMethod("Outer`1+Inner", "Goo", methodArity:=0, methodParameterCount:=0), host)
+        sub [|Goo|]()
+        end sub
+    end class
+end class
+", UnitTestingSearchQuery.ForMethod("Outer`1+Inner", "Goo", methodArity:=0, methodParameterCount:=0), host)
         End Function
 
         <Theory, CombinatorialData>
         Public Async Function TestMethod12(host As TestHost) As Task
-            Await TestCSharp("
-class Outer<T>
-{
-    class Inner<U>
-    {
-        void [|Goo|]() { }
-    }
-}", UnitTestingSearchQuery.ForMethod("Outer`1+Inner`1", "Goo", methodArity:=0, methodParameterCount:=0), host)
+            Await TestVisualBasic("
+class Outer(of T)
+    class Inner(of U)
+        sub [|Goo|]()
+        end sub
+    end class
+end class
+", UnitTestingSearchQuery.ForMethod("Outer`1+Inner`1", "Goo", methodArity:=0, methodParameterCount:=0), host)
         End Function
 
         <Theory, CombinatorialData>
         Public Async Function TestMethod13(host As TestHost) As Task
-            Await TestCSharp("
+            Await TestVisualBasic("
 namespace N1.N2
-{
     class Outer
-    {
         class Inner
-        {
-            void [|Goo|]() { }
-        }
-    }
-}", UnitTestingSearchQuery.ForMethod("N1.N2.Outer+Inner", "Goo", methodArity:=0, methodParameterCount:=0), host)
+            sub [|Goo|]()
+            end sub
+        end class
+    end class
+end namespace
+", UnitTestingSearchQuery.ForMethod("N1.N2.Outer+Inner", "Goo", methodArity:=0, methodParameterCount:=0), host)
         End Function
 
         <Theory, CombinatorialData>
         Public Async Function TestExtensionMethod1(host As TestHost) As Task
-            Await TestCSharp("
-class Outer
-{
-    void [|Goo|](this Outer o) { }
-}", UnitTestingSearchQuery.ForMethod("Outer", "Goo", methodArity:=0, methodParameterCount:=1), host)
+            Await TestVisualBasic("
+module Outer
+    sub [|Goo|](i as integer)
+    end sub
+end module
+", UnitTestingSearchQuery.ForMethod("Outer", "Goo", methodArity:=0, methodParameterCount:=1), host)
         End Function
     End Class
 End Namespace
