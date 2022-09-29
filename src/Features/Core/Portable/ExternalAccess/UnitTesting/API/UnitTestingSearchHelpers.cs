@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
+using System.Dynamic;
 using System.Globalization;
 using System.Linq;
 using System.Threading;
@@ -139,30 +140,32 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.Api
             foreach (var info in index.DeclaredSymbolInfos)
             {
                 // Fast check to see if this looks like a candidate.
-                if (info.TypeParameterCount == symbolArity &&
-                    info.Name == symbolName)
-                {
-                    // If it's a method, the parameter count much match.
-                    if (query.MethodName != null)
-                    {
-                        if (info.Kind is not (DeclaredSymbolInfoKind.Method or DeclaredSymbolInfoKind.ExtensionMethod) ||
-                            info.ParameterCount != query.MethodParameterCount)
-                        {
-                            continue;
-                        }
-                    }
+                if (query.Strict && info.TypeParameterCount != symbolArity)
+                    continue;
 
-                    // Looking promising so far.  Check that the container matches what the caller needs.
-                    if (info.FullyQualifiedContainerName != container)
+                if (info.Name != symbolName)
+                    continue;
+
+                // If it's a method, the parameter count much match.
+                if (query.MethodName != null)
+                {
+                    if (info.Kind is not (DeclaredSymbolInfoKind.Method or DeclaredSymbolInfoKind.ExtensionMethod))
                         continue;
 
-                    // Unit testing needs to know the final span a location may be mapped to (e.g. with `#line` taken
-                    // into consideration).  So map that information here for them.
-                    tree ??= await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
-                    var mappedSpan = tree.GetMappedLineSpan(info.Span, cancellationToken);
-
-                    result.Add(new UnitTestingDocumentSpan(new DocumentSpan(document, info.Span), mappedSpan));
+                    if (query.Strict && info.ParameterCount != query.MethodParameterCount)
+                        continue;
                 }
+
+                // Looking promising so far.  Check that the container matches what the caller needs.
+                if (info.FullyQualifiedContainerName != container)
+                    continue;
+
+                // Unit testing needs to know the final span a location may be mapped to (e.g. with `#line` taken
+                // into consideration).  So map that information here for them.
+                tree ??= await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+                var mappedSpan = tree.GetMappedLineSpan(info.Span, cancellationToken);
+
+                result.Add(new UnitTestingDocumentSpan(new DocumentSpan(document, info.Span), mappedSpan));
             }
 
             return result.ToImmutable();
