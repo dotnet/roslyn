@@ -3493,5 +3493,70 @@ Class C
                 Return shortcut = "Shortcut"
             End Function
         End Class
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function SelectEnumMemberAdditionalFilterTextMatchOverFilterTextMatchWithLowerPriority() As Task
+            Using state = TestStateFactory.CreateVisualBasicTestState(
+                              <Document>
+Enum Colors
+    Red
+    Green
+End Enum
+
+Class Program
+    Property Green As Program
+    Sub M()
+        Dim x As Colors = Green$$
+    End Sub
+End Class
+</Document>)
+                state.SendInvokeCompletionList()
+                Await state.AssertCompletionItemsContainAll("Colors.Green", "Green")
+                Await state.AssertSelectedCompletionItem("Colors.Green", isHardSelected:=True)
+            End Using
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function DoNotSelectEnumMemberAdditionalFilterTextMatchOverBetterFilterTextMatch() As Task
+            Using state = TestStateFactory.CreateVisualBasicTestState(
+                              <Document>
+Enum Colors
+    Red
+    Green
+End Enum
+
+Class Program
+    Sub M()
+        Dim gree = ""
+        Dim x As Colors = gree$$
+    End Sub
+End Class
+                             </Document>)
+                state.SendInvokeCompletionList()
+                Await state.AssertCompletionItemsContainAll("Colors.Green", "gree")
+                Await state.AssertSelectedCompletionItem("gree", isHardSelected:=True)
+            End Using
+        End Function
+
+        <WpfFact, WorkItem(815963, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/815963")>
+        Public Async Function TestEnumMemberContainsLocal() As Task
+            Using state = TestStateFactory.CreateVisualBasicTestState(
+                              <Document>
+Enum E
+    A
+End Enum
+ 
+Class C
+    Sub M()
+        Const e As E = e$$
+    End Sub
+End Class
+                             </Document>)
+
+                state.SendInvokeCompletionList()
+                Await state.AssertCompletionItemsContainAll("e", "E", "E.A")
+                Await state.AssertCompletionItemsDoNotContainAny("e As E")
+            End Using
+        End Function
     End Class
 End Namespace
