@@ -30,16 +30,17 @@ namespace Microsoft.CodeAnalysis.Completion
             private IReadOnlyList<Lazy<CompletionProvider, CompletionProviderMetadata>>? _lazyImportedProviders;
             private readonly CompletionService _service;
 
-            private readonly AsyncBatchingWorkQueue<Project> _projectProvidersWorkQueue;
+            private readonly AsyncBatchingWorkQueue<IReadOnlyList<AnalyzerReference>> _projectProvidersWorkQueue;
 
             public ProviderManager(CompletionService service, IAsynchronousOperationListenerProvider? listenerProvider)
             {
                 _service = service;
                 _rolesToProviders = new Dictionary<ImmutableHashSet<string>, ImmutableArray<CompletionProvider>>(this);
 
-                _projectProvidersWorkQueue = new AsyncBatchingWorkQueue<Project>(
+                _projectProvidersWorkQueue = new AsyncBatchingWorkQueue<IReadOnlyList<AnalyzerReference>>(
                         TimeSpan.FromSeconds(1),
                         ProcessBatchAsync,
+                        EqualityComparer<IReadOnlyList<AnalyzerReference>>.Default,
                         listenerProvider?.GetListener(FeatureAttribute.CompletionSet) ?? AsynchronousOperationListenerProvider.NullListener,
                         CancellationToken.None);
             }
@@ -62,12 +63,12 @@ namespace Microsoft.CodeAnalysis.Completion
                 return _lazyImportedProviders;
             }
 
-            private ValueTask ProcessBatchAsync(ImmutableSegmentedList<Project> projects, CancellationToken cancellationToken)
+            private ValueTask ProcessBatchAsync(ImmutableSegmentedList<IReadOnlyList<AnalyzerReference>> referencesList, CancellationToken cancellationToken)
             {
-                foreach (var project in projects)
+                foreach (var references in referencesList)
                 {
                     cancellationToken.ThrowIfCancellationRequested();
-                    _ = ProjectCompletionProvider.GetExtensions(project);
+                    _ = ProjectCompletionProvider.GetExtensions(_service.Language, references);
                 }
 
                 return ValueTaskFactory.CompletedTask;
@@ -85,10 +86,10 @@ namespace Microsoft.CodeAnalysis.Completion
                 // return immediately and load them in background instead.
                 // https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1620947
 
-                if (ProjectCompletionProvider.TryGetCachedExtensions(project, out var providers))
+                if (ProjectCompletionProvider.TryGetCachedExtensions(project.AnalyzerReferences, out var providers))
                     return providers;
 
-                _projectProvidersWorkQueue.AddWork(project);
+                _projectProvidersWorkQueue.AddWork(project.AnalyzerReferences);
                 return ImmutableArray<CompletionProvider>.Empty;
             }
 

@@ -9,7 +9,6 @@ using System.Reflection;
 using System.Runtime.CompilerServices;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -29,9 +28,9 @@ namespace Microsoft.CodeAnalysis
         protected abstract ImmutableArray<string> GetLanguages(TExportAttribute exportAttribute);
         protected abstract bool TryGetExtensionsFromReference(AnalyzerReference reference, out ImmutableArray<TExtension> extensions);
 
-        public static bool TryGetCachedExtensions(Project project, out ImmutableArray<TExtension> extensions)
+        public static bool TryGetCachedExtensions(IReadOnlyList<AnalyzerReference> analyzerReferences, out ImmutableArray<TExtension> extensions)
         {
-            if (s_referencesToExtensionsMap.TryGetValue(project.AnalyzerReferences, out var providers))
+            if (s_referencesToExtensionsMap.TryGetValue(analyzerReferences, out var providers))
             {
                 extensions = providers.Value;
                 return true;
@@ -46,22 +45,27 @@ namespace Microsoft.CodeAnalysis
             if (project is null)
                 return ImmutableArray<TExtension>.Empty;
 
-            if (TryGetCachedExtensions(project, out var providers))
+            return GetExtensions(project.Language, project.AnalyzerReferences);
+        }
+
+        public static ImmutableArray<TExtension> GetExtensions(string language, IReadOnlyList<AnalyzerReference> analyzerReferences)
+        {
+            if (TryGetCachedExtensions(analyzerReferences, out var providers))
                 return providers;
 
-            return GetExtensionsSlow(project);
+            return GetExtensionsSlow(language, analyzerReferences);
 
-            ImmutableArray<TExtension> GetExtensionsSlow(Project project)
-                => s_referencesToExtensionsMap.GetValue(project.AnalyzerReferences, _ => new(ComputeExtensions(project))).Value;
+            ImmutableArray<TExtension> GetExtensionsSlow(string language, IReadOnlyList<AnalyzerReference> analyzerReferences)
+                => s_referencesToExtensionsMap.GetValue(analyzerReferences, _ => new(ComputeExtensions(language, analyzerReferences))).Value;
 
-            ImmutableArray<TExtension> ComputeExtensions(Project project)
+            ImmutableArray<TExtension> ComputeExtensions(string language, IReadOnlyList<AnalyzerReference> analyzerReferences)
             {
                 using var _ = ArrayBuilder<TExtension>.GetInstance(out var builder);
-                foreach (var reference in project.AnalyzerReferences)
+                foreach (var reference in analyzerReferences)
                 {
                     var provider = s_referenceToProviderMap.GetValue(
                         reference, static reference => new TProvider() { Reference = reference });
-                    foreach (var extension in provider.GetExtensions(project.Language))
+                    foreach (var extension in provider.GetExtensions(language))
                         builder.Add(extension);
                 }
 
