@@ -161,7 +161,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.Api
 
                     // Unit testing needs to know the final span a location may be mapped to (e.g. with `#line` taken
                     // into consideration).  So map that information here for them.
-                    tree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+                    tree ??= await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
                     var mappedSpan = tree.GetMappedLineSpan(info.Span, cancellationToken);
 
                     result.Add(new UnitTestingDocumentSpan(new DocumentSpan(document, info.Span), mappedSpan));
