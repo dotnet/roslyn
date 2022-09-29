@@ -258,6 +258,12 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
         public async ValueTask<ImmutableArray<ActiveStatementSpan>> GetAdjustedActiveStatementSpansAsync(TextDocument document, ActiveStatementSpanProvider activeStatementSpanProvider, CancellationToken cancellationToken)
         {
+            // filter out documents that are not synchronized to remote process before we attempt remote invoke:
+            if (!RemoteSupportedLanguages.IsSupported(document.Project.Language))
+            {
+                return ImmutableArray<ActiveStatementSpan>.Empty;
+            }
+
             var client = await RemoteHostClient.TryGetClientAsync(_workspace, cancellationToken).ConfigureAwait(false);
             if (client == null)
             {
