@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Recommendations;
 
 namespace Microsoft.CodeAnalysis.Completion
@@ -55,8 +56,14 @@ namespace Microsoft.CodeAnalysis.Completion
         /// This takes into consideration the experiment we are running in addition to the value
         /// from user facing options.
         /// </summary>
-        public bool ShouldShowNewSnippetExperience()
+        public bool ShouldShowNewSnippetExperience(Document document)
         {
+            // Will be removed once semantic snippets will be added to razor.
+            if (document.IsRazorDocument())
+            {
+                return false;
+            }
+
             // Don't trigger snippet completion if the option value is "default" and the experiment is disabled for the user. 
             return ShowNewSnippetExperience ?? SnippetCompletion;
         }
