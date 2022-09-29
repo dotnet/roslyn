@@ -166,7 +166,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.FindSymbols
                 GetAccessibility(container, typeDeclaration, typeDeclaration.BlockStatement.Modifiers),
                 typeDeclaration.BlockStatement.Identifier.Span,
                 GetInheritanceNames(stringTable, typeDeclaration),
-                IsNestedType(typeDeclaration))
+                IsNestedType(typeDeclaration),
+                typeParameterCount:=If(typeDeclaration.BlockStatement.TypeParameterList?.Parameters.Count, 0))
         End Function
 
         Protected Overrides Function GetEnumDeclarationInfo(
