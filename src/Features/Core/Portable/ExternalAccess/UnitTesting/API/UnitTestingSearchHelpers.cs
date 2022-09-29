@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.Api
             return await GetSourceLocationsInProcessAsync(project, query, cancellationToken).ConfigureAwait(false);
         }
 
-        private static (string containerName, string symbolName, int symbolArity) BuildQueryInfo(UnitTestingSearchQuery query)
+        private static (string containerName, string symbolName, int symbolArity) ExtractQueryData(UnitTestingSearchQuery query)
         {
             if (query.MethodName == null)
             {
@@ -115,7 +115,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.Api
             UnitTestingSearchQuery query,
             CancellationToken cancellationToken)
         {
-            var (container, symbolName, symbolArity) = BuildQueryInfo(query);
+            var (container, symbolName, symbolArity) = ExtractQueryData(query);
 
             var tasks = project.Documents.Select(d => GetSourceLocationsInProcessAsync(d, container, symbolName, symbolArity, query, cancellationToken));
             var result = await Task.WhenAll(tasks).ConfigureAwait(false);
