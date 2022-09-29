@@ -5051,6 +5051,11 @@
         <target state="translated">屬性或索引子不可以 out 或 ref 參數形式傳遞</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_ManagedAddr">
+        <source>Cannot take the address of, get the size of, or declare a pointer to a managed type ('{0}')</source>
+        <target state="translated">無法取得 Managed 類型 ('{0}') 的位址、大小，也無法宣告指向它的指標</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_BadFixedInitType">
         <source>The type of a local declared in a fixed statement must be a pointer type</source>
         <target state="translated">在 fixed 陳述式中宣告的區域變數類型必須為指標類型</target>

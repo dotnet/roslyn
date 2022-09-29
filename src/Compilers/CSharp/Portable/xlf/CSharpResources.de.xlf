@@ -5051,6 +5051,11 @@
         <target state="translated">Eine Eigenschaft oder ein Indexer kann nicht als out- oder ref-Parameter übergeben werden.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_ManagedAddr">
+        <source>Cannot take the address of, get the size of, or declare a pointer to a managed type ('{0}')</source>
+        <target state="translated">Es ist nicht möglich, einen Zeiger für den verwalteten Typ ("{0}") zu deklarieren oder dessen Adresse oder Größe abzurufen.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_BadFixedInitType">
         <source>The type of a local declared in a fixed statement must be a pointer type</source>
         <target state="translated">Der Typ einer lokalen Variablen, die in einer fixed-Anweisung deklariert wird, muss ein Zeigertyp sein.</target>

@@ -987,6 +987,9 @@
   <data name="ERR_RefProperty" xml:space="preserve">
     <value>A property or indexer may not be passed as an out or ref parameter</value>
   </data>
+  <data name="ERR_ManagedAddr" xml:space="preserve">
+    <value>Cannot take the address of, get the size of, or declare a pointer to a managed type ('{0}')</value>
+  </data>
   <data name="WRN_ManagedAddr" xml:space="preserve">
     <value>This takes the address of, gets the size of, or declares a pointer to a managed type ('{0}')</value>
   </data>

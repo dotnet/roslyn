@@ -1362,24 +1362,24 @@ class C
             var spanReference = CreateCompilation(SpanSource, options: TestOptions.UnsafeReleaseDll);
             var comp = CreateCompilation(source, references: new[] { spanReference.EmitToImageReference() }, options: TestOptions.UnsafeReleaseDll, runtimeFeature: RuntimeFlag.ByRefFields);
             comp.VerifyEmitDiagnostics(
-                // (16,29): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('S2')
+                // (16,29): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('S2')
                 //         var x2 = stackalloc S2[0]; // 1
-                Diagnostic(ErrorCode.WRN_ManagedAddr, "S2").WithArguments("S2").WithLocation(16, 29),
-                // (17,29): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('C')
+                Diagnostic(ErrorCode.ERR_ManagedAddr, "S2").WithArguments("S2").WithLocation(16, 29),
+                // (17,29): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('C')
                 //         var x3 = stackalloc C[0]; // 2
-                Diagnostic(ErrorCode.WRN_ManagedAddr, "C").WithArguments("C").WithLocation(17, 29),
+                Diagnostic(ErrorCode.ERR_ManagedAddr, "C").WithArguments("C").WithLocation(17, 29),
                 // (20,9): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('S2')
                 //         S2* y2 = stackalloc S2[0]; // 3
                 Diagnostic(ErrorCode.WRN_ManagedAddr, "S2*").WithArguments("S2").WithLocation(20, 9),
-                // (20,29): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('S2')
+                // (20,29): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('S2')
                 //         S2* y2 = stackalloc S2[0]; // 3
-                Diagnostic(ErrorCode.WRN_ManagedAddr, "S2").WithArguments("S2").WithLocation(20, 29),
+                Diagnostic(ErrorCode.ERR_ManagedAddr, "S2").WithArguments("S2").WithLocation(20, 29),
                 // (21,9): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('C')
                 //         C* y3 = stackalloc C[0]; // 4
                 Diagnostic(ErrorCode.WRN_ManagedAddr, "C*").WithArguments("C").WithLocation(21, 9),
-                // (21,28): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('C')
+                // (21,28): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('C')
                 //         C* y3 = stackalloc C[0]; // 4
-                Diagnostic(ErrorCode.WRN_ManagedAddr, "C").WithArguments("C").WithLocation(21, 28)
+                Diagnostic(ErrorCode.ERR_ManagedAddr, "C").WithArguments("C").WithLocation(21, 28)
                 );
         }
 
@@ -1418,42 +1418,25 @@ class C
             var spanReference = CreateCompilation(SpanSource, options: TestOptions.UnsafeReleaseDll);
             var comp = CreateCompilation(source, references: new[] { spanReference.EmitToImageReference() }, options: TestOptions.UnsafeReleaseDll, runtimeFeature: RuntimeFlag.ByRefFields);
             comp.VerifyEmitDiagnostics(
-                // (16,18): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('S2')
+                // (16,18): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('S2')
                 //         var x2 = stackalloc[] { new S2() }; // 1
-                Diagnostic(ErrorCode.WRN_ManagedAddr, "stackalloc[] { new S2() }").WithArguments("S2").WithLocation(16, 18),
-                // (17,18): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('C')
+                Diagnostic(ErrorCode.ERR_ManagedAddr, "stackalloc[] { new S2() }").WithArguments("S2").WithLocation(16, 18),
+                // (17,18): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('C')
                 //         var x3 = stackalloc[] { new C() }; // 2
-                Diagnostic(ErrorCode.WRN_ManagedAddr, "stackalloc[] { new C() }").WithArguments("C").WithLocation(17, 18),
+                Diagnostic(ErrorCode.ERR_ManagedAddr, "stackalloc[] { new C() }").WithArguments("C").WithLocation(17, 18),
                 // (20,9): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('S2')
                 //         S2* y2 = stackalloc[] { new S2() }; // 3
                 Diagnostic(ErrorCode.WRN_ManagedAddr, "S2*").WithArguments("S2").WithLocation(20, 9),
-                // (20,18): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('S2')
+                // (20,18): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('S2')
                 //         S2* y2 = stackalloc[] { new S2() }; // 3
-                Diagnostic(ErrorCode.WRN_ManagedAddr, "stackalloc[] { new S2() }").WithArguments("S2").WithLocation(20, 18),
+                Diagnostic(ErrorCode.ERR_ManagedAddr, "stackalloc[] { new S2() }").WithArguments("S2").WithLocation(20, 18),
                 // (24,9): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('C')
                 //         C* y3 = stackalloc[] { new C() }; // 4
                 Diagnostic(ErrorCode.WRN_ManagedAddr, "C*").WithArguments("C").WithLocation(24, 9),
-                // (24,17): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('C')
+                // (24,17): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('C')
                 //         C* y3 = stackalloc[] { new C() }; // 4
-                Diagnostic(ErrorCode.WRN_ManagedAddr, "stackalloc[] { new C() }").WithArguments("C").WithLocation(24, 17)
+                Diagnostic(ErrorCode.ERR_ManagedAddr, "stackalloc[] { new C() }").WithArguments("C").WithLocation(24, 17)
                 );
-            var verifier = CompileAndVerify(comp, verify: Verification.Skipped);
-            verifier.VerifyIL("C.M2", @"
-{
-  // Code size       20 (0x14)
-  .maxstack  3
-  IL_0000:  ldc.i4.1
-  IL_0001:  conv.u
-  IL_0002:  sizeof     ""C""
-  IL_0008:  mul.ovf.un
-  IL_0009:  localloc
-  IL_000b:  dup
-  IL_000c:  newobj     ""C..ctor()""
-  IL_0011:  stind.ref
-  IL_0012:  ldind.ref
-  IL_0013:  ret
-}
-");
         }
 
         [Fact]
@@ -8529,9 +8512,9 @@ class C
                 // (4,5): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('StructWithRefField')
                 //     StructWithRefField* p = stackalloc StructWithRefField[10]; // 1, 2
                 Diagnostic(ErrorCode.WRN_ManagedAddr, "StructWithRefField*").WithArguments("StructWithRefField").WithLocation(4, 5),
-                // (4,40): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('StructWithRefField')
+                // (4,40): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('StructWithRefField')
                 //     StructWithRefField* p = stackalloc StructWithRefField[10]; // 1, 2
-                Diagnostic(ErrorCode.WRN_ManagedAddr, "StructWithRefField").WithArguments("StructWithRefField").WithLocation(4, 40),
+                Diagnostic(ErrorCode.ERR_ManagedAddr, "StructWithRefField").WithArguments("StructWithRefField").WithLocation(4, 40),
                 // (5,7): error CS0306: The type 'StructWithRefField' may not be used as a type argument
                 //     C.M<StructWithRefField>(); // 3
                 Diagnostic(ErrorCode.ERR_BadTypeArgument, "M<StructWithRefField>").WithArguments("StructWithRefField").WithLocation(5, 7)
@@ -8568,9 +8551,9 @@ class C
                 // (4,5): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('StructWithIndirectRefField')
                 //     StructWithIndirectRefField* p = stackalloc StructWithIndirectRefField[10]; // 1, 2
                 Diagnostic(ErrorCode.WRN_ManagedAddr, "StructWithIndirectRefField*").WithArguments("StructWithIndirectRefField").WithLocation(4, 5),
-                // (4,48): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('StructWithIndirectRefField')
+                // (4,48): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('StructWithIndirectRefField')
                 //     StructWithIndirectRefField* p = stackalloc StructWithIndirectRefField[10]; // 1, 2
-                Diagnostic(ErrorCode.WRN_ManagedAddr, "StructWithIndirectRefField").WithArguments("StructWithIndirectRefField").WithLocation(4, 48),
+                Diagnostic(ErrorCode.ERR_ManagedAddr, "StructWithIndirectRefField").WithArguments("StructWithIndirectRefField").WithLocation(4, 48),
                 // (5,7): error CS0306: The type 'StructWithIndirectRefField' may not be used as a type argument
                 //     C.M<StructWithIndirectRefField>(); // 3
                 Diagnostic(ErrorCode.ERR_BadTypeArgument, "M<StructWithIndirectRefField>").WithArguments("StructWithIndirectRefField").WithLocation(5, 7),
@@ -8608,9 +8591,9 @@ public ref struct StructWithRefField
                 // (4,5): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('StructWithIndirectRefField')
                 //     StructWithIndirectRefField* p = stackalloc StructWithIndirectRefField[10]; // 1, 2
                 Diagnostic(ErrorCode.WRN_ManagedAddr, "StructWithIndirectRefField*").WithArguments("StructWithIndirectRefField").WithLocation(4, 5),
-                // (4,48): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('StructWithIndirectRefField')
+                // (4,48): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('StructWithIndirectRefField')
                 //     StructWithIndirectRefField* p = stackalloc StructWithIndirectRefField[10]; // 1, 2
-                Diagnostic(ErrorCode.WRN_ManagedAddr, "StructWithIndirectRefField").WithArguments("StructWithIndirectRefField").WithLocation(4, 48)
+                Diagnostic(ErrorCode.ERR_ManagedAddr, "StructWithIndirectRefField").WithArguments("StructWithIndirectRefField").WithLocation(4, 48)
                 );
 
             Assert.True(comp.GetTypeByMetadataName("StructWithIndirectRefField").IsManagedTypeNoUseSiteDiagnostics);

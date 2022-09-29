@@ -5051,6 +5051,11 @@
         <target state="translated">Una propiedad o un indizador no se puede pasar como parámetro out o ref</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_ManagedAddr">
+        <source>Cannot take the address of, get the size of, or declare a pointer to a managed type ('{0}')</source>
+        <target state="translated">No se puede adquirir la dirección, obtener el tamaño ni declarar un puntero a un tipo administrado ('{0}')</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_BadFixedInitType">
         <source>The type of a local declared in a fixed statement must be a pointer type</source>
         <target state="translated">El tipo de una variable local declarado en una instrucción "fixed" debe ser un tipo de puntero</target>

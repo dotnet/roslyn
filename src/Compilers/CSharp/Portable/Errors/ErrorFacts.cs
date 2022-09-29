@@ -693,6 +693,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.ERR_BadGetEnumerator:
                 case ErrorCode.ERR_AbstractBaseCall:
                 case ErrorCode.ERR_RefProperty:
+                case ErrorCode.ERR_ManagedAddr:
                 case ErrorCode.ERR_BadFixedInitType:
                 case ErrorCode.ERR_FixedMustInit:
                 case ErrorCode.ERR_InvalidAddrOp:
