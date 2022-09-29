@@ -1418,15 +1418,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             switch (managedKind)
             {
                 case ManagedKind.Managed:
-                    if (MessageID.IDS_ManagedAddr.GetFeatureAvailabilityDiagnosticInfo(compilation) is { } langVerDiagnostic)
-                    {
-                        diagnostics.Add(langVerDiagnostic, location);
-                    }
-                    else
-                    {
-                        diagnostics.Add(ErrorCode.WRN_ManagedAddr, location, type);
-                    }
-
+                    diagnostics.Add(ErrorCode.WRN_ManagedAddr, location, type);
                     return false;
                 case ManagedKind.UnmanagedWithGenerics when MessageID.IDS_FeatureUnmanagedConstructedTypes.GetFeatureAvailabilityDiagnosticInfo(compilation) is CSDiagnosticInfo diagnosticInfo:
                     diagnostics.Add(diagnosticInfo, location);

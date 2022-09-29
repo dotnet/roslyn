@@ -7223,9 +7223,6 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="IDS_PointerElementAccess" xml:space="preserve">
     <value>pointer element access</value>
   </data>
-  <data name="IDS_ManagedAddr" xml:space="preserve">
-    <value>pointer to managed type</value>
-  </data>
   <data name="ERR_ScopedTypeNameDisallowed" xml:space="preserve">
     <value>Types and aliases cannot be named 'scoped'.</value>
   </data>
