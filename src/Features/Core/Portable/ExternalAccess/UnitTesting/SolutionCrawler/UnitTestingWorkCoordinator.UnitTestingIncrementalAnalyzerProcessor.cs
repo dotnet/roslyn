@@ -234,7 +234,12 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                         reasons.Contains(UnitTestingPredefinedInvocationReasons.SemanticChanged))
                     {
                         await RunAnalyzersAsync(analyzers, document, workItem, (analyzer, document, cancellationToken) =>
-                            analyzer.AnalyzeDocumentAsync(document, null, reasons, cancellationToken), cancellationToken).ConfigureAwait(false);
+                            analyzer.AnalyzeDocumentAsync(document,
+#if false // Not used in unit testing crawling
+                                bodyOpt: null,
+#endif
+                                reasons,
+                                cancellationToken), cancellationToken).ConfigureAwait(false);
                     }
                     else
                     {
@@ -326,10 +331,17 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                         {
                             // as a fallback mechanism, if we can't run one method body due to some missing service, run whole document analyzer.
                             await RunAnalyzersAsync(analyzers, document, workItem, (analyzer, document, cancellationToken) =>
-                                analyzer.AnalyzeDocumentAsync(document, null, reasons, cancellationToken), cancellationToken).ConfigureAwait(false);
+                                analyzer.AnalyzeDocumentAsync(
+                                    document,
+#if false // Not used in unit testing crawling
+                                    null,
+#endif
+                                    reasons,
+                                    cancellationToken), cancellationToken).ConfigureAwait(false);
                             return;
                         }
 
+#if false // Not used in unit testing crawling
                         // check whether we know what body has changed. currently, this is an optimization toward typing case. if there are more than one body changes
                         // it will be considered as semantic change and whole document analyzer will take care of that case.
                         var activeMember = GetMemberNode(syntaxFactsService, root, workItem.ActiveMember);
@@ -341,10 +353,17 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                                 analyzer.AnalyzeDocumentAsync(document, null, reasons, cancellationToken), cancellationToken).ConfigureAwait(false);
                             return;
                         }
+#endif
 
                         // re-run just the body
                         await RunAnalyzersAsync(analyzers, document, workItem, (analyzer, document, cancellationToken) =>
-                            analyzer.AnalyzeDocumentAsync(document, activeMember, reasons, cancellationToken), cancellationToken).ConfigureAwait(false);
+                            analyzer.AnalyzeDocumentAsync(
+                                document,
+#if false // Not used in unit testing crawling
+                                activeMember,
+#endif
+                                reasons,
+                                cancellationToken), cancellationToken).ConfigureAwait(false);
                     }
                     catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
                     {
@@ -385,6 +404,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                     }
                 }
 
+#if false // Not used in unit testing crawling
                 private static SyntaxNode? GetMemberNode(ISyntaxFactsService service, SyntaxNode? root, SyntaxPath? memberPath)
                 {
                     if (root == null || memberPath == null)
@@ -399,6 +419,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
 
                     return service.IsMethodLevelMember(memberNode) ? memberNode : null;
                 }
+#endif
 
                 private static string EnqueueLogger(int tick, object documentOrProjectId, bool replaced)
                 {

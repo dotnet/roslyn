@@ -493,7 +493,14 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                             if (document is Document sourceDocument &&
                                 !workItem.InvocationReasons.Contains(UnitTestingPredefinedInvocationReasons.SemanticChanged))
                             {
-                                await Processor.RunAnalyzersAsync(reanalyzers, sourceDocument, workItem, (a, d, c) => a.AnalyzeDocumentAsync(d, null, reasons, c), cancellationToken).ConfigureAwait(false);
+                                await Processor.RunAnalyzersAsync(reanalyzers, sourceDocument, workItem,
+                                    (a, d, c) => a.AnalyzeDocumentAsync(
+                                        d,
+#if false // Not used in unit testing crawling
+                                        bodyOpt: null,
+#endif
+                                        reasons,
+                                        c), cancellationToken).ConfigureAwait(false);
                             }
                         }
                         catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))

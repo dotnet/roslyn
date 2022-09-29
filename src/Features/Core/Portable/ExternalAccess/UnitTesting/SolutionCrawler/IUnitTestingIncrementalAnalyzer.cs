@@ -27,7 +27,14 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
         Task AnalyzeSyntaxAsync(Document document, UnitTestingInvocationReasons reasons, CancellationToken cancellationToken);
 #endif
 
-        Task AnalyzeDocumentAsync(Document document, SyntaxNode bodyOpt, UnitTestingInvocationReasons reasons, CancellationToken cancellationToken);
+        Task AnalyzeDocumentAsync(
+            Document document,
+#if false // Not used in unit testing crawling
+            SyntaxNode bodyOpt,
+#endif
+            UnitTestingInvocationReasons reasons,
+            CancellationToken cancellationToken);
+
         Task AnalyzeProjectAsync(
             Project project,
 #if false // Not used in unit testing crawling
