@@ -115,10 +115,10 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.Api
                 => Task.CompletedTask;
 
             public Task AnalyzeDocumentAsync(Document document, SyntaxNode bodyOpt, InvocationReasons reasons, CancellationToken cancellationToken)
-                => _newAnalyzer.AnalyzeDocumentAsync(document, bodyOpt, new UnitTestingInvocationReasons(reasons.Reasons), cancellationToken);
+                => _newAnalyzer.AnalyzeDocumentAsync(document, bodyOpt, new UnitTestingInvocationReasons(reasons.GetReasons()), cancellationToken);
 
             public Task AnalyzeProjectAsync(Project project, bool semanticsChanged, InvocationReasons reasons, CancellationToken cancellationToken)
-                => _newAnalyzer.AnalyzeProjectAsync(project, semanticsChanged, new UnitTestingInvocationReasons(reasons.Reasons), cancellationToken);
+                => _newAnalyzer.AnalyzeProjectAsync(project, semanticsChanged, new UnitTestingInvocationReasons(reasons.GetReasons()), cancellationToken);
 
             public Task RemoveDocumentAsync(DocumentId documentId, CancellationToken cancellationToken)
                 => _newAnalyzer.RemoveDocumentAsync(documentId, cancellationToken);
