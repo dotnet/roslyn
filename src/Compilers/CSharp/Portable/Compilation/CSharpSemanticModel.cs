@@ -811,7 +811,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 binder = new ExecutableCodeBinder(constructorInitializer, binder.ContainingMemberOrLambda, binder);
 
-                BoundExpressionStatement bnode = binder.BindConstructorInitializer(constructorInitializer, ctorSyntax: null, BindingDiagnosticBag.Discarded);
+                BoundExpressionStatement bnode = binder.BindConstructorInitializer(constructorInitializer, BindingDiagnosticBag.Discarded);
                 var binfo = GetSymbolInfoFromBoundConstructorInitializer(memberModel, binder, bnode);
                 return binfo;
             }

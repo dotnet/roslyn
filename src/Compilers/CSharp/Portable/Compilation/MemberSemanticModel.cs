@@ -2463,13 +2463,9 @@ foundParent:;
                 return boundNode;
             }
 
-            internal override BoundExpressionStatement BindConstructorInitializer(ConstructorInitializerSyntax node, SyntaxNode ctorSyntax, BindingDiagnosticBag diagnostics)
+            internal override BoundExpressionStatement BindConstructorInitializer(ConstructorInitializerSyntax node, BindingDiagnosticBag diagnostics)
             {
-                if (node != null && TryGetBoundNodeFromMap(node) is { } existing)
-                {
-                    return (BoundExpressionStatement)existing;
-                }
-                return base.BindConstructorInitializer(node, ctorSyntax, diagnostics);
+                return (BoundExpressionStatement)TryGetBoundNodeFromMap(node) ?? base.BindConstructorInitializer(node, diagnostics);
             }
 
             internal override BoundExpressionStatement BindConstructorInitializer(PrimaryConstructorBaseTypeSyntax node, BindingDiagnosticBag diagnostics)

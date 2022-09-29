@@ -833,7 +833,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     case SyntaxKind.ThisConstructorInitializer:
                     case SyntaxKind.BaseConstructorInitializer:
                         var initializer = (ConstructorInitializerSyntax)_nodeToBind;
-                        _nodeBinder.BindConstructorInitializer(initializer, ctorSyntax: null, diagnostics);
+                        _nodeBinder.BindConstructorInitializer(initializer, diagnostics);
                         break;
                     case SyntaxKind.PrimaryConstructorBaseType:
                         _nodeBinder.BindConstructorInitializer((PrimaryConstructorBaseTypeSyntax)_nodeToBind, diagnostics);
@@ -842,7 +842,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         switch (_nodeToBind.Parent)
                         {
                             case ConstructorInitializerSyntax ctorInitializer:
-                                _nodeBinder.BindConstructorInitializer(ctorInitializer, ctorSyntax: null, diagnostics);
+                                _nodeBinder.BindConstructorInitializer(ctorInitializer, diagnostics);
                                 break;
                             case PrimaryConstructorBaseTypeSyntax ctorInitializer:
                                 _nodeBinder.BindConstructorInitializer(ctorInitializer, diagnostics);

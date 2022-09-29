@@ -3555,7 +3555,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                initializer = BindConstructorInitializer(initializer: null, ctorSyntax: recordDecl, diagnostics);
+                initializer = bodyBinder.BindImplicitConstructorInitializer(recordDecl, diagnostics);
             }
 
             return new BoundConstructorMethodBody(recordDecl,
@@ -3609,8 +3609,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Using BindStatement to bind block to make sure we are reusing results of partial binding in SemanticModel
             return new BoundConstructorMethodBody(constructor,
                                                   bodyBinder.GetDeclaredLocalsForScope(constructor),
-                                                  bodyBinder.BindConstructorInitializer(initializer, constructor, diagnostics),
-                                                  constructor.Body == null ? null : (BoundBlock)bodyBinder.BindStatement(constructor.Body, diagnostics),
+                                                  initializer == null ? bodyBinder.BindImplicitConstructorInitializer(constructor, diagnostics) : bodyBinder.BindConstructorInitializer(initializer, diagnostics),                                                  constructor.Body == null ? null : (BoundBlock)bodyBinder.BindStatement(constructor.Body, diagnostics),
                                                   constructor.ExpressionBody == null ?
                                                       null :
                                                       bodyBinder.BindExpressionBodyAsBlock(constructor.ExpressionBody,
@@ -3631,21 +3630,21 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-#nullable enable
-        [return: NotNullIfNotNull("initializer")]
-        internal virtual BoundExpressionStatement? BindConstructorInitializer(ConstructorInitializerSyntax? initializer, SyntaxNode? ctorSyntax, BindingDiagnosticBag diagnostics)
+        internal virtual BoundExpressionStatement BindConstructorInitializer(ConstructorInitializerSyntax initializer, BindingDiagnosticBag diagnostics)
         {
-            Debug.Assert(initializer != null || ctorSyntax != null);
+            BoundExpression initializerInvocation = GetBinder(initializer).BindConstructorInitializer(initializer.ArgumentList, (MethodSymbol)this.ContainingMember(), diagnostics);
+            //  Base WasCompilerGenerated state off of whether constructor is implicitly declared, this will ensure proper instrumentation.
+            Debug.Assert(!this.ContainingMember().IsImplicitlyDeclared);
+            var constructorInitializer = new BoundExpressionStatement(initializer, initializerInvocation);
+            Debug.Assert(initializerInvocation.HasAnyErrors || constructorInitializer.IsConstructorInitializer(), "Please keep this bound node in sync with BoundNodeExtensions.IsConstructorInitializer.");
+            return constructorInitializer;
+        }
+
+#nullable enable
+        internal BoundExpressionStatement? BindImplicitConstructorInitializer(SyntaxNode ctorSyntax, BindingDiagnosticBag diagnostics)
+        {
             BoundExpression? initializerInvocation;
-            if (initializer is null)
-            {
-                initializerInvocation = BindImplicitConstructorInitializer((MethodSymbol)this.ContainingMember(), diagnostics, Compilation);
-            }
-            else
-            {
-                initializerInvocation = (BoundExpression?)GetRequiredBinder(initializer).BindConstructorInitializer(initializer.ArgumentList, (MethodSymbol)this.ContainingMember(), diagnostics);
-                Debug.Assert(initializerInvocation != null);
-            }
+            initializerInvocation = BindImplicitConstructorInitializer((MethodSymbol)this.ContainingMember(), diagnostics, Compilation);
 
             if (initializerInvocation is null)
             {
@@ -3653,7 +3652,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             //  Base WasCompilerGenerated state off of whether constructor is implicitly declared, this will ensure proper instrumentation.
-            var constructorInitializer = new BoundExpressionStatement(initializer ?? ctorSyntax!, initializerInvocation) { WasCompilerGenerated = ((MethodSymbol)ContainingMember()).IsImplicitlyDeclared };
+            var constructorInitializer = new BoundExpressionStatement(ctorSyntax, initializerInvocation) { WasCompilerGenerated = ((MethodSymbol)ContainingMember()).IsImplicitlyDeclared };
             Debug.Assert(initializerInvocation.HasAnyErrors || constructorInitializer.IsConstructorInitializer(), "Please keep this bound node in sync with BoundNodeExtensions.IsConstructorInitializer.");
             return constructorInitializer;
         }

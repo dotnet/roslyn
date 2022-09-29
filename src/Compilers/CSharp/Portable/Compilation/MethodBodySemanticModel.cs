@@ -86,7 +86,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case SyntaxKind.BaseConstructorInitializer:
                 case SyntaxKind.ThisConstructorInitializer:
-                    return binder.BindConstructorInitializer((ConstructorInitializerSyntax)node, ctorSyntax: null, diagnostics);
+                    return binder.BindConstructorInitializer((ConstructorInitializerSyntax)node, diagnostics);
 
                 case SyntaxKind.PrimaryConstructorBaseType:
                     return binder.BindConstructorInitializer((PrimaryConstructorBaseTypeSyntax)node, diagnostics);

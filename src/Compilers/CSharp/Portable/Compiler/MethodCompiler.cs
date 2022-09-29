@@ -1742,7 +1742,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             BoundBlock? body;
             NullableWalker.VariableState? nullableInitialState = null;
-            BoundStatement? constructorInitializer;
 
             initializersBody ??= GetSynthesizedEmptyBody(method);
 
@@ -1750,7 +1749,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 body = BoundBlock.SynthesizedNoLocals(recordStructPrimaryCtor.GetSyntax());
                 nullableInitialState = getInitializerState(body);
-                constructorInitializer = BindImplicitConstructorInitializerIfAny(method, compilationState, diagnostics);
             }
             else if (method is SourceMemberMethodSymbol sourceMethod)
             {
@@ -1843,26 +1841,24 @@ namespace Microsoft.CodeAnalysis.CSharp
                                         expressionStatement.Expression is BoundCall { Method: var initMethod } && initMethod.IsDefaultValueTypeConstructor();
                                 }
 
-                                return body;
                             }
                             else
                             {
                                 Debug.Assert(constructor.Initializer is null);
                                 Debug.Assert(constructor.Locals.IsEmpty);
-                                constructorInitializer = null;
+                                Debug.Assert(BindImplicitConstructorInitializerIfAny(method, compilationState, diagnostics) is null);
                             }
-                            break;
+
+                            return body;
 
                         case BoundKind.NonConstructorMethodBody:
                             var nonConstructor = (BoundNonConstructorMethodBody)methodBody;
                             body = nonConstructor.BlockBody ?? nonConstructor.ExpressionBody!;
-                            constructorInitializer = null;
                             Debug.Assert(body != null);
                             break;
 
                         case BoundKind.Block:
                             body = (BoundBlock)methodBody;
-                            constructorInitializer = null;
                             break;
                         default:
                             throw ExceptionUtilities.UnexpectedValue(methodBody.Kind);
@@ -1889,14 +1885,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ctor.GenerateMethodBodyStatements(factory, stmts, diagnostics);
                 body = BoundBlock.SynthesizedNoLocals(node, stmts.ToImmutableAndFree());
                 nullableInitialState = getInitializerState(body);
-                constructorInitializer = BindImplicitConstructorInitializerIfAny(method, compilationState, diagnostics);
             }
             else
             {
                 // synthesized methods should return their bound bodies
                 body = null;
                 nullableInitialState = getInitializerState(null);
-                constructorInitializer = null;
             }
 
             if (reportNullableDiagnostics && method.IsConstructor() && method.IsImplicitlyDeclared && nullableInitialState is object)
@@ -1919,6 +1913,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return MethodBodySynthesizer.ConstructDestructorBody(method, body);
             }
 
+            var constructorInitializer = BindImplicitConstructorInitializerIfAny(method, compilationState, diagnostics);
             ImmutableArray<BoundStatement> statements;
 
             if (constructorInitializer == null)
@@ -1930,22 +1925,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 statements = ImmutableArray<BoundStatement>.Empty;
             }
+            else if (body == null)
+            {
+                statements = ImmutableArray.Create(constructorInitializer);
+            }
             else
             {
-                if (constructorInitializer.WasCompilerGenerated && constructorInitializer is BoundExpressionStatement { Expression: { } constructorExpression })
-                {
-                    ReportCtorInitializerCycles(method, constructorExpression, compilationState, diagnostics);
-                }
-
-                if (body == null)
-                {
-                    statements = ImmutableArray.Create(constructorInitializer);
-                }
-                else
-                {
-                    statements = ImmutableArray.Create(constructorInitializer, body);
-                    originalBodyNested = true;
-                }
+                statements = ImmutableArray.Create(constructorInitializer, body);
+                originalBodyNested = true;
             }
 
             return BoundBlock.SynthesizedNoLocals(method.GetNonNullSyntaxNode(), statements);
@@ -1979,6 +1966,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (initializerInvocation != null)
                 {
+                    ReportCtorInitializerCycles(method, initializerInvocation, compilationState, diagnostics);
+
                     //  Base WasCompilerGenerated state off of whether constructor is implicitly declared, this will ensure proper instrumentation.
                     var constructorInitializer = new BoundExpressionStatement(initializerInvocation.Syntax, initializerInvocation) { WasCompilerGenerated = method.IsImplicitlyDeclared };
                     Debug.Assert(initializerInvocation.HasAnyErrors || constructorInitializer.IsConstructorInitializer(), "Please keep this bound node in sync with BoundNodeExtensions.IsConstructorInitializer.");

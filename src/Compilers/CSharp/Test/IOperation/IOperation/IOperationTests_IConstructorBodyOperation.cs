@@ -1100,5 +1100,38 @@ class C
                     null
                 """);
         }
+
+        [Fact]
+        public void ConstructorBody_18()
+        {
+            string source = @"
+namespace System
+{
+    public class Object
+    {
+        public Object() { }
+    }
+
+    public class Void { }
+}
+";
+            var compilation = CreateEmptyCompilation(source);
+
+            compilation.VerifyDiagnostics();
+
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var node1 = tree.GetRoot().DescendantNodes().OfType<ConstructorDeclarationSyntax>().Single();
+            compilation.VerifyOperationTree(node1, """
+                IConstructorBodyOperation (OperationKind.ConstructorBody, Type: null) (Syntax: 'public Object() { }')
+                  Initializer:
+                    null
+                  BlockBody:
+                    IBlockOperation (0 statements) (OperationKind.Block, Type: null) (Syntax: '{ }')
+                  ExpressionBody:
+                    null
+                """);
+        }
     }
 }
