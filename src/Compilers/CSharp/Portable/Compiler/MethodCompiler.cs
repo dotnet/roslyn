@@ -1846,7 +1846,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             {
                                 Debug.Assert(constructor.Initializer is null);
                                 Debug.Assert(constructor.Locals.IsEmpty);
-                                Debug.Assert(BindImplicitConstructorInitializerIfAny(method, compilationState, diagnostics) is null);
+                                Debug.Assert(BindImplicitConstructorInitializerIfAny(method, compilationState, BindingDiagnosticBag.Discarded) is null);
                             }
 
                             return body;
