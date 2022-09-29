@@ -8547,7 +8547,7 @@ class C
 unsafe
 {
     StructWithIndirectRefField* p = stackalloc StructWithIndirectRefField[10]; // 1, 2
-    C.M<StructWithRefField>(); // 3
+    C.M<StructWithIndirectRefField>(); // 3
 }
 
 ref struct StructWithIndirectRefField
@@ -8571,9 +8571,9 @@ class C
                 // (4,48): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('StructWithIndirectRefField')
                 //     StructWithIndirectRefField* p = stackalloc StructWithIndirectRefField[10]; // 1, 2
                 Diagnostic(ErrorCode.WRN_ManagedAddr, "StructWithIndirectRefField").WithArguments("StructWithIndirectRefField").WithLocation(4, 48),
-                // (5,9): error CS0305: Using the generic type 'StructWithRefField<T>' requires 1 type arguments
-                //     C.M<StructWithRefField>(); // 3
-                Diagnostic(ErrorCode.ERR_BadArity, "StructWithRefField").WithArguments("StructWithRefField<T>", "type", "1").WithLocation(5, 9),
+                // (5,7): error CS0306: The type 'StructWithIndirectRefField' may not be used as a type argument
+                //     C.M<StructWithIndirectRefField>(); // 3
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "M<StructWithIndirectRefField>").WithArguments("StructWithIndirectRefField").WithLocation(5, 7),
                 // (10,36): warning CS0649: Field 'StructWithIndirectRefField.Field' is never assigned to, and will always have its default value 
                 //     public StructWithRefField<int> Field;
                 Diagnostic(ErrorCode.WRN_UnassignedInternalField, "Field").WithArguments("StructWithIndirectRefField.Field", "").WithLocation(10, 36),
