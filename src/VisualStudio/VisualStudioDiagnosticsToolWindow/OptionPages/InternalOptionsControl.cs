@@ -143,22 +143,28 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
 
         private UIElement CreateControl(IOption option, string languageName = null, string additional = null)
         {
+            // Underscores in WPF mean that the next character is the access key for keyboard navigation
+            // but thats not why our option names have underscores. Also removing them looks nicer.
+            var optionDisplay = option.Name.Replace('_', ' ') + GetLanguage(languageName) + GetAdditionalText(additional);
+
             if (option.Type == typeof(bool))
             {
-                var checkBox = new CheckBox() { Content = option.Name + GetLanguage(languageName) + GetAdditionalText(additional) };
+                var checkBox = new CheckBox() { Content = optionDisplay };
                 BindToCheckBox(checkBox, option, languageName);
                 return checkBox;
             }
 
             if (option.Type == typeof(int))
             {
-                var label = new Label() { Content = option.Name + GetLanguage(languageName) + GetAdditionalText(additional) };
+                var label = new Label() { Content = optionDisplay };
                 var textBox = new TextBox();
                 BindToTextBox(textBox, option, languageName);
 
                 var panel = new StackPanel();
                 panel.Children.Add(label);
                 panel.Children.Add(textBox);
+
+                AddSearchHandler(label);
 
                 return panel;
             }

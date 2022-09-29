@@ -4,10 +4,12 @@
 
 #nullable disable
 
+using System;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.TaskList;
 using Microsoft.CodeAnalysis.TodoComments;
 
 namespace Microsoft.VisualStudio.LanguageServices.ExternalAccess.VSTypeScript.Api
@@ -19,6 +21,9 @@ namespace Microsoft.VisualStudio.LanguageServices.ExternalAccess.VSTypeScript.Ap
         /// TypeScript is responsible for determining when to compute todo comments (for example, on <see
         /// cref="Workspace.WorkspaceChanged"/>).  This can be called on any thread.
         /// </summary>
+        [Obsolete("Use {nameof(ReportTaskListItemsAsync)} instead.")]
         Task ReportTodoCommentsAsync(Document document, ImmutableArray<TodoComment> todoComments, CancellationToken cancellationToken);
+
+        Task ReportTaskListItemsAsync(Document document, ImmutableArray<TaskListItem> items, CancellationToken cancellationToken);
     }
 }

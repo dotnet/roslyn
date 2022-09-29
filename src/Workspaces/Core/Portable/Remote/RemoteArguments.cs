@@ -102,7 +102,7 @@ namespace Microsoft.CodeAnalysis.Remote
             return true;
         }
 
-        public async Task<ISymbol?> TryRehydrateAsync(
+        public async ValueTask<ISymbol?> TryRehydrateAsync(
             Solution solution, CancellationToken cancellationToken)
         {
             var projectId = ProjectId;
@@ -186,7 +186,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 referenceLocation.CandidateReason);
         }
 
-        public async Task<ReferenceLocation> RehydrateAsync(
+        public async ValueTask<ReferenceLocation> RehydrateAsync(
             Solution solution, CancellationToken cancellationToken)
         {
             var document = await solution.GetRequiredDocumentAsync(this.Document, includeSourceGenerated: true, cancellationToken).ConfigureAwait(false);

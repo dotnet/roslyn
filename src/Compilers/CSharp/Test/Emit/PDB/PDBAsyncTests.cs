@@ -2014,7 +2014,7 @@ public partial class C
     partial void M();
     async partial void M() {}
 }";
-            var compilation = CreateCompilationWithMscorlib45(src, options: TestOptions.DebugDll);
+            var compilation = CreateCompilationWithMscorlib45(src, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), options: TestOptions.DebugDll);
             var v = CompileAndVerify(compilation);
             v.VerifyPdb("C.M", @"
 <symbols>

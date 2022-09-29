@@ -46,6 +46,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             this.SetReturnsVoid(_lazyReturnType.IsVoidType());
 
             this.CheckEffectiveAccessibility(_lazyReturnType, _lazyParameters, diagnostics);
+            this.CheckFileTypeUsage(_lazyReturnType, _lazyParameters, diagnostics);
 
             var location = locations[0];
             // Checks taken from MemberDefiner::defineMethod
@@ -260,7 +261,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             ParameterHelpers.EnsureNativeIntegerAttributeExists(compilation, Parameters, diagnostics, modifyCompilation: true);
 
-            ParameterHelpers.EnsureLifetimeAnnotationAttributeExists(compilation, Parameters, diagnostics, modifyCompilation: true);
+            ParameterHelpers.EnsureScopedRefAttributeExists(compilation, Parameters, diagnostics, modifyCompilation: true);
 
             if (compilation.ShouldEmitNullableAttributes(this) && ReturnTypeWithAnnotations.NeedsNullableAttribute())
             {

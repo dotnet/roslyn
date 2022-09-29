@@ -20,7 +20,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <summary>
         ''' The number of the next generated resumable state (i.e. state that resumes execution of the state machine after await expression or yield return).
         ''' </summary>
-        Private _nextState As Integer
+        Private _nextState As StateMachineState
 
 #If DEBUG Then
         ''' <summary>
@@ -33,7 +33,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         Private _matchedStateCount As Integer
 
-        Public Sub New(slotAllocator As VariableSlotAllocator, firstState As Integer, increasing As Boolean)
+        Public Sub New(slotAllocator As VariableSlotAllocator, firstState As StateMachineState, increasing As Boolean)
             _increasing = increasing
             _slotAllocator = slotAllocator
             _matchedStateCount = 0
@@ -41,25 +41,25 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             _nextState = If(slotAllocator?.GetFirstUnusedStateMachineState(increasing), firstState)
         End Sub
 
-        Public Function AllocateState(awaitOrYieldReturnSyntax As SyntaxNode) As Integer
+        Public Function AllocateState(awaitOrYieldReturnSyntax As SyntaxNode) As StateMachineState
             Debug.Assert(SyntaxBindingUtilities.BindsToResumableStateMachineState(awaitOrYieldReturnSyntax))
 
             Dim direction = If(_increasing, +1, -1)
-            Dim stateNumber As Integer
+            Dim state As StateMachineState
 
-            If _slotAllocator?.TryGetPreviousStateMachineState(awaitOrYieldReturnSyntax, stateNumber) = True Then
+            If _slotAllocator?.TryGetPreviousStateMachineState(awaitOrYieldReturnSyntax, state) = True Then
 #If DEBUG Then
                 ' two states of the new state machine should not match the same state of the previous machine
-                Debug.Assert(Not _matchedStates(stateNumber * direction))
-                _matchedStates(stateNumber * direction) = True
+                Debug.Assert(Not _matchedStates(state * direction))
+                _matchedStates(state * direction) = True
 #End If
                 _matchedStateCount += 1
             Else
-                stateNumber = _nextState
-                _nextState += direction
+                state = _nextState
+                _nextState = CType(_nextState + direction, StateMachineState)
             End If
 
-            Return stateNumber
+            Return state
         End Function
 
         ''' <summary>

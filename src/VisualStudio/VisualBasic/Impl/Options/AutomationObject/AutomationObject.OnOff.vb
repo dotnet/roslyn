@@ -125,6 +125,15 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
             End Set
         End Property
 
+        Public Property NavigateToSourceLinkAndEmbeddedSources As Boolean
+            Get
+                Return GetBooleanOption(MetadataAsSourceOptionsStorage.NavigateToSourceLinkAndEmbeddedSources)
+            End Get
+            Set(value As Boolean)
+                SetBooleanOption(MetadataAsSourceOptionsStorage.NavigateToSourceLinkAndEmbeddedSources, value)
+            End Set
+        End Property
+
         Public Property AlwaysUseDefaultSymbolServers As Boolean
             Get
                 Return GetBooleanOption(MetadataAsSourceOptionsStorage.AlwaysUseDefaultSymbolServers)

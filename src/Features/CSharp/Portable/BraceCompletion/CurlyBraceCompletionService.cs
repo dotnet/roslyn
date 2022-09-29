@@ -38,18 +38,18 @@ namespace Microsoft.CodeAnalysis.CSharp.BraceCompletion
 
         protected override char ClosingBrace => CurlyBrace.CloseCharacter;
 
-        public override Task<bool> AllowOverTypeAsync(BraceCompletionContext context, CancellationToken cancellationToken)
-            => AllowOverTypeInUserCodeWithValidClosingTokenAsync(context, cancellationToken);
+        public override bool AllowOverType(BraceCompletionContext context, CancellationToken cancellationToken)
+            => AllowOverTypeInUserCodeWithValidClosingToken(context, cancellationToken);
 
-        public override async Task<bool> CanProvideBraceCompletionAsync(char brace, int openingPosition, Document document, CancellationToken cancellationToken)
+        public override bool CanProvideBraceCompletion(char brace, int openingPosition, ParsedDocument document, CancellationToken cancellationToken)
         {
             // Only potentially valid for curly brace completion if not in an interpolation brace completion context.
-            if (OpeningBrace == brace && await InterpolationBraceCompletionService.IsPositionInInterpolationContextAsync(document, openingPosition, cancellationToken).ConfigureAwait(false))
+            if (OpeningBrace == brace && InterpolationBraceCompletionService.IsPositionInInterpolationContext(document, openingPosition))
             {
                 return false;
             }
 
-            return await base.CanProvideBraceCompletionAsync(brace, openingPosition, document, cancellationToken).ConfigureAwait(false);
+            return base.CanProvideBraceCompletion(brace, openingPosition, document, cancellationToken);
         }
 
         protected override bool IsValidOpeningBraceToken(SyntaxToken token)
@@ -142,13 +142,13 @@ namespace Microsoft.CodeAnalysis.CSharp.BraceCompletion
                 // int[] arr = {
                 //           = new[] {
                 //           = new int[] {
-                if (currentToken.Parent.IsKind(
-                    SyntaxKind.ObjectInitializerExpression,
-                    SyntaxKind.CollectionInitializerExpression,
-                    SyntaxKind.ArrayInitializerExpression,
-                    SyntaxKind.ImplicitArrayCreationExpression,
-                    SyntaxKind.WithInitializerExpression,
-                    SyntaxKind.PropertyPatternClause))
+                if (currentToken.Parent is (kind:
+                        SyntaxKind.ObjectInitializerExpression or
+                        SyntaxKind.CollectionInitializerExpression or
+                        SyntaxKind.ArrayInitializerExpression or
+                        SyntaxKind.ImplicitArrayCreationExpression or
+                        SyntaxKind.WithInitializerExpression or
+                        SyntaxKind.PropertyPatternClause))
                 {
                     return options.NewLines.HasFlag(NewLinePlacement.BeforeOpenBraceInObjectCollectionArrayInitializers);
                 }
@@ -180,7 +180,7 @@ namespace Microsoft.CodeAnalysis.CSharp.BraceCompletion
                 }
 
                 // * { - in the simple Lambda context
-                if (currentTokenParentParent.IsKind(SyntaxKind.SimpleLambdaExpression, SyntaxKind.ParenthesizedLambdaExpression))
+                if (currentTokenParentParent is (kind: SyntaxKind.SimpleLambdaExpression or SyntaxKind.ParenthesizedLambdaExpression))
                 {
                     return options.NewLines.HasFlag(NewLinePlacement.BeforeOpenBraceInLambdaExpressionBody);
                 }

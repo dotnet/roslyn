@@ -54,6 +54,7 @@ internal static class CSharpCodeStyleOptionsStorage
             UnusedValueAssignment = globalOptions.GetOption(CSharpCodeStyleOptions.UnusedValueAssignment),
             PreferMethodGroupConversion = globalOptions.GetOption(CSharpCodeStyleOptions.PreferMethodGroupConversion),
             PreferExpressionBodiedLambdas = globalOptions.GetOption(CSharpCodeStyleOptions.PreferExpressionBodiedLambdas),
+            PreferReadOnlyStruct = globalOptions.GetOption(CSharpCodeStyleOptions.PreferReadOnlyStruct),
             PreferStaticLocalFunction = globalOptions.GetOption(CSharpCodeStyleOptions.PreferStaticLocalFunction)
         };
 }

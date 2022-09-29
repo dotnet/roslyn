@@ -9,7 +9,7 @@ using System.Diagnostics;
 using System.Threading;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Formatting.Rules;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Indentation
 {
     internal abstract partial class AbstractIndentation<TSyntaxRoot>
     {
-        protected struct Indenter
+        protected readonly struct Indenter
         {
             private readonly AbstractIndentation<TSyntaxRoot> _service;
 

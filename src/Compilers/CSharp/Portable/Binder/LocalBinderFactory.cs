@@ -208,9 +208,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 WithTypeParametersBinder? withTypeParametersBinder;
                 Binder? withParametersBinder;
-                // The LangVer check will be removed before shipping .NET 7.
-                // Tracked by https://github.com/dotnet/roslyn/issues/60640
-                if (((_enclosing.Flags & BinderFlags.InContextualAttributeBinder) != 0) && _enclosing.Compilation.IsFeatureEnabled(MessageID.IDS_FeatureExtendedNameofScope))
+                if ((_enclosing.Flags & BinderFlags.InContextualAttributeBinder) != 0)
                 {
                     var attributeTarget = getAttributeTarget(_enclosing);
                     withTypeParametersBinder = getExtraWithTypeParametersBinder(_enclosing, attributeTarget);

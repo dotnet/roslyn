@@ -135,7 +135,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             using var _2 = ArrayBuilder<LinePositionSpan>.GetInstance(out var activeStatementSpansBuilder);
 
             var baseActiveStatements = await _baseActiveStatements.GetValueAsync(cancellationToken).ConfigureAwait(false);
-            var analyzer = newDocument.Project.LanguageServices.GetRequiredService<IEditAndContinueAnalyzer>();
+            var analyzer = newDocument.Project.Services.GetRequiredService<IEditAndContinueAnalyzer>();
             var oldActiveStatements = await baseActiveStatements.GetOldActiveStatementsAsync(analyzer, oldDocument, cancellationToken).ConfigureAwait(false);
 
             foreach (var oldActiveStatement in oldActiveStatements)
@@ -193,7 +193,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 {
                     try
                     {
-                        var analyzer = document.Project.LanguageServices.GetRequiredService<IEditAndContinueAnalyzer>();
+                        var analyzer = document.Project.Services.GetRequiredService<IEditAndContinueAnalyzer>();
                         return await analyzer.AnalyzeDocumentAsync(baseProject, _baseActiveStatements, document, activeStatementSpans, _capabilities, cancellationToken).ConfigureAwait(false);
                     }
                     catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))

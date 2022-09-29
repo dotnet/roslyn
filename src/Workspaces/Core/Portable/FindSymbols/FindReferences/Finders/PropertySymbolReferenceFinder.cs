@@ -9,7 +9,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -188,7 +188,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                 .Where(node =>
                     syntaxFacts.IsElementAccessExpression(node) ||
                     syntaxFacts.IsConditionalAccessExpression(node) ||
-                    syntaxFacts.IsIndexerMemberCRef(node));
+                    syntaxFacts.IsIndexerMemberCref(node));
             using var _ = ArrayBuilder<FinderLocation>.GetInstance(out var locations);
 
             foreach (var node in indexerReferenceExpresssions)
@@ -232,7 +232,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             }
             else
             {
-                Debug.Assert(syntaxFacts.IsIndexerMemberCRef(node));
+                Debug.Assert(syntaxFacts.IsIndexerMemberCref(node));
                 return ComputeIndexerMemberCRefInformationAsync(symbol, state, node, cancellationToken);
             }
         }

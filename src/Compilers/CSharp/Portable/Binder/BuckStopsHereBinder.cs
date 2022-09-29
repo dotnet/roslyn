@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -15,10 +14,21 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// </summary>
     internal class BuckStopsHereBinder : Binder
     {
-        internal BuckStopsHereBinder(CSharpCompilation compilation)
+        internal BuckStopsHereBinder(CSharpCompilation compilation, FileIdentifier? associatedFileIdentifier)
             : base(compilation)
         {
+            this.AssociatedFileIdentifier = associatedFileIdentifier;
         }
+
+        /// <summary>
+        /// * In non-speculative scenarios, the identifier for the file being bound.
+        /// * In speculative scenarios, the identifier for the file from the original compilation used as the speculation context.
+        /// * In EE scenarios, the identifier for the file from the original compilation used as the evaluation context.
+        /// 
+        /// This is <see langword="null"/> in some scenarios, such as the binder used for <see cref="CSharpCompilation.Conversions" />
+        /// or the binder used to bind usings in <see cref="CSharpCompilation.UsingsFromOptionsAndDiagnostics"/>.
+        /// </summary>
+        internal readonly FileIdentifier? AssociatedFileIdentifier;
 
         internal override ImportChain? ImportChain
         {
@@ -50,7 +60,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
-        internal override uint LocalScopeDepth => Binder.ExternalScope;
+        internal override uint LocalScopeDepth => Binder.CallingMethodScope;
 
         protected override bool InExecutableBinder => false;
         protected override SyntaxNode? EnclosingNameofArgument => null;

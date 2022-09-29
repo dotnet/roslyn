@@ -10,7 +10,7 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars
 {
-    internal partial struct VirtualCharSequence
+    internal readonly partial struct VirtualCharSequence
     {
         /// <summary>
         /// Abstraction over a contiguous chunk of <see cref="VirtualChar"/>s.  This

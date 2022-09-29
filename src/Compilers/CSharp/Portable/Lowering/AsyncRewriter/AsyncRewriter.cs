@@ -230,7 +230,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             bodyBuilder.Add(
                 F.Assignment(
                     F.Field(F.Local(stateMachineVariable), stateField.AsMember(frameType)),
-                    F.Literal(StateMachineStates.NotStartedOrRunningState)));
+                    F.Literal(StateMachineState.NotStartedOrRunningState)));
 
             // local.$builder.Start(ref local) -- binding to the method AsyncTaskMethodBuilder<typeArgs>.Start()
             var startMethod = methodScopeAsyncMethodBuilderMemberCollection.Start.Construct(frameType);

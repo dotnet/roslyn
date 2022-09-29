@@ -33,21 +33,28 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
 
             var nodeValues = values?.Select(ts => new TagNode(ts, trackingMode));
 
-            var introspector = new IntervalIntrospector(textBuffer.CurrentSnapshot);
-            _tree = IntervalTree.Create(introspector, nodeValues);
+            _tree = IntervalTree.Create(new IntervalIntrospector(textBuffer.CurrentSnapshot), nodeValues);
         }
 
         public ITextBuffer Buffer => _textBuffer;
 
         public SpanTrackingMode SpanTrackingMode => _spanTrackingMode;
 
+        public bool HasSpanThatContains(SnapshotPoint point)
+        {
+            var snapshot = point.Snapshot;
+            Debug.Assert(snapshot.TextBuffer == _textBuffer);
+
+            return _tree.HasIntervalThatContains(point.Position, length: 0, new IntervalIntrospector(snapshot));
+        }
+
         public IList<ITagSpan<TTag>> GetIntersectingSpans(SnapshotSpan snapshotSpan)
         {
             var snapshot = snapshotSpan.Snapshot;
             Debug.Assert(snapshot.TextBuffer == _textBuffer);
 
-            var introspector = new IntervalIntrospector(snapshot);
-            var intersectingIntervals = _tree.GetIntervalsThatIntersectWith(snapshotSpan.Start, snapshotSpan.Length, introspector);
+            var intersectingIntervals = _tree.GetIntervalsThatIntersectWith(
+                snapshotSpan.Start, snapshotSpan.Length, new IntervalIntrospector(snapshot));
 
             List<ITagSpan<TTag>>? result = null;
             foreach (var tagNode in intersectingIntervals)

@@ -17,6 +17,7 @@ using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnusedLocalFunction
 {
+    [Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedLocalFunction)]
     public partial class RemoveUnusedLocalFunctionTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
     {
         public RemoveUnusedLocalFunctionTests(ITestOutputHelper logger)
@@ -27,7 +28,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnusedLocalFuncti
         internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
             => (null, new CSharpRemoveUnusedLocalFunctionCodeFixProvider());
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedLocalFunction)]
+        [Fact]
         public async Task RemoveUnusedLocalFunction()
         {
             await TestInRegularAndScriptAsync(
@@ -46,7 +47,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnusedLocalFuncti
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedLocalFunction)]
+        [Fact]
         public async Task RemoveUnusedLocalFunctionFixAll1()
         {
             await TestInRegularAndScriptAsync(
@@ -66,7 +67,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnusedLocalFuncti
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedLocalFunction)]
+        [Fact]
         public async Task RemoveUnusedLocalFunctionFixAll2()
         {
             await TestInRegularAndScriptAsync(
@@ -86,7 +87,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnusedLocalFuncti
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedLocalFunction)]
+        [Fact]
         public async Task RemoveUnusedLocalFunctionFixAll3()
         {
             await TestInRegularAndScriptAsync(
@@ -105,7 +106,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnusedLocalFuncti
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedLocalFunction)]
+        [Fact]
         public async Task RemoveUnusedLocalFunctionFixAll4()
         {
             await TestInRegularAndScriptAsync(
@@ -124,8 +125,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnusedLocalFuncti
 }");
         }
 
-        [WorkItem(44272, "https://github.com/dotnet/roslyn/issues/44272")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedLocalFunction)]
+        [Fact, WorkItem(44272, "https://github.com/dotnet/roslyn/issues/44272")]
         public async Task TopLevelStatement()
         {
             await TestAsync(@"

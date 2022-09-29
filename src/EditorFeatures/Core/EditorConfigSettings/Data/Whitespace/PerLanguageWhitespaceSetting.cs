@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data
         public override string Category => _option.Group.Description;
         public override Type Type => typeof(T);
 
-        public override OptionKey2 Key => new(_option, _option.OptionDefinition.IsPerLanguage ? Language ?? LanguageNames.CSharp : null);
+        public override OptionKey2 Key => new(_option, Language ?? LanguageNames.CSharp);
 
         public override bool IsDefinedInEditorConfig => _editorConfigOptions.TryGetEditorConfigOption<T>(_option, out _);
 

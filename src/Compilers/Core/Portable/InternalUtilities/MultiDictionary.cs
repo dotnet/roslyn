@@ -15,7 +15,7 @@ namespace Roslyn.Utilities
     internal sealed class MultiDictionary<K, V> : IEnumerable<KeyValuePair<K, MultiDictionary<K, V>.ValueSet>>
         where K : notnull
     {
-        public struct ValueSet : IEnumerable<V>
+        public readonly struct ValueSet : IEnumerable<V>
         {
             public struct Enumerator : IEnumerator<V>
             {

@@ -660,7 +660,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                 // exported types are not emitted in EnC deltas (hence generation 0):
                 string fullEmittedName = MetadataHelpers.BuildQualifiedName(
                     ((Cci.INamespaceTypeReference)type.GetCciAdapter()).NamespaceName,
-                    Cci.MetadataWriter.GetMangledName(type.GetCciAdapter(), generation: 0));
+                    Cci.MetadataWriter.GetMetadataName(type.GetCciAdapter(), generation: 0));
 
                 // First check against types declared in the primary module
                 if (ContainsTopLevelType(fullEmittedName))
@@ -1710,10 +1710,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             return Compilation.TrySynthesizeAttribute(member, arguments, isOptionalUse: true);
         }
 
-        internal SynthesizedAttributeData SynthesizeLifetimeAnnotationAttribute(ParameterSymbol symbol, DeclarationScope scope)
+        internal SynthesizedAttributeData SynthesizeScopedRefAttribute(ParameterSymbol symbol, DeclarationScope scope)
         {
             Debug.Assert(scope != DeclarationScope.Unscoped);
-            Debug.Assert(symbol.RefKind != RefKind.Out || scope == DeclarationScope.ValueScoped);
+            Debug.Assert(!ParameterHelpers.IsRefScopedByDefault(symbol) || scope == DeclarationScope.ValueScoped);
             Debug.Assert(!symbol.IsThis);
 
             if ((object)Compilation.SourceModule != symbol.ContainingModule)
@@ -1722,20 +1722,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                 return null;
             }
 
-            var booleanType = Compilation.GetSpecialType(SpecialType.System_Boolean);
-            Debug.Assert((object)booleanType != null);
-            return SynthesizeLifetimeAnnotationAttribute(
-                WellKnownMember.System_Runtime_CompilerServices_LifetimeAnnotationAttribute__ctor,
-                ImmutableArray.Create(
-                    new TypedConstant(booleanType, TypedConstantKind.Primitive, scope == DeclarationScope.RefScoped),
-                    new TypedConstant(booleanType, TypedConstantKind.Primitive, scope == DeclarationScope.ValueScoped)));
+            return SynthesizeScopedRefAttribute(WellKnownMember.System_Runtime_CompilerServices_ScopedRefAttribute__ctor);
         }
 
-        internal virtual SynthesizedAttributeData SynthesizeLifetimeAnnotationAttribute(WellKnownMember member, ImmutableArray<TypedConstant> arguments)
+        internal virtual SynthesizedAttributeData SynthesizeScopedRefAttribute(WellKnownMember member)
         {
             // For modules, this attribute should be present. Only assemblies generate and embed this type.
             // https://github.com/dotnet/roslyn/issues/30062 Should not be optional.
-            return Compilation.TrySynthesizeAttribute(member, arguments, isOptionalUse: true);
+            return Compilation.TrySynthesizeAttribute(member, isOptionalUse: true);
+        }
+
+        internal virtual SynthesizedAttributeData SynthesizeRefSafetyRulesAttribute(ImmutableArray<TypedConstant> arguments)
+        {
+            // For modules, this attribute should be present. Only assemblies generate and embed this type.
+            // https://github.com/dotnet/roslyn/issues/30062 Should not be optional.
+            return Compilation.TrySynthesizeAttribute(WellKnownMember.System_Runtime_CompilerServices_RefSafetyRulesAttribute__ctor, arguments, isOptionalUse: true);
         }
 
         internal bool ShouldEmitNullablePublicOnlyAttribute()
@@ -1811,9 +1812,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             EnsureEmbeddableAttributeExists(EmbeddableAttributes.NativeIntegerAttribute);
         }
 
-        internal void EnsureLifetimeAnnotationAttributeExists()
+        internal void EnsureScopedRefAttributeExists()
         {
-            EnsureEmbeddableAttributeExists(EmbeddableAttributes.LifetimeAnnotationAttribute);
+            EnsureEmbeddableAttributeExists(EmbeddableAttributes.ScopedRefAttribute);
         }
 
 #nullable enable

@@ -52,7 +52,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer.Handler
                 return false;
             }
 
-            var commandService = document.Project.LanguageServices.GetService<IXamlCommandService>();
+            var commandService = document.Project.Services.GetService<IXamlCommandService>();
             if (commandService == null)
             {
                 return false;

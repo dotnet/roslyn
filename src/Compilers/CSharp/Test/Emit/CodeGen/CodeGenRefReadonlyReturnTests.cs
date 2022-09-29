@@ -367,14 +367,16 @@ class C
     static ref readonly int Helper()
         => ref (new int[1])[0];
 }");
-            verifier.VerifyIL("C.M()", @"
+            verifier.VerifyIL("C.M()", """
 {
-  // Code size        7 (0x7)
+  // Code size        8 (0x8)
   .maxstack  1
-  IL_0000:  call       ""ref readonly int C.Helper()""
-  IL_0005:  pop
-  IL_0006:  ret
-}");
+  IL_0000:  call       "ref readonly int C.Helper()"
+  IL_0005:  ldind.i4
+  IL_0006:  pop
+  IL_0007:  ret
+}
+""");
         }
 
         [Fact]
@@ -392,14 +394,60 @@ class C
     static ref int Helper()
         => ref (new int[1])[0];
 }");
-            verifier.VerifyIL("C.M()", @"
+            verifier.VerifyIL("C.M()", """
 {
-  // Code size        7 (0x7)
+  // Code size        8 (0x8)
   .maxstack  1
-  IL_0000:  call       ""ref int C.Helper()""
-  IL_0005:  pop
-  IL_0006:  ret
-}");
+  IL_0000:  call       "ref int C.Helper()"
+  IL_0005:  ldind.i4
+  IL_0006:  pop
+  IL_0007:  ret
+}
+""");
+        }
+
+        [Fact]
+        public void RefReturnAssign3()
+        {
+            var verifier = CompileAndVerify(@"
+try
+{
+    C.M();
+}
+catch (System.NullReferenceException)
+{
+    System.Console.WriteLine(""NullReferenceException"");
+}
+
+class C
+{
+    public static void M()
+    {
+        ref readonly int x = ref Helper();
+        ref readonly int y = ref Helper();
+        _ = x + y;
+    }
+
+    static unsafe ref int Helper()
+        => ref *(int*)0;
+}", options: TestOptions.UnsafeReleaseExe, verify: Verification.Skipped, expectedOutput: "NullReferenceException");
+
+            verifier.VerifyIL("C.M()", """
+{
+  // Code size       17 (0x11)
+  .maxstack  2
+  .locals init (int& V_0) //y
+  IL_0000:  call       "ref int C.Helper()"
+  IL_0005:  call       "ref int C.Helper()"
+  IL_000a:  stloc.0
+  IL_000b:  ldind.i4
+  IL_000c:  pop
+  IL_000d:  ldloc.0
+  IL_000e:  ldind.i4
+  IL_000f:  pop
+  IL_0010:  ret
+}
+""");
         }
 
 
@@ -494,22 +542,22 @@ class Program
 
             var comp = CreateCompilationWithMscorlib45(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef });
             comp.VerifyDiagnostics(
-                // (6,9): error CS8331: Cannot assign to method 'Program.M()' because it is a readonly variable
+                // (6,9): error CS8331: Cannot assign to method 'Program.M()' or use it as the right hand side of a ref assignment because it is a readonly variable
                 //         M() = 1;
                 Diagnostic(ErrorCode.ERR_AssignReadonlyNotField, "M()").WithArguments("method", "Program.M()").WithLocation(6, 9),
-                // (7,9): error CS8332: Cannot assign to a member of method 'Program.M1()' because it is a readonly variable
+                // (7,9): error CS8332: Cannot assign to a member of method 'Program.M1()' or use it as the right hand side of a ref assignment because it is a readonly variable
                 //         M1().Alice = 2;
                 Diagnostic(ErrorCode.ERR_AssignReadonlyNotField2, "M1().Alice").WithArguments("method", "Program.M1()").WithLocation(7, 9),
-                // (9,9): error CS8331: Cannot assign to method 'Program.M()' because it is a readonly variable
+                // (9,9): error CS8331: Cannot assign to method 'Program.M()' or use it as the right hand side of a ref assignment because it is a readonly variable
                 //         M() ++;
                 Diagnostic(ErrorCode.ERR_AssignReadonlyNotField, "M()").WithArguments("method", "Program.M()").WithLocation(9, 9),
-                // (10,9): error CS8332: Cannot assign to a member of method 'Program.M1()' because it is a readonly variable
+                // (10,9): error CS8332: Cannot assign to a member of method 'Program.M1()' or use it as the right hand side of a ref assignment because it is a readonly variable
                 //         M1().Alice --;
                 Diagnostic(ErrorCode.ERR_AssignReadonlyNotField2, "M1().Alice").WithArguments("method", "Program.M1()").WithLocation(10, 9),
-                // (12,9): error CS8331: Cannot assign to method 'Program.M()' because it is a readonly variable
+                // (12,9): error CS8331: Cannot assign to method 'Program.M()' or use it as the right hand side of a ref assignment because it is a readonly variable
                 //         M() += 1;
                 Diagnostic(ErrorCode.ERR_AssignReadonlyNotField, "M()").WithArguments("method", "Program.M()").WithLocation(12, 9),
-                // (13,9): error CS8332: Cannot assign to a member of method 'Program.M1()' because it is a readonly variable
+                // (13,9): error CS8332: Cannot assign to a member of method 'Program.M1()' or use it as the right hand side of a ref assignment because it is a readonly variable
                 //         M1().Alice -= 2;
                 Diagnostic(ErrorCode.ERR_AssignReadonlyNotField2, "M1().Alice").WithArguments("method", "Program.M1()").WithLocation(13, 9)
             );
@@ -540,22 +588,22 @@ class Program
 
             var comp = CreateCompilationWithMscorlib45(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef });
             comp.VerifyDiagnostics(
-                // (6,9): error CS8331: Cannot assign to property 'Program.P' because it is a readonly variable
+                // (6,9): error CS8331: Cannot assign to property 'Program.P' or use it as the right hand side of a ref assignment because it is a readonly variable
                 //         P = 1;
                 Diagnostic(ErrorCode.ERR_AssignReadonlyNotField, "P").WithArguments("property", "Program.P").WithLocation(6, 9),
-                // (7,9): error CS8332: Cannot assign to a member of property 'Program.P1' because it is a readonly variable
+                // (7,9): error CS8332: Cannot assign to a member of property 'Program.P1' or use it as the right hand side of a ref assignment because it is a readonly variable
                 //         P1.Alice = 2;
                 Diagnostic(ErrorCode.ERR_AssignReadonlyNotField2, "P1.Alice").WithArguments("property", "Program.P1").WithLocation(7, 9),
-                // (9,9): error CS8331: Cannot assign to property 'Program.P' because it is a readonly variable
+                // (9,9): error CS8331: Cannot assign to property 'Program.P' or use it as the right hand side of a ref assignment because it is a readonly variable
                 //         P ++;
                 Diagnostic(ErrorCode.ERR_AssignReadonlyNotField, "P").WithArguments("property", "Program.P").WithLocation(9, 9),
-                // (10,9): error CS8332: Cannot assign to a member of property 'Program.P1' because it is a readonly variable
+                // (10,9): error CS8332: Cannot assign to a member of property 'Program.P1' or use it as the right hand side of a ref assignment because it is a readonly variable
                 //         P1.Alice --;
                 Diagnostic(ErrorCode.ERR_AssignReadonlyNotField2, "P1.Alice").WithArguments("property", "Program.P1").WithLocation(10, 9),
-                // (12,9): error CS8331: Cannot assign to property 'Program.P' because it is a readonly variable
+                // (12,9): error CS8331: Cannot assign to property 'Program.P' or use it as the right hand side of a ref assignment because it is a readonly variable
                 //         P += 1;
                 Diagnostic(ErrorCode.ERR_AssignReadonlyNotField, "P").WithArguments("property", "Program.P").WithLocation(12, 9),
-                // (13,9): error CS8332: Cannot assign to a member of property 'Program.P1' because it is a readonly variable
+                // (13,9): error CS8332: Cannot assign to a member of property 'Program.P1' or use it as the right hand side of a ref assignment because it is a readonly variable
                 //         P1.Alice -= 2;
                 Diagnostic(ErrorCode.ERR_AssignReadonlyNotField2, "P1.Alice").WithArguments("property", "Program.P1").WithLocation(13, 9)
             );

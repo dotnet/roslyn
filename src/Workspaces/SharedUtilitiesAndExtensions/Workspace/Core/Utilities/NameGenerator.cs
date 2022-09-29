@@ -66,15 +66,15 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             Func<string, bool>? canUse = null,
             bool isCaseSensitive = true)
         {
-            using var isFixedDisposer = ArrayBuilder<bool>.GetInstance(names.Length, out var isFixedBuilder);
-            isFixedBuilder.AddRange(isFixed);
+            using var _1 = ArrayBuilder<bool>.GetInstance(names.Length, out var isFixedBuilder);
+            using var _2 = ArrayBuilder<string>.GetInstance(names.Length, out var result);
 
-            var result = ArrayBuilder<string>.GetInstance(names.Length);
+            isFixedBuilder.AddRange(isFixed);
             result.AddRange(names);
 
             EnsureUniquenessInPlace(result, isFixedBuilder, canUse, isCaseSensitive);
 
-            return result.ToImmutableAndFree();
+            return result.ToImmutableAndClear();
         }
 
         /// <summary>
@@ -91,7 +91,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
         {
             canUse ??= Functions<string>.True;
 
-            using var disposer = ArrayBuilder<int>.GetInstance(out var collisionIndices);
+            using var _ = ArrayBuilder<int>.GetInstance(out var collisionIndices);
 
             // Don't enumerate as we will be modifying the collection in place.
             for (var i = 0; i < names.Count; i++)

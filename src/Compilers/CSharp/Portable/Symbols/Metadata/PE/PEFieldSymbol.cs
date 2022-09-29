@@ -581,20 +581,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             {
                 var containingPEModuleSymbol = (PEModuleSymbol)this.ContainingModule;
 
-                if (FilterOutDecimalConstantAttribute())
-                {
-                    // filter out DecimalConstantAttribute
-                    var attributes = containingPEModuleSymbol.GetCustomAttributesForToken(
-                        _handle,
-                        out _,
-                        AttributeDescription.DecimalConstantAttribute);
+                var attributes = containingPEModuleSymbol.GetCustomAttributesForToken(
+                    _handle,
+                    out _,
+                    FilterOutDecimalConstantAttribute() ? AttributeDescription.DecimalConstantAttribute : default,
+                    out CustomAttributeHandle required,
+                    AttributeDescription.RequiredMemberAttribute);
 
-                    ImmutableInterlocked.InterlockedInitialize(ref _lazyCustomAttributes, attributes);
-                }
-                else
-                {
-                    containingPEModuleSymbol.LoadCustomAttributes(_handle, ref _lazyCustomAttributes);
-                }
+                ImmutableInterlocked.InterlockedInitialize(ref _lazyCustomAttributes, attributes);
+                _packedFlags.SetHasRequiredMemberAttribute(!required.IsNil);
             }
             return _lazyCustomAttributes;
         }

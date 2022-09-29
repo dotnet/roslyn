@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessaryCast
 {
     internal abstract class AbstractRemoveUnnecessaryCastDiagnosticAnalyzer<
         TLanguageKindEnum,
-        TCastExpression> : AbstractBuiltInCodeStyleDiagnosticAnalyzer
+        TCastExpression> : AbstractBuiltInUnnecessaryCodeStyleDiagnosticAnalyzer
         where TLanguageKindEnum : struct
         where TCastExpression : SyntaxNode
     {
@@ -21,9 +21,9 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessaryCast
             : base(IDEDiagnosticIds.RemoveUnnecessaryCastDiagnosticId,
                    EnforceOnBuildValues.RemoveUnnecessaryCast,
                    option: null,
+                   fadingOption: null,
                    new LocalizableResourceString(nameof(AnalyzersResources.Remove_Unnecessary_Cast), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)),
-                   new LocalizableResourceString(nameof(CompilerExtensionsResources.Cast_is_redundant), CompilerExtensionsResources.ResourceManager, typeof(CompilerExtensionsResources)),
-                   isUnnecessary: true)
+                   new LocalizableResourceString(nameof(CompilerExtensionsResources.Cast_is_redundant), CompilerExtensionsResources.ResourceManager, typeof(CompilerExtensionsResources)))
         {
         }
 

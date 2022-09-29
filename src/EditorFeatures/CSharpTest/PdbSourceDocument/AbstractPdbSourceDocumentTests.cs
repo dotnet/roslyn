@@ -132,7 +132,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.PdbSourceDocument
             try
             {
                 // Using default settings here because none of the tests exercise any of the settings
-                var file = await service.GetGeneratedFileAsync(project, symbol, signaturesOnly: false, MetadataAsSourceOptions.GetDefault(project.LanguageServices), CancellationToken.None).ConfigureAwait(false);
+                var file = await service.GetGeneratedFileAsync(workspace, project, symbol, signaturesOnly: false, MetadataAsSourceOptions.GetDefault(project.Services), CancellationToken.None).ConfigureAwait(false);
 
                 if (expectNullResult)
                 {
@@ -252,8 +252,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.PdbSourceDocument
 
         protected static void CompileTestSource(string dllFilePath, string sourceCodePath, string? pdbFilePath, string assemblyName, SourceText source, Project project, Location pdbLocation, Location sourceLocation, bool buildReferenceAssembly, bool windowsPdb, Encoding? fallbackEncoding = null)
         {
-            var languageServices = project.Solution.Workspace.Services.GetLanguageServices(LanguageNames.CSharp);
-            var compilationFactory = languageServices.GetRequiredService<ICompilationFactoryService>();
+            var compilationFactory = project.Solution.Services.GetRequiredLanguageService<ICompilationFactoryService>(LanguageNames.CSharp);
             var options = compilationFactory.GetDefaultCompilationOptions().WithOutputKind(OutputKind.DynamicallyLinkedLibrary);
             var parseOptions = project.ParseOptions;
 

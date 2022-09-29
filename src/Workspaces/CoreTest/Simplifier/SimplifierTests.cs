@@ -42,16 +42,17 @@ public class SimplifierTests
         await Assert.ThrowsAsync<ArgumentNullException>("document", () => Simplifier.ExpandAsync(token: default, document: null!));
     }
 
-    [Fact]
+    [Fact, Obsolete("Obsolete so we can test obsolete API")]
     public async Task Expand_BadArguments()
     {
         var node = SyntaxFactory.IdentifierName(SyntaxFactory.Identifier("Test"));
         var semanticModel = await GetDocument().GetRequiredSemanticModelAsync(CancellationToken.None);
 
-        Assert.Throws<ArgumentNullException>("node", () => Simplifier.Expand<SyntaxNode>(node: null!, semanticModel: null!, workspace: null!));
-        Assert.Throws<ArgumentNullException>("semanticModel", () => Simplifier.Expand(node, semanticModel: null!, workspace: null!));
+        Assert.Throws<ArgumentNullException>("node", () => Simplifier.Expand<SyntaxNode>(node: null!, semanticModel: null!, services: null!));
+        Assert.Throws<ArgumentNullException>("semanticModel", () => Simplifier.Expand(node, semanticModel: null!, services: null!));
+        Assert.Throws<ArgumentNullException>("services", () => Simplifier.Expand(node, semanticModel, services: null!));
         Assert.Throws<ArgumentNullException>("workspace", () => Simplifier.Expand(node, semanticModel, workspace: null!));
-        Assert.Throws<ArgumentNullException>("semanticModel", () => Simplifier.Expand(token: default, semanticModel: null!, workspace: null!));
+        Assert.Throws<ArgumentNullException>("workspace", () => Simplifier.Expand(token: default, semanticModel: null!, workspace: null!));
         Assert.Throws<ArgumentNullException>("workspace", () => Simplifier.Expand(token: default, semanticModel, workspace: null!));
     }
 
@@ -117,7 +118,7 @@ public class SimplifierTests
             var updatedOptions = options;
             foreach (var (option, newValue) in publicOptions)
             {
-                var languages = (option is IPerLanguageOption) ? new[] { LanguageNames.CSharp, LanguageNames.VisualBasic } : new string?[] { null };
+                var languages = (option is IPerLanguageValuedOption) ? new[] { LanguageNames.CSharp, LanguageNames.VisualBasic } : new string?[] { null };
 
                 foreach (var language in languages)
                 {

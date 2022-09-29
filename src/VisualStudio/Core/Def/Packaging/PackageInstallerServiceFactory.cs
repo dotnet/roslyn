@@ -144,8 +144,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
             Task<ImmutableArray<PackageSource>> localPackageSourcesTask;
             lock (_gate)
             {
-                if (_packageSourcesTask is null)
-                    _packageSourcesTask = Task.Run(() => GetPackageSourcesAsync(), this.DisposalToken);
+                _packageSourcesTask ??= Task.Run(() => GetPackageSourcesAsync(), this.DisposalToken);
 
                 localPackageSourcesTask = _packageSourcesTask;
             }
@@ -604,7 +603,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
             return installedPackagesMap;
         }
 
-        public bool IsInstalled(Workspace workspace, ProjectId projectId, string packageName)
+        public bool IsInstalled(ProjectId projectId, string packageName)
         {
             ThisCanBeCalledOnAnyThread();
             return _projectToInstalledPackageAndVersion.TryGetValue(projectId, out var installedPackages) &&

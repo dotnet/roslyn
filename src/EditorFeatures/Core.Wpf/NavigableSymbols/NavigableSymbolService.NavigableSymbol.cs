@@ -2,19 +2,14 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Editor.Host;
-using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
-using Microsoft.CodeAnalysis.ErrorReporting;
-using Microsoft.CodeAnalysis.FindUsages;
+using Microsoft.CodeAnalysis.Editor.BackgroundWorkIndicator;
 using Microsoft.CodeAnalysis.Navigation;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Text;
-using Microsoft.VisualStudio.Utilities;
+using Microsoft.VisualStudio.Text.Editor;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.NavigableSymbols
@@ -23,31 +18,25 @@ namespace Microsoft.CodeAnalysis.Editor.NavigableSymbols
     {
         private class NavigableSymbol : INavigableSymbol
         {
-            private readonly Workspace _workspace;
-            private readonly ImmutableArray<DefinitionItem> _definitions;
-            private readonly IThreadingContext _threadingContext;
-            private readonly IStreamingFindUsagesPresenter _presenter;
-            private readonly IUIThreadOperationExecutor _uiThreadOperationExecutor;
-            private readonly IAsynchronousOperationListener _listener;
+            private readonly NavigableSymbolService _service;
+            private readonly ITextView _textView;
+            private readonly INavigableLocation _location;
+            private readonly IBackgroundWorkIndicatorFactory _indicatorFactory;
 
             public NavigableSymbol(
-                Workspace workspace,
-                ImmutableArray<DefinitionItem> definitions,
+                NavigableSymbolService service,
+                ITextView textView,
+                INavigableLocation location,
                 SnapshotSpan symbolSpan,
-                IThreadingContext threadingContext,
-                IStreamingFindUsagesPresenter streamingPresenter,
-                IUIThreadOperationExecutor uiThreadOperationExecutor,
-                IAsynchronousOperationListenerProvider listenerProvider)
+                IBackgroundWorkIndicatorFactory indicatorFactory)
             {
-                Contract.ThrowIfFalse(definitions.Length > 0);
+                Contract.ThrowIfNull(location);
 
-                _workspace = workspace;
-                _definitions = definitions;
+                _service = service;
+                _textView = textView;
+                _location = location;
                 SymbolSpan = symbolSpan;
-                _threadingContext = threadingContext;
-                _presenter = streamingPresenter;
-                _uiThreadOperationExecutor = uiThreadOperationExecutor;
-                _listener = listenerProvider.GetListener(FeatureAttribute.NavigableSymbols);
+                _indicatorFactory = indicatorFactory;
             }
 
             public SnapshotSpan SymbolSpan { get; }
@@ -58,25 +47,21 @@ namespace Microsoft.CodeAnalysis.Editor.NavigableSymbols
             public void Navigate(INavigableRelationship relationship)
             {
                 // Fire and forget.
-                var token = _listener.BeginAsyncOperation(nameof(NavigateAsync));
+                var token = _service._listener.BeginAsyncOperation(nameof(NavigateAsync));
                 _ = NavigateAsync().ReportNonFatalErrorAsync().CompletesAsyncOperation(token);
             }
 
             private async Task NavigateAsync()
             {
-                using var context = _uiThreadOperationExecutor.BeginExecute(
-                    title: EditorFeaturesResources.Go_to_Definition,
-                    defaultDescription: EditorFeaturesResources.Navigating_to_definition,
-                    allowCancellation: true,
-                    showProgress: false);
+                // we're about to navigate.  so disable cancellation on focus-lost in our indicator so we don't end up
+                // causing ourselves to self-cancel.
+                using var backgroundIndicator = _indicatorFactory.Create(
+                    _textView, SymbolSpan,
+                    EditorFeaturesResources.Navigating_to_definition,
+                    cancelOnFocusLost: false);
 
-                var cancellationToken = context.UserCancellationToken;
-                await _presenter.TryPresentLocationOrNavigateIfOneAsync(
-                    _threadingContext,
-                    _workspace,
-                    _definitions[0].NameDisplayParts.GetFullText(),
-                    _definitions,
-                    cancellationToken).ConfigureAwait(false);
+                await _location.TryNavigateToAsync(
+                    _service._threadingContext, new NavigationOptions(PreferProvisionalTab: true, ActivateTab: true), backgroundIndicator.UserCancellationToken).ConfigureAwait(false);
             }
         }
     }

@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Note that there is a dispatch occurring at every try-finally statement, so this
         /// variable takes on a new set of values inside each try block.
         /// </summary>
-        private Dictionary<LabelSymbol, List<int>> _dispatches = new Dictionary<LabelSymbol, List<int>>();
+        private Dictionary<LabelSymbol, List<StateMachineState>> _dispatches = new();
 
         /// <summary>
         /// A pool of fields used to hoist locals. They appear in this set when not in scope,
@@ -152,7 +152,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 increasing: true);
         }
 
-        protected abstract int FirstIncreasingResumableState { get; }
+        protected abstract StateMachineState FirstIncreasingResumableState { get; }
         protected abstract string EncMissingStateMessage { get; }
 
         /// <summary>
@@ -199,30 +199,30 @@ namespace Microsoft.CodeAnalysis.CSharp
             return result;
         }
 #nullable enable
-        protected void AddResumableState(SyntaxNode awaitOrYieldReturnSyntax, out int stateNumber, out GeneratedLabelSymbol resumeLabel)
-            => AddResumableState(_resumableStateAllocator, awaitOrYieldReturnSyntax, out stateNumber, out resumeLabel);
+        protected void AddResumableState(SyntaxNode awaitOrYieldReturnSyntax, out StateMachineState state, out GeneratedLabelSymbol resumeLabel)
+            => AddResumableState(_resumableStateAllocator, awaitOrYieldReturnSyntax, out state, out resumeLabel);
 
-        protected void AddResumableState(ResumableStateMachineStateAllocator allocator, SyntaxNode awaitOrYieldReturnSyntax, out int stateNumber, out GeneratedLabelSymbol resumeLabel)
+        protected void AddResumableState(ResumableStateMachineStateAllocator allocator, SyntaxNode awaitOrYieldReturnSyntax, out StateMachineState stateNumber, out GeneratedLabelSymbol resumeLabel)
         {
             stateNumber = allocator.AllocateState(awaitOrYieldReturnSyntax);
             AddStateDebugInfo(awaitOrYieldReturnSyntax, stateNumber);
             AddState(stateNumber, out resumeLabel);
         }
 
-        protected void AddStateDebugInfo(SyntaxNode node, int stateNumber)
+        protected void AddStateDebugInfo(SyntaxNode node, StateMachineState state)
         {
             Debug.Assert(SyntaxBindingUtilities.BindsToResumableStateMachineState(node) || SyntaxBindingUtilities.BindsToTryStatement(node), $"Unexpected syntax: {node.Kind()}");
 
             int syntaxOffset = CurrentMethod.CalculateLocalSyntaxOffset(node.SpanStart, node.SyntaxTree);
-            _stateDebugInfoBuilder.Add(new StateMachineStateDebugInfo(syntaxOffset, stateNumber));
+            _stateDebugInfoBuilder.Add(new StateMachineStateDebugInfo(syntaxOffset, state));
         }
 
-        protected void AddState(int stateNumber, out GeneratedLabelSymbol resumeLabel)
+        protected void AddState(StateMachineState stateNumber, out GeneratedLabelSymbol resumeLabel)
         {
-            _dispatches ??= new Dictionary<LabelSymbol, List<int>>();
+            _dispatches ??= new Dictionary<LabelSymbol, List<StateMachineState>>();
 
             resumeLabel = F.GenerateLabel("stateMachine");
-            _dispatches.Add(resumeLabel, new List<int> { stateNumber });
+            _dispatches.Add(resumeLabel, new List<StateMachineState> { stateNumber });
         }
 
         /// <summary>
@@ -233,7 +233,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </param>
         protected BoundStatement Dispatch(bool isOutermost)
         {
-            var sections = from kv in _dispatches orderby kv.Value[0] select F.SwitchSection(kv.Value, F.Goto(kv.Key));
+            var sections = from kv in _dispatches
+                           orderby kv.Value[0]
+                           select F.SwitchSection(kv.Value.SelectAsArray(state => (int)state), F.Goto(kv.Key));
+
             var result = F.Switch(F.Local(cachedState), sections.ToImmutableArray());
 
             // Suspension states that were generated for any previous generation of the state machine
@@ -834,8 +837,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Dispatch(isOutermost: false),
                     tryBlock);
 
-                oldDispatches ??= new Dictionary<LabelSymbol, List<int>>();
-                oldDispatches.Add(dispatchLabel, new List<int>(from kv in _dispatches.Values from n in kv orderby n select n));
+                oldDispatches ??= new Dictionary<LabelSymbol, List<StateMachineState>>();
+                oldDispatches.Add(dispatchLabel, new List<StateMachineState>(from kv in _dispatches.Values from n in kv orderby n select n));
             }
 
             _dispatches = oldDispatches;
@@ -870,13 +873,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected virtual BoundBinaryOperator ShouldEnterFinallyBlock()
         {
-            return F.IntLessThan(F.Local(cachedState), F.Literal(StateMachineStates.FirstUnusedState));
+            return F.IntLessThan(F.Local(cachedState), F.Literal(StateMachineState.FirstUnusedState));
         }
 
         /// <summary>
         /// Set the state field and the cached state
         /// </summary>
-        protected BoundExpressionStatement GenerateSetBothStates(int stateNumber)
+        protected BoundExpressionStatement GenerateSetBothStates(StateMachineState stateNumber)
         {
             // this.state = cachedState = stateNumber;
             return F.Assignment(F.Field(F.This(), stateField), F.AssignmentExpression(F.Local(cachedState), F.Literal(stateNumber)));

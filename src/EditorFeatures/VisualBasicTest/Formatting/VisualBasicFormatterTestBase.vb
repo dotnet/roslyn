@@ -64,7 +64,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Formatting
                 Dim changes = Formatter.GetFormattedTextChanges(
                     docSyntax.Root,
                     workspace.Documents.First(Function(d) d.SelectedSpans.Any()).SelectedSpans,
-                    workspace.Services,
+                    workspace.Services.SolutionServices,
                     options,
                     rules,
                     CancellationToken.None)

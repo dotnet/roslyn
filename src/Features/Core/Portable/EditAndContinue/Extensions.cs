@@ -68,13 +68,17 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             throw ExceptionUtilities.UnexpectedValue(ordinal);
         }
 
+        /// <summary>
+        /// True if the project supports Edit and Continue.
+        /// Only depends on the language of the project and never changes.
+        /// </summary>
         public static bool SupportsEditAndContinue(this Project project)
-            => project.LanguageServices.GetService<IEditAndContinueAnalyzer>() != null;
+            => project.Services.GetService<IEditAndContinueAnalyzer>() != null;
 
         // Note: source generated files have relative paths: https://github.com/dotnet/roslyn/issues/51998
         public static bool SupportsEditAndContinue(this TextDocumentState documentState)
             => !documentState.Attributes.DesignTimeOnly &&
                documentState is not DocumentState or DocumentState { SupportsSyntaxTree: true } &&
-               (PathUtilities.IsAbsolute(documentState.FilePath) || documentState is SourceGeneratedDocumentState);
+               (PathUtilities.IsAbsolute(documentState.FilePath) || documentState is SourceGeneratedDocumentState { FilePath: not null });
     }
 }

@@ -141,11 +141,11 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.EndConstructGeneration
 
             Dim options = document.GetCodeCleanupOptionsAsync(_globalOptions, cancellationToken).AsTask().WaitAndGetResult(cancellationToken)
             Dim cleanDocument = CodeCleaner.CleanupAsync(document, GetSpanToCleanup(statement), Options, codeCleanups, cancellationToken:=cancellationToken).WaitAndGetResult(cancellationToken)
+            Dim changes = cleanDocument.GetTextChangesAsync(document, cancellationToken).WaitAndGetResult(cancellationToken)
 
             Using transaction = New CaretPreservingEditTransaction(VBEditorResources.End_Construct, view, _undoHistoryRegistry, _editorOperationsFactoryService)
                 transaction.MergePolicy = AutomaticCodeChangeMergePolicy.Instance
-
-                cleanDocument.Project.Solution.Workspace.ApplyDocumentChanges(cleanDocument, cancellationToken)
+                buffer.ApplyChanges(changes)
                 transaction.Complete()
             End Using
         End Sub

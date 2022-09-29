@@ -90,10 +90,7 @@ namespace Microsoft.CodeAnalysis.Scripting
                 // emit can fail due to compilation errors or because there is nothing to emit:
                 ThrowIfAnyCompilationErrors(diagnostics, compiler.DiagnosticFormatter);
 
-                if (executor == null)
-                {
-                    executor = (s) => Task.FromResult(default(T));
-                }
+                executor ??= (s) => Task.FromResult(default(T));
 
                 return executor;
             }
