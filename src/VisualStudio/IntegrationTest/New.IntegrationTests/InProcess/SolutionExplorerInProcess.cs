@@ -511,22 +511,6 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
         }
 
         /// <returns>
-        /// If <paramref name="waitForBuildToFinish"/> is <see langword="true"/>, returns the build status line, which generally looks something like this:
-        ///
-        /// <code>
-        /// ========== Build: 1 succeeded, 0 failed, 0 up-to-date, 0 skipped ==========
-        /// </code>
-        ///
-        /// Otherwise, this method does not wait for the build to complete and returns <see langword="null"/>.
-        /// </returns>
-        public async Task BuildSolutionAsync(CancellationToken cancellationToken)
-        {
-            await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
-
-            await TestServices.Shell.ExecuteCommandAsync(VSConstants.VSStd97CmdID.BuildSln, cancellationToken);
-        }
-
-        /// <returns>
         /// The summary line for the build, which generally looks something like this:
         ///
         /// <code>
