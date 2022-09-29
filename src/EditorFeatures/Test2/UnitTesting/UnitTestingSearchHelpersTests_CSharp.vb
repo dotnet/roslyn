@@ -167,5 +167,140 @@ namespace N1
     }
 }", UnitTestingSearchQuery.ForType("N1.N2.Outer"), host)
         End Function
+
+        <Theory, CombinatorialData>
+        Public Async Function TestMethod1(host As TestHost) As Task
+            Await TestCSharp("
+class Outer
+{
+    void [|Goo|]() { }
+}", UnitTestingSearchQuery.ForMethod("Outer", "Goo", methodArity:=0, methodParameterCount:=0), host)
+        End Function
+
+        <Theory, CombinatorialData>
+        Public Async Function TestMethod2(host As TestHost) As Task
+            Await TestCSharp("
+class Outer
+{
+    void Goo() { }
+}", UnitTestingSearchQuery.ForMethod("Outer", "Goo", methodArity:=1, methodParameterCount:=0), host)
+        End Function
+
+        <Theory, CombinatorialData>
+        Public Async Function TestMethod3(host As TestHost) As Task
+            Await TestCSharp("
+class Outer
+{
+    void Goo() { }
+}", UnitTestingSearchQuery.ForMethod("Outer", "Goo", methodArity:=0, methodParameterCount:=1), host)
+        End Function
+
+        <Theory, CombinatorialData>
+        Public Async Function TestMethod4(host As TestHost) As Task
+            Await TestCSharp("
+class Outer
+{
+    void Goo<T>() { }
+}", UnitTestingSearchQuery.ForMethod("Outer", "Goo", methodArity:=0, methodParameterCount:=0), host)
+        End Function
+
+        <Theory, CombinatorialData>
+        Public Async Function TestMethod5(host As TestHost) As Task
+            Await TestCSharp("
+class Outer
+{
+    void Goo(int i) { }
+}", UnitTestingSearchQuery.ForMethod("Outer", "Goo", methodArity:=0, methodParameterCount:=0), host)
+        End Function
+
+        <Theory, CombinatorialData>
+        Public Async Function TestMethod6(host As TestHost) As Task
+            Await TestCSharp("
+class Outer
+{
+    void [|Goo|]<T>() { }
+}", UnitTestingSearchQuery.ForMethod("Outer", "Goo", methodArity:=1, methodParameterCount:=0), host)
+        End Function
+
+        <Theory, CombinatorialData>
+        Public Async Function TestMethod7(host As TestHost) As Task
+            Await TestCSharp("
+class Outer
+{
+    void [|Goo|](int a) { }
+}", UnitTestingSearchQuery.ForMethod("Outer", "Goo", methodArity:=0, methodParameterCount:=1), host)
+        End Function
+
+        <Theory, CombinatorialData>
+        Public Async Function TestMethod8(host As TestHost) As Task
+            Await TestCSharp("
+class Outer
+{
+    void [|Goo|]<T>(int a) { }
+}", UnitTestingSearchQuery.ForMethod("Outer", "Goo", methodArity:=1, methodParameterCount:=1), host)
+        End Function
+
+        <Theory, CombinatorialData>
+        Public Async Function TestMethod9(host As TestHost) As Task
+            Await TestCSharp("
+class Outer
+{
+    class Inner
+    {
+        void [|Goo|]() { }
+    }
+}", UnitTestingSearchQuery.ForMethod("Outer+Inner", "Goo", methodArity:=0, methodParameterCount:=0), host)
+        End Function
+
+        <Theory, CombinatorialData>
+        Public Async Function TestMethod10(host As TestHost) As Task
+            Await TestCSharp("
+class Outer
+{
+    class Inner<T>
+    {
+        void [|Goo|]() { }
+    }
+}", UnitTestingSearchQuery.ForMethod("Outer+Inner`1", "Goo", methodArity:=0, methodParameterCount:=0), host)
+        End Function
+
+        <Theory, CombinatorialData>
+        Public Async Function TestMethod11(host As TestHost) As Task
+            Await TestCSharp("
+class Outer<T>
+{
+    class Inner
+    {
+        void [|Goo|]() { }
+    }
+}", UnitTestingSearchQuery.ForMethod("Outer`1+Inner", "Goo", methodArity:=0, methodParameterCount:=0), host)
+        End Function
+
+        <Theory, CombinatorialData>
+        Public Async Function TestMethod12(host As TestHost) As Task
+            Await TestCSharp("
+class Outer<T>
+{
+    class Inner<U>
+    {
+        void [|Goo|]() { }
+    }
+}", UnitTestingSearchQuery.ForMethod("Outer`1+Inner`1", "Goo", methodArity:=0, methodParameterCount:=0), host)
+        End Function
+
+        <Theory, CombinatorialData>
+        Public Async Function TestMethod13(host As TestHost) As Task
+            Await TestCSharp("
+namespace N1.N2
+{
+    class Outer
+    {
+        class Inner
+        {
+            void [|Goo|]() { }
+        }
+    }
+}", UnitTestingSearchQuery.ForMethod("N1.N2.Outer+Inner", "Goo", methodArity:=0, methodParameterCount:=0), host)
+        End Function
     End Class
 End Namespace
