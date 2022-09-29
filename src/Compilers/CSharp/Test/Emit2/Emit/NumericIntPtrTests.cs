@@ -1681,6 +1681,27 @@ public class A
 }");
         }
 
+        [Fact, WorkItem(63860, "https://github.com/dotnet/roslyn/issues/63860")]
+        public void IntPtrOperatorOnPlatformWithNumericIntPtrWithLangVer73()
+        {
+            var source = """
+using System;
+
+class C
+{
+    public static void M()
+    {
+        IntPtr a = default;
+        bool b = a == IntPtr.Zero;
+        a += 1;
+        _ = a + 1;
+    }
+}
+""";
+            var comp = CreateNumericIntPtrCompilation(source, references: new[] { MscorlibRefWithoutSharingCachedSymbols }, parseOptions: TestOptions.Regular7_3);
+            comp.VerifyDiagnostics();
+        }
+
         [Theory]
         [CombinatorialData]
         public void SemanticModel_UnaryOperators(bool lifted)
