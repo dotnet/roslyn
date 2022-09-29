@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.ComponentModel;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -31,14 +32,15 @@ namespace Microsoft.CodeAnalysis
 
         /// <summary>
         /// Includes the <c>params</c>, <c>scoped</c>, <c>ref</c>, <c>in</c>, <c>out</c>, <c>ByRef</c>, <c>ByVal</c> keywords before parameters.
+        /// Replaced by <see cref="IncludeModifiers"/>.
         /// </summary>
-        IncludeModifiers = 1 << 1,
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        IncludeParamsRefOut = IncludeModifiers,
 
         /// <summary>
         /// Includes the <c>params</c>, <c>scoped</c>, <c>ref</c>, <c>in</c>, <c>out</c>, <c>ByRef</c>, <c>ByVal</c> keywords before parameters.
-        /// Replaced by <see cref="IncludeModifiers"/>.
         /// </summary>
-        IncludeParamsRefOut = IncludeModifiers,
+        IncludeModifiers = 1 << 1,
 
         /// <summary>
         /// Includes parameter types in symbol descriptions.

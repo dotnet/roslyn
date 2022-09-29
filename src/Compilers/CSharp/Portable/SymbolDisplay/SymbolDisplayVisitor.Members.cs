@@ -815,17 +815,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                 AddParameterRefKindIfNeeded(symbol);
                 AddCustomModifiersIfNeeded(symbol.RefCustomModifiers, leadingSpace: false, trailingSpace: true);
 
-                if (symbol.ScopedKind == ScopedKind.ScopedValue &&
-                    format.ParameterOptions.IncludesOption(SymbolDisplayParameterOptions.IncludeModifiers))
+                if (format.ParameterOptions.IncludesOption(SymbolDisplayParameterOptions.IncludeModifiers))
                 {
-                    AddKeyword(SyntaxKind.ScopedKeyword);
-                    AddSpace();
-                }
+                    if (symbol.ScopedKind == ScopedKind.ScopedValue)
+                    {
+                        AddKeyword(SyntaxKind.ScopedKeyword);
+                        AddSpace();
+                    }
 
-                if (symbol.IsParams && format.ParameterOptions.IncludesOption(SymbolDisplayParameterOptions.IncludeModifiers))
-                {
-                    AddKeyword(SyntaxKind.ParamsKeyword);
-                    AddSpace();
+                    if (symbol.IsParams)
+                    {
+                        AddKeyword(SyntaxKind.ParamsKeyword);
+                        AddSpace();
+                    }
                 }
 
                 symbol.Type.Accept(this.NotFirstVisitor);
