@@ -366,7 +366,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             // However, we can return fieldSymbol.Type for implicitly typed field symbols in both cases.
                             // Note that for regular C#, fieldSymbol.Type would be an error type.
 
-                            var variableDecl = type.Parent as VariableDeclarationSyntax;
+                            var variableDecl = type.ModifyingScopedOrRefTypeOrSelf().Parent as VariableDeclarationSyntax;
                             if (variableDecl != null && variableDecl.Variables.Any())
                             {
                                 var fieldSymbol = GetDeclaredFieldSymbol(variableDecl.Variables.First());

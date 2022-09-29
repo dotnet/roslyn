@@ -1819,6 +1819,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.ERR_InvalidObjectCreation:
                 case ErrorCode.WRN_TypeParameterSameAsOuterMethodTypeParameter:
                 case ErrorCode.ERR_OutVariableCannotBeByRef:
+                case ErrorCode.ERR_DeconstructVariableCannotBeByRef:
                 case ErrorCode.ERR_OmittedTypeArgument:
                 case ErrorCode.ERR_FeatureNotAvailableInVersion8:
                 case ErrorCode.ERR_AltInterpolatedVerbatimStringsNotAvailable:
@@ -2218,6 +2219,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.ERR_BadAbstractEqualityOperatorSignature:
                 case ErrorCode.ERR_BadBinaryReadOnlySpanConcatenation:
                 case ErrorCode.ERR_ScopedRefAndRefStructOnly:
+                case ErrorCode.ERR_ScopedDiscard:
                 case ErrorCode.ERR_FixedFieldMustNotBeRef:
                 case ErrorCode.ERR_RefFieldCannotReferToRefStruct:
                 case ErrorCode.ERR_FileTypeDisallowedInSignature:

@@ -7367,4 +7367,10 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_ReadOnlyNotSuppAsParamModDidYouMeanIn" xml:space="preserve">
     <value>'readonly' is not supported as a parameter modifier. Did you mean 'in'?</value>
   </data>
+  <data name="ERR_ScopedDiscard" xml:space="preserve">
+    <value>The 'scoped' modifier cannot be used with discard.</value>
+  </data>
+  <data name="ERR_DeconstructVariableCannotBeByRef" xml:space="preserve">
+    <value>A deconstruction variable cannot be declared as a ref local</value>
+  </data>
 </root>
