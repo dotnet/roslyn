@@ -190,7 +190,7 @@ namespace Roslyn.Test.Utilities
     {
         public override bool ShouldSkip => IntPtr.Size != 4;
 
-        public override string SkipReason => "Target platform is not 32-bit";
+        public override string SkipReason => "Target bitness is not 32-bit";
     }
 
     public class Bitness64 : ExecutionCondition
