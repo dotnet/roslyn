@@ -139,7 +139,9 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.Api
             var index = await TopLevelSyntaxTreeIndex.GetRequiredIndexAsync(document, cancellationToken).ConfigureAwait(false);
             foreach (var info in index.DeclaredSymbolInfos)
             {
-                // Fast check to see if this looks like a candidate.
+                // Fast checks to see if this looks like a candidate.
+
+                // In non-strict mode, allow the type-parameter count to be mismatched.
                 if (query.Strict && info.TypeParameterCount != symbolArity)
                     continue;
 
@@ -152,6 +154,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.Api
                     if (info.Kind is not (DeclaredSymbolInfoKind.Method or DeclaredSymbolInfoKind.ExtensionMethod))
                         continue;
 
+                    // In non-strict mode, allow the parameter count to be mismatched.
                     if (query.Strict && info.ParameterCount != query.MethodParameterCount)
                         continue;
                 }
