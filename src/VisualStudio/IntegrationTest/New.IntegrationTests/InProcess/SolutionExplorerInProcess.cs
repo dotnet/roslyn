@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -511,6 +511,22 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
         }
 
         /// <returns>
+        /// If <paramref name="waitForBuildToFinish"/> is <see langword="true"/>, returns the build status line, which generally looks something like this:
+        ///
+        /// <code>
+        /// ========== Build: 1 succeeded, 0 failed, 0 up-to-date, 0 skipped ==========
+        /// </code>
+        ///
+        /// Otherwise, this method does not wait for the build to complete and returns <see langword="null"/>.
+        /// </returns>
+        public async Task BuildSolutionAsync(CancellationToken cancellationToken)
+        {
+            await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
+            await TestServices.Shell.ExecuteCommandAsync(VSConstants.VSStd97CmdID.BuildSln, cancellationToken);
+        }
+
+        /// <returns>
         /// The summary line for the build, which generally looks something like this:
         ///
         /// <code>
@@ -521,6 +537,9 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
         {
             await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
+            var buildOutputWindowPane = await GetBuildOutputWindowPaneAsync(cancellationToken);
+            buildOutputWindowPane.Clear();
+
             var buildManager = await GetRequiredGlobalServiceAsync<SVsSolutionBuildManager, IVsSolutionBuildManager2>(cancellationToken);
             using var solutionEvents = new UpdateSolutionEvents(buildManager);
             var buildCompleteTaskCompletionSource = new TaskCompletionSource<bool>();
@@ -529,6 +548,8 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
             solutionEvents.OnUpdateSolutionDone += HandleUpdateSolutionDone;
             try
             {
+                await TestServices.Shell.ExecuteCommandAsync(VSConstants.VSStd97CmdID.BuildSln, cancellationToken);
+
                 await buildCompleteTaskCompletionSource.Task;
             }
             finally
