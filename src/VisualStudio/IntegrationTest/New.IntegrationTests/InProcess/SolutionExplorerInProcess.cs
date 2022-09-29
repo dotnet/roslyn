@@ -31,8 +31,6 @@ using VSProject = VSLangProj.VSProject;
 using Reference5 = VSLangProj110.Reference5;
 using Reference2 = VSLangProj2.Reference2;
 using VSProject3 = VSLangProj140.VSProject3;
-using Microsoft.VisualStudio.LanguageServices.Interactive;
-using Microsoft.CodeAnalysis.AddFileBanner;
 
 namespace Microsoft.VisualStudio.Extensibility.Testing
 {
