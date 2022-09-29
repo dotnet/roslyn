@@ -106,7 +106,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.Api
             else
             {
                 typeNameWithoutArity = typeName[0..backtickIndex];
-                int.TryParse(typeName[(backtickIndex + 1)..], CultureInfo.InvariantCulture, out typeArity);
+                int.TryParse(typeName[(backtickIndex + 1)..], NumberStyles.None, CultureInfo.InvariantCulture, out typeArity);
             }
         }
 
