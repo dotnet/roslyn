@@ -130,15 +130,12 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.Api
             UnitTestingSearchQuery query,
             CancellationToken cancellationToken)
         {
-            var index = await TopLevelSyntaxTreeIndex.GetIndexAsync(document, cancellationToken).ConfigureAwait(false);
-            if (index == null)
-                return ImmutableArray<UnitTestingDocumentSpan>.Empty;
-
             using var _ = ArrayBuilder<UnitTestingDocumentSpan>.GetInstance(out var result);
 
             SyntaxTree? tree = null;
 
             // Walk each of the top-level-index infos we've got for this tree.
+            var index = await TopLevelSyntaxTreeIndex.GetRequiredIndexAsync(document, cancellationToken).ConfigureAwait(false);
             foreach (var info in index.DeclaredSymbolInfos)
             {
                 // Fast check to see if this looks like a candidate.
