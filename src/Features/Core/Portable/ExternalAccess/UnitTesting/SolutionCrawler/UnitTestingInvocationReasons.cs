@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
         public static readonly UnitTestingInvocationReasons Empty = new(ImmutableHashSet<string>.Empty);
 
         [DataMember(Order = 0)]
-        private readonly ImmutableHashSet<string> _reasons;
+        public readonly ImmutableHashSet<string> Reasons;
 
         public UnitTestingInvocationReasons(string reason)
             : this(ImmutableHashSet.Create(reason))
@@ -23,29 +23,29 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
         }
 
         public UnitTestingInvocationReasons(ImmutableHashSet<string> reasons)
-            => _reasons = reasons ?? ImmutableHashSet<string>.Empty;
+            => Reasons = reasons ?? ImmutableHashSet<string>.Empty;
 
-        public bool IsEmpty => _reasons.IsEmpty;
+        public bool IsEmpty => Reasons.IsEmpty;
 
         public bool Contains(string reason)
-            => _reasons.Contains(reason);
+            => Reasons.Contains(reason);
 
         public UnitTestingInvocationReasons With(UnitTestingInvocationReasons invocationReasons)
-            => new(_reasons.Union(invocationReasons._reasons));
+            => new(Reasons.Union(invocationReasons.Reasons));
 
         public UnitTestingInvocationReasons With(string reason)
-            => new(_reasons.Add(reason));
+            => new(Reasons.Add(reason));
 
         public ImmutableHashSet<string>.Enumerator GetEnumerator()
-            => _reasons.GetEnumerator();
+            => Reasons.GetEnumerator();
 
         IEnumerator<string> IEnumerable<string>.GetEnumerator()
-            => _reasons.GetEnumerator();
+            => Reasons.GetEnumerator();
 
         IEnumerator IEnumerable.GetEnumerator()
-            => _reasons.GetEnumerator();
+            => Reasons.GetEnumerator();
 
         public override string ToString()
-            => string.Join("|", _reasons ?? ImmutableHashSet<string>.Empty);
+            => string.Join("|", Reasons ?? ImmutableHashSet<string>.Empty);
     }
 }

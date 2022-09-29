@@ -3,8 +3,10 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Reflection.Metadata;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.ServiceHub.Framework;
 
@@ -19,7 +21,12 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.Api
             => BrokeredServiceBase.RunServiceImplAsync(implementation, cancellationToken);
 
         public static UnitTestingIncrementalAnalyzerProvider? TryRegisterAnalyzerProvider(string analyzerName, IUnitTestingIncrementalAnalyzerProviderImplementation provider)
-            => UnitTestingIncrementalAnalyzerProvider.TryRegister(RemoteWorkspaceManager.Default.GetWorkspace(), analyzerName, provider);
+        {
+            // UnitTestingIncrementalAnalyzerProvider.TryRegister(RemoteWorkspaceManager.Default.GetWorkspace(), analyzerName, provider);
+            var workspace = RemoteWorkspaceManager.Default.GetWorkspace();
+            return NewUnitTestingIncrementalAnalyzerProvider.TryRegister(
+                workspace.Kind, workspace.Services.SolutionServices, analyzerName, new AnalyzerProviderImplementationWrapper(provider));
+        }
 
         public static NewUnitTestingIncrementalAnalyzerProvider? TryRegisterNewAnalyzerProvider(string analyzerName, INewUnitTestingIncrementalAnalyzerProviderImplementation provider)
         {
@@ -33,5 +40,47 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.Api
 
         public static ValueTask<T> RunServiceAsync<T>(this UnitTestingPinnedSolutionInfoWrapper solutionInfo, ServiceBrokerClient client, Func<Solution, ValueTask<T>> implementation, CancellationToken cancellationToken)
             => RemoteWorkspaceManager.Default.RunServiceAsync(client, solutionInfo.UnderlyingObject, implementation, cancellationToken);
+
+        private class AnalyzerProviderImplementationWrapper : INewUnitTestingIncrementalAnalyzerProviderImplementation
+        {
+            private readonly IUnitTestingIncrementalAnalyzerProviderImplementation _provider;
+
+            public AnalyzerProviderImplementationWrapper(IUnitTestingIncrementalAnalyzerProviderImplementation provider)
+            {
+                _provider = provider;
+            }
+
+            public INewUnitTestingIncrementalAnalyzerImplementation CreateIncrementalAnalyzer()
+            {
+                return new AnalyzerImplementationWrapper(_provider.CreateIncrementalAnalyzer());
+            }
+        }
+
+        private class AnalyzerImplementationWrapper : INewUnitTestingIncrementalAnalyzerImplementation
+        {
+            private readonly IUnitTestingIncrementalAnalyzerImplementation _analyzer;
+
+            public AnalyzerImplementationWrapper(IUnitTestingIncrementalAnalyzerImplementation analyzer)
+            {
+                _analyzer = analyzer;
+            }
+
+            public Task AnalyzeDocumentAsync(Document document, SyntaxNode bodyOpt, UnitTestingInvocationReasons reasons, CancellationToken cancellationToken)
+            {
+                return _analyzer.AnalyzeDocumentAsync(document, bodyOpt, new UnitTestingInvocationReasonsWrapper(
+                    new CodeAnalysis.SolutionCrawler.InvocationReasons(reasons.Reasons)), cancellationToken);
+            }
+
+            public Task AnalyzeProjectAsync(Project project, bool semanticsChanged, UnitTestingInvocationReasons reasons, CancellationToken cancellationToken)
+            {
+                return _analyzer.AnalyzeProjectAsync(project, semanticsChanged, new UnitTestingInvocationReasonsWrapper(
+                    new CodeAnalysis.SolutionCrawler.InvocationReasons(reasons.Reasons)), cancellationToken);
+            }
+
+            public void RemoveDocument(DocumentId documentId)
+            {
+                _analyzer.RemoveDocument(documentId);
+            }
+        }
     }
 }
