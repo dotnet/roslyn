@@ -1847,6 +1847,11 @@
         <target state="translated">상수 문자열에서 ReadOnly/Span&lt;char&gt;과 일치하는 패턴</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_ManagedAddr">
+        <source>pointer to managed type</source>
+        <target state="new">pointer to managed type</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_PointerElementAccess">
         <source>pointer element access</source>
         <target state="translated">포인터 요소 액세스</target>

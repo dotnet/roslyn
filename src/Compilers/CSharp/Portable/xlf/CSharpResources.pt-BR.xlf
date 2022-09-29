@@ -1847,6 +1847,11 @@
         <target state="translated">padrões correspondentes a ReadOnly/Span&lt;char&gt; na cadeia de caracteres constante</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_ManagedAddr">
+        <source>pointer to managed type</source>
+        <target state="new">pointer to managed type</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_PointerElementAccess">
         <source>pointer element access</source>
         <target state="translated">acesso ao elemento de ponteiro</target>

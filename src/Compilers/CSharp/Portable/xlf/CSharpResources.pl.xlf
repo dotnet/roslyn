@@ -1847,6 +1847,11 @@
         <target state="translated">dopasowanie wzorca ReadOnly/Span&lt;char&gt; w ciągu stałym</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_ManagedAddr">
+        <source>pointer to managed type</source>
+        <target state="new">pointer to managed type</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_PointerElementAccess">
         <source>pointer element access</source>
         <target state="translated">dostęp do elementu wskaźnika</target>

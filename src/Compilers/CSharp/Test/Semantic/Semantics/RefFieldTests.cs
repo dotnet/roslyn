@@ -659,6 +659,25 @@ unsafe class C
                 //     C* M3() => (C*)null; // 2
                 Diagnostic(ErrorCode.WRN_ManagedAddr, "C*").WithArguments("C").WithLocation(15, 17)
                 );
+
+            comp = CreateCompilation(source, options: TestOptions.UnsafeReleaseDll, runtimeFeature: RuntimeFlag.ByRefFields, parseOptions: TestOptions.Regular10);
+            comp.VerifyEmitDiagnostics(
+                // (8,12): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
+                //     public ref int F1;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "ref int").WithArguments("ref fields", "11.0").WithLocation(8, 12),
+                // (14,9): error CS8936: Feature 'pointer to managed type' is not available in C# 10.0. Please use language version 11.0 or greater.
+                //     S2* M2() => (S2*)null; // 1
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "M2").WithArguments("pointer to managed type", "11.0").WithLocation(14, 9),
+                // (14,18): error CS8936: Feature 'pointer to managed type' is not available in C# 10.0. Please use language version 11.0 or greater.
+                //     S2* M2() => (S2*)null; // 1
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "S2*").WithArguments("pointer to managed type", "11.0").WithLocation(14, 18),
+                // (15,8): error CS8936: Feature 'pointer to managed type' is not available in C# 10.0. Please use language version 11.0 or greater.
+                //     C* M3() => (C*)null; // 2
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "M3").WithArguments("pointer to managed type", "11.0").WithLocation(15, 8),
+                // (15,17): error CS8936: Feature 'pointer to managed type' is not available in C# 10.0. Please use language version 11.0 or greater.
+                //     C* M3() => (C*)null; // 2
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "C*").WithArguments("pointer to managed type", "11.0").WithLocation(15, 17)
+                );
         }
 
         [Fact]
@@ -729,6 +748,18 @@ class C
   IL_0005:  ret
 }
 ");
+            comp = CreateCompilation(source, options: TestOptions.UnsafeReleaseDll, runtimeFeature: RuntimeFlag.ByRefFields, parseOptions: TestOptions.Regular10);
+            comp.VerifyEmitDiagnostics(
+                // (8,12): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
+                //     public ref int F1;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "ref int").WithArguments("ref fields", "11.0").WithLocation(8, 12),
+                // (20,9): error CS8936: Feature 'pointer to managed type' is not available in C# 10.0. Please use language version 11.0 or greater.
+                //         S2* s2 = null; // 1
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "S2*").WithArguments("pointer to managed type", "11.0").WithLocation(20, 9),
+                // (25,9): error CS8936: Feature 'pointer to managed type' is not available in C# 10.0. Please use language version 11.0 or greater.
+                //         C* c = null; // 2
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "C*").WithArguments("pointer to managed type", "11.0").WithLocation(25, 9)
+                );
         }
 
         [Fact]
@@ -842,6 +873,42 @@ class C
   IL_000c:  ret
 }
 ");
+            comp = CreateCompilation(source, options: TestOptions.UnsafeReleaseDll, runtimeFeature: RuntimeFlag.ByRefFields, parseOptions: TestOptions.Regular10);
+            comp.VerifyEmitDiagnostics(
+                // (8,12): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
+                //     public ref int F1;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "ref int").WithArguments("ref fields", "11.0").WithLocation(8, 12),
+                // (23,16): error CS8936: Feature 'pointer to managed type' is not available in C# 10.0. Please use language version 11.0 or greater.
+                //         fixed (S2* x2 = &Prop2) { } // 1
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "S2*").WithArguments("pointer to managed type", "11.0").WithLocation(23, 16),
+                // (23,25): error CS8936: Feature 'pointer to managed type' is not available in C# 10.0. Please use language version 11.0 or greater.
+                //         fixed (S2* x2 = &Prop2) { } // 1
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "&Prop2").WithArguments("pointer to managed type", "11.0").WithLocation(23, 25),
+                // (23,25): error CS8936: Feature 'pointer to managed type' is not available in C# 10.0. Please use language version 11.0 or greater.
+                //         fixed (S2* x2 = &Prop2) { } // 1
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "&Prop2").WithArguments("pointer to managed type", "11.0").WithLocation(23, 25),
+                // (27,27): error CS8936: Feature 'pointer to managed type' is not available in C# 10.0. Please use language version 11.0 or greater.
+                //         fixed (void* y2 = &Prop2) { } // 2
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "&Prop2").WithArguments("pointer to managed type", "11.0").WithLocation(27, 27),
+                // (27,27): error CS8936: Feature 'pointer to managed type' is not available in C# 10.0. Please use language version 11.0 or greater.
+                //         fixed (void* y2 = &Prop2) { } // 2
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "&Prop2").WithArguments("pointer to managed type", "11.0").WithLocation(27, 27),
+                // (31,16): error CS8936: Feature 'pointer to managed type' is not available in C# 10.0. Please use language version 11.0 or greater.
+                //         fixed (C* x3 = &Prop3) { } // 3
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "C*").WithArguments("pointer to managed type", "11.0").WithLocation(31, 16),
+                // (31,24): error CS8936: Feature 'pointer to managed type' is not available in C# 10.0. Please use language version 11.0 or greater.
+                //         fixed (C* x3 = &Prop3) { } // 3
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "&Prop3").WithArguments("pointer to managed type", "11.0").WithLocation(31, 24),
+                // (31,24): error CS8936: Feature 'pointer to managed type' is not available in C# 10.0. Please use language version 11.0 or greater.
+                //         fixed (C* x3 = &Prop3) { } // 3
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "&Prop3").WithArguments("pointer to managed type", "11.0").WithLocation(31, 24),
+                // (35,27): error CS8936: Feature 'pointer to managed type' is not available in C# 10.0. Please use language version 11.0 or greater.
+                //         fixed (void* y3 = &Prop3) { } // 4
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "&Prop3").WithArguments("pointer to managed type", "11.0").WithLocation(35, 27),
+                // (35,27): error CS8936: Feature 'pointer to managed type' is not available in C# 10.0. Please use language version 11.0 or greater.
+                //         fixed (void* y3 = &Prop3) { } // 4
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "&Prop3").WithArguments("pointer to managed type", "11.0").WithLocation(35, 27)
+                );
         }
 
         [Fact]
@@ -927,6 +994,64 @@ class C
                 // (24,14): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('C')
                 //         _ = (C*)p; // 5
                 Diagnostic(ErrorCode.WRN_ManagedAddr, "C*").WithArguments("C").WithLocation(24, 14)
+                );
+
+            comp = CreateCompilation(source, options: TestOptions.UnsafeReleaseDll, runtimeFeature: RuntimeFlag.ByRefFields, parseOptions: TestOptions.Regular10);
+            comp.VerifyEmitDiagnostics(
+                // (8,12): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
+                //     public ref int F1;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "ref int").WithArguments("ref fields", "11.0").WithLocation(8, 12),
+                // (13,12): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                //     void M(void* p)
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "void*").WithLocation(13, 12),
+                // (15,9): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                //         _ = (S*)p; // 1
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "_ = (S*)p").WithLocation(15, 9),
+                // (15,13): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                //         _ = (S*)p; // 1
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "(S*)p").WithLocation(15, 13),
+                // (15,14): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                //         _ = (S*)p; // 1
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "S*").WithLocation(15, 14),
+                // (15,17): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                //         _ = (S*)p; // 1
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "p").WithLocation(15, 17),
+                // (16,9): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                //         _ = (S2*)p; // 2
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "_ = (S2*)p").WithLocation(16, 9),
+                // (16,13): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                //         _ = (S2*)p; // 2
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "(S2*)p").WithLocation(16, 13),
+                // (16,14): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                //         _ = (S2*)p; // 2
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "S2*").WithLocation(16, 14),
+                // (16,14): error CS8936: Feature 'pointer to managed type' is not available in C# 10.0. Please use language version 11.0 or greater.
+                //         _ = (S2*)p; // 2
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "S2*").WithArguments("pointer to managed type", "11.0").WithLocation(16, 14),
+                // (16,18): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                //         _ = (S2*)p; // 2
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "p").WithLocation(16, 18),
+                // (17,9): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                //         _ = (C*)p; // 3
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "_ = (C*)p").WithLocation(17, 9),
+                // (17,13): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                //         _ = (C*)p; // 3
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "(C*)p").WithLocation(17, 13),
+                // (17,14): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                //         _ = (C*)p; // 3
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "C*").WithLocation(17, 14),
+                // (17,14): error CS8936: Feature 'pointer to managed type' is not available in C# 10.0. Please use language version 11.0 or greater.
+                //         _ = (C*)p; // 3
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "C*").WithArguments("pointer to managed type", "11.0").WithLocation(17, 14),
+                // (17,17): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                //         _ = (C*)p; // 3
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "p").WithLocation(17, 17),
+                // (23,14): error CS8936: Feature 'pointer to managed type' is not available in C# 10.0. Please use language version 11.0 or greater.
+                //         _ = (S2*)p; // 4
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "S2*").WithArguments("pointer to managed type", "11.0").WithLocation(23, 14),
+                // (24,14): error CS8936: Feature 'pointer to managed type' is not available in C# 10.0. Please use language version 11.0 or greater.
+                //         _ = (C*)p; // 5
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "C*").WithArguments("pointer to managed type", "11.0").WithLocation(24, 14)
                 );
         }
 

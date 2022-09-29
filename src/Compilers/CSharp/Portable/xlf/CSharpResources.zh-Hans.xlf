@@ -1847,6 +1847,11 @@
         <target state="translated">与常量字符串上的 ReadOnly/Span&lt;char&gt; 匹配的模式</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_ManagedAddr">
+        <source>pointer to managed type</source>
+        <target state="new">pointer to managed type</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_PointerElementAccess">
         <source>pointer element access</source>
         <target state="translated">指针元素访问</target>

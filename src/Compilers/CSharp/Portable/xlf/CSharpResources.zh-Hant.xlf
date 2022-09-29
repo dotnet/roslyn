@@ -1847,6 +1847,11 @@
         <target state="translated">常數字串上的模式比對 ReadOnly/Span&lt;char&gt;</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_ManagedAddr">
+        <source>pointer to managed type</source>
+        <target state="new">pointer to managed type</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_PointerElementAccess">
         <source>pointer element access</source>
         <target state="translated">指標元素存取</target>

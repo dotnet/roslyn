@@ -259,6 +259,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         IDS_FeatureFileTypes = MessageBase + 12827,
         IDS_ArrayAccess = MessageBase + 12828,
         IDS_PointerElementAccess = MessageBase + 12829,
+        IDS_ManagedAddr = MessageBase + 12830,
     }
 
     // Message IDs may refer to strings that need to be localized.
@@ -386,6 +387,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case MessageID.IDS_FeatureRefFields: // semantic check
                 case MessageID.IDS_FeatureFileTypes: // semantic check
                 case MessageID.IDS_FeatureGenericAttributes: // semantic check
+                case MessageID.IDS_ManagedAddr: // semantic check
                     return LanguageVersion.CSharp11;
 
                 // C# 10.0 features.

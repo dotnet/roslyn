@@ -1847,6 +1847,11 @@
         <target state="translated">sabit dizede ReadOnly/Span&lt;char&gt; ile eşleşen desen</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_ManagedAddr">
+        <source>pointer to managed type</source>
+        <target state="new">pointer to managed type</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_PointerElementAccess">
         <source>pointer element access</source>
         <target state="translated">işaretçi öğesi erişimi</target>
