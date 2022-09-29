@@ -68,7 +68,7 @@
     
     <!-- <Metalama> -->
     <MetalamaBackstageVersion Condition="'$(MetalamaBackstageVersion)'==''">branch:master</MetalamaBackstageVersion>
-    <PostSharpEngineeringVersion Condition="'$(PostSharpEngineeringVersion)'==''">1.0.91-preview</PostSharpEngineeringVersion>
+    <PostSharpEngineeringVersion Condition="'$(PostSharpEngineeringVersion)'==''">1.0.94-preview</PostSharpEngineeringVersion>
     
     <!-- this needs to be undefined, not sure why -->
     <MajorVersion>
