@@ -7,35 +7,17 @@ Imports Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.Api
 Imports Microsoft.CodeAnalysis.Remote.Testing
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.UnitTesting
-    <UseExportProvider>
-    Public Class UnitTestingSearchHelpersTests_CSharp
-        Private Shared ReadOnly s_inProcessComposition As TestComposition = EditorTestCompositions.EditorFeatures
-        Private Shared ReadOnly s_outOffProcessComposition As TestComposition = s_inProcessComposition.WithTestHostParts(TestHost.OutOfProcess)
-
+    Partial Public Class UnitTestingSearchHelpersTests
         Private Shared Async Function TestCSharp(text As String, query As UnitTestingSearchQuery, host As TestHost) As Task
             Using workspace = TestWorkspace.CreateCSharp(text,
                 composition:=If(host = TestHost.OutOfProcess, s_outOffProcessComposition, s_inProcessComposition))
 
-                Dim project = workspace.CurrentSolution.Projects.Single()
-
-                Dim actualLocations = Await UnitTestingSearchHelpers.GetSourceLocationsAsync(
-                    project, query, cancellationToken:=Nothing)
-
-                Dim expectedLocations = workspace.Documents.Single().SelectedSpans
-
-                Assert.Equal(expectedLocations.Count, actualLocations.Length)
-
-                For i = 0 To expectedLocations.Count - 1
-                    Dim expected = expectedLocations(i)
-                    Dim actual = actualLocations(i)
-
-                    Assert.Equal(expected, actual.DocumentSpan.SourceSpan)
-                Next
+                Await Test(query, workspace)
             End Using
         End Function
 
         <Theory, CombinatorialData>
-        Public Async Function TestType1(host As TestHost) As Task
+        Public Async Function CS_TestType1(host As TestHost) As Task
             Await TestCSharp("
 class [|Outer|]
 {
@@ -43,7 +25,7 @@ class [|Outer|]
         End Function
 
         <Theory, CombinatorialData>
-        Public Async Function TestGenericType1(host As TestHost) As Task
+        Public Async Function CS_TestGenericType1(host As TestHost) As Task
             Await TestCSharp("
 class [|Outer|]<T>
 {
@@ -51,7 +33,7 @@ class [|Outer|]<T>
         End Function
 
         <Theory, CombinatorialData>
-        Public Async Function TestGenericType2(host As TestHost) As Task
+        Public Async Function CS_TestGenericType2(host As TestHost) As Task
             Await TestCSharp("
 class Outer<T>
 {
@@ -59,7 +41,7 @@ class Outer<T>
         End Function
 
         <Theory, CombinatorialData>
-        Public Async Function TestGenericType3(host As TestHost) As Task
+        Public Async Function CS_TestGenericType3(host As TestHost) As Task
             Await TestCSharp("
 class Outer<T>
 {
@@ -67,7 +49,7 @@ class Outer<T>
         End Function
 
         <Theory, CombinatorialData>
-        Public Async Function TestNestedType1(host As TestHost) As Task
+        Public Async Function CS_TestNestedType1(host As TestHost) As Task
             Await TestCSharp("
 class Outer
 {
@@ -78,7 +60,7 @@ class Outer
         End Function
 
         <Theory, CombinatorialData>
-        Public Async Function TestNestedType2(host As TestHost) As Task
+        Public Async Function CS_TestNestedType2(host As TestHost) As Task
             Await TestCSharp("
 class Outer
 {
@@ -89,7 +71,7 @@ class Outer
         End Function
 
         <Theory, CombinatorialData>
-        Public Async Function TestNestedType3(host As TestHost) As Task
+        Public Async Function CS_TestNestedType3(host As TestHost) As Task
             Await TestCSharp("
 class Outer
 {
@@ -100,7 +82,7 @@ class Outer
         End Function
 
         <Theory, CombinatorialData>
-        Public Async Function TestNestedType4(host As TestHost) As Task
+        Public Async Function CS_TestNestedType4(host As TestHost) As Task
             Await TestCSharp("
 class Outer<T>
 {
@@ -111,7 +93,7 @@ class Outer<T>
         End Function
 
         <Theory, CombinatorialData>
-        Public Async Function TestNestedType5(host As TestHost) As Task
+        Public Async Function CS_TestNestedType5(host As TestHost) As Task
             Await TestCSharp("
 class Outer<T>
 {
@@ -122,7 +104,7 @@ class Outer<T>
         End Function
 
         <Theory, CombinatorialData>
-        Public Async Function TestTypeWithNamespace1(host As TestHost) As Task
+        Public Async Function CS_TestTypeWithNamespace1(host As TestHost) As Task
             Await TestCSharp("
 namespace N
 {
@@ -133,7 +115,7 @@ namespace N
         End Function
 
         <Theory, CombinatorialData>
-        Public Async Function TestTypeWithNamespace2(host As TestHost) As Task
+        Public Async Function CS_TestTypeWithNamespace2(host As TestHost) As Task
             Await TestCSharp("
 namespace N
 {
@@ -144,7 +126,7 @@ namespace N
         End Function
 
         <Theory, CombinatorialData>
-        Public Async Function TestTypeWithNamespace3(host As TestHost) As Task
+        Public Async Function CS_TestTypeWithNamespace3(host As TestHost) As Task
             Await TestCSharp("
 namespace N1.N2
 {
@@ -155,7 +137,7 @@ namespace N1.N2
         End Function
 
         <Theory, CombinatorialData>
-        Public Async Function TestTypeWithNamespace4(host As TestHost) As Task
+        Public Async Function CS_TestTypeWithNamespace4(host As TestHost) As Task
             Await TestCSharp("
 namespace N1
 {
@@ -169,7 +151,7 @@ namespace N1
         End Function
 
         <Theory, CombinatorialData>
-        Public Async Function TestMethod1(host As TestHost) As Task
+        Public Async Function CS_TestMethod1(host As TestHost) As Task
             Await TestCSharp("
 class Outer
 {
@@ -178,7 +160,7 @@ class Outer
         End Function
 
         <Theory, CombinatorialData>
-        Public Async Function TestMethod2(host As TestHost) As Task
+        Public Async Function CS_TestMethod2(host As TestHost) As Task
             Await TestCSharp("
 class Outer
 {
@@ -187,7 +169,7 @@ class Outer
         End Function
 
         <Theory, CombinatorialData>
-        Public Async Function TestMethod3(host As TestHost) As Task
+        Public Async Function CS_TestMethod3(host As TestHost) As Task
             Await TestCSharp("
 class Outer
 {
@@ -196,7 +178,7 @@ class Outer
         End Function
 
         <Theory, CombinatorialData>
-        Public Async Function TestMethod4(host As TestHost) As Task
+        Public Async Function CS_TestMethod4(host As TestHost) As Task
             Await TestCSharp("
 class Outer
 {
@@ -205,7 +187,7 @@ class Outer
         End Function
 
         <Theory, CombinatorialData>
-        Public Async Function TestMethod5(host As TestHost) As Task
+        Public Async Function CS_TestMethod5(host As TestHost) As Task
             Await TestCSharp("
 class Outer
 {
@@ -214,7 +196,7 @@ class Outer
         End Function
 
         <Theory, CombinatorialData>
-        Public Async Function TestMethod6(host As TestHost) As Task
+        Public Async Function CS_TestMethod6(host As TestHost) As Task
             Await TestCSharp("
 class Outer
 {
@@ -223,7 +205,7 @@ class Outer
         End Function
 
         <Theory, CombinatorialData>
-        Public Async Function TestMethod7(host As TestHost) As Task
+        Public Async Function CS_TestMethod7(host As TestHost) As Task
             Await TestCSharp("
 class Outer
 {
@@ -232,7 +214,7 @@ class Outer
         End Function
 
         <Theory, CombinatorialData>
-        Public Async Function TestMethod8(host As TestHost) As Task
+        Public Async Function CS_TestMethod8(host As TestHost) As Task
             Await TestCSharp("
 class Outer
 {
@@ -241,7 +223,7 @@ class Outer
         End Function
 
         <Theory, CombinatorialData>
-        Public Async Function TestMethod9(host As TestHost) As Task
+        Public Async Function CS_TestMethod9(host As TestHost) As Task
             Await TestCSharp("
 class Outer
 {
@@ -253,7 +235,7 @@ class Outer
         End Function
 
         <Theory, CombinatorialData>
-        Public Async Function TestMethod10(host As TestHost) As Task
+        Public Async Function CS_TestMethod10(host As TestHost) As Task
             Await TestCSharp("
 class Outer
 {
@@ -265,7 +247,7 @@ class Outer
         End Function
 
         <Theory, CombinatorialData>
-        Public Async Function TestMethod11(host As TestHost) As Task
+        Public Async Function CS_TestMethod11(host As TestHost) As Task
             Await TestCSharp("
 class Outer<T>
 {
@@ -277,7 +259,7 @@ class Outer<T>
         End Function
 
         <Theory, CombinatorialData>
-        Public Async Function TestMethod12(host As TestHost) As Task
+        Public Async Function CS_TestMethod12(host As TestHost) As Task
             Await TestCSharp("
 class Outer<T>
 {
@@ -289,7 +271,7 @@ class Outer<T>
         End Function
 
         <Theory, CombinatorialData>
-        Public Async Function TestMethod13(host As TestHost) As Task
+        Public Async Function CS_TestMethod13(host As TestHost) As Task
             Await TestCSharp("
 namespace N1.N2
 {
@@ -304,7 +286,7 @@ namespace N1.N2
         End Function
 
         <Theory, CombinatorialData>
-        Public Async Function TestExtensionMethod1(host As TestHost) As Task
+        Public Async Function CS_TestExtensionMethod1(host As TestHost) As Task
             Await TestCSharp("
 class Outer
 {

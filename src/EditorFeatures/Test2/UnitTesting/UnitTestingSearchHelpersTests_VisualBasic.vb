@@ -7,35 +7,17 @@ Imports Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.Api
 Imports Microsoft.CodeAnalysis.Remote.Testing
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.UnitTesting
-    <UseExportProvider>
-    Public Class UnitTestingSearchHelpersTests_VisualBasic
-        Private Shared ReadOnly s_inProcessComposition As TestComposition = EditorTestCompositions.EditorFeatures
-        Private Shared ReadOnly s_outOffProcessComposition As TestComposition = s_inProcessComposition.WithTestHostParts(TestHost.OutOfProcess)
-
+    Public Class UnitTestingSearchHelpersTests
         Private Shared Async Function TestVisualBasic(text As String, query As UnitTestingSearchQuery, host As TestHost) As Task
             Using workspace = TestWorkspace.CreateVisualBasic(text,
                 composition:=If(host = TestHost.OutOfProcess, s_outOffProcessComposition, s_inProcessComposition))
 
-                Dim project = workspace.CurrentSolution.Projects.Single()
-
-                Dim actualLocations = Await UnitTestingSearchHelpers.GetSourceLocationsAsync(
-                    project, query, cancellationToken:=Nothing)
-
-                Dim expectedLocations = workspace.Documents.Single().SelectedSpans
-
-                Assert.Equal(expectedLocations.Count, actualLocations.Length)
-
-                For i = 0 To expectedLocations.Count - 1
-                    Dim expected = expectedLocations(i)
-                    Dim actual = actualLocations(i)
-
-                    Assert.Equal(expected, actual.DocumentSpan.SourceSpan)
-                Next
+                Await Test(query, workspace)
             End Using
         End Function
 
         <Theory, CombinatorialData>
-        Public Async Function TestType1(host As TestHost) As Task
+        Public Async Function VB_TestType1(host As TestHost) As Task
             Await TestVisualBasic("
 class [|Outer|]
 end class
@@ -43,7 +25,7 @@ end class
         End Function
 
         <Theory, CombinatorialData>
-        Public Async Function TestGenericType1(host As TestHost) As Task
+        Public Async Function VB_TestGenericType1(host As TestHost) As Task
             Await TestVisualBasic("
 class [|Outer|](of T)
 end class
@@ -51,7 +33,7 @@ end class
         End Function
 
         <Theory, CombinatorialData>
-        Public Async Function TestGenericType2(host As TestHost) As Task
+        Public Async Function VB_TestGenericType2(host As TestHost) As Task
             Await TestVisualBasic("
 class Outer(of T)
 end class
@@ -59,7 +41,7 @@ end class
         End Function
 
         <Theory, CombinatorialData>
-        Public Async Function TestGenericType3(host As TestHost) As Task
+        Public Async Function VB_TestGenericType3(host As TestHost) As Task
             Await TestVisualBasic("
 class Outer(of T)
 end class
@@ -67,7 +49,7 @@ end class
         End Function
 
         <Theory, CombinatorialData>
-        Public Async Function TestNestedType1(host As TestHost) As Task
+        Public Async Function VB_TestNestedType1(host As TestHost) As Task
             Await TestVisualBasic("
 class Outer
     class [|Inner|]
@@ -77,7 +59,7 @@ end class
         End Function
 
         <Theory, CombinatorialData>
-        Public Async Function TestNestedType2(host As TestHost) As Task
+        Public Async Function VB_TestNestedType2(host As TestHost) As Task
             Await TestVisualBasic("
 class Outer
     class [|Inner|]
@@ -87,7 +69,7 @@ end class
         End Function
 
         <Theory, CombinatorialData>
-        Public Async Function TestNestedType3(host As TestHost) As Task
+        Public Async Function VB_TestNestedType3(host As TestHost) As Task
             Await TestVisualBasic("
 class Outer
     class [|Inner|](of T)
@@ -97,7 +79,7 @@ end class
         End Function
 
         <Theory, CombinatorialData>
-        Public Async Function TestNestedType4(host As TestHost) As Task
+        Public Async Function VB_TestNestedType4(host As TestHost) As Task
             Await TestVisualBasic("
 class Outer(of T)
     class [|Inner|]
@@ -107,7 +89,7 @@ end class
         End Function
 
         <Theory, CombinatorialData>
-        Public Async Function TestNestedType5(host As TestHost) As Task
+        Public Async Function VB_TestNestedType5(host As TestHost) As Task
             Await TestVisualBasic("
 class Outer(of T)
     class [|Inner|](of U)
@@ -117,7 +99,7 @@ end class
         End Function
 
         <Theory, CombinatorialData>
-        Public Async Function TestTypeWithNamespace1(host As TestHost) As Task
+        Public Async Function VB_TestTypeWithNamespace1(host As TestHost) As Task
             Await TestVisualBasic("
 namespace N
     class [|Outer|]
@@ -126,7 +108,7 @@ end namespace", UnitTestingSearchQuery.ForType("N.Outer"), host)
         End Function
 
         <Theory, CombinatorialData>
-        Public Async Function TestTypeWithNamespace2(host As TestHost) As Task
+        Public Async Function VB_TestTypeWithNamespace2(host As TestHost) As Task
             Await TestVisualBasic("
 namespace N
     class Outer
@@ -136,7 +118,7 @@ end namespace
         End Function
 
         <Theory, CombinatorialData>
-        Public Async Function TestTypeWithNamespace3(host As TestHost) As Task
+        Public Async Function VB_TestTypeWithNamespace3(host As TestHost) As Task
             Await TestVisualBasic("
 namespace N1.N2
     class [|Outer|]
@@ -145,7 +127,7 @@ end namespace", UnitTestingSearchQuery.ForType("N1.N2.Outer"), host)
         End Function
 
         <Theory, CombinatorialData>
-        Public Async Function TestTypeWithNamespace4(host As TestHost) As Task
+        Public Async Function VB_TestTypeWithNamespace4(host As TestHost) As Task
             Await TestVisualBasic("
 namespace N1
     namespace N2
@@ -157,7 +139,7 @@ end namespace
         End Function
 
         <Theory, CombinatorialData>
-        Public Async Function TestMethod1(host As TestHost) As Task
+        Public Async Function VB_TestMethod1(host As TestHost) As Task
             Await TestVisualBasic("
 class Outer
     sub [|Goo|]()
@@ -167,7 +149,7 @@ end class
         End Function
 
         <Theory, CombinatorialData>
-        Public Async Function TestMethod2(host As TestHost) As Task
+        Public Async Function VB_TestMethod2(host As TestHost) As Task
             Await TestVisualBasic("
 class Outer
     sub Goo()
@@ -177,7 +159,7 @@ end class
         End Function
 
         <Theory, CombinatorialData>
-        Public Async Function TestMethod3(host As TestHost) As Task
+        Public Async Function VB_TestMethod3(host As TestHost) As Task
             Await TestVisualBasic("
 class Outer
     sub Goo()
@@ -187,7 +169,7 @@ end class
         End Function
 
         <Theory, CombinatorialData>
-        Public Async Function TestMethod4(host As TestHost) As Task
+        Public Async Function VB_TestMethod4(host As TestHost) As Task
             Await TestVisualBasic("
 class Outer
     sub Goo(of T)()
@@ -197,7 +179,7 @@ end class
         End Function
 
         <Theory, CombinatorialData>
-        Public Async Function TestMethod5(host As TestHost) As Task
+        Public Async Function VB_TestMethod5(host As TestHost) As Task
             Await TestVisualBasic("
 class Outer
     sub Goo(i as integer)
@@ -207,7 +189,7 @@ end class
         End Function
 
         <Theory, CombinatorialData>
-        Public Async Function TestMethod6(host As TestHost) As Task
+        Public Async Function VB_TestMethod6(host As TestHost) As Task
             Await TestVisualBasic("
 class Outer
     sub [|Goo|](of T)()
@@ -217,7 +199,7 @@ end class
         End Function
 
         <Theory, CombinatorialData>
-        Public Async Function TestMethod7(host As TestHost) As Task
+        Public Async Function VB_TestMethod7(host As TestHost) As Task
             Await TestVisualBasic("
 class Outer
     sub [|Goo|](a as integer)
@@ -227,7 +209,7 @@ end class
         End Function
 
         <Theory, CombinatorialData>
-        Public Async Function TestMethod8(host As TestHost) As Task
+        Public Async Function VB_TestMethod8(host As TestHost) As Task
             Await TestVisualBasic("
 class Outer
     sub [|Goo|](of T)(a as integer)
@@ -237,7 +219,7 @@ end class
         End Function
 
         <Theory, CombinatorialData>
-        Public Async Function TestMethod9(host As TestHost) As Task
+        Public Async Function VB_TestMethod9(host As TestHost) As Task
             Await TestVisualBasic("
 class Outer
     class Inner
@@ -249,7 +231,7 @@ end class
         End Function
 
         <Theory, CombinatorialData>
-        Public Async Function TestMethod10(host As TestHost) As Task
+        Public Async Function VB_TestMethod10(host As TestHost) As Task
             Await TestVisualBasic("
 class Outer
     class Inner(of T)
@@ -261,7 +243,7 @@ end class
         End Function
 
         <Theory, CombinatorialData>
-        Public Async Function TestMethod11(host As TestHost) As Task
+        Public Async Function VB_TestMethod11(host As TestHost) As Task
             Await TestVisualBasic("
 class Outer(of T)
     class Inner
@@ -273,7 +255,7 @@ end class
         End Function
 
         <Theory, CombinatorialData>
-        Public Async Function TestMethod12(host As TestHost) As Task
+        Public Async Function VB_TestMethod12(host As TestHost) As Task
             Await TestVisualBasic("
 class Outer(of T)
     class Inner(of U)
@@ -285,7 +267,7 @@ end class
         End Function
 
         <Theory, CombinatorialData>
-        Public Async Function TestMethod13(host As TestHost) As Task
+        Public Async Function VB_TestMethod13(host As TestHost) As Task
             Await TestVisualBasic("
 namespace N1.N2
     class Outer
@@ -299,7 +281,7 @@ end namespace
         End Function
 
         <Theory, CombinatorialData>
-        Public Async Function TestExtensionMethod1(host As TestHost) As Task
+        Public Async Function VB_TestExtensionMethod1(host As TestHost) As Task
             Await TestVisualBasic("
 module Outer
     sub [|Goo|](i as integer)
