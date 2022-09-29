@@ -11545,14 +11545,14 @@ ref struct Enumerator1
         S s0 = new S(ref i0);
         {
             int i1 = 1;
-            foreach (S s1 in Enumerable1.Create(ref i1)) {
+            foreach (S s1 in RefStructEnumerable.Create(ref i1)) {
                 s0 = s1;
                 break;
             }
         }
         {
             int i2 = 1;
-            foreach (S s2 in Enumerable2.Create(ref i2)) {
+            foreach (S s2 in ClassEnumerable.Create(ref i2)) {
                 s0 = s2;
                 break;
             }
@@ -11563,17 +11563,17 @@ ref struct S
 {
     public S(ref int i) { }
 }
-ref struct Enumerable1
+ref struct RefStructEnumerable
 {
-    public static Enumerable1 Create(ref int p) => default;
-    public Enumerator1 GetEnumerator() => default;
+    public static RefStructEnumerable Create(ref int p) => default;
+    public ClassEnumerator GetEnumerator() => default;
 }
-class Enumerable2
+class ClassEnumerable
 {
-    public static Enumerable2 Create(ref int p) => default;
-    public Enumerator1 GetEnumerator() => default;
+    public static ClassEnumerable Create(ref int p) => default;
+    public ClassEnumerator GetEnumerator() => default;
 }
-class Enumerator1
+class ClassEnumerator
 {
     public S Current => throw null;
     public bool MoveNext() => false;
