@@ -52,17 +52,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
             _languageName = languageName;
 
             Workspace.DocumentOpened += InitializeServiceOnDocumentOpened;
-
-            // Explicltly handle already opened documents, in case we missed the events
-            InitializeServiceOnAlreadyOpenedDocuments(Workspace.GetOpenDocumentIds().ToImmutableArray());
         }
 
         void IWpfTextViewConnectionListener.SubjectBuffersConnected(IWpfTextView textView, ConnectionReason reason, Collection<ITextBuffer> subjectBuffers)
         {
             if (!_initialized)
             {
-                var token = _listener.BeginAsyncOperation(nameof(InitializeServicesAsync));
-                InitializeServicesAsync().CompletesAsyncOperation(token);
+                var token = _listener.BeginAsyncOperation(nameof(InitializePerVSSessionServicesAsync));
+                InitializePerVSSessionServicesAsync().CompletesAsyncOperation(token);
 
                 _initialized = true;
             }
@@ -73,22 +70,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
         }
 
         private void InitializeServiceOnDocumentOpened(object sender, DocumentEventArgs e)
-            => InitializeServiceForDocument(e.Document);
-
-        private void InitializeServiceOnAlreadyOpenedDocuments(ImmutableArray<DocumentId> documentIds)
         {
-            foreach (var id in documentIds)
-            {
-                var document = Workspace.CurrentSolution.GetDocument(id);
-                if (document != null)
-                {
-                    InitializeServiceForDocument(document);
-                }
-            }
-        }
-
-        private void InitializeServiceForDocument(Document document)
-        {
+            var document = e.Document;
             if (document.Project.Language != _languageName)
             {
                 return;
@@ -100,17 +83,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
             async Task InitializeServiceForOpenedDocumentOnBackgroundAsync(Document document)
             {
                 await TaskScheduler.Default;
-
-                // Preload project completion providers on a background thread since loading extensions can be slow
-                // https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1488945
-                if (document.GetLanguageService<CompletionService>() is not null)
-                    _ = CompletionService.GetProjectCompletionProviders(document.Project);
-
                 await InitializeServiceForOpenedDocumentAsync(document).ConfigureAwait(false);
             }
         }
 
-        private async Task InitializeServicesAsync()
+        private async Task InitializePerVSSessionServicesAsync()
         {
             await TaskScheduler.Default;
 
