@@ -234,7 +234,8 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
 
             // In the case of partial classes, finding the location in the generated source may return a location in a different document, so we
             // have to make sure to look it up again.
-            var navigateDocument = navigateProject.GetRequiredDocument(navigateLocation.SourceTree);
+            var navigateDocument = navigateProject.GetDocument(navigateLocation.SourceTree);
+            Contract.ThrowIfNull(navigateDocument);
             var sourceDescription = sourceFileInfos.FirstOrDefault(sfi => sfi!.FilePath?.Equals(navigateDocument.FilePath, StringComparison.OrdinalIgnoreCase) ?? false)?.SourceDescription ?? FeaturesResources.from_metadata;
 
             var documentName = string.Format(
