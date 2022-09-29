@@ -246,10 +246,20 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                         EnqueueSolutionChangedEvent(args.OldSolution, args.NewSolution, eventName);
                         break;
 
+#if false // Not used in unit testing crawling
+                    case WorkspaceChangeKind.SolutionRemoved:
+                        EnqueueFullSolutionEvent(args.OldSolution, UnitTestingInvocationReasons.SolutionRemoved, eventName);
+                        break;
+
+                    case WorkspaceChangeKind.SolutionCleared:
+                        EnqueueFullSolutionEvent(args.OldSolution, UnitTestingInvocationReasons.SolutionRemoved, eventName);
+                        break;
+#else
                     case WorkspaceChangeKind.SolutionCleared:
                     case WorkspaceChangeKind.SolutionRemoved:
                         // Not used in unit testing crawling
                         break;
+#endif
 
                     case WorkspaceChangeKind.ProjectAdded:
                         Contract.ThrowIfNull(args.ProjectId);
