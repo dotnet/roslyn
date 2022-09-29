@@ -24,8 +24,12 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.Api
         {
             // UnitTestingIncrementalAnalyzerProvider.TryRegister(RemoteWorkspaceManager.Default.GetWorkspace(), analyzerName, provider);
             var workspace = RemoteWorkspaceManager.Default.GetWorkspace();
-            return NewUnitTestingIncrementalAnalyzerProvider.TryRegister(
+            var newProvider = NewUnitTestingIncrementalAnalyzerProvider.TryRegister(
                 workspace.Kind, workspace.Services.SolutionServices, analyzerName, new AnalyzerProviderImplementationWrapper(provider));
+            if (newProvider == null)
+                return null;
+
+            return new UnitTestingIncrementalAnalyzerProvider(workspace, newProvider);
         }
 
         public static NewUnitTestingIncrementalAnalyzerProvider? TryRegisterNewAnalyzerProvider(string analyzerName, INewUnitTestingIncrementalAnalyzerProviderImplementation provider)

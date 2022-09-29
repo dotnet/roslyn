@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
         public static readonly InvocationReasons Empty = new(ImmutableHashSet<string>.Empty);
 
         [DataMember(Order = 0)]
-        private readonly ImmutableHashSet<string> _reasons;
+        public readonly ImmutableHashSet<string> Reasons;
 
         public InvocationReasons(string reason)
             : this(ImmutableHashSet.Create(reason))
@@ -23,29 +23,29 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
         }
 
         public InvocationReasons(ImmutableHashSet<string> reasons)
-            => _reasons = reasons ?? ImmutableHashSet<string>.Empty;
+            => Reasons = reasons ?? ImmutableHashSet<string>.Empty;
 
-        public bool IsEmpty => _reasons.IsEmpty;
+        public bool IsEmpty => Reasons.IsEmpty;
 
         public bool Contains(string reason)
-            => _reasons.Contains(reason);
+            => Reasons.Contains(reason);
 
         public InvocationReasons With(InvocationReasons invocationReasons)
-            => new(_reasons.Union(invocationReasons._reasons));
+            => new(Reasons.Union(invocationReasons.Reasons));
 
         public InvocationReasons With(string reason)
-            => new(_reasons.Add(reason));
+            => new(Reasons.Add(reason));
 
         public ImmutableHashSet<string>.Enumerator GetEnumerator()
-            => _reasons.GetEnumerator();
+            => Reasons.GetEnumerator();
 
         IEnumerator<string> IEnumerable<string>.GetEnumerator()
-            => _reasons.GetEnumerator();
+            => Reasons.GetEnumerator();
 
         IEnumerator IEnumerable.GetEnumerator()
-            => _reasons.GetEnumerator();
+            => Reasons.GetEnumerator();
 
         public override string ToString()
-            => string.Join("|", _reasons ?? ImmutableHashSet<string>.Empty);
+            => string.Join("|", Reasons ?? ImmutableHashSet<string>.Empty);
     }
 }
