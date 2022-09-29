@@ -238,7 +238,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.InProcess
         public async Task ErrorTagsAsync(string[] expectedTags, CancellationToken cancellationToken)
         {
             await TestServices.Workspace.WaitForAllAsyncOperationsAsync(
-                new[] { FeatureAttribute.Workspace, FeatureAttribute.SolutionCrawler, FeatureAttribute.DiagnosticService, FeatureAttribute.ErrorSquiggles },
+                new[] { FeatureAttribute.Workspace, FeatureAttribute.SolutionCrawlerLegacy, FeatureAttribute.DiagnosticService, FeatureAttribute.ErrorSquiggles },
                 cancellationToken);
 
             var actualTags = await TestServices.Editor.GetErrorTagsAsync(cancellationToken);
@@ -250,7 +250,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.InProcess
         public async Task CurrentTokenTypeAsync(string tokenType, CancellationToken cancellationToken)
         {
             await TestServices.Workspace.WaitForAllAsyncOperationsAsync(
-                new[] { FeatureAttribute.SolutionCrawler, FeatureAttribute.DiagnosticService, FeatureAttribute.Classification },
+                new[] { FeatureAttribute.SolutionCrawlerLegacy, FeatureAttribute.DiagnosticService, FeatureAttribute.Classification },
                 cancellationToken);
 
             var actualTokenTypes = await TestServices.Editor.GetCurrentClassificationsAsync(cancellationToken);

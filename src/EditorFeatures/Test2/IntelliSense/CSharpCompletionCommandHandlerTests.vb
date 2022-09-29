@@ -2958,6 +2958,115 @@ class Program
             End Using
         End Function
 
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function SelectEnumMemberAdditionalFilterTextMatchOverInferiorFilterTextMatch() As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                              <Document>
+public enum Colors
+{
+    Red,
+    Green
+}
+
+class Program
+{
+    Colors GreenNode { get; }                           
+    void M()
+    {
+        Colors c = Green$$
+    }
+}                               </Document>)
+                state.SendInvokeCompletionList()
+                Await state.AssertCompletionItemsContainAll("Colors.Green", "GreenNode")
+                ' select full match "Colors.Green" over prefix match "GreenNode"
+                Await state.AssertSelectedCompletionItem("Colors.Green", isHardSelected:=True)
+            End Using
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function DoNotSelectEnumMemberAdditionalFilterTextMatchOverEqualFilterTextMatch() As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                              <Document>
+public enum Colors
+{
+    Red,
+    Green
+}
+
+class Program
+{            
+    Colors Green { get; }               
+    void M()
+    {
+        Colors c = gree$$
+    }
+}                               </Document>)
+                state.SendInvokeCompletionList()
+                Await state.AssertCompletionItemsContainAll("Colors.Green", "Green")
+                ' Select FilterText match "Green" over AdditionalFilterText match "Colors.Green"
+                Await state.AssertSelectedCompletionItem("Green", isHardSelected:=True)
+            End Using
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function SelectStaticMemberAdditionalFilterTextMatchOverInferiorFilterTextMatch() As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                              <Document>
+public class MyArray
+{
+    public static MyArray Empty { get; }
+}
+
+class Program
+{         
+    string EmptyString = "";                 
+    void M()
+    {                       
+        MyArray c = Empty$$
+    }
+}                               </Document>)
+                state.SendInvokeCompletionList()
+                Await state.AssertCompletionItemsContainAll("MyArray.Empty", "EmptyString")
+                ' select full match "MyArray.Empty" over prefix match "EmptyString"
+                Await state.AssertSelectedCompletionItem("MyArray.Empty", isHardSelected:=True)
+            End Using
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function SelectCompletionListStaticMemberAdditionalFilterTextMatchOverInferiorFilterTextMatch() As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                              <Document><![CDATA[
+namespace NS
+{
+
+    /// <completionlist cref="TypeContainer"/>
+    public class SomeType
+    { }
+
+    public static class TypeContainer
+    {
+        public static SomeType Foo1 = new SomeType();
+        public static Program Foo2 = new Program();
+    }
+
+    public class Program
+    {
+        void Goo()
+        {
+            var myFoo = true;
+            SomeType c = $$
+        }
+    }
+}                             ]]></Document>)
+
+                state.SendInvokeCompletionList()
+                Await state.AssertCompletionItemsContainAll("myFoo", "TypeContainer", "TypeContainer.Foo1", "TypeContainer.Foo2")
+
+                state.SendTypeChars("foo")
+                Await state.AssertSelectedCompletionItem("TypeContainer.Foo1", isHardSelected:=True)
+            End Using
+        End Function
+
         <WorkItem(49632, "https://github.com/dotnet/roslyn/pull/49632")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function CompletionEnumTypeAndValuesWithAlias() As Task
