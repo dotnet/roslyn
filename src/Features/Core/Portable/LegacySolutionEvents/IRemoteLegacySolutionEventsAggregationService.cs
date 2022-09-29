@@ -15,6 +15,8 @@ namespace Microsoft.CodeAnalysis.LegacySolutionEvents
     /// </summary>
     internal interface IRemoteLegacySolutionEventsAggregationService
     {
+        ValueTask<bool> ShouldReportChangesAsync(CancellationToken cancellationToken);
+
         /// <param name="oldSolutionChecksum"><inheritdoc cref="WorkspaceChangeEventArgs.OldSolution"/></param>
         /// <param name="newSolutionChecksum"><inheritdoc cref="WorkspaceChangeEventArgs.NewSolution"/></param>
         /// <param name="kind"><inheritdoc cref="WorkspaceChangeEventArgs.Kind"/></param>

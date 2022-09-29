@@ -70,12 +70,21 @@ namespace Microsoft.CodeAnalysis.LegacySolutionEvents
             if (client is null)
             {
                 var aggregationService = workspace.Services.GetRequiredService<ILegacySolutionEventsAggregationService>();
+                var shouldReport = aggregationService.ShouldReportChanges(workspace.Services.SolutionServices);
+                if (!shouldReport)
+                    return;
 
                 foreach (var args in events)
                     await aggregationService.OnWorkspaceChangedAsync(args, cancellationToken).ConfigureAwait(false);
             }
             else
             {
+                var shouldReport = await client.TryInvokeAsync<IRemoteLegacySolutionEventsAggregationService, bool>(
+                    (service, cancellationToken) => service.ShouldReportChangesAsync(cancellationToken),
+                    cancellationToken).ConfigureAwait(false);
+                if (!shouldReport.HasValue || !shouldReport.Value)
+                    return;
+
                 foreach (var args in events)
                 {
                     await client.TryInvokeAsync<IRemoteLegacySolutionEventsAggregationService>(

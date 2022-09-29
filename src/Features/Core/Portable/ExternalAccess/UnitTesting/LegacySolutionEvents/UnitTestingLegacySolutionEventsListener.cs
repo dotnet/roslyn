@@ -7,6 +7,7 @@ using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LegacySolutionEvents;
 using Roslyn.Utilities;
@@ -33,6 +34,15 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.LegacySolutionEvents
                 return null;
 
             return service.Register(solution);
+        }
+
+        public bool ShouldReportChanges(SolutionServices services)
+        {
+            var service = services.GetService<IUnitTestingSolutionCrawlerRegistrationService>();
+            if (service == null)
+                return false;
+
+            return service.HasRegisteredAnalyzerProviders;
         }
 
         public ValueTask OnWorkspaceChangedAsync(WorkspaceChangeEventArgs args, CancellationToken cancellationToken)

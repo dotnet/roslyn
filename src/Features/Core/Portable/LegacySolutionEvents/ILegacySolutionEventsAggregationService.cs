@@ -10,6 +10,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
+using static Microsoft.CodeAnalysis.EditAndContinue.TraceLog;
 
 namespace Microsoft.CodeAnalysis.LegacySolutionEvents
 {
@@ -20,6 +21,8 @@ namespace Microsoft.CodeAnalysis.LegacySolutionEvents
     /// </summary>
     internal interface ILegacySolutionEventsAggregationService : IWorkspaceService
     {
+        bool ShouldReportChanges(SolutionServices services);
+
         ValueTask OnWorkspaceChangedAsync(WorkspaceChangeEventArgs args, CancellationToken cancellationToken);
 #if false // Not used in unit testing crawling
         ValueTask OnTextDocumentOpenedAsync(TextDocumentEventArgs args, CancellationToken cancellationToken);
@@ -38,6 +41,17 @@ namespace Microsoft.CodeAnalysis.LegacySolutionEvents
             [ImportMany] IEnumerable<Lazy<ILegacySolutionEventsListener>> eventsServices)
         {
             _eventsServices = eventsServices.ToImmutableArray();
+        }
+
+        public bool ShouldReportChanges(SolutionServices services)
+        {
+            foreach (var service in _eventsServices)
+            {
+                if (service.Value.ShouldReportChanges(services))
+                    return true;
+            }
+
+            return false;
         }
 
         public async ValueTask OnWorkspaceChangedAsync(WorkspaceChangeEventArgs args, CancellationToken cancellationToken)
