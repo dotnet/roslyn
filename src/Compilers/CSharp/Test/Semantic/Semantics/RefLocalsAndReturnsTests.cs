@@ -4538,9 +4538,11 @@ public unsafe class C
             Assert.Equal(SpecialType.System_Int32, model.GetTypeInfo(right).Type.SpecialType);
         }
 
-        [Fact]
+        [Theory]
+        [InlineData(LanguageVersion.CSharp10)]
+        [InlineData(LanguageVersion.CSharp11)]
         [WorkItem(27772, "https://github.com/dotnet/roslyn/issues/27772")]
-        public void RefReturnInvocationOfRefLikeTypeRefResult()
+        public void RefReturnInvocationOfRefLikeTypeRefResult(LanguageVersion langVersion)
         {
             string source = @"
 class C
@@ -4566,7 +4568,7 @@ ref struct S
     public ref long M(ref long x) => ref x;
 }";
 
-            var comp = CreateCompilationWithMscorlibAndSpan(source, parseOptions: TestOptions.Regular10);
+            var comp = CreateCompilationWithMscorlibAndSpan(source, parseOptions: TestOptions.RegularDefault.WithLanguageVersion(langVersion));
             comp.VerifyDiagnostics(
                 // (8,20): error CS8157: Cannot return 'y' by reference because it was initialized to a value that cannot be returned by reference
                 //         return ref y;
@@ -4574,26 +4576,13 @@ ref struct S
                 // (16,24): error CS8157: Cannot return 'y' by reference because it was initialized to a value that cannot be returned by reference
                 //             return ref y;
                 Diagnostic(ErrorCode.ERR_RefReturnNonreturnableLocal, "y").WithArguments("y").WithLocation(16, 24));
-
-            comp = CreateCompilationWithMscorlibAndSpan(source);
-            comp.VerifyDiagnostics(
-                // (7,26): error CS8350: This combination of arguments to 'S.M(ref long)' is disallowed because it may expose variables referenced by parameter 'x' outside of their declaration scope
-                //         ref long y = ref receiver.M(ref x);
-                Diagnostic(ErrorCode.ERR_CallArgMixing, "receiver.M(ref x)").WithArguments("S.M(ref long)", "x").WithLocation(7, 26),
-                // (7,41): error CS8168: Cannot return local 'x' by reference because it is not a ref local
-                //         ref long y = ref receiver.M(ref x);
-                Diagnostic(ErrorCode.ERR_RefReturnLocal, "x").WithArguments("x").WithLocation(7, 41),
-                // (15,30): error CS8350: This combination of arguments to 'S.M(ref long)' is disallowed because it may expose variables referenced by parameter 'x' outside of their declaration scope
-                //             ref long y = ref receiver.M(ref x);
-                Diagnostic(ErrorCode.ERR_CallArgMixing, "receiver.M(ref x)").WithArguments("S.M(ref long)", "x").WithLocation(15, 30),
-                // (15,45): error CS8168: Cannot return local 'x' by reference because it is not a ref local
-                //             ref long y = ref receiver.M(ref x);
-                Diagnostic(ErrorCode.ERR_RefReturnLocal, "x").WithArguments("x").WithLocation(15, 45));
         }
 
-        [Fact]
+        [Theory]
+        [InlineData(LanguageVersion.CSharp10)]
+        [InlineData(LanguageVersion.CSharp11)]
         [WorkItem(27772, "https://github.com/dotnet/roslyn/issues/27772")]
-        public void RefReturnInvocationOfRefLikeTypeRefResult_Repro()
+        public void RefReturnInvocationOfRefLikeTypeRefResult_Repro(LanguageVersion langVersion)
         {
             string source = @"
 using System;
@@ -4632,21 +4621,11 @@ ref struct S
   public ref long M(ref long x) => ref x;
 }";
 
-            var comp = CreateCompilationWithMscorlibAndSpan(source, parseOptions: TestOptions.Regular10);
+            var comp = CreateCompilationWithMscorlibAndSpan(source, parseOptions: TestOptions.RegularDefault.WithLanguageVersion(langVersion));
             comp.VerifyDiagnostics(
                 // (19,18): error CS8157: Cannot return 'z' by reference because it was initialized to a value that cannot be returned by reference
                 //       return ref z;
                 Diagnostic(ErrorCode.ERR_RefReturnNonreturnableLocal, "z").WithArguments("z").WithLocation(19, 18));
-
-            // Breaking change in C#11: Instance method on ref struct instance may capture unscoped ref or in arguments.
-            comp = CreateCompilationWithMscorlibAndSpan(source);
-            comp.VerifyDiagnostics(
-                // (18,23): error CS8350: This combination of arguments to 'S.M(ref long)' is disallowed because it may expose variables referenced by parameter 'x' outside of their declaration scope
-                //       ref var z = ref receiver.M(ref y);
-                Diagnostic(ErrorCode.ERR_CallArgMixing, "receiver.M(ref y)").WithArguments("S.M(ref long)", "x").WithLocation(18, 23),
-                // (18,38): error CS8157: Cannot return 'y' by reference because it was initialized to a value that cannot be returned by reference
-                //       ref var z = ref receiver.M(ref y);
-                Diagnostic(ErrorCode.ERR_RefReturnNonreturnableLocal, "y").WithArguments("y").WithLocation(18, 38));
         }
 
         [Fact, WorkItem(49617, "https://github.com/dotnet/roslyn/issues/49617")]

@@ -60,7 +60,6 @@ namespace Microsoft.CodeAnalysis.CodeActions
         [DataMember(Order = 6)] public bool HideAdvancedMembers { get; init; } = false;
         [DataMember(Order = 7)] public int WrappingColumn { get; init; } = DefaultWrappingColumn;
         [DataMember(Order = 8)] public int ConditionalExpressionWrappingLength { get; init; } = DefaultConditionalExpressionWrappingLength;
-        [DataMember(Order = 9)] public bool EnableConvertToRecord { get; init; } = false;
 
         public CodeActionOptions(
             CodeCleanupOptions cleanupOptions,

@@ -8,11 +8,12 @@ using System.Collections.Immutable;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.LanguageServer;
+using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Microsoft.CommonLanguageServerProtocol.Framework;
 using Microsoft.VisualStudio.LanguageServer.Client;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.Threading;
@@ -26,9 +27,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
     {
         private readonly IThreadingContext _threadingContext;
         private readonly ILanguageClientMiddleLayer? _middleLayer;
-        private readonly ILspLoggerFactory _lspLoggerFactory;
+        private readonly ILspServiceLoggerFactory _lspLoggerFactory;
 
-        private readonly IAsynchronousOperationListenerProvider _listenerProvider;
         private readonly AbstractLspServiceProvider _lspServiceProvider;
 
         protected readonly IGlobalOptionService GlobalOptions;
@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
         /// <summary>
         /// Created when <see cref="ActivateAsync"/> is called.
         /// </summary>
-        private LanguageServerTarget? _languageServer;
+        private AbstractLanguageServer<RequestContext>? _languageServer;
 
         /// <summary>
         /// Gets the name of the language client (displayed to the user).
@@ -101,14 +101,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
         public AbstractInProcLanguageClient(
             AbstractLspServiceProvider lspServiceProvider,
             IGlobalOptionService globalOptions,
-            IAsynchronousOperationListenerProvider listenerProvider,
-            ILspLoggerFactory lspLoggerFactory,
+            ILspServiceLoggerFactory lspLoggerFactory,
             IThreadingContext threadingContext,
             AbstractLanguageClientMiddleLayer? middleLayer = null)
         {
             _lspServiceProvider = lspServiceProvider;
             GlobalOptions = globalOptions;
-            _listenerProvider = listenerProvider;
             _lspLoggerFactory = lspLoggerFactory;
             _threadingContext = threadingContext;
             _middleLayer = middleLayer;
@@ -157,7 +155,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
 
             var (clientStream, serverStream) = FullDuplexStream.CreatePair();
 
-            _languageServer = (LanguageServerTarget)await CreateAsync(
+            _languageServer = await CreateAsync<RequestContext>(
                 this,
                 serverStream,
                 serverStream,
@@ -190,11 +188,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
             return Task.CompletedTask;
         }
 
-        internal static async Task<ILanguageServerTarget> CreateAsync(
+        internal static async Task<AbstractLanguageServer<RequestContext>> CreateAsync<TRequestContext>(
             AbstractInProcLanguageClient languageClient,
             Stream inputStream,
             Stream outputStream,
-            ILspLoggerFactory lspLoggerFactory,
+            ILspServiceLoggerFactory lspLoggerFactory,
             CancellationToken cancellationToken)
         {
             var jsonMessageFormatter = new JsonMessageFormatter();
@@ -218,19 +216,20 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
             return server;
         }
 
-        public ILanguageServerTarget Create(
+        public AbstractLanguageServer<RequestContext> Create(
             JsonRpc jsonRpc,
             ICapabilitiesProvider capabilitiesProvider,
-            ILspLogger logger)
+            ILspServiceLogger logger)
         {
-            return new LanguageServerTarget(
+            var server = new RoslynLanguageServer(
                 _lspServiceProvider,
                 jsonRpc,
                 capabilitiesProvider,
-                _listenerProvider,
                 logger,
                 SupportedLanguages,
                 ServerKind);
+
+            return server;
         }
 
         public abstract ServerCapabilities GetCapabilities(ClientCapabilities clientCapabilities);

@@ -237,7 +237,8 @@ namespace Microsoft.CodeAnalysis.CSharp.FindSymbols
                 GetAccessibility(container, typeDeclaration.Modifiers),
                 typeDeclaration.Identifier.Span,
                 GetInheritanceNames(stringTable, typeDeclaration.BaseList),
-                IsNestedType(typeDeclaration));
+                IsNestedType(typeDeclaration),
+                typeParameterCount: typeDeclaration.TypeParameterList?.Parameters.Count ?? 0);
         }
 
         protected override DeclaredSymbolInfo GetEnumDeclarationInfo(

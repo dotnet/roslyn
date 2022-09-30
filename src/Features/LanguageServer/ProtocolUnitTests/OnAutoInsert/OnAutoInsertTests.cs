@@ -395,7 +395,7 @@ End Class";
                 throw ExceptionUtilities.UnexpectedValue(languageName);
             }
 
-            using var testLspServer = await testLspServerTask;
+            await using var testLspServer = await testLspServerTask;
             var locationTyped = testLspServer.GetLocations("type").Single();
 
             var document = testLspServer.GetCurrentSolution().GetDocuments(locationTyped.Uri).Single();
@@ -411,7 +411,7 @@ End Class";
 
         private async Task VerifyNoResult(string characterTyped, string markup, bool insertSpaces = true, int tabSize = 4)
         {
-            using var testLspServer = await CreateTestLspServerAsync(markup);
+            await using var testLspServer = await CreateTestLspServerAsync(markup);
             var locationTyped = testLspServer.GetLocations("type").Single();
             var documentText = await testLspServer.GetCurrentSolution().GetDocuments(locationTyped.Uri).Single().GetTextAsync();
 

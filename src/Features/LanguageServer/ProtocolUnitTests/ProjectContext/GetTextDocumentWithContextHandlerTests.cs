@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.ProjectContext
     </Project>
 </Workspace>";
 
-            using var testLspServer = await CreateXmlTestLspServerAsync(workspaceXml);
+            await using var testLspServer = await CreateXmlTestLspServerAsync(workspaceXml);
             var documentUri = testLspServer.GetLocations("caret").Single().Uri;
             var result = await RunGetProjectContext(testLspServer, documentUri);
 
@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.ProjectContext
     </Project>
 </Workspace>";
 
-            using var testLspServer = await CreateXmlTestLspServerAsync(workspaceXml);
+            await using var testLspServer = await CreateXmlTestLspServerAsync(workspaceXml);
             var documentUri = testLspServer.GetLocations("caret").Single().Uri;
             var result = await RunGetProjectContext(testLspServer, documentUri);
 
@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.ProjectContext
     </Project>
 </Workspace>";
 
-            using var testLspServer = await CreateXmlTestLspServerAsync(workspaceXml);
+            await using var testLspServer = await CreateXmlTestLspServerAsync(workspaceXml);
 
             // Ensure the documents are open so we can change contexts
             foreach (var document in testLspServer.TestWorkspace.Documents)

@@ -19,17 +19,17 @@
       </trans-unit>
       <trans-unit id="BadBuiltInOps1">
         <source>Illegal built-in operator name '{0}'</source>
-        <target state="new">Illegal built-in operator name '{0}'</target>
+        <target state="translated">不合法的內建運算子名稱 '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="BadBuiltInOps2">
         <source>Unsupported built-in operator: {0}</source>
-        <target state="new">Unsupported built-in operator: {0}</target>
+        <target state="translated">不支援的內建運算子: {0}</target>
         <note />
       </trans-unit>
       <trans-unit id="BadBuiltInOps3">
         <source>'{0}' was not a valid built-in operator name</source>
-        <target state="new">'{0}' was not a valid built-in operator name</target>
+        <target state="translated">'{0}' 不是有效的內建運算子名稱</target>
         <note />
       </trans-unit>
       <trans-unit id="ChangesMustBeWithinBoundsOfSourceText">

@@ -672,7 +672,7 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       </trans-unit>
       <trans-unit id="Enum_members">
         <source>Enum members</source>
-        <target state="new">Enum members</target>
+        <target state="translated">列舉成員</target>
         <note />
       </trans-unit>
       <trans-unit id="ErrorReadingFile">
@@ -3430,7 +3430,7 @@ If the "d" format specifier is used without other custom format specifiers, it's
       </trans-unit>
       <trans-unit id="foreach_loop">
         <source>foreach loop</source>
-        <target state="new">foreach loop</target>
+        <target state="translated">ForEach 迴圈</target>
         <note />
       </trans-unit>
       <trans-unit id="from_metadata">
@@ -4282,7 +4282,7 @@ When this standard format specifier is used, the formatting or parsing operation
       </trans-unit>
       <trans-unit id="struct_">
         <source>struct</source>
-        <target state="new">struct</target>
+        <target state="translated">結構</target>
         <note />
       </trans-unit>
       <trans-unit id="symbol_cannot_be_a_namespace">

@@ -18,17 +18,14 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.TaskList;
-using Microsoft.CodeAnalysis.TodoComments;
 using Microsoft.VisualStudio.LanguageServices.ExternalAccess.VSTypeScript.Api;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 
 namespace Microsoft.VisualStudio.LanguageServices.TaskList
 {
-    [Export(typeof(IVsTypeScriptTodoCommentService))]
     [ExportEventListener(WellKnownEventListeners.Workspace, WorkspaceKind.Host), Shared]
     internal class VisualStudioTaskListService :
         ITaskListProvider,
-        IVsTypeScriptTodoCommentService,
         IEventListener<object>
     {
         private readonly IThreadingContext _threadingContext;
@@ -95,20 +92,6 @@ namespace Microsoft.VisualStudio.LanguageServices.TaskList
                 // a BG service we don't want impacting the user experience.
             }
         }
-
-        /// <inheritdoc cref="IVsTypeScriptTodoCommentService.ReportTodoCommentsAsync(Document, ImmutableArray{TodoComment}, CancellationToken)"/>
-        [Obsolete]
-        async Task IVsTypeScriptTodoCommentService.ReportTodoCommentsAsync(
-            Document document, ImmutableArray<TodoComment> todoComments, CancellationToken cancellationToken)
-        {
-            var converted = await TodoComment.ConvertAsync(document, todoComments, cancellationToken).ConfigureAwait(false);
-
-            await _listener.ReportTaskListItemsAsync(
-                document.Id, converted, cancellationToken).ConfigureAwait(false);
-        }
-
-        async Task IVsTypeScriptTodoCommentService.ReportTaskListItemsAsync(Document document, ImmutableArray<TaskListItem> items, CancellationToken cancellationToken)
-            => await _listener.ReportTaskListItemsAsync(document.Id, items, cancellationToken).ConfigureAwait(false);
 
         public ImmutableArray<TaskListItem> GetTaskListItems(Workspace workspace, DocumentId documentId, CancellationToken cancellationToken)
             => _listener.GetTaskListItems(documentId);

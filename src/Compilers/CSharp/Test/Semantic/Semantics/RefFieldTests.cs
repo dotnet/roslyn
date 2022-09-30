@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     }
     static void M2(ref T t2)
     {
-        S<T> s2;
+        scoped S<T> s2;
         s2 = new S<T>(ref t2);
         s2 = new S<T> { F1 = t2 };
     }
@@ -111,7 +111,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "ref T").WithArguments("ref fields", "11.0").WithLocation(3, 12),
                 // (4,12): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
                 //     public ref readonly T F2;
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "ref readonly T").WithArguments("ref fields", "11.0").WithLocation(4, 12));
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "ref readonly T").WithArguments("ref fields", "11.0").WithLocation(4, 12),
+                // (25,9): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
+                //         scoped S<T> s2;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "scoped").WithArguments("ref fields", "11.0").WithLocation(25, 9));
 
             comp = CreateEmptyCompilation(sourceA, references: new[] { mscorlibRefWithRefFields });
             comp.VerifyEmitDiagnostics();
@@ -129,7 +132,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     }
     static void M2<T>(ref T t)
     {
-        S<T> s2;
+        scoped S<T> s2;
         s2 = new S<T>(ref t);
         s2 = new S<T> { F1 = t };
     }
@@ -147,6 +150,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 // (8,25): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
                 //         s1 = new S<T> { F1 = t };
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "F1").WithArguments("ref fields", "11.0").WithLocation(8, 25),
+                // (12,9): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
+                //         scoped S<T> s2;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "scoped").WithArguments("ref fields", "11.0").WithLocation(12, 9),
                 // (14,25): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
                 //         s2 = new S<T> { F1 = t };
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "F1").WithArguments("ref fields", "11.0").WithLocation(14, 25),
@@ -606,21 +612,21 @@ class C
                 // (15,9): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
                 //         S2* s2, // 2, 3
                 Diagnostic(ErrorCode.ERR_UnsafeNeeded, "S2*").WithLocation(15, 9),
-                // (15,13): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('S2')
+                // (15,13): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('S2')
                 //         S2* s2, // 2, 3
-                Diagnostic(ErrorCode.ERR_ManagedAddr, "s2").WithArguments("S2").WithLocation(15, 13),
+                Diagnostic(ErrorCode.WRN_ManagedAddr, "s2").WithArguments("S2").WithLocation(15, 13),
                 // (16,9): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
                 //         C* c) // 4, 5
                 Diagnostic(ErrorCode.ERR_UnsafeNeeded, "C*").WithLocation(16, 9),
-                // (16,12): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('C')
+                // (16,12): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('C')
                 //         C* c) // 4, 5
-                Diagnostic(ErrorCode.ERR_ManagedAddr, "c").WithArguments("C").WithLocation(16, 12),
-                // (22,13): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('S2')
+                Diagnostic(ErrorCode.WRN_ManagedAddr, "c").WithArguments("C").WithLocation(16, 12),
+                // (22,13): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('S2')
                 //         S2* s2, // 6
-                Diagnostic(ErrorCode.ERR_ManagedAddr, "s2").WithArguments("S2").WithLocation(22, 13),
-                // (23,12): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('C')
+                Diagnostic(ErrorCode.WRN_ManagedAddr, "s2").WithArguments("S2").WithLocation(22, 13),
+                // (23,12): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('C')
                 //         C* c) // 7
-                Diagnostic(ErrorCode.ERR_ManagedAddr, "c").WithArguments("C").WithLocation(23, 12)
+                Diagnostic(ErrorCode.WRN_ManagedAddr, "c").WithArguments("C").WithLocation(23, 12)
                 );
         }
 
@@ -639,19 +645,25 @@ public ref struct S2
 
 unsafe class C
 {
-    S* M1() => throw null;
-    S2* M2() => throw null; // 1
-    C* M3() => throw null; // 2
+    S* M1() => (S*)null;
+    S2* M2() => (S2*)null; // 1
+    C* M3() => (C*)null; // 2
 }
 ";
             var comp = CreateCompilation(source, options: TestOptions.UnsafeReleaseDll, runtimeFeature: RuntimeFlag.ByRefFields);
             comp.VerifyEmitDiagnostics(
-                // (14,9): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('S2')
-                //     S2* M2() => throw null; // 1
-                Diagnostic(ErrorCode.ERR_ManagedAddr, "M2").WithArguments("S2").WithLocation(14, 9),
-                // (15,8): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('C')
-                //     C* M3() => throw null; // 2
-                Diagnostic(ErrorCode.ERR_ManagedAddr, "M3").WithArguments("C").WithLocation(15, 8)
+                // (14,9): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('S2')
+                //     S2* M2() => (S2*)null; // 1
+                Diagnostic(ErrorCode.WRN_ManagedAddr, "M2").WithArguments("S2").WithLocation(14, 9),
+                // (14,18): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('S2')
+                //     S2* M2() => (S2*)null; // 1
+                Diagnostic(ErrorCode.WRN_ManagedAddr, "S2*").WithArguments("S2").WithLocation(14, 18),
+                // (15,8): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('C')
+                //     C* M3() => (C*)null; // 2
+                Diagnostic(ErrorCode.WRN_ManagedAddr, "M3").WithArguments("C").WithLocation(15, 8),
+                // (15,17): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('C')
+                //     C* M3() => (C*)null; // 2
+                Diagnostic(ErrorCode.WRN_ManagedAddr, "C*").WithArguments("C").WithLocation(15, 17)
                 );
         }
 
@@ -670,32 +682,59 @@ public ref struct S2
 
 class C
 {
-    void M()
-    {
-        S* s = null; // 1
-    }
-
-    unsafe void M2()
+    unsafe S M2()
     {
         S* s = null;
-        S2* s2 = null; // 2
-        C* c = null; // 3
+        return *s;
+    }
+    unsafe S2 M3()
+    {
+        S2* s2 = null; // 1
+        return *s2;
+    }
+    unsafe C M4()
+    {
+        C* c = null; // 2
+        return *c;
     }
 }
 ";
-            // Note: declaring local of this type still possible with `var`
             var comp = CreateCompilation(source, options: TestOptions.UnsafeReleaseDll, runtimeFeature: RuntimeFlag.ByRefFields);
             comp.VerifyEmitDiagnostics(
-                // (15,9): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
-                //         S* s = null; // 1
-                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "S*").WithLocation(15, 9),
-                // (21,9): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('S2')
-                //         S2* s2 = null; // 2
-                Diagnostic(ErrorCode.ERR_ManagedAddr, "S2*").WithArguments("S2").WithLocation(21, 9),
-                // (22,9): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('C')
-                //         C* c = null; // 3
-                Diagnostic(ErrorCode.ERR_ManagedAddr, "C*").WithArguments("C").WithLocation(22, 9)
+                // (20,9): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('S2')
+                //         S2* s2 = null; // 1
+                Diagnostic(ErrorCode.WRN_ManagedAddr, "S2*").WithArguments("S2").WithLocation(20, 9),
+                // (25,9): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('C')
+                //         C* c = null; // 2
+                Diagnostic(ErrorCode.WRN_ManagedAddr, "C*").WithArguments("C").WithLocation(25, 9)
                 );
+            var verifier = CompileAndVerify(comp, verify: Verification.Skipped);
+            verifier.VerifyIL("C.M3", @"
+{
+  // Code size       10 (0xa)
+  .maxstack  1
+  .locals init (S2* V_0) //s2
+  IL_0000:  ldc.i4.0
+  IL_0001:  conv.u
+  IL_0002:  stloc.0
+  IL_0003:  ldloc.0
+  IL_0004:  ldobj      ""S2""
+  IL_0009:  ret
+}
+");
+            verifier.VerifyIL("C.M4", @"
+{
+  // Code size        6 (0x6)
+  .maxstack  1
+  .locals init (C* V_0) //c
+  IL_0000:  ldc.i4.0
+  IL_0001:  conv.u
+  IL_0002:  stloc.0
+  IL_0003:  ldloc.0
+  IL_0004:  ldind.ref
+  IL_0005:  ret
+}
+");
         }
 
         [Fact]
@@ -720,52 +759,95 @@ class C
     unsafe void M()
     {
         fixed (S* x1 = &Prop) { }
-
+    }
+    unsafe void M2()
+    {
         fixed (S2* x2 = &Prop2) { } // 1
+    }
+    unsafe void M3()
+    {
         fixed (void* y2 = &Prop2) { } // 2
-
+    }
+    unsafe void M4()
+    {
         fixed (C* x3 = &Prop3) { } // 3
+    }
+    unsafe void M5()
+    {
         fixed (void* y3 = &Prop3) { } // 4
     }
 }
 ";
             // SPEC:
             // A fixed_pointer_initializer can be one of the following:
-            // The token “&” followed by a variable_reference to a moveable variable of an unmanaged type T,
+            // The token “&” followed by a variable_reference to a moveable variable of type T,
             // provided the type T* is implicitly convertible to the pointer type given in the fixed statement.
             var comp = CreateCompilation(source, options: TestOptions.UnsafeReleaseDll, runtimeFeature: RuntimeFlag.ByRefFields);
             comp.VerifyEmitDiagnostics(
-                // (21,16): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('S2')
+                // (23,16): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('S2')
                 //         fixed (S2* x2 = &Prop2) { } // 1
-                Diagnostic(ErrorCode.ERR_ManagedAddr, "S2*").WithArguments("S2").WithLocation(21, 16),
-                // (21,25): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('S2')
+                Diagnostic(ErrorCode.WRN_ManagedAddr, "S2*").WithArguments("S2").WithLocation(23, 16),
+                // (23,25): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('S2')
                 //         fixed (S2* x2 = &Prop2) { } // 1
-                Diagnostic(ErrorCode.WRN_ManagedAddr, "&Prop2").WithArguments("S2").WithLocation(21, 25),
-                // (21,25): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('S2')
+                Diagnostic(ErrorCode.WRN_ManagedAddr, "&Prop2").WithArguments("S2").WithLocation(23, 25),
+                // (23,25): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('S2')
                 //         fixed (S2* x2 = &Prop2) { } // 1
-                Diagnostic(ErrorCode.ERR_ManagedAddr, "&Prop2").WithArguments("S2").WithLocation(21, 25),
-                // (22,27): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('S2')
+                Diagnostic(ErrorCode.WRN_ManagedAddr, "&Prop2").WithArguments("S2").WithLocation(23, 25),
+                // (27,27): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('S2')
                 //         fixed (void* y2 = &Prop2) { } // 2
-                Diagnostic(ErrorCode.WRN_ManagedAddr, "&Prop2").WithArguments("S2").WithLocation(22, 27),
-                // (22,27): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('S2')
+                Diagnostic(ErrorCode.WRN_ManagedAddr, "&Prop2").WithArguments("S2").WithLocation(27, 27),
+                // (27,27): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('S2')
                 //         fixed (void* y2 = &Prop2) { } // 2
-                Diagnostic(ErrorCode.ERR_ManagedAddr, "&Prop2").WithArguments("S2").WithLocation(22, 27),
-                // (24,16): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('C')
+                Diagnostic(ErrorCode.WRN_ManagedAddr, "&Prop2").WithArguments("S2").WithLocation(27, 27),
+                // (31,16): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('C')
                 //         fixed (C* x3 = &Prop3) { } // 3
-                Diagnostic(ErrorCode.ERR_ManagedAddr, "C*").WithArguments("C").WithLocation(24, 16),
-                // (24,24): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('C')
+                Diagnostic(ErrorCode.WRN_ManagedAddr, "C*").WithArguments("C").WithLocation(31, 16),
+                // (31,24): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('C')
                 //         fixed (C* x3 = &Prop3) { } // 3
-                Diagnostic(ErrorCode.WRN_ManagedAddr, "&Prop3").WithArguments("C").WithLocation(24, 24),
-                // (24,24): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('C')
+                Diagnostic(ErrorCode.WRN_ManagedAddr, "&Prop3").WithArguments("C").WithLocation(31, 24),
+                // (31,24): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('C')
                 //         fixed (C* x3 = &Prop3) { } // 3
-                Diagnostic(ErrorCode.ERR_ManagedAddr, "&Prop3").WithArguments("C").WithLocation(24, 24),
-                // (25,27): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('C')
+                Diagnostic(ErrorCode.WRN_ManagedAddr, "&Prop3").WithArguments("C").WithLocation(31, 24),
+                // (35,27): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('C')
                 //         fixed (void* y3 = &Prop3) { } // 4
-                Diagnostic(ErrorCode.WRN_ManagedAddr, "&Prop3").WithArguments("C").WithLocation(25, 27),
-                // (25,27): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('C')
+                Diagnostic(ErrorCode.WRN_ManagedAddr, "&Prop3").WithArguments("C").WithLocation(35, 27),
+                // (35,27): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('C')
                 //         fixed (void* y3 = &Prop3) { } // 4
-                Diagnostic(ErrorCode.ERR_ManagedAddr, "&Prop3").WithArguments("C").WithLocation(25, 27)
+                Diagnostic(ErrorCode.WRN_ManagedAddr, "&Prop3").WithArguments("C").WithLocation(35, 27)
                 );
+            var verifier = CompileAndVerify(comp, verify: Verification.Skipped);
+            verifier.VerifyIL("C.M2", @"
+{
+  // Code size       13 (0xd)
+  .maxstack  1
+  .locals init (pinned S2& V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""ref S2 C.Prop2.get""
+  IL_0006:  stloc.0
+  IL_0007:  ldloc.0
+  IL_0008:  pop
+  IL_0009:  ldc.i4.0
+  IL_000a:  conv.u
+  IL_000b:  stloc.0
+  IL_000c:  ret
+}
+");
+            verifier.VerifyIL("C.M4", @"
+{
+  // Code size       13 (0xd)
+  .maxstack  1
+  .locals init (pinned C& V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""ref C C.Prop3.get""
+  IL_0006:  stloc.0
+  IL_0007:  ldloc.0
+  IL_0008:  pop
+  IL_0009:  ldc.i4.0
+  IL_000a:  conv.u
+  IL_000b:  stloc.0
+  IL_000c:  ret
+}
+");
         }
 
         [Fact]
@@ -869,31 +951,62 @@ public ref struct S2
 
 class C
 {
-    unsafe void M()
+    unsafe int M1()
     {
-        _ = sizeof(S*);
-        _ = sizeof(S2*); // 1
-        _ = sizeof(C*); // 2
-        _ = sizeof(S2); // 3
-        _ = sizeof(C); // 4
+        return sizeof(S*);
+    }
+    unsafe int M2()
+    {
+        return sizeof(S2*); // 1
+    }
+    unsafe int M3()
+    {
+        return sizeof(C*); // 2
+    }
+    unsafe int M4()
+    {
+        return sizeof(S2); // 3
+    }
+    unsafe int M5()
+    {
+        return sizeof(C); // 4
     }
 }
 ";
             var comp = CreateCompilation(source, options: TestOptions.UnsafeReleaseDll, runtimeFeature: RuntimeFlag.ByRefFields);
             comp.VerifyEmitDiagnostics(
-                // (16,20): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('S2')
-                //         _ = sizeof(S2*); // 1
-                Diagnostic(ErrorCode.ERR_ManagedAddr, "S2*").WithArguments("S2").WithLocation(16, 20),
-                // (17,20): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('C')
-                //         _ = sizeof(C*); // 2
-                Diagnostic(ErrorCode.ERR_ManagedAddr, "C*").WithArguments("C").WithLocation(17, 20),
-                // (18,13): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('S2')
-                //         _ = sizeof(S2); // 3
-                Diagnostic(ErrorCode.ERR_ManagedAddr, "sizeof(S2)").WithArguments("S2").WithLocation(18, 13),
-                // (19,13): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('C')
-                //         _ = sizeof(C); // 4
-                Diagnostic(ErrorCode.ERR_ManagedAddr, "sizeof(C)").WithArguments("C").WithLocation(19, 13)
+                // (19,23): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('S2')
+                //         return sizeof(S2*); // 1
+                Diagnostic(ErrorCode.WRN_ManagedAddr, "S2*").WithArguments("S2").WithLocation(19, 23),
+                // (23,23): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('C')
+                //         return sizeof(C*); // 2
+                Diagnostic(ErrorCode.WRN_ManagedAddr, "C*").WithArguments("C").WithLocation(23, 23),
+                // (27,16): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('S2')
+                //         return sizeof(S2); // 3
+                Diagnostic(ErrorCode.WRN_ManagedAddr, "sizeof(S2)").WithArguments("S2").WithLocation(27, 16),
+                // (31,16): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('C')
+                //         return sizeof(C); // 4
+                Diagnostic(ErrorCode.WRN_ManagedAddr, "sizeof(C)").WithArguments("C").WithLocation(31, 16)
                 );
+
+            var verifier = CompileAndVerify(comp, verify: Verification.Skipped);
+            verifier.VerifyIL("C.M2", @"
+{
+  // Code size        7 (0x7)
+  .maxstack  1
+  IL_0000:  sizeof     ""S2*""
+  IL_0006:  ret
+}
+");
+
+            verifier.VerifyIL("C.M4", @"
+{
+  // Code size        7 (0x7)
+  .maxstack  1
+  IL_0000:  sizeof     ""S2""
+  IL_0006:  ret
+}
+");
         }
 
         [Fact]
@@ -911,23 +1024,49 @@ public ref struct S2
 
 class C
 {
-    unsafe void M()
+    unsafe object M()
     {
-        _ = typeof(S*);
-        _ = typeof(S2*); // 1
-        _ = typeof(C*); // 2
+        return typeof(S*);
+    }
+    unsafe object M2()
+    {
+        return typeof(S2*); // 1
+    }
+    unsafe object M3()
+    {
+        return typeof(C*); // 2
     }
 }
 ";
             var comp = CreateCompilation(source, options: TestOptions.UnsafeReleaseDll, runtimeFeature: RuntimeFlag.ByRefFields);
             comp.VerifyEmitDiagnostics(
-                // (16,20): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('S2')
-                //         _ = typeof(S2*); // 1
-                Diagnostic(ErrorCode.ERR_ManagedAddr, "S2*").WithArguments("S2").WithLocation(16, 20),
-                // (17,20): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('C')
-                //         _ = typeof(C*); // 2
-                Diagnostic(ErrorCode.ERR_ManagedAddr, "C*").WithArguments("C").WithLocation(17, 20)
+                // (19,23): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('S2')
+                //         return typeof(S2*); // 1
+                Diagnostic(ErrorCode.WRN_ManagedAddr, "S2*").WithArguments("S2").WithLocation(19, 23),
+                // (23,23): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('C')
+                //         return typeof(C*); // 2
+                Diagnostic(ErrorCode.WRN_ManagedAddr, "C*").WithArguments("C").WithLocation(23, 23)
                 );
+            var verifier = CompileAndVerify(comp, verify: Verification.Skipped);
+            verifier.VerifyIL("C.M2", @"
+{
+  // Code size       11 (0xb)
+  .maxstack  1
+  IL_0000:  ldtoken    ""S2*""
+  IL_0005:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
+  IL_000a:  ret
+}
+");
+
+            verifier.VerifyIL("C.M3", @"
+{
+  // Code size       11 (0xb)
+  .maxstack  1
+  IL_0000:  ldtoken    ""C*""
+  IL_0005:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
+  IL_000a:  ret
+}
+");
         }
 
         [Fact]
@@ -1235,15 +1374,15 @@ class C
                 // (17,29): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('C')
                 //         var x3 = stackalloc C[0]; // 2
                 Diagnostic(ErrorCode.ERR_ManagedAddr, "C").WithArguments("C").WithLocation(17, 29),
-                // (20,9): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('S2')
+                // (20,9): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('S2')
                 //         S2* y2 = stackalloc S2[0]; // 3
-                Diagnostic(ErrorCode.ERR_ManagedAddr, "S2*").WithArguments("S2").WithLocation(20, 9),
+                Diagnostic(ErrorCode.WRN_ManagedAddr, "S2*").WithArguments("S2").WithLocation(20, 9),
                 // (20,29): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('S2')
                 //         S2* y2 = stackalloc S2[0]; // 3
                 Diagnostic(ErrorCode.ERR_ManagedAddr, "S2").WithArguments("S2").WithLocation(20, 29),
-                // (21,9): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('C')
+                // (21,9): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('C')
                 //         C* y3 = stackalloc C[0]; // 4
-                Diagnostic(ErrorCode.ERR_ManagedAddr, "C*").WithArguments("C").WithLocation(21, 9),
+                Diagnostic(ErrorCode.WRN_ManagedAddr, "C*").WithArguments("C").WithLocation(21, 9),
                 // (21,28): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('C')
                 //         C* y3 = stackalloc C[0]; // 4
                 Diagnostic(ErrorCode.ERR_ManagedAddr, "C").WithArguments("C").WithLocation(21, 28)
@@ -1273,7 +1412,11 @@ class C
 
         S* y1 = stackalloc[] { new S() };
         S2* y2 = stackalloc[] { new S2() }; // 3
+    }
+    unsafe C M2()
+    {
         C* y3 = stackalloc[] { new C() }; // 4
+        return y3[0];
     }
 }
 ";
@@ -1287,18 +1430,18 @@ class C
                 // (17,18): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('C')
                 //         var x3 = stackalloc[] { new C() }; // 2
                 Diagnostic(ErrorCode.ERR_ManagedAddr, "stackalloc[] { new C() }").WithArguments("C").WithLocation(17, 18),
-                // (20,9): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('S2')
+                // (20,9): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('S2')
                 //         S2* y2 = stackalloc[] { new S2() }; // 3
-                Diagnostic(ErrorCode.ERR_ManagedAddr, "S2*").WithArguments("S2").WithLocation(20, 9),
+                Diagnostic(ErrorCode.WRN_ManagedAddr, "S2*").WithArguments("S2").WithLocation(20, 9),
                 // (20,18): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('S2')
                 //         S2* y2 = stackalloc[] { new S2() }; // 3
                 Diagnostic(ErrorCode.ERR_ManagedAddr, "stackalloc[] { new S2() }").WithArguments("S2").WithLocation(20, 18),
-                // (21,9): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('C')
+                // (24,9): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('C')
                 //         C* y3 = stackalloc[] { new C() }; // 4
-                Diagnostic(ErrorCode.ERR_ManagedAddr, "C*").WithArguments("C").WithLocation(21, 9),
-                // (21,17): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('C')
+                Diagnostic(ErrorCode.WRN_ManagedAddr, "C*").WithArguments("C").WithLocation(24, 9),
+                // (24,17): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('C')
                 //         C* y3 = stackalloc[] { new C() }; // 4
-                Diagnostic(ErrorCode.ERR_ManagedAddr, "stackalloc[] { new C() }").WithArguments("C").WithLocation(21, 17)
+                Diagnostic(ErrorCode.ERR_ManagedAddr, "stackalloc[] { new C() }").WithArguments("C").WithLocation(24, 17)
                 );
         }
 
@@ -1333,24 +1476,24 @@ class C
             var spanReference = CreateCompilation(SpanSource, options: TestOptions.UnsafeReleaseDll);
             var comp = CreateCompilation(source, references: new[] { spanReference.EmitToImageReference() }, options: TestOptions.UnsafeReleaseDll, runtimeFeature: RuntimeFlag.ByRefFields);
             comp.VerifyEmitDiagnostics(
-                // (16,29): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('S2')
+                // (16,29): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('S2')
                 //         var x2 = stackalloc S2*[0]; // 1
-                Diagnostic(ErrorCode.ERR_ManagedAddr, "S2*").WithArguments("S2").WithLocation(16, 29),
-                // (17,29): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('C')
+                Diagnostic(ErrorCode.WRN_ManagedAddr, "S2*").WithArguments("S2").WithLocation(16, 29),
+                // (17,29): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('C')
                 //         var x3 = stackalloc C*[0]; // 2
-                Diagnostic(ErrorCode.ERR_ManagedAddr, "C*").WithArguments("C").WithLocation(17, 29),
-                // (20,9): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('S2')
+                Diagnostic(ErrorCode.WRN_ManagedAddr, "C*").WithArguments("C").WithLocation(17, 29),
+                // (20,9): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('S2')
                 //         S2** y2 = stackalloc S2*[0]; // 3
-                Diagnostic(ErrorCode.ERR_ManagedAddr, "S2*").WithArguments("S2").WithLocation(20, 9),
-                // (20,30): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('S2')
+                Diagnostic(ErrorCode.WRN_ManagedAddr, "S2*").WithArguments("S2").WithLocation(20, 9),
+                // (20,30): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('S2')
                 //         S2** y2 = stackalloc S2*[0]; // 3
-                Diagnostic(ErrorCode.ERR_ManagedAddr, "S2*").WithArguments("S2").WithLocation(20, 30),
-                // (21,9): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('C')
+                Diagnostic(ErrorCode.WRN_ManagedAddr, "S2*").WithArguments("S2").WithLocation(20, 30),
+                // (21,9): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('C')
                 //         C** y3 = stackalloc C*[0]; // 4
-                Diagnostic(ErrorCode.ERR_ManagedAddr, "C*").WithArguments("C").WithLocation(21, 9),
-                // (21,29): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('C')
+                Diagnostic(ErrorCode.WRN_ManagedAddr, "C*").WithArguments("C").WithLocation(21, 9),
+                // (21,29): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('C')
                 //         C** y3 = stackalloc C*[0]; // 4
-                Diagnostic(ErrorCode.ERR_ManagedAddr, "C*").WithArguments("C").WithLocation(21, 29)
+                Diagnostic(ErrorCode.WRN_ManagedAddr, "C*").WithArguments("C").WithLocation(21, 29)
                 );
         }
 
@@ -1395,12 +1538,12 @@ class C
                 // (17,19): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('C')
                 //         var s3 = (C*)null; // 2
                 Diagnostic(ErrorCode.WRN_ManagedAddr, "C*").WithArguments("C").WithLocation(17, 19),
-                // (24,9): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('S2')
+                // (24,9): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('S2')
                 //         S2** y2 = stackalloc[] { s2 }; // 3
-                Diagnostic(ErrorCode.ERR_ManagedAddr, "S2*").WithArguments("S2").WithLocation(24, 9),
-                // (25,9): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('C')
+                Diagnostic(ErrorCode.WRN_ManagedAddr, "S2*").WithArguments("S2").WithLocation(24, 9),
+                // (25,9): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('C')
                 //         C** y3 = stackalloc[] { s3 }; // 4
-                Diagnostic(ErrorCode.ERR_ManagedAddr, "C*").WithArguments("C").WithLocation(25, 9)
+                Diagnostic(ErrorCode.WRN_ManagedAddr, "C*").WithArguments("C").WithLocation(25, 9)
                 );
         }
 
@@ -2107,6 +2250,12 @@ class Program
                 // (3,5): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
                 //     ref T F;
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "ref T").WithArguments("ref fields", "11.0").WithLocation(3, 5),
+                // (7,9): error CS9079: Cannot ref-assign 't' to 'F' because 't' can only escape the current method through a return statement.
+                //         F = ref t;
+                Diagnostic(ErrorCode.ERR_RefAssignReturnOnly, "F = ref t").WithArguments("F", "t").WithLocation(7, 9),
+                // (12,9): error CS9079: Cannot ref-assign 't' to 'F' because 't' can only escape the current method through a return statement.
+                //         r1.F = ref t;
+                Diagnostic(ErrorCode.ERR_RefAssignReturnOnly, "r1.F = ref t").WithArguments("F", "t").WithLocation(12, 9),
                 // (18,9): error CS8374: Cannot ref-assign 't' to 'F' because 't' has a narrower escape scope than 'F'.
                 //         r2.F = ref t;
                 Diagnostic(ErrorCode.ERR_RefAssignNarrower, "r2.F = ref t").WithArguments("F", "t").WithLocation(18, 9)
@@ -2114,6 +2263,12 @@ class Program
 
             comp = CreateCompilation(source, runtimeFeature: RuntimeFlag.ByRefFields);
             comp.VerifyEmitDiagnostics(
+                // (7,9): error CS9079: Cannot ref-assign 't' to 'F' because 't' can only escape the current method through a return statement.
+                //         F = ref t;
+                Diagnostic(ErrorCode.ERR_RefAssignReturnOnly, "F = ref t").WithArguments("F", "t").WithLocation(7, 9),
+                // (12,9): error CS9079: Cannot ref-assign 't' to 'F' because 't' can only escape the current method through a return statement.
+                //         r1.F = ref t;
+                Diagnostic(ErrorCode.ERR_RefAssignReturnOnly, "r1.F = ref t").WithArguments("F", "t").WithLocation(12, 9),
                 // (18,9): error CS8374: Cannot ref-assign 't' to 'F' because 't' has a narrower escape scope than 'F'.
                 //         r2.F = ref t;
                 Diagnostic(ErrorCode.ERR_RefAssignNarrower, "r2.F = ref t").WithArguments("F", "t").WithLocation(18, 9)
@@ -2276,7 +2431,7 @@ class Program
 
     static void Test(ref int i)
     {
-        var r = new R();
+        scoped var r = new R();
         r.Field = ref i;
         Console.WriteLine(r.Field);
     }
@@ -3838,50 +3993,14 @@ class Program
     static void F51(scoped ref R x, scoped ref R y) { F1(ref x, __arglist(ref y)); } // 6
 }";
             var comp = CreateCompilation(source);
-            comp.VerifyEmitDiagnostics(
-                // (7,41): error CS8350: This combination of arguments to 'Program.F0(__arglist)' is disallowed because it may expose variables referenced by parameter '__arglist' outside of their declaration scope
-                //     static void F00(ref R x, ref R y) { F0(__arglist(ref x, ref y)); } // 1
-                Diagnostic(ErrorCode.ERR_CallArgMixing, "F0(__arglist(ref x, ref y))").WithArguments("Program.F0(__arglist)", "__arglist").WithLocation(7, 41),
-                // (7,58): error CS9077: Cannot return a parameter by reference 'x' through a ref parameter; it can only be returned in a return statement
-                //     static void F00(ref R x, ref R y) { F0(__arglist(ref x, ref y)); } // 1
-                Diagnostic(ErrorCode.ERR_RefReturnOnlyParameter, "x").WithArguments("x").WithLocation(7, 58),
-                // (8,41): error CS8350: This combination of arguments to 'Program.F1(ref R, __arglist)' is disallowed because it may expose variables referenced by parameter '__arglist' outside of their declaration scope
-                //     static void F01(ref R x, ref R y) { F1(ref x, __arglist(ref y)); } // 2
-                Diagnostic(ErrorCode.ERR_CallArgMixing, "F1(ref x, __arglist(ref y))").WithArguments("Program.F1(ref R, __arglist)", "__arglist").WithLocation(8, 41),
-                // (8,65): error CS9077: Cannot return a parameter by reference 'y' through a ref parameter; it can only be returned in a return statement
-                //     static void F01(ref R x, ref R y) { F1(ref x, __arglist(ref y)); } // 2
-                Diagnostic(ErrorCode.ERR_RefReturnOnlyParameter, "y").WithArguments("y").WithLocation(8, 65),
-                // (9,48): error CS8350: This combination of arguments to 'Program.F0(__arglist)' is disallowed because it may expose variables referenced by parameter '__arglist' outside of their declaration scope
-                //     static void F20(ref R x, scoped ref R y) { F0(__arglist(ref x, ref y)); } // 3
-                Diagnostic(ErrorCode.ERR_CallArgMixing, "F0(__arglist(ref x, ref y))").WithArguments("Program.F0(__arglist)", "__arglist").WithLocation(9, 48),
-                // (9,72): error CS9075: Cannot return a parameter by reference 'y' because it is scoped to the current method
-                //     static void F20(ref R x, scoped ref R y) { F0(__arglist(ref x, ref y)); } // 3
-                Diagnostic(ErrorCode.ERR_RefReturnScopedParameter, "y").WithArguments("y").WithLocation(9, 72),
-                // (10,48): error CS8350: This combination of arguments to 'Program.F1(ref R, __arglist)' is disallowed because it may expose variables referenced by parameter '__arglist' outside of their declaration scope
-                //     static void F21(ref R x, scoped ref R y) { F1(ref x, __arglist(ref y)); } // 4
-                Diagnostic(ErrorCode.ERR_CallArgMixing, "F1(ref x, __arglist(ref y))").WithArguments("Program.F1(ref R, __arglist)", "__arglist").WithLocation(10, 48),
-                // (10,72): error CS9075: Cannot return a parameter by reference 'y' because it is scoped to the current method
-                //     static void F21(ref R x, scoped ref R y) { F1(ref x, __arglist(ref y)); } // 4
-                Diagnostic(ErrorCode.ERR_RefReturnScopedParameter, "y").WithArguments("y").WithLocation(10, 72),
-                // (11,55): error CS8350: This combination of arguments to 'Program.F0(__arglist)' is disallowed because it may expose variables referenced by parameter '__arglist' outside of their declaration scope
-                //     static void F50(scoped ref R x, scoped ref R y) { F0(__arglist(ref x, ref y)); } // 5
-                Diagnostic(ErrorCode.ERR_CallArgMixing, "F0(__arglist(ref x, ref y))").WithArguments("Program.F0(__arglist)", "__arglist").WithLocation(11, 55),
-                // (11,72): error CS9075: Cannot return a parameter by reference 'x' because it is scoped to the current method
-                //     static void F50(scoped ref R x, scoped ref R y) { F0(__arglist(ref x, ref y)); } // 5
-                Diagnostic(ErrorCode.ERR_RefReturnScopedParameter, "x").WithArguments("x").WithLocation(11, 72),
-                // (12,55): error CS8350: This combination of arguments to 'Program.F1(ref R, __arglist)' is disallowed because it may expose variables referenced by parameter '__arglist' outside of their declaration scope
-                //     static void F51(scoped ref R x, scoped ref R y) { F1(ref x, __arglist(ref y)); } // 6
-                Diagnostic(ErrorCode.ERR_CallArgMixing, "F1(ref x, __arglist(ref y))").WithArguments("Program.F1(ref R, __arglist)", "__arglist").WithLocation(12, 55),
-                // (12,79): error CS9075: Cannot return a parameter by reference 'y' because it is scoped to the current method
-                //     static void F51(scoped ref R x, scoped ref R y) { F1(ref x, __arglist(ref y)); } // 6
-                Diagnostic(ErrorCode.ERR_RefReturnScopedParameter, "y").WithArguments("y").WithLocation(12, 79));
+            comp.VerifyEmitDiagnostics();
         }
 
         [Fact]
         public void MethodArgumentsMustMatch_07_1()
         {
             var source =
-@"using System.Diagnostics.CodeAnalysis;
+@"
 ref struct R { }
 class Program
 {
@@ -3896,43 +4015,7 @@ class Program
     static void F51(ref R x, ref R y) { F1(ref x, __arglist(ref y)); } // 6
 }";
             var comp = CreateCompilation(new[] { source, UnscopedRefAttributeDefinition });
-            comp.VerifyEmitDiagnostics(
-                // (8,72): error CS9075: Cannot return a parameter by reference 'x' because it is scoped to the current method
-                //     static void F00(scoped ref R x, scoped ref R y) { F0(__arglist(ref x, ref y)); } // 1
-                Diagnostic(ErrorCode.ERR_RefReturnScopedParameter, "x").WithArguments("x").WithLocation(8, 72),
-                // (8,55): error CS8350: This combination of arguments to 'Program.F0(__arglist)' is disallowed because it may expose variables referenced by parameter '__arglist' outside of their declaration scope
-                //     static void F00(scoped ref R x, scoped ref R y) { F0(__arglist(ref x, ref y)); } // 1
-                Diagnostic(ErrorCode.ERR_CallArgMixing, "F0(__arglist(ref x, ref y))").WithArguments("Program.F0(__arglist)", "__arglist").WithLocation(8, 55),
-                // (9,79): error CS9075: Cannot return a parameter by reference 'y' because it is scoped to the current method
-                //     static void F01(scoped ref R x, scoped ref R y) { F1(ref x, __arglist(ref y)); } // 2
-                Diagnostic(ErrorCode.ERR_RefReturnScopedParameter, "y").WithArguments("y").WithLocation(9, 79),
-                // (9,55): error CS8350: This combination of arguments to 'Program.F1(ref R, __arglist)' is disallowed because it may expose variables referenced by parameter '__arglist' outside of their declaration scope
-                //     static void F01(scoped ref R x, scoped ref R y) { F1(ref x, __arglist(ref y)); } // 2
-                Diagnostic(ErrorCode.ERR_CallArgMixing, "F1(ref x, __arglist(ref y))").WithArguments("Program.F1(ref R, __arglist)", "__arglist").WithLocation(9, 55),
-                // (10,65): error CS9075: Cannot return a parameter by reference 'x' because it is scoped to the current method
-                //     static void F20(scoped ref R x, ref R y) { F0(__arglist(ref x, ref y)); } // 3
-                Diagnostic(ErrorCode.ERR_RefReturnScopedParameter, "x").WithArguments("x").WithLocation(10, 65),
-                // (10,48): error CS8350: This combination of arguments to 'Program.F0(__arglist)' is disallowed because it may expose variables referenced by parameter '__arglist' outside of their declaration scope
-                //     static void F20(scoped ref R x, ref R y) { F0(__arglist(ref x, ref y)); } // 3
-                Diagnostic(ErrorCode.ERR_CallArgMixing, "F0(__arglist(ref x, ref y))").WithArguments("Program.F0(__arglist)", "__arglist").WithLocation(10, 48),
-                // (11,72): error CS9077: Cannot return a parameter by reference 'y' through a ref parameter; it can only be returned in a return statement
-                //     static void F21(scoped ref R x, ref R y) { F1(ref x, __arglist(ref y)); } // 4
-                Diagnostic(ErrorCode.ERR_RefReturnOnlyParameter, "y").WithArguments("y").WithLocation(11, 72),
-                // (11,48): error CS8350: This combination of arguments to 'Program.F1(ref R, __arglist)' is disallowed because it may expose variables referenced by parameter '__arglist' outside of their declaration scope
-                //     static void F21(scoped ref R x, ref R y) { F1(ref x, __arglist(ref y)); } // 4
-                Diagnostic(ErrorCode.ERR_CallArgMixing, "F1(ref x, __arglist(ref y))").WithArguments("Program.F1(ref R, __arglist)", "__arglist").WithLocation(11, 48),
-                // (12,58): error CS9077: Cannot return a parameter by reference 'x' through a ref parameter; it can only be returned in a return statement
-                //     static void F50(ref R x, ref R y) { F0(__arglist(ref x, ref y)); } // 5
-                Diagnostic(ErrorCode.ERR_RefReturnOnlyParameter, "x").WithArguments("x").WithLocation(12, 58),
-                // (12,41): error CS8350: This combination of arguments to 'Program.F0(__arglist)' is disallowed because it may expose variables referenced by parameter '__arglist' outside of their declaration scope
-                //     static void F50(ref R x, ref R y) { F0(__arglist(ref x, ref y)); } // 5
-                Diagnostic(ErrorCode.ERR_CallArgMixing, "F0(__arglist(ref x, ref y))").WithArguments("Program.F0(__arglist)", "__arglist").WithLocation(12, 41),
-                // (13,65): error CS9077: Cannot return a parameter by reference 'y' through a ref parameter; it can only be returned in a return statement
-                //     static void F51(ref R x, ref R y) { F1(ref x, __arglist(ref y)); } // 6
-                Diagnostic(ErrorCode.ERR_RefReturnOnlyParameter, "y").WithArguments("y").WithLocation(13, 65),
-                // (13,41): error CS8350: This combination of arguments to 'Program.F1(ref R, __arglist)' is disallowed because it may expose variables referenced by parameter '__arglist' outside of their declaration scope
-                //     static void F51(ref R x, ref R y) { F1(ref x, __arglist(ref y)); } // 6
-                Diagnostic(ErrorCode.ERR_CallArgMixing, "F1(ref x, __arglist(ref y))").WithArguments("Program.F1(ref R, __arglist)", "__arglist").WithLocation(13, 41));
+            comp.VerifyEmitDiagnostics();
         }
 
         [Fact]
@@ -3973,31 +4056,7 @@ class Program
             comp.VerifyEmitDiagnostics(
                 // (17,9): error CS8374: Cannot ref-assign 'r.B' to 'RB' because 'r.B' has a narrower escape scope than 'RB'.
                 //         r.RB = ref r.B; // 1
-                Diagnostic(ErrorCode.ERR_RefAssignNarrower, "r.RB = ref r.B").WithArguments("RB", "r.B").WithLocation(17, 9),
-                // (21,55): error CS9075: Cannot return a parameter by reference 'y' because it is scoped to the current method
-                //     static void F1(scoped ref R y) { F0(__arglist(ref y)); } // 2
-                Diagnostic(ErrorCode.ERR_RefReturnScopedParameter, "y").WithArguments("y").WithLocation(21, 55),
-                // (21,38): error CS8350: This combination of arguments to 'Program.F0(__arglist)' is disallowed because it may expose variables referenced by parameter '__arglist' outside of their declaration scope
-                //     static void F1(scoped ref R y) { F0(__arglist(ref y)); } // 2
-                Diagnostic(ErrorCode.ERR_CallArgMixing, "F0(__arglist(ref y))").WithArguments("Program.F0(__arglist)", "__arglist").WithLocation(21, 38),
-                // (22,48): error CS9077: Cannot return a parameter by reference 'y' through a ref parameter; it can only be returned in a return statement
-                //     static void F2(ref R y) { F0(__arglist(ref y)); } // 3
-                Diagnostic(ErrorCode.ERR_RefReturnOnlyParameter, "y").WithArguments("y").WithLocation(22, 48),
-                // (22,31): error CS8350: This combination of arguments to 'Program.F0(__arglist)' is disallowed because it may expose variables referenced by parameter '__arglist' outside of their declaration scope
-                //     static void F2(ref R y) { F0(__arglist(ref y)); } // 3
-                Diagnostic(ErrorCode.ERR_CallArgMixing, "F0(__arglist(ref y))").WithArguments("Program.F0(__arglist)", "__arglist").WithLocation(22, 31),
-                // (24,59): error CS9075: Cannot return a parameter by reference 'y' because it is scoped to the current method
-                //     static R F3(scoped ref R y) { return F0(__arglist(ref y)); } // 4
-                Diagnostic(ErrorCode.ERR_RefReturnScopedParameter, "y").WithArguments("y").WithLocation(24, 59),
-                // (24,42): error CS8350: This combination of arguments to 'Program.F0(__arglist)' is disallowed because it may expose variables referenced by parameter '__arglist' outside of their declaration scope
-                //     static R F3(scoped ref R y) { return F0(__arglist(ref y)); } // 4
-                Diagnostic(ErrorCode.ERR_CallArgMixing, "F0(__arglist(ref y))").WithArguments("Program.F0(__arglist)", "__arglist").WithLocation(24, 42),
-                // (25,52): error CS9077: Cannot return a parameter by reference 'y' through a ref parameter; it can only be returned in a return statement
-                //     static R F4(ref R y) { return F0(__arglist(ref y)); } // 5
-                Diagnostic(ErrorCode.ERR_RefReturnOnlyParameter, "y").WithArguments("y").WithLocation(25, 52),
-                // (25,35): error CS8350: This combination of arguments to 'Program.F0(__arglist)' is disallowed because it may expose variables referenced by parameter '__arglist' outside of their declaration scope
-                //     static R F4(ref R y) { return F0(__arglist(ref y)); } // 5
-                Diagnostic(ErrorCode.ERR_CallArgMixing, "F0(__arglist(ref y))").WithArguments("Program.F0(__arglist)", "__arglist").WithLocation(25, 35));
+                Diagnostic(ErrorCode.ERR_RefAssignNarrower, "r.RB = ref r.B").WithArguments("RB", "r.B").WithLocation(17, 9));
         }
 
         [Fact]
@@ -4063,18 +4122,6 @@ class Program
 
             comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
-                // (13,9): error CS8350: This combination of arguments to 'Program.F0(__arglist)' is disallowed because it may expose variables referenced by parameter '__arglist' outside of their declaration scope
-                //         F0(__arglist(ref x)); // 1
-                Diagnostic(ErrorCode.ERR_CallArgMixing, "F0(__arglist(ref x))").WithArguments("Program.F0(__arglist)", "__arglist").WithLocation(13, 9),
-                // (13,26): error CS8168: Cannot return local 'x' by reference because it is not a ref local
-                //         F0(__arglist(ref x)); // 1
-                Diagnostic(ErrorCode.ERR_RefReturnLocal, "x").WithArguments("x").WithLocation(13, 26),
-                // (15,9): error CS8350: This combination of arguments to 'Program.F0(__arglist)' is disallowed because it may expose variables referenced by parameter '__arglist' outside of their declaration scope
-                //         F0(__arglist(ref x, ref x)); // 2
-                Diagnostic(ErrorCode.ERR_CallArgMixing, "F0(__arglist(ref x, ref x))").WithArguments("Program.F0(__arglist)", "__arglist").WithLocation(15, 9),
-                // (15,26): error CS8168: Cannot return local 'x' by reference because it is not a ref local
-                //         F0(__arglist(ref x, ref x)); // 2
-                Diagnostic(ErrorCode.ERR_RefReturnLocal, "x").WithArguments("x").WithLocation(15, 26),
                 // (16,9): error CS8350: This combination of arguments to 'Program.F0(__arglist)' is disallowed because it may expose variables referenced by parameter '__arglist' outside of their declaration scope
                 //         F0(__arglist(ref x, ref y)); // 3
                 Diagnostic(ErrorCode.ERR_CallArgMixing, "F0(__arglist(ref x, ref y))").WithArguments("Program.F0(__arglist)", "__arglist").WithLocation(16, 9),
@@ -4120,12 +4167,6 @@ class Program
 
             comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
-                // (13,9): error CS8350: This combination of arguments to 'Program.F0(ref R<int>, __arglist)' is disallowed because it may expose variables referenced by parameter '__arglist' outside of their declaration scope
-                //         F0(ref x, __arglist(ref x)); // 1
-                Diagnostic(ErrorCode.ERR_CallArgMixing, "F0(ref x, __arglist(ref x))").WithArguments("Program.F0(ref R<int>, __arglist)", "__arglist").WithLocation(13, 9),
-                // (13,33): error CS8168: Cannot return local 'x' by reference because it is not a ref local
-                //         F0(ref x, __arglist(ref x)); // 1
-                Diagnostic(ErrorCode.ERR_RefReturnLocal, "x").WithArguments("x").WithLocation(13, 33),
                 // (14,9): error CS8350: This combination of arguments to 'Program.F0(ref R<int>, __arglist)' is disallowed because it may expose variables referenced by parameter '__arglist' outside of their declaration scope
                 //         F0(ref x, __arglist(ref y)); // 2
                 Diagnostic(ErrorCode.ERR_CallArgMixing, "F0(ref x, __arglist(ref y))").WithArguments("Program.F0(ref R<int>, __arglist)", "__arglist").WithLocation(14, 9),
@@ -4232,6 +4273,46 @@ class Program
                 Diagnostic(ErrorCode.ERR_EscapeVariable, "y1").WithArguments("y1").WithLocation(13, 16));
         }
 
+        /// <summary>
+        /// Ensure that readonly members / types are properly accounted for
+        /// </summary>
+        [Fact]
+        public void MethodArgumentsMustMatch_13()
+        {
+            var source = """
+                ref struct RWRS
+                {
+                    public void M1(RS rs) { }
+                    public readonly void M2(RS rs) { }
+                }
+                readonly ref struct RORS
+                {
+                    public void M3(RS rs) { }
+                }
+                ref struct RS
+                {
+                    static void Test()
+                    {
+                        scoped RS local = default;
+                        RWRS rwLocal = default;
+                        rwLocal.M1(local); // 1
+                        rwLocal.M2(local);
+                        RORS roLocal = default;
+                        roLocal.M3(local);
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation(new[] { source });
+            comp.VerifyDiagnostics(
+                // (16,9): error CS8350: This combination of arguments to 'RWRS.M1(RS)' is disallowed because it may expose variables referenced by parameter 'rs' outside of their declaration scope
+                //         rwLocal.M1(local); // 1
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "rwLocal.M1(local)").WithArguments("RWRS.M1(RS)", "rs").WithLocation(16, 9),
+                // (16,20): error CS8352: Cannot use variable 'local' in this context because it may expose referenced variables outside of their declaration scope
+                //         rwLocal.M1(local); // 1
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "local").WithArguments("local").WithLocation(16, 20));
+        }
+
         [Theory]
         [InlineData(LanguageVersion.CSharp10)]
         [InlineData(LanguageVersion.CSharp11)]
@@ -4336,20 +4417,20 @@ class Program
     {
         var r1 = new R<int>();
         int i = 1;
-        r1.F(in i); // 1
+        r1.F(in i);
         return r1;
     }
     static R<int> F2()
     {
         var r2 = new R<int>();
         int i = 2;
-        r2.F(i); // 2
+        r2.F(i);
         return r2;
     }
     static R<int> F3()
     {
         var r3 = new R<int>();
-        r3.F(3); // 3
+        r3.F(3);
         return r3;
     }
 }";
@@ -4358,25 +4439,7 @@ class Program
             comp.VerifyEmitDiagnostics();
 
             comp = CreateCompilation(source);
-            comp.VerifyEmitDiagnostics(
-                // (11,9): error CS8350: This combination of arguments to 'R<int>.F(in int)' is disallowed because it may expose variables referenced by parameter 't' outside of their declaration scope
-                //         r1.F(in i); // 1
-                Diagnostic(ErrorCode.ERR_CallArgMixing, "r1.F(in i)").WithArguments("R<int>.F(in int)", "t").WithLocation(11, 9),
-                // (11,17): error CS8168: Cannot return local 'i' by reference because it is not a ref local
-                //         r1.F(in i); // 1
-                Diagnostic(ErrorCode.ERR_RefReturnLocal, "i").WithArguments("i").WithLocation(11, 17),
-                // (18,9): error CS8350: This combination of arguments to 'R<int>.F(in int)' is disallowed because it may expose variables referenced by parameter 't' outside of their declaration scope
-                //         r2.F(i); // 2
-                Diagnostic(ErrorCode.ERR_CallArgMixing, "r2.F(i)").WithArguments("R<int>.F(in int)", "t").WithLocation(18, 9),
-                // (18,14): error CS8168: Cannot return local 'i' by reference because it is not a ref local
-                //         r2.F(i); // 2
-                Diagnostic(ErrorCode.ERR_RefReturnLocal, "i").WithArguments("i").WithLocation(18, 14),
-                // (24,9): error CS8350: This combination of arguments to 'R<int>.F(in int)' is disallowed because it may expose variables referenced by parameter 't' outside of their declaration scope
-                //         r3.F(3); // 3
-                Diagnostic(ErrorCode.ERR_CallArgMixing, "r3.F(3)").WithArguments("R<int>.F(in int)", "t").WithLocation(24, 9),
-                // (24,14): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
-                //         r3.F(3); // 3
-                Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "3").WithLocation(24, 14));
+            comp.VerifyEmitDiagnostics();
         }
 
         [Theory]
@@ -4588,7 +4651,7 @@ class Program
     }
     static void M3(ref T t3)
     {
-        S<T> s3;
+        scoped S<T> s3;
         s3 = new S<T>(ref t3);
         s3 = new S<T> { F = t3 };
     }
@@ -4663,7 +4726,7 @@ unsafe ref struct S<T>
     }
     static void M3(ref T t3)
     {
-        S<T> s3;
+        scoped S<T> s3;
         s3 = new S<T>(ref t3);
         s3 = new S<T> { F = t3 };
     }
@@ -6005,65 +6068,71 @@ class Program
 class Program
 {
     static void AssignValueToValue<T>(S<T> s, T tValue) { s.F = ref tValue; } // 1
-    static void AssignRefToValue<T>(S<T> s, ref T tRef) { s.F = ref tRef; }
-    static void AssignOutToValue<T>(S<T> s, out T tOut) { tOut = default; s.F = ref tOut; } // 2
-    static void AssignInToValue<T>(S<T> s, in T tIn)    { s.F = ref tIn; } // 3
+    static void AssignRefToValue<T>(S<T> s, ref T tRef) { s.F = ref tRef; } // 2
+    static void AssignOutToValue<T>(S<T> s, out T tOut) { tOut = default; s.F = ref tOut; } // 3
+    static void AssignInToValue<T>(S<T> s, in T tIn)    { s.F = ref tIn; } // 4
 
-    static void AssignValueToRef<T>(ref S<T> sRef, T tValue) { sRef.F = ref tValue; } // 4
-    static void AssignRefToRef<T>(ref S<T> sRef, ref T tRef) { sRef.F = ref tRef; }
-    static void AssignOutToRef<T>(ref S<T> sRef, out T tOut) { tOut = default; sRef.F = ref tOut; } // 5
-    static void AssignInToRef<T>(ref S<T> sRef, in T tIn)    { sRef.F = ref tIn; } // 6
+    static void AssignValueToRef<T>(ref S<T> sRef, T tValue) { sRef.F = ref tValue; } // 5
+    static void AssignRefToRef<T>(ref S<T> sRef, ref T tRef) { sRef.F = ref tRef; } // 6
+    static void AssignOutToRef<T>(ref S<T> sRef, out T tOut) { tOut = default; sRef.F = ref tOut; } // 7
+    static void AssignInToRef<T>(ref S<T> sRef, in T tIn)    { sRef.F = ref tIn; } // 8
 
-    static void AssignValueToOut<T>(out S<T> sOut, T tValue) { sOut = default; sOut.F = ref tValue; } // 7
+    static void AssignValueToOut<T>(out S<T> sOut, T tValue) { sOut = default; sOut.F = ref tValue; } // 9
     static void AssignRefToOut<T>(out S<T> sOut, ref T tRef) { sOut = default; sOut.F = ref tRef; }
-    static void AssignOutToOut<T>(out S<T> sOut, out T tOut) { sOut = default; tOut = default; sOut.F = ref tOut; } // 8
-    static void AssignInToOut<T>(out S<T> sOut, in T tIn)    { sOut = default; sOut.F = ref tIn; } // 9
+    static void AssignOutToOut<T>(out S<T> sOut, out T tOut) { sOut = default; tOut = default; sOut.F = ref tOut; } // 10 
+    static void AssignInToOut<T>(out S<T> sOut, in T tIn)    { sOut = default; sOut.F = ref tIn; } // 11 
 
-    static void AssignValueToIn<T>(in S<T> sIn, T tValue) { sIn.F = ref tValue; } // 10
-    static void AssignRefToIn<T>(in S<T> sIn, ref T tRef) { sIn.F = ref tRef; } // 11
-    static void AssignOutToIn<T>(in S<T> sIn, out T tOut) { tOut = default; sIn.F = ref tOut; } // 12
-    static void AssignInToIn<T>(in S<T> sIn, in T tIn)    { sIn.F = ref tIn; } // 13
+    static void AssignValueToIn<T>(in S<T> sIn, T tValue) { sIn.F = ref tValue; } // 12
+    static void AssignRefToIn<T>(in S<T> sIn, ref T tRef) { sIn.F = ref tRef; } // 13
+    static void AssignOutToIn<T>(in S<T> sIn, out T tOut) { tOut = default; sIn.F = ref tOut; } // 14
+    static void AssignInToIn<T>(in S<T> sIn, in T tIn)    { sIn.F = ref tIn; } // 15
 }";
             var comp = CreateCompilation(source, runtimeFeature: RuntimeFlag.ByRefFields);
             comp.VerifyEmitDiagnostics(
                 // (9,59): error CS8374: Cannot ref-assign 'tValue' to 'F' because 'tValue' has a narrower escape scope than 'F'.
                 //     static void AssignValueToValue<T>(S<T> s, T tValue) { s.F = ref tValue; } // 1
                 Diagnostic(ErrorCode.ERR_RefAssignNarrower, "s.F = ref tValue").WithArguments("F", "tValue").WithLocation(9, 59),
+                // (10,59): error CS9079: Cannot ref-assign 'tRef' to 'F' because 'tRef' can only escape the current method through a return statement.
+                //     static void AssignRefToValue<T>(S<T> s, ref T tRef) { s.F = ref tRef; } // 2
+                Diagnostic(ErrorCode.ERR_RefAssignReturnOnly, "s.F = ref tRef").WithArguments("F", "tRef").WithLocation(10, 59),
                 // (11,75): error CS8374: Cannot ref-assign 'tOut' to 'F' because 'tOut' has a narrower escape scope than 'F'.
-                //     static void AssignOutToValue<T>(S<T> s, out T tOut) { tOut = default; s.F = ref tOut; } // 2
+                //     static void AssignOutToValue<T>(S<T> s, out T tOut) { tOut = default; s.F = ref tOut; } // 3
                 Diagnostic(ErrorCode.ERR_RefAssignNarrower, "s.F = ref tOut").WithArguments("F", "tOut").WithLocation(11, 75),
                 // (12,69): error CS8331: Cannot assign to variable 'tIn' or use it as the right hand side of a ref assignment because it is a readonly variable
-                //     static void AssignInToValue<T>(S<T> s, in T tIn)    { s.F = ref tIn; } // 3
+                //     static void AssignInToValue<T>(S<T> s, in T tIn)    { s.F = ref tIn; } // 4
                 Diagnostic(ErrorCode.ERR_AssignReadonlyNotField, "tIn").WithArguments("variable", "tIn").WithLocation(12, 69),
                 // (14,64): error CS8374: Cannot ref-assign 'tValue' to 'F' because 'tValue' has a narrower escape scope than 'F'.
-                //     static void AssignValueToRef<T>(ref S<T> sRef, T tValue) { sRef.F = ref tValue; } // 4
+                //     static void AssignValueToRef<T>(ref S<T> sRef, T tValue) { sRef.F = ref tValue; } // 5
                 Diagnostic(ErrorCode.ERR_RefAssignNarrower, "sRef.F = ref tValue").WithArguments("F", "tValue").WithLocation(14, 64),
+                // (15,64): error CS9079: Cannot ref-assign 'tRef' to 'F' because 'tRef' can only escape the current method through a return statement.
+                //     static void AssignRefToRef<T>(ref S<T> sRef, ref T tRef) { sRef.F = ref tRef; } // 6
+                Diagnostic(ErrorCode.ERR_RefAssignReturnOnly, "sRef.F = ref tRef").WithArguments("F", "tRef").WithLocation(15, 64),
                 // (16,80): error CS8374: Cannot ref-assign 'tOut' to 'F' because 'tOut' has a narrower escape scope than 'F'.
-                //     static void AssignOutToRef<T>(ref S<T> sRef, out T tOut) { tOut = default; sRef.F = ref tOut; } // 5
+                //     static void AssignOutToRef<T>(ref S<T> sRef, out T tOut) { tOut = default; sRef.F = ref tOut; } // 7
                 Diagnostic(ErrorCode.ERR_RefAssignNarrower, "sRef.F = ref tOut").WithArguments("F", "tOut").WithLocation(16, 80),
                 // (17,77): error CS8331: Cannot assign to variable 'tIn' or use it as the right hand side of a ref assignment because it is a readonly variable
-                //     static void AssignInToRef<T>(ref S<T> sRef, in T tIn)    { sRef.F = ref tIn; } // 6
+                //     static void AssignInToRef<T>(ref S<T> sRef, in T tIn)    { sRef.F = ref tIn; } // 8
                 Diagnostic(ErrorCode.ERR_AssignReadonlyNotField, "tIn").WithArguments("variable", "tIn").WithLocation(17, 77),
                 // (19,80): error CS8374: Cannot ref-assign 'tValue' to 'F' because 'tValue' has a narrower escape scope than 'F'.
-                //     static void AssignValueToOut<T>(out S<T> sOut, T tValue) { sOut = default; sOut.F = ref tValue; } // 7
+                //     static void AssignValueToOut<T>(out S<T> sOut, T tValue) { sOut = default; sOut.F = ref tValue; } // 9
                 Diagnostic(ErrorCode.ERR_RefAssignNarrower, "sOut.F = ref tValue").WithArguments("F", "tValue").WithLocation(19, 80),
                 // (21,96): error CS8374: Cannot ref-assign 'tOut' to 'F' because 'tOut' has a narrower escape scope than 'F'.
-                //     static void AssignOutToOut<T>(out S<T> sOut, out T tOut) { sOut = default; tOut = default; sOut.F = ref tOut; } // 8
+                //     static void AssignOutToOut<T>(out S<T> sOut, out T tOut) { sOut = default; tOut = default; sOut.F = ref tOut; } // 10 
                 Diagnostic(ErrorCode.ERR_RefAssignNarrower, "sOut.F = ref tOut").WithArguments("F", "tOut").WithLocation(21, 96),
                 // (22,93): error CS8331: Cannot assign to variable 'tIn' or use it as the right hand side of a ref assignment because it is a readonly variable
-                //     static void AssignInToOut<T>(out S<T> sOut, in T tIn)    { sOut = default; sOut.F = ref tIn; } // 9
+                //     static void AssignInToOut<T>(out S<T> sOut, in T tIn)    { sOut = default; sOut.F = ref tIn; } // 11 
                 Diagnostic(ErrorCode.ERR_AssignReadonlyNotField, "tIn").WithArguments("variable", "tIn").WithLocation(22, 93),
                 // (24,61): error CS8332: Cannot assign to a member of variable 'sIn' or use it as the right hand side of a ref assignment because it is a readonly variable
-                //     static void AssignValueToIn<T>(in S<T> sIn, T tValue) { sIn.F = ref tValue; } // 10
+                //     static void AssignValueToIn<T>(in S<T> sIn, T tValue) { sIn.F = ref tValue; } // 12
                 Diagnostic(ErrorCode.ERR_AssignReadonlyNotField2, "sIn.F").WithArguments("variable", "sIn").WithLocation(24, 61),
                 // (25,61): error CS8332: Cannot assign to a member of variable 'sIn' or use it as the right hand side of a ref assignment because it is a readonly variable
-                //     static void AssignRefToIn<T>(in S<T> sIn, ref T tRef) { sIn.F = ref tRef; } // 11
+                //     static void AssignRefToIn<T>(in S<T> sIn, ref T tRef) { sIn.F = ref tRef; } // 13
                 Diagnostic(ErrorCode.ERR_AssignReadonlyNotField2, "sIn.F").WithArguments("variable", "sIn").WithLocation(25, 61),
                 // (26,77): error CS8332: Cannot assign to a member of variable 'sIn' or use it as the right hand side of a ref assignment because it is a readonly variable
-                //     static void AssignOutToIn<T>(in S<T> sIn, out T tOut) { tOut = default; sIn.F = ref tOut; } // 12
+                //     static void AssignOutToIn<T>(in S<T> sIn, out T tOut) { tOut = default; sIn.F = ref tOut; } // 14
                 Diagnostic(ErrorCode.ERR_AssignReadonlyNotField2, "sIn.F").WithArguments("variable", "sIn").WithLocation(26, 77),
                 // (27,61): error CS8332: Cannot assign to a member of variable 'sIn' or use it as the right hand side of a ref assignment because it is a readonly variable
-                //     static void AssignInToIn<T>(in S<T> sIn, in T tIn)    { sIn.F = ref tIn; } // 13
+                //     static void AssignInToIn<T>(in S<T> sIn, in T tIn)    { sIn.F = ref tIn; } // 15
                 Diagnostic(ErrorCode.ERR_AssignReadonlyNotField2, "sIn.F").WithArguments("variable", "sIn").WithLocation(27, 61));
 
             // Valid cases from above.
@@ -6078,26 +6147,12 @@ ref struct S<T>
 
 class Program
 {
-    static void AssignRefToValue<T>(S<T> s, ref T tRef) { s.F = ref tRef; }
-
-    static void AssignRefToRef<T>(ref S<T> sRef, ref T tRef) { sRef.F = ref tRef; }
-
     static void AssignRefToOut<T>(out S<T> sOut, ref T tRef) { sOut = default; sOut.F = ref tRef; }
 
     static void Main()
     {
         int x, y;
         scoped S<int> s;
-
-        x = 1; y = 2;
-        s = new S<int>(ref x);
-        AssignRefToValue(s, ref y);
-        Console.WriteLine(s.F);
-
-        x = 3; y = 4;
-        s = new S<int>(ref x);
-        AssignRefToRef(ref s, ref y);
-        Console.WriteLine(s.F);
 
         x = 5; y = 6;
         s = new S<int>(ref x);
@@ -6107,28 +6162,9 @@ class Program
 }";
             comp = CreateCompilation(source, options: TestOptions.ReleaseExe, runtimeFeature: RuntimeFlag.ByRefFields);
             var verifier = CompileAndVerify(comp, verify: Verification.Skipped, expectedOutput: IncludeExpectedOutput(
-@"1
-4
-6"));
+@"6"));
+
             verifier.VerifyILMultiple(
-                "Program.AssignRefToValue<T>",
-@"{
-  // Code size        9 (0x9)
-  .maxstack  2
-  IL_0000:  ldarga.s   V_0
-  IL_0002:  ldarg.1
-  IL_0003:  stfld      ""ref T S<T>.F""
-  IL_0008:  ret
-}",
-                "Program.AssignRefToRef<T>",
-@"{
-  // Code size        8 (0x8)
-  .maxstack  2
-  IL_0000:  ldarg.0
-  IL_0001:  ldarg.1
-  IL_0002:  stfld      ""ref T S<T>.F""
-  IL_0007:  ret
-}",
                 "Program.AssignRefToOut<T>",
 @"{
   // Code size       15 (0xf)
@@ -6179,15 +6215,27 @@ class Program
                 // (9,59): error CS8374: Cannot ref-assign 'tValue' to 'F' because 'tValue' has a narrower escape scope than 'F'.
                 //     static void AssignValueToValue<T>(S<T> s, T tValue) { s.F = ref tValue; } // 1
                 Diagnostic(ErrorCode.ERR_RefAssignNarrower, "s.F = ref tValue").WithArguments("F", "tValue").WithLocation(9, 59),
+                // (10,59): error CS9079: Cannot ref-assign 'tRef' to 'F' because 'tRef' can only escape the current method through a return statement.
+                //     static void AssignRefToValue<T>(S<T> s, ref T tRef) { s.F = ref tRef; }
+                Diagnostic(ErrorCode.ERR_RefAssignReturnOnly, "s.F = ref tRef").WithArguments("F", "tRef").WithLocation(10, 59),
                 // (11,75): error CS8374: Cannot ref-assign 'tOut' to 'F' because 'tOut' has a narrower escape scope than 'F'.
                 //     static void AssignOutToValue<T>(S<T> s, out T tOut) { tOut = default; s.F = ref tOut; } // 2
                 Diagnostic(ErrorCode.ERR_RefAssignNarrower, "s.F = ref tOut").WithArguments("F", "tOut").WithLocation(11, 75),
+                // (12,59): error CS9079: Cannot ref-assign 'tIn' to 'F' because 'tIn' can only escape the current method through a return statement.
+                //     static void AssignInToValue<T>(S<T> s, in T tIn)    { s.F = ref tIn; }
+                Diagnostic(ErrorCode.ERR_RefAssignReturnOnly, "s.F = ref tIn").WithArguments("F", "tIn").WithLocation(12, 59),
                 // (14,64): error CS8374: Cannot ref-assign 'tValue' to 'F' because 'tValue' has a narrower escape scope than 'F'.
                 //     static void AssignValueToRef<T>(ref S<T> sRef, T tValue) { sRef.F = ref tValue; } // 3
                 Diagnostic(ErrorCode.ERR_RefAssignNarrower, "sRef.F = ref tValue").WithArguments("F", "tValue").WithLocation(14, 64),
+                // (15,64): error CS9079: Cannot ref-assign 'tRef' to 'F' because 'tRef' can only escape the current method through a return statement.
+                //     static void AssignRefToRef<T>(ref S<T> sRef, ref T tRef) { sRef.F = ref tRef; }
+                Diagnostic(ErrorCode.ERR_RefAssignReturnOnly, "sRef.F = ref tRef").WithArguments("F", "tRef").WithLocation(15, 64),
                 // (16,80): error CS8374: Cannot ref-assign 'tOut' to 'F' because 'tOut' has a narrower escape scope than 'F'.
                 //     static void AssignOutToRef<T>(ref S<T> sRef, out T tOut) { tOut = default; sRef.F = ref tOut; } // 4
                 Diagnostic(ErrorCode.ERR_RefAssignNarrower, "sRef.F = ref tOut").WithArguments("F", "tOut").WithLocation(16, 80),
+                // (17,64): error CS9079: Cannot ref-assign 'tIn' to 'F' because 'tIn' can only escape the current method through a return statement.
+                //     static void AssignInToRef<T>(ref S<T> sRef, in T tIn)    { sRef.F = ref tIn; }
+                Diagnostic(ErrorCode.ERR_RefAssignReturnOnly, "sRef.F = ref tIn").WithArguments("F", "tIn").WithLocation(17, 64),
                 // (19,80): error CS8374: Cannot ref-assign 'tValue' to 'F' because 'tValue' has a narrower escape scope than 'F'.
                 //     static void AssignValueToOut<T>(out S<T> sOut, T tValue) { sOut = default; sOut.F = ref tValue; } // 5
                 Diagnostic(ErrorCode.ERR_RefAssignNarrower, "sOut.F = ref tValue").WithArguments("F", "tValue").WithLocation(19, 80),
@@ -6219,12 +6267,6 @@ ref struct S<T>
 
 class Program
 {
-    static void AssignRefToValue<T>(S<T> s, ref T tRef) { s.F = ref tRef; }
-    static void AssignInToValue<T>(S<T> s, in T tIn)    { s.F = ref tIn; }
-
-    static void AssignRefToRef<T>(ref S<T> sRef, ref T tRef) { sRef.F = ref tRef; }
-    static void AssignInToRef<T>(ref S<T> sRef, in T tIn)    { sRef.F = ref tIn; }
-
     static void AssignRefToOut<T>(out S<T> sOut, ref T tRef) { sOut = default; sOut.F = ref tRef; }
     static void AssignInToOut<T>(out S<T> sOut, in T tIn)    { sOut = default; sOut.F = ref tIn; }
 
@@ -6232,24 +6274,6 @@ class Program
     {
         int x, y;
         scoped S<int> s;
-
-        x = 1; y = 2;
-        s = new S<int>(ref x);
-        AssignRefToValue(s, ref y);
-        Console.WriteLine(s.F);
-        x = 1; y = 2;
-        s = new S<int>(ref x);
-        AssignInToValue(s, y);
-        Console.WriteLine(s.F);
-
-        x = 3; y = 4;
-        s = new S<int>(ref x);
-        AssignRefToRef(ref s, ref y);
-        Console.WriteLine(s.F);
-        x = 3; y = 4;
-        s = new S<int>(ref x);
-        AssignInToRef(ref s, y);
-        Console.WriteLine(s.F);
 
         x = 5; y = 6;
         s = new S<int>(ref x);
@@ -6263,49 +6287,9 @@ class Program
 }";
             comp = CreateCompilation(source, options: TestOptions.ReleaseExe, runtimeFeature: RuntimeFlag.ByRefFields);
             var verifier = CompileAndVerify(comp, verify: Verification.Skipped, expectedOutput: IncludeExpectedOutput(
-@"1
-1
-4
-4
-6
+@"6
 6"));
             verifier.VerifyILMultiple(
-                "Program.AssignRefToValue<T>",
-@"{
-  // Code size        9 (0x9)
-  .maxstack  2
-  IL_0000:  ldarga.s   V_0
-  IL_0002:  ldarg.1
-  IL_0003:  stfld      ""ref readonly T S<T>.F""
-  IL_0008:  ret
-}",
-                "Program.AssignInToValue<T>",
-@"{
-  // Code size        9 (0x9)
-  .maxstack  2
-  IL_0000:  ldarga.s   V_0
-  IL_0002:  ldarg.1
-  IL_0003:  stfld      ""ref readonly T S<T>.F""
-  IL_0008:  ret
-}",
-                "Program.AssignRefToRef<T>",
-@"{
-  // Code size        8 (0x8)
-  .maxstack  2
-  IL_0000:  ldarg.0
-  IL_0001:  ldarg.1
-  IL_0002:  stfld      ""ref readonly T S<T>.F""
-  IL_0007:  ret
-}",
-                "Program.AssignInToRef<T>",
-@"{
-  // Code size        8 (0x8)
-  .maxstack  2
-  IL_0000:  ldarg.0
-  IL_0001:  ldarg.1
-  IL_0002:  stfld      ""ref readonly T S<T>.F""
-  IL_0007:  ret
-}",
                 "Program.AssignRefToOut<T>",
 @"{
   // Code size       15 (0xf)
@@ -7424,10 +7408,7 @@ class Program
             comp.VerifyEmitDiagnostics(
                 // (10,12): error CS9050: A ref field cannot refer to a ref struct.
                 //     public ref R1<T> R1;
-                Diagnostic(ErrorCode.ERR_RefFieldCannotReferToRefStruct, "ref R1<T>").WithLocation(10, 12),
-                // (11,31): error CS9079: Cannot ref-assign 'r1' to 'R1' because 'r1' can only escape the current method through a return statement.
-                //     public R2(ref R1<T> r1) { R1 = ref r1; }
-                Diagnostic(ErrorCode.ERR_RefAssignReturnOnly, "R1 = ref r1").WithArguments("R1", "r1").WithLocation(11, 31));
+                Diagnostic(ErrorCode.ERR_RefFieldCannotReferToRefStruct, "ref R1<T>").WithLocation(10, 12));
         }
 
         [Fact]
@@ -8500,9 +8481,9 @@ class C
 }";
             var comp = CreateCompilation(source, options: TestOptions.UnsafeDebugExe, runtimeFeature: RuntimeFlag.ByRefFields);
             comp.VerifyDiagnostics(
-                // (4,5): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('StructWithRefField')
+                // (4,5): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('StructWithRefField')
                 //     StructWithRefField* p = stackalloc StructWithRefField[10]; // 1, 2
-                Diagnostic(ErrorCode.ERR_ManagedAddr, "StructWithRefField*").WithArguments("StructWithRefField").WithLocation(4, 5),
+                Diagnostic(ErrorCode.WRN_ManagedAddr, "StructWithRefField*").WithArguments("StructWithRefField").WithLocation(4, 5),
                 // (4,40): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('StructWithRefField')
                 //     StructWithRefField* p = stackalloc StructWithRefField[10]; // 1, 2
                 Diagnostic(ErrorCode.ERR_ManagedAddr, "StructWithRefField").WithArguments("StructWithRefField").WithLocation(4, 40),
@@ -8521,7 +8502,7 @@ class C
 unsafe
 {
     StructWithIndirectRefField* p = stackalloc StructWithIndirectRefField[10]; // 1, 2
-    C.M<StructWithRefField>(); // 3
+    C.M<StructWithIndirectRefField>(); // 3
 }
 
 ref struct StructWithIndirectRefField
@@ -8539,15 +8520,15 @@ class C
 }";
             var comp = CreateCompilation(source, options: TestOptions.UnsafeDebugExe, runtimeFeature: RuntimeFlag.ByRefFields);
             comp.VerifyDiagnostics(
-                // (4,5): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('StructWithIndirectRefField')
+                // (4,5): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('StructWithIndirectRefField')
                 //     StructWithIndirectRefField* p = stackalloc StructWithIndirectRefField[10]; // 1, 2
-                Diagnostic(ErrorCode.ERR_ManagedAddr, "StructWithIndirectRefField*").WithArguments("StructWithIndirectRefField").WithLocation(4, 5),
+                Diagnostic(ErrorCode.WRN_ManagedAddr, "StructWithIndirectRefField*").WithArguments("StructWithIndirectRefField").WithLocation(4, 5),
                 // (4,48): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('StructWithIndirectRefField')
                 //     StructWithIndirectRefField* p = stackalloc StructWithIndirectRefField[10]; // 1, 2
                 Diagnostic(ErrorCode.ERR_ManagedAddr, "StructWithIndirectRefField").WithArguments("StructWithIndirectRefField").WithLocation(4, 48),
-                // (5,9): error CS0305: Using the generic type 'StructWithRefField<T>' requires 1 type arguments
-                //     C.M<StructWithRefField>(); // 3
-                Diagnostic(ErrorCode.ERR_BadArity, "StructWithRefField").WithArguments("StructWithRefField<T>", "type", "1").WithLocation(5, 9),
+                // (5,7): error CS0306: The type 'StructWithIndirectRefField' may not be used as a type argument
+                //     C.M<StructWithIndirectRefField>(); // 3
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "M<StructWithIndirectRefField>").WithArguments("StructWithIndirectRefField").WithLocation(5, 7),
                 // (10,36): warning CS0649: Field 'StructWithIndirectRefField.Field' is never assigned to, and will always have its default value 
                 //     public StructWithRefField<int> Field;
                 Diagnostic(ErrorCode.WRN_UnassignedInternalField, "Field").WithArguments("StructWithIndirectRefField.Field", "").WithLocation(10, 36),
@@ -8579,9 +8560,9 @@ public ref struct StructWithRefField
 }";
             var comp = CreateCompilation(source, options: TestOptions.UnsafeDebugExe, runtimeFeature: RuntimeFlag.ByRefFields);
             comp.VerifyDiagnostics(
-                // (4,5): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('StructWithIndirectRefField')
+                // (4,5): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('StructWithIndirectRefField')
                 //     StructWithIndirectRefField* p = stackalloc StructWithIndirectRefField[10]; // 1, 2
-                Diagnostic(ErrorCode.ERR_ManagedAddr, "StructWithIndirectRefField*").WithArguments("StructWithIndirectRefField").WithLocation(4, 5),
+                Diagnostic(ErrorCode.WRN_ManagedAddr, "StructWithIndirectRefField*").WithArguments("StructWithIndirectRefField").WithLocation(4, 5),
                 // (4,48): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('StructWithIndirectRefField')
                 //     StructWithIndirectRefField* p = stackalloc StructWithIndirectRefField[10]; // 1, 2
                 Diagnostic(ErrorCode.ERR_ManagedAddr, "StructWithIndirectRefField").WithArguments("StructWithIndirectRefField").WithLocation(4, 48)
@@ -8614,10 +8595,9 @@ public ref struct StructWithRefField
                 Diagnostic(ErrorCode.ERR_RefReturnScopedParameter, "t").WithArguments("t").WithLocation(6, 20));
         }
 
-        // Breaking change in C#11: Instance method on ref struct instance may capture unscoped ref or in arguments.
         [Theory]
         [CombinatorialData]
-        public void BreakingChange_RefStructInstanceMethodMayCaptureRef(
+        public void InstanceMethodCannotCaptureRefByRef(
             [CombinatorialValues(LanguageVersion.CSharp10, LanguageVersion.CSharp11)] LanguageVersion languageVersionA,
             [CombinatorialValues(LanguageVersion.CSharp10, LanguageVersion.CSharp11)] LanguageVersion languageVersionB,
             bool useCompilationReference)
@@ -8642,20 +8622,7 @@ public ref struct StructWithRefField
     }
 }";
             comp = CreateCompilation(sourceB, references: new[] { refA }, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersionB));
-            if (languageVersionA == LanguageVersion.CSharp10)
-            {
-                comp.VerifyEmitDiagnostics();
-            }
-            else
-            {
-                comp.VerifyEmitDiagnostics(
-                    // (6,9): error CS8350: This combination of arguments to 'R<int>.MayCaptureArg(ref int)' is disallowed because it may expose variables referenced by parameter 't' outside of their declaration scope
-                    //         r.MayCaptureArg(ref i);
-                    Diagnostic(ErrorCode.ERR_CallArgMixing, "r.MayCaptureArg(ref i)").WithArguments("R<int>.MayCaptureArg(ref int)", "t").WithLocation(6, 9),
-                    // (6,29): error CS8168: Cannot return local 'i' by reference because it is not a ref local
-                    //         r.MayCaptureArg(ref i);
-                    Diagnostic(ErrorCode.ERR_RefReturnLocal, "i").WithArguments("i").WithLocation(6, 29));
-            }
+            comp.VerifyEmitDiagnostics();
         }
 
         [Theory]
@@ -8876,20 +8843,7 @@ public class A
     }
 }";
             comp = CreateCompilation(sourceB, references: new[] { refA }, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersionB));
-            if (languageVersionA == LanguageVersion.CSharp10)
-            {
-                comp.VerifyEmitDiagnostics();
-            }
-            else
-            {
-                comp.VerifyEmitDiagnostics(
-                    // (6,9): error CS8350: This combination of arguments to 'A.MayCaptureRef(__arglist)' is disallowed because it may expose variables referenced by parameter '__arglist' outside of their declaration scope
-                    //         MayCaptureRef(__arglist(ref r)); // error: may expose variables outside of their declaration scope
-                    Diagnostic(ErrorCode.ERR_CallArgMixing, "MayCaptureRef(__arglist(ref r))").WithArguments("A.MayCaptureRef(__arglist)", "__arglist").WithLocation(6, 9),
-                    // (6,37): error CS8168: Cannot return local 'r' by reference because it is not a ref local
-                    //         MayCaptureRef(__arglist(ref r)); // error: may expose variables outside of their declaration scope
-                    Diagnostic(ErrorCode.ERR_RefReturnLocal, "r").WithArguments("r").WithLocation(6, 37));
-            }
+            comp.VerifyEmitDiagnostics();
         }
 
         [Theory]
@@ -9495,7 +9449,7 @@ public class A
         R a = new R();
         R b = new R();
         R c = new R();
-        R d;
+        scoped R d;
         A.F(a, ref b, in c, out d);
     }
 }";
@@ -15453,10 +15407,23 @@ class Program
     }
 }";
             var comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
-            comp.VerifyDiagnostics(
-                // (13,9): error CS8352: Cannot use variable 'r1' in this context because it may expose referenced variables outside of their declaration scope
-                //         r1.F(out r);
-                Diagnostic(ErrorCode.ERR_EscapeVariable, "r1").WithArguments("r1").WithLocation(13, 9));
+            if (languageVersion == LanguageVersion.CSharp10)
+            {
+                comp.VerifyDiagnostics(
+                    // (13,9): error CS8352: Cannot use variable 'r1' in this context because it may expose referenced variables outside of their declaration scope
+                    //         r1.F(out r);
+                    Diagnostic(ErrorCode.ERR_EscapeVariable, "r1").WithArguments("r1").WithLocation(13, 9));
+            }
+            else
+            {
+                comp.VerifyDiagnostics(
+                    // (13,9): error CS8352: Cannot use variable 'r1' in this context because it may expose referenced variables outside of their declaration scope
+                    //         r1.F(out r);
+                    Diagnostic(ErrorCode.ERR_EscapeVariable, "r1").WithArguments("r1").WithLocation(13, 9),
+                    // (13,9): error CS8350: This combination of arguments to 'R.F(out R)' is disallowed because it may expose variables referenced by parameter 'this' outside of their declaration scope
+                    //         r1.F(out r);
+                    Diagnostic(ErrorCode.ERR_CallArgMixing, "r1.F(out r)").WithArguments("R.F(out R)", "this").WithLocation(13, 9));
+            }
         }
 
         [Fact]
@@ -15482,7 +15449,10 @@ class Program
             comp.VerifyDiagnostics(
                 // (13,9): error CS8352: Cannot use variable 'r1' in this context because it may expose referenced variables outside of their declaration scope
                 //         r1.F(out r);
-                Diagnostic(ErrorCode.ERR_EscapeVariable, "r1").WithArguments("r1").WithLocation(13, 9));
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "r1").WithArguments("r1").WithLocation(13, 9),
+                // (13,9): error CS8350: This combination of arguments to 'R.F(out R)' is disallowed because it may expose variables referenced by parameter 'this' outside of their declaration scope
+                //         r1.F(out r);
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "r1.F(out r)").WithArguments("R.F(out R)", "this").WithLocation(13, 9));
         }
 
         [Theory]
@@ -15506,13 +15476,20 @@ class Program
     }
 }";
             var comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
-            comp.VerifyDiagnostics(
-                // (12,9): error CS8350: This combination of arguments to 'R.F(out Span<int>)' is disallowed because it may expose variables referenced by parameter 's' outside of their declaration scope
-                //         r.F(out s);
-                Diagnostic(ErrorCode.ERR_CallArgMixing, "r.F(out s)").WithArguments("R.F(out System.Span<int>)", "s").WithLocation(12, 9),
-                // (12,17): error CS8352: Cannot use variable 's' in this context because it may expose referenced variables outside of their declaration scope
-                //         r.F(out s);
-                Diagnostic(ErrorCode.ERR_EscapeVariable, "s").WithArguments("s").WithLocation(12, 17));
+            if (languageVersion == LanguageVersion.CSharp10)
+            {
+                comp.VerifyDiagnostics(
+                    // (12,9): error CS8350: This combination of arguments to 'R.F(out Span<int>)' is disallowed because it may expose variables referenced by parameter 's' outside of their declaration scope
+                    //         r.F(out s);
+                    Diagnostic(ErrorCode.ERR_CallArgMixing, "r.F(out s)").WithArguments("R.F(out System.Span<int>)", "s").WithLocation(12, 9),
+                    // (12,17): error CS8352: Cannot use variable 's' in this context because it may expose referenced variables outside of their declaration scope
+                    //         r.F(out s);
+                    Diagnostic(ErrorCode.ERR_EscapeVariable, "s").WithArguments("s").WithLocation(12, 17));
+            }
+            else
+            {
+                comp.VerifyDiagnostics();
+            }
         }
 
         [WorkItem(63016, "https://github.com/dotnet/roslyn/issues/63016")]
@@ -15535,12 +15512,9 @@ class Program
 }";
             var comp = CreateCompilation(source, runtimeFeature: RuntimeFlag.ByRefFields);
             comp.VerifyDiagnostics(
-                // (7,9): error CS8350: This combination of arguments to 'R.M2(ref int)' is disallowed because it may expose variables referenced by parameter 'i' outside of their declaration scope
-                //         M2(ref i);
-                Diagnostic(ErrorCode.ERR_CallArgMixing, "M2(ref i)").WithArguments("R.M2(ref int)", "i").WithLocation(7, 9),
-                // (7,16): error CS8168: Cannot return local 'i' by reference because it is not a ref local
-                //         M2(ref i);
-                Diagnostic(ErrorCode.ERR_RefReturnLocal, "i").WithArguments("i").WithLocation(7, 16));
+                // (11,9): error CS9079: Cannot ref-assign 'i' to '_i' because 'i' can only escape the current method through a return statement.
+                //         _i = ref i;
+                Diagnostic(ErrorCode.ERR_RefAssignReturnOnly, "_i = ref i").WithArguments("_i", "i").WithLocation(11, 9));
         }
 
         [WorkItem(63016, "https://github.com/dotnet/roslyn/issues/63016")]
@@ -15574,12 +15548,9 @@ ref struct S
 }";
             var comp = CreateCompilation(new[] { sourceA, sourceB }, options: TestOptions.UnsafeReleaseDll, runtimeFeature: RuntimeFlag.ByRefFields);
             comp.VerifyDiagnostics(
-                // (8,9): error CS8350: This combination of arguments to 'S.M2(ref int)' is disallowed because it may expose variables referenced by parameter 'i' outside of their declaration scope
-                //         M2(ref s[0]);
-                Diagnostic(ErrorCode.ERR_CallArgMixing, "M2(ref s[0])").WithArguments("S.M2(ref int)", "i").WithLocation(8, 9),
-                // (8,16): error CS8352: Cannot use variable 's' in this context because it may expose referenced variables outside of their declaration scope
-                //         M2(ref s[0]);
-                Diagnostic(ErrorCode.ERR_EscapeVariable, "s").WithArguments("s").WithLocation(8, 16));
+                // (12,9): error CS9079: Cannot ref-assign 'i' to '_i' because 'i' can only escape the current method through a return statement.
+                //         _i = ref i;
+                Diagnostic(ErrorCode.ERR_RefAssignReturnOnly, "_i = ref i").WithArguments("_i", "i").WithLocation(12, 9));
         }
 
         [Fact]
@@ -18006,14 +17977,17 @@ struct B
     {
         get { return default; }
         [UnscopedRef]
-        set { value.F = ref this; }
+        set { value.F = ref this; } // 2
     }
 }";
             var comp = CreateCompilation(new[] { source, UnscopedRefAttributeDefinition }, runtimeFeature: RuntimeFlag.ByRefFields);
             comp.VerifyDiagnostics(
                 // (11,15): error CS8374: Cannot ref-assign 'this' to 'F' because 'this' has a narrower escape scope than 'F'.
                 //         set { value.F = ref this; } // 1
-                Diagnostic(ErrorCode.ERR_RefAssignNarrower, "value.F = ref this").WithArguments("F", "this").WithLocation(11, 15));
+                Diagnostic(ErrorCode.ERR_RefAssignNarrower, "value.F = ref this").WithArguments("F", "this").WithLocation(11, 15),
+                // (20,15): error CS9079: Cannot ref-assign 'this' to 'F' because 'this' can only escape the current method through a return statement.
+                //         set { value.F = ref this; } // 2
+                Diagnostic(ErrorCode.ERR_RefAssignReturnOnly, "value.F = ref this").WithArguments("F", "this").WithLocation(20, 15));
         }
 
         [Fact]
@@ -18362,7 +18336,8 @@ public class A<T>
                 Diagnostic(ErrorCode.ERR_EscapeCall, "F2A(ref r)").WithArguments("A<int>.F2A(ref R<int>)", "r2").WithLocation(13, 20),
                 // (13,28): error CS8352: Cannot use variable 'r' in this context because it may expose referenced variables outside of their declaration scope
                 //         return ref F2A(ref r); // 2
-                Diagnostic(ErrorCode.ERR_EscapeVariable, "r").WithArguments("r").WithLocation(13, 28));
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "r").WithArguments("r").WithLocation(13, 28)
+                );
 
             var baseType = comp.GetMember<NamedTypeSymbol>("B1").BaseTypeNoUseSiteDiagnostics;
             VerifyParameterSymbol(baseType.GetMethod("F1A").Parameters[0], "ref R<System.Int32> r1", RefKind.Ref, DeclarationScope.Unscoped);
@@ -20102,6 +20077,7 @@ $@".assembly extern mscorlib {{ .ver 4:0:0:0 .publickeytoken = (B7 7A 5C 56 19 3
             Assert.True(method.ContainingModule.UseUpdatedEscapeRules);
         }
 
+        [WorkItem(63691, "https://github.com/dotnet/roslyn/issues/63691")]
         [Theory]
         [CombinatorialData]
         public void DetectUpdatedEscapeRulesFromCorlib(
@@ -20152,12 +20128,13 @@ $@".assembly extern mscorlib {{ .ver 4:0:0:0 .publickeytoken = (B7 7A 5C 56 19 3
             Assert.Equal(assemblyIdentity, module.ReferencedAssemblies.Single());
             Assert.Equal(assemblyIdentity, module.ContainingAssembly.CorLibrary.Identity);
 
-            Assert.Equal(languageVersion == LanguageVersion.CSharp11 || majorVersion == 7, module.UseUpdatedEscapeRules);
+            Assert.Equal(languageVersion == LanguageVersion.CSharp11, module.UseUpdatedEscapeRules);
 
             module = comp.GetMember<NamedTypeSymbol>("System.Object").ContainingModule;
-            Assert.Equal(majorVersion == 7, module.UseUpdatedEscapeRules);
+            Assert.False(module.UseUpdatedEscapeRules);
         }
 
+        [WorkItem(63691, "https://github.com/dotnet/roslyn/issues/63691")]
         [Theory]
         [CombinatorialData]
         public void DetectUpdatedEscapeRulesFromCorlib_Retargeting(
@@ -20220,11 +20197,12 @@ $@".assembly extern mscorlib {{ .ver 4:0:0:0 .publickeytoken = (B7 7A 5C 56 19 3
             Assert.Equal(languageVersion == LanguageVersion.CSharp11, module.UseUpdatedEscapeRules);
 
             module = module.ContainingAssembly.CorLibrary.Modules[0];
-            Assert.Equal(higherVersion == 7, module.UseUpdatedEscapeRules);
+            Assert.False(module.UseUpdatedEscapeRules);
         }
 
+        [WorkItem(63691, "https://github.com/dotnet/roslyn/issues/63691")]
         [Theory]
-        [InlineData("System.Runtime", 7, 0, true)]
+        [InlineData("System.Runtime", 7, 0, false)]
         [InlineData("System.Runtime", 7, 1, false)]
         [InlineData("System.Runtime", 8, 0, false)]
         [InlineData("mscorlib", 7, 0, false)]
@@ -21350,7 +21328,7 @@ struct S<T> : System.IDisposable
                 class Program
                 {
                     RS M1(ref RS rs) => rs;
-                    void M2(ref RS rs, out RSOut rs1) => rs1 = rs.ToRSOut(); // 1
+                    void M2(ref RS rs, out RSOut rs1) => rs1 = rs.ToRSOut();
 
                     RS M3(ref RS rs)
                     {
@@ -21358,14 +21336,14 @@ struct S<T> : System.IDisposable
                     }
                     void M4(ref RS rs, out RSOut rs1)
                     {
-                        rs1 = rs.ToRSOut(); // 2
+                        rs1 = rs.ToRSOut();
                     }
 
                     void localContainer()
                     {
                 #pragma warning disable 8321
                         RS M1(ref RS rs) => rs;
-                        void M2(ref RS rs, out RSOut rs1) => rs1 = rs.ToRSOut(); // 3
+                        void M2(ref RS rs, out RSOut rs1) => rs1 = rs.ToRSOut();
 
                         RS M3(ref RS rs)
                         {
@@ -21383,7 +21361,7 @@ struct S<T> : System.IDisposable
                     void lambdaContainer()
                     {
                         ReturnsRefStruct d1 = (ref RS rs) => rs;
-                        RefStructOut d2 = (ref RS rs, out RSOut rs1) => rs1 = rs.ToRSOut(); // 5
+                        RefStructOut d2 = (ref RS rs, out RSOut rs1) => rs1 = rs.ToRSOut();
 
                         ReturnsRefStruct d3 = (ref RS rs) =>
                         {
@@ -21391,32 +21369,14 @@ struct S<T> : System.IDisposable
                         };
                         RefStructOut d4 = (ref RS rs, out RSOut rs1) =>
                         {
-                            rs1 = rs.ToRSOut(); // 6
+                            rs1 = rs.ToRSOut();
                         };
                     }
                 }
                 """;
 
             var comp = CreateCompilation(new[] { source, UnscopedRefAttributeDefinition }, runtimeFeature: RuntimeFlag.ByRefFields);
-            comp.VerifyDiagnostics(
-                // (22,48): error CS9077: Cannot return a parameter by reference 'rs' through a ref parameter; it can only be returned in a return statement
-                //     void M2(ref RS rs, out RSOut rs1) => rs1 = rs.ToRSOut(); // 1
-                Diagnostic(ErrorCode.ERR_RefReturnOnlyParameter, "rs").WithArguments("rs").WithLocation(22, 48),
-                // (30,15): error CS9077: Cannot return a parameter by reference 'rs' through a ref parameter; it can only be returned in a return statement
-                //         rs1 = rs.ToRSOut(); // 2
-                Diagnostic(ErrorCode.ERR_RefReturnOnlyParameter, "rs").WithArguments("rs").WithLocation(30, 15),
-                // (37,52): error CS9077: Cannot return a parameter by reference 'rs' through a ref parameter; it can only be returned in a return statement
-                //         void M2(ref RS rs, out RSOut rs1) => rs1 = rs.ToRSOut(); // 3
-                Diagnostic(ErrorCode.ERR_RefReturnOnlyParameter, "rs").WithArguments("rs").WithLocation(37, 52),
-                // (45,19): error CS9077: Cannot return a parameter by reference 'rs' through a ref parameter; it can only be returned in a return statement
-                //             rs1 = rs.ToRSOut(); // 4
-                Diagnostic(ErrorCode.ERR_RefReturnOnlyParameter, "rs").WithArguments("rs").WithLocation(45, 19),
-                // (55,63): error CS9077: Cannot return a parameter by reference 'rs' through a ref parameter; it can only be returned in a return statement
-                //         RefStructOut d2 = (ref RS rs, out RSOut rs1) => rs1 = rs.ToRSOut(); // 5
-                Diagnostic(ErrorCode.ERR_RefReturnOnlyParameter, "rs").WithArguments("rs").WithLocation(55, 63),
-                // (63,19): error CS9077: Cannot return a parameter by reference 'rs' through a ref parameter; it can only be returned in a return statement
-                //             rs1 = rs.ToRSOut(); // 6
-                Diagnostic(ErrorCode.ERR_RefReturnOnlyParameter, "rs").WithArguments("rs").WithLocation(63, 19));
+            comp.VerifyDiagnostics();
         }
 
         [Fact, WorkItem(63526, "https://github.com/dotnet/roslyn/issues/63526")]
@@ -21442,33 +21402,33 @@ struct S<T> : System.IDisposable
                 static void M3(out S p1, ref S p2) {
                     p1 = default;
                     p2.refField = ref p1.field; // 3
-                    p2.refField = ref p1.refField; // Okay
+                    p2.refField = ref p1.refField; // 4
                 }
 
                 // The [UnscopedRef] moves `out` to default RSTE which is *return only*
                 static void M4([UnscopedRef] out S p1, ref S p2) {
                     p1 = default;
-                    p2.refField = ref p1.field; // 4
-                    p2.refField = ref p1.refField; // Okay
+                    p2.refField = ref p1.field; // 5
+                    p2.refField = ref p1.refField; // 6
                 }
 
                 static void M5(ref S p1, ref S2 p2) {
-                    p2 = Inner1(ref p1); // 5
-                    p2 = Inner2(ref p1); // Okay
-                }
-
-                static void M6(ref S p1, out S2 p2) {
-                    p2 = Inner1(ref p1); // 6
-                    p2 = Inner2(ref p1); // Okay
-                }
-
-                static void M7(scoped ref S p1, ref S2 p2) {
                     p2 = Inner1(ref p1); // 7
                     p2 = Inner2(ref p1); // Okay
                 }
 
+                static void M6(ref S p1, out S2 p2) {
+                    p2 = Inner1(ref p1); // Okay
+                    p2 = Inner2(ref p1); // Okay
+                }
+
+                static void M7(scoped ref S p1, ref S2 p2) {
+                    p2 = Inner1(ref p1); // 8
+                    p2 = Inner2(ref p1); // Okay
+                }
+
                 static S2 M8(scoped ref S p) {
-                    if (condition()) return Inner1(ref p); // 8
+                    if (condition()) return Inner1(ref p); // 9
                     if (condition()) return Inner2(ref p); // Okay
 
                     throw null!;
@@ -21505,33 +21465,34 @@ struct S<T> : System.IDisposable
                 // (19,5): error CS8374: Cannot ref-assign 'p1.field' to 'refField' because 'p1.field' has a narrower escape scope than 'refField'.
                 //     p2.refField = ref p1.field; // 3
                 Diagnostic(ErrorCode.ERR_RefAssignNarrower, "p2.refField = ref p1.field").WithArguments("refField", "p1.field").WithLocation(19, 5),
+                // (20,5): error CS9079: Cannot ref-assign 'p1.refField' to 'refField' because 'p1.refField' can only escape the current method through a return statement.
+                //     p2.refField = ref p1.refField; // 4
+                Diagnostic(ErrorCode.ERR_RefAssignReturnOnly, "p2.refField = ref p1.refField").WithArguments("refField", "p1.refField").WithLocation(20, 5),
                 // (26,5): error CS9079: Cannot ref-assign 'p1.field' to 'refField' because 'p1.field' can only escape the current method through a return statement.
-                //     p2.refField = ref p1.field; // 4
+                //     p2.refField = ref p1.field; // 5
                 Diagnostic(ErrorCode.ERR_RefAssignReturnOnly, "p2.refField = ref p1.field").WithArguments("refField", "p1.field").WithLocation(26, 5),
+                // (27,5): error CS9079: Cannot ref-assign 'p1.refField' to 'refField' because 'p1.refField' can only escape the current method through a return statement.
+                //     p2.refField = ref p1.refField; // 6
+                Diagnostic(ErrorCode.ERR_RefAssignReturnOnly, "p2.refField = ref p1.refField").WithArguments("refField", "p1.refField").WithLocation(27, 5),
                 // (31,10): error CS8347: Cannot use a result of 'Inner1(ref S)' in this context because it may expose variables referenced by parameter 's' outside of their declaration scope
-                //     p2 = Inner1(ref p1); // 5
+                //     p2 = Inner1(ref p1); // 7
                 Diagnostic(ErrorCode.ERR_EscapeCall, "Inner1(ref p1)").WithArguments("Inner1(ref S)", "s").WithLocation(31, 10),
                 // (31,21): error CS9077: Cannot return a parameter by reference 'p1' through a ref parameter; it can only be returned in a return statement
-                //     p2 = Inner1(ref p1); // 5
-                Diagnostic(ErrorCode.ERR_RefReturnOnlyParameter, "p1").WithArguments("p1").WithLocation(31, 21),
-                // (36,10): error CS8347: Cannot use a result of 'Inner1(ref S)' in this context because it may expose variables referenced by parameter 's' outside of their declaration scope
-                //     p2 = Inner1(ref p1); // 6
-                Diagnostic(ErrorCode.ERR_EscapeCall, "Inner1(ref p1)").WithArguments("Inner1(ref S)", "s").WithLocation(36, 10),
-                // (36,21): error CS9077: Cannot return a parameter by reference 'p1' through a ref parameter; it can only be returned in a return statement
-                //     p2 = Inner1(ref p1); // 6
-                Diagnostic(ErrorCode.ERR_RefReturnOnlyParameter, "p1").WithArguments("p1").WithLocation(36, 21),
-                // (41,10): error CS8347: Cannot use a result of 'Inner1(ref S)' in this context because it may expose variables referenced by parameter 's' outside of their declaration scope
                 //     p2 = Inner1(ref p1); // 7
+                Diagnostic(ErrorCode.ERR_RefReturnOnlyParameter, "p1").WithArguments("p1").WithLocation(31, 21),
+                // (41,10): error CS8347: Cannot use a result of 'Inner1(ref S)' in this context because it may expose variables referenced by parameter 's' outside of their declaration scope
+                //     p2 = Inner1(ref p1); // 8
                 Diagnostic(ErrorCode.ERR_EscapeCall, "Inner1(ref p1)").WithArguments("Inner1(ref S)", "s").WithLocation(41, 10),
                 // (41,21): error CS9075: Cannot return a parameter by reference 'p1' because it is scoped to the current method
-                //     p2 = Inner1(ref p1); // 7
+                //     p2 = Inner1(ref p1); // 8
                 Diagnostic(ErrorCode.ERR_RefReturnScopedParameter, "p1").WithArguments("p1").WithLocation(41, 21),
                 // (46,29): error CS8347: Cannot use a result of 'Inner1(ref S)' in this context because it may expose variables referenced by parameter 's' outside of their declaration scope
-                //     if (condition()) return Inner1(ref p); // 8
+                //     if (condition()) return Inner1(ref p); // 9
                 Diagnostic(ErrorCode.ERR_EscapeCall, "Inner1(ref p)").WithArguments("Inner1(ref S)", "s").WithLocation(46, 29),
                 // (46,40): error CS9075: Cannot return a parameter by reference 'p' because it is scoped to the current method
-                //     if (condition()) return Inner1(ref p); // 8
-                Diagnostic(ErrorCode.ERR_RefReturnScopedParameter, "p").WithArguments("p").WithLocation(46, 40));
+                //     if (condition()) return Inner1(ref p); // 9
+                Diagnostic(ErrorCode.ERR_RefReturnScopedParameter, "p").WithArguments("p").WithLocation(46, 40)
+                );
         }
 
         [Fact, WorkItem(63526, "https://github.com/dotnet/roslyn/issues/63526")]
@@ -21557,33 +21518,33 @@ struct S<T> : System.IDisposable
                 static unsafe void M3(out S p1, ref S p2) {
                     p1 = default;
                     p2.refField = ref p1.field; // 3
-                    p2.refField = ref p1.refField; // Okay
+                    p2.refField = ref p1.refField; // 4
                 }
 
                 // The [UnscopedRef] moves `out` to default RSTE which is *return only*
                 static unsafe void M4([UnscopedRef] out S p1, ref S p2) {
                     p1 = default;
-                    p2.refField = ref p1.field; // 4
-                    p2.refField = ref p1.refField; // Okay
+                    p2.refField = ref p1.field; // 5
+                    p2.refField = ref p1.refField; // 6
                 }
 
                 static unsafe void M5(ref S p1, ref S2 p2) {
-                    p2 = Inner1(ref p1); // 5
-                    p2 = Inner2(ref p1); // Okay
-                }
-
-                static unsafe void M6(ref S p1, out S2 p2) {
-                    p2 = Inner1(ref p1); // 6
-                    p2 = Inner2(ref p1); // Okay
-                }
-
-                static unsafe void M7(scoped ref S p1, ref S2 p2) {
                     p2 = Inner1(ref p1); // 7
                     p2 = Inner2(ref p1); // Okay
                 }
 
+                static unsafe void M6(ref S p1, out S2 p2) {
+                    p2 = Inner1(ref p1); // Okay
+                    p2 = Inner2(ref p1); // Okay
+                }
+
+                static unsafe void M7(scoped ref S p1, ref S2 p2) {
+                    p2 = Inner1(ref p1); // 8
+                    p2 = Inner2(ref p1); // Okay
+                }
+
                 static unsafe S2 M8(scoped ref S p) {
-                    if (condition()) return Inner1(ref p); // 8
+                    if (condition()) return Inner1(ref p); // 9
                     if (condition()) return Inner2(ref p); // Okay
 
                     throw null!;
@@ -21620,21 +21581,25 @@ struct S<T> : System.IDisposable
                 // (19,5): warning CS9085: This ref-assigns 'p1.field' to 'refField' but 'p1.field' has a narrower escape scope than 'refField'.
                 //     p2.refField = ref p1.field; // 3
                 Diagnostic(ErrorCode.WRN_RefAssignNarrower, "p2.refField = ref p1.field").WithArguments("refField", "p1.field").WithLocation(19, 5),
+                // (20,5): warning CS9093: This ref-assigns 'p1.refField' to 'refField' but 'p1.refField' can only escape the current method through a return statement.
+                //     p2.refField = ref p1.refField; // 4
+                Diagnostic(ErrorCode.WRN_RefAssignReturnOnly, "p2.refField = ref p1.refField").WithArguments("refField", "p1.refField").WithLocation(20, 5),
                 // (26,5): warning CS9093: This ref-assigns 'p1.field' to 'refField' but 'p1.field' can only escape the current method through a return statement.
-                //     p2.refField = ref p1.field; // 4
+                //     p2.refField = ref p1.field; // 5
                 Diagnostic(ErrorCode.WRN_RefAssignReturnOnly, "p2.refField = ref p1.field").WithArguments("refField", "p1.field").WithLocation(26, 5),
+                // (27,5): warning CS9093: This ref-assigns 'p1.refField' to 'refField' but 'p1.refField' can only escape the current method through a return statement.
+                //     p2.refField = ref p1.refField; // 6
+                Diagnostic(ErrorCode.WRN_RefAssignReturnOnly, "p2.refField = ref p1.refField").WithArguments("refField", "p1.refField").WithLocation(27, 5),
                 // (31,21): warning CS9094: This returns a parameter by reference 'p1' through a ref parameter; but it can only safely be returned in a return statement
-                //     p2 = Inner1(ref p1); // 5
-                Diagnostic(ErrorCode.WRN_RefReturnOnlyParameter, "p1").WithArguments("p1").WithLocation(31, 21),
-                // (36,21): warning CS9094: This returns a parameter by reference 'p1' through a ref parameter; but it can only safely be returned in a return statement
-                //     p2 = Inner1(ref p1); // 6
-                Diagnostic(ErrorCode.WRN_RefReturnOnlyParameter, "p1").WithArguments("p1").WithLocation(36, 21),
-                // (41,21): warning CS9088: This returns a parameter by reference 'p1' but it is scoped to the current method
                 //     p2 = Inner1(ref p1); // 7
+                Diagnostic(ErrorCode.WRN_RefReturnOnlyParameter, "p1").WithArguments("p1").WithLocation(31, 21),
+                // (41,21): warning CS9088: This returns a parameter by reference 'p1' but it is scoped to the current method
+                //     p2 = Inner1(ref p1); // 8
                 Diagnostic(ErrorCode.WRN_RefReturnScopedParameter, "p1").WithArguments("p1").WithLocation(41, 21),
                 // (46,40): warning CS9088: This returns a parameter by reference 'p' but it is scoped to the current method
-                //     if (condition()) return Inner1(ref p); // 8
-                Diagnostic(ErrorCode.WRN_RefReturnScopedParameter, "p").WithArguments("p").WithLocation(46, 40));
+                //     if (condition()) return Inner1(ref p); // 9
+                Diagnostic(ErrorCode.WRN_RefReturnScopedParameter, "p").WithArguments("p").WithLocation(46, 40)
+                );
         }
 
         [Fact, WorkItem(63526, "https://github.com/dotnet/roslyn/issues/63526")]
@@ -21666,7 +21631,7 @@ struct S<T> : System.IDisposable
                     [UnscopedRef]
                     void M3(out S p) {
                         p = default;
-                        p.refField = ref this.field; // 3
+                        p.refField = ref this.field; // Okay (was 3)
                         p.refField = ref this.refField; // Okay
                     }
 
@@ -21693,9 +21658,6 @@ struct S<T> : System.IDisposable
                 // (19,9): error CS9079: Cannot ref-assign 'this.field' to 'refField' because 'this.field' can only escape the current method through a return statement.
                 //         p.refField = ref this.field; // 2
                 Diagnostic(ErrorCode.ERR_RefAssignReturnOnly, "p.refField = ref this.field").WithArguments("refField", "this.field").WithLocation(19, 9),
-                // (26,9): error CS9079: Cannot ref-assign 'this.field' to 'refField' because 'this.field' can only escape the current method through a return statement.
-                //         p.refField = ref this.field; // 3
-                Diagnostic(ErrorCode.ERR_RefAssignReturnOnly, "p.refField = ref this.field").WithArguments("refField", "this.field").WithLocation(26, 9),
                 // (31,13): error CS8347: Cannot use a result of 'S.Inner1(ref S)' in this context because it may expose variables referenced by parameter 's' outside of their declaration scope
                 //         p = Inner1(ref this); // 4
                 Diagnostic(ErrorCode.ERR_EscapeCall, "Inner1(ref this)").WithArguments("S.Inner1(ref S)", "s").WithLocation(31, 13),
@@ -21739,7 +21701,7 @@ struct S<T> : System.IDisposable
                     [UnscopedRef]
                     void M3(out S p) {
                         p = default;
-                        p.refField = ref this.field; // 3
+                        p.refField = ref this.field; // Okay (was 3)
                         p.refField = ref this.refField; // Okay
                     }
 
@@ -21759,22 +21721,18 @@ struct S<T> : System.IDisposable
                 """;
             var comp = CreateCompilation(new[] { source, UnscopedRefAttributeDefinition }, runtimeFeature: RuntimeFlag.ByRefFields, options: TestOptions.UnsafeDebugDll);
             comp.VerifyDiagnostics(
-                // (13,9): warning CS9085: The right-hand-side expression 'this.field' has a narrower escape scope than the left-hand-side expression 'refField' in ref-assignment.
+                // (13,9): warning CS9085: This ref-assigns 'this.field' to 'refField' but 'this.field' has a narrower escape scope than 'refField'.
                 //         p.refField = ref this.field; // 1
                 Diagnostic(ErrorCode.WRN_RefAssignNarrower, "p.refField = ref this.field").WithArguments("refField", "this.field").WithLocation(13, 9),
                 // (19,9): warning CS9093: This ref-assigns 'this.field' to 'refField' but 'this.field' can only escape the current method through a return statement.
                 //         p.refField = ref this.field; // 2
                 Diagnostic(ErrorCode.WRN_RefAssignReturnOnly, "p.refField = ref this.field").WithArguments("refField", "this.field").WithLocation(19, 9),
-                // (26,9): warning CS9093: This ref-assigns 'this.field' to 'refField' but 'this.field' can only escape the current method through a return statement.
-                //         p.refField = ref this.field; // 3
-                Diagnostic(ErrorCode.WRN_RefAssignReturnOnly, "p.refField = ref this.field").WithArguments("refField", "this.field").WithLocation(26, 9),
                 // (31,24): warning CS9084: Struct member returns 'this' or other instance members by reference
                 //         p = Inner1(ref this); // 4
                 Diagnostic(ErrorCode.WRN_RefReturnStructThis, "this").WithLocation(31, 24),
                 // (36,24): warning CS9084: Struct member returns 'this' or other instance members by reference
                 //         p = Inner1(ref this); // 5
-                Diagnostic(ErrorCode.WRN_RefReturnStructThis, "this").WithLocation(36, 24)
-                );
+                Diagnostic(ErrorCode.WRN_RefReturnStructThis, "this").WithLocation(36, 24));
         }
 
         [Fact]
@@ -21806,10 +21764,205 @@ struct S<T> : System.IDisposable
                 """;
 
             var comp = CreateCompilation(source, runtimeFeature: RuntimeFlag.ByRefFields);
+            comp.VerifyDiagnostics();
+        }
+
+        /// <summary>
+        /// Validate that this is properly represented as an out parameter in a constructor and
+        /// can capture ref as ref.
+        /// </summary>
+        [Fact]
+        public void OutReturnOnly_Ctor1()
+        {
+            var source = """
+                ref struct RS
+                {
+                    ref int field;
+                    public RS(ref int i)
+                    {
+                        field = ref i;
+                    }
+
+                    static RS M1(ref int i) => new RS(ref i);
+                    static RS M2()
+                    {
+                        int i = 0;
+                        return new RS(ref i);
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source, runtimeFeature: RuntimeFlag.ByRefFields);
             comp.VerifyDiagnostics(
-                // (12,9): error CS9079: Cannot ref-assign 'bc.B' to 'RB' because 'bc.B' can only escape the current method through a return statement.
-                //         RB = ref bc.B; // 1
-                Diagnostic(ErrorCode.ERR_RefAssignReturnOnly, "RB = ref bc.B").WithArguments("RB", "bc.B").WithLocation(12, 9));
+                // (13,16): error CS8347: Cannot use a result of 'RS.RS(ref int)' in this context because it may expose variables referenced by parameter 'i' outside of their declaration scope
+                //         return new RS(ref i);
+                Diagnostic(ErrorCode.ERR_EscapeCall, "new RS(ref i)").WithArguments("RS.RS(ref int)", "i").WithLocation(13, 16),
+                // (13,27): error CS8168: Cannot return local 'i' by reference because it is not a ref local
+                //         return new RS(ref i);
+                Diagnostic(ErrorCode.ERR_RefReturnLocal, "i").WithArguments("i").WithLocation(13, 27));
+        }
+
+        /// <summary>
+        /// Out and ref have different return scopes
+        /// </summary>
+        [Fact]
+        public void OutReturnOnly_1()
+        {
+            var source = """
+                ref struct RS
+                {
+                    ref int field;
+                    public RS(ref int i)
+                    {
+                        field = ref i;
+                    }
+
+                    static void M1(ref int i, ref RS rs) => rs = new RS(ref i); // 1
+                    static void M2(ref int i, out RS rs) => rs = new RS(ref i);
+                }
+                """;
+            var comp = CreateCompilation(source, runtimeFeature: RuntimeFlag.ByRefFields);
+            comp.VerifyDiagnostics(
+                // (9,50): error CS8347: Cannot use a result of 'RS.RS(ref int)' in this context because it may expose variables referenced by parameter 'i' outside of their declaration scope
+                //     static void M1(ref int i, ref RS rs) => rs = new RS(ref i); // 1
+                Diagnostic(ErrorCode.ERR_EscapeCall, "new RS(ref i)").WithArguments("RS.RS(ref int)", "i").WithLocation(9, 50),
+                // (9,61): error CS9077: Cannot return a parameter by reference 'i' through a ref parameter; it can only be returned in a return statement
+                //     static void M1(ref int i, ref RS rs) => rs = new RS(ref i); // 1
+                Diagnostic(ErrorCode.ERR_RefReturnOnlyParameter, "i").WithArguments("i").WithLocation(9, 61));
+        }
+
+        /// <summary>
+        /// Out and in have different return scopes
+        /// </summary>
+        [Fact]
+        public void OutReturnOnly_2()
+        {
+            var source = """
+                readonly ref struct RS
+                {
+                    readonly ref readonly int field;
+                    public RS(in int i)
+                    {
+                        field = ref i;
+                    }
+
+                    static void M1(in int i, ref RS rs) => rs = new RS(in i); // 1
+                    static void M2(in int i, out RS rs) => rs = new RS(in i);
+                }
+                """;
+            var comp = CreateCompilation(source, runtimeFeature: RuntimeFlag.ByRefFields);
+            comp.VerifyDiagnostics(
+                // (9,49): error CS8347: Cannot use a result of 'RS.RS(in int)' in this context because it may expose variables referenced by parameter 'i' outside of their declaration scope
+                //     static void M1(in int i, ref RS rs) => rs = new RS(in i); // 1
+                Diagnostic(ErrorCode.ERR_EscapeCall, "new RS(in i)").WithArguments("RS.RS(in int)", "i").WithLocation(9, 49),
+                // (9,59): error CS9077: Cannot return a parameter by reference 'i' through a ref parameter; it can only be returned in a return statement
+                //     static void M1(in int i, ref RS rs) => rs = new RS(in i); // 1
+                Diagnostic(ErrorCode.ERR_RefReturnOnlyParameter, "i").WithArguments("i").WithLocation(9, 59));
+        }
+
+        /// <summary>
+        /// Out and ref have different return scopes
+        /// </summary>
+        [Fact]
+        public void OutReturnOnly_3()
+        {
+            var source = """
+                using System.Diagnostics.CodeAnalysis;
+                ref struct RS
+                {
+                    int field;
+                    ref int refField;
+                    public RS(ref int i)
+                    {
+                        refField = ref i;
+                    }
+
+                    static void M1(ref RS i, ref RS rs) => rs = new RS(ref i.field); // 1
+                    static void M2(ref RS i, out RS rs) => rs = new RS(ref i.field);
+                    static void M3(ref RS i, [UnscopedRef] out RS rs) => rs = new RS(ref i.field);
+                }
+                """;
+            var comp = CreateCompilation(new[] { source, UnscopedRefAttributeDefinition }, runtimeFeature: RuntimeFlag.ByRefFields);
+            comp.VerifyDiagnostics(
+                // (11,49): error CS8347: Cannot use a result of 'RS.RS(ref int)' in this context because it may expose variables referenced by parameter 'i' outside of their declaration scope
+                //     static void M1(ref RS i, ref RS rs) => rs = new RS(ref i.field); // 1
+                Diagnostic(ErrorCode.ERR_EscapeCall, "new RS(ref i.field)").WithArguments("RS.RS(ref int)", "i").WithLocation(11, 49),
+                // (11,60): error CS9078: Cannot return by reference a member of parameter 'i' through a ref parameter; it can only be returned in a return statement
+                //     static void M1(ref RS i, ref RS rs) => rs = new RS(ref i.field); // 1
+                Diagnostic(ErrorCode.ERR_RefReturnOnlyParameter2, "i").WithArguments("i").WithLocation(11, 60));
+        }
+
+        [Fact]
+        [WorkItem(62094, "https://github.com/dotnet/roslyn/issues/62094")]
+        public void OutReturnOnly_4()
+        {
+            var source = """
+                ref struct R
+                {
+                    public R(ref int i) { }
+                }
+
+                class Program
+                {
+                    static void F0(ref R a, out R b)
+                    {
+                        b = a;
+                    }
+
+                    static void F1(ref R x)
+                    {
+                        int i = 1;
+                        R y = new R(ref i);
+                        F0(ref x, out y);
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source, runtimeFeature: RuntimeFlag.ByRefFields);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void OutReturnOnly_5()
+        {
+            var source = """
+                ref struct R
+                {
+                    public R(ref int i) { }
+                }
+
+                class Program
+                {
+                    public static void F1(R a, out R d) => throw null;
+                    public static void F2(ref R a, out R d) => throw null;
+                    public static void F3(in R a, out R d) => throw null;
+                    public static void F4(scoped ref R a, out R d) => throw null;
+                    public static void F5(scoped in R a, out R d) => throw null;
+
+                    public void Test()
+                    {
+                        R local = default;
+                        F1(local, out local);
+                        F2(ref local, out local); // 1
+                        F3(in local, out local); // 2
+                        F4(ref local, out local);
+                        F5(in local, out local);
+                    }
+                }
+                """;
+            var comp = CreateCompilation(new[] { source, UnscopedRefAttributeDefinition }, runtimeFeature: RuntimeFlag.ByRefFields);
+            comp.VerifyDiagnostics(
+                // (18,9): error CS8350: This combination of arguments to 'Program.F2(ref R, out R)' is disallowed because it may expose variables referenced by parameter 'a' outside of their declaration scope
+                //         F2(ref local, out local); // 1
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "F2(ref local, out local)").WithArguments("Program.F2(ref R, out R)", "a").WithLocation(18, 9),
+                // (18,16): error CS8168: Cannot return local 'local' by reference because it is not a ref local
+                //         F2(ref local, out local); // 1
+                Diagnostic(ErrorCode.ERR_RefReturnLocal, "local").WithArguments("local").WithLocation(18, 16),
+                // (19,9): error CS8350: This combination of arguments to 'Program.F3(in R, out R)' is disallowed because it may expose variables referenced by parameter 'a' outside of their declaration scope
+                //         F3(in local, out local); // 2
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "F3(in local, out local)").WithArguments("Program.F3(in R, out R)", "a").WithLocation(19, 9),
+                // (19,15): error CS8168: Cannot return local 'local' by reference because it is not a ref local
+                //         F3(in local, out local); // 2
+                Diagnostic(ErrorCode.ERR_RefReturnLocal, "local").WithArguments("local").WithLocation(19, 15)
+                );
         }
     }
 }

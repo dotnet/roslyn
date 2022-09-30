@@ -1407,9 +1407,9 @@ public struct S
     }
 }",
 comp => comp.VerifyDiagnostics(
-                // (7,45): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('S')
+                // (7,45): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('S')
                 //             System.Console.WriteLine(sizeof(S*));
-                Diagnostic(ErrorCode.ERR_ManagedAddr, "S*").WithArguments("S").WithLocation(7, 45)
+                Diagnostic(ErrorCode.WRN_ManagedAddr, "S*").WithArguments("S").WithLocation(7, 45)
                 ));
         }
 
