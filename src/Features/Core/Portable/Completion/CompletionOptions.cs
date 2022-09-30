@@ -67,6 +67,11 @@ namespace Microsoft.CodeAnalysis.Completion
                 return false;
             }
 
+            if (document.IsRazorDocument())
+            {
+                return false;
+            }
+
             // Don't trigger snippet completion if the option value is "default" and the experiment is disabled for the user. 
             return ShowNewSnippetExperience ?? SnippetCompletion;
         }
