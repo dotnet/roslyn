@@ -4,7 +4,6 @@
 
 using System;
 using System.Collections.Immutable;
-using System.Dynamic;
 using System.Globalization;
 using System.Linq;
 using System.Threading;
@@ -144,19 +143,19 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.Api
             var index = await TopLevelSyntaxTreeIndex.GetRequiredIndexAsync(document, cancellationToken).ConfigureAwait(false);
             foreach (var info in index.DeclaredSymbolInfos)
             {
-                // Fast checks to see if this looks like a candidate.
-
-                // We're searching for unit test methods.  Those must always have an attribute on them of some sort.
-                if (!info.HasAttributes)
-                    continue;
+                // Fast checks first to see if this looks like a candidate.
 
                 // In non-strict mode, allow the type-parameter count to be mismatched.
                 if (query.Strict && info.TypeParameterCount != symbolArity)
                     continue;
 
-                // If it's a method, the parameter count much match.
                 if (query.MethodName != null)
                 {
+                    // We're searching for unit test methods.  Those must always have an attribute on them of some sort.
+                    if (!info.HasAttributes)
+                        continue;
+
+                    // Has to actually be a method.
                     if (info.Kind is not (DeclaredSymbolInfoKind.Method or DeclaredSymbolInfoKind.ExtensionMethod))
                         continue;
 

@@ -28,7 +28,7 @@ end class
         <Theory, CombinatorialData>
         Public Async Function VB_TestType1_NoAttribute(host As TestHost) As Task
             Await TestVisualBasic("
-class Outer
+class [|Outer|]
 end class
 ", UnitTestingSearchQuery.ForType("Outer"), host)
         End Function
@@ -84,7 +84,7 @@ end class
         Public Async Function VB_TestNestedType1_NoAttribute1(host As TestHost) As Task
             Await TestVisualBasic("
 class Outer
-    class Inner
+    class [|Inner|]
     end class
 end class
 ", UnitTestingSearchQuery.ForType("Outer.Inner"), host)
@@ -95,7 +95,7 @@ end class
             Await TestVisualBasic("
 <Test>
 class Outer
-    class Inner
+    class [|Inner|]
     end class
 end class
 ", UnitTestingSearchQuery.ForType("Outer.Inner"), host)

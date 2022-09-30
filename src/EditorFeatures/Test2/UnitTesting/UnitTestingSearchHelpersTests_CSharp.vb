@@ -28,7 +28,7 @@ class [|Outer|]
         <Theory, CombinatorialData>
         Public Async Function CS_TestType1_NoAttribute(host As TestHost) As Task
             Await TestCSharp("
-class Outer
+class [|Outer|]
 {
 }", UnitTestingSearchQuery.ForType("Outer"), host)
         End Function
@@ -104,7 +104,7 @@ class Outer
             Await TestCSharp("
 class Outer
 {
-    class Inner
+    class [|Inner|]
     {
     }
 }", UnitTestingSearchQuery.ForType("Outer.Inner"), host)
@@ -116,7 +116,7 @@ class Outer
 [Test]
 class Outer
 {
-    class Inner
+    class [|Inner|]
     {
     }
 }", UnitTestingSearchQuery.ForType("Outer.Inner"), host)
