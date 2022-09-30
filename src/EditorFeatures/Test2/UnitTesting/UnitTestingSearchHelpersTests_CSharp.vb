@@ -19,14 +19,33 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.UnitTesting
         <Theory, CombinatorialData>
         Public Async Function CS_TestType1(host As TestHost) As Task
             Await TestCSharp("
+[Test]
 class [|Outer|]
 {
 }", UnitTestingSearchQuery.ForType("Outer"), host)
         End Function
 
         <Theory, CombinatorialData>
+        Public Async Function CS_TestType1_NoAttribute(host As TestHost) As Task
+            Await TestCSharp("
+class [|Outer|]
+{
+}", UnitTestingSearchQuery.ForType("Outer"), host)
+        End Function
+
+        <Theory, CombinatorialData>
+        Public Async Function CS_TestType1_CaseSensitive(host As TestHost) As Task
+            Await TestCSharp("
+[Test]
+class Outer
+{
+}", UnitTestingSearchQuery.ForType("outer"), host)
+        End Function
+
+        <Theory, CombinatorialData>
         Public Async Function CS_TestGenericType1(host As TestHost) As Task
             Await TestCSharp("
+[Test]
 class [|Outer|]<T>
 {
 }", UnitTestingSearchQuery.ForType("Outer`1"), host)
@@ -35,6 +54,7 @@ class [|Outer|]<T>
         <Theory, CombinatorialData>
         Public Async Function CS_TestGenericType2(host As TestHost) As Task
             Await TestCSharp("
+[Test]
 class Outer<T>
 {
 }", UnitTestingSearchQuery.ForType("Outer"), host)
@@ -43,6 +63,7 @@ class Outer<T>
         <Theory, CombinatorialData>
         Public Async Function CS_TestGenericType2_NonStrict(host As TestHost) As Task
             Await TestCSharp("
+[Test]
 class [|Outer|]<T>
 {
 }", UnitTestingSearchQuery.ForType("Outer", strict:=False), host)
@@ -51,6 +72,7 @@ class [|Outer|]<T>
         <Theory, CombinatorialData>
         Public Async Function CS_TestGenericType3(host As TestHost) As Task
             Await TestCSharp("
+[Test]
 class Outer<T>
 {
 }", UnitTestingSearchQuery.ForType("Outer`2"), host)
@@ -59,6 +81,7 @@ class Outer<T>
         <Theory, CombinatorialData>
         Public Async Function CS_TestGenericType3_NonStrict(host As TestHost) As Task
             Await TestCSharp("
+[Test]
 class [|Outer|]<T>
 {
 }", UnitTestingSearchQuery.ForType("Outer`2", strict:=False), host)
@@ -67,6 +90,30 @@ class [|Outer|]<T>
         <Theory, CombinatorialData>
         Public Async Function CS_TestNestedType1(host As TestHost) As Task
             Await TestCSharp("
+class Outer
+{
+    [Test]
+    class [|Inner|]
+    {
+    }
+}", UnitTestingSearchQuery.ForType("Outer.Inner"), host)
+        End Function
+
+        <Theory, CombinatorialData>
+        Public Async Function CS_TestNestedType1_NoAttribute1(host As TestHost) As Task
+            Await TestCSharp("
+class Outer
+{
+    class [|Inner|]
+    {
+    }
+}", UnitTestingSearchQuery.ForType("Outer.Inner"), host)
+        End Function
+
+        <Theory, CombinatorialData>
+        Public Async Function CS_TestNestedType1_NoAttribute2(host As TestHost) As Task
+            Await TestCSharp("
+[Test]
 class Outer
 {
     class [|Inner|]
@@ -80,6 +127,7 @@ class Outer
             Await TestCSharp("
 class Outer
 {
+    [Test]
     class [|Inner|]
     {
     }
@@ -91,6 +139,7 @@ class Outer
             Await TestCSharp("
 class Outer
 {
+    [Test]
     class [|Inner|]<T>
     {
     }
@@ -102,6 +151,7 @@ class Outer
             Await TestCSharp("
 class Outer<T>
 {
+    [Test]
     class [|Inner|]
     {
     }
@@ -113,6 +163,7 @@ class Outer<T>
             Await TestCSharp("
 class Outer<T>
 {
+    [Test]
     class [|Inner|]<U>
     {
     }
@@ -124,6 +175,7 @@ class Outer<T>
             Await TestCSharp("
 namespace N
 {
+    [Test]
     class [|Outer|]
     {
     }
@@ -131,10 +183,47 @@ namespace N
         End Function
 
         <Theory, CombinatorialData>
+        Public Async Function CS_TestTypeWithNamespace1_CaseSensitive1(host As TestHost) As Task
+            Await TestCSharp("
+namespace N
+{
+    [Test]
+    class Outer
+    {
+    }
+}", UnitTestingSearchQuery.ForType("N.outer"), host)
+        End Function
+
+        <Theory, CombinatorialData>
+        Public Async Function CS_TestTypeWithNamespace1_CaseSensitive2(host As TestHost) As Task
+            Await TestCSharp("
+namespace N
+{
+    [Test]
+    class Outer
+    {
+    }
+}", UnitTestingSearchQuery.ForType("n.Outer"), host)
+        End Function
+
+        <Theory, CombinatorialData>
+        Public Async Function CS_TestTypeWithNamespace1_CaseSensitive3(host As TestHost) As Task
+            Await TestCSharp("
+namespace N
+{
+    [Test]
+    class Outer
+    {
+    }
+}", UnitTestingSearchQuery.ForType("n.outer"), host)
+        End Function
+
+        <Theory, CombinatorialData>
         Public Async Function CS_TestTypeWithNamespace2(host As TestHost) As Task
             Await TestCSharp("
 namespace N
 {
+    [Test]
     class Outer
     {
     }
@@ -146,6 +235,7 @@ namespace N
             Await TestCSharp("
 namespace N1.N2
 {
+    [Test]
     class [|Outer|]
     {
     }
@@ -159,6 +249,7 @@ namespace N1
 {
     namespace N2
     {
+        [Test]
         class [|Outer|]
         {
         }
@@ -171,7 +262,27 @@ namespace N1
             Await TestCSharp("
 class Outer
 {
+    [Test]
     void [|Goo|]() { }
+}", UnitTestingSearchQuery.ForMethod("Outer", "Goo", methodArity:=0, methodParameterCount:=0), host)
+        End Function
+
+        <Theory, CombinatorialData>
+        Public Async Function CS_TestMethod1_NoAttribute1(host As TestHost) As Task
+            Await TestCSharp("
+class Outer
+{
+    void Goo() { }
+}", UnitTestingSearchQuery.ForMethod("Outer", "Goo", methodArity:=0, methodParameterCount:=0), host)
+        End Function
+
+        <Theory, CombinatorialData>
+        Public Async Function CS_TestMethod1_NoAttribute2(host As TestHost) As Task
+            Await TestCSharp("
+[Test]
+class Outer
+{
+    void Goo() { }
 }", UnitTestingSearchQuery.ForMethod("Outer", "Goo", methodArity:=0, methodParameterCount:=0), host)
         End Function
 
@@ -180,6 +291,7 @@ class Outer
             Await TestCSharp("
 class Outer
 {
+    [Test]
     void Goo() { }
 }", UnitTestingSearchQuery.ForMethod("Outer", "Goo", methodArity:=1, methodParameterCount:=0), host)
         End Function
@@ -189,6 +301,7 @@ class Outer
             Await TestCSharp("
 class Outer
 {
+    [Test]
     void [|Goo|]() { }
 }", UnitTestingSearchQuery.ForMethod("Outer", "Goo", methodArity:=1, methodParameterCount:=0, strict:=False), host)
         End Function
@@ -198,6 +311,7 @@ class Outer
             Await TestCSharp("
 class Outer
 {
+    [Test]
     void Goo() { }
 }", UnitTestingSearchQuery.ForMethod("Outer", "Goo", methodArity:=0, methodParameterCount:=1), host)
         End Function
@@ -207,6 +321,7 @@ class Outer
             Await TestCSharp("
 class Outer
 {
+    [Test]
     void [|Goo|]() { }
 }", UnitTestingSearchQuery.ForMethod("Outer", "Goo", methodArity:=0, methodParameterCount:=1, strict:=False), host)
         End Function
@@ -216,6 +331,7 @@ class Outer
             Await TestCSharp("
 class Outer
 {
+    [Test]
     void Goo<T>() { }
 }", UnitTestingSearchQuery.ForMethod("Outer", "Goo", methodArity:=0, methodParameterCount:=0), host)
         End Function
@@ -225,6 +341,7 @@ class Outer
             Await TestCSharp("
 class Outer
 {
+    [Test]
     void Goo(int i) { }
 }", UnitTestingSearchQuery.ForMethod("Outer", "Goo", methodArity:=0, methodParameterCount:=0), host)
         End Function
@@ -234,6 +351,7 @@ class Outer
             Await TestCSharp("
 class Outer
 {
+    [Test]
     void [|Goo|]<T>() { }
 }", UnitTestingSearchQuery.ForMethod("Outer", "Goo", methodArity:=1, methodParameterCount:=0), host)
         End Function
@@ -243,6 +361,7 @@ class Outer
             Await TestCSharp("
 class Outer
 {
+    [Test]
     void [|Goo|](int a) { }
 }", UnitTestingSearchQuery.ForMethod("Outer", "Goo", methodArity:=0, methodParameterCount:=1), host)
         End Function
@@ -252,6 +371,7 @@ class Outer
             Await TestCSharp("
 class Outer
 {
+    [Test]
     void [|Goo|]<T>(int a) { }
 }", UnitTestingSearchQuery.ForMethod("Outer", "Goo", methodArity:=1, methodParameterCount:=1), host)
         End Function
@@ -263,6 +383,7 @@ class Outer
 {
     class Inner
     {
+        [Test]
         void [|Goo|]() { }
     }
 }", UnitTestingSearchQuery.ForMethod("Outer+Inner", "Goo", methodArity:=0, methodParameterCount:=0), host)
@@ -275,6 +396,7 @@ class Outer
 {
     class Inner<T>
     {
+        [Test]
         void [|Goo|]() { }
     }
 }", UnitTestingSearchQuery.ForMethod("Outer+Inner`1", "Goo", methodArity:=0, methodParameterCount:=0), host)
@@ -287,6 +409,7 @@ class Outer<T>
 {
     class Inner
     {
+        [Test]
         void [|Goo|]() { }
     }
 }", UnitTestingSearchQuery.ForMethod("Outer`1+Inner", "Goo", methodArity:=0, methodParameterCount:=0), host)
@@ -299,6 +422,7 @@ class Outer<T>
 {
     class Inner<U>
     {
+        [Test]
         void [|Goo|]() { }
     }
 }", UnitTestingSearchQuery.ForMethod("Outer`1+Inner`1", "Goo", methodArity:=0, methodParameterCount:=0), host)
@@ -313,6 +437,7 @@ namespace N1.N2
     {
         class Inner
         {
+            [Test]
             void [|Goo|]() { }
         }
     }
@@ -324,6 +449,7 @@ namespace N1.N2
             Await TestCSharp("
 class Outer
 {
+    [Test]
     void [|Goo|](this Outer o) { }
 }", UnitTestingSearchQuery.ForMethod("Outer", "Goo", methodArity:=0, methodParameterCount:=1), host)
         End Function

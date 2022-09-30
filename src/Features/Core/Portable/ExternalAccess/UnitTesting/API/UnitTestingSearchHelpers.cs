@@ -2,13 +2,14 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Immutable;
-using System.Dynamic;
 using System.Globalization;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.FindSymbols;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -117,14 +118,17 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.Api
             CancellationToken cancellationToken)
         {
             var (container, symbolName, symbolArity) = ExtractQueryData(query);
+            var syntaxFacts = project.GetRequiredLanguageService<ISyntaxFactsService>();
+            var comparer = syntaxFacts.StringComparer;
 
-            var tasks = project.Documents.Select(d => GetSourceLocationsInProcessAsync(d, container, symbolName, symbolArity, query, cancellationToken));
+            var tasks = project.Documents.Select(d => GetSourceLocationsInProcessAsync(d, comparer, container, symbolName, symbolArity, query, cancellationToken));
             var result = await Task.WhenAll(tasks).ConfigureAwait(false);
             return result.SelectMany(r => r).ToImmutableArray();
         }
 
         private static async Task<ImmutableArray<UnitTestingDocumentSpan>> GetSourceLocationsInProcessAsync(
             Document document,
+            StringComparer comparer,
             string container,
             string symbolName,
             int symbolArity,
@@ -139,18 +143,19 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.Api
             var index = await TopLevelSyntaxTreeIndex.GetRequiredIndexAsync(document, cancellationToken).ConfigureAwait(false);
             foreach (var info in index.DeclaredSymbolInfos)
             {
-                // Fast checks to see if this looks like a candidate.
+                // Fast checks first to see if this looks like a candidate.
 
                 // In non-strict mode, allow the type-parameter count to be mismatched.
                 if (query.Strict && info.TypeParameterCount != symbolArity)
                     continue;
 
-                if (info.Name != symbolName)
-                    continue;
-
-                // If it's a method, the parameter count much match.
                 if (query.MethodName != null)
                 {
+                    // We're searching for unit test methods.  Those must always have an attribute on them of some sort.
+                    if (!info.HasAttributes)
+                        continue;
+
+                    // Has to actually be a method.
                     if (info.Kind is not (DeclaredSymbolInfoKind.Method or DeclaredSymbolInfoKind.ExtensionMethod))
                         continue;
 
@@ -159,8 +164,11 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.Api
                         continue;
                 }
 
-                // Looking promising so far.  Check that the container matches what the caller needs.
-                if (info.FullyQualifiedContainerName != container)
+                // Looking promising so far.  Check that the names matches what the caller needs.
+                if (!comparer.Equals(info.Name, symbolName))
+                    continue;
+
+                if (!comparer.Equals(info.FullyQualifiedContainerName, container))
                     continue;
 
                 // Unit testing needs to know the final span a location may be mapped to (e.g. with `#line` taken
