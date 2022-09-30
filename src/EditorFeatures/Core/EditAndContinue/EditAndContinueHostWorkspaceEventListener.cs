@@ -35,11 +35,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         {
             Debug.Assert(sender is Workspace);
 
-            if (!DebuggerContractVersionCheck.IsRequiredDebuggerContractVersionAvailable())
-            {
-                return;
-            }
-
             if (e.DocumentId == null)
             {
                 return;
@@ -72,8 +67,19 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             workspace.WorkspaceChanged -= WorkspaceChanged;
         }
 
+        // NoInlining to avoid loading Debugger.Contracts in certain RPS scenarios.
         [MethodImpl(MethodImplOptions.NoInlining)]
         private static void WorkspaceDocumentLoaderChanged(Workspace workspace, Document document)
+        {
+            if (DebuggerContractVersionCheck.IsRequiredDebuggerContractVersionAvailable())
+            {
+                WorkspaceDocumentLoaderChangedImpl(workspace, document);
+            }
+        }
+
+        // NoInlining to avoid loading proxy type that might require newer version of Debugger.Contracts than available (only applicable to Integration Tests).
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        private static void WorkspaceDocumentLoaderChangedImpl(Workspace workspace, Document document)
         {
             var proxy = new RemoteEditAndContinueServiceProxy(workspace);
             _ = Task.Run(() => proxy.OnSourceFileUpdatedAsync(document, CancellationToken.None)).ReportNonFatalErrorAsync();
