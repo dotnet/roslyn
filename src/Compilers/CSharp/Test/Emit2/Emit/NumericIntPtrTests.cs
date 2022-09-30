@@ -6874,7 +6874,7 @@ $@"class MyInt
                     "nint?" => "System.IntPtr?",
                     "nuint" => "System.UIntPtr",
                     "nuint?" => "System.UIntPtr?",
-                    _ => throw ExceptionUtilities.Unreachable
+                    _ => throw ExceptionUtilities.Unreachable()
                 };
                 binaryOps(op, fullLeftType, rightType, expectedSymbol1, expectedSymbol2, diagnostics1, diagnostics2);
             }

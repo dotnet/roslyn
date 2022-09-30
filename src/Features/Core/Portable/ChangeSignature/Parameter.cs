@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
                     CallSiteValue = FeaturesResources.ChangeSignature_NewParameterInferValue;
                     break;
                 default:
-                    throw ExceptionUtilities.Unreachable;
+                    throw ExceptionUtilities.Unreachable();
             }
         }
 
