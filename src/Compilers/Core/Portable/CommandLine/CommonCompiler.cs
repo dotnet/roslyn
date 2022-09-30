@@ -863,7 +863,8 @@ namespace Microsoft.CodeAnalysis
                     licenseOptions.AdditionalLicense,
                     dotNetSdkDirectory,
                     this.RequiresMetalamaSupportServices,
-                    addSupportServices: this.RequiresMetalamaSupportServices);
+                    addSupportServices: this.RequiresMetalamaSupportServices,
+                    addLicenseAudit: this.RequiresMetalamaSupportServices);
             }
             else
             {
