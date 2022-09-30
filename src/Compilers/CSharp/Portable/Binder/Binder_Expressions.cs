@@ -3026,7 +3026,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             var result = methodResult.Result;
 
             // Parameter types should be taken from the least overridden member:
-            var parameters = methodResult.LeastOverriddenMember.GetParameters();
+            var leastOverriddenMember = methodResult.LeastOverriddenMember;
+            var parameters = leastOverriddenMember.GetParameters();
+
+            uint? lazyInferredOutArgumentSafeToEscape = null;
 
             for (int arg = 0; arg < arguments.Count; ++arg)
             {
@@ -3051,7 +3054,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 else if (argument.Kind == BoundKind.OutVariablePendingInference)
                 {
                     TypeWithAnnotations parameterTypeWithAnnotations = GetCorrespondingParameterTypeWithAnnotations(ref result, parameters, arg);
-                    arguments[arg] = ((OutVariablePendingInference)argument).SetInferredTypeWithAnnotations(parameterTypeWithAnnotations, diagnostics);
+                    var outVariable = (OutVariablePendingInference)argument;
+                    // TODO: is this the right place to do this?
+                    ((SourceLocalSymbol)outVariable.VariableSymbol).SetValEscape(getOrCalculateInferredOutSafeToEscape());
+                    arguments[arg] = outVariable.SetInferredTypeWithAnnotations(parameterTypeWithAnnotations, diagnostics);
                 }
                 else if (argument.Kind == BoundKind.OutDeconstructVarPendingInference)
                 {
@@ -3077,6 +3083,39 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         arguments[arg] = BindToNaturalType(argument, diagnostics);
                     }
+                }
+
+                uint getOrCalculateInferredOutSafeToEscape()
+                {
+                    if (lazyInferredOutArgumentSafeToEscape is { } inferredOutArgumentSafeToEscape)
+                    {
+                        return inferredOutArgumentSafeToEscape;
+                    }
+
+                    // the safe-to-escape of any out parameters in the method we are calling.
+                    uint outParamSafeToEscape = UseUpdatedEscapeRulesForInvocation(leastOverriddenMember) ? ReturnOnlyScope : CallingMethodScope;
+
+                    // the narrowest safe-to-escape of any argument which can escape (either by-value or by-reference) into the argument for any out parameter.
+                    uint narrowestArgSafeToEscape = CallingMethodScope;
+
+                    for (var arg = 0; arg < arguments.Count; arg++)
+                    {
+                        var sourceParam = GetCorrespondingParameter(ref result, parameters, arg);
+                        if (GetParameterValEscape(sourceParam) <= outParamSafeToEscape)
+                        {
+                            // sourceParam can escape by-value into an out parameter.
+                            narrowestArgSafeToEscape = Math.Max(narrowestArgSafeToEscape, GetValEscape(arguments[arg], LocalScopeDepth));
+                        }
+
+                        if (GetParameterRefEscape(sourceParam) <= outParamSafeToEscape)
+                        {
+                            // sourceParam can escape by-reference into an out parameter.
+                            narrowestArgSafeToEscape = Math.Max(narrowestArgSafeToEscape, GetRefEscape(arguments[arg], LocalScopeDepth));
+                        }
+                    }
+
+                    lazyInferredOutArgumentSafeToEscape = narrowestArgSafeToEscape;
+                    return narrowestArgSafeToEscape;
                 }
             }
 

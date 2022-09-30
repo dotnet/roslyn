@@ -4714,5 +4714,63 @@ class Program
 }
 ");
         }
+
+        [Fact]
+        public void LocalScope_DeclarationExpression_01()
+        {
+            var source = """
+                ref struct RS { }
+
+                class Program
+                {
+                    // RSTE of rs1 is ReturnOnly. STE of rs2 is ReturnOnly.
+                    // therefore `rs2 = Wrap(ref rs1)` is permitted
+                    static void M0(ref RS rs1, out RS rs2) => throw null!;
+
+                    static RS M1(scoped ref RS rs3)
+                    {
+                        // RSTE of rs3 is CurrentMethod
+                        // STE of rs4 (local variable) is also CurrentMethod
+                        M0(ref rs3, out var rs4);
+                        return rs4; // 1
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation(source, runtimeFeature: RuntimeFlag.ByRefFields);
+            comp.VerifyDiagnostics(
+                // (14,16): error CS8352: Cannot use variable 'rs4' in this context because it may expose referenced variables outside of their declaration scope
+                //         return rs4; // 1
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "rs4").WithArguments("rs4").WithLocation(14, 16));
+        }
+
+        [Fact]
+        public void LocalScope_DeclarationExpression_02()
+        {
+            var source = """
+                ref struct RS { }
+
+                class Program
+                {
+                    // STE of rs1 is CallingMethod. STE of rs2 is ReturnOnly.
+                    // therefore `rs2 = rs1` is permitted
+                    static void M0(RS rs1, out RS rs2) => throw null!;
+
+                    static RS M1(scoped RS rs3)
+                    {
+                        // STE of rs3 is CurrentMethod
+                        // STE of rs4 (local variable) is also CurrentMethod
+                        M0(rs3, out var rs4);
+                        return rs4; // 1
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation(source, runtimeFeature: RuntimeFlag.ByRefFields);
+            comp.VerifyDiagnostics(
+                // (14,16): error CS8352: Cannot use variable 'rs4' in this context because it may expose referenced variables outside of their declaration scope
+                //         return rs4; // 1
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "rs4").WithArguments("rs4").WithLocation(14, 16));
+        }
     }
 }
