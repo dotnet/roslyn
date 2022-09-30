@@ -9006,7 +9006,8 @@ $@"public class Library
                 var refA = comp.EmitToImageReference();
                 comp = CreateEmptyCompilation(sourceB, references: new[] { refA, mscorlibRefWithoutSharing }, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular9);
 
-                CompileAndVerify(comp, expectedOutput: expectedResult);
+                // Investigating flaky IL verification issue. Tracked by https://github.com/dotnet/roslyn/issues/63782
+                CompileAndVerify(comp, expectedOutput: expectedResult, verify: Verification.PassesOrFailFast);
                 Assert.NotNull(expectedResult);
             }
 
@@ -9040,7 +9041,8 @@ class Program
                     return;
                 }
 
-                CompileAndVerify(comp, expectedOutput: expectedResult).VerifyDiagnostics(expectedDiagnostics);
+                // Investigating flaky IL verification issue. Tracked by https://github.com/dotnet/roslyn/issues/63782
+                CompileAndVerify(comp, expectedOutput: expectedResult, verify: Verification.PassesOrFailFast).VerifyDiagnostics(expectedDiagnostics);
                 Assert.NotNull(expectedResult);
             }
         }
