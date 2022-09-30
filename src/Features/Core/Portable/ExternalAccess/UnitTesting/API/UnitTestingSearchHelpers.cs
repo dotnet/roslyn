@@ -146,11 +146,12 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.Api
             {
                 // Fast checks to see if this looks like a candidate.
 
-                // In non-strict mode, allow the type-parameter count to be mismatched.
-                if (query.Strict && info.TypeParameterCount != symbolArity)
+                // We're searching for unit test methods.  Those must always have an attribute on them of some sort.
+                if (!info.HasAttributes)
                     continue;
 
-                if (!comparer.Equals(info.Name, symbolName))
+                // In non-strict mode, allow the type-parameter count to be mismatched.
+                if (query.Strict && info.TypeParameterCount != symbolArity)
                     continue;
 
                 // If it's a method, the parameter count much match.
@@ -164,7 +165,10 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.Api
                         continue;
                 }
 
-                // Looking promising so far.  Check that the container matches what the caller needs.
+                // Looking promising so far.  Check that the names matches what the caller needs.
+                if (!comparer.Equals(info.Name, symbolName))
+                    continue;
+
                 if (!comparer.Equals(info.FullyQualifiedContainerName, container))
                     continue;
 
