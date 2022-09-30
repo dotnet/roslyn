@@ -19,11 +19,39 @@ internal sealed partial class NewUnitTestingIncrementalAnalyzerProvider
         public NewUnitTestingIncrementalAnalyzer(INewUnitTestingIncrementalAnalyzerImplementation implementation)
             => _implementation = implementation;
 
-        public Task AnalyzeDocumentAsync(Document document, SyntaxNode bodyOpt, UnitTestingInvocationReasons reasons, CancellationToken cancellationToken)
-            => _implementation.AnalyzeDocumentAsync(document, bodyOpt, reasons, cancellationToken);
+        public Task AnalyzeDocumentAsync(
+            Document document,
+#if false // Not used in unit testing crawling
+            SyntaxNode bodyOpt,
+#endif
+            UnitTestingInvocationReasons reasons,
+            CancellationToken cancellationToken)
+        {
+            return _implementation.AnalyzeDocumentAsync(
+                document,
+#if false // Not used in unit testing crawling
+                bodyOpt,
+#endif
+                reasons,
+                cancellationToken);
+        }
 
-        public Task AnalyzeProjectAsync(Project project, bool semanticsChanged, UnitTestingInvocationReasons reasons, CancellationToken cancellationToken)
-            => _implementation.AnalyzeProjectAsync(project, semanticsChanged, reasons, cancellationToken);
+        public Task AnalyzeProjectAsync(
+            Project project,
+#if false // Not used in unit testing crawling
+            bool semanticsChanged,
+#endif
+            UnitTestingInvocationReasons reasons,
+            CancellationToken cancellationToken)
+        {
+            return _implementation.AnalyzeProjectAsync(
+                project,
+#if false // Not used in unit testing crawling
+                semanticsChanged,
+#endif
+                reasons,
+                cancellationToken);
+        }
 
 #if false // Not used in unit testing crawling
         public Task AnalyzeSyntaxAsync(Document document, UnitTestingInvocationReasons reasons, CancellationToken cancellationToken)

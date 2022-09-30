@@ -21,12 +21,15 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
     {
         internal sealed partial class UnitTestingWorkCoordinator : IUnitTestingWorkCoordinator
         {
-            private readonly UnitTestingRegistration _registration;
+#if false // Not used in unit testing crawling
             private readonly object _gate = new();
+            private readonly IUnitTestingDocumentTrackingService _documentTrackingService;
+#endif
+
+            private readonly UnitTestingRegistration _registration;
 
             private readonly CountLogAggregator<WorkspaceChangeKind> _logAggregator = new();
             private readonly IAsynchronousOperationListener _listener;
-            private readonly IUnitTestingDocumentTrackingService _documentTrackingService;
             private readonly IWorkspaceConfigurationService? _workspaceConfigurationService;
 
             private readonly CancellationTokenSource _shutdownNotificationSource = new();
@@ -48,7 +51,9 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                 _registration = registration;
 
                 _listener = listener;
+#if false // Not used in unit testing crawling
                 _documentTrackingService = _registration.Services.GetRequiredService<IUnitTestingDocumentTrackingService>();
+#endif
                 _workspaceConfigurationService = _registration.Services.GetService<IWorkspaceConfigurationService>();
 
                 // event and worker queues
@@ -77,8 +82,10 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
 
                 _semanticChangeProcessor = new UnitTestingSemanticChangeProcessor(listener, _registration, _documentAndProjectWorkerProcessor, semanticBackOffTimeSpan, projectBackOffTimeSpan, _shutdownToken);
 
+#if false // Not used in unit testing crawling
                 // subscribe to active document changed event for active file background analysis scope.
                 _documentTrackingService.ActiveDocumentChanged += OnActiveDocumentSwitched;
+#endif
             }
 
             public UnitTestingRegistration Registration => _registration;
@@ -150,10 +157,18 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
             }
 #endif
 
-            public void Reanalyze(IUnitTestingIncrementalAnalyzer analyzer, UnitTestingReanalyzeScope scope, bool highPriority = false)
+            public void Reanalyze(IUnitTestingIncrementalAnalyzer analyzer, UnitTestingReanalyzeScope scope
+#if false // Not used in unit testing crawling
+                , bool highPriority = false
+#endif
+                )
             {
                 _eventProcessingQueue.ScheduleTask("Reanalyze",
-                    () => EnqueueWorkItemAsync(analyzer, scope, highPriority), _shutdownToken);
+                    () => EnqueueWorkItemAsync(analyzer, scope
+#if false // Not used in unit testing crawling
+                    , highPriority
+#endif
+                    ), _shutdownToken);
 
                 if (scope.HasMultipleDocuments)
                 {
@@ -161,10 +176,15 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                     // we are not interested in 1 file re-analysis request which can happen from like venus typing
                     var solution = _registration.GetSolutionToAnalyze();
                     UnitTestingSolutionCrawlerLogger.LogReanalyze(
-                        CorrelationId, analyzer, scope.GetDocumentCount(solution), scope.GetLanguagesStringForTelemetry(solution), highPriority);
+                        CorrelationId, analyzer, scope.GetDocumentCount(solution), scope.GetLanguagesStringForTelemetry(solution)
+#if false // Not used in unit testing crawling
+                        , highPriority
+#endif
+                        );
                 }
             }
 
+#if false // Not used in unit testing crawling
             private void OnActiveDocumentSwitched(object? sender, DocumentId? activeDocumentId)
             {
                 if (activeDocumentId == null)
@@ -173,6 +193,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                 var solution = _registration.GetSolutionToAnalyze();
                 EnqueueFullDocumentEvent(solution, activeDocumentId, UnitTestingInvocationReasons.ActiveDocumentSwitched, eventName: nameof(OnActiveDocumentSwitched));
             }
+#endif
 
             public void OnWorkspaceChanged(WorkspaceChangeEventArgs args)
             {
@@ -225,6 +246,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                         EnqueueSolutionChangedEvent(args.OldSolution, args.NewSolution, eventName);
                         break;
 
+#if false // Not used in unit testing crawling
                     case WorkspaceChangeKind.SolutionRemoved:
                         EnqueueFullSolutionEvent(args.OldSolution, UnitTestingInvocationReasons.SolutionRemoved, eventName);
                         break;
@@ -232,6 +254,12 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                     case WorkspaceChangeKind.SolutionCleared:
                         EnqueueFullSolutionEvent(args.OldSolution, UnitTestingInvocationReasons.SolutionRemoved, eventName);
                         break;
+#else
+                    case WorkspaceChangeKind.SolutionCleared:
+                    case WorkspaceChangeKind.SolutionRemoved:
+                        // Not used in unit testing crawling
+                        break;
+#endif
 
                     case WorkspaceChangeKind.ProjectAdded:
                         Contract.ThrowIfNull(args.ProjectId);
@@ -480,10 +508,18 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                 }
             }
 
-            private async Task EnqueueWorkItemAsync(IUnitTestingIncrementalAnalyzer analyzer, UnitTestingReanalyzeScope scope, bool highPriority)
+            private async Task EnqueueWorkItemAsync(IUnitTestingIncrementalAnalyzer analyzer, UnitTestingReanalyzeScope scope
+#if false // Not used in unit testing crawling
+                , bool highPriority
+#endif
+                )
             {
                 var solution = _registration.GetSolutionToAnalyze();
-                var invocationReasons = highPriority ? UnitTestingInvocationReasons.ReanalyzeHighPriority : UnitTestingInvocationReasons.Reanalyze;
+                var invocationReasons =
+#if false // Not used in unit testing crawling
+                    highPriority ? UnitTestingInvocationReasons.ReanalyzeHighPriority :
+#endif
+                    UnitTestingInvocationReasons.Reanalyze;
 
                 foreach (var (project, documentId) in scope.GetDocumentIds(solution))
                     await EnqueueWorkItemAsync(analyzer, project, documentId, document: null, invocationReasons).ConfigureAwait(false);
@@ -526,10 +562,12 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                 // TODO: why solution changes return Project not ProjectId but ProjectChanges return DocumentId not Document?
                 var projectConfigurationChange = UnitTestingInvocationReasons.Empty;
 
+#if false // Not used in unit testing crawling
                 if (!object.Equals(oldProject.ParseOptions, newProject.ParseOptions))
                 {
                     projectConfigurationChange = projectConfigurationChange.With(UnitTestingInvocationReasons.ProjectParseOptionChanged);
                 }
+#endif
 
                 if (projectChanges.GetAddedMetadataReferences().Any() ||
                     projectChanges.GetAddedProjectReferences().Any() ||
@@ -568,7 +606,11 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
                 }
                 else
                 {
+#if false // Not used in unit testing crawling
                     var differenceResult = await differenceService.GetDifferenceAsync(oldDocument, newDocument, _shutdownToken).ConfigureAwait(false);
+#else
+                    var differenceResult = differenceService.GetDifference(oldDocument, newDocument, _shutdownToken);
+#endif
 
                     if (differenceResult != null)
                         await EnqueueDocumentWorkItemAsync(newDocument.Project, newDocument.Id, newDocument, differenceResult.ChangeType, differenceResult.ChangedMember).ConfigureAwait(false);

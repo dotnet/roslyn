@@ -35,10 +35,22 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
 
 #endif
 
-        public virtual Task AnalyzeDocumentAsync(Document document, SyntaxNode bodyOpt, UnitTestingInvocationReasons reasons, CancellationToken cancellationToken)
+        public virtual Task AnalyzeDocumentAsync(
+            Document document,
+#if false // Not used in unit testing crawling
+            SyntaxNode bodyOpt,
+#endif
+            UnitTestingInvocationReasons reasons,
+            CancellationToken cancellationToken)
             => Task.CompletedTask;
 
-        public virtual Task AnalyzeProjectAsync(Project project, bool semanticsChanged, UnitTestingInvocationReasons reasons, CancellationToken cancellationToken)
+        public virtual Task AnalyzeProjectAsync(
+            Project project,
+#if false // Not used in unit testing crawling
+            bool semanticsChanged,
+#endif
+            UnitTestingInvocationReasons reasons,
+            CancellationToken cancellationToken)
             => Task.CompletedTask;
 
         public virtual Task RemoveDocumentAsync(DocumentId documentId, CancellationToken cancellationToken)

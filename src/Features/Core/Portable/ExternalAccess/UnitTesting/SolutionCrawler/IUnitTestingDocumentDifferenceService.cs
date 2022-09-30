@@ -22,6 +22,6 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
 
     internal interface IUnitTestingDocumentDifferenceService : ILanguageService
     {
-        Task<UnitTestingDocumentDifferenceResult?> GetDifferenceAsync(Document oldDocument, Document newDocument, CancellationToken cancellationToken);
+        UnitTestingDocumentDifferenceResult? GetDifference(Document oldDocument, Document newDocument, CancellationToken cancellationToken);
     }
 }
