@@ -303,15 +303,12 @@ namespace Roslyn.Test.Utilities
         {
             var lspOptions = initializationOptions ?? new InitializationOptions();
 
-            var workspace = languageName switch
-            {
-                LanguageNames.CSharp => TestWorkspace.CreateCSharp(markups, lspOptions.SourceGeneratedMarkups, composition: Composition),
-                LanguageNames.VisualBasic => TestWorkspace.CreateVisualBasic(markups, lspOptions.SourceGeneratedMarkups, composition: Composition),
-                _ => throw new ArgumentException($"language name {languageName} is not valid for a test workspace"),
-            };
+            var workspace = new TestWorkspace(Composition);
 
             var workspaceConfigurationService = workspace.GetService<TestWorkspaceConfigurationService>();
             workspaceConfigurationService.Options = new WorkspaceConfigurationOptions(EnableOpeningSourceGeneratedFiles: true);
+
+            workspace.InitializeDocuments(TestWorkspace.CreateWorkspaceElement(languageName, files: markups, sourceGeneratedFiles: lspOptions.SourceGeneratedMarkups), openDocuments: false);
 
             lspOptions.OptionUpdater?.Invoke(workspace.GetService<IGlobalOptionService>());
 

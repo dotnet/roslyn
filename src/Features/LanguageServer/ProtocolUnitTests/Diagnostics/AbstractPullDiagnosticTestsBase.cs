@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Diagnostics
             bool useProgress = false,
             bool includeTaskListItems = false)
         {
-            var optionService = testLspServer.TestWorkspace.ExportProvider.GetExportedValue<IGlobalOptionService>();
+            var optionService = testLspServer.TestWorkspace.GetService<IGlobalOptionService>();
             optionService.SetGlobalOption(new OptionKey(TaskListOptionsStorage.ComputeTaskListItemsForClosedFiles), includeTaskListItems);
             await testLspServer.WaitForDiagnosticsAsync();
 
