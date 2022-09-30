@@ -15,6 +15,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes
     [AttributeUsage(AttributeTargets.Class)]
     public sealed class ExportCodeFixProviderAttribute : ExportAttribute
     {
+        private static readonly TextDocumentKind[] s_defaultDocumentKinds = new[] { TextDocumentKind.Document };
+
         /// <summary>
         /// Optional name of the <see cref="CodeFixProvider"/>.  
         /// </summary>
@@ -25,6 +27,18 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         /// The source languages this provider can provide fixes for.  See <see cref="LanguageNames"/>.
         /// </summary>
         public string[] Languages { get; }
+
+        /// <summary>
+        /// The document kinds for which this provider can provide code fixes. See <see cref="TextDocumentKind"/>.
+        /// By default, the provider supports code fixes only for source documents, <see cref="TextDocumentKind.Document"/>.
+        /// </summary>
+        public TextDocumentKind[] DocumentKinds { get; set; }
+
+        /// <summary>
+        /// The document extensions for which this provider can provide code fixes.
+        /// By default, this value is null and the document extension is not considered to determine applicability of code fixes.
+        /// </summary>
+        public string[]? DocumentExtensions { get; set; }
 
         /// <summary>
         /// Attribute constructor used to specify automatic application of a code fix provider.
@@ -49,6 +63,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             }
 
             this.Languages = languages;
+            this.DocumentKinds = s_defaultDocumentKinds;
+            this.DocumentExtensions = null;
         }
     }
 }

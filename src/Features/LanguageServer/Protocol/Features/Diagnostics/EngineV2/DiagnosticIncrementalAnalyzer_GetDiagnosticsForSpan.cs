@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
     internal partial class DiagnosticIncrementalAnalyzer
     {
         public async Task<bool> TryAppendDiagnosticsForSpanAsync(
-            Document document, TextSpan? range, ArrayBuilder<DiagnosticData> result, Func<string, bool>? shouldIncludeDiagnostic,
+            TextDocument document, TextSpan? range, ArrayBuilder<DiagnosticData> result, Func<string, bool>? shouldIncludeDiagnostic,
             bool includeSuppressedDiagnostics, bool includeCompilerDiagnostics, CodeActionRequestPriority priority, bool blockForData,
             Func<string, IDisposable?>? addOperationScope, CancellationToken cancellationToken)
         {
@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
         }
 
         public async Task<ImmutableArray<DiagnosticData>> GetDiagnosticsForSpanAsync(
-            Document document,
+            TextDocument document,
             TextSpan? range,
             Func<string, bool>? shouldIncludeDiagnostic,
             bool includeSuppressedDiagnostics,
@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             private static readonly WeakReference<ProjectAndCompilationWithAnalyzers?> _lastProjectAndCompilationWithAnalyzers = new(null);
 
             private readonly DiagnosticIncrementalAnalyzer _owner;
-            private readonly Document _document;
+            private readonly TextDocument _document;
             private readonly SourceText _text;
 
             private readonly IEnumerable<StateSet> _stateSets;
@@ -81,7 +81,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
             public static async Task<LatestDiagnosticsForSpanGetter> CreateAsync(
                  DiagnosticIncrementalAnalyzer owner,
-                 Document document,
+                 TextDocument document,
                  TextSpan? range,
                  bool blockForData,
                  Func<string, IDisposable?>? addOperationScope,
@@ -139,7 +139,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             private LatestDiagnosticsForSpanGetter(
                 DiagnosticIncrementalAnalyzer owner,
                 CompilationWithAnalyzers? compilationWithAnalyzers,
-                Document document,
+                TextDocument document,
                 SourceText text,
                 IEnumerable<StateSet> stateSets,
                 Func<string, bool>? shouldIncludeDiagnostic,
@@ -184,7 +184,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                         if (!await TryAddCachedDocumentDiagnosticsAsync(stateSet, AnalysisKind.Syntax, list, cancellationToken).ConfigureAwait(false))
                             syntaxAnalyzers.Add(stateSet);
 
-                        if (!await TryAddCachedDocumentDiagnosticsAsync(stateSet, AnalysisKind.Semantic, list, cancellationToken).ConfigureAwait(false))
+                        if (_document is Document &&
+                            !await TryAddCachedDocumentDiagnosticsAsync(stateSet, AnalysisKind.Semantic, list, cancellationToken).ConfigureAwait(false))
                         {
                             // Check whether we want up-to-date document wide semantic diagnostics
                             var spanBased = stateSet.Analyzer.SupportsSpanBasedSemanticDiagnosticAnalysis();
@@ -305,7 +306,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 // This analysis is currently guarded with 'IncrementalMemberEditAnalysisFeatureFlag'
                 var incrementalAnalysis = !span.HasValue
                     && supportsSpanBasedAnalysis
-                    && _document.SupportsSyntaxTree
+                    && _document is Document sourceDocument
+                    && sourceDocument.SupportsSyntaxTree
                     && _owner.GlobalOptions.GetOption(DiagnosticOptionsStorage.IncrementalMemberEditAnalysisFeatureFlag);
 
                 ImmutableDictionary<DiagnosticAnalyzer, ImmutableArray<DiagnosticData>> diagnosticsMap;
@@ -339,7 +341,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 }
 
                 if (incrementalAnalysis)
-                    _owner._incrementalMemberEditAnalyzer.UpdateDocumentWithCachedDiagnostics(_document);
+                    _owner._incrementalMemberEditAnalyzer.UpdateDocumentWithCachedDiagnostics((Document)_document);
             }
 
             private async Task<ImmutableDictionary<DiagnosticAnalyzer, ImmutableArray<DiagnosticData>>> ComputeDocumentDiagnosticsCoreAsync(

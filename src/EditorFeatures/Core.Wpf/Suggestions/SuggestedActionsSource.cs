@@ -261,7 +261,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 ITextBufferSupportsFeatureService supportsFeatureService,
                 ISuggestedActionCategorySet requestedActionCategories,
                 Workspace workspace,
-                TextDocument textDocument,
+                TextDocument document,
                 SnapshotSpan range,
                 Func<string, IDisposable?> addOperationScope,
                 CodeActionRequestPriority priority,
@@ -271,8 +271,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             {
                 if (state.Target.Owner._codeFixService == null ||
                     !supportsFeatureService.SupportsCodeFixes(state.Target.SubjectBuffer) ||
-                    !requestedActionCategories.Contains(PredefinedSuggestedActionCategoryNames.CodeFix) ||
-                    textDocument is not Document document)
+                    !requestedActionCategories.Contains(PredefinedSuggestedActionCategoryNames.CodeFix))
                 {
                     return SpecializedTasks.EmptyImmutableArray<UnifiedSuggestedActionSet>();
                 }
@@ -414,7 +413,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 
             private static async Task<string?> GetFixLevelAsync(
                 ReferenceCountedDisposable<State> state,
-                TextDocument textDocument,
+                TextDocument document,
                 SnapshotSpan range,
                 CodeActionOptionsProvider fallbackOptions,
                 CancellationToken cancellationToken)
@@ -434,8 +433,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 async Task<string?> GetFixLevelAsync(CodeActionRequestPriority priority)
                 {
                     if (state.Target.Owner._codeFixService != null &&
-                        state.Target.SubjectBuffer.SupportsCodeFixes() &&
-                        textDocument is Document document)
+                        state.Target.SubjectBuffer.SupportsCodeFixes())
                     {
                         var result = await state.Target.Owner._codeFixService.GetMostSevereFixAsync(
                             document, range.Span.ToTextSpan(), priority, fallbackOptions, isBlocking: false, cancellationToken).ConfigureAwait(false);

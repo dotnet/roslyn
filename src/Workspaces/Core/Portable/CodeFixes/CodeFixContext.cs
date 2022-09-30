@@ -21,19 +21,42 @@ namespace Microsoft.CodeAnalysis.CodeFixes
     public readonly struct CodeFixContext : ITypeScriptCodeFixContext
 #pragma warning restore
     {
-        private readonly Document _document;
+        private readonly TextDocument _document;
         private readonly TextSpan _span;
         private readonly ImmutableArray<Diagnostic> _diagnostics;
         private readonly CancellationToken _cancellationToken;
         private readonly Action<CodeAction, ImmutableArray<Diagnostic>> _registerCodeFix;
 
         /// <summary>
-        /// Document corresponding to the <see cref="Span"/> to fix.
+        /// Document corresponding to the <see cref="CodeFixContext.Span"/> to fix.
+        /// For code fixes that support non-source documents by providing a non-default value for
+        /// <see cref="ExportCodeFixProviderAttribute.DocumentKinds"/>, this property will
+        /// throw an <see cref="InvalidOperationException"/>. Such fixers should use the
+        /// <see cref="CodeFixContext.TextDocument"/> property instead.
         /// </summary>
-        public Document Document => _document;
+        public Document Document
+        {
+            get
+            {
+                if (TextDocument is not Document document)
+                {
+                    throw new InvalidOperationException();
+                }
+
+                return document;
+            }
+        }
 
         /// <summary>
-        /// Text span within the <see cref="Document"/> to fix.
+        /// TextDocument corresponding to the <see cref="Span"/> to fix.
+        /// This property should be used instead of <see cref="Document"/> property by
+        /// code fixes that support non-source documents by providing a non-default value for
+        /// <see cref="ExportCodeFixProviderAttribute.DocumentKinds"/>
+        /// </summary>
+        public TextDocument TextDocument => _document;
+
+        /// <summary>
+        /// Text span within the <see cref="Document"/> or <see cref="TextDocument"/> to fix.
         /// </summary>
         public TextSpan Span => _span;
 
@@ -124,8 +147,34 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         {
         }
 
+        /// <summary>
+        /// Creates a code fix context to be passed into <see cref="CodeFixProvider.RegisterCodeFixesAsync(CodeFixContext)"/> method.
+        /// </summary>
+        /// <param name="document">Text document to fix.</param>
+        /// <param name="diagnostic">
+        /// Diagnostic to fix.
+        /// The <see cref="Diagnostic.Id"/> of this diagnostic must be in the set of the <see cref="CodeFixProvider.FixableDiagnosticIds"/> of the associated <see cref="CodeFixProvider"/>.
+        /// </param>
+        /// <param name="registerCodeFix">Delegate to register a <see cref="CodeAction"/> fixing a subset of diagnostics.</param>
+        /// <param name="cancellationToken">Cancellation token.</param>
+        /// <exception cref="ArgumentNullException">Throws this exception if any of the arguments is null.</exception>
+        public CodeFixContext(
+            TextDocument document,
+            Diagnostic diagnostic,
+            Action<CodeAction, ImmutableArray<Diagnostic>> registerCodeFix,
+            CancellationToken cancellationToken)
+            : this(document ?? throw new ArgumentNullException(nameof(document)),
+                   (diagnostic ?? throw new ArgumentNullException(nameof(diagnostic))).Location.SourceSpan,
+                   ImmutableArray.Create(diagnostic),
+                   registerCodeFix ?? throw new ArgumentNullException(nameof(registerCodeFix)),
+                   CodeActionOptions.DefaultProvider,
+                   isBlocking: false,
+                   cancellationToken)
+        {
+        }
+
         internal CodeFixContext(
-            Document document,
+            TextDocument document,
             TextSpan span,
             ImmutableArray<Diagnostic> diagnostics,
             Action<CodeAction, ImmutableArray<Diagnostic>> registerCodeFix,

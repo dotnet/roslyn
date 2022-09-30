@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.UnifiedSuggestions
         public static async ValueTask<ImmutableArray<UnifiedSuggestedActionSet>> GetFilterAndOrderCodeFixesAsync(
             Workspace workspace,
             ICodeFixService codeFixService,
-            Document document,
+            TextDocument document,
             TextSpan selection,
             CodeActionRequestPriority priority,
             CodeActionOptionsProvider fallbackOptions,

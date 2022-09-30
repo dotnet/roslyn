@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis
         // so we can avoid the slow path unless there's any change to the references.
         private static readonly ConditionalWeakTable<IReadOnlyList<AnalyzerReference>, StrongBox<ImmutableArray<TExtension>>> s_referencesToExtensionsMap = new();
         private static readonly ConditionalWeakTable<AnalyzerReference, TProvider> s_referenceToProviderMap = new();
-        private static readonly ConditionalWeakTable<TExtension, ExtensionInfo> s_extensionInfoMap = new();
+        private static readonly ConditionalWeakTable<TExtension, ExtensionInfo?> s_extensionInfoMap = new();
 
         private AnalyzerReference Reference { get; init; } = null!;
         private ImmutableDictionary<string, ImmutableArray<TExtension>> _extensionsPerLanguage = ImmutableDictionary<string, ImmutableArray<TExtension>>.Empty;
@@ -77,8 +77,11 @@ namespace Microsoft.CodeAnalysis
                 if (!s_extensionInfoMap.TryGetValue(extension, out var extensionInfo))
                 {
                     extensionInfo = s_extensionInfoMap.GetValue(extension,
-                        new ConditionalWeakTable<TExtension, ExtensionInfo>.CreateValueCallback(ComputeExtensionInfo));
+                        new ConditionalWeakTable<TExtension, ExtensionInfo?>.CreateValueCallback(ComputeExtensionInfo));
                 }
+
+                if (extensionInfo == null)
+                    return true;
 
                 if (!extensionInfo.DocumentKinds.Contains(document.Kind))
                     return false;
