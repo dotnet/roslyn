@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
         private const char ObliviousMarker = '~';
 
         public sealed override ImmutableArray<string> FixableDiagnosticIds { get; } =
-            ImmutableArray.Create(DiagnosticIds.AnnotatePublicApiRuleId);
+            ImmutableArray.Create(DiagnosticIds.AnnotatePublicApiRuleId, DiagnosticIds.AnnotateInternalApiRuleId);
 
         public sealed override FixAllProvider GetFixAllProvider()
             => new PublicSurfaceAreaFixAllProvider();
@@ -36,8 +36,8 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
             foreach (Diagnostic diagnostic in context.Diagnostics)
             {
                 string minimalSymbolName = diagnostic.Properties[DeclarePublicApiAnalyzer.MinimalNamePropertyBagKey];
-                string publicSymbolName = diagnostic.Properties[DeclarePublicApiAnalyzer.PublicApiNamePropertyBagKey];
-                string publicSymbolNameWithNullability = diagnostic.Properties[DeclarePublicApiAnalyzer.PublicApiNameWithNullabilityPropertyBagKey];
+                string publicSymbolName = diagnostic.Properties[DeclarePublicApiAnalyzer.ApiNamePropertyBagKey];
+                string publicSymbolNameWithNullability = diagnostic.Properties[DeclarePublicApiAnalyzer.ApiNameWithNullabilityPropertyBagKey];
                 string fileName = diagnostic.Properties[DeclarePublicApiAnalyzer.FileName];
 
                 TextDocument? document = project.GetPublicApiDocument(fileName);
@@ -48,6 +48,7 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
                             new DeclarePublicApiFix.AdditionalDocumentChangeAction(
                                 $"Annotate {minimalSymbolName} in public API",
                                 document.Id,
+                                isPublic: diagnostic.Id == DiagnosticIds.AnnotatePublicApiRuleId,
                                 c => GetFix(document, publicSymbolName, publicSymbolNameWithNullability, c)),
                             diagnostic);
                 }
@@ -128,14 +129,18 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
 
                         foreach (Diagnostic diagnostic in grouping)
                         {
-                            if (diagnostic.Id != DeclarePublicApiAnalyzer.AnnotateApiRule.Id)
+                            switch (diagnostic.Id)
                             {
-                                continue;
+                                case DiagnosticIds.AnnotateInternalApiRuleId:
+                                case DiagnosticIds.AnnotatePublicApiRuleId:
+                                    break;
+                                default:
+                                    continue;
                             }
 
-                            string oldName = diagnostic.Properties[DeclarePublicApiAnalyzer.PublicApiNamePropertyBagKey];
-                            string newName = diagnostic.Properties[DeclarePublicApiAnalyzer.PublicApiNameWithNullabilityPropertyBagKey];
-                            bool isShipped = diagnostic.Properties[DeclarePublicApiAnalyzer.PublicApiIsShippedPropertyBagKey] == "true";
+                            string oldName = diagnostic.Properties[DeclarePublicApiAnalyzer.ApiNamePropertyBagKey];
+                            string newName = diagnostic.Properties[DeclarePublicApiAnalyzer.ApiNameWithNullabilityPropertyBagKey];
+                            bool isShipped = diagnostic.Properties[DeclarePublicApiAnalyzer.ApiIsShippedPropertyBagKey] == "true";
                             string fileName = diagnostic.Properties[DeclarePublicApiAnalyzer.FileName];
 
                             if (!allChanges.TryGetValue(fileName, out var mapToUpdate))
@@ -184,7 +189,7 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
                         {
                             ImmutableArray<Diagnostic> diagnostics = await fixAllContext.GetDocumentDiagnosticsAsync(fixAllContext.Document).ConfigureAwait(false);
                             diagnosticsToFix.Add(new KeyValuePair<Project, ImmutableArray<Diagnostic>>(fixAllContext.Project, diagnostics));
-                            title = string.Format(CultureInfo.InvariantCulture, PublicApiAnalyzerResources.AddAllItemsInDocumentToThePublicApiTitle, fixAllContext.Document.Name);
+                            title = string.Format(CultureInfo.InvariantCulture, PublicApiAnalyzerResources.AddAllItemsInDocumentToTheApiTitle, fixAllContext.Document.Name);
                             break;
                         }
 
@@ -193,7 +198,7 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
                             Project project = fixAllContext.Project;
                             ImmutableArray<Diagnostic> diagnostics = await fixAllContext.GetAllDiagnosticsAsync(project).ConfigureAwait(false);
                             diagnosticsToFix.Add(new KeyValuePair<Project, ImmutableArray<Diagnostic>>(fixAllContext.Project, diagnostics));
-                            title = string.Format(CultureInfo.InvariantCulture, PublicApiAnalyzerResources.AddAllItemsInProjectToThePublicApiTitle, fixAllContext.Project.Name);
+                            title = string.Format(CultureInfo.InvariantCulture, PublicApiAnalyzerResources.AddAllItemsInProjectToTheApiTitle, fixAllContext.Project.Name);
                             break;
                         }
 
@@ -205,7 +210,7 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
                                 diagnosticsToFix.Add(new KeyValuePair<Project, ImmutableArray<Diagnostic>>(project, diagnostics));
                             }
 
-                            title = PublicApiAnalyzerResources.AddAllItemsInTheSolutionToThePublicApiTitle;
+                            title = PublicApiAnalyzerResources.AddAllItemsInTheSolutionToTheApiTitle;
                             break;
                         }
 

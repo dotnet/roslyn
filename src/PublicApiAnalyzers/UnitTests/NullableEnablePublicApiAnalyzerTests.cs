@@ -26,12 +26,12 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers.UnitTests
 
             if (shippedApiText != null)
             {
-                test.TestState.AdditionalFiles.Add((DeclarePublicApiAnalyzer.ShippedFileName, shippedApiText));
+                test.TestState.AdditionalFiles.Add((DeclarePublicApiAnalyzer.PublicShippedFileName, shippedApiText));
             }
 
             if (unshippedApiText != null)
             {
-                test.TestState.AdditionalFiles.Add((DeclarePublicApiAnalyzer.UnshippedFileName, unshippedApiText));
+                test.TestState.AdditionalFiles.Add((DeclarePublicApiAnalyzer.PublicUnshippedFileName, unshippedApiText));
             }
 
             test.ExpectedDiagnostics.AddRange(expected);
@@ -48,12 +48,12 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers.UnitTests
             var test = new CSharpCodeFixTest<DeclarePublicApiAnalyzer, NullableEnablePublicApiFix, XUnitVerifier>();
 
             test.TestState.Sources.Add(source);
-            test.TestState.AdditionalFiles.Add((DeclarePublicApiAnalyzer.ShippedFileName, oldShippedApiText));
-            test.TestState.AdditionalFiles.Add((DeclarePublicApiAnalyzer.UnshippedFileName, oldUnshippedApiText));
+            test.TestState.AdditionalFiles.Add((DeclarePublicApiAnalyzer.PublicShippedFileName, oldShippedApiText));
+            test.TestState.AdditionalFiles.Add((DeclarePublicApiAnalyzer.PublicUnshippedFileName, oldUnshippedApiText));
 
             test.FixedState.Sources.Add(newSource);
-            test.FixedState.AdditionalFiles.Add((DeclarePublicApiAnalyzer.ShippedFileName, newShippedApiText));
-            test.FixedState.AdditionalFiles.Add((DeclarePublicApiAnalyzer.UnshippedFileName, newUnshippedApiText));
+            test.FixedState.AdditionalFiles.Add((DeclarePublicApiAnalyzer.PublicShippedFileName, newShippedApiText));
+            test.FixedState.AdditionalFiles.Add((DeclarePublicApiAnalyzer.PublicUnshippedFileName, newUnshippedApiText));
 
             await test.RunAsync();
         }

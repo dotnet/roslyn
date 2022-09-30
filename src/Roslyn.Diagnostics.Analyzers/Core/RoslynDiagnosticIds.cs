@@ -20,17 +20,17 @@ namespace Roslyn.Diagnostics.Analyzers
         // public const string DoNotCallLinqOnIndexable = "RS0014";                     // Now RS0014 => System.Runtime.Analyzers.DoNotUseEnumerableMethodsOnIndexableCollectionsInsteadUseTheCollectionDirectlyAnalyzer
         // public const string ConsumePreserveSigRuleId = "RS0015";                     // Now CA2010 => System.Runtime.InteropServices.Analyzers.AlwaysConsumeTheValueReturnedByMethodsMarkedWithPreserveSigAttributeAnalyzer
         public const string DeclarePublicApiRuleId = "RS0016";
-        public const string RemoveDeletedApiRuleId = "RS0017";
+        public const string RemoveDeletedPublicApiRuleId = "RS0017";
         // public const string DoNotCreateTasksWithoutTaskSchedulerRuleId = "RS0018";   // Now CA2008 => System.Threading.Tasks.Analyzers.DoNotCreateTasksWithoutPassingATaskSchedulerAnalyzer
         public const string SymbolDeclaredEventRuleId = "RS0019";
         // public const string DeadCodeRuleId = "RS0020";                               // Now ???
         // public const string DeadCodeTriggerRuleId = "RS0021";                        // Now ???
-        public const string ExposedNoninstantiableTypeRuleId = "RS0022";
+        public const string ExposedNoninstantiableTypeRuleIdPublic = "RS0022";
         public const string MissingSharedAttributeRuleId = "RS0023";
         public const string PublicApiFilesInvalid = "RS0024";
         public const string DuplicatedSymbolInPublicApiFiles = "RS0025";
-        public const string AvoidMultipleOverloadsWithOptionalParameters = "RS0026";
-        public const string OverloadWithOptionalParametersShouldHaveMostParameters = "RS0027";
+        public const string AvoidMultipleOverloadsWithOptionalParametersPublic = "RS0026";
+        public const string OverloadWithOptionalParametersShouldHaveMostParametersPublic = "RS0027";
         public const string RoslynAnalyzerMustUseIdInSpecifiedRangeRuleId = "RS0028";
         public const string RoslynAnalyzerMustUseCategoriesFromSpecifiedRangeRuleId = "RS0029";
         public const string SymbolIsBannedRuleId = "RS0030";
@@ -40,7 +40,7 @@ namespace Roslyn.Diagnostics.Analyzers
         public const string ExportedPartsShouldHaveImportingConstructorRuleId = "RS0034";
         public const string RestrictedInternalsVisibleToRuleId = "RS0035";
         public const string AnnotatePublicApiRuleId = "RS0036";
-        public const string ShouldAnnotateApiFilesRuleId = "RS0037";
+        public const string ShouldAnnotatePublicApiFilesRuleId = "RS0037";
         public const string PreferNullLiteralRuleId = "RS0038";
         public const string RelaxTestNamingSuppressionRuleId = "RS0039";
         public const string DefaultableTypeShouldHaveDefaultableFieldsRuleId = "RS0040";
@@ -55,6 +55,18 @@ namespace Roslyn.Diagnostics.Analyzers
         public const string TemporaryArrayAsRefRuleId = "RS0049";
 
         public const string RemovedApiIsNotActuallyRemovedRuleId = "RS0050";
+
+        public const string DeclareInternalApiRuleId = "RS0051";
+        public const string RemoveDeletedInternalApiRuleId = "RS0052";
+        public const string InternalApiFilesInvalid = "RS0053";
+        public const string DuplicatedSymbolInInternalApiFiles = "RS0054";
+        public const string AnnotateInternalApiRuleId = "RS0055";
+        public const string ShouldAnnotateInternalApiFilesRuleId = "RS0056";
+        public const string ObliviousInternalApiRuleId = "RS0057";
+        public const string InternalApiFileMissing = "RS0058";
+        public const string AvoidMultipleOverloadsWithOptionalParametersInternal = "RS0059";
+        public const string OverloadWithOptionalParametersShouldHaveMostParametersInternal = "RS0060";
+        public const string ExposedNoninstantiableTypeRuleIdInternal = "RS0061";
 
         //public const string WrapStatementsRuleId = "RS0100"; // Now ported to dotnet/roslyn https://github.com/dotnet/roslyn/pull/50358
         //public const string BlankLinesRuleId = "RS0101"; // Now ported to dotnet/roslyn https://github.com/dotnet/roslyn/pull/50358
