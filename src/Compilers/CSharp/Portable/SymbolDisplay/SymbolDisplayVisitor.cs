@@ -206,8 +206,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         AddSpace();
                     }
                 }
-
-                if (symbol.ScopedKind == ScopedKind.ScopedValue)
+                else if (symbol.ScopedKind == ScopedKind.ScopedValue)
                 {
                     AddKeyword(SyntaxKind.ScopedKeyword);
                     AddSpace();
