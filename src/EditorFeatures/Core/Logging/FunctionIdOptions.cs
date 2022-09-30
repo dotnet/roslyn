@@ -20,8 +20,19 @@ namespace Microsoft.CodeAnalysis.Internal.Log
 
         private static Option2<bool> CreateOption(FunctionId id)
         {
-            var name = Enum.GetName(typeof(FunctionId), id) ?? throw ExceptionUtilities.UnexpectedValue(id);
+            var name = id.ToString();
 
+            // This local storage location can be set via vsregedit. Which is available on any VS Command Prompt.
+            //
+            // To enable logging:
+            //
+            //     vsregedit set local [hive name] HKCU Roslyn\Internal\Performance\FunctionId [function name] dword 1
+            //
+            // To disable logging
+            //
+            //     vsregedit delete local [hive name] HKCU Roslyn\Internal\Performance\FunctionId [function name]
+            //
+            // If you want to set it for the default hive, use "" as the hive name (i.e. an empty argument)
             return new(nameof(FunctionIdOptions), name, defaultValue: false,
                 storageLocation: new LocalUserProfileStorageLocation(@"Roslyn\Internal\Performance\FunctionId\" + name));
         }
