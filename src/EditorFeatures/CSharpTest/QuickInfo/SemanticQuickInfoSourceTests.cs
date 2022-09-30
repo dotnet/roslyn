@@ -8416,5 +8416,22 @@ class Program
             await TestAsync(source,
                 MainDescription($"void Program.F(R r1, scoped R r2, ref R r3, scoped ref R r4, in R r5, scoped in R r6, out R r7, out R r8)"));
         }
+
+        [Fact]
+        public async Task TestScopedLocal()
+        {
+            var source =
+@"class Program
+{
+    static void Main()
+    {
+        int i = 0;
+        scoped ref int r = ref i;
+        i = $$r;
+    }
+}";
+            await TestAsync(source,
+                MainDescription($"({FeaturesResources.local_variable}) scoped ref int r"));
+        }
     }
 }
