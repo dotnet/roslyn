@@ -119,7 +119,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SuggestionServi
         }
 
         private static bool SupportsSemanticSnippetsWorker(DocumentId id)
-            => ContainedDocument.TryGetContainedDocument(id).SupportsSemanticSnippets;
+        {
+            var containedDocument = ContainedDocument.TryGetContainedDocument(id);
+            return containedDocument == null || containedDocument.SupportsSemanticSnippets;
+        }
 
         private static bool SupportsNavigationToAnyPositionWorker(DocumentId id)
             => ContainedDocument.TryGetContainedDocument(id) == null;
