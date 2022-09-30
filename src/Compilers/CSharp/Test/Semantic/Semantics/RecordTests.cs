@@ -30354,5 +30354,26 @@ record R1(int x);
                 Diagnostic(ErrorCode.ERR_ComImportWithImpl, "x").WithArguments("R1.x.init", "R1").WithLocation(4, 15)
                 );
         }
+
+        [Fact]
+        public void AttributedDerivedRecord_SemanticInfoOnBaseParameter()
+        {
+            var source = """
+                public record Base(int X);
+                [Attr]
+                public record Derived(int X) : Base(X);
+
+                class Attr : System.Attribute {}
+                """;
+
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var xReference = tree.GetRoot().DescendantNodes().OfType<PrimaryConstructorBaseTypeSyntax>().Single().ArgumentList.Arguments[0].Expression;
+
+            AssertEx.Equal("System.Int32 X", model.GetSymbolInfo(xReference).Symbol.ToTestDisplayString());
+        }
     }
 }
