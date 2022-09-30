@@ -811,48 +811,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         private bool CalculateUseUpdatedRules()
         {
             // [RefSafetyRules(version)], regardless of version.
-            if (_module.HasRefSafetyRulesAttribute(Token, out _))
-            {
-                return true;
-            }
-
-            // System.Runtime { ver: 7.0 }
-            if (IsOrReferencesSystemRuntimeCorLibrary(_module, out var corlibVersion) && corlibVersion is { Major: 7, Minor: 0 })
-            {
-                return true;
-            }
-
-            return false;
-        }
-
-        private static bool IsOrReferencesSystemRuntimeCorLibrary(PEModule module, out Version? version)
-        {
-            const string corlibName = "System.Runtime";
-
-            AssemblyIdentity? identity;
-            try
-            {
-                identity = module.ReadAssemblyIdentityOrThrow();
-            }
-            catch (BadImageFormatException)
-            {
-                identity = null;
-            }
-            if (identity?.Name == corlibName)
-            {
-                version = identity.Version;
-                return true;
-            }
-
-            var assemblyHandle = module.GetAssemblyRef(corlibName);
-            if (!assemblyHandle.IsNil)
-            {
-                version = module.GetAssemblyRef(assemblyHandle).Version;
-                return true;
-            }
-
-            version = null;
-            return false;
+            return _module.HasRefSafetyRulesAttribute(Token, out _);
         }
     }
 }

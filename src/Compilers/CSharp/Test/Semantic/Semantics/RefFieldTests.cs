@@ -19941,6 +19941,7 @@ $@".assembly extern mscorlib {{ .ver 4:0:0:0 .publickeytoken = (B7 7A 5C 56 19 3
             Assert.True(method.ContainingModule.UseUpdatedEscapeRules);
         }
 
+        [WorkItem(63691, "https://github.com/dotnet/roslyn/issues/63691")]
         [Theory]
         [CombinatorialData]
         public void DetectUpdatedEscapeRulesFromCorlib(
@@ -19991,12 +19992,13 @@ $@".assembly extern mscorlib {{ .ver 4:0:0:0 .publickeytoken = (B7 7A 5C 56 19 3
             Assert.Equal(assemblyIdentity, module.ReferencedAssemblies.Single());
             Assert.Equal(assemblyIdentity, module.ContainingAssembly.CorLibrary.Identity);
 
-            Assert.Equal(languageVersion == LanguageVersion.CSharp11 || majorVersion == 7, module.UseUpdatedEscapeRules);
+            Assert.Equal(languageVersion == LanguageVersion.CSharp11, module.UseUpdatedEscapeRules);
 
             module = comp.GetMember<NamedTypeSymbol>("System.Object").ContainingModule;
-            Assert.Equal(majorVersion == 7, module.UseUpdatedEscapeRules);
+            Assert.False(module.UseUpdatedEscapeRules);
         }
 
+        [WorkItem(63691, "https://github.com/dotnet/roslyn/issues/63691")]
         [Theory]
         [CombinatorialData]
         public void DetectUpdatedEscapeRulesFromCorlib_Retargeting(
@@ -20059,11 +20061,12 @@ $@".assembly extern mscorlib {{ .ver 4:0:0:0 .publickeytoken = (B7 7A 5C 56 19 3
             Assert.Equal(languageVersion == LanguageVersion.CSharp11, module.UseUpdatedEscapeRules);
 
             module = module.ContainingAssembly.CorLibrary.Modules[0];
-            Assert.Equal(higherVersion == 7, module.UseUpdatedEscapeRules);
+            Assert.False(module.UseUpdatedEscapeRules);
         }
 
+        [WorkItem(63691, "https://github.com/dotnet/roslyn/issues/63691")]
         [Theory]
-        [InlineData("System.Runtime", 7, 0, true)]
+        [InlineData("System.Runtime", 7, 0, false)]
         [InlineData("System.Runtime", 7, 1, false)]
         [InlineData("System.Runtime", 8, 0, false)]
         [InlineData("mscorlib", 7, 0, false)]
