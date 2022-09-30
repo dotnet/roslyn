@@ -31,8 +31,8 @@ namespace Microsoft.CodeAnalysis.Remote
                 cancellationToken =>
                 {
                     var services = this.GetWorkspaceServices();
-                    var service = services.GetRequiredService<ILegacySolutionEventsAggregationService>();
-                    return new ValueTask<bool>(service.ShouldReportChanges(services));
+                    var aggregationService = services.GetRequiredService<ILegacySolutionEventsAggregationService>();
+                    return new ValueTask<bool>(aggregationService.ShouldReportChanges(services));
                 },
                 cancellationToken);
         }
