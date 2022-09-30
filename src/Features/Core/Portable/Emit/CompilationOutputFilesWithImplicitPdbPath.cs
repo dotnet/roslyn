@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.Emit
 
         // Not gonna be called since we override OpenPdb.
         protected override Stream OpenPdbStream()
-            => throw ExceptionUtilities.Unreachable;
+            => throw ExceptionUtilities.Unreachable();
 
         public override DebugInformationReaderProvider? OpenPdb()
         {

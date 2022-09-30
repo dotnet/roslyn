@@ -239,7 +239,7 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
                     2 => ImmutableArray.Create(_item0, _item1),
                     3 => ImmutableArray.Create(_item0, _item1, _item2),
                     4 => ImmutableArray.Create(_item0, _item1, _item2, _item3),
-                    _ => throw ExceptionUtilities.Unreachable,
+                    _ => throw ExceptionUtilities.Unreachable(),
                 };
 
                 // Since _builder is null on this path, we can overwrite the whole structure to Empty to reset all
