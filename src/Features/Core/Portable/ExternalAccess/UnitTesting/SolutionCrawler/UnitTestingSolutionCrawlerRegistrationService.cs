@@ -104,6 +104,17 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
         }
 #endif
 
+        public bool HasRegisteredAnalyzerProviders
+        {
+            get
+            {
+                lock (_gate)
+                {
+                    return _analyzerProviders.Count > 0;
+                }
+            }
+        }
+
         public void AddAnalyzerProvider(IUnitTestingIncrementalAnalyzerProvider provider, UnitTestingIncrementalAnalyzerProviderMetadata metadata)
         {
             // now update all existing work coordinator

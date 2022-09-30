@@ -25,6 +25,18 @@ namespace Microsoft.CodeAnalysis.Remote
         {
         }
 
+        public ValueTask<bool> ShouldReportChangesAsync(CancellationToken cancellationToken)
+        {
+            return RunServiceImplAsync(
+                cancellationToken =>
+                {
+                    var services = this.GetWorkspaceServices();
+                    var aggregationService = services.GetRequiredService<ILegacySolutionEventsAggregationService>();
+                    return new ValueTask<bool>(aggregationService.ShouldReportChanges(services));
+                },
+                cancellationToken);
+        }
+
         public ValueTask OnWorkspaceChangedAsync(
             Checksum oldSolutionChecksum,
             Checksum newSolutionChecksum,

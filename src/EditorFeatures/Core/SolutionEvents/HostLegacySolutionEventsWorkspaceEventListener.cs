@@ -70,12 +70,26 @@ namespace Microsoft.CodeAnalysis.LegacySolutionEvents
             if (client is null)
             {
                 var aggregationService = workspace.Services.GetRequiredService<ILegacySolutionEventsAggregationService>();
+                var shouldReport = aggregationService.ShouldReportChanges(workspace.Services.SolutionServices);
+                if (!shouldReport)
+                    return;
 
                 foreach (var args in events)
                     await aggregationService.OnWorkspaceChangedAsync(args, cancellationToken).ConfigureAwait(false);
             }
             else
             {
+                // Notifying OOP of workspace events can be expensive (there may be a lot of them, and they involve
+                // syncing over entire solution snapshots).  As such, do not bother to do this if the remote side says
+                // that it's not interested in the events.  This will happen, for example, when the unittesting
+                // Test-Explorer window has not been shown yet, and so the unit testing system will not have registered
+                // an incremental analyzer with us.
+                var shouldReport = await client.TryInvokeAsync<IRemoteLegacySolutionEventsAggregationService, bool>(
+                    (service, cancellationToken) => service.ShouldReportChangesAsync(cancellationToken),
+                    cancellationToken).ConfigureAwait(false);
+                if (!shouldReport.HasValue || !shouldReport.Value)
+                    return;
+
                 foreach (var args in events)
                 {
                     await client.TryInvokeAsync<IRemoteLegacySolutionEventsAggregationService>(
