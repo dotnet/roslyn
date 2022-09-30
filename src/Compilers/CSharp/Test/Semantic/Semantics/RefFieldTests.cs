@@ -612,21 +612,21 @@ class C
                 // (15,9): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
                 //         S2* s2, // 2, 3
                 Diagnostic(ErrorCode.ERR_UnsafeNeeded, "S2*").WithLocation(15, 9),
-                // (15,13): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('S2')
+                // (15,13): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('S2')
                 //         S2* s2, // 2, 3
-                Diagnostic(ErrorCode.ERR_ManagedAddr, "s2").WithArguments("S2").WithLocation(15, 13),
+                Diagnostic(ErrorCode.WRN_ManagedAddr, "s2").WithArguments("S2").WithLocation(15, 13),
                 // (16,9): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
                 //         C* c) // 4, 5
                 Diagnostic(ErrorCode.ERR_UnsafeNeeded, "C*").WithLocation(16, 9),
-                // (16,12): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('C')
+                // (16,12): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('C')
                 //         C* c) // 4, 5
-                Diagnostic(ErrorCode.ERR_ManagedAddr, "c").WithArguments("C").WithLocation(16, 12),
-                // (22,13): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('S2')
+                Diagnostic(ErrorCode.WRN_ManagedAddr, "c").WithArguments("C").WithLocation(16, 12),
+                // (22,13): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('S2')
                 //         S2* s2, // 6
-                Diagnostic(ErrorCode.ERR_ManagedAddr, "s2").WithArguments("S2").WithLocation(22, 13),
-                // (23,12): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('C')
+                Diagnostic(ErrorCode.WRN_ManagedAddr, "s2").WithArguments("S2").WithLocation(22, 13),
+                // (23,12): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('C')
                 //         C* c) // 7
-                Diagnostic(ErrorCode.ERR_ManagedAddr, "c").WithArguments("C").WithLocation(23, 12)
+                Diagnostic(ErrorCode.WRN_ManagedAddr, "c").WithArguments("C").WithLocation(23, 12)
                 );
         }
 
@@ -645,19 +645,25 @@ public ref struct S2
 
 unsafe class C
 {
-    S* M1() => throw null;
-    S2* M2() => throw null; // 1
-    C* M3() => throw null; // 2
+    S* M1() => (S*)null;
+    S2* M2() => (S2*)null; // 1
+    C* M3() => (C*)null; // 2
 }
 ";
             var comp = CreateCompilation(source, options: TestOptions.UnsafeReleaseDll, runtimeFeature: RuntimeFlag.ByRefFields);
             comp.VerifyEmitDiagnostics(
-                // (14,9): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('S2')
-                //     S2* M2() => throw null; // 1
-                Diagnostic(ErrorCode.ERR_ManagedAddr, "M2").WithArguments("S2").WithLocation(14, 9),
-                // (15,8): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('C')
-                //     C* M3() => throw null; // 2
-                Diagnostic(ErrorCode.ERR_ManagedAddr, "M3").WithArguments("C").WithLocation(15, 8)
+                // (14,9): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('S2')
+                //     S2* M2() => (S2*)null; // 1
+                Diagnostic(ErrorCode.WRN_ManagedAddr, "M2").WithArguments("S2").WithLocation(14, 9),
+                // (14,18): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('S2')
+                //     S2* M2() => (S2*)null; // 1
+                Diagnostic(ErrorCode.WRN_ManagedAddr, "S2*").WithArguments("S2").WithLocation(14, 18),
+                // (15,8): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('C')
+                //     C* M3() => (C*)null; // 2
+                Diagnostic(ErrorCode.WRN_ManagedAddr, "M3").WithArguments("C").WithLocation(15, 8),
+                // (15,17): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('C')
+                //     C* M3() => (C*)null; // 2
+                Diagnostic(ErrorCode.WRN_ManagedAddr, "C*").WithArguments("C").WithLocation(15, 17)
                 );
         }
 
@@ -676,32 +682,59 @@ public ref struct S2
 
 class C
 {
-    void M()
-    {
-        S* s = null; // 1
-    }
-
-    unsafe void M2()
+    unsafe S M2()
     {
         S* s = null;
-        S2* s2 = null; // 2
-        C* c = null; // 3
+        return *s;
+    }
+    unsafe S2 M3()
+    {
+        S2* s2 = null; // 1
+        return *s2;
+    }
+    unsafe C M4()
+    {
+        C* c = null; // 2
+        return *c;
     }
 }
 ";
-            // Note: declaring local of this type still possible with `var`
             var comp = CreateCompilation(source, options: TestOptions.UnsafeReleaseDll, runtimeFeature: RuntimeFlag.ByRefFields);
             comp.VerifyEmitDiagnostics(
-                // (15,9): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
-                //         S* s = null; // 1
-                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "S*").WithLocation(15, 9),
-                // (21,9): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('S2')
-                //         S2* s2 = null; // 2
-                Diagnostic(ErrorCode.ERR_ManagedAddr, "S2*").WithArguments("S2").WithLocation(21, 9),
-                // (22,9): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('C')
-                //         C* c = null; // 3
-                Diagnostic(ErrorCode.ERR_ManagedAddr, "C*").WithArguments("C").WithLocation(22, 9)
+                // (20,9): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('S2')
+                //         S2* s2 = null; // 1
+                Diagnostic(ErrorCode.WRN_ManagedAddr, "S2*").WithArguments("S2").WithLocation(20, 9),
+                // (25,9): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('C')
+                //         C* c = null; // 2
+                Diagnostic(ErrorCode.WRN_ManagedAddr, "C*").WithArguments("C").WithLocation(25, 9)
                 );
+            var verifier = CompileAndVerify(comp, verify: Verification.Skipped);
+            verifier.VerifyIL("C.M3", @"
+{
+  // Code size       10 (0xa)
+  .maxstack  1
+  .locals init (S2* V_0) //s2
+  IL_0000:  ldc.i4.0
+  IL_0001:  conv.u
+  IL_0002:  stloc.0
+  IL_0003:  ldloc.0
+  IL_0004:  ldobj      ""S2""
+  IL_0009:  ret
+}
+");
+            verifier.VerifyIL("C.M4", @"
+{
+  // Code size        6 (0x6)
+  .maxstack  1
+  .locals init (C* V_0) //c
+  IL_0000:  ldc.i4.0
+  IL_0001:  conv.u
+  IL_0002:  stloc.0
+  IL_0003:  ldloc.0
+  IL_0004:  ldind.ref
+  IL_0005:  ret
+}
+");
         }
 
         [Fact]
@@ -726,52 +759,95 @@ class C
     unsafe void M()
     {
         fixed (S* x1 = &Prop) { }
-
+    }
+    unsafe void M2()
+    {
         fixed (S2* x2 = &Prop2) { } // 1
+    }
+    unsafe void M3()
+    {
         fixed (void* y2 = &Prop2) { } // 2
-
+    }
+    unsafe void M4()
+    {
         fixed (C* x3 = &Prop3) { } // 3
+    }
+    unsafe void M5()
+    {
         fixed (void* y3 = &Prop3) { } // 4
     }
 }
 ";
             // SPEC:
             // A fixed_pointer_initializer can be one of the following:
-            // The token “&” followed by a variable_reference to a moveable variable of an unmanaged type T,
+            // The token “&” followed by a variable_reference to a moveable variable of type T,
             // provided the type T* is implicitly convertible to the pointer type given in the fixed statement.
             var comp = CreateCompilation(source, options: TestOptions.UnsafeReleaseDll, runtimeFeature: RuntimeFlag.ByRefFields);
             comp.VerifyEmitDiagnostics(
-                // (21,16): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('S2')
+                // (23,16): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('S2')
                 //         fixed (S2* x2 = &Prop2) { } // 1
-                Diagnostic(ErrorCode.ERR_ManagedAddr, "S2*").WithArguments("S2").WithLocation(21, 16),
-                // (21,25): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('S2')
+                Diagnostic(ErrorCode.WRN_ManagedAddr, "S2*").WithArguments("S2").WithLocation(23, 16),
+                // (23,25): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('S2')
                 //         fixed (S2* x2 = &Prop2) { } // 1
-                Diagnostic(ErrorCode.WRN_ManagedAddr, "&Prop2").WithArguments("S2").WithLocation(21, 25),
-                // (21,25): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('S2')
+                Diagnostic(ErrorCode.WRN_ManagedAddr, "&Prop2").WithArguments("S2").WithLocation(23, 25),
+                // (23,25): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('S2')
                 //         fixed (S2* x2 = &Prop2) { } // 1
-                Diagnostic(ErrorCode.ERR_ManagedAddr, "&Prop2").WithArguments("S2").WithLocation(21, 25),
-                // (22,27): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('S2')
+                Diagnostic(ErrorCode.WRN_ManagedAddr, "&Prop2").WithArguments("S2").WithLocation(23, 25),
+                // (27,27): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('S2')
                 //         fixed (void* y2 = &Prop2) { } // 2
-                Diagnostic(ErrorCode.WRN_ManagedAddr, "&Prop2").WithArguments("S2").WithLocation(22, 27),
-                // (22,27): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('S2')
+                Diagnostic(ErrorCode.WRN_ManagedAddr, "&Prop2").WithArguments("S2").WithLocation(27, 27),
+                // (27,27): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('S2')
                 //         fixed (void* y2 = &Prop2) { } // 2
-                Diagnostic(ErrorCode.ERR_ManagedAddr, "&Prop2").WithArguments("S2").WithLocation(22, 27),
-                // (24,16): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('C')
+                Diagnostic(ErrorCode.WRN_ManagedAddr, "&Prop2").WithArguments("S2").WithLocation(27, 27),
+                // (31,16): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('C')
                 //         fixed (C* x3 = &Prop3) { } // 3
-                Diagnostic(ErrorCode.ERR_ManagedAddr, "C*").WithArguments("C").WithLocation(24, 16),
-                // (24,24): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('C')
+                Diagnostic(ErrorCode.WRN_ManagedAddr, "C*").WithArguments("C").WithLocation(31, 16),
+                // (31,24): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('C')
                 //         fixed (C* x3 = &Prop3) { } // 3
-                Diagnostic(ErrorCode.WRN_ManagedAddr, "&Prop3").WithArguments("C").WithLocation(24, 24),
-                // (24,24): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('C')
+                Diagnostic(ErrorCode.WRN_ManagedAddr, "&Prop3").WithArguments("C").WithLocation(31, 24),
+                // (31,24): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('C')
                 //         fixed (C* x3 = &Prop3) { } // 3
-                Diagnostic(ErrorCode.ERR_ManagedAddr, "&Prop3").WithArguments("C").WithLocation(24, 24),
-                // (25,27): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('C')
+                Diagnostic(ErrorCode.WRN_ManagedAddr, "&Prop3").WithArguments("C").WithLocation(31, 24),
+                // (35,27): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('C')
                 //         fixed (void* y3 = &Prop3) { } // 4
-                Diagnostic(ErrorCode.WRN_ManagedAddr, "&Prop3").WithArguments("C").WithLocation(25, 27),
-                // (25,27): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('C')
+                Diagnostic(ErrorCode.WRN_ManagedAddr, "&Prop3").WithArguments("C").WithLocation(35, 27),
+                // (35,27): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('C')
                 //         fixed (void* y3 = &Prop3) { } // 4
-                Diagnostic(ErrorCode.ERR_ManagedAddr, "&Prop3").WithArguments("C").WithLocation(25, 27)
+                Diagnostic(ErrorCode.WRN_ManagedAddr, "&Prop3").WithArguments("C").WithLocation(35, 27)
                 );
+            var verifier = CompileAndVerify(comp, verify: Verification.Skipped);
+            verifier.VerifyIL("C.M2", @"
+{
+  // Code size       13 (0xd)
+  .maxstack  1
+  .locals init (pinned S2& V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""ref S2 C.Prop2.get""
+  IL_0006:  stloc.0
+  IL_0007:  ldloc.0
+  IL_0008:  pop
+  IL_0009:  ldc.i4.0
+  IL_000a:  conv.u
+  IL_000b:  stloc.0
+  IL_000c:  ret
+}
+");
+            verifier.VerifyIL("C.M4", @"
+{
+  // Code size       13 (0xd)
+  .maxstack  1
+  .locals init (pinned C& V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""ref C C.Prop3.get""
+  IL_0006:  stloc.0
+  IL_0007:  ldloc.0
+  IL_0008:  pop
+  IL_0009:  ldc.i4.0
+  IL_000a:  conv.u
+  IL_000b:  stloc.0
+  IL_000c:  ret
+}
+");
         }
 
         [Fact]
@@ -875,31 +951,62 @@ public ref struct S2
 
 class C
 {
-    unsafe void M()
+    unsafe int M1()
     {
-        _ = sizeof(S*);
-        _ = sizeof(S2*); // 1
-        _ = sizeof(C*); // 2
-        _ = sizeof(S2); // 3
-        _ = sizeof(C); // 4
+        return sizeof(S*);
+    }
+    unsafe int M2()
+    {
+        return sizeof(S2*); // 1
+    }
+    unsafe int M3()
+    {
+        return sizeof(C*); // 2
+    }
+    unsafe int M4()
+    {
+        return sizeof(S2); // 3
+    }
+    unsafe int M5()
+    {
+        return sizeof(C); // 4
     }
 }
 ";
             var comp = CreateCompilation(source, options: TestOptions.UnsafeReleaseDll, runtimeFeature: RuntimeFlag.ByRefFields);
             comp.VerifyEmitDiagnostics(
-                // (16,20): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('S2')
-                //         _ = sizeof(S2*); // 1
-                Diagnostic(ErrorCode.ERR_ManagedAddr, "S2*").WithArguments("S2").WithLocation(16, 20),
-                // (17,20): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('C')
-                //         _ = sizeof(C*); // 2
-                Diagnostic(ErrorCode.ERR_ManagedAddr, "C*").WithArguments("C").WithLocation(17, 20),
-                // (18,13): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('S2')
-                //         _ = sizeof(S2); // 3
-                Diagnostic(ErrorCode.ERR_ManagedAddr, "sizeof(S2)").WithArguments("S2").WithLocation(18, 13),
-                // (19,13): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('C')
-                //         _ = sizeof(C); // 4
-                Diagnostic(ErrorCode.ERR_ManagedAddr, "sizeof(C)").WithArguments("C").WithLocation(19, 13)
+                // (19,23): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('S2')
+                //         return sizeof(S2*); // 1
+                Diagnostic(ErrorCode.WRN_ManagedAddr, "S2*").WithArguments("S2").WithLocation(19, 23),
+                // (23,23): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('C')
+                //         return sizeof(C*); // 2
+                Diagnostic(ErrorCode.WRN_ManagedAddr, "C*").WithArguments("C").WithLocation(23, 23),
+                // (27,16): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('S2')
+                //         return sizeof(S2); // 3
+                Diagnostic(ErrorCode.WRN_ManagedAddr, "sizeof(S2)").WithArguments("S2").WithLocation(27, 16),
+                // (31,16): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('C')
+                //         return sizeof(C); // 4
+                Diagnostic(ErrorCode.WRN_ManagedAddr, "sizeof(C)").WithArguments("C").WithLocation(31, 16)
                 );
+
+            var verifier = CompileAndVerify(comp, verify: Verification.Skipped);
+            verifier.VerifyIL("C.M2", @"
+{
+  // Code size        7 (0x7)
+  .maxstack  1
+  IL_0000:  sizeof     ""S2*""
+  IL_0006:  ret
+}
+");
+
+            verifier.VerifyIL("C.M4", @"
+{
+  // Code size        7 (0x7)
+  .maxstack  1
+  IL_0000:  sizeof     ""S2""
+  IL_0006:  ret
+}
+");
         }
 
         [Fact]
@@ -917,23 +1024,49 @@ public ref struct S2
 
 class C
 {
-    unsafe void M()
+    unsafe object M()
     {
-        _ = typeof(S*);
-        _ = typeof(S2*); // 1
-        _ = typeof(C*); // 2
+        return typeof(S*);
+    }
+    unsafe object M2()
+    {
+        return typeof(S2*); // 1
+    }
+    unsafe object M3()
+    {
+        return typeof(C*); // 2
     }
 }
 ";
             var comp = CreateCompilation(source, options: TestOptions.UnsafeReleaseDll, runtimeFeature: RuntimeFlag.ByRefFields);
             comp.VerifyEmitDiagnostics(
-                // (16,20): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('S2')
-                //         _ = typeof(S2*); // 1
-                Diagnostic(ErrorCode.ERR_ManagedAddr, "S2*").WithArguments("S2").WithLocation(16, 20),
-                // (17,20): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('C')
-                //         _ = typeof(C*); // 2
-                Diagnostic(ErrorCode.ERR_ManagedAddr, "C*").WithArguments("C").WithLocation(17, 20)
+                // (19,23): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('S2')
+                //         return typeof(S2*); // 1
+                Diagnostic(ErrorCode.WRN_ManagedAddr, "S2*").WithArguments("S2").WithLocation(19, 23),
+                // (23,23): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('C')
+                //         return typeof(C*); // 2
+                Diagnostic(ErrorCode.WRN_ManagedAddr, "C*").WithArguments("C").WithLocation(23, 23)
                 );
+            var verifier = CompileAndVerify(comp, verify: Verification.Skipped);
+            verifier.VerifyIL("C.M2", @"
+{
+  // Code size       11 (0xb)
+  .maxstack  1
+  IL_0000:  ldtoken    ""S2*""
+  IL_0005:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
+  IL_000a:  ret
+}
+");
+
+            verifier.VerifyIL("C.M3", @"
+{
+  // Code size       11 (0xb)
+  .maxstack  1
+  IL_0000:  ldtoken    ""C*""
+  IL_0005:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
+  IL_000a:  ret
+}
+");
         }
 
         [Fact]
@@ -1241,15 +1374,15 @@ class C
                 // (17,29): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('C')
                 //         var x3 = stackalloc C[0]; // 2
                 Diagnostic(ErrorCode.ERR_ManagedAddr, "C").WithArguments("C").WithLocation(17, 29),
-                // (20,9): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('S2')
+                // (20,9): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('S2')
                 //         S2* y2 = stackalloc S2[0]; // 3
-                Diagnostic(ErrorCode.ERR_ManagedAddr, "S2*").WithArguments("S2").WithLocation(20, 9),
+                Diagnostic(ErrorCode.WRN_ManagedAddr, "S2*").WithArguments("S2").WithLocation(20, 9),
                 // (20,29): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('S2')
                 //         S2* y2 = stackalloc S2[0]; // 3
                 Diagnostic(ErrorCode.ERR_ManagedAddr, "S2").WithArguments("S2").WithLocation(20, 29),
-                // (21,9): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('C')
+                // (21,9): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('C')
                 //         C* y3 = stackalloc C[0]; // 4
-                Diagnostic(ErrorCode.ERR_ManagedAddr, "C*").WithArguments("C").WithLocation(21, 9),
+                Diagnostic(ErrorCode.WRN_ManagedAddr, "C*").WithArguments("C").WithLocation(21, 9),
                 // (21,28): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('C')
                 //         C* y3 = stackalloc C[0]; // 4
                 Diagnostic(ErrorCode.ERR_ManagedAddr, "C").WithArguments("C").WithLocation(21, 28)
@@ -1279,7 +1412,11 @@ class C
 
         S* y1 = stackalloc[] { new S() };
         S2* y2 = stackalloc[] { new S2() }; // 3
+    }
+    unsafe C M2()
+    {
         C* y3 = stackalloc[] { new C() }; // 4
+        return y3[0];
     }
 }
 ";
@@ -1293,18 +1430,18 @@ class C
                 // (17,18): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('C')
                 //         var x3 = stackalloc[] { new C() }; // 2
                 Diagnostic(ErrorCode.ERR_ManagedAddr, "stackalloc[] { new C() }").WithArguments("C").WithLocation(17, 18),
-                // (20,9): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('S2')
+                // (20,9): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('S2')
                 //         S2* y2 = stackalloc[] { new S2() }; // 3
-                Diagnostic(ErrorCode.ERR_ManagedAddr, "S2*").WithArguments("S2").WithLocation(20, 9),
+                Diagnostic(ErrorCode.WRN_ManagedAddr, "S2*").WithArguments("S2").WithLocation(20, 9),
                 // (20,18): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('S2')
                 //         S2* y2 = stackalloc[] { new S2() }; // 3
                 Diagnostic(ErrorCode.ERR_ManagedAddr, "stackalloc[] { new S2() }").WithArguments("S2").WithLocation(20, 18),
-                // (21,9): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('C')
+                // (24,9): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('C')
                 //         C* y3 = stackalloc[] { new C() }; // 4
-                Diagnostic(ErrorCode.ERR_ManagedAddr, "C*").WithArguments("C").WithLocation(21, 9),
-                // (21,17): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('C')
+                Diagnostic(ErrorCode.WRN_ManagedAddr, "C*").WithArguments("C").WithLocation(24, 9),
+                // (24,17): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('C')
                 //         C* y3 = stackalloc[] { new C() }; // 4
-                Diagnostic(ErrorCode.ERR_ManagedAddr, "stackalloc[] { new C() }").WithArguments("C").WithLocation(21, 17)
+                Diagnostic(ErrorCode.ERR_ManagedAddr, "stackalloc[] { new C() }").WithArguments("C").WithLocation(24, 17)
                 );
         }
 
@@ -1339,24 +1476,24 @@ class C
             var spanReference = CreateCompilation(SpanSource, options: TestOptions.UnsafeReleaseDll);
             var comp = CreateCompilation(source, references: new[] { spanReference.EmitToImageReference() }, options: TestOptions.UnsafeReleaseDll, runtimeFeature: RuntimeFlag.ByRefFields);
             comp.VerifyEmitDiagnostics(
-                // (16,29): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('S2')
+                // (16,29): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('S2')
                 //         var x2 = stackalloc S2*[0]; // 1
-                Diagnostic(ErrorCode.ERR_ManagedAddr, "S2*").WithArguments("S2").WithLocation(16, 29),
-                // (17,29): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('C')
+                Diagnostic(ErrorCode.WRN_ManagedAddr, "S2*").WithArguments("S2").WithLocation(16, 29),
+                // (17,29): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('C')
                 //         var x3 = stackalloc C*[0]; // 2
-                Diagnostic(ErrorCode.ERR_ManagedAddr, "C*").WithArguments("C").WithLocation(17, 29),
-                // (20,9): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('S2')
+                Diagnostic(ErrorCode.WRN_ManagedAddr, "C*").WithArguments("C").WithLocation(17, 29),
+                // (20,9): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('S2')
                 //         S2** y2 = stackalloc S2*[0]; // 3
-                Diagnostic(ErrorCode.ERR_ManagedAddr, "S2*").WithArguments("S2").WithLocation(20, 9),
-                // (20,30): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('S2')
+                Diagnostic(ErrorCode.WRN_ManagedAddr, "S2*").WithArguments("S2").WithLocation(20, 9),
+                // (20,30): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('S2')
                 //         S2** y2 = stackalloc S2*[0]; // 3
-                Diagnostic(ErrorCode.ERR_ManagedAddr, "S2*").WithArguments("S2").WithLocation(20, 30),
-                // (21,9): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('C')
+                Diagnostic(ErrorCode.WRN_ManagedAddr, "S2*").WithArguments("S2").WithLocation(20, 30),
+                // (21,9): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('C')
                 //         C** y3 = stackalloc C*[0]; // 4
-                Diagnostic(ErrorCode.ERR_ManagedAddr, "C*").WithArguments("C").WithLocation(21, 9),
-                // (21,29): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('C')
+                Diagnostic(ErrorCode.WRN_ManagedAddr, "C*").WithArguments("C").WithLocation(21, 9),
+                // (21,29): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('C')
                 //         C** y3 = stackalloc C*[0]; // 4
-                Diagnostic(ErrorCode.ERR_ManagedAddr, "C*").WithArguments("C").WithLocation(21, 29)
+                Diagnostic(ErrorCode.WRN_ManagedAddr, "C*").WithArguments("C").WithLocation(21, 29)
                 );
         }
 
@@ -1401,12 +1538,12 @@ class C
                 // (17,19): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('C')
                 //         var s3 = (C*)null; // 2
                 Diagnostic(ErrorCode.WRN_ManagedAddr, "C*").WithArguments("C").WithLocation(17, 19),
-                // (24,9): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('S2')
+                // (24,9): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('S2')
                 //         S2** y2 = stackalloc[] { s2 }; // 3
-                Diagnostic(ErrorCode.ERR_ManagedAddr, "S2*").WithArguments("S2").WithLocation(24, 9),
-                // (25,9): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('C')
+                Diagnostic(ErrorCode.WRN_ManagedAddr, "S2*").WithArguments("S2").WithLocation(24, 9),
+                // (25,9): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('C')
                 //         C** y3 = stackalloc[] { s3 }; // 4
-                Diagnostic(ErrorCode.ERR_ManagedAddr, "C*").WithArguments("C").WithLocation(25, 9)
+                Diagnostic(ErrorCode.WRN_ManagedAddr, "C*").WithArguments("C").WithLocation(25, 9)
                 );
         }
 
@@ -4827,27 +4964,27 @@ class Program
 }";
             var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, runtimeFeature: RuntimeFlag.ByRefFields);
             comp.VerifyEmitDiagnostics(
-                // (7,9): error CS8331: Cannot assign to field 'S<T>.F' or use it as the right hand side of a ref assignment because it is a readonly variable
+                // (7,9): error CS8331: Cannot assign to field 'F' or use it as the right hand side of a ref assignment because it is a readonly variable
                 //         F = tValue; // 1
-                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField, "F").WithArguments("field", "S<T>.F").WithLocation(7, 9),
-                // (8,9): error CS8331: Cannot assign to field 'S<T>.F' or use it as the right hand side of a ref assignment because it is a readonly variable
+                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField, "F").WithArguments("field", "F").WithLocation(7, 9),
+                // (8,9): error CS8331: Cannot assign to field 'F' or use it as the right hand side of a ref assignment because it is a readonly variable
                 //         F = tRef; // 2
-                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField, "F").WithArguments("field", "S<T>.F").WithLocation(8, 9),
-                // (9,9): error CS8331: Cannot assign to field 'S<T>.F' or use it as the right hand side of a ref assignment because it is a readonly variable
+                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField, "F").WithArguments("field", "F").WithLocation(8, 9),
+                // (9,9): error CS8331: Cannot assign to field 'F' or use it as the right hand side of a ref assignment because it is a readonly variable
                 //         F = tOut; // 3
-                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField, "F").WithArguments("field", "S<T>.F").WithLocation(9, 9),
-                // (10,9): error CS8331: Cannot assign to field 'S<T>.F' or use it as the right hand side of a ref assignment because it is a readonly variable
+                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField, "F").WithArguments("field", "F").WithLocation(9, 9),
+                // (10,9): error CS8331: Cannot assign to field 'F' or use it as the right hand side of a ref assignment because it is a readonly variable
                 //         F = tIn; // 4
-                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField, "F").WithArguments("field", "S<T>.F").WithLocation(10, 9),
-                // (16,13): error CS8331: Cannot assign to field 'S<T>.F' or use it as the right hand side of a ref assignment because it is a readonly variable
+                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField, "F").WithArguments("field", "F").WithLocation(10, 9),
+                // (16,13): error CS8331: Cannot assign to field 'F' or use it as the right hand side of a ref assignment because it is a readonly variable
                 //             F = GetValue(); // 5
-                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField, "F").WithArguments("field", "S<T>.F").WithLocation(16, 13),
-                // (17,13): error CS8331: Cannot assign to field 'S<T>.F' or use it as the right hand side of a ref assignment because it is a readonly variable
+                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField, "F").WithArguments("field", "F").WithLocation(16, 13),
+                // (17,13): error CS8331: Cannot assign to field 'F' or use it as the right hand side of a ref assignment because it is a readonly variable
                 //             F = GetRef(); // 6
-                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField, "F").WithArguments("field", "S<T>.F").WithLocation(17, 13),
-                // (18,13): error CS8331: Cannot assign to field 'S<T>.F' or use it as the right hand side of a ref assignment because it is a readonly variable
+                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField, "F").WithArguments("field", "F").WithLocation(17, 13),
+                // (18,13): error CS8331: Cannot assign to field 'F' or use it as the right hand side of a ref assignment because it is a readonly variable
                 //             F = GetRefReadonly(); // 7
-                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField, "F").WithArguments("field", "S<T>.F").WithLocation(18, 13));
+                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField, "F").WithArguments("field", "F").WithLocation(18, 13));
         }
 
         [Fact]
@@ -4912,27 +5049,27 @@ class Program
 }";
             var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, runtimeFeature: RuntimeFlag.ByRefFields);
             comp.VerifyEmitDiagnostics(
-                // (7,9): error CS8331: Cannot assign to field 'S<T>.F' or use it as the right hand side of a ref assignment because it is a readonly variable
+                // (7,9): error CS8331: Cannot assign to field 'F' or use it as the right hand side of a ref assignment because it is a readonly variable
                 //         F = tValue; // 1
-                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField, "F").WithArguments("field", "S<T>.F").WithLocation(7, 9),
-                // (8,9): error CS8331: Cannot assign to field 'S<T>.F' or use it as the right hand side of a ref assignment because it is a readonly variable
+                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField, "F").WithArguments("field", "F").WithLocation(7, 9),
+                // (8,9): error CS8331: Cannot assign to field 'F' or use it as the right hand side of a ref assignment because it is a readonly variable
                 //         F = tRef; // 2
-                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField, "F").WithArguments("field", "S<T>.F").WithLocation(8, 9),
-                // (9,9): error CS8331: Cannot assign to field 'S<T>.F' or use it as the right hand side of a ref assignment because it is a readonly variable
+                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField, "F").WithArguments("field", "F").WithLocation(8, 9),
+                // (9,9): error CS8331: Cannot assign to field 'F' or use it as the right hand side of a ref assignment because it is a readonly variable
                 //         F = tOut; // 3
-                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField, "F").WithArguments("field", "S<T>.F").WithLocation(9, 9),
-                // (10,9): error CS8331: Cannot assign to field 'S<T>.F' or use it as the right hand side of a ref assignment because it is a readonly variable
+                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField, "F").WithArguments("field", "F").WithLocation(9, 9),
+                // (10,9): error CS8331: Cannot assign to field 'F' or use it as the right hand side of a ref assignment because it is a readonly variable
                 //         F = tIn; // 4
-                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField, "F").WithArguments("field", "S<T>.F").WithLocation(10, 9),
-                // (16,13): error CS8331: Cannot assign to field 'S<T>.F' or use it as the right hand side of a ref assignment because it is a readonly variable
+                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField, "F").WithArguments("field", "F").WithLocation(10, 9),
+                // (16,13): error CS8331: Cannot assign to field 'F' or use it as the right hand side of a ref assignment because it is a readonly variable
                 //             F = GetValue(); // 5
-                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField, "F").WithArguments("field", "S<T>.F").WithLocation(16, 13),
-                // (17,13): error CS8331: Cannot assign to field 'S<T>.F' or use it as the right hand side of a ref assignment because it is a readonly variable
+                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField, "F").WithArguments("field", "F").WithLocation(16, 13),
+                // (17,13): error CS8331: Cannot assign to field 'F' or use it as the right hand side of a ref assignment because it is a readonly variable
                 //             F = GetRef(); // 6
-                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField, "F").WithArguments("field", "S<T>.F").WithLocation(17, 13),
-                // (18,13): error CS8331: Cannot assign to field 'S<T>.F' or use it as the right hand side of a ref assignment because it is a readonly variable
+                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField, "F").WithArguments("field", "F").WithLocation(17, 13),
+                // (18,13): error CS8331: Cannot assign to field 'F' or use it as the right hand side of a ref assignment because it is a readonly variable
                 //             F = GetRefReadonly(); // 7
-                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField, "F").WithArguments("field", "S<T>.F").WithLocation(18, 13));
+                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField, "F").WithArguments("field", "F").WithLocation(18, 13));
         }
 
         [Fact]
@@ -4970,15 +5107,15 @@ class Program
                 // (9,9): error CS8374: Cannot ref-assign 'tOut' to 'F' because 'tOut' has a narrower escape scope than 'F'.
                 //         F = ref tOut; // 2
                 Diagnostic(ErrorCode.ERR_RefAssignNarrower, "F = ref tOut").WithArguments("F", "tOut").WithLocation(9, 9),
-                // (10,17): error CS8331: Cannot assign to variable 'in T' or use it as the right hand side of a ref assignment because it is a readonly variable
+                // (10,17): error CS8331: Cannot assign to variable 'tIn' or use it as the right hand side of a ref assignment because it is a readonly variable
                 //         F = ref tIn; // 3
-                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField, "tIn").WithArguments("variable", "in T").WithLocation(10, 17),
+                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField, "tIn").WithArguments("variable", "tIn").WithLocation(10, 17),
                 // (16,13): error CS8374: Cannot ref-assign 'value' to 'F' because 'value' has a narrower escape scope than 'F'.
                 //             F = ref value; // 4
                 Diagnostic(ErrorCode.ERR_RefAssignNarrower, "F = ref value").WithArguments("F", "value").WithLocation(16, 13),
-                // (18,21): error CS8331: Cannot assign to method 'S<T>.GetRefReadonly()' or use it as the right hand side of a ref assignment because it is a readonly variable
+                // (18,21): error CS8331: Cannot assign to method 'GetRefReadonly' or use it as the right hand side of a ref assignment because it is a readonly variable
                 //             F = ref GetRefReadonly(); // 5
-                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField, "GetRefReadonly()").WithArguments("method", "S<T>.GetRefReadonly()").WithLocation(18, 21));
+                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField, "GetRefReadonly()").WithArguments("method", "GetRefReadonly").WithLocation(18, 21));
         }
 
         [Fact]
@@ -5056,15 +5193,15 @@ class Program
                 // (9,9): error CS8374: Cannot ref-assign 'tOut' to 'F' because 'tOut' has a narrower escape scope than 'F'.
                 //         F = ref tOut; // 2
                 Diagnostic(ErrorCode.ERR_RefAssignNarrower, "F = ref tOut").WithArguments("F", "tOut").WithLocation(9, 9),
-                // (10,17): error CS8331: Cannot assign to variable 'in T' or use it as the right hand side of a ref assignment because it is a readonly variable
+                // (10,17): error CS8331: Cannot assign to variable 'tIn' or use it as the right hand side of a ref assignment because it is a readonly variable
                 //         F = ref tIn; // 3
-                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField, "tIn").WithArguments("variable", "in T").WithLocation(10, 17),
+                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField, "tIn").WithArguments("variable", "tIn").WithLocation(10, 17),
                 // (16,13): error CS8374: Cannot ref-assign 'value' to 'F' because 'value' has a narrower escape scope than 'F'.
                 //             F = ref value; // 4
                 Diagnostic(ErrorCode.ERR_RefAssignNarrower, "F = ref value").WithArguments("F", "value").WithLocation(16, 13),
-                // (18,21): error CS8331: Cannot assign to method 'S<T>.GetRefReadonly()' or use it as the right hand side of a ref assignment because it is a readonly variable
+                // (18,21): error CS8331: Cannot assign to method 'GetRefReadonly' or use it as the right hand side of a ref assignment because it is a readonly variable
                 //             F = ref GetRefReadonly(); // 5
-                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField, "GetRefReadonly()").WithArguments("method", "S<T>.GetRefReadonly()").WithLocation(18, 21));
+                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField, "GetRefReadonly()").WithArguments("method", "GetRefReadonly").WithLocation(18, 21));
         }
 
         [Fact]
@@ -5462,54 +5599,54 @@ class Program
 }";
             var comp = CreateCompilation(source, runtimeFeature: RuntimeFlag.ByRefFields);
             comp.VerifyEmitDiagnostics(
-                // (9,59): error CS8331: Cannot assign to field 'S<T>.F' or use it as the right hand side of a ref assignment because it is a readonly variable
+                // (9,59): error CS8331: Cannot assign to field 'F' or use it as the right hand side of a ref assignment because it is a readonly variable
                 //     static void AssignValueToValue<T>(S<T> s, T tValue) { s.F = tValue; } // 1
-                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField, "s.F").WithArguments("field", "S<T>.F").WithLocation(9, 59),
-                // (10,59): error CS8331: Cannot assign to field 'S<T>.F' or use it as the right hand side of a ref assignment because it is a readonly variable
+                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField, "s.F").WithArguments("field", "F").WithLocation(9, 59),
+                // (10,59): error CS8331: Cannot assign to field 'F' or use it as the right hand side of a ref assignment because it is a readonly variable
                 //     static void AssignRefToValue<T>(S<T> s, ref T tRef) { s.F = tRef; } // 2
-                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField, "s.F").WithArguments("field", "S<T>.F").WithLocation(10, 59),
-                // (11,75): error CS8331: Cannot assign to field 'S<T>.F' or use it as the right hand side of a ref assignment because it is a readonly variable
+                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField, "s.F").WithArguments("field", "F").WithLocation(10, 59),
+                // (11,75): error CS8331: Cannot assign to field 'F' or use it as the right hand side of a ref assignment because it is a readonly variable
                 //     static void AssignOutToValue<T>(S<T> s, out T tOut) { tOut = default; s.F = tOut; } // 3
-                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField, "s.F").WithArguments("field", "S<T>.F").WithLocation(11, 75),
-                // (12,59): error CS8331: Cannot assign to field 'S<T>.F' or use it as the right hand side of a ref assignment because it is a readonly variable
+                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField, "s.F").WithArguments("field", "F").WithLocation(11, 75),
+                // (12,59): error CS8331: Cannot assign to field 'F' or use it as the right hand side of a ref assignment because it is a readonly variable
                 //     static void AssignInToValue<T>(S<T> s, in T tIn)    { s.F = tIn; } // 4
-                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField, "s.F").WithArguments("field", "S<T>.F").WithLocation(12, 59),
-                // (14,64): error CS8331: Cannot assign to field 'S<T>.F' or use it as the right hand side of a ref assignment because it is a readonly variable
+                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField, "s.F").WithArguments("field", "F").WithLocation(12, 59),
+                // (14,64): error CS8331: Cannot assign to field 'F' or use it as the right hand side of a ref assignment because it is a readonly variable
                 //     static void AssignValueToRef<T>(ref S<T> sRef, T tValue) { sRef.F = tValue; } // 5
-                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField, "sRef.F").WithArguments("field", "S<T>.F").WithLocation(14, 64),
-                // (15,64): error CS8331: Cannot assign to field 'S<T>.F' or use it as the right hand side of a ref assignment because it is a readonly variable
+                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField, "sRef.F").WithArguments("field", "F").WithLocation(14, 64),
+                // (15,64): error CS8331: Cannot assign to field 'F' or use it as the right hand side of a ref assignment because it is a readonly variable
                 //     static void AssignRefToRef<T>(ref S<T> sRef, ref T tRef) { sRef.F = tRef; } // 6
-                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField, "sRef.F").WithArguments("field", "S<T>.F").WithLocation(15, 64),
-                // (16,80): error CS8331: Cannot assign to field 'S<T>.F' or use it as the right hand side of a ref assignment because it is a readonly variable
+                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField, "sRef.F").WithArguments("field", "F").WithLocation(15, 64),
+                // (16,80): error CS8331: Cannot assign to field 'F' or use it as the right hand side of a ref assignment because it is a readonly variable
                 //     static void AssignOutToRef<T>(ref S<T> sRef, out T tOut) { tOut = default; sRef.F = tOut; } // 7
-                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField, "sRef.F").WithArguments("field", "S<T>.F").WithLocation(16, 80),
-                // (17,64): error CS8331: Cannot assign to field 'S<T>.F' or use it as the right hand side of a ref assignment because it is a readonly variable
+                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField, "sRef.F").WithArguments("field", "F").WithLocation(16, 80),
+                // (17,64): error CS8331: Cannot assign to field 'F' or use it as the right hand side of a ref assignment because it is a readonly variable
                 //     static void AssignInToRef<T>(ref S<T> sRef, in T tIn)    { sRef.F = tIn; } // 8
-                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField, "sRef.F").WithArguments("field", "S<T>.F").WithLocation(17, 64),
-                // (19,80): error CS8331: Cannot assign to field 'S<T>.F' or use it as the right hand side of a ref assignment because it is a readonly variable
+                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField, "sRef.F").WithArguments("field", "F").WithLocation(17, 64),
+                // (19,80): error CS8331: Cannot assign to field 'F' or use it as the right hand side of a ref assignment because it is a readonly variable
                 //     static void AssignValueToOut<T>(out S<T> sOut, T tValue) { sOut = default; sOut.F = tValue; } // 9
-                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField, "sOut.F").WithArguments("field", "S<T>.F").WithLocation(19, 80),
-                // (20,80): error CS8331: Cannot assign to field 'S<T>.F' or use it as the right hand side of a ref assignment because it is a readonly variable
+                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField, "sOut.F").WithArguments("field", "F").WithLocation(19, 80),
+                // (20,80): error CS8331: Cannot assign to field 'F' or use it as the right hand side of a ref assignment because it is a readonly variable
                 //     static void AssignRefToOut<T>(out S<T> sOut, ref T tRef) { sOut = default; sOut.F = tRef; } // 10
-                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField, "sOut.F").WithArguments("field", "S<T>.F").WithLocation(20, 80),
-                // (21,96): error CS8331: Cannot assign to field 'S<T>.F' or use it as the right hand side of a ref assignment because it is a readonly variable
+                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField, "sOut.F").WithArguments("field", "F").WithLocation(20, 80),
+                // (21,96): error CS8331: Cannot assign to field 'F' or use it as the right hand side of a ref assignment because it is a readonly variable
                 //     static void AssignOutToOut<T>(out S<T> sOut, out T tOut) { sOut = default; tOut = default; sOut.F = tOut; } // 11
-                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField, "sOut.F").WithArguments("field", "S<T>.F").WithLocation(21, 96),
-                // (22,80): error CS8331: Cannot assign to field 'S<T>.F' or use it as the right hand side of a ref assignment because it is a readonly variable
+                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField, "sOut.F").WithArguments("field", "F").WithLocation(21, 96),
+                // (22,80): error CS8331: Cannot assign to field 'F' or use it as the right hand side of a ref assignment because it is a readonly variable
                 //     static void AssignInToOut<T>(out S<T> sOut, in T tIn)    { sOut = default; sOut.F = tIn; } // 12
-                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField, "sOut.F").WithArguments("field", "S<T>.F").WithLocation(22, 80),
-                // (24,61): error CS8331: Cannot assign to field 'S<T>.F' or use it as the right hand side of a ref assignment because it is a readonly variable
+                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField, "sOut.F").WithArguments("field", "F").WithLocation(22, 80),
+                // (24,61): error CS8331: Cannot assign to field 'F' or use it as the right hand side of a ref assignment because it is a readonly variable
                 //     static void AssignValueToIn<T>(in S<T> sIn, T tValue) { sIn.F = tValue; } // 13
-                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField, "sIn.F").WithArguments("field", "S<T>.F").WithLocation(24, 61),
-                // (25,61): error CS8331: Cannot assign to field 'S<T>.F' or use it as the right hand side of a ref assignment because it is a readonly variable
+                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField, "sIn.F").WithArguments("field", "F").WithLocation(24, 61),
+                // (25,61): error CS8331: Cannot assign to field 'F' or use it as the right hand side of a ref assignment because it is a readonly variable
                 //     static void AssignRefToIn<T>(in S<T> sIn, ref T tRef) { sIn.F = tRef; } // 14
-                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField, "sIn.F").WithArguments("field", "S<T>.F").WithLocation(25, 61),
-                // (26,77): error CS8331: Cannot assign to field 'S<T>.F' or use it as the right hand side of a ref assignment because it is a readonly variable
+                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField, "sIn.F").WithArguments("field", "F").WithLocation(25, 61),
+                // (26,77): error CS8331: Cannot assign to field 'F' or use it as the right hand side of a ref assignment because it is a readonly variable
                 //     static void AssignOutToIn<T>(in S<T> sIn, out T tOut) { tOut = default; sIn.F = tOut; } // 15
-                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField, "sIn.F").WithArguments("field", "S<T>.F").WithLocation(26, 77),
-                // (27,61): error CS8331: Cannot assign to field 'S<T>.F' or use it as the right hand side of a ref assignment because it is a readonly variable
+                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField, "sIn.F").WithArguments("field", "F").WithLocation(26, 77),
+                // (27,61): error CS8331: Cannot assign to field 'F' or use it as the right hand side of a ref assignment because it is a readonly variable
                 //     static void AssignInToIn<T>(in S<T> sIn, in T tIn)    { sIn.F = tIn; } // 16
-                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField, "sIn.F").WithArguments("field", "S<T>.F").WithLocation(27, 61));
+                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField, "sIn.F").WithArguments("field", "F").WithLocation(27, 61));
         }
 
         [Fact]
@@ -5867,54 +6004,54 @@ class Program
 }";
             var comp = CreateCompilation(source, runtimeFeature: RuntimeFlag.ByRefFields);
             comp.VerifyEmitDiagnostics(
-                // (9,59): error CS8331: Cannot assign to field 'S<T>.F' or use it as the right hand side of a ref assignment because it is a readonly variable
+                // (9,59): error CS8331: Cannot assign to field 'F' or use it as the right hand side of a ref assignment because it is a readonly variable
                 //     static void AssignValueToValue<T>(S<T> s, T tValue) { s.F = tValue; } // 1
-                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField, "s.F").WithArguments("field", "S<T>.F").WithLocation(9, 59),
-                // (10,59): error CS8331: Cannot assign to field 'S<T>.F' or use it as the right hand side of a ref assignment because it is a readonly variable
+                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField, "s.F").WithArguments("field", "F").WithLocation(9, 59),
+                // (10,59): error CS8331: Cannot assign to field 'F' or use it as the right hand side of a ref assignment because it is a readonly variable
                 //     static void AssignRefToValue<T>(S<T> s, ref T tRef) { s.F = tRef; } // 2
-                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField, "s.F").WithArguments("field", "S<T>.F").WithLocation(10, 59),
-                // (11,75): error CS8331: Cannot assign to field 'S<T>.F' or use it as the right hand side of a ref assignment because it is a readonly variable
+                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField, "s.F").WithArguments("field", "F").WithLocation(10, 59),
+                // (11,75): error CS8331: Cannot assign to field 'F' or use it as the right hand side of a ref assignment because it is a readonly variable
                 //     static void AssignOutToValue<T>(S<T> s, out T tOut) { tOut = default; s.F = tOut; } // 3
-                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField, "s.F").WithArguments("field", "S<T>.F").WithLocation(11, 75),
-                // (12,59): error CS8331: Cannot assign to field 'S<T>.F' or use it as the right hand side of a ref assignment because it is a readonly variable
+                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField, "s.F").WithArguments("field", "F").WithLocation(11, 75),
+                // (12,59): error CS8331: Cannot assign to field 'F' or use it as the right hand side of a ref assignment because it is a readonly variable
                 //     static void AssignInToValue<T>(S<T> s, in T tIn)    { s.F = tIn; } // 4
-                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField, "s.F").WithArguments("field", "S<T>.F").WithLocation(12, 59),
-                // (14,64): error CS8331: Cannot assign to field 'S<T>.F' or use it as the right hand side of a ref assignment because it is a readonly variable
+                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField, "s.F").WithArguments("field", "F").WithLocation(12, 59),
+                // (14,64): error CS8331: Cannot assign to field 'F' or use it as the right hand side of a ref assignment because it is a readonly variable
                 //     static void AssignValueToRef<T>(ref S<T> sRef, T tValue) { sRef.F = tValue; } // 5
-                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField, "sRef.F").WithArguments("field", "S<T>.F").WithLocation(14, 64),
-                // (15,64): error CS8331: Cannot assign to field 'S<T>.F' or use it as the right hand side of a ref assignment because it is a readonly variable
+                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField, "sRef.F").WithArguments("field", "F").WithLocation(14, 64),
+                // (15,64): error CS8331: Cannot assign to field 'F' or use it as the right hand side of a ref assignment because it is a readonly variable
                 //     static void AssignRefToRef<T>(ref S<T> sRef, ref T tRef) { sRef.F = tRef; } // 6
-                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField, "sRef.F").WithArguments("field", "S<T>.F").WithLocation(15, 64),
-                // (16,80): error CS8331: Cannot assign to field 'S<T>.F' or use it as the right hand side of a ref assignment because it is a readonly variable
+                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField, "sRef.F").WithArguments("field", "F").WithLocation(15, 64),
+                // (16,80): error CS8331: Cannot assign to field 'F' or use it as the right hand side of a ref assignment because it is a readonly variable
                 //     static void AssignOutToRef<T>(ref S<T> sRef, out T tOut) { tOut = default; sRef.F = tOut; } // 7
-                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField, "sRef.F").WithArguments("field", "S<T>.F").WithLocation(16, 80),
-                // (17,64): error CS8331: Cannot assign to field 'S<T>.F' or use it as the right hand side of a ref assignment because it is a readonly variable
+                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField, "sRef.F").WithArguments("field", "F").WithLocation(16, 80),
+                // (17,64): error CS8331: Cannot assign to field 'F' or use it as the right hand side of a ref assignment because it is a readonly variable
                 //     static void AssignInToRef<T>(ref S<T> sRef, in T tIn)    { sRef.F = tIn; } // 8
-                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField, "sRef.F").WithArguments("field", "S<T>.F").WithLocation(17, 64),
-                // (19,80): error CS8331: Cannot assign to field 'S<T>.F' or use it as the right hand side of a ref assignment because it is a readonly variable
+                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField, "sRef.F").WithArguments("field", "F").WithLocation(17, 64),
+                // (19,80): error CS8331: Cannot assign to field 'F' or use it as the right hand side of a ref assignment because it is a readonly variable
                 //     static void AssignValueToOut<T>(out S<T> sOut, T tValue) { sOut = default; sOut.F = tValue; } // 9
-                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField, "sOut.F").WithArguments("field", "S<T>.F").WithLocation(19, 80),
-                // (20,80): error CS8331: Cannot assign to field 'S<T>.F' or use it as the right hand side of a ref assignment because it is a readonly variable
+                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField, "sOut.F").WithArguments("field", "F").WithLocation(19, 80),
+                // (20,80): error CS8331: Cannot assign to field 'F' or use it as the right hand side of a ref assignment because it is a readonly variable
                 //     static void AssignRefToOut<T>(out S<T> sOut, ref T tRef) { sOut = default; sOut.F = tRef; } // 10
-                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField, "sOut.F").WithArguments("field", "S<T>.F").WithLocation(20, 80),
-                // (21,96): error CS8331: Cannot assign to field 'S<T>.F' or use it as the right hand side of a ref assignment because it is a readonly variable
+                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField, "sOut.F").WithArguments("field", "F").WithLocation(20, 80),
+                // (21,96): error CS8331: Cannot assign to field 'F' or use it as the right hand side of a ref assignment because it is a readonly variable
                 //     static void AssignOutToOut<T>(out S<T> sOut, out T tOut) { sOut = default; tOut = default; sOut.F = tOut; } // 11
-                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField, "sOut.F").WithArguments("field", "S<T>.F").WithLocation(21, 96),
-                // (22,80): error CS8331: Cannot assign to field 'S<T>.F' or use it as the right hand side of a ref assignment because it is a readonly variable
+                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField, "sOut.F").WithArguments("field", "F").WithLocation(21, 96),
+                // (22,80): error CS8331: Cannot assign to field 'F' or use it as the right hand side of a ref assignment because it is a readonly variable
                 //     static void AssignInToOut<T>(out S<T> sOut, in T tIn)    { sOut = default; sOut.F = tIn; } // 12
-                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField, "sOut.F").WithArguments("field", "S<T>.F").WithLocation(22, 80),
-                // (24,61): error CS8331: Cannot assign to field 'S<T>.F' or use it as the right hand side of a ref assignment because it is a readonly variable
+                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField, "sOut.F").WithArguments("field", "F").WithLocation(22, 80),
+                // (24,61): error CS8331: Cannot assign to field 'F' or use it as the right hand side of a ref assignment because it is a readonly variable
                 //     static void AssignValueToIn<T>(in S<T> sIn, T tValue) { sIn.F = tValue; } // 13
-                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField, "sIn.F").WithArguments("field", "S<T>.F").WithLocation(24, 61),
-                // (25,61): error CS8331: Cannot assign to field 'S<T>.F' or use it as the right hand side of a ref assignment because it is a readonly variable
+                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField, "sIn.F").WithArguments("field", "F").WithLocation(24, 61),
+                // (25,61): error CS8331: Cannot assign to field 'F' or use it as the right hand side of a ref assignment because it is a readonly variable
                 //     static void AssignRefToIn<T>(in S<T> sIn, ref T tRef) { sIn.F = tRef; } // 14
-                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField, "sIn.F").WithArguments("field", "S<T>.F").WithLocation(25, 61),
-                // (26,77): error CS8331: Cannot assign to field 'S<T>.F' or use it as the right hand side of a ref assignment because it is a readonly variable
+                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField, "sIn.F").WithArguments("field", "F").WithLocation(25, 61),
+                // (26,77): error CS8331: Cannot assign to field 'F' or use it as the right hand side of a ref assignment because it is a readonly variable
                 //     static void AssignOutToIn<T>(in S<T> sIn, out T tOut) { tOut = default; sIn.F = tOut; } // 15
-                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField, "sIn.F").WithArguments("field", "S<T>.F").WithLocation(26, 77),
-                // (27,61): error CS8331: Cannot assign to field 'S<T>.F' or use it as the right hand side of a ref assignment because it is a readonly variable
+                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField, "sIn.F").WithArguments("field", "F").WithLocation(26, 77),
+                // (27,61): error CS8331: Cannot assign to field 'F' or use it as the right hand side of a ref assignment because it is a readonly variable
                 //     static void AssignInToIn<T>(in S<T> sIn, in T tIn)    { sIn.F = tIn; } // 16
-                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField, "sIn.F").WithArguments("field", "S<T>.F").WithLocation(27, 61));
+                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField, "sIn.F").WithArguments("field", "F").WithLocation(27, 61));
         }
 
         [Fact]
@@ -5960,9 +6097,9 @@ class Program
                 // (11,75): error CS8374: Cannot ref-assign 'tOut' to 'F' because 'tOut' has a narrower escape scope than 'F'.
                 //     static void AssignOutToValue<T>(S<T> s, out T tOut) { tOut = default; s.F = ref tOut; } // 3
                 Diagnostic(ErrorCode.ERR_RefAssignNarrower, "s.F = ref tOut").WithArguments("F", "tOut").WithLocation(11, 75),
-                // (12,69): error CS8331: Cannot assign to variable 'in T' or use it as the right hand side of a ref assignment because it is a readonly variable
+                // (12,69): error CS8331: Cannot assign to variable 'tIn' or use it as the right hand side of a ref assignment because it is a readonly variable
                 //     static void AssignInToValue<T>(S<T> s, in T tIn)    { s.F = ref tIn; } // 4
-                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField, "tIn").WithArguments("variable", "in T").WithLocation(12, 69),
+                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField, "tIn").WithArguments("variable", "tIn").WithLocation(12, 69),
                 // (14,64): error CS8374: Cannot ref-assign 'tValue' to 'F' because 'tValue' has a narrower escape scope than 'F'.
                 //     static void AssignValueToRef<T>(ref S<T> sRef, T tValue) { sRef.F = ref tValue; } // 5
                 Diagnostic(ErrorCode.ERR_RefAssignNarrower, "sRef.F = ref tValue").WithArguments("F", "tValue").WithLocation(14, 64),
@@ -5972,31 +6109,30 @@ class Program
                 // (16,80): error CS8374: Cannot ref-assign 'tOut' to 'F' because 'tOut' has a narrower escape scope than 'F'.
                 //     static void AssignOutToRef<T>(ref S<T> sRef, out T tOut) { tOut = default; sRef.F = ref tOut; } // 7
                 Diagnostic(ErrorCode.ERR_RefAssignNarrower, "sRef.F = ref tOut").WithArguments("F", "tOut").WithLocation(16, 80),
-                // (17,77): error CS8331: Cannot assign to variable 'in T' or use it as the right hand side of a ref assignment because it is a readonly variable
+                // (17,77): error CS8331: Cannot assign to variable 'tIn' or use it as the right hand side of a ref assignment because it is a readonly variable
                 //     static void AssignInToRef<T>(ref S<T> sRef, in T tIn)    { sRef.F = ref tIn; } // 8
-                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField, "tIn").WithArguments("variable", "in T").WithLocation(17, 77),
+                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField, "tIn").WithArguments("variable", "tIn").WithLocation(17, 77),
                 // (19,80): error CS8374: Cannot ref-assign 'tValue' to 'F' because 'tValue' has a narrower escape scope than 'F'.
                 //     static void AssignValueToOut<T>(out S<T> sOut, T tValue) { sOut = default; sOut.F = ref tValue; } // 9
                 Diagnostic(ErrorCode.ERR_RefAssignNarrower, "sOut.F = ref tValue").WithArguments("F", "tValue").WithLocation(19, 80),
                 // (21,96): error CS8374: Cannot ref-assign 'tOut' to 'F' because 'tOut' has a narrower escape scope than 'F'.
                 //     static void AssignOutToOut<T>(out S<T> sOut, out T tOut) { sOut = default; tOut = default; sOut.F = ref tOut; } // 10 
                 Diagnostic(ErrorCode.ERR_RefAssignNarrower, "sOut.F = ref tOut").WithArguments("F", "tOut").WithLocation(21, 96),
-                // (22,93): error CS8331: Cannot assign to variable 'in T' or use it as the right hand side of a ref assignment because it is a readonly variable
+                // (22,93): error CS8331: Cannot assign to variable 'tIn' or use it as the right hand side of a ref assignment because it is a readonly variable
                 //     static void AssignInToOut<T>(out S<T> sOut, in T tIn)    { sOut = default; sOut.F = ref tIn; } // 11 
-                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField, "tIn").WithArguments("variable", "in T").WithLocation(22, 93),
-                // (24,61): error CS8332: Cannot assign to a member of variable 'in S<T>' or use it as the right hand side of a ref assignment because it is a readonly variable
+                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField, "tIn").WithArguments("variable", "tIn").WithLocation(22, 93),
+                // (24,61): error CS8332: Cannot assign to a member of variable 'sIn' or use it as the right hand side of a ref assignment because it is a readonly variable
                 //     static void AssignValueToIn<T>(in S<T> sIn, T tValue) { sIn.F = ref tValue; } // 12
-                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField2, "sIn.F").WithArguments("variable", "in S<T>").WithLocation(24, 61),
-                // (25,61): error CS8332: Cannot assign to a member of variable 'in S<T>' or use it as the right hand side of a ref assignment because it is a readonly variable
+                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField2, "sIn.F").WithArguments("variable", "sIn").WithLocation(24, 61),
+                // (25,61): error CS8332: Cannot assign to a member of variable 'sIn' or use it as the right hand side of a ref assignment because it is a readonly variable
                 //     static void AssignRefToIn<T>(in S<T> sIn, ref T tRef) { sIn.F = ref tRef; } // 13
-                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField2, "sIn.F").WithArguments("variable", "in S<T>").WithLocation(25, 61),
-                // (26,77): error CS8332: Cannot assign to a member of variable 'in S<T>' or use it as the right hand side of a ref assignment because it is a readonly variable
+                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField2, "sIn.F").WithArguments("variable", "sIn").WithLocation(25, 61),
+                // (26,77): error CS8332: Cannot assign to a member of variable 'sIn' or use it as the right hand side of a ref assignment because it is a readonly variable
                 //     static void AssignOutToIn<T>(in S<T> sIn, out T tOut) { tOut = default; sIn.F = ref tOut; } // 14
-                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField2, "sIn.F").WithArguments("variable", "in S<T>").WithLocation(26, 77),
-                // (27,61): error CS8332: Cannot assign to a member of variable 'in S<T>' or use it as the right hand side of a ref assignment because it is a readonly variable
+                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField2, "sIn.F").WithArguments("variable", "sIn").WithLocation(26, 77),
+                // (27,61): error CS8332: Cannot assign to a member of variable 'sIn' or use it as the right hand side of a ref assignment because it is a readonly variable
                 //     static void AssignInToIn<T>(in S<T> sIn, in T tIn)    { sIn.F = ref tIn; } // 15
-                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField2, "sIn.F").WithArguments("variable", "in S<T>").WithLocation(27, 61)
-                );
+                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField2, "sIn.F").WithArguments("variable", "sIn").WithLocation(27, 61));
 
             // Valid cases from above.
             source =
@@ -6105,18 +6241,18 @@ class Program
                 // (21,96): error CS8374: Cannot ref-assign 'tOut' to 'F' because 'tOut' has a narrower escape scope than 'F'.
                 //     static void AssignOutToOut<T>(out S<T> sOut, out T tOut) { sOut = default; tOut = default; sOut.F = ref tOut; } // 6
                 Diagnostic(ErrorCode.ERR_RefAssignNarrower, "sOut.F = ref tOut").WithArguments("F", "tOut").WithLocation(21, 96),
-                // (24,61): error CS8332: Cannot assign to a member of variable 'in S<T>' or use it as the right hand side of a ref assignment because it is a readonly variable
+                // (24,61): error CS8332: Cannot assign to a member of variable 'sIn' or use it as the right hand side of a ref assignment because it is a readonly variable
                 //     static void AssignValueToIn<T>(in S<T> sIn, T tValue) { sIn.F = ref tValue; } // 7
-                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField2, "sIn.F").WithArguments("variable", "in S<T>").WithLocation(24, 61),
-                // (25,61): error CS8332: Cannot assign to a member of variable 'in S<T>' or use it as the right hand side of a ref assignment because it is a readonly variable
+                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField2, "sIn.F").WithArguments("variable", "sIn").WithLocation(24, 61),
+                // (25,61): error CS8332: Cannot assign to a member of variable 'sIn' or use it as the right hand side of a ref assignment because it is a readonly variable
                 //     static void AssignRefToIn<T>(in S<T> sIn, ref T tRef) { sIn.F = ref tRef; } // 8
-                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField2, "sIn.F").WithArguments("variable", "in S<T>").WithLocation(25, 61),
-                // (26,77): error CS8332: Cannot assign to a member of variable 'in S<T>' or use it as the right hand side of a ref assignment because it is a readonly variable
+                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField2, "sIn.F").WithArguments("variable", "sIn").WithLocation(25, 61),
+                // (26,77): error CS8332: Cannot assign to a member of variable 'sIn' or use it as the right hand side of a ref assignment because it is a readonly variable
                 //     static void AssignOutToIn<T>(in S<T> sIn, out T tOut) { tOut = default; sIn.F = ref tOut; } // 9
-                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField2, "sIn.F").WithArguments("variable", "in S<T>").WithLocation(26, 77),
-                // (27,61): error CS8332: Cannot assign to a member of variable 'in S<T>' or use it as the right hand side of a ref assignment because it is a readonly variable
+                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField2, "sIn.F").WithArguments("variable", "sIn").WithLocation(26, 77),
+                // (27,61): error CS8332: Cannot assign to a member of variable 'sIn' or use it as the right hand side of a ref assignment because it is a readonly variable
                 //     static void AssignInToIn<T>(in S<T> sIn, in T tIn)    { sIn.F = ref tIn; } // 10
-                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField2, "sIn.F").WithArguments("variable", "in S<T>").WithLocation(27, 61));
+                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField2, "sIn.F").WithArguments("variable", "sIn").WithLocation(27, 61));
 
             // Valid cases from above.
             source =
@@ -6420,30 +6556,30 @@ class Program
 }";
             var comp = CreateCompilation(source, runtimeFeature: RuntimeFlag.ByRefFields);
             comp.VerifyEmitDiagnostics(
-                // (12,73): error CS8329: Cannot use field 'S<T>.RefReadonly' as a ref or out value because it is a readonly variable
+                // (12,73): error CS8329: Cannot use field 'RefReadonly' as a ref or out value because it is a readonly variable
                 //     static void FromValueRefReadonly<T>(S<T> s)         { ref T t = ref s.RefReadonly; } // 1
-                Diagnostic(ErrorCode.ERR_RefReadonlyNotField, "s.RefReadonly").WithArguments("field", "S<T>.RefReadonly").WithLocation(12, 73),
-                // (14,73): error CS8329: Cannot use field 'S<T>.ReadonlyRefReadonly' as a ref or out value because it is a readonly variable
+                Diagnostic(ErrorCode.ERR_RefReadonlyNotField, "s.RefReadonly").WithArguments("field", "RefReadonly").WithLocation(12, 73),
+                // (14,73): error CS8329: Cannot use field 'ReadonlyRefReadonly' as a ref or out value because it is a readonly variable
                 //     static void FromValueReadonlyRefReadonly<T>(S<T> s) { ref T t = ref s.ReadonlyRefReadonly; } // 2
-                Diagnostic(ErrorCode.ERR_RefReadonlyNotField, "s.ReadonlyRefReadonly").WithArguments("field", "S<T>.ReadonlyRefReadonly").WithLocation(14, 73),
-                // (17,75): error CS8329: Cannot use field 'S<T>.RefReadonly' as a ref or out value because it is a readonly variable
+                Diagnostic(ErrorCode.ERR_RefReadonlyNotField, "s.ReadonlyRefReadonly").WithArguments("field", "ReadonlyRefReadonly").WithLocation(14, 73),
+                // (17,75): error CS8329: Cannot use field 'RefReadonly' as a ref or out value because it is a readonly variable
                 //     static void FromRefRefReadonly<T>(ref S<T> s)         { ref T t = ref s.RefReadonly; } // 3
-                Diagnostic(ErrorCode.ERR_RefReadonlyNotField, "s.RefReadonly").WithArguments("field", "S<T>.RefReadonly").WithLocation(17, 75),
-                // (19,75): error CS8329: Cannot use field 'S<T>.ReadonlyRefReadonly' as a ref or out value because it is a readonly variable
+                Diagnostic(ErrorCode.ERR_RefReadonlyNotField, "s.RefReadonly").WithArguments("field", "RefReadonly").WithLocation(17, 75),
+                // (19,75): error CS8329: Cannot use field 'ReadonlyRefReadonly' as a ref or out value because it is a readonly variable
                 //     static void FromRefReadonlyRefReadonly<T>(ref S<T> s) { ref T t = ref s.ReadonlyRefReadonly; } // 4
-                Diagnostic(ErrorCode.ERR_RefReadonlyNotField, "s.ReadonlyRefReadonly").WithArguments("field", "S<T>.ReadonlyRefReadonly").WithLocation(19, 75),
-                // (22,88): error CS8329: Cannot use field 'S<T>.RefReadonly' as a ref or out value because it is a readonly variable
+                Diagnostic(ErrorCode.ERR_RefReadonlyNotField, "s.ReadonlyRefReadonly").WithArguments("field", "ReadonlyRefReadonly").WithLocation(19, 75),
+                // (22,88): error CS8329: Cannot use field 'RefReadonly' as a ref or out value because it is a readonly variable
                 //     static void FromOutRefReadonly<T>(out S<T> s)         { s = default; ref T t = ref s.RefReadonly; } // 5
-                Diagnostic(ErrorCode.ERR_RefReadonlyNotField, "s.RefReadonly").WithArguments("field", "S<T>.RefReadonly").WithLocation(22, 88),
-                // (24,88): error CS8329: Cannot use field 'S<T>.ReadonlyRefReadonly' as a ref or out value because it is a readonly variable
+                Diagnostic(ErrorCode.ERR_RefReadonlyNotField, "s.RefReadonly").WithArguments("field", "RefReadonly").WithLocation(22, 88),
+                // (24,88): error CS8329: Cannot use field 'ReadonlyRefReadonly' as a ref or out value because it is a readonly variable
                 //     static void FromOutReadonlyRefReadonly<T>(out S<T> s) { s = default; ref T t = ref s.ReadonlyRefReadonly; } // 6
-                Diagnostic(ErrorCode.ERR_RefReadonlyNotField, "s.ReadonlyRefReadonly").WithArguments("field", "S<T>.ReadonlyRefReadonly").WithLocation(24, 88),
-                // (27,73): error CS8329: Cannot use field 'S<T>.RefReadonly' as a ref or out value because it is a readonly variable
+                Diagnostic(ErrorCode.ERR_RefReadonlyNotField, "s.ReadonlyRefReadonly").WithArguments("field", "ReadonlyRefReadonly").WithLocation(24, 88),
+                // (27,73): error CS8329: Cannot use field 'RefReadonly' as a ref or out value because it is a readonly variable
                 //     static void FromInRefReadonly<T>(in S<T> s)         { ref T t = ref s.RefReadonly; } // 7
-                Diagnostic(ErrorCode.ERR_RefReadonlyNotField, "s.RefReadonly").WithArguments("field", "S<T>.RefReadonly").WithLocation(27, 73),
-                // (29,73): error CS8329: Cannot use field 'S<T>.ReadonlyRefReadonly' as a ref or out value because it is a readonly variable
+                Diagnostic(ErrorCode.ERR_RefReadonlyNotField, "s.RefReadonly").WithArguments("field", "RefReadonly").WithLocation(27, 73),
+                // (29,73): error CS8329: Cannot use field 'ReadonlyRefReadonly' as a ref or out value because it is a readonly variable
                 //     static void FromInReadonlyRefReadonly<T>(in S<T> s) { ref T t = ref s.ReadonlyRefReadonly; } // 8
-                Diagnostic(ErrorCode.ERR_RefReadonlyNotField, "s.ReadonlyRefReadonly").WithArguments("field", "S<T>.ReadonlyRefReadonly").WithLocation(29, 73));
+                Diagnostic(ErrorCode.ERR_RefReadonlyNotField, "s.ReadonlyRefReadonly").WithArguments("field", "ReadonlyRefReadonly").WithLocation(29, 73));
         }
 
         [Fact]
@@ -6507,9 +6643,9 @@ class Program
                 // (5,59): error CS9075: Cannot return a parameter by reference 't' because it is scoped to the current method
                 //     static ref T F3<T>(out T t) { t = default; return ref t; } // 2
                 Diagnostic(ErrorCode.ERR_RefReturnScopedParameter, "t").WithArguments("t").WithLocation(5, 59),
-                // (6,39): error CS8333: Cannot return variable 'in T' by writable reference because it is a readonly variable
+                // (6,39): error CS8333: Cannot return variable 't' by writable reference because it is a readonly variable
                 //     static ref T F4<T>(in T t) => ref t; // 3
-                Diagnostic(ErrorCode.ERR_RefReturnReadonlyNotField, "t").WithArguments("variable", "in T").WithLocation(6, 39),
+                Diagnostic(ErrorCode.ERR_RefReturnReadonlyNotField, "t").WithArguments("variable", "t").WithLocation(6, 39),
                 // (7,45): error CS8166: Cannot return a parameter by reference 't' because it is not a ref parameter
                 //     static ref readonly T F5<T>(T t) => ref t; // 4
                 Diagnostic(ErrorCode.ERR_RefReturnParameter, "t").WithArguments("t").WithLocation(7, 45),
@@ -6566,21 +6702,21 @@ class Program
 }";
             var comp = CreateCompilation(source, runtimeFeature: RuntimeFlag.ByRefFields);
             comp.VerifyEmitDiagnostics(
-                // (4,30): error CS8333: Cannot return field 'S<T>.F' by writable reference because it is a readonly variable
+                // (4,30): error CS8333: Cannot return field 'F' by writable reference because it is a readonly variable
                 //     public ref T F1() => ref F;
-                Diagnostic(ErrorCode.ERR_RefReturnReadonlyNotField, "F").WithArguments("field", "S<T>.F").WithLocation(4, 30),
-                // (9,39): error CS8333: Cannot return field 'S<T>.F' by writable reference because it is a readonly variable
+                Diagnostic(ErrorCode.ERR_RefReturnReadonlyNotField, "F").WithArguments("field", "F").WithLocation(4, 30),
+                // (9,39): error CS8333: Cannot return field 'F' by writable reference because it is a readonly variable
                 //     static ref T F3<T>(S<T> s) => ref s.F;
-                Diagnostic(ErrorCode.ERR_RefReturnReadonlyNotField, "s.F").WithArguments("field", "S<T>.F").WithLocation(9, 39),
-                // (10,43): error CS8333: Cannot return field 'S<T>.F' by writable reference because it is a readonly variable
+                Diagnostic(ErrorCode.ERR_RefReturnReadonlyNotField, "s.F").WithArguments("field", "F").WithLocation(9, 39),
+                // (10,43): error CS8333: Cannot return field 'F' by writable reference because it is a readonly variable
                 //     static ref T F4<T>(ref S<T> s) => ref s.F;
-                Diagnostic(ErrorCode.ERR_RefReturnReadonlyNotField, "s.F").WithArguments("field", "S<T>.F").WithLocation(10, 43),
-                // (11,62): error CS8333: Cannot return field 'S<T>.F' by writable reference because it is a readonly variable
+                Diagnostic(ErrorCode.ERR_RefReturnReadonlyNotField, "s.F").WithArguments("field", "F").WithLocation(10, 43),
+                // (11,62): error CS8333: Cannot return field 'F' by writable reference because it is a readonly variable
                 //     static ref T F5<T>(out S<T> s) { s = default; return ref s.F; }
-                Diagnostic(ErrorCode.ERR_RefReturnReadonlyNotField, "s.F").WithArguments("field", "S<T>.F").WithLocation(11, 62),
-                // (12,42): error CS8333: Cannot return field 'S<T>.F' by writable reference because it is a readonly variable
+                Diagnostic(ErrorCode.ERR_RefReturnReadonlyNotField, "s.F").WithArguments("field", "F").WithLocation(11, 62),
+                // (12,42): error CS8333: Cannot return field 'F' by writable reference because it is a readonly variable
                 //     static ref T F6<T>(in S<T> s) => ref s.F;
-                Diagnostic(ErrorCode.ERR_RefReturnReadonlyNotField, "s.F").WithArguments("field", "S<T>.F").WithLocation(12, 42));
+                Diagnostic(ErrorCode.ERR_RefReturnReadonlyNotField, "s.F").WithArguments("field", "F").WithLocation(12, 42));
         }
 
         [Fact]
@@ -6631,21 +6767,21 @@ class Program
 }";
             var comp = CreateCompilation(source, runtimeFeature: RuntimeFlag.ByRefFields);
             comp.VerifyEmitDiagnostics(
-                // (4,30): error CS8333: Cannot return field 'S<T>.F' by writable reference because it is a readonly variable
+                // (4,30): error CS8333: Cannot return field 'F' by writable reference because it is a readonly variable
                 //     public ref T F1() => ref F;
-                Diagnostic(ErrorCode.ERR_RefReturnReadonlyNotField, "F").WithArguments("field", "S<T>.F").WithLocation(4, 30),
-                // (9,39): error CS8333: Cannot return field 'S<T>.F' by writable reference because it is a readonly variable
+                Diagnostic(ErrorCode.ERR_RefReturnReadonlyNotField, "F").WithArguments("field", "F").WithLocation(4, 30),
+                // (9,39): error CS8333: Cannot return field 'F' by writable reference because it is a readonly variable
                 //     static ref T F3<T>(S<T> s) => ref s.F;
-                Diagnostic(ErrorCode.ERR_RefReturnReadonlyNotField, "s.F").WithArguments("field", "S<T>.F").WithLocation(9, 39),
-                // (10,43): error CS8333: Cannot return field 'S<T>.F' by writable reference because it is a readonly variable
+                Diagnostic(ErrorCode.ERR_RefReturnReadonlyNotField, "s.F").WithArguments("field", "F").WithLocation(9, 39),
+                // (10,43): error CS8333: Cannot return field 'F' by writable reference because it is a readonly variable
                 //     static ref T F4<T>(ref S<T> s) => ref s.F;
-                Diagnostic(ErrorCode.ERR_RefReturnReadonlyNotField, "s.F").WithArguments("field", "S<T>.F").WithLocation(10, 43),
-                // (11,62): error CS8333: Cannot return field 'S<T>.F' by writable reference because it is a readonly variable
+                Diagnostic(ErrorCode.ERR_RefReturnReadonlyNotField, "s.F").WithArguments("field", "F").WithLocation(10, 43),
+                // (11,62): error CS8333: Cannot return field 'F' by writable reference because it is a readonly variable
                 //     static ref T F5<T>(out S<T> s) { s = default; return ref s.F; }
-                Diagnostic(ErrorCode.ERR_RefReturnReadonlyNotField, "s.F").WithArguments("field", "S<T>.F").WithLocation(11, 62),
-                // (12,42): error CS8333: Cannot return field 'S<T>.F' by writable reference because it is a readonly variable
+                Diagnostic(ErrorCode.ERR_RefReturnReadonlyNotField, "s.F").WithArguments("field", "F").WithLocation(11, 62),
+                // (12,42): error CS8333: Cannot return field 'F' by writable reference because it is a readonly variable
                 //     static ref T F6<T>(in S<T> s) => ref s.F;
-                Diagnostic(ErrorCode.ERR_RefReturnReadonlyNotField, "s.F").WithArguments("field", "S<T>.F").WithLocation(12, 42));
+                Diagnostic(ErrorCode.ERR_RefReturnReadonlyNotField, "s.F").WithArguments("field", "F").WithLocation(12, 42));
         }
 
         [Fact]
@@ -6734,24 +6870,24 @@ class Program
 }";
             var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, runtimeFeature: RuntimeFlag.ByRefFields);
             comp.VerifyEmitDiagnostics(
-                // (8,16): error CS8329: Cannot use field 'S<T>.F' as a ref or out value because it is a readonly variable
+                // (8,16): error CS8329: Cannot use field 'F' as a ref or out value because it is a readonly variable
                 //         M2(ref F); // 1
-                Diagnostic(ErrorCode.ERR_RefReadonlyNotField, "F").WithArguments("field", "S<T>.F").WithLocation(8, 16),
-                // (9,16): error CS8329: Cannot use field 'S<T>.F' as a ref or out value because it is a readonly variable
+                Diagnostic(ErrorCode.ERR_RefReadonlyNotField, "F").WithArguments("field", "F").WithLocation(8, 16),
+                // (9,16): error CS8329: Cannot use field 'F' as a ref or out value because it is a readonly variable
                 //         M3(out F); // 2
-                Diagnostic(ErrorCode.ERR_RefReadonlyNotField, "F").WithArguments("field", "S<T>.F").WithLocation(9, 16),
-                // (18,20): error CS8329: Cannot use field 'S<T>.F' as a ref or out value because it is a readonly variable
+                Diagnostic(ErrorCode.ERR_RefReadonlyNotField, "F").WithArguments("field", "F").WithLocation(9, 16),
+                // (18,20): error CS8329: Cannot use field 'F' as a ref or out value because it is a readonly variable
                 //             M2(ref F); // 3
-                Diagnostic(ErrorCode.ERR_RefReadonlyNotField, "F").WithArguments("field", "S<T>.F").WithLocation(18, 20),
-                // (19,20): error CS8329: Cannot use field 'S<T>.F' as a ref or out value because it is a readonly variable
+                Diagnostic(ErrorCode.ERR_RefReadonlyNotField, "F").WithArguments("field", "F").WithLocation(18, 20),
+                // (19,20): error CS8329: Cannot use field 'F' as a ref or out value because it is a readonly variable
                 //             M3(out F); // 4
-                Diagnostic(ErrorCode.ERR_RefReadonlyNotField, "F").WithArguments("field", "S<T>.F").WithLocation(19, 20),
-                // (27,16): error CS8329: Cannot use field 'S<T>.F' as a ref or out value because it is a readonly variable
+                Diagnostic(ErrorCode.ERR_RefReadonlyNotField, "F").WithArguments("field", "F").WithLocation(19, 20),
+                // (27,16): error CS8329: Cannot use field 'F' as a ref or out value because it is a readonly variable
                 //         M2(ref F); // 5
-                Diagnostic(ErrorCode.ERR_RefReadonlyNotField, "F").WithArguments("field", "S<T>.F").WithLocation(27, 16),
-                // (28,16): error CS8329: Cannot use field 'S<T>.F' as a ref or out value because it is a readonly variable
+                Diagnostic(ErrorCode.ERR_RefReadonlyNotField, "F").WithArguments("field", "F").WithLocation(27, 16),
+                // (28,16): error CS8329: Cannot use field 'F' as a ref or out value because it is a readonly variable
                 //         M3(out F); // 6
-                Diagnostic(ErrorCode.ERR_RefReadonlyNotField, "F").WithArguments("field", "S<T>.F").WithLocation(28, 16));
+                Diagnostic(ErrorCode.ERR_RefReadonlyNotField, "F").WithArguments("field", "F").WithLocation(28, 16));
         }
 
         [Fact]
@@ -6840,24 +6976,24 @@ class Program
 }";
             var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, runtimeFeature: RuntimeFlag.ByRefFields);
             comp.VerifyEmitDiagnostics(
-                // (8,16): error CS8329: Cannot use field 'S<T>.F' as a ref or out value because it is a readonly variable
+                // (8,16): error CS8329: Cannot use field 'F' as a ref or out value because it is a readonly variable
                 //         M2(ref F); // 1
-                Diagnostic(ErrorCode.ERR_RefReadonlyNotField, "F").WithArguments("field", "S<T>.F").WithLocation(8, 16),
-                // (9,16): error CS8329: Cannot use field 'S<T>.F' as a ref or out value because it is a readonly variable
+                Diagnostic(ErrorCode.ERR_RefReadonlyNotField, "F").WithArguments("field", "F").WithLocation(8, 16),
+                // (9,16): error CS8329: Cannot use field 'F' as a ref or out value because it is a readonly variable
                 //         M3(out F); // 2
-                Diagnostic(ErrorCode.ERR_RefReadonlyNotField, "F").WithArguments("field", "S<T>.F").WithLocation(9, 16),
-                // (18,20): error CS8329: Cannot use field 'S<T>.F' as a ref or out value because it is a readonly variable
+                Diagnostic(ErrorCode.ERR_RefReadonlyNotField, "F").WithArguments("field", "F").WithLocation(9, 16),
+                // (18,20): error CS8329: Cannot use field 'F' as a ref or out value because it is a readonly variable
                 //             M2(ref F); // 3
-                Diagnostic(ErrorCode.ERR_RefReadonlyNotField, "F").WithArguments("field", "S<T>.F").WithLocation(18, 20),
-                // (19,20): error CS8329: Cannot use field 'S<T>.F' as a ref or out value because it is a readonly variable
+                Diagnostic(ErrorCode.ERR_RefReadonlyNotField, "F").WithArguments("field", "F").WithLocation(18, 20),
+                // (19,20): error CS8329: Cannot use field 'F' as a ref or out value because it is a readonly variable
                 //             M3(out F); // 4
-                Diagnostic(ErrorCode.ERR_RefReadonlyNotField, "F").WithArguments("field", "S<T>.F").WithLocation(19, 20),
-                // (27,16): error CS8329: Cannot use field 'S<T>.F' as a ref or out value because it is a readonly variable
+                Diagnostic(ErrorCode.ERR_RefReadonlyNotField, "F").WithArguments("field", "F").WithLocation(19, 20),
+                // (27,16): error CS8329: Cannot use field 'F' as a ref or out value because it is a readonly variable
                 //         M2(ref F); // 5
-                Diagnostic(ErrorCode.ERR_RefReadonlyNotField, "F").WithArguments("field", "S<T>.F").WithLocation(27, 16),
-                // (28,16): error CS8329: Cannot use field 'S<T>.F' as a ref or out value because it is a readonly variable
+                Diagnostic(ErrorCode.ERR_RefReadonlyNotField, "F").WithArguments("field", "F").WithLocation(27, 16),
+                // (28,16): error CS8329: Cannot use field 'F' as a ref or out value because it is a readonly variable
                 //         M3(out F); // 6
-                Diagnostic(ErrorCode.ERR_RefReadonlyNotField, "F").WithArguments("field", "S<T>.F").WithLocation(28, 16));
+                Diagnostic(ErrorCode.ERR_RefReadonlyNotField, "F").WithArguments("field", "F").WithLocation(28, 16));
         }
 
         [Fact]
@@ -6946,30 +7082,30 @@ class Program
 }";
             var comp = CreateCompilation(source, runtimeFeature: RuntimeFlag.ByRefFields);
             comp.VerifyEmitDiagnostics(
-                // (14,49): error CS8329: Cannot use field 'S<T>.F' as a ref or out value because it is a readonly variable
+                // (14,49): error CS8329: Cannot use field 'F' as a ref or out value because it is a readonly variable
                 //     static void FromValue2<T>(S<T> s)  { M2(ref s.F); } // 1
-                Diagnostic(ErrorCode.ERR_RefReadonlyNotField, "s.F").WithArguments("field", "S<T>.F").WithLocation(14, 49),
-                // (15,49): error CS8329: Cannot use field 'S<T>.F' as a ref or out value because it is a readonly variable
+                Diagnostic(ErrorCode.ERR_RefReadonlyNotField, "s.F").WithArguments("field", "F").WithLocation(14, 49),
+                // (15,49): error CS8329: Cannot use field 'F' as a ref or out value because it is a readonly variable
                 //     static void FromValue3<T>(S<T> s)  { M3(out s.F); } // 2
-                Diagnostic(ErrorCode.ERR_RefReadonlyNotField, "s.F").WithArguments("field", "S<T>.F").WithLocation(15, 49),
-                // (20,51): error CS8329: Cannot use field 'S<T>.F' as a ref or out value because it is a readonly variable
+                Diagnostic(ErrorCode.ERR_RefReadonlyNotField, "s.F").WithArguments("field", "F").WithLocation(15, 49),
+                // (20,51): error CS8329: Cannot use field 'F' as a ref or out value because it is a readonly variable
                 //     static void FromRef2<T>(ref S<T> s)  { M2(ref s.F); } // 3
-                Diagnostic(ErrorCode.ERR_RefReadonlyNotField, "s.F").WithArguments("field", "S<T>.F").WithLocation(20, 51),
-                // (21,51): error CS8329: Cannot use field 'S<T>.F' as a ref or out value because it is a readonly variable
+                Diagnostic(ErrorCode.ERR_RefReadonlyNotField, "s.F").WithArguments("field", "F").WithLocation(20, 51),
+                // (21,51): error CS8329: Cannot use field 'F' as a ref or out value because it is a readonly variable
                 //     static void FromRef3<T>(ref S<T> s)  { M3(out s.F); } // 4
-                Diagnostic(ErrorCode.ERR_RefReadonlyNotField, "s.F").WithArguments("field", "S<T>.F").WithLocation(21, 51),
-                // (26,64): error CS8329: Cannot use field 'S<T>.F' as a ref or out value because it is a readonly variable
+                Diagnostic(ErrorCode.ERR_RefReadonlyNotField, "s.F").WithArguments("field", "F").WithLocation(21, 51),
+                // (26,64): error CS8329: Cannot use field 'F' as a ref or out value because it is a readonly variable
                 //     static void FromOut2<T>(out S<T> s)  { s = default; M2(ref s.F); } // 5
-                Diagnostic(ErrorCode.ERR_RefReadonlyNotField, "s.F").WithArguments("field", "S<T>.F").WithLocation(26, 64),
-                // (27,64): error CS8329: Cannot use field 'S<T>.F' as a ref or out value because it is a readonly variable
+                Diagnostic(ErrorCode.ERR_RefReadonlyNotField, "s.F").WithArguments("field", "F").WithLocation(26, 64),
+                // (27,64): error CS8329: Cannot use field 'F' as a ref or out value because it is a readonly variable
                 //     static void FromOut3<T>(out S<T> s)  { s = default; M3(out s.F); } // 6
-                Diagnostic(ErrorCode.ERR_RefReadonlyNotField, "s.F").WithArguments("field", "S<T>.F").WithLocation(27, 64),
-                // (32,49): error CS8329: Cannot use field 'S<T>.F' as a ref or out value because it is a readonly variable
+                Diagnostic(ErrorCode.ERR_RefReadonlyNotField, "s.F").WithArguments("field", "F").WithLocation(27, 64),
+                // (32,49): error CS8329: Cannot use field 'F' as a ref or out value because it is a readonly variable
                 //     static void FromIn2<T>(in S<T> s)  { M2(ref s.F); } // 7
-                Diagnostic(ErrorCode.ERR_RefReadonlyNotField, "s.F").WithArguments("field", "S<T>.F").WithLocation(32, 49),
-                // (33,49): error CS8329: Cannot use field 'S<T>.F' as a ref or out value because it is a readonly variable
+                Diagnostic(ErrorCode.ERR_RefReadonlyNotField, "s.F").WithArguments("field", "F").WithLocation(32, 49),
+                // (33,49): error CS8329: Cannot use field 'F' as a ref or out value because it is a readonly variable
                 //     static void FromIn3<T>(in S<T> s)  { M3(out s.F); } // 8
-                Diagnostic(ErrorCode.ERR_RefReadonlyNotField, "s.F").WithArguments("field", "S<T>.F").WithLocation(33, 49));
+                Diagnostic(ErrorCode.ERR_RefReadonlyNotField, "s.F").WithArguments("field", "F").WithLocation(33, 49));
         }
 
         [Fact]
@@ -7058,30 +7194,30 @@ class Program
 }";
             var comp = CreateCompilation(source, runtimeFeature: RuntimeFlag.ByRefFields);
             comp.VerifyEmitDiagnostics(
-                // (14,49): error CS8329: Cannot use field 'S<T>.F' as a ref or out value because it is a readonly variable
+                // (14,49): error CS8329: Cannot use field 'F' as a ref or out value because it is a readonly variable
                 //     static void FromValue2<T>(S<T> s)  { M2(ref s.F); } // 1
-                Diagnostic(ErrorCode.ERR_RefReadonlyNotField, "s.F").WithArguments("field", "S<T>.F").WithLocation(14, 49),
-                // (15,49): error CS8329: Cannot use field 'S<T>.F' as a ref or out value because it is a readonly variable
+                Diagnostic(ErrorCode.ERR_RefReadonlyNotField, "s.F").WithArguments("field", "F").WithLocation(14, 49),
+                // (15,49): error CS8329: Cannot use field 'F' as a ref or out value because it is a readonly variable
                 //     static void FromValue3<T>(S<T> s)  { M3(out s.F); } // 2
-                Diagnostic(ErrorCode.ERR_RefReadonlyNotField, "s.F").WithArguments("field", "S<T>.F").WithLocation(15, 49),
-                // (20,51): error CS8329: Cannot use field 'S<T>.F' as a ref or out value because it is a readonly variable
+                Diagnostic(ErrorCode.ERR_RefReadonlyNotField, "s.F").WithArguments("field", "F").WithLocation(15, 49),
+                // (20,51): error CS8329: Cannot use field 'F' as a ref or out value because it is a readonly variable
                 //     static void FromRef2<T>(ref S<T> s)  { M2(ref s.F); } // 3
-                Diagnostic(ErrorCode.ERR_RefReadonlyNotField, "s.F").WithArguments("field", "S<T>.F").WithLocation(20, 51),
-                // (21,51): error CS8329: Cannot use field 'S<T>.F' as a ref or out value because it is a readonly variable
+                Diagnostic(ErrorCode.ERR_RefReadonlyNotField, "s.F").WithArguments("field", "F").WithLocation(20, 51),
+                // (21,51): error CS8329: Cannot use field 'F' as a ref or out value because it is a readonly variable
                 //     static void FromRef3<T>(ref S<T> s)  { M3(out s.F); } // 4
-                Diagnostic(ErrorCode.ERR_RefReadonlyNotField, "s.F").WithArguments("field", "S<T>.F").WithLocation(21, 51),
-                // (26,64): error CS8329: Cannot use field 'S<T>.F' as a ref or out value because it is a readonly variable
+                Diagnostic(ErrorCode.ERR_RefReadonlyNotField, "s.F").WithArguments("field", "F").WithLocation(21, 51),
+                // (26,64): error CS8329: Cannot use field 'F' as a ref or out value because it is a readonly variable
                 //     static void FromOut2<T>(out S<T> s)  { s = default; M2(ref s.F); } // 5
-                Diagnostic(ErrorCode.ERR_RefReadonlyNotField, "s.F").WithArguments("field", "S<T>.F").WithLocation(26, 64),
-                // (27,64): error CS8329: Cannot use field 'S<T>.F' as a ref or out value because it is a readonly variable
+                Diagnostic(ErrorCode.ERR_RefReadonlyNotField, "s.F").WithArguments("field", "F").WithLocation(26, 64),
+                // (27,64): error CS8329: Cannot use field 'F' as a ref or out value because it is a readonly variable
                 //     static void FromOut3<T>(out S<T> s)  { s = default; M3(out s.F); } // 6
-                Diagnostic(ErrorCode.ERR_RefReadonlyNotField, "s.F").WithArguments("field", "S<T>.F").WithLocation(27, 64),
-                // (32,49): error CS8329: Cannot use field 'S<T>.F' as a ref or out value because it is a readonly variable
+                Diagnostic(ErrorCode.ERR_RefReadonlyNotField, "s.F").WithArguments("field", "F").WithLocation(27, 64),
+                // (32,49): error CS8329: Cannot use field 'F' as a ref or out value because it is a readonly variable
                 //     static void FromIn2<T>(in S<T> s)  { M2(ref s.F); } // 7
-                Diagnostic(ErrorCode.ERR_RefReadonlyNotField, "s.F").WithArguments("field", "S<T>.F").WithLocation(32, 49),
-                // (33,49): error CS8329: Cannot use field 'S<T>.F' as a ref or out value because it is a readonly variable
+                Diagnostic(ErrorCode.ERR_RefReadonlyNotField, "s.F").WithArguments("field", "F").WithLocation(32, 49),
+                // (33,49): error CS8329: Cannot use field 'F' as a ref or out value because it is a readonly variable
                 //     static void FromIn3<T>(in S<T> s)  { M3(out s.F); } // 8
-                Diagnostic(ErrorCode.ERR_RefReadonlyNotField, "s.F").WithArguments("field", "S<T>.F").WithLocation(33, 49));
+                Diagnostic(ErrorCode.ERR_RefReadonlyNotField, "s.F").WithArguments("field", "F").WithLocation(33, 49));
         }
 
         [Fact]
@@ -8344,9 +8480,9 @@ class C
 }";
             var comp = CreateCompilation(source, options: TestOptions.UnsafeDebugExe, runtimeFeature: RuntimeFlag.ByRefFields);
             comp.VerifyDiagnostics(
-                // (4,5): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('StructWithRefField')
+                // (4,5): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('StructWithRefField')
                 //     StructWithRefField* p = stackalloc StructWithRefField[10]; // 1, 2
-                Diagnostic(ErrorCode.ERR_ManagedAddr, "StructWithRefField*").WithArguments("StructWithRefField").WithLocation(4, 5),
+                Diagnostic(ErrorCode.WRN_ManagedAddr, "StructWithRefField*").WithArguments("StructWithRefField").WithLocation(4, 5),
                 // (4,40): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('StructWithRefField')
                 //     StructWithRefField* p = stackalloc StructWithRefField[10]; // 1, 2
                 Diagnostic(ErrorCode.ERR_ManagedAddr, "StructWithRefField").WithArguments("StructWithRefField").WithLocation(4, 40),
@@ -8365,7 +8501,7 @@ class C
 unsafe
 {
     StructWithIndirectRefField* p = stackalloc StructWithIndirectRefField[10]; // 1, 2
-    C.M<StructWithRefField>(); // 3
+    C.M<StructWithIndirectRefField>(); // 3
 }
 
 ref struct StructWithIndirectRefField
@@ -8383,15 +8519,15 @@ class C
 }";
             var comp = CreateCompilation(source, options: TestOptions.UnsafeDebugExe, runtimeFeature: RuntimeFlag.ByRefFields);
             comp.VerifyDiagnostics(
-                // (4,5): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('StructWithIndirectRefField')
+                // (4,5): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('StructWithIndirectRefField')
                 //     StructWithIndirectRefField* p = stackalloc StructWithIndirectRefField[10]; // 1, 2
-                Diagnostic(ErrorCode.ERR_ManagedAddr, "StructWithIndirectRefField*").WithArguments("StructWithIndirectRefField").WithLocation(4, 5),
+                Diagnostic(ErrorCode.WRN_ManagedAddr, "StructWithIndirectRefField*").WithArguments("StructWithIndirectRefField").WithLocation(4, 5),
                 // (4,48): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('StructWithIndirectRefField')
                 //     StructWithIndirectRefField* p = stackalloc StructWithIndirectRefField[10]; // 1, 2
                 Diagnostic(ErrorCode.ERR_ManagedAddr, "StructWithIndirectRefField").WithArguments("StructWithIndirectRefField").WithLocation(4, 48),
-                // (5,9): error CS0305: Using the generic type 'StructWithRefField<T>' requires 1 type arguments
-                //     C.M<StructWithRefField>(); // 3
-                Diagnostic(ErrorCode.ERR_BadArity, "StructWithRefField").WithArguments("StructWithRefField<T>", "type", "1").WithLocation(5, 9),
+                // (5,7): error CS0306: The type 'StructWithIndirectRefField' may not be used as a type argument
+                //     C.M<StructWithIndirectRefField>(); // 3
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "M<StructWithIndirectRefField>").WithArguments("StructWithIndirectRefField").WithLocation(5, 7),
                 // (10,36): warning CS0649: Field 'StructWithIndirectRefField.Field' is never assigned to, and will always have its default value 
                 //     public StructWithRefField<int> Field;
                 Diagnostic(ErrorCode.WRN_UnassignedInternalField, "Field").WithArguments("StructWithIndirectRefField.Field", "").WithLocation(10, 36),
@@ -8423,9 +8559,9 @@ public ref struct StructWithRefField
 }";
             var comp = CreateCompilation(source, options: TestOptions.UnsafeDebugExe, runtimeFeature: RuntimeFlag.ByRefFields);
             comp.VerifyDiagnostics(
-                // (4,5): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('StructWithIndirectRefField')
+                // (4,5): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('StructWithIndirectRefField')
                 //     StructWithIndirectRefField* p = stackalloc StructWithIndirectRefField[10]; // 1, 2
-                Diagnostic(ErrorCode.ERR_ManagedAddr, "StructWithIndirectRefField*").WithArguments("StructWithIndirectRefField").WithLocation(4, 5),
+                Diagnostic(ErrorCode.WRN_ManagedAddr, "StructWithIndirectRefField*").WithArguments("StructWithIndirectRefField").WithLocation(4, 5),
                 // (4,48): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('StructWithIndirectRefField')
                 //     StructWithIndirectRefField* p = stackalloc StructWithIndirectRefField[10]; // 1, 2
                 Diagnostic(ErrorCode.ERR_ManagedAddr, "StructWithIndirectRefField").WithArguments("StructWithIndirectRefField").WithLocation(4, 48)
@@ -13981,9 +14117,9 @@ class Program
 }";
             var comp = CreateCompilation(source, runtimeFeature: RuntimeFlag.ByRefFields);
             comp.VerifyDiagnostics(
-                // (5,34): error CS8333: Cannot return field 'R<T>.F' by writable reference because it is a readonly variable
+                // (5,34): error CS8333: Cannot return field 'F' by writable reference because it is a readonly variable
                 //     public ref T GetRef() => ref F; // 1
-                Diagnostic(ErrorCode.ERR_RefReturnReadonlyNotField, "F").WithArguments("field", "R<T>.F").WithLocation(5, 34));
+                Diagnostic(ErrorCode.ERR_RefReturnReadonlyNotField, "F").WithArguments("field", "F").WithLocation(5, 34));
         }
 
         [Fact]
@@ -15911,9 +16047,9 @@ ref struct R
 ";
             var comp = CreateCompilation(source, runtimeFeature: RuntimeFlag.ByRefFields);
             comp.VerifyDiagnostics(
-                // (8,39): error CS8331: Cannot assign to method 'C.Value()' or use it as the right hand side of a ref assignment because it is a readonly variable
+                // (8,39): error CS8331: Cannot assign to method 'Value' or use it as the right hand side of a ref assignment because it is a readonly variable
                 //         var r = new R() { field = ref Value() };
-                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField, "Value()").WithArguments("method", "C.Value()").WithLocation(8, 39)
+                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField, "Value()").WithArguments("method", "Value").WithLocation(8, 39)
                 );
         }
 
@@ -15944,9 +16080,9 @@ ref struct R2
             // Tracked by https://github.com/dotnet/roslyn/issues/62096
             var comp = CreateCompilation(source, runtimeFeature: RuntimeFlag.ByRefFields);
             comp.VerifyDiagnostics(
-                // (7,31): error CS8331: Cannot assign to variable 'in int' or use it as the right hand side of a ref assignment because it is a readonly variable
+                // (7,31): error CS8331: Cannot assign to variable 'i' or use it as the right hand side of a ref assignment because it is a readonly variable
                 //         _ = new R2 { _f = ref i }; // 1
-                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField, "i").WithArguments("variable", "in int").WithLocation(7, 31)
+                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField, "i").WithArguments("variable", "i").WithLocation(7, 31)
                 );
         }
 
@@ -19940,6 +20076,7 @@ $@".assembly extern mscorlib {{ .ver 4:0:0:0 .publickeytoken = (B7 7A 5C 56 19 3
             Assert.True(method.ContainingModule.UseUpdatedEscapeRules);
         }
 
+        [WorkItem(63691, "https://github.com/dotnet/roslyn/issues/63691")]
         [Theory]
         [CombinatorialData]
         public void DetectUpdatedEscapeRulesFromCorlib(
@@ -19990,12 +20127,13 @@ $@".assembly extern mscorlib {{ .ver 4:0:0:0 .publickeytoken = (B7 7A 5C 56 19 3
             Assert.Equal(assemblyIdentity, module.ReferencedAssemblies.Single());
             Assert.Equal(assemblyIdentity, module.ContainingAssembly.CorLibrary.Identity);
 
-            Assert.Equal(languageVersion == LanguageVersion.CSharp11 || majorVersion == 7, module.UseUpdatedEscapeRules);
+            Assert.Equal(languageVersion == LanguageVersion.CSharp11, module.UseUpdatedEscapeRules);
 
             module = comp.GetMember<NamedTypeSymbol>("System.Object").ContainingModule;
-            Assert.Equal(majorVersion == 7, module.UseUpdatedEscapeRules);
+            Assert.False(module.UseUpdatedEscapeRules);
         }
 
+        [WorkItem(63691, "https://github.com/dotnet/roslyn/issues/63691")]
         [Theory]
         [CombinatorialData]
         public void DetectUpdatedEscapeRulesFromCorlib_Retargeting(
@@ -20058,11 +20196,12 @@ $@".assembly extern mscorlib {{ .ver 4:0:0:0 .publickeytoken = (B7 7A 5C 56 19 3
             Assert.Equal(languageVersion == LanguageVersion.CSharp11, module.UseUpdatedEscapeRules);
 
             module = module.ContainingAssembly.CorLibrary.Modules[0];
-            Assert.Equal(higherVersion == 7, module.UseUpdatedEscapeRules);
+            Assert.False(module.UseUpdatedEscapeRules);
         }
 
+        [WorkItem(63691, "https://github.com/dotnet/roslyn/issues/63691")]
         [Theory]
-        [InlineData("System.Runtime", 7, 0, true)]
+        [InlineData("System.Runtime", 7, 0, false)]
         [InlineData("System.Runtime", 7, 1, false)]
         [InlineData("System.Runtime", 8, 0, false)]
         [InlineData("mscorlib", 7, 0, false)]

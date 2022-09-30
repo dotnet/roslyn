@@ -308,10 +308,10 @@ class C
     ref int M5(ref int rrw) => ref (rrw = ref _ro);
 }");
             comp.VerifyDiagnostics(
-                // (13,36): error CS8333: Cannot return variable 'in int' by writable reference because it is a readonly variable
+                // (13,36): error CS8333: Cannot return variable 'rro' by writable reference because it is a readonly variable
                 //     ref int M4(in int rro) => ref (rro = ref _rw);
-                Diagnostic(ErrorCode.ERR_RefReturnReadonlyNotField, "rro = ref _rw").WithArguments("variable", "in int").WithLocation(13, 36),
-                // (15,47): error CS0191: A readonly field cannot be assigned to (except in a constructor or a variable initializer)
+                Diagnostic(ErrorCode.ERR_RefReturnReadonlyNotField, "rro = ref _rw").WithArguments("variable", "rro").WithLocation(13, 36),
+                // (15,47): error CS0191: A readonly field cannot be assigned to (except in a constructor or init-only setter of the type in which the field is defined or a variable initializer)
                 //     ref int M5(ref int rrw) => ref (rrw = ref _ro);
                 Diagnostic(ErrorCode.ERR_AssgReadonly, "_ro").WithLocation(15, 47));
         }
@@ -330,12 +330,12 @@ class C {
     }
 }";
             CreateCompilation(source).VerifyDiagnostics(
-                // (5,37): error CS8333: Cannot return variable 'in int' by writable reference because it is a readonly variable
+                // (5,37): error CS8333: Cannot return variable 'i' by writable reference because it is a readonly variable
                 //         ref int M1(in int i) => ref i;
-                Diagnostic(ErrorCode.ERR_RefReturnReadonlyNotField, "i").WithArguments("variable", "in int").WithLocation(5, 37),
-                // (6,43): error CS8333: Cannot return variable 'in int' by writable reference because it is a readonly variable
+                Diagnostic(ErrorCode.ERR_RefReturnReadonlyNotField, "i").WithArguments("variable", "i").WithLocation(5, 37),
+                // (6,43): error CS8333: Cannot return variable 'i' by writable reference because it is a readonly variable
                 //         ref int M2(in int i) { return ref i; }
-                Diagnostic(ErrorCode.ERR_RefReturnReadonlyNotField, "i").WithArguments("variable", "in int").WithLocation(6, 43)
+                Diagnostic(ErrorCode.ERR_RefReturnReadonlyNotField, "i").WithArguments("variable", "i").WithLocation(6, 43)
             );
         }
 
@@ -424,9 +424,9 @@ class C
     }
 }");
             comp.VerifyDiagnostics(
-                // (6,30): error CS8329: Cannot use variable 'in int' as a ref or out value because it is a readonly variable
+                // (6,30): error CS8329: Cannot use variable 'x' as a ref or out value because it is a readonly variable
                 //         for (ref int i = ref x; i < 0; i++) {}
-                Diagnostic(ErrorCode.ERR_RefReadonlyNotField, "x").WithArguments("variable", "in int").WithLocation(6, 30));
+                Diagnostic(ErrorCode.ERR_RefReadonlyNotField, "x").WithArguments("variable", "x").WithLocation(6, 30));
         }
 
         [Fact]
@@ -501,9 +501,9 @@ class RefEnumerable
                 // (10,40): error CS1510: A ref or out value must be an assignable variable
                 //         foreach (ref readonly var v in new int[0])
                 Diagnostic(ErrorCode.ERR_RefLvalueExpected, "new int[0]").WithLocation(10, 40),
-                // (13,31): error CS8331: Cannot assign to method 'RefEnumerable.StructEnum.Current.get' or use it as the right hand side of a ref assignment because it is a readonly variable
+                // (13,31): error CS8331: Cannot assign to method 'Current.get' or use it as the right hand side of a ref assignment because it is a readonly variable
                 //         foreach (ref var v in new RefEnumerable())
-                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField, "new RefEnumerable()").WithArguments("method", "RefEnumerable.StructEnum.Current.get").WithLocation(13, 31));
+                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField, "new RefEnumerable()").WithArguments("method", "Current.get").WithLocation(13, 31));
         }
 
         [Fact]
@@ -1444,9 +1444,9 @@ class C
     }
 }");
             comp.VerifyDiagnostics(
-                // (9,19): error CS8329: Cannot use variable 'in int' as a ref or out value because it is a readonly variable
+                // (9,19): error CS8329: Cannot use variable 'y' as a ref or out value because it is a readonly variable
                 //             L(ref y, x);
-                Diagnostic(ErrorCode.ERR_RefReadonlyNotField, "y").WithArguments("variable", "in int").WithLocation(9, 19),
+                Diagnostic(ErrorCode.ERR_RefReadonlyNotField, "y").WithArguments("variable", "y").WithLocation(9, 19),
                 // (10,26): error CS1615: Argument 2 may not be passed with the 'ref' keyword
                 //             L(ref x, ref x);
                 Diagnostic(ErrorCode.ERR_BadArgExtraRef, "x").WithArguments("2", "ref").WithLocation(10, 26),
@@ -1493,9 +1493,9 @@ class C
                 // (16,11): error CS1620: Argument 1 must be passed with the 'ref' keyword
                 //         L(L2());
                 Diagnostic(ErrorCode.ERR_BadArgRef, "L2()").WithArguments("1", "ref").WithLocation(16, 11),
-                // (17,15): error CS8406: Cannot use method 'L2()' as a ref or out value because it is a readonly variable
+                // (17,15): error CS8329: Cannot use method 'L2' as a ref or out value because it is a readonly variable
                 //         L(ref L2());
-                Diagnostic(ErrorCode.ERR_RefReadonlyNotField, "L2()").WithArguments("method", "L2()").WithLocation(17, 15));
+                Diagnostic(ErrorCode.ERR_RefReadonlyNotField, "L2()").WithArguments("method", "L2").WithLocation(17, 15));
         }
 
         [Fact]
@@ -1515,9 +1515,9 @@ class C
     }
 }");
             comp.VerifyDiagnostics(
-                // (8,25): error CS8406: Cannot use method 'L()' as a ref or out value because it is a readonly variable
+                // (8,25): error CS8329: Cannot use method 'L' as a ref or out value because it is a readonly variable
                 //         ref int w = ref L();
-                Diagnostic(ErrorCode.ERR_RefReadonlyNotField, "L()").WithArguments("method", "L()").WithLocation(8, 25),
+                Diagnostic(ErrorCode.ERR_RefReadonlyNotField, "L()").WithArguments("method", "L").WithLocation(8, 25),
                 // (10,17): error CS8172: Cannot initialize a by-reference variable with a value
                 //         ref int y = x;
                 Diagnostic(ErrorCode.ERR_InitializeByReferenceVariableWithValue, "y = x").WithLocation(10, 17),
