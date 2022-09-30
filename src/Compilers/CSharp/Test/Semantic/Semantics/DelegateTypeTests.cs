@@ -91,7 +91,7 @@ class Program
             CreateCompilation(source, targetFramework: targetFramework).VerifyDiagnostics(expectedDiagnostics);
         }
 
-        public void TestInMain(string mainBody, string[]? usings = null, TargetFramework targetFramework = TargetFramework.Standard, string? expectedOutput = null, CSharpCompilationOptions? compilationOptions = null,
+        private void TestInMain(string mainBody, string[]? usings = null, TargetFramework targetFramework = TargetFramework.Standard, string? expectedOutput = null, CSharpCompilationOptions? compilationOptions = null,
             params DiagnosticDescription[] diagnosticDescriptions)
         {
             if (usings is null)
