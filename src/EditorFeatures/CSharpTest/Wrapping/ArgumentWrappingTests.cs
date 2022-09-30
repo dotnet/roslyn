@@ -900,7 +900,7 @@ GetIndentionColumn(30),
 }");
         }
 
-        [Fact]
+        [Fact, WorkItem(63732, "https://github.com/dotnet/roslyn/issues/63732")]
         public async Task TestMissingStartToken1()
         {
             await TestMissingAsync(
@@ -911,7 +911,7 @@ GetIndentionColumn(30),
 }");
         }
 
-        [Fact]
+        [Fact, WorkItem(63732, "https://github.com/dotnet/roslyn/issues/63732")]
         public async Task TestMissingStartToken2()
         {
             await TestMissingAsync(
@@ -922,7 +922,7 @@ GetIndentionColumn(30),
 }");
         }
 
-        [Fact]
+        [Fact, WorkItem(63732, "https://github.com/dotnet/roslyn/issues/63732")]
         public async Task TestMissingEndToken1()
         {
             await TestMissingAsync(
@@ -933,7 +933,7 @@ GetIndentionColumn(30),
 }");
         }
 
-        [Fact]
+        [Fact, WorkItem(63732, "https://github.com/dotnet/roslyn/issues/63732")]
         public async Task TestMissingEndToken2()
         {
             await TestMissingAsync(

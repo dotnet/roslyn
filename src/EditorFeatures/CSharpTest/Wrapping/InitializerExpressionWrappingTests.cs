@@ -573,7 +573,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Wrapping
 );
         }
 
-        [Fact]
+        [Fact, WorkItem(63732, "https://github.com/dotnet/roslyn/issues/63732")]
         public async Task TestMissingStartToken()
         {
             await TestMissingAsync(
@@ -584,7 +584,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Wrapping
 }");
         }
 
-        [Fact]
+        [Fact, WorkItem(63732, "https://github.com/dotnet/roslyn/issues/63732")]
         public async Task TestMissingEndToken1()
         {
             await TestMissingAsync(
@@ -596,7 +596,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Wrapping
 }");
         }
 
-        [Fact]
+        [Fact, WorkItem(63732, "https://github.com/dotnet/roslyn/issues/63732")]
         public async Task TestMissingEndToken2()
         {
             await TestMissingAsync(
