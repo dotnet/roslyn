@@ -831,7 +831,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (format.ParameterOptions.IncludesOption(SymbolDisplayParameterOptions.IncludeModifiers))
                 {
-                    if (symbol.ScopedKind == ScopedKind.ScopedValue)
+                    if (symbol.ScopedKind == ScopedKind.ScopedValue && symbol.RefKind == RefKind.None)
                     {
                         AddKeyword(SyntaxKind.ScopedKeyword);
                         AddSpace();
