@@ -110,7 +110,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SuggestionServi
             => ContainedDocument.TryGetContainedDocument(id) == null;
 
         private static bool SupportsRefactoringsWorker(DocumentId id)
-            => ContainedDocument.TryGetContainedDocument(id).SupportsRename;
+            => ContainedDocument.TryGetContainedDocument(id) == null;
 
         private static bool SupportsRenameWorker(ImmutableArray<DocumentId> ids)
         {
