@@ -1117,6 +1117,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (format.ParameterOptions.IncludesOption(SymbolDisplayParameterOptions.IncludeModifiers))
             {
+                // Add 'scoped' unless the parameter is an out parameter or
+                // 'this' since those cases are implicitly scoped.
                 if (symbol.ScopedKind == ScopedKind.ScopedRef &&
                     symbol.RefKind != RefKind.Out &&
                     !symbol.IsThis)
