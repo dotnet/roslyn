@@ -7,6 +7,7 @@
 using System;
 using System.Collections.Immutable;
 using System.Composition;
+using System.Configuration;
 using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Shared;
@@ -98,6 +99,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SuggestionServi
             public bool SupportsRename(Document document)
                 => SupportsRenameWorker(document.Project.Solution.GetRelatedDocumentIds(document.Id));
 
+            public bool SupportsSemanticSnippets(Document document)
+                => SupportsSemanticSnippetsWorker(document.Id);
+
             public bool SupportsNavigationToAnyPosition(Document document)
                 => SupportsNavigationToAnyPositionWorker(document.Id);
         }
@@ -106,13 +110,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SuggestionServi
             => ContainedDocument.TryGetContainedDocument(id) == null;
 
         private static bool SupportsRefactoringsWorker(DocumentId id)
-            => ContainedDocument.TryGetContainedDocument(id) == null;
+            => ContainedDocument.TryGetContainedDocument(id).SupportsRename;
 
         private static bool SupportsRenameWorker(ImmutableArray<DocumentId> ids)
         {
             return ids.Select(id => ContainedDocument.TryGetContainedDocument(id))
                     .All(cd => cd == null || cd.SupportsRename);
         }
+
+        private static bool SupportsSemanticSnippetsWorker(DocumentId id)
+            => ContainedDocument.TryGetContainedDocument(id).SupportsSemanticSnippets;
 
         private static bool SupportsNavigationToAnyPositionWorker(DocumentId id)
             => ContainedDocument.TryGetContainedDocument(id) == null;

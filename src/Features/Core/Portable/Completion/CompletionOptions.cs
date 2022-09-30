@@ -5,6 +5,7 @@
 using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Recommendations;
+using Microsoft.CodeAnalysis.Shared;
 
 namespace Microsoft.CodeAnalysis.Completion
 {
@@ -59,7 +60,9 @@ namespace Microsoft.CodeAnalysis.Completion
         public bool ShouldShowNewSnippetExperience(Document document)
         {
             // Will be removed once semantic snippets will be added to razor.
-            if (document.IsRazorDocument())
+            var solution = document.Project.Solution;
+            var documentSupportsFeatureService = solution.Services.GetRequiredService<IDocumentSupportsFeatureService>();
+            if (!documentSupportsFeatureService.SupportsSemanticSnippets(document))
             {
                 return false;
             }

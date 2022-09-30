@@ -90,6 +90,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
         private readonly VisualStudioProject _project;
 
         public bool SupportsRename { get { return _hostType == HostType.Razor; } }
+        public bool SupportsSemanticSnippets { get { return _hostType == HostType.Razor; } }
 
         public DocumentId Id { get; }
         public ITextBuffer SubjectBuffer { get; }
