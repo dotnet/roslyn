@@ -188,11 +188,14 @@ public class RequestExecutionQueue<TRequestContext> : IRequestExecutionQueue<TRe
 
                     var cancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(CancellationToken, cancellationToken);
 
+                    // The request context must be created serially inside the queue to so that requests always run
+                    // on the correct snapshot as of the last request.
+                    var context = await work.CreateRequestContextAsync(cancellationToken).ConfigureAwait(false);
                     if (work.MutatesServerState)
                     {
                         // Mutating requests block other requests from starting to ensure an up to date snapshot is used.
                         // Since we're explicitly awaiting exceptions to mutating requests will bubble up here.
-                        await work.StartRequestAsync(cancellationToken).ConfigureAwait(false);
+                        await work.StartRequestAsync(context, cancellationToken).ConfigureAwait(false);
                     }
                     else
                     {
@@ -201,7 +204,7 @@ public class RequestExecutionQueue<TRequestContext> : IRequestExecutionQueue<TRe
                         // via NFW, though these errors don't put us into a bad state as far as the rest of the queue goes.
                         // Furthermore we use Task.Run here to protect ourselves against synchronous execution of work
                         // blocking the request queue for longer periods of time (it enforces parallelizabilty).
-                        _ = Task.Run(() => work.StartRequestAsync(cancellationToken), cancellationToken);
+                        _ = Task.Run(() => work.StartRequestAsync(context, cancellationToken), cancellationToken);
                     }
                 }
                 catch (OperationCanceledException ex) when (ex.CancellationToken == queueItem.cancellationToken)
