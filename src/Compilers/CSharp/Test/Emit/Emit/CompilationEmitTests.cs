@@ -1377,9 +1377,9 @@ public static class Extensions
     ref readonly int VerifyDelegate(in int y) => throw null;
 }",
 comp => comp.VerifyDiagnostics(
-                // (12,9): error CS8329: Cannot use variable 'in int' as a ref or out value because it is a readonly variable
+                // (12,9): error CS8329: Cannot use variable 'y' as a ref or out value because it is a readonly variable
                 //         y.R_extension(); // error 1
-                Diagnostic(ErrorCode.ERR_RefReadonlyNotField, "y").WithArguments("variable", "in int").WithLocation(12, 9),
+                Diagnostic(ErrorCode.ERR_RefReadonlyNotField, "y").WithArguments("variable", "y").WithLocation(12, 9),
                 // (13,9): error CS1510: A ref or out value must be an assignable variable
                 //         1.R_extension(); // error 2
                 Diagnostic(ErrorCode.ERR_RefLvalueExpected, "1").WithLocation(13, 9)
