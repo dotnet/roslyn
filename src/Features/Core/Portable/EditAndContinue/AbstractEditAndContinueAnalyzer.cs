@@ -4552,7 +4552,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 container = container.ContainingSymbol;
             }
 
-            throw ExceptionUtilities.Unreachable();
+            throw ExceptionUtilities.Unreachable;
         }
 
         private static SyntaxNode GetDeleteRudeEditDiagnosticNode(ISymbol oldSymbol, Compilation newCompilation, CancellationToken cancellationToken)
@@ -4570,7 +4570,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 oldContainer = oldContainer.ContainingSymbol;
             }
 
-            throw ExceptionUtilities.Unreachable();
+            throw ExceptionUtilities.Unreachable;
         }
 
         #region Type Layout Update Validation 

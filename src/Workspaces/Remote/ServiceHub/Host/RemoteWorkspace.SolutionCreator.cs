@@ -99,7 +99,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 }
                 catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e))
                 {
-                    throw ExceptionUtilities.Unreachable();
+                    throw ExceptionUtilities.Unreachable;
                 }
             }
 

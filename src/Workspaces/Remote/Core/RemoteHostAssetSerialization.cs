@@ -118,7 +118,7 @@ namespace Microsoft.CodeAnalysis.Remote
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
-                throw copyException ?? ExceptionUtilities.Unreachable();
+                throw copyException ?? ExceptionUtilities.Unreachable;
             }
             finally
             {

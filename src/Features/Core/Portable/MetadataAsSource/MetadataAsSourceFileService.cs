@@ -103,7 +103,7 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
             }
 
             // The decompilation provider can always return something
-            throw ExceptionUtilities.Unreachable();
+            throw ExceptionUtilities.Unreachable;
         }
 
         public bool TryAddDocumentToWorkspace(string filePath, SourceTextContainer sourceTextContainer)

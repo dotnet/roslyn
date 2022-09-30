@@ -2331,12 +2331,12 @@ foundParent:;
 
         internal sealed override Func<SyntaxNode, bool> GetSyntaxNodesToAnalyzeFilter(SyntaxNode declaredNode, ISymbol declaredSymbol)
         {
-            throw ExceptionUtilities.Unreachable();
+            throw ExceptionUtilities.Unreachable;
         }
 
         internal override bool ShouldSkipSyntaxNodeAnalysis(SyntaxNode node, ISymbol containingSymbol)
         {
-            throw ExceptionUtilities.Unreachable();
+            throw ExceptionUtilities.Unreachable;
         }
 
         /// <summary>

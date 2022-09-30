@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
             {
                 BinaryExpressionSyntax binaryExpression => (binaryExpression.Left, (SyntaxNode)binaryExpression.Right),
                 IsPatternExpressionSyntax isPattern => (isPattern.Expression, isPattern.Pattern),
-                _ => throw ExceptionUtilities.Unreachable(),
+                _ => throw ExceptionUtilities.Unreachable,
             };
             var operand = GetNullCheckOperand(comparisonLeft, comparison.Kind(), comparisonRight)?.WalkDownParentheses();
             if (operand == null)

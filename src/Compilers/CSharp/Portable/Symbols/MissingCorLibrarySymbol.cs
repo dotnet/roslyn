@@ -76,7 +76,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             set
             {
                 Debug.Assert((object)CorLibrary == this);
-                throw ExceptionUtilities.Unreachable();
+                throw ExceptionUtilities.Unreachable;
             }
         }
 
@@ -91,7 +91,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             set
             {
                 Debug.Assert((object)CorLibrary == this);
-                throw ExceptionUtilities.Unreachable();
+                throw ExceptionUtilities.Unreachable;
             }
         }
     }

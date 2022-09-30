@@ -136,7 +136,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 RemoteProcessConfiguration.Core => descriptorCoreClr64,
                 RemoteProcessConfiguration.ServerGC => descriptor64ServerGC,
                 RemoteProcessConfiguration.Core | RemoteProcessConfiguration.ServerGC => descriptorCoreClr64ServerGC,
-                _ => throw ExceptionUtilities.Unreachable()
+                _ => throw ExceptionUtilities.Unreachable
             };
         }
 

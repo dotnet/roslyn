@@ -298,7 +298,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override LocalSymbol WithSynthesizedLocalKindAndSyntax(SynthesizedLocalKind kind, SyntaxNode syntax)
         {
-            throw ExceptionUtilities.Unreachable();
+            throw ExceptionUtilities.Unreachable;
         }
 
         internal override bool IsPinned

@@ -120,7 +120,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     designation = (SingleVariableDesignationSyntax)this.Syntax;
                     break;
                 default:
-                    throw ExceptionUtilities.Unreachable();
+                    throw ExceptionUtilities.Unreachable;
             }
 
             Binder.Error(

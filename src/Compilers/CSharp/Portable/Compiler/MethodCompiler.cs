@@ -379,7 +379,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e))
                     {
-                        throw ExceptionUtilities.Unreachable();
+                        throw ExceptionUtilities.Unreachable;
                     }
                 }), _cancellationToken);
         }
@@ -425,7 +425,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e))
                     {
-                        throw ExceptionUtilities.Unreachable();
+                        throw ExceptionUtilities.Unreachable;
                     }
                 }), _cancellationToken);
         }
@@ -903,22 +903,22 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override object VisitMethod(MethodSymbol symbol, TypeCompilationState arg)
         {
-            throw ExceptionUtilities.Unreachable();
+            throw ExceptionUtilities.Unreachable;
         }
 
         public override object VisitProperty(PropertySymbol symbol, TypeCompilationState argument)
         {
-            throw ExceptionUtilities.Unreachable();
+            throw ExceptionUtilities.Unreachable;
         }
 
         public override object VisitEvent(EventSymbol symbol, TypeCompilationState argument)
         {
-            throw ExceptionUtilities.Unreachable();
+            throw ExceptionUtilities.Unreachable;
         }
 
         public override object VisitField(FieldSymbol symbol, TypeCompilationState argument)
         {
-            throw ExceptionUtilities.Unreachable();
+            throw ExceptionUtilities.Unreachable;
         }
 
         private void CompileMethod(

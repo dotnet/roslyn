@@ -376,7 +376,7 @@ namespace Microsoft.CodeAnalysis
 
             public override Task WriteAsync(byte[] buffer, int offset, int count, CancellationToken cancellationToken)
             {
-                throw ExceptionUtilities.Unreachable();
+                throw ExceptionUtilities.Unreachable;
             }
         }
     }

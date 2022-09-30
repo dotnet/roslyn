@@ -10166,7 +10166,7 @@ namespace Microsoft.CodeAnalysis.Operations
         public OperationCloner() { }
         [return: NotNullIfNotNull("node")]
         private T? Visit<T>(T? node) where T : IOperation? => (T?)Visit(node, argument: null);
-        public override IOperation DefaultVisit(IOperation operation, object? argument) => throw ExceptionUtilities.Unreachable();
+        public override IOperation DefaultVisit(IOperation operation, object? argument) => throw ExceptionUtilities.Unreachable;
         private ImmutableArray<T> VisitArray<T>(ImmutableArray<T> nodes) where T : IOperation => nodes.SelectAsArray((n, @this) => @this.Visit(n), this)!;
         private ImmutableArray<(ISymbol, T)> VisitArray<T>(ImmutableArray<(ISymbol, T)> nodes) where T : IOperation => nodes.SelectAsArray((n, @this) => (n.Item1, @this.Visit(n.Item2)), this)!;
         public override IOperation VisitBlock(IBlockOperation operation, object? argument)

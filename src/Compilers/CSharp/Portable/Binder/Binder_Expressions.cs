@@ -2859,7 +2859,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if ((object)expressionVariableField == null)
             {
                 // We should have the right binder in the chain, cannot continue otherwise.
-                throw ExceptionUtilities.Unreachable();
+                throw ExceptionUtilities.Unreachable;
             }
 
             BoundExpression receiver = SynthesizeReceiver(designation, expressionVariableField, diagnostics);
@@ -4605,7 +4605,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return BindCollectionInitializerExpression(syntax, type, diagnostics, implicitReceiver);
 
                 default:
-                    throw ExceptionUtilities.Unreachable();
+                    throw ExceptionUtilities.Unreachable;
             }
         }
 

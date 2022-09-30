@@ -204,7 +204,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Structure
             }
             catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
             {
-                throw ExceptionUtilities.Unreachable();
+                throw ExceptionUtilities.Unreachable;
             }
         }
 

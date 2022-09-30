@@ -385,7 +385,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override int CalculateLocalSyntaxOffset(int localPosition, SyntaxTree localTree)
         {
-            throw ExceptionUtilities.Unreachable();
+            throw ExceptionUtilities.Unreachable;
         }
 
         internal override bool TryGetThisParameter(out ParameterSymbol? thisParameter)
@@ -512,7 +512,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return _lazyTypeParameterConstraintKinds;
         }
 
-        internal override bool IsNullableAnalysisEnabled() => throw ExceptionUtilities.Unreachable();
+        internal override bool IsNullableAnalysisEnabled() => throw ExceptionUtilities.Unreachable;
 
         public override int GetHashCode()
         {

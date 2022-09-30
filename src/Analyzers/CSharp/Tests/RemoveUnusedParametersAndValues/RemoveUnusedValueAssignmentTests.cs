@@ -493,7 +493,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnusedParametersA
         return x;
     }
 }", iterations: 1),
-                _ => throw ExceptionUtilities.Unreachable(),
+                _ => throw ExceptionUtilities.Unreachable,
             };
 
             await new VerifyCS.Test
@@ -551,7 +551,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnusedParametersA
         return x;
     }
 }", iterations: 1),
-                _ => throw ExceptionUtilities.Unreachable(),
+                _ => throw ExceptionUtilities.Unreachable,
             };
 
             await new VerifyCS.Test
@@ -1066,7 +1066,7 @@ $@"class C
         return x;
     }
 }", iterations: 1),
-                _ => throw ExceptionUtilities.Unreachable(),
+                _ => throw ExceptionUtilities.Unreachable,
             };
 
             var test = new VerifyCS.Test
@@ -1161,7 +1161,7 @@ $@"class C
 
     int M2() => 0;
 }",
-                _ => throw ExceptionUtilities.Unreachable(),
+                _ => throw ExceptionUtilities.Unreachable,
             };
 
             var test = new VerifyCS.Test
@@ -1240,7 +1240,7 @@ $@"class C
         _ = {prefix}x{postfix};
     }}
 }}",
-                _ => throw ExceptionUtilities.Unreachable(),
+                _ => throw ExceptionUtilities.Unreachable,
             };
 
             var test = new VerifyCS.Test
@@ -1357,7 +1357,7 @@ $@"class C
 
     int M2() => 0;
 }}",
-                _ => throw ExceptionUtilities.Unreachable(),
+                _ => throw ExceptionUtilities.Unreachable,
             };
 
             var test = new VerifyCS.Test
@@ -2571,7 +2571,7 @@ $@"class C
         };
     }
 }", iterations: 1),
-                _ => throw ExceptionUtilities.Unreachable(),
+                _ => throw ExceptionUtilities.Unreachable,
             };
 
             await new VerifyCS.Test
@@ -2770,7 +2770,7 @@ $@"class C
         return isZero;
     }
 }",
-                _ => throw ExceptionUtilities.Unreachable()
+                _ => throw ExceptionUtilities.Unreachable
             };
 
             await new VerifyCS.Test
@@ -2895,7 +2895,7 @@ $@"class C
         return false;
     }
 }",
-                _ => throw ExceptionUtilities.Unreachable(),
+                _ => throw ExceptionUtilities.Unreachable,
             };
 
             await new VerifyCS.Test
@@ -3046,7 +3046,7 @@ $@"class C
         return false;
     }
 }",
-                _ => throw ExceptionUtilities.Unreachable(),
+                _ => throw ExceptionUtilities.Unreachable,
             };
 
             var test = new VerifyCS.Test
@@ -7805,7 +7805,7 @@ class C
         };
     }
 }", iterations: 1),
-                _ => throw ExceptionUtilities.Unreachable(),
+                _ => throw ExceptionUtilities.Unreachable,
             };
 
             await new VerifyCS.Test

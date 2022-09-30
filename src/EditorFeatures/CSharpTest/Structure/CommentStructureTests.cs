@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure
                 return CSharpStructureHelpers.CreateCommentBlockSpan(token.TrailingTrivia);
             }
 
-            throw Roslyn.Utilities.ExceptionUtilities.Unreachable();
+            throw Roslyn.Utilities.ExceptionUtilities.Unreachable;
         }
 
         [Fact]

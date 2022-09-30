@@ -310,7 +310,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Configuration
 
             // Otherwise, add analyzer config document to all applicable projects for the current project's solution.
             AnalyzerConfigDocument? analyzerConfigDocument = null;
-            var analyzerConfigDirectory = PathUtilities.GetDirectoryName(analyzerConfigPath) ?? throw ExceptionUtilities.Unreachable();
+            var analyzerConfigDirectory = PathUtilities.GetDirectoryName(analyzerConfigPath) ?? throw ExceptionUtilities.Unreachable;
             var currentSolution = _project.Solution;
             foreach (var projectId in _project.Solution.ProjectIds)
             {

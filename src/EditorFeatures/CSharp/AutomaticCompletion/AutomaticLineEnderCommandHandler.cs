@@ -631,7 +631,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion
                 CheckedStatementSyntax checkedStatementNode => checkedStatementNode.Keyword.Span.End,
                 FieldDeclarationSyntax fieldDeclarationNode => fieldDeclarationNode.Declaration.Variables[0].Identifier.Span.End,
                 EventFieldDeclarationSyntax eventFieldDeclarationNode => eventFieldDeclarationNode.Declaration.Variables[0].Identifier.Span.End,
-                _ => throw ExceptionUtilities.Unreachable(),
+                _ => throw ExceptionUtilities.Unreachable,
             };
         }
 

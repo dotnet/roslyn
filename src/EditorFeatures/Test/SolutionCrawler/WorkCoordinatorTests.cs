@@ -977,14 +977,14 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
             {
                 (BackgroundAnalysisScope.ActiveFile, _) => 1,
                 (BackgroundAnalysisScope.OpenFiles or BackgroundAnalysisScope.FullSolution or BackgroundAnalysisScope.None, _) => 0,
-                _ => throw ExceptionUtilities.Unreachable(),
+                _ => throw ExceptionUtilities.Unreachable,
             };
 
             var expectedDocumentEvents = (analysisScope, hasActiveDocumentBefore) switch
             {
                 (BackgroundAnalysisScope.ActiveFile, _) => 1,
                 (BackgroundAnalysisScope.OpenFiles or BackgroundAnalysisScope.FullSolution or BackgroundAnalysisScope.None, _) => 0,
-                _ => throw ExceptionUtilities.Unreachable(),
+                _ => throw ExceptionUtilities.Unreachable,
             };
 
             // Switch to another active source document and verify expected document analysis callbacks

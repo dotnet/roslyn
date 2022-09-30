@@ -175,7 +175,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         }
                         catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e))
                         {
-                            throw ExceptionUtilities.Unreachable();
+                            throw ExceptionUtilities.Unreachable;
                         }
                         finally
                         {
@@ -285,7 +285,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         }
                         catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e))
                         {
-                            throw ExceptionUtilities.Unreachable();
+                            throw ExceptionUtilities.Unreachable;
                         }
                     }
 
@@ -368,7 +368,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         }
                         catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
                         {
-                            throw ExceptionUtilities.Unreachable();
+                            throw ExceptionUtilities.Unreachable;
                         }
                         finally
                         {
@@ -473,7 +473,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         }
                         catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
                         {
-                            throw ExceptionUtilities.Unreachable();
+                            throw ExceptionUtilities.Unreachable;
                         }
 
                         return;
@@ -537,7 +537,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         }
                         catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e))
                         {
-                            throw ExceptionUtilities.Unreachable();
+                            throw ExceptionUtilities.Unreachable;
                         }
 
                         bool IsSolutionChanged()

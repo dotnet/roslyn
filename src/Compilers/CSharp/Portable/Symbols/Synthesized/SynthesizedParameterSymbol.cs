@@ -82,27 +82,27 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override bool IsIDispatchConstant
         {
-            get { throw ExceptionUtilities.Unreachable(); }
+            get { throw ExceptionUtilities.Unreachable; }
         }
 
         internal override bool IsIUnknownConstant
         {
-            get { throw ExceptionUtilities.Unreachable(); }
+            get { throw ExceptionUtilities.Unreachable; }
         }
 
         internal override bool IsCallerLineNumber
         {
-            get { throw ExceptionUtilities.Unreachable(); }
+            get { throw ExceptionUtilities.Unreachable; }
         }
 
         internal override bool IsCallerFilePath
         {
-            get { throw ExceptionUtilities.Unreachable(); }
+            get { throw ExceptionUtilities.Unreachable; }
         }
 
         internal override bool IsCallerMemberName
         {
-            get { throw ExceptionUtilities.Unreachable(); }
+            get { throw ExceptionUtilities.Unreachable; }
         }
 
         internal override int CallerArgumentExpressionParameterIndex

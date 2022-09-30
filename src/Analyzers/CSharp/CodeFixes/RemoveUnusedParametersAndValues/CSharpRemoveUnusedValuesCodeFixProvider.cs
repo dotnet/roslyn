@@ -171,7 +171,7 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnusedParametersAndValues
         protected override SyntaxNode GetReplacementNodeForVarPattern(SyntaxNode originalVarPattern, SyntaxNode newNameNode)
         {
             if (originalVarPattern is not VarPatternSyntax pattern)
-                throw ExceptionUtilities.Unreachable();
+                throw ExceptionUtilities.Unreachable;
 
             // If the replacement node is DiscardDesignationSyntax
             // then we need to just change the incoming var's pattern designation

@@ -1505,7 +1505,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
         {
             // Kept to ensure that it's never called, as we can't override DefaultVisit in this visitor
-            throw ExceptionUtilities.Unreachable();
+            throw ExceptionUtilities.Unreachable;
         }
 
         public override void VisitFieldInitializer(IFieldInitializerOperation operation)

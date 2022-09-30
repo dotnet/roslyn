@@ -122,7 +122,7 @@ namespace Microsoft.CodeAnalysis.Remote
             {
                 // Any non-cancellation exception is bad and needs to be reported.  We will still ensure that we cleanup
                 // below though no matter what happens so that other calls to OOP can properly work.
-                throw ExceptionUtilities.Unreachable();
+                throw ExceptionUtilities.Unreachable;
             }
             finally
             {
@@ -150,7 +150,7 @@ namespace Microsoft.CodeAnalysis.Remote
                     {
                         // Any exception thrown in the above (including cancellation) is critical and unrecoverable.  We
                         // will have potentially started work, while also leaving ourselves in some inconsistent state.
-                        throw ExceptionUtilities.Unreachable();
+                        throw ExceptionUtilities.Unreachable;
                     }
                 }
             }
@@ -262,7 +262,7 @@ namespace Microsoft.CodeAnalysis.Remote
             }
             catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
             {
-                throw ExceptionUtilities.Unreachable();
+                throw ExceptionUtilities.Unreachable;
             }
         }
 

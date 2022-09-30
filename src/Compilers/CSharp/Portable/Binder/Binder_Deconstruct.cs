@@ -864,7 +864,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if ((object)field == null)
             {
                 // We should have the right binder in the chain, cannot continue otherwise.
-                throw ExceptionUtilities.Unreachable();
+                throw ExceptionUtilities.Unreachable;
             }
 
             BoundThisReference receiver = ThisReference(designation, this.ContainingType, hasErrors: false,

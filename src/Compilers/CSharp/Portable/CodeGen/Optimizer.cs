@@ -534,7 +534,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
         protected override BoundExpression VisitExpressionWithoutStackGuard(BoundExpression node)
         {
-            throw ExceptionUtilities.Unreachable();
+            throw ExceptionUtilities.Unreachable;
         }
 
         private void PushEvalStack(BoundExpression result, ExprContext context)
@@ -2114,7 +2114,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 }
                 else if (receiverOpt is not null)
                 {
-                    throw ExceptionUtilities.Unreachable();
+                    throw ExceptionUtilities.Unreachable;
                 }
             }
 
@@ -2261,13 +2261,13 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         /// Compiler should always be synthesizing locals with correct escape semantics.
         /// Checking escape scopes is not valid here.
         /// </summary>
-        internal override uint ValEscapeScope => throw ExceptionUtilities.Unreachable();
+        internal override uint ValEscapeScope => throw ExceptionUtilities.Unreachable;
 
         /// <summary>
         /// Compiler should always be synthesizing locals with correct escape semantics.
         /// Checking escape scopes is not valid here.
         /// </summary>
-        internal override uint RefEscapeScope => throw ExceptionUtilities.Unreachable();
+        internal override uint RefEscapeScope => throw ExceptionUtilities.Unreachable;
 
         internal override DeclarationScope Scope => DeclarationScope.Unscoped;
     }

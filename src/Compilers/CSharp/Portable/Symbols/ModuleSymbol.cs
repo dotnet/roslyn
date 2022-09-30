@@ -334,7 +334,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal virtual ImmutableArray<byte> GetHash(AssemblyHashAlgorithm algorithmId)
         {
-            throw ExceptionUtilities.Unreachable();
+            throw ExceptionUtilities.Unreachable;
         }
 
         /// <summary>

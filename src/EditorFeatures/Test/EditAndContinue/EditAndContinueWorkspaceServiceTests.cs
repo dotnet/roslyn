@@ -376,7 +376,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             public override Task<TextAndVersion> LoadTextAndVersionAsync(Workspace workspace, DocumentId documentId, CancellationToken cancellationToken)
             {
                 Assert.True(false, $"Content of document {documentId} should never be loaded");
-                throw ExceptionUtilities.Unreachable();
+                throw ExceptionUtilities.Unreachable;
             }
         }
 
@@ -1903,7 +1903,7 @@ class C { int Y => 2; }
                 DocumentKind.Source => solution.AddDocument(documentId, "X", SourceText.From("xxx", Encoding.UTF8, SourceHashAlgorithm.Sha256), filePath: pathX),
                 DocumentKind.Additional => solution.AddAdditionalDocument(documentId, "X", SourceText.From("xxx", Encoding.UTF8, SourceHashAlgorithm.Sha256), filePath: pathX),
                 DocumentKind.AnalyzerConfig => solution.AddAnalyzerConfigDocument(documentId, "X", GetAnalyzerConfigText(new[] { ("x", "1") }), filePath: pathX),
-                _ => throw ExceptionUtilities.Unreachable(),
+                _ => throw ExceptionUtilities.Unreachable,
             };
             Assert.True(await EditSession.HasChangesAsync(oldSolution, solution, CancellationToken.None));
             Assert.True(await EditSession.HasChangesAsync(oldSolution, solution, pathX, CancellationToken.None));
@@ -1934,7 +1934,7 @@ class C { int Y => 2; }
                 DocumentKind.Source => solution.WithDocumentText(documentId, SourceText.From("xxx", Encoding.UTF8, checksumAlgorithm: SourceHashAlgorithm.Sha256)),
                 DocumentKind.Additional => solution.WithAdditionalDocumentText(documentId, SourceText.From("xxx", Encoding.UTF8, checksumAlgorithm: SourceHashAlgorithm.Sha256)),
                 DocumentKind.AnalyzerConfig => solution.WithAnalyzerConfigDocumentText(documentId, GetAnalyzerConfigText(new[] { ("x", "1") })),
-                _ => throw ExceptionUtilities.Unreachable(),
+                _ => throw ExceptionUtilities.Unreachable,
             };
             Assert.False(await EditSession.HasChangesAsync(oldSolution, solution, CancellationToken.None));
             Assert.False(await EditSession.HasChangesAsync(oldSolution, solution, pathX, CancellationToken.None));
@@ -1961,7 +1961,7 @@ class C { int Y => 2; }
                 DocumentKind.Source => solution.WithDocumentText(documentId, SourceText.From("xxx-changed", Encoding.UTF8, checksumAlgorithm: SourceHashAlgorithm.Sha256)),
                 DocumentKind.Additional => solution.WithAdditionalDocumentText(documentId, SourceText.From("xxx-changed", Encoding.UTF8, checksumAlgorithm: SourceHashAlgorithm.Sha256)),
                 DocumentKind.AnalyzerConfig => solution.WithAnalyzerConfigDocumentText(documentId, GetAnalyzerConfigText(new[] { ("x", "2") })),
-                _ => throw ExceptionUtilities.Unreachable(),
+                _ => throw ExceptionUtilities.Unreachable,
             };
             Assert.True(await EditSession.HasChangesAsync(oldSolution, solution, CancellationToken.None));
             Assert.True(await EditSession.HasChangesAsync(oldSolution, solution, pathX, CancellationToken.None));
@@ -1985,7 +1985,7 @@ class C { int Y => 2; }
                 DocumentKind.Source => solution.RemoveDocument(documentId),
                 DocumentKind.Additional => solution.RemoveAdditionalDocument(documentId),
                 DocumentKind.AnalyzerConfig => solution.RemoveAnalyzerConfigDocument(documentId),
-                _ => throw ExceptionUtilities.Unreachable(),
+                _ => throw ExceptionUtilities.Unreachable,
             };
             Assert.True(await EditSession.HasChangesAsync(oldSolution, solution, CancellationToken.None));
             Assert.True(await EditSession.HasChangesAsync(oldSolution, solution, pathX, CancellationToken.None));

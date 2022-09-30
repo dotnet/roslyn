@@ -440,7 +440,7 @@ namespace Microsoft.Cci
             }
 
             // no alias defined in scope for given assembly -> error in compiler
-            throw ExceptionUtilities.Unreachable();
+            throw ExceptionUtilities.Unreachable;
         }
 
         private void DefineLocalScopes(ImmutableArray<LocalScope> scopes, StandaloneSignatureHandle localSignatureHandleOpt)

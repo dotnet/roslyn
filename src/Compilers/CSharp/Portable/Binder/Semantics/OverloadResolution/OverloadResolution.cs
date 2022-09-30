@@ -2672,7 +2672,7 @@ outerDefault:
 
             protected override BoundExpression VisitExpressionWithoutStackGuard(BoundExpression node)
             {
-                throw ExceptionUtilities.Unreachable();
+                throw ExceptionUtilities.Unreachable;
             }
 
             public override BoundNode VisitLocalFunctionStatement(BoundLocalFunctionStatement node)

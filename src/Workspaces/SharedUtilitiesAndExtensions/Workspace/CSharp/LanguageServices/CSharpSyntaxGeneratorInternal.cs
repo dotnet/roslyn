@@ -143,7 +143,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             };
 
         public override SyntaxNode IsNotTypeExpression(SyntaxNode expression, SyntaxNode type)
-            => throw ExceptionUtilities.Unreachable();
+            => throw ExceptionUtilities.Unreachable;
 
         #region Patterns
 

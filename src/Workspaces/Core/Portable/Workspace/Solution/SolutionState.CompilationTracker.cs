@@ -453,7 +453,7 @@ namespace Microsoft.CodeAnalysis
                 }
                 catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken, ErrorSeverity.Critical))
                 {
-                    throw ExceptionUtilities.Unreachable();
+                    throw ExceptionUtilities.Unreachable;
                 }
             }
 
@@ -496,7 +496,7 @@ namespace Microsoft.CodeAnalysis
                 }
                 catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken, ErrorSeverity.Critical))
                 {
-                    throw ExceptionUtilities.Unreachable();
+                    throw ExceptionUtilities.Unreachable;
                 }
             }
 
@@ -571,7 +571,7 @@ namespace Microsoft.CodeAnalysis
                 }
                 catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken, ErrorSeverity.Critical))
                 {
-                    throw ExceptionUtilities.Unreachable();
+                    throw ExceptionUtilities.Unreachable;
                 }
             }
 
@@ -601,7 +601,7 @@ namespace Microsoft.CodeAnalysis
                 }
                 catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken, ErrorSeverity.Critical))
                 {
-                    throw ExceptionUtilities.Unreachable();
+                    throw ExceptionUtilities.Unreachable;
                 }
             }
 
@@ -639,7 +639,7 @@ namespace Microsoft.CodeAnalysis
                 }
                 catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
                 {
-                    throw ExceptionUtilities.Unreachable();
+                    throw ExceptionUtilities.Unreachable;
                 }
             }
 
@@ -704,7 +704,7 @@ namespace Microsoft.CodeAnalysis
                 }
                 catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken, ErrorSeverity.Critical))
                 {
-                    throw ExceptionUtilities.Unreachable();
+                    throw ExceptionUtilities.Unreachable;
                 }
             }
 
@@ -995,7 +995,7 @@ namespace Microsoft.CodeAnalysis
                 }
                 catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken, ErrorSeverity.Critical))
                 {
-                    throw ExceptionUtilities.Unreachable();
+                    throw ExceptionUtilities.Unreachable;
                 }
 
                 // Local functions

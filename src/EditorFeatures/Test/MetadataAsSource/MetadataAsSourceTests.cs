@@ -95,7 +95,7 @@ public class [|C|]
 {string.Format(CSharpEditorResources.Found_single_assembly_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
 {string.Format(CSharpEditorResources.Load_from_0, "mscorlib.v4_6_1038_0.dll")}
 #endif",
-                _ => throw ExceptionUtilities.Unreachable(),
+                _ => throw ExceptionUtilities.Unreachable,
             };
 
             await GenerateAndVerifySourceAsync(metadataSource, symbolName, ToLanguageName(language), expected, signaturesOnly: signaturesOnly);
@@ -152,7 +152,7 @@ public interface [|I|]
 {string.Format(CSharpEditorResources.Found_single_assembly_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
 {string.Format(CSharpEditorResources.Load_from_0, "mscorlib.v4_6_1038_0.dll")}
 #endif",
-                _ => throw ExceptionUtilities.Unreachable(),
+                _ => throw ExceptionUtilities.Unreachable,
             };
 
             await GenerateAndVerifySourceAsync(metadataSource, symbolName, ToLanguageName(language), expected, signaturesOnly: signaturesOnly);
@@ -211,7 +211,7 @@ public class [|C|]
 {string.Format(CSharpEditorResources.Found_single_assembly_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
 {string.Format(CSharpEditorResources.Load_from_0, "mscorlib.v4_6_1038_0.dll")}
 #endif",
-                _ => throw ExceptionUtilities.Unreachable(),
+                _ => throw ExceptionUtilities.Unreachable,
             };
 
             await GenerateAndVerifySourceAsync(metadataSource, symbolName, ToLanguageName(language), expected, signaturesOnly: signaturesOnly);
@@ -280,7 +280,7 @@ public class C
 {string.Format(CSharpEditorResources.Found_single_assembly_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
 {string.Format(CSharpEditorResources.Load_from_0, "mscorlib.v4_6_1038_0.dll")}
 #endif",
-                _ => throw ExceptionUtilities.Unreachable(),
+                _ => throw ExceptionUtilities.Unreachable,
             };
 
             await GenerateAndVerifySourceAsync(metadataSource, symbolName, ToLanguageName(language), expected, signaturesOnly: signaturesOnly);
@@ -345,7 +345,7 @@ public class C
 {string.Format(CSharpEditorResources.Found_single_assembly_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
 {string.Format(CSharpEditorResources.Load_from_0, "mscorlib.v4_6_1038_0.dll")}
 #endif",
-                _ => throw ExceptionUtilities.Unreachable(),
+                _ => throw ExceptionUtilities.Unreachable,
             };
 
             await GenerateAndVerifySourceAsync(metadataSource, symbolName, ToLanguageName(language), expected, signaturesOnly: signaturesOnly);
@@ -410,7 +410,7 @@ public class C
 {string.Format(CSharpEditorResources.Found_single_assembly_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
 {string.Format(CSharpEditorResources.Load_from_0, "mscorlib.v4_6_1038_0.dll")}
 #endif",
-                _ => throw ExceptionUtilities.Unreachable(),
+                _ => throw ExceptionUtilities.Unreachable,
             };
 
             await GenerateAndVerifySourceAsync(metadataSource, symbolName, ToLanguageName(language), expected, signaturesOnly: signaturesOnly);
@@ -484,7 +484,7 @@ public class C
 {string.Format(CSharpEditorResources.Found_single_assembly_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
 {string.Format(CSharpEditorResources.Load_from_0, "mscorlib.v4_6_1038_0.dll")}
 #endif",
-                _ => throw ExceptionUtilities.Unreachable(),
+                _ => throw ExceptionUtilities.Unreachable,
             };
 
             await GenerateAndVerifySourceAsync(metadataSource, symbolName, ToLanguageName(language), expected, signaturesOnly: signaturesOnly);
@@ -558,7 +558,7 @@ public class C
 {string.Format(CSharpEditorResources.Found_single_assembly_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
 {string.Format(CSharpEditorResources.Load_from_0, "mscorlib.v4_6_1038_0.dll")}
 #endif",
-                _ => throw ExceptionUtilities.Unreachable(),
+                _ => throw ExceptionUtilities.Unreachable,
             };
 
             await GenerateAndVerifySourceAsync(metadataSource, symbolName, ToLanguageName(language), expected, signaturesOnly: signaturesOnly);
@@ -627,7 +627,7 @@ public enum [|E|]
 {string.Format(CSharpEditorResources.Found_single_assembly_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
 {string.Format(CSharpEditorResources.Load_from_0, "mscorlib.v4_6_1038_0.dll")}
 #endif",
-                _ => throw ExceptionUtilities.Unreachable(),
+                _ => throw ExceptionUtilities.Unreachable,
             };
 
             await GenerateAndVerifySourceAsync(metadataSource, symbolName, ToLanguageName(language), expected, signaturesOnly: signaturesOnly);
@@ -696,7 +696,7 @@ public enum E
 {string.Format(CSharpEditorResources.Found_single_assembly_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
 {string.Format(CSharpEditorResources.Load_from_0, "mscorlib.v4_6_1038_0.dll")}
 #endif",
-                _ => throw ExceptionUtilities.Unreachable(),
+                _ => throw ExceptionUtilities.Unreachable,
             };
 
             await GenerateAndVerifySourceAsync(metadataSource, symbolName, ToLanguageName(language), expected, signaturesOnly: signaturesOnly);
@@ -765,7 +765,7 @@ public enum E : short
 {string.Format(CSharpEditorResources.Found_single_assembly_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
 {string.Format(CSharpEditorResources.Load_from_0, "mscorlib.v4_6_1038_0.dll")}
 #endif",
-                _ => throw ExceptionUtilities.Unreachable(),
+                _ => throw ExceptionUtilities.Unreachable,
             };
 
             await GenerateAndVerifySourceAsync(metadataSource, symbolName, ToLanguageName(language), expected, signaturesOnly: signaturesOnly);
@@ -826,7 +826,7 @@ public enum E : ulong
 {string.Format(CSharpEditorResources.Found_single_assembly_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
 {string.Format(CSharpEditorResources.Load_from_0, "mscorlib.v4_6_1038_0.dll")}
 #endif",
-                _ => throw ExceptionUtilities.Unreachable(),
+                _ => throw ExceptionUtilities.Unreachable,
             };
 
             await GenerateAndVerifySourceAsync(metadataSource, symbolName, ToLanguageName(language), expected, signaturesOnly: signaturesOnly);
@@ -895,7 +895,7 @@ public enum E : short
 {string.Format(CSharpEditorResources.Found_single_assembly_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
 {string.Format(CSharpEditorResources.Load_from_0, "mscorlib.v4_6_1038_0.dll")}
 #endif",
-                _ => throw ExceptionUtilities.Unreachable(),
+                _ => throw ExceptionUtilities.Unreachable,
             };
 
             await GenerateAndVerifySourceAsync(metadataSource, symbolName, ToLanguageName(language), expected, signaturesOnly: signaturesOnly);
@@ -965,7 +965,7 @@ namespace N
 {string.Format(CSharpEditorResources.Found_single_assembly_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
 {string.Format(CSharpEditorResources.Load_from_0, "mscorlib.v4_6_1038_0.dll")}
 #endif",
-                _ => throw ExceptionUtilities.Unreachable(),
+                _ => throw ExceptionUtilities.Unreachable,
             };
 
             await GenerateAndVerifySourceAsync(metadataSource, symbolName, ToLanguageName(language), expected, signaturesOnly: signaturesOnly);
@@ -1096,7 +1096,7 @@ public class C
 {string.Format(CSharpEditorResources.Found_single_assembly_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
 {string.Format(CSharpEditorResources.Load_from_0, "mscorlib.v4_6_1038_0.dll")}
 #endif",
-                _ => throw ExceptionUtilities.Unreachable(),
+                _ => throw ExceptionUtilities.Unreachable,
             };
 
             await GenerateAndVerifySourceAsync(metadataSource, symbolName, ToLanguageName(language), expected, signaturesOnly: signaturesOnly);
@@ -1169,7 +1169,7 @@ public class [|C|]
 {string.Format(CSharpEditorResources.Found_single_assembly_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
 {string.Format(CSharpEditorResources.Load_from_0, "mscorlib.v4_6_1038_0.dll")}
 #endif",
-                _ => throw ExceptionUtilities.Unreachable(),
+                _ => throw ExceptionUtilities.Unreachable,
             };
 
             await GenerateAndVerifySourceAsync(metadataSource, symbolName, ToLanguageName(language), expected, signaturesOnly: signaturesOnly);
@@ -1232,7 +1232,7 @@ public struct [|S|]
 {string.Format(CSharpEditorResources.Found_single_assembly_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
 {string.Format(CSharpEditorResources.Load_from_0, "mscorlib.v4_6_1038_0.dll")}
 #endif",
-                _ => throw ExceptionUtilities.Unreachable(),
+                _ => throw ExceptionUtilities.Unreachable,
             };
 
             await GenerateAndVerifySourceAsync(metadataSource, symbolName, ToLanguageName(language), expected, signaturesOnly: signaturesOnly);
@@ -1303,7 +1303,7 @@ public class [|C|]
 {string.Format(CSharpEditorResources.Found_single_assembly_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
 {string.Format(CSharpEditorResources.Load_from_0, "mscorlib.v4_6_1038_0.dll")}
 #endif",
-                _ => throw ExceptionUtilities.Unreachable(),
+                _ => throw ExceptionUtilities.Unreachable,
             };
 
             await GenerateAndVerifySourceAsync(metadataSource, symbolName, ToLanguageName(language), expected, signaturesOnly: signaturesOnly);
@@ -1368,7 +1368,7 @@ public class [|G|]<SomeType>
 {string.Format(CSharpEditorResources.Found_single_assembly_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
 {string.Format(CSharpEditorResources.Load_from_0, "mscorlib.v4_6_1038_0.dll")}
 #endif",
-                _ => throw ExceptionUtilities.Unreachable(),
+                _ => throw ExceptionUtilities.Unreachable,
             };
 
             await GenerateAndVerifySourceAsync(metadataSource, symbolName, ToLanguageName(language), expected, signaturesOnly: signaturesOnly);
@@ -1445,7 +1445,7 @@ public class [|C|]<[My] T>
 {string.Format(CSharpEditorResources.Found_single_assembly_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
 {string.Format(CSharpEditorResources.Load_from_0, "mscorlib.v4_6_1038_0.dll")}
 #endif",
-                _ => throw ExceptionUtilities.Unreachable(),
+                _ => throw ExceptionUtilities.Unreachable,
             };
 
             await GenerateAndVerifySourceAsync(metadataSource, symbolName, ToLanguageName(language), expected, signaturesOnly: signaturesOnly);
@@ -1517,7 +1517,7 @@ public interface [|C|]<T>
 {string.Format(CSharpEditorResources.Found_single_assembly_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
 {string.Format(CSharpEditorResources.Load_from_0, "mscorlib.v4_6_1038_0.dll")}
 #endif",
-                _ => throw ExceptionUtilities.Unreachable(),
+                _ => throw ExceptionUtilities.Unreachable,
             };
 
             await GenerateAndVerifySourceAsync(metadataSource, symbolName, ToLanguageName(language), expected, signaturesOnly: signaturesOnly);
@@ -1581,7 +1581,7 @@ public class C
 {string.Format(CSharpEditorResources.Found_single_assembly_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
 {string.Format(CSharpEditorResources.Load_from_0, "mscorlib.v4_6_1038_0.dll")}
 #endif",
-                _ => throw ExceptionUtilities.Unreachable(),
+                _ => throw ExceptionUtilities.Unreachable,
             };
 
             await GenerateAndVerifySourceAsync(metadataSource, symbolName, ToLanguageName(language), expected, signaturesOnly: signaturesOnly);
@@ -1665,7 +1665,7 @@ public class [|C|]
 {string.Format(CSharpEditorResources.Found_single_assembly_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
 {string.Format(CSharpEditorResources.Load_from_0, "mscorlib.v4_6_1038_0.dll")}
 #endif",
-                _ => throw ExceptionUtilities.Unreachable(),
+                _ => throw ExceptionUtilities.Unreachable,
             };
 
             await GenerateAndVerifySourceAsync(metadataSource, symbolName, ToLanguageName(language), expected, signaturesOnly: signaturesOnly);
@@ -2126,7 +2126,7 @@ public class [|C|]
 {string.Format(CSharpEditorResources.Found_single_assembly_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
 {string.Format(CSharpEditorResources.Load_from_0, "mscorlib.v4_6_1038_0.dll")}
 #endif",
-                _ => throw ExceptionUtilities.Unreachable(),
+                _ => throw ExceptionUtilities.Unreachable,
             };
 
             await GenerateAndVerifySourceAsync(metadataSource, symbolName, ToLanguageName(language), expected, signaturesOnly: signaturesOnly);
@@ -2377,7 +2377,7 @@ public class [|C|]
 {string.Format(CSharpEditorResources.Found_single_assembly_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
 {string.Format(CSharpEditorResources.Load_from_0, "mscorlib.v4_6_1038_0.dll")}
 #endif",
-                _ => throw ExceptionUtilities.Unreachable(),
+                _ => throw ExceptionUtilities.Unreachable,
             };
 
             await GenerateAndVerifySourceAsync(metadataSource, symbolName, ToLanguageName(language), expected, signaturesOnly: signaturesOnly);
@@ -2491,7 +2491,7 @@ public interface [|IGoo|]
 {string.Format(CSharpEditorResources.Found_single_assembly_0, "System, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
 {string.Format(CSharpEditorResources.Load_from_0, "System.v4_6_1038_0.dll")}
 #endif",
-                _ => throw ExceptionUtilities.Unreachable(),
+                _ => throw ExceptionUtilities.Unreachable,
             };
 
             await GenerateAndVerifySourceAsync(source, symbolName, ToLanguageName(language), expected, signaturesOnly: signaturesOnly, includeXmlDocComments: true);
@@ -2575,7 +2575,7 @@ public class [|Test|]
 {string.Format(CSharpEditorResources.Found_single_assembly_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
 {string.Format(CSharpEditorResources.Load_from_0, "mscorlib.v4_6_1038_0.dll")}
 #endif",
-                _ => throw ExceptionUtilities.Unreachable(),
+                _ => throw ExceptionUtilities.Unreachable,
             };
 
             await GenerateAndVerifySourceAsync(source, symbolName, ToLanguageName(language), expected, signaturesOnly: signaturesOnly);
@@ -2663,7 +2663,7 @@ public class [|TestAttribute|] : Attribute
 {string.Format(CSharpEditorResources.Found_single_assembly_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
 {string.Format(CSharpEditorResources.Load_from_0, "mscorlib.v4_6_1038_0.dll")}
 #endif",
-                _ => throw ExceptionUtilities.Unreachable(),
+                _ => throw ExceptionUtilities.Unreachable,
             };
 
             await GenerateAndVerifySourceAsync(source, symbolName, ToLanguageName(language), expected, signaturesOnly: signaturesOnly);
@@ -2861,7 +2861,7 @@ public class [|Program|]
 {string.Format(CSharpEditorResources.Found_single_assembly_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
 {string.Format(CSharpEditorResources.Load_from_0, "mscorlib.v4_6_1038_0.dll")}
 #endif",
-                _ => throw ExceptionUtilities.Unreachable(),
+                _ => throw ExceptionUtilities.Unreachable,
             };
 
             await GenerateAndVerifySourceAsync(metadataSource, symbolName, ToLanguageName(language), expected, signaturesOnly: signaturesOnly);
@@ -2967,7 +2967,7 @@ public interface [|IComImport|]
 {string.Format(CSharpEditorResources.Found_single_assembly_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
 {string.Format(CSharpEditorResources.Load_from_0, "mscorlib.v4_6_1038_0.dll")}
 #endif",
-                _ => throw ExceptionUtilities.Unreachable(),
+                _ => throw ExceptionUtilities.Unreachable,
             };
 
             await GenerateAndVerifySourceAsync(metadataSource, symbolName, ToLanguageName(language), expected, signaturesOnly: signaturesOnly);
@@ -3049,14 +3049,14 @@ public class [|C|]
 {string.Format(CSharpEditorResources.Found_single_assembly_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
 {string.Format(CSharpEditorResources.Load_from_0, "mscorlib.v4_6_1038_0.dll")}
 #endif",
-                _ => throw ExceptionUtilities.Unreachable(),
+                _ => throw ExceptionUtilities.Unreachable,
             };
 
             var languageVersion = language switch
             {
                 OriginatingProjectLanguage.CSharp => "7.1",
                 OriginatingProjectLanguage.VisualBasic => "15.5",
-                _ => throw ExceptionUtilities.Unreachable(),
+                _ => throw ExceptionUtilities.Unreachable,
             };
 
             await GenerateAndVerifySourceAsync(metadataSource, symbolName, ToLanguageName(language), expected, signaturesOnly: signaturesOnly, languageVersion: languageVersion);
@@ -3170,7 +3170,7 @@ public interface [|IGoo|]
 {string.Format(CSharpEditorResources.Found_single_assembly_0, "System, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
 {string.Format(CSharpEditorResources.Load_from_0, "System.v4_6_1038_0.dll")}
 #endif",
-                _ => throw ExceptionUtilities.Unreachable(),
+                _ => throw ExceptionUtilities.Unreachable,
             };
 
             await GenerateAndVerifySourceAsync(source, symbolName, ToLanguageName(language), expected, signaturesOnly: signaturesOnly, includeXmlDocComments: true);
@@ -3450,7 +3450,7 @@ public readonly struct [|S|]
 {string.Format(CSharpEditorResources.Found_single_assembly_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
 {string.Format(CSharpEditorResources.Load_from_0, "mscorlib.v4_6_1038_0.dll")}
 #endif",
-                _ => throw ExceptionUtilities.Unreachable(),
+                _ => throw ExceptionUtilities.Unreachable,
             };
 
             await GenerateAndVerifySourceAsync(metadataSource, symbolName, ToLanguageName(language), expected, signaturesOnly: signaturesOnly);
@@ -3516,7 +3516,7 @@ public struct [|S|]
 {string.Format(CSharpEditorResources.Found_single_assembly_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
 {string.Format(CSharpEditorResources.Load_from_0, "mscorlib.v4_6_1038_0.dll")}
 #endif",
-                _ => throw ExceptionUtilities.Unreachable(),
+                _ => throw ExceptionUtilities.Unreachable,
             };
 
             await GenerateAndVerifySourceAsync(metadataSource, symbolName, ToLanguageName(language), expected, signaturesOnly: signaturesOnly);
@@ -3586,7 +3586,7 @@ public ref struct [|S|]
 {string.Format(CSharpEditorResources.Found_single_assembly_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
 {string.Format(CSharpEditorResources.Load_from_0, "mscorlib.v4_6_1038_0.dll")}
 #endif",
-                _ => throw ExceptionUtilities.Unreachable(),
+                _ => throw ExceptionUtilities.Unreachable,
             };
 
             await GenerateAndVerifySourceAsync(metadataSource, symbolName, ToLanguageName(language), expected, signaturesOnly: signaturesOnly);
@@ -3656,7 +3656,7 @@ public readonly ref struct [|S|]
 {string.Format(CSharpEditorResources.Found_single_assembly_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
 {string.Format(CSharpEditorResources.Load_from_0, "mscorlib.v4_6_1038_0.dll")}
 #endif",
-                _ => throw ExceptionUtilities.Unreachable(),
+                _ => throw ExceptionUtilities.Unreachable,
             };
 
             await GenerateAndVerifySourceAsync(metadataSource, symbolName, ToLanguageName(language), expected, signaturesOnly: signaturesOnly);
@@ -3733,7 +3733,7 @@ public struct S
 {string.Format(CSharpEditorResources.Found_single_assembly_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
 {string.Format(CSharpEditorResources.Load_from_0, "mscorlib.v4_6_1038_0.dll")}
 #endif",
-                _ => throw ExceptionUtilities.Unreachable(),
+                _ => throw ExceptionUtilities.Unreachable,
             };
 
             await GenerateAndVerifySourceAsync(metadataSource, symbolName, ToLanguageName(language), expected, signaturesOnly: signaturesOnly);
@@ -3811,7 +3811,7 @@ public readonly struct S
 {string.Format(CSharpEditorResources.Found_single_assembly_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
 {string.Format(CSharpEditorResources.Load_from_0, "mscorlib.v4_6_1038_0.dll")}
 #endif",
-                _ => throw ExceptionUtilities.Unreachable(),
+                _ => throw ExceptionUtilities.Unreachable,
             };
 
             await GenerateAndVerifySourceAsync(metadataSource, symbolName, ToLanguageName(language), expected, signaturesOnly: signaturesOnly);
@@ -3877,7 +3877,7 @@ public struct S
 {string.Format(CSharpEditorResources.Found_single_assembly_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
 {string.Format(CSharpEditorResources.Load_from_0, "mscorlib.v4_6_1038_0.dll")}
 #endif",
-                _ => throw ExceptionUtilities.Unreachable(),
+                _ => throw ExceptionUtilities.Unreachable,
             };
 
             await GenerateAndVerifySourceAsync(metadataSource, symbolName, ToLanguageName(language), expected, signaturesOnly: signaturesOnly);
@@ -3943,14 +3943,14 @@ public struct S
 {string.Format(CSharpEditorResources.Found_single_assembly_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
 {string.Format(CSharpEditorResources.Load_from_0, "mscorlib.v4_6_1038_0.dll")}
 #endif",
-                _ => throw ExceptionUtilities.Unreachable(),
+                _ => throw ExceptionUtilities.Unreachable,
             };
 
             var metadataLanguageVersion = language switch
             {
                 OriginatingProjectLanguage.CSharp => "7.3",
                 OriginatingProjectLanguage.VisualBasic => "Preview",
-                _ => throw ExceptionUtilities.Unreachable(),
+                _ => throw ExceptionUtilities.Unreachable,
             };
 
             await GenerateAndVerifySourceAsync(metadataSource, symbolName, ToLanguageName(language), expected, signaturesOnly: signaturesOnly, metadataLanguageVersion: metadataLanguageVersion);
@@ -4016,7 +4016,7 @@ public struct S
 {string.Format(CSharpEditorResources.Found_single_assembly_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
 {string.Format(CSharpEditorResources.Load_from_0, "mscorlib.v4_6_1038_0.dll")}
 #endif",
-                _ => throw ExceptionUtilities.Unreachable(),
+                _ => throw ExceptionUtilities.Unreachable,
             };
 
             await GenerateAndVerifySourceAsync(metadataSource, symbolName, ToLanguageName(language), expected, signaturesOnly: signaturesOnly);
@@ -4084,7 +4084,7 @@ public readonly struct S
 {string.Format(CSharpEditorResources.Found_single_assembly_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
 {string.Format(CSharpEditorResources.Load_from_0, "mscorlib.v4_6_1038_0.dll")}
 #endif",
-                _ => throw ExceptionUtilities.Unreachable(),
+                _ => throw ExceptionUtilities.Unreachable,
             };
 
             await GenerateAndVerifySourceAsync(metadataSource, symbolName, ToLanguageName(language), expected, signaturesOnly: signaturesOnly);
@@ -4174,7 +4174,7 @@ public struct S
 {string.Format(CSharpEditorResources.Found_single_assembly_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
 {string.Format(CSharpEditorResources.Load_from_0, "mscorlib.v4_6_1038_0.dll")}
 #endif",
-                _ => throw ExceptionUtilities.Unreachable(),
+                _ => throw ExceptionUtilities.Unreachable,
             };
 
             await GenerateAndVerifySourceAsync(metadataSource, symbolName, ToLanguageName(language), expected, signaturesOnly: signaturesOnly);
@@ -4264,7 +4264,7 @@ public struct S
 {string.Format(CSharpEditorResources.Found_single_assembly_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
 {string.Format(CSharpEditorResources.Load_from_0, "mscorlib.v4_6_1038_0.dll")}
 #endif",
-                _ => throw ExceptionUtilities.Unreachable(),
+                _ => throw ExceptionUtilities.Unreachable,
             };
 
             await GenerateAndVerifySourceAsync(metadataSource, symbolName, ToLanguageName(language), expected, signaturesOnly: signaturesOnly);
@@ -4354,7 +4354,7 @@ public struct S
 {string.Format(CSharpEditorResources.Found_single_assembly_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
 {string.Format(CSharpEditorResources.Load_from_0, "mscorlib.v4_6_1038_0.dll")}
 #endif",
-                _ => throw ExceptionUtilities.Unreachable(),
+                _ => throw ExceptionUtilities.Unreachable,
             };
 
             await GenerateAndVerifySourceAsync(metadataSource, symbolName, ToLanguageName(language), expected, signaturesOnly: signaturesOnly);
@@ -4432,7 +4432,7 @@ public struct S
 {string.Format(CSharpEditorResources.Found_single_assembly_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
 {string.Format(CSharpEditorResources.Load_from_0, "mscorlib.v4_6_1038_0.dll")}
 #endif",
-                _ => throw ExceptionUtilities.Unreachable(),
+                _ => throw ExceptionUtilities.Unreachable,
             };
 
             await GenerateAndVerifySourceAsync(metadataSource, symbolName, ToLanguageName(language), expected, signaturesOnly: signaturesOnly);
@@ -4528,7 +4528,7 @@ public struct S
 {string.Format(CSharpEditorResources.Found_single_assembly_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
 {string.Format(CSharpEditorResources.Load_from_0, "mscorlib.v4_6_1038_0.dll")}
 #endif",
-                _ => throw ExceptionUtilities.Unreachable(),
+                _ => throw ExceptionUtilities.Unreachable,
             };
 
             await GenerateAndVerifySourceAsync(metadataSource, symbolName, ToLanguageName(language), expected, signaturesOnly: signaturesOnly);
@@ -4622,7 +4622,7 @@ public struct S
 {string.Format(CSharpEditorResources.Found_single_assembly_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
 {string.Format(CSharpEditorResources.Load_from_0, "mscorlib.v4_6_1038_0.dll")}
 #endif",
-                _ => throw ExceptionUtilities.Unreachable(),
+                _ => throw ExceptionUtilities.Unreachable,
             };
 
             await GenerateAndVerifySourceAsync(metadataSource, symbolName, ToLanguageName(language), expected, signaturesOnly: signaturesOnly);
@@ -4717,7 +4717,7 @@ public readonly struct S
 {string.Format(CSharpEditorResources.Found_single_assembly_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
 {string.Format(CSharpEditorResources.Load_from_0, "mscorlib.v4_6_1038_0.dll")}
 #endif",
-                _ => throw ExceptionUtilities.Unreachable(),
+                _ => throw ExceptionUtilities.Unreachable,
             };
 
             await GenerateAndVerifySourceAsync(metadataSource, symbolName, ToLanguageName(language), expected, signaturesOnly: signaturesOnly);

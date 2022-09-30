@@ -618,7 +618,7 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageService
         }
 
         public SyntaxNode? GetContainingVariableDeclaratorOfFieldDeclaration(SyntaxNode? node)
-            => throw ExceptionUtilities.Unreachable();
+            => throw ExceptionUtilities.Unreachable;
 
         public bool IsNameOfSubpattern([NotNullWhen(true)] SyntaxNode? node)
             => node.IsKind(SyntaxKind.IdentifierName) &&

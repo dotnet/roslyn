@@ -466,7 +466,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <returns></returns>
         protected override bool EquivalentToCore(SyntaxNode other)
         {
-            throw ExceptionUtilities.Unreachable();
+            throw ExceptionUtilities.Unreachable;
         }
 
         protected override SyntaxTree SyntaxTreeCore
