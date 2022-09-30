@@ -25,6 +25,14 @@ class [|Outer|]
         End Function
 
         <Theory, CombinatorialData>
+        Public Async Function CS_TestType1_CaseSensitive(host As TestHost) As Task
+            Await TestCSharp("
+class Outer
+{
+}", UnitTestingSearchQuery.ForType("outer"), host)
+        End Function
+
+        <Theory, CombinatorialData>
         Public Async Function CS_TestGenericType1(host As TestHost) As Task
             Await TestCSharp("
 class [|Outer|]<T>
@@ -128,6 +136,39 @@ namespace N
     {
     }
 }", UnitTestingSearchQuery.ForType("N.Outer"), host)
+        End Function
+
+        <Theory, CombinatorialData>
+        Public Async Function CS_TestTypeWithNamespace1_CaseSensitive1(host As TestHost) As Task
+            Await TestCSharp("
+namespace N
+{
+    class Outer
+    {
+    }
+}", UnitTestingSearchQuery.ForType("N.outer"), host)
+        End Function
+
+        <Theory, CombinatorialData>
+        Public Async Function CS_TestTypeWithNamespace1_CaseSensitive2(host As TestHost) As Task
+            Await TestCSharp("
+namespace N
+{
+    class Outer
+    {
+    }
+}", UnitTestingSearchQuery.ForType("n.Outer"), host)
+        End Function
+
+        <Theory, CombinatorialData>
+        Public Async Function CS_TestTypeWithNamespace1_CaseSensitive3(host As TestHost) As Task
+            Await TestCSharp("
+namespace N
+{
+    class Outer
+    {
+    }
+}", UnitTestingSearchQuery.ForType("n.outer"), host)
         End Function
 
         <Theory, CombinatorialData>

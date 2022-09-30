@@ -25,6 +25,14 @@ end class
         End Function
 
         <Theory, CombinatorialData>
+        Public Async Function VB_TestType1_CaseInsensitive(host As TestHost) As Task
+            Await TestVisualBasic("
+class [|Outer|]
+end class
+", UnitTestingSearchQuery.ForType("outer"), host)
+        End Function
+
+        <Theory, CombinatorialData>
         Public Async Function VB_TestGenericType1(host As TestHost) As Task
             Await TestVisualBasic("
 class [|Outer|](of T)
@@ -105,6 +113,33 @@ namespace N
     class [|Outer|]
     end class
 end namespace", UnitTestingSearchQuery.ForType("N.Outer"), host)
+        End Function
+
+        <Theory, CombinatorialData>
+        Public Async Function VB_TestTypeWithNamespace1_CaseInsensitive1(host As TestHost) As Task
+            Await TestVisualBasic("
+namespace N
+    class [|Outer|]
+    end class
+end namespace", UnitTestingSearchQuery.ForType("n.Outer"), host)
+        End Function
+
+        <Theory, CombinatorialData>
+        Public Async Function VB_TestTypeWithNamespace1_CaseInsensitive2(host As TestHost) As Task
+            Await TestVisualBasic("
+namespace N
+    class [|Outer|]
+    end class
+end namespace", UnitTestingSearchQuery.ForType("N.outer"), host)
+        End Function
+
+        <Theory, CombinatorialData>
+        Public Async Function VB_TestTypeWithNamespace1_CaseInsensitive3(host As TestHost) As Task
+            Await TestVisualBasic("
+namespace N
+    class [|Outer|]
+    end class
+end namespace", UnitTestingSearchQuery.ForType("n.outer"), host)
         End Function
 
         <Theory, CombinatorialData>
