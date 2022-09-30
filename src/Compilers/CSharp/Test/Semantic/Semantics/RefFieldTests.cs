@@ -8783,7 +8783,7 @@ public static class A
 
                 parameters = comp.GetMember<MethodSymbol>("A.F4").Parameters;
                 VerifyParameterSymbol(parameters[0], "out R x4", RefKind.Out, useUpdatedEscapeRules ? DeclarationScope.RefScoped : DeclarationScope.Unscoped);
-                VerifyParameterSymbol(parameters[1], useUpdatedEscapeRules ? "out R y4" : "scoped out R y4", RefKind.Out, DeclarationScope.RefScoped);
+                VerifyParameterSymbol(parameters[1], "out R y4", RefKind.Out, DeclarationScope.RefScoped);
             }
         }
 
@@ -8886,13 +8886,13 @@ class Program
                 VerifyParameterSymbol(localFunctions[2].Parameters[0], "in System.Int32 x3", RefKind.In, DeclarationScope.Unscoped);
                 VerifyParameterSymbol(localFunctions[2].Parameters[1], "scoped in System.Int32 y3", RefKind.In, DeclarationScope.RefScoped);
                 VerifyParameterSymbol(localFunctions[3].Parameters[0], "out System.Int32 x4", RefKind.Out, useUpdatedEscapeRules ? DeclarationScope.RefScoped : DeclarationScope.Unscoped);
-                VerifyParameterSymbol(localFunctions[3].Parameters[1], useUpdatedEscapeRules ? "out System.Int32 y4" : "scoped out System.Int32 y4", RefKind.Out, DeclarationScope.RefScoped);
+                VerifyParameterSymbol(localFunctions[3].Parameters[1], "out System.Int32 y4", RefKind.Out, DeclarationScope.RefScoped);
                 VerifyParameterSymbol(localFunctions[4].Parameters[0], "ref R x5", RefKind.Ref, DeclarationScope.Unscoped);
                 VerifyParameterSymbol(localFunctions[4].Parameters[1], "scoped ref R y5", RefKind.Ref, DeclarationScope.RefScoped);
                 VerifyParameterSymbol(localFunctions[5].Parameters[0], "in R x6", RefKind.In, DeclarationScope.Unscoped);
                 VerifyParameterSymbol(localFunctions[5].Parameters[1], "scoped in R y6", RefKind.In, DeclarationScope.RefScoped);
                 VerifyParameterSymbol(localFunctions[6].Parameters[0], "out R x7", RefKind.Out, useUpdatedEscapeRules ? DeclarationScope.RefScoped : DeclarationScope.Unscoped);
-                VerifyParameterSymbol(localFunctions[6].Parameters[1], useUpdatedEscapeRules ? "out R y7" : "scoped out R y7", RefKind.Out, DeclarationScope.RefScoped);
+                VerifyParameterSymbol(localFunctions[6].Parameters[1], "out R y7", RefKind.Out, DeclarationScope.RefScoped);
             }
         }
 
@@ -8956,13 +8956,13 @@ class Program
                 verifyParameter(delegateTypesAndLambdas[2], 0, "in System.Int32", "x3", RefKind.In, DeclarationScope.Unscoped);
                 verifyParameter(delegateTypesAndLambdas[2], 1, "scoped in System.Int32", "y3", RefKind.In, DeclarationScope.RefScoped);
                 verifyParameter(delegateTypesAndLambdas[3], 0, "out System.Int32", "x4", RefKind.Out, useUpdatedEscapeRules ? DeclarationScope.RefScoped : DeclarationScope.Unscoped);
-                verifyParameter(delegateTypesAndLambdas[3], 1, useUpdatedEscapeRules ? "out System.Int32" : "scoped out System.Int32", "y4", RefKind.Out, DeclarationScope.RefScoped);
+                verifyParameter(delegateTypesAndLambdas[3], 1, "out System.Int32", "y4", RefKind.Out, DeclarationScope.RefScoped);
                 verifyParameter(delegateTypesAndLambdas[4], 0, "ref R", "x5", RefKind.Ref, DeclarationScope.Unscoped);
                 verifyParameter(delegateTypesAndLambdas[4], 1, "scoped ref R", "y5", RefKind.Ref, DeclarationScope.RefScoped);
                 verifyParameter(delegateTypesAndLambdas[5], 0, "in R", "x6", RefKind.In, DeclarationScope.Unscoped);
                 verifyParameter(delegateTypesAndLambdas[5], 1, "scoped in R", "y6", RefKind.In, DeclarationScope.RefScoped);
                 verifyParameter(delegateTypesAndLambdas[6], 0, "out R", "x7", RefKind.Out, useUpdatedEscapeRules ? DeclarationScope.RefScoped : DeclarationScope.Unscoped);
-                verifyParameter(delegateTypesAndLambdas[6], 1, useUpdatedEscapeRules ? "out R" : "scoped out R", "y7", RefKind.Out, DeclarationScope.RefScoped);
+                verifyParameter(delegateTypesAndLambdas[6], 1, "out R", "y7", RefKind.Out, DeclarationScope.RefScoped);
             }
 
             static void verifyParameter((NamedTypeSymbol, LambdaSymbol) delegateTypeAndLambda, int parameterIndex, string expectedDisplayType, string expectedDisplayName, RefKind expectedRefKind, DeclarationScope expectedScope)

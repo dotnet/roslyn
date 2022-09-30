@@ -8196,7 +8196,7 @@ ref struct S<T>
 @"ref struct R { }
 class Program
 {
-    static void F(scoped R r1, scoped ref R r2, scoped in R r3) { }
+    static void F(scoped R r1, scoped ref R r2, scoped in R r3, scoped out R r4) { }
 }";
 
             var comp = CreateCompilation(source);
@@ -8207,13 +8207,18 @@ class Program
             var formatTypeRefAndScoped = formatTypeOnly.AddParameterOptions(SymbolDisplayParameterOptions.IncludeParamsRefOut);
 
             Verify(method.ToDisplayParts(formatTypeOnly),
-                "void Program.F(R r1, R r2, R r3)",
+                "void Program.F(R r1, R r2, R r3, R r4)",
                 SymbolDisplayPartKind.Keyword,
                 SymbolDisplayPartKind.Space,
                 SymbolDisplayPartKind.ClassName,
                 SymbolDisplayPartKind.Punctuation,
                 SymbolDisplayPartKind.MethodName,
                 SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.StructName,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.ParameterName,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Space,
                 SymbolDisplayPartKind.StructName,
                 SymbolDisplayPartKind.Space,
                 SymbolDisplayPartKind.ParameterName,
@@ -8230,7 +8235,7 @@ class Program
                 SymbolDisplayPartKind.Punctuation);
 
             Verify(method.ToDisplayParts(formatTypeRefAndScoped),
-                "void Program.F(scoped R r1, scoped ref R r2, scoped in R r3)",
+                "void Program.F(scoped R r1, scoped ref R r2, scoped in R r3, out R r4)",
                 SymbolDisplayPartKind.Keyword,
                 SymbolDisplayPartKind.Space,
                 SymbolDisplayPartKind.ClassName,
@@ -8260,6 +8265,13 @@ class Program
                 SymbolDisplayPartKind.StructName,
                 SymbolDisplayPartKind.Space,
                 SymbolDisplayPartKind.ParameterName,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.StructName,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.ParameterName,
                 SymbolDisplayPartKind.Punctuation);
         }
 
@@ -8268,7 +8280,7 @@ class Program
         {
             var source =
 @"ref struct R { }
-delegate void D(scoped R r1, scoped ref R r2, scoped in R r3);
+delegate void D(scoped R r1, scoped ref R r2, scoped in R r3, scoped out R r4);
 ";
 
             var comp = CreateCompilation(source);
@@ -8279,10 +8291,10 @@ delegate void D(scoped R r1, scoped ref R r2, scoped in R r3);
             var formatTypeRefAndScoped = formatTypeOnly.AddParameterOptions(SymbolDisplayParameterOptions.IncludeParamsRefOut);
 
             Verify(delegateType.ToDisplayParts(formatTypeOnly),
-                "delegate void D(R r1, R r2, R r3)");
+                "delegate void D(R r1, R r2, R r3, R r4)");
 
             Verify(delegateType.ToDisplayParts(formatTypeRefAndScoped),
-                "delegate void D(scoped R r1, scoped ref R r2, scoped in R r3)");
+                "delegate void D(scoped R r1, scoped ref R r2, scoped in R r3, out R r4)");
         }
 
         [Fact]
@@ -8293,21 +8305,24 @@ delegate void D(scoped R r1, scoped ref R r2, scoped in R r3);
 ref struct R { }
 unsafe class Program
 {
-    delegate*<scoped R, scoped in R, scoped ref R, void> D;
+    delegate*<scoped R, scoped in R, scoped ref R, scoped out R, void> D;
 }
 ";
 
             var comp = CreateCompilation(source, options: TestOptions.UnsafeReleaseDll);
             comp.VerifyDiagnostics(
                 // (5,15): error CS8755: 'scoped' cannot be used as a modifier on a function pointer parameter.
-                //     delegate*<scoped R, scoped in R, scoped ref R, void> D;
+                //     delegate*<scoped R, scoped in R, scoped ref R, scoped out R, void> D;
                 Diagnostic(ErrorCode.ERR_BadFuncPointerParamModifier, "scoped").WithArguments("scoped").WithLocation(5, 15),
                 // (5,25): error CS8755: 'scoped' cannot be used as a modifier on a function pointer parameter.
-                //     delegate*<scoped R, scoped in R, scoped ref R, void> D;
+                //     delegate*<scoped R, scoped in R, scoped ref R, scoped out R, void> D;
                 Diagnostic(ErrorCode.ERR_BadFuncPointerParamModifier, "scoped").WithArguments("scoped").WithLocation(5, 25),
                 // (5,38): error CS8755: 'scoped' cannot be used as a modifier on a function pointer parameter.
-                //     delegate*<scoped R, scoped in R, scoped ref R, void> D;
-                Diagnostic(ErrorCode.ERR_BadFuncPointerParamModifier, "scoped").WithArguments("scoped").WithLocation(5, 38));
+                //     delegate*<scoped R, scoped in R, scoped ref R, scoped out R, void> D;
+                Diagnostic(ErrorCode.ERR_BadFuncPointerParamModifier, "scoped").WithArguments("scoped").WithLocation(5, 38),
+                // (5,52): error CS8755: 'scoped' cannot be used as a modifier on a function pointer parameter.
+                //     delegate*<scoped R, scoped in R, scoped ref R, scoped out R, void> D;
+                Diagnostic(ErrorCode.ERR_BadFuncPointerParamModifier, "scoped").WithArguments("scoped").WithLocation(5, 52));
 
             var type = comp.GetMember<FieldSymbol>("Program.D").Type;
 
@@ -8316,10 +8331,10 @@ unsafe class Program
                 WithParameterOptions(SymbolDisplayParameterOptions.IncludeType | SymbolDisplayParameterOptions.IncludeName | SymbolDisplayParameterOptions.IncludeParamsRefOut);
 
             Verify(type.ToDisplayParts(formatMinimal),
-                "delegate*<R, in R, ref R, Void>");
+                "delegate*<R, in R, ref R, out R, Void>");
 
             Verify(type.ToDisplayParts(formatTypeRefAndScoped),
-                "delegate*<R, in R, ref R, void>");
+                "delegate*<R, in R, ref R, out R, void>");
         }
 
         [Fact]
