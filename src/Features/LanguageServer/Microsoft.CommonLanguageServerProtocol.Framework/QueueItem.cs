@@ -85,6 +85,14 @@ internal class QueueItem<TRequest, TResponse, TRequestContext> : IQueueItem<TReq
         return (queueItem, queueItem._completionSource.Task);
     }
 
+    public async Task<TRequestContext?> CreateRequestContextAsync(CancellationToken cancellationToken)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        var requestContextFactory = LspServices.GetRequiredService<IRequestContextFactory<TRequestContext>>();
+        var context = await requestContextFactory.CreateRequestContextAsync(this, _request, cancellationToken).ConfigureAwait(false);
+        return context;
+    }
+
     /// <summary>
     /// Processes the queued request. Exceptions will be sent to the task completion source
     /// representing the task that the client is waiting for, then re-thrown so that
@@ -92,15 +100,12 @@ internal class QueueItem<TRequest, TResponse, TRequestContext> : IQueueItem<TReq
     /// </summary>
     /// <param name="cancellationToken"></param>
     /// <returns>The result of the request.</returns>
-    public async Task StartRequestAsync(CancellationToken cancellationToken)
+    public async Task StartRequestAsync(TRequestContext? context, CancellationToken cancellationToken)
     {
         _logger.LogStartContext($"{MethodName}");
         try
         {
             cancellationToken.ThrowIfCancellationRequested();
-
-            var requestContextFactory = LspServices.GetRequiredService<IRequestContextFactory<TRequestContext>>();
-            var context = await requestContextFactory.CreateRequestContextAsync(this, _request, cancellationToken).ConfigureAwait(false);
 
             if (context is null)
             {
