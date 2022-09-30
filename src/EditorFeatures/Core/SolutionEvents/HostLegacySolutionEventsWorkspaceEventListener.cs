@@ -81,7 +81,7 @@ namespace Microsoft.CodeAnalysis.LegacySolutionEvents
             {
                 // Notifying OOP of workspace events can be expensive (there may be a lot of them, and they involve
                 // syncing over entire solution snapshots).  As such, do not bother to do this if the remote side says
-                // that it's not interested in the events.  This will happen, for example, when the unitTtesting
+                // that it's not interested in the events.  This will happen, for example, when the unittesting
                 // Test-Explorer window has not been shown yet, and so the unit testing system will not have registered
                 // an incremental analyzer with us.
                 var shouldReport = await client.TryInvokeAsync<IRemoteLegacySolutionEventsAggregationService, bool>(
