@@ -2563,9 +2563,9 @@ class C
                 // (6,31): error CS0012: The type 'S1' is defined in an assembly that is not referenced. You must add a reference to assembly 'libS1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
                 //         S2* span = stackalloc S2[16];
                 Diagnostic(ErrorCode.ERR_NoTypeDef, "S2").WithArguments("S1", "libS1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(6, 31),
-                // (6,31): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('S2')
+                // (6,31): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('S2')
                 //         S2* span = stackalloc S2[16];
-                Diagnostic(ErrorCode.WRN_ManagedAddr, "S2").WithArguments("S2").WithLocation(6, 31),
+                Diagnostic(ErrorCode.ERR_ManagedAddr, "S2").WithArguments("S2").WithLocation(6, 31),
                 // (7,9): error CS0012: The type 'S1' is defined in an assembly that is not referenced. You must add a reference to assembly 'libS1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
                 //         S2* span2 = stackalloc [] { default(S2) };
                 Diagnostic(ErrorCode.ERR_NoTypeDef, "S2*").WithArguments("S1", "libS1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(7, 9),
@@ -2575,9 +2575,9 @@ class C
                 // (7,21): error CS0012: The type 'S1' is defined in an assembly that is not referenced. You must add a reference to assembly 'libS1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
                 //         S2* span2 = stackalloc [] { default(S2) };
                 Diagnostic(ErrorCode.ERR_NoTypeDef, "stackalloc [] { default(S2) }").WithArguments("S1", "libS1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(7, 21),
-                // (7,21): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('S2')
+                // (7,21): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('S2')
                 //         S2* span2 = stackalloc [] { default(S2) };
-                Diagnostic(ErrorCode.WRN_ManagedAddr, "stackalloc [] { default(S2) }").WithArguments("S2").WithLocation(7, 21));
+                Diagnostic(ErrorCode.ERR_ManagedAddr, "stackalloc [] { default(S2) }").WithArguments("S2").WithLocation(7, 21));
 
             comp = CreateCompilation(source, options: TestOptions.UnsafeDebugDll, references: new[] { UnmanagedUseSiteError_Ref1, UnmanagedUseSiteError_Ref2 });
             comp.VerifyEmitDiagnostics();

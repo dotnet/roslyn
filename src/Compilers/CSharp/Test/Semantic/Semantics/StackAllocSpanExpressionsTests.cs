@@ -608,12 +608,9 @@ class Program
         var d = stackalloc dynamic[10];
     }
 }").VerifyDiagnostics(
-                // (6,17): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                // (6,28): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('dynamic')
                 //         var d = stackalloc dynamic[10];
-                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "stackalloc dynamic[10]").WithLocation(6, 17),
-                // (6,28): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('dynamic')
-                //         var d = stackalloc dynamic[10];
-                Diagnostic(ErrorCode.WRN_ManagedAddr, "dynamic").WithArguments("dynamic").WithLocation(6, 28)
+                Diagnostic(ErrorCode.ERR_ManagedAddr, "dynamic").WithArguments("dynamic").WithLocation(6, 28)
                 );
         }
 
@@ -629,9 +626,9 @@ class Program
         Span<dynamic> d = stackalloc dynamic[10];
     }
 }").VerifyDiagnostics(
-                // (7,38): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('dynamic')
+                // (7,38): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('dynamic')
                 //         Span<dynamic> d = stackalloc dynamic[10];
-                Diagnostic(ErrorCode.WRN_ManagedAddr, "dynamic").WithArguments("dynamic").WithLocation(7, 38)
+                Diagnostic(ErrorCode.ERR_ManagedAddr, "dynamic").WithArguments("dynamic").WithLocation(7, 38)
                 );
         }
 

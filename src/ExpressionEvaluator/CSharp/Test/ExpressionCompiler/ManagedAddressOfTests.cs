@@ -197,38 +197,7 @@ enum E
                 var context = CreateMethodContext(runtime, "C.M");
                 var testData = new CompilationTestData();
                 context.CompileAssignment("a", "() => { var s = stackalloc string[1]; }", out var error, testData);
-                Assert.Null(error);
-
-                testData.GetMethodData("<>x.<>m0").VerifyIL(@"
-{
-  // Code size       33 (0x21)
-  .maxstack  2
-  .locals init (System.Action V_0) //a
-  IL_0000:  ldsfld     ""System.Action <>x.<>c.<>9__0_0""
-  IL_0005:  dup
-  IL_0006:  brtrue.s   IL_001f
-  IL_0008:  pop
-  IL_0009:  ldsfld     ""<>x.<>c <>x.<>c.<>9""
-  IL_000e:  ldftn      ""void <>x.<>c.<<>m0>b__0_0()""
-  IL_0014:  newobj     ""System.Action..ctor(object, System.IntPtr)""
-  IL_0019:  dup
-  IL_001a:  stsfld     ""System.Action <>x.<>c.<>9__0_0""
-  IL_001f:  stloc.0
-  IL_0020:  ret
-}
-");
-                testData.GetMethodData("<>x.<>c.<<>m0>b__0_0").VerifyIL(@"
-{
-  // Code size       11 (0xb)
-  .maxstack  2
-  IL_0000:  ldc.i4.1
-  IL_0001:  conv.u
-  IL_0002:  sizeof     ""string""
-  IL_0008:  mul.ovf.un
-  IL_0009:  pop
-  IL_000a:  ret
-}
-");
+                Assert.Equal("error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('string')", error);
             });
         }
 

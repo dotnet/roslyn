@@ -8028,27 +8028,27 @@ unsafe class C
                 // (7,31): error CS1575: A stackalloc expression requires [] after type
                 //         { int* p = stackalloc int[1, 1]; }
                 Diagnostic(ErrorCode.ERR_BadStackAllocExpr, "int[1, 1]").WithLocation(7, 31),
-                // (8,31): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('int[]')
+                // (8,31): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('int[]')
                 //         { int* p = stackalloc int[][]; }
-                Diagnostic(ErrorCode.WRN_ManagedAddr, "int").WithArguments("int[]").WithLocation(8, 31),
+                Diagnostic(ErrorCode.ERR_ManagedAddr, "int").WithArguments("int[]").WithLocation(8, 31),
                 // (8,31): error CS1575: A stackalloc expression requires [] after type
                 //         { int* p = stackalloc int[][]; }
                 Diagnostic(ErrorCode.ERR_BadStackAllocExpr, "int[][]").WithLocation(8, 31),
-                // (9,31): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('int[]')
+                // (9,31): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('int[]')
                 //         { int* p = stackalloc int[][1]; }
-                Diagnostic(ErrorCode.WRN_ManagedAddr, "int").WithArguments("int[]").WithLocation(9, 31),
+                Diagnostic(ErrorCode.ERR_ManagedAddr, "int").WithArguments("int[]").WithLocation(9, 31),
                 // (9,31): error CS1575: A stackalloc expression requires [] after type
                 //         { int* p = stackalloc int[][1]; }
                 Diagnostic(ErrorCode.ERR_BadStackAllocExpr, "int[][1]").WithLocation(9, 31),
-                // (10,31): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('int[]')
+                // (10,31): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('int[]')
                 //         { int* p = stackalloc int[1][]; }
-                Diagnostic(ErrorCode.WRN_ManagedAddr, "int").WithArguments("int[]").WithLocation(10, 31),
+                Diagnostic(ErrorCode.ERR_ManagedAddr, "int").WithArguments("int[]").WithLocation(10, 31),
                 // (10,31): error CS1575: A stackalloc expression requires [] after type
                 //         { int* p = stackalloc int[1][]; }
                 Diagnostic(ErrorCode.ERR_BadStackAllocExpr, "int[1][]").WithLocation(10, 31),
-                // (11,31): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('int[]')
+                // (11,31): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('int[]')
                 //         { int* p = stackalloc int[1][1]; }
-                Diagnostic(ErrorCode.WRN_ManagedAddr, "int").WithArguments("int[]").WithLocation(11, 31),
+                Diagnostic(ErrorCode.ERR_ManagedAddr, "int").WithArguments("int[]").WithLocation(11, 31),
                 // (11,31): error CS1575: A stackalloc expression requires [] after type
                 //         { int* p = stackalloc int[1][1]; }
                 Diagnostic(ErrorCode.ERR_BadStackAllocExpr, "int[1][1]").WithLocation(11, 31)
