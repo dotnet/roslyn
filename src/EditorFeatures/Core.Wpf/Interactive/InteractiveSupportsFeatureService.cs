@@ -75,6 +75,9 @@ namespace Microsoft.CodeAnalysis.Interactive
 
             public bool SupportsNavigationToAnyPosition(Document document)
                 => true;
+
+            public bool SupportsSemanticSnippets(Document document)
+                => false;
         }
     }
 }
