@@ -871,13 +871,9 @@ class A
             }
 
             var composition = s_editorFeaturesCompositionWithMockDiagnosticUpdateSourceRegistrationService.AddParts(
-                typeof(TestDocumentTrackingService),
-                typeof(TestWorkspaceConfigurationService));
+                typeof(TestDocumentTrackingService));
 
-            using var workspace = new TestWorkspace(composition);
-
-            var workspaceConfigurationService = workspace.GetService<TestWorkspaceConfigurationService>();
-            workspaceConfigurationService.Options = new WorkspaceConfigurationOptions(EnableOpeningSourceGeneratedFiles: true);
+            using var workspace = new TestWorkspace(composition, configurationOptions: new WorkspaceConfigurationOptions(EnableOpeningSourceGeneratedFiles: true));
 
             workspace.GlobalOptions.SetGlobalOption(new OptionKey(SolutionCrawlerOptionsStorage.BackgroundAnalysisScopeOption, LanguageNames.CSharp), analysisScope);
 

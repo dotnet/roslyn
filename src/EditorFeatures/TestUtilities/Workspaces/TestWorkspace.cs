@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using System.ServiceModel.Syndication;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
@@ -59,20 +60,29 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         private readonly Dictionary<string, ITextBuffer2> _createdTextBuffers = new();
         private readonly string _workspaceKind;
 
-        public TestWorkspace(
+        internal TestWorkspace(
             TestComposition? composition = null,
             string? workspaceKind = WorkspaceKind.Host,
             Guid solutionTelemetryId = default,
             bool disablePartialSolutions = true,
-            bool ignoreUnchangeableDocumentsWhenApplyingChanges = true)
-            : base(GetHostServices(ref composition), workspaceKind ?? WorkspaceKind.Host)
+            bool ignoreUnchangeableDocumentsWhenApplyingChanges = true,
+            WorkspaceConfigurationOptions? configurationOptions = null)
+            : base(GetHostServices(ref composition, configurationOptions != null), workspaceKind ?? WorkspaceKind.Host)
         {
+            this.Composition = composition;
+            this.ExportProvider = composition.ExportProviderFactory.CreateExportProvider();
+
+            // configure workspace before creating any solutions:
+            if (configurationOptions != null)
+            {
+                var workspaceConfigurationService = GetService<TestWorkspaceConfigurationService>();
+                workspaceConfigurationService.Options = new WorkspaceConfigurationOptions(EnableOpeningSourceGeneratedFiles: true);
+            }
+
             SetCurrentSolution(CreateSolution(SolutionInfo.Create(SolutionId.CreateNewId(), VersionStamp.Create()).WithTelemetryId(solutionTelemetryId)));
 
             this.TestHookPartialSolutionsDisabled = disablePartialSolutions;
 
-            this.Composition = composition;
-            this.ExportProvider = composition.ExportProviderFactory.CreateExportProvider();
             _workspaceKind = workspaceKind ?? WorkspaceKind.Host;
             this.Projects = new List<TestHostProject>();
             this.Documents = new List<TestHostDocument>();
@@ -111,9 +121,15 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             _metadataAsSourceFileService = ExportProvider.GetExportedValues<IMetadataAsSourceFileService>().FirstOrDefault();
         }
 
-        private static HostServices GetHostServices([NotNull] ref TestComposition? composition)
+        private static HostServices GetHostServices([NotNull] ref TestComposition? composition, bool hasWorkspaceConfigurationOptions)
         {
             composition ??= EditorTestCompositions.EditorFeatures;
+
+            if (hasWorkspaceConfigurationOptions)
+            {
+                composition = composition.AddParts(typeof(TestWorkspaceConfigurationService));
+            }
+
             return composition.GetHostServices();
         }
 

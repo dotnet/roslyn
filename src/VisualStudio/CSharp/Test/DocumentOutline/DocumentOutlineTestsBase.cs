@@ -67,7 +67,6 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.DocumentOutline
         private static readonly TestComposition s_composition = EditorTestCompositions.LanguageServerProtocol
             .AddParts(typeof(TestDocumentTrackingService))
             .AddParts(typeof(TestWorkspaceRegistrationService))
-            .AddParts(typeof(TestWorkspaceConfigurationService))
             .RemoveParts(typeof(MockWorkspaceEventListenerProvider));
 
         protected async Task<DocumentOutlineTestMocks> CreateMocksAsync(string code)

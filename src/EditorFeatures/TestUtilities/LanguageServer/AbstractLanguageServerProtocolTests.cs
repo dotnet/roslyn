@@ -47,7 +47,6 @@ namespace Roslyn.Test.Utilities
         private static readonly TestComposition s_composition = EditorTestCompositions.LanguageServerProtocol
             .AddParts(typeof(TestDocumentTrackingService))
             .AddParts(typeof(TestWorkspaceRegistrationService))
-            .AddParts(typeof(TestWorkspaceConfigurationService))
             .RemoveParts(typeof(MockWorkspaceEventListenerProvider));
 
         private class TestSpanMapperProvider : IDocumentServiceProvider
@@ -303,10 +302,7 @@ namespace Roslyn.Test.Utilities
         {
             var lspOptions = initializationOptions ?? new InitializationOptions();
 
-            var workspace = new TestWorkspace(Composition);
-
-            var workspaceConfigurationService = workspace.GetService<TestWorkspaceConfigurationService>();
-            workspaceConfigurationService.Options = new WorkspaceConfigurationOptions(EnableOpeningSourceGeneratedFiles: true);
+            var workspace = new TestWorkspace(Composition, configurationOptions: new WorkspaceConfigurationOptions(EnableOpeningSourceGeneratedFiles: true));
 
             workspace.InitializeDocuments(TestWorkspace.CreateWorkspaceElement(languageName, files: markups, sourceGeneratedFiles: lspOptions.SourceGeneratedMarkups), openDocuments: false);
 
@@ -356,10 +352,7 @@ namespace Roslyn.Test.Utilities
 
             var workspace = TestWorkspace.Create(XElement.Parse(xmlContent), openDocuments: false, composition: Composition, workspaceKind: workspaceKind);
 
-            if (lspOptions.OptionUpdater != null)
-            {
-                lspOptions.OptionUpdater(workspace.GetService<IGlobalOptionService>());
-            }
+            lspOptions.OptionUpdater?.Invoke(workspace.GetService<IGlobalOptionService>());
 
             workspace.TryApplyChanges(workspace.CurrentSolution.WithAnalyzerReferences(new[] { TestAnalyzerReferences }));
 
