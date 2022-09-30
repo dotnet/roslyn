@@ -572,5 +572,39 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Wrapping
 }"
 );
         }
+
+        [Fact]
+        public async Task TestMissingStartToken()
+        {
+            await TestMissingAsync(
+@"class C {
+    void Bar() {
+        var test = new[] [||] 1, 2 };
+    }
+}");
+        }
+
+        [Fact]
+        public async Task TestMissingEndToken1()
+        {
+            await TestMissingAsync(
+@"class C {
+    void Bar() {
+        var test = new[] [||]{ 1, 2
+        return;
+    }
+}");
+        }
+
+        [Fact]
+        public async Task TestMissingEndToken2()
+        {
+            await TestMissingAsync(
+@"class C {
+    void Bar() {
+        var test = new[] [||]{ 1, 2 ;
+    }
+}");
+        }
     }
 }

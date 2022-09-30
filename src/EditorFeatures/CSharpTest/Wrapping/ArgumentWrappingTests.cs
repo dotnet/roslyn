@@ -899,5 +899,49 @@ GetIndentionColumn(30),
     }
 }");
         }
+
+        [Fact]
+        public async Task TestMissingStartToken1()
+        {
+            await TestMissingAsync(
+@"class C {
+    void Bar() {
+        Goobar [||])
+    }
+}");
+        }
+
+        [Fact]
+        public async Task TestMissingStartToken2()
+        {
+            await TestMissingAsync(
+@"class C {
+    void Bar() {
+        Goobar [||]i, j)
+    }
+}");
+        }
+
+        [Fact]
+        public async Task TestMissingEndToken1()
+        {
+            await TestMissingAsync(
+@"class C {
+    void Bar() {
+        Goobar([||]
+    }
+}");
+        }
+
+        [Fact]
+        public async Task TestMissingEndToken2()
+        {
+            await TestMissingAsync(
+@"class C {
+    void Bar() {
+        Goobar([||]i, j
+    }
+}");
+        }
     }
 }
