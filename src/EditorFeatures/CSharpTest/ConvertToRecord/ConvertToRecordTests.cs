@@ -4691,10 +4691,6 @@ namespace N
                 LanguageVersion = LanguageVersion.CSharp10;
                 AddSolutionTransform(SolutionTransforms);
                 MarkupOptions = MarkupOptions.UseFirstDescriptor;
-                CodeActionOptions = (CSharpCodeActionOptions.Default with
-                {
-                    EnableConvertToRecord = true,
-                }).CreateProvider();
             }
 
             protected override Workspace CreateWorkspaceImpl()
@@ -4727,10 +4723,6 @@ namespace N
             {
                 LanguageVersion = LanguageVersion.CSharp10;
                 AddSolutionTransform(SolutionTransforms);
-                CodeActionOptions = (CSharpCodeActionOptions.Default with
-                {
-                    EnableConvertToRecord = true,
-                }).CreateProvider();
             }
         }
 

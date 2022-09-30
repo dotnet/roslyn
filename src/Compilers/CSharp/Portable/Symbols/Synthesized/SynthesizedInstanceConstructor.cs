@@ -294,7 +294,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return;
             }
 
-            var baseConstructorCall = MethodCompiler.GenerateBaseParameterlessConstructorInitializer(this, diagnostics);
+            var baseConstructorCall = Binder.GenerateBaseParameterlessConstructorInitializer(this, diagnostics);
             if (baseConstructorCall == null)
             {
                 // Attribute..ctor was not found or was inaccessible
