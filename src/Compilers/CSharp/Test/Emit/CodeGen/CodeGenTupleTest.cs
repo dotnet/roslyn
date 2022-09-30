@@ -14341,15 +14341,15 @@ interface ITest2<T> : ValueTuple<int, int, int, int, int, int, int, T> where T :
                                                       options: TestOptions.ReleaseExe.WithAllowUnsafe(true));
 
             comp.VerifyDiagnostics(
-                // (31,18): error CS0509: 'Test1<T>': cannot derive from sealed type 'ValueTuple<int, int, int, int, int, int, int, T>'
-                // class Test1<T> : ValueTuple<int, int, int, int, int, int, int, T> where T : struct
-                Diagnostic(ErrorCode.ERR_CantDeriveFromSealedType, "ValueTuple<int, int, int, int, int, int, int, T>").WithArguments("Test1<T>", "System.ValueTuple<int, int, int, int, int, int, int, T>").WithLocation(31, 18),
                 // (35,23): error CS0527: Type 'ValueTuple<int, int, int, int, int, int, int, T>' in interface list is not an interface
                 // interface ITest2<T> : ValueTuple<int, int, int, int, int, int, int, T> where T : struct
                 Diagnostic(ErrorCode.ERR_NonInterfaceInInterfaceList, "ValueTuple<int, int, int, int, int, int, int, T>").WithArguments("System.ValueTuple<int, int, int, int, int, int, int, T>").WithLocation(35, 23),
-                // (25,69): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('ValueTuple<int, int, int, int, int, int, int, T>')
+                // (31,18): error CS0509: 'Test1<T>': cannot derive from sealed type 'ValueTuple<int, int, int, int, int, int, int, T>'
+                // class Test1<T> : ValueTuple<int, int, int, int, int, int, int, T> where T : struct
+                Diagnostic(ErrorCode.ERR_CantDeriveFromSealedType, "ValueTuple<int, int, int, int, int, int, int, T>").WithArguments("Test1<T>", "System.ValueTuple<int, int, int, int, int, int, int, T>").WithLocation(31, 18),
+                // (25,69): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('ValueTuple<int, int, int, int, int, int, int, T>')
                 //     public static ValueTuple<int, int, int, int, int, int, int, T>* M5()
-                Diagnostic(ErrorCode.ERR_ManagedAddr, "M5").WithArguments("System.ValueTuple<int, int, int, int, int, int, int, T>").WithLocation(25, 69),
+                Diagnostic(ErrorCode.WRN_ManagedAddr, "M5").WithArguments("System.ValueTuple<int, int, int, int, int, int, int, T>").WithLocation(25, 69),
                 // (23,74): error CS0066: 'Test<T>.E1': event must be of a delegate type
                 //     public static event ValueTuple<int, int, int, int, int, int, int, T> E1;
                 Diagnostic(ErrorCode.ERR_EventNotDelegate, "E1").WithArguments("Test<T>.E1").WithLocation(23, 74),
