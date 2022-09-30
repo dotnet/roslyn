@@ -94,7 +94,7 @@
       </trans-unit>
       <trans-unit id="DeclarePublicApiMessage">
         <source>Symbol '{0}' is not part of the declared public API</source>
-        <target state="needs-review-translation">O símbolo '{0}' não faz parte da API declarada</target>
+        <target state="new">Symbol '{0}' is not part of the declared public API</target>
         <note />
       </trans-unit>
       <trans-unit id="DeclarePublicApiTitle">
@@ -219,12 +219,12 @@
       </trans-unit>
       <trans-unit id="OverloadWithOptionalParametersShouldHaveMostParametersMessage">
         <source>'{0}' violates the backcompat requirement: 'API with optional parameter(s) should have the most parameters amongst its public overloads'. See '{1}' for details.</source>
-        <target state="needs-review-translation">O símbolo '{0}' viola o requisito de backcompat: 'A API pública com parâmetros opcionais deve ter a maioria dos parâmetros entre suas sobrecargas públicas. Confira '{1}' para obter detalhes.</target>
+        <target state="new">'{0}' violates the backcompat requirement: 'API with optional parameter(s) should have the most parameters amongst its public overloads'. See '{1}' for details.</target>
         <note />
       </trans-unit>
       <trans-unit id="OverloadWithOptionalParametersShouldHaveMostParametersTitle">
         <source>API with optional parameter(s) should have the most parameters amongst its public overloads</source>
-        <target state="needs-review-translation">A API pública com parâmetros opcionais deve ter a maioria dos parâmetros entre as sobrecargas públicas dela</target>
+        <target state="new">API with optional parameter(s) should have the most parameters amongst its public overloads</target>
         <note />
       </trans-unit>
       <trans-unit id="PublicApiFileMissingMessage">
@@ -294,7 +294,7 @@
       </trans-unit>
       <trans-unit id="RemovedApiIsNotActuallyRemovedTitle">
         <source>API is marked as removed but it exists in source code</source>
-        <target state="needs-review-translation">A API pública está marcada como removida, mas existe no código-fonte</target>
+        <target state="new">API is marked as removed but it exists in source code</target>
         <note />
       </trans-unit>
       <trans-unit id="ShouldAnnotateInternalApiFilesDescription">
