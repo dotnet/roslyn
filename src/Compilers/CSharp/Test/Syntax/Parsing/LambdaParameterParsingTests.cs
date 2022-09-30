@@ -4607,10 +4607,10 @@ class C {
         {
             UsingExpression("(int x = > 0) => x;",
                 // (1,1): error CS1073: Unexpected token ';'
-                // (int x = > 3) => x;
-                Diagnostic(ErrorCode.ERR_UnexpectedToken, "(int x = > 3) => x").WithArguments(";").WithLocation(1, 1),
+                // (int x = > 0) => x;
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, "(int x = > 0) => x").WithArguments(";").WithLocation(1, 1),
                 // (1,10): error CS1525: Invalid expression term '>'
-                // (int x = > 3) => x;
+                // (int x = > 0) => x;
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, ">").WithArguments(">").WithLocation(1, 10));
 
             N(SyntaxKind.ParenthesizedLambdaExpression);
@@ -4637,7 +4637,7 @@ class C {
                                 N(SyntaxKind.GreaterThanToken);
                                 N(SyntaxKind.NumericLiteralExpression);
                                 {
-                                    N(SyntaxKind.NumericLiteralToken, "3");
+                                    N(SyntaxKind.NumericLiteralToken, "0");
                                 }
                             }
                         }

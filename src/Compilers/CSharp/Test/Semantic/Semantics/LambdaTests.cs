@@ -7646,7 +7646,6 @@ class Program
 {
     static int f(int x) => 2 * x;
     public static void Main(string[] args)
-
     {
         var lam = int (int p = f(3)) => p;
     }

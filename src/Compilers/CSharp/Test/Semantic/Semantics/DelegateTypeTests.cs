@@ -13294,7 +13294,10 @@ public class Program
         public void LambdaWithDefault_InvalidConstantConversion()
         {
             TestDiagnosticsInMain(
-@"var lam = (string s = 1) => { };");
+@"var lam = (string s = 1) => { };", expectedDiagnostics:
+                // (6,27): error CS1750: A value of type 'int' cannot be used as a default parameter because there are no standard conversions to type 'string'
+                //         var lam = (string s = 1) => { };
+                Diagnostic(ErrorCode.ERR_NoConversionForDefaultParam, "s").WithArguments("int", "string").WithLocation(6, 27));
         }
 
         [Fact]
@@ -13335,12 +13338,12 @@ class Program
 }
 """;
             CreateCompilation(source).VerifyDiagnostics(
-                // (7,19): warning CS0219: The variable 'n' is assigned but its value is never used
-                //         const int n = 42;
-                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "n").WithArguments("n").WithLocation(7, 19),
-                // (9,28): error CS1736: Default parameter value for 'x' must be a compile-time constant
-                //         var lam = (int x = $"n: {n}") => { };
-                Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, @"$""n: {n}""").WithArguments("x").WithLocation(9, 28));
+                // (7,13): warning CS0219: The variable 'n' is assigned but its value is never used
+                //         int n = 42;
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "n").WithArguments("n").WithLocation(7, 13),
+                // (9,31): error CS1736: Default parameter value for 's' must be a compile-time constant
+                //         var lam = (string s = $"n: {n}") => { };
+                Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, @"$""n: {n}""").WithArguments("s").WithLocation(9, 31));
         }
 
         [Fact]
