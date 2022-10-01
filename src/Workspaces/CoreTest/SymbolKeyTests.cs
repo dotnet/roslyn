@@ -113,6 +113,62 @@ public class C
             TestRoundTrip(GetDeclaredSymbols(compilation), compilation);
         }
 
+        [Fact]
+        public void TestMissingField1()
+        {
+            var source = @"
+
+public class C
+{
+    int;
+}
+";
+            var compilation = GetCompilation(source, LanguageNames.CSharp);
+            TestRoundTrip(GetDeclaredSymbols(compilation), compilation);
+        }
+
+        [Fact]
+        public void TestMissingField2()
+        {
+            var source = @"
+
+public class C
+{
+    int a,;
+}
+";
+            var compilation = GetCompilation(source, LanguageNames.CSharp);
+            TestRoundTrip(GetDeclaredSymbols(compilation), compilation);
+        }
+
+        [Fact]
+        public void TestMissingEvent1()
+        {
+            var source = @"
+
+public class C
+{
+    event System.Action;
+}
+";
+            var compilation = GetCompilation(source, LanguageNames.CSharp);
+            TestRoundTrip(GetDeclaredSymbols(compilation), compilation);
+        }
+
+        [Fact]
+        public void TestMissingEvent2()
+        {
+            var source = @"
+
+public class C
+{
+    event System.Action a,;
+}
+";
+            var compilation = GetCompilation(source, LanguageNames.CSharp);
+            TestRoundTrip(GetDeclaredSymbols(compilation), compilation);
+        }
+
         [Fact, WorkItem(14364, "https://github.com/dotnet/roslyn/issues/14364")]
         public void TestVBParameterizedEvent()
         {
