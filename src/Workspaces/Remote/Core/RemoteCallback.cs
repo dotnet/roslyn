@@ -156,7 +156,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
             // If this is hit the cancellation token passed to the service implementation did not use the correct token,
             // and the resulting exception was not a ConnectionLostException.
-            return ExceptionUtilities.Unreachable;
+            return ExceptionUtilities.Unreachable();
         }
     }
 }

@@ -15,6 +15,7 @@ public interface IRequestContextFactory<TRequestContext>
 {
     /// <summary>
     /// Create a <typeparamref name="TRequestContext"/> object from the given <see cref="IQueueItem{RequestContextType}"/>.
+    /// Note - throwing in the implementation of this method will cause the server to shutdown.
     /// </summary>
     /// <param name="queueItem">The <see cref="IQueueItem{RequestContextType}"/> from which to create a request.</param>
     /// <param name="requestParam">The request parameters.</param>

@@ -1026,6 +1026,141 @@ class B4 : A
             comp.VerifyDiagnostics();
         }
 
+        [Fact, WorkItem(63860, "https://github.com/dotnet/roslyn/issues/63860")]
+        public void AddUIntPtrAndInt()
+        {
+            var source = @"
+using System;
+
+class C
+{
+    UIntPtr M(UIntPtr i, int j) => i + j;
+}
+";
+            var comp = CreateNumericIntPtrCompilation(source, references: new[] { MscorlibRefWithoutSharingCachedSymbols });
+            comp.VerifyDiagnostics(
+                // (6,36): error CS0034: Operator '+' is ambiguous on operands of type 'nuint' and 'int'
+                //     UIntPtr M(UIntPtr i, int j) => i + j;
+                Diagnostic(ErrorCode.ERR_AmbigBinaryOps, "i + j").WithArguments("+", "nuint", "int").WithLocation(6, 36)
+                );
+
+            comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp);
+            verifier.VerifyIL("C.M", @"
+{
+  // Code size        8 (0x8)
+  .maxstack  2
+  IL_0000:  ldarg.1
+  IL_0001:  ldarg.2
+  IL_0002:  call       ""System.UIntPtr System.UIntPtr.op_Addition(System.UIntPtr, int)""
+  IL_0007:  ret
+}
+");
+        }
+
+        [Fact, WorkItem(63860, "https://github.com/dotnet/roslyn/issues/63860")]
+        public void AddNUIntAndInt()
+        {
+            var source = @"
+class C
+{
+    nuint M(nuint i, int j) => i + j;
+}";
+            var comp = CreateNumericIntPtrCompilation(source, references: new[] { MscorlibRefWithoutSharingCachedSymbols });
+            comp.VerifyDiagnostics(
+                // (4,32): error CS0034: Operator '+' is ambiguous on operands of type 'nuint' and 'int'
+                //     nuint M(nuint i, int j) => i + j;
+                Diagnostic(ErrorCode.ERR_AmbigBinaryOps, "i + j").WithArguments("+", "nuint", "int").WithLocation(4, 32)
+                );
+
+            comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (4,32): error CS0034: Operator '+' is ambiguous on operands of type 'nuint' and 'int'
+                //     nuint M(nuint i, int j) => i + j;
+                Diagnostic(ErrorCode.ERR_AmbigBinaryOps, "i + j").WithArguments("+", "nuint", "int").WithLocation(4, 32)
+                );
+        }
+
+        [Fact, WorkItem(63860, "https://github.com/dotnet/roslyn/issues/63860")]
+        public void AddIntPtrAndInt()
+        {
+            var source = @"
+using System;
+
+class C
+{
+    IntPtr M(IntPtr i, int j) => i + j;
+}";
+            var comp = CreateNumericIntPtrCompilation(source, references: new[] { MscorlibRefWithoutSharingCachedSymbols });
+            comp.VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp);
+            verifier.VerifyIL("C.M", @"
+{
+  // Code size        5 (0x5)
+  .maxstack  2
+  IL_0000:  ldarg.1
+  IL_0001:  ldarg.2
+  IL_0002:  conv.i
+  IL_0003:  add
+  IL_0004:  ret
+}
+");
+            comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+
+            verifier = CompileAndVerify(comp);
+            verifier.VerifyIL("C.M", @"
+{
+  // Code size        8 (0x8)
+  .maxstack  2
+  IL_0000:  ldarg.1
+  IL_0001:  ldarg.2
+  IL_0002:  call       ""System.IntPtr System.IntPtr.op_Addition(System.IntPtr, int)""
+  IL_0007:  ret
+}
+");
+        }
+
+        [Fact, WorkItem(63860, "https://github.com/dotnet/roslyn/issues/63860")]
+        public void AddNIntAndInt()
+        {
+            var source = @"
+class C
+{
+    nint M(nint i, int j) => i + j;
+}";
+            var comp = CreateNumericIntPtrCompilation(source, references: new[] { MscorlibRefWithoutSharingCachedSymbols });
+            comp.VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp);
+            verifier.VerifyIL("C.M", @"
+{
+  // Code size        5 (0x5)
+  .maxstack  2
+  IL_0000:  ldarg.1
+  IL_0001:  ldarg.2
+  IL_0002:  conv.i
+  IL_0003:  add
+  IL_0004:  ret
+}
+");
+
+            comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+            verifier = CompileAndVerify(comp);
+            verifier.VerifyIL("C.M", @"
+{
+  // Code size        5 (0x5)
+  .maxstack  2
+  IL_0000:  ldarg.1
+  IL_0001:  ldarg.2
+  IL_0002:  conv.i
+  IL_0003:  add
+  IL_0004:  ret
+}
+");
+        }
+
         [Fact]
         public void Constraints_01()
         {
@@ -6874,7 +7009,7 @@ $@"class MyInt
                     "nint?" => "System.IntPtr?",
                     "nuint" => "System.UIntPtr",
                     "nuint?" => "System.UIntPtr?",
-                    _ => throw ExceptionUtilities.Unreachable
+                    _ => throw ExceptionUtilities.Unreachable()
                 };
                 binaryOps(op, fullLeftType, rightType, expectedSymbol1, expectedSymbol2, diagnostics1, diagnostics2);
             }
