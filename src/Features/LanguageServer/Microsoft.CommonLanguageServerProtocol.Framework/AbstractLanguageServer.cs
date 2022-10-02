@@ -293,9 +293,9 @@ public abstract class AbstractLanguageServer<TRequestContext> : ILifeCycleManage
 
         internal bool HasShutdownStarted() => _server.HasShutdownStarted;
 
-        internal Task ShutdownServerAsync()
+        internal Task ShutdownServerAsync(string message = "Shutting down")
         {
-            return _server.ShutdownAsync();
+            return _server.ShutdownAsync(message);
         }
 
         internal Task ExitServerAsync()

@@ -294,7 +294,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 var symbolKind =
                     kind.SymbolKind.HasValue ? kind.SymbolKind.Value :
                     kind.MethodKind.HasValue ? SymbolKind.Method :
-                    throw ExceptionUtilities.Unreachable;
+                    throw ExceptionUtilities.Unreachable();
 
                 var modifiers = declarationInfo.Modifiers;
                 foreach (var rule in rules)

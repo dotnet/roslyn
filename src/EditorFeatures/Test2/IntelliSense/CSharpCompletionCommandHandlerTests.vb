@@ -3032,6 +3032,41 @@ class Program
             End Using
         End Function
 
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function SelectCompletionListStaticMemberAdditionalFilterTextMatchOverInferiorFilterTextMatch() As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                              <Document><![CDATA[
+namespace NS
+{
+
+    /// <completionlist cref="TypeContainer"/>
+    public class SomeType
+    { }
+
+    public static class TypeContainer
+    {
+        public static SomeType Foo1 = new SomeType();
+        public static Program Foo2 = new Program();
+    }
+
+    public class Program
+    {
+        void Goo()
+        {
+            var myFoo = true;
+            SomeType c = $$
+        }
+    }
+}                             ]]></Document>)
+
+                state.SendInvokeCompletionList()
+                Await state.AssertCompletionItemsContainAll("myFoo", "TypeContainer", "TypeContainer.Foo1", "TypeContainer.Foo2")
+
+                state.SendTypeChars("foo")
+                Await state.AssertSelectedCompletionItem("TypeContainer.Foo1", isHardSelected:=True)
+            End Using
+        End Function
+
         <WorkItem(49632, "https://github.com/dotnet/roslyn/pull/49632")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function CompletionEnumTypeAndValuesWithAlias() As Task

@@ -672,7 +672,7 @@ Asegúrese de usar el especificador "tt" para los idiomas para los que es necesa
       </trans-unit>
       <trans-unit id="Enum_members">
         <source>Enum members</source>
-        <target state="new">Enum members</target>
+        <target state="translated">Miembros de enumeración</target>
         <note />
       </trans-unit>
       <trans-unit id="ErrorReadingFile">
@@ -722,7 +722,7 @@ Asegúrese de usar el especificador "tt" para los idiomas para los que es necesa
       </trans-unit>
       <trans-unit id="Extract_base_record">
         <source>Extract base record...</source>
-        <target state="new">Extract base record...</target>
+        <target state="translated">Extraer record base...</target>
         <note>{Locked="record"} "record" is a language construct for C# and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Extract_interface">
@@ -3430,7 +3430,7 @@ Si el especificador de formato "d" se usa sin otros especificadores de formato p
       </trans-unit>
       <trans-unit id="foreach_loop">
         <source>foreach loop</source>
-        <target state="new">foreach loop</target>
+        <target state="translated">bucle Foreach</target>
         <note />
       </trans-unit>
       <trans-unit id="from_metadata">
@@ -4282,7 +4282,7 @@ Cuando se usa este especificador de formato estándar, la operación de formato 
       </trans-unit>
       <trans-unit id="struct_">
         <source>struct</source>
-        <target state="new">struct</target>
+        <target state="translated">estructura</target>
         <note />
       </trans-unit>
       <trans-unit id="symbol_cannot_be_a_namespace">

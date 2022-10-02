@@ -672,7 +672,7 @@ Verifique se o especificador "tt" foi usado para idiomas para os quais é necess
       </trans-unit>
       <trans-unit id="Enum_members">
         <source>Enum members</source>
-        <target state="new">Enum members</target>
+        <target state="translated">Membros de enumeração</target>
         <note />
       </trans-unit>
       <trans-unit id="ErrorReadingFile">
@@ -3430,7 +3430,7 @@ Se o especificador de formato "d" for usado sem outros especificadores de format
       </trans-unit>
       <trans-unit id="foreach_loop">
         <source>foreach loop</source>
-        <target state="new">foreach loop</target>
+        <target state="translated">loop foreach</target>
         <note />
       </trans-unit>
       <trans-unit id="from_metadata">
@@ -4282,7 +4282,7 @@ Quando esse especificador de formato padrão é usado, a operação de análise 
       </trans-unit>
       <trans-unit id="struct_">
         <source>struct</source>
-        <target state="new">struct</target>
+        <target state="translated">struct</target>
         <note />
       </trans-unit>
       <trans-unit id="symbol_cannot_be_a_namespace">

@@ -2474,7 +2474,7 @@ namespace Microsoft.CodeAnalysis
                             context.CancellationToken.ThrowIfCancellationRequested();
                         }
 
-                        throw ExceptionUtilities.Unreachable;
+                        throw ExceptionUtilities.Unreachable();
                     }
 
                     context.ReportDiagnostic(Diagnostic.Create(s_descriptor, context.Tree.GetRoot().GetLocation()));

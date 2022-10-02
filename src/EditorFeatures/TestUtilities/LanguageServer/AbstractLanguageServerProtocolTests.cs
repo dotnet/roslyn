@@ -650,7 +650,7 @@ namespace Roslyn.Test.Utilities
                 var listenerProvider = TestWorkspace.GetService<IAsynchronousOperationListenerProvider>();
 
                 await listenerProvider.GetWaiter(FeatureAttribute.Workspace).ExpeditedWaitAsync();
-                await listenerProvider.GetWaiter(FeatureAttribute.SolutionCrawler).ExpeditedWaitAsync();
+                await listenerProvider.GetWaiter(FeatureAttribute.SolutionCrawlerLegacy).ExpeditedWaitAsync();
                 await listenerProvider.GetWaiter(FeatureAttribute.DiagnosticService).ExpeditedWaitAsync();
             }
 
@@ -671,7 +671,7 @@ namespace Roslyn.Test.Utilities
                 // Some tests manually call shutdown, so avoid calling shutdown twice if already called.
                 if (!LanguageServer.HasShutdownStarted)
                 {
-                    await LanguageServer.GetTestAccessor().ShutdownServerAsync();
+                    await LanguageServer.GetTestAccessor().ShutdownServerAsync("Disposing of test lsp server");
                 }
 
                 await LanguageServer.GetTestAccessor().ExitServerAsync();
