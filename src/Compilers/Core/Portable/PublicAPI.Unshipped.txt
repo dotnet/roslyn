@@ -21,6 +21,8 @@ Microsoft.CodeAnalysis.ScopedKind
 Microsoft.CodeAnalysis.ScopedKind.None = 0 -> Microsoft.CodeAnalysis.ScopedKind
 Microsoft.CodeAnalysis.ScopedKind.ScopedRef = 1 -> Microsoft.CodeAnalysis.ScopedKind
 Microsoft.CodeAnalysis.ScopedKind.ScopedValue = 2 -> Microsoft.CodeAnalysis.ScopedKind
+Microsoft.CodeAnalysis.SymbolDisplayLocalOptions.IncludeModifiers = 4 -> Microsoft.CodeAnalysis.SymbolDisplayLocalOptions
+Microsoft.CodeAnalysis.SymbolDisplayParameterOptions.IncludeModifiers = 2 -> Microsoft.CodeAnalysis.SymbolDisplayParameterOptions
 override sealed Microsoft.CodeAnalysis.CompilationOptions.GetHashCode() -> int
 static Microsoft.CodeAnalysis.ModuleMetadata.CreateFromMetadata(System.IntPtr metadata, int size, System.Action! onDispose) -> Microsoft.CodeAnalysis.ModuleMetadata!
 Microsoft.CodeAnalysis.INamedTypeSymbol.IsFileLocal.get -> bool
