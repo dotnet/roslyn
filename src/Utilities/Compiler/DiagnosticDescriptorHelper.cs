@@ -33,7 +33,7 @@ namespace Analyzer.Utilities
             var (defaultSeverity, enabledByDefault) = GetDefaultSeverityAndEnabledByDefault(ruleLevel);
 
 #pragma warning disable CA1308 // Normalize strings to uppercase - use lower case ID in help link
-            var helpLink = $"https://docs.microsoft.com/dotnet/fundamentals/code-analysis/quality-rules/{id.ToLowerInvariant()}";
+            var helpLink = $"https://learn.microsoft.com/dotnet/fundamentals/code-analysis/quality-rules/{id.ToLowerInvariant()}";
 #pragma warning restore CA1308 // Normalize strings to uppercase
 
             var customTags = GetDefaultCustomTags(isPortedFxCopRule, isDataflowRule, isEnabledByDefaultInAggressiveMode);

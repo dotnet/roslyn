@@ -36,7 +36,7 @@ This can be done by:
 
 ## Nullable reference type support
 
-To enable support for [nullable reference types](https://docs.microsoft.com/dotnet/csharp/nullable-references), make sure that you are using a Roslyn compiler version 3.5 (or newer) in your build process and then add the following at the top of each `PublicAPI.*.txt` file:
+To enable support for [nullable reference types](https://learn.microsoft.com/dotnet/csharp/nullable-references), make sure that you are using a Roslyn compiler version 3.5 (or newer) in your build process and then add the following at the top of each `PublicAPI.*.txt` file:
 
 ```xml
 #nullable enable
@@ -55,7 +55,7 @@ If you are in the process of annotating an existing project, we recommended to d
 
 Sometimes APIs vary by compilation symbol such as target framework.
 
-For example when using the [`#if` preprocessor directive](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/preprocessor-directives/preprocessor-if):
+For example when using the [`#if` preprocessor directive](https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/preprocessor-directives/preprocessor-if):
 
 ```c#
         public void Foo(string s)

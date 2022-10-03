@@ -4,6 +4,6 @@
 
 Rule ID | Category | Severity | Notes
 --------|----------|----------|-------
-CA1704 | Naming | Warning | IdentifiersShouldBeSpelledCorrectlyAnalyzer, [Documentation](https://docs.microsoft.com/visualstudio/code-quality/ca1704)
-CA1714 | Naming | Disabled | EnumsShouldHavePluralNamesAnalyzer, [Documentation](https://docs.microsoft.com/dotnet/fundamentals/code-analysis/quality-rules/ca1714)
-CA1717 | Naming | Disabled | EnumsShouldHavePluralNamesAnalyzer, [Documentation](https://docs.microsoft.com/dotnet/fundamentals/code-analysis/quality-rules/ca1717)
+CA1704 | Naming | Warning | IdentifiersShouldBeSpelledCorrectlyAnalyzer, [Documentation](https://learn.microsoft.com/visualstudio/code-quality/ca1704)
+CA1714 | Naming | Disabled | EnumsShouldHavePluralNamesAnalyzer, [Documentation](https://learn.microsoft.com/dotnet/fundamentals/code-analysis/quality-rules/ca1714)
+CA1717 | Naming | Disabled | EnumsShouldHavePluralNamesAnalyzer, [Documentation](https://learn.microsoft.com/dotnet/fundamentals/code-analysis/quality-rules/ca1717)
