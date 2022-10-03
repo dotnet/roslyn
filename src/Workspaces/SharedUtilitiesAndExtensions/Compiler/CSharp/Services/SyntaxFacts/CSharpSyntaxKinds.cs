@@ -121,9 +121,9 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageService
         public int ThrowStatement => (int)SyntaxKind.ThrowStatement;
         public int UsingStatement => (int)SyntaxKind.UsingStatement;
         public int YieldReturnStatement => (int)SyntaxKind.YieldReturnStatement;
-
         public int Attribute => (int)SyntaxKind.Attribute;
         public int ClassDeclaration => (int)SyntaxKind.ClassDeclaration;
+        public int ConstructorDeclaration => (int)SyntaxKind.ConstructorDeclaration;
         public int InterfaceDeclaration => (int)SyntaxKind.InterfaceDeclaration;
         public int? RecordDeclaration => (int)SyntaxKind.RecordDeclaration;
         public int? RecordStructDeclaration => (int)SyntaxKind.RecordStructDeclaration;
