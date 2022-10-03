@@ -120,11 +120,13 @@ public class C
 
 public class C
 {
-    int;
+    const int;
 }
 ";
             var compilation = GetCompilation(source, LanguageNames.CSharp);
-            TestRoundTrip(GetDeclaredSymbols(compilation), compilation);
+            var symbols = GetDeclaredSymbols(compilation);
+            Assert.True(symbols.Any(s => s is IFieldSymbol { MetadataName: "" }));
+            TestRoundTrip(symbols, compilation);
         }
 
         [Fact]
@@ -138,7 +140,25 @@ public class C
 }
 ";
             var compilation = GetCompilation(source, LanguageNames.CSharp);
-            TestRoundTrip(GetDeclaredSymbols(compilation), compilation);
+            var symbols = GetDeclaredSymbols(compilation);
+            Assert.True(symbols.Any(s => s is IFieldSymbol { MetadataName: "" }));
+            TestRoundTrip(symbols, compilation);
+        }
+
+        [Fact]
+        public void TestMissingField3()
+        {
+            var source = @"
+
+public class C
+{
+    const;
+}
+";
+            var compilation = GetCompilation(source, LanguageNames.CSharp);
+            var symbols = GetDeclaredSymbols(compilation);
+            Assert.True(symbols.Any(s => s is IFieldSymbol { MetadataName: "" }));
+            TestRoundTrip(symbols, compilation);
         }
 
         [Fact]
@@ -152,7 +172,9 @@ public class C
 }
 ";
             var compilation = GetCompilation(source, LanguageNames.CSharp);
-            TestRoundTrip(GetDeclaredSymbols(compilation), compilation);
+            var symbols = GetDeclaredSymbols(compilation);
+            Assert.True(symbols.Any(s => s is IEventSymbol { MetadataName: "" }));
+            TestRoundTrip(symbols, compilation);
         }
 
         [Fact]
@@ -166,7 +188,9 @@ public class C
 }
 ";
             var compilation = GetCompilation(source, LanguageNames.CSharp);
-            TestRoundTrip(GetDeclaredSymbols(compilation), compilation);
+            var symbols = GetDeclaredSymbols(compilation);
+            Assert.True(symbols.Any(s => s is IEventSymbol { MetadataName: "" }));
+            TestRoundTrip(symbols, compilation);
         }
 
         [Fact, WorkItem(14364, "https://github.com/dotnet/roslyn/issues/14364")]
