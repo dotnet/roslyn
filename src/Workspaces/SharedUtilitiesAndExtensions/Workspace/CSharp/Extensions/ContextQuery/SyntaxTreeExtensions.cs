@@ -1965,10 +1965,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
 
             // It's possible the caller is asking about a speculative semantic model, and may have moved before the
             // bounds of that model (for example, while looking at the nearby tokens around an edit).  If so, ensure we
-            // walk outwards to the correct model to actually ask this question of.  This is safe/accurate to do as the
-            // original 'enclosing symbol' of a position (ignoring local/anonymous functions handled below) is
-            // unaffected in speculation.  In other words, the container of whatever we are in was the same container
-            // before/after speculation.
+            // walk outwards to the correct model to actually ask this question of.
             var position = targetToken.SpanStart;
             if (semanticModel.IsSpeculativeSemanticModel && position < semanticModel.OriginalPositionForSpeculation)
                 semanticModel = semanticModel.GetOriginalSemanticModel();
