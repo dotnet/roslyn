@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using Microsoft.CodeAnalysis.Completion;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript.Api
@@ -13,7 +14,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript.Api
     internal abstract class VSTypeScriptCompletionServiceWithProviders : CompletionService
     {
         internal VSTypeScriptCompletionServiceWithProviders(Workspace workspace)
-            : base(workspace.Services.SolutionServices)
+            : base(workspace.Services.SolutionServices, AsynchronousOperationListenerProvider.NullProvider)
         {
         }
 

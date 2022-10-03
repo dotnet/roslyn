@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.Completion
         private bool _suppressPartialSemantics;
 
         // Prevent inheritance outside of Roslyn.
-        internal CompletionService(SolutionServices services, IAsynchronousOperationListenerProvider? listenerProvider = null)
+        internal CompletionService(SolutionServices services, IAsynchronousOperationListenerProvider listenerProvider)
         {
             _services = services;
             _providerManager = new(this, listenerProvider);

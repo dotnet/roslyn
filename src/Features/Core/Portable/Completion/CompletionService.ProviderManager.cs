@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.Completion
 
             private readonly AsyncBatchingWorkQueue<IReadOnlyList<AnalyzerReference>> _projectProvidersWorkQueue;
 
-            public ProviderManager(CompletionService service, IAsynchronousOperationListenerProvider? listenerProvider)
+            public ProviderManager(CompletionService service, IAsynchronousOperationListenerProvider listenerProvider)
             {
                 _service = service;
                 _rolesToProviders = new Dictionary<ImmutableHashSet<string>, ImmutableArray<CompletionProvider>>(this);
@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.Completion
                         TimeSpan.FromSeconds(1),
                         ProcessBatchAsync,
                         EqualityComparer<IReadOnlyList<AnalyzerReference>>.Default,
-                        listenerProvider?.GetListener(FeatureAttribute.CompletionSet) ?? AsynchronousOperationListenerProvider.NullListener,
+                        listenerProvider.GetListener(FeatureAttribute.CompletionSet),
                         CancellationToken.None);
             }
 
@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis.Completion
                 return ValueTaskFactory.CompletedTask;
             }
 
-            public ImmutableArray<CompletionProvider> GetProjectCompletionProviders(Project? project)
+            private ImmutableArray<CompletionProvider> GetProjectCompletionProviders(Project? project)
             {
                 if (project is null || project.Solution.WorkspaceKind == WorkspaceKind.Interactive)
                 {
