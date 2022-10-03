@@ -51,7 +51,7 @@ class Test {
             Assert.True(completions.IsEmpty);
 
             // NuGet analyzers for the project will be loaded when this returns 
-            Assert((await completionService.GetTestAccessor().GetProjectProvidersAsync(project).ConfigureAwait(false)).Single() is DebugAssertTestCompletionProvider)
+            Assert.True((await completionService.GetTestAccessor().GetProjectProvidersAsync(project).ConfigureAwait(false)).Single() is DebugAssertTestCompletionProvider);
             completions = await completionService.GetCompletionsAsync(document, caretPosition, CompletionOptions.Default, OptionValueSet.Empty);
 
             Assert.False(completions.IsEmpty);
