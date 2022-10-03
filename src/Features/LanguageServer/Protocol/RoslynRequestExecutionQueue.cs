@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
         {
         }
 
-        public override Task HandleNonMutatingRequestError(Task nonMutatingRequestTask)
+        public override Task HandleNonMutatingRequestErrorAsync(Task nonMutatingRequestTask)
         {
             return nonMutatingRequestTask.ReportNonFatalErrorAsync();
         }
