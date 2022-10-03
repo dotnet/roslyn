@@ -103,14 +103,26 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.DecompiledSource
 
             var fullTypeName = new FullTypeName(fullName);
 
-            // Try to decompile; if an exception is thrown the caller will handle it
-            var text = decompiler.DecompileTypeAsString(fullTypeName);
+            try
+            {
+                var text = decompiler.DecompileTypeAsString(fullTypeName);
 
-            text += "#if false // " + CSharpEditorResources.Decompilation_log + Environment.NewLine;
-            text += logger.ToString();
-            text += "#endif" + Environment.NewLine;
+                text += "#if false // " + CSharpEditorResources.Decompilation_log + Environment.NewLine;
+                text += logger.ToString();
+                text += "#endif" + Environment.NewLine;
 
-            return document.WithText(SourceText.From(text));
+                return document.WithText(SourceText.From(text));
+            }
+            catch (NotSupportedException)
+            {
+                // IL Spy throws for "Decompiling types that are not part of the main module is not supported."
+            }
+            catch (InvalidOperationException)
+            {
+                // IL Spy throws if it can't find the type name in its type system.
+            }
+
+            return null;
         }
 
         private static async Task<Document> AddAssemblyInfoRegionAsync(Document document, ISymbol symbol, CancellationToken cancellationToken)
