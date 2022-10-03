@@ -188,6 +188,8 @@ namespace Microsoft.CodeAnalysis
                 return default;
             }
 
+            var langauge = reader.ReadString();
+
             // Initial entrypoint.  No contextual symbol to pass along.
             var result = reader.ReadSymbolKey(contextualSymbol: null, out failureReason);
             Debug.Assert(reader.Position == symbolKey.Length);
@@ -202,6 +204,9 @@ namespace Microsoft.CodeAnalysis
         {
             using var writer = SymbolKeyWriter.GetWriter(cancellationToken);
             writer.WriteFormatVersion(version);
+
+            // include the language just for help diagnosing issues.
+            writer.WriteString(symbol?.Language);
             writer.WriteSymbolKey(symbol);
             return writer.CreateKey();
         }
