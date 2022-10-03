@@ -3055,9 +3055,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     TypeWithAnnotations parameterTypeWithAnnotations = GetCorrespondingParameterTypeWithAnnotations(ref result, parameters, arg);
                     var outVariable = (OutVariablePendingInference)argument;
-                    // TODO: is this the right place to do this?
-                    ((SourceLocalSymbol)outVariable.VariableSymbol).SetValEscape(getOrCalculateInferredOutSafeToEscape());
                     arguments[arg] = outVariable.SetInferredTypeWithAnnotations(parameterTypeWithAnnotations, diagnostics);
+                    if (outVariable.VariableSymbol is SourceLocalSymbol { Type.IsRefLikeType: true } localSymbol)
+                    {
+                        localSymbol.SetValEscape(getOrCalculateInferredOutSafeToEscape());
+                    }
                 }
                 else if (argument.Kind == BoundKind.OutDeconstructVarPendingInference)
                 {
@@ -3098,24 +3100,57 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // the narrowest safe-to-escape of any argument which can escape (either by-value or by-reference) into the argument for any out parameter.
                     uint narrowestArgSafeToEscape = CallingMethodScope;
 
+                    // TODO: try and reuse arg-mixing bits to reduce redundant logic here
                     for (var arg = 0; arg < arguments.Count; arg++)
                     {
-                        var sourceParam = GetCorrespondingParameter(ref result, parameters, arg);
+                        var paramNum = result.ParameterFromArgument(arg);
+                        var sourceParam = paramNum < parameters.Length ? parameters[paramNum] : null;
+                        if (sourceParam is null)
+                        {
+                            var arglist = (BoundArgListOperator)arguments[arg];
+
+                            // arglist arguments can never escape by-ref into out parameters
+                            const uint ArglistRefSafeToEscape = CurrentMethodScope;
+                            Debug.Assert(ArglistRefSafeToEscape > outParamSafeToEscape);
+
+                            // arglist arguments can always escape by-value into out parameters
+                            const uint ArglistValSafeToEscape = CallingMethodScope;
+                            Debug.Assert(ArglistValSafeToEscape <= outParamSafeToEscape);
+
+                            for (var arglistArg = 0; arglistArg < arglist.Arguments.Length; arglistArg++)
+                            {
+                                var refKind = arglist.ArgumentRefKindsOpt.IsDefault || arglist.ArgumentRefKindsOpt.Length < arglistArg ? RefKind.None : arglist.ArgumentRefKindsOpt[arglistArg];
+                                narrowestArgSafeToEscape = Math.Max(narrowestArgSafeToEscape, GetValEscape(arglist.Arguments[arglistArg], LocalScopeDepth));
+                            }
+
+                            continue;
+                        }
+
+                        findNarrowestArgumentEscape(sourceParam, arguments[arg]);
+                    }
+
+                    if (receiver is not null && leastOverriddenMember.EnclosingThisSymbol() is { } thisParam)
+                    {
+                        findNarrowestArgumentEscape(thisParam, receiver);
+                    }
+
+                    lazyInferredOutArgumentSafeToEscape = narrowestArgSafeToEscape;
+                    return narrowestArgSafeToEscape;
+
+                    void findNarrowestArgumentEscape(ParameterSymbol sourceParam, BoundExpression argument)
+                    {
                         if (GetParameterValEscape(sourceParam) <= outParamSafeToEscape)
                         {
                             // sourceParam can escape by-value into an out parameter.
-                            narrowestArgSafeToEscape = Math.Max(narrowestArgSafeToEscape, GetValEscape(arguments[arg], LocalScopeDepth));
+                            narrowestArgSafeToEscape = Math.Max(narrowestArgSafeToEscape, GetValEscape(argument, LocalScopeDepth));
                         }
 
                         if (GetParameterRefEscape(sourceParam) <= outParamSafeToEscape)
                         {
                             // sourceParam can escape by-reference into an out parameter.
-                            narrowestArgSafeToEscape = Math.Max(narrowestArgSafeToEscape, GetRefEscape(arguments[arg], LocalScopeDepth));
+                            narrowestArgSafeToEscape = Math.Max(narrowestArgSafeToEscape, GetRefEscape(argument, LocalScopeDepth));
                         }
                     }
-
-                    lazyInferredOutArgumentSafeToEscape = narrowestArgSafeToEscape;
-                    return narrowestArgSafeToEscape;
                 }
             }
 
