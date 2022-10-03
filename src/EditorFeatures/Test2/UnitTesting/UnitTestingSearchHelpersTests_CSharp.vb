@@ -41,11 +41,27 @@ class Outer<T>
         End Function
 
         <Theory, CombinatorialData>
+        Public Async Function CS_TestGenericType2_NonStrict(host As TestHost) As Task
+            Await TestCSharp("
+class [|Outer|]<T>
+{
+}", UnitTestingSearchQuery.ForType("Outer", strict:=False), host)
+        End Function
+
+        <Theory, CombinatorialData>
         Public Async Function CS_TestGenericType3(host As TestHost) As Task
             Await TestCSharp("
 class Outer<T>
 {
 }", UnitTestingSearchQuery.ForType("Outer`2"), host)
+        End Function
+
+        <Theory, CombinatorialData>
+        Public Async Function CS_TestGenericType3_NonStrict(host As TestHost) As Task
+            Await TestCSharp("
+class [|Outer|]<T>
+{
+}", UnitTestingSearchQuery.ForType("Outer`2", strict:=False), host)
         End Function
 
         <Theory, CombinatorialData>
@@ -169,12 +185,30 @@ class Outer
         End Function
 
         <Theory, CombinatorialData>
+        Public Async Function CS_TestMethod2_NonStrict(host As TestHost) As Task
+            Await TestCSharp("
+class Outer
+{
+    void [|Goo|]() { }
+}", UnitTestingSearchQuery.ForMethod("Outer", "Goo", methodArity:=1, methodParameterCount:=0, strict:=False), host)
+        End Function
+
+        <Theory, CombinatorialData>
         Public Async Function CS_TestMethod3(host As TestHost) As Task
             Await TestCSharp("
 class Outer
 {
     void Goo() { }
 }", UnitTestingSearchQuery.ForMethod("Outer", "Goo", methodArity:=0, methodParameterCount:=1), host)
+        End Function
+
+        <Theory, CombinatorialData>
+        Public Async Function CS_TestMethod3_NonStrict(host As TestHost) As Task
+            Await TestCSharp("
+class Outer
+{
+    void [|Goo|]() { }
+}", UnitTestingSearchQuery.ForMethod("Outer", "Goo", methodArity:=0, methodParameterCount:=1, strict:=False), host)
         End Function
 
         <Theory, CombinatorialData>
