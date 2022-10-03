@@ -13555,5 +13555,34 @@ class Program
 }} // end of class <>c
 ");
         }
+
+        [Fact]
+        public void LambdaDefaultParameter_TypeArgumentDefaultNull()
+        {
+            var source = """
+using System;
+class C<T> where T : class
+{
+    static void Report(object obj) => Console.WriteLine(obj.GetType());
+    public void Test()
+    {
+        var lam1 = (int a, T b = default) => b;
+        var lam2 = (int a, T b = null) => b;
+        Report(lam1);
+        Report(lam2);
+    }
+}
+class Program
+{
+    public static void Main()
+    {
+        new C<string>().Test();
+    }
+}
+""";
+            CompileAndVerify(source, expectedOutput:
+@"<>f__AnonymousDelegate0`1[System.String]
+<>f__AnonymousDelegate0`1[System.String]").VerifyDiagnostics();
+        }
     }
 }

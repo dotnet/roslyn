@@ -7542,6 +7542,31 @@ class Program
         }
 
         [Fact]
+        public void LambdaDefaultInDifferentNestedScope()
+        {
+            var source = """
+class Program
+{
+    void M()
+    {
+        {
+            const string s = "abcdef";
+        }
+        var _ = (string str = s) => str;
+    }
+}
+""";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (6,26): warning CS0219: The variable 's' is assigned but its value is never used
+                //             const string s = "abcdef";
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "s").WithArguments("s").WithLocation(6, 26),
+                // (8,31): error CS0103: The name 's' does not exist in the current context
+                //         var _ = (string str = s) => s;
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "s").WithArguments("s").WithLocation(8, 31));
+        }
+
+        [Fact]
         public void LambdaDefaultLocalConstantSameScope_PreDefinition()
         {
             var source = """
@@ -7720,6 +7745,25 @@ class Program
                 // (5,48): error CS1737: Optional parameters must appear after all required parameters
                 //         var lam = (int i = 3, params int[] args) => i;
                 Diagnostic(ErrorCode.ERR_DefaultValueBeforeRequiredValue, ")").WithLocation(5, 48));
+        }
+
+        [Fact]
+        public void LambdaWithDefaultParameter_RequiredMissing()
+        {
+            var source = """
+class Program
+{
+    public static void Main()
+    {
+        var lam = (int a, int b, int c = 3) => a + b * c;
+        lam(5);
+    }   
+}
+""";
+            CreateCompilation(source).VerifyDiagnostics(
+                // (6,9): error CS7036: There is no argument given that corresponds to the required formal parameter '' of '<anonymous delegate>'
+                //         lam(5);
+                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "lam").WithArguments("", "<anonymous delegate>").WithLocation(6, 9));
         }
     }
 }
