@@ -7041,7 +7041,7 @@ class Program
                 // (5,37): error CS0748: Inconsistent lambda parameter usage; parameter types must be all explicit or all implicit
                 //         var lam = (string s = null, x = 7, double d = 3.14) => { };
                 Diagnostic(ErrorCode.ERR_InconsistentLambdaParameterUsage, "x").WithLocation(5, 37),
-                // (5,37): error CS9500:  Default not allowed for implicitly typed lambda parameter 'x' 
+                // (5,37): error CS9500: Implicitly typed lambda parameter 'x' cannot have a default value.
                 //         var lam = (string s = null, x = 7, double d = 3.14) => { };
                 Diagnostic(ErrorCode.ERR_ImplicitlyTypedDefaultParameter, "x").WithArguments("x").WithLocation(5, 37));
         }
@@ -7723,4 +7723,3 @@ class Program
         }
     }
 }
-

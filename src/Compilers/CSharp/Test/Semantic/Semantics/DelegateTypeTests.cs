@@ -12177,7 +12177,7 @@ class Program
 {
     public static void Main()
     {
-        // lambda has optional parameter x
+        // lambda has optional parameter y
         var lam1 = (int x, int y = 10, int z) => x * x + y * y + z * z;
         var lam2 = (int x, int y, int z) => x * x + y * y + z * z;
 
@@ -13182,7 +13182,6 @@ class Program
         [InlineData("long")]
         [InlineData("ulong")]
         [InlineData("nint")]
-
         [InlineData("nuint")]
         [InlineData("float")]
         [InlineData("double")]
@@ -13392,14 +13391,10 @@ class Program
 {
     public static unsafe void Main()
     {
-unsafe
-{
         var lam = (int *ptr = null) => ptr;
         Console.WriteLine(lam() == (int*) null);
-}
     }
 }
-
 """;
             CompileAndVerify(source, options: TestOptions.UnsafeReleaseExe, verify: Verification.Skipped, expectedOutput: "True").VerifyDiagnostics();
         }
@@ -13407,14 +13402,12 @@ unsafe
         [Fact]
         public void LambdaDefaultParameter_UnsafeSizeof()
         {
-            TestInMain(
-"""
+            TestInMain("""
 unsafe
 {
     var lam = (int sz = sizeof(int)) => sz;
     Console.WriteLine(lam());
 }
-
 """, usings: new[] { "System" }, expectedOutput: "4", compilationOptions: TestOptions.UnsafeReleaseExe);
         }
 
