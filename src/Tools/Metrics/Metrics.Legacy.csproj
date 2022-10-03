@@ -20,5 +20,6 @@
     <PackageReference Include="SQLitePCLRaw.provider.e_sqlite3.net45" Version="$(SQLitePCLRawVersion)" ExcludeAssets="All" />
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Features" Version="$(MicrosoftCodeAnalysisVersion)" />
     <PackageReference Include="Microsoft.CodeAnalysis.VisualBasic.Features" Version="$(MicrosoftCodeAnalysisVersion)" />
+    <PackageReference Include="System.Memory" Version="$(SystemMemoryVersion)" />  
   </ItemGroup>
 </Project>
