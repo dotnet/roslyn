@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.CodeMetrics
 {
     /// <summary>
     /// Code analysis metrics data.
-    /// See https://docs.microsoft.com/visualstudio/code-quality/code-metrics-values for more details
+    /// See https://learn.microsoft.com/visualstudio/code-quality/code-metrics-values for more details
     /// </summary>
     public abstract partial class CodeAnalysisMetricData
     {

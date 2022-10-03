@@ -2,7 +2,7 @@
 # FORMAT:
 # 'Category': Comma separate list of 'StartId-EndId' or 'Id' or 'Prefix'
 
-# Code Analysis (CA) rules - https://docs.microsoft.com/visualstudio/code-quality/code-analysis-for-managed-code-warnings
+# Code Analysis (CA) rules - https://learn.microsoft.com/visualstudio/code-quality/code-analysis-for-managed-code-warnings
 #
 # The ranges below represent the **currently used IDs** for the corresponding category.
 # When implementing a new rule for the category:

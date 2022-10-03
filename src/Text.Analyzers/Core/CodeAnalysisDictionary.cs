@@ -14,7 +14,7 @@ namespace Text.Analyzers
     /// XML or DIC code analysis dictionaries.
     /// </summary>
     /// <Remarks>
-    /// <seealso href="https://docs.microsoft.com/visualstudio/code-quality/how-to-customize-the-code-analysis-dictionary"/>
+    /// <seealso href="https://learn.microsoft.com/visualstudio/code-quality/how-to-customize-the-code-analysis-dictionary"/>
     /// </Remarks>
     internal sealed class CodeAnalysisDictionary
     {
@@ -63,7 +63,7 @@ namespace Text.Analyzers
         {
             var document = XDocument.Load(streamReader);
             // TODO: Include Deprecated/Compound terms as noted here:
-            // https://docs.microsoft.com/visualstudio/code-quality/how-to-customize-the-code-analysis-dictionary
+            // https://learn.microsoft.com/visualstudio/code-quality/how-to-customize-the-code-analysis-dictionary
             // Tracked by:
             // https://github.com/dotnet/roslyn-analyzers/issues/4693
             return new CodeAnalysisDictionary(

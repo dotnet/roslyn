@@ -6,7 +6,7 @@
     <IsPackable>true</IsPackable>
     <IncludeBuildOutput>false</IncludeBuildOutput>
     <NuspecPackageId>Microsoft.CodeAnalysis.RulesetToEditorconfigConverter</NuspecPackageId>
-    <Description>Utility to convert ruleset files to equivalent .editorconfig files. Editorconfig files are respected by C# and VB compilers on VS2019 16.3 or later. See https://docs.microsoft.com/visualstudio/code-quality/use-roslyn-analyzers#set-rule-severity-in-an-editorconfig-file for details.</Description>
+    <Description>Utility to convert ruleset files to equivalent .editorconfig files. Editorconfig files are respected by C# and VB compilers on VS2019 16.3 or later. See https://learn.microsoft.com/visualstudio/code-quality/use-roslyn-analyzers#set-rule-severity-in-an-editorconfig-file for details.</Description>
     <Summary>Utility to convert ruleset files to equivalent .editorconfig files</Summary>
     <ReleaseNotes>Utility to convert ruleset files to equivalent .editorconfig files</ReleaseNotes>
     <PackageTags>Roslyn CodeAnalysis Ruleset EditorConfig Compiler FxCop CSharp VB VisualBasic Syntax Semantics</PackageTags>
