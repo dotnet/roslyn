@@ -114,7 +114,7 @@ public class C
         }
 
         [Fact]
-        public void TestMissingField1()
+        public void TestMissingField1_CSharp()
         {
             var source = @"
 
@@ -130,7 +130,7 @@ public class C
         }
 
         [Fact]
-        public void TestMissingField2()
+        public void TestMissingField2_CSharp()
         {
             var source = @"
 
@@ -146,7 +146,7 @@ public class C
         }
 
         [Fact]
-        public void TestMissingField3()
+        public void TestMissingField3_CSharp()
         {
             var source = @"
 
@@ -162,7 +162,97 @@ public class C
         }
 
         [Fact]
-        public void TestMissingEvent1()
+        public void TestMissingField1_VisualBasic()
+        {
+            var source = @"
+
+public class C
+    constant as integer
+end class
+";
+            var compilation = GetCompilation(source, LanguageNames.VisualBasic);
+            var symbols = GetDeclaredSymbols(compilation);
+            Assert.False(symbols.Any(s => s is IFieldSymbol { MetadataName: "" }));
+            TestRoundTrip(symbols, compilation);
+        }
+
+        [Fact]
+        public void TestMissingField2_VisualBasic()
+        {
+            var source = @"
+
+public class C
+    dim a, 
+end class
+";
+            var compilation = GetCompilation(source, LanguageNames.VisualBasic);
+            var symbols = GetDeclaredSymbols(compilation);
+            Assert.True(symbols.Any(s => s is IFieldSymbol { MetadataName: "" }));
+            TestRoundTrip(symbols, compilation);
+        }
+
+        [Fact]
+        public void TestMissingField3_VisualBasic()
+        {
+            var source = @"
+
+public class C
+    dim a, as integer
+end class
+";
+            var compilation = GetCompilation(source, LanguageNames.VisualBasic);
+            var symbols = GetDeclaredSymbols(compilation);
+            Assert.False(symbols.Any(s => s is IFieldSymbol { MetadataName: "" }));
+            TestRoundTrip(symbols, compilation);
+        }
+
+        [Fact]
+        public void TestMissingField4_VisualBasic()
+        {
+            var source = @"
+
+public class C
+    dim a as integer, 
+end class
+";
+            var compilation = GetCompilation(source, LanguageNames.VisualBasic);
+            var symbols = GetDeclaredSymbols(compilation);
+            Assert.True(symbols.Any(s => s is IFieldSymbol { MetadataName: "" }));
+            TestRoundTrip(symbols, compilation);
+        }
+
+        [Fact]
+        public void TestMissingField5_VisualBasic()
+        {
+            var source = @"
+
+public class C
+    constant
+end class
+";
+            var compilation = GetCompilation(source, LanguageNames.VisualBasic);
+            var symbols = GetDeclaredSymbols(compilation);
+            Assert.False(symbols.Any(s => s is IFieldSymbol { MetadataName: "" }));
+            TestRoundTrip(symbols, compilation);
+        }
+
+        [Fact]
+        public void TestMissingField6_VisualBasic()
+        {
+            var source = @"
+
+public class C
+    constant a,
+end class
+";
+            var compilation = GetCompilation(source, LanguageNames.VisualBasic);
+            var symbols = GetDeclaredSymbols(compilation);
+            Assert.True(symbols.Any(s => s is IFieldSymbol { MetadataName: "" }));
+            TestRoundTrip(symbols, compilation);
+        }
+
+        [Fact]
+        public void TestMissingEvent1_CSharp()
         {
             var source = @"
 
@@ -178,7 +268,7 @@ public class C
         }
 
         [Fact]
-        public void TestMissingEvent2()
+        public void TestMissingEvent2_CSharp()
         {
             var source = @"
 
