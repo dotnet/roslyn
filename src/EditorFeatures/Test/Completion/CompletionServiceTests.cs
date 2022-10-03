@@ -50,8 +50,8 @@ class Test {
             // NuGet providers are not included until it's loaded and cached, this is to avoid potential delays, especially on UI thread.
             Assert.True(completions.IsEmpty);
 
-            // nuget analyzers for the project will be loaded when this returns 
-            completionService.GetTestAccessor().GetAllProviders(ImmutableHashSet<string>.Empty, project);
+            // NuGet analyzers for the project will be loaded when this returns 
+            Assert((await completionService.GetTestAccessor().GetProjectProvidersAsync(project).ConfigureAwait(false)).Single() is DebugAssertTestCompletionProvider)
             completions = await completionService.GetCompletionsAsync(document, caretPosition, CompletionOptions.Default, OptionValueSet.Empty);
 
             Assert.False(completions.IsEmpty);

@@ -260,20 +260,16 @@ namespace Microsoft.CodeAnalysis.Completion
                     _providerManager = providerManager;
                 }
 
-                public ImmutableArray<CompletionProvider> GetProviders(ImmutableHashSet<string> roles, Project? project)
+                public ImmutableArray<CompletionProvider> GetImportedAndBuiltInProviders(ImmutableHashSet<string> roles)
                 {
-                    using var _ = ArrayBuilder<CompletionProvider>.GetInstance(out var providers);
+                    return _providerManager.GetImportedAndBuiltInProviders(roles);
+                }
 
-                    providers.AddRange(_providerManager.GetImportedAndBuiltInProviders(roles));
-
-                    if (project != null)
-                    {
-                        _providerManager._projectProvidersWorkQueue.AddWork(project.AnalyzerReferences);
-                        _providerManager._projectProvidersWorkQueue.WaitUntilCurrentBatchCompletesAsync().Wait();
-                        providers.AddRange(_providerManager.GetProjectCompletionProviders(project));
-                    }
-
-                    return providers.ToImmutable();
+                public async Task<ImmutableArray<CompletionProvider>> GetProjectProvidersAsync(Project project)
+                {
+                    _providerManager._projectProvidersWorkQueue.AddWork(project.AnalyzerReferences);
+                    await _providerManager._projectProvidersWorkQueue.WaitUntilCurrentBatchCompletesAsync().ConfigureAwait(false);
+                    return _providerManager.GetProjectCompletionProviders(project);
                 }
             }
         }

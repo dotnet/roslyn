@@ -351,10 +351,13 @@ namespace Microsoft.CodeAnalysis.Completion
             public TestAccessor(CompletionService completionServiceWithProviders)
                 => _completionServiceWithProviders = completionServiceWithProviders;
 
-            internal ImmutableArray<CompletionProvider> GetAllProviders(ImmutableHashSet<string> roles, Project? project = null)
-                => _completionServiceWithProviders._providerManager.GetTestAccessor().GetProviders(roles, project);
+            public ImmutableArray<CompletionProvider> GetImportedAndBuiltInProviders(ImmutableHashSet<string> roles)
+                => _completionServiceWithProviders._providerManager.GetTestAccessor().GetImportedAndBuiltInProviders(roles);
 
-            internal async Task<CompletionContext> GetContextAsync(
+            public Task<ImmutableArray<CompletionProvider>> GetProjectProvidersAsync(Project project)
+                => _completionServiceWithProviders._providerManager.GetTestAccessor().GetProjectProvidersAsync(project);
+
+            public async Task<CompletionContext> GetContextAsync(
                 CompletionProvider provider,
                 Document document,
                 int position,
