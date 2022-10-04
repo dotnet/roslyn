@@ -106,14 +106,10 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
                 private ImmutableHashSet<IIncrementalAnalyzer> Union(ImmutableHashSet<IIncrementalAnalyzer> analyzers)
                 {
-                    if (analyzers.IsEmpty)
+                    // An empty analyzer list means run all analyzers, so empty always wins
+                    if (analyzers.IsEmpty || SpecificAnalyzers.IsEmpty)
                     {
-                        return SpecificAnalyzers;
-                    }
-
-                    if (SpecificAnalyzers.IsEmpty)
-                    {
-                        return analyzers;
+                        return ImmutableHashSet<IIncrementalAnalyzer>.Empty;
                     }
 
                     return SpecificAnalyzers.Union(analyzers);
