@@ -1334,7 +1334,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
             }
 
-            if (CheckManagedAddr(Compilation, elementType, warnForManaged: false, initializerSyntax.Location, diagnostics))
+            if (CheckManagedAddr(Compilation, elementType, initializerSyntax.Location, diagnostics))
             {
                 hasErrors = true;
             }
@@ -3761,7 +3761,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         break;
 
                     default:
-                        throw ExceptionUtilities.Unreachable;
+                        throw ExceptionUtilities.Unreachable();
                 }
             }
 

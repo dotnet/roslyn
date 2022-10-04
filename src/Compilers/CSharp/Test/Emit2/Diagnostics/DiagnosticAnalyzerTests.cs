@@ -373,7 +373,7 @@ public class C { }").WithArguments("ClassDeclaration").WithWarningAsError(true))
                         break;
 
                     default:
-                        throw ExceptionUtilities.Unreachable;
+                        throw ExceptionUtilities.Unreachable();
                 }
             }
 
@@ -1057,7 +1057,7 @@ SyntaxTree: ";
                     break;
 
                 default:
-                    throw ExceptionUtilities.Unreachable;
+                    throw ExceptionUtilities.Unreachable();
             }
 
             IFormattable context = $@"{string.Format(CodeAnalysisResources.ExceptionContext, contextDetail)}

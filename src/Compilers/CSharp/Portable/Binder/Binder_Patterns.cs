@@ -72,7 +72,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         case BoundConstantPattern _:
                         case BoundITuplePattern _:
                             // these patterns can fail in practice
-                            throw ExceptionUtilities.Unreachable;
+                            throw ExceptionUtilities.Unreachable();
                         case BoundRelationalPattern _:
                         case BoundTypePattern _:
                         case BoundNegatedPattern _:

@@ -4734,7 +4734,7 @@ format:f");
   IL_002e:  ret
 }
 ",
-                _ => throw ExceptionUtilities.Unreachable
+                _ => throw ExceptionUtilities.Unreachable()
             };
         }
 

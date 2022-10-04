@@ -4,11 +4,13 @@
 
 using System;
 using System.Collections.Immutable;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.ServerLifetime;
 using Microsoft.CommonLanguageServerProtocol.Framework;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
+using Roslyn.Utilities;
 using StreamJsonRpc;
 
 namespace Microsoft.CodeAnalysis.LanguageServer
@@ -43,6 +45,15 @@ namespace Microsoft.CodeAnalysis.LanguageServer
         protected override ILspServices ConstructLspServices()
         {
             return _lspServiceProvider.CreateServices(_serverKind, _baseServices, _serviceCollection);
+        }
+
+        protected override IRequestExecutionQueue<RequestContext> ConstructRequestExecutionQueue()
+        {
+            var handlerProvider = GetHandlerProvider();
+            var queue = new RoslynRequestExecutionQueue(_logger, handlerProvider);
+
+            queue.Start();
+            return queue;
         }
 
         private IServiceCollection GetServiceCollection(

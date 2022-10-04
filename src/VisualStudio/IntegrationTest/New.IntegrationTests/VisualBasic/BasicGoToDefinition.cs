@@ -42,8 +42,7 @@ End Class", HangMitigatingCancellationToken);
 End Class", HangMitigatingCancellationToken);
             await TestServices.Editor.PlaceCaretAsync("SomeClass", charsOffset: 0, HangMitigatingCancellationToken);
             await TestServices.Editor.GoToDefinitionAsync(HangMitigatingCancellationToken);
-            var dirtyModifier = await TestServices.Editor.GetDirtyIndicatorAsync(HangMitigatingCancellationToken);
-            Assert.Equal($"FileDef.vb{dirtyModifier}", await TestServices.Shell.GetActiveWindowCaptionAsync(HangMitigatingCancellationToken));
+            Assert.Equal($"FileDef.vb", await TestServices.Shell.GetActiveDocumentFileNameAsync(HangMitigatingCancellationToken));
             await TestServices.EditorVerifier.TextContainsAsync(@"Class SomeClass$$", assertCaretPosition: true, HangMitigatingCancellationToken);
             Assert.False(await TestServices.Shell.IsActiveTabProvisionalAsync(HangMitigatingCancellationToken));
         }

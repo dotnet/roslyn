@@ -78,6 +78,7 @@ namespace Roslyn.Test.Utilities
 
         Net50,
         Net60,
+        Net70
     }
 
     /// <summary>

@@ -188,20 +188,23 @@ public class RequestExecutionQueue<TRequestContext> : IRequestExecutionQueue<TRe
 
                     var cancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(CancellationToken, cancellationToken);
 
+                    // The request context must be created serially inside the queue to so that requests always run
+                    // on the correct snapshot as of the last request.
+                    var context = await work.CreateRequestContextAsync(cancellationToken).ConfigureAwait(false);
                     if (work.MutatesServerState)
                     {
                         // Mutating requests block other requests from starting to ensure an up to date snapshot is used.
                         // Since we're explicitly awaiting exceptions to mutating requests will bubble up here.
-                        await work.StartRequestAsync(cancellationToken).ConfigureAwait(false);
+                        await work.StartRequestAsync(context, cancellationToken).ConfigureAwait(false);
                     }
                     else
                     {
                         // Non mutating are fire-and-forget because they are by definition readonly. Any errors
-                        // will be sent back to the client but we can still capture errors in queue processing
-                        // via NFW, though these errors don't put us into a bad state as far as the rest of the queue goes.
+                        // will be sent back to the client but they can also be captured via HandleNonMutatingRequestError,
+                        // though these errors don't put us into a bad state as far as the rest of the queue goes.
                         // Furthermore we use Task.Run here to protect ourselves against synchronous execution of work
                         // blocking the request queue for longer periods of time (it enforces parallelizabilty).
-                        _ = Task.Run(() => work.StartRequestAsync(cancellationToken), cancellationToken);
+                        _ = Task.Run(() => HandleNonMutatingRequestErrorAsync(work.StartRequestAsync(context, cancellationToken)), cancellationToken);
                     }
                 }
                 catch (OperationCanceledException ex) when (ex.CancellationToken == queueItem.cancellationToken)
@@ -229,6 +232,17 @@ public class RequestExecutionQueue<TRequestContext> : IRequestExecutionQueue<TRe
             await DisposeAsync().ConfigureAwait(false);
             return;
         }
+    }
+
+    /// <summary>
+    /// Provides an extensiblity point to log or otherwise inspect errors thrown from non-mutating requests,
+    /// which would otherwise be lost to the fire-and-forget task in the queue.
+    /// </summary>
+    /// <param name="nonMutatingRequestTask">The task to be inspected.</param>
+    /// <returns>The task from <paramref name="nonMutatingRequestTask"/>, to allow chained calls if needed.</returns>
+    public virtual Task HandleNonMutatingRequestErrorAsync(Task nonMutatingRequestTask)
+    {
+        return nonMutatingRequestTask;
     }
 
     /// <summary>

@@ -37,12 +37,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
 {
     public abstract class CSharpTestBase : CommonTestBase
     {
-        public enum RuntimeFlag
-        {
-            None,
-            ByRefFields,
-        }
-
         protected const string NullableAttributeDefinition = @"
 namespace System.Runtime.CompilerServices
 {
@@ -1225,11 +1219,9 @@ namespace System.Diagnostics.CodeAnalysis
             TargetFramework targetFramework = TargetFramework.Standard,
             string assemblyName = "",
             string sourceFileName = "",
-            bool skipUsesIsNullable = false,
-            RuntimeFlag runtimeFeature = RuntimeFlag.None)
+            bool skipUsesIsNullable = false)
         {
-            Debug.Assert(targetFramework == TargetFramework.Standard || runtimeFeature == RuntimeFlag.None);
-            if (runtimeFeature == RuntimeFlag.ByRefFields)
+            if (targetFramework == TargetFramework.Net70)
             {
                 // Avoid sharing mscorlib symbols with other tests since we are about to change
                 // RuntimeSupportsByRefFields property for it.

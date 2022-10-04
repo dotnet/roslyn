@@ -2504,7 +2504,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (!hasErrors)
             {
-                hasErrors = CheckManagedAddr(Compilation, operandType, managedKind, warnForManaged: true, node.Location, diagnostics);
+                hasErrors = CheckManagedAddr(Compilation, operandType, managedKind, node.Location, diagnostics);
             }
 
             bool allowManagedAddressOf = Flags.Includes(BinderFlags.AllowMoveableAddressOf);

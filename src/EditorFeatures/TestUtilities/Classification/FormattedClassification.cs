@@ -96,7 +96,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Classification
                     {
                         "operator" => "Operators",
                         "operator - overloaded" => "OverloadedOperators",
-                        _ => throw ExceptionUtilities.Unreachable,
+                        _ => throw ExceptionUtilities.Unreachable(),
                     };
 
                     switch (Text)

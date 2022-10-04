@@ -117,7 +117,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 }
                 catch (Exception ex) when (FatalError.ReportAndPropagateUnlessCanceled(ex, cancellationToken))
                 {
-                    throw ExceptionUtilities.Unreachable;
+                    throw ExceptionUtilities.Unreachable();
                 }
             }, cancellationToken);
         }
