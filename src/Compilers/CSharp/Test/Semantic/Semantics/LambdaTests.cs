@@ -4865,6 +4865,71 @@ class Program
             Assert.Equal(2, parameter.DefaultValueFromAttributes.Value);
         }
 
+        [Fact]
+        public void LambdaParameterAttributes_OptionalAndDateTimeConstantAttributes()
+        {
+            var source =
+@"using System;
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
+class Program
+{
+    static void Main()
+    {
+        var lam = ([Optional, DateTimeConstant(638004778421967416L)] DateTime d) => d;
+        Console.Write(lam().Ticks);
+    }
+}";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: "638004778421967416").VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var exprs = tree.GetRoot().DescendantNodes().OfType<LambdaExpressionSyntax>().ToImmutableArray();
+            var lambda = exprs.SelectAsArray(e => GetLambdaSymbol(model, e)).Single();
+            var parameter = (SourceParameterSymbol)lambda.Parameters[0];
+            Assert.True(parameter.HasOptionalAttribute);
+            Assert.True(parameter.HasExplicitDefaultValue);
+            Assert.Equal(new DateTime(638004778421967416L), parameter.DefaultValueFromAttributes.Value);
+        }
+
+        [Fact(Skip = "PROTOTYPE: Allow CustomConstantAttributes to provide default lambda parameter values")]
+        public void LambdaParameterAttributes_OptionalAndCustomConstantAttributes()
+        {
+            var source =
+@"using System;
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
+class IntConstantAttribute : CustomConstantAttribute
+{
+    private readonly int _value;
+    public override object Value => _value;
+    public IntConstantAttribute(int value)
+    {
+        _value = value;
+    }
+}
+class Program
+{
+    static void Main()
+    {
+        var lam = ([Optional, IntConstant(100)] int i) => i;
+        Console.Write(lam());
+    }
+}";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: "100").VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var exprs = tree.GetRoot().DescendantNodes().OfType<LambdaExpressionSyntax>().ToImmutableArray();
+            var lambda = exprs.SelectAsArray(e => GetLambdaSymbol(model, e)).Single();
+            var parameter = (SourceParameterSymbol)lambda.Parameters[0];
+            Assert.True(parameter.HasOptionalAttribute);
+            Assert.True(parameter.HasExplicitDefaultValue);
+            Assert.Equal(100, parameter.DefaultValueFromAttributes.Value);
+        }
+
         [ConditionalFact(typeof(DesktopOnly))]
         public void LambdaParameterAttributes_WellKnownAttributes()
         {

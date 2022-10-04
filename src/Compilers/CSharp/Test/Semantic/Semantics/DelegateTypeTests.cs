@@ -13584,5 +13584,38 @@ class Program
 @"<>f__AnonymousDelegate0`1[System.String]
 <>f__AnonymousDelegate0`1[System.String]").VerifyDiagnostics();
         }
+
+        [Fact]
+        public void LambdaDefaultParameter_OptionalAndCustomConstantAttributes()
+        {
+            var source = """
+using System;
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
+class IntConstantAttribute : CustomConstantAttribute
+{
+    private readonly int _value;
+    public override object Value => _value;
+    public IntConstantAttribute(int value)
+    {
+        _value = value;
+    }
+}
+class Program
+{
+    static void Report(object obj) => Console.WriteLine(obj.GetType());
+    public static void Main()
+    {
+        var lam1 = ([Optional][IntConstant(100)] int i) => i;
+        var lam2 = (int i = 100) => i;
+        Report(lam1);
+        Report(lam2);
+    }
+}
+""";
+            CompileAndVerify(source, expectedOutput:
+@"System.Func`2[System.Int32,System.Int32]
+<>f__AnonymousDelegate0").VerifyDiagnostics();
+        }
     }
 }
