@@ -109,7 +109,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                     public override object Key => _source._key;
                     public override string BuildTool => PredefinedBuildTools.Build;
                     public override bool SupportSpanTracking => false;
-                    public override DocumentId TrackingDocumentId => throw ExceptionUtilities.Unreachable;
+                    public override DocumentId TrackingDocumentId => throw ExceptionUtilities.Unreachable();
 
                     public override ImmutableArray<DiagnosticTableItem> GetItems()
                     {
@@ -162,7 +162,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                                 content = (data.GetValidHelpLinkUri() != null) ? string.Format(EditorFeaturesResources.Get_help_for_0, data.Id) : null;
                                 return content != null;
                             case StandardTableKeyNames.HelpKeyword:
-                                content = data.Id;
+                                content = data.GetHelpKeyword();
                                 return content != null;
                             case StandardTableKeyNames.HelpLink:
                                 content = data.GetValidHelpLinkUri()?.AbsoluteUri;

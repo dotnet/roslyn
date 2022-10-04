@@ -18,19 +18,15 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.TaskList;
-using Microsoft.CodeAnalysis.TodoComments;
 using Microsoft.VisualStudio.LanguageServices.ExternalAccess.VSTypeScript.Api;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 
 namespace Microsoft.VisualStudio.LanguageServices.TaskList
 {
-    [Export(typeof(IVsTypeScriptTodoCommentService))]
     [ExportEventListener(WellKnownEventListeners.Workspace, WorkspaceKind.Host), Shared]
     internal class VisualStudioTaskListService :
         ITaskListProvider,
-        IVsTypeScriptTodoCommentService,
-        IEventListener<object>,
-        IDisposable
+        IEventListener<object>
     {
         private readonly IThreadingContext _threadingContext;
         private readonly VisualStudioWorkspaceImpl _workspace;
@@ -64,11 +60,6 @@ namespace Microsoft.VisualStudio.LanguageServices.TaskList
                 threadingContext.DisposalToken);
         }
 
-        public void Dispose()
-        {
-            _listener.Dispose();
-        }
-
         void IEventListener<object>.StartListening(Workspace workspace, object _)
         {
             if (workspace is VisualStudioWorkspace)
@@ -89,7 +80,7 @@ namespace Microsoft.VisualStudio.LanguageServices.TaskList
                 // Now that we've started, let the VS todo list know to start listening to us
                 _eventListenerTracker.EnsureEventListener(_workspace, this);
 
-                await _listener.StartAsync().ConfigureAwait(false);
+                _listener.Start();
             }
             catch (OperationCanceledException)
             {
@@ -101,20 +92,6 @@ namespace Microsoft.VisualStudio.LanguageServices.TaskList
                 // a BG service we don't want impacting the user experience.
             }
         }
-
-        /// <inheritdoc cref="IVsTypeScriptTodoCommentService.ReportTodoCommentsAsync(Document, ImmutableArray{TodoComment}, CancellationToken)"/>
-        [Obsolete]
-        async Task IVsTypeScriptTodoCommentService.ReportTodoCommentsAsync(
-            Document document, ImmutableArray<TodoComment> todoComments, CancellationToken cancellationToken)
-        {
-            var converted = await TodoComment.ConvertAsync(document, todoComments, cancellationToken).ConfigureAwait(false);
-
-            await _listener.ReportTaskListItemsAsync(
-                document.Id, converted, cancellationToken).ConfigureAwait(false);
-        }
-
-        async Task IVsTypeScriptTodoCommentService.ReportTaskListItemsAsync(Document document, ImmutableArray<TaskListItem> items, CancellationToken cancellationToken)
-            => await _listener.ReportTaskListItemsAsync(document.Id, items, cancellationToken).ConfigureAwait(false);
 
         public ImmutableArray<TaskListItem> GetTaskListItems(Workspace workspace, DocumentId documentId, CancellationToken cancellationToken)
             => _listener.GetTaskListItems(documentId);

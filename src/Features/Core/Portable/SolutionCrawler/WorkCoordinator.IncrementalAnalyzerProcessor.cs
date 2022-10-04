@@ -225,7 +225,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         }
                         catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
                         {
-                            throw ExceptionUtilities.Unreachable;
+                            throw ExceptionUtilities.Unreachable();
                         }
                     }
                 }
@@ -297,7 +297,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     }
                     catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
                     {
-                        throw ExceptionUtilities.Unreachable;
+                        throw ExceptionUtilities.Unreachable();
                     }
                 }
 
@@ -319,7 +319,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     catch (Exception e) when (FatalError.ReportAndPropagate(e))
                     {
                         // TODO: manage bad workers like what code actions does now
-                        throw ExceptionUtilities.Unreachable;
+                        throw ExceptionUtilities.Unreachable();
                     }
 
                     static bool ReportWithoutCrashUnlessAllCanceledAndPropagate(AggregateException aggregate)

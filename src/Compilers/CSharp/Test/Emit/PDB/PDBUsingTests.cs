@@ -383,6 +383,7 @@ namespace X
 ";
             var compilation = CreateCompilation(text,
                 assemblyName: GetUniqueName(),
+                parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(),
                 options: TestOptions.DebugDll,
                 references: new[]
                 {
@@ -473,7 +474,7 @@ namespace X
 namespace U.V.W {}
 ";
 
-            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll, assemblyName: "TestExternAliases2");
+            var compilation1 = CreateCompilation(source1, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), options: TestOptions.DebugDll, assemblyName: "TestExternAliases2");
 
             string source2 = @"
 using U.V.W;
@@ -482,6 +483,7 @@ class A { void M() {  } }
 ";
             var compilation2 = CreateCompilation(
                 source2,
+                parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(),
                 options: TestOptions.DebugDll,
                 references: new[]
                 {
@@ -525,7 +527,7 @@ class A { void M() {  } }
 namespace U.V.W {}
 ";
 
-            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll, assemblyName: "TestExternAliases3");
+            var compilation1 = CreateCompilation(source1, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), options: TestOptions.DebugDll, assemblyName: "TestExternAliases3");
 
             string source2 = @"
 using U.V.W;
@@ -534,6 +536,7 @@ class A { void M() {  } }
 ";
             var compilation2 = CreateCompilation(
                 source2,
+                parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(),
                 options: TestOptions.DebugDll,
                 references: new[]
                 {
@@ -1028,7 +1031,7 @@ public class C
             var source1 = @"
 namespace N { public class D { } }
 ";
-            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll);
+            var compilation1 = CreateCompilation(source1, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), options: TestOptions.DebugDll);
 
             var source2 = @"
 extern alias A;
@@ -1045,6 +1048,7 @@ public class C
 }";
 
             var compilation2 = CreateCompilation(source2,
+                parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(),
                 options: TestOptions.DebugDll,
                 references: new[]
                 {
@@ -2235,7 +2239,7 @@ class C
     }
 }
 ";
-            var comp = CreateCompilationWithMscorlib40(source, new[] { SystemCoreRef.WithAliases(new[] { "A" }), SystemDataRef });
+            var comp = CreateCompilationWithMscorlib40(source, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), references: new[] { SystemCoreRef.WithAliases(new[] { "A" }), SystemDataRef });
             var v = CompileAndVerify(comp, validator: (peAssembly) =>
             {
                 var reader = peAssembly.ManifestModule.MetadataReader;

@@ -1285,49 +1285,46 @@ class C<T> { }
 static class C2 { }
 ref struct RefLike{}
 
-unsafe record C( // 1
-    int* P1, // 2
-    int*[] P2, // 3
+unsafe record C(
+    int* P1, // 1
+    int*[] P2, // 2
     C<int*[]> P3,
-    delegate*<int, int> P4, // 4
-    void P5, // 5
-    C2 P6, // 6, 7
-    System.ArgIterator P7, // 8
-    System.TypedReference P8, // 9
-    RefLike P9); // 10
+    delegate*<int, int> P4, // 3
+    void P5, // 4
+    C2 P6, // 5, 6
+    System.ArgIterator P7, // 7
+    System.TypedReference P8, // 8
+    RefLike P9); // 9
 ";
 
             var comp = CreateCompilation(new[] { src, IsExternalInitTypeDefinition }, options: TestOptions.UnsafeDebugDll);
             comp.VerifyEmitDiagnostics(
-                // (6,15): error CS0721: 'C2': static types cannot be used as parameters
-                // unsafe record C( // 1
-                Diagnostic(ErrorCode.ERR_ParameterIsStaticClass, "C").WithArguments("C2").WithLocation(6, 15),
                 // (7,10): error CS8908: The type 'int*' may not be used for a field of a record.
-                //     int* P1, // 2
+                //     int* P1, // 1
                 Diagnostic(ErrorCode.ERR_BadFieldTypeInRecord, "P1").WithArguments("int*").WithLocation(7, 10),
                 // (8,12): error CS8908: The type 'int*[]' may not be used for a field of a record.
-                //     int*[] P2, // 3
+                //     int*[] P2, // 2
                 Diagnostic(ErrorCode.ERR_BadFieldTypeInRecord, "P2").WithArguments("int*[]").WithLocation(8, 12),
                 // (10,25): error CS8908: The type 'delegate*<int, int>' may not be used for a field of a record.
-                //     delegate*<int, int> P4, // 4
+                //     delegate*<int, int> P4, // 3
                 Diagnostic(ErrorCode.ERR_BadFieldTypeInRecord, "P4").WithArguments("delegate*<int, int>").WithLocation(10, 25),
                 // (11,5): error CS1536: Invalid parameter type 'void'
-                //     void P5, // 5
+                //     void P5, // 4
                 Diagnostic(ErrorCode.ERR_NoVoidParameter, "void").WithLocation(11, 5),
-                // (12,8): error CS0722: 'C2': static types cannot be used as return types
-                //     C2 P6, // 6, 7
-                Diagnostic(ErrorCode.ERR_ReturnTypeIsStaticClass, "P6").WithArguments("C2").WithLocation(12, 8),
-                // (12,8): error CS0721: 'C2': static types cannot be used as parameters
-                //     C2 P6, // 6, 7
-                Diagnostic(ErrorCode.ERR_ParameterIsStaticClass, "P6").WithArguments("C2").WithLocation(12, 8),
+                // (12,5): error CS0721: 'C2': static types cannot be used as parameters
+                //     C2 P6, // 5, 6
+                Diagnostic(ErrorCode.ERR_ParameterIsStaticClass, "C2").WithArguments("C2").WithLocation(12, 5),
+                // (12,5): error CS0722: 'C2': static types cannot be used as return types
+                //     C2 P6, // 5, 6
+                Diagnostic(ErrorCode.ERR_ReturnTypeIsStaticClass, "C2").WithArguments("C2").WithLocation(12, 5),
                 // (13,5): error CS0610: Field or property cannot be of type 'ArgIterator'
-                //     System.ArgIterator P7, // 8
+                //     System.ArgIterator P7, // 7
                 Diagnostic(ErrorCode.ERR_FieldCantBeRefAny, "System.ArgIterator").WithArguments("System.ArgIterator").WithLocation(13, 5),
                 // (14,5): error CS0610: Field or property cannot be of type 'TypedReference'
-                //     System.TypedReference P8, // 9
+                //     System.TypedReference P8, // 8
                 Diagnostic(ErrorCode.ERR_FieldCantBeRefAny, "System.TypedReference").WithArguments("System.TypedReference").WithLocation(14, 5),
                 // (15,5): error CS8345: Field or auto-implemented property cannot be of type 'RefLike' unless it is an instance member of a ref struct.
-                //     RefLike P9); // 10
+                //     RefLike P9); // 9
                 Diagnostic(ErrorCode.ERR_FieldAutoPropCantBeByRefLike, "RefLike").WithArguments("RefLike").WithLocation(15, 5)
                 );
         }
@@ -1421,12 +1418,9 @@ public unsafe record C
                 // (12,17): error CS0547: 'C.f5': property or indexer cannot have void type
                 //     public void f5 { get; set; } // 4
                 Diagnostic(ErrorCode.ERR_PropertyCantHaveVoidType, "f5").WithArguments("C.f5").WithLocation(12, 17),
-                // (13,20): error CS0722: 'C2': static types cannot be used as return types
+                // (13,12): error CS0722: 'C2': static types cannot be used as return types
                 //     public C2 f6 { get; set; } // 5, 6
-                Diagnostic(ErrorCode.ERR_ReturnTypeIsStaticClass, "get").WithArguments("C2").WithLocation(13, 20),
-                // (13,25): error CS0721: 'C2': static types cannot be used as parameters
-                //     public C2 f6 { get; set; } // 5, 6
-                Diagnostic(ErrorCode.ERR_ParameterIsStaticClass, "set").WithArguments("C2").WithLocation(13, 25),
+                Diagnostic(ErrorCode.ERR_ReturnTypeIsStaticClass, "C2").WithArguments("C2").WithLocation(13, 12),
                 // (14,12): error CS0610: Field or property cannot be of type 'ArgIterator'
                 //     public System.ArgIterator f7 { get; set; } // 6
                 Diagnostic(ErrorCode.ERR_FieldCantBeRefAny, "System.ArgIterator").WithArguments("System.ArgIterator").WithLocation(14, 12),
@@ -16337,7 +16331,7 @@ namespace System.Text
     }
 }
 ";
-            var comp = CreateEmptyCompilation(source0);
+            var comp = CreateEmptyCompilation(source0, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute());
             comp.VerifyDiagnostics();
             var ref0 = comp.EmitToImageReference();
 
@@ -16346,7 +16340,7 @@ namespace System.Text
 public record A {
 }
 ";
-            comp = CreateEmptyCompilation(source1, references: new[] { ref0 }, parseOptions: TestOptions.Regular9);
+            comp = CreateEmptyCompilation(source1, references: new[] { ref0 }, parseOptions: TestOptions.Regular9.WithNoRefSafetyRulesAttribute());
             comp.VerifyEmitDiagnostics(
                 // (2,15): error CS0508: 'A.Equals(object?)': return type must be 'int' to match overridden member 'object.Equals(object)'
                 // public record A {
@@ -17286,7 +17280,7 @@ public class Something
 {
 }
 ";
-            var comp = CreateEmptyCompilation(source0);
+            var comp = CreateEmptyCompilation(source0, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute());
             comp.VerifyDiagnostics();
             var ref0 = comp.EmitToImageReference();
 
@@ -17296,7 +17290,7 @@ public record A {
     public override Something GetHashCode() => default;
 }
 ";
-            comp = CreateEmptyCompilation(source1, references: new[] { ref0 }, parseOptions: TestOptions.Regular9);
+            comp = CreateEmptyCompilation(source1, references: new[] { ref0 }, parseOptions: TestOptions.Regular9.WithNoRefSafetyRulesAttribute());
             comp.VerifyEmitDiagnostics(
                 // (3,31): error CS8869: 'A.GetHashCode()' does not override expected method from 'object'.
                 //     public override Something GetHashCode() => default;
@@ -17382,7 +17376,7 @@ namespace System.Text
     }
 }
 ";
-            var comp = CreateEmptyCompilation(source0);
+            var comp = CreateEmptyCompilation(source0, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute());
             comp.VerifyDiagnostics();
             var ref0 = comp.EmitToImageReference();
 
@@ -17392,7 +17386,7 @@ public record A {
     public override bool GetHashCode() => default;
 }
 ";
-            comp = CreateEmptyCompilation(source1, references: new[] { ref0 }, parseOptions: TestOptions.Regular9);
+            comp = CreateEmptyCompilation(source1, references: new[] { ref0 }, parseOptions: TestOptions.Regular9.WithNoRefSafetyRulesAttribute());
             comp.VerifyEmitDiagnostics(
                 // (3,26): error CS8869: 'A.GetHashCode()' does not override expected method from 'object'.
                 //     public override bool GetHashCode() => default;
@@ -17478,7 +17472,7 @@ namespace System.Text
     }
 }
 ";
-            var comp = CreateEmptyCompilation(source0);
+            var comp = CreateEmptyCompilation(source0, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute());
             comp.VerifyDiagnostics();
             var ref0 = comp.EmitToImageReference();
 
@@ -17487,7 +17481,7 @@ namespace System.Text
 public record A {
 }
 ";
-            comp = CreateEmptyCompilation(source1, references: new[] { ref0 }, parseOptions: TestOptions.Regular9);
+            comp = CreateEmptyCompilation(source1, references: new[] { ref0 }, parseOptions: TestOptions.Regular9.WithNoRefSafetyRulesAttribute());
             comp.VerifyEmitDiagnostics(
                 // (2,15): error CS0508: 'A.GetHashCode()': return type must be 'bool' to match overridden member 'object.GetHashCode()'
                 // public record A {
@@ -24298,7 +24292,7 @@ namespace System.Text
         public StringBuilder Append(object s) => null;
     }
 }";
-            var comp = CreateEmptyCompilation(source0);
+            var comp = CreateEmptyCompilation(source0, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute());
             comp.VerifyDiagnostics();
             var ref0 = comp.EmitToImageReference();
 
@@ -24306,7 +24300,7 @@ namespace System.Text
 @"record A<T>;
 record B : A<int>;
 ";
-            comp = CreateEmptyCompilation(source1, references: new[] { ref0 }, parseOptions: TestOptions.Regular9);
+            comp = CreateEmptyCompilation(source1, references: new[] { ref0 }, parseOptions: TestOptions.Regular9.WithNoRefSafetyRulesAttribute());
             comp.VerifyDiagnostics(
                 // (1,8): error CS0518: Predefined type 'System.IEquatable`1' is not defined or imported
                 // record A<T>;
@@ -24363,7 +24357,7 @@ namespace System.Text
         public StringBuilder Append(object s) => null;
     }
 }";
-            var comp = CreateEmptyCompilation(source0);
+            var comp = CreateEmptyCompilation(source0, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute());
             comp.VerifyDiagnostics();
             var ref0 = comp.EmitToImageReference();
 
@@ -24371,7 +24365,7 @@ namespace System.Text
 @"record A<T> : System.IEquatable<A<T>>;
 record B : A<int>, System.IEquatable<B>;
 ";
-            comp = CreateEmptyCompilation(source1, references: new[] { ref0 }, parseOptions: TestOptions.Regular9);
+            comp = CreateEmptyCompilation(source1, references: new[] { ref0 }, parseOptions: TestOptions.Regular9.WithNoRefSafetyRulesAttribute());
             comp.VerifyDiagnostics(
                 // (1,8): error CS0518: Predefined type 'System.IEquatable`1' is not defined or imported
                 // record A<T> : System.IEquatable<A<T>>;
@@ -24433,7 +24427,7 @@ namespace System.Text
         public StringBuilder Append(object s) => null;
     }
 }";
-            var comp = CreateEmptyCompilation(source0);
+            var comp = CreateEmptyCompilation(source0, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute());
             comp.VerifyDiagnostics();
             var ref0 = comp.EmitToImageReference();
 
@@ -24442,7 +24436,7 @@ namespace System.Text
 record A<T> : IEquatable<A<T>>;
 record B : A<int>, IEquatable<B>;
 ";
-            comp = CreateEmptyCompilation(source1, references: new[] { ref0 }, parseOptions: TestOptions.Regular9);
+            comp = CreateEmptyCompilation(source1, references: new[] { ref0 }, parseOptions: TestOptions.Regular9.WithNoRefSafetyRulesAttribute());
             comp.VerifyDiagnostics(
                 // (1,1): hidden CS8019: Unnecessary using directive.
                 // using System;
@@ -24512,7 +24506,7 @@ namespace System.Text
         public StringBuilder Append(object s) => null;
     }
 }";
-            var comp = CreateEmptyCompilation(source0);
+            var comp = CreateEmptyCompilation(source0, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute());
             comp.VerifyDiagnostics();
             var ref0 = comp.EmitToImageReference();
 
@@ -24526,7 +24520,7 @@ class Program
         _ = a.Equals(null);
     }
 }";
-            comp = CreateEmptyCompilation(source1, references: new[] { ref0 }, parseOptions: TestOptions.Regular9);
+            comp = CreateEmptyCompilation(source1, references: new[] { ref0 }, parseOptions: TestOptions.Regular9.WithNoRefSafetyRulesAttribute());
             comp.VerifyDiagnostics(
                 // (1,8): error CS0518: Predefined type 'System.Type' is not defined or imported
                 // record A;
@@ -30300,6 +30294,64 @@ public class C : // 3
                 // (10,17): error CS1031: Type expected
                 // public class C : // 3
                 Diagnostic(ErrorCode.ERR_TypeExpected, "").WithLocation(10, 17)
+                );
+        }
+
+        [Fact]
+        [WorkItem(64238, "https://github.com/dotnet/roslyn/issues/64238")]
+        public void NoMethodBodiesInComImportType()
+        {
+            var source1 =
+@"
+[System.Runtime.InteropServices.ComImport]
+[System.Runtime.InteropServices.Guid(""00112233-4455-6677-8899-aabbccddeeff"")]
+record R1(int x);
+";
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll, targetFramework: TargetFramework.Net60);
+
+            compilation1.VerifyDiagnostics(
+                // (4,8): error CS0423: Since 'R1' has the ComImport attribute, 'R1.Equals(R1?)' must be extern or abstract
+                // record R1(int x);
+                Diagnostic(ErrorCode.ERR_ComImportWithImpl, "R1").WithArguments("R1.Equals(R1?)", "R1").WithLocation(4, 8),
+                // (4,8): error CS0423: Since 'R1' has the ComImport attribute, 'R1.ToString()' must be extern or abstract
+                // record R1(int x);
+                Diagnostic(ErrorCode.ERR_ComImportWithImpl, "R1").WithArguments("R1.ToString()", "R1").WithLocation(4, 8),
+                // (4,8): error CS0423: Since 'R1' has the ComImport attribute, 'R1.Deconstruct(out int)' must be extern or abstract
+                // record R1(int x);
+                Diagnostic(ErrorCode.ERR_ComImportWithImpl, "R1").WithArguments("R1.Deconstruct(out int)", "R1").WithLocation(4, 8),
+                // (4,8): error CS0423: Since 'R1' has the ComImport attribute, 'R1.<Clone>$()' must be extern or abstract
+                // record R1(int x);
+                Diagnostic(ErrorCode.ERR_ComImportWithImpl, "R1").WithArguments("R1.<Clone>$()", "R1").WithLocation(4, 8),
+                // (4,8): error CS0423: Since 'R1' has the ComImport attribute, 'R1.EqualityContract.get' must be extern or abstract
+                // record R1(int x);
+                Diagnostic(ErrorCode.ERR_ComImportWithImpl, "R1").WithArguments("R1.EqualityContract.get", "R1").WithLocation(4, 8),
+                // (4,8): error CS0423: Since 'R1' has the ComImport attribute, 'R1.Equals(object?)' must be extern or abstract
+                // record R1(int x);
+                Diagnostic(ErrorCode.ERR_ComImportWithImpl, "R1").WithArguments("R1.Equals(object?)", "R1").WithLocation(4, 8),
+                // (4,8): error CS0423: Since 'R1' has the ComImport attribute, 'R1.GetHashCode()' must be extern or abstract
+                // record R1(int x);
+                Diagnostic(ErrorCode.ERR_ComImportWithImpl, "R1").WithArguments("R1.GetHashCode()", "R1").WithLocation(4, 8),
+                // (4,8): error CS0423: Since 'R1' has the ComImport attribute, 'R1.operator ==(R1?, R1?)' must be extern or abstract
+                // record R1(int x);
+                Diagnostic(ErrorCode.ERR_ComImportWithImpl, "R1").WithArguments("R1.operator ==(R1?, R1?)", "R1").WithLocation(4, 8),
+                // (4,8): error CS0423: Since 'R1' has the ComImport attribute, 'R1.operator !=(R1?, R1?)' must be extern or abstract
+                // record R1(int x);
+                Diagnostic(ErrorCode.ERR_ComImportWithImpl, "R1").WithArguments("R1.operator !=(R1?, R1?)", "R1").WithLocation(4, 8),
+                // (4,8): error CS0423: Since 'R1' has the ComImport attribute, 'R1.PrintMembers(StringBuilder)' must be extern or abstract
+                // record R1(int x);
+                Diagnostic(ErrorCode.ERR_ComImportWithImpl, "R1").WithArguments("R1.PrintMembers(System.Text.StringBuilder)", "R1").WithLocation(4, 8),
+                // (4,8): error CS0669: A class with the ComImport attribute cannot have a user-defined constructor
+                // record R1(int x);
+                Diagnostic(ErrorCode.ERR_ComImportWithUserCtor, "R1").WithLocation(4, 8),
+                // (4,11): error CS8028: 'R1': a class with the ComImport attribute cannot specify field initializers.
+                // record R1(int x);
+                Diagnostic(ErrorCode.ERR_ComImportWithInitializers, "int x").WithArguments("R1").WithLocation(4, 11),
+                // (4,15): error CS0423: Since 'R1' has the ComImport attribute, 'R1.x.get' must be extern or abstract
+                // record R1(int x);
+                Diagnostic(ErrorCode.ERR_ComImportWithImpl, "x").WithArguments("R1.x.get", "R1").WithLocation(4, 15),
+                // (4,15): error CS0423: Since 'R1' has the ComImport attribute, 'R1.x.init' must be extern or abstract
+                // record R1(int x);
+                Diagnostic(ErrorCode.ERR_ComImportWithImpl, "x").WithArguments("R1.x.init", "R1").WithLocation(4, 15)
                 );
         }
     }

@@ -401,7 +401,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <param name="corType"></param>
         internal virtual void RegisterDeclaredSpecialType(NamedTypeSymbol corType)
         {
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 
         /// <summary>
@@ -412,7 +412,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                throw ExceptionUtilities.Unreachable;
+                throw ExceptionUtilities.Unreachable();
             }
         }
 
@@ -421,7 +421,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         internal virtual NamedTypeSymbol GetNativeIntegerType(NamedTypeSymbol underlyingType)
         {
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 
         /// <summary>

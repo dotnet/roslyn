@@ -3284,6 +3284,8 @@ class C
             var comp = CreateCompilation(source);
             comp.MakeTypeMissing(SpecialType.System_Int32);
             comp.VerifyEmitDiagnostics(
+                // error CS0518: Predefined type 'System.Int32' is not defined or imported
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound).WithArguments("System.Int32").WithLocation(1, 1),
                 // (6,9): error CS0518: Predefined type 'System.Int32' is not defined or imported
                 //         switch (s)
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, @"switch (s)

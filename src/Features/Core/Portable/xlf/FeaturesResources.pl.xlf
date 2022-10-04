@@ -670,6 +670,11 @@ Pamiętaj, aby nie używać specyfikatora „tt” dla wszystkich języków, w k
         <target state="translated">Włącz wszystkie funkcje edytora JSON</target>
         <note />
       </trans-unit>
+      <trans-unit id="Enum_members">
+        <source>Enum members</source>
+        <target state="translated">Składowe wyliczenia</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ErrorReadingFile">
         <source>Error while reading file '{0}': {1}</source>
         <target state="translated">Błąd podczas odczytywania pliku „{0}”: {1}</target>
@@ -3425,7 +3430,7 @@ Jeśli specyfikator formatu „d” zostanie użyty bez innych indywidualnych sp
       </trans-unit>
       <trans-unit id="foreach_loop">
         <source>foreach loop</source>
-        <target state="new">foreach loop</target>
+        <target state="translated">pętla foreach</target>
         <note />
       </trans-unit>
       <trans-unit id="from_metadata">
@@ -4273,6 +4278,11 @@ Gdy jest używany ten standardowy specyfikator formatu, operacja formatowania lu
       <trans-unit id="static_constructor">
         <source>static constructor</source>
         <target state="translated">konstruktor statyczny</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="struct_">
+        <source>struct</source>
+        <target state="translated">struktura</target>
         <note />
       </trans-unit>
       <trans-unit id="symbol_cannot_be_a_namespace">

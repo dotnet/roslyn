@@ -59,15 +59,6 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
 {
     internal partial class EditorInProcess
     {
-        public async Task<string> GetDirtyIndicatorAsync(CancellationToken cancellationToken)
-        {
-            var version = await TestServices.Shell.GetVersionAsync(cancellationToken);
-            if (version < Version.Parse("17.2.32224.407"))
-                return "*";
-
-            return " ⬤";
-        }
-
         public async Task WaitForEditorOperationsAsync(CancellationToken cancellationToken)
         {
             await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
@@ -516,17 +507,17 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
             if (itemIndex < 0)
             {
                 Assert.Contains(item, await GetNavigationBarItemsAsync(index, cancellationToken));
-                throw ExceptionUtilities.Unreachable;
+                throw ExceptionUtilities.Unreachable();
             }
 
             await ExpandNavigationBarAsync(index, cancellationToken);
-            await TestServices.Input.SendAsync(VirtualKeyCode.HOME);
+            await TestServices.Input.SendAsync(VirtualKeyCode.HOME, cancellationToken);
             for (var i = 0; i < itemIndex; i++)
             {
-                await TestServices.Input.SendAsync(VirtualKeyCode.DOWN);
+                await TestServices.Input.SendAsync(VirtualKeyCode.DOWN, cancellationToken);
             }
 
-            await TestServices.Input.SendAsync(VirtualKeyCode.RETURN);
+            await TestServices.Input.SendAsync(VirtualKeyCode.RETURN, cancellationToken);
 
             // Navigation and/or code generation following selection is tracked under FeatureAttribute.NavigationBar
             await TestServices.Workspace.WaitForAsyncOperationsAsync(FeatureAttribute.NavigationBar, cancellationToken);
@@ -704,7 +695,7 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
             {
                 // Workaround for extremely unstable async lightbulb (can dismiss itself when SuggestedActionsChanged
                 // fires while expanding the light bulb).
-                await TestServices.Input.SendAsync((VirtualKeyCode.OEM_PERIOD, VirtualKeyCode.CONTROL));
+                await TestServices.Input.SendAsync((VirtualKeyCode.OEM_PERIOD, VirtualKeyCode.CONTROL), cancellationToken);
                 await Task.Delay(5000, cancellationToken);
 
                 await TestServices.Editor.DismissLightBulbSessionAsync(cancellationToken);

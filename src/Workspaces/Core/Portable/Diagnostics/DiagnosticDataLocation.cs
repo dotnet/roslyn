@@ -28,31 +28,25 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         [DataMember(Order = 1)]
         public readonly DocumentId? DocumentId;
 
-        // text can be either given or calculated from original line/column
-        [DataMember(Order = 2)]
-        public readonly TextSpan? SourceSpan;
-
         /// <summary>
         /// Path and span where the diagnostic has been finally mapped to.  If no mapping happened, this will be equal
         /// to <see cref="UnmappedFileSpan"/>.  The <see cref="FileLinePositionSpan.Path"/> of this value will be the
         /// fully normalized file path where the diagnostic is located at.
         /// </summary>
-        [DataMember(Order = 3)]
+        [DataMember(Order = 2)]
         public readonly FileLinePositionSpan MappedFileSpan;
 
         public DiagnosticDataLocation(
             FileLinePositionSpan unmappedFileSpan,
             DocumentId? documentId = null,
-            TextSpan? sourceSpan = null,
             FileLinePositionSpan? mappedFileSpan = null)
-            : this(unmappedFileSpan, documentId, sourceSpan, mappedFileSpan, forceMappedPath: false)
+            : this(unmappedFileSpan, documentId, mappedFileSpan, forceMappedPath: false)
         {
         }
 
         private DiagnosticDataLocation(
             FileLinePositionSpan unmappedFileSpan,
             DocumentId? documentId,
-            TextSpan? sourceSpan,
             FileLinePositionSpan? mappedFileSpan,
             bool forceMappedPath)
         {
@@ -60,7 +54,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             UnmappedFileSpan = unmappedFileSpan;
             DocumentId = documentId;
-            SourceSpan = sourceSpan;
 
             // If we were passed in a mapped span use it with the original span to determine the true final mapped
             // location. If forceMappedSpan is true, then this is a test which is explicitly making a mapped span that
@@ -94,11 +87,15 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
         }
 
-        internal DiagnosticDataLocation WithSpan(TextSpan newSourceSpan, SyntaxTree tree)
-            => new DiagnosticDataLocation(
+        /// <summary>
+        /// Return a new location with the same <see cref="DocumentId"/> as this, but with updated <see
+        /// cref="UnmappedFileSpan"/> and <see cref="MappedFileSpan"/> corresponding to the respection locations of
+        /// <paramref name="newSourceSpan"/> within <paramref name="tree"/>.
+        /// </summary>
+        public DiagnosticDataLocation WithSpan(TextSpan newSourceSpan, SyntaxTree tree)
+            => new(
                 tree.GetLineSpan(newSourceSpan),
                 DocumentId,
-                newSourceSpan,
                 tree.GetMappedLineSpan(newSourceSpan));
 
         public static class TestAccessor
@@ -106,11 +103,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             public static DiagnosticDataLocation Create(
                 FileLinePositionSpan originalFileSpan,
                 DocumentId? documentId,
-                TextSpan? sourceSpan,
                 FileLinePositionSpan mappedFileSpan,
                 bool forceMappedPath)
             {
-                return new DiagnosticDataLocation(originalFileSpan, documentId, sourceSpan, mappedFileSpan, forceMappedPath);
+                return new DiagnosticDataLocation(originalFileSpan, documentId, mappedFileSpan, forceMappedPath);
             }
         }
     }

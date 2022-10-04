@@ -43,12 +43,12 @@ namespace Microsoft.CodeAnalysis.Completion
 
         internal override void FilterItems(
            Document document,
-           IReadOnlyList<(CompletionItem, PatternMatch?)> itemsWithPatternMatch,
+           IReadOnlyList<MatchResult> matchResults,
            string filterText,
-           IList<CompletionItem> builder)
+           IList<MatchResult> builder)
         {
             var helper = CompletionHelper.GetHelper(document);
-            CompletionService.FilterItems(helper, itemsWithPatternMatch, filterText, builder);
+            CompletionService.FilterItems(helper, matchResults, filterText, builder);
         }
     }
 }

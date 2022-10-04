@@ -539,77 +539,36 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             if (_lazyRequiresRefSafetyRulesAttribute == ThreeState.Unknown)
             {
-                bool value = UseUpdatedEscapeRules && namespaceIncludesRefs(GlobalNamespace);
+                bool value = UseUpdatedEscapeRules &&
+                    !isFeatureDisabled(_assemblySymbol.DeclaringCompilation) &&
+                    namespaceIncludesTypeDeclarations(GlobalNamespace);
                 _lazyRequiresRefSafetyRulesAttribute = value.ToThreeState();
             }
             return _lazyRequiresRefSafetyRulesAttribute.Value();
 
-            static bool namespaceIncludesRefs(NamespaceSymbol ns)
+            static bool isFeatureDisabled(CSharpCompilation compilation)
+            {
+                var options = (CSharpParseOptions?)compilation.SyntaxTrees.FirstOrDefault()?.Options;
+                return options?.Features?.ContainsKey("noRefSafetyRulesAttribute") == true;
+            }
+
+            static bool namespaceIncludesTypeDeclarations(NamespaceSymbol ns)
             {
                 foreach (var member in ns.GetMembersUnordered())
                 {
                     switch (member.Kind)
                     {
                         case SymbolKind.Namespace:
-                            if (namespaceIncludesRefs((NamespaceSymbol)member))
+                            if (namespaceIncludesTypeDeclarations((NamespaceSymbol)member))
                             {
                                 return true;
                             }
                             break;
                         case SymbolKind.NamedType:
-                            if (typeIncludesRefs((NamedTypeSymbol)member))
-                            {
-                                return true;
-                            }
-                            break;
-                        default:
-                            throw ExceptionUtilities.UnexpectedValue(member.Kind);
+                            return true;
                     }
                 }
                 return false;
-            }
-
-            static bool typeIncludesRefs(NamedTypeSymbol type)
-            {
-                if (type.IsRefLikeType)
-                {
-                    return true;
-                }
-                foreach (var member in type.GetMembersUnordered())
-                {
-                    switch (member.Kind)
-                    {
-                        case SymbolKind.NamedType:
-                            if (typeIncludesRefs((NamedTypeSymbol)member))
-                            {
-                                return true;
-                            }
-                            break;
-                        case SymbolKind.Method:
-                            if (methodIncludesRefs((MethodSymbol)member))
-                            {
-                                return true;
-                            }
-                            break;
-                    }
-                }
-                return false;
-            }
-
-            static bool methodIncludesRefs(MethodSymbol method)
-            {
-                if (method.RefKind != RefKind.None ||
-                    method.ReturnType.IsRefLikeType)
-                {
-                    return true;
-                }
-                return method.Parameters.Any(p => parameterIncludesRef(p));
-            }
-
-            static bool parameterIncludesRef(ParameterSymbol parameter)
-            {
-                return parameter.RefKind != RefKind.None ||
-                    parameter.Type.IsRefLikeType;
             }
         }
 

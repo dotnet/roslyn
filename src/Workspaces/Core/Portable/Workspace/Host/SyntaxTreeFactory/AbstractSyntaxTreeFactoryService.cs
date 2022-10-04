@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis.Host
                 }
             }
 
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
     }
 }

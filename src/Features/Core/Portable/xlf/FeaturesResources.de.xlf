@@ -670,6 +670,11 @@ Stellen Sie sicher, dass Sie den Bezeichner "tt" für Sprachen verwenden, für d
         <target state="translated">Alle JSON-Editor-Funktionen aktivieren</target>
         <note />
       </trans-unit>
+      <trans-unit id="Enum_members">
+        <source>Enum members</source>
+        <target state="translated">Enumerationsmember</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ErrorReadingFile">
         <source>Error while reading file '{0}': {1}</source>
         <target state="translated">Fehler beim Lesen der Datei "{0}": {1}</target>
@@ -3425,7 +3430,7 @@ Bei Verwendung des Formatbezeichners "d" ohne weitere benutzerdefinierte Formatb
       </trans-unit>
       <trans-unit id="foreach_loop">
         <source>foreach loop</source>
-        <target state="new">foreach loop</target>
+        <target state="translated">foreach-Schleife</target>
         <note />
       </trans-unit>
       <trans-unit id="from_metadata">
@@ -4273,6 +4278,11 @@ Bei Verwendung dieses Standardformatbezeichners wird zur Formatierung oder Analy
       <trans-unit id="static_constructor">
         <source>static constructor</source>
         <target state="translated">statischer Konstruktor</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="struct_">
+        <source>struct</source>
+        <target state="translated">Struktur</target>
         <note />
       </trans-unit>
       <trans-unit id="symbol_cannot_be_a_namespace">

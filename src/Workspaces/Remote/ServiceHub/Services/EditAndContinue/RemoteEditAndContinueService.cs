@@ -108,10 +108,17 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         {
             return RunServiceAsync(solutionChecksum, async solution =>
             {
-                var document = await solution.GetRequiredDocumentAsync(documentId, includeSourceGenerated: true, cancellationToken).ConfigureAwait(false);
+                try
+                {
+                    var document = await solution.GetRequiredDocumentAsync(documentId, includeSourceGenerated: true, cancellationToken).ConfigureAwait(false);
 
-                var diagnostics = await GetService().GetDocumentDiagnosticsAsync(document, CreateActiveStatementSpanProvider(callbackId), cancellationToken).ConfigureAwait(false);
-                return diagnostics.SelectAsArray(diagnostic => DiagnosticData.Create(diagnostic, document));
+                    var diagnostics = await GetService().GetDocumentDiagnosticsAsync(document, CreateActiveStatementSpanProvider(callbackId), cancellationToken).ConfigureAwait(false);
+                    return diagnostics.SelectAsArray(diagnostic => DiagnosticData.Create(diagnostic, document));
+                }
+                catch (Exception ex) when (FatalError.ReportAndPropagateUnlessCanceled(ex, cancellationToken))
+                {
+                    throw ExceptionUtilities.Unreachable();
+                }
             }, cancellationToken);
         }
 

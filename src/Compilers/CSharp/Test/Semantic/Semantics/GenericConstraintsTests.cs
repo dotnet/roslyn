@@ -3319,9 +3319,12 @@ public class C
 ";
             CreateCompilation(code, options: TestOptions.UnsafeReleaseDll)
                 .VerifyDiagnostics(
-                    // (12,12): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('MyStruct<string>')
+                    // (12,9): error CS8377: The type 'string' must be a non-nullable value type, along with all fields at any level of nesting, in order to use it as parameter 'T' in the generic type or method 'C.M2<T>(MyStruct<T>*)'
                     //         M2(&myStruct);
-                    Diagnostic(ErrorCode.ERR_ManagedAddr, "&myStruct").WithArguments("MyStruct<string>").WithLocation(12, 12));
+                    Diagnostic(ErrorCode.ERR_UnmanagedConstraintNotSatisfied, "M2").WithArguments("C.M2<T>(MyStruct<T>*)", "T", "string").WithLocation(12, 9),
+                    // (12,12): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('MyStruct<string>')
+                    //         M2(&myStruct);
+                    Diagnostic(ErrorCode.WRN_ManagedAddr, "&myStruct").WithArguments("MyStruct<string>").WithLocation(12, 12));
         }
 
         [Fact]
@@ -3491,12 +3494,18 @@ public class C
                     // (11,18): error CS8377: The type 'U' must be a non-nullable value type, along with all fields at any level of nesting, in order to use it as parameter 'T' in the generic type or method 'MyStruct<T>'
                     //         MyStruct<U> myStruct;
                     Diagnostic(ErrorCode.ERR_UnmanagedConstraintNotSatisfied, "U").WithArguments("MyStruct<T>", "T", "U").WithLocation(11, 18),
-                    // (12,15): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('MyStruct<U>')
+                    // (12,9): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('MyStruct<U>')
                     //         M2<U>(&myStruct);
-                    Diagnostic(ErrorCode.ERR_ManagedAddr, "&myStruct").WithArguments("MyStruct<U>").WithLocation(12, 15),
-                    // (15,43): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('MyStruct<V>')
+                    Diagnostic(ErrorCode.WRN_ManagedAddr, "M2<U>").WithArguments("MyStruct<U>").WithLocation(12, 9),
+                    // (12,9): error CS8377: The type 'U' must be a non-nullable value type, along with all fields at any level of nesting, in order to use it as parameter 'T' in the generic type or method 'MyStruct<T>'
+                    //         M2<U>(&myStruct);
+                    Diagnostic(ErrorCode.ERR_UnmanagedConstraintNotSatisfied, "M2<U>").WithArguments("MyStruct<T>", "T", "U").WithLocation(12, 9),
+                    // (12,15): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('MyStruct<U>')
+                    //         M2<U>(&myStruct);
+                    Diagnostic(ErrorCode.WRN_ManagedAddr, "&myStruct").WithArguments("MyStruct<U>").WithLocation(12, 15),
+                    // (15,43): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('MyStruct<V>')
                     //     public unsafe void M2<V>(MyStruct<V>* ms) { }
-                    Diagnostic(ErrorCode.ERR_ManagedAddr, "ms").WithArguments("MyStruct<V>").WithLocation(15, 43),
+                    Diagnostic(ErrorCode.WRN_ManagedAddr, "ms").WithArguments("MyStruct<V>").WithLocation(15, 43),
                     // (15,43): error CS8377: The type 'V' must be a non-nullable value type, along with all fields at any level of nesting, in order to use it as parameter 'T' in the generic type or method 'MyStruct<T>'
                     //     public unsafe void M2<V>(MyStruct<V>* ms) { }
                     Diagnostic(ErrorCode.ERR_UnmanagedConstraintNotSatisfied, "ms").WithArguments("MyStruct<T>", "T", "V").WithLocation(15, 43));
@@ -3524,12 +3533,12 @@ public class C
 ";
             CreateCompilation(code, options: TestOptions.UnsafeReleaseDll)
                 .VerifyDiagnostics(
-                    // (12,12): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('MyStruct<string>')
+                    // (12,12): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('MyStruct<string>')
                     //         M2(&myStruct);
-                    Diagnostic(ErrorCode.ERR_ManagedAddr, "&myStruct").WithArguments("MyStruct<string>").WithLocation(12, 12),
-                    // (15,45): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('MyStruct<string>')
+                    Diagnostic(ErrorCode.WRN_ManagedAddr, "&myStruct").WithArguments("MyStruct<string>").WithLocation(12, 12),
+                    // (15,45): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('MyStruct<string>')
                     //     public unsafe void M2(MyStruct<string>* ms) { }
-                    Diagnostic(ErrorCode.ERR_ManagedAddr, "ms").WithArguments("MyStruct<string>").WithLocation(15, 45));
+                    Diagnostic(ErrorCode.WRN_ManagedAddr, "ms").WithArguments("MyStruct<string>").WithLocation(15, 45));
         }
 
         [Fact]
@@ -4090,9 +4099,9 @@ public class MyClass
 ";
 
             CreateCompilation(code, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
-                // (12,19): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('MyStruct<object>')
+                // (12,19): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('MyStruct<object>')
                 //         var ptr = &ms;
-                Diagnostic(ErrorCode.ERR_ManagedAddr, "&ms").WithArguments("MyStruct<object>").WithLocation(12, 19)
+                Diagnostic(ErrorCode.WRN_ManagedAddr, "&ms").WithArguments("MyStruct<object>").WithLocation(12, 19)
             );
         }
 

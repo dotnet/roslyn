@@ -50,6 +50,13 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         {
             var walker = new OperationTreeVerifier(compilation, operation, initialIndent);
             walker.Visit(operation);
+
+            var visitor = TestOperationVisitor.Singleton;
+            foreach (var op in operation.DescendantsAndSelf())
+            {
+                visitor.Visit(op);
+            }
+
             return walker._builder.ToString();
         }
 
@@ -1498,7 +1505,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
         {
             // Kept to ensure that it's never called, as we can't override DefaultVisit in this visitor
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 
         public override void VisitFieldInitializer(IFieldInitializerOperation operation)

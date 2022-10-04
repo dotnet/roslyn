@@ -359,7 +359,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
         /// <param name="trivia"></param>
         protected override bool IsVisualBasicComment(SyntaxTrivia trivia)
         {
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
     }
 }
