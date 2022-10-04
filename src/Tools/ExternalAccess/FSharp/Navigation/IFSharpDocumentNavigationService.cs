@@ -20,6 +20,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Navigation
         [Obsolete("Call overload that takes a CancellationToken", error: false)]
         bool CanNavigateToLineAndOffset(Workspace workspace, DocumentId documentId, int lineNumber, int offset);
         [Obsolete("Call overload that takes a CancellationToken", error: false)]
+#pragma warning disable RS0060 // API with optional parameter(s) should have the most parameters amongst its public overloads
         bool CanNavigateToPosition(Workspace workspace, DocumentId documentId, int position, int virtualSpace = 0);
         [Obsolete("Call overload that takes a CancellationToken", error: false)]
         bool TryNavigateToSpan(Workspace workspace, DocumentId documentId, TextSpan textSpan, OptionSet options = null);
@@ -27,6 +28,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Navigation
         bool TryNavigateToLineAndOffset(Workspace workspace, DocumentId documentId, int lineNumber, int offset, OptionSet options = null);
         [Obsolete("Call overload that takes a CancellationToken", error: false)]
         bool TryNavigateToPosition(Workspace workspace, DocumentId documentId, int position, int virtualSpace = 0, OptionSet options = null);
+#pragma warning restore RS0060 // API with optional parameter(s) should have the most parameters amongst its public overloads
 
         /// <inheritdoc cref="IDocumentNavigationService.CanNavigateToSpanAsync"/>
         bool CanNavigateToSpan(Workspace workspace, DocumentId documentId, TextSpan textSpan, CancellationToken cancellationToken);
