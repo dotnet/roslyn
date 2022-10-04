@@ -33,6 +33,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Wrapping.SeparatedSyntaxList
         protected override bool ShouldMoveCloseBraceToNewLine
             => true;
 
+        protected override SyntaxToken FirstToken(InitializerExpressionSyntax listSyntax)
+            => listSyntax.OpenBraceToken;
+
+        protected override SyntaxToken LastToken(InitializerExpressionSyntax listSyntax)
+            => listSyntax.CloseBraceToken;
+
         protected override SeparatedSyntaxList<ExpressionSyntax> GetListItems(InitializerExpressionSyntax listSyntax)
             => listSyntax.Expressions;
 

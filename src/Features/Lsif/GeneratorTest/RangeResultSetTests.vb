@@ -14,6 +14,8 @@ Namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.UnitTests
         <Theory>
         <InlineData("class C { [|string|] s; }", "mscorlib#T:System.String", WellKnownSymbolMonikerSchemes.DotnetXmlDoc)>
         <InlineData("class C { void M() { [|M|](); } }", TestProjectAssemblyName + "#M:C.M", WellKnownSymbolMonikerSchemes.DotnetXmlDoc)>
+        <InlineData("static class C { static void [|M|](this string s, int i) { } }", TestProjectAssemblyName + "#M:C.M(System.String,System.Int32)", WellKnownSymbolMonikerSchemes.DotnetXmlDoc)>
+        <InlineData("static class C { static void M(this string s, int i) { s.[|M|](i); } }", TestProjectAssemblyName + "#M:C.M(System.String,System.Int32)", WellKnownSymbolMonikerSchemes.DotnetXmlDoc)>
         <InlineData("class C { void M(string s) { M([|s|]); } }", TestProjectAssemblyName + "#M:C.M(System.String)#s", WellKnownSymbolMonikerSchemes.DotnetXmlDoc)>
         <InlineData("class C { void M(string s) { string local = """"; M([|local|]); } }", Nothing, Nothing)>
         <InlineData("using [|S|] = System.String;", Nothing, Nothing)>
