@@ -17,6 +17,7 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
+using Microsoft.CodeAnalysis.Tags;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -201,7 +202,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                         rules: CompletionItemRules.Default,
                         contextPosition: position,
                         sortText: $"{sortText}_{index:0000}",
-                        filterText: memberDisplayName).WithAdditionalFilterTexts(additionalFilterTexts));
+                        filterText: memberDisplayName,
+                        tags: WellKnownTagArrays.TargetTypeMatch)
+                        .WithAdditionalFilterTexts(additionalFilterTexts));
                 }
             }
             else if (enclosingNamedType is not null)
@@ -252,7 +255,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                         rules: CompletionItemRules.Default,
                         contextPosition: position,
                         sortText: memberDisplayName,
-                        filterText: memberDisplayName)
+                        filterText: memberDisplayName,
+                        tags: WellKnownTagArrays.TargetTypeMatch)
                         .WithAdditionalFilterTexts(additionalFilterTexts));
                 }
             }
