@@ -13665,5 +13665,28 @@ class Program
             CompileAndVerify(source, expectedOutput:
 @"<>f__AnonymousDelegate0[]").VerifyDiagnostics();
         }
+
+        [Fact]
+        public void LambdaDefaultParameter_InsideExpressionTree()
+        {
+            var source = """
+using System;
+using System.Linq.Expressions;
+class Program
+{
+    static void Report(object obj) => Console.WriteLine(obj.GetType());
+    public static void Main()
+    {
+        Expression e1 = (int x = 1) => x;
+        Expression e2 = (int x) => (int y = 1) => y;
+        Report(e1);
+        Report(e2);
+    }   
+}
+""";
+            CompileAndVerify(source, expectedOutput:
+$@"{s_expressionOfTDelegate1ArgTypeName}[<>f__AnonymousDelegate0]
+{s_expressionOfTDelegate1ArgTypeName}[System.Func`2[System.Int32,<>f__AnonymousDelegate0]]").VerifyDiagnostics();
+        }
     }
 }
