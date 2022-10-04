@@ -20,16 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     public class RefFieldTests : CSharpTestBase
     {
-        private static bool IsNet70OrGreater()
-        {
-#if NET7_0_OR_GREATER
-            return true;
-#else
-            return false;
-#endif
-        }
-
-        private static string IncludeExpectedOutput(string expectedOutput) => IsNet70OrGreater() ? expectedOutput : null;
+        private static string IncludeExpectedOutput(string expectedOutput) => ExecutionConditionUtil.IsCoreClr ? expectedOutput : null;
 
         [CombinatorialData]
         [Theory]

@@ -379,7 +379,10 @@ dotnet_diagnostic.cs0169.severity = suppress";
         [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30321")]
         public void CompilerBinariesAreAnyCPU()
         {
+#pragma warning disable SYSLIB0037
+            // warning SYSLIB0037: 'AssemblyName.ProcessorArchitecture' is obsolete: 'AssemblyName members HashAlgorithm, ProcessorArchitecture, and VersionCompatibility are obsolete and not supported.'
             Assert.Equal(ProcessorArchitecture.MSIL, AssemblyName.GetAssemblyName(s_CSharpCompilerExecutable).ProcessorArchitecture);
+#pragma warning restore SYSLIB0037
         }
 
         [Fact]
@@ -8615,7 +8618,7 @@ class Program3
             fsDll.Dispose();
             fsPdb.Dispose();
 
-            AssertEx.Equal(new[] { "Lib.cs", "Lib.dll", "Lib.pdb" }, Directory.GetFiles(dir.Path).Select(p => Path.GetFileName(p)).Order());
+            AssertEx.Equal(new[] { "Lib.cs", "Lib.dll", "Lib.pdb" }, Roslyn.Utilities.EnumerableExtensions.Order(Directory.GetFiles(dir.Path).Select(p => Path.GetFileName(p))));
         }
 
         /// <summary>
@@ -8672,7 +8675,7 @@ Copyright (C) Microsoft Corporation. All rights reserved.", output);
             peDll.Dispose();
             pePdb.Dispose();
 
-            AssertEx.Equal(new[] { "Lib.cs", "Lib.dll", "Lib.pdb" }, Directory.GetFiles(dir.Path).Select(p => Path.GetFileName(p)).Order());
+            AssertEx.Equal(new[] { "Lib.cs", "Lib.dll", "Lib.pdb" }, Roslyn.Utilities.EnumerableExtensions.Order(Directory.GetFiles(dir.Path).Select(p => Path.GetFileName(p))));
 
             // files can be deleted now:
             File.Delete(libSrc.Path);
@@ -8713,7 +8716,7 @@ Copyright (C) Microsoft Corporation. All rights reserved.", output);
 
             fsDll.Dispose();
 
-            AssertEx.Equal(new[] { "Lib.cs", "Lib.dll" }, Directory.GetFiles(dir.Path).Select(p => Path.GetFileName(p)).Order());
+            AssertEx.Equal(new[] { "Lib.cs", "Lib.dll" }, Roslyn.Utilities.EnumerableExtensions.Order(Directory.GetFiles(dir.Path).Select(p => Path.GetFileName(p))));
         }
 
         [Fact]
