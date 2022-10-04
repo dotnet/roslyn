@@ -1,9 +1,9 @@
 Microsoft.CodeAnalysis.CodeRefactorings.CodeRefactoringContext.CodeRefactoringContext(Microsoft.CodeAnalysis.TextDocument document, Microsoft.CodeAnalysis.Text.TextSpan span, System.Action<Microsoft.CodeAnalysis.CodeActions.CodeAction> registerRefactoring, System.Threading.CancellationToken cancellationToken) -> void
 Microsoft.CodeAnalysis.CodeRefactorings.CodeRefactoringContext.TextDocument.get -> Microsoft.CodeAnalysis.TextDocument
 Microsoft.CodeAnalysis.CodeRefactorings.ExportCodeRefactoringProviderAttribute.DocumentExtensions.get -> string[]
+Microsoft.CodeAnalysis.CodeRefactorings.ExportCodeRefactoringProviderAttribute.DocumentExtensions.set -> void
 Microsoft.CodeAnalysis.CodeRefactorings.ExportCodeRefactoringProviderAttribute.DocumentKinds.get -> Microsoft.CodeAnalysis.TextDocumentKind[]
-Microsoft.CodeAnalysis.CodeRefactorings.ExportCodeRefactoringProviderAttribute.ExportCodeRefactoringProviderAttribute(Microsoft.CodeAnalysis.TextDocumentKind[] documentKinds, string firstLanguage, params string[] additionalLanguages) -> void
-Microsoft.CodeAnalysis.CodeRefactorings.ExportCodeRefactoringProviderAttribute.ExportCodeRefactoringProviderAttribute(Microsoft.CodeAnalysis.TextDocumentKind[] documentKinds, string[] documentExtensions, string firstLanguage, params string[] additionalLanguages) -> void
+Microsoft.CodeAnalysis.CodeRefactorings.ExportCodeRefactoringProviderAttribute.DocumentKinds.set -> void
 Microsoft.CodeAnalysis.Editing.DeclarationModifiers.IsFile.get -> bool
 Microsoft.CodeAnalysis.Editing.DeclarationModifiers.WithIsFile(bool isFile) -> Microsoft.CodeAnalysis.Editing.DeclarationModifiers
 *REMOVED*static Microsoft.CodeAnalysis.Editing.SyntaxGenerator.DefaultRemoveOptions -> Microsoft.CodeAnalysis.SyntaxRemoveOptions
