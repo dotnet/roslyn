@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
     [Shared]
     internal sealed class SnippetCompletionProvider : LSPCompletionProvider
     {
-        private static readonly HashSet<string> s_builtInSnippets = new()
+        private static readonly HashSet<string> s_builtInSnippetsWithoutReplacement = new()
         {
             "#if", "#region", "Attribute", "checked", "ctor", "do", "else", "enum", "equals", "Exception",
             "for", "forr", "indexer", "invoke", "iterindex", "iterator", "lock", "mbox",
@@ -159,7 +159,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             var snippets = service.GetSnippetsIfAvailable();
             if (context.CompletionOptions.ShouldShowNewSnippetExperience(context.Document))
             {
-                snippets = snippets.Where(snippet => s_builtInSnippets.Contains(snippet.Shortcut));
+                snippets = snippets.Where(snippet => s_builtInSnippetsWithoutReplacement.Contains(snippet.Shortcut));
             }
 
             if (isPreProcessorContext)
