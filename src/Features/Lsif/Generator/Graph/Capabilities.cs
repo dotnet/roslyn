@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Generic;
+using System.Linq;
 using Newtonsoft.Json;
 
 namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.Graph
@@ -35,6 +37,9 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.Graph
         [JsonProperty("diagnosticProvider")]
         public bool DiagnosticProvider { get; }
 
+        [JsonProperty("semanticTokensProvider")]
+        public string[]? SemanticTokensProvider { get; }
+
         public Capabilities(
             IdFactory idFactory,
             bool hoverProvider,
@@ -44,7 +49,8 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.Graph
             bool typeDefinitionProvider,
             bool documentSymbolProvider,
             bool foldingRangeProvider,
-            bool diagnosticProvider)
+            bool diagnosticProvider,
+            IReadOnlyList<string>? semanticTokensProvider)
             : base(label: "capabilities", idFactory)
         {
             HoverProvider = hoverProvider;
@@ -55,6 +61,7 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.Graph
             DocumentSymbolProvider = documentSymbolProvider;
             FoldingRangeProvider = foldingRangeProvider;
             DiagnosticProvider = diagnosticProvider;
+            SemanticTokensProvider = semanticTokensProvider?.ToArray();
         }
     }
 }

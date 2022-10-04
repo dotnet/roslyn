@@ -15,11 +15,14 @@ using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
+using Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens;
 using Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.Graph;
 using Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.ResultSetTracking;
 using Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.Writing;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Text;
+using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Roslyn.Utilities;
 using LspProtocol = Microsoft.VisualStudio.LanguageServer.Protocol;
 using Methods = Microsoft.VisualStudio.LanguageServer.Protocol.Methods;
@@ -64,14 +67,22 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
         public static Generator CreateAndWriteCapabilitiesVertex(ILsifJsonWriter lsifJsonWriter)
         {
             var generator = new Generator(lsifJsonWriter);
+
+            // Pass the set of supported SemanticTokenTypes. Order must match
+            // the order used for serialization of semantic tokens array.
             var capabilitiesVertex = new Capabilities(generator._idFactory,
                 HoverProvider, DeclarationProvider, DefinitionProvider, ReferencesProvider,
-                TypeDefinitionProvider, DocumentSymbolProvider, FoldingRangeProvider, DiagnosticProvider);
+                TypeDefinitionProvider, DocumentSymbolProvider, FoldingRangeProvider, DiagnosticProvider, SemanticTokenTypes.AllTypes);
             generator._lsifJsonWriter.Write(capabilitiesVertex);
             return generator;
         }
 
-        public async Task GenerateForCompilationAsync(Compilation compilation, string projectPath, LanguageServices languageServices, GeneratorOptions options)
+        public async Task GenerateForCompilationAsync(
+            Project project,
+            Compilation compilation,
+            string projectPath,
+            LanguageServices languageServices,
+            GeneratorOptions options)
         {
             var projectVertex = new Graph.LsifProject(
                 kind: GetLanguageKind(compilation.Language),
@@ -110,6 +121,9 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
                 {
                     var semanticModel = compilation.GetSemanticModel(syntaxTree);
 
+                    var document = project.GetDocument(syntaxTree);
+                    Contract.ThrowIfNull(document);
+
                     // We generate the document contents into an in-memory copy, and then write that out at once at the end. This
                     // allows us to collect everything and avoid a lot of fine-grained contention on the write to the single
                     // LSIF file. Because of the rule that vertices must be written before they're used by an edge, we'll flush any top-
@@ -117,7 +131,14 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
                     // are allowed and might flush other unrelated stuff at the same time, but there's no harm -- the "causality" ordering
                     // is preserved.
                     var documentWriter = new BatchingLsifJsonWriter(_lsifJsonWriter);
-                    var documentId = await GenerateForDocumentAsync(semanticModel, languageServices, options, topLevelSymbolsResultSetTracker, documentWriter, _idFactory);
+                    var documentId = await GenerateForDocumentAsync(
+                        document,
+                        semanticModel,
+                        languageServices,
+                        options,
+                        topLevelSymbolsResultSetTracker,
+                        documentWriter,
+                        _idFactory);
                     topLevelSymbolsWriter.FlushToUnderlyingAndEmpty();
                     documentWriter.FlushToUnderlyingAndEmpty();
 
@@ -144,6 +165,7 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
         /// leak outside a file.
         /// </remarks>
         private static async Task<Id<Graph.LsifDocument>> GenerateForDocumentAsync(
+            Document document,
             SemanticModel semanticModel,
             LanguageServices languageServices,
             GeneratorOptions options,
@@ -160,13 +182,13 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
 
             var uri = syntaxTree.FilePath;
 
+            var text = await semanticModel.SyntaxTree.GetTextAsync(CancellationToken.None);
+
             // TODO: move to checking the enum member mentioned in https://github.com/dotnet/roslyn/issues/49326 when that
             // is implemented. In the mean time, we'll use a heuristic of the path being a relative path as a way to indicate
             // this is a source generated file.
             if (!PathUtilities.IsAbsolute(syntaxTree.FilePath))
             {
-                var text = semanticModel.SyntaxTree.GetText();
-
                 // We always use UTF-8 encoding when writing out file contents, as that's expected by LSIF implementations.
                 // TODO: when we move to .NET Core, is there a way to reduce allocations here?
                 contentBase64Encoded = Convert.ToBase64String(Encoding.UTF8.GetBytes(text.ToString()));
@@ -180,6 +202,7 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
 
             lsifJsonWriter.Write(documentVertex);
             lsifJsonWriter.Write(new Event(Event.EventKind.Begin, documentVertex.GetId(), idFactory));
+            await GenerateSemanticTokensAsync(document, lsifJsonWriter, idFactory, text, documentVertex);
 
             // As we are processing this file, we are going to encounter symbols that have a shared resultSet with other documents like types
             // or methods. We're also going to encounter locals that never leave this document. We don't want those locals being held by
@@ -333,6 +356,40 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
 
             lsifJsonWriter.Write(new Event(Event.EventKind.End, documentVertex.GetId(), idFactory));
             return documentVertex.GetId();
+        }
+
+        private static async Task GenerateSemanticTokensAsync(
+            Document document,
+            ILsifJsonWriter lsifJsonWriter,
+            IdFactory idFactory,
+            SourceText text,
+            LsifDocument documentVertex)
+        {
+            var ids = new Dictionary<string, int>();
+
+            // Create lookup table for semantic token types.
+            // Order must match the semantic tokens legend in capabilities.
+            for (var i = 0; i < SemanticTokenTypes.AllTypes.Count; i++)
+            {
+                ids[SemanticTokenTypes.AllTypes[i]] = i;
+            }
+
+            // Compute colorization data.
+            var data = await SemanticTokensHelpers.ComputeSemanticTokensDataAsync(
+                document,
+                ids,
+                new LspProtocol.Range()
+                {
+                    Start = new Position(0, 0),
+                    End = new Position(text.Lines.Count - 1, text.Lines[text.Lines.Count - 1].EndIncludingLineBreak)
+                },
+                Classification.ClassificationOptions.Default,
+                includeSyntacticClassifications: false,
+            CancellationToken.None);
+
+            var semanticTokensResult = new SemanticTokensResult(new SemanticTokens { Data = data }, idFactory);
+            lsifJsonWriter.Write(semanticTokensResult);
+            lsifJsonWriter.Write(Edge.Create(Methods.TextDocumentSemanticTokensFullName, documentVertex.GetId(), semanticTokensResult.GetId(), idFactory));
         }
 
         private static bool IncludeSymbolInReferences(ISymbol symbol)
