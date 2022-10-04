@@ -6,9 +6,11 @@
 
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -204,6 +206,28 @@ namespace Microsoft.CodeAnalysis.UnitTests.SemanticModelReuse
             // This should be able to get a speculative model using the original model we primed the cache with.
             var model3 = await document3.ReuseExistingSpeculativeModelAsync(source.IndexOf("return"), CancellationToken.None);
             Assert.True(model3.IsSpeculativeSemanticModel);
+        }
+
+        [Fact]
+        [WorkItem(1541001, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1541001")]
+        [WorkItem(1587699, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1587699")]
+        public async Task TestOutOfBoundsInSyntaxContext1_CSharp()
+        {
+            var source = "class C { void M() { return; } }";
+            var document1 = CreateDocument(source, LanguageNames.CSharp);
+
+            // First call will prime the cache to point at the real semantic model.
+            var model1 = await document1.ReuseExistingSpeculativeModelAsync(source.IndexOf("return"), CancellationToken.None);
+            Assert.False(model1.IsSpeculativeSemanticModel);
+
+            var document2 = document1.WithText(SourceText.From("class C { void M() { return null; } }"));
+
+            // This should be able to get a speculative model using the original model we primed the cache with.
+            var model2 = await document2.ReuseExistingSpeculativeModelAsync(source.IndexOf("return"), CancellationToken.None);
+            Assert.True(model2.IsSpeculativeSemanticModel);
+
+            // ensure this doesn't crash.
+            CSharpSyntaxContext.CreateContext(document2, model2, source.IndexOf("void"), CancellationToken.None);
         }
 
         #endregion
@@ -454,6 +478,38 @@ end class"));
             // This should be able to get a speculative model using the original model we primed the cache with.
             var model3 = await document3.ReuseExistingSpeculativeModelAsync(source.IndexOf("return"), CancellationToken.None);
             Assert.True(model3.IsSpeculativeSemanticModel);
+        }
+
+        [Fact]
+        [WorkItem(1541001, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1541001")]
+        [WorkItem(1587699, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1587699")]
+        public async Task TestOutOfBoundsInSyntaxContext1_VisualBasic()
+        {
+            var source = @"
+class C
+    sub M()
+        return
+    end sub
+end class";
+            var document1 = CreateDocument(source, LanguageNames.VisualBasic);
+
+            // First call will prime the cache to point at the real semantic model.
+            var model1 = await document1.ReuseExistingSpeculativeModelAsync(source.IndexOf("return"), CancellationToken.None);
+            Assert.False(model1.IsSpeculativeSemanticModel);
+
+            var document2 = document1.WithText(SourceText.From(@"
+class C
+    sub M()
+        return nothing
+    end sub
+end class"));
+
+            // This should be able to get a speculative model using the original model we primed the cache with.
+            var model2 = await document2.ReuseExistingSpeculativeModelAsync(source.IndexOf("return"), CancellationToken.None);
+            Assert.True(model2.IsSpeculativeSemanticModel);
+
+            // Ensure this doesn't crash.
+            VisualBasicSyntaxContext.CreateContext(document2, model2, source.IndexOf("sub"), CancellationToken.None);
         }
 
         #endregion
