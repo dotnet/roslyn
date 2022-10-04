@@ -63,13 +63,13 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         int MetadataToken { get; }
 
-#nullable disable // Skipped for now https://github.com/dotnet/roslyn/issues/39166
-#pragma warning disable RS0041 // uses oblivious reference types
         /// <summary>
         /// Gets the <see cref="ISymbol"/> for the immediately containing symbol.
         /// </summary>
-        ISymbol ContainingSymbol { get; }
+        ISymbol? ContainingSymbol { get; }
 
+#nullable disable // Skipped for now https://github.com/dotnet/roslyn/issues/58107
+#pragma warning disable RS0041 // uses oblivious reference types
         /// <summary>
         /// Gets the <see cref="IAssemblySymbol"/> for the containing assembly. Returns null if the
         /// symbol is shared across multiple assemblies.

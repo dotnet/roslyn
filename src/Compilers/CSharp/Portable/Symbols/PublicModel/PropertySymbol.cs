@@ -107,6 +107,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.PublicModel
 
         bool IPropertySymbol.ReturnsByRefReadonly => _underlying.ReturnsByRefReadonly;
 
+        ISymbol IPropertySymbol.ContainingSymbol => _underlying.ContainingSymbol.GetPublicSymbol();
+
         RefKind IPropertySymbol.RefKind => _underlying.RefKind;
 
         #region ISymbol Members

@@ -39,16 +39,17 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
                 case SymbolKind.Parameter:
                     // Parameters are only as visible as their containing symbol
-                    return GetResultantVisibility(symbol.ContainingSymbol);
+                    return GetResultantVisibility(symbol.ContainingSymbol!);
 
                 case SymbolKind.TypeParameter:
                     // Type Parameters are private.
                     return SymbolVisibility.Private;
             }
 
-            while (symbol != null && symbol.Kind != SymbolKind.Namespace)
+            ISymbol? search = symbol;
+            while (search != null && search.Kind != SymbolKind.Namespace)
             {
-                switch (symbol.DeclaredAccessibility)
+                switch (search.DeclaredAccessibility)
                 {
                     // If we see anything private, then the symbol is private.
                     case Accessibility.NotApplicable:
@@ -66,7 +67,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                         // symbol stays at the level we've gotten so far.
                 }
 
-                symbol = symbol.ContainingSymbol;
+                search = search.ContainingSymbol;
             }
 
             return visibility;

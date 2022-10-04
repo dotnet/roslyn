@@ -293,5 +293,7 @@ namespace Microsoft.CodeAnalysis
         /// Returns a flag indicating whether this symbol has at least one applied/inherited conditional attribute.
         /// </summary>
         bool IsConditional { get; }
+
+        new ISymbol ContainingSymbol { get; }
     }
 }

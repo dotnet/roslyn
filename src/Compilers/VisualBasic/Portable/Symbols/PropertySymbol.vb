@@ -554,6 +554,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
+        Private ReadOnly Property IPropertySymbol_ContainingSymbol As ISymbol Implements IPropertySymbol.ContainingSymbol
+            Get
+                Return Me.ContainingSymbol
+            End Get
+        End Property
+
         Private ReadOnly Property IPropertySymbol_OverriddenProperty As IPropertySymbol Implements IPropertySymbol.OverriddenProperty
             Get
                 Return Me.OverriddenProperty

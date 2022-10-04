@@ -21210,7 +21210,7 @@ record C(int X, int Y = 123) : Base(X, Y)
             Assert.Equal(SymbolKind.Parameter, symbol!.Kind);
             Assert.Equal("System.Int32 X", symbol.ToTestDisplayString());
             Assert.Equal("C..ctor(System.Int32 X, [System.Int32 Y = 123])", symbol.ContainingSymbol.ToTestDisplayString());
-            Assert.Equal(Accessibility.Public, symbol.ContainingSymbol.DeclaredAccessibility);
+            Assert.Equal(Accessibility.Public, symbol.ContainingSymbol!.DeclaredAccessibility);
             Assert.Same(symbol.ContainingSymbol, model.GetEnclosingSymbol(x.SpanStart));
             Assert.Contains(symbol, model.LookupSymbols(x.SpanStart, name: "X"));
             Assert.Contains("X", model.LookupNames(x.SpanStart));

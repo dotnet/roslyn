@@ -196,5 +196,7 @@ namespace Microsoft.CodeAnalysis
         /// Otherwise, returns null.
         /// </summary>
         INamedTypeSymbol? NativeIntegerUnderlyingType { get; }
+
+        new ISymbol ContainingSymbol { get; }
     }
 }

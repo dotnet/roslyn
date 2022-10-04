@@ -194,6 +194,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.PublicModel
 
         bool INamedTypeSymbol.IsSerializable => UnderlyingNamedTypeSymbol.IsSerializable;
 
+        ISymbol INamedTypeSymbol.ContainingSymbol => UnderlyingNamedTypeSymbol.ContainingSymbol.GetPublicSymbol();
+
         bool INamedTypeSymbol.IsFileLocal =>
             // Even though we round-trip the file identifier through metadata to support EE,
             // we don't want public API to give the impression that the compiler considers a metadata type to be a file-local type.

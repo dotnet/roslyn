@@ -323,6 +323,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.PublicModel
 
         bool IMethodSymbol.ReturnsByRefReadonly => _underlying.ReturnsByRefReadonly;
 
+        ISymbol IMethodSymbol.ContainingSymbol => _underlying.ContainingSymbol.GetPublicSymbol();
+
         RefKind IMethodSymbol.RefKind => _underlying.RefKind;
 
         bool IMethodSymbol.IsConditional => _underlying.IsConditional;

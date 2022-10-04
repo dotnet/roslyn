@@ -1128,6 +1128,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Return Me.AssociatedAnonymousDelegate
             End Get
         End Property
+
+        Private ReadOnly Property IMethodSymbol_ContainingSymbol As ISymbol Implements IMethodSymbol.ContainingSymbol
+            Get
+                Return Me.ContainingSymbol
+            End Get
+        End Property
 #End Region
 
 #Region "IMethodSymbolInternal"
@@ -1140,6 +1146,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Private Function IMethodSymbolInternal_CalculateLocalSyntaxOffset(localPosition As Integer, localTree As SyntaxTree) As Integer Implements IMethodSymbolInternal.CalculateLocalSyntaxOffset
             Return CalculateLocalSyntaxOffset(localPosition, localTree)
         End Function
+
 #End Region
 
 #Region "ISymbol"

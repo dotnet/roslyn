@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis
             return projectId;
         }
 
-        private ProjectId? GetOriginatingProjectIdWorker(ISymbol symbol)
+        private ProjectId? GetOriginatingProjectIdWorker(ISymbol? symbol)
         {
             LazyInitialization.EnsureInitialized(ref _unrootedSymbolToProjectId, s_createTable);
 
