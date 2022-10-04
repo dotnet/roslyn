@@ -73,11 +73,11 @@ namespace Microsoft.CodeAnalysis.Remote
         /// </summary>
         private class PipeWriterStream : Stream, IDisposableObservable
         {
-            private readonly PipeWriter writer;
+            private readonly PipeWriter _writer;
 
             internal PipeWriterStream(PipeWriter writer)
             {
-                this.writer = writer ?? throw new ArgumentNullException(nameof(writer));
+                _writer = writer ?? throw new ArgumentNullException(nameof(writer));
             }
 
             public override bool CanRead => false;
@@ -140,9 +140,9 @@ namespace Microsoft.CodeAnalysis.Remote
                 Requires.NotNull(buffer, nameof(buffer));
                 Verify.NotDisposed(this);
 
-                var span = this.writer.GetSpan(count);
+                var span = _writer.GetSpan(count);
                 buffer.AsSpan(offset, count).CopyTo(span);
-                this.writer.Advance(count);
+                _writer.Advance(count);
             }
 
             public override Task WriteAsync(byte[] buffer, int offset, int count, CancellationToken cancellationToken)
@@ -155,9 +155,9 @@ namespace Microsoft.CodeAnalysis.Remote
             public override void WriteByte(byte value)
             {
                 Verify.NotDisposed(this);
-                var span = this.writer.GetSpan(1);
+                var span = _writer.GetSpan(1);
                 span[0] = value;
-                this.writer.Advance(1);
+                _writer.Advance(1);
             }
 
 #if !NETSTANDARD
@@ -165,9 +165,9 @@ namespace Microsoft.CodeAnalysis.Remote
             public override void Write(ReadOnlySpan<byte> buffer)
             {
                 Verify.NotDisposed(this);
-                var span = this.writer.GetSpan(buffer.Length);
+                var span = _writer.GetSpan(buffer.Length);
                 buffer.CopyTo(span);
-                this.writer.Advance(buffer.Length);
+                _writer.Advance(buffer.Length);
             }
 
             public override ValueTask WriteAsync(ReadOnlyMemory<byte> buffer, CancellationToken cancellationToken)
