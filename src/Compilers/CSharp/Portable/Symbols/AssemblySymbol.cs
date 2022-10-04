@@ -467,22 +467,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal bool RuntimeSupportsUnmanagedSignatureCallingConvention
             => RuntimeSupportsFeature(SpecialMember.System_Runtime_CompilerServices_RuntimeFeature__UnmanagedSignatureCallingConvention);
 
-        internal virtual bool RuntimeSupportsByRefFields
-        {
-            get
-            {
-                // CorLibrary should never be null, but that invariant is broken in some cases for MissingAssemblySymbol.
-                // Tracked by https://github.com/dotnet/roslyn/issues/61262
-                return CorLibrary?.RuntimeSupportsByRefFields == true;
-            }
-
-            set
-            {
-                // The setter should be removed once TargetFramework.Net70 is added
-                // Tracked by https://github.com/dotnet/roslyn/issues/61463
-                CorLibrary.RuntimeSupportsByRefFields = value;
-            }
-        }
+        internal bool RuntimeSupportsByRefFields
+            => RuntimeSupportsFeature(SpecialMember.System_Runtime_CompilerServices_RuntimeFeature__ByRefFields);
 
         /// <summary>
         /// True if the target runtime support covariant returns of methods declared in classes.
