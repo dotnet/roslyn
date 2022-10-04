@@ -117,6 +117,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                     symbolToReplacementTextValid: ImmutableDictionary<ISymbol, bool>.Empty.Add(renameLocationSet.Symbol, replacementTextValid),
                     symbolToDeclarationDocumentAndLocation: ImmutableDictionary<ISymbol, (DocumentId declarationDocumentId, Location declarationLocation)>.Empty
                         .Add(renameLocationSet.Symbol, (documentIdOfRenameSymbolDeclaration, renameSymbolDeclarationLocation)),
+                    overlapRenameLocations: ImmutableHashSet<RelatedLocation>.Empty,
                     fallBackOptions: fallbackOptions,
                     cancellationToken)
             {
@@ -125,7 +126,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
             }
 
             protected override bool HasConflictForMetadataReference(
-                RenameDeclarationLocationReference renameDeclarationLocationReference, ISymbol newReferencedSymbol)
+                RenameActionAnnotation renameActionAnnotation, RenameDeclarationLocationReference renameDeclarationLocationReference, ISymbol newReferencedSymbol)
             {
                 var newMetadataName = newReferencedSymbol.ToDisplayString(s_metadataSymbolDisplayFormat);
                 var oldMetadataName = renameDeclarationLocationReference.Name;

@@ -384,7 +384,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
                                 isOriginalTextLocation: token.ValueText == originalText,
                                 isNamespaceDeclarationReference: isNamespaceDeclarationReference,
                                 isInvocationExpression: false,
-                                isMemberGroupReference: isMemberGroupReference);
+                                isMemberGroupReference: isMemberGroupReference,
+                                replacementText: replacementText,
+                                originalText: originalText);
 
                     newToken = _renameAnnotations.WithAdditionalAnnotations(newToken, renameAnnotation, new RenameTokenSimplificationAnnotation() { OriginalTextSpan = token.Span });
 
@@ -458,7 +460,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
                         isOriginalTextLocation: false,
                         isNamespaceDeclarationReference: false,
                         isInvocationExpression: true,
-                        isMemberGroupReference: false);
+                        isMemberGroupReference: false,
+                        originalText: null,
+                        replacementText: null);
 
                     return renameAnnotation;
                 }
@@ -603,7 +607,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
                             isOriginalTextLocation: isOldText,
                             isNamespaceDeclarationReference: isNamespaceDeclarationReference,
                             isInvocationExpression: false,
-                            isMemberGroupReference: isMemberGroupReference);
+                            isMemberGroupReference: isMemberGroupReference,
+                            originalText: null,
+                            replacementText: null);
 
                 newToken = _renameAnnotations.WithAdditionalAnnotations(newToken, renameAnnotation, new RenameTokenSimplificationAnnotation() { OriginalTextSpan = token.Span });
                 _annotatedIdentifierTokens.Add(token);

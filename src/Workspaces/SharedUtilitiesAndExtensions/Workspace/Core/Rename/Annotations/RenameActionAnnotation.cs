@@ -63,6 +63,10 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
         /// </summary>
         public readonly bool IsInvocationExpression;
 
+        public readonly string ReplacementText;
+
+        public readonly string OriginalText;
+
         public RenameActionAnnotation(
             TextSpan originalSpan,
             bool isRenameLocation,
@@ -72,7 +76,9 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
             RenameDeclarationLocationReference[] renameDeclarationLocations,
             bool isNamespaceDeclarationReference,
             bool isInvocationExpression,
-            bool isMemberGroupReference)
+            bool isMemberGroupReference,
+            string replacementText,
+            string originalText)
         {
             this.OriginalSpan = originalSpan;
             this.IsRenameLocation = isRenameLocation;
@@ -83,6 +89,8 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
             this.IsNamespaceDeclarationReference = isNamespaceDeclarationReference;
             this.IsInvocationExpression = isInvocationExpression;
             this.IsMemberGroupReference = isMemberGroupReference;
+            this.ReplacementText = replacementText;
+            this.OriginalText = originalText;
         }
     }
 }

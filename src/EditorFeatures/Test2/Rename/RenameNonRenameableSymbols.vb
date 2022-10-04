@@ -70,7 +70,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
                         </Project>
                     </Workspace>, host:=host, renameTo:="!x")
 
-                result.AssertReplacementTextInvalid()
+                result.AssertReplacementTextInvalidForTheSymbolAtCaret()
                 result.AssertLabeledSpansAre("Invalid", "!x", RelatedLocationType.UnresolvedConflict)
             End Using
         End Sub

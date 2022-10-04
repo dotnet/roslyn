@@ -29,7 +29,7 @@ End Class
                     </Project>
                 </Workspace>, host:=host, renameTo:="`")
 
-                result.AssertReplacementTextInvalid()
+                result.AssertReplacementTextInvalidForTheSymbolAtCaret()
                 result.AssertLabeledSpansAre("Invalid", "`", RelatedLocationType.UnresolvedConflict)
             End Using
         End Sub
@@ -48,7 +48,7 @@ End Class
                     </Project>
                 </Workspace>, host:=host, renameTo:="C[")
 
-                result.AssertReplacementTextInvalid()
+                result.AssertReplacementTextInvalidForTheSymbolAtCaret()
                 result.AssertLabeledSpansAre("Invalid", "C[", RelatedLocationType.UnresolvedConflict)
             End Using
         End Sub

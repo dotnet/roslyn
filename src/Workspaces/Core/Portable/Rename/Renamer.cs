@@ -53,8 +53,10 @@ namespace Microsoft.CodeAnalysis.Rename
             if (string.IsNullOrEmpty(newName))
                 throw new ArgumentException(WorkspacesResources._0_must_be_a_non_null_and_non_empty_string, nameof(newName));
 
-            var resolution = await RenameSymbolAsync(solution, symbol, newName, options, CodeActionOptions.DefaultProvider, nonConflictSymbolKeys: default, cancellationToken).ConfigureAwait(false);
-
+            var symbolToRenameInfo = ImmutableDictionary<ISymbol, (string newName, SymbolRenameOptions options)>.Empty
+                .Add(symbol, (newName, options));
+            var resolution = await RenameSymbolsAsync(
+                solution, symbolToRenameInfo, CodeActionOptions.DefaultProvider, nonConflictSymbolKeys: default, cancellationToken).ConfigureAwait(false);
             if (resolution.IsSuccessful)
             {
                 return resolution.NewSolution;
@@ -150,74 +152,77 @@ namespace Microsoft.CodeAnalysis.Rename
         internal static Task<LightweightRenameLocations> FindRenameLocationsAsync(Solution solution, ISymbol symbol, SymbolRenameOptions options, CancellationToken cancellationToken)
             => LightweightRenameLocations.FindRenameLocationsAsync(symbol, solution, options, cancellationToken);
 
-        internal static async Task<ConflictResolution> RenameSymbolAsync(
+        internal static async Task<ConflictResolution> RenameSymbolsAsync(
             Solution solution,
-            ISymbol symbol,
-            string newName,
-            SymbolRenameOptions options,
+            ImmutableDictionary<ISymbol, (string newName, SymbolRenameOptions options)> symbolToRenameInfo,
             CodeCleanupOptionsProvider fallbackOptions,
             ImmutableArray<SymbolKey> nonConflictSymbolKeys,
             CancellationToken cancellationToken)
         {
             Contract.ThrowIfNull(solution);
-            Contract.ThrowIfNull(symbol);
-            Contract.ThrowIfTrue(string.IsNullOrEmpty(newName));
-
+            Contract.ThrowIfTrue(symbolToRenameInfo.IsEmpty);
             cancellationToken.ThrowIfCancellationRequested();
-
             using (Logger.LogBlock(FunctionId.Renamer_RenameSymbolAsync, cancellationToken))
             {
-                if (SerializableSymbolAndProjectId.TryCreate(symbol, solution, cancellationToken, out var serializedSymbol))
+                var client = await RemoteHostClient.TryGetClientAsync(solution.Services, cancellationToken).ConfigureAwait(false);
+                if (client != null)
                 {
-                    var client = await RemoteHostClient.TryGetClientAsync(solution.Services, cancellationToken).ConfigureAwait(false);
-                    if (client != null)
+                    using var _ = PooledDictionary<SerializableSymbolAndProjectId, (string replacementText, SymbolRenameOptions options)>.GetInstance(out var builder);
+                    foreach (var (symbol, (newName, options)) in symbolToRenameInfo)
                     {
-                        var result = await client.TryInvokeAsync<IRemoteRenamerService, SerializableConflictResolution?>(
-                            solution,
-                            (service, solutionInfo, callbackId, cancellationToken) => service.RenameSymbolAsync(
-                                solutionInfo,
-                                callbackId,
-                                serializedSymbol,
-                                newName,
-                                options,
-                                nonConflictSymbolKeys,
-                                cancellationToken),
-                            callbackTarget: new RemoteOptionsProvider<CodeCleanupOptions>(solution.Services, fallbackOptions),
-                            cancellationToken).ConfigureAwait(false);
-
-                        if (result.HasValue && result.Value != null)
-                            return await result.Value.RehydrateAsync(solution, cancellationToken).ConfigureAwait(false);
-
-                        // TODO: do not fall back to in-proc if client is available (https://github.com/dotnet/roslyn/issues/47557)
+                        Contract.ThrowIfTrue(string.IsNullOrEmpty(newName));
+                        if (SerializableSymbolAndProjectId.TryCreate(symbol, solution, cancellationToken, out var serializedSymbol))
+                        {
+                            builder[serializedSymbol] = (newName, options);
+                        }
                     }
+
+                    var result = await client.TryInvokeAsync<IRemoteRenamerService, SerializableConflictResolution?>(
+                        solution,
+                        (service, solutionInfo, callbackId, cancellationToken) => service.RenameSymbolsAsync(
+                            solutionInfo,
+                            callbackId,
+                            builder.ToImmutableDictionary(),
+                            nonConflictSymbolKeys,
+                            cancellationToken),
+                        callbackTarget: new RemoteOptionsProvider<CodeCleanupOptions>(solution.Services, fallbackOptions),
+                        cancellationToken).ConfigureAwait(false);
+
+                    if (result.HasValue && result.Value != null)
+                        return await result.Value.RehydrateAsync(solution, cancellationToken).ConfigureAwait(false);
+
+                    // TODO: do not fall back to in-proc if client is available (https://github.com/dotnet/roslyn/issues/47557)
                 }
             }
 
-            return await RenameSymbolInCurrentProcessAsync(
-                solution, symbol, newName, options, fallbackOptions,
+            return await RenameSymbolsInCurrentProcessAsync(
+                solution, symbolToRenameInfo, fallbackOptions,
                 nonConflictSymbolKeys, cancellationToken).ConfigureAwait(false);
         }
 
-        private static async Task<ConflictResolution> RenameSymbolInCurrentProcessAsync(
+        private static async Task<ConflictResolution> RenameSymbolsInCurrentProcessAsync(
             Solution solution,
-            ISymbol symbol,
-            string newName,
-            SymbolRenameOptions options,
+            ImmutableDictionary<ISymbol, (string newName, SymbolRenameOptions options)> renameSymbolsInfo,
             CodeCleanupOptionsProvider cleanupOptions,
             ImmutableArray<SymbolKey> nonConflictSymbolKeys,
             CancellationToken cancellationToken)
         {
             Contract.ThrowIfNull(solution);
-            Contract.ThrowIfNull(symbol);
-            Contract.ThrowIfTrue(string.IsNullOrEmpty(newName));
+            Contract.ThrowIfTrue(renameSymbolsInfo.IsEmpty);
 
             cancellationToken.ThrowIfCancellationRequested();
 
             // Since we know we're in the oop process, we know we won't need to make more OOP calls.  Since this is the
             // rename entry-point that does the entire rename, we can directly use the heavyweight RenameLocations type,
             // without having to go through any intermediary LightweightTypes.
-            var renameLocations = await SymbolicRenameLocations.FindLocationsInCurrentProcessAsync(symbol, solution, options, cancellationToken).ConfigureAwait(false);
-            return await ConflictResolver.ResolveSymbolicLocationConflictsInCurrentProcessAsync(renameLocations, newName, nonConflictSymbolKeys, cleanupOptions, cancellationToken).ConfigureAwait(false);
+            using var _ = PooledDictionary<ISymbol, (SymbolicRenameLocations SymbolicRenameLocations, string replacementText)>.GetInstance(out var builder);
+            foreach (var (symbol, (newName, options)) in renameSymbolsInfo)
+            {
+                var renameLocations = await SymbolicRenameLocations.FindLocationsInCurrentProcessAsync(symbol, solution, options, cancellationToken).ConfigureAwait(false);
+                builder[symbol] = (renameLocations, newName);
+            }
+
+            return await ConflictResolver.ResolveSymbolicLocationConflictsInCurrentProcessAsync(solution, builder.ToImmutableDictionary(), nonConflictSymbolKeys, cleanupOptions, cancellationToken).ConfigureAwait(false);
         }
 
         /// <summary>

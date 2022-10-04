@@ -13,7 +13,6 @@ using Microsoft.CodeAnalysis.CodeCleanup;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -66,8 +65,14 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
             /// </summary>
             private readonly ImmutableDictionary<ISymbol, (DocumentId declarationDocumentId, Location declarationLocation)> _symbolToDeclarationDocumentAndLocation;
 
-            private ISet<ConflictLocationInfo> _conflictLocations = SpecializedCollections.EmptySet<ConflictLocationInfo>();
+            /// <summary>
+            /// A set of conflict locations, which is caused by trying to rename the same location using different replacement information.
+            /// </summary>
+            private readonly ImmutableHashSet<RelatedLocation> _overlapRenameLocations;
+
             private readonly CancellationToken _cancellationToken;
+
+            private ISet<ConflictLocationInfo> _conflictLocations = SpecializedCollections.EmptySet<ConflictLocationInfo>();
 
             protected Session(
                 Solution solution,
@@ -77,11 +82,12 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                 ImmutableDictionary<ISymbol, string> symbolToReplacementText,
                 ImmutableDictionary<ISymbol, bool> symbolToReplacementTextValid,
                 ImmutableDictionary<ISymbol, (DocumentId declarationDocumentId, Location declarationLocation)> symbolToDeclarationDocumentAndLocation,
+                ImmutableHashSet<RelatedLocation> overlapRenameLocations,
                 CodeCleanupOptionsProvider fallBackOptions,
                 CancellationToken cancellationToken)
             {
                 var dependencyGraph = solution.GetProjectDependencyGraph();
-                _symbolToRenameLocations = symbolicRenameLocations.ToImmutableDictionary(symbolicRenameLocations => symbolicRenameLocations.Symbol);
+                _symbolToRenameLocations = symbolicRenameLocations.ToImmutableDictionary(locationSet => locationSet.Symbol);
                 _baseSolution = solution;
                 _topologicallySortedProjects = dependencyGraph.GetTopologicallySortedProjects(cancellationToken).ToImmutableArray();
                 _cancellationToken = cancellationToken;
@@ -93,12 +99,14 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                 _symbolToReplacementText = symbolToReplacementText;
                 _symbolToReplacementTextValid = symbolToReplacementTextValid;
                 _symbolToDeclarationDocumentAndLocation = symbolToDeclarationDocumentAndLocation;
+
+                _overlapRenameLocations = overlapRenameLocations;
             }
 
             /// <summary>
             /// Whether the <param name="newReferencedSymbol"/> has conflict with <param name="renameDeclarationLocationReference"/>
             /// </summary>
-            protected abstract bool HasConflictForMetadataReference(RenameDeclarationLocationReference renameDeclarationLocationReference, ISymbol newReferencedSymbol);
+            protected abstract bool HasConflictForMetadataReference(RenameActionAnnotation renameActionAnnotation, RenameDeclarationLocationReference renameDeclarationLocationReference, ISymbol newReferencedSymbol);
 
             private readonly struct ConflictLocationInfo
             {
@@ -111,7 +119,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
 
                 public ConflictLocationInfo(RelatedLocation location)
                 {
-                    Debug.Assert(location.ComplexifiedTargetSpan.Contains(location.ConflictCheckSpan) || location.Type is RelatedLocationType.UnresolvableConflict);
+                    Debug.Assert(location.ComplexifiedTargetSpan.Contains(location.ConflictCheckSpan) || location.Type is RelatedLocationType.UnresolvableConflict or RelatedLocationType.OverlapRenameLocation);
                     this.ComplexifiedSpan = location.ComplexifiedTargetSpan;
                     this.DocumentId = location.DocumentId;
                     this.OriginalIdentifierSpan = location.ConflictCheckSpan;
@@ -267,6 +275,11 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                             conflictResolution.RelatedLocations[i] = relatedLocation.WithType(RelatedLocationType.UnresolvedConflict);
                     }
 
+                    // Add rename location overlap conflicts.
+                    foreach (var overlapRenameLocation in _overlapRenameLocations)
+                    {
+                        conflictResolution.AddRelatedLocation(overlapRenameLocation);
+                    }
 #if DEBUG
                     await DebugVerifyNoErrorsAsync(conflictResolution, _documentsIdsToBeCheckedForConflict).ConfigureAwait(false);
 #endif
@@ -360,7 +373,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                             var syntaxRoot = await newDocument.GetRequiredSyntaxRootAsync(_cancellationToken).ConfigureAwait(false);
 
                             var nodesOrTokensWithConflictCheckAnnotations = GetNodesOrTokensToCheckForConflicts(syntaxRoot);
-                            foreach (var (syntax, annotation) in nodesOrTokensWithConflictCheckAnnotations)
+                            foreach (var (_, annotation) in nodesOrTokensWithConflictCheckAnnotations)
                             {
                                 if (annotation.IsRenameLocation)
                                 {
@@ -389,7 +402,6 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                         var baseSyntaxTree = await baseDocument.GetRequiredSyntaxTreeAsync(_cancellationToken).ConfigureAwait(false);
                         var baseRoot = await baseDocument.GetRequiredSyntaxRootAsync(_cancellationToken).ConfigureAwait(false);
                         SemanticModel? newDocumentSemanticModel = null;
-                        var syntaxFactsService = newDocument.Project.Services.GetRequiredService<ISyntaxFactsService>();
 
                         // Get all tokens that need conflict check
                         var nodesOrTokensWithConflictCheckAnnotations = GetNodesOrTokensToCheckForConflicts(syntaxRoot);
@@ -662,7 +674,10 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                             {
                                 if (newLocation == null
                                     || newLocation.IsInSource
-                                    || HasConflictForMetadataReference(conflictAnnotation.RenameDeclarationLocationReferences[symbolIndex], symbol))
+                                    || HasConflictForMetadataReference(
+                                        conflictAnnotation,
+                                        conflictAnnotation.RenameDeclarationLocationReferences[symbolIndex],
+                                        symbol))
                                 {
 
                                     hasConflict = true;

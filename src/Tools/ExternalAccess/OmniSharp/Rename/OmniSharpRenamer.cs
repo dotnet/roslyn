@@ -26,7 +26,12 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.OmniSharp
             CancellationToken cancellationToken)
         {
             var nonConflictSymbolsKeys = nonConflictSymbols is null ? default : nonConflictSymbols.SelectAsArray(s => s.GetSymbolKey(cancellationToken));
-            var resolution = await Renamer.RenameSymbolAsync(solution, symbol, newName, options.ToRenameOptions(), CodeActionOptions.DefaultProvider, nonConflictSymbolsKeys, cancellationToken).ConfigureAwait(false);
+            var resolution = await Renamer.RenameSymbolsAsync(
+                solution,
+                ImmutableDictionary<ISymbol, (string newName, SymbolRenameOptions options)>.Empty.Add(symbol, (newName, options.ToRenameOptions())),
+                CodeActionOptions.DefaultProvider,
+                nonConflictSymbolsKeys,
+                cancellationToken).ConfigureAwait(false);
             return new RenameResult(resolution.NewSolution, resolution.ErrorMessage);
         }
     }
