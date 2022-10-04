@@ -67,8 +67,9 @@ namespace Microsoft.CodeAnalysis.Remote
         /// Simple port of
         /// https://github.com/AArnott/Nerdbank.Streams/blob/dafeb5846702bc29e261c9ddf60f42feae01654c/src/Nerdbank.Streams/BufferWriterStream.cs#L16.
         /// Wraps a <see cref="PipeWriter"/> in a <see cref="Stream"/> interface.  Preferred over <see
-        /// cref="PipeWriter.AsStream(bool)"/> as that API produces a stream that will synchronously flush after ever
-        /// write.  That's undesirable as that will then block a thread pool thread on the actual 
+        /// cref="PipeWriter.AsStream(bool)"/> as that API produces a stream that will synchronously flush after
+        /// <em>every</em> write.  That's undesirable as that will then block a thread pool thread on the actual
+        /// asynchronous flush call to the underlying PipeWriter
         /// </summary>
         private class PipeWriterStream : Stream, IDisposableObservable
         {
