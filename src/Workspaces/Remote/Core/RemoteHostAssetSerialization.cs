@@ -19,8 +19,8 @@ namespace Microsoft.CodeAnalysis.Remote
 {
     internal static class RemoteHostAssetSerialization
     {
-        public static void WriteData(
-            ObjectWriter writer,
+        public static async ValueTask WriteDataAsync(
+            Stream stream,
             SolutionAsset? singleAsset,
             IReadOnlyDictionary<Checksum, SolutionAsset>? assetMap,
             ISerializerService serializer,
@@ -29,6 +29,8 @@ namespace Microsoft.CodeAnalysis.Remote
             Checksum[] checksums,
             CancellationToken cancellationToken)
         {
+            using var writer = new ObjectWriter(stream, leaveOpen: true, cancellationToken);
+
             // This information is not actually needed on the receiving end.  However, we still send it so that the
             // receiver can assert that both sides are talking about the same solution snapshot and no weird invariant
             // breaks have occurred.
@@ -54,7 +56,12 @@ namespace Microsoft.CodeAnalysis.Remote
             foreach (var (checksum, asset) in assetMap)
             {
                 WriteAsset(writer, serializer, context, checksum, asset, cancellationToken);
+
+                // Flush after each item as a reasonably chunk of data to want to send over the pipe.
+                await stream.FlushAsync(cancellationToken).ConfigureAwait(false);
             }
+
+            return;
 
             static void WriteAsset(ObjectWriter writer, ISerializerService serializer, SolutionReplicationContext context, Checksum checksum, SolutionAsset asset, CancellationToken cancellationToken)
             {
