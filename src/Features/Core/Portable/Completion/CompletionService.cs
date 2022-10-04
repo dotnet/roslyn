@@ -275,6 +275,10 @@ namespace Microsoft.CodeAnalysis.Completion
            string filterText,
            IList<MatchResult> builder)
         {
+            // TODO:
+            // Default implementation just drops the pattern matches and builder, and calls the public overload of FilterItems
+            // instead for compatibility. We should call FilterItemsDefault directly, once all the internal implementations of
+            // CompletionService (e.g.TS & F#) moved off the public FilterItems above.
             using var _1 = ArrayBuilder<CompletionItem>.GetInstance(matchResults.Count, out var itemBuilder);
             using var _2 = PooledDictionary<CompletionItem, MatchResult>.GetInstance(out var map);
 
@@ -285,7 +289,6 @@ namespace Microsoft.CodeAnalysis.Completion
             }
 
 #pragma warning disable RS0030 // Do not used banned APIs
-            // Default implementation just drops the pattern matches and builder, and calls the public overload of FilterItems instead for compatibility.
             var filteredItems = FilterItems(document, itemBuilder.ToImmutable(), filterText);
 #pragma warning restore RS0030 // Do not used banned APIs
 

@@ -24,7 +24,6 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript.Api
         internal abstract CompletionRules GetRulesImpl();
 
         private static readonly ObjectPool<List<VSTypeScriptCompletionItemMatchResult>> s_listOfTSMatchResultPool = new(factory: () => new());
-        private static readonly ObjectPool<List<MatchResult>> s_listOfMatchResultPool = new(factory: () => new());
 
         internal sealed override void FilterItems(
            Document document,
@@ -53,51 +52,33 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript.Api
             }
         }
 
-        // Override this to bypass the expensive call to public FilterItems method.
         internal virtual void FilterItemsImpl(
             Document document,
             IReadOnlyList<VSTypeScriptCompletionItemMatchResult> tsMatchResults,
             string filterText,
             IList<VSTypeScriptCompletionItemMatchResult> builder)
         {
-            using var _1 = ArrayBuilder<CompletionItem>.GetInstance(tsMatchResults.Count, out var itemsBuilder);
-            using var _2 = PooledDictionary<CompletionItem, VSTypeScriptCompletionItemMatchResult>.GetInstance(out var map);
-
-            foreach (var result in tsMatchResults)
-            {
-                itemsBuilder.Add(result.CompletionItem);
-                map.Add(result.CompletionItem, result);
-            }
-
-#pragma warning disable RS0030 // Do not used banned APIs
-            var filteredItems = FilterItems(document, itemsBuilder.ToImmutable(), filterText);
-#pragma warning restore RS0030 // Do not used banned APIs
-
+            // The logic here is copied from CompletionService.FilterItemsDefault to avoid
+            // unnecessary conversion between VSTypeScriptCompletionItemMatchResult and MatchResult.
             var helper = CompletionHelper.GetHelper(document);
-            builder.AddRange(filteredItems.Select(item => map[item]));
-        }
-
-        internal static void FilterItemsImplDefault(
-            Document document,
-            IReadOnlyList<VSTypeScriptCompletionItemMatchResult> tsMatchResults,
-            string filterText,
-            IList<VSTypeScriptCompletionItemMatchResult> tsBuilder)
-        {
-            var matchResults = s_listOfMatchResultPool.Allocate();
-            var builder = s_listOfMatchResultPool.Allocate();
-
-            try
+            foreach (var tsMatchResult in tsMatchResults)
             {
-                matchResults.AddRange(tsMatchResults.Select(static r => r.MatchResult));
-                FilterItemsDefault(CompletionHelper.GetHelper(document), matchResults, filterText, builder);
-                tsBuilder.AddRange(builder.Select(static r => new VSTypeScriptCompletionItemMatchResult(r)));
-            }
-            finally
-            {
-                matchResults.Clear();
-                builder.Clear();
-                s_listOfMatchResultPool.Free(matchResults);
-                s_listOfMatchResultPool.Free(builder);
+                if (builder.Count == 0)
+                {
+                    builder.Add(tsMatchResult);
+                    continue;
+                }
+
+                var comparison = helper.CompareMatchResults(tsMatchResult.MatchResult, builder[0].MatchResult, filterTextHasNoUpperCase: false);
+                if (comparison == 0)
+                {
+                    builder.Add(tsMatchResult);
+                }
+                else if (comparison < 0)
+                {
+                    builder.Clear();
+                    builder.Add(tsMatchResult);
+                }
             }
         }
 
