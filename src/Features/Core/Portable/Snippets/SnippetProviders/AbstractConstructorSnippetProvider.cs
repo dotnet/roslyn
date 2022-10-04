@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Snippets.SnippetProviders
 {
@@ -26,28 +27,19 @@ namespace Microsoft.CodeAnalysis.Snippets.SnippetProviders
         {
             var generator = SyntaxGenerator.GetGenerator(document);
             var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
-            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var nodeAtPosition = root.FindNode(TextSpan.FromBounds(position, position));
             var containingType = nodeAtPosition.FirstAncestorOrSelf<SyntaxNode>(syntaxFacts.IsTypeDeclaration);
+            Contract.ThrowIfNull(containingType);
             var constuctorDeclaration = generator.ConstructorDeclaration(
-                containingTypeName: syntaxFacts.GetIdentifierOfTypeDeclaration(containingType).GetTypeDisplayName(),
+                containingTypeName: syntaxFacts.GetIdentifierOfTypeDeclaration(containingType).ToString(),
                 accessibility: Accessibility.Public);
             return ImmutableArray.Create(new TextChange(TextSpan.FromBounds(position, position), constuctorDeclaration.NormalizeWhitespace().ToFullString()));
         }
 
-        protected override ImmutableArray<SnippetPlaceholder> GetPlaceHolderLocationsList(SyntaxNode node, ISyntaxFacts syntaxFacts, CancellationToken cancellationToken)
-        {
-            throw new NotImplementedException();
-        }
-
         protected override Func<SyntaxNode?, bool> GetSnippetContainerFunction(ISyntaxFacts syntaxFacts)
         {
-            return syntaxFacts.IsForEachStatement;
-        }
-
-        protected override int GetTargetCaretPosition(ISyntaxFactsService syntaxFacts, SyntaxNode caretTarget, SourceText sourceText)
-        {
-            throw new NotImplementedException();
+            return syntaxFacts.IsConstructorDeclaration;
         }
     }
 }
