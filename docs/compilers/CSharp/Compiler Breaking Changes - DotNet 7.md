@@ -102,11 +102,11 @@ Possible workarounds are:
 Also, implicit conversions between `IntPtr`/`UIntPtr` and other numeric types are treated as standard
 conversions on such platforms. This can affect overload resolution in some cases.
 
-These changes could cause behavioral change in case the user code logic was depending on overflowing in
-unchecked context, or in case it was not expecting exception throwing when overflow in checked context. We added
-[an analyzer in 7.0](https://github.com/dotnet/runtime/issues/74022) to help detect such behavioral changes
-and take appropriate action. The analyzer would inform you with potential behavioral changes, you could increase
-the severity of the analyzer to get warnings instead.
+These changes could cause a behavioral change if the user code was depending on overflow exceptions in an
+unchecked context, or if it was not expecting overflow exceptions in a checked context. An analyzer was 
+[added in 7.0](https://github.com/dotnet/runtime/issues/74022) to help detect such behavioral changes
+and take appropriate action. The analyzer will produce diagnostics on potential behavioral changes, which default
+to info severity but can be upgraded to warnings via [editorconfig](https://learn.microsoft.com/dotnet/fundamentals/code-analysis/configuration-options#severity-level).
 
 ## Addition of System.UIntPtr and System.Int32
 
