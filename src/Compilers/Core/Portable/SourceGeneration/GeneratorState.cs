@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis
             ImmutableArray<Diagnostic> diagnostics,
             ImmutableDictionary<string, ImmutableArray<IncrementalGeneratorRunStep>> executedSteps,
             ImmutableDictionary<string, ImmutableArray<IncrementalGeneratorRunStep>> outputSteps,
-            ImmutableArray<(string, string)> hostOutputs,
+            ImmutableArray<(string Key, string Value)> hostOutputs,
             Exception? exception,
             TimeSpan elapsedTime)
         {
@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis
                                           ImmutableArray<Diagnostic> diagnostics,
                                           ImmutableDictionary<string, ImmutableArray<IncrementalGeneratorRunStep>> executedSteps,
                                           ImmutableDictionary<string, ImmutableArray<IncrementalGeneratorRunStep>> outputSteps,
-                                          ImmutableArray<(string, string)> hostOutputs,
+                                          ImmutableArray<(string Key, string Value)> hostOutputs,
                                           TimeSpan elapsedTime)
         {
             return new GeneratorState(this.PostInitTrees,
@@ -120,6 +120,6 @@ namespace Microsoft.CodeAnalysis
 
         internal ImmutableDictionary<string, ImmutableArray<IncrementalGeneratorRunStep>> OutputSteps { get; }
 
-        internal ImmutableArray<(string, string)> HostOutputs { get; }
+        internal ImmutableArray<(string Key, string Value)> HostOutputs { get; }
     }
 }

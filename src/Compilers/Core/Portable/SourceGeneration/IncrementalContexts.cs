@@ -167,7 +167,7 @@ namespace Microsoft.CodeAnalysis
 
         internal readonly GeneratorRunStateTable.Builder GeneratorRunStateBuilder;
 
-        internal readonly ArrayBuilder<(string, string)> HostOutputBuilder;
+        internal readonly ArrayBuilder<(string Key, string Value)> HostOutputBuilder;
 
         public IncrementalExecutionContext(DriverStateTable.Builder? tableBuilder, GeneratorRunStateTable.Builder generatorRunStateBuilder, AdditionalSourcesCollection sources)
         {
@@ -178,7 +178,7 @@ namespace Microsoft.CodeAnalysis
             Diagnostics = DiagnosticBag.GetInstance();
         }
 
-        internal (ImmutableArray<GeneratedSourceText> sources, ImmutableArray<Diagnostic> diagnostics, GeneratorRunStateTable executedSteps, ImmutableArray<(string, string)> hostOutputs) ToImmutableAndFree()
+        internal (ImmutableArray<GeneratedSourceText> sources, ImmutableArray<Diagnostic> diagnostics, GeneratorRunStateTable executedSteps, ImmutableArray<(string Key, string Value)> hostOutputs) ToImmutableAndFree()
                 => (Sources.ToImmutableAndFree(), Diagnostics.ToReadOnlyAndFree(), GeneratorRunStateBuilder.ToImmutableAndFree(), HostOutputBuilder.ToImmutableAndFree());
 
         internal void Free()

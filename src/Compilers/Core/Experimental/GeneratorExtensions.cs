@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.Experimental
             source.Node.RegisterOutput(new HostOutputNode<TSource>(source.Node, action));
         }
 
-        public static ImmutableArray<(string, string)> GetHostOutputs(this GeneratorRunResult runResult) => runResult.HostOutputs;
+        public static ImmutableArray<(string Key, string Value)> GetHostOutputs(this GeneratorRunResult runResult) => runResult.HostOutputs;
     }
 
     public readonly struct HostProductionContext
