@@ -13586,6 +13586,23 @@ class Program
         }
 
         [Fact]
+        public void LambdaDefaultParameter_GenericDelegateDefaultNull()
+        {
+            var source = """
+delegate void D<T>(T t = default);
+class Program
+{
+    static void M<T>(D<T> p) { }
+    public static void Main()
+    {
+        M((object o = null) => {});
+    }
+}
+""";
+            CreateCompilation(source).VerifyDiagnostics();
+        }
+
+        [Fact]
         public void LambdaDefaultParameter_OptionalAndCustomConstantAttributes()
         {
             var source = """
