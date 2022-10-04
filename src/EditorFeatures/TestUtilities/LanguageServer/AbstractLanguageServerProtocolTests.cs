@@ -671,7 +671,7 @@ namespace Roslyn.Test.Utilities
                 // Some tests manually call shutdown, so avoid calling shutdown twice if already called.
                 if (!LanguageServer.HasShutdownStarted)
                 {
-                    await LanguageServer.GetTestAccessor().ShutdownServerAsync();
+                    await LanguageServer.GetTestAccessor().ShutdownServerAsync("Disposing of test lsp server");
                 }
 
                 await LanguageServer.GetTestAccessor().ExitServerAsync();
