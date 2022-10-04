@@ -19,8 +19,6 @@ namespace Microsoft.CodeAnalysis.Remote
 {
     internal static class RemoteHostAssetSerialization
     {
-        internal static readonly PipeOptions PipeOptionsWithUnlimitedWriterBuffer = new(pauseWriterThreshold: long.MaxValue);
-
         public static void WriteData(
             ObjectWriter writer,
             SolutionAsset? singleAsset,
