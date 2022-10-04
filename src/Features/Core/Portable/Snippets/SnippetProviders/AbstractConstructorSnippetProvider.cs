@@ -8,7 +8,9 @@ using System.Collections.Immutable;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.LanguageService;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Snippets.SnippetProviders
@@ -18,13 +20,19 @@ namespace Microsoft.CodeAnalysis.Snippets.SnippetProviders
         public override string SnippetIdentifier => "ctor";
 
         public override string SnippetDescription => FeaturesResources.constructor;
+        public override ImmutableArray<string> AdditionalFilterTexts { get; } = ImmutableArray.Create("constructor");
 
-        protected abstract Task<SyntaxNode> GenerateSnippetSyntaxAsync(Document document, int position, CancellationToken cancellationToken);
-
-
-        protected override Task<ImmutableArray<TextChange>> GenerateSnippetTextChangesAsync(Document document, int position, CancellationToken cancellationToken)
+        protected override async Task<ImmutableArray<TextChange>> GenerateSnippetTextChangesAsync(Document document, int position, CancellationToken cancellationToken)
         {
-            
+            var generator = SyntaxGenerator.GetGenerator(document);
+            var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
+            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var nodeAtPosition = root.FindNode(TextSpan.FromBounds(position, position));
+            var containingType = nodeAtPosition.FirstAncestorOrSelf<SyntaxNode>(syntaxFacts.IsTypeDeclaration);
+            var constuctorDeclaration = generator.ConstructorDeclaration(
+                containingTypeName: syntaxFacts.GetIdentifierOfTypeDeclaration(containingType).GetTypeDisplayName(),
+                accessibility: Accessibility.Public);
+            return ImmutableArray.Create(new TextChange(TextSpan.FromBounds(position, position), constuctorDeclaration.NormalizeWhitespace().ToFullString()));
         }
 
         protected override ImmutableArray<SnippetPlaceholder> GetPlaceHolderLocationsList(SyntaxNode node, ISyntaxFacts syntaxFacts, CancellationToken cancellationToken)
