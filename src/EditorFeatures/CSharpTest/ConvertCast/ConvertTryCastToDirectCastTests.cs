@@ -7,6 +7,7 @@ using Microsoft.CodeAnalysis.CSharp.ConvertCast;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Testing;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertConversionOperators
@@ -194,33 +195,64 @@ class Program
             }.RunAsync();
         }
 
-        [Fact]
-        public async Task ConvertFromAsToExplicit_NullableReferenceType()
+        [Theory]
+        [CombinatorialData]
+        public async Task ConvertFromAsToExplicit_NullableReferenceType(bool nullable)
+        {
+            var initialMarkup = $@"
+#nullable {(nullable ? "enable" : "disable")}
+
+class Program
+{{
+    public static void Main()
+    {{
+        var x = null as[||] string;
+    }}
+}}";
+            var expectedMarkup = $@"
+#nullable {(nullable ? "enable" : "disable")}
+
+class Program
+{{
+    public static void Main()
+    {{
+        var x = (string{(nullable ? "?" : string.Empty)})null;
+    }}
+}}";
+            await new VerifyCS.Test
+            {
+                TestCode = initialMarkup,
+                FixedCode = expectedMarkup,
+                CodeActionValidationMode = CodeActionValidationMode.Full,
+            }.RunAsync();
+        }
+
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/64466")]
+        [WorkItem(64466, "https://github.com/dotnet/roslyn/issues/64466")]
+        public async Task ConvertFromExplicitToAs_NullableValueType()
         {
             const string InitialMarkup = @"
-#nullable enable
-
 class Program
 {
     public static void Main()
     {
-        var x = null as[||] string;
+        var x = null as[||] byte?;
     }
-}";
-            const string ExpectedMarkup = @"
-#nullable enable
-
+}
+";
+            const string FixedCode = @"
 class Program
 {
     public static void Main()
     {
-        var x = (string?)null;
+        var x = (byte?)null;
     }
-}";
+}
+";
             await new VerifyCS.Test
             {
                 TestCode = InitialMarkup,
-                FixedCode = ExpectedMarkup,
+                FixedCode = FixedCode,
                 CodeActionValidationMode = CodeActionValidationMode.Full,
             }.RunAsync();
         }

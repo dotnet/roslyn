@@ -7,6 +7,7 @@ using Microsoft.CodeAnalysis.CSharp.ConvertCast;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Testing;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertConversionOperators
@@ -371,33 +372,65 @@ class Program
             }.RunAsync();
         }
 
-        [Fact]
-        public async Task ConvertFromExplicitToAs_NullableReferenceType()
+        [Theory]
+        [CombinatorialData]
+        public async Task ConvertFromExplicitToAs_NullableReferenceType(bool nullable)
+        {
+            var initialMarkup = $@"
+#nullable {(nullable ? "enable" : "disable")}
+
+class Program
+{{
+    public static void Main()
+    {{
+        var x = ([||]string?)null;
+    }}
+}}";
+            var expectedMarkup = $@"
+#nullable {(nullable ? "enable" : "disable")}
+
+class Program
+{{
+    public static void Main()
+    {{
+        var x = null as string;
+    }}
+}}";
+            await new VerifyCS.Test
+            {
+                TestCode = initialMarkup,
+                FixedCode = expectedMarkup,
+                CompilerDiagnostics = CompilerDiagnostics.None, // Suppress compiler warning about nullable string in non-nullable context
+                CodeActionValidationMode = CodeActionValidationMode.Full,
+            }.RunAsync();
+        }
+
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/64466")]
+        [WorkItem(64466, "https://github.com/dotnet/roslyn/issues/64466")]
+        public async Task ConvertFromExplicitToAs_NullableValueType()
         {
             const string InitialMarkup = @"
-#nullable enable
-
 class Program
 {
     public static void Main()
     {
-        var x = ([||]string?)null;
+        var x = ([||]byte?)null;
     }
-}";
-            const string ExpectedMarkup = @"
-#nullable enable
-
+}
+";
+            const string FixedCode = @"
 class Program
 {
     public static void Main()
     {
-        var x = null as string;
+        var x = null as byte?;
     }
-}";
+}
+";
             await new VerifyCS.Test
             {
                 TestCode = InitialMarkup,
-                FixedCode = ExpectedMarkup,
+                FixedCode = FixedCode,
                 CodeActionValidationMode = CodeActionValidationMode.Full,
             }.RunAsync();
         }
