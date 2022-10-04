@@ -124,12 +124,22 @@ Namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.UnitTests.U
         End Function
 
         Public Function GetFoldingRanges(document As Document) As LSP.FoldingRange()
-            Dim documentVertex = _testLsifJsonWriter.Vertices _
-                                                        .OfType(Of LsifDocument) _
-                                                        .Where(Function(d) d.Uri.LocalPath = document.FilePath) _
-                                                        .Single()
+            Dim documentVertex = _testLsifJsonWriter.Vertices.
+                                                        OfType(Of LsifDocument).
+                                                        Where(Function(d) d.Uri.LocalPath = document.FilePath).
+                                                        Single()
             Dim foldingRangeVertex = GetLinkedVertices(Of FoldingRangeResult)(documentVertex, "textDocument/foldingRange").Single()
             Return foldingRangeVertex.Result
+        End Function
+
+        Public Function GetSemanticTokens(document As Document) As LSP.SemanticTokens
+            Dim documentVertex = _testLsifJsonWriter.Vertices.
+                OfType(Of LsifDocument).
+                Where(Function(d) d.Uri.LocalPath = document.FilePath).
+                Single()
+
+            Dim semanticTokensVertex = GetLinkedVertices(Of SemanticTokensResult)(documentVertex, "textDocument/semanticTokens/full").Single()
+            Return semanticTokensVertex.Result
         End Function
     End Class
 End Namespace
