@@ -1221,21 +1221,6 @@ namespace System.Diagnostics.CodeAnalysis
             string sourceFileName = "",
             bool skipUsesIsNullable = false)
         {
-            if (targetFramework == TargetFramework.Net70)
-            {
-                // Avoid sharing mscorlib symbols with other tests since we are about to change
-                // RuntimeSupportsByRefFields property for it.
-                var mscorlibWithoutSharing = new[] { GetMscorlibRefWithoutSharingCachedSymbols() };
-
-                // Note: we use skipExtraValidation so that nobody pulls
-                // on the compilation or its references before we set the RuntimeSupportsByRefFields flag.
-                var comp = CreateCompilationCore(source, references is not null ? references.Concat(mscorlibWithoutSharing) : mscorlibWithoutSharing,
-                    options, parseOptions, assemblyName, sourceFileName, skipUsesIsNullable, experimentalFeature: null, skipExtraValidation: true);
-
-                comp.Assembly.RuntimeSupportsByRefFields = true;
-                return comp;
-            }
-
             return CreateEmptyCompilation(source, TargetFrameworkUtil.GetReferences(targetFramework, references), options, parseOptions, assemblyName, sourceFileName, skipUsesIsNullable);
         }
 
