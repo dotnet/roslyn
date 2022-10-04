@@ -13617,5 +13617,36 @@ class Program
 @"System.Func`2[System.Int32,System.Int32]
 <>f__AnonymousDelegate0").VerifyDiagnostics();
         }
+
+        [Fact]
+        public void LambdaDefaultParameter_ArrayCommonType_DefaultValueMismatch()
+        {
+            TestDiagnosticsInMain(
+"""
+var arr = new[] { (int i = 1) => { }, (int i = 2) => { } };
+""", expectedDiagnostics:
+                // (6,19): error CS0826: No best type found for implicitly-typed array
+                //         var arr = new[] { (int i = 1) => { }, (int i = 2) => { } };
+                Diagnostic(ErrorCode.ERR_ImplicitlyTypedArrayNoBestType, "new[] { (int i = 1) => { }, (int i = 2) => { } }").WithLocation(6, 19));
+        }
+
+        [Fact]
+        public void LambdaDefaultParameter_ArrayCommonType_DefaultValueMatch()
+        {
+            var source = """
+using System;
+class Program
+{
+    static void Report(object obj) => Console.WriteLine(obj.GetType());
+    public static void Main()
+    {
+        var arr = new[] { (int i = 1) => { }, (int i = 1) => { } };
+        Report(arr);
+    }
+}
+""";
+            CompileAndVerify(source, expectedOutput:
+@"<>f__AnonymousDelegate0[]").VerifyDiagnostics();
+        }
     }
 }
