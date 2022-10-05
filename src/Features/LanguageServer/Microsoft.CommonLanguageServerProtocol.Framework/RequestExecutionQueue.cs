@@ -206,7 +206,7 @@ public class RequestExecutionQueue<TRequestContext> : IRequestExecutionQueue<TRe
                         // though these errors don't put us into a bad state as far as the rest of the queue goes.
                         // Furthermore we use Task.Run here to protect ourselves against synchronous execution of work
                         // blocking the request queue for longer periods of time (it enforces parallelizabilty).
-                        _ = Task.Run(() => HandleNonMutatingRequestErrorAsync(work.StartRequestAsync(context, cancellationToken)), cancellationToken);
+                        _ = WrapStartRequestTaskAsync(Task.Run(() => work.StartRequestAsync(context, cancellationToken), cancellationToken));
                     }
                 }
                 catch (OperationCanceledException ex) when (ex.CancellationToken == queueItem.cancellationToken)
@@ -242,7 +242,7 @@ public class RequestExecutionQueue<TRequestContext> : IRequestExecutionQueue<TRe
     /// </summary>
     /// <param name="nonMutatingRequestTask">The task to be inspected.</param>
     /// <returns>The task from <paramref name="nonMutatingRequestTask"/>, to allow chained calls if needed.</returns>
-    public virtual Task HandleNonMutatingRequestErrorAsync(Task nonMutatingRequestTask)
+    public virtual Task WrapStartRequestTaskAsync(Task nonMutatingRequestTask)
     {
         return nonMutatingRequestTask;
     }
