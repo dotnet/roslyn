@@ -120,8 +120,10 @@ class C
                 Diagnostic(ErrorCode.ERR_AnonymousTypePropertyAssignedBadValue, "Inner = inner").WithArguments("System.Span<int>").WithLocation(10, 37));
         }
 
-        [Fact]
-        public void RefStructInFor()
+        [Theory]
+        [InlineData(LanguageVersion.CSharp10)]
+        [InlineData(LanguageVersion.CSharp11)]
+        public void RefStructInFor(LanguageVersion languageVersion)
         {
             var comp = CreateCompilationWithMscorlibAndSpan(@"
 using System;
@@ -135,7 +137,7 @@ class C
             outer = inner;
         }
     }
-}");
+}", parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
             comp.VerifyDiagnostics(
                 // (10,21): error CS8352: Cannot use variable 'inner' in this context because it may expose referenced variables outside of their declaration scope
                 //             outer = inner;
@@ -794,8 +796,10 @@ class Program
                 );
         }
 
-        [Fact]
-        public void DiscardExpressionRef_UnsafeContext()
+        [Theory]
+        [InlineData(LanguageVersion.CSharp10)]
+        [InlineData(LanguageVersion.CSharp11)]
+        public void DiscardExpressionRef_UnsafeContext(LanguageVersion languageVersion)
         {
             var text = @"
 
@@ -813,11 +817,24 @@ unsafe class Program
     }
 }
 ";
-            CreateCompilationWithMscorlibAndSpan(text, options: TestOptions.UnsafeDebugDll).VerifyDiagnostics(
-                // (13,20): warning CS9085: This returns a parameter by reference 'x' but it is scoped to the current method
-                //         return ref x;
-                Diagnostic(ErrorCode.WRN_RefReturnScopedParameter, "x").WithArguments("x").WithLocation(13, 20)
-                );
+            var comp = CreateCompilationWithMscorlibAndSpan(text, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
+            if (languageVersion == LanguageVersion.CSharp10)
+            {
+                comp.VerifyDiagnostics(
+                    // (7,20): error CS8347: Cannot use a result of 'Program.ReturnsRef1(out int)' in this context because it may expose variables referenced by parameter 'x' outside of their declaration scope
+                    //         return ref ReturnsRef1(out var _);
+                    Diagnostic(ErrorCode.ERR_EscapeCall, "ReturnsRef1(out var _)").WithArguments("Program.ReturnsRef1(out int)", "x").WithLocation(7, 20),
+                    // (7,36): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
+                    //         return ref ReturnsRef1(out var _);
+                    Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "var _").WithLocation(7, 36));
+            }
+            else
+            {
+                comp.VerifyDiagnostics(
+                    // (13,20): warning CS9085: This returns a parameter by reference 'x' but it is scoped to the current method
+                    //         return ref x;
+                    Diagnostic(ErrorCode.WRN_RefReturnScopedParameter, "x").WithArguments("x").WithLocation(13, 20));
+            }
         }
 
         [Fact()]
@@ -936,8 +953,10 @@ class Program
                 );
         }
 
-        [Fact]
-        public void DiscardExpressionSpan_UnsafeContext()
+        [Theory]
+        [InlineData(LanguageVersion.CSharp10)]
+        [InlineData(LanguageVersion.CSharp11)]
+        public void DiscardExpressionSpan_UnsafeContext(LanguageVersion languageVersion)
         {
             var text = @"
 using System;
@@ -968,18 +987,31 @@ unsafe class Program
     }
 }
 ";
-            var comp = CreateCompilationWithMscorlibAndSpan(text, options: TestOptions.UnsafeDebugDll);
-            comp.VerifyDiagnostics(
-                // (14,13): warning CS9078: A result of a stackalloc expression of type 'Span<int>' in this context may be exposed outside of the containing method
-                //         s = stackalloc int[1]; // 1
-                Diagnostic(ErrorCode.WRN_EscapeStackAlloc, "stackalloc int[1]").WithArguments("System.Span<int>").WithLocation(14, 13),
-                // (20,35): warning CS9078: A result of a stackalloc expression of type 'Span<int>' in this context may be exposed outside of the containing method
-                //         ReturnsSpan(out var _ ) = stackalloc int[1]; // 2
-                Diagnostic(ErrorCode.WRN_EscapeStackAlloc, "stackalloc int[1]").WithArguments("System.Span<int>").WithLocation(20, 35),
-                // (26,20): warning CS9085: This returns a parameter by reference 'x' but it is scoped to the current method
-                //         return ref x; // 3
-                Diagnostic(ErrorCode.WRN_RefReturnScopedParameter, "x").WithArguments("x").WithLocation(26, 20)
-                );
+            var comp = CreateCompilationWithMscorlibAndSpan(text, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
+            if (languageVersion == LanguageVersion.CSharp10)
+            {
+                comp.VerifyDiagnostics(
+                    // (14,13): warning CS9081: A result of a stackalloc expression of type 'Span<int>' in this context may be exposed outside of the containing method
+                    //         s = stackalloc int[1]; // 1
+                    Diagnostic(ErrorCode.WRN_EscapeStackAlloc, "stackalloc int[1]").WithArguments("System.Span<int>").WithLocation(14, 13),
+                    // (20,35): warning CS9081: A result of a stackalloc expression of type 'Span<int>' in this context may be exposed outside of the containing method
+                    //         ReturnsSpan(out var _ ) = stackalloc int[1]; // 2
+                    Diagnostic(ErrorCode.WRN_EscapeStackAlloc, "stackalloc int[1]").WithArguments("System.Span<int>").WithLocation(20, 35));
+            }
+            else
+            {
+                comp.VerifyDiagnostics(
+                    // (14,13): warning CS9078: A result of a stackalloc expression of type 'Span<int>' in this context may be exposed outside of the containing method
+                    //         s = stackalloc int[1]; // 1
+                    Diagnostic(ErrorCode.WRN_EscapeStackAlloc, "stackalloc int[1]").WithArguments("System.Span<int>").WithLocation(14, 13),
+                    // (20,35): warning CS9078: A result of a stackalloc expression of type 'Span<int>' in this context may be exposed outside of the containing method
+                    //         ReturnsSpan(out var _ ) = stackalloc int[1]; // 2
+                    Diagnostic(ErrorCode.WRN_EscapeStackAlloc, "stackalloc int[1]").WithArguments("System.Span<int>").WithLocation(20, 35),
+                    // (26,20): warning CS9085: This returns a parameter by reference 'x' but it is scoped to the current method
+                    //         return ref x; // 3
+                    Diagnostic(ErrorCode.WRN_RefReturnScopedParameter, "x").WithArguments("x").WithLocation(26, 20)
+                    );
+            }
             var verifier = CompileAndVerify(comp, verify: Verification.Skipped);
             verifier.VerifyIL("Program.Test2", @"
 {
@@ -3615,8 +3647,10 @@ public static class Extensions
             );
         }
 
-        [Fact]
-        public void DeconstructionAssignmentWithReturnValue()
+        [Theory]
+        [InlineData(LanguageVersion.CSharp10)]
+        [InlineData(LanguageVersion.CSharp11)]
+        public void DeconstructionAssignmentWithReturnValue(LanguageVersion languageVersion)
         {
             var text = @"
 using System;
@@ -3647,7 +3681,7 @@ namespace System
         }
     }
 }";
-            CreateCompilationWithMscorlibAndSpan(text).VerifyDiagnostics(
+            CreateCompilationWithMscorlibAndSpan(text, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion)).VerifyDiagnostics(
                 // (8,19): error CS0306: The type 'Span<int>' may not be used as a type argument
                 //         var t = ((global, global) = global); // error
                 Diagnostic(ErrorCode.ERR_BadTypeArgument, "global").WithArguments("System.Span<int>").WithLocation(8, 19),
@@ -3657,8 +3691,10 @@ namespace System
             );
         }
 
-        [Fact]
-        public void DeconstructionAssignmentOfTuple()
+        [Theory]
+        [InlineData(LanguageVersion.CSharp10)]
+        [InlineData(LanguageVersion.CSharp11)]
+        public void DeconstructionAssignmentOfTuple(LanguageVersion languageVersion)
         {
             var text = @"
 using System;
@@ -3700,7 +3736,7 @@ namespace System
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlibAndSpan(text);
+            var compilation = CreateCompilationWithMscorlibAndSpan(text, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
             compilation.VerifyDiagnostics(
                 // (12,29): error CS0306: The type 'Span<int>' may not be used as a type argument
                 //         (global, global) = (local, local); // error 1
@@ -3754,8 +3790,10 @@ namespace System
             Assert.Equal("(C, string)", model.GetTypeInfo(tuple7).ConvertedType.ToString());
         }
 
-        [Fact]
-        public void DeconstructionAssignmentOfTuple_WithoutValueTuple()
+        [Theory]
+        [InlineData(LanguageVersion.CSharp10)]
+        [InlineData(LanguageVersion.CSharp11)]
+        public void DeconstructionAssignmentOfTuple_WithoutValueTuple(LanguageVersion languageVersion)
         {
             var text = @"
 using System;
@@ -3783,7 +3821,7 @@ public class C
     public static implicit operator C(Span<int> s) => throw null;
 }
 ";
-            var compilation = CreateCompilationWithMscorlibAndSpan(text);
+            var compilation = CreateCompilationWithMscorlibAndSpan(text, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
             compilation.VerifyDiagnostics(
                 // (12,28): error CS8179: Predefined type 'System.ValueTuple`2' is not defined or imported
                 //         (global, global) = (local, local); // error 1
@@ -3852,8 +3890,10 @@ public class C
             Assert.Equal("(C, string)", model.GetTypeInfo(tuple7).ConvertedType.ToString());
         }
 
-        [Fact]
-        public void DeconstructionAssignmentOfRefLikeTuple()
+        [Theory]
+        [InlineData(LanguageVersion.CSharp10)]
+        [InlineData(LanguageVersion.CSharp11)]
+        public void DeconstructionAssignmentOfRefLikeTuple(LanguageVersion languageVersion)
         {
             var text = @"
 using System;
@@ -3896,7 +3936,7 @@ namespace System
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlibAndSpan(text);
+            var compilation = CreateCompilationWithMscorlibAndSpan(text, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
             compilation.VerifyDiagnostics(
                 // (12,29): error CS0306: The type 'Span<int>' may not be used as a type argument
                 //         (global, global) = (local, local); // error 1
