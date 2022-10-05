@@ -486,8 +486,7 @@ class Program
 }", parameters: s_nullableFeature);
         }
 
-        [Fact]
-        [WorkItem(26626, "https://github.com/dotnet/roslyn/issues/26626")]
+        [Fact, WorkItem(26626, "https://github.com/dotnet/roslyn/issues/26626")]
         [WorkItem(30026, "https://github.com/dotnet/roslyn/issues/30026")]
         public async Task FixOptionalParameter()
         {

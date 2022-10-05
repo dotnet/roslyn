@@ -647,7 +647,7 @@ namespace Microsoft.CodeAnalysis.Serialization
             protected override DocumentationProvider CreateDocumentationProvider()
             {
                 // this uses documentation provider given at the constructor
-                throw ExceptionUtilities.Unreachable;
+                throw ExceptionUtilities.Unreachable();
             }
 
             protected override Metadata GetMetadataImpl()

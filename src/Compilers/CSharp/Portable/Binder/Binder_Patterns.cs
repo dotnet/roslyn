@@ -72,7 +72,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         case BoundConstantPattern _:
                         case BoundITuplePattern _:
                             // these patterns can fail in practice
-                            throw ExceptionUtilities.Unreachable;
+                            throw ExceptionUtilities.Unreachable();
                         case BoundRelationalPattern _:
                         case BoundTypePattern _:
                         case BoundNegatedPattern _:
@@ -333,7 +333,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private bool IsCountableAndIndexable(SyntaxNode node, TypeSymbol inputType, out PropertySymbol? lengthProperty)
         {
-            var success = BindLengthAndIndexerForListPattern(node, inputType, inputValEscape: ExternalScope, BindingDiagnosticBag.Discarded,
+            var success = BindLengthAndIndexerForListPattern(node, inputType, inputValEscape: CallingMethodScope, BindingDiagnosticBag.Discarded,
                 indexerAccess: out _, out var lengthAccess, receiverPlaceholder: out _, argumentPlaceholder: out _);
             lengthProperty = success ? GetPropertySymbol(lengthAccess, out _, out _) : null;
             return success;
@@ -908,11 +908,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Compute the val escape of an expression of the given <paramref name="type"/>, which is known to be derived
         /// from an expression whose escape scope is <paramref name="possibleValEscape"/>. By the language rules, the
-        /// result is either that same scope (if the type is a ref struct type) or <see cref="Binder.ExternalScope"/>.
+        /// result is either that same scope (if the type is a ref struct type) or <see cref="Binder.CallingMethodScope"/>.
         /// </summary>
         private static uint GetValEscape(TypeSymbol type, uint possibleValEscape)
         {
-            return type.IsRefLikeType ? possibleValEscape : Binder.ExternalScope;
+            return type.IsRefLikeType ? possibleValEscape : Binder.CallingMethodScope;
         }
 
         private TypeWithAnnotations BindRecursivePatternType(
@@ -1099,7 +1099,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BindingDiagnosticBag diagnostics)
         {
             // Since the input has been cast to ITuple, it must be escapable.
-            const uint valEscape = Binder.ExternalScope;
+            const uint valEscape = Binder.CallingMethodScope;
             var objectType = Compilation.GetSpecialType(SpecialType.System_Object);
             foreach (var subpatternSyntax in node.Subpatterns)
             {
@@ -1128,7 +1128,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BindingDiagnosticBag diagnostics)
         {
             // Since the input has been cast to ITuple, it must be escapable.
-            const uint valEscape = Binder.ExternalScope;
+            const uint valEscape = Binder.CallingMethodScope;
             var objectType = Compilation.GetSpecialType(SpecialType.System_Object);
             foreach (var variable in node.Variables)
             {

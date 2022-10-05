@@ -4701,7 +4701,7 @@ public class C : System.Attribute
                 // (2,2): error CS0181: Attribute constructor parameter 'c' has type 'C', which is not a valid attribute parameter type
                 // [C(new())]
                 Diagnostic(ErrorCode.ERR_BadAttributeParamType, "C").WithArguments("c", "C").WithLocation(2, 2),
-                // (2,4): error CS7036: There is no argument given that corresponds to the required formal parameter 'c' of 'C.C(C)'
+                // (2,4): error CS7036: There is no argument given that corresponds to the required parameter 'c' of 'C.C(C)'
                 // [C(new())]
                 Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "new()").WithArguments("c", "C.C(C)").WithLocation(2, 4)
                 );

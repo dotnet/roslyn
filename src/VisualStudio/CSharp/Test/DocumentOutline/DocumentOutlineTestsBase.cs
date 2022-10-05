@@ -25,6 +25,7 @@ using Moq;
 using Newtonsoft.Json.Linq;
 using Roslyn.Test.Utilities;
 using static Roslyn.Test.Utilities.AbstractLanguageServerProtocolTests;
+using IAsyncDisposable = System.IAsyncDisposable;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Roslyn.VisualStudio.CSharp.UnitTests.DocumentOutline
@@ -32,16 +33,16 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.DocumentOutline
     [UseExportProvider]
     public abstract class DocumentOutlineTestsBase
     {
-        protected class DocumentOutlineTestMocks : IDisposable
+        protected class DocumentOutlineTestMocks : IAsyncDisposable
         {
             private readonly TestWorkspace _workspace;
-            private readonly IDisposable _disposable;
+            private readonly IAsyncDisposable _disposable;
 
             internal DocumentOutlineTestMocks(
                 ILanguageServiceBroker2 languageServiceBroker,
                 IThreadingContext threadingContext,
                 TestWorkspace workspace,
-                IDisposable disposable)
+                IAsyncDisposable disposable)
             {
                 LanguageServiceBroker = languageServiceBroker;
                 ThreadingContext = threadingContext;
@@ -59,8 +60,8 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.DocumentOutline
             internal string FilePath
                 => "C:\\" + _workspace.Documents.Single().FilePath!;
 
-            public void Dispose()
-                => _disposable.Dispose();
+            public ValueTask DisposeAsync()
+                => _disposable.DisposeAsync();
         }
 
         private static readonly TestComposition s_composition = EditorTestCompositions.LanguageServerProtocol

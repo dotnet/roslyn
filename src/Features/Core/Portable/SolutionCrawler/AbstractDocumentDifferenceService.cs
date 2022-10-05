@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                 if (!oldDocument.TryGetTopLevelChangeTextVersion(out var oldTopLevelChangeVersion) ||
                     !newDocument.TryGetTopLevelChangeTextVersion(out var newTopLevelChangeVersion))
                 {
-                    throw ExceptionUtilities.Unreachable;
+                    throw ExceptionUtilities.Unreachable();
                 }
 
                 // quicker common case
@@ -96,7 +96,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
             }
             catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
             {
-                throw ExceptionUtilities.Unreachable;
+                throw ExceptionUtilities.Unreachable();
             }
         }
 

@@ -157,6 +157,17 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             if (!s_negatedBinaryMap.TryGetValue(binaryOperation.OperatorKind, out var negatedKind))
                 return generator.LogicalNotExpression(expressionNode);
 
+            // Lifted relational operators return false if either operand is null.
+            // Inverting the operator fails to invert the behavior when an operand is null.
+            if (binaryOperation.IsLifted
+                && binaryOperation.OperatorKind is BinaryOperatorKind.LessThan or
+                                                   BinaryOperatorKind.LessThanOrEqual or
+                                                   BinaryOperatorKind.GreaterThan or
+                                                   BinaryOperatorKind.GreaterThanOrEqual)
+            {
+                return generator.LogicalNotExpression(expressionNode);
+            }
+
             if (binaryOperation.OperatorKind is BinaryOperatorKind.Or or
                                                 BinaryOperatorKind.And or
                                                 BinaryOperatorKind.ConditionalAnd or

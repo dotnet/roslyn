@@ -7,6 +7,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Structure
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Outlining
+    <Trait(Traits.Feature, Traits.Features.Outlining)>
     Public Class XmlDocumentStructureProviderTests
         Inherits AbstractVisualBasicSyntaxNodeStructureProviderTests(Of XmlNodeSyntax)
 
@@ -14,7 +15,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Outlining
             Return New XmlExpressionStructureProvider()
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Outlining)>
+        <Fact>
         Public Async Function TestXmlDocument1() As Task
             Dim code = "
 Class C
@@ -28,7 +29,7 @@ End Class
                 Region("span", "<?xml version=""1.0""?> ...", autoCollapse:=False))
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Outlining)>
+        <Fact>
         Public Async Function TestXmlDocument2() As Task
             Dim code = "
 Class C
@@ -41,7 +42,7 @@ End Class
                 Region("span", "<?xml version=""1.0""?><goo> ...", autoCollapse:=False))
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Outlining)>
+        <Fact>
         Public Async Function TestXmlLiteral() As Task
             Dim code = "
 Class C
@@ -54,7 +55,7 @@ End Class
                 Region("span", "<goo> ...", autoCollapse:=False))
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Outlining)>
+        <Fact>
         Public Async Function TestNestedXmlLiteral() As Task
             Dim code = "
 Class C
@@ -69,7 +70,7 @@ End Class
                 Region("span", "<bar> ...", autoCollapse:=False))
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Outlining)>
+        <Fact>
         Public Async Function TestXmlProcessingInstruction() As Task
             Dim code = "
 Class C
@@ -82,7 +83,7 @@ End Class
                 Region("span", "<?goo ...", autoCollapse:=False))
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Outlining)>
+        <Fact>
         Public Async Function TestXmlComment() As Task
             Dim code = "
 Class C
@@ -95,7 +96,7 @@ End Class
                 Region("span", "<!-- Goo ...", autoCollapse:=False))
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Outlining)>
+        <Fact>
         Public Async Function TestXmlCData() As Task
             Dim code = "
 Class C
@@ -108,7 +109,7 @@ End Class
                 Region("span", "<![CDATA[ ...", autoCollapse:=False))
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Outlining)>
+        <Fact>
         Public Async Function TestXmlEmbeddedExpression() As Task
             Dim code = "
 Class C
@@ -124,7 +125,7 @@ End Class
                 Region("span", "<%= ...", autoCollapse:=False))
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Outlining)>
+        <Fact>
         Public Async Function TestDocumentationCommentIsNotOutlined() As Task
             Dim code = "
 ''' $$<summary>

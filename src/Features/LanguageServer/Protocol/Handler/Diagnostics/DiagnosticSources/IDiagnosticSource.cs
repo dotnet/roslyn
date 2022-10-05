@@ -7,6 +7,7 @@ using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics;
 
@@ -17,14 +18,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics;
 internal interface IDiagnosticSource
 {
     Project GetProject();
-
     ProjectOrDocumentId GetId();
-
-    Uri GetUri();
+    TextDocumentIdentifier GetDocumentIdentifier();
 
     Task<ImmutableArray<DiagnosticData>> GetDiagnosticsAsync(
         IDiagnosticAnalyzerService diagnosticAnalyzerService,
         RequestContext context,
-        DiagnosticMode diagnosticMode,
         CancellationToken cancellationToken);
 }

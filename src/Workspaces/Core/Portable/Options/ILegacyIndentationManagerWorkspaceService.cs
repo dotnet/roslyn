@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.Formatting;
 /// </summary>
 internal interface ILegacyIndentationManagerWorkspaceService : IWorkspaceService
 {
-    bool UseSpacesForWhitespace(SourceText text);
-    int GetTabSize(SourceText text);
-    int GetIndentSize(SourceText text);
+    bool? UseSpacesForWhitespace(SourceText text);
+    int? GetTabSize(SourceText text);
+    int? GetIndentSize(SourceText text);
 }

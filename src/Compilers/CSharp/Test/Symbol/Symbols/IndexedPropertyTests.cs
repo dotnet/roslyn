@@ -1549,7 +1549,7 @@ End Class";
 }";
             var compilation2 = CreateCompilation(source2, new[] { reference1 });
             compilation2.VerifyDiagnostics(
-                // (5,17): error CS7036: There is no argument given that corresponds to the required formal parameter 'y' of 'B.Q[object, object]'
+                // (5,17): error CS7036: There is no argument given that corresponds to the required parameter 'y' of 'B.Q[object, object]'
                 //         var o = b.Q[0];
                 Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "b.Q[0]").WithArguments("y", "B.Q[object, object]").WithLocation(5, 17));
             var source3 =

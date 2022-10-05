@@ -1617,13 +1617,13 @@ class C
 
             var expectedDiagnostics = new[]
             {
-                // (6,15): error CS7036: There is no argument given that corresponds to the required formal parameter 'extras' of 'S.Dispose(params int)'
+                // (6,15): error CS7036: There is no argument given that corresponds to the required parameter 'extras' of 'S.Dispose(params int)'
                 //         using(var s = new S())
                 Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "var s = new S()").WithArguments("extras", "S.Dispose(params int)").WithLocation(6, 15),
                 // (6,15): error CS1674: 'S': type used in a using statement must be implicitly convertible to 'System.IDisposable'.
                 //         using(var s = new S())
                 Diagnostic(ErrorCode.ERR_NoConvToIDisp, "var s = new S()").WithArguments("S").WithLocation(6, 15),
-                // (14,11): error CS7036: There is no argument given that corresponds to the required formal parameter 'extras' of 'S.Dispose(params int)'
+                // (14,11): error CS7036: There is no argument given that corresponds to the required parameter 'extras' of 'S.Dispose(params int)'
                 //         s.Dispose();
                 Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "Dispose").WithArguments("extras", "S.Dispose(params int)").WithLocation(14, 11)
             };
@@ -1758,13 +1758,13 @@ class C
 
             var expectedDiagnostics = new[]
             {
-                // (6,15): error CS7036: There is no argument given that corresponds to the required formal parameter 'extras' of 'S.Dispose(params int)'
+                // (6,15): error CS7036: There is no argument given that corresponds to the required parameter 'extras' of 'S.Dispose(params int)'
                 //         using(var s = new S())
                 Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "var s = new S()").WithArguments("extras", "S.Dispose(params int)").WithLocation(6, 15),
                 // (6,15): error CS1674: 'S': type used in a using statement must be implicitly convertible to 'System.IDisposable'.
                 //         using(var s = new S())
                 Diagnostic(ErrorCode.ERR_NoConvToIDisp, "var s = new S()").WithArguments("S").WithLocation(6, 15),
-                // (14,11): error CS7036: There is no argument given that corresponds to the required formal parameter 'extras' of 'S.Dispose(params int)'
+                // (14,11): error CS7036: There is no argument given that corresponds to the required parameter 'extras' of 'S.Dispose(params int)'
                 //         s.Dispose();
                 Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "Dispose").WithArguments("extras", "S.Dispose(params int)").WithLocation(14, 11)
             };
@@ -1899,13 +1899,13 @@ class C
 
             var expectedDiagnostics = new[]
             {
-                // (6,15): error CS7036: There is no argument given that corresponds to the required formal parameter 'extras' of 'S.Dispose(params int)'
+                // (6,15): error CS7036: There is no argument given that corresponds to the required parameter 'extras' of 'S.Dispose(params int)'
                 //         using(var s = new S())
                 Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "var s = new S()").WithArguments("extras", "S.Dispose(params int)").WithLocation(6, 15),
                 // (6,15): error CS1674: 'S': type used in a using statement must be implicitly convertible to 'System.IDisposable'.
                 //         using(var s = new S())
                 Diagnostic(ErrorCode.ERR_NoConvToIDisp, "var s = new S()").WithArguments("S").WithLocation(6, 15),
-                // (14,11): error CS7036: There is no argument given that corresponds to the required formal parameter 'extras' of 'S.Dispose(params int)'
+                // (14,11): error CS7036: There is no argument given that corresponds to the required parameter 'extras' of 'S.Dispose(params int)'
                 //         s.Dispose();
                 Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "Dispose").WithArguments("extras", "S.Dispose(params int)").WithLocation(14, 11)
             };
@@ -2041,13 +2041,13 @@ class C
 
             var expectedDiagnostics = new[]
             {
-                // (6,15): error CS7036: There is no argument given that corresponds to the required formal parameter 'extras' of 'S.Dispose(params object[], int)'
+                // (6,15): error CS7036: There is no argument given that corresponds to the required parameter 'extras' of 'S.Dispose(params object[], int)'
                 //         using(var s = new S())
                 Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "var s = new S()").WithArguments("extras", "S.Dispose(params object[], int)").WithLocation(6, 15),
                 // (6,15): error CS1674: 'S': type used in a using statement must be implicitly convertible to 'System.IDisposable'.
                 //         using(var s = new S())
                 Diagnostic(ErrorCode.ERR_NoConvToIDisp, "var s = new S()").WithArguments("S").WithLocation(6, 15),
-                // (14,11): error CS7036: There is no argument given that corresponds to the required formal parameter 'extras' of 'S.Dispose(params object[], int)'
+                // (14,11): error CS7036: There is no argument given that corresponds to the required parameter 'extras' of 'S.Dispose(params object[], int)'
                 //         s.Dispose();
                 Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "Dispose").WithArguments("extras", "S.Dispose(params object[], int)").WithLocation(14, 11)
             };
@@ -4469,13 +4469,13 @@ Block[B6] - Exit
 ";
             var expectedDiagnostics = new[]
             {
-                // file.cs(8,21): error CS7036: There is no argument given that corresponds to the required formal parameter 'extras' of 'C.DisposeAsync(int, params int[], bool)'
+                // file.cs(8,21): error CS7036: There is no argument given that corresponds to the required parameter 'extras' of 'C.DisposeAsync(int, params int[], bool)'
                 //         await using(this){}
                 Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "this").WithArguments("extras", "C.DisposeAsync(int, params int[], bool)").WithLocation(8, 21),
                 // file.cs(8,21): error CS8410: 'C': type used in an asynchronous using statement must be implicitly convertible to 'System.IAsyncDisposable' or implement a suitable 'DisposeAsync' method.
                 //         await using(this){}
                 Diagnostic(ErrorCode.ERR_NoConvToIAsyncDisp, "this").WithArguments("C").WithLocation(8, 21),
-                // file.cs(11,34): error CS0231: A params parameter must be the last parameter in a formal parameter list
+                // file.cs(11,34): error CS0231: A params parameter must be the last parameter in a parameter list
                 //     Task DisposeAsync(int a = 3, params int[] extras, bool b = false) => throw null;
                 Diagnostic(ErrorCode.ERR_ParamsLast, "params int[] extras").WithLocation(11, 34)
             };

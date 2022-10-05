@@ -658,7 +658,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             }
             catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
             {
-                throw ExceptionUtilities.Unreachable;
+                throw ExceptionUtilities.Unreachable();
             }
         }
 
@@ -886,7 +886,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     }
 
                     var projectSummary = GetProjectAnalysisSummary(changedDocumentAnalyses);
-                    log.Write("Project summary for '{0}': {1}", projectSummary, newProject.FilePath);
+                    log.Write("Project summary for '{0}': {1}", newProject.FilePath, projectSummary);
                     if (projectSummary == ProjectAnalysisSummary.NoChanges)
                     {
                         continue;
@@ -1090,7 +1090,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             }
             catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
             {
-                throw ExceptionUtilities.Unreachable;
+                throw ExceptionUtilities.Unreachable();
             }
         }
 
@@ -1119,7 +1119,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
             var generation = baselineGeneration + 1;
             log.WriteToFile(sessionId, delta.ILDelta, newProject.Name, generation + ".il");
-            log.WriteToFile(sessionId, delta.MetadataDelta, newProject.Name, generation + ".md");
+            log.WriteToFile(sessionId, delta.MetadataDelta, newProject.Name, generation + ".meta");
             log.WriteToFile(sessionId, delta.PdbDelta, newProject.Name, generation + ".pdb");
         }
 
