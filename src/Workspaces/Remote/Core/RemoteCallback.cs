@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis.Remote
             }
             catch (Exception exception) when (ReportUnexpectedException(exception, cancellationToken))
             {
-                throw OnUnexpectedException(exception, cancellationToken);
+                throw new OperationCanceledIgnoringCallerTokenException(exception);
             }
         }
 
@@ -82,7 +82,7 @@ namespace Microsoft.CodeAnalysis.Remote
             }
             catch (Exception exception) when (ReportUnexpectedException(exception, cancellationToken))
             {
-                throw OnUnexpectedException(exception, cancellationToken);
+                throw new OperationCanceledIgnoringCallerTokenException(exception);
             }
         }
 
@@ -102,7 +102,7 @@ namespace Microsoft.CodeAnalysis.Remote
             }
             catch (Exception exception) when (ReportUnexpectedException(exception, cancellationToken))
             {
-                throw OnUnexpectedException(exception, cancellationToken);
+                throw new OperationCanceledIgnoringCallerTokenException(exception);
             }
         }
 
@@ -129,34 +129,21 @@ namespace Microsoft.CodeAnalysis.Remote
                     return false;
                 }
 
-                // Log unexpected state where a cancellation exception occurs without being requested.
+                // Log unexpected state where a cancellation exception occurs without being requested. This will return
+                // 'true' and caller will convert this to an acceptable cancellation token that won't cause a second
+                // NFW.
                 return FatalError.ReportAndCatch(exception);
             }
 
-            // When a connection is dropped we can see ConnectionLostException even though CancelLocallyInvokedMethodsWhenConnectionIsClosed is set.
-            // That's because there might be a delay between the JsonRpc detecting the disconnect and the call attempting to send a message.
-            // Catch the ConnectionLostException exception here and convert it to OperationCanceledException.
+            // When a connection is dropped we can see ConnectionLostException even though
+            // CancelLocallyInvokedMethodsWhenConnectionIsClosed is set. That's because there might be a delay between
+            // the JsonRpc detecting the disconnect and the call attempting to send a message. Catch the
+            // ConnectionLostException exception here and convert it to OperationCanceledException.
             if (exception is ConnectionLostException)
-            {
                 return true;
-            }
 
             // Indicates bug on client side or in serialization, report NFW and propagate the exception.
             return FatalError.ReportAndPropagate(exception);
-        }
-
-        private static Exception OnUnexpectedException(Exception exception, CancellationToken cancellationToken)
-        {
-            cancellationToken.ThrowIfCancellationRequested();
-
-            if (exception is ConnectionLostException)
-            {
-                throw new OperationCanceledIgnoringCallerTokenException(exception);
-            }
-
-            // If this is hit the cancellation token passed to the service implementation did not use the correct token,
-            // and the resulting exception was not a ConnectionLostException.
-            return ExceptionUtilities.Unreachable();
         }
     }
 }
