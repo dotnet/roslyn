@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
         internal partial class WorkCoordinator
         {
             // this is internal only type
-            private readonly struct WorkItem
+            internal readonly struct WorkItem
             {
                 // project related workitem
                 public readonly ProjectId ProjectId;
@@ -161,12 +161,6 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         SpecificAnalyzers,
                         IsRetry,
                         asyncToken);
-                }
-
-                public WorkItem With(ImmutableHashSet<IIncrementalAnalyzer> specificAnalyzers, IAsyncToken asyncToken)
-                {
-                    return new WorkItem(DocumentId, ProjectId, Language, InvocationReasons,
-                        IsLowPriority, ActiveMember, specificAnalyzers, IsRetry, asyncToken);
                 }
 
                 public override string ToString()
