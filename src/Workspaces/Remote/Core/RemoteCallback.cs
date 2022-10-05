@@ -91,8 +91,8 @@ namespace Microsoft.CodeAnalysis.Remote
         /// currently executing brokered service hosted in ServiceHub process. The API streams results back to the
         /// caller.
         /// </summary>
-        /// <param name="invocation">A callback to asynchronously write data. The callback should not complete the <see
-        /// cref="PipeWriter"/>, but no harm will happen if it does.</param>
+        /// <param name="invocation">A callback to asynchronously write data. The callback should always <see
+        /// cref="PipeWriter.Complete"/> the <see cref="PipeWriter"/>.  If it does not then reading will hang</param>
         /// <param name="reader">A callback to asynchronously read data. The callback should not complete the <see
         /// cref="PipeReader"/>, but no harm will happen if it does.</param>
         /// <param name="cancellationToken">A cancellation token the operation will observe.</param>
@@ -151,10 +151,23 @@ namespace Microsoft.CodeAnalysis.Remote
                     // exception on this side, knowing it will actually be thrown on the reading side.
                     await writer.CompleteAsync(e).ConfigureAwait(false);
                 }
+#if false
+                // Absolutely do not Complete/CompleteAsync the writer here.  The writer is passed to StreamJsonRPC
+                // which takes ownership of it.  The *inside* of that rpc is responsible for Completing the writer *it*
+                // is passed, which will signal the completion of the writer we have here.  Note: we *do* need to
+                // complete this writer in the event if an exception as that may have happened *prior* to even issuing
+                // the rpc.  If we don't complete the writer we will hang.  If the exception happened within the RPC
+                // the writer may already be completed, but it's fine for us to complete it a second time.
+                //
+                // It is *not* fine for us to complete the writer in a non-exception event as it is legal (and is the
+                // case) that the code in StreamJsonRPC may still be using it (see
+                // https://github.com/AArnott/Nerdbank.Streams/blob/dafeb5846702bc29e261c9ddf60f42feae01654c/src/Nerdbank.Streams/PipeExtensions.cs#L428)
+                // where the writer may be advanced in an independent Task even once the rpc message has returned to the
+                // caller (us). 
                 finally
                 {
-                    await writer.CompleteAsync(exception: null).ConfigureAwait(false);
                 }
+#endif
             }
         }
 
