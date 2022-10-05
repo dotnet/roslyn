@@ -35,6 +35,9 @@ namespace Microsoft.CodeAnalysis.Remote
 
         public async ValueTask GetAssetsAsync(PipeWriter pipeWriter, Checksum solutionChecksum, Checksum[] checksums, CancellationToken cancellationToken)
         {
+            // The responsibility is on us (as per the requirements of RemoteCallback.InvokeAsync) to Complete the
+            // pipewriter.  This will signal to streamjsonrpc that the writer passed into it is complete, which will
+            // allow the calling side know to stop reading results.
             try
             {
                 await GetAssetsWorkerAsync(pipeWriter, solutionChecksum, checksums, cancellationToken).ConfigureAwait(false);
