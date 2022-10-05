@@ -1320,7 +1320,7 @@ class C
 
             var item = new WorkItem(documentId, "C#", InvocationReasons.DocumentAdded, isLowPriority: false, analyzer: null, EmptyAsyncToken.Instance);
 
-            item = item.With(item.InvocationReasons, item.ActiveMember, analyzers: ImmutableHashSet.Create<IIncrementalAnalyzer>(analyzer2), item.IsRetry, item.AsyncToken);
+            item = item.With(item.InvocationReasons, item.ActiveMember, specificAnalyzers: ImmutableHashSet.Create<IIncrementalAnalyzer>(analyzer2), item.IsRetry, item.AsyncToken);
 
             Assert.True(item.SpecificAnalyzers.IsEmpty);
             Assert.Equal(2, item.GetApplicableAnalyzers(allAnalyzers).Count());
@@ -1341,7 +1341,7 @@ class C
 
             var item = new WorkItem(documentId, "C#", InvocationReasons.DocumentAdded, isLowPriority: false, analyzer: analyzer, EmptyAsyncToken.Instance);
 
-            item = item.With(item.InvocationReasons, item.ActiveMember, analyzers: ImmutableHashSet<IIncrementalAnalyzer>.Empty, item.IsRetry, item.AsyncToken);
+            item = item.With(item.InvocationReasons, item.ActiveMember, specificAnalyzers: ImmutableHashSet<IIncrementalAnalyzer>.Empty, item.IsRetry, item.AsyncToken);
 
             Assert.True(item.SpecificAnalyzers.IsEmpty);
             Assert.Equal(2, item.GetApplicableAnalyzers(allAnalyzers).Count());
@@ -1362,7 +1362,7 @@ class C
 
             var item = new WorkItem(documentId, "C#", InvocationReasons.DocumentAdded, isLowPriority: false, analyzer: analyzer, EmptyAsyncToken.Instance);
 
-            item = item.With(item.InvocationReasons, item.ActiveMember, analyzers: ImmutableHashSet.Create<IIncrementalAnalyzer>(analyzer2), item.IsRetry, item.AsyncToken);
+            item = item.With(item.InvocationReasons, item.ActiveMember, specificAnalyzers: ImmutableHashSet.Create<IIncrementalAnalyzer>(analyzer2), item.IsRetry, item.AsyncToken);
 
             Assert.Equal(2, item.SpecificAnalyzers.Count);
             Assert.Equal(2, item.GetApplicableAnalyzers(allAnalyzers).Count());

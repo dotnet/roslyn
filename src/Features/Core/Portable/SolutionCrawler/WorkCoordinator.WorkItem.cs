@@ -104,17 +104,6 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
                 public object Key => DocumentId ?? (object)ProjectId;
 
-                private ImmutableHashSet<IIncrementalAnalyzer> Union(ImmutableHashSet<IIncrementalAnalyzer> analyzers)
-                {
-                    // An empty analyzer list means run all analyzers, so empty always wins
-                    if (analyzers.IsEmpty || SpecificAnalyzers.IsEmpty)
-                    {
-                        return ImmutableHashSet<IIncrementalAnalyzer>.Empty;
-                    }
-
-                    return SpecificAnalyzers.Union(analyzers);
-                }
-
                 public WorkItem Retry(IAsyncToken asyncToken)
                 {
                     return new WorkItem(
@@ -124,7 +113,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
                 public WorkItem With(
                     InvocationReasons invocationReasons, SyntaxPath? currentMember,
-                    ImmutableHashSet<IIncrementalAnalyzer> analyzers, bool retry, IAsyncToken asyncToken)
+                    ImmutableHashSet<IIncrementalAnalyzer> specificAnalyzers, bool retry, IAsyncToken asyncToken)
                 {
                     // dispose old one
                     AsyncToken.Dispose();
@@ -135,8 +124,20 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         InvocationReasons.With(invocationReasons),
                         IsLowPriority,
                         ActiveMember == currentMember ? currentMember : null,
-                        Union(analyzers), IsRetry || retry,
+                        ComputeNewSpecificAnalyzers(specificAnalyzers, SpecificAnalyzers), IsRetry || retry,
                         asyncToken);
+
+                    static ImmutableHashSet<IIncrementalAnalyzer> ComputeNewSpecificAnalyzers(ImmutableHashSet<IIncrementalAnalyzer> specificAnalyzers1, ImmutableHashSet<IIncrementalAnalyzer> specificAnalyzers2)
+                    {
+                        // An empty analyzer list means run all analyzers, so empty always wins over any specific
+                        if (specificAnalyzers1.IsEmpty || specificAnalyzers2.IsEmpty)
+                        {
+                            return ImmutableHashSet<IIncrementalAnalyzer>.Empty;
+                        }
+
+                        // Otherwise, if both sets have analyzers we use a union of the two
+                        return specificAnalyzers1.Union(specificAnalyzers2);
+                    }
                 }
 
                 public WorkItem WithAsyncToken(IAsyncToken asyncToken)
