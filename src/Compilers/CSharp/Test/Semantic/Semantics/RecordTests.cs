@@ -30375,5 +30375,33 @@ record R1(int x);
 
             AssertEx.Equal("System.Int32 X", model.GetSymbolInfo(xReference).Symbol.ToTestDisplayString());
         }
+
+        [Fact]
+        public void AttributedDerivedRecord_BaseParameterNotVisibleInBody()
+        {
+            var source = """
+                public record Base(int X);
+                [Attr()]
+                public record Derived() : Base(M(out var y))
+                {
+                    static int M(out int y) => y = 1;
+                }
+
+                class Attr : System.Attribute {}
+                """;
+
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var xReference = tree.GetRoot().DescendantNodes().OfType<PrimaryConstructorBaseTypeSyntax>().Single().ArgumentList.Arguments[0].Expression;
+            var attrApplication = tree.GetRoot().DescendantNodes().OfType<AttributeSyntax>().Single();
+            var m = tree.GetRoot().DescendantNodes().OfType<MethodDeclarationSyntax>().Single();
+
+            Assert.Contains("System.Int32 y", model.LookupSymbols(xReference.SpanStart).Select(s => s.ToTestDisplayString()));
+            Assert.DoesNotContain("System.Int32 y", model.LookupSymbols(attrApplication.ArgumentList!.OpenParenToken.SpanStart + 1).Select(s => s.ToTestDisplayString()));
+            Assert.DoesNotContain("System.Int32 y", model.LookupSymbols(m.SpanStart).Select(s => s.ToTestDisplayString()));
+        }
     }
 }
