@@ -1963,14 +1963,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             }
 #endif
 
-            var enclosingSymbol = semanticModel.GetEnclosingSymbol(targetToken.SpanStart, cancellationToken);
+            // It's possible the caller is asking about a speculative semantic model, and may have moved before the
+            // bounds of that model (for example, while looking at the nearby tokens around an edit).  If so, ensure we
+            // walk outwards to the correct model to actually ask this question of.
+            var position = targetToken.SpanStart;
+            if (semanticModel.IsSpeculativeSemanticModel && position < semanticModel.OriginalPositionForSpeculation)
+                semanticModel = semanticModel.GetOriginalSemanticModel();
 
-            while (enclosingSymbol is IMethodSymbol method && (method.MethodKind == MethodKind.LocalFunction || method.MethodKind == MethodKind.AnonymousFunction))
+            var enclosingSymbol = semanticModel.GetEnclosingSymbol(position, cancellationToken);
+
+            while (enclosingSymbol is IMethodSymbol { MethodKind: MethodKind.LocalFunction or MethodKind.AnonymousFunction } method)
             {
                 if (method.IsStatic)
-                {
                     return false;
-                }
 
                 // It is allowed to reference the instance (`this`) within a local function or anonymous function, as long as the containing method allows it
                 enclosingSymbol = enclosingSymbol.ContainingSymbol;
