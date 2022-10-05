@@ -30395,13 +30395,13 @@ record R1(int x);
 
             var tree = comp.SyntaxTrees[0];
             var model = comp.GetSemanticModel(tree);
-            var xReference = tree.GetRoot().DescendantNodes().OfType<PrimaryConstructorBaseTypeSyntax>().Single().ArgumentList.Arguments[0].Expression;
+            var mCall = tree.GetRoot().DescendantNodes().OfType<PrimaryConstructorBaseTypeSyntax>().Single().ArgumentList.Arguments[0].Expression;
             var attrApplication = tree.GetRoot().DescendantNodes().OfType<AttributeSyntax>().Single();
-            var m = tree.GetRoot().DescendantNodes().OfType<MethodDeclarationSyntax>().Single();
+            var mDefinition = tree.GetRoot().DescendantNodes().OfType<MethodDeclarationSyntax>().Single();
 
-            Assert.Contains("System.Int32 y", model.LookupSymbols(xReference.SpanStart).Select(s => s.ToTestDisplayString()));
+            Assert.Contains("System.Int32 y", model.LookupSymbols(mCall.SpanStart).Select(s => s.ToTestDisplayString()));
             Assert.DoesNotContain("System.Int32 y", model.LookupSymbols(attrApplication.ArgumentList!.OpenParenToken.SpanStart + 1).Select(s => s.ToTestDisplayString()));
-            Assert.DoesNotContain("System.Int32 y", model.LookupSymbols(m.SpanStart).Select(s => s.ToTestDisplayString()));
+            Assert.DoesNotContain("System.Int32 y", model.LookupSymbols(mDefinition.SpanStart).Select(s => s.ToTestDisplayString()));
         }
     }
 }
