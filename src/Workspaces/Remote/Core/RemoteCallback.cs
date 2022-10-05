@@ -9,6 +9,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.ServiceHub.Framework;
+using Microsoft.VisualStudio.Threading;
 using Roslyn.Utilities;
 using StreamJsonRpc;
 
@@ -143,6 +144,9 @@ namespace Microsoft.CodeAnalysis.Remote
             {
                 try
                 {
+                    // Intentionally yield this thread so that the caller can proceed in parallel.
+                    await TaskScheduler.Default;
+
                     await invocation(service, writer, cancellationToken).ConfigureAwait(false);
                 }
                 catch (Exception e)
