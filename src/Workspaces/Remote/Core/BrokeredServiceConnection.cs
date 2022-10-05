@@ -347,6 +347,10 @@ namespace Microsoft.CodeAnalysis.Remote
 
                     throw;
                 }
+                finally
+                {
+                    await pipe.Writer.CompleteAsync().ConfigureAwait(false);
+                }
             }, mustNotCancelToken);
 
             var readerTask = Task.Run(
