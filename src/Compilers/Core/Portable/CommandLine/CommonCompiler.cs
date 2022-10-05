@@ -816,11 +816,12 @@ namespace Microsoft.CodeAnalysis
         // <Metalama>
 
         protected virtual bool RequiresMetalamaSupportServices => true;
-        protected virtual bool RequiresMetalamaLicensingServices => true;
+        protected virtual bool RequiresMetalamaLicenseEnforcement => true;
+        protected virtual bool RequiresMetalamaLicenseAudit => true;
 
         protected virtual bool IsLongRunningProcess => false;
 
-        private static LicensingInitializationOptions GetLicensingOptions(AnalyzerConfigOptionsProvider analyzerConfigOptionsProvider)
+        private LicensingInitializationOptions GetLicensingOptions(AnalyzerConfigOptionsProvider analyzerConfigOptionsProvider)
         {
             // Load license keys from build options.
             string? projectLicense = null;
@@ -836,7 +837,8 @@ namespace Microsoft.CodeAnalysis
                 ignoreUserLicenses = false;
             }
 
-            return new LicensingInitializationOptions { ProjectLicense = projectLicense, IgnoreUserProfileLicenses = ignoreUserLicenses, IgnoreUnattendedProcessLicense = ignoreUserLicenses };
+            return new LicensingInitializationOptions { ProjectLicense = projectLicense, IgnoreUserProfileLicenses = ignoreUserLicenses, IgnoreUnattendedProcessLicense = ignoreUserLicenses,
+            DisableLicenseAudit = !this.RequiresMetalamaLicenseAudit};
         }
 
         protected IServiceProvider CreateServiceProvider(Compilation inputCompilation, AnalyzerConfigOptionsProvider analyzerConfigProvider, ImmutableArray<ISourceTransformer> transformers)
@@ -845,7 +847,7 @@ namespace Microsoft.CodeAnalysis
 
             var dotNetSdkDirectory = GetDotNetSdkDirectory(analyzerConfigProvider);
 
-            var licenseOptions = this.RequiresMetalamaLicensingServices
+            var licenseOptions = this.RequiresMetalamaLicenseEnforcement
                 ? GetLicensingOptions(analyzerConfigProvider)
                 : new LicensingInitializationOptions();
 
@@ -857,8 +859,8 @@ namespace Microsoft.CodeAnalysis
             var backstageOptions = new BackstageInitializationOptions(applicationInfo, inputCompilation.AssemblyName)
             {
                 OpenWelcomePage = this.RequiresMetalamaSupportServices,
-                AddLicensing = this.RequiresMetalamaLicensingServices,
-                AddSupportServices = this.RequiresMetalamaSupportServices || this.RequiresMetalamaLicensingServices,
+                AddLicensing = this.RequiresMetalamaLicenseEnforcement,
+                AddSupportServices = this.RequiresMetalamaSupportServices,
                 LicensingOptions = licenseOptions,
                 DotNetSdkDirectory = dotNetSdkDirectory
             };

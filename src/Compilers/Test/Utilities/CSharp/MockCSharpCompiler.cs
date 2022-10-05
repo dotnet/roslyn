@@ -111,7 +111,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
         // <Metalama>
 
         protected override bool RequiresMetalamaSupportServices => false;
-        protected override bool RequiresMetalamaLicensingServices => !this._bypassLicensing;
+        protected override bool RequiresMetalamaLicenseEnforcement => !this._bypassLicensing;
+
+        protected override bool RequiresMetalamaLicenseAudit => false;
 
         protected override bool IsLongRunningProcess => false;
         // </Metalama>
