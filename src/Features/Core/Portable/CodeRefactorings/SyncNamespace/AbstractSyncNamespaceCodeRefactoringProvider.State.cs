@@ -10,7 +10,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ChangeNamespace;
 using Microsoft.CodeAnalysis.Editing;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
@@ -120,7 +120,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.SyncNamespace
                 }
                 else
                 {
-                    throw ExceptionUtilities.Unreachable;
+                    throw ExceptionUtilities.Unreachable();
                 }
 
                 // Namespace can't be changed if we can't construct a valid qualified identifier from folder names.
@@ -150,8 +150,8 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.SyncNamespace
             /// </summary>
             private static bool IsDocumentPathRootedInProjectFolder(Document document)
             {
-                var absoluteDircetoryPath = PathUtilities.GetDirectoryName(document.FilePath);
-                if (absoluteDircetoryPath is null)
+                var absoluteDirectoryPath = PathUtilities.GetDirectoryName(document.FilePath);
+                if (absoluteDirectoryPath is null)
                     return false;
 
                 var projectRoot = PathUtilities.GetDirectoryName(document.Project.FilePath);
@@ -163,7 +163,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.SyncNamespace
                 if (logicalDirectoryPath is null)
                     return false;
 
-                return PathUtilities.PathsEqual(absoluteDircetoryPath, logicalDirectoryPath);
+                return PathUtilities.PathsEqual(absoluteDirectoryPath, logicalDirectoryPath);
             }
 
             private static string? GetDefaultNamespace(Document document, ISyntaxFactsService syntaxFacts)

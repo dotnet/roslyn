@@ -132,9 +132,14 @@
         <target state="translated">符号搜索</target>
         <note />
       </trans-unit>
-      <trans-unit id="FeatureName_TodoCommentsDiscovery">
-        <source>TODO comments discovery</source>
-        <target state="translated">TODO 注释发现</target>
+      <trans-unit id="FeatureName_TaskList">
+        <source>Task list</source>
+        <target state="translated">任务列表</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FeatureName_UnitTestingSearch">
+        <source>Unit testing search</source>
+        <target state="new">Unit testing search</target>
         <note />
       </trans-unit>
       <trans-unit id="FeatureName_UnusedReferenceAnalysis">

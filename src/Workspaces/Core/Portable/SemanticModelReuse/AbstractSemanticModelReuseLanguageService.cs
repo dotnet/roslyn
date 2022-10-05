@@ -7,7 +7,7 @@ using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ErrorReporting;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 
 namespace Microsoft.CodeAnalysis.SemanticModelReuse
 {
@@ -53,13 +53,10 @@ namespace Microsoft.CodeAnalysis.SemanticModelReuse
 
                     try
                     {
-                        throw new InvalidOperationException(
-                            $@"Syntax trees should have been equivalent.
----
-{previousSyntaxTree.GetText(CancellationToken.None)}
----
-{currentSyntaxTree.GetText(CancellationToken.None)}
----");
+                        // Avoid including tree contents in exception message for privacy compliance. Instead, include
+                        // in exception type for dump analysis.
+                        throw new NonEquivalentTreeException(
+                            "Syntax trees should have been equivalent.", previousSyntaxTree, currentSyntaxTree);
 
                     }
                     catch (Exception e) when (FatalError.ReportAndCatch(e))
@@ -119,6 +116,22 @@ namespace Microsoft.CodeAnalysis.SemanticModelReuse
                 }
 
                 return previousMembers[index];
+            }
+        }
+
+        private sealed class NonEquivalentTreeException : Exception
+        {
+            // Used for analyzing dumps
+#pragma warning disable IDE0052 // Remove unread private members
+            private readonly SyntaxTree _originalSyntaxTree;
+            private readonly SyntaxTree _updatedSyntaxTree;
+#pragma warning restore IDE0052 // Remove unread private members
+
+            public NonEquivalentTreeException(string message, SyntaxTree originalSyntaxTree, SyntaxTree updatedSyntaxTree)
+                : base(message)
+            {
+                _originalSyntaxTree = originalSyntaxTree;
+                _updatedSyntaxTree = updatedSyntaxTree;
             }
         }
     }

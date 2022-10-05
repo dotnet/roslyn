@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.GenerateDeconstructMethod
             var token = root.FindToken(span.Start);
 
             var deconstruction = token.GetAncestors<SyntaxNode>()
-                .FirstOrDefault(n => n.IsKind(SyntaxKind.SimpleAssignmentExpression, SyntaxKind.ForEachVariableStatement));
+                .FirstOrDefault(n => n.Kind() is SyntaxKind.SimpleAssignmentExpression or SyntaxKind.ForEachVariableStatement);
 
             if (deconstruction is null)
             {
@@ -81,7 +81,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.GenerateDeconstructMethod
                     target = assignment.Left;
                     break;
                 default:
-                    throw ExceptionUtilities.Unreachable;
+                    throw ExceptionUtilities.Unreachable();
             }
 
             if (type?.Kind != SymbolKind.NamedType)

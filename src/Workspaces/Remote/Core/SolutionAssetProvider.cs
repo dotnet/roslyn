@@ -22,11 +22,13 @@ namespace Microsoft.CodeAnalysis.Remote
     {
         public const string ServiceName = "SolutionAssetProvider";
 
+        private static readonly PipeOptions s_pipeOptionsWithUnlimitedWriterBuffer = new(pauseWriterThreshold: long.MaxValue);
+
         internal static ServiceDescriptor ServiceDescriptor { get; } = ServiceDescriptor.CreateInProcServiceDescriptor(ServiceDescriptors.ComponentName, ServiceName, suffix: "", ServiceDescriptors.GetFeatureDisplayName);
 
-        private readonly HostWorkspaceServices _services;
+        private readonly SolutionServices _services;
 
-        public SolutionAssetProvider(HostWorkspaceServices services)
+        public SolutionAssetProvider(SolutionServices services)
         {
             _services = services;
         }
@@ -62,7 +64,7 @@ namespace Microsoft.CodeAnalysis.Remote
             // Configure the pipe to never block on write (waiting for the reader to read). This prevents deadlocks but
             // might result in more (non-contiguous) memory allocated for the underlying buffers. The amount of memory
             // is bounded by the total size of the serialized assets.
-            var localPipe = new Pipe(RemoteHostAssetSerialization.PipeOptionsWithUnlimitedWriterBuffer);
+            var localPipe = new Pipe(s_pipeOptionsWithUnlimitedWriterBuffer);
 
             var task1 = Task.Run(() =>
             {

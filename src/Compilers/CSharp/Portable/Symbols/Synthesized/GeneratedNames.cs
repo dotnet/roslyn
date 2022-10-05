@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Text;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -493,6 +494,58 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal static string LambdaCopyParameterName(int ordinal)
         {
             return "<p" + StringExtensions.GetNumeral(ordinal) + ">";
+        }
+
+        internal static string MakeFileTypeMetadataNamePrefix(string filePath, ImmutableArray<byte> checksumOpt)
+        {
+            var pooledBuilder = PooledStringBuilder.GetInstance();
+            var sb = pooledBuilder.Builder;
+            sb.Append('<');
+            AppendFileName(filePath, sb);
+            sb.Append('>');
+            sb.Append((char)GeneratedNameKind.FileType);
+            if (checksumOpt.IsDefault)
+            {
+                // Note: this is an error condition.
+                // This is only included for clarity for users inspecting the value of 'MetadataName'.
+                sb.Append("<no checksum>");
+            }
+            else
+            {
+                foreach (var b in checksumOpt)
+                {
+                    sb.AppendFormat("{0:X2}", b);
+                }
+            }
+            sb.Append("__");
+            return pooledBuilder.ToStringAndFree();
+        }
+
+        internal static string GetDisplayFilePath(string filePath)
+        {
+            var pooledBuilder = PooledStringBuilder.GetInstance();
+            AppendFileName(filePath, pooledBuilder.Builder);
+            return pooledBuilder.ToStringAndFree();
+        }
+
+        private static void AppendFileName(string filePath, StringBuilder sb)
+        {
+            var fileName = FileNameUtilities.GetFileName(filePath, includeExtension: false);
+            if (fileName is null)
+            {
+                return;
+            }
+
+            foreach (var ch in fileName)
+            {
+                sb.Append(ch switch
+                {
+                    >= 'a' and <= 'z' => ch,
+                    >= 'A' and <= 'Z' => ch,
+                    >= '0' and <= '9' => ch,
+                    _ => '_'
+                });
+            }
         }
     }
 }

@@ -32,11 +32,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             internal abstract AnonymousTypeOrDelegatePublicSymbol SubstituteTypes(AbstractTypeMap typeMap);
 
             protected override NamedTypeSymbol WithTupleDataCore(TupleExtraData newData)
-                => throw ExceptionUtilities.Unreachable;
+                => throw ExceptionUtilities.Unreachable();
 
             internal sealed override IEnumerable<FieldSymbol> GetFieldsToEmit()
             {
-                throw ExceptionUtilities.Unreachable;
+                throw ExceptionUtilities.Unreachable();
             }
 
             internal sealed override bool HasCodeAnalysisEmbeddedAttribute => false;
@@ -72,6 +72,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 get { return false; }
             }
+
+            internal sealed override FileIdentifier? AssociatedFileIdentifier => null;
 
             public sealed override int Arity
             {
@@ -152,7 +154,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             internal sealed override ImmutableArray<NamedTypeSymbol> GetInterfacesToEmit()
             {
-                throw ExceptionUtilities.Unreachable;
+                throw ExceptionUtilities.Unreachable();
             }
 
             internal abstract override NamedTypeSymbol BaseTypeNoUseSiteDiagnostics { get; }
@@ -226,7 +228,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             public sealed override bool AreLocalsZeroed
             {
-                get { throw ExceptionUtilities.Unreachable; }
+                get { throw ExceptionUtilities.Unreachable(); }
             }
 
             internal sealed override bool HasDeclarativeSecurity
@@ -236,7 +238,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             internal sealed override IEnumerable<Microsoft.Cci.SecurityAttribute> GetSecurityInformation()
             {
-                throw ExceptionUtilities.Unreachable;
+                throw ExceptionUtilities.Unreachable();
             }
 
             internal sealed override ImmutableArray<string> GetAppliedConditionalSymbols()
@@ -259,7 +261,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return ImmutableArray<NamedTypeSymbol>.Empty;
             }
 
-            internal sealed override NamedTypeSymbol AsNativeInteger() => throw ExceptionUtilities.Unreachable;
+            internal sealed override NamedTypeSymbol AsNativeInteger() => throw ExceptionUtilities.Unreachable();
 
             internal sealed override NamedTypeSymbol? NativeIntegerUnderlyingType => null;
 

@@ -17,13 +17,16 @@ namespace Microsoft.CodeAnalysis;
 /// <remarks>
 /// Used to front-load <see cref="SyntaxTree"/> parsing and <see cref="SourceText"/> retrieval to a caller that has knowledge of whether or not these operations
 /// should be performed synchronously or asynchronously. The <see cref="ParsedDocument"/> is then passed to a feature whose implementation is entirely synchronous.
-/// In general, any feature API that accepts <see cref="ParsedDocument"/> should be synchronous and not access the <see cref="Document"/> or <see cref="Solution"/> snapshots.
+/// In general, any feature API that accepts <see cref="ParsedDocument"/> should be synchronous and not access <see cref="Document"/> or <see cref="Solution"/> snapshots.
 /// In exceptional cases such API may be asynchronous as long as it completes synchronously in most common cases and async completion is rare. It is still desirable to improve the design
 /// of such feature to either not be invoked on a UI thread or be entirely synchronous.
 /// </remarks>
-internal readonly record struct ParsedDocument(DocumentId Id, SourceText Text, SyntaxNode Root, HostLanguageServices LanguageServices)
+internal readonly record struct ParsedDocument(DocumentId Id, SourceText Text, SyntaxNode Root, HostLanguageServices HostLanguageServices)
 {
     public SyntaxTree SyntaxTree => Root.SyntaxTree;
+
+    public LanguageServices LanguageServices => HostLanguageServices.LanguageServices;
+    public SolutionServices SolutionServices => LanguageServices.SolutionServices;
 
     public static async ValueTask<ParsedDocument> CreateAsync(Document document, CancellationToken cancellationToken)
     {
@@ -44,12 +47,12 @@ internal readonly record struct ParsedDocument(DocumentId Id, SourceText Text, S
     public ParsedDocument WithChangedText(SourceText text, CancellationToken cancellationToken)
     {
         var root = SyntaxTree.WithChangedText(text).GetRoot(cancellationToken);
-        return new ParsedDocument(Id, text, root, LanguageServices);
+        return new ParsedDocument(Id, text, root, HostLanguageServices);
     }
 
     public ParsedDocument WithChangedRoot(SyntaxNode root, CancellationToken cancellationToken)
     {
         var text = root.SyntaxTree.GetText(cancellationToken);
-        return new ParsedDocument(Id, text, root, LanguageServices);
+        return new ParsedDocument(Id, text, root, HostLanguageServices);
     }
 }

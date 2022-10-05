@@ -499,13 +499,11 @@ class C
         [Fact]
         public void TupleTypeWithTooFewElements()
         {
-            var tree = UsingTree(@"
+            UsingTree(@"
 class C
 {
     void M(int x, () y, (int a) z) { }
-}", options: TestOptions.Regular);
-
-            tree.GetDiagnostics().Verify(
+}", options: TestOptions.Regular,
                 // (4,20): error CS8124: Tuple must contain at least two elements.
                 //     void M(int x, () y, (int a) z) { }
                 Diagnostic(ErrorCode.ERR_TupleTooFewElements, ")").WithLocation(4, 20),
@@ -608,13 +606,11 @@ class C
         [Fact]
         public void TupleExpressionWithTooFewElements()
         {
-            var tree = UsingTree(@"
+            UsingTree(@"
 class C
 {
     object x = ((Alice: 1), ());
-}", options: TestOptions.Regular);
-
-            tree.GetDiagnostics().Verify(
+}", options: TestOptions.Regular,
                 // (4,26): error CS8124: Tuple must contain at least two elements.
                 //     object x = ((Alice: 1), ());
                 Diagnostic(ErrorCode.ERR_TupleTooFewElements, ")").WithLocation(4, 26),

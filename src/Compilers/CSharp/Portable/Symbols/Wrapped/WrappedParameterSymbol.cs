@@ -152,7 +152,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return _underlyingParameter.GetDocumentationCommentXml(preferredCulture, expandIncludes, cancellationToken);
         }
 
-        internal sealed override DeclarationScope Scope => _underlyingParameter.Scope;
+        internal sealed override DeclarationScope EffectiveScope => _underlyingParameter.EffectiveScope;
+
+        internal sealed override bool UseUpdatedEscapeRules => _underlyingParameter.UseUpdatedEscapeRules;
 
         #endregion
     }

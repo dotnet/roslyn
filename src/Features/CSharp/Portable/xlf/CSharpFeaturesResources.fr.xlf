@@ -102,6 +102,11 @@
         <target state="translated">Appliquer les préférences de plage</target>
         <note />
       </trans-unit>
+      <trans-unit id="Apply_readonly_struct_preferences">
+        <source>Apply 'readonly struct' preferences</source>
+        <target state="translated">Appliquer les préférences 'readonly struct'</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Apply_static_local_function_preferences">
         <source>Apply static local function preferences</source>
         <target state="translated">Appliquer les préférences de fonction locale statique</target>
@@ -147,10 +152,20 @@
         <target state="translated">Changer en cast</target>
         <note />
       </trans-unit>
+      <trans-unit id="Convert_0_to_record">
+        <source>Convert '{0}' to record</source>
+        <target state="translated">Convertir '{0}' en record</target>
+        <note>{Locked="record"} "record" is a C# keyword and should not be localized.</note>
+      </trans-unit>
       <trans-unit id="Convert_to_method">
         <source>Convert to method</source>
         <target state="translated">Convertir en méthode</target>
         <note />
+      </trans-unit>
+      <trans-unit id="Convert_to_positional_record">
+        <source>Convert to positional record</source>
+        <target state="translated">Convertir en record positionnel</target>
+        <note>{Locked="record"} "record" is a C# keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Convert_to_raw_string">
         <source>Convert to raw string</source>

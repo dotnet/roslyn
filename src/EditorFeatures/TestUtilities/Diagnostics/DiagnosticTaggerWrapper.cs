@@ -107,7 +107,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             await _listenerProvider.WaitAllDispatcherOperationAndTasksAsync(
                 _workspace,
                 FeatureAttribute.Workspace,
-                FeatureAttribute.SolutionCrawler,
+                FeatureAttribute.SolutionCrawlerLegacy,
                 FeatureAttribute.DiagnosticService,
                 FeatureAttribute.ErrorSquiggles,
                 FeatureAttribute.Classification);

@@ -20,6 +20,7 @@ using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Editor;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Extensions;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
+using Microsoft.VisualStudio.LanguageServices.Implementation.Venus;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Text;
@@ -63,7 +64,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             // Navigation should not change the context of linked files and Shared Projects.
             documentId = workspace.GetDocumentIdInCurrentContext(documentId);
 
-            if (!IsSecondaryBuffer(workspace, documentId))
+            if (!IsSecondaryBuffer(documentId))
                 return true;
 
             var document = workspace.CurrentSolution.GetRequiredDocument(documentId);
@@ -71,7 +72,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
             var vsTextSpan = GetVsTextSpan(text, textSpan, allowInvalidSpan);
             return await CanMapFromSecondaryBufferToPrimaryBufferAsync(
-                workspace, documentId, vsTextSpan, cancellationToken).ConfigureAwait(false);
+                documentId, vsTextSpan, cancellationToken).ConfigureAwait(false);
         }
 
         public async Task<bool> CanNavigateToLineAndOffsetAsync(Workspace workspace, DocumentId documentId, int lineNumber, int offset, CancellationToken cancellationToken)
@@ -79,7 +80,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             // Navigation should not change the context of linked files and Shared Projects.
             documentId = workspace.GetDocumentIdInCurrentContext(documentId);
 
-            if (!IsSecondaryBuffer(workspace, documentId))
+            if (!IsSecondaryBuffer(documentId))
             {
                 return true;
             }
@@ -89,7 +90,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             var vsTextSpan = text.GetVsTextSpanForLineOffset(lineNumber, offset);
 
             return await CanMapFromSecondaryBufferToPrimaryBufferAsync(
-                workspace, documentId, vsTextSpan, cancellationToken).ConfigureAwait(false);
+                documentId, vsTextSpan, cancellationToken).ConfigureAwait(false);
         }
 
         public async Task<bool> CanNavigateToPositionAsync(Workspace workspace, DocumentId documentId, int position, int virtualSpace, CancellationToken cancellationToken)
@@ -97,7 +98,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             // Navigation should not change the context of linked files and Shared Projects.
             documentId = workspace.GetDocumentIdInCurrentContext(documentId);
 
-            if (!IsSecondaryBuffer(workspace, documentId))
+            if (!IsSecondaryBuffer(documentId))
             {
                 return true;
             }
@@ -122,7 +123,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             var vsTextSpan = text.GetVsTextSpanForPosition(position, virtualSpace);
 
             return await CanMapFromSecondaryBufferToPrimaryBufferAsync(
-                workspace, documentId, vsTextSpan, cancellationToken).ConfigureAwait(false);
+                documentId, vsTextSpan, cancellationToken).ConfigureAwait(false);
         }
 
         public async Task<INavigableLocation?> GetLocationForSpanAsync(
@@ -318,10 +319,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 // Map the given span to the right location in the buffer.  If we're in a projection scenario, ensure
                 // the span reflects that.
                 var vsTextSpan = getVsTextSpan(text);
-                if (IsSecondaryBuffer(workspace, documentId))
+                if (IsSecondaryBuffer(documentId))
                 {
                     var mapped = await vsTextSpan.MapSpanFromSecondaryBufferToPrimaryBufferAsync(
-                        _threadingContext, workspace, documentId, cancellationToken).ConfigureAwait(false);
+                        _threadingContext, documentId, cancellationToken).ConfigureAwait(false);
                     if (mapped == null)
                         return false;
 
@@ -454,22 +455,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             }
         }
 
-        private static bool IsSecondaryBuffer(Workspace workspace, DocumentId documentId)
-        {
-            if (workspace is not VisualStudioWorkspaceImpl visualStudioWorkspace)
-            {
-                return false;
-            }
-
-            var containedDocument = visualStudioWorkspace.TryGetContainedDocument(documentId);
-            return containedDocument != null;
-        }
+        private static bool IsSecondaryBuffer(DocumentId documentId)
+            => ContainedDocument.TryGetContainedDocument(documentId) != null;
 
         private async Task<bool> CanMapFromSecondaryBufferToPrimaryBufferAsync(
-            Workspace workspace, DocumentId documentId, VsTextSpan spanInSecondaryBuffer, CancellationToken cancellationToken)
+            DocumentId documentId, VsTextSpan spanInSecondaryBuffer, CancellationToken cancellationToken)
         {
             var mapped = await spanInSecondaryBuffer.MapSpanFromSecondaryBufferToPrimaryBufferAsync(
-                _threadingContext, workspace, documentId, cancellationToken).ConfigureAwait(false);
+                _threadingContext, documentId, cancellationToken).ConfigureAwait(false);
             return mapped != null;
         }
 

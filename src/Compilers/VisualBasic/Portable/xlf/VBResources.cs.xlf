@@ -267,169 +267,169 @@
 -vbruntime:&lt;file&gt;                 Compile with the alternate Visual Basic
                                   runtime in &lt;file&gt;.
 </source>
-        <target state="new">                  Visual Basic Compiler Options
+        <target state="translated">                  Možnosti kompilátoru Visual Basic
 
-                                  - OUTPUT FILE -
--out:&lt;file&gt;                       Specifies the output file name.
--target:exe                       Create a console application (default).
-                                  (Short form: -t)
--target:winexe                    Create a Windows application.
--target:library                   Create a library assembly.
--target:module                    Create a module that can be added to an
-                                  assembly.
--target:appcontainerexe           Create a Windows application that runs in
+                                  - VÝSTUPNÍ SOUBOR -
+-out:&lt;soubor&gt;                       Určuje název výstupního souboru.
+-target:exe                       Vytvoří konzolovou aplikaci (výchozí).
+                                  (Krátký tvar: -t)
+-target:winexe                    Vytvoří aplikaci pro Windows.
+-target:library                   Vytvoří sestavení knihovny.
+-target:module                    Vytvoří modul, který lze přidat do
+                                  sestavení.
+-target:appcontainerexe           Vytvoří aplikaci pro Windows, která běží v kontejneru
                                   AppContainer.
--target:winmdobj                  Create a Windows Metadata intermediate file
--doc[+|-]                         Generates XML documentation file.
--doc:&lt;file&gt;                       Generates XML documentation file to &lt;file&gt;.
--refout:&lt;file&gt;                    Reference assembly output to generate
+-target:winmdobj                  Vytvoří zprostředkující soubor metadat Windows.
+-doc[+|-]                         Vygeneruje soubor dokumentace XML.
+-doc:&lt;soubor&gt;                       Vygeneruje soubor dokumentace XML pro &lt;soubor&gt;.
+-refout:&lt;soubor&gt;                    Odkazuje na výstup sestavení k vygenerování.
 
-                                  - INPUT FILES -
--addmodule:&lt;file_list&gt;            Reference metadata from the specified modules
--link:&lt;file_list&gt;                 Embed metadata from the specified interop
-                                  assembly. (Short form: -l)
--recurse:&lt;wildcard&gt;               Include all files in the current directory
-                                  and subdirectories according to the
-                                  wildcard specifications.
--reference:&lt;file_list&gt;            Reference metadata from the specified
-                                  assembly. (Short form: -r)
--analyzer:&lt;file_list&gt;             Run the analyzers from this assembly
-                                  (Short form: -a)
--additionalfile:&lt;file list&gt;       Additional files that don't directly affect code
-                                  generation but may be used by analyzers for producing
-                                  errors or warnings.
+                                  - VSTUPNÍ SOUBORY -
+-addmodule:&lt;seznam_souborů&gt;            Odkazuje na metadata ze zadaných modulů.
+-link:&lt;seznam_souborů&gt;                 Vloží metadata ze zadaného definičního
+                                  sestavení. (Krátký tvar: -l)
+-recurse:&lt;zástupný_symbol&gt;               Zahrne všechny soubory v aktuálním adresáři
+                                  a podadresářích podle specifikací
+                                  zástupných znaků.
+-reference:&lt;seznam_souborů&gt;            Odkazuje ze zadaného 
+                                  sestavení. (Krátký tvar: -r)
+-analyzer:&lt;seznam_souborů&gt;             Spouští analyzátory z tohoto sestavení.
+                                  (Krátký tvar: -a)
+-additionalfile:&lt;seznam_souborů&gt;       Další soubory, které nemají přímý vliv na generování
+                                  kódu, ale analyzátory je můžou použít pro
+                                  chyby a varování.
 
-                                  - RESOURCES -
--linkresource:&lt;resinfo&gt;           Links the specified file as an external
-                                  assembly resource.
-                                  resinfo:&lt;file&gt;[,&lt;name&gt;[,public|private]]
-                                  (Short form: -linkres)
--nowin32manifest                  The default manifest should not be embedded
-                                  in the manifest section of the output PE.
--resource:&lt;resinfo&gt;               Adds the specified file as an embedded
-                                  assembly resource.
-                                  resinfo:&lt;file&gt;[,&lt;name&gt;[,public|private]]
-                                  (Short form: -res)
--win32icon:&lt;file&gt;                 Specifies a Win32 icon file (.ico) for the
-                                  default Win32 resources.
--win32manifest:&lt;file&gt;             The provided file is embedded in the manifest
-                                  section of the output PE.
--win32resource:&lt;file&gt;             Specifies a Win32 resource file (.res).
+                                  - ZDROJE -
+-linkresource:&lt;údaj_o_zdroji&gt;           Propojí zadaný soubor jako zdroj
+                                  externího sestavení.
+                                  resinfo:&lt;soubor&gt;[,&lt;název&gt;[,public|private]]
+                                  (Krátký tvar: -linkres)
+-nowin32manifest                  Výchozí manifest by neměl být vložen
+                                  do oddílu manifestu výstupních dat PE.
+-resource:&lt;údaj_o_zdroji&gt;               Přidá zadaný soubor jako zdroj
+                                  vloženého sestavení.
+                                  resinfo:&lt;soubor&gt;[,&lt;název&gt;[,public|private]]
+                                  (Krátký tvar: -res)
+-win32icon:&lt;soubor&gt;                 Určuje soubor ikony Win32 (.ico) pro
+                                  výchozí zdroje Win32.
+-win32manifest:&lt;soubor&gt;             Zadaný soubor se vloží do oddílu manifestu
+                                  výstupních dat PE.
+-win32resource:&lt;soubor&gt;             Určuje soubor zdroje Win32 (.res).
 
-                                  - CODE GENERATION -
--optimize[+|-]                    Enable optimizations.
--removeintchecks[+|-]             Remove integer checks. Default off.
--debug[+|-]                       Emit debugging information.
--debug:full                       Emit full debugging information (default).
--debug:pdbonly                    Emit full debugging information.
--debug:portable                   Emit cross-platform debugging information.
--debug:embedded                   Emit cross-platform debugging information into
-                                  the target .dll or .exe.
--deterministic                    Produce a deterministic assembly
-                                  (including module version GUID and timestamp)
--refonly                          Produce a reference assembly in place of the main output
--instrument:TestCoverage          Produce an assembly instrumented to collect
-                                  coverage information
--sourcelink:&lt;file&gt;                Source link info to embed into PDB.
+                                  - GENEROVÁNÍ KÓDU -
+-optimize[+|-]                    Povolí optimalizace.
+-removeintchecks[+|-]             Odebere celočíselné kontroly. Ve výchozím nastavení je vypnuto.
+-debug[+|-]                       Vydá ladicí informace.
+-debug:full                       Vydá plné ladicí informace (výchozí).
+-debug:pdbonly                    Vydá jen ladicí informace pro PDB.
+-debug:portable                   Vydá ladicí informace pro všechny platformy.
+-debug:embedded                   Vydá ladicí informace pro všechny platformy do
+                                  cílového souboru .dll nebo .exe.
+-deterministic                    Vytvoří deterministické sestavení
+                                  (včetně GUID verze modulu a časového razítka).
+-refonly                          Vytvoří referenční sestavení místo hlavního výstupu.
+-instrument:TestCoverage          Vytvoří sestavení instrumentované pro shromažďování
+                                  informací o pokrytí.
+-sourcelink:&lt;soubor&gt;                Určuje zdroj informací o propojení pro vložení do PDB.
 
-                                  - ERRORS AND WARNINGS -
--nowarn                           Disable all warnings.
--nowarn:&lt;number_list&gt;             Disable a list of individual warnings.
--warnaserror[+|-]                 Treat all warnings as errors.
--warnaserror[+|-]:&lt;number_list&gt;   Treat a list of warnings as errors.
--ruleset:&lt;file&gt;                   Specify a ruleset file that disables specific
-                                  diagnostics.
--errorlog:&lt;file&gt;[,version=&lt;sarif_version&gt;]         
-                                  Specify a file to log all compiler and analyzer
-                                  diagnostics in SARIF format.
-                                  sarif_version:{1|2|2.1} Default is 1. 2 and 2.1
-                                  both mean SARIF version 2.1.0.
--reportanalyzer                   Report additional analyzer information, such as
-                                  execution time.
--skipanalyzers[+|-]               Skip execution of diagnostic analyzers.
+                                  - CHYBY A VAROVÁNÍ -
+-nowarn                           Zakáže všechna varování.
+-nowarn:&lt;číselný_seznam&gt;             Zakáže varování uvedená v seznamu.
+-warnaserror[+|-]                 Považuje všechna varování za chyby.
+-warnaserror[+|-]:&lt;číselný_seznam&gt;   Považuje varování v seznamu za chyby.
+-ruleset:&lt;soubor&gt;                   Určuje soubor sady pravidel, který zakáže konkrétní
+                                  diagnostiku.
+-errorlog:&lt;soubor&gt;[,version=&lt;verze_sarif&gt;]         
+                                  Určuje soubor pro protokolování veškeré diagnostiky kompilátorů
+                                  a analyzátorů ve formátu SARIF.
+                                  sarif_version:{1|2|2.1} Výchozí je 1. Hodnoty 2 i 2.1
+                                  označují verzi SARIF 2.1.0.
+-reportanalyzer                   Ohlásí další informace analyzátoru, jako je
+                                  doba provádění.
+-skipanalyzers[+|-]               Přeskočí provádění diagnostických analyzátorů.
 
-                                  - LANGUAGE -
--define:&lt;symbol_list&gt;             Declare global conditional compilation
-                                  symbol(s). symbol_list:name=value,...
-                                  (Short form: -d)
--imports:&lt;import_list&gt;            Declare global Imports for namespaces in
-                                  referenced metadata files.
-                                  import_list:namespace,...
--langversion:?                    Display the allowed values for language version
--langversion:&lt;string&gt;             Specify language version such as
-                                  `default` (latest major version), or
-                                  `latest` (latest version, including minor versions),
-                                  or specific versions like `14` or `15.3`
--optionexplicit[+|-]              Require explicit declaration of variables.
--optioninfer[+|-]                 Allow type inference of variables.
--rootnamespace:&lt;string&gt;           Specifies the root Namespace for all type
-                                  declarations.
--optionstrict[+|-]                Enforce strict language semantics.
--optionstrict:custom              Warn when strict language semantics are not
-                                  respected.
--optioncompare:binary             Specifies binary-style string comparisons.
-                                  This is the default.
--optioncompare:text               Specifies text-style string comparisons.
+                                  - JAZYK -
+-define:&lt;seznam_symbolů&gt;             Deklaruje globální symboly podmíněné
+                                  kompilace. seznam_symbolů:název=hodnota,...
+                                  (Krátký tvar: -d)
+-imports:&lt;seznam_importů&gt;            Deklarujte globální importy pro obory názvů
+                                  v odkazovaných souborech metadat.
+                                  seznam_importů:obor_názvů,...
+-langversion:?                    Zobrazí povolené hodnoty pro jazykovou verzi.
+-langversion:&lt;řetězec&gt;             Určuje jazykovou verzi, a to jako hodnotu
+                                  default (nejnovější hlavní verze) nebo
+                                  latest (nejnovější verze včetně podverzí)
+                                  nebo konkrétní verze, jako je 14 nebo 15.3.
+-optionexplicit[+|-]              Vyžaduje explicitní deklaraci proměnných.
+-optioninfer[+|-]                 Povolí odvozování typů proměnných.
+-rootnamespace:&lt;řetězec&gt;           Určuje kořenový obor názvů pro všechny deklarace
+                                  typů.
+-optionstrict[+|-]                Vynutí striktní sémantiku jazyka
+-optionstrict:custom              Upozorní, pokud není
+                                  respektována striktní sémantika jazyka.
+-optioncompare:binary             Určuje porovnání řetězců v binárním stylu.
+                                  Toto je výchozí nastavení.
+-optioncompare:text               Určuje porovnání řetězců ve stylu textu.
 
-                                  - MISCELLANEOUS -
--help                             Display this usage message. (Short form: -?)
--noconfig                         Do not auto-include VBC.RSP file.
--nologo                           Do not display compiler copyright banner.
--quiet                            Quiet output mode.
--verbose                          Display verbose messages.
--parallel[+|-]                    Concurrent build.
--version                          Display the compiler version number and exit.
+                                  - RŮZNÉ -
+-help                             Zobrazí tuto zprávu o použití. (Krátký tvar: -?)
+-noconfig                         Nezahrne automaticky soubor VBC.RSP.
+-nologo                           Nezobrazuje nápis o autorských právech kompilátoru
+-quiet                            Tichý režim výstupu
+-verbose                          Zobrazí podrobné zprávy.
+-parallel[+|-]                    Souběžné sestavení
+-version                          Zobrazí číslo verze kompilátoru a ukončí se.
 
-                                  - ADVANCED -
--baseaddress:&lt;number&gt;             The base address for a library or module
-                                  (hex).
--checksumalgorithm:&lt;alg&gt;          Specify algorithm for calculating source file
-                                  checksum stored in PDB. Supported values are:
-                                  SHA1 or SHA256 (default).
--codepage:&lt;number&gt;                Specifies the codepage to use when opening
-                                  source files.
--delaysign[+|-]                   Delay-sign the assembly using only the public
-                                  portion of the strong name key.
--publicsign[+|-]                  Public-sign the assembly using only the public
-                                  portion of the strong name key.
--errorreport:&lt;string&gt;             Specifies how to handle internal compiler
-                                  errors; must be prompt, send, none, or queue
-                                  (default).
--filealign:&lt;number&gt;               Specify the alignment used for output file
-                                  sections.
--highentropyva[+|-]               Enable high-entropy ASLR.
--keycontainer:&lt;string&gt;            Specifies a strong name key container.
--keyfile:&lt;file&gt;                   Specifies a strong name key file.
--libpath:&lt;path_list&gt;              List of directories to search for metadata
-                                  references. (Semi-colon delimited.)
--main:&lt;class&gt;                     Specifies the Class or Module that contains
-                                  Sub Main. It can also be a Class that
-                                  inherits from System.Windows.Forms.Form.
-                                  (Short form: -m)
--moduleassemblyname:&lt;string&gt;      Name of the assembly which this module will
-                                  be a part of.
--netcf                            Target the .NET Compact Framework.
--nostdlib                         Do not reference standard libraries
-                                  (system.dll and VBC.RSP file).
+                                  - POKROČILÉ MOŽNOSTI -
+-baseaddress:&lt;číslo&gt;             Základní adresa knihovny nebo modulu
+                                  (hex.).
+-checksumalgorithm:&lt;alg&gt;         Zadá algoritmus pro výpočet kontrolního
+                                  součtu zdrojového souboru uloženého v PDB. Podporované hodnoty:
+                                  SHA1 nebo SHA256 (výchozí).
+-codepage:&lt;číslo&gt;                Určuje znakovou stránku, která se má použít při otevírání
+                                  zdrojových souborů.
+-delaysign[+|-]                   Zpozdí podepsání sestavení jen pomocí veřejné
+                                  části klíče silného názvu.
+-publicsign[+|-]                  Veřejně podepíše sestavení jen pomocí veřejné
+                                  části klíče silného názvu.
+-errorreport:&lt;řetězec&gt;             Určuje, jak zpracovávat vnitřní chyby
+                                  kompilátoru. Musí mít hodnotu prompt, send, none nebo
+                                  queue (výchozí).
+-filealign:&lt;číslo&gt;               Určuje zarovnání pro oddíly výstupního
+                                  souboru.
+-highentropyva[+|-]               Povolí ASLR s vysokou entropií.
+-keycontainer:&lt;řetězec&gt;            Určuje kontejner klíče se silným názvem.
+-keyfile:&lt;soubor&gt;                   Určuje soubor klíče se silným názvem.
+-libpath:&lt;seznam_cestt&gt;              Seznam adresářů pro hledání odkazů na
+                                  metadata (Odděleno středníky.)
+-main:&lt;třída&gt;                     Určuje třídu nebo modul, který obsahuje
+                                  Sub Main. Může to být také třída, která
+                                  dědí z System.Windows.Forms.Form.
+                                  (Krátký tvar: -m)
+-moduleassemblyname:&lt;řetězec&gt;      Název sestavení, jehož součástí bude tento
+                                  modul.
+-netcf                            Cílí na .NET Compact Framework.
+-nostdlib                         Neodkazujte na standardní knihovny
+                                  (soubor system.dll a VBC.RSP).
 -pathmap:&lt;K1&gt;=&lt;V1&gt;,&lt;K2&gt;=&lt;V2&gt;,...
-                                  Specify a mapping for source path names output by
-                                  the compiler.
--platform:&lt;string&gt;                Limit which platforms this code can run on;
-                                  must be x86, x64, Itanium, arm, arm64
-                                  AnyCPU32BitPreferred or anycpu (default).
--preferreduilang                  Specify the preferred output language name.
--nosdkpath                        Disable searching the default SDK path for standard library assemblies.
--sdkpath:&lt;path&gt;                   Location of the .NET Framework SDK directory
+                                  Určuje mapování pro výstup s názvy zdrojových cest
+                                  z kompilátoru.
+-platform:&lt;řetězec&gt;                Omezí platformy, na kterých může tento kód běžet;
+                                  musí mít hodnotu x86, x64, Itanium, arm, arm64
+                                  AnyCPU32BitPreferred nebo anycpu (výchozí).
+-preferreduilang                  Určuje upřednostňovaný název výstupního jazyka.
+-nosdkpath                        Zakáže vyhledávání výchozí cesty sady SDK pro standardní sestavení knihovny.
+-sdkpath:&lt;cesta&gt;                   Umístění adresáře sady .NET Framework SDK
                                   (mscorlib.dll).
--subsystemversion:&lt;version&gt;       Specify subsystem version of the output PE.
-                                  version:&lt;number&gt;[.&lt;number&gt;]
--utf8output[+|-]                  Emit compiler output in UTF-8 character
-                                  encoding.
-@&lt;file&gt;                           Insert command-line settings from a text file
--vbruntime[+|-|*]                 Compile with/without the default Visual Basic
-                                  runtime.
--vbruntime:&lt;file&gt;                 Compile with the alternate Visual Basic
-                                  runtime in &lt;file&gt;.
+-subsystemversion:&lt;verze&gt;       Určuje verzi podsystému výstupních dat PE.
+                                  version:&lt;číslo&gt;[.&lt;číslo&gt;]
+-utf8output[+|-]                  Vydá výstup kompilátoru v kódování
+                                  znaků utf-8.
+@&lt;soubor&gt;                           Vloží nastavení příkazového řádku z textového souboru.
+-vbruntime[+|-|*]                 Zkompiluje pomocí výchozího modulu runtime Visual Basic
+                                  nebo bez něho.
+-vbruntime:&lt;soubor&gt;                 Zkompiluje pomocí alternativního modulu runtime Visual Basic
+                                  v souboru &lt;soubor&gt;.
 </target>
         <note />
       </trans-unit>
@@ -528,6 +528,16 @@
         <target state="translated">Načtené sestavení se odkazuje na architekturu .NET Framework, což se nepodporuje</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_AnalyzerReferencesNewerCompiler">
+        <source>The analyzer assembly '{0}' references version '{1}' of the compiler, which is newer than the currently running version '{2}'.</source>
+        <target state="translated">Sestavení analyzátoru {0} odkazuje na verzi {1} kompilátoru, která je novější než aktuálně spuštěná verze {2}.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_AnalyzerReferencesNewerCompiler_Title">
+        <source>The analyzer assembly references a newer version of the compiler than the currently running version.</source>
+        <target state="translated">Sestavení analyzátoru odkazuje na novější verzi kompilátoru, než je aktuálně spuštěná verze.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_CallerArgumentExpressionAttributeHasInvalidParameterName">
         <source>The CallerArgumentExpressionAttribute applied to parameter '{0}' will have no effect. It is applied with an invalid parameter name.</source>
         <target state="translated">Atribut CallerArgumentExpressionAttribute použitý u parametru {0} nebude mít žádný účinek. Argument je použitý s neplatným názvem parametru.</target>
@@ -546,6 +556,16 @@
       <trans-unit id="WRN_CallerArgumentExpressionAttributeSelfReferential_Title">
         <source>The CallerArgumentExpressionAttribute applied to parameter will have no effect because it's self-referential.</source>
         <target state="translated">CallerArgumentExpressionAttribute použitý u parametru nebude mít žádný vliv, protože odkazuje sám na sebe.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_DuplicateAnalyzerReference">
+        <source>Analyzer reference '{0}' specified multiple times</source>
+        <target state="translated">Odkaz analyzátoru {0} byl zadán vícekrát</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_DuplicateAnalyzerReference_Title">
+        <source>Analyzer reference specified multiple times</source>
+        <target state="translated">Odkaz analyzátoru byl zadán vícekrát</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_GeneratorFailedDuringGeneration">

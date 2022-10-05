@@ -6,10 +6,10 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
+namespace Microsoft.CodeAnalysis.CSharp.LanguageService
 {
     internal class CSharpHeaderFacts : AbstractHeaderFacts
     {

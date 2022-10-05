@@ -6,9 +6,6 @@ parameters:
 - name: jobName
   type: string
   default: ''
-- name: buildJobName
-  type: string
-  default: ''
 - name: testArtifactName
   type: string
   default: ''
@@ -20,11 +17,10 @@ parameters:
   default: ''
 - name: queueName
   type: string
-  default: 'Build.Windows.10.Amd64.Open'
+  default: 'windows.vs2022.amd64.open'
 
 jobs:
 - job: ${{ parameters.jobName }}
-  dependsOn: ${{ parameters.buildJobName }}
   pool:
     name: NetCore-Public
     demands: ImageOverride -equals ${{ parameters.queueName }}
@@ -34,6 +30,14 @@ jobs:
     DOTNET_ROLL_FORWARD_TO_PRERELEASE: 1
   steps:
     - checkout: none
+
+    # A .NET 6 runtime is needed since our unit tests target net6.0
+    - task: UseDotNet@2
+      displayName: 'Install .NET 6 Runtime'
+      inputs:
+        packageType: runtime
+        version: 6.0.8
+        installationPath: '$(Build.SourcesDirectory)/.dotnet'
 
     - task: DownloadPipelineArtifact@2
       displayName: Download Test Payload

@@ -7,8 +7,9 @@ Imports Microsoft.CodeAnalysis.Remote.Testing
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigationBar
     <[UseExportProvider]>
+    <Trait(Traits.Feature, Traits.Features.NavigationBar)>
     Partial Public Class CSharpNavigationBarTests
-        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.NavigationBar), WorkItem(545021, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545021")>
+        <Theory, CombinatorialData, WorkItem(545021, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545021")>
         Public Async Function TestGenericTypeVariance(host As TestHost) As Task
             Await AssertItemsAreAsync(
                 <Workspace>
@@ -20,7 +21,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigationBar
                 Item("C<in I, out O>", Glyph.InterfaceInternal, children:={}))
         End Function
 
-        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.NavigationBar), WorkItem(545284, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545284")>
+        <Theory, CombinatorialData, WorkItem(545284, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545284")>
         Public Async Function TestGenericMember(host As TestHost) As Task
             Await AssertItemsAreAsync(
                 <Workspace>
@@ -33,7 +34,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigationBar
                      Item("Swap<T>(T lhs, T rhs)", Glyph.MethodPrivate)}))
         End Function
 
-        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.NavigationBar), WorkItem(545023, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545023")>
+        <Theory, CombinatorialData, WorkItem(545023, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545023")>
         Public Async Function TestNestedClasses(host As TestHost) As Task
             Await AssertItemsAreAsync(
                 <Workspace>
@@ -46,7 +47,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigationBar
                 Item("C.Nested", Glyph.ClassPrivate, children:={}))
         End Function
 
-        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.NavigationBar), WorkItem(545023, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545023")>
+        <Theory, CombinatorialData, WorkItem(545023, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545023")>
         Public Async Function TestSelectedItemForNestedClass(host As TestHost) As Task
             Await AssertSelectedItemsAreAsync(
                 <Workspace>
@@ -59,7 +60,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigationBar
                 Nothing, False)
         End Function
 
-        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.NavigationBar), WorkItem(545019, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545019")>
+        <Theory, CombinatorialData, WorkItem(545019, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545019")>
         Public Async Function TestSelectedItemForEnumAfterComma(host As TestHost) As Task
             Await AssertSelectedItemsAreAsync(
                 <Workspace>
@@ -72,7 +73,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigationBar
                 Item("A", Glyph.EnumMemberPublic), False)
         End Function
 
-        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.NavigationBar), WorkItem(545114, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545114")>
+        <Theory, CombinatorialData, WorkItem(545114, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545114")>
         Public Async Function TestSelectedItemForFieldAfterSemicolon(host As TestHost) As Task
             Await AssertSelectedItemsAreAsync(
                 <Workspace>
@@ -85,7 +86,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigationBar
                 Item("goo", Glyph.FieldPrivate), False)
         End Function
 
-        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.NavigationBar), WorkItem(545114, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545114")>
+        <Theory, CombinatorialData, WorkItem(545114, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545114")>
         Public Async Function TestSelectedItemForFieldInType(host As TestHost) As Task
             Await AssertSelectedItemsAreAsync(
                 <Workspace>
@@ -98,7 +99,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigationBar
                 Item("goo", Glyph.FieldPrivate), False)
         End Function
 
-        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.NavigationBar), WorkItem(545267, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545267")>
+        <Theory, CombinatorialData, WorkItem(545267, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545267")>
         Public Async Function TestSelectedItemAtEndOfFile(host As TestHost) As Task
             Await AssertSelectedItemsAreAsync(
                 <Workspace>
@@ -111,7 +112,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigationBar
                 Item("goo", Glyph.FieldPrivate), True)
         End Function
 
-        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.NavigationBar), WorkItem(545012, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545012")>
+        <Theory, CombinatorialData, WorkItem(545012, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545012")>
         Public Async Function TestExplicitInterfaceImplementation(host As TestHost) As Task
             Await AssertItemsAreAsync(
                 <Workspace>
@@ -127,7 +128,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigationBar
                     Item("IDisposable.Dispose()", Glyph.MethodPrivate)}))
         End Function
 
-        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.NavigationBar), WorkItem(545007, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545007")>
+        <Theory, CombinatorialData, WorkItem(545007, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545007")>
         Public Async Function TestRefAndOutParameters(host As TestHost) As Task
             Await AssertItemsAreAsync(
                 <Workspace>
@@ -142,7 +143,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigationBar
                     Item("M(out string goo, ref string bar)", Glyph.MethodPrivate)}))
         End Function
 
-        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.NavigationBar), WorkItem(545001, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545001")>
+        <Theory, CombinatorialData, WorkItem(545001, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545001")>
         Public Async Function TestOptionalParameter(host As TestHost) As Task
             Await AssertItemsAreAsync(
                 <Workspace>
@@ -157,7 +158,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigationBar
                     Item("M(int i = 0)", Glyph.MethodPrivate)}))
         End Function
 
-        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.NavigationBar)>
+        <Theory, CombinatorialData>
         Public Async Function TestOptionalParameter2(host As TestHost) As Task
             Await AssertItemsAreAsync(
                 <Workspace>
@@ -172,7 +173,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigationBar
                     Item("M(CancellationToken cancellationToken = default)", Glyph.MethodPrivate)}))
         End Function
 
-        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.NavigationBar), WorkItem(545274, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545274")>
+        <Theory, CombinatorialData, WorkItem(545274, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545274")>
         Public Async Function TestProperties(host As TestHost) As Task
             Await AssertItemsAreAsync(
                 <Workspace>
@@ -187,7 +188,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigationBar
                     Item("Number", Glyph.PropertyPrivate)}))
         End Function
 
-        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.NavigationBar), WorkItem(545220, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545220")>
+        <Theory, CombinatorialData, WorkItem(545220, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545220")>
         Public Async Function TestEnum(host As TestHost) As Task
             Await AssertItemsAreAsync(
                 <Workspace>
@@ -204,7 +205,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigationBar
                     Item("C", Glyph.EnumMemberPublic)}))
         End Function
 
-        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.NavigationBar), WorkItem(545220, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545220")>
+        <Theory, CombinatorialData, WorkItem(545220, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545220")>
         Public Async Function TestDelegate(host As TestHost) As Task
             Await AssertItemsAreAsync(
                 <Workspace>
@@ -218,7 +219,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigationBar
                 Item("Goo", Glyph.DelegateInternal, children:={}))
         End Function
 
-        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.NavigationBar), WorkItem(545114, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545114")>
+        <Theory, CombinatorialData, WorkItem(545114, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545114")>
         Public Async Function TestPartialClassWithFieldInOtherFile(host As TestHost) As Task
             Await AssertSelectedItemsAreAsync(
                 <Workspace>
@@ -232,7 +233,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigationBar
                 Item("goo", Glyph.FieldPrivate, grayed:=True), True)
         End Function
 
-        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.NavigationBar), WorkItem(578100, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/578100")>
+        <Theory, CombinatorialData, WorkItem(578100, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/578100")>
         Public Async Function TestPartialClassWithBothPartialMethodParts1(host As TestHost) As Task
             Await AssertItemsAreAsync(
                 <Workspace>
@@ -247,7 +248,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigationBar
                     Item("M()", Glyph.MethodPrivate, grayed:=True)}))
         End Function
 
-        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.NavigationBar), WorkItem(578100, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/578100")>
+        <Theory, CombinatorialData, WorkItem(578100, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/578100")>
         Public Async Function TestPartialClassWithBothPartialMethodParts2(host As TestHost) As Task
             Await AssertItemsAreAsync(
                 <Workspace>
@@ -262,7 +263,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigationBar
                     Item("M()", Glyph.MethodPrivate, grayed:=True)}))
         End Function
 
-        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.NavigationBar), WorkItem(578100, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/578100")>
+        <Theory, CombinatorialData, WorkItem(578100, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/578100")>
         Public Async Function TestPartialClassWithBothExtendedPartialMethodParts1(host As TestHost) As Task
             Await AssertItemsAreAsync(
                 <Workspace>
@@ -277,7 +278,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigationBar
                     Item("M()", Glyph.MethodPublic, grayed:=True)}))
         End Function
 
-        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.NavigationBar), WorkItem(578100, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/578100")>
+        <Theory, CombinatorialData, WorkItem(578100, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/578100")>
         Public Async Function TestPartialClassWithBothExtendedPartialMethodParts2(host As TestHost) As Task
             Await AssertItemsAreAsync(
                 <Workspace>
@@ -292,7 +293,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigationBar
                     Item("M()", Glyph.MethodPublic, grayed:=True)}))
         End Function
 
-        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.NavigationBar), WorkItem(37183, "https://github.com/dotnet/roslyn/issues/37183")>
+        <Theory, CombinatorialData, WorkItem(37183, "https://github.com/dotnet/roslyn/issues/37183")>
         Public Async Function TestNullableReferenceTypesInParameters(host As TestHost) As Task
             Await AssertItemsAreAsync(
                 <Workspace>
@@ -307,7 +308,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigationBar
                     Item("M(string? s, IEnumerable<string?> e)", Glyph.MethodPrivate)}))
         End Function
 
-        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.NavigationBar), WorkItem(59458, "https://github.com/dotnet/roslyn/issues/59458")>
+        <Theory, CombinatorialData, WorkItem(59458, "https://github.com/dotnet/roslyn/issues/59458")>
         Public Async Function TestCheckedBinaryOperator(host As TestHost) As Task
             Await AssertSelectedItemsAreAsync(
                 <Workspace>
@@ -327,7 +328,7 @@ class C
                 Item("operator checked +(C x, C y)", Glyph.Operator), False)
         End Function
 
-        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.NavigationBar), WorkItem(59458, "https://github.com/dotnet/roslyn/issues/59458")>
+        <Theory, CombinatorialData, WorkItem(59458, "https://github.com/dotnet/roslyn/issues/59458")>
         Public Async Function TestCheckedUnaryOperator(host As TestHost) As Task
             Await AssertSelectedItemsAreAsync(
                 <Workspace>
@@ -347,7 +348,7 @@ class C
                 Item("operator checked -(C x)", Glyph.Operator), False)
         End Function
 
-        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.NavigationBar), WorkItem(59458, "https://github.com/dotnet/roslyn/issues/59458")>
+        <Theory, CombinatorialData, WorkItem(59458, "https://github.com/dotnet/roslyn/issues/59458")>
         Public Async Function TestCheckedCastOperator(host As TestHost) As Task
             Await AssertSelectedItemsAreAsync(
                 <Workspace>

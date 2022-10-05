@@ -4,7 +4,7 @@
 
 using System.Collections.Immutable;
 using System.Threading;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.Pythia.Api

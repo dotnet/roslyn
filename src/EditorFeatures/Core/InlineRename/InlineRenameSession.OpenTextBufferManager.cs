@@ -144,10 +144,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 var view = sender as ITextView;
                 view.Closed -= OnTextViewClosed;
                 _textViews.Remove(view);
-                if (!_session._dismissed)
-                {
-                    _session.Cancel();
-                }
+                _session.Cancel();
             }
 
             internal void ConnectToView(ITextView textView)
@@ -475,7 +472,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                                 var linkedRenameSpan = _session._renameInfo.GetConflictEditSpan(
                                      new InlineRenameLocation(newDocument, replacement.NewSpan), GetTriggerText(newDocument, replacement.NewSpan),
                                      GetWithoutAttributeSuffix(_session.ReplacementText,
-                                        document.GetLanguageService<LanguageServices.ISyntaxFactsService>().IsCaseSensitive), cancellationToken);
+                                        document.GetLanguageService<LanguageService.ISyntaxFactsService>().IsCaseSensitive), cancellationToken);
 
                                 if (linkedRenameSpan.HasValue)
                                 {
@@ -570,13 +567,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                             return textChanges;
                         }
 
-                        var textDiffService = oldDocument.Project.Solution.Workspace.Services.GetService<IDocumentTextDifferencingService>();
+                        var textDiffService = oldDocument.Project.Solution.Services.GetService<IDocumentTextDifferencingService>();
                         return await textDiffService.GetTextChangesAsync(oldDocument, newDocument, cancellationToken).ConfigureAwait(false);
                     }
                 }
                 catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
                 {
-                    throw ExceptionUtilities.Unreachable;
+                    throw ExceptionUtilities.Unreachable();
                 }
             }
 
@@ -588,8 +585,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             {
                 _session._threadingContext.ThrowIfNotOnUIThread();
 
-                var textDiffService = preMergeDocument.Project.Solution.Workspace.Services.GetService<IDocumentTextDifferencingService>();
-                var contentType = preMergeDocument.Project.LanguageServices.GetService<IContentTypeLanguageService>().GetDefaultContentType();
+                var textDiffService = preMergeDocument.Project.Solution.Services.GetService<IDocumentTextDifferencingService>();
+                var contentType = preMergeDocument.Project.Services.GetService<IContentTypeLanguageService>().GetDefaultContentType();
 
                 // TODO: Track all spans at once
 
@@ -601,7 +598,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 var snapshot = preMergeDocumentText.FindCorrespondingEditorTextSnapshot();
                 if (snapshot != null)
                 {
-                    textBufferCloneService = preMergeDocument.Project.Solution.Workspace.Services.GetService<ITextBufferCloneService>();
+                    textBufferCloneService = preMergeDocument.Project.Solution.Services.GetService<ITextBufferCloneService>();
                     if (textBufferCloneService != null)
                     {
                         snapshotSpanToClone = snapshot.GetFullSpan();
@@ -654,7 +651,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 }
             }
 
-            private struct SelectionTracking : IDisposable
+            private readonly struct SelectionTracking : IDisposable
             {
                 private readonly int? _anchor;
                 private readonly int? _active;

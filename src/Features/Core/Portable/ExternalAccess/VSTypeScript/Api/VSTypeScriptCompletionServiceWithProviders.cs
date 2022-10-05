@@ -2,10 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Generic;
+using System.Globalization;
+using System.Linq;
 using Microsoft.CodeAnalysis.Completion;
-using Microsoft.CodeAnalysis.PatternMatching;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript.Api
@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript.Api
     internal abstract class VSTypeScriptCompletionServiceWithProviders : CompletionService
     {
         internal VSTypeScriptCompletionServiceWithProviders(Workspace workspace)
-            : base(workspace)
+            : base(workspace.Services.SolutionServices)
         {
         }
 
@@ -24,20 +24,23 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript.Api
 
         internal sealed override void FilterItems(
            Document document,
-           IReadOnlyList<(CompletionItem, PatternMatch?)> itemsWithPatternMatch,
+           IReadOnlyList<MatchResult> matchResults,
            string filterText,
-           IList<CompletionItem> builder)
-            => FilterItemsImpl(document, itemsWithPatternMatch, filterText, builder);
+           IList<MatchResult> builder)
+            => FilterItemsImpl(document, matchResults, filterText, builder);
 
         internal virtual void FilterItemsImpl(
             Document document,
-            IReadOnlyList<(CompletionItem, PatternMatch?)> itemsWithPatternMatch,
+            IReadOnlyList<MatchResult> matchResults,
             string filterText,
-            IList<CompletionItem> builder)
+            IList<MatchResult> builder)
         {
 #pragma warning disable RS0030 // Do not used banned APIs
-            builder.AddRange(FilterItems(document, itemsWithPatternMatch.SelectAsArray(item => item.Item1), filterText));
+            var filteredItems = FilterItems(document, matchResults.SelectAsArray(item => item.CompletionItem), filterText);
 #pragma warning restore RS0030 // Do not used banned APIs
+
+            var helper = CompletionHelper.GetHelper(document);
+            builder.AddRange(filteredItems.Select(item => helper.GetMatchResult(item, filterText, includeMatchSpans: false, CultureInfo.CurrentCulture)));
         }
     }
 }

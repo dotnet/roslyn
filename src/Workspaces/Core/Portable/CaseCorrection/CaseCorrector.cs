@@ -9,6 +9,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CaseCorrection
@@ -61,12 +62,12 @@ namespace Microsoft.CodeAnalysis.CaseCorrection
         /// Case corrects all names found in the provided spans.
         /// </summary>
         public static Task<Document> CaseCorrectAsync(Document document, ImmutableArray<TextSpan> spans, CancellationToken cancellationToken = default)
-            => document.Project.LanguageServices.GetRequiredService<ICaseCorrectionService>().CaseCorrectAsync(document, spans, cancellationToken);
+            => document.GetRequiredLanguageService<ICaseCorrectionService>().CaseCorrectAsync(document, spans, cancellationToken);
 
         /// <summary>
         /// Case correct only things that don't require semantic information
         /// </summary>
-        internal static SyntaxNode CaseCorrect(SyntaxNode root, ImmutableArray<TextSpan> spans, HostWorkspaceServices services, CancellationToken cancellationToken = default)
-            => services.GetLanguageServices(root.Language).GetRequiredService<ICaseCorrectionService>().CaseCorrect(root, spans, cancellationToken);
+        internal static SyntaxNode CaseCorrect(SyntaxNode root, ImmutableArray<TextSpan> spans, SolutionServices services, CancellationToken cancellationToken = default)
+            => services.GetRequiredLanguageService<ICaseCorrectionService>(root.Language).CaseCorrect(root, spans, cancellationToken);
     }
 }

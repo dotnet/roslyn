@@ -109,7 +109,7 @@ namespace Microsoft.CodeAnalysis
         /// out a SymbolKey from a previous version of Roslyn and then attempt to use it in a 
         /// newer version where the encoding has changed.
         /// </summary>
-        internal const int FormatVersion = 2;
+        internal const int FormatVersion = 5;
 
         [DataMember(Order = 0)]
         private readonly string _symbolKeyData;
@@ -188,7 +188,8 @@ namespace Microsoft.CodeAnalysis
                 return default;
             }
 
-            var result = reader.ReadSymbolKey(out failureReason);
+            // Initial entrypoint.  No contextual symbol to pass along.
+            var result = reader.ReadSymbolKey(contextualSymbol: null, out failureReason);
             Debug.Assert(reader.Position == symbolKey.Length);
             return result;
         }
@@ -249,6 +250,9 @@ namespace Microsoft.CodeAnalysis
                     CandidateReason.Ambiguous);
             }
         }
+
+        private static T? SafeGet<T>(ImmutableArray<T> values, int index) where T : class
+            => index < values.Length ? values[index] : null;
 
         private static bool Equals(Compilation compilation, string? name1, string? name2)
             => Equals(compilation.IsCaseSensitive, name1, name2);

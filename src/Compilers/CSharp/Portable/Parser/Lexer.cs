@@ -2399,6 +2399,7 @@ LoopExit:
                     // recognize >>>>>>> as we are scanning the trivia after a ======= marker 
                     // (which can never be part of legal code).
                     // case '>':
+                    case '|':
                     case '=':
                     case '<':
                         if (!isTrailing)
@@ -2429,7 +2430,7 @@ LoopExit:
             if (position == 0 || SyntaxFacts.IsNewLine(text[position - 1]))
             {
                 var firstCh = text[position];
-                Debug.Assert(firstCh == '<' || firstCh == '=' || firstCh == '>');
+                Debug.Assert(firstCh is '<' or '|' or '=' or '>');
 
                 if ((position + s_conflictMarkerLength) <= text.Length)
                 {
@@ -2441,7 +2442,7 @@ LoopExit:
                         }
                     }
 
-                    if (firstCh == '=')
+                    if (firstCh is '|' or '=')
                     {
                         return true;
                     }
@@ -2470,21 +2471,21 @@ LoopExit:
             // Now add the newlines as the next trivia.
             LexConflictMarkerEndOfLine(ref triviaList);
 
-            // Now, if it was an ======= marker, then also created a DisabledText trivia for
+            // Now, if it was an ||||||| or ======= marker, then also created a DisabledText trivia for
             // the contents of the file after it, up until the next >>>>>>> marker we see.
-            if (startCh == '=')
+            if (startCh is '|' or '=')
             {
-                LexConflictMarkerDisabledText(ref triviaList);
+                LexConflictMarkerDisabledText(startCh == '=', ref triviaList);
             }
         }
 
-        private SyntaxListBuilder LexConflictMarkerDisabledText(ref SyntaxListBuilder triviaList)
+        private SyntaxListBuilder LexConflictMarkerDisabledText(bool atSecondMiddleMarker, ref SyntaxListBuilder triviaList)
         {
-            // Consume everything from the start of the mid-conflict marker to the start of the next
-            // end-conflict marker.
+            // Consume everything from the end of the current mid-conflict marker to the start of the next
+            // end-conflict marker
             this.Start();
 
-            var hitEndConflictMarker = false;
+            var hitNextMarker = false;
             while (true)
             {
                 var ch = this.TextWindow.PeekChar();
@@ -2493,10 +2494,16 @@ LoopExit:
                     break;
                 }
 
+                if (!atSecondMiddleMarker && ch == '=' && IsConflictMarkerTrivia())
+                {
+                    hitNextMarker = true;
+                    break;
+                }
+
                 // If we hit the end-conflict marker, then lex it out at this point.
                 if (ch == '>' && IsConflictMarkerTrivia())
                 {
-                    hitEndConflictMarker = true;
+                    hitNextMarker = true;
                     break;
                 }
 
@@ -2508,7 +2515,7 @@ LoopExit:
                 this.AddTrivia(SyntaxFactory.DisabledText(TextWindow.GetText(false)), ref triviaList);
             }
 
-            if (hitEndConflictMarker)
+            if (hitNextMarker)
             {
                 LexConflictMarkerTrivia(ref triviaList);
             }

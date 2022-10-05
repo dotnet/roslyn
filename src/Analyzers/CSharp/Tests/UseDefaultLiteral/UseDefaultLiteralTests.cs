@@ -17,6 +17,7 @@ using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseDefaultLiteral
 {
+    [Trait(Traits.Feature, Traits.Features.CodeActionsUseDefaultLiteral)]
     public class UseDefaultLiteralTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
     {
         public UseDefaultLiteralTests(ITestOutputHelper logger)
@@ -33,7 +34,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseDefaultLiteral
         private static readonly TestParameters s_testParameters =
             new TestParameters(parseOptions: s_parseOptions);
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseDefaultLiteral)]
+        [Fact]
         public async Task TestNotInCSharp7()
         {
             await TestMissingAsync(
@@ -47,7 +48,7 @@ class C
     parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp7)));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseDefaultLiteral)]
+        [Fact]
         public async Task TestInParameterList()
         {
             await TestAsync(
@@ -67,7 +68,7 @@ class C
 }", parseOptions: s_parseOptions);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseDefaultLiteral)]
+        [Fact]
         public async Task TestInIfCheck()
         {
             await TestAsync(
@@ -89,7 +90,7 @@ class C
 }", parseOptions: s_parseOptions);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseDefaultLiteral)]
+        [Fact]
         public async Task TestInReturnStatement()
         {
             await TestAsync(
@@ -111,7 +112,7 @@ class C
 }", parseOptions: s_parseOptions);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseDefaultLiteral)]
+        [Fact]
         public async Task TestInReturnStatement2()
         {
             await TestMissingAsync(
@@ -125,7 +126,7 @@ class C
 }", parameters: s_testParameters);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseDefaultLiteral)]
+        [Fact]
         public async Task TestInLambda1()
         {
             await TestAsync(
@@ -151,7 +152,7 @@ class C
 }", parseOptions: s_parseOptions);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseDefaultLiteral)]
+        [Fact]
         public async Task TestInLambda2()
         {
             await TestMissingAsync(
@@ -167,7 +168,7 @@ class C
 }", parameters: s_testParameters);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseDefaultLiteral)]
+        [Fact]
         public async Task TestInLocalInitializer()
         {
             await TestAsync(
@@ -189,7 +190,7 @@ class C
 }", parseOptions: s_parseOptions);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseDefaultLiteral)]
+        [Fact]
         public async Task TestInLocalInitializer2()
         {
             await TestMissingAsync(
@@ -203,7 +204,7 @@ class C
 }", parameters: s_testParameters);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseDefaultLiteral)]
+        [Fact]
         public async Task TestNotForVar()
         {
             await TestMissingAsync(
@@ -217,7 +218,7 @@ class C
 }", parameters: s_testParameters);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseDefaultLiteral)]
+        [Fact]
         public async Task TestInInvocationExpression()
         {
             await TestAsync(
@@ -243,7 +244,7 @@ class C
 }", parseOptions: s_parseOptions);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseDefaultLiteral)]
+        [Fact]
         public async Task TestNotWithMultipleOverloads()
         {
             await TestMissingAsync(
@@ -260,7 +261,7 @@ class C
 }", parameters: s_testParameters);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseDefaultLiteral)]
+        [Fact]
         public async Task TestLeftSideOfTernary()
         {
             await TestAsync(
@@ -282,7 +283,7 @@ class C
 }", parseOptions: s_parseOptions);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseDefaultLiteral)]
+        [Fact]
         public async Task TestRightSideOfTernary()
         {
             await TestAsync(
@@ -304,7 +305,7 @@ class C
 }", parseOptions: s_parseOptions);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseDefaultLiteral)]
+        [Fact]
         public async Task TestFixAll1()
         {
             await TestAsync(
@@ -328,7 +329,7 @@ class C
 }", parseOptions: s_parseOptions);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseDefaultLiteral)]
+        [Fact]
         public async Task TestFixAll2()
         {
             await TestAsync(
@@ -350,7 +351,7 @@ class C
 }", parseOptions: s_parseOptions);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseDefaultLiteral)]
+        [Fact]
         public async Task TestFixAll3()
         {
             await TestAsync(
@@ -374,7 +375,7 @@ class C
 }", parseOptions: s_parseOptions);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseDefaultLiteral)]
+        [Fact]
         public async Task TestDoNotOfferIfTypeWouldChange()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -394,7 +395,7 @@ struct S
 }", new TestParameters(parseOptions: s_parseOptions));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseDefaultLiteral)]
+        [Fact]
         public async Task TestDoNotOfferIfTypeWouldChange2()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -414,7 +415,7 @@ struct S<T>
 }", new TestParameters(parseOptions: s_parseOptions));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseDefaultLiteral)]
+        [Fact]
         public async Task TestOnShadowedMethod()
         {
             await TestAsync(
@@ -443,8 +444,7 @@ struct S
 }", parseOptions: s_parseOptions);
         }
 
-        [WorkItem(25456, "https://github.com/dotnet/roslyn/issues/25456")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseDefaultLiteral)]
+        [Fact, WorkItem(25456, "https://github.com/dotnet/roslyn/issues/25456")]
         public async Task TestNotInSwitchCase()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -461,7 +461,7 @@ class C
 }", s_testParameters);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseDefaultLiteral)]
+        [Fact]
         public async Task TestNotInSwitchCase_InsideParentheses()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -478,7 +478,7 @@ class C
 }", s_testParameters);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseDefaultLiteral)]
+        [Fact]
         public async Task TestInSwitchCase_InsideCast()
         {
             await TestInRegularAndScript1Async(
@@ -506,7 +506,7 @@ class C
 }", parameters: s_testParameters);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseDefaultLiteral)]
+        [Fact]
         public async Task TestNotInPatternSwitchCase()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -523,7 +523,7 @@ class C
 }", s_testParameters);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseDefaultLiteral)]
+        [Fact]
         public async Task TestNotInPatternSwitchCase_InsideParentheses()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -540,7 +540,7 @@ class C
 }", s_testParameters);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseDefaultLiteral)]
+        [Fact]
         public async Task TestInPatternSwitchCase_InsideCast()
         {
             await TestInRegularAndScript1Async(
@@ -568,7 +568,7 @@ class C
 }", parameters: s_testParameters);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseDefaultLiteral)]
+        [Fact]
         public async Task TestInPatternSwitchCase_InsideWhenClause()
         {
             await TestInRegularAndScript1Async(
@@ -596,7 +596,7 @@ class C
 }", parameters: s_testParameters);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseDefaultLiteral)]
+        [Fact]
         public async Task TestNotInPatternIs()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -610,7 +610,7 @@ class C
 }", s_testParameters);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseDefaultLiteral)]
+        [Fact]
         public async Task TestNotInPatternIs_InsideParentheses()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -624,7 +624,7 @@ class C
 }", s_testParameters);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseDefaultLiteral)]
+        [Fact]
         public async Task TestInPatternIs_InsideCast()
         {
             await TestInRegularAndScript1Async(

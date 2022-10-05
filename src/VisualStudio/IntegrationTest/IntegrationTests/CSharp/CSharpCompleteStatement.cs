@@ -41,8 +41,7 @@ public class Test
             VisualStudio.Editor.Verify.CurrentLineText("f.ToString($$)", assertCaretPosition: true);
         }
 
-        [WpfFact]
-        [WorkItem(43400, "https://github.com/dotnet/roslyn/issues/43400")]
+        [WpfFact, WorkItem(43400, "https://github.com/dotnet/roslyn/issues/43400")]
         public void UndoRestoresCaretPosition2()
         {
             SetUpEditor(@"

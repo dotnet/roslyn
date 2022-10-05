@@ -1100,7 +1100,7 @@ class Test
                  [|}|]y"";
     }
 }",
-                expected: LanguageVersion.Preview,
+                expected: LanguageVersion.CSharp11,
                 new CSharpParseOptions(LanguageVersion.CSharp8));
         }
 
@@ -1113,7 +1113,7 @@ struct Test
     public int X;
     public [|Test|]() { }
 }",
-                expected: LanguageVersion.Preview,
+                expected: LanguageVersion.CSharp11,
                 new CSharpParseOptions(LanguageVersion.CSharp10));
         }
 
@@ -1126,7 +1126,7 @@ struct Test
     public int X;
     public [|Test|]() { this.ToString(); }
 }",
-                expected: LanguageVersion.Preview,
+                expected: LanguageVersion.CSharp11,
                 new CSharpParseOptions(LanguageVersion.CSharp10));
         }
 
@@ -1139,7 +1139,7 @@ struct Test
     public int X { get; set; }
     public [|Test|]() { this.ToString(); }
 }",
-                expected: LanguageVersion.Preview,
+                expected: LanguageVersion.CSharp11,
                 new CSharpParseOptions(LanguageVersion.CSharp10));
         }
     }

@@ -82,6 +82,11 @@
         <target state="translated">可移除 Lambda 運算式</target>
         <note />
       </trans-unit>
+      <trans-unit id="Make_struct_readonly">
+        <source>Make struct 'readonly'</source>
+        <target state="translated">將結構設為 'readonly'</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Misplaced_using_directive">
         <source>Misplaced using directive</source>
         <target state="translated">using 指示詞位置錯誤</target>
@@ -119,12 +124,12 @@
       </trans-unit>
       <trans-unit id="Nullable_directive_is_redundant">
         <source>Nullable directive is redundant</source>
-        <target state="new">Nullable directive is redundant</target>
+        <target state="translated">可為 Null 的指示詞是多餘的</target>
         <note />
       </trans-unit>
       <trans-unit id="Nullable_directive_is_unnecessary">
         <source>Nullable directive is unnecessary</source>
-        <target state="new">Nullable directive is unnecessary</target>
+        <target state="translated">無須使用可為 Null 的指示詞</target>
         <note />
       </trans-unit>
       <trans-unit id="Prefer_null_check_over_type_check">
@@ -144,7 +149,7 @@
       </trans-unit>
       <trans-unit id="Remove_redundant_nullable_directive">
         <source>Remove redundant nullable directive</source>
-        <target state="new">Remove redundant nullable directive</target>
+        <target state="translated">移除多餘而可為 Null 的指示詞</target>
         <note />
       </trans-unit>
       <trans-unit id="Remove_suppression_operators">
@@ -159,7 +164,7 @@
       </trans-unit>
       <trans-unit id="Remove_unnecessary_nullable_directive">
         <source>Remove unnecessary nullable directive</source>
-        <target state="new">Remove unnecessary nullable directive</target>
+        <target state="translated">移除不必要而可為 Null 的指示詞</target>
         <note />
       </trans-unit>
       <trans-unit id="Remove_unnecessary_suppression_operator">
@@ -187,6 +192,11 @@
         <target state="translated">簡化屬性模式</target>
         <note />
       </trans-unit>
+      <trans-unit id="Struct_can_be_made_readonly">
+        <source>Struct can be made 'readonly'</source>
+        <target state="translated">結構可以設為 'readonly'</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Struct_contains_assignment_to_this_outside_of_constructor_Make_readonly_fields_writable">
         <source>Struct contains assignment to 'this' outside of constructor. Make readonly fields writable.</source>
         <target state="translated">Struct 包含建構函式外對 'this' 的指派。請將唯讀欄位設為可寫入。</target>
@@ -204,7 +214,7 @@
       </trans-unit>
       <trans-unit id="Use_Utf8_string_literal">
         <source>Use UTF-8 string literal</source>
-        <target state="new">Use UTF-8 string literal</target>
+        <target state="translated">使用 UTF-8 字串常值</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_block_body_for_accessors">
@@ -225,6 +235,11 @@
       <trans-unit id="Use_block_body_for_indexers">
         <source>Use block body for indexers</source>
         <target state="translated">使用索引子的區塊主體</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_block_body_for_lambda_expressions">
+        <source>Use block body for lambda expressions</source>
+        <target state="translated">使用 Lambda 運算式的區塊主體</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_block_body_for_local_functions">
@@ -275,6 +290,11 @@
       <trans-unit id="Use_expression_body_for_indexers">
         <source>Use expression body for indexers</source>
         <target state="translated">使用索引子的運算式主體</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_expression_body_for_lambda_expressions">
+        <source>Use expression body for lambda expressions</source>
+        <target state="translated">使用 Lambda 運算式的運算式主體</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_expression_body_for_local_functions">

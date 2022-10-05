@@ -125,7 +125,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private sealed class SyntheticBinderImpl : BuckStopsHereBinder
         {
             private readonly SyntheticBoundNodeFactory _factory;
-            internal SyntheticBinderImpl(SyntheticBoundNodeFactory factory) : base(factory.Compilation)
+            internal SyntheticBinderImpl(SyntheticBoundNodeFactory factory) : base(factory.Compilation, associatedFileIdentifier: null)
             {
                 _factory = factory;
             }
@@ -1135,6 +1135,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         public BoundExpression Null(TypeSymbol type)
         {
             return Null(type, Syntax);
+        }
+
+        // Produce a ByRef null of given type, like `ref T Unsafe.NullRef<T>()`.
+        public BoundExpression NullRef(TypeWithAnnotations type)
+        {
+            // *default(T*)
+            return new BoundPointerIndirectionOperator(Syntax, Default(new PointerTypeSymbol(type)), refersToLocation: false, type.Type);
         }
 
         public static BoundExpression Null(TypeSymbol type, SyntaxNode syntax)

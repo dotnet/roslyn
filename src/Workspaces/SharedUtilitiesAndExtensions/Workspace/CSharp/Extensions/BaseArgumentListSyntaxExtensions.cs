@@ -9,35 +9,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
     internal static class BaseArgumentListSyntaxExtensions
     {
         public static SyntaxToken GetOpenToken(this BaseArgumentListSyntax node)
-        {
-            if (node != null)
+            => node switch
             {
-                switch (node.Kind())
-                {
-                    case SyntaxKind.ArgumentList:
-                        return ((ArgumentListSyntax)node).OpenParenToken;
-                    case SyntaxKind.BracketedArgumentList:
-                        return ((BracketedArgumentListSyntax)node).OpenBracketToken;
-                }
-            }
-
-            return default;
-        }
+                ArgumentListSyntax list => list.OpenParenToken,
+                BracketedArgumentListSyntax bracketedList => bracketedList.OpenBracketToken,
+                _ => default,
+            };
 
         public static SyntaxToken GetCloseToken(this BaseArgumentListSyntax node)
-        {
-            if (node != null)
+            => node switch
             {
-                switch (node.Kind())
-                {
-                    case SyntaxKind.ArgumentList:
-                        return ((ArgumentListSyntax)node).CloseParenToken;
-                    case SyntaxKind.BracketedArgumentList:
-                        return ((BracketedArgumentListSyntax)node).CloseBracketToken;
-                }
-            }
-
-            return default;
-        }
+                ArgumentListSyntax list => list.CloseParenToken,
+                BracketedArgumentListSyntax bracketedList => bracketedList.CloseBracketToken,
+                _ => default,
+            };
     }
 }

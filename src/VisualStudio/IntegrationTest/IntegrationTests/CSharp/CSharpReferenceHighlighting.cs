@@ -19,6 +19,7 @@ using Xunit.Abstractions;
 namespace Roslyn.VisualStudio.IntegrationTests.CSharp
 {
     [Collection(nameof(SharedIntegrationHostFixture))]
+    [Trait(Traits.Feature, Traits.Features.Classification)]
     public class CSharpReferenceHighlighting : AbstractEditorTest
     {
         protected override string LanguageName => LanguageNames.CSharp;
@@ -28,7 +29,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
         {
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [WpfFact]
         public void Highlighting()
         {
             var markup = @"
@@ -47,7 +48,7 @@ class {|definition:C|}
             VerifyNone("void");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [WpfFact]
         public void WrittenReference()
         {
             var markup = @"
@@ -67,7 +68,7 @@ class C
             VerifyNone("void");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [WpfFact]
         public void Navigation()
         {
             var text = @"
@@ -87,7 +88,7 @@ class C
         }
 
         [WorkItem(52041, "https://github.com/dotnet/roslyn/pull/52041")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [WpfFact]
         public void HighlightBasedOnSelection()
         {
             var text = @"
@@ -118,7 +119,7 @@ class C
             VisualStudio.Workspace.WaitForAllAsyncOperations(
                 Helper.HangMitigatingTimeout,
                 FeatureAttribute.Workspace,
-                FeatureAttribute.SolutionCrawler,
+                FeatureAttribute.SolutionCrawlerLegacy,
                 FeatureAttribute.DiagnosticService,
                 FeatureAttribute.Classification,
                 FeatureAttribute.ReferenceHighlighting);
@@ -142,7 +143,7 @@ class C
             VisualStudio.Workspace.WaitForAllAsyncOperations(
                 Helper.HangMitigatingTimeout,
                 FeatureAttribute.Workspace,
-                FeatureAttribute.SolutionCrawler,
+                FeatureAttribute.SolutionCrawlerLegacy,
                 FeatureAttribute.DiagnosticService,
                 FeatureAttribute.Classification,
                 FeatureAttribute.ReferenceHighlighting);

@@ -15,14 +15,14 @@ namespace Microsoft.CodeAnalysis.Snippets.SnippetProviders
     internal interface ISnippetProvider
     {
         /// <summary>
-        /// What we use to identify each SnippetProvider for easier retrieval
+        /// What we use to identify each SnippetProvider on the completion list
         /// </summary>
         string SnippetIdentifier { get; }
 
         /// <summary>
-        /// What is being displayed for the Snippet on the Completion list
+        /// What is being displayed for the description of the snippet
         /// </summary>
-        string SnippetDisplayName { get; }
+        string SnippetDescription { get; }
 
         /// <summary>
         /// Determines if a snippet can exist at a particular location.

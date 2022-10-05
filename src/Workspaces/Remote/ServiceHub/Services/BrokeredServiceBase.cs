@@ -76,8 +76,8 @@ namespace Microsoft.CodeAnalysis.Remote
         public RemoteWorkspace GetWorkspace()
             => WorkspaceManager.GetWorkspace();
 
-        public HostWorkspaceServices GetWorkspaceServices()
-            => GetWorkspace().Services;
+        public SolutionServices GetWorkspaceServices()
+            => GetWorkspace().Services.SolutionServices;
 
         protected void Log(TraceEventType errorType, string message)
             => TraceLogger.TraceEvent(errorType, 0, $"{GetType()}: {message}");
@@ -119,7 +119,7 @@ namespace Microsoft.CodeAnalysis.Remote
             }
             catch (Exception ex) when (FatalError.ReportAndPropagateUnlessCanceled(ex, cancellationToken))
             {
-                throw ExceptionUtilities.Unreachable;
+                throw ExceptionUtilities.Unreachable();
             }
         }
 
@@ -154,7 +154,7 @@ namespace Microsoft.CodeAnalysis.Remote
             }
             catch (Exception ex) when (FatalError.ReportAndPropagateUnlessCanceled(ex, cancellationToken))
             {
-                throw ExceptionUtilities.Unreachable;
+                throw ExceptionUtilities.Unreachable();
             }
         }
 

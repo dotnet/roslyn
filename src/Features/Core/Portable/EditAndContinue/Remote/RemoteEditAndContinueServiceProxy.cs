@@ -153,6 +153,12 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
         public async ValueTask<ImmutableArray<Diagnostic>> GetDocumentDiagnosticsAsync(Document document, Document designTimeDocument, ActiveStatementSpanProvider activeStatementSpanProvider, CancellationToken cancellationToken)
         {
+            // filter out documents that are not synchronized to remote process before we attempt remote invoke:
+            if (!RemoteSupportedLanguages.IsSupported(document.Project.Language))
+            {
+                return ImmutableArray<Diagnostic>.Empty;
+            }
+
             var client = await RemoteHostClient.TryGetClientAsync(Workspace, cancellationToken).ConfigureAwait(false);
             if (client == null)
             {
@@ -160,7 +166,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
                 if (designTimeDocument != document)
                 {
-                    diagnostics = diagnostics.SelectAsArray(diagnostic => RemapLocation(designTimeDocument, DiagnosticData.Create(diagnostic, document.Project)));
+                    diagnostics = diagnostics.SelectAsArray(
+                        diagnostic => RemapLocation(designTimeDocument, DiagnosticData.Create(document.Project.Solution, diagnostic, document.Project)));
                 }
 
                 return diagnostics;
@@ -211,7 +218,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
             // If the location in the generated document is in a scope of user-visible #line mapping use the mapped span,
             // otherwise (if it's hidden) display the diagnostic at the start of the file.
-            var span = data.DataLocation.IsMapped ? data.DataLocation.GetFileLinePositionSpan().Span : default;
+            var span = data.DataLocation.UnmappedFileSpan != data.DataLocation.MappedFileSpan ? data.DataLocation.MappedFileSpan.Span : default;
             var location = Location.Create(designTimeDocument.FilePath, textSpan: default, span);
 
             return data.ToDiagnostic(location, ImmutableArray<Location>.Empty);
@@ -219,6 +226,12 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
         public async ValueTask OnSourceFileUpdatedAsync(Document document, CancellationToken cancellationToken)
         {
+            // filter out documents that are not synchronized to remote process before we attempt remote invoke:
+            if (!RemoteSupportedLanguages.IsSupported(document.Project.Language))
+            {
+                return;
+            }
+
             var client = await RemoteHostClient.TryGetClientAsync(Workspace, cancellationToken).ConfigureAwait(false);
             if (client == null)
             {

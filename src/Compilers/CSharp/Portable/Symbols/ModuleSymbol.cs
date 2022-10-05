@@ -325,6 +325,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         internal abstract bool HasAssemblyRuntimeCompatibilityAttribute { get; }
 
+        internal abstract bool UseUpdatedEscapeRules { get; }
+
         /// <summary>
         /// Default char set for contained types, or null if not specified.
         /// </summary>
@@ -332,7 +334,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal virtual ImmutableArray<byte> GetHash(AssemblyHashAlgorithm algorithmId)
         {
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 
         /// <summary>

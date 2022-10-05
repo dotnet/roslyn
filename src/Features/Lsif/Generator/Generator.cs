@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.IO;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -13,7 +14,8 @@ using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.Graph;
 using Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.ResultSetTracking;
 using Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.Writing;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 using Methods = Microsoft.VisualStudio.LanguageServer.Protocol.Methods;
 
@@ -49,9 +51,14 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
             return generator;
         }
 
-        public async Task GenerateForCompilationAsync(Compilation compilation, string projectPath, HostLanguageServices languageServices, GeneratorOptions options)
+        public async Task GenerateForCompilationAsync(Compilation compilation, string projectPath, LanguageServices languageServices, GeneratorOptions options)
         {
-            var projectVertex = new Graph.LsifProject(kind: GetLanguageKind(compilation.Language), new Uri(projectPath), _idFactory);
+            var projectVertex = new Graph.LsifProject(
+                kind: GetLanguageKind(compilation.Language),
+                new Uri(projectPath),
+                Path.GetFileNameWithoutExtension(projectPath),
+                _idFactory);
+
             _lsifJsonWriter.Write(projectVertex);
             _lsifJsonWriter.Write(new Event(Event.EventKind.Begin, projectVertex.GetId(), _idFactory));
 
@@ -118,7 +125,7 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
         /// </remarks>
         private static async Task<Id<Graph.LsifDocument>> GenerateForDocumentAsync(
             SemanticModel semanticModel,
-            HostLanguageServices languageServices,
+            LanguageServices languageServices,
             GeneratorOptions options,
             IResultSetTracker topLevelSymbolsResultSetTracker,
             ILsifJsonWriter lsifJsonWriter,
@@ -220,7 +227,7 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
                     // SymbolFinder.FindSymbolAtPositionAsync where if a token is both a reference and definition we'll prefer the
                     // definition. Once we start supporting hover we'll have to remove the "original definition" part of this, since
                     // since we show different contents for different constructed types there.
-                    var symbolForLinkedResultSet = (declaredSymbol ?? referencedSymbol)!.OriginalDefinition;
+                    var symbolForLinkedResultSet = (declaredSymbol ?? referencedSymbol)!.GetOriginalUnreducedDefinition();
                     var symbolForLinkedResultSetId = symbolResultsTracker.GetResultSetIdForSymbol(symbolForLinkedResultSet);
                     lsifJsonWriter.Write(Edge.Create("next", lazyRangeVertex.Value.GetId(), symbolForLinkedResultSetId, idFactory));
 
@@ -236,7 +243,7 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
                         // symbol but the range can point a different symbol's resultSet. This can happen if the token is
                         // both a definition of a symbol (where we will point to the definition) but also a reference to some
                         // other symbol.
-                        var referenceResultsId = symbolResultsTracker.GetResultIdForSymbol(referencedSymbol.OriginalDefinition, Methods.TextDocumentReferencesName, () => new ReferenceResult(idFactory));
+                        var referenceResultsId = symbolResultsTracker.GetResultIdForSymbol(referencedSymbol.GetOriginalUnreducedDefinition(), Methods.TextDocumentReferencesName, () => new ReferenceResult(idFactory));
                         lsifJsonWriter.Write(new Item(referenceResultsId.As<ReferenceResult, Vertex>(), lazyRangeVertex.Value.GetId(), documentVertex.GetId(), idFactory, property: "references"));
                     }
 

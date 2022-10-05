@@ -29,10 +29,16 @@ namespace Roslyn.VisualStudio.NewIntegrationTests.InProcess
             var optionService = await GetComponentModelServiceAsync<IGlobalOptionService>(cancellationToken);
             var showInheritanceMargin = optionService.GetOption(FeatureOnOffOptions.ShowInheritanceMargin, languageName);
             var combinedWithIndicatorMargin = optionService.GetOption(FeatureOnOffOptions.InheritanceMarginCombinedWithIndicatorMargin);
+            var showGlobalUsings = optionService.GetOption(FeatureOnOffOptions.InheritanceMarginIncludeGlobalImports, languageName);
 
             if (showInheritanceMargin != true)
             {
                 optionService.SetGlobalOption(new OptionKey(FeatureOnOffOptions.ShowInheritanceMargin, languageName), true);
+            }
+
+            if (!showGlobalUsings)
+            {
+                optionService.SetGlobalOption(new OptionKey(FeatureOnOffOptions.InheritanceMarginIncludeGlobalImports, languageName), true);
             }
 
             if (combinedWithIndicatorMargin)
@@ -42,18 +48,34 @@ namespace Roslyn.VisualStudio.NewIntegrationTests.InProcess
             }
         }
 
-        public async Task SetTextAndEnsureGlyphsAppearAsync(string text, int expectedGlyphsNumberInMargin, CancellationToken cancellationToken)
+        public async Task DisableOptionsAsync(string languageName, CancellationToken cancellationToken)
+        {
+            var optionService = await GetComponentModelServiceAsync<IGlobalOptionService>(cancellationToken);
+            var showInheritanceMargin = optionService.GetOption(FeatureOnOffOptions.ShowInheritanceMargin, languageName);
+            var showGlobalUsings = optionService.GetOption(FeatureOnOffOptions.InheritanceMarginIncludeGlobalImports, languageName);
+
+            if (showInheritanceMargin != false)
+            {
+                optionService.SetGlobalOption(new OptionKey(FeatureOnOffOptions.ShowInheritanceMargin, languageName), false);
+            }
+
+            if (showGlobalUsings)
+            {
+                optionService.SetGlobalOption(new OptionKey(FeatureOnOffOptions.InheritanceMarginIncludeGlobalImports, languageName), false);
+            }
+        }
+
+        private async Task EnsureGlyphsAppearAsync(Func<CancellationToken, Task> makeChangeFunc, int expectedGlyphsNumberInMargin, CancellationToken cancellationToken)
         {
             var margin = await GetTextViewMarginAsync(cancellationToken);
-            var marginCanvas = (Canvas)((Grid)margin.VisualElement).Children[0];
+            var marginCanvas = (Canvas)margin.VisualElement;
             var taskCompletionSource = new TaskCompletionSource<bool>();
             using var _ = cancellationToken.Register(() => taskCompletionSource.TrySetCanceled());
 
             try
             {
                 marginCanvas.LayoutUpdated += OnGlyphChanged;
-
-                await TestServices.Editor.SetTextAsync(text, cancellationToken);
+                await makeChangeFunc(cancellationToken);
                 await taskCompletionSource.Task;
             }
             finally
@@ -70,15 +92,21 @@ namespace Roslyn.VisualStudio.NewIntegrationTests.InProcess
             }
         }
 
+        public Task EnableOptionsAndEnsureGlyphsAppearAsync(string languageName, int expectedGlyphsNumberInMargin, CancellationToken cancellationToken)
+            => EnsureGlyphsAppearAsync(cts => EnableOptionsAsync(languageName, cts), expectedGlyphsNumberInMargin, cancellationToken);
+
+        public Task SetTextAndEnsureGlyphsAppearAsync(string text, int expectedGlyphsNumberInMargin, CancellationToken cancellationToken)
+            => EnsureGlyphsAppearAsync(cts => TestServices.Editor.SetTextAsync(text, cts), expectedGlyphsNumberInMargin, cancellationToken);
+
         public async Task ClickTheGlyphOnLine(int lineNumber, CancellationToken cancellationToken)
         {
             await WaitForApplicationIdleAsync(cancellationToken);
             var glyph = await GetTheGlyphOnLineAsync(lineNumber, cancellationToken);
 
             var point = await GetCenterOfGlyphOnScreenAsync(glyph, cancellationToken);
-            await TestServices.Input.MoveMouseAsync(point);
+            await TestServices.Input.MoveMouseAsync(point, cancellationToken);
             await TestServices.Input.SendWithoutActivateAsync(
-                simulator => simulator.Mouse.LeftButtonClick());
+                simulator => simulator.Mouse.LeftButtonClick(), cancellationToken);
         }
 
         public async Task<InheritanceMarginGlyph> GetTheGlyphOnLineAsync(int lineNumber, CancellationToken cancellationToken)
@@ -88,11 +116,7 @@ namespace Roslyn.VisualStudio.NewIntegrationTests.InProcess
             var wpfTextViewLine = activeView.TextViewLines[lineNumber - 1];
             var midOfTheLine = wpfTextViewLine.TextTop + wpfTextViewLine.Height / 2;
             var margin = await GetTextViewMarginAsync(cancellationToken);
-
-            var grid = (Grid)margin.VisualElement;
-            // There will be only one Canvas element.
-            Assert.True(grid.Children.Count == 1);
-            var containingCanvas = (Canvas)((Grid)margin.VisualElement).Children[0];
+            var containingCanvas = (Canvas)margin.VisualElement;
 
             var glyphsOnLine = new List<InheritanceMarginGlyph>();
             foreach (var glyph in containingCanvas.Children)

@@ -108,6 +108,6 @@ namespace Microsoft.CodeAnalysis.UnitTests
         }
 
         public static IEnumerable<string?> GetApplicableLanguages(IOption option)
-            => (option is IPerLanguageOption) ? new[] { LanguageNames.CSharp, LanguageNames.VisualBasic } : new string?[] { null };
+            => (option is IPerLanguageValuedOption) ? new[] { LanguageNames.CSharp, LanguageNames.VisualBasic } : new string?[] { null };
     }
 }

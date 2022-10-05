@@ -268,9 +268,22 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return null;
             }
 
+            public override BoundNode VisitConstructorMethodBody(BoundConstructorMethodBody node)
+            {
+                // The implicit base call shares a syntax node with the constructor body, and we don't want to
+                // put it as the lower bound node as it will give incorrect results.
+                if (node.Syntax != node.Initializer?.Syntax)
+                {
+                    this.Visit(node.Initializer);
+                }
+                this.Visit(node.BlockBody);
+                this.Visit(node.ExpressionBody);
+                return null;
+            }
+
             public override BoundNode VisitBinaryOperator(BoundBinaryOperator node)
             {
-                throw ExceptionUtilities.Unreachable;
+                throw ExceptionUtilities.Unreachable();
             }
 
             protected override bool ConvertInsufficientExecutionStackExceptionToCancelledByStackGuardException()

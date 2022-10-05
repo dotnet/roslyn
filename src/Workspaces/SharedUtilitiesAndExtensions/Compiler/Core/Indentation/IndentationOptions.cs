@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Indentation
         public const FormattingOptions2.IndentStyle DefaultIndentStyle = FormattingOptions2.IndentStyle.Smart;
 
 #if !CODE_STYLE
-        public static IndentationOptions GetDefault(HostLanguageServices languageServices)
+        public static IndentationOptions GetDefault(LanguageServices languageServices)
             => new(SyntaxFormattingOptions.GetDefault(languageServices));
 #endif
     }

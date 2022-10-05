@@ -33,25 +33,19 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.SplitStringLiteral
     internal partial class SplitStringLiteralCommandHandler : ICommandHandler<ReturnKeyCommandArgs>
     {
         private readonly ITextUndoHistoryRegistry _undoHistoryRegistry;
-        private readonly IGlobalOptionService _globalOptions;
         private readonly IEditorOperationsFactoryService _editorOperationsFactoryService;
-        private readonly IEditorOptionsFactoryService _editorOptionsFatory;
-        private readonly IIndentationManagerService _indentationManager;
+        private readonly EditorOptionsService _editorOptionsService;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public SplitStringLiteralCommandHandler(
             ITextUndoHistoryRegistry undoHistoryRegistry,
-            IGlobalOptionService globalOptions,
             IEditorOperationsFactoryService editorOperationsFactoryService,
-            IEditorOptionsFactoryService editorOptionsFatory,
-            IIndentationManagerService indentationManager)
+            EditorOptionsService editorOptionsService)
         {
             _undoHistoryRegistry = undoHistoryRegistry;
-            _globalOptions = globalOptions;
             _editorOperationsFactoryService = editorOperationsFactoryService;
-            _editorOptionsFatory = editorOptionsFatory;
-            _indentationManager = indentationManager;
+            _editorOptionsService = editorOptionsService;
         }
 
         public string DisplayName => CSharpEditorResources.Split_string;
@@ -64,7 +58,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.SplitStringLiteral
 
         public bool ExecuteCommandWorker(ReturnKeyCommandArgs args)
         {
-            if (!_globalOptions.GetOption(SplitStringLiteralOptions.Enabled, LanguageNames.CSharp))
+            if (!_editorOptionsService.GlobalOptions.GetOption(SplitStringLiteralOptions.Enabled, LanguageNames.CSharp))
             {
                 return false;
             }
@@ -123,7 +117,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.SplitStringLiteral
                 return false;
             }
 
-            lazyOptions ??= subjectBuffer.GetIndentationOptions(_editorOptionsFatory, _indentationManager, _globalOptions, document.Project.LanguageServices, explicitFormat: false);
+            lazyOptions ??= subjectBuffer.GetIndentationOptions(_editorOptionsService, document.Project.Services, explicitFormat: false);
 
             using var transaction = CaretPreservingEditTransaction.TryCreate(
                 CSharpEditorResources.Split_string, textView, _undoHistoryRegistry, _editorOperationsFactoryService);

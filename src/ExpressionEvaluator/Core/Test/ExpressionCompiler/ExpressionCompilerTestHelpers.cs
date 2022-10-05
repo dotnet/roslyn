@@ -289,7 +289,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests
             return r.CompileResult;
         }
 
-        private struct CompileExpressionResult
+        private readonly struct CompileExpressionResult
         {
             internal readonly CompileResult CompileResult;
             internal readonly CompilationTestData TestData;

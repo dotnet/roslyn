@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.GenerateType
         {
             get
             {
-                return (TestGenerateTypeOptionsService)InvocationDocument.Project.Solution.Workspace.Services.GetRequiredService<IGenerateTypeOptionsService>();
+                return (TestGenerateTypeOptionsService)InvocationDocument.Project.Solution.Services.GetRequiredService<IGenerateTypeOptionsService>();
             }
         }
 
@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.GenerateType
         {
             get
             {
-                return (TestProjectManagementService)InvocationDocument.Project.Solution.Workspace.Services.GetService<IProjectManagementService>();
+                return (TestProjectManagementService)InvocationDocument.Project.Solution.Services.GetService<IProjectManagementService>();
             }
         }
 

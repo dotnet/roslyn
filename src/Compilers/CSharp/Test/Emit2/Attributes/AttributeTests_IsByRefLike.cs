@@ -491,7 +491,7 @@ class Test
 }
 ";
 
-            CompileAndVerify(text, verify: Verification.Passes, symbolValidator: module =>
+            CompileAndVerify(text, references: new[] { RefSafetyRulesAttributeLib }, verify: Verification.Passes, symbolValidator: module =>
             {
                 Assert.Null(module.ContainingAssembly.GetTypeByMetadataName(AttributeDescription.CodeAnalysisEmbeddedAttribute.FullName));
             });
@@ -967,7 +967,14 @@ namespace System
     {
         public ObsoleteAttribute(string message, bool error){}
     }
-
+    public class AttributeUsageAttribute : Attribute
+    {
+        public AttributeUsageAttribute(AttributeTargets validOn) { }
+        public bool AllowMultiple { get; set; }
+        public bool Inherited { get; set; }
+    }
+    public struct Enum { }
+    public enum AttributeTargets { }
     public ref struct TypedReference { }
     public ref struct ArgIterator { }
     public ref struct RuntimeArgumentHandle { }

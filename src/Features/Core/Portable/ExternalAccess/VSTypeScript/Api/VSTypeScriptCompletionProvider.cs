@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript.Api
             return ShouldTriggerCompletionImpl(text, caretPosition, trigger, CompletionOptions.Default.TriggerOnTypingLetters);
         }
 
-        internal sealed override bool ShouldTriggerCompletion(HostLanguageServices languageServices, SourceText text, int caretPosition, CompletionTrigger trigger, CompletionOptions options, OptionSet passThroughOptions)
+        internal sealed override bool ShouldTriggerCompletion(LanguageServices languageServices, SourceText text, int caretPosition, CompletionTrigger trigger, CompletionOptions options, OptionSet passThroughOptions)
             => ShouldTriggerCompletionImpl(text, caretPosition, trigger, options.TriggerOnTypingLetters);
 
         protected abstract bool ShouldTriggerCompletionImpl(SourceText text, int caretPosition, CompletionTrigger trigger, bool triggerOnTypingLetters);

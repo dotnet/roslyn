@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis
 
         protected DocumentState(
             HostLanguageServices languageServices,
-            SolutionServices solutionServices,
+            HostWorkspaceServices solutionServices,
             IDocumentServiceProvider? documentServiceProvider,
             DocumentInfo.DocumentAttributes attributes,
             ParseOptions? options,
@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis
             DocumentInfo info,
             ParseOptions? options,
             HostLanguageServices languageServices,
-            SolutionServices services)
+            HostWorkspaceServices services)
             : base(info, services)
         {
             _languageServices = languageServices;
@@ -232,7 +232,7 @@ namespace Microsoft.CodeAnalysis
             }
             catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken, ErrorSeverity.Critical))
             {
-                throw ExceptionUtilities.Unreachable;
+                throw ExceptionUtilities.Unreachable();
             }
         }
 
@@ -253,7 +253,7 @@ namespace Microsoft.CodeAnalysis
             }
             catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken, ErrorSeverity.Critical))
             {
-                throw ExceptionUtilities.Unreachable;
+                throw ExceptionUtilities.Unreachable();
             }
         }
 

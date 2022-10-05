@@ -402,7 +402,8 @@ partial class partial
         public void TestNegBug876575()
         {
             var text = @"partial enum E{}";
-            ParseAndRoundTripping(text, errorCount: 1);
+            // ERR_PartialMisplaced is not produced during parsing.
+            ParseAndRoundTripping(text, errorCount: 0);
         }
 
         [Fact]

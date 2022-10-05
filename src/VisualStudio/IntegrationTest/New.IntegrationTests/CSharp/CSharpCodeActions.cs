@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Extensibility.Testing;
 using Roslyn.Test.Utilities;
 using Roslyn.VisualStudio.IntegrationTests;
+using Roslyn.VisualStudio.IntegrationTests.InProcess;
 using WindowsInput.Native;
 using Xunit;
 
@@ -223,7 +224,7 @@ class C
                 new[]
                 {
                     FeatureAttribute.Workspace,
-                    FeatureAttribute.SolutionCrawler,
+                    FeatureAttribute.SolutionCrawlerLegacy,
                     FeatureAttribute.DiagnosticService,
                     FeatureAttribute.ErrorSquiggles
                 },
@@ -242,7 +243,7 @@ csharp_style_expression_bodied_properties = true:warning
                 new[]
                 {
                     FeatureAttribute.Workspace,
-                    FeatureAttribute.SolutionCrawler,
+                    FeatureAttribute.SolutionCrawlerLegacy,
                     FeatureAttribute.DiagnosticService,
                     FeatureAttribute.ErrorSquiggles
                 },
@@ -269,7 +270,7 @@ csharp_style_expression_bodied_properties = true:warning
                 new[]
                 {
                     FeatureAttribute.Workspace,
-                    FeatureAttribute.SolutionCrawler,
+                    FeatureAttribute.SolutionCrawlerLegacy,
                     FeatureAttribute.DiagnosticService,
                     FeatureAttribute.ErrorSquiggles
                 },
@@ -492,7 +493,7 @@ public class Program
 
 public class P2 { }", HangMitigatingCancellationToken);
 
-            await TestServices.Input.SendAsync(VirtualKeyCode.BACK, VirtualKeyCode.BACK, "Stream");
+            await TestServices.Input.SendAsync(new InputKey[] { VirtualKeyCode.BACK, VirtualKeyCode.BACK, "Stream" }, HangMitigatingCancellationToken);
             await TestServices.Workspace.WaitForAllAsyncOperationsAsync(
                 new[]
                 {
@@ -500,7 +501,7 @@ public class P2 { }", HangMitigatingCancellationToken);
                     FeatureAttribute.EventHookup,
                     FeatureAttribute.Rename,
                     FeatureAttribute.RenameTracking,
-                    FeatureAttribute.SolutionCrawler,
+                    FeatureAttribute.SolutionCrawlerLegacy,
                     FeatureAttribute.DiagnosticService,
                     FeatureAttribute.ErrorSquiggles,
                 },
@@ -538,7 +539,7 @@ public class P2 { }", HangMitigatingCancellationToken);
             await TestServices.EditorVerifier.TextContainsAsync("using System.IO;", cancellationToken: HangMitigatingCancellationToken);
         }
 
-        [IdeFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [IdeFact(Skip = "https://github.com/dotnet/roslyn/issues/57423"), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task GFUFuzzyMatchAfterRenameTrackingAndAfterGenerateType()
         {
             await SetUpEditorAsync(@"
@@ -557,8 +558,7 @@ namespace NS
         }
     }
 }", HangMitigatingCancellationToken);
-            await TestServices.Input.SendAsync(VirtualKeyCode.BACK, VirtualKeyCode.BACK,
-                "Foober");
+            await TestServices.Input.SendAsync(new InputKey[] { VirtualKeyCode.BACK, VirtualKeyCode.BACK, "Foober" }, HangMitigatingCancellationToken);
             await TestServices.Workspace.WaitForAllAsyncOperationsAsync(
                 new[]
                 {
@@ -566,7 +566,7 @@ namespace NS
                     FeatureAttribute.EventHookup,
                     FeatureAttribute.Rename,
                     FeatureAttribute.RenameTracking,
-                    FeatureAttribute.SolutionCrawler,
+                    FeatureAttribute.SolutionCrawlerLegacy,
                     FeatureAttribute.DiagnosticService,
                     FeatureAttribute.ErrorSquiggles,
                 },
@@ -772,7 +772,7 @@ class C
                 new[]
                 {
                     FeatureAttribute.Workspace,
-                    FeatureAttribute.SolutionCrawler,
+                    FeatureAttribute.SolutionCrawlerLegacy,
                     FeatureAttribute.DiagnosticService,
                     FeatureAttribute.ErrorSquiggles,
                 },
@@ -809,7 +809,7 @@ class C
                 new[]
                 {
                     FeatureAttribute.Workspace,
-                    FeatureAttribute.SolutionCrawler,
+                    FeatureAttribute.SolutionCrawlerLegacy,
                     FeatureAttribute.DiagnosticService,
                     FeatureAttribute.ErrorSquiggles,
                 },
@@ -852,7 +852,7 @@ class C
                 new[]
                 {
                     FeatureAttribute.Workspace,
-                    FeatureAttribute.SolutionCrawler,
+                    FeatureAttribute.SolutionCrawlerLegacy,
                     FeatureAttribute.DiagnosticService,
                     FeatureAttribute.ErrorSquiggles,
                 },
@@ -865,26 +865,26 @@ class C
             await TestServices.SolutionExplorer.AddFileAsync(ProjectName, ".editorconfig", open: true, cancellationToken: HangMitigatingCancellationToken);
             await TestServices.Input.SendAsync(@"
 [*.cs]
-dotnet_diagnostic.CS0168.severity = ");
+dotnet_diagnostic.CS0168.severity = ", HangMitigatingCancellationToken);
 
             // NOTE: Below wait is a critical step in repro-ing the original regression.
             await TestServices.Workspace.WaitForAllAsyncOperationsAsync(
                 new[]
                 {
                     FeatureAttribute.Workspace,
-                    FeatureAttribute.SolutionCrawler,
+                    FeatureAttribute.SolutionCrawlerLegacy,
                     FeatureAttribute.DiagnosticService,
                     FeatureAttribute.ErrorSquiggles,
                 },
                 HangMitigatingCancellationToken);
 
-            await TestServices.Input.SendAsync("error");
+            await TestServices.Input.SendAsync("error", HangMitigatingCancellationToken);
 
             await TestServices.Workspace.WaitForAllAsyncOperationsAsync(
                 new[]
                 {
                     FeatureAttribute.Workspace,
-                    FeatureAttribute.SolutionCrawler,
+                    FeatureAttribute.SolutionCrawlerLegacy,
                     FeatureAttribute.DiagnosticService,
                     FeatureAttribute.ErrorSquiggles,
                 },
@@ -979,7 +979,7 @@ class OtherType
                 new[]
                 {
                     FeatureAttribute.Workspace,
-                    FeatureAttribute.SolutionCrawler,
+                    FeatureAttribute.SolutionCrawlerLegacy,
                     FeatureAttribute.DiagnosticService,
                     FeatureAttribute.ErrorSquiggles
                 },
@@ -1145,7 +1145,7 @@ class OtherType2
                 new[]
                 {
                     FeatureAttribute.Workspace,
-                    FeatureAttribute.SolutionCrawler,
+                    FeatureAttribute.SolutionCrawlerLegacy,
                     FeatureAttribute.DiagnosticService,
                     FeatureAttribute.ErrorSquiggles
                 },
@@ -1225,7 +1225,7 @@ class C2
                 new[]
                 {
                     FeatureAttribute.Workspace,
-                    FeatureAttribute.SolutionCrawler,
+                    FeatureAttribute.SolutionCrawlerLegacy,
                     FeatureAttribute.DiagnosticService,
                     FeatureAttribute.ErrorSquiggles
                 },
@@ -1359,7 +1359,7 @@ class C2
                 new[]
                 {
                     FeatureAttribute.Workspace,
-                    FeatureAttribute.SolutionCrawler,
+                    FeatureAttribute.SolutionCrawlerLegacy,
                     FeatureAttribute.DiagnosticService,
                     FeatureAttribute.ErrorSquiggles
                 },
@@ -1399,7 +1399,7 @@ public class Program
                     FeatureAttribute.EventHookup,
                     FeatureAttribute.Rename,
                     FeatureAttribute.RenameTracking,
-                    FeatureAttribute.SolutionCrawler,
+                    FeatureAttribute.SolutionCrawlerLegacy,
                     FeatureAttribute.DiagnosticService,
                     FeatureAttribute.ErrorSquiggles,
                 },

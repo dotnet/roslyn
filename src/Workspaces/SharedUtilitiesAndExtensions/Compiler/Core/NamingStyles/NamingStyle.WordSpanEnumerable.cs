@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis.NamingStyles
 {
     internal partial record struct NamingStyle
     {
-        private struct WordSpanEnumerable
+        private readonly struct WordSpanEnumerable
         {
             private readonly string _name;
             private readonly TextSpan _nameSpan;

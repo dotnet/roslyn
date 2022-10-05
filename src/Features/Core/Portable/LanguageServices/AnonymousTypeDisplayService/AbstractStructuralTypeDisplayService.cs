@@ -9,7 +9,7 @@ using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.LanguageServices
+namespace Microsoft.CodeAnalysis.LanguageService
 {
     internal abstract partial class AbstractStructuralTypeDisplayService : IStructuralTypeDisplayService
     {
@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         {
             using var _ = ArrayBuilder<SymbolDisplayPart>.GetInstance(out var parts);
 
-            var invokeMethod = anonymousType.DelegateInvokeMethod ?? throw ExceptionUtilities.Unreachable;
+            var invokeMethod = anonymousType.DelegateInvokeMethod ?? throw ExceptionUtilities.Unreachable();
 
             parts.Add(new SymbolDisplayPart(SymbolDisplayPartKind.Keyword, symbol: null,
                 SyntaxFactsService.GetText(SyntaxFactsService.SyntaxKinds.DelegateKeyword)));

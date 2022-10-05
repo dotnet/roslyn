@@ -855,7 +855,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
 
             [StructLayout(LayoutKind.Auto)]
-            private struct TypeInfo
+            private readonly struct TypeInfo
             {
                 // The type, may be null if unbound.
                 public readonly ITypeSymbol Type;
@@ -886,7 +886,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
 
             [StructLayout(LayoutKind.Auto)]
-            private struct ParameterInfo
+            private readonly struct ParameterInfo
             {
                 public readonly TypeInfo Type;
                 public readonly bool IsRefOrOut;

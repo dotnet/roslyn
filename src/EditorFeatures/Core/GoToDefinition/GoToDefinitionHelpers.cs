@@ -2,19 +2,16 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.Navigation;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
@@ -64,7 +61,7 @@ namespace Microsoft.CodeAnalysis.GoToDefinition
                 symbol = method.PartialImplementationPart ?? symbol;
             }
 
-            using var definitionsDisposer = ArrayBuilder<DefinitionItem>.GetInstance(out var definitions);
+            using var _ = ArrayBuilder<DefinitionItem>.GetInstance(out var definitions);
 
             // Going to a symbol may end up actually showing the symbol in the Find-Usages window.
             // This happens when there is more than one location for the symbol (i.e. for partial
@@ -89,7 +86,7 @@ namespace Microsoft.CodeAnalysis.GoToDefinition
 
             if (thirdPartyNavigationAllowed)
             {
-                var factory = solution.Workspace.Services.GetService<IDefinitionsAndReferencesFactory>();
+                var factory = solution.Services.GetService<IDefinitionsAndReferencesFactory>();
                 if (factory != null)
                 {
                     var thirdPartyItem = await factory.GetThirdPartyDefinitionItemAsync(solution, definitionItem, cancellationToken).ConfigureAwait(false);

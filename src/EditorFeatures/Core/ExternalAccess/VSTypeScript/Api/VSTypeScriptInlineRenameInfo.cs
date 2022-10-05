@@ -57,5 +57,8 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript.Api
 
         bool IInlineRenameInfo.TryOnBeforeGlobalSymbolRenamed(Workspace workspace, IEnumerable<DocumentId> changedDocumentIDs, string replacementText)
             => true;
+
+        public InlineRenameFileRenameInfo GetFileRenameInfo()
+            => InlineRenameFileRenameInfo.NotAllowed;
     }
 }

@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders;
@@ -12,17 +10,19 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
 {
+    [Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
     public class ManagedKeywordRecommenderTests : RecommenderTests
     {
-        private readonly ManagedKeywordRecommender _recommender = new ManagedKeywordRecommender();
+        protected override string KeywordText => "managed";
+
+        private readonly ManagedKeywordRecommender _recommender = new();
 
         public ManagedKeywordRecommenderTests()
         {
-            this.keywordText = "managed";
             this.RecommendKeywordsAsync = (position, context) => Task.FromResult(_recommender.RecommendKeywords(position, context, CancellationToken.None));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact]
         public async Task TestInFunctionPointerDeclaration()
         {
             await VerifyKeywordAsync(
@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
         delegate* $$");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact]
         public async Task TestInFunctionPointerDeclarationTouchingAsterisk()
         {
             await VerifyKeywordAsync(

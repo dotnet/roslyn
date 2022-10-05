@@ -4,6 +4,7 @@
 
 Imports System.Runtime.CompilerServices
 Imports System.Runtime.InteropServices
+Imports System.Threading
 Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.SourceGeneration
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -19,7 +20,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Overrides ReadOnly Property IsCaseSensitive As Boolean = False
 
-        Public Overrides ReadOnly Property AttributeListKind As Integer = SyntaxKind.AttributeList
+        Protected Overrides ReadOnly Property AttributeListKind As Integer = SyntaxKind.AttributeList
 
         Public Overrides Function IsValidIdentifier(name As String) As Boolean
             Return SyntaxFacts.IsValidIdentifier(name)
@@ -69,31 +70,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return TypeOf node Is LambdaExpressionSyntax
         End Function
 
-        Public Overrides Function GetUnqualifiedIdentifierOfName(node As SyntaxNode) As SyntaxToken
-            Dim name = DirectCast(node, NameSyntax)
-
-            Dim qualifiedName = TryCast(name, QualifiedNameSyntax)
-            If qualifiedName IsNot Nothing Then
-                Return qualifiedName.Right.Identifier
-            End If
-
-            Dim simpleName = TryCast(node, SimpleNameSyntax)
-            If simpleName IsNot Nothing Then
-                Return simpleName.Identifier
-            End If
-
-            Throw ExceptionUtilities.UnexpectedValue(node.Kind())
+        Public Overrides Function GetUnqualifiedIdentifierOfName(node As SyntaxNode) As String
+            Return GetUnqualifiedIdentifierOfName(DirectCast(node.Green, InternalSyntax.NameSyntax))
         End Function
 
-        Public Overloads Function GetUnqualifiedIdentifierOfName(name As InternalSyntax.NameSyntax) As InternalSyntax.IdentifierTokenSyntax
+        Private Overloads Shared Function GetUnqualifiedIdentifierOfName(name As InternalSyntax.NameSyntax) As String
             Dim qualifiedName = TryCast(name, InternalSyntax.QualifiedNameSyntax)
             If qualifiedName IsNot Nothing Then
-                Return qualifiedName.Right.Identifier
+                Return qualifiedName.Right.Identifier.ValueText
             End If
 
             Dim simpleName = TryCast(name, InternalSyntax.SimpleNameSyntax)
             If simpleName IsNot Nothing Then
-                Return simpleName.Identifier
+                Return simpleName.Identifier.ValueText
             End If
 
             Throw ExceptionUtilities.UnexpectedValue(name.KindText)
@@ -126,11 +115,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Next
         End Sub
 
-        Private Sub ProcessImportsClause(aliases As ArrayBuilder(Of (aliasName As String, symbolName As String)), clause As InternalSyntax.ImportsClauseSyntax)
+        Private Shared Sub ProcessImportsClause(aliases As ArrayBuilder(Of (aliasName As String, symbolName As String)), clause As InternalSyntax.ImportsClauseSyntax)
             Dim importsClause = TryCast(clause, InternalSyntax.SimpleImportsClauseSyntax)
             If importsClause?.Alias IsNot Nothing Then
-                aliases.Add((importsClause.Alias.Identifier.ValueText, GetUnqualifiedIdentifierOfName(importsClause.Name).ValueText))
+                aliases.Add((importsClause.Alias.Identifier.ValueText, GetUnqualifiedIdentifierOfName(importsClause.Name)))
             End If
         End Sub
+
+        Public Overrides Function ContainsGlobalAliases(root As SyntaxNode) As Boolean
+            ' VB does not have global aliases
+            Return False
+        End Function
     End Class
 End Namespace

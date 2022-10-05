@@ -12,9 +12,10 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ChangeSignature
 {
+    [Trait(Traits.Feature, Traits.Features.ChangeSignature)]
     public partial class ChangeSignatureTests : AbstractChangeSignatureTests
     {
-        [Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        [Fact]
         public async Task ChangeSignature_Formatting_KeepCountsPerLine()
         {
             var markup = @"
@@ -45,8 +46,7 @@ class C
             await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: updatedSignature, expectedUpdatedInvocationDocumentCode: expectedUpdatedCode);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
-        [WorkItem(28156, "https://github.com/dotnet/roslyn/issues/28156")]
+        [Fact, WorkItem(28156, "https://github.com/dotnet/roslyn/issues/28156")]
         public async Task ChangeSignature_Formatting_KeepTrivia()
         {
             var markup = @"
@@ -78,8 +78,7 @@ class C
             await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: updatedSignature, expectedUpdatedInvocationDocumentCode: expectedUpdatedCode);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
-        [WorkItem(28156, "https://github.com/dotnet/roslyn/issues/28156")]
+        [Fact, WorkItem(28156, "https://github.com/dotnet/roslyn/issues/28156")]
         public async Task ChangeSignature_Formatting_KeepTrivia_WithArgumentNames()
         {
             var markup = @"
@@ -111,7 +110,7 @@ class C
             await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: updatedSignature, expectedUpdatedInvocationDocumentCode: expectedUpdatedCode);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        [Fact]
         public async Task ChangeSignature_Formatting_Method()
         {
             var markup = @"
@@ -138,7 +137,7 @@ class C
             await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: updatedSignature, expectedUpdatedInvocationDocumentCode: expectedUpdatedCode);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        [Fact]
         public async Task ChangeSignature_Formatting_Constructor()
         {
             var markup = @"
@@ -165,7 +164,7 @@ class SomeClass
             await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: updatedSignature, expectedUpdatedInvocationDocumentCode: expectedUpdatedCode);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        [Fact]
         public async Task ChangeSignature_Formatting_Indexer()
         {
             var markup = @"
@@ -198,7 +197,7 @@ class SomeClass
             await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: updatedSignature, expectedUpdatedInvocationDocumentCode: expectedUpdatedCode);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        [Fact]
         public async Task ChangeSignature_Formatting_Delegate()
         {
             var markup = @"
@@ -233,7 +232,7 @@ class SomeClass
             await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: updatedSignature, expectedUpdatedInvocationDocumentCode: expectedUpdatedCode);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        [Fact]
         public async Task ChangeSignature_Formatting_AnonymousMethod()
         {
             var markup = @"
@@ -270,7 +269,7 @@ class SomeClass
             await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: updatedSignature, expectedUpdatedInvocationDocumentCode: expectedUpdatedCode);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        [Fact]
         public async Task ChangeSignature_Formatting_ConstructorInitializers()
         {
             var markup = @"
@@ -307,7 +306,7 @@ class D : B
             await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: updatedSignature, expectedUpdatedInvocationDocumentCode: expectedUpdatedCode);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        [Fact]
         public async Task ChangeSignature_Formatting_Attribute()
         {
             var markup = @"
@@ -328,8 +327,7 @@ class CustomAttribute : System.Attribute
             await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: updatedSignature, expectedUpdatedInvocationDocumentCode: expectedUpdatedCode);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
-        [WorkItem(28156, "https://github.com/dotnet/roslyn/issues/28156")]
+        [Fact, WorkItem(28156, "https://github.com/dotnet/roslyn/issues/28156")]
         public async Task ChangeSignature_Formatting_Attribute_KeepTrivia()
         {
             var markup = @"
@@ -350,8 +348,7 @@ class CustomAttribute : System.Attribute
             await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: updatedSignature, expectedUpdatedInvocationDocumentCode: expectedUpdatedCode);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
-        [WorkItem(28156, "https://github.com/dotnet/roslyn/issues/28156")]
+        [Fact, WorkItem(28156, "https://github.com/dotnet/roslyn/issues/28156")]
         public async Task ChangeSignature_Formatting_Attribute_KeepTrivia_RemovingSecond()
         {
             var markup = @"
@@ -372,8 +369,7 @@ class CustomAttribute : System.Attribute
             await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: updatedSignature, expectedUpdatedInvocationDocumentCode: expectedUpdatedCode);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
-        [WorkItem(28156, "https://github.com/dotnet/roslyn/issues/28156")]
+        [Fact, WorkItem(28156, "https://github.com/dotnet/roslyn/issues/28156")]
         public async Task ChangeSignature_Formatting_Attribute_KeepTrivia_RemovingBoth()
         {
             var markup = @"
@@ -394,8 +390,7 @@ class CustomAttribute : System.Attribute
             await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: updatedSignature, expectedUpdatedInvocationDocumentCode: expectedUpdatedCode);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
-        [WorkItem(28156, "https://github.com/dotnet/roslyn/issues/28156")]
+        [Fact, WorkItem(28156, "https://github.com/dotnet/roslyn/issues/28156")]
         public async Task ChangeSignature_Formatting_Attribute_KeepTrivia_RemovingBeforeNewlineComma()
         {
             var markup = @"
@@ -415,8 +410,7 @@ class CustomAttribute : System.Attribute
             await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: updatedSignature, expectedUpdatedInvocationDocumentCode: expectedUpdatedCode);
         }
 
-        [WorkItem(946220, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/946220")]
-        [Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        [Fact, WorkItem(946220, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/946220")]
         public async Task ChangeSignature_Formatting_LambdaAsArgument()
         {
             var markup = @"class C

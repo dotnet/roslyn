@@ -125,8 +125,8 @@ namespace Microsoft.CodeAnalysis.Editor.ReferenceHighlighting
             // want to actually go recompute things.  Note: this only works for containment.  If the
             // user moves their caret to the end of a highlighted reference, we do want to recompute
             // as they may now be at the start of some other reference that should be highlighted instead.
-            var existingTags = context.GetExistingContainingTags(caretPosition);
-            if (!existingTags.IsEmpty())
+            var onExistingTags = context.HasExistingContainingTags(caretPosition);
+            if (onExistingTags)
             {
                 context.SetSpansTagged(ImmutableArray<SnapshotSpan>.Empty);
                 return Task.CompletedTask;

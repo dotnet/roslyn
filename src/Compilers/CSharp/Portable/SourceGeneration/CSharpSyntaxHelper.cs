@@ -2,11 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.CodeAnalysis.SourceGeneration;
-using Microsoft.CodeAnalysis.PooledObjects;
+using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.SourceGeneration;
 using Roslyn.Utilities;
-using System.Diagnostics.CodeAnalysis;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override bool IsCaseSensitive
             => true;
 
-        public override int AttributeListKind
+        protected override int AttributeListKind
             => (int)SyntaxKind.AttributeList;
 
         public override bool IsValidIdentifier(string name)
@@ -60,8 +60,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override bool IsLambdaExpression(SyntaxNode node)
             => node is LambdaExpressionSyntax;
 
-        public override SyntaxToken GetUnqualifiedIdentifierOfName(SyntaxNode node)
-            => ((NameSyntax)node).GetUnqualifiedName().Identifier;
+        public override string GetUnqualifiedIdentifierOfName(SyntaxNode node)
+            => ((NameSyntax)node).GetUnqualifiedName().Identifier.ValueText;
 
         public override void AddAliases(GreenNode node, ArrayBuilder<(string aliasName, string symbolName)> aliases, bool global)
         {
@@ -109,8 +109,27 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override void AddAliases(CompilationOptions compilation, ArrayBuilder<(string aliasName, string symbolName)> aliases)
         {
-            // C# doesn't have global aliases at the compilation level.
+            // C# doesn't have global aliases at the compilation-options, only the compilation-unit level.
             return;
+        }
+
+        public override bool ContainsGlobalAliases(SyntaxNode root)
+        {
+            // Walk down the green tree to avoid unnecessary allocations of red nodes.
+            //
+            // Global usings can only exist at the compilation-unit level, so no need to dive any deeper than that.
+            var compilationUnit = (Syntax.InternalSyntax.CompilationUnitSyntax)root.Green;
+
+            foreach (var directive in compilationUnit.Usings)
+            {
+                if (directive.GlobalKeyword != null &&
+                    directive.Alias != null)
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
     }
 }

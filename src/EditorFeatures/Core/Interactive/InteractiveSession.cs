@@ -38,8 +38,7 @@ namespace Microsoft.CodeAnalysis.Interactive
         private readonly InteractiveEvaluatorLanguageInfoProvider _languageInfo;
         private readonly InteractiveWorkspace _workspace;
         private readonly ITextDocumentFactoryService _textDocumentFactoryService;
-        private readonly IEditorOptionsFactoryService _editorOptionsFactory;
-        private readonly IGlobalOptionService _globalOptions;
+        private readonly EditorOptionsService _editorOptionsService;
 
         private readonly CancellationTokenSource _shutdownCancellationSource;
 
@@ -81,8 +80,7 @@ namespace Microsoft.CodeAnalysis.Interactive
             IThreadingContext threadingContext,
             IAsynchronousOperationListener listener,
             ITextDocumentFactoryService documentFactory,
-            IEditorOptionsFactoryService editorOptionsFactory,
-            IGlobalOptionService globalOptions,
+            EditorOptionsService editorOptionsService,
             InteractiveEvaluatorLanguageInfoProvider languageInfo,
             string initialWorkingDirectory)
         {
@@ -90,6 +88,7 @@ namespace Microsoft.CodeAnalysis.Interactive
             _threadingContext = threadingContext;
             _languageInfo = languageInfo;
             _textDocumentFactoryService = documentFactory;
+            _editorOptionsService = editorOptionsService;
 
             _taskQueue = new TaskQueue(listener, TaskScheduler.Default);
             _shutdownCancellationSource = new CancellationTokenSource();
@@ -104,8 +103,6 @@ namespace Microsoft.CodeAnalysis.Interactive
 
             Host = new InteractiveHost(languageInfo.ReplServiceProviderType, initialWorkingDirectory);
             Host.ProcessInitialized += ProcessInitialized;
-            _editorOptionsFactory = editorOptionsFactory;
-            _globalOptions = globalOptions;
         }
 
         public void Dispose()
@@ -351,7 +348,7 @@ namespace Microsoft.CodeAnalysis.Interactive
             }
             catch (Exception e) when (FatalError.ReportAndPropagate(e))
             {
-                throw ExceptionUtilities.Unreachable;
+                throw ExceptionUtilities.Unreachable();
             }
         }
 
