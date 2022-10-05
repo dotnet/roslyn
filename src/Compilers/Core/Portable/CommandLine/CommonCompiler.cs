@@ -816,18 +816,19 @@ namespace Microsoft.CodeAnalysis
         // <Metalama>
 
         protected virtual bool RequiresMetalamaSupportServices => true;
-        protected virtual bool RequiresMetalamaLicensingServices => true;
+        protected virtual bool RequiresMetalamaLicenseEnforcement => true;
+        protected virtual bool RequiresMetalamaLicenseAudit => true;
 
         protected virtual bool IsLongRunningProcess => false;
 
-        private static (string? AdditionalLicense, bool SkipImplicitLicenses) GetLicensingOptions(AnalyzerConfigOptionsProvider analyzerConfigOptionsProvider)
+        private LicensingInitializationOptions GetLicensingOptions(AnalyzerConfigOptionsProvider analyzerConfigOptionsProvider)
         {
             // Load license keys from build options.
-            string? additionalLicense = null;
+            string? projectLicense = null;
 
             if (analyzerConfigOptionsProvider.GlobalOptions.TryGetValue("build_property.MetalamaLicense", out var licenseProperty))
             {
-                additionalLicense = licenseProperty.Trim();
+                projectLicense = licenseProperty.Trim();
             }
 
             if (!(analyzerConfigOptionsProvider.GlobalOptions.TryGetValue("build_property.MetalamaIgnoreUserLicenses",
@@ -836,50 +837,36 @@ namespace Microsoft.CodeAnalysis
                 ignoreUserLicenses = false;
             }
 
-            return (additionalLicense, ignoreUserLicenses);
+            return new LicensingInitializationOptions { ProjectLicense = projectLicense, IgnoreUserProfileLicenses = ignoreUserLicenses, IgnoreUnattendedProcessLicense = ignoreUserLicenses,
+            DisableLicenseAudit = !this.RequiresMetalamaLicenseAudit};
         }
 
         protected IServiceProvider CreateServiceProvider(Compilation inputCompilation, AnalyzerConfigOptionsProvider analyzerConfigProvider, ImmutableArray<ISourceTransformer> transformers)
         {
             var serviceProviderBuilder = new ServiceProviderBuilder();
 
-            IApplicationInfo applicationInfo;
             var dotNetSdkDirectory = GetDotNetSdkDirectory(analyzerConfigProvider);
 
-            if (this.RequiresMetalamaLicensingServices)
+            var licenseOptions = this.RequiresMetalamaLicenseEnforcement
+                ? GetLicensingOptions(analyzerConfigProvider)
+                : new LicensingInitializationOptions();
+
+            var applicationInfo = new MetalamaCompilerApplicationInfo(
+                this.IsLongRunningProcess,
+                licenseOptions.IgnoreUnattendedProcessLicense,
+                transformers);
+
+            var backstageOptions = new BackstageInitializationOptions(applicationInfo, inputCompilation.AssemblyName)
             {
-                var licenseOptions = GetLicensingOptions(analyzerConfigProvider);
+                OpenWelcomePage = this.RequiresMetalamaSupportServices,
+                AddLicensing = this.RequiresMetalamaLicenseEnforcement,
+                AddSupportServices = this.RequiresMetalamaSupportServices,
+                LicensingOptions = licenseOptions,
+                DotNetSdkDirectory = dotNetSdkDirectory
+            };
 
-                applicationInfo = new MetalamaCompilerApplicationInfo(
-                    this.IsLongRunningProcess,
-                    licenseOptions.SkipImplicitLicenses,
-                    transformers);
-
-                serviceProviderBuilder = serviceProviderBuilder.AddBackstageServices(
-                    applicationInfo,
-                    inputCompilation.AssemblyName,
-                    !licenseOptions.SkipImplicitLicenses,
-                    licenseOptions.SkipImplicitLicenses,
-                    licenseOptions.AdditionalLicense,
-                    dotNetSdkDirectory,
-                    this.RequiresMetalamaSupportServices,
-                    addSupportServices: this.RequiresMetalamaSupportServices,
-                    addLicenseAudit: this.RequiresMetalamaSupportServices);
-            }
-            else
-            {
-                if (this.RequiresMetalamaSupportServices)
-                {
-                    throw new InvalidOperationException();
-                }
-
-                applicationInfo = new MetalamaCompilerApplicationInfo(this.IsLongRunningProcess, false, transformers);
-                serviceProviderBuilder = serviceProviderBuilder.AddMinimalBackstageServices(
-                    applicationInfo,
-                    true,
-                    inputCompilation.AssemblyName,
-                    dotNetSdkDirectory);
-            }
+            serviceProviderBuilder = serviceProviderBuilder.AddBackstageServices(backstageOptions);
+        
 
             // Initialize usage reporting.
             try
@@ -889,8 +876,7 @@ namespace Microsoft.CodeAnalysis
                 if (usageReporter != null && inputCompilation.AssemblyName != null &&
                     usageReporter.ShouldReportSession(inputCompilation.AssemblyName))
                 {
-                    var usageSample = usageReporter.CreateSample("CompilerUsage");
-                    serviceProviderBuilder = serviceProviderBuilder.AddSingleton(usageSample);
+                    usageReporter.StartSession("CompilerUsage");
                 }
             }
             catch (Exception e)
@@ -925,8 +911,7 @@ namespace Microsoft.CodeAnalysis
             // Report usage.
             try
             {
-                IUsageSample? usageSample = serviceProvider.GetService<IUsageSample>();
-                usageSample?.Flush();
+                serviceProvider.GetService<IUsageReporter>()?.StopSession();
             }
             catch (Exception e)
             {
