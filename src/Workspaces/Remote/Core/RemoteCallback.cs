@@ -87,10 +87,15 @@ namespace Microsoft.CodeAnalysis.Remote
         }
 
         /// <summary>
-        /// Invokes API on the callback object hosted in the original process (usually devenv) associated with the currently executing brokered service hosted in ServiceHub process.
-        /// The API streams results back to the caller.
+        /// Invokes API on the callback object hosted in the original process (usually devenv) associated with the
+        /// currently executing brokered service hosted in ServiceHub process. The API streams results back to the
+        /// caller.
         /// </summary>
-        /// <inheritdoc cref="InvokeStreamingServiceAsync"/>
+        /// <param name="invocation">A callback to asynchronously write data. The callback should not complete the <see
+        /// cref="PipeWriter"/>, but no harm will happen if it does.</param>
+        /// <param name="reader">A callback to asynchronously read data. The callback should not complete the <see
+        /// cref="PipeReader"/>, but no harm will happen if it does.</param>
+        /// <param name="cancellationToken">A cancellation token the operation will observe.</param>
         public async ValueTask<TResult> InvokeAsync<TResult>(
             Func<T, PipeWriter, CancellationToken, ValueTask> invocation,
             Func<PipeReader, CancellationToken, ValueTask<TResult>> reader,
@@ -98,57 +103,43 @@ namespace Microsoft.CodeAnalysis.Remote
         {
             try
             {
-                return await InvokeStreamingServiceAsync(_callback, invocation, reader, cancellationToken).ConfigureAwait(false);
+                return await InvokeWorkerAsync(_callback).ConfigureAwait(false);
             }
             catch (Exception exception) when (ReportUnexpectedException(exception, cancellationToken))
             {
                 throw OnUnexpectedException(exception, cancellationToken);
             }
-        }
 
-        /// <param name="service">The service instance.</param>
-        /// <param name="invocation">A callback to asynchronously write data. The callback is required to complete the
-        /// <see cref="PipeWriter"/> except in cases where the callback throws an exception.</param>
-        /// <param name="reader">A callback to asynchronously read data. The callback is allowed, but not required, to
-        /// complete the <see cref="PipeReader"/>.</param>
-        /// <param name="cancellationToken">A cancellation token the operation will observe.</param>
-        private static async ValueTask<TResult> InvokeStreamingServiceAsync<TService, TResult>(
-            TService service,
-            Func<TService, PipeWriter, CancellationToken, ValueTask> invocation,
-            Func<PipeReader, CancellationToken, ValueTask<TResult>> reader,
-            CancellationToken cancellationToken)
-        {
-            cancellationToken.ThrowIfCancellationRequested();
-            var pipe = new Pipe();
-
-            // Kick off the work to do the writing to the pipe in a fire-and-forget fashion.  It will start hot and will
-            // be able to do work as the reading side attempts to pull in the data it is writing.
-
-            _ = WriteAsync(service, invocation, pipe.Writer, cancellationToken);
-
-            try
+            async ValueTask<TResult> InvokeWorkerAsync(T service)
             {
-                return await reader(pipe.Reader, cancellationToken).ConfigureAwait(false);
-            }
-            catch (Exception e)
-            {
-                // ensure we always complete the reader so the pipe can clean up all its resources. in the case of an
-                // exception, attempt to complete the reader with that as well as that will tear down the writer
-                // allowing it to stop writing and allowing the pipe to be cleaned up.
-                await pipe.Reader.CompleteAsync(e).ConfigureAwait(false);
-                throw;
-            }
-            finally
-            {
-                // ensure we always complete the reader so the pipe can clean up all its resources.
-                await pipe.Reader.CompleteAsync().ConfigureAwait(false);
+                cancellationToken.ThrowIfCancellationRequested();
+                var pipe = new Pipe();
+
+                // Kick off the work to do the writing to the pipe in a fire-and-forget fashion.  It will start hot and
+                // will be able to do work as the reading side attempts to pull in the data it is writing.
+
+                _ = WriteAsync(service, pipe.Writer);
+
+                try
+                {
+                    return await reader(pipe.Reader, cancellationToken).ConfigureAwait(false);
+                }
+                catch (Exception e)
+                {
+                    // ensure we always complete the reader so the pipe can clean up all its resources. in the case of
+                    // an exception, attempt to complete the reader with that as well as that will tear down the writer
+                    // allowing it to stop writing and allowing the pipe to be cleaned up.
+                    await pipe.Reader.CompleteAsync(e).ConfigureAwait(false);
+                    throw;
+                }
+                finally
+                {
+                    // ensure we always complete the reader so the pipe can clean up all its resources.
+                    await pipe.Reader.CompleteAsync().ConfigureAwait(false);
+                }
             }
 
-            static async Task WriteAsync(
-                TService service,
-                Func<TService, PipeWriter, CancellationToken, ValueTask> invocation,
-                PipeWriter writer,
-                CancellationToken cancellationToken)
+            async Task WriteAsync(T service, PipeWriter writer)
             {
                 try
                 {
