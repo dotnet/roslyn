@@ -4093,9 +4093,9 @@ public class C
     public void M(ref S global)
     {
         S local1 = stackalloc int[10];
-        local1.M(out S local2); // we'd want this to succeed, but determine the safe-to-escape scope for local2 based on the invocation that declared it
-        local1 = local2; // then this would be allowed
-        global = local2; // and this would fail
+        local1.M(out S local2);
+        local1 = local2; // ok
+        global = local2; // error
     }
     public static void Main() => throw null;
 }
@@ -4106,25 +4106,16 @@ public ref struct S
     public void M(out S s) => throw null;
 }
 ";
-            // Tracking issue: https://github.com/dotnet/roslyn/issues/22361
-
             if (languageVersion == LanguageVersion.CSharp10)
             {
-                CreateCompilationWithMscorlibAndSpan(text, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion)).VerifyDiagnostics(
-                    // (9,9): error CS8352: Cannot use variable 'local1' in this context because it may expose referenced variables outside of their declaration scope
-                    //         local1.M(out S local2);
-                    Diagnostic(ErrorCode.ERR_EscapeVariable, "local1").WithArguments("local1").WithLocation(9, 9)
-                    );
+                CreateCompilationWithMscorlibAndSpan(text, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion)).VerifyDiagnostics();
             }
             else
             {
                 CreateCompilationWithMscorlibAndSpan(text, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion)).VerifyDiagnostics(
-                    // (9,9): error CS8352: Cannot use variable 'local1' in this context because it may expose referenced variables outside of their declaration scope
-                    //         local1.M(out S local2); // we'd want this to succeed, but determine the safe-to-escape scope for local2 based on the invocation that declared it
-                    Diagnostic(ErrorCode.ERR_EscapeVariable, "local1").WithArguments("local1").WithLocation(9, 9),
-                    // (9,9): error CS8350: This combination of arguments to 'S.M(out S)' is disallowed because it may expose variables referenced by parameter 'this' outside of their declaration scope
-                    //         local1.M(out S local2); // we'd want this to succeed, but determine the safe-to-escape scope for local2 based on the invocation that declared it
-                    Diagnostic(ErrorCode.ERR_CallArgMixing, "local1.M(out S local2)").WithArguments("S.M(out S)", "this").WithLocation(9, 9)
+                    // (11,18): error CS8352: Cannot use variable 'local2' in this context because it may expose referenced variables outside of their declaration scope
+                    //         global = local2; // error
+                    Diagnostic(ErrorCode.ERR_EscapeVariable, "local2").WithArguments("local2").WithLocation(11, 18)
                     );
             }
         }
@@ -4874,8 +4865,6 @@ class Program
         [Fact]
         public void LocalScope_DeclarationExpression_05()
         {
-            // TODO: test ref-argument to arglist
-            // TODO: test 
             var source = """
                 using System;
 
@@ -4910,10 +4899,7 @@ class Program
 
                     static RS M2(ref int i1)
                     {
-                        // arg-mixing incorrectly assumes 'i1' can escape into 'rs5' here,
-                        // while out scope inference assumes it cannot.
-                        // https://github.com/dotnet/roslyn/issues/64130
-                        M0(out var rs5, __arglist(ref i1)); // 4
+                        M0(out var rs5, __arglist(ref i1));
                         return rs5;
                     }
                 }
@@ -4932,13 +4918,7 @@ class Program
                 Diagnostic(ErrorCode.ERR_EscapeVariable, "rs3").WithArguments("rs3").WithLocation(23, 16),
                 // (29,16): error CS8352: Cannot use variable 'rs5' in this context because it may expose referenced variables outside of their declaration scope
                 //         return rs5; // 3
-                Diagnostic(ErrorCode.ERR_EscapeVariable, "rs5").WithArguments("rs5").WithLocation(29, 16),
-                // (37,9): error CS8350: This combination of arguments to 'Program.M0(out RS, __arglist)' is disallowed because it may expose variables referenced by parameter '__arglist' outside of their declaration scope
-                //         M0(out var rs5, __arglist(ref i1)); // 4
-                Diagnostic(ErrorCode.ERR_CallArgMixing, "M0(out var rs5, __arglist(ref i1))").WithArguments("Program.M0(out RS, __arglist)", "__arglist").WithLocation(37, 9),
-                // (37,39): error CS9077: Cannot return a parameter by reference 'i1' through a ref parameter; it can only be returned in a return statement
-                //         M0(out var rs5, __arglist(ref i1)); // 4
-                Diagnostic(ErrorCode.ERR_RefReturnOnlyParameter, "i1").WithArguments("i1").WithLocation(37, 39));
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "rs5").WithArguments("rs5").WithLocation(29, 16));
         }
 
         [Fact]
