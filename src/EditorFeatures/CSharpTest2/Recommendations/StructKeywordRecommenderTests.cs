@@ -421,5 +421,14 @@ $$");
       where T : IList<$$
       where U : T");
         }
+
+        [Theory]
+        [InlineData("abstract")]
+        [InlineData("sealed")]
+        [WorkItem(64465, "https://github.com/dotnet/roslyn/issues/64465")]
+        public async Task TestNotAfterRecordIfHasInvalidModifier(string modifier)
+        {
+            await VerifyAbsenceAsync($"{modifier} record $$");
+        }
     }
 }
