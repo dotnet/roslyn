@@ -14,8 +14,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler;
 [Method(Methods.InitializeName)]
 internal class InitializeHandler : ILspServiceRequestHandler<InitializeParams, InitializeResult>
 {
-    [ImportingConstructor]
-    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
     public InitializeHandler()
     {
     }
