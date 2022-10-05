@@ -123,17 +123,18 @@ namespace Microsoft.CodeAnalysis.Remote
 
             public override bool CanWrite => !this.IsDisposed;
 
+            /// <summary>
+            /// Intentionally a no op. We know that we and <see cref="RemoteHostAssetSerialization.WriteDataAsync"/>
+            /// will call <see cref="FlushAsync"/> at appropriate times to ensure data is being sent through the writer
+            /// at a reasonable cadence (once per asset).
+            /// </summary>
             public override void Flush()
             {
                 Verify.NotDisposed(this);
-
-                // intentionally a no op. We know that we and RemoteHostAssetSerialization.WriteDataAsync will call
-                // FlushAsync at appropriate times to ensure data is being sent through the writer at a reasonable
-                // cadence (once per asset).
             }
 
             public override async Task FlushAsync(CancellationToken cancellationToken)
-                => await writer.FlushAsync(cancellationToken).ConfigureAwait(false);
+                => await _writer.FlushAsync(cancellationToken).ConfigureAwait(false);
 
             public override void Write(byte[] buffer, int offset, int count)
             {
