@@ -31,14 +31,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         private static string IncludeExpectedOutput(string expectedOutput) => IsNet70OrGreater() ? expectedOutput : null;
 
-        private static IEnumerable<MetadataReference> CopyWithoutSharingCachedSymbols(IEnumerable<MetadataReference> references)
-        {
-            foreach (var reference in references)
-            {
-                yield return ((AssemblyMetadata)((MetadataImageReference)reference).GetMetadata()).CopyWithoutSharingCachedSymbols().GetReference();
-            }
-        }
-
         [CombinatorialData]
         [Theory]
         public void LanguageVersionDiagnostics(bool useCompilationReference)
