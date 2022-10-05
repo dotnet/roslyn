@@ -254,7 +254,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal override FieldSymbol? GetSymbolForPossibleFieldKeyword()
         {
             // There's supposed to either be a FieldKeywordBinder or a SpeculativeFieldKEywordBinder in the chain.
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 
         internal override ImmutableHashSet<Symbol> LockedOrDisposedVariables
