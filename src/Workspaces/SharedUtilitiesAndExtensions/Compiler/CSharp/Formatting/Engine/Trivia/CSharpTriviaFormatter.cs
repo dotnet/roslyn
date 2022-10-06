@@ -99,20 +99,34 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
 
                 if (trivia2.IsKind(SyntaxKind.RegionDirectiveTrivia) || trivia2.IsKind(SyntaxKind.EndRegionDirectiveTrivia))
                 {
+                    // When we have a '#region' in conditionally disabled conditional (e.g, `#if false`), we cannot determine a correct indentation for '#region'.
+                    // So we preserve the existing indentation.
+                    // To figure whether we are in a disabled region, we do the following:
+                    // - Starting from the given trivia, keep going back.
+                    // - Once we find a disabled text, we know this is a disabled region.
+                    // - If we find a BranchingDirectiveTriviaSyntax, we can directly determine whether it's active or not via BranchTaken property.
                     var previous = trivia2;
-                    while ((previous = previous.GetPreviousTrivia(previous.SyntaxTree, cancellationToken)).IsKind(SyntaxKind.WhitespaceTrivia))
+                    while ((previous = previous.GetPreviousTrivia(previous.SyntaxTree, cancellationToken)) != default)
                     {
-                        // skip whitespace trivia.
+                        if (previous.IsKind(SyntaxKind.DisabledTextTrivia))
+                        {
+                            return LineColumnRule.Preserve;
+                        }
+
+                        if (previous.HasStructure && previous.GetStructure() is BranchingDirectiveTriviaSyntax branchingDirectiveTrivia)
+                        {
+                            if (!branchingDirectiveTrivia.BranchTaken)
+                            {
+                                return LineColumnRule.Preserve;
+                            }
+                            else
+                            {
+                                break;
+                            }
+                        }
                     }
 
-                    if (!previous.IsKind(SyntaxKind.DisabledTextTrivia))
-                    {
-                        return LineColumnRule.PreserveLinesWithDefaultIndentation(lines);
-                    }
-                    else
-                    {
-                        return LineColumnRule.Preserve;
-                    }
+                    return LineColumnRule.PreserveLinesWithDefaultIndentation(lines);
                 }
 
                 return LineColumnRule.PreserveLinesWithAbsoluteIndentation(lines, indentation: 0);

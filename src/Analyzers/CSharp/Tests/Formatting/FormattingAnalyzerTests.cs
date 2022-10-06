@@ -326,14 +326,14 @@ class MyClass
 #if true
     public void M()
     {
-        #region ABC
+        #region ABC1
         System.Console.WriteLine();
         #endregion
     }
 #else
     public void M()
     {
-        #region ABC
+        #region ABC2
         System.Console.WriteLine();
         #endregion
     }
@@ -341,6 +341,147 @@ class MyClass
 }
 ";
             await Verify.VerifyCodeFixAsync(testCode, testCode);
+        }
+
+        [Fact]
+        public async Task TestRegion2()
+        {
+            var testCode = @"
+class MyClass
+{
+#if true
+    public void M()
+    {
+[||]#region OUTER1
+        #region ABC1
+        System.Console.WriteLine();
+        #endregion
+[||]#endregion
+    }
+#else
+    public void M()
+    {
+#region OUTER2
+        #region ABC2
+        System.Console.WriteLine();
+        #endregion
+#endregion
+    }
+#endif
+}
+";
+
+            var fixedCode = @"
+class MyClass
+{
+#if true
+    public void M()
+    {
+        #region OUTER1
+        #region ABC1
+        System.Console.WriteLine();
+        #endregion
+        #endregion
+    }
+#else
+    public void M()
+    {
+#region OUTER2
+        #region ABC2
+        System.Console.WriteLine();
+        #endregion
+#endregion
+    }
+#endif
+}
+";
+            await Verify.VerifyCodeFixAsync(testCode, fixedCode);
+        }
+
+        [Fact]
+        public async Task TestRegion3()
+        {
+            var testCode = @"
+class MyClass
+{
+#if true
+    public void M()
+    {
+[||]#region ABC1
+        System.Console.WriteLine();
+[||]#endregion
+    }
+#else
+    public void M()
+    {
+#region ABC2
+        System.Console.WriteLine();
+#endregion
+    }
+#endif
+}
+";
+            var fixedCode = @"
+class MyClass
+{
+#if true
+    public void M()
+    {
+        #region ABC1
+        System.Console.WriteLine();
+        #endregion
+    }
+#else
+    public void M()
+    {
+#region ABC2
+        System.Console.WriteLine();
+#endregion
+    }
+#endif
+}
+";
+            await Verify.VerifyCodeFixAsync(testCode, fixedCode);
+        }
+
+        [Fact]
+        public async Task TestRegion4()
+        {
+            var testCode = @"
+class MyClass
+{
+#if true
+    public void M()
+    {
+[||]#region ABC1
+        System.Console.WriteLine();
+[||]#endregion
+    }
+#else
+                        #region ABC2
+        public void M() { }
+                        #endregion
+#endif
+}
+";
+            var fixedCode = @"
+class MyClass
+{
+#if true
+    public void M()
+    {
+        #region ABC1
+        System.Console.WriteLine();
+        #endregion
+    }
+#else
+                        #region ABC2
+        public void M() { }
+                        #endregion
+#endif
+}
+";
+            await Verify.VerifyCodeFixAsync(testCode, fixedCode);
         }
     }
 }
