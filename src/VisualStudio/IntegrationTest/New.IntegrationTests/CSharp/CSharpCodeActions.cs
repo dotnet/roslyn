@@ -979,7 +979,7 @@ class OtherType
                 new[]
                 {
                     FeatureAttribute.Workspace,
-                    //FeatureAttribute.SolutionCrawlerLegacy,
+                    FeatureAttribute.SolutionCrawlerLegacy,
                     FeatureAttribute.DiagnosticService,
                     FeatureAttribute.ErrorSquiggles
                 },
@@ -1145,7 +1145,7 @@ class OtherType2
                 new[]
                 {
                     FeatureAttribute.Workspace,
-                    //FeatureAttribute.SolutionCrawlerLegacy,
+                    FeatureAttribute.SolutionCrawlerLegacy,
                     FeatureAttribute.DiagnosticService,
                     FeatureAttribute.ErrorSquiggles
                 },
@@ -1225,7 +1225,7 @@ class C2
                 new[]
                 {
                     FeatureAttribute.Workspace,
-                    //FeatureAttribute.SolutionCrawlerLegacy,
+                    FeatureAttribute.SolutionCrawlerLegacy,
                     FeatureAttribute.DiagnosticService,
                     FeatureAttribute.ErrorSquiggles
                 },
@@ -1359,7 +1359,7 @@ class C2
                 new[]
                 {
                     FeatureAttribute.Workspace,
-                    //FeatureAttribute.SolutionCrawlerLegacy,
+                    FeatureAttribute.SolutionCrawlerLegacy,
                     FeatureAttribute.DiagnosticService,
                     FeatureAttribute.ErrorSquiggles
                 },
