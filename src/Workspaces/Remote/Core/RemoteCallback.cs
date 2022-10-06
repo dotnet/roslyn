@@ -130,7 +130,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 try
                 {
                     // Intentionally yield this thread so that the caller can proceed concurrently and start reading.
-                    await TaskScheduler.Default;
+                    await Task.Yield();
 
                     await invocation(service, pipeWriter, cancellationToken).ConfigureAwait(false);
                 }
