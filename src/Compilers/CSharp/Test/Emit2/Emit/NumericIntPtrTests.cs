@@ -9039,14 +9039,8 @@ class Program
                     return;
                 }
 
-<<<<<<< HEAD
-                CompileAndVerify(comp, verify: Verification.FailsPEVerify, expectedOutput: IncludeExpectedOutput(expectedResult)).VerifyDiagnostics(expectedDiagnostics);
-||||||| c47866ea2d9
-                CompileAndVerify(comp, expectedOutput: expectedResult).VerifyDiagnostics(expectedDiagnostics);
-=======
                 // Investigating flaky IL verification issue. Tracked by https://github.com/dotnet/roslyn/issues/63782
-                CompileAndVerify(comp, expectedOutput: expectedResult, verify: Verification.PassesOrFailFast).VerifyDiagnostics(expectedDiagnostics);
->>>>>>> dotnet/main
+                CompileAndVerify(comp, verify: Verification.FailsPEVerify | Verification.PassesOrFailFast, expectedOutput: IncludeExpectedOutput(expectedResult)).VerifyDiagnostics(expectedDiagnostics);
                 Assert.NotNull(expectedResult);
             }
         }
