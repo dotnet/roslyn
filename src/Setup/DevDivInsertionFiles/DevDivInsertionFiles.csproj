@@ -115,8 +115,6 @@
       <_Dependency Remove="Microsoft.Build"/>
       <_Dependency Remove="Microsoft.Build.Framework"/>
       <_Dependency Remove="Microsoft.Diagnostics.Tracing.EventSource.Redist"/>
-      <_Dependency Remove="Microsoft.Extensions.DependencyInjection" />
-      <_Dependency Remove="Microsoft.Extensions.DependencyInjection.Abstractions" />
       <_Dependency Remove="Microsoft.MSXML"/>
       <_Dependency Remove="Microsoft.Internal.Performance.CodeMarkers.DesignTime"/>
       <_Dependency Remove="Microsoft.Win32.Registry"/>

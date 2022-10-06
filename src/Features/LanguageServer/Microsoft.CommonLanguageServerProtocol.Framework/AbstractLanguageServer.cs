@@ -49,6 +49,11 @@ public abstract class AbstractLanguageServer<TRequestContext> : ILifeCycleManage
         GetRequestExecutionQueue();
     }
 
+    /// <summary>
+    /// Extension point to allow creation of <see cref="ILspServices"/> since that can't always be handled in the constructor.
+    /// </summary>
+    /// <returns>An <see cref="ILspServices"/> instance for this server.</returns>
+    /// <remarks>This should only be called once (by <see cref="GetLspServices"/>), and then cached.</remarks>
     protected abstract ILspServices ConstructLspServices();
 
     protected ILspServices GetLspServices()
