@@ -371,7 +371,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
                     case IParameterInitializerOperation parameterInitializerOperation:
                         // https://github.com/dotnet/roslyn/issues/27594 tracks adding support for getting ControlFlowGraph for parameter initializers for local functions.
-                        if ((parameterInitializerOperation.Parameter.ContainingSymbol as IMethodSymbol)?.MethodKind != MethodKind.LocalFunction)
+                        if ((parameterInitializerOperation.Parameter.ContainingSymbol as IMethodSymbol)?.MethodKind is not MethodKind.LocalFunction and not MethodKind.AnonymousFunction)
                         {
                             ControlFlowGraphVerifier.GetFlowGraph(compilation, ControlFlowGraphBuilder.Create(root), associatedSymbol);
                         }
