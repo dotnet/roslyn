@@ -123,6 +123,8 @@ namespace Microsoft.VisualStudio.LanguageServices.TaskList
 
             await taskSource.Task.ConfigureAwait(false);
 
+            return;
+
             void Control_IsVisibleChanged(object sender, System.Windows.DependencyPropertyChangedEventArgs e)
             {
                 if (control.IsVisible)
