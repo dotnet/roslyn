@@ -6429,13 +6429,13 @@ public class ExportedSymbol
 }";
             var compilation = CreateCompilation(source, parseOptions: TestOptions.Regular10);
             compilation.VerifyDiagnostics(
-                // (6,18): error CS9014: Use of possibly unassigned field 'value'. Consider updating to language version 'preview' to auto-default the field.
+                // (6,18): error CS9015: Use of possibly unassigned field 'value'. Consider updating to language version '11.0' to auto-default the field.
                 //         S.Equals(value , value);
-                Diagnostic(ErrorCode.ERR_UseDefViolationFieldUnsupportedVersion, "value").WithArguments("value", "preview").WithLocation(6, 18)
+                Diagnostic(ErrorCode.ERR_UseDefViolationFieldUnsupportedVersion, "value").WithArguments("value", "11.0").WithLocation(6, 18)
                 );
             verify();
 
-            compilation = CreateCompilation(source, parseOptions: TestOptions.RegularNext);
+            compilation = CreateCompilation(source, parseOptions: TestOptions.Regular11);
             compilation.VerifyDiagnostics();
             verify();
 

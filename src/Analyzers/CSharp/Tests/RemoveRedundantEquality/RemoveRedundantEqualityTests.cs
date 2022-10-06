@@ -222,8 +222,7 @@ public class C
             await VerifyCS.VerifyCodeFixAsync(code, fixedCode);
         }
 
-        [Fact]
-        [WorkItem(48236, "https://github.com/dotnet/roslyn/issues/48236")]
+        [Fact, WorkItem(48236, "https://github.com/dotnet/roslyn/issues/48236")]
         public async Task TestNullableValueTypes_DoesntCrash()
         {
             var code = @"

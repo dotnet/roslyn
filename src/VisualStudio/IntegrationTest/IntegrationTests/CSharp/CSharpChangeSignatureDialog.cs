@@ -17,6 +17,7 @@ using ProjectUtils = Microsoft.VisualStudio.IntegrationTest.Utilities.Common.Pro
 namespace Roslyn.VisualStudio.IntegrationTests.CSharp
 {
     [Collection(nameof(SharedIntegrationHostFixture))]
+    [Trait(Traits.Feature, Traits.Features.ChangeSignature)]
     public class CSharpChangeSignatureDialog : AbstractEditorTest
     {
         protected override string LanguageName => LanguageNames.CSharp;
@@ -30,7 +31,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
         {
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        [WpfFact]
         public void VerifyCodeRefactoringOffered()
         {
             SetUpEditor(@"
@@ -43,7 +44,7 @@ class C
             VisualStudio.Editor.Verify.CodeAction("Change signature...", applyFix: false);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        [WpfFact]
         public void VerifyRefactoringCancelled()
         {
             SetUpEditor(@"
@@ -64,7 +65,7 @@ class C
 }", actualText);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        [WpfFact]
         public void VerifyReorderParameters()
         {
             SetUpEditor(@"
@@ -87,7 +88,7 @@ class C
 }", actualText);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        [WpfFact]
         public void VerifyRemoveParameter()
         {
             SetUpEditor(@"
@@ -131,7 +132,7 @@ class C
 }", actualText);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        [WpfFact]
         public void VerifyCrossLanguageGlobalUndo()
         {
             SetUpEditor(@"using VBProject;
@@ -182,7 +183,7 @@ End Class");
             Assert.Contains(@"vb.Method(2, ""world"");", actualText);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        [WpfFact]
         public void VerifyAddParameter()
         {
             SetUpEditor(@"
@@ -258,7 +259,7 @@ class C
 }", actualText);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        [WpfFact]
         public void VerifyAddParameterRefactoringCancelled()
         {
             SetUpEditor(@"
@@ -286,7 +287,7 @@ class C
 }", actualText);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        [WpfFact]
         public void VerifyAddParametersAcrossLanguages()
         {
             SetUpEditor(@"

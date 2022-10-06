@@ -47,19 +47,18 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Structure
         private const string ExternDeclaration = "extern";
         private const string ImportsStatement = "Imports";
 
-        protected readonly IEditorOptionsFactoryService EditorOptionsFactoryService;
+        protected readonly EditorOptionsService EditorOptionsService;
         protected readonly IProjectionBufferFactoryService ProjectionBufferFactoryService;
 
         protected AbstractStructureTaggerProvider(
             IThreadingContext threadingContext,
-            IEditorOptionsFactoryService editorOptionsFactoryService,
+            EditorOptionsService editorOptionsService,
             IProjectionBufferFactoryService projectionBufferFactoryService,
-            IGlobalOptionService globalOptions,
             ITextBufferVisibilityTracker? visibilityTracker,
             IAsynchronousOperationListenerProvider listenerProvider)
-            : base(threadingContext, globalOptions, visibilityTracker, listenerProvider.GetListener(FeatureAttribute.Outlining))
+            : base(threadingContext, editorOptionsService.GlobalOptions, visibilityTracker, listenerProvider.GetListener(FeatureAttribute.Outlining))
         {
-            EditorOptionsFactoryService = editorOptionsFactoryService;
+            EditorOptionsService = editorOptionsService;
             ProjectionBufferFactoryService = projectionBufferFactoryService;
         }
 
@@ -205,7 +204,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Structure
             }
             catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
             {
-                throw ExceptionUtilities.Unreachable;
+                throw ExceptionUtilities.Unreachable();
             }
         }
 
@@ -351,7 +350,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Structure
             SnapshotSpan shortHintSpan)
         {
             return ProjectionBufferFactoryService.CreateProjectionBufferWithoutIndentation(
-                EditorOptionsFactoryService.GlobalOptions,
+                EditorOptionsService.Factory.GlobalOptions,
                 contentType: null,
                 exposedSpans: shortHintSpan);
         }

@@ -267,169 +267,169 @@
 -vbruntime:&lt;file&gt;                 Compile with the alternate Visual Basic
                                   runtime in &lt;file&gt;.
 </source>
-        <target state="new">                  Visual Basic Compiler Options
+        <target state="translated">                  Opcje kompilatora Visual Basic
 
                                   - OUTPUT FILE -
--out:&lt;file&gt;                       Specifies the output file name.
--target:exe                       Create a console application (default).
-                                  (Short form: -t)
--target:winexe                    Create a Windows application.
--target:library                   Create a library assembly.
--target:module                    Create a module that can be added to an
-                                  assembly.
--target:appcontainerexe           Create a Windows application that runs in
+-out:&lt;file&gt;                       Określa nazwę pliku wyjściowego.
+-target:exe                       Tworzenie aplikacji konsoli (ustawienie domyślne).
+                                  (Skrócona forma: -t)
+-target:winexe                    Tworzenie aplikacji systemu Windows.
+-target:library                   Tworzenie zestawu bibliotek.
+-target:module                    Tworzenie modułu, który można dodać do
+                                  zestawu.
+-target:appcontainerexe           Tworzenie aplikacji systemu Windows, która działa w środowisku
                                   AppContainer.
--target:winmdobj                  Create a Windows Metadata intermediate file
--doc[+|-]                         Generates XML documentation file.
--doc:&lt;file&gt;                       Generates XML documentation file to &lt;file&gt;.
--refout:&lt;file&gt;                    Reference assembly output to generate
+-target:winmdobj                  Tworzenie pliku pośredniego metadanych systemu Windows
+-doc[+|-]                         Generuje plik dokumentacji XML.
+-doc:&lt;file&gt;                       Generuje plik dokumentacji XML do pliku &lt;file&gt;.
+-refout:&lt;file&gt;                    Dane wyjściowe zestawu odwołania do wygenerowania
 
                                   - INPUT FILES -
--addmodule:&lt;file_list&gt;            Reference metadata from the specified modules
--link:&lt;file_list&gt;                 Embed metadata from the specified interop
-                                  assembly. (Short form: -l)
--recurse:&lt;wildcard&gt;               Include all files in the current directory
-                                  and subdirectories according to the
-                                  wildcard specifications.
--reference:&lt;file_list&gt;            Reference metadata from the specified
-                                  assembly. (Short form: -r)
--analyzer:&lt;file_list&gt;             Run the analyzers from this assembly
-                                  (Short form: -a)
--additionalfile:&lt;file list&gt;       Additional files that don't directly affect code
-                                  generation but may be used by analyzers for producing
-                                  errors or warnings.
+-addmodule:&lt;file_list&gt;            Metadane odwołania z określonych modułów
+-link:&lt;file_list&gt;                 Osadzanie metadanych z określonego zestawu
+                                  międzyoperacyjnego. (Skrócona forma: -l)
+-recurse:&lt;wildcard&gt;               Uwzględnianie wszystkich plików w bieżącym katalogu
+                                  i podkatalogach zgodnie ze
+                                  specyfikacjami symboli wieloznacznych.
+-reference:&lt;file_list&gt;            Metadane odwołania z określonego
+                                  zestawu. (Skrócona forma: -r)
+-analyzer:&lt;file_list&gt;             Uruchamianie analizatorów z tego zestawu
+                                  (Skrócona forma: -a)
+-additionalfile:&lt;file list&gt;       Dodatkowe pliki, które nie wpływają bezpośrednio na generowanie
+                                  kodu, ale mogą być używane przez analizatory na potrzeby generowania
+                                  błędów lub ostrzeżeń.
 
                                   - RESOURCES -
--linkresource:&lt;resinfo&gt;           Links the specified file as an external
+-linkresource:&lt;resinfo&gt;           Łączy określony plik jako zewnętrzny
+                                  zasób zestawu.
+                                  resinfo:&lt;file&gt;[,&lt;name&gt;[,public|private]]
+                                  (Skrócona forma: -linkres)
+-nowin32manifest                  Nie należy osadzać domyślnego manifestu
+                                  w sekcji manifestu pliku wyjściowego PE.
+-resource:&lt;resinfo&gt;               Dodaje plik w postaci osadzonej
                                   assembly resource.
                                   resinfo:&lt;file&gt;[,&lt;name&gt;[,public|private]]
-                                  (Short form: -linkres)
--nowin32manifest                  The default manifest should not be embedded
-                                  in the manifest section of the output PE.
--resource:&lt;resinfo&gt;               Adds the specified file as an embedded
-                                  assembly resource.
-                                  resinfo:&lt;file&gt;[,&lt;name&gt;[,public|private]]
-                                  (Short form: -res)
--win32icon:&lt;file&gt;                 Specifies a Win32 icon file (.ico) for the
-                                  default Win32 resources.
--win32manifest:&lt;file&gt;             The provided file is embedded in the manifest
-                                  section of the output PE.
--win32resource:&lt;file&gt;             Specifies a Win32 resource file (.res).
+                                  (Skrócona forma: -res)
+-win32icon:&lt;file&gt;                 Określa plik ikony Win32 (.ico) dla
+                                  zasobów domyślnych Win32.
+-win32manifest:&lt;file&gt;             Podany plik jest osadzony w sekcji
+                                  manifestu pliku wyjściowego PE.
+-win32resource:&lt;file&gt;             Określa plik zasobu Win32 (.res).
 
                                   - CODE GENERATION -
--optimize[+|-]                    Enable optimizations.
--removeintchecks[+|-]             Remove integer checks. Default off.
--debug[+|-]                       Emit debugging information.
--debug:full                       Emit full debugging information (default).
--debug:pdbonly                    Emit full debugging information.
--debug:portable                   Emit cross-platform debugging information.
--debug:embedded                   Emit cross-platform debugging information into
-                                  the target .dll or .exe.
--deterministic                    Produce a deterministic assembly
-                                  (including module version GUID and timestamp)
--refonly                          Produce a reference assembly in place of the main output
--instrument:TestCoverage          Produce an assembly instrumented to collect
-                                  coverage information
--sourcelink:&lt;file&gt;                Source link info to embed into PDB.
+-optimize[+|-]                    Włączanie optymalizacji.
+-removeintchecks[+|-]             Usuwanie kontroli liczb całkowitych. Ustawienie domyślne wyłączone.
+-debug[+|-]                       Wysyłanie informacji o debugowaniu.
+-debug:full                       Wysyłanie pełnych informacji o debugowaniu (domyślnie).
+-debug:pdbonly                    Wysyłanie pełnych informacji o debugowaniu.
+-debug:portable                   Wysyłanie informacji o międzyplatformowym debugowaniu.
+-debug:embedded                   Wysyłanie informacji o międzyplatformowym debugowaniu do
+                                  docelowego pliku .dll lub .exe.
+-deterministic                    Tworzenie deterministycznego zestawu
+                                  (w tym identyfikatora GUID i znacznika czasu wersji modułu)
+-refonly                          Tworzenie zestawu odwołania w miejsce wyjścia głównego
+-instrument:TestCoverage          Tworzenie zestawu zinstrumentowanego na zbieranie
+                                   informacji o pokryciu
+-sourcelink:&lt;file&gt;                Informacje o linku do źródła do osadzenia w pliku PDB.
 
                                   - ERRORS AND WARNINGS -
--nowarn                           Disable all warnings.
--nowarn:&lt;number_list&gt;             Disable a list of individual warnings.
--warnaserror[+|-]                 Treat all warnings as errors.
--warnaserror[+|-]:&lt;number_list&gt;   Treat a list of warnings as errors.
--ruleset:&lt;file&gt;                   Specify a ruleset file that disables specific
-                                  diagnostics.
+-nowarn                           Wyłączanie wszystkich ostrzeżeń.
+-nowarn:&lt;number_list&gt;             Wyłączanie listy poszczególnych ostrzeżeń.
+-warnaserror[+|-]                 Traktowanie wszystkich ostrzeżeń jako błędów.
+-warnaserror[+|-]:&lt;number_list&gt;   Traktowanie listy ostrzeżeń jako błędów.
+-ruleset:&lt;file&gt;                   Określanie pliku zestawu reguł, który wyłącza określone
+                                  dane diagnostyczne.
 -errorlog:&lt;file&gt;[,version=&lt;sarif_version&gt;]         
-                                  Specify a file to log all compiler and analyzer
-                                  diagnostics in SARIF format.
-                                  sarif_version:{1|2|2.1} Default is 1. 2 and 2.1
-                                  both mean SARIF version 2.1.0.
--reportanalyzer                   Report additional analyzer information, such as
-                                  execution time.
--skipanalyzers[+|-]               Skip execution of diagnostic analyzers.
+                                  Określanie pliku do rejestrowania wszystkich danych diagnostycznych
+                                  kompilatora i analizatora w formacie SARIF.
+                                  sarif_version:{1|2|2.1} Wartości domyślne to 1. 2 i 2.1, które
+                                  oznaczają SARIF w wersji 2.1.0.
+-reportanalyzer                   Raportowanie dodatkowych informacji analizatora, takich jak
+                                  czas wykonania.
+-skipanalyzers[+|-]               Pomijanie wykonania analizatorów diagnostycznych.
 
                                   - LANGUAGE -
--define:&lt;symbol_list&gt;             Declare global conditional compilation
+-define:&lt;symbol_list&gt;             Deklarowanie globalnej kompilacji warunkowej
                                   symbol(s). symbol_list:name=value,...
-                                  (Short form: -d)
--imports:&lt;import_list&gt;            Declare global Imports for namespaces in
-                                  referenced metadata files.
+                                  (Skrócona forma: -d)
+-imports:&lt;import_list&gt;            Deklarowanie globalnych importów dla przestrzeni nazw w
+                                  przywoływanych plikach metadanych.
                                   import_list:namespace,...
--langversion:?                    Display the allowed values for language version
--langversion:&lt;string&gt;             Specify language version such as
-                                  `default` (latest major version), or
-                                  `latest` (latest version, including minor versions),
-                                  or specific versions like `14` or `15.3`
--optionexplicit[+|-]              Require explicit declaration of variables.
--optioninfer[+|-]                 Allow type inference of variables.
--rootnamespace:&lt;string&gt;           Specifies the root Namespace for all type
-                                  declarations.
--optionstrict[+|-]                Enforce strict language semantics.
--optionstrict:custom              Warn when strict language semantics are not
-                                  respected.
--optioncompare:binary             Specifies binary-style string comparisons.
-                                  This is the default.
--optioncompare:text               Specifies text-style string comparisons.
+-langversion:?                    Wyświetlanie dozwolonych wartości dla wersji języka
+-langversion:&lt;string&gt;             Określanie wersji języka, takiej jak
+                                  „default” (najnowsza wersja główna) lub
+                                  „latest” (najnowsze wersja, w tym wersje główne)
+                                  albo określone wersje, np. „14” lub „15.3”
+-optionexplicit[+|-]              Wymaganie jawnej deklaracji zmiennych.
+-optioninfer[+|-]                 Zezwalanie na wnioskowanie o typie zmiennych.
+-rootnamespace:&lt;string&gt;           Określa przestrzeń nazwa katalogu głównego dla wszystkich deklaracji
+                                  typu.
+-optionstrict[+|-]                Wymuszanie jednoznacznej semantyki języka.
+-optionstrict:custom              Ostrzeganie, gdy jednoznaczna semantyka języka nie jest
+                                  przestrzegana.
+-optioncompare:binary             Określa porównania ciągów ze stylem binarnym.
+                                  Jest to ustawienie domyślne.
+-optioncompare:text               Określa porównania ciągów ze stylem tekstowym.
 
                                   - MISCELLANEOUS -
--help                             Display this usage message. (Short form: -?)
--noconfig                         Do not auto-include VBC.RSP file.
--nologo                           Do not display compiler copyright banner.
--quiet                            Quiet output mode.
--verbose                          Display verbose messages.
--parallel[+|-]                    Concurrent build.
--version                          Display the compiler version number and exit.
+-help                             Wyświetlanie komunikatu o tym użyciu. (Skrócona forma: -?)
+-noconfig                         Nie uwzględniaj automatycznie pliku VBC.RSP.
+-nologo                           Nie wyświetlaj transparentu praw autorskich kompilatora.
+-quiet                            Cichy tryb wyjścia.
+-verbose                          Wyświetlanie pełnych komunikatów.
+-parallel[+|-]                    Kompilacja współbieżna.
+-version                          Wyświetlanie numeru wersji kompilatora i zamykanie.
 
                                   - ADVANCED -
--baseaddress:&lt;number&gt;             The base address for a library or module
+-baseaddress:&lt;number&gt;             Adres bazowy biblioteki lub modułu
                                   (hex).
--checksumalgorithm:&lt;alg&gt;          Specify algorithm for calculating source file
-                                  checksum stored in PDB. Supported values are:
-                                  SHA1 or SHA256 (default).
--codepage:&lt;number&gt;                Specifies the codepage to use when opening
-                                  source files.
--delaysign[+|-]                   Delay-sign the assembly using only the public
-                                  portion of the strong name key.
--publicsign[+|-]                  Public-sign the assembly using only the public
-                                  portion of the strong name key.
--errorreport:&lt;string&gt;             Specifies how to handle internal compiler
-                                  errors; must be prompt, send, none, or queue
-                                  (default).
--filealign:&lt;number&gt;               Specify the alignment used for output file
-                                  sections.
--highentropyva[+|-]               Enable high-entropy ASLR.
--keycontainer:&lt;string&gt;            Specifies a strong name key container.
--keyfile:&lt;file&gt;                   Specifies a strong name key file.
--libpath:&lt;path_list&gt;              List of directories to search for metadata
-                                  references. (Semi-colon delimited.)
--main:&lt;class&gt;                     Specifies the Class or Module that contains
-                                  Sub Main. It can also be a Class that
-                                  inherits from System.Windows.Forms.Form.
-                                  (Short form: -m)
--moduleassemblyname:&lt;string&gt;      Name of the assembly which this module will
-                                  be a part of.
--netcf                            Target the .NET Compact Framework.
--nostdlib                         Do not reference standard libraries
-                                  (system.dll and VBC.RSP file).
+-checksumalgorithm:&lt;alg&gt;          Określanie algorytmu dla pliku źródłowego obliczania
+                                  sumy kontrolnej przechowywanej w pliku PDB. Obsługiwane wartości to:
+                                  SHA1 lub SHA256 (domyślnie).
+-codepage:&lt;number&gt;                Określa stronę kodową do użycia podczas otwierania
+                                  plików źródłowych.
+-delaysign[+|-]                   Podpisanie zestawu z opóźnieniem przy użyciu wyłącznie publicznej
+                                  części silnego klucza nazwy.
+-publicsign[+|-]                  Podpisanie publiczne zestawu przy użyciu wyłącznie publicznej
+                                  części silnego klucza nazwy.
+-errorreport:&lt;string&gt;             Określa sposób obsługi błędów wewnętrznych
+                                  kompilatora; musi być prompt, send, none lub queue
+                                  (domyślnie).
+-filealign:&lt;number&gt;               Określanie wyrównania dla sekcji
+                                  pliku wyjściowego.
+-highentropyva[+|-]               Włączanie losowego generowania układu przestrzeni adresowej o wysokiej entropii.
+-keycontainer:&lt;string&gt;            Określa konterner silnych kluczy nazw.
+-keyfile:&lt;file&gt;                   Określa plik silnego klucza nazwy.
+-libpath:&lt;path_list&gt;              Lista katalogów do wyszukania odwołań
+                                  metadanych. (Rozdzielone średnikami).
+-main:&lt;class&gt;                     Określa klasę lub moduł zawierający
+                                  instrukcję Sub Main. Może to być również klasa, która
+                                  dziedziczy po elemencie System.Windows.Forms.Form.
+                                  (Skrócona forma: -m)
+-moduleassemblyname:&lt;string&gt;      Nazwa zestawu, do którego
+                                  należy ten moduł.
+-netcf                            Docelowe środowisko .NET Compact Framework.
+-nostdlib                         Nie odwołuj się do bibliotek standardowych
+                                  (pliki system.dll i VBC.RSP).
 -pathmap:&lt;K1&gt;=&lt;V1&gt;,&lt;K2&gt;=&lt;V2&gt;,...
-                                  Specify a mapping for source path names output by
-                                  the compiler.
--platform:&lt;string&gt;                Limit which platforms this code can run on;
-                                  must be x86, x64, Itanium, arm, arm64
-                                  AnyCPU32BitPreferred or anycpu (default).
--preferreduilang                  Specify the preferred output language name.
--nosdkpath                        Disable searching the default SDK path for standard library assemblies.
--sdkpath:&lt;path&gt;                   Location of the .NET Framework SDK directory
+                                  Określanie mapowania dla wyjścia nazw ścieżek źródłowych przez
+                                  kompilator.
+-platform:&lt;string&gt;                Ograniczanie, na których platformach może działać ten kod;
+                                  musi być x86, x64, Itanium, arm, arm64
+                                  AnyCPU32BitPreferred lub anycpu (domyślnie).
+-preferreduilang                  Określanie nazwy preferowanego języka wyjściowego.
+-nosdkpath                        Wyłączania wyszukiwania ścieżki zestawu SDK dla zestawów bibliotek standardowych.
+-sdkpath:&lt;path&gt;                   Lokalizacja katalogu zestawu SDK .NET Framework
                                   (mscorlib.dll).
--subsystemversion:&lt;version&gt;       Specify subsystem version of the output PE.
+-subsystemversion:&lt;version&gt;       Określanie wersji podsystemu pliku wyjściowego PE.
                                   version:&lt;number&gt;[.&lt;number&gt;]
--utf8output[+|-]                  Emit compiler output in UTF-8 character
-                                  encoding.
-@&lt;file&gt;                           Insert command-line settings from a text file
--vbruntime[+|-|*]                 Compile with/without the default Visual Basic
-                                  runtime.
--vbruntime:&lt;file&gt;                 Compile with the alternate Visual Basic
-                                  runtime in &lt;file&gt;.
+-utf8output[+|-]                  Wysyłanie danych wyjściowych kompilatora w systemie kodowania znaków
+                                  UTF-8.
+@&lt;file&gt;                           Wstawianie ustawień w wierszu polecenia z pliku tekstowego
+-vbruntime[+|-|*]                 Kompilowanie z/bez domyślnego aparatu plików wykonywalnych języka wspólnego
+                                  Visual Basic.
+-vbruntime:&lt;file&gt;                 Kompilowanie z alternatywnym aparatem plików wykonywalnych języka wspólnego
+                                  Visual Basic w pliku &lt;file&gt;.
 </target>
         <note />
       </trans-unit>
@@ -528,6 +528,16 @@
         <target state="translated">Załadowany zestaw odwołuje się do platformy .NET Framework, co nie jest obsługiwane.</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_AnalyzerReferencesNewerCompiler">
+        <source>The analyzer assembly '{0}' references version '{1}' of the compiler, which is newer than the currently running version '{2}'.</source>
+        <target state="translated">Zestaw analizatora „{0}” odwołuje się do wersji „{1}” kompilatora, która jest nowsza niż obecnie uruchomiona wersja „{2}”.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_AnalyzerReferencesNewerCompiler_Title">
+        <source>The analyzer assembly references a newer version of the compiler than the currently running version.</source>
+        <target state="translated">Zestaw analizatora odwołuje się do nowszej wersji kompilatora niż obecnie uruchomiona wersja.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_CallerArgumentExpressionAttributeHasInvalidParameterName">
         <source>The CallerArgumentExpressionAttribute applied to parameter '{0}' will have no effect. It is applied with an invalid parameter name.</source>
         <target state="translated">Atrybut CallerArgumentExpressionAttribute zastosowany do parametru „{0}” nie będzie działać. Jest on stosowany z nieprawidłową nazwą parametru.</target>
@@ -546,6 +556,16 @@
       <trans-unit id="WRN_CallerArgumentExpressionAttributeSelfReferential_Title">
         <source>The CallerArgumentExpressionAttribute applied to parameter will have no effect because it's self-referential.</source>
         <target state="translated">Atrybut CallerArgumentExpressionAttribute zastosowany do parametru nie będzie działać, ponieważ jest to odwołanie samodzielne.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_DuplicateAnalyzerReference">
+        <source>Analyzer reference '{0}' specified multiple times</source>
+        <target state="translated">Odwołanie analizatora „{0}” określono wiele razy</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_DuplicateAnalyzerReference_Title">
+        <source>Analyzer reference specified multiple times</source>
+        <target state="translated">Odwołanie do analizatora określono wiele razy</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_GeneratorFailedDuringGeneration">

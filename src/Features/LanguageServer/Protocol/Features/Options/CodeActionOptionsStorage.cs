@@ -8,11 +8,9 @@ using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.ExtractMethod;
-using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.ImplementType;
 using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.CodeAnalysis.SymbolSearch;
 
 namespace Microsoft.CodeAnalysis.CodeActions
@@ -22,7 +20,7 @@ namespace Microsoft.CodeAnalysis.CodeActions
         public static readonly PerLanguageOption2<int> WrappingColumn =
             new("FormattingOptions", "WrappingColumn", CodeActionOptions.DefaultWrappingColumn);
 
-        public static CodeActionOptions GetCodeActionOptions(this IGlobalOptionService globalOptions, HostLanguageServices languageServices)
+        public static CodeActionOptions GetCodeActionOptions(this IGlobalOptionService globalOptions, LanguageServices languageServices)
             => new(
                 cleanupOptions: globalOptions.GetCodeCleanupOptions(languageServices),
                 codeGenerationOptions: globalOptions.GetCodeGenerationOptions(languageServices),
@@ -33,7 +31,7 @@ namespace Microsoft.CodeAnalysis.CodeActions
                 ExtractMethodOptions = globalOptions.GetExtractMethodOptions(languageServices.Language),
                 HideAdvancedMembers = globalOptions.GetOption(CompletionOptionsStorage.HideAdvancedMembers, languageServices.Language),
                 WrappingColumn = globalOptions.GetOption(WrappingColumn, languageServices.Language),
-                ConditionalExpressionWrappingLength = globalOptions.GetOption(ConditionalExpressionWrappingLength, languageServices.Language)
+                ConditionalExpressionWrappingLength = globalOptions.GetOption(ConditionalExpressionWrappingLength, languageServices.Language),
             };
 
         internal static CodeActionOptionsProvider GetCodeActionOptionsProvider(this IGlobalOptionService globalOptions)

@@ -97,7 +97,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     case FunctionPointerType:
                         // FunctionPointerTypeSyntax has no direct children that are ExpressionSyntaxes
-                        throw ExceptionUtilities.Unreachable;
+                        throw ExceptionUtilities.Unreachable();
 
                     case PredefinedType:
                         return true;
@@ -151,6 +151,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     case RefType:
                         return ((RefTypeSyntax)parent).Type == node;
+
+                    case ScopedType:
+                        return ((ScopedTypeSyntax)parent).Type == node;
 
                     case Parameter:
                     case FunctionPointerParameter:

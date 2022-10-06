@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
     /// </summary>
     [ExportCSharpVisualBasicStatelessLspService(typeof(CompletionHandler)), Shared]
     [Method(LSP.Methods.TextDocumentCompletionName)]
-    internal class CompletionHandler : IRequestHandler<LSP.CompletionParams, LSP.CompletionList?>
+    internal class CompletionHandler : ILspServiceDocumentRequestHandler<LSP.CompletionParams, LSP.CompletionList?>
     {
         internal const string EditRangeSetting = "editRange";
 
@@ -60,13 +60,14 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 lz => CommonCompletionUtilities.GetTriggerCharacters(lz.Value)).ToImmutableHashSet();
         }
 
-        public LSP.TextDocumentIdentifier? GetTextDocumentIdentifier(LSP.CompletionParams request) => request.TextDocument;
+        public LSP.TextDocumentIdentifier GetTextDocumentIdentifier(LSP.CompletionParams request) => request.TextDocument;
 
         public async Task<LSP.CompletionList?> HandleRequestAsync(LSP.CompletionParams request, RequestContext context, CancellationToken cancellationToken)
         {
             var document = context.Document;
             Contract.ThrowIfNull(document);
             Contract.ThrowIfNull(context.Solution);
+            var clientCapabilities = context.GetRequiredClientCapabilities();
 
             // C# and VB share the same LSP language server, and thus share the same default trigger characters.
             // We need to ensure the trigger character is valid in the document's language. For example, the '{'
@@ -102,9 +103,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 };
             }
 
-            var lspVSClientCapability = context.ClientCapabilities.HasVisualStudioLspCapability() == true;
-            var snippetsSupported = context.ClientCapabilities.TextDocument?.Completion?.CompletionItem?.SnippetSupport ?? false;
-            var itemDefaultsSupported = context.ClientCapabilities.TextDocument?.Completion?.CompletionListSetting?.ItemDefaults?.Contains(EditRangeSetting) == true;
+            var lspVSClientCapability = clientCapabilities.HasVisualStudioLspCapability() == true;
+            var snippetsSupported = clientCapabilities.TextDocument?.Completion?.CompletionItem?.SnippetSupport ?? false;
+            var itemDefaultsSupported = clientCapabilities.TextDocument?.Completion?.CompletionListSetting?.ItemDefaults?.Contains(EditRangeSetting) == true;
             var commitCharactersRuleCache = new Dictionary<ImmutableArray<CharacterSetModificationRule>, string[]>(CommitCharacterArrayComparer.Instance);
 
             // We use the first item in the completion list as our comparison point for span
@@ -114,7 +115,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             var defaultSpan = completionChange.TextChange.Span;
             var defaultRange = ProtocolConversions.TextSpanToRange(defaultSpan, documentText);
 
-            var supportsCompletionListData = context.ClientCapabilities.HasCompletionListDataCapability();
+            var supportsCompletionListData = clientCapabilities.HasCompletionListDataCapability();
             var completionResolveData = new CompletionResolveData()
             {
                 ResultId = resultId,
@@ -143,7 +144,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 completionList.Data = completionResolveData;
             }
 
-            if (context.ClientCapabilities.HasCompletionListCommitCharactersCapability())
+            if (clientCapabilities.HasCompletionListCommitCharactersCapability())
             {
                 PromoteCommonCommitCharactersOntoList(completionList);
             }
@@ -446,19 +447,18 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             var filterText = sourceText.GetSubText(completionListSpan).ToString();
 
             // Use pattern matching to determine which items are most relevant out of the calculated items.
-            using var _ = ArrayBuilder<MatchResult<CompletionItem?>>.GetInstance(out var matchResultsBuilder);
+            using var _ = ArrayBuilder<MatchResult>.GetInstance(out var matchResultsBuilder);
             var index = 0;
             var completionHelper = CompletionHelper.GetHelper(document);
             foreach (var item in completionList.ItemsList)
             {
-                if (CompletionHelper.TryCreateMatchResult<CompletionItem?>(
+                if (CompletionHelper.TryCreateMatchResult(
                     completionHelper,
                     item,
-                    editorCompletionItem: null,
                     filterText,
                     completionTrigger.Kind,
                     GetFilterReason(completionTrigger),
-                    recentItems: ImmutableArray<string>.Empty,
+                    recentItemIndex: -1,
                     includeMatchSpans: false,
                     index,
                     out var matchResult))
@@ -469,13 +469,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             }
 
             // Next, we sort the list based on the pattern matching result.
-            matchResultsBuilder.Sort(MatchResult<CompletionItem?>.SortingComparer);
+            matchResultsBuilder.Sort(MatchResult.SortingComparer);
 
             // Finally, truncate the list to 1000 items plus any preselected items that occur after the first 1000.
             var filteredList = matchResultsBuilder
                 .Take(completionListMaxSize)
-                .Concat(matchResultsBuilder.Skip(completionListMaxSize).Where(match => ShouldItemBePreselected(match.RoslynCompletionItem)))
-                .Select(matchResult => matchResult.RoslynCompletionItem)
+                .Concat(matchResultsBuilder.Skip(completionListMaxSize).Where(match => ShouldItemBePreselected(match.CompletionItem)))
+                .Select(matchResult => matchResult.CompletionItem)
                 .ToImmutableArray();
             var newCompletionList = completionList.WithItems(filteredList);
 

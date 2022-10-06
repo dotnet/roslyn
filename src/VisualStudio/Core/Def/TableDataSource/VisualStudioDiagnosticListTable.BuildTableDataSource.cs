@@ -113,7 +113,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                     public override object Key => _source._key;
                     public override string BuildTool => PredefinedBuildTools.Build;
                     public override bool SupportSpanTracking => false;
-                    public override DocumentId TrackingDocumentId => throw ExceptionUtilities.Unreachable;
+                    public override DocumentId TrackingDocumentId => throw ExceptionUtilities.Unreachable();
 
                     public override ImmutableArray<DiagnosticTableItem> GetItems()
                     {
@@ -166,7 +166,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                                 content = (data.GetValidHelpLinkUri() != null) ? string.Format(EditorFeaturesResources.Get_help_for_0, data.Id) : null;
                                 return content != null;
                             case StandardTableKeyNames.HelpKeyword:
-                                content = data.Id;
+                                content = data.GetHelpKeyword();
                                 return content != null;
                             case StandardTableKeyNames.HelpLink:
                                 content = data.GetValidHelpLinkUri()?.AbsoluteUri;
@@ -184,13 +184,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                                 content = data.Message;
                                 return content != null;
                             case StandardTableKeyNames.DocumentName:
-                                content = data.DataLocation?.GetFilePath();
+                                content = data.DataLocation.MappedFileSpan.Path;
                                 return content != null;
                             case StandardTableKeyNames.Line:
-                                content = data.DataLocation?.MappedStartLine ?? 0;
+                                content = data.DataLocation.MappedFileSpan.StartLinePosition.Line;
                                 return true;
                             case StandardTableKeyNames.Column:
-                                content = data.DataLocation?.MappedStartColumn ?? 0;
+                                content = data.DataLocation.MappedFileSpan.StartLinePosition.Character;
                                 return true;
                             case StandardTableKeyNames.ProjectName:
                                 content = item.ProjectName;
@@ -263,11 +263,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 
                         // okay, documentId no longer exist in current solution, find it by file path.
                         var filePath = item.GetOriginalFilePath();
-                        if (string.IsNullOrWhiteSpace(filePath))
-                        {
-                            return null;
-                        }
-
                         var documentIds = solution.GetDocumentIdsWithFilePath(filePath);
                         foreach (var id in documentIds)
                         {

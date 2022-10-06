@@ -267,169 +267,169 @@
 -vbruntime:&lt;file&gt;                 Compile with the alternate Visual Basic
                                   runtime in &lt;file&gt;.
 </source>
-        <target state="new">                  Visual Basic Compiler Options
+        <target state="translated">                  Visual Basic Derleyici Seçenekleri
 
-                                  - OUTPUT FILE -
--out:&lt;file&gt;                       Specifies the output file name.
--target:exe                       Create a console application (default).
-                                  (Short form: -t)
--target:winexe                    Create a Windows application.
--target:library                   Create a library assembly.
--target:module                    Create a module that can be added to an
-                                  assembly.
--target:appcontainerexe           Create a Windows application that runs in
-                                  AppContainer.
--target:winmdobj                  Create a Windows Metadata intermediate file
--doc[+|-]                         Generates XML documentation file.
--doc:&lt;file&gt;                       Generates XML documentation file to &lt;file&gt;.
--refout:&lt;file&gt;                    Reference assembly output to generate
+                                  - ÇIKIŞ DOSYASI -
+-out:&lt;file&gt;                       Çıkış dosyasının adını belirtir.
+-target:exe                       Konsol uygulaması oluşturur (varsayılan).
+                                  (Kısa biçim: -t)
+-target:winexe                    Windows uygulaması oluşturun.
+-target:library                   Kitaplık derlemesi oluşturun.
+-target:module                    Bir derlemeye eklenebilen bir dosya
+                                  oluşturun.
+-target:appcontainerexe           AppContainer’da çalışan bir Windows uygulaması
+                                  oluşturun.
+-target:winmdobj                  Windows Meta Veri ara dosyası oluşturun
+-doc[+|-]                         XML belge dosyası oluşturur.
+-doc:&lt;file&gt;                       &lt;file&gt; dosyasına XML belge dosyası oluşturur.
+-refout:&lt;file&gt;                    Oluşturulacak derleme çıkışına başvurun
 
-                                  - INPUT FILES -
--addmodule:&lt;file_list&gt;            Reference metadata from the specified modules
--link:&lt;file_list&gt;                 Embed metadata from the specified interop
-                                  assembly. (Short form: -l)
--recurse:&lt;wildcard&gt;               Include all files in the current directory
-                                  and subdirectories according to the
-                                  wildcard specifications.
--reference:&lt;file_list&gt;            Reference metadata from the specified
-                                  assembly. (Short form: -r)
--analyzer:&lt;file_list&gt;             Run the analyzers from this assembly
-                                  (Short form: -a)
--additionalfile:&lt;file list&gt;       Additional files that don't directly affect code
-                                  generation but may be used by analyzers for producing
-                                  errors or warnings.
+                                  - GİRİŞ DOSYALARI -
+-addmodule:&lt;file_list&gt;            Belirtilen modüllerden meta verilere başvurun
+-link:&lt;file_list&gt;                 Belirtilen birlikte çalışma derlemesinden meta verileri
+                                  ekleyin. (Kısa biçim: -l)
+-recurse:&lt;wildcard&gt;               Joker karakter belirtimlerine göre geçerli dizindeki
+                                  ve alt dizinlerdeki tüm
+                                  dosyaları ekleyin.
+-reference:&lt;file_list&gt;            Belirtilen derlemeden meta verilere
+                                  başvurun. (Kısa biçim: -r)
+-analyzer:&lt;file_list&gt;             Bu derlemeden çözümleyicileri çalıştırın
+                                  (Kısa biçim: -a)
+-additionalfile:&lt;file list&gt;       Kod oluşturmayı doğrudan etkilemeyen
+                                  ancak hatalar veya uyarılar oluşturarak çözümleyiciler tarafından
+                                  kullanılabilen ek dosyalar.
 
-                                  - RESOURCES -
--linkresource:&lt;resinfo&gt;           Links the specified file as an external
-                                  assembly resource.
+                                  - KAYNAKLAR -
+-linkresource:&lt;resinfo&gt;           Belirtilen dosyayı dış derleme kaynağı
+                                  olarak ekler.
                                   resinfo:&lt;file&gt;[,&lt;name&gt;[,public|private]]
-                                  (Short form: -linkres)
--nowin32manifest                  The default manifest should not be embedded
-                                  in the manifest section of the output PE.
--resource:&lt;resinfo&gt;               Adds the specified file as an embedded
-                                  assembly resource.
+                                  (Kısa biçim: -linkres)
+-nowin32manifest                  Varsayılan bildirimin, çıkış PE’sinin bildirim bölümünde
+                                  eklenmemesi gerekir.
+-resource:&lt;resinfo&gt;               Belirtilen dosyayı ekli bir derleme kaynağı
+                                  olarak ekler.
                                   resinfo:&lt;file&gt;[,&lt;name&gt;[,public|private]]
-                                  (Short form: -res)
--win32icon:&lt;file&gt;                 Specifies a Win32 icon file (.ico) for the
-                                  default Win32 resources.
--win32manifest:&lt;file&gt;             The provided file is embedded in the manifest
-                                  section of the output PE.
--win32resource:&lt;file&gt;             Specifies a Win32 resource file (.res).
+                                  (Kısa biçim: -res)
+-win32icon:&lt;file&gt;                 Varsayılan Win32 kaynakları için bir Win32
+                                  simge dosyası (.ico) belirtir.
+-win32manifest:&lt;file&gt;             Sağlanan dosya, çıkış PE’sinin
+                                  bildirim bölümüne eklenir.
+-win32resource:&lt;file&gt;             Bir Win32 kaynak dosyası (.res) belirtir.
 
-                                  - CODE GENERATION -
--optimize[+|-]                    Enable optimizations.
--removeintchecks[+|-]             Remove integer checks. Default off.
--debug[+|-]                       Emit debugging information.
--debug:full                       Emit full debugging information (default).
--debug:pdbonly                    Emit full debugging information.
--debug:portable                   Emit cross-platform debugging information.
--debug:embedded                   Emit cross-platform debugging information into
-                                  the target .dll or .exe.
--deterministic                    Produce a deterministic assembly
-                                  (including module version GUID and timestamp)
--refonly                          Produce a reference assembly in place of the main output
--instrument:TestCoverage          Produce an assembly instrumented to collect
-                                  coverage information
--sourcelink:&lt;file&gt;                Source link info to embed into PDB.
+                                  - KOD OLUŞTURMA -
+-optimize[+|-]                    İyileştirmeleri etkinleştirin.
+-removeintchecks[+|-]             Tamsayı denetimlerini kaldırın. Varsayılan kapalı.
+-debug[+|-]                       Hata ayıklama bilgilerini yayın.
+-debug:full                       Tam hata ayıklama bilgilerini yayın (varsayılan).
+-debug:pdbonly                    Tam hata ayıklama bilgilerini yayın.
+-debug:portable                   Platformlar arası hata ayıklama bilgilerini yayın.
+-debug:embedded                   Platformlar arası hata ayıklama bilgilerini
+                                  hedef .dll veya .exe dosyasına yayın.
+-deterministic                    Belirlenimci bir derleme oluşturun
+                                  (modül sürümü GUID’i ve zaman damgası dahil)
+-refonly                          Ana çıkış yerine bir başvuru derlemesi oluşturun
+-instrument:TestCoverage          Kapsam bilgilerini toplamak için bir
+                                  izlenen derleme oluşturun
+-sourcelink:&lt;file&gt;                PDB’ye eklenecek kaynak bağlantı bilgileri.
 
-                                  - ERRORS AND WARNINGS -
--nowarn                           Disable all warnings.
--nowarn:&lt;number_list&gt;             Disable a list of individual warnings.
--warnaserror[+|-]                 Treat all warnings as errors.
--warnaserror[+|-]:&lt;number_list&gt;   Treat a list of warnings as errors.
--ruleset:&lt;file&gt;                   Specify a ruleset file that disables specific
-                                  diagnostics.
+                                  - HATALAR VE UYARILAR -
+-nowarn                           Tüm uyarıları devre dışı bırakın.
+-nowarn:&lt;number_list&gt;             Tek tek uyarıların listesini devre dışı bırakın.
+-warnaserror[+|-]                 Tüm uyarıları hata olarak değerlendirin.
+-warnaserror[+|-]:&lt;number_list&gt;   Uyarıların bir listesini hata olarak değerlendirin.
+-ruleset:&lt;file&gt;                   Belirli tanılamaları devre dışı bırakan bir kural listesi dosyası
+                                  belirtin.
 -errorlog:&lt;file&gt;[,version=&lt;sarif_version&gt;]         
-                                  Specify a file to log all compiler and analyzer
-                                  diagnostics in SARIF format.
-                                  sarif_version:{1|2|2.1} Default is 1. 2 and 2.1
-                                  both mean SARIF version 2.1.0.
--reportanalyzer                   Report additional analyzer information, such as
-                                  execution time.
--skipanalyzers[+|-]               Skip execution of diagnostic analyzers.
+                                  Tüm derleyici ve çözümleyici tanılamalarını
+                                  SARIF biçiminde günlüğe kaydetmek için bir dosya belirtin.
+                                  sarif_version:{1|2|2.1} Varsayılan 1. 2 ve 2.1
+                                  SARIF sürüm 2.1.0’dır.
+-reportanalyzer                   Yürütme zamanı gibi ek çözümleyici bilgilerini
+                                  raporlayın.
+-skipanalyzers[+|-]               Tanılama çözümleyicilerinin yürütülmesini atlayın.
 
-                                  - LANGUAGE -
--define:&lt;symbol_list&gt;             Declare global conditional compilation
-                                  symbol(s). symbol_list:name=value,...
-                                  (Short form: -d)
--imports:&lt;import_list&gt;            Declare global Imports for namespaces in
-                                  referenced metadata files.
+                                  - DİL -
+-define:&lt;symbol_list&gt;             Genel koşullu derleme sembollerini
+                                  bildirin. symbol_list:name=value,...
+                                  (Kısa biçim: -d)
+-imports:&lt;import_list&gt;            Başvurulan meta veri dosyalarındaki
+                                  ad alanları için genel Alımları bildirin.
                                   import_list:namespace,...
--langversion:?                    Display the allowed values for language version
--langversion:&lt;string&gt;             Specify language version such as
-                                  `default` (latest major version), or
-                                  `latest` (latest version, including minor versions),
-                                  or specific versions like `14` or `15.3`
--optionexplicit[+|-]              Require explicit declaration of variables.
--optioninfer[+|-]                 Allow type inference of variables.
--rootnamespace:&lt;string&gt;           Specifies the root Namespace for all type
-                                  declarations.
--optionstrict[+|-]                Enforce strict language semantics.
--optionstrict:custom              Warn when strict language semantics are not
-                                  respected.
--optioncompare:binary             Specifies binary-style string comparisons.
-                                  This is the default.
--optioncompare:text               Specifies text-style string comparisons.
+-langversion:?                    Dil sürümü için izin verilen değerleri görüntüleyin
+-langversion:&lt;string&gt;             Dil sürümünü
+                                  `default` (en son birincil sürüm), veya
+                                  `latest` (ikincil sürümler dahil en son sürüm),
+                                  ya da `14` veya `15.3` gibi belirli sürümler olarak belirtin
+-optionexplicit[+|-]              Değişkenlerin açıkça bildirilmesini gerektirin.
+-optioninfer[+|-]                 Değişkenlerin tür çıkarımına izin verin.
+-rootnamespace:&lt;string&gt;           Tüm tür bildirimleri için kök Ad Alanını
+                                  belirtir.
+-optionstrict[+|-]                Katı dil semantiğini zorunlu kılın.
+-optionstrict:custom              Katı dil semantiğine uyulmadığı zaman
+                                  uyar.
+-optioncompare:binary             İkili stilde dize karşılaştırmalarını belirtir.
+                                  Bu varsayılandır.
+-optioncompare:text               Metin stili dize karşılaştırmalarını belirtir.
 
-                                  - MISCELLANEOUS -
--help                             Display this usage message. (Short form: -?)
--noconfig                         Do not auto-include VBC.RSP file.
--nologo                           Do not display compiler copyright banner.
--quiet                            Quiet output mode.
--verbose                          Display verbose messages.
--parallel[+|-]                    Concurrent build.
--version                          Display the compiler version number and exit.
+                                  - ÇEŞİTLİ -
+-help                             Bu kullanım iletisini görüntüleyin. (Kısa biçim: -?)
+-noconfig                         VBC.RSP dosyasını otomatik olarak ekleme.
+-nologo                           Derleyici telif hakkı başlığını görüntüleme.
+-quiet                            Sessiz çıkış modu.
+-verbose                          Ayrıntılı iletiler görüntüle.
+-parallel[+|-]                    Eş zamanlı derleme.
+-version                          Derleyici sürüm numarasını göster ve çık.
 
-                                  - ADVANCED -
--baseaddress:&lt;number&gt;             The base address for a library or module
-                                  (hex).
--checksumalgorithm:&lt;alg&gt;          Specify algorithm for calculating source file
-                                  checksum stored in PDB. Supported values are:
-                                  SHA1 or SHA256 (default).
--codepage:&lt;number&gt;                Specifies the codepage to use when opening
-                                  source files.
--delaysign[+|-]                   Delay-sign the assembly using only the public
-                                  portion of the strong name key.
--publicsign[+|-]                  Public-sign the assembly using only the public
-                                  portion of the strong name key.
--errorreport:&lt;string&gt;             Specifies how to handle internal compiler
-                                  errors; must be prompt, send, none, or queue
-                                  (default).
--filealign:&lt;number&gt;               Specify the alignment used for output file
-                                  sections.
--highentropyva[+|-]               Enable high-entropy ASLR.
--keycontainer:&lt;string&gt;            Specifies a strong name key container.
--keyfile:&lt;file&gt;                   Specifies a strong name key file.
--libpath:&lt;path_list&gt;              List of directories to search for metadata
-                                  references. (Semi-colon delimited.)
--main:&lt;class&gt;                     Specifies the Class or Module that contains
-                                  Sub Main. It can also be a Class that
-                                  inherits from System.Windows.Forms.Form.
-                                  (Short form: -m)
--moduleassemblyname:&lt;string&gt;      Name of the assembly which this module will
-                                  be a part of.
--netcf                            Target the .NET Compact Framework.
--nostdlib                         Do not reference standard libraries
-                                  (system.dll and VBC.RSP file).
+                                  - GELİŞMİŞ -
+-baseaddress:&lt;number&gt;             Bir kitaplık veya modül için taban adres
+                                  (onaltılık).
+-checksumalgorithm:&lt;alg&gt;          PDB dosyasında depolanan hesaplama kaynak dosyası sağlama toplamı için
+                                  algoritmayı belirtin. Desteklenen değerler:
+                                  SHA1 veya SHA256 (varsayılan).
+-codepage:&lt;number&gt;                Kaynak dosyalar açılırken kullanılacak
+                                  kod sayfasını belirtir.
+-delaysign[+|-]                   Tanımlayıcı ad anahtarının yalnızca genel bölümünü kullanarak
+                                  derlemeyi gecikmeli imzala.
+-publicsign[+|-]                  Tanımlayıcı ad anahtarının yalnızca genel bölümünü kullanarak
+                                  derlemeyi genel olarak imzala.
+-errorreport:&lt;string&gt;             Dahili derleyici hatalarının nasıl işleneceğini
+                                  belirtir; prompt, send, none veya queue seçeneklerinden biri olmalıdır
+                                  (varsayılan).
+-filealign:&lt;number&gt;               Çıkış dosyası bölümleri için kullanılacak hizalamayı
+                                  belirtin.
+-highentropyva[+|-]               Yüksek entropili ASLR’yi etkinleştirin.
+-keycontainer:&lt;string&gt;            Tanımlayıcı ad anahtar dosyası belirtir.
+-keyfile:&lt;file&gt;                   Tanımlayıcı ad anahtarı dosyası belirtir.
+-libpath:&lt;path_list&gt;              Meta veri başvurularının aranacağı dizinlerin
+                                  listesi. (Noktalı virgülle ayrılmış.)
+-main:&lt;class&gt;                     Alt Ana dosyayı içeren Sınıfı veya Modülü
+                                  belirtir. System.Windows.Forms.Form öğesinden
+                                  devralan bir sınıf da olabilir.
+                                  (Kısa biçim: -m)
+-moduleassemblyname:&lt;string&gt;      Bu modülün bir parçası olacağı derlemenin
+                                  adı.
+-netcf                            .NET Compact Framework’ü hedefleyin.
+-nostdlib                         Standart kitaplıklara başvurmayın
+                                  (system.dll ve VBC.RSP dosyası).
 -pathmap:&lt;K1&gt;=&lt;V1&gt;,&lt;K2&gt;=&lt;V2&gt;,...
-                                  Specify a mapping for source path names output by
-                                  the compiler.
--platform:&lt;string&gt;                Limit which platforms this code can run on;
-                                  must be x86, x64, Itanium, arm, arm64
-                                  AnyCPU32BitPreferred or anycpu (default).
--preferreduilang                  Specify the preferred output language name.
--nosdkpath                        Disable searching the default SDK path for standard library assemblies.
--sdkpath:&lt;path&gt;                   Location of the .NET Framework SDK directory
+                                  Derleyiciye göre kaynak yol adları için
+                                  eşleme belirtin.
+-platform:&lt;string&gt;                Kodun çalışabileceği platformları sınırlandırın;
+                                  x86, x64, Itanium, arm, arm64 olmalıdır
+                                  AnyCPU32BitPreferred veya anycpu (varsayılan).
+-preferreduilang                  Tercih edilen çıkış dili adını belirtin.
+-nosdkpath                        Standart kitaplık derlemeleri için varsayılan SDK yolunu aramayı devre dışı bırakın.
+-sdkpath:&lt;path&gt;                   .NET Framework SDK dizininin konumu
                                   (mscorlib.dll).
--subsystemversion:&lt;version&gt;       Specify subsystem version of the output PE.
+-subsystemversion:&lt;version&gt;       Çıkış PE’sinin alt sistem sürümünü belirtin.
                                   version:&lt;number&gt;[.&lt;number&gt;]
--utf8output[+|-]                  Emit compiler output in UTF-8 character
-                                  encoding.
-@&lt;file&gt;                           Insert command-line settings from a text file
--vbruntime[+|-|*]                 Compile with/without the default Visual Basic
-                                  runtime.
--vbruntime:&lt;file&gt;                 Compile with the alternate Visual Basic
-                                  runtime in &lt;file&gt;.
+-utf8output[+|-]                  Derleyici çıkışını UTF-8 karakter kodlamasında
+                                  yayın.
+@&lt;file&gt;                           Metin dosyasından komut satırı ayarları ekleyin
+-vbruntime[+|-|*]                 Varsayılan Visual Basic çalışma zamanıyla/çalışma zamanı olmadan
+                                  derleyin.
+-vbruntime:&lt;file&gt;                 &lt;file&gt; içinde alternatif Visual Basic
+                                  çalışma zamanıyla derleyin.
 </target>
         <note />
       </trans-unit>
@@ -528,6 +528,16 @@
         <target state="translated">Yüklenen bütünleştirilmiş kod, desteklenmeyen .NET Framework'e başvuruyor.</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_AnalyzerReferencesNewerCompiler">
+        <source>The analyzer assembly '{0}' references version '{1}' of the compiler, which is newer than the currently running version '{2}'.</source>
+        <target state="translated">'{0}' çözümleyici bütünleştirilmiş kodu, derleyicinin şu anda çalışan '{2}' sürümünden daha yeni olan '{1}' sürümüne başvurur.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_AnalyzerReferencesNewerCompiler_Title">
+        <source>The analyzer assembly references a newer version of the compiler than the currently running version.</source>
+        <target state="translated">Çözümleyici bütünleştirilmiş kodu, derleyicinin şu anda çalışandan daha yeni bir sürümüne başvurur.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_CallerArgumentExpressionAttributeHasInvalidParameterName">
         <source>The CallerArgumentExpressionAttribute applied to parameter '{0}' will have no effect. It is applied with an invalid parameter name.</source>
         <target state="translated">'{0}' parametresine uygulanan CallerArgumentExpressionAttribute hiçbir etkiye sahip olmaz. Geçersiz bir parametre adıyla uygulanır.</target>
@@ -546,6 +556,16 @@
       <trans-unit id="WRN_CallerArgumentExpressionAttributeSelfReferential_Title">
         <source>The CallerArgumentExpressionAttribute applied to parameter will have no effect because it's self-referential.</source>
         <target state="translated">Parametre kendini işaret ettiğinden, parametreye uygulanan CallerArgumentExpressionAttribute hiçbir etkiye sahip olmaz.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_DuplicateAnalyzerReference">
+        <source>Analyzer reference '{0}' specified multiple times</source>
+        <target state="translated">Çözümleyici referansı '{0}' birden çok kez belirtildi</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_DuplicateAnalyzerReference_Title">
+        <source>Analyzer reference specified multiple times</source>
+        <target state="translated">Çözümleyici referansı birden çok kez belirtildi</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_GeneratorFailedDuringGeneration">

@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.Host
 {
     internal abstract partial class AbstractSyntaxTreeFactoryService
     {
-        internal struct SyntaxTreeInfo
+        internal readonly struct SyntaxTreeInfo
         {
             public readonly string FilePath;
             public readonly ParseOptions Options;
@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.Host
                     ContainsDirectives);
             }
 
-            internal SyntaxTreeInfo WithOptionsAndLength(ParseOptions options, int length)
+            internal SyntaxTreeInfo WithOptionsAndLengthAndContainsDirectives(ParseOptions options, int length, bool containsDirectives)
             {
                 return new SyntaxTreeInfo(
                     FilePath,
@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis.Host
                     TextSource,
                     Encoding,
                     length,
-                    ContainsDirectives);
+                    containsDirectives);
             }
 
             internal SyntaxTreeInfo WithOptions(ParseOptions options)
@@ -95,7 +95,7 @@ namespace Microsoft.CodeAnalysis.Host
         internal sealed class RecoverableSyntaxRoot<TRoot> : WeaklyCachedRecoverableValueSource<TRoot>
             where TRoot : SyntaxNode
         {
-            private ITemporaryStreamStorage? _storage;
+            private ITemporaryStreamStorageInternal? _storage;
 
             private readonly IRecoverableSyntaxTree<TRoot> _containingTree;
             private readonly AbstractSyntaxTreeFactoryService _service;
@@ -146,7 +146,7 @@ namespace Microsoft.CodeAnalysis.Host
                 root.SerializeTo(stream, cancellationToken);
                 stream.Position = 0;
 
-                _storage = _service.LanguageServices.WorkspaceServices.GetRequiredService<ITemporaryStorageService>().CreateTemporaryStreamStorage(cancellationToken);
+                _storage = _service.SolutionServices.GetRequiredService<ITemporaryStorageServiceInternal>().CreateTemporaryStreamStorage();
                 await _storage.WriteStreamAsync(stream, cancellationToken).ConfigureAwait(false);
             }
 
@@ -154,7 +154,7 @@ namespace Microsoft.CodeAnalysis.Host
             {
                 Contract.ThrowIfNull(_storage);
 
-                using (RoslynEventSource.LogInformationalBlock(FunctionId.Workspace_Recoverable_RecoverRootAsync, _containingTree.FilePath, cancellationToken))
+                using (Logger.LogBlock(FunctionId.Workspace_Recoverable_RecoverRootAsync, _containingTree.FilePath, cancellationToken, LogLevel.Information))
                 {
                     using var stream = await _storage.ReadStreamAsync(cancellationToken).ConfigureAwait(false);
                     return RecoverRoot(stream, cancellationToken);
@@ -165,7 +165,7 @@ namespace Microsoft.CodeAnalysis.Host
             {
                 Contract.ThrowIfNull(_storage);
 
-                using (RoslynEventSource.LogInformationalBlock(FunctionId.Workspace_Recoverable_RecoverRoot, _containingTree.FilePath, cancellationToken))
+                using (Logger.LogBlock(FunctionId.Workspace_Recoverable_RecoverRoot, _containingTree.FilePath, cancellationToken, LogLevel.Information))
                 {
                     using var stream = _storage.ReadStream(cancellationToken);
                     return RecoverRoot(stream, cancellationToken);

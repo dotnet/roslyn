@@ -12,7 +12,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Formatting.Rules;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Simplification;
@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
             // will return 'true' if it made a multi-line conditional expression. In that case,
             // we'll need to explicitly format this node so we can get our special multi-line
             // formatting in VB and C#.
-            var nestedEditor = new SyntaxEditor(root, document.Project.Solution.Workspace.Services);
+            var nestedEditor = new SyntaxEditor(root, document.Project.Solution.Services);
             foreach (var diagnostic in diagnostics)
             {
                 await FixOneAsync(
@@ -76,7 +76,7 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
 #if CODE_STYLE
             var provider = GetSyntaxFormatting();
 #else
-            var provider = document.Project.Solution.Workspace.Services;
+            var provider = document.Project.Solution.Services;
 #endif
             var options = await document.GetCodeFixOptionsAsync(fallbackOptions, cancellationToken).ConfigureAwait(false);
             var formattingOptions = options.GetFormattingOptions(GetSyntaxFormatting());
@@ -172,7 +172,7 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
             // the option is currently not an editorconfig option, so not available in code style layer
             var wrappingLength =
 #if !CODE_STYLE
-                fallbackOptions.GetOptions(document.Project.LanguageServices)?.ConditionalExpressionWrappingLength ??
+                fallbackOptions.GetOptions(document.Project.Services)?.ConditionalExpressionWrappingLength ??
 #endif
                 CodeActionOptions.DefaultConditionalExpressionWrappingLength;
 

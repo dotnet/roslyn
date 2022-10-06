@@ -17,6 +17,7 @@ using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.UnitTests;
 using Moq;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
@@ -31,7 +32,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
     [UseExportProvider]
     public class EditSessionActiveStatementsTests : TestBase
     {
-        private static readonly TestComposition s_composition = EditorTestCompositions.EditorFeatures.AddParts(typeof(DummyLanguageService));
+        private static readonly TestComposition s_composition = EditorTestCompositions.EditorFeatures.AddParts(typeof(NoCompilationLanguageService));
 
         private static EditSession CreateEditSession(
             Solution solution,
@@ -174,8 +175,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 
             var solution = AddDefaultTestSolution(workspace, markedSources);
             var projectId = solution.ProjectIds.Single();
-            var dummyProject = solution.AddProject("dummy_proj", "dummy_proj", DummyLanguageService.LanguageName);
-            solution = dummyProject.Solution.AddDocument(DocumentId.CreateNewId(dummyProject.Id, DummyLanguageService.LanguageName), "a.dummy", "");
+            var dummyProject = solution.AddProject("dummy_proj", "dummy_proj", NoCompilationConstants.LanguageName);
+            solution = dummyProject.Solution.AddDocument(DocumentId.CreateNewId(dummyProject.Id, NoCompilationConstants.LanguageName), "a.dummy", "");
             var project = solution.GetProject(projectId);
             var document1 = project.Documents.Single(d => d.Name == "test1.cs");
             var document2 = project.Documents.Single(d => d.Name == "test2.cs");
@@ -226,7 +227,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 
             // Exception Regions
 
-            var analyzer = solution.GetProject(projectId).LanguageServices.GetRequiredService<IEditAndContinueAnalyzer>();
+            var analyzer = solution.GetProject(projectId).Services.GetRequiredService<IEditAndContinueAnalyzer>();
             var oldActiveStatements1 = await baseActiveStatementsMap.GetOldActiveStatementsAsync(analyzer, document1, CancellationToken.None).ConfigureAwait(false);
 
             AssertEx.Equal(new[]
@@ -353,7 +354,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 
             // Exception Regions
 
-            var analyzer = solution.GetProject(project.Id).LanguageServices.GetRequiredService<IEditAndContinueAnalyzer>();
+            var analyzer = solution.GetProject(project.Id).Services.GetRequiredService<IEditAndContinueAnalyzer>();
             var oldActiveStatements = await baseActiveStatementMap.GetOldActiveStatementsAsync(analyzer, document, CancellationToken.None).ConfigureAwait(false);
 
             // Note that the spans correspond to the base snapshot (V2). 
@@ -538,7 +539,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 
             // Exception Regions
 
-            var analyzer = solution.GetProject(project.Id).LanguageServices.GetRequiredService<IEditAndContinueAnalyzer>();
+            var analyzer = solution.GetProject(project.Id).Services.GetRequiredService<IEditAndContinueAnalyzer>();
             var oldActiveStatements = await baseActiveStatementMap.GetOldActiveStatementsAsync(analyzer, document, CancellationToken.None).ConfigureAwait(false);
 
             // Note that the spans correspond to the base snapshot (V2). 
@@ -684,7 +685,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 
             // Exception Regions
 
-            var analyzer = solution.GetProject(project.Id).LanguageServices.GetRequiredService<IEditAndContinueAnalyzer>();
+            var analyzer = solution.GetProject(project.Id).Services.GetRequiredService<IEditAndContinueAnalyzer>();
             var oldActiveStatements = await baseActiveStatementMap.GetOldActiveStatementsAsync(analyzer, document, CancellationToken.None).ConfigureAwait(false);
 
             AssertEx.Equal(new[]

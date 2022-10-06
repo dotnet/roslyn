@@ -5969,6 +5969,212 @@ class C
         }
 
         [Fact]
+        [WorkItem(57325, "https://github.com/dotnet/roslyn/issues/57325")]
+        public void InOutAttributes()
+        {
+            var source = @"
+using System.Runtime.InteropServices;
+
+class State
+{
+    public bool B;
+}
+
+class Program
+{
+    static void M([In] [Out] State state)
+    {
+        local(state);
+
+        static void local([In] [Out] State state)
+        {
+        }
+    }
+}
+";
+            var verifier = CompileAndVerify(
+                source,
+                targetFramework: TargetFramework.StandardAndCSharp,
+                symbolValidator: validateMetadata,
+                options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
+            var methodParam = ((CSharpCompilation)verifier.Compilation).GetMember<MethodSymbol>("Program.M").Parameters[0];
+            Assert.True(methodParam.IsMetadataIn);
+            Assert.True(methodParam.IsMetadataOut);
+
+            var localFunctionParam = verifier.FindLocalFunction("local").Parameters[0].GetSymbol<ParameterSymbol>();
+            Assert.True(localFunctionParam.IsMetadataIn);
+            Assert.True(localFunctionParam.IsMetadataOut);
+
+            void validateMetadata(ModuleSymbol module)
+            {
+                var methodParam = module.GlobalNamespace.GetMember<MethodSymbol>("Program.M").Parameters[0];
+                Assert.True(methodParam.IsMetadataIn);
+                Assert.True(methodParam.IsMetadataOut);
+
+                var localFunctionParam = module.GlobalNamespace.GetMember<MethodSymbol>("Program.<M>g__local|0_0").Parameters[0];
+                Assert.True(localFunctionParam.IsMetadataIn);
+                Assert.True(localFunctionParam.IsMetadataOut);
+            }
+        }
+
+        [Theory]
+        [InlineData("[In] ")]
+        [InlineData("[Attr] ")]
+        [InlineData("[In] [Attr] ")]
+        [InlineData("")]
+        [WorkItem(57325, "https://github.com/dotnet/roslyn/issues/57325")]
+        public void IsMetadataIn_UsingModifierInSource(string attributes)
+        {
+            var source = $$"""
+using System.Runtime.InteropServices;
+using System;
+
+class Attr : Attribute { }
+
+class State
+{
+    public bool B;
+}
+
+class Program
+{
+    static void M({{attributes}}in State state)
+    {
+        local(in state);
+
+        static void local({{attributes}}in State state)
+        {
+        }
+    }
+}
+""";
+            var verifier = CompileAndVerify(
+                source,
+                targetFramework: TargetFramework.StandardAndCSharp,
+                symbolValidator: validateMetadata,
+                options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
+            var methodParam = ((CSharpCompilation)verifier.Compilation).GetMember<MethodSymbol>("Program.M").Parameters[0];
+            Assert.True(methodParam.IsMetadataIn);
+            Assert.False(methodParam.IsMetadataOut);
+
+            var localFunctionParam = verifier.FindLocalFunction("local").Parameters[0].GetSymbol<ParameterSymbol>();
+            Assert.True(localFunctionParam.IsMetadataIn);
+            Assert.False(localFunctionParam.IsMetadataOut);
+
+            void validateMetadata(ModuleSymbol module)
+            {
+                var methodParam = module.GlobalNamespace.GetMember<MethodSymbol>("Program.M").Parameters[0];
+                Assert.True(methodParam.IsMetadataIn);
+                Assert.False(methodParam.IsMetadataOut);
+
+                var localFunctionParam = module.GlobalNamespace.GetMember<MethodSymbol>("Program.<M>g__local|0_0").Parameters[0];
+                Assert.True(localFunctionParam.IsMetadataIn);
+                Assert.False(localFunctionParam.IsMetadataOut);
+            }
+        }
+
+        [Theory]
+        [InlineData("[Out] ")]
+        [InlineData("[Attr] ")]
+        [InlineData("[Out] [Attr] ")]
+        [InlineData("")]
+        [WorkItem(57325, "https://github.com/dotnet/roslyn/issues/57325")]
+        public void IsMetadataOut_UsingModifierInSource(string attributes)
+        {
+            var source = $$"""
+using System.Runtime.InteropServices;
+using System;
+
+class Attr : Attribute { }
+
+class State
+{
+    public bool B;
+}
+
+class Program
+{
+    static void M({{attributes}}out State state)
+    {
+        local(out state);
+
+        static void local({{attributes}}out State state)
+        {
+            state = null!;
+        }
+    }
+}
+""";
+            var verifier = CompileAndVerify(
+                source,
+                targetFramework: TargetFramework.StandardAndCSharp,
+                symbolValidator: validateMetadata,
+                options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
+            var methodParam = ((CSharpCompilation)verifier.Compilation).GetMember<MethodSymbol>("Program.M").Parameters[0];
+            Assert.False(methodParam.IsMetadataIn);
+            Assert.True(methodParam.IsMetadataOut);
+
+            var localFunctionParam = verifier.FindLocalFunction("local").Parameters[0].GetSymbol<ParameterSymbol>();
+            Assert.False(localFunctionParam.IsMetadataIn);
+            Assert.True(localFunctionParam.IsMetadataOut);
+
+            void validateMetadata(ModuleSymbol module)
+            {
+                var methodParam = module.GlobalNamespace.GetMember<MethodSymbol>("Program.M").Parameters[0];
+                Assert.False(methodParam.IsMetadataIn);
+                Assert.True(methodParam.IsMetadataOut);
+
+                var localFunctionParam = module.GlobalNamespace.GetMember<MethodSymbol>("Program.<M>g__local|0_0").Parameters[0];
+                Assert.False(localFunctionParam.IsMetadataIn);
+                Assert.True(localFunctionParam.IsMetadataOut);
+            }
+        }
+
+        [Fact]
+        [WorkItem(57325, "https://github.com/dotnet/roslyn/issues/57325")]
+        public void BaseParameterWithDifferentRefKind()
+        {
+            var source = $$"""
+using System;
+
+class Attr : Attribute { }
+
+public class State
+{
+    public bool B;
+}
+
+static class Program
+{
+    static void M()
+    {
+        local(new State());
+
+        static void local([Attr] in State state)
+        {
+        }
+    }
+}
+""";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var localFunctionSyntax = tree.GetRoot().DescendantNodes().OfType<LocalFunctionStatementSyntax>().Single();
+            var localFunction = model.GetDeclaredSymbol(localFunctionSyntax).GetSymbol<LocalFunctionSymbol>();
+            var param = localFunction.Parameters[0];
+            Assert.True(param.IsMetadataIn);
+            Assert.False(param.IsMetadataOut);
+
+            // Test a scenario where the baseParameterAttributes has a different RefKind than the synthesized parameter.
+            // We expect the RefKind of the base parameter to be ignored here.
+            var synthesizedParam = SynthesizedParameterSymbol.Create(localFunction, param.TypeWithAnnotations, ordinal: 0, RefKind.Out, param.Name, baseParameterForAttributes: (SourceComplexParameterSymbolBase)param);
+            Assert.False(synthesizedParam.IsMetadataIn);
+            Assert.True(synthesizedParam.IsMetadataOut);
+        }
+
+        [Fact]
         [WorkItem(49599, "https://github.com/dotnet/roslyn/issues/49599")]
         public void MultipleLocalFunctionsUsingDynamic_01()
         {

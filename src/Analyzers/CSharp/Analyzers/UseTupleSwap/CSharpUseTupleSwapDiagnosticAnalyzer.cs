@@ -35,7 +35,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UseTupleSwap
             : base(IDEDiagnosticIds.UseTupleSwapDiagnosticId,
                    EnforceOnBuildValues.UseTupleSwap,
                    CSharpCodeStyleOptions.PreferTupleSwap,
-                   LanguageNames.CSharp,
                    new LocalizableResourceString(
                        nameof(CSharpAnalyzersResources.Use_tuple_to_swap_values), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)))
         {

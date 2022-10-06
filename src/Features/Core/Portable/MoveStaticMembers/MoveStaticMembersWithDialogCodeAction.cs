@@ -13,7 +13,7 @@ using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.FindSymbols;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Simplification;
@@ -25,33 +25,30 @@ namespace Microsoft.CodeAnalysis.MoveStaticMembers
     internal class MoveStaticMembersWithDialogCodeAction : CodeActionWithOptions
     {
         private readonly Document _document;
-        private readonly ISymbol? _selectedMember;
+        private readonly ImmutableArray<ISymbol> _selectedMembers;
         private readonly INamedTypeSymbol _selectedType;
         private readonly IMoveStaticMembersOptionsService _service;
         private readonly CleanCodeGenerationOptionsProvider _fallbackOptions;
 
-        public TextSpan Span { get; }
         public override string Title => FeaturesResources.Move_static_members_to_another_type;
 
         public MoveStaticMembersWithDialogCodeAction(
             Document document,
-            TextSpan span,
             IMoveStaticMembersOptionsService service,
             INamedTypeSymbol selectedType,
             CleanCodeGenerationOptionsProvider fallbackOptions,
-            ISymbol? selectedMember = null)
+            ImmutableArray<ISymbol> selectedMembers)
         {
             _document = document;
             _service = service;
             _selectedType = selectedType;
             _fallbackOptions = fallbackOptions;
-            _selectedMember = selectedMember;
-            Span = span;
+            _selectedMembers = selectedMembers;
         }
 
         public override object? GetOptions(CancellationToken cancellationToken)
         {
-            return _service.GetMoveMembersToTypeOptions(_document, _selectedType, _selectedMember);
+            return _service.GetMoveMembersToTypeOptions(_document, _selectedType, _selectedMembers);
         }
 
         protected override async Task<IEnumerable<CodeActionOperation>> ComputeOperationsAsync(object options, CancellationToken cancellationToken)

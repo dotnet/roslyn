@@ -625,6 +625,28 @@ namespace System.Runtime.CompilerServices
     }
 }";
 
+        protected const string UnscopedRefAttributeDefinition =
+@"namespace System.Diagnostics.CodeAnalysis
+{
+    [AttributeUsage(AttributeTargets.All, AllowMultiple = false, Inherited = false)]
+    public sealed class UnscopedRefAttribute : Attribute
+    {
+    }
+}";
+
+        protected const string RefSafetyRulesAttributeDefinition =
+@"namespace System.Runtime.CompilerServices
+{
+    public sealed class RefSafetyRulesAttribute : Attribute
+    {
+        public RefSafetyRulesAttribute(int version) { Version = version; }
+        public int Version;
+    }
+}";
+
+        protected static MetadataReference RefSafetyRulesAttributeLib =>
+            CreateCompilation(RefSafetyRulesAttributeDefinition).EmitToImageReference();
+
         protected const string RequiredMemberAttribute = @"
 namespace System.Runtime.CompilerServices
 {
@@ -965,7 +987,7 @@ namespace System.Diagnostics.CodeAnalysis
 
         internal CompilationVerifier CompileAndVerifyFieldMarshal(CSharpTestSource source, Func<string, PEAssembly, byte[]> getExpectedBlob, bool isField = true) =>
             CompileAndVerifyFieldMarshalCommon(
-                CreateCompilationWithMscorlib40(source, parseOptions: TestOptions.RegularPreview),
+                CreateCompilationWithMscorlib40(source, parseOptions: TestOptions.RegularPreview.WithNoRefSafetyRulesAttribute()),
                 getExpectedBlob,
                 isField);
 
@@ -1197,7 +1219,34 @@ namespace System.Diagnostics.CodeAnalysis
             TargetFramework targetFramework = TargetFramework.Standard,
             string assemblyName = "",
             string sourceFileName = "",
-            bool skipUsesIsNullable = false) => CreateEmptyCompilation(source, TargetFrameworkUtil.GetReferences(targetFramework, references), options, parseOptions, assemblyName, sourceFileName, skipUsesIsNullable);
+            bool skipUsesIsNullable = false)
+        {
+            if (targetFramework == TargetFramework.Net70)
+            {
+                // Avoid sharing mscorlib symbols with other tests since we are about to change
+                // RuntimeSupportsByRefFields property for it.
+                var mscorlibWithoutSharing = new[] { GetMscorlibRefWithoutSharingCachedSymbols() };
+
+                // Note: we use skipExtraValidation so that nobody pulls
+                // on the compilation or its references before we set the RuntimeSupportsByRefFields flag.
+                var comp = CreateCompilationCore(source, references is not null ? references.Concat(mscorlibWithoutSharing) : mscorlibWithoutSharing,
+                    options, parseOptions, assemblyName, sourceFileName, skipUsesIsNullable, experimentalFeature: null, skipExtraValidation: true);
+
+                comp.Assembly.RuntimeSupportsByRefFields = true;
+                return comp;
+            }
+
+            return CreateEmptyCompilation(source, TargetFrameworkUtil.GetReferences(targetFramework, references), options, parseOptions, assemblyName, sourceFileName, skipUsesIsNullable);
+        }
+
+        public static MetadataReference GetMscorlibRefWithoutSharingCachedSymbols()
+        {
+            // Avoid sharing mscorlib symbols with other tests since we are about to change
+            // RuntimeSupportsByRefFields property for it.
+
+            return ((AssemblyMetadata)((MetadataImageReference)MscorlibRef).GetMetadata()).CopyWithoutSharingCachedSymbols().
+                GetReference(display: "mscorlib.v4_0_30319.dll");
+        }
 
         public static CSharpCompilation CreateEmptyCompilation(
             CSharpTestSource source,
@@ -1206,7 +1255,8 @@ namespace System.Diagnostics.CodeAnalysis
             CSharpParseOptions parseOptions = null,
             string assemblyName = "",
             string sourceFileName = "",
-            bool skipUsesIsNullable = false) => CreateCompilationCore(source, references, options, parseOptions, assemblyName, sourceFileName, skipUsesIsNullable, experimentalFeature: null);
+            bool skipUsesIsNullable = false,
+            bool skipExtraValidation = false) => CreateCompilationCore(source, references, options, parseOptions, assemblyName, sourceFileName, skipUsesIsNullable, experimentalFeature: null, skipExtraValidation: skipExtraValidation);
 
         private static CSharpCompilation CreateCompilationCore(
             CSharpTestSource source,
@@ -2190,7 +2240,7 @@ namespace System.Diagnostics.CodeAnalysis
             return comp;
         }
 
-        protected static CSharpCompilation CreateCompilationWithMscorlibAndSpan(string text, CSharpCompilationOptions options = null, CSharpParseOptions parseOptions = null)
+        protected static CSharpCompilation CreateCompilationWithMscorlibAndSpan(CSharpTestSource text, CSharpCompilationOptions options = null, CSharpParseOptions parseOptions = null)
         {
             var reference = CreateEmptyCompilation(
                 SpanSource,

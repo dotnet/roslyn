@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             [Obsolete("Obsolete due to performance problems, use CompilationOptions.SyntaxTreeOptionsProvider instead", error: false)]
             public override ImmutableDictionary<string, ReportDiagnostic> DiagnosticOptions
-                => throw ExceptionUtilities.Unreachable;
+                => throw ExceptionUtilities.Unreachable();
 
             public override string FilePath
             {

@@ -301,7 +301,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
 
             // We place a special rule in s_builtInRules that matches all fields.  So we should 
             // always find a matching rule.
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 
         private static string GenerateUniqueName(IParameterSymbol parameter, ImmutableArray<string> parameterNameParts, NamingRule rule)
@@ -361,7 +361,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
 
             // We place a special rule in s_builtInRules that matches all properties.  So we should 
             // always find a matching rule.
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 
         private async Task<Document> AddAllSymbolInitializationsAsync(
@@ -437,7 +437,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
             CodeGenerationOptionsProvider fallbackOptions,
             CancellationToken cancellationToken)
         {
-            var services = document.Project.Solution.Workspace.Services;
+            var services = document.Project.Solution.Services;
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var editor = new SyntaxEditor(root, services);
             var generator = editor.Generator;
@@ -480,7 +480,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
                         }
                         else
                         {
-                            throw ExceptionUtilities.Unreachable;
+                            throw ExceptionUtilities.Unreachable();
                         }
                     });
             }

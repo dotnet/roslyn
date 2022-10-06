@@ -82,6 +82,11 @@
         <target state="translated">L'espressione lambda può essere rimossa</target>
         <note />
       </trans-unit>
+      <trans-unit id="Make_struct_readonly">
+        <source>Make struct 'readonly'</source>
+        <target state="translated">Rendere struct 'readonly'</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Misplaced_using_directive">
         <source>Misplaced using directive</source>
         <target state="translated">Direttiva using in posizione errata</target>
@@ -119,12 +124,12 @@
       </trans-unit>
       <trans-unit id="Nullable_directive_is_redundant">
         <source>Nullable directive is redundant</source>
-        <target state="new">Nullable directive is redundant</target>
+        <target state="translated">La direttiva che ammette i valori Null è ridondante</target>
         <note />
       </trans-unit>
       <trans-unit id="Nullable_directive_is_unnecessary">
         <source>Nullable directive is unnecessary</source>
-        <target state="new">Nullable directive is unnecessary</target>
+        <target state="translated">La direttiva che ammette i valori Null non è necessaria</target>
         <note />
       </trans-unit>
       <trans-unit id="Prefer_null_check_over_type_check">
@@ -144,7 +149,7 @@
       </trans-unit>
       <trans-unit id="Remove_redundant_nullable_directive">
         <source>Remove redundant nullable directive</source>
-        <target state="new">Remove redundant nullable directive</target>
+        <target state="translated">Rimuovi direttiva che ammette i valori Null ridondante</target>
         <note />
       </trans-unit>
       <trans-unit id="Remove_suppression_operators">
@@ -159,7 +164,7 @@
       </trans-unit>
       <trans-unit id="Remove_unnecessary_nullable_directive">
         <source>Remove unnecessary nullable directive</source>
-        <target state="new">Remove unnecessary nullable directive</target>
+        <target state="translated">Rimuovi direttiva che ammette i valori Null non necessaria</target>
         <note />
       </trans-unit>
       <trans-unit id="Remove_unnecessary_suppression_operator">
@@ -187,6 +192,11 @@
         <target state="translated">Semplifica il modello di proprietà</target>
         <note />
       </trans-unit>
+      <trans-unit id="Struct_can_be_made_readonly">
+        <source>Struct can be made 'readonly'</source>
+        <target state="translated">Lo struct può essere impostato come 'readonly'</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Struct_contains_assignment_to_this_outside_of_constructor_Make_readonly_fields_writable">
         <source>Struct contains assignment to 'this' outside of constructor. Make readonly fields writable.</source>
         <target state="translated">La parola chiave Struct contiene l'assegnazione a 'this' all'esterno del costruttore. Impostare i campi di sola lettura come scrivibili.</target>
@@ -204,7 +214,7 @@
       </trans-unit>
       <trans-unit id="Use_Utf8_string_literal">
         <source>Use UTF-8 string literal</source>
-        <target state="new">Use UTF-8 string literal</target>
+        <target state="translated">Usa valore letterale stringa UTF-8</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_block_body_for_accessors">
@@ -225,6 +235,11 @@
       <trans-unit id="Use_block_body_for_indexers">
         <source>Use block body for indexers</source>
         <target state="translated">Usa il corpo del blocco per gli indicizzatori</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_block_body_for_lambda_expressions">
+        <source>Use block body for lambda expressions</source>
+        <target state="translated">Usa il corpo del blocco per le espressioni lambda</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_block_body_for_local_functions">
@@ -275,6 +290,11 @@
       <trans-unit id="Use_expression_body_for_indexers">
         <source>Use expression body for indexers</source>
         <target state="translated">Usa il corpo dell'espressione per gli indicizzatori</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_expression_body_for_lambda_expressions">
+        <source>Use expression body for lambda expressions</source>
+        <target state="translated">Usa il corpo dell'espressione per le espressioni lambda</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_expression_body_for_local_functions">

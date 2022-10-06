@@ -1128,24 +1128,24 @@ class Program
 
             var comp = CreateCompilationWithMscorlib45(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef });
             comp.VerifyDiagnostics(
-                // (6,9): error CS8408: Cannot assign to variable 'in int' because it is a readonly variable
+                // (6,9): error CS8331: Cannot assign to variable 'arg1' or use it as the right hand side of a ref assignment because it is a readonly variable
                 //         arg1 = 1;
-                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField, "arg1").WithArguments("variable", "in int").WithLocation(6, 9),
-                // (7,9): error CS8409: Cannot assign to a member of variable 'in (int Alice, int Bob)' because it is a readonly variable
+                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField, "arg1").WithArguments("variable", "arg1").WithLocation(6, 9),
+                // (7,9): error CS8332: Cannot assign to a member of variable 'arg2' or use it as the right hand side of a ref assignment because it is a readonly variable
                 //         arg2.Alice = 2;
-                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField2, "arg2.Alice").WithArguments("variable", "in (int Alice, int Bob)").WithLocation(7, 9),
-                // (9,9): error CS8408: Cannot assign to variable 'in int' because it is a readonly variable
+                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField2, "arg2.Alice").WithArguments("variable", "arg2").WithLocation(7, 9),
+                // (9,9): error CS8331: Cannot assign to variable 'arg1' or use it as the right hand side of a ref assignment because it is a readonly variable
                 //         arg1 ++;
-                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField, "arg1").WithArguments("variable", "in int").WithLocation(9, 9),
-                // (10,9): error CS8409: Cannot assign to a member of variable 'in (int Alice, int Bob)' because it is a readonly variable
+                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField, "arg1").WithArguments("variable", "arg1").WithLocation(9, 9),
+                // (10,9): error CS8332: Cannot assign to a member of variable 'arg2' or use it as the right hand side of a ref assignment because it is a readonly variable
                 //         arg2.Alice --;
-                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField2, "arg2.Alice").WithArguments("variable", "in (int Alice, int Bob)").WithLocation(10, 9),
-                // (12,9): error CS8408: Cannot assign to variable 'in int' because it is a readonly variable
+                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField2, "arg2.Alice").WithArguments("variable", "arg2").WithLocation(10, 9),
+                // (12,9): error CS8331: Cannot assign to variable 'arg1' or use it as the right hand side of a ref assignment because it is a readonly variable
                 //         arg1 += 1;
-                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField, "arg1").WithArguments("variable", "in int"),
-                // (13,9): error CS8409: Cannot assign to a member of variable 'in (int Alice, int Bob)' because it is a readonly variable
+                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField, "arg1").WithArguments("variable", "arg1").WithLocation(12, 9),
+                // (13,9): error CS8332: Cannot assign to a member of variable 'arg2' or use it as the right hand side of a ref assignment because it is a readonly variable
                 //         arg2.Alice -= 2;
-                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField2, "arg2.Alice").WithArguments("variable", "in (int Alice, int Bob)"));
+                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField2, "arg2.Alice").WithArguments("variable", "arg2").WithLocation(13, 9));
         }
 
         [Fact]
@@ -1180,12 +1180,12 @@ class Program
 
             var comp = CreateCompilationWithMscorlib45(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef });
             comp.VerifyDiagnostics(
-                // (18,20): error CS8333: Cannot return variable 'in int' by writable reference because it is a readonly variable
+                // (18,20): error CS8333: Cannot return variable 'arg1' by writable reference because it is a readonly variable
                 //         return ref arg1;
-                Diagnostic(ErrorCode.ERR_RefReturnReadonlyNotField, "arg1").WithArguments("variable", "in int").WithLocation(18, 20),
-                // (23,20): error CS8334: Members of variable 'in (int Alice, int Bob)' cannot be returned by writable reference because it is a readonly variable
+                Diagnostic(ErrorCode.ERR_RefReturnReadonlyNotField, "arg1").WithArguments("variable", "arg1").WithLocation(18, 20),
+                // (23,20): error CS8334: Members of variable 'arg2' cannot be returned by writable reference because it is a readonly variable
                 //         return ref arg2.Alice;
-                Diagnostic(ErrorCode.ERR_RefReturnReadonlyNotField2, "arg2.Alice").WithArguments("variable", "in (int Alice, int Bob)").WithLocation(23, 20)
+                Diagnostic(ErrorCode.ERR_RefReturnReadonlyNotField2, "arg2.Alice").WithArguments("variable", "arg2").WithLocation(23, 20)
             );
         }
 
@@ -1205,12 +1205,12 @@ class Program
 
             var comp = CreateCompilationWithMscorlib45(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef });
             comp.VerifyDiagnostics(
-                // (6,25): error CS8406: Cannot use variable 'in int' as a ref or out value because it is a readonly variable
+                // (6,25): error CS8329: Cannot use variable 'arg1' as a ref or out value because it is a readonly variable
                 //         ref var y = ref arg1;
-                Diagnostic(ErrorCode.ERR_RefReadonlyNotField, "arg1").WithArguments("variable", "in int"),
-                // (7,25): error CS8407: Members of variable 'in (int Alice, int Bob)' cannot be used as a ref or out value because it is a readonly variable
+                Diagnostic(ErrorCode.ERR_RefReadonlyNotField, "arg1").WithArguments("variable", "arg1").WithLocation(6, 25),
+                // (7,25): error CS8330: Members of variable 'arg2' cannot be used as a ref or out value because it is a readonly variable
                 //         ref int a = ref arg2.Alice;
-                Diagnostic(ErrorCode.ERR_RefReadonlyNotField2, "arg2.Alice").WithArguments("variable", "in (int Alice, int Bob)"));
+                Diagnostic(ErrorCode.ERR_RefReadonlyNotField2, "arg2.Alice").WithArguments("variable", "arg2").WithLocation(7, 25));
         }
 
         [WorkItem(22306, "https://github.com/dotnet/roslyn/issues/22306")]
@@ -1271,12 +1271,12 @@ class Program
 
             var comp = CreateCompilationWithMscorlib45(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef });
             comp.VerifyDiagnostics(
-                // (10,24): error CS8333: Cannot return variable 'in int' by writable reference because it is a readonly variable
+                // (10,24): error CS8333: Cannot return variable 'arg1' by writable reference because it is a readonly variable
                 //             return ref arg1;
-                Diagnostic(ErrorCode.ERR_RefReturnReadonlyNotField, "arg1").WithArguments("variable", "in int").WithLocation(10, 24),
-                // (14,24): error CS8334: Members of variable 'in (int Alice, int Bob)' cannot be returned by writable reference because it is a readonly variable
+                Diagnostic(ErrorCode.ERR_RefReturnReadonlyNotField, "arg1").WithArguments("variable", "arg1").WithLocation(10, 24),
+                // (14,24): error CS8334: Members of variable 'arg2' cannot be returned by writable reference because it is a readonly variable
                 //             return ref arg2.Alice;
-                Diagnostic(ErrorCode.ERR_RefReturnReadonlyNotField2, "arg2.Alice").WithArguments("variable", "in (int Alice, int Bob)").WithLocation(14, 24)
+                Diagnostic(ErrorCode.ERR_RefReturnReadonlyNotField2, "arg2.Alice").WithArguments("variable", "arg2").WithLocation(14, 24)
             );
         }
 
@@ -1390,12 +1390,12 @@ class Program
 
             var comp = CreateCompilationWithMscorlib45(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef });
             comp.VerifyDiagnostics(
-                // (12,28): error CS8333: Cannot return variable 'in int' by writable reference because it is a readonly variable
+                // (12,28): error CS8333: Cannot return variable 'arg11' by writable reference because it is a readonly variable
                 //                 return ref arg11;
-                Diagnostic(ErrorCode.ERR_RefReturnReadonlyNotField, "arg11").WithArguments("variable", "in int").WithLocation(12, 28),
-                // (16,28): error CS8334: Members of variable 'in (int Alice, int Bob)' cannot be returned by writable reference because it is a readonly variable
+                Diagnostic(ErrorCode.ERR_RefReturnReadonlyNotField, "arg11").WithArguments("variable", "arg11").WithLocation(12, 28),
+                // (16,28): error CS8334: Members of variable 'arg21' cannot be returned by writable reference because it is a readonly variable
                 //                 return ref arg21.Alice;
-                Diagnostic(ErrorCode.ERR_RefReturnReadonlyNotField2, "arg21.Alice").WithArguments("variable", "in (int Alice, int Bob)").WithLocation(16, 28)
+                Diagnostic(ErrorCode.ERR_RefReturnReadonlyNotField2, "arg21.Alice").WithArguments("variable", "arg21").WithLocation(16, 28)
                 );
         }
 

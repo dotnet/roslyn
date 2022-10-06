@@ -1249,14 +1249,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                         case BoundDagTypeTest t2:
                             {
                                 var useSiteInfo = new CompoundUseSiteInfo<AssemblySymbol>(_diagnostics, _compilation.Assembly);
-                                bool? matches = ExpressionOfTypeMatchesPatternTypeForLearningFromSuccessfulTypeTest(t1.Type, t2.Type, ref useSiteInfo);
-                                if (matches == false)
+                                ConstantValue? matches = ExpressionOfTypeMatchesPatternTypeForLearningFromSuccessfulTypeTest(t1.Type, t2.Type, ref useSiteInfo);
+                                if (matches == ConstantValue.False)
                                 {
                                     // If T1 could never be T2
                                     // v is T1 --> !(v is T2)
                                     trueTestPermitsTrueOther = false;
                                 }
-                                else if (matches == true)
+                                else if (matches == ConstantValue.True)
                                 {
                                     // If T1: T2
                                     // v is T1 --> v is T2
@@ -1266,7 +1266,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 // If every T2 is a T1, then failure of T1 implies failure of T2.
                                 matches = Binder.ExpressionOfTypeMatchesPatternType(_conversions, t2.Type, t1.Type, ref useSiteInfo, out _);
                                 _diagnostics.Add(syntax, useSiteInfo);
-                                if (matches == true)
+                                if (matches == ConstantValue.True)
                                 {
                                     // If T2: T1
                                     // !(v is T1) --> !(v is T2)
@@ -1396,7 +1396,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // We should've skipped all type evaluations at this point.
                     case (BoundDagTypeEvaluation, _):
                     case (_, BoundDagTypeEvaluation):
-                        throw ExceptionUtilities.Unreachable;
+                        throw ExceptionUtilities.Unreachable();
 
                     // If we have found two identical evaluations as the source (possibly null), inputs can be considered related.
                     case var (s1, s2) when s1 == s2:
@@ -1487,12 +1487,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// of a switch (on the one hand) and a series of if-then-else statements (on the other).
         /// See, for example, https://github.com/dotnet/roslyn/issues/35661
         /// </summary>
-        private bool? ExpressionOfTypeMatchesPatternTypeForLearningFromSuccessfulTypeTest(
+        private ConstantValue? ExpressionOfTypeMatchesPatternTypeForLearningFromSuccessfulTypeTest(
             TypeSymbol expressionType,
             TypeSymbol patternType,
             ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
-            bool? result = Binder.ExpressionOfTypeMatchesPatternType(_conversions, expressionType, patternType, ref useSiteInfo, out Conversion conversion);
+            ConstantValue result = Binder.ExpressionOfTypeMatchesPatternType(_conversions, expressionType, patternType, ref useSiteInfo, out Conversion conversion);
             return (!conversion.Exists && isRuntimeSimilar(expressionType, patternType))
                 ? null // runtime and compile-time test behavior differ. Pretend we don't know what happens.
                 : result;
@@ -1868,7 +1868,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             public override bool Equals(object? obj)
             {
-                throw ExceptionUtilities.Unreachable;
+                throw ExceptionUtilities.Unreachable();
             }
 
             public bool Equals(StateForCase other)
@@ -1919,7 +1919,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 out Tests whenTrue,
                 out Tests whenFalse,
                 ref bool foundExplicitNullTest);
-            public virtual BoundDagTest ComputeSelectedTest() => throw ExceptionUtilities.Unreachable;
+            public virtual BoundDagTest ComputeSelectedTest() => throw ExceptionUtilities.Unreachable();
             public virtual Tests RemoveEvaluation(BoundDagEvaluation e) => this;
             /// <summary>
             /// Rewrite nested length tests in slice subpatterns to check the top-level length property instead.

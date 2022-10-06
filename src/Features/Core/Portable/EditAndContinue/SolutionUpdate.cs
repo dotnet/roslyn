@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 {
     internal readonly struct SolutionUpdate
     {
-        public readonly ManagedModuleUpdates ModuleUpdates;
+        public readonly ModuleUpdates ModuleUpdates;
         public readonly ImmutableArray<(Guid ModuleId, ImmutableArray<(ManagedModuleMethodId Method, NonRemappableRegion Region)>)> NonRemappableRegions;
         public readonly ImmutableArray<(ProjectId ProjectId, EmitBaseline Baseline)> EmitBaselines;
         public readonly ImmutableArray<(ProjectId ProjectId, ImmutableArray<Diagnostic> Diagnostics)> Diagnostics;
@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         public readonly Diagnostic? SyntaxError;
 
         public SolutionUpdate(
-            ManagedModuleUpdates moduleUpdates,
+            ModuleUpdates moduleUpdates,
             ImmutableArray<(Guid ModuleId, ImmutableArray<(ManagedModuleMethodId Method, NonRemappableRegion Region)>)> nonRemappableRegions,
             ImmutableArray<(ProjectId ProjectId, EmitBaseline Baseline)> emitBaselines,
             ImmutableArray<(ProjectId ProjectId, ImmutableArray<Diagnostic> Diagnostics)> diagnostics,
@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             Diagnostic? syntaxError,
             bool hasEmitErrors)
             => new(
-                new(syntaxError != null || hasEmitErrors ? ManagedModuleUpdateStatus.Blocked : ManagedModuleUpdateStatus.RestartRequired, ImmutableArray<ManagedModuleUpdate>.Empty),
+                new(syntaxError != null || hasEmitErrors ? ModuleUpdateStatus.Blocked : ModuleUpdateStatus.RestartRequired, ImmutableArray<ModuleUpdate>.Empty),
                 ImmutableArray<(Guid, ImmutableArray<(ManagedModuleMethodId, NonRemappableRegion)>)>.Empty,
                 ImmutableArray<(ProjectId, EmitBaseline)>.Empty,
                 diagnostics,

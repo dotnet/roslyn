@@ -47,11 +47,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             _syntaxTree = syntaxTree;
             _ignoresAccessibility = ignoreAccessibility;
 
-            if (!this.Compilation.SyntaxTrees.Contains(syntaxTree))
-            {
-                throw new ArgumentOutOfRangeException(nameof(syntaxTree), CSharpResources.TreeNotPartOfCompilation);
-            }
-
             _binderFactory = compilation.GetBinderFactory(SyntaxTree, ignoreAccessibility);
         }
 
@@ -235,11 +230,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                         SymbolInfo info = GetSymbolInfoForNode(options, bound, bound, boundNodeForSyntacticParent: null, binderOpt: null);
                         if ((object)info.Symbol != null)
                         {
-                            result = new SymbolInfo(null, ImmutableArray.Create<ISymbol>(info.Symbol), CandidateReason.NotATypeOrNamespace);
+                            result = new SymbolInfo(ImmutableArray.Create<ISymbol>(info.Symbol), CandidateReason.NotATypeOrNamespace);
                         }
                         else if (!info.CandidateSymbols.IsEmpty)
                         {
-                            result = new SymbolInfo(null, info.CandidateSymbols, CandidateReason.NotATypeOrNamespace);
+                            result = new SymbolInfo(info.CandidateSymbols, CandidateReason.NotATypeOrNamespace);
                         }
                     }
                 }

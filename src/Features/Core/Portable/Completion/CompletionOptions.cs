@@ -3,7 +3,9 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Recommendations;
+using Microsoft.CodeAnalysis.Shared;
 
 namespace Microsoft.CodeAnalysis.Completion
 {
@@ -28,7 +30,7 @@ namespace Microsoft.CodeAnalysis.Completion
         public bool FilterOutOfScopeLocals { get; init; } = true;
         public bool ShowXmlDocCommentCompletion { get; init; } = true;
         public bool? ShowNewSnippetExperience { get; init; } = null;
-        public bool SnippetCompletion { get; init; } = false;
+        public bool SnippetCompletion { get; init; } = true;
         public ExpandedCompletionMode ExpandedCompletionBehavior { get; init; } = ExpandedCompletionMode.AllItems;
         public NamingStylePreferences? NamingStyleFallbackOptions { get; init; } = null;
 
@@ -44,7 +46,7 @@ namespace Microsoft.CodeAnalysis.Completion
         /// This takes into consideration the experiment we are running in addition to the value
         /// from user facing options.
         /// </summary>
-        public bool ShouldShowItemsFromUnimportNamspaces()
+        public bool ShouldShowItemsFromUnimportedNamespaces()
         {
             // Don't trigger import completion if the option value is "default" and the experiment is disabled for the user. 
             return ShowItemsFromUnimportedNamespaces ?? TypeImportCompletion;
@@ -55,8 +57,21 @@ namespace Microsoft.CodeAnalysis.Completion
         /// This takes into consideration the experiment we are running in addition to the value
         /// from user facing options.
         /// </summary>
-        public bool ShouldShowNewSnippetExperience()
+        public bool ShouldShowNewSnippetExperience(Document document)
         {
+            // Will be removed once semantic snippets will be added to razor.
+            var solution = document.Project.Solution;
+            var documentSupportsFeatureService = solution.Services.GetRequiredService<IDocumentSupportsFeatureService>();
+            if (!documentSupportsFeatureService.SupportsSemanticSnippets(document))
+            {
+                return false;
+            }
+
+            if (document.IsRazorDocument())
+            {
+                return false;
+            }
+
             // Don't trigger snippet completion if the option value is "default" and the experiment is disabled for the user. 
             return ShowNewSnippetExperience ?? SnippetCompletion;
         }

@@ -69,8 +69,8 @@ namespace Microsoft.CodeAnalysis
         UsePlusForNestedTypes = 1 << 8,
 
         /// <summary>
-        /// Includes the <c>scoped</c> keyword.
+        /// Display `MyType@File.cs` instead of `MyType`.
         /// </summary>
-        IncludeScoped = 1 << 9,
+        IncludeContainingFileForFileTypes = 1 << 9,
     }
 }

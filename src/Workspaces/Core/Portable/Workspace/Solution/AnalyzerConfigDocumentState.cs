@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis
         private readonly ValueSource<AnalyzerConfig> _analyzerConfigValueSource;
 
         private AnalyzerConfigDocumentState(
-            SolutionServices solutionServices,
+            HostWorkspaceServices solutionServices,
             IDocumentServiceProvider documentServiceProvider,
             DocumentInfo.DocumentAttributes attributes,
             SourceText sourceTextOpt,
@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis
 
         public AnalyzerConfigDocumentState(
             DocumentInfo documentInfo,
-            SolutionServices solutionServices)
+            HostWorkspaceServices solutionServices)
             : base(documentInfo, solutionServices)
         {
             _analyzerConfigValueSource = CreateAnalyzerConfigValueSource();

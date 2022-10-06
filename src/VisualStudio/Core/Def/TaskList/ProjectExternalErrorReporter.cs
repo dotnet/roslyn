@@ -14,6 +14,7 @@ using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.ErrorReporting;
+using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.Extensions;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Venus;
@@ -83,6 +84,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
             var documentErrorsMap = new Dictionary<DocumentId, HashSet<DiagnosticData>>();
 
             var errors = new ExternalError[1];
+            var project = _workspace.CurrentSolution.GetProject(_projectId);
             while (pErrors.Next(1, errors, out var fetched) == VSConstants.S_OK && fetched == 1)
             {
                 var error = errors[0];
@@ -104,16 +106,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
                     error.bstrText,
                     GetDiagnosticSeverity(error),
                     _language,
-                    mappedFilePath: null,
-                    mappedStartLine: 0,
-                    mappedStartColumn: 0,
-                    mappedEndLine: 0,
-                    mappedEndColumn: 0,
-                    originalFilePath: null,
-                    originalStartLine: 0,
-                    originalStartColumn: 0,
-                    originalEndLine: 0,
-                    originalEndColumn: 0,
+                    new FileLinePositionSpan(project.FilePath ?? "", span: default),
                     AnalyzerInfoCache));
             }
 
@@ -162,7 +155,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
             var containedDocument = ContainedDocument.TryGetContainedDocument(documentId);
             if (containedDocument != null)
             {
-                var span = new TextSpan
+                var span = new TextManager.Interop.TextSpan
                 {
                     iStartLine = line,
                     iStartIndex = column,
@@ -170,7 +163,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
                     iEndIndex = column,
                 };
 
-                var spans = new TextSpan[1];
+                var spans = new TextManager.Interop.TextSpan[1];
                 Marshal.ThrowExceptionForHR(containedDocument.BufferCoordinator.MapPrimaryToSecondarySpan(
                     span,
                     spans));
@@ -185,20 +178,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
                 documentId,
                 _projectId,
                 GetErrorId(error),
-                message: error.bstrText,
+                error.bstrText,
                 GetDiagnosticSeverity(error),
                 _language,
-                mappedFilePath: null,
-                mappedStartLine: error.iLine,
-                mappedStartColumn: error.iCol,
-                mappedEndLine: error.iLine,
-                mappedEndColumn: error.iCol,
-                originalFilePath: error.bstrFileName,
-                originalStartLine: line,
-                originalStartColumn: column,
-                originalEndLine: line,
-                originalEndColumn: column,
-                AnalyzerInfoCache);
+                new FileLinePositionSpan(error.bstrFileName,
+                    new LinePosition(line, column),
+                    new LinePosition(line, column)),
+                    AnalyzerInfoCache);
         }
 
         public int ReportError(string bstrErrorMessage, string bstrErrorId, [ComAliasName("VsShell.VSTASKPRIORITY")] VSTASKPRIORITY nPriority, int iLine, int iColumn, string bstrFileName)
@@ -249,12 +235,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
                 bstrErrorId,
                 bstrErrorMessage,
                 severity,
-                language: _language,
-                mappedFilePath: null,
-                iStartLine, iStartColumn, iEndLine, iEndColumn,
-                bstrFileName,
-                iStartLine, iStartColumn, iEndLine, iEndColumn,
-                AnalyzerInfoCache);
+                _language,
+                new FileLinePositionSpan(
+                    bstrFileName,
+                    new LinePosition(iStartLine, iStartColumn),
+                    new LinePosition(iEndLine, iEndColumn)),
+                    AnalyzerInfoCache);
 
             if (documentId == null)
             {
@@ -279,16 +265,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
             string message,
             DiagnosticSeverity severity,
             string language,
-            string mappedFilePath,
-            int mappedStartLine,
-            int mappedStartColumn,
-            int mappedEndLine,
-            int mappedEndColumn,
-            string originalFilePath,
-            int originalStartLine,
-            int originalStartColumn,
-            int originalEndLine,
-            int originalEndColumn,
+            FileLinePositionSpan unmappedSpan,
             DiagnosticAnalyzerInfoCache analyzerInfoCache)
         {
             string title, description, category, helpLink;
@@ -331,18 +308,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
                 properties: DiagnosticData.PropertiesForBuildDiagnostic,
                 projectId: projectId,
                 location: new DiagnosticDataLocation(
+                    unmappedSpan,
                     documentId,
-                    sourceSpan: null,
-                    originalFilePath: originalFilePath,
-                    originalStartLine: originalStartLine,
-                    originalStartColumn: originalStartColumn,
-                    originalEndLine: originalEndLine,
-                    originalEndColumn: originalEndColumn,
-                    mappedFilePath: mappedFilePath,
-                    mappedStartLine: mappedStartLine,
-                    mappedStartColumn: mappedStartColumn,
-                    mappedEndLine: mappedEndLine,
-                    mappedEndColumn: mappedEndColumn),
+                    mappedFileSpan: null),
                 language: language,
                 helpLink: helpLink);
         }

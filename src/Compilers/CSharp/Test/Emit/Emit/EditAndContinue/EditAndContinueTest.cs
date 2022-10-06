@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Reflection.Metadata;
+using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -37,7 +38,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
 
             Assert.Empty(_generations);
 
-            var compilation = CSharpTestBase.CreateCompilation(source, options: _options, targetFramework: _targetFramework);
+            var compilation = CSharpTestBase.CreateCompilation(source, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), options: _options, targetFramework: _targetFramework);
 
             var bytes = compilation.EmitToArray();
             var md = ModuleMetadata.CreateFromImage(bytes);
@@ -112,7 +113,11 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
 
         public void Dispose()
         {
-            Assert.True(_hasVerified, "No Verify call since the last AddGeneration call.");
+            // If the test has thrown an exception, or the test host has crashed, we don't want to assert here
+            // or we'll hide it, so we need to do this dodgy looking thing.
+            var isInException = Marshal.GetExceptionPointers() != IntPtr.Zero;
+
+            Assert.True(isInException || _hasVerified, "No Verify call since the last AddGeneration call.");
             foreach (var disposable in _disposables)
             {
                 disposable.Dispose();

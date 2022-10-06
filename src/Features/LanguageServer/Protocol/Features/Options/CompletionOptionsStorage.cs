@@ -47,11 +47,13 @@ internal static class CompletionOptionsStorage
         CompletionOptions.Default.SnippetCompletion,
         new FeatureFlagStorageLocation("Roslyn.SnippetCompletion"));
 
-    // This is serialized by the Visual Studio-specific LanguageSettingsPersister
-    public static readonly PerLanguageOption2<bool> HideAdvancedMembers = new(nameof(CompletionOptions), nameof(HideAdvancedMembers), CompletionOptions.Default.HideAdvancedMembers);
+    public static readonly PerLanguageOption2<bool> HideAdvancedMembers = new(
+        "CompletionOptions", "HideAdvancedMembers", CompletionOptions.Default.HideAdvancedMembers,
+        new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Hide Advanced Auto List Members"));
 
-    // This is serialized by the Visual Studio-specific LanguageSettingsPersister
-    public static readonly PerLanguageOption2<bool> TriggerOnTyping = new(nameof(CompletionOptions), nameof(TriggerOnTyping), CompletionOptions.Default.TriggerOnTyping);
+    public static readonly PerLanguageOption2<bool> TriggerOnTyping = new(
+        "CompletionOptions", "TriggerOnTyping", CompletionOptions.Default.TriggerOnTyping,
+        new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Auto List Members"));
 
     public static readonly PerLanguageOption2<bool> TriggerOnTypingLetters = new(nameof(CompletionOptions), nameof(TriggerOnTypingLetters), CompletionOptions.Default.TriggerOnTypingLetters,
         storageLocation: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.TriggerOnTypingLetters"));

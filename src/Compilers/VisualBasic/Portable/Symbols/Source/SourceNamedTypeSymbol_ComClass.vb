@@ -5,6 +5,7 @@
 Imports System.Collections.Immutable
 Imports System.Runtime.InteropServices
 Imports Microsoft.CodeAnalysis.PooledObjects
+Imports Microsoft.CodeAnalysis.VisualBasic.Emit
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
@@ -981,8 +982,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     Return ImmutableArray(Of VisualBasicAttributeData).Empty
                 End Function
 
-                Friend Overrides Sub AddSynthesizedAttributes(compilationState As ModuleCompilationState, ByRef attributes As ArrayBuilder(Of SynthesizedAttributeData))
-                    MyBase.AddSynthesizedAttributes(compilationState, attributes)
+                Friend Overrides Sub AddSynthesizedAttributes(moduleBuilder As PEModuleBuilder, ByRef attributes As ArrayBuilder(Of SynthesizedAttributeData))
+                    MyBase.AddSynthesizedAttributes(moduleBuilder, attributes)
 
                     Dim compilation As VisualBasicCompilation = _comClass.DeclaringCompilation
                     Dim id As String = If(_isEventInterface, _comClass._comClassData.EventId, _comClass._comClassData.InterfaceId)
@@ -1336,8 +1337,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     Return attributes.ToImmutableAndFree()
                 End Function
 
-                Friend Overrides Sub AddSynthesizedAttributes(compilationState As ModuleCompilationState, ByRef attributes As ArrayBuilder(Of SynthesizedAttributeData))
-                    MyBase.AddSynthesizedAttributes(compilationState, attributes)
+                Friend Overrides Sub AddSynthesizedAttributes(moduleBuilder As PEModuleBuilder, ByRef attributes As ArrayBuilder(Of SynthesizedAttributeData))
+                    MyBase.AddSynthesizedAttributes(moduleBuilder, attributes)
 
                     If _synthesizedDispId = ReservedDispId.None Then
                         Return
@@ -1612,15 +1613,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     Return _clonedFrom.GetAttributes()
                 End Function
 
-                Friend Overrides Sub AddSynthesizedAttributes(compilationState As ModuleCompilationState, ByRef attributes As ArrayBuilder(Of SynthesizedAttributeData))
-                    MyBase.AddSynthesizedAttributes(compilationState, attributes)
+                Friend Overrides Sub AddSynthesizedAttributes(moduleBuilder As PEModuleBuilder, ByRef attributes As ArrayBuilder(Of SynthesizedAttributeData))
+                    MyBase.AddSynthesizedAttributes(moduleBuilder, attributes)
 
                     If IsComEventParameter Then
                         Return
                     End If
 
                     Dim toClone As ArrayBuilder(Of SynthesizedAttributeData) = Nothing
-                    _clonedFrom.AddSynthesizedAttributes(compilationState, toClone)
+                    _clonedFrom.AddSynthesizedAttributes(moduleBuilder, toClone)
 
                     Dim compilation = Me.DeclaringCompilation
                     Dim paramArrayAttribute As NamedTypeSymbol = compilation.GetWellKnownType(WellKnownType.System_ParamArrayAttribute)
@@ -1832,8 +1833,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     Return _clonedFrom.GetAttributes()
                 End Function
 
-                Friend Overrides Sub AddSynthesizedAttributes(compilationState As ModuleCompilationState, ByRef attributes As ArrayBuilder(Of SynthesizedAttributeData))
-                    MyBase.AddSynthesizedAttributes(compilationState, attributes)
+                Friend Overrides Sub AddSynthesizedAttributes(moduleBuilder As PEModuleBuilder, ByRef attributes As ArrayBuilder(Of SynthesizedAttributeData))
+                    MyBase.AddSynthesizedAttributes(moduleBuilder, attributes)
 
                     If _synthesizedDispId = ReservedDispId.None Then
                         Return
