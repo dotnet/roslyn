@@ -104,22 +104,13 @@ namespace Microsoft.CodeAnalysis.Remote
         {
             try
             {
-                return await InvokeWorkerAsync(_callback).ConfigureAwait(false);
-            }
-            catch (Exception exception) when (ReportUnexpectedException(exception, cancellationToken))
-            {
-                throw new OperationCanceledIgnoringCallerTokenException(exception);
-            }
-
-            async ValueTask<TResult> InvokeWorkerAsync(T service)
-            {
                 cancellationToken.ThrowIfCancellationRequested();
                 var pipe = new Pipe();
 
-                // Kick off the work to do the writing to the pipe in a fire-and-forget fashion.  It will start hot and
-                // will be able to do work as the reading side attempts to pull in the data it is writing.
+                // Kick off the work to do the writing to the pipe asynchronously.  It will start hot and will be able
+                // to do work as the reading side attempts to pull in the data it is writing.
 
-                var writeTask = WriteAsync(service, pipe.Writer);
+                var writeTask = WriteAsync(_callback, pipe.Writer);
                 var readTask = ReadAsync(pipe.Reader);
 
                 // Note: waiting on the write-task is not strictly necessary.  The read-task cannot complete unless it
@@ -129,12 +120,16 @@ namespace Microsoft.CodeAnalysis.Remote
                 await Task.WhenAll(writeTask, readTask).ConfigureAwait(false);
                 return await readTask.ConfigureAwait(false);
             }
+            catch (Exception exception) when (ReportUnexpectedException(exception, cancellationToken))
+            {
+                throw new OperationCanceledIgnoringCallerTokenException(exception);
+            }
 
             async Task WriteAsync(T service, PipeWriter pipeWriter)
             {
                 try
                 {
-                    // Intentionally yield this thread so that the caller can proceed in parallel.
+                    // Intentionally yield this thread so that the caller can proceed concurrently and start reading.
                     await TaskScheduler.Default;
 
                     await invocation(service, pipeWriter, cancellationToken).ConfigureAwait(false);
@@ -158,6 +153,11 @@ namespace Microsoft.CodeAnalysis.Remote
                 // https://github.com/AArnott/Nerdbank.Streams/blob/dafeb5846702bc29e261c9ddf60f42feae01654c/src/Nerdbank.Streams/PipeExtensions.cs#L428)
                 // where the writer may be advanced in an independent Task even once the rpc message has returned to the
                 // caller (us). 
+                //
+                // NOTE: it is intentinonal that the try/catch pattern here does NOT match the one in ReadAsync.  There
+                // are very different semantics around each.  The writer code passes ownership to StreamJsonRPC, while
+                // the reader code does not.  As such, the reader code is responsible for completing the reader in all
+                // cases, whereas the writer code only completes when faulting.
                 finally
                 {
                 }
@@ -166,6 +166,11 @@ namespace Microsoft.CodeAnalysis.Remote
 
             async Task<TResult> ReadAsync(PipeReader pipeReader)
             {
+                // NOTE: it is intentinonal that the try/catch pattern here does NOT match the one in WriteAsync.  There
+                // are very different semantics around each.  The writer code passes ownership to StreamJsonRPC, while
+                // the reader code does not.  As such, the reader code is responsible for completing the reader in all
+                // cases, whereas the writer code only completes when faulting.
+
                 Exception? exception = null;
                 try
                 {
