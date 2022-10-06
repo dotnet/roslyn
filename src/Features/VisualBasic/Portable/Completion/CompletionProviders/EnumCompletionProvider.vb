@@ -10,6 +10,7 @@ Imports Microsoft.CodeAnalysis.Completion.Providers
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.LanguageService
 Imports Microsoft.CodeAnalysis.PooledObjects
+Imports Microsoft.CodeAnalysis.Tags
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
 
@@ -147,7 +148,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             ' promote this item during matching when user types member name only, Like "Red"
             ' instead of "Colors.Empty"
             If symbols(0).Symbol.Kind = SymbolKind.Field Then
-                item = item.WithAdditionalFilterTexts(ImmutableArray.Create(symbols(0).Symbol.Name))
+                item = item.AddTag(WellKnownTags.TargetTypeMatch).WithAdditionalFilterTexts(ImmutableArray.Create(symbols(0).Symbol.Name))
             End If
 
             Return item
