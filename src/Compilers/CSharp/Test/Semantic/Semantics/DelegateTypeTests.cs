@@ -13609,30 +13609,29 @@ class Program
 using System;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
-class IntConstantAttribute : CustomConstantAttribute
-{
-    private readonly int _value;
-    public override object Value => _value;
-    public IntConstantAttribute(int value)
-    {
-        _value = value;
-    }
-}
 class Program
 {
     static void Report(object obj) => Console.WriteLine(obj.GetType());
     public static void Main()
     {
-        var lam1 = ([Optional][IntConstant(100)] int i) => i;
-        var lam2 = (int i = 100) => i;
+        var lam1 = ([Optional, DecimalConstant(0, 0, 0, 0, 100)] decimal d) => d;
+        var lam2 = (decimal d = 100m) => d;
         Report(lam1);
         Report(lam2);
+        Console.WriteLine(lam1());
+        Console.WriteLine(lam2());
+        Console.WriteLine(lam1(5));
+        Console.WriteLine(lam2(5));
     }
 }
 """;
             CompileAndVerify(source, expectedOutput:
-@"System.Func`2[System.Int32,System.Int32]
-<>f__AnonymousDelegate0").VerifyDiagnostics();
+@"<>f__AnonymousDelegate0
+<>f__AnonymousDelegate0
+100
+100
+5
+5").VerifyDiagnostics();
         }
 
         [Fact]
