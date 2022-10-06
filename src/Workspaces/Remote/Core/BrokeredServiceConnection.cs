@@ -299,6 +299,25 @@ namespace Microsoft.CodeAnalysis.Remote
             }
         }
 
+        // multi-solution, no callback
+
+        public override async ValueTask<bool> TryInvokeAsync(Solution solution1, Solution solution2, Func<TService, Checksum, Checksum, CancellationToken, ValueTask> invocation, CancellationToken cancellationToken)
+        {
+            try
+            {
+                using var scope1 = await _solutionAssetStorage.StoreAssetsAsync(solution1, cancellationToken).ConfigureAwait(false);
+                using var scope2 = await _solutionAssetStorage.StoreAssetsAsync(solution2, cancellationToken).ConfigureAwait(false);
+                using var rental = await RentServiceAsync(cancellationToken).ConfigureAwait(false);
+                await invocation(rental.Service, scope1.SolutionChecksum, scope2.SolutionChecksum, cancellationToken).ConfigureAwait(false);
+                return true;
+            }
+            catch (Exception exception) when (ReportUnexpectedException(exception, cancellationToken))
+            {
+                OnUnexpectedException(exception, cancellationToken);
+                return false;
+            }
+        }
+
         // Exceptions
 
         private bool ReportUnexpectedException(Exception exception, CancellationToken cancellationToken)
