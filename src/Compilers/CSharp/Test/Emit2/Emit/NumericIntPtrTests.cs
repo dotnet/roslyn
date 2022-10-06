@@ -9004,14 +9004,8 @@ $@"public class Library
                 var refA = comp.EmitToImageReference();
                 comp = CreateCompilation(sourceB, references: new[] { refA }, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular9, targetFramework: TargetFramework.Net70);
 
-<<<<<<< HEAD
-                CompileAndVerify(comp, verify: Verification.FailsPEVerify, expectedOutput: IncludeExpectedOutput(expectedResult));
-||||||| c47866ea2d9
-                CompileAndVerify(comp, expectedOutput: expectedResult);
-=======
                 // Investigating flaky IL verification issue. Tracked by https://github.com/dotnet/roslyn/issues/63782
-                CompileAndVerify(comp, expectedOutput: expectedResult, verify: Verification.PassesOrFailFast);
->>>>>>> dotnet/main
+                CompileAndVerify(comp, verify: Verification.PassesOrFailFast | Verification.FailsPEVerify, expectedOutput: IncludeExpectedOutput(expectedResult));
                 Assert.NotNull(expectedResult);
             }
 
