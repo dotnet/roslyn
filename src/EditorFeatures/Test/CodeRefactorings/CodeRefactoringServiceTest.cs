@@ -21,6 +21,7 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.UnitTests;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeRefactoringService
@@ -159,7 +160,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeRefactoringService
                 => _refactorings;
         }
 
-        [Fact]
+        [Fact, WorkItem(62877, "https://github.com/dotnet/roslyn/issues/62877")]
         public async Task TestAdditionalDocumentRefactoringAsync()
         {
             using var workspace = TestWorkspace.CreateCSharp("", composition: FeaturesTestCompositions.Features);
