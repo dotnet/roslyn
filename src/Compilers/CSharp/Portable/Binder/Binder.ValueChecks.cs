@@ -2411,7 +2411,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     : GetValEscape(fromArg, scopeOfTheContainingExpression));
             }
 
-            foreach (var (fromParameter, fromArg, _, _) in escapeValues)
+            foreach (var (_, fromArg, _, _) in escapeValues)
             {
                 if (IsLocalDeclarationExpression(fromArg, out var localSymbol))
                 {

@@ -4954,5 +4954,35 @@ class Program
                 //         return rs4; // 1
                 Diagnostic(ErrorCode.ERR_EscapeVariable, "rs4").WithArguments("rs4").WithLocation(19, 16));
         }
+
+        [Fact]
+        public void LocalScope_DeclarationExpression_07()
+        {
+            var source = """
+                using System.Diagnostics.CodeAnalysis;
+
+                class Program
+                {
+                    static ref int F1([UnscopedRef] out int i)
+                    {
+                        i = 0;
+                        return ref i;
+                    }
+                    static ref int F2()
+                    {
+                        return ref F1(out int i); // 1
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation(new[] { source, UnscopedRefAttributeDefinition }, runtimeFeature: RuntimeFlag.ByRefFields);
+            comp.VerifyDiagnostics(
+                // (12,20): error CS8347: Cannot use a result of 'Program.F1(out int)' in this context because it may expose variables referenced by parameter 'i' outside of their declaration scope
+                //         return ref F1(out int i); // 1
+                Diagnostic(ErrorCode.ERR_EscapeCall, "F1(out int i)").WithArguments("Program.F1(out int)", "i").WithLocation(12, 20),
+                // (12,27): error CS8168: Cannot return local 'i' by reference because it is not a ref local
+                //         return ref F1(out int i); // 1
+                Diagnostic(ErrorCode.ERR_RefReturnLocal, "int i").WithArguments("i").WithLocation(12, 27));
+        }
     }
 }
