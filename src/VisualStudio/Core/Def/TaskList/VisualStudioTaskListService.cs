@@ -20,6 +20,9 @@ using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.TaskList;
 using Microsoft.VisualStudio.LanguageServices.ExternalAccess.VSTypeScript.Api;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
+using Microsoft.VisualStudio.Shell;
+using Microsoft.VisualStudio.Shell.Interop;
+using TaskListItem = Microsoft.CodeAnalysis.TaskList.TaskListItem;
 
 namespace Microsoft.VisualStudio.LanguageServices.TaskList
 {
@@ -30,6 +33,7 @@ namespace Microsoft.VisualStudio.LanguageServices.TaskList
     {
         private readonly IThreadingContext _threadingContext;
         private readonly VisualStudioWorkspaceImpl _workspace;
+        private readonly IAsyncServiceProvider _asyncServiceProvider;
         private readonly EventListenerTracker<ITaskListProvider> _eventListenerTracker;
         private readonly TaskListListener _listener;
 
@@ -42,10 +46,12 @@ namespace Microsoft.VisualStudio.LanguageServices.TaskList
             VisualStudioWorkspaceImpl workspace,
             IGlobalOptionService globalOptions,
             IAsynchronousOperationListenerProvider asynchronousOperationListenerProvider,
+            SVsServiceProvider asyncServiceProvider,
             [ImportMany] IEnumerable<Lazy<IEventListener, EventListenerMetadata>> eventListeners)
         {
             _threadingContext = threadingContext;
             _workspace = workspace;
+            _asyncServiceProvider = (IAsyncServiceProvider)asyncServiceProvider;
             _eventListenerTracker = new EventListenerTracker<ITaskListProvider>(eventListeners, WellKnownEventListeners.TaskListProvider);
 
             _listener = new TaskListListener(
@@ -77,6 +83,9 @@ namespace Microsoft.VisualStudio.LanguageServices.TaskList
                 var workspaceStatus = workspace.Services.GetRequiredService<IWorkspaceStatusService>();
                 await workspaceStatus.WaitUntilFullyLoadedAsync(_threadingContext.DisposalToken).ConfigureAwait(false);
 
+                // Wait until the task list is actually visible:
+                await WaitUntilTaskListActivatedAsync().ConfigureAwait(false);
+
                 // Now that we've started, let the VS todo list know to start listening to us
                 _eventListenerTracker.EnsureEventListener(_workspace, this);
 
@@ -90,6 +99,35 @@ namespace Microsoft.VisualStudio.LanguageServices.TaskList
             {
                 // Otherwise report a watson for any other exception.  Don't bring down VS.  This is
                 // a BG service we don't want impacting the user experience.
+            }
+        }
+
+        private async Task WaitUntilTaskListActivatedAsync()
+        {
+            var cancellationToken = _threadingContext.DisposalToken;
+            await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+            var taskList = await _asyncServiceProvider.GetServiceAsync<SVsTaskList, ITaskList>(_threadingContext.JoinableTaskFactory).ConfigureAwait(true);
+
+            var tableControl = taskList.TableControl;
+            var control = tableControl.Control;
+
+            // if control is already visible, we can proceed to collect task list items.
+            if (control.IsVisible)
+                return;
+
+            // otherwise, wait for it to become visible.
+            var taskSource = new TaskCompletionSource<bool>();
+            control.IsVisibleChanged += Table_IsVisibleChanged;
+
+            await taskSource.Task.ConfigureAwait(false);
+
+            void Table_IsVisibleChanged(object sender, System.Windows.DependencyPropertyChangedEventArgs e)
+            {
+                if (control.IsVisible)
+                {
+                    control.IsVisibleChanged -= Table_IsVisibleChanged;
+                    taskSource.TrySetResult(true);
+                }
             }
         }
 
