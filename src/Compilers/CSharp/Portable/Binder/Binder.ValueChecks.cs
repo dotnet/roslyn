@@ -2282,8 +2282,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     if (ShouldInferDeclarationExpressionValEscape(argument, out _))
                     {
-                        // assume any declaration variable is a valid mixing destination,
-                        // since we are going to infer a val-escape which makes it valid.
+                        // assume any expression variable is a valid mixing destination,
+                        // since we will infer a legal val-escape for it (if it doesn't already have a narrower one).
                         continue;
                     }
 
