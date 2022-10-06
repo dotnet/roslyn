@@ -817,7 +817,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeFixes
             Assert.Equal(2, txtDocumentCodeFixes.Length);
             var txtDocumentCodeFixTitles = txtDocumentCodeFixes.Select(s => s.Fixes.Single().Action.Title).ToImmutableArray();
             Assert.Contains(fixer1.Title, txtDocumentCodeFixTitles);
-            Assert.Contains(fixer1.Title, txtDocumentCodeFixTitles);
+            Assert.Contains(fixer2.Title, txtDocumentCodeFixTitles);
 
             // Verify code fix application
             var codeAction = txtDocumentCodeFixes.Single(s => s.Fixes.Single().Action.Title == fixer1.Title).Fixes.Single().Action;
