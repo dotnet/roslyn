@@ -13017,7 +13017,7 @@ class Program
                 // (8,27): error CS9501: Parameter 2 has default value '3' in lambda and '<missing>' in the target delegate type.
                 //         D d = (int _, int _ = 3) => 10;
                 Diagnostic(ErrorCode.ERR_OptionalParamValueMismatch, "_").WithArguments("2", "3", "<missing>").WithLocation(8, 27),
-                // (9,27): error CS7036: There is no argument given that corresponds to the required formal parameter 'y' of 'Program.D'
+                // (9,27): error CS7036: There is no argument given that corresponds to the required parameter 'y' of 'Program.D'
                 //         Console.WriteLine(d(4));
                 Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "d").WithArguments("y", "Program.D").WithLocation(9, 27));
         }
@@ -13067,7 +13067,7 @@ class Program
                 // (8,27): error CS9501: Parameter 2 has default value '4' in lambda and '<missing>' in the target delegate type.
                 //         D d = (int x, int y = 4) => {
                 Diagnostic(ErrorCode.ERR_OptionalParamValueMismatch, "y").WithArguments("2", "4", "<missing>").WithLocation(8, 27),
-                // (12,27): error CS7036: There is no argument given that corresponds to the required formal parameter 'y' of 'Program.D'
+                // (12,27): error CS7036: There is no argument given that corresponds to the required parameter 'y' of 'Program.D'
                 //         Console.WriteLine(d(4));
                 Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "d").WithArguments("y", "Program.D").WithLocation(12, 27));
         }
@@ -13116,7 +13116,7 @@ class Program
                 // (9,18): error CS9501: Parameter 1 has default value '4' in lambda and '<missing>' in the target delegate type.
                 //         m = (int i = 4) => i;
                 Diagnostic(ErrorCode.ERR_OptionalParamValueMismatch, "i").WithArguments("1", "4", "<missing>").WithLocation(9, 18),
-                // (10,27): error CS7036: There is no argument given that corresponds to the required formal parameter 'arg' of 'Func<int, int>'
+                // (10,27): error CS7036: There is no argument given that corresponds to the required parameter 'arg' of 'Func<int, int>'
                 //         Console.WriteLine(m());
                 Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "m").WithArguments("arg", "System.Func<int, int>").WithLocation(10, 27));
         }

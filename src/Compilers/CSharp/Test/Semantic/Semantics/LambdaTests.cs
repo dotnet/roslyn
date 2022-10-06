@@ -7789,7 +7789,7 @@ class Program
 }
 """;
             CreateCompilation(source).VerifyDiagnostics(
-                // (6,9): error CS7036: There is no argument given that corresponds to the required formal parameter '' of '<anonymous delegate>'
+                // (6,9): error CS7036: There is no argument given that corresponds to the required parameter '' of '<anonymous delegate>'
                 //         lam(5);
                 Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "lam").WithArguments("", "<anonymous delegate>").WithLocation(6, 9));
         }
