@@ -79,6 +79,13 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
             }
         }
 
+        public async Task OpenCodeAndFeatureSearchWindowAsync(CancellationToken cancellationToken)
+        {
+            await TestServices.Shell.ExecuteCommandAsync(VSConstants.VSStd12CmdID.NavigateTo, cancellationToken);
+            // Search window is opened async.
+            await WaitForApplicationIdleAsync(cancellationToken);
+        }
+
         public readonly struct PauseFileChangesRestorer : IAsyncDisposable
         {
             private readonly IVsFileChangeEx3 _fileChangeService;
