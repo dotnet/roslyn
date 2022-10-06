@@ -83,8 +83,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UsePatternMatching
             await new VerifyCS.Test
             {
                 TestCode =
-@"#nullable enable
-class C
+@"class C
 {
     void M(bool x)
     {
@@ -94,8 +93,7 @@ class C
     }
 }",
                 FixedCode =
-@"#nullable enable
-class C
+@"class C
 {
     void M(bool x)
     {
@@ -114,8 +112,7 @@ class C
             await new VerifyCS.Test
             {
                 TestCode =
-@"#nullable enable
-class C
+@"class C
 {
     void M(object x)
     {
@@ -125,8 +122,7 @@ class C
     }
 }",
                 FixedCode =
-@"#nullable enable
-class C
+@"class C
 {
     void M(object x)
     {
