@@ -24,5 +24,6 @@ Microsoft.CodeAnalysis.ScopedKind.ScopedValue = 2 -> Microsoft.CodeAnalysis.Scop
 Microsoft.CodeAnalysis.SymbolDisplayLocalOptions.IncludeModifiers = 4 -> Microsoft.CodeAnalysis.SymbolDisplayLocalOptions
 Microsoft.CodeAnalysis.SymbolDisplayParameterOptions.IncludeModifiers = 2 -> Microsoft.CodeAnalysis.SymbolDisplayParameterOptions
 override sealed Microsoft.CodeAnalysis.CompilationOptions.GetHashCode() -> int
+static Microsoft.CodeAnalysis.Location.Create(string! filePath, Microsoft.CodeAnalysis.Text.TextSpan textSpan, Microsoft.CodeAnalysis.Text.LinePositionSpan lineSpan, string! mappedFilePath, Microsoft.CodeAnalysis.Text.LinePositionSpan mappedLineSpan) -> Microsoft.CodeAnalysis.Location!
 static Microsoft.CodeAnalysis.ModuleMetadata.CreateFromMetadata(System.IntPtr metadata, int size, System.Action! onDispose) -> Microsoft.CodeAnalysis.ModuleMetadata!
 Microsoft.CodeAnalysis.INamedTypeSymbol.IsFileLocal.get -> bool
