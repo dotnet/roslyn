@@ -119,40 +119,31 @@ namespace Microsoft.CodeAnalysis.Remote
                 // Kick off the work to do the writing to the pipe in a fire-and-forget fashion.  It will start hot and
                 // will be able to do work as the reading side attempts to pull in the data it is writing.
 
-                _ = WriteAsync(service, pipe.Writer);
+                var writeTask = WriteAsync(service, pipe.Writer);
+                var readTask = ReadAsync(pipe.Reader);
 
-                Exception? exception = null;
-                try
-                {
-                    return await reader(pipe.Reader, cancellationToken).ConfigureAwait(false);
-                }
-                catch (Exception ex) when ((exception = ex) == null)
-                {
-                    throw ExceptionUtilities.Unreachable();
-                }
-                finally
-                {
-                    // ensure we always complete the reader so the pipe can clean up all its resources. in the case of
-                    // an exception, attempt to complete the reader with that as well as that will tear down the writer
-                    // allowing it to stop writing and allowing the pipe to be cleaned up.
-                    await pipe.Reader.CompleteAsync(exception).ConfigureAwait(false);
-                }
+                // Note: waiting on the write-task is not strictly necessary.  The read-task cannot complete unless it
+                // the write-task completes (or it faults for some reason).  However, it's nice and clean to just not
+                // use fire-and-forget here and avoids us having to consider things like async-tracking-tokens for
+                // testing purposes.
+                await Task.WhenAll(writeTask, readTask).ConfigureAwait(false);
+                return await readTask.ConfigureAwait(false);
             }
 
-            async Task WriteAsync(T service, PipeWriter writer)
+            async Task WriteAsync(T service, PipeWriter pipeWriter)
             {
                 try
                 {
                     // Intentionally yield this thread so that the caller can proceed in parallel.
                     await TaskScheduler.Default;
 
-                    await invocation(service, writer, cancellationToken).ConfigureAwait(false);
+                    await invocation(service, pipeWriter, cancellationToken).ConfigureAwait(false);
                 }
                 catch (Exception e)
                 {
                     // Ensure that the writer is complete if an exception is thrown. This intentionally swallows the
                     // exception on this side, knowing it will actually be thrown on the reading side.
-                    await writer.CompleteAsync(e).ConfigureAwait(false);
+                    await pipeWriter.CompleteAsync(e).ConfigureAwait(false);
                 }
 #if false
                 // Absolutely do not Complete/CompleteAsync the writer here.  The writer is passed to StreamJsonRPC
@@ -171,6 +162,26 @@ namespace Microsoft.CodeAnalysis.Remote
                 {
                 }
 #endif
+            }
+
+            async Task<TResult> ReadAsync(PipeReader pipeReader)
+            {
+                Exception? exception = null;
+                try
+                {
+                    return await reader(pipeReader, cancellationToken).ConfigureAwait(false);
+                }
+                catch (Exception ex) when ((exception = ex) == null)
+                {
+                    throw ExceptionUtilities.Unreachable();
+                }
+                finally
+                {
+                    // ensure we always complete the reader so the pipe can clean up all its resources. in the case of
+                    // an exception, attempt to complete the reader with that as well as that will tear down the writer
+                    // allowing it to stop writing and allowing the pipe to be cleaned up.
+                    await pipeReader.CompleteAsync(exception).ConfigureAwait(false);
+                }
             }
         }
 
