@@ -47,11 +47,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.DeclareAsNullable
         public override async Task RegisterCodeFixesAsync(CodeFixContext context)
         {
             var cancellationToken = context.CancellationToken;
-            var diagnostic = context.Diagnostics.First();
-            var root = await context.Document.GetRequiredSyntaxRootAsync(context.CancellationToken).ConfigureAwait(false);
-            var model = await context.Document.GetRequiredSemanticModelAsync(context.CancellationToken).ConfigureAwait(false);
 
-            var node = root.FindNode(diagnostic.Location.SourceSpan, getInnermostNodeForTie: true);
+            var model = await context.Document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            var node = context.Diagnostics.First().Location.FindNode(getInnermostNodeForTie: true, cancellationToken);
 
             var declarationTypeToFix = TryGetDeclarationTypeToFix(model, node, cancellationToken);
             if (declarationTypeToFix == null)
