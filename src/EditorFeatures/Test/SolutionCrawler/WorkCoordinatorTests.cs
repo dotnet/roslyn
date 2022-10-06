@@ -6,6 +6,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Composition;
 using System.Linq;
 using System.Threading;
@@ -23,6 +24,7 @@ using Microsoft.VisualStudio.Composition;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
+using static Microsoft.CodeAnalysis.SolutionCrawler.SolutionCrawlerRegistrationService.WorkCoordinator;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
 {
@@ -1301,6 +1303,69 @@ class C
 
             Assert.Equal(1, worker.SyntaxDocumentIds.Count);
             Assert.Equal(3, worker.DocumentIds.Count);
+        }
+
+        [Fact]
+        public async Task SpecificAnalyzers_AllThenSpecific()
+        {
+            using var workspace = new WorkCoordinatorWorkspace(SolutionCrawlerWorkspaceKind);
+            await WaitWaiterAsync(workspace.ExportProvider);
+
+            var projectId = ProjectId.CreateNewId();
+            var documentId = DocumentId.CreateNewId(projectId);
+
+            var analyzer = new Analyzer(workspace.GlobalOptions);
+            var analyzer2 = new Analyzer2();
+            var allAnalyzers = ImmutableArray.Create<IIncrementalAnalyzer>(analyzer, analyzer2);
+
+            var item = new WorkItem(documentId, "C#", InvocationReasons.DocumentAdded, isLowPriority: false, analyzer: null, EmptyAsyncToken.Instance);
+
+            item = item.With(item.InvocationReasons, item.ActiveMember, specificAnalyzers: ImmutableHashSet.Create<IIncrementalAnalyzer>(analyzer2), item.IsRetry, item.AsyncToken);
+
+            Assert.True(item.SpecificAnalyzers.IsEmpty);
+            Assert.Equal(2, item.GetApplicableAnalyzers(allAnalyzers).Count());
+        }
+
+        [Fact]
+        public async Task SpecificAnalyzers_SpecificThenAll()
+        {
+            using var workspace = new WorkCoordinatorWorkspace(SolutionCrawlerWorkspaceKind);
+            await WaitWaiterAsync(workspace.ExportProvider);
+
+            var projectId = ProjectId.CreateNewId();
+            var documentId = DocumentId.CreateNewId(projectId);
+
+            var analyzer = new Analyzer(workspace.GlobalOptions);
+            var analyzer2 = new Analyzer2();
+            var allAnalyzers = ImmutableArray.Create<IIncrementalAnalyzer>(analyzer, analyzer2);
+
+            var item = new WorkItem(documentId, "C#", InvocationReasons.DocumentAdded, isLowPriority: false, analyzer: analyzer, EmptyAsyncToken.Instance);
+
+            item = item.With(item.InvocationReasons, item.ActiveMember, specificAnalyzers: ImmutableHashSet<IIncrementalAnalyzer>.Empty, item.IsRetry, item.AsyncToken);
+
+            Assert.True(item.SpecificAnalyzers.IsEmpty);
+            Assert.Equal(2, item.GetApplicableAnalyzers(allAnalyzers).Count());
+        }
+
+        [Fact]
+        public async Task SpecificAnalyzers_TwoSpecific()
+        {
+            using var workspace = new WorkCoordinatorWorkspace(SolutionCrawlerWorkspaceKind);
+            await WaitWaiterAsync(workspace.ExportProvider);
+
+            var projectId = ProjectId.CreateNewId();
+            var documentId = DocumentId.CreateNewId(projectId);
+
+            var analyzer = new Analyzer(workspace.GlobalOptions);
+            var analyzer2 = new Analyzer2();
+            var allAnalyzers = ImmutableArray.Create<IIncrementalAnalyzer>(analyzer, analyzer2);
+
+            var item = new WorkItem(documentId, "C#", InvocationReasons.DocumentAdded, isLowPriority: false, analyzer: analyzer, EmptyAsyncToken.Instance);
+
+            item = item.With(item.InvocationReasons, item.ActiveMember, specificAnalyzers: ImmutableHashSet.Create<IIncrementalAnalyzer>(analyzer2), item.IsRetry, item.AsyncToken);
+
+            Assert.Equal(2, item.SpecificAnalyzers.Count);
+            Assert.Equal(2, item.GetApplicableAnalyzers(allAnalyzers).Count());
         }
 
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/23657")]
