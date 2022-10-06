@@ -13225,7 +13225,7 @@ var lam = (short s = 32768) => { };
                  Diagnostic(ErrorCode.ERR_NoConversionForDefaultParam, "s").WithArguments("int", "short").WithLocation(6, 26));
         }
 
-        [Fact]
+        [ConditionalFact(typeof(NoIOperationValidation))]
         public void LambdaDefaultParameter_TargetTypedValidNonLiteralConversion()
         {
             TestDiagnosticsInMain(
@@ -13238,7 +13238,7 @@ var lam = (double d = floatConst) => { };
             Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "floatConst").WithArguments("floatConst").WithLocation(6, 21));
         }
 
-        [Fact]
+        [ConditionalFact(typeof(NoIOperationValidation))]
         public void LambdaDefaultParameter_InterpolatedStringHandler()
         {
             var source = """
@@ -13310,7 +13310,7 @@ class Program
                 Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, "f(1000)").WithArguments("x").WithLocation(8, 28));
         }
 
-        [Fact]
+        [ConditionalFact(typeof(NoIOperationValidation))]
         public void LambdaWithDefault_NonConstantLiteral_InterpolatedString()
         {
             var source = """

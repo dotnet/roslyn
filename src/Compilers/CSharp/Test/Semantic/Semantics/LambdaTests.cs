@@ -7594,7 +7594,7 @@ class Program
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "s").WithArguments("s").WithLocation(8, 31));
         }
 
-        [Fact]
+        [ConditionalFact(typeof(NoIOperationValidation))]
         public void LambdaDefaultLocalConstantSameScope_PreDefinition()
         {
             var source = """
@@ -7611,7 +7611,7 @@ class Program
             comp.VerifyDiagnostics();
         }
 
-        [Fact]
+        [ConditionalFact(typeof(NoIOperationValidation))]
         public void LambdaDefaultLocalConstantSameScope_PostDefinition()
         {
             var source = """
