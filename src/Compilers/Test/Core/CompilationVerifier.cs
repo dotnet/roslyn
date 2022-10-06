@@ -234,7 +234,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 ILVerify(peVerify);
 #endif
             }
-            catch (Exception) when (peVerify is Verification.PassesOrFailFast)
+            catch (Exception) when ((peVerify & Verification.PassesOrFailFast) != 0)
             {
                 var il = DumpIL();
                 Console.WriteLine(il);
