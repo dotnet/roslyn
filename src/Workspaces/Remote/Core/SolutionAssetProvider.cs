@@ -100,13 +100,30 @@ namespace Microsoft.CodeAnalysis.Remote
         {
             private readonly PipeWriter _writer;
 
+            public bool IsDisposed { get; private set; }
+
+            public override bool CanRead => false;
+            public override bool CanSeek => false;
+            public override bool CanWrite => !this.IsDisposed;
+
             internal PipeWriterStream(PipeWriter writer)
             {
                 _writer = writer;
             }
 
-            public override bool CanRead => false;
-            public override bool CanSeek => false;
+            protected override void Dispose(bool disposing)
+            {
+                this.IsDisposed = true;
+                base.Dispose(disposing);
+
+                // DO NOT CALL .Complete on the PipeWriter here (see remarks on type).
+            }
+
+            private Exception ThrowDisposedOr(Exception ex)
+            {
+                Verify.NotDisposed(this);
+                throw ex;
+            }
 
             #region read/seek api (not supported)
 
@@ -143,10 +160,6 @@ namespace Microsoft.CodeAnalysis.Remote
                 => this.ThrowDisposedOr(new NotSupportedException());
 
             #endregion
-
-            public bool IsDisposed { get; private set; }
-
-            public override bool CanWrite => !this.IsDisposed;
 
             /// <summary>
             /// Intentionally a no op. We know that we and <see cref="RemoteHostAssetSerialization.WriteDataAsync"/>
@@ -210,20 +223,6 @@ namespace Microsoft.CodeAnalysis.Remote
             }
 
 #endif
-
-            protected override void Dispose(bool disposing)
-            {
-                this.IsDisposed = true;
-                base.Dispose(disposing);
-
-                // DO NOT CALL .Complete on the PipeWriter here (see remarks on type).
-            }
-
-            private Exception ThrowDisposedOr(Exception ex)
-            {
-                Verify.NotDisposed(this);
-                throw ex;
-            }
         }
     }
 }
