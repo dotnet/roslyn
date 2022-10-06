@@ -337,10 +337,7 @@ namespace Microsoft.CodeAnalysis.Interactive
                 var newService = CreateRemoteService(options, skipInitialization: false);
 
                 var oldService = Interlocked.Exchange(ref _lazyRemoteService, newService);
-                if (oldService != null)
-                {
-                    oldService.Dispose();
-                }
+                oldService?.Dispose();
 
                 var initializedService = await TryGetOrCreateRemoteServiceAsync().ConfigureAwait(false);
                 if (initializedService.Service == null)

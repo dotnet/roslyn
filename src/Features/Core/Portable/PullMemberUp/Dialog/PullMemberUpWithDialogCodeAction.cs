@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.  
 
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
@@ -20,7 +21,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
             /// <summary>
             /// Member which user initially selects. It will be selected initially when the dialog pops up.
             /// </summary>
-            private readonly ISymbol _selectedMember;
+            private readonly ImmutableArray<ISymbol> _selectedMembers;
             private readonly Document _document;
             private readonly IPullMemberUpOptionsService _service;
             private readonly CleanCodeGenerationOptionsProvider _fallbackOptions;
@@ -29,19 +30,19 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
 
             public PullMemberUpWithDialogCodeAction(
                 Document document,
-                ISymbol selectedMember,
+                ImmutableArray<ISymbol> selectedMembers,
                 IPullMemberUpOptionsService service,
                 CleanCodeGenerationOptionsProvider fallbackOptions)
             {
                 _document = document;
-                _selectedMember = selectedMember;
+                _selectedMembers = selectedMembers;
                 _service = service;
                 _fallbackOptions = fallbackOptions;
             }
 
             public override object GetOptions(CancellationToken cancellationToken)
             {
-                return _service.GetPullMemberUpOptions(_document, _selectedMember);
+                return _service.GetPullMemberUpOptions(_document, _selectedMembers);
             }
 
             protected override async Task<IEnumerable<CodeActionOperation>> ComputeOperationsAsync(object options, CancellationToken cancellationToken)

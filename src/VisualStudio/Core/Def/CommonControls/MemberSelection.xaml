@@ -7,10 +7,18 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:utilities="clr-namespace:Microsoft.VisualStudio.LanguageServices.Implementation.Utilities" xmlns:commoncontrols="clr-namespace:Microsoft.VisualStudio.LanguageServices.Implementation.CommonControls"
              mc:Ignorable="d" 
+             xmlns:vsui="clr-namespace:Microsoft.VisualStudio.PlatformUI;assembly=Microsoft.VisualStudio.Shell.15.0"
+             xmlns:vsshell="clr-namespace:Microsoft.VisualStudio.Shell;assembly=Microsoft.VisualStudio.Shell.15.0"
              d:DesignHeight="450" d:DesignWidth="800">
     <UserControl.Resources>
-        <Thickness x:Key="ButtonControlsPadding">2, 4, 4, 2</Thickness>
-        <utilities:BooleanReverseConverter x:Key="BooleanReverseConverter"/>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="../VSThemeDictionary.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+            <Thickness x:Key="ButtonControlsPadding">2, 4, 4, 2</Thickness>
+            <utilities:BooleanReverseConverter x:Key="BooleanReverseConverter"/>
+            <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
+        </ResourceDictionary>
     </UserControl.Resources>
     <Grid>
         <Grid.ColumnDefinitions>
@@ -39,7 +47,6 @@
             Focusable="True"
             MinWidth="334"
             Height="Auto"
-            Background="White"
             AutomationProperties.Name="{Binding SelectMemberListViewAutomationText}"
             ItemsSource="{Binding Members, UpdateSourceTrigger=PropertyChanged, NotifyOnSourceUpdated=True, Mode=TwoWay}">
             <DataGrid.CellStyle>
@@ -58,7 +65,8 @@
                 <DataGridTemplateColumn Width="Auto">
                     <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate>
-                            <CheckBox
+                            <Grid Background="{DynamicResource {x:Static vsui:HeaderColors.DefaultBrushKey}}">
+                                <CheckBox
                                     AutomationProperties.Name="{Binding SymbolAutomationText}"
                                     AutomationProperties.AutomationId="{Binding SymbolName}"
                                     IsChecked="{Binding IsChecked, UpdateSourceTrigger=PropertyChanged}"
@@ -68,52 +76,58 @@
                                     ToolTipService.ShowOnDisabled="True"
                                     ToolTipService.IsEnabled="{Binding IsCheckable, Converter={StaticResource BooleanReverseConverter}, UpdateSourceTrigger=PropertyChanged}"
                                     ToolTipService.ToolTip="{Binding HelpText}"/>
+                            </Grid>
                         </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>
                 </DataGridTemplateColumn>
                 <DataGridTemplateColumn Width="*">
                     <DataGridTemplateColumn.Header>
-                        <TextBlock Text="{Binding ElementName=MemberSelectionControl, Path=MembersHeader}"/>
+                        <TextBlock Text="{Binding ElementName=MemberSelectionControl, Path=MembersHeader}" Background="{DynamicResource {x:Static vsui:HeaderColors.DefaultBrushKey}}" />
                     </DataGridTemplateColumn.Header>
                     <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate>
-                            <StackPanel
-                                Orientation="Horizontal"
-                                HorizontalAlignment="Left"
-                                MinWidth="186"
-                                Width="Auto"
-                                Margin="5, 2, 0, 2">
-                                <Image 
-                                    x:Name="GlyphOfMember"
-                                    Margin="8, 0, 5, 0"
-                                    Source="{Binding Glyph}"/>
-                                <TextBlock
-                                    x:Name="MemberName"
-                                    Text="{Binding SymbolName}"
-                                    Margin="0, 0, 5, 0"
-                                    ToolTip="{Binding Accessibility}"/>
-                            </StackPanel>
+                            <Grid Background="{DynamicResource {x:Static vsui:HeaderColors.DefaultBrushKey}}">
+                                <StackPanel
+                                    Orientation="Horizontal"
+                                    HorizontalAlignment="Left"
+                                    MinWidth="186"
+                                    Width="Auto"
+                                    Margin="5, 2, 0, 2">
+                                    <Image 
+                                        x:Name="GlyphOfMember"
+                                        Margin="8, 0, 5, 0"
+                                        Source="{Binding Glyph}"/>
+                                    <TextBlock
+                                        x:Name="MemberName"
+                                        Text="{Binding SymbolName}"
+                                        Margin="0, 0, 5, 0"
+                                        ToolTip="{Binding Accessibility}"
+                                        Foreground="{DynamicResource {x:Static vsshell:VsBrushes.ToolWindowTextKey}}"/>
+                                </StackPanel>
+                            </Grid>
                         </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>
                 </DataGridTemplateColumn>
-                <DataGridTemplateColumn Width="100">
+                <DataGridTemplateColumn Width="100" x:Name="AbstractColumn">
                     <DataGridTemplateColumn.Header>
-                        <TextBlock Text="{Binding ElementName=MemberSelectionControl, Path=MakeAbstractHeader}"/>
+                        <TextBlock Text="{Binding ElementName=MemberSelectionControl, Path=MakeAbstractHeader}" Background="{DynamicResource {x:Static vsui:HeaderColors.DefaultBrushKey}}" />
                     </DataGridTemplateColumn.Header>
                     <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate>
-                            <CheckBox
-                                HorizontalAlignment="Center"
-                                HorizontalContentAlignment="Center"
-                                VerticalAlignment="Center"
-                                VerticalContentAlignment="Center"
-                                Visibility="{Binding MakeAbstractVisibility}"
-                                IsEnabled="{Binding IsMakeAbstractCheckable, UpdateSourceTrigger=PropertyChanged}"
-                                AutomationProperties.Name="{Binding MakeAbstractCheckBoxAutomationText}"
-                                Focusable="True"
-                                Margin="0, 2, 0, 2"
-                                IsChecked="{Binding MakeAbstract, UpdateSourceTrigger=PropertyChanged}">
-                            </CheckBox>
+                            <Grid Background="{DynamicResource {x:Static vsui:HeaderColors.DefaultBrushKey}}">
+                                <CheckBox
+                                    HorizontalAlignment="Center"
+                                    HorizontalContentAlignment="Center"
+                                    VerticalAlignment="Center"
+                                    VerticalContentAlignment="Center"
+                                    Visibility="{Binding MakeAbstractVisibility}"
+                                    IsEnabled="{Binding IsMakeAbstractCheckable, UpdateSourceTrigger=PropertyChanged}"
+                                    AutomationProperties.Name="{Binding MakeAbstractCheckBoxAutomationText}"
+                                    Focusable="True"
+                                    Margin="0, 2, 0, 2"
+                                    IsChecked="{Binding MakeAbstract, UpdateSourceTrigger=PropertyChanged}">
+                                </CheckBox>
+                            </Grid>
                         </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>
                 </DataGridTemplateColumn>
@@ -149,6 +163,7 @@
                 x:Uid="SelecDependentsButton"
                 Padding="{StaticResource ResourceKey=ButtonControlsPadding}"
                 Content="{Binding ElementName=MemberSelectionControl, Path=SelectDependents}"
+                Visibility="{Binding ShowCheckDependentsButton, Converter={StaticResource BooleanToVisibilityConverter}}"
                 Click="SelectDependentsButton_Click"
                 Margin="2, 2, 0, 7"
                 Width="Auto"
@@ -157,6 +172,7 @@
                 x:Name="SelectPublicButton"
                 x:Uid="SelectPublicButton"
                 Content="{Binding ElementName=MemberSelectionControl, Path=SelectPublic}"
+                Visibility="{Binding ShowPublicButton, Converter={StaticResource BooleanToVisibilityConverter}}"
                 Margin="2, 0, 0, 0"
                 Click="SelectPublic_Click"
                 Padding="{StaticResource ResourceKey=ButtonControlsPadding}"

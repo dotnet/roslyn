@@ -93,7 +93,7 @@ namespace Roslyn.VisualStudio.DiagnosticsWindow
             }
 
             // set logger at start up
-            PerformanceLoggersPage.SetLoggers(globalOptions, _threadingContext, _workspace.Services);
+            PerformanceLoggersPage.SetLoggers(globalOptions, _threadingContext, _workspace.Services.SolutionServices);
         }
         #endregion
 

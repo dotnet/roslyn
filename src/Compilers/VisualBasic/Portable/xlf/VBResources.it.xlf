@@ -558,6 +558,16 @@
         <target state="translated">CallerArgumentExpressionAttribute applicato al parametro non avrà alcun effetto perché è autoreferenziale.</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_DuplicateAnalyzerReference">
+        <source>Analyzer reference '{0}' specified multiple times</source>
+        <target state="translated">Il riferimento '{0}' dell'analizzatore è stato specificato più volte</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_DuplicateAnalyzerReference_Title">
+        <source>Analyzer reference specified multiple times</source>
+        <target state="translated">Riferimento analizzatore specificato più volte</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_GeneratorFailedDuringGeneration">
         <source>Generator '{0}' failed to generate source. It will not contribute to the output and compilation errors may occur as a result. Exception was of type '{1}' with message '{2}'</source>
         <target state="translated">Il generatore '{0}' non è riuscito a generare l'origine. Non verrà aggiunto come contributo all'output e potrebbero verificarsi errori di compilazione. Eccezione di tipo '{1}'. Messaggio '{2}'</target>

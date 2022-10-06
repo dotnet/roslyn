@@ -338,12 +338,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 {
                     var completionItem = completionList.Items[i];
                     var commitCharacters = completionItem.CommitCharacters;
-                    if (commitCharacters == null)
-                    {
-                        // The commit characters on the item are null, this means the commit characters are actually
-                        // the default commit characters we passed in the initialize request.
-                        commitCharacters = defaultCommitCharacters;
-                    }
+                    // The commit characters on the item are null, this means the commit characters are actually
+                    // the default commit characters we passed in the initialize request.
+                    commitCharacters ??= defaultCommitCharacters;
 
                     commitCharacterReferences.TryGetValue(commitCharacters, out var existingCount);
                     existingCount++;
@@ -449,19 +446,18 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             var filterText = sourceText.GetSubText(completionListSpan).ToString();
 
             // Use pattern matching to determine which items are most relevant out of the calculated items.
-            using var _ = ArrayBuilder<MatchResult<CompletionItem?>>.GetInstance(out var matchResultsBuilder);
+            using var _ = ArrayBuilder<MatchResult>.GetInstance(out var matchResultsBuilder);
             var index = 0;
             var completionHelper = CompletionHelper.GetHelper(document);
             foreach (var item in completionList.ItemsList)
             {
-                if (CompletionHelper.TryCreateMatchResult<CompletionItem?>(
+                if (CompletionHelper.TryCreateMatchResult(
                     completionHelper,
                     item,
-                    editorCompletionItem: null,
                     filterText,
                     completionTrigger.Kind,
                     GetFilterReason(completionTrigger),
-                    recentItems: ImmutableArray<string>.Empty,
+                    recentItemIndex: -1,
                     includeMatchSpans: false,
                     index,
                     out var matchResult))
@@ -472,13 +468,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             }
 
             // Next, we sort the list based on the pattern matching result.
-            matchResultsBuilder.Sort(MatchResult<CompletionItem?>.SortingComparer);
+            matchResultsBuilder.Sort(MatchResult.SortingComparer);
 
             // Finally, truncate the list to 1000 items plus any preselected items that occur after the first 1000.
             var filteredList = matchResultsBuilder
                 .Take(completionListMaxSize)
-                .Concat(matchResultsBuilder.Skip(completionListMaxSize).Where(match => ShouldItemBePreselected(match.RoslynCompletionItem)))
-                .Select(matchResult => matchResult.RoslynCompletionItem)
+                .Concat(matchResultsBuilder.Skip(completionListMaxSize).Where(match => ShouldItemBePreselected(match.CompletionItem)))
+                .Select(matchResult => matchResult.CompletionItem)
                 .ToImmutableArray();
             var newCompletionList = completionList.WithItems(filteredList);
 

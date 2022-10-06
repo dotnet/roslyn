@@ -195,10 +195,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                 }
             }
 
-            if (_languageServiceProvider == null)
-            {
-                _languageServiceProvider = project.LanguageServiceProvider;
-            }
+            _languageServiceProvider ??= project.LanguageServiceProvider;
         }
 
         private class TestDocumentLoader : TextLoader

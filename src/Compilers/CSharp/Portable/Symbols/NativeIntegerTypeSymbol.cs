@@ -176,6 +176,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal sealed override NamedTypeSymbol NativeIntegerUnderlyingType => _underlyingType;
 
+        // note: there is no supported way to create a native integer type whose underlying type is file-local.
+        internal override FileIdentifier? AssociatedFileIdentifier => null;
+
         internal sealed override bool IsRecord => false;
         internal sealed override bool IsRecordStruct => false;
         internal sealed override bool HasPossibleWellKnownCloneMethod() => false;

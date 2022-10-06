@@ -12,7 +12,8 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.Formatting;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
@@ -21,26 +22,32 @@ namespace Microsoft.CodeAnalysis.UseNullPropagation
     internal abstract class AbstractUseNullPropagationCodeFixProvider<
         TSyntaxKind,
         TExpressionSyntax,
+        TStatementSyntax,
         TConditionalExpressionSyntax,
         TBinaryExpressionSyntax,
-        TInvocationExpression,
-        TMemberAccessExpression,
-        TConditionalAccessExpression,
-        TElementAccessExpression,
-        TElementBindingExpression,
-        TElementBindingArgumentList> : SyntaxEditorBasedCodeFixProvider
+        TInvocationExpressionSyntax,
+        TConditionalAccessExpressionSyntax,
+        TElementAccessExpressionSyntax,
+        TMemberAccessExpressionSyntax,
+        TElementBindingExpressionSyntax,
+        TIfStatementSyntax,
+        TExpressionStatementSyntax,
+        TElementBindingArgumentListSyntax> : SyntaxEditorBasedCodeFixProvider
         where TSyntaxKind : struct
         where TExpressionSyntax : SyntaxNode
+        where TStatementSyntax : SyntaxNode
         where TConditionalExpressionSyntax : TExpressionSyntax
         where TBinaryExpressionSyntax : TExpressionSyntax
-        where TInvocationExpression : TExpressionSyntax
-        where TMemberAccessExpression : TExpressionSyntax
-        where TConditionalAccessExpression : TExpressionSyntax
-        where TElementAccessExpression : TExpressionSyntax
-        where TElementBindingExpression : TExpressionSyntax
-        where TElementBindingArgumentList : SyntaxNode
+        where TInvocationExpressionSyntax : TExpressionSyntax
+        where TConditionalAccessExpressionSyntax : TExpressionSyntax
+        where TElementAccessExpressionSyntax : TExpressionSyntax
+        where TMemberAccessExpressionSyntax : TExpressionSyntax
+        where TElementBindingExpressionSyntax : TExpressionSyntax
+        where TIfStatementSyntax : TStatementSyntax
+        where TExpressionStatementSyntax : TStatementSyntax
+        where TElementBindingArgumentListSyntax : SyntaxNode
     {
-        protected abstract TElementBindingExpression ElementBindingExpression(TElementBindingArgumentList argumentList);
+        protected abstract TElementBindingExpressionSyntax ElementBindingExpression(TElementBindingArgumentListSyntax argumentList);
 
         public override ImmutableArray<string> FixableDiagnosticIds
             => ImmutableArray.Create(IDEDiagnosticIds.UseNullPropagationDiagnosticId);
@@ -58,56 +65,125 @@ namespace Microsoft.CodeAnalysis.UseNullPropagation
             Document document, ImmutableArray<Diagnostic> diagnostics,
             SyntaxEditor editor, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
         {
-            var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            var generator = document.GetRequiredLanguageService<SyntaxGeneratorInternal>();
             var root = editor.OriginalRoot;
 
             foreach (var diagnostic in diagnostics)
             {
-                var conditionalExpression = root.FindNode(diagnostic.AdditionalLocations[0].SourceSpan, getInnermostNodeForTie: true);
-                var conditionalPart = root.FindNode(diagnostic.AdditionalLocations[1].SourceSpan, getInnermostNodeForTie: true);
-                var whenPart = root.FindNode(diagnostic.AdditionalLocations[2].SourceSpan, getInnermostNodeForTie: true);
-                syntaxFacts.GetPartsOfConditionalExpression(
-                    conditionalExpression, out var condition, out var whenTrue, out var whenFalse);
-                whenTrue = syntaxFacts.WalkDownParentheses(whenTrue);
-                whenFalse = syntaxFacts.WalkDownParentheses(whenFalse);
-
-                var whenPartIsNullable = diagnostic.Properties.ContainsKey(UseNullPropagationConstants.WhenPartIsNullable);
-                editor.ReplaceNode(conditionalExpression,
-                    (c, _) =>
-                    {
-                        syntaxFacts.GetPartsOfConditionalExpression(
-                            c, out var currentCondition, out var currentWhenTrue, out var currentWhenFalse);
-
-                        var currentWhenPartToCheck = whenPart == whenTrue ? currentWhenTrue : currentWhenFalse;
-
-                        var match = AbstractUseNullPropagationDiagnosticAnalyzer<
-                            TSyntaxKind, TExpressionSyntax, TConditionalExpressionSyntax,
-                            TBinaryExpressionSyntax, TInvocationExpression, TMemberAccessExpression,
-                            TConditionalAccessExpression, TElementAccessExpression>.GetWhenPartMatch(syntaxFacts, semanticModel!, conditionalPart, currentWhenPartToCheck);
-                        if (match == null)
-                        {
-                            return c;
-                        }
-
-                        var newNode = CreateConditionalAccessExpression(
-                            syntaxFacts, generator, whenPartIsNullable, currentWhenPartToCheck, match, c);
-
-                        newNode = newNode.WithTriviaFrom(c);
-                        return newNode;
-                    });
+                var conditionalExpressionOrIfStatement = root.FindNode(diagnostic.AdditionalLocations[0].SourceSpan, getInnermostNodeForTie: true);
+                if (conditionalExpressionOrIfStatement is TIfStatementSyntax ifStatement)
+                {
+                    FixIfStatement(document, editor, diagnostic, ifStatement);
+                }
+                else
+                {
+                    FixConditionalExpression(document, editor, semanticModel, diagnostic, conditionalExpressionOrIfStatement, cancellationToken);
+                }
             }
         }
 
-        private SyntaxNode CreateConditionalAccessExpression(
+        private void FixConditionalExpression(
+            Document document,
+            SyntaxEditor editor,
+            SemanticModel semanticModel,
+            Diagnostic diagnostic,
+            SyntaxNode conditionalExpression,
+            CancellationToken cancellationToken)
+        {
+            var root = editor.OriginalRoot;
+
+            var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
+            var generator = document.GetRequiredLanguageService<SyntaxGeneratorInternal>();
+
+            var conditionalPart = root.FindNode(diagnostic.AdditionalLocations[1].SourceSpan, getInnermostNodeForTie: true);
+            var whenPart = root.FindNode(diagnostic.AdditionalLocations[2].SourceSpan, getInnermostNodeForTie: true);
+            syntaxFacts.GetPartsOfConditionalExpression(
+                conditionalExpression, out var condition, out var whenTrue, out var whenFalse);
+            whenTrue = syntaxFacts.WalkDownParentheses(whenTrue);
+            whenFalse = syntaxFacts.WalkDownParentheses(whenFalse);
+
+            var whenPartIsNullable = diagnostic.Properties.ContainsKey(UseNullPropagationConstants.WhenPartIsNullable);
+            editor.ReplaceNode(
+                conditionalExpression,
+                (conditionalExpression, _) =>
+                {
+                    syntaxFacts.GetPartsOfConditionalExpression(
+                        conditionalExpression, out var currentCondition, out var currentWhenTrue, out var currentWhenFalse);
+
+                    var currentWhenPartToCheck = whenPart == whenTrue ? currentWhenTrue : currentWhenFalse;
+
+                    var match = AbstractUseNullPropagationDiagnosticAnalyzer<
+                        TSyntaxKind, TExpressionSyntax, TStatementSyntax,
+                        TConditionalExpressionSyntax, TBinaryExpressionSyntax, TInvocationExpressionSyntax,
+                        TConditionalAccessExpressionSyntax, TElementAccessExpressionSyntax, TMemberAccessExpressionSyntax,
+                        TIfStatementSyntax, TExpressionStatementSyntax>.GetWhenPartMatch(
+                            syntaxFacts, semanticModel, (TExpressionSyntax)conditionalPart, (TExpressionSyntax)currentWhenPartToCheck, cancellationToken);
+                    if (match == null)
+                    {
+                        return conditionalExpression;
+                    }
+
+                    var newNode = CreateConditionalAccessExpression(
+                        syntaxFacts, generator, whenPartIsNullable, currentWhenPartToCheck, match) ?? conditionalExpression;
+
+                    newNode = newNode.WithTriviaFrom(conditionalExpression);
+                    return newNode;
+                });
+        }
+
+        private void FixIfStatement(
+            Document document,
+            SyntaxEditor editor,
+            Diagnostic diagnostic,
+            TIfStatementSyntax ifStatement)
+        {
+            var root = editor.OriginalRoot;
+
+            var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
+            var generator = document.GetRequiredLanguageService<SyntaxGeneratorInternal>();
+
+            var whenTrueStatement = (TExpressionStatementSyntax)root.FindNode(diagnostic.AdditionalLocations[1].SourceSpan);
+            var match = (TExpressionSyntax)root.FindNode(diagnostic.AdditionalLocations[2].SourceSpan, getInnermostNodeForTie: true);
+
+            var whenPartIsNullable = diagnostic.Properties.ContainsKey(UseNullPropagationConstants.WhenPartIsNullable);
+
+            // we have `if (x != null) x.Y();`.  Update `x.Y()` to be `x?.Y()`, then replace the entire
+            // if-statement with that expression statement.
+            var newWhenTrueStatement = CreateConditionalAccessExpression(
+                syntaxFacts, generator, whenPartIsNullable, whenTrueStatement, match);
+            Contract.ThrowIfNull(newWhenTrueStatement);
+
+            // If there's leading trivia on the original inner statement, then combine that with the leading
+            // trivia on the if-statement.  We'll need to add a formatting annotation so that the leading comments
+            // are put in the right location.
+            if (newWhenTrueStatement.GetLeadingTrivia().Any(syntaxFacts.IsRegularComment))
+            {
+                newWhenTrueStatement = newWhenTrueStatement
+                    .WithPrependedLeadingTrivia(ifStatement.GetLeadingTrivia())
+                    .WithAdditionalAnnotations(Formatter.Annotation);
+            }
+            else
+            {
+                newWhenTrueStatement = newWhenTrueStatement.WithLeadingTrivia(ifStatement.GetLeadingTrivia());
+            }
+
+            // If there's trailing comments on the original inner statement, then preserve that.  Otherwise,
+            // replace it with the trailing trivia of hte original if-statement.
+            if (!newWhenTrueStatement.GetTrailingTrivia().Any(syntaxFacts.IsRegularComment))
+                newWhenTrueStatement = newWhenTrueStatement.WithTrailingTrivia(ifStatement.GetTrailingTrivia());
+
+            editor.ReplaceNode(ifStatement, newWhenTrueStatement);
+        }
+
+        private TContainer? CreateConditionalAccessExpression<TContainer>(
             ISyntaxFactsService syntaxFacts, SyntaxGeneratorInternal generator, bool whenPartIsNullable,
-            SyntaxNode whenPart, SyntaxNode match, SyntaxNode currentConditional)
+            TContainer container, SyntaxNode match) where TContainer : SyntaxNode
         {
             if (whenPartIsNullable)
             {
-                if (match.Parent is TMemberAccessExpression memberAccess)
+                if (syntaxFacts.IsSimpleMemberAccessExpression(match.Parent))
                 {
+                    var memberAccess = match.Parent;
                     var nameNode = syntaxFacts.GetNameOfMemberAccessExpression(memberAccess);
                     syntaxFacts.GetNameAndArityOfSimpleName(nameNode, out var name, out var arity);
                     var comparer = syntaxFacts.StringComparer;
@@ -119,23 +195,22 @@ namespace Microsoft.CodeAnalysis.UseNullPropagation
                         //
                         //      goo?.Bar()  not   goo?.Value.Bar();
                         return CreateConditionalAccessExpression(
-                            syntaxFacts, generator, whenPart, match,
-                            memberAccess.Parent!, currentConditional);
+                            syntaxFacts, generator, container, match, memberAccess.GetRequiredParent());
                     }
                 }
             }
 
             return CreateConditionalAccessExpression(
-                syntaxFacts, generator, whenPart, match,
-                match.Parent!, currentConditional);
+                syntaxFacts, generator, container, match, match.GetRequiredParent());
         }
 
-        private SyntaxNode CreateConditionalAccessExpression(
+        private TContainer? CreateConditionalAccessExpression<TContainer>(
             ISyntaxFactsService syntaxFacts, SyntaxGeneratorInternal generator,
-            SyntaxNode whenPart, SyntaxNode match, SyntaxNode matchParent, SyntaxNode currentConditional)
+            TContainer whenPart, SyntaxNode match, SyntaxNode matchParent) where TContainer : SyntaxNode
         {
-            if (matchParent is TMemberAccessExpression memberAccess)
+            if (syntaxFacts.IsSimpleMemberAccessExpression(matchParent))
             {
+                var memberAccess = matchParent;
                 return whenPart.ReplaceNode(memberAccess,
                     generator.ConditionalAccessExpression(
                         match,
@@ -143,16 +218,16 @@ namespace Microsoft.CodeAnalysis.UseNullPropagation
                             syntaxFacts.GetNameOfMemberAccessExpression(memberAccess))));
             }
 
-            if (matchParent is TElementAccessExpression elementAccess)
+            if (matchParent is TElementAccessExpressionSyntax elementAccess)
             {
                 Debug.Assert(syntaxFacts.IsElementAccessExpression(elementAccess));
-                var argumentList = (TElementBindingArgumentList)syntaxFacts.GetArgumentListOfElementAccessExpression(elementAccess)!;
+                var argumentList = (TElementBindingArgumentListSyntax)syntaxFacts.GetArgumentListOfElementAccessExpression(elementAccess)!;
                 return whenPart.ReplaceNode(elementAccess,
                     generator.ConditionalAccessExpression(
                         match, ElementBindingExpression(argumentList)));
             }
 
-            return currentConditional;
+            return null;
         }
     }
 }

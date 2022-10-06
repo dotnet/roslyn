@@ -182,6 +182,11 @@
         <target state="translated">Отображать элементы из неимпортированных пространств имен</target>
         <note />
       </trans-unit>
+      <trans-unit id="Show_new_snippet_experience_experimental">
+        <source>Show new snippet experience (experimental)</source>
+        <target state="translated">Показывать новый интерфейс фрагмента кода (экспериментальная функция)</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Show_remarks_in_Quick_Info">
         <source>Show remarks in Quick Info</source>
         <target state="translated">Показать заметки в кратких сведениях</target>

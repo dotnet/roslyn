@@ -8,7 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Debugging;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.CSharp.Debugging
@@ -50,10 +50,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Debugging
                     }
                 }
 
-                if (fieldDeclarator == null)
-                {
-                    fieldDeclarator = variableDeclarators.Count > 0 ? variableDeclarators[0] : null;
-                }
+                fieldDeclarator ??= variableDeclarators.Count > 0 ? variableDeclarators[0] : null;
             }
 
             var name = syntaxFactsService.GetDisplayName(fieldDeclarator ?? memberDeclaration,

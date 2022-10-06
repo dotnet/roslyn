@@ -13,9 +13,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting
 {
     using Verify = CSharpCodeFixVerifier<CodeStyle.CSharpFormattingAnalyzer, CodeStyle.CSharpFormattingCodeFixProvider>;
 
+    [Trait(Traits.Feature, Traits.Features.Formatting)]
     public class FormattingAnalyzerTests
     {
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact]
         public async Task TrailingWhitespace()
         {
             var testCode =
@@ -29,7 +30,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting
             await Verify.VerifyCodeFixAsync(testCode, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact]
         public async Task TestMissingSpace()
         {
             var testCode = @"

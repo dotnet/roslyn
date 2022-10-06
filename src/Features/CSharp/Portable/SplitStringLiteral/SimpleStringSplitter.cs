@@ -20,10 +20,12 @@ namespace Microsoft.CodeAnalysis.CSharp.SplitStringLiteral
             private readonly SyntaxToken _token;
 
             public SimpleStringSplitter(
-                Document document, int position,
-                SyntaxNode root, SourceText sourceText, SyntaxToken token,
-                in IndentationOptions options, bool useTabs, int tabSize, CancellationToken cancellationToken)
-                : base(document, position, root, sourceText, options, useTabs, tabSize, cancellationToken)
+                ParsedDocument document,
+                int position,
+                SyntaxToken token,
+                in IndentationOptions options,
+                CancellationToken cancellationToken)
+                : base(document, position, options, cancellationToken)
             {
                 _token = token;
             }
@@ -43,13 +45,13 @@ namespace Microsoft.CodeAnalysis.CSharp.SplitStringLiteral
             protected override BinaryExpressionSyntax CreateSplitString()
             {
                 // TODO(cyrusn): Deal with the positoin being after a \ character
-                var prefix = SourceText.GetSubText(TextSpan.FromBounds(_token.SpanStart, CursorPosition)).ToString();
-                var suffix = SourceText.GetSubText(TextSpan.FromBounds(CursorPosition, _token.Span.End)).ToString();
+                var prefix = Document.Text.GetSubText(TextSpan.FromBounds(_token.SpanStart, CursorPosition)).ToString();
+                var suffix = Document.Text.GetSubText(TextSpan.FromBounds(CursorPosition, _token.Span.End)).ToString();
 
                 // If we're spliting a UTF-8 string we need to keep the u8 suffix on the first part. We copy whatever
                 // the user had on the second part, for consistency.
                 var firstTokenSuffix = _token.Kind() == SyntaxKind.Utf8StringLiteralToken
-                    ? SourceText.GetSubText(TextSpan.FromBounds(_token.Span.End - "u8".Length, _token.Span.End)).ToString()
+                    ? Document.Text.GetSubText(TextSpan.FromBounds(_token.Span.End - "u8".Length, _token.Span.End)).ToString()
                     : "";
 
                 var firstToken = SyntaxFactory.Token(

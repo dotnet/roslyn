@@ -250,7 +250,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var IEnumerableOfElementType_GetEnumerator = F.SpecialMethod(SpecialMember.System_Collections_Generic_IEnumerable_T__GetEnumerator).AsMember(IEnumerableOfElementType);
 
             // generate GetEnumerator()
-            var getEnumeratorGeneric = GenerateIteratorGetEnumerator(IEnumerableOfElementType_GetEnumerator, ref managedThreadId, StateMachineStates.InitialIteratorState);
+            var getEnumeratorGeneric = GenerateIteratorGetEnumerator(IEnumerableOfElementType_GetEnumerator, ref managedThreadId, StateMachineState.InitialIteratorState);
 
             // Generate IEnumerable.GetEnumerator
             var getEnumerator = OpenMethodImplementation(IEnumerable_GetEnumerator);
@@ -287,7 +287,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             // var stateMachineLocal = new IteratorImplementationClass(N)
             // where N is either 0 (if we're producing an enumerator) or -2 (if we're producing an enumerable)
-            int initialState = _isEnumerable ? StateMachineStates.FinishedState : StateMachineStates.InitialIteratorState;
+            var initialState = _isEnumerable ? StateMachineState.FinishedState : StateMachineState.InitialIteratorState;
             bodyBuilder.Add(
                 F.Assignment(
                     F.Local(stateMachineLocal),

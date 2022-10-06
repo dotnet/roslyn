@@ -15,6 +15,7 @@ using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.Iterator
 {
+    [Trait(Traits.Feature, Traits.Features.CodeActionsChangeToIEnumerable)]
     public class ChangeToIEnumerableTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
     {
         public ChangeToIEnumerableTests(ITestOutputHelper logger)
@@ -25,7 +26,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.Iterator
         internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
             => (null, new CSharpChangeToIEnumerableCodeFixProvider());
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsChangeToIEnumerable)]
+        [Fact]
         public async Task TestChangeToIEnumerableObjectMethod()
         {
             var initial =
@@ -54,7 +55,7 @@ class Program
             await TestInRegularAndScriptAsync(initial, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsChangeToIEnumerable)]
+        [Fact]
         public async Task TestChangeToIEnumerableTupleMethod()
         {
             var initial =
@@ -83,7 +84,7 @@ class Program
             await TestInRegularAndScriptAsync(initial, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsChangeToIEnumerable)]
+        [Fact]
         public async Task TestChangeToIEnumerableListMethod()
         {
             var initial =
@@ -112,7 +113,7 @@ class Program
             await TestInRegularAndScriptAsync(initial, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsChangeToIEnumerable)]
+        [Fact]
         public async Task TestChangeToIEnumerableWithListReturningMethodWithNullableArgument()
         {
             var initial =
@@ -145,7 +146,7 @@ class Program
             await TestInRegularAndScriptAsync(initial, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsChangeToIEnumerable)]
+        [Fact]
         public async Task TestChangeToIEnumerableGenericIEnumerableMethod()
         {
             var initial =
@@ -162,7 +163,7 @@ class Program
             await TestMissingInRegularAndScriptAsync(initial);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsChangeToIEnumerable)]
+        [Fact]
         public async Task TestChangeToIEnumerableGenericIEnumeratorMethod()
         {
             var initial =
@@ -179,7 +180,7 @@ class Program
             await TestMissingInRegularAndScriptAsync(initial);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsChangeToIEnumerable)]
+        [Fact]
         public async Task TestChangeToIEnumerableIEnumeratorMethod()
         {
             var initial =
@@ -196,7 +197,7 @@ class Program
             await TestMissingInRegularAndScriptAsync(initial);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsChangeToIEnumerable)]
+        [Fact]
         public async Task TestChangeToIEnumerableIEnumerableMethod()
         {
             var initial =
@@ -213,7 +214,7 @@ class Program
             await TestMissingInRegularAndScriptAsync(initial);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsChangeToIEnumerable)]
+        [Fact]
         public async Task TestChangeToIEnumerableVoidMethod()
         {
             var initial =
@@ -230,8 +231,7 @@ class Program
             await TestMissingInRegularAndScriptAsync(initial);
         }
 
-        [WorkItem(7087, @"https://github.com/dotnet/roslyn/issues/7087")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsChangeToIEnumerable)]
+        [Fact, WorkItem(7087, @"https://github.com/dotnet/roslyn/issues/7087")]
         public async Task TestChangeToIEnumerableProperty()
         {
             await TestInRegularAndScriptAsync(
@@ -309,8 +309,7 @@ namespace Asdf
 }");
         }
 
-        [WorkItem(7087, @"https://github.com/dotnet/roslyn/issues/7087")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsChangeToIEnumerable)]
+        [Fact, WorkItem(7087, @"https://github.com/dotnet/roslyn/issues/7087")]
         public async Task TestChangeToIEnumerableOperator()
         {
             await TestInRegularAndScriptAsync(
@@ -344,8 +343,7 @@ namespace Asdf
 }");
         }
 
-        [WorkItem(7087, @"https://github.com/dotnet/roslyn/issues/7087")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsChangeToIEnumerable)]
+        [Fact, WorkItem(7087, @"https://github.com/dotnet/roslyn/issues/7087")]
         public async Task TestChangeToIEnumerableIndexer()
         {
             await TestInRegularAndScriptAsync(

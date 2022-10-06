@@ -74,7 +74,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.OverloadBase
                 Dim cleanupService = document.GetLanguageService(Of ICodeCleanerService)
 
                 If cleanupService IsNot Nothing AndAlso newNode IsNot Nothing Then
-                    Dim services = document.Project.Solution.Workspace.Services
+                    Dim services = document.Project.Solution.Services
                     newNode = Await cleanupService.CleanupAsync(newNode, ImmutableArray.Create(newNode.Span), options, services, cleanupService.GetDefaultProviders(), cancellationToken).ConfigureAwait(False)
                 End If
 

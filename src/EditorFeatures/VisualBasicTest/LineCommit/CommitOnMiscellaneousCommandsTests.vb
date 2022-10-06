@@ -59,8 +59,7 @@ End Class
             End Using
         End Sub
 
-        <WpfFact>
-        <WorkItem(1944, "https://github.com/dotnet/roslyn/issues/1944")>
+        <WpfFact, WorkItem(1944, "https://github.com/dotnet/roslyn/issues/1944")>
         <Trait(Traits.Feature, Traits.Features.LineCommit)>
         Public Sub TestDontCommitOnMultiLinePasteWithPrettyListingOff()
             Using testData = CommitTestData.Create(

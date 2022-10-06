@@ -12,8 +12,6 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.FindSymbols.SymbolTree;
 using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.IncrementalCaches;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.CodeAnalysis.Storage;
@@ -42,7 +40,7 @@ namespace AnalyzerRunner
 
             var usePersistentStorage = _options.UsePersistentStorage;
 
-            var exportProvider = (IMefHostExportProvider)_workspace.Services.HostServices;
+            var exportProvider = _workspace.Services.SolutionServices.ExportProvider;
 
             var globalOptions = exportProvider.GetExports<IGlobalOptionService>().Single().Value;
             globalOptions.SetGlobalOption(new OptionKey(SolutionCrawlerOptionsStorage.BackgroundAnalysisScopeOption, LanguageNames.CSharp), _options.AnalysisScope);
@@ -56,7 +54,7 @@ namespace AnalyzerRunner
 
             if (usePersistentStorage)
             {
-                var persistentStorageService = _workspace.Services.GetPersistentStorageService();
+                var persistentStorageService = _workspace.Services.SolutionServices.GetPersistentStorageService();
                 await using var persistentStorage = await persistentStorageService.GetStorageAsync(SolutionKey.ToSolutionKey(_workspace.CurrentSolution), cancellationToken).ConfigureAwait(false);
                 if (persistentStorage is NoOpPersistentStorage)
                 {
@@ -77,8 +75,8 @@ namespace AnalyzerRunner
                 switch (incrementalAnalyzerName)
                 {
                     case nameof(SymbolTreeInfoIncrementalAnalyzerProvider):
-                        var symbolTreeInfoCacheService = _workspace.Services.GetRequiredService<ISymbolTreeInfoCacheService>();
-                        var symbolTreeInfo = await symbolTreeInfoCacheService.TryGetSourceSymbolTreeInfoAsync(_workspace.CurrentSolution.Projects.First(), cancellationToken).ConfigureAwait(false);
+                        var symbolTreeInfoCacheService = _workspace.Services.GetRequiredService<SymbolTreeInfoCacheService>();
+                        var symbolTreeInfo = await symbolTreeInfoCacheService.TryGetPotentiallyStaleSourceSymbolTreeInfoAsync(_workspace.CurrentSolution.Projects.First(), cancellationToken).ConfigureAwait(false);
                         if (symbolTreeInfo is null)
                         {
                             throw new InvalidOperationException("Benchmark failed to calculate symbol tree info.");

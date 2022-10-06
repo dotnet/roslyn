@@ -152,6 +152,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case RefType:
                         return ((RefTypeSyntax)parent).Type == node;
 
+                    case ScopedType:
+                        return ((ScopedTypeSyntax)parent).Type == node;
+
                     case Parameter:
                     case FunctionPointerParameter:
                         return ((BaseParameterSyntax)parent).Type == node;

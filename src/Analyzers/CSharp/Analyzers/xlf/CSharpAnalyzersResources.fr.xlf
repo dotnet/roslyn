@@ -82,6 +82,11 @@
         <target state="translated">L’expression lambda peut être supprimée.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Make_struct_readonly">
+        <source>Make struct 'readonly'</source>
+        <target state="translated">Rendre le struct 'readonly'</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Misplaced_using_directive">
         <source>Misplaced using directive</source>
         <target state="translated">Directive using mal placée</target>
@@ -187,6 +192,11 @@
         <target state="translated">Simplifier le modèle de propriété</target>
         <note />
       </trans-unit>
+      <trans-unit id="Struct_can_be_made_readonly">
+        <source>Struct can be made 'readonly'</source>
+        <target state="translated">Struct peut être rendu 'readonly'</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Struct_contains_assignment_to_this_outside_of_constructor_Make_readonly_fields_writable">
         <source>Struct contains assignment to 'this' outside of constructor. Make readonly fields writable.</source>
         <target state="translated">Struct contient une assignation à 'this' en dehors du constructeur. Rend les champs readonly accessibles en écriture.</target>
@@ -225,6 +235,11 @@
       <trans-unit id="Use_block_body_for_indexers">
         <source>Use block body for indexers</source>
         <target state="translated">Utiliser un corps de bloc pour les indexeurs</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_block_body_for_lambda_expressions">
+        <source>Use block body for lambda expressions</source>
+        <target state="translated">Utiliser le corps de bloc pour les expressions lambda</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_block_body_for_local_functions">
@@ -275,6 +290,11 @@
       <trans-unit id="Use_expression_body_for_indexers">
         <source>Use expression body for indexers</source>
         <target state="translated">Utiliser un corps d'expression pour les indexeurs</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_expression_body_for_lambda_expressions">
+        <source>Use expression body for lambda expressions</source>
+        <target state="translated">Utiliser le corps d'expression pour les expressions lambda</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_expression_body_for_local_functions">

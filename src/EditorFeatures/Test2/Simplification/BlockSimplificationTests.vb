@@ -4,15 +4,20 @@
 
 Imports Microsoft.CodeAnalysis.CodeStyle
 Imports Microsoft.CodeAnalysis.CSharp.CodeStyle
+Imports Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
 Imports Microsoft.CodeAnalysis.Options
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Simplification
+    <Trait(Traits.Feature, Traits.Features.Simplification)>
     Public Class SimplificationTests
         Inherits AbstractSimplificationTests
 
-        Private Shared ReadOnly DoNotPreferBraces As Dictionary(Of OptionKey2, Object) = New Dictionary(Of OptionKey2, Object) From {{New OptionKey2(CSharpCodeStyleOptions.PreferBraces), New CodeStyleOption2(Of PreferBracesPreference)(PreferBracesPreference.None, NotificationOption2.Silent)}}
+        Private Shared ReadOnly DoNotPreferBraces As New OptionsCollection(LanguageNames.VisualBasic) From
+        {
+            {CSharpCodeStyleOptions.PreferBraces, New CodeStyleOption2(Of PreferBracesPreference)(PreferBracesPreference.None, NotificationOption2.Silent)}
+        }
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <Fact>
         Public Async Function TestCSharp_DoNotSimplifyIfBlock() As Task
             Dim input =
 <Workspace>
@@ -49,7 +54,7 @@ class Program
             Await TestAsync(input, expected)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <Fact>
         Public Async Function TestCSharp_DoNotSimplifyMethodBlock() As Task
             Dim input =
 <Workspace>
@@ -80,7 +85,7 @@ class Program
             Await TestAsync(input, expected, DoNotPreferBraces)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <Fact>
         Public Async Function TestCSharp_DoNotSimplifyTryBlock() As Task
             Dim input =
 <Workspace>
@@ -123,7 +128,7 @@ class Program
             Await TestAsync(input, expected, DoNotPreferBraces)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <Fact>
         Public Async Function TestCSharp_SimplifyIfBlock() As Task
             Dim input =
 <Workspace>
@@ -158,7 +163,7 @@ class Program
             Await TestAsync(input, expected, DoNotPreferBraces)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <Fact>
         Public Async Function TestCSharp_SimplifyElseBlock() As Task
             Dim input =
 <Workspace>
@@ -199,7 +204,7 @@ class Program
             Await TestAsync(input, expected, DoNotPreferBraces)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <Fact>
         Public Async Function TestCSharp_SimplifyWhileBlock() As Task
             Dim input =
 <Workspace>
@@ -234,7 +239,7 @@ class Program
             Await TestAsync(input, expected, DoNotPreferBraces)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <Fact>
         Public Async Function TestCSharp_SimplifyDoBlock() As Task
             Dim input =
 <Workspace>
@@ -271,7 +276,7 @@ class Program
             Await TestAsync(input, expected, DoNotPreferBraces)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <Fact>
         Public Async Function TestCSharp_SimplifyUsingBlock() As Task
             Dim input =
 <Workspace>
@@ -306,7 +311,7 @@ class Program
             Await TestAsync(input, expected, DoNotPreferBraces)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <Fact>
         Public Async Function TestCSharp_SimplifyLockBlock() As Task
             Dim input =
 <Workspace>
@@ -341,7 +346,7 @@ class Program
             Await TestAsync(input, expected, DoNotPreferBraces)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <Fact>
         Public Async Function TestCSharp_SimplifyForBlock() As Task
             Dim input =
 <Workspace>
@@ -376,7 +381,7 @@ class Program
             Await TestAsync(input, expected, DoNotPreferBraces)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <Fact>
         Public Async Function TestCSharp_SimplifyForeachBlock() As Task
             Dim input =
 <Workspace>

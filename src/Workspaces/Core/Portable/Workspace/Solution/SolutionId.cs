@@ -7,6 +7,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Runtime.Serialization;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
@@ -15,13 +16,16 @@ namespace Microsoft.CodeAnalysis
     /// An identifier that can be used to refer to the same Solution across versions. 
     /// </summary>
     [DebuggerDisplay("{GetDebuggerDisplay(),nq}")]
+    [DataContract]
     public sealed class SolutionId : IEquatable<SolutionId>, IObjectWritable
     {
         /// <summary>
         /// The unique id of the solution.
         /// </summary>
+        [DataMember(Order = 0)]
         public Guid Id { get; }
 
+        [DataMember(Order = 1)]
         private readonly string _debugName;
 
         private SolutionId(Guid id, string debugName)

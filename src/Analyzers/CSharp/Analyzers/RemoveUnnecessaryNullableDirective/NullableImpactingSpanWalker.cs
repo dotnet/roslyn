@@ -6,7 +6,7 @@ using System;
 using System.Collections.Immutable;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
-using Microsoft.CodeAnalysis.CSharp.LanguageServices;
+using Microsoft.CodeAnalysis.CSharp.LanguageService;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -72,7 +72,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Analyzers.RemoveUnnecessaryNullableDirec
             // Simplify syntax checks by walking up qualified names to an equivalent parent node.
             node = WalkUpCurrentQualifiedName(node);
 
-            if (node.IsParentKind(SyntaxKind.QualifiedName, out QualifiedNameSyntax? qualifiedName)
+            if (node?.Parent is QualifiedNameSyntax qualifiedName
                 && qualifiedName.Left == node)
             {
                 // Cannot dot off a nullable reference type
@@ -91,7 +91,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Analyzers.RemoveUnnecessaryNullableDirec
                 return true;
             }
 
-            if (node.IsParentKind(SyntaxKind.NamespaceDeclaration, SyntaxKind.FileScopedNamespaceDeclaration))
+            if (node?.Parent is BaseNamespaceDeclarationSyntax)
             {
                 // Namespace names cannot be nullable reference types
                 return true;
@@ -111,7 +111,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Analyzers.RemoveUnnecessaryNullableDirec
             // If this is Y in X.Y, walk up to X.Y
             static TypeSyntax WalkUpCurrentQualifiedName(TypeSyntax node)
             {
-                while (node.IsParentKind(SyntaxKind.QualifiedName, out QualifiedNameSyntax? qualifiedName)
+                while (node.Parent is QualifiedNameSyntax qualifiedName
                     && qualifiedName.Right == node)
                 {
                     node = qualifiedName;
@@ -136,10 +136,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Analyzers.RemoveUnnecessaryNullableDirec
                 if (typeSyntax.IsVar)
                     return;
 
-                if (typeSyntax.IsKind(SyntaxKind.PredefinedType, out PredefinedTypeSyntax? predefinedType)
+                if (typeSyntax is PredefinedTypeSyntax predefinedType
                     && CSharpSyntaxFacts.Instance.TryGetPredefinedType(predefinedType.Keyword, out var type))
                 {
-                    if (type is CodeAnalysis.LanguageServices.PredefinedType.Object or CodeAnalysis.LanguageServices.PredefinedType.String)
+                    if (type is CodeAnalysis.LanguageService.PredefinedType.Object or CodeAnalysis.LanguageService.PredefinedType.String)
                     {
                         SpansBuilder.Add(predefinedType.Span);
                     }

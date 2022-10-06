@@ -3121,5 +3121,80 @@ public static readonly string F = ""a""
             Assert.NotEqual(TimeSpan.Zero, generatorTiming2.ElapsedTime);
             Assert.True(generatorTiming.ElapsedTime > generatorTiming2.ElapsedTime);
         }
+
+        [Fact]
+        public void Returning_Null_From_SelectMany_Gives_Empty_Array()
+        {
+            var source = "class C{}";
+
+            var parseOptions = TestOptions.RegularPreview;
+            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
+            compilation.VerifyDiagnostics();
+
+            var generator = new PipelineCallbackGenerator(ctx =>
+            {
+                var nullArray = ctx.CompilationProvider.Select((c, _) => null as object[]);
+                var flatArray = nullArray.SelectMany((a, _) => a!);
+                ctx.RegisterSourceOutput(flatArray, (_, _) => { });
+
+            }).AsSourceGenerator();
+
+            GeneratorDriver driver = CSharpGeneratorDriver.Create(new[] { generator }, parseOptions: parseOptions, driverOptions: new GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps: true));
+            driver = driver.RunGenerators(compilation);
+            var runResult = driver.GetRunResult();
+
+            Assert.Empty(runResult.GeneratedTrees);
+            Assert.Empty(runResult.Diagnostics);
+            var result = Assert.Single(runResult.Results);
+            Assert.Empty(result.GeneratedSources);
+            Assert.Empty(result.Diagnostics);
+        }
+
+        [Fact]
+        public void Post_Init_Trees_Are_Reparsed_When_ParseOptions_Change()
+        {
+            var source = "class C{}";
+            var postInitSource = @"
+#pragma warning disable CS0169
+class D {  (int, bool) _field; }";
+
+            var parseOptions = TestOptions.RegularPreview;
+            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
+            compilation.VerifyDiagnostics();
+
+            var generator = new PipelineCallbackGenerator(ctx =>
+            {
+                ctx.RegisterPostInitializationOutput(c => c.AddSource("D", postInitSource));
+            }).AsSourceGenerator();
+
+            GeneratorDriver driver = CSharpGeneratorDriver.Create(new[] { generator }, parseOptions: parseOptions, driverOptions: new GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps: true));
+            driver = driver.RunGeneratorsAndUpdateCompilation(compilation, out compilation, out var diagnostics);
+            compilation.VerifyDiagnostics();
+            Assert.Empty(diagnostics);
+
+            // change the parse options so that the tree is no longer accepted
+            parseOptions = parseOptions.WithLanguageVersion(LanguageVersion.CSharp2);
+            compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
+            driver = driver.WithUpdatedParseOptions(parseOptions);
+
+            // change some other options to ensure the parseOption change tracking flows correctly
+            driver = driver.AddAdditionalTexts(ImmutableArray<AdditionalText>.Empty);
+
+            driver = driver.RunGeneratorsAndUpdateCompilation(compilation, out compilation, out diagnostics);
+            diagnostics.Verify();
+            compilation.VerifyDiagnostics(
+                    // Microsoft.CodeAnalysis.Test.Utilities\Roslyn.Test.Utilities.TestGenerators.PipelineCallbackGenerator\D.cs(3,12): error CS8022: Feature 'tuples' is not available in C# 2. Please use language version 7.0 or greater.
+                    // class D {  (int, bool) _field; }
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion2, "(int, bool)").WithArguments("tuples", "7.0").WithLocation(3, 12)
+                );
+
+            // change them back to something where it is supported
+            parseOptions = parseOptions.WithLanguageVersion(LanguageVersion.CSharp8);
+            compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
+            driver = driver.WithUpdatedParseOptions(parseOptions);
+            driver = driver.RunGeneratorsAndUpdateCompilation(compilation, out compilation, out diagnostics);
+            diagnostics.Verify();
+            compilation.VerifyDiagnostics();
+        }
     }
 }

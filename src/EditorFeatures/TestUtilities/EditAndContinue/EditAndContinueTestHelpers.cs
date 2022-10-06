@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.Differencing;
@@ -44,6 +45,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 
         public abstract ImmutableArray<SyntaxNode> GetDeclarators(ISymbol method);
         public abstract string LanguageName { get; }
+        public abstract string ProjectFileExtension { get; }
         public abstract TreeComparer<SyntaxNode> TopSyntaxComparer { get; }
 
         private void VerifyDocumentActiveStatementsAndExceptionRegions(
@@ -228,7 +230,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             }
 
             var duplicateNonPartial = allEdits
-                .Where(e => e.PartialType == null)
+                .Where(e => e.PartialType == null && e.DeletedSymbolContainer is null)
                 .GroupBy(e => e.Symbol, SymbolKey.GetComparer(ignoreCase: false, ignoreAssemblyKeys: true))
                 .Where(g => g.Count() > 1)
                 .Select(g => g.Key);
@@ -309,7 +311,14 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                     else
                     {
                         Assert.Equal(expectedOldSymbol, symbolKey.Resolve(oldCompilation, ignoreAssemblyKey: true).Symbol);
-                        Assert.Equal(null, symbolKey.Resolve(newCompilation, ignoreAssemblyKey: true).Symbol);
+
+                        // When we're deleting a symbol, and have a deleted symbol container, it means the symbol wasn't really deleted,
+                        // but rather had its signature changed in some way. Some of those ways, like changing the return type, are not
+                        // represented in the symbol key, so the check below would fail, so we skip it.
+                        if (expectedSemanticEdit.DeletedSymbolContainerProvider is null)
+                        {
+                            Assert.Equal(null, symbolKey.Resolve(newCompilation, ignoreAssemblyKey: true).Symbol);
+                        }
                     }
 
                     var deletedSymbolContainer = actualSemanticEdit.DeletedSymbolContainer?.Resolve(newCompilation, ignoreAssemblyKey: true).Symbol;
@@ -373,16 +382,19 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 
         private void CreateProjects(EditScript<SyntaxNode>[] editScripts, AdhocWorkspace workspace, TargetFramework targetFramework, out Project oldProject, out Project newProject)
         {
-            oldProject = workspace.AddProject("project", LanguageName).WithMetadataReferences(TargetFrameworkUtil.GetReferences(targetFramework));
-            var documentIndex = 0;
+            var projectInfo = ProjectInfo.Create(ProjectId.CreateNewId(), VersionStamp.Create(), name: "project", assemblyName: "project", LanguageName, filePath: Path.Combine(TempRoot.Root, "project" + ProjectFileExtension));
+
+            oldProject = workspace.AddProject(projectInfo).WithMetadataReferences(TargetFrameworkUtil.GetReferences(targetFramework));
             foreach (var editScript in editScripts)
             {
-                oldProject = oldProject.AddDocument(documentIndex.ToString(), editScript.Match.OldRoot).Project;
-                documentIndex++;
+                var oldRoot = editScript.Match.OldRoot;
+                var oldPath = oldRoot.SyntaxTree.FilePath;
+                var name = Path.GetFileNameWithoutExtension(oldPath);
+                oldProject = oldProject.AddDocument(name, oldRoot, filePath: oldPath).Project;
             }
 
             var newSolution = oldProject.Solution;
-            documentIndex = 0;
+            var documentIndex = 0;
             foreach (var oldDocument in oldProject.Documents)
             {
                 newSolution = newSolution.WithDocumentSyntaxRoot(oldDocument.Id, editScripts[documentIndex].Match.NewRoot, PreservationMode.PreserveIdentity);

@@ -18,8 +18,13 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Snippets
 {
     internal sealed partial class SnippetExpansionClient : AbstractSnippetExpansionClient
     {
-        public SnippetExpansionClient(IContentType languageServiceGuid, ITextView textView, ITextBuffer subjectBuffer, IExpansionServiceProvider expansionServiceProvider, IGlobalOptionService globalOptions)
-            : base(languageServiceGuid, textView, subjectBuffer, expansionServiceProvider, globalOptions)
+        public SnippetExpansionClient(
+            IContentType languageServiceGuid,
+            ITextView textView,
+            ITextBuffer subjectBuffer,
+            IExpansionServiceProvider expansionServiceProvider,
+            EditorOptionsService editorOptionsService)
+            : base(languageServiceGuid, textView, subjectBuffer, expansionServiceProvider, editorOptionsService)
         {
         }
 

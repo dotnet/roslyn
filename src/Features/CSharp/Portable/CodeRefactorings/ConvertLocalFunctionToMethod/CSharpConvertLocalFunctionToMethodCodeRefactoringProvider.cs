@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertLocalFunctionToM
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
             var (document, textSpan, cancellationToken) = context;
-            if (document.Project.Solution.Workspace.Kind == WorkspaceKind.MiscellaneousFiles)
+            if (document.Project.Solution.WorkspaceKind == WorkspaceKind.MiscellaneousFiles)
             {
                 return;
             }
@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertLocalFunctionToM
                 return;
             }
 
-            if (!localFunction.Parent.IsKind(SyntaxKind.Block, out BlockSyntax parentBlock))
+            if (localFunction.Parent is not BlockSyntax parentBlock)
             {
                 return;
             }
@@ -183,7 +183,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertLocalFunctionToM
                     currentNode = currentNode.WithAdditionalAnnotations(Simplifier.Annotation);
                 }
 
-                if (node.Parent.IsKind(SyntaxKind.InvocationExpression, out InvocationExpressionSyntax invocation))
+                if (node.Parent is InvocationExpressionSyntax invocation)
                 {
                     if (hasAdditionalArguments)
                     {

@@ -6,7 +6,7 @@ Imports System.Collections.Immutable
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.FindSymbols
-Imports Microsoft.CodeAnalysis.LanguageServices
+Imports Microsoft.CodeAnalysis.LanguageService
 Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Rename
 Imports Microsoft.CodeAnalysis.Rename.ConflictEngine
@@ -122,9 +122,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Rename
                 _stringAndCommentTextSpans = parameters.StringAndCommentTextSpans
                 _aliasSymbol = TryCast(_renamedSymbol, IAliasSymbol)
                 _renamableDeclarationLocation = _renamedSymbol.Locations.Where(Function(loc) loc.IsInSource AndAlso loc.SourceTree Is _semanticModel.SyntaxTree).FirstOrDefault()
-                _simplificationService = parameters.Document.Project.LanguageServices.GetRequiredService(Of ISimplificationService)()
-                _syntaxFactsService = parameters.Document.Project.LanguageServices.GetRequiredService(Of ISyntaxFactsService)()
-                _semanticFactsService = parameters.Document.Project.LanguageServices.GetRequiredService(Of ISemanticFactsService)()
+                _simplificationService = parameters.Document.Project.Services.GetRequiredService(Of ISimplificationService)()
+                _syntaxFactsService = parameters.Document.Project.Services.GetRequiredService(Of ISyntaxFactsService)()
+                _semanticFactsService = parameters.Document.Project.Services.GetRequiredService(Of ISemanticFactsService)()
                 _isVerbatim = _syntaxFactsService.IsVerbatimIdentifier(_replacementText)
                 _renameAnnotations = parameters.RenameAnnotations
             End Sub
@@ -301,7 +301,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Rename
                     Return newToken
                 End If
 
-                Dim symbols = RenameUtilities.GetSymbolsTouchingPosition(token.Span.Start, _semanticModel, _solution.Workspace.Services, _cancellationToken)
+                Dim symbols = RenameUtilities.GetSymbolsTouchingPosition(token.Span.Start, _semanticModel, _solution.Services, _cancellationToken)
 
                 ' this is the compiler generated backing field of a non custom event. We need to store a "Event" suffix to properly rename it later on.
                 Dim prefix = If(isRenameLocation AndAlso Me._renameLocations(token.Span).IsRenamableAccessor, newToken.ValueText.Substring(0, newToken.ValueText.IndexOf("_"c) + 1), String.Empty)
@@ -589,7 +589,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Rename
 
             Private Function RenameInStringLiteral(oldToken As SyntaxToken, newToken As SyntaxToken, subSpansToReplace As ImmutableSortedSet(Of TextSpan), createNewStringLiteral As Func(Of SyntaxTriviaList, String, String, SyntaxTriviaList, SyntaxToken)) As SyntaxToken
                 Dim originalString = newToken.ToString()
-                Dim replacedString As String = RenameLocations.ReferenceProcessing.ReplaceMatchingSubStrings(originalString, _originalText, _replacementText, subSpansToReplace)
+                Dim replacedString As String = RenameUtilities.ReplaceMatchingSubStrings(originalString, _originalText, _replacementText, subSpansToReplace)
                 If replacedString <> originalString Then
                     Dim oldSpan = oldToken.Span
                     newToken = createNewStringLiteral(newToken.LeadingTrivia, replacedString, replacedString, newToken.TrailingTrivia)
@@ -602,7 +602,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Rename
 
             Private Function RenameInCommentTrivia(trivia As SyntaxTrivia) As SyntaxTrivia
                 Dim originalString = trivia.ToString()
-                Dim replacedString As String = RenameLocations.ReferenceProcessing.ReplaceMatchingSubStrings(originalString, _originalText, _replacementText)
+                Dim replacedString As String = RenameUtilities.ReplaceMatchingSubStrings(originalString, _originalText, _replacementText)
                 If replacedString <> originalString Then
                     Dim oldSpan = trivia.Span
                     Dim newTrivia = SyntaxFactory.CommentTrivia(replacedString)

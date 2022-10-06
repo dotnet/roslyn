@@ -8,18 +8,26 @@ namespace Microsoft.CodeAnalysis
 {
     internal partial struct SymbolKey
     {
-        private static class ParameterSymbolKey
+        private sealed class ParameterSymbolKey : AbstractSymbolKey<IParameterSymbol>
         {
-            public static void Create(IParameterSymbol symbol, SymbolKeyWriter visitor)
+            public static readonly ParameterSymbolKey Instance = new();
+
+            public sealed override void Create(IParameterSymbol symbol, SymbolKeyWriter visitor)
             {
                 visitor.WriteString(symbol.MetadataName);
                 visitor.WriteSymbolKey(symbol.ContainingSymbol);
             }
 
-            public static SymbolKeyResolution Resolve(SymbolKeyReader reader, out string? failureReason)
+            protected sealed override SymbolKeyResolution Resolve(
+                SymbolKeyReader reader, IParameterSymbol? contextualSymbol, out string? failureReason)
             {
-                var metadataName = reader.ReadString()!;
-                var containingSymbolResolution = reader.ReadSymbolKey(out var containingSymbolFailureReason);
+                var metadataName = reader.ReadRequiredString();
+
+                // Parameters are owned by members, and members are never resolved in a way where we have contextual
+                // types to guide how the outer parts of the member may resolve.  We can use contextual typing for the
+                // *signature* portion of the member though.
+                var containingSymbolResolution = reader.ReadSymbolKey(
+                    contextualSymbol?.ContainingSymbol, out var containingSymbolFailureReason);
 
                 if (containingSymbolFailureReason != null)
                 {

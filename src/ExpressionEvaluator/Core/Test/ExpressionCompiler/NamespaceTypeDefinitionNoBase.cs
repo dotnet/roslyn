@@ -77,6 +77,10 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests
 
         bool INamedTypeReference.MangleName => UnderlyingType.MangleName;
 
+#nullable enable
+        string? INamedTypeReference.AssociatedFileIdentifier => UnderlyingType.AssociatedFileIdentifier;
+#nullable disable
+
         string INamedEntity.Name => UnderlyingType.Name;
 
         string INamespaceTypeReference.NamespaceName => UnderlyingType.NamespaceName;

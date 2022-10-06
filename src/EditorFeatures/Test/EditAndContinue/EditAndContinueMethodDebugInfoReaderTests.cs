@@ -60,7 +60,7 @@ class C
     }
 }
 ";
-            var compilation = CSharpTestBase.CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll, sourceFileName: "/a/c.cs");
+            var compilation = CSharpTestBase.CreateCompilationWithMscorlib40AndSystemCore(source, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), options: TestOptions.DebugDll, sourceFileName: "/a/c.cs");
 
             var pdbStream = new MemoryStream();
             compilation.EmitToArray(new EmitOptions(debugInformationFormat: format), pdbStream: pdbStream);

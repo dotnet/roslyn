@@ -296,7 +296,7 @@ class Program
 {{
     public static void Main()
     {{
-        var x = { cast };
+        var x = {cast};
     }}
 }}
 ";
@@ -307,7 +307,7 @@ class Program
 {{
     public static void Main()
     {{
-        var x = { asExpression };
+        var x = {asExpression};
     }}
 }}
 ";
@@ -350,7 +350,7 @@ class Program
 {{
     public static void Main()
     {{
-        var x = { cast };
+        var x = {cast};
     }}
 }}
 ";
@@ -359,7 +359,7 @@ class Program
 {{
     public static void Main()
     {{
-        var x = { asExpression };
+        var x = {asExpression};
     }}
 }}
 ";

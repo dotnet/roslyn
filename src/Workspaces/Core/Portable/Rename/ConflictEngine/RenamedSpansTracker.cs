@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -12,6 +10,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeCleanup;
 using Microsoft.CodeAnalysis.Formatting;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -48,7 +47,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                 _documentToComplexifiedSpansMap[documentId] = spans;
             }
 
-            spans.Add(new MutableComplexifiedSpan() { OriginalSpan = oldSpan, NewSpan = newSpan, ModifiedSubSpans = modifiedSubSpans });
+            spans.Add(new MutableComplexifiedSpan(originalSpan: oldSpan, newSpan: newSpan, modifiedSubSpans: modifiedSubSpans));
         }
 
         // Given a position in the old solution, we get back the new adjusted position 
@@ -124,6 +123,14 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
             public TextSpan OriginalSpan;
             public TextSpan NewSpan;
             public List<(TextSpan oldSpan, TextSpan newSpan)> ModifiedSubSpans;
+
+            public MutableComplexifiedSpan(
+                TextSpan originalSpan, TextSpan newSpan, List<(TextSpan oldSpan, TextSpan newSpan)> modifiedSubSpans)
+            {
+                OriginalSpan = originalSpan;
+                NewSpan = newSpan;
+                ModifiedSubSpans = modifiedSubSpans;
+            }
         }
 
         internal void ClearDocuments(IEnumerable<DocumentId> conflictLocationDocumentIds)
@@ -149,7 +156,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
             {
                 if (this.IsDocumentChanged(documentId))
                 {
-                    var document = solution.GetDocument(documentId);
+                    var document = solution.GetRequiredDocument(documentId);
 
                     if (replacementTextValid)
                     {
@@ -171,11 +178,11 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                         complexifiedSpans.Clear();
                     }
 
-                    var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+                    var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
                     // First, get all the complexified statements
                     var nodeAnnotations = renameAnnotations.GetAnnotatedNodesAndTokens<RenameNodeSimplificationAnnotation>(root)
-                        .Select(x => Tuple.Create(renameAnnotations.GetAnnotations<RenameNodeSimplificationAnnotation>(x).First(), (SyntaxNode)x));
+                        .Select(x => Tuple.Create(renameAnnotations.GetAnnotations<RenameNodeSimplificationAnnotation>(x).First(), (SyntaxNode)x!));
 
                     var modifiedTokensInComplexifiedStatements = new HashSet<SyntaxToken>();
                     foreach (var annotationAndNode in nodeAnnotations)

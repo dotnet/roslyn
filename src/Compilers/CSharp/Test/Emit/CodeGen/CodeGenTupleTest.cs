@@ -232,12 +232,12 @@ namespace System
                 // (7,20): warning CS0169: The field '(T1, T2).Item2' is never used
                 //         private T2 Item2;
                 Diagnostic(ErrorCode.WRN_UnreferencedField, "Item2").WithArguments("(T1, T2).Item2").WithLocation(7, 20),
-                // (8,16): error CS0171: Field '(T1, T2).Item2' must be fully assigned before control is returned to the caller. Consider updating to language version 'preview' to auto-default the field.
+                // (8,16): error CS0171: Field '(T1, T2).Item2' must be fully assigned before control is returned to the caller. Consider updating to language version '11.0' to auto-default the field.
                 //         public ValueTuple(T1 item1, T2 item2)
-                Diagnostic(ErrorCode.ERR_UnassignedThisUnsupportedVersion, "ValueTuple").WithArguments("(T1, T2).Item2", "preview").WithLocation(8, 16),
-                // (8,16): error CS0171: Field '(T1, T2).Item2' must be fully assigned before control is returned to the caller. Consider updating to language version 'preview' to auto-default the field.
+                Diagnostic(ErrorCode.ERR_UnassignedThisUnsupportedVersion, "ValueTuple").WithArguments("(T1, T2).Item2", "11.0").WithLocation(8, 16),
+                // (8,16): error CS0171: Field '(T1, T2).Item2' must be fully assigned before control is returned to the caller. Consider updating to language version '11.0' to auto-default the field.
                 //         public ValueTuple(T1 item1, T2 item2)
-                Diagnostic(ErrorCode.ERR_UnassignedThisUnsupportedVersion, "ValueTuple").WithArguments("(T1, T2).Item2", "preview").WithLocation(8, 16),
+                Diagnostic(ErrorCode.ERR_UnassignedThisUnsupportedVersion, "ValueTuple").WithArguments("(T1, T2).Item2", "11.0").WithLocation(8, 16),
                 // (11,18): error CS0229: Ambiguity between '(T1, T2).Item2' and '(T1, T2).Item2'
                 //             this.Item2 = item2;
                 Diagnostic(ErrorCode.ERR_AmbigMember, "Item2").WithArguments("(T1, T2).Item2", "(T1, T2).Item2").WithLocation(11, 18)
@@ -14341,15 +14341,15 @@ interface ITest2<T> : ValueTuple<int, int, int, int, int, int, int, T> where T :
                                                       options: TestOptions.ReleaseExe.WithAllowUnsafe(true));
 
             comp.VerifyDiagnostics(
-                // (31,18): error CS0509: 'Test1<T>': cannot derive from sealed type 'ValueTuple<int, int, int, int, int, int, int, T>'
-                // class Test1<T> : ValueTuple<int, int, int, int, int, int, int, T> where T : struct
-                Diagnostic(ErrorCode.ERR_CantDeriveFromSealedType, "ValueTuple<int, int, int, int, int, int, int, T>").WithArguments("Test1<T>", "System.ValueTuple<int, int, int, int, int, int, int, T>").WithLocation(31, 18),
                 // (35,23): error CS0527: Type 'ValueTuple<int, int, int, int, int, int, int, T>' in interface list is not an interface
                 // interface ITest2<T> : ValueTuple<int, int, int, int, int, int, int, T> where T : struct
                 Diagnostic(ErrorCode.ERR_NonInterfaceInInterfaceList, "ValueTuple<int, int, int, int, int, int, int, T>").WithArguments("System.ValueTuple<int, int, int, int, int, int, int, T>").WithLocation(35, 23),
-                // (25,69): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('ValueTuple<int, int, int, int, int, int, int, T>')
+                // (31,18): error CS0509: 'Test1<T>': cannot derive from sealed type 'ValueTuple<int, int, int, int, int, int, int, T>'
+                // class Test1<T> : ValueTuple<int, int, int, int, int, int, int, T> where T : struct
+                Diagnostic(ErrorCode.ERR_CantDeriveFromSealedType, "ValueTuple<int, int, int, int, int, int, int, T>").WithArguments("Test1<T>", "System.ValueTuple<int, int, int, int, int, int, int, T>").WithLocation(31, 18),
+                // (25,69): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('ValueTuple<int, int, int, int, int, int, int, T>')
                 //     public static ValueTuple<int, int, int, int, int, int, int, T>* M5()
-                Diagnostic(ErrorCode.ERR_ManagedAddr, "M5").WithArguments("System.ValueTuple<int, int, int, int, int, int, int, T>").WithLocation(25, 69),
+                Diagnostic(ErrorCode.WRN_ManagedAddr, "M5").WithArguments("System.ValueTuple<int, int, int, int, int, int, int, T>").WithLocation(25, 69),
                 // (23,74): error CS0066: 'Test<T>.E1': event must be of a delegate type
                 //     public static event ValueTuple<int, int, int, int, int, int, int, T> E1;
                 Diagnostic(ErrorCode.ERR_EventNotDelegate, "E1").WithArguments("Test<T>.E1").WithLocation(23, 74),
@@ -25290,15 +25290,16 @@ namespace System
         public ValueTuple(T1 item1, T2 item2) => (Item1, Item2) = (item1, item2);
     }
 }";
-            var corlibWithoutVT = CreateEmptyCompilation(new[] { Parse(String.Format(versionTemplate, "1") + corlib_cs) }, assemblyName: "corlib");
+            var parseOptions = TestOptions.Regular.WithNoRefSafetyRulesAttribute();
+            var corlibWithoutVT = CreateEmptyCompilation(new[] { Parse(String.Format(versionTemplate, "1") + corlib_cs, options: parseOptions) }, assemblyName: "corlib");
             corlibWithoutVT.VerifyDiagnostics();
             var corlibWithoutVTRef = corlibWithoutVT.EmitToImageReference();
 
-            var corlibWithVT = CreateEmptyCompilation(new[] { Parse(String.Format(versionTemplate, "2") + corlib_cs + valuetuple_cs) }, assemblyName: "corlib");
+            var corlibWithVT = CreateEmptyCompilation(new[] { Parse(String.Format(versionTemplate, "2") + corlib_cs + valuetuple_cs, options: parseOptions) }, assemblyName: "corlib");
             corlibWithVT.VerifyDiagnostics();
             var corlibWithVTRef = corlibWithVT.EmitToImageReference();
 
-            var libWithVT = CreateEmptyCompilation(valuetuple_cs, references: new[] { corlibWithoutVTRef }, options: TestOptions.DebugDll);
+            var libWithVT = CreateEmptyCompilation(valuetuple_cs, references: new[] { corlibWithoutVTRef }, parseOptions: parseOptions, options: TestOptions.DebugDll);
             libWithVT.VerifyDiagnostics();
             var libWithVTRef = libWithVT.EmitToImageReference();
 
@@ -25318,8 +25319,8 @@ namespace System
             Assert.False(tuple3.IsErrorType());
             Assert.Equal(libWithVTRef.Display, tuple3.ContainingAssembly.MetadataName.ToString());
 
-            var libWithVTRef2 = CreateEmptyCompilation(valuetuple_cs, references: new[] { corlibWithoutVTRef }).EmitToImageReference();
-            var comp4 = CreateEmptyCompilation("", references: new[] { libWithVTRef, libWithVTRef2, corlibWithoutVTRef });
+            var libWithVTRef2 = CreateEmptyCompilation(valuetuple_cs, references: new[] { corlibWithoutVTRef }, parseOptions: parseOptions).EmitToImageReference();
+            var comp4 = CreateEmptyCompilation("", references: new[] { libWithVTRef, libWithVTRef2, corlibWithoutVTRef }, parseOptions: parseOptions);
             var tuple4 = comp4.GetWellKnownType(WellKnownType.System_ValueTuple_T2);
             Assert.True(tuple4.IsErrorType());
         }
@@ -27999,7 +28000,7 @@ namespace System
         ValueTuple(T1 item1, T2 item2) => throw null;
     }
 }";
-            var comp = CreateCompilation(source, targetFramework: TargetFramework.Mscorlib40, assemblyName: "emptyValueTuple");
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Mscorlib40, assemblyName: "emptyValueTuple", parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute());
             comp.VerifyDiagnostics();
             var verifier = CompileAndVerify(comp, symbolValidator: verifyModule, sourceSymbolValidator: verifyModule);
             verifier.VerifyTypeIL("ValueTuple`2", @"

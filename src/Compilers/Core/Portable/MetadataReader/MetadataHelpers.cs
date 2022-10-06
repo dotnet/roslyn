@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis
         public const char MangledNameRegionStartChar = '<';
         public const char MangledNameRegionEndChar = '>';
 
-        internal struct AssemblyQualifiedTypeName
+        internal readonly struct AssemblyQualifiedTypeName
         {
             internal readonly string TopLevelType;
             internal readonly string[] NestedTypes;
@@ -470,10 +470,12 @@ ExitDecodeTypeName:
             return (arity <= 9) ? s_aritySuffixesOneToNine[arity - 1] : string.Concat(GenericTypeNameManglingString, arity.ToString(CultureInfo.InvariantCulture));
         }
 
-        internal static string ComposeAritySuffixedMetadataName(string name, int arity)
+#nullable enable
+        internal static string ComposeAritySuffixedMetadataName(string name, int arity, string? associatedFileIdentifier)
         {
-            return arity == 0 ? name : name + GetAritySuffix(arity);
+            return associatedFileIdentifier + (arity == 0 ? name : name + GetAritySuffix(arity));
         }
+#nullable disable
 
         internal static int InferTypeArityFromMetadataName(string emittedTypeName)
         {

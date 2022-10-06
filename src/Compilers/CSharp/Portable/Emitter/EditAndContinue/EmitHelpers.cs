@@ -177,7 +177,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             RoslynDebug.AssertNotNull(moduleBeingBuilt.EncSymbolChanges);
 
             var currentSynthesizedMembers = moduleBeingBuilt.GetAllSynthesizedMembers();
-            var currentDeletedMembers = moduleBeingBuilt.EncSymbolChanges.GetAllDeletedMethods();
+            var currentDeletedMembers = moduleBeingBuilt.EncSymbolChanges.GetAllDeletedMembers();
 
             // Mapping from previous compilation to the current.
             var anonymousTypeMap = moduleBeingBuilt.GetAnonymousTypeMap();
@@ -198,10 +198,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                 currentSynthesizedMembers,
                 currentDeletedMembers);
 
-            var mappedSynthesizedMembers = matcher.MapSynthesizedMembers(previousGeneration.SynthesizedMembers, currentSynthesizedMembers);
+            var mappedSynthesizedMembers = matcher.MapSynthesizedOrDeletedMembers(previousGeneration.SynthesizedMembers, currentSynthesizedMembers, isDeletedMemberMapping: false);
 
             // Deleted members are mapped the same way as synthesized members, so we can just call the same method.
-            var mappedDeletedMembers = matcher.MapSynthesizedMembers(previousGeneration.DeletedMembers, currentDeletedMembers);
+            var mappedDeletedMembers = matcher.MapSynthesizedOrDeletedMembers(previousGeneration.DeletedMembers, currentDeletedMembers, isDeletedMemberMapping: true);
 
             // TODO: can we reuse some data from the previous matcher?
             var matcherWithAllSynthesizedMembers = new CSharpSymbolMatcher(

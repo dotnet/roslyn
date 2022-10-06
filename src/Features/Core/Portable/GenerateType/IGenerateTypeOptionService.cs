@@ -5,7 +5,7 @@
 #nullable disable
 
 using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.ProjectManagement;
 

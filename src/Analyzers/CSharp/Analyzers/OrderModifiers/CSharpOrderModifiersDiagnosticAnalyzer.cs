@@ -6,7 +6,7 @@ using System.Collections.Generic;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Diagnostics;
-using Microsoft.CodeAnalysis.CSharp.LanguageServices;
+using Microsoft.CodeAnalysis.CSharp.LanguageService;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.OrderModifiers;
@@ -19,8 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp.OrderModifiers
         public CSharpOrderModifiersDiagnosticAnalyzer()
             : base(CSharpSyntaxFacts.Instance,
                    CSharpCodeStyleOptions.PreferredModifierOrder,
-                   CSharpOrderModifiersHelper.Instance,
-                   LanguageNames.CSharp)
+                   CSharpOrderModifiersHelper.Instance)
         {
         }
 

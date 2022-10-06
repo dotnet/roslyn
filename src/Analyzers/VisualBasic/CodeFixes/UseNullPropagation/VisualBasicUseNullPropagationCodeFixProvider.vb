@@ -14,13 +14,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseNullPropagation
         Inherits AbstractUseNullPropagationCodeFixProvider(Of
             SyntaxKind,
             ExpressionSyntax,
+            ExecutableStatementSyntax,
             TernaryConditionalExpressionSyntax,
             BinaryExpressionSyntax,
             InvocationExpressionSyntax,
-            MemberAccessExpressionSyntax,
             ConditionalAccessExpressionSyntax,
             InvocationExpressionSyntax,
+            MemberAccessExpressionSyntax,
             InvocationExpressionSyntax,
+            MultiLineIfBlockSyntax,
+            ExpressionStatementSyntax,
             ArgumentListSyntax)
 
         <ImportingConstructor>

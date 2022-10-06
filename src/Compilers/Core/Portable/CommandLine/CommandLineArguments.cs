@@ -510,16 +510,26 @@ namespace Microsoft.CodeAnalysis
                 }
             };
 
-            var resolvedReferences = ArrayBuilder<AnalyzerFileReference>.GetInstance();
+            var resolvedReferencesSet = PooledHashSet<AnalyzerFileReference>.GetInstance();
+            var resolvedReferencesList = ArrayBuilder<AnalyzerFileReference>.GetInstance();
             foreach (var reference in AnalyzerReferences)
             {
                 var resolvedReference = ResolveAnalyzerReference(reference, analyzerLoader);
                 if (resolvedReference != null)
                 {
-                    resolvedReferences.Add(resolvedReference);
+                    var isAdded = resolvedReferencesSet.Add(resolvedReference);
+                    if (isAdded)
+                    {
+                        // register the reference to the analyzer loader:
+                        analyzerLoader.AddDependencyLocation(resolvedReference.FullPath);
 
-                    // register the reference to the analyzer loader:
-                    analyzerLoader.AddDependencyLocation(resolvedReference.FullPath);
+                        resolvedReferencesList.Add(resolvedReference);
+                    }
+                    else
+                    {
+                        // https://github.com/dotnet/roslyn/issues/63856
+                        //diagnostics.Add(new DiagnosticInfo(messageProvider, messageProvider.WRN_DuplicateAnalyzerReference, reference.FilePath));
+                    }
                 }
                 else
                 {
@@ -528,7 +538,7 @@ namespace Microsoft.CodeAnalysis
             }
 
             // All analyzer references are registered now, we can start loading them.
-            foreach (var resolvedReference in resolvedReferences)
+            foreach (var resolvedReference in resolvedReferencesList)
             {
                 resolvedReference.AnalyzerLoadFailed += errorHandler;
                 resolvedReference.AddAnalyzers(analyzerBuilder, language, shouldIncludeAnalyzer);
@@ -536,7 +546,8 @@ namespace Microsoft.CodeAnalysis
                 resolvedReference.AnalyzerLoadFailed -= errorHandler;
             }
 
-            resolvedReferences.Free();
+            resolvedReferencesList.Free();
+            resolvedReferencesSet.Free();
 
             generators = generatorBuilder.ToImmutable();
             analyzers = analyzerBuilder.ToImmutable();

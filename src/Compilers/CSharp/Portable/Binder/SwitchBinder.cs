@@ -268,7 +268,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 caseExpression = CreateConversion(caseExpression, conversion, SwitchGoverningType, diagnostics);
             }
 
-            return ConvertPatternExpression(SwitchGoverningType, node, caseExpression, out constantValueOpt, hasErrors, diagnostics);
+            return ConvertPatternExpression(SwitchGoverningType, node, caseExpression, out constantValueOpt, hasErrors, diagnostics, out _);
         }
 
         private static readonly object s_nullKey = new object();

@@ -101,7 +101,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.DocumentChanges
 
         private static async Task<Solution> GetLSPSolutionAsync(TestLspServer testLspServer, Uri uri)
         {
-            var lspDocument = await testLspServer.GetManager().GetLspDocumentAsync(new TextDocumentIdentifier { Uri = uri }, CancellationToken.None).ConfigureAwait(false);
+            var (_, _, lspDocument) = await testLspServer.GetManager().GetLspDocumentInfoAsync(new TextDocumentIdentifier { Uri = uri }, CancellationToken.None).ConfigureAwait(false);
             Contract.ThrowIfNull(lspDocument);
             return lspDocument.Project.Solution;
         }

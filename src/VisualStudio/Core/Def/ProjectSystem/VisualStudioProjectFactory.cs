@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.VisualStudio.LanguageServices.ExternalAccess.VSTypeScript.Api;
+using Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics;
 using Microsoft.VisualStudio.LanguageServices.Implementation.TaskList;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
@@ -33,6 +34,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         private readonly VisualStudioWorkspaceImpl _visualStudioWorkspaceImpl;
         private readonly ImmutableArray<Lazy<IDynamicFileInfoProvider, FileExtensionsMetadata>> _dynamicFileInfoProviders;
         private readonly HostDiagnosticUpdateSource _hostDiagnosticUpdateSource;
+        private readonly IVisualStudioDiagnosticAnalyzerProviderFactory _vsixAnalyzerProviderFactory;
         private readonly Shell.IAsyncServiceProvider _serviceProvider;
 
         [ImportingConstructor]
@@ -42,12 +44,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             VisualStudioWorkspaceImpl visualStudioWorkspaceImpl,
             [ImportMany] IEnumerable<Lazy<IDynamicFileInfoProvider, FileExtensionsMetadata>> fileInfoProviders,
             HostDiagnosticUpdateSource hostDiagnosticUpdateSource,
+            IVisualStudioDiagnosticAnalyzerProviderFactory vsixAnalyzerProviderFactory,
             SVsServiceProvider serviceProvider)
         {
             _threadingContext = threadingContext;
             _visualStudioWorkspaceImpl = visualStudioWorkspaceImpl;
             _dynamicFileInfoProviders = fileInfoProviders.AsImmutableOrEmpty();
             _hostDiagnosticUpdateSource = hostDiagnosticUpdateSource;
+            _vsixAnalyzerProviderFactory = vsixAnalyzerProviderFactory;
             _serviceProvider = (Shell.IAsyncServiceProvider)serviceProvider;
         }
 
@@ -74,6 +78,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 ? filePath
                 : null;
 
+            var vsixAnalyzerProvider = await _vsixAnalyzerProviderFactory.GetOrCreateProviderAsync(cancellationToken).ConfigureAwait(false);
+
             // Following can be off the UI thread.
             await TaskScheduler.Default;
 
@@ -88,6 +94,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 _visualStudioWorkspaceImpl,
                 _dynamicFileInfoProviders,
                 _hostDiagnosticUpdateSource,
+                vsixAnalyzerProvider,
                 id,
                 displayName: projectSystemName,
                 language,
@@ -115,6 +122,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                     .WithTelemetryId(creationInfo.ProjectGuid);
 
                 // If we don't have any projects and this is our first project being added, then we'll create a new SolutionId
+                // and count this as the solution being added so that event is raised.
                 if (w.CurrentSolution.ProjectIds.Count == 0)
                 {
                     var solutionSessionId = GetSolutionSessionId();

@@ -2870,12 +2870,14 @@ End Module
             Dim sym = semanticModel.GetDeclaredSymbol(node)
             Assert.NotNull(sym)
             Assert.Equal(SymbolKind.Local, sym.Kind)
+            Assert.False(DirectCast(sym, ILocalSymbol).IsForEach)
             ' y
             node = nodes.Last()
             Assert.Equal("y", node.ToString())
             sym = semanticModel.GetDeclaredSymbol(node)
             Assert.NotNull(sym)
             Assert.Equal(SymbolKind.Local, sym.Kind)
+            Assert.True(DirectCast(sym, ILocalSymbol).IsForEach)
 
             CompilationUtils.AssertNoErrors(compilation)
         End Sub

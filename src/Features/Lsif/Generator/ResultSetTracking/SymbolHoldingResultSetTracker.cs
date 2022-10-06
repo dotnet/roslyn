@@ -112,7 +112,8 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.ResultSetTr
                 kind = "import";
             }
 
-            return new Moniker(moniker.Scheme, moniker.Identifier, kind, _idFactory);
+            // Since we fully qualify everything, all monitors are unique within the scheme
+            return new Moniker(moniker.Scheme, moniker.Identifier, kind, unique: "scheme", _idFactory);
         }
 
         public Id<ResultSet> GetResultSetIdForSymbol(ISymbol symbol)

@@ -59,17 +59,17 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CallHierarchy
                     return true;
                 }
 
-                var workspace = document.Project.Solution.Workspace;
                 var semanticModel = document.GetSemanticModelAsync(cancellationToken).WaitAndGetResult(cancellationToken);
 
                 var caretPosition = args.TextView.Caret.Position.BufferPosition.Position;
-                var symbolUnderCaret = SymbolFinder.FindSymbolAtPositionAsync(semanticModel, caretPosition, workspace, cancellationToken)
+                var symbolUnderCaret = SymbolFinder.FindSymbolAtPositionAsync(
+                    semanticModel, caretPosition, document.Project.Solution.Services, cancellationToken)
                     .WaitAndGetResult(cancellationToken);
 
                 if (symbolUnderCaret != null)
                 {
                     // Map symbols so that Call Hierarchy works from metadata-as-source
-                    var mappingService = document.Project.Solution.Workspace.Services.GetService<ISymbolMappingService>();
+                    var mappingService = document.Project.Solution.Services.GetService<ISymbolMappingService>();
                     var mapping = mappingService.MapSymbolAsync(document, symbolUnderCaret, cancellationToken).WaitAndGetResult(cancellationToken);
 
                     if (mapping.Symbol != null)
@@ -89,7 +89,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CallHierarchy
                 // wait context. That means the command system won't attempt to show its own wait dialog 
                 // and also will take it into consideration when measuring command handling duration.
                 waitScope.Context.TakeOwnership();
-                var notificationService = document.Project.Solution.Workspace.Services.GetService<INotificationService>();
+                var notificationService = document.Project.Solution.Services.GetService<INotificationService>();
                 notificationService.SendNotification(EditorFeaturesResources.Cursor_must_be_on_a_member_name, severity: NotificationSeverity.Information);
             }
 

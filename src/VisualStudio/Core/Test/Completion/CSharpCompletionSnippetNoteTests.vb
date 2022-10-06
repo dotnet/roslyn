@@ -6,8 +6,10 @@ Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Completion
 Imports Microsoft.CodeAnalysis.Editor.Shared.Options
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
+Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Snippets
 Imports Microsoft.CodeAnalysis.Test.Utilities
+Imports Microsoft.VisualStudio.Text.Editor
 Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Completion
@@ -26,6 +28,7 @@ class C
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function SnippetExpansionNoteAddedToDescription_ExactMatch() As Task
             Using state = CreateCSharpSnippetExpansionNoteTestState(_markup, "interface")
+                state.Workspace.GlobalOptions.SetGlobalOption(New OptionKey(CompletionOptionsStorage.ShowNewSnippetExperience, LanguageNames.CSharp), False)
                 state.SendTypeChars("interfac")
                 Await state.AssertCompletionSession()
                 Await state.AssertSelectedCompletionItem(description:="title" & vbCrLf &
@@ -117,9 +120,7 @@ class C
                 Dim testSnippetInfoService = DirectCast(state.Workspace.Services.GetLanguageServices(LanguageNames.CSharp).GetService(Of ISnippetInfoService)(), TestCSharpSnippetInfoService)
                 testSnippetInfoService.SetSnippetShortcuts({"for"})
 
-                Dim workspace = state.Workspace
-                workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options _
-                    .WithChangedOption(InternalFeatureOnOffOptions.Snippets, False)))
+                state.Workspace.GlobalOptions.SetGlobalOption(New OptionKey(InternalFeatureOnOffOptions.Snippets), False)
 
                 state.SendTypeChars("for")
                 Await state.AssertCompletionSession()

@@ -5662,4 +5662,10 @@
   <data name="ERR_DoNotUseCompilerFeatureRequired" xml:space="preserve">
     <value>'System.Runtime.CompilerServices.CompilerFeatureRequiredAttribute' is reserved for compiler usage only.</value>
   </data>
+  <data name="WRN_DuplicateAnalyzerReference" xml:space="preserve">
+    <value>Analyzer reference '{0}' specified multiple times</value>
+  </data>
+  <data name="WRN_DuplicateAnalyzerReference_Title" xml:space="preserve">
+    <value>Analyzer reference specified multiple times</value>
+  </data>
 </root>

@@ -15,7 +15,7 @@ using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.ImplementType;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
@@ -340,7 +340,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                     return value.Value;
                 }
 
-                var fallbackFormattingOptions = await ((OptionsProvider<SyntaxFormattingOptions>)Options.FallbackOptions).GetOptionsAsync(document.Project.LanguageServices, cancellationToken).ConfigureAwait(false);
+                var fallbackFormattingOptions = await ((OptionsProvider<SyntaxFormattingOptions>)Options.FallbackOptions).GetOptionsAsync(document.Project.Services, cancellationToken).ConfigureAwait(false);
 
                 return fallbackFormattingOptions.AccessibilityModifiersRequired;
             }

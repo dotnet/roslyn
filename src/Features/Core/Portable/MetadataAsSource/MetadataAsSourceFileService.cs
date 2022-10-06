@@ -64,28 +64,29 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
             return _rootTemporaryPathWithGuid;
         }
 
-        public async Task<MetadataAsSourceFile> GetGeneratedFileAsync(Project project, ISymbol symbol, bool signaturesOnly, MetadataAsSourceOptions options, CancellationToken cancellationToken = default)
+        public async Task<MetadataAsSourceFile> GetGeneratedFileAsync(
+            Workspace sourceWorkspace,
+            Project sourceProject,
+            ISymbol symbol,
+            bool signaturesOnly,
+            MetadataAsSourceOptions options,
+            CancellationToken cancellationToken = default)
         {
-            if (project == null)
-            {
-                throw new ArgumentNullException(nameof(project));
-            }
+            if (sourceProject == null)
+                throw new ArgumentNullException(nameof(sourceProject));
 
             if (symbol == null)
-            {
                 throw new ArgumentNullException(nameof(symbol));
-            }
 
             if (symbol.Kind == SymbolKind.Namespace)
-            {
                 throw new ArgumentException(FeaturesResources.symbol_cannot_be_a_namespace, nameof(symbol));
-            }
 
             symbol = symbol.GetOriginalUnreducedDefinition();
 
             using (await _gate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
             {
-                InitializeWorkspace(project);
+                _workspace ??= new MetadataAsSourceWorkspace(this, sourceWorkspace.Services.HostServices);
+
                 Contract.ThrowIfNull(_workspace);
                 var tempPath = GetRootPathWithGuid_NoLock();
 
@@ -93,7 +94,7 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
                 {
                     var provider = lazyProvider.Value;
                     var providerTempPath = Path.Combine(tempPath, provider.GetType().Name);
-                    var result = await provider.GetGeneratedFileAsync(_workspace, project, symbol, signaturesOnly, options, providerTempPath, cancellationToken).ConfigureAwait(false);
+                    var result = await provider.GetGeneratedFileAsync(_workspace, sourceWorkspace, sourceProject, symbol, signaturesOnly, options, providerTempPath, cancellationToken).ConfigureAwait(false);
                     if (result is not null)
                     {
                         return result;
@@ -163,14 +164,6 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
             }
 
             return false;
-        }
-
-        private void InitializeWorkspace(Project project)
-        {
-            if (_workspace == null)
-            {
-                _workspace = new MetadataAsSourceWorkspace(this, project.Solution.Workspace.Services.HostServices);
-            }
         }
 
         internal async Task<SymbolMappingResult?> MapSymbolAsync(Document document, SymbolKey symbolId, CancellationToken cancellationToken)

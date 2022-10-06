@@ -17,6 +17,7 @@ using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AliasAmbiguousType
 {
+    [Trait(Traits.Feature, Traits.Features.CodeActionsAliasAmbiguousType)]
     public class AliasAmbiguousTypeTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
     {
         public AliasAmbiguousTypeTests(ITestOutputHelper logger)
@@ -34,14 +35,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AliasAmbiguousType
             => $@"
 namespace N1
 {{
-    { typeDefinion }
+    {typeDefinion}
 }}
 namespace N2
 {{
-    { typeDefinion }
+    {typeDefinion}
 }}";
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAliasAmbiguousType)]
+        [Fact]
         public async Task TestAmbiguousClassObjectCreationUsingsInNamespace()
         {
             var classDef = GetAmbiguousDefinition("public class Ambiguous { }");
@@ -93,7 +94,7 @@ namespace Test
             await TestSmartTagTextAsync(initialMarkup, "using Ambiguous = N1.Ambiguous;");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAliasAmbiguousType)]
+        [Fact]
         public async Task TestAmbiguousClassObjectCreationUsingsInCompilationUnit()
         {
             var classDef = GetAmbiguousDefinition("public class Ambiguous { }");
@@ -127,7 +128,7 @@ namespace Test
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAliasAmbiguousType)]
+        [Fact]
         public async Task TestAmbiguousClassObjectCreationGenericsDontOfferDiagnostic()
         {
             var genericAmbiguousClassDefinition = GetAmbiguousDefinition("public class Ambiguous<T> { }");
@@ -147,7 +148,7 @@ namespace Test
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAliasAmbiguousType)]
+        [Fact]
         public async Task TestAmbiguousAttribute()
         {
             var classDef = GetAmbiguousDefinition("public class AmbiguousAttribute: System.Attribute { }");
@@ -175,7 +176,7 @@ namespace Test
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAliasAmbiguousType)]
+        [Fact]
         public async Task TestNamespaceAndTypenameIdenticalOffersNoDiagnostics()
         {
             // This gives CS0433: The type 'Ambiguous' exists in both 'Assembly1' and 'Assembly2'
@@ -223,7 +224,7 @@ namespace N1
 ");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAliasAmbiguousType)]
+        [Fact]
         public async Task TestAmbiguousAliasNoDiagnostics()
         {
             await TestMissingAsync(@"
@@ -235,7 +236,7 @@ class myClass : [|alias|]::Uri
 ");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAliasAmbiguousType)]
+        [Fact]
         public async Task TestAmbiguousNestedClass()
         {
             var initialMarkup = @"
@@ -305,7 +306,7 @@ class D
             await TestSmartTagTextAsync(initialMarkup, "using Nested = Static<string>.Nested;");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAliasAmbiguousType)]
+        [Fact]
         public async Task TestAmbiguousClassDiagnosedAtBaseList()
         {
             var classDef = GetAmbiguousDefinition(@"public class AmbiguousClass { }");
@@ -331,7 +332,7 @@ namespace NTest
             await TestInRegularAndScriptAsync(initialMarkup, expectedMarkup);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAliasAmbiguousType)]
+        [Fact]
         public async Task TestAmbiguousClassDiagnosedAtTypeConstraint()
         {
             var classDef = GetAmbiguousDefinition(@"public class AmbiguousClass { }");
@@ -357,7 +358,7 @@ namespace NTest
             await TestInRegularAndScriptAsync(initialMarkup, expectedMarkup);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAliasAmbiguousType)]
+        [Fact]
         public async Task TestAmbiguousEnumDiagnosedAtFieldDeclaration()
         {
             var enumDef = GetAmbiguousDefinition(@"public enum AmbiguousEnum { }");
@@ -389,7 +390,7 @@ namespace NTest
             await TestInRegularAndScriptAsync(initialMarkup, expectedMarkup);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAliasAmbiguousType)]
+        [Fact]
         public async Task TestAmbiguousStructDiagnosedAtPropertyDeclaration()
         {
             var strcutDef = GetAmbiguousDefinition(@"public struct AmbiguousStruct { }");
@@ -421,7 +422,7 @@ namespace NTest
             await TestInRegularAndScriptAsync(initialMarkup, expectedMarkup);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAliasAmbiguousType)]
+        [Fact]
         public async Task TestAmbiguousClassDiagnosedAtTypeArgument()
         {
             var classDef = GetAmbiguousDefinition(@"public class AmbiguousClass { }");
@@ -459,7 +460,7 @@ namespace NTest
             await TestInRegularAndScriptAsync(initialMarkup, expectedMarkup);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAliasAmbiguousType)]
+        [Fact]
         public async Task TestAmbiguousClassDiagnosedAtIdentifierOfIncompleteExpression()
         {
             var classDef = GetAmbiguousDefinition(@"public class AmbiguousClass { }");
@@ -497,7 +498,7 @@ namespace NTest
             await TestInRegularAndScriptAsync(initialMarkup, expectedMarkup);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAliasAmbiguousType)]
+        [Fact]
         public async Task TestAmbiguousClassDiagnosedAtMethodParameter()
         {
             var classDef = GetAmbiguousDefinition(@"public class AmbiguousClass { }");
@@ -533,7 +534,7 @@ namespace NTest
             await TestInRegularAndScriptAsync(initialMarkup, expectedMarkup);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAliasAmbiguousType)]
+        [Fact]
         public async Task TestAmbiguousClassDiagnosedAtFromClauseTypeIdentifier()
         {
             var classDef = GetAmbiguousDefinition(@"public class AmbiguousClass { }");

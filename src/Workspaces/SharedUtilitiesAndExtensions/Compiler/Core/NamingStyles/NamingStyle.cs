@@ -143,7 +143,7 @@ namespace Microsoft.CodeAnalysis.NamingStyles
             }
 
             // remove specified Prefix, then look for any other common prefixes
-            name = StripCommonPrefixes(name.Substring(Prefix.Length), out var prefix);
+            name = StripCommonPrefixes(name[Prefix.Length..], out var prefix);
 
             if (prefix != string.Empty)
             {
@@ -351,15 +351,20 @@ namespace Microsoft.CodeAnalysis.NamingStyles
                     case 't':
                         if (index + 2 < name.Length && name[index + 1] == '_')
                         {
-                            index += 2;
+                            index++;
                             continue;
                         }
 
                         break;
 
                     case '_':
-                        index++;
-                        continue;
+                        if (index + 1 < name.Length && !char.IsDigit(name[index + 1]))
+                        {
+                            index++;
+                            continue;
+                        }
+
+                        break;
 
                     default:
                         break;
@@ -369,8 +374,8 @@ namespace Microsoft.CodeAnalysis.NamingStyles
                 break;
             }
 
-            prefix = name.Substring(0, index);
-            return name.Substring(index);
+            prefix = name[..index];
+            return name[index..];
         }
 
         private string FinishFixingName(string name)
@@ -389,7 +394,7 @@ namespace Microsoft.CodeAnalysis.NamingStyles
                 words = name.Split(new[] { WordSeparator }, StringSplitOptions.RemoveEmptyEntries);
 
                 // Edge case: the only character(s) in the name is(are) the WordSeparator
-                if (words.Count() == 0)
+                if (!words.Any())
                 {
                     return name;
                 }
@@ -421,9 +426,9 @@ namespace Microsoft.CodeAnalysis.NamingStyles
             // required suffix is "_catdog" and the name is "test_cat", then only append "dog".
             for (var i = Suffix.Length; i > 0; i--)
             {
-                if (name.EndsWith(Suffix.Substring(0, i)))
+                if (name.EndsWith(Suffix[..i]))
                 {
-                    return name + Suffix.Substring(i);
+                    return name + Suffix[i..];
                 }
             }
 
@@ -437,9 +442,9 @@ namespace Microsoft.CodeAnalysis.NamingStyles
             // required prefix is "catdog_" and the name is "dog_test", then only prepend "cat".
             for (var i = 0; i < Prefix.Length; i++)
             {
-                if (name.StartsWith(Prefix.Substring(i)))
+                if (name.StartsWith(Prefix[i..]))
                 {
-                    return Prefix.Substring(0, i) + name;
+                    return Prefix[..i] + name;
                 }
             }
 

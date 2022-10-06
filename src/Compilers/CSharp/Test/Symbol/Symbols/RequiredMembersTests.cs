@@ -56,14 +56,7 @@ End Namespace";
                 AssertEx.NotNull(member, $"Member {memberPath} was not found");
                 Assert.True(member is PropertySymbol or FieldSymbol, $"Unexpected member symbol type {member.Kind}");
                 Assert.True(member.IsRequired());
-                if (module is SourceModuleSymbol)
-                {
-                    Assert.All(member.GetAttributes(), attr => AssertEx.NotEqual("System.Runtime.CompilerServices.RequiredMemberAttribute", attr.AttributeClass.ToTestDisplayString()));
-                }
-                else
-                {
-                    AssertEx.Any(member.GetAttributes(), attr => attr.AttributeClass.ToTestDisplayString() == "System.Runtime.CompilerServices.RequiredMemberAttribute");
-                }
+                Assert.All(member.GetAttributes(), attr => AssertEx.NotEqual("System.Runtime.CompilerServices.RequiredMemberAttribute", attr.AttributeClass.ToTestDisplayString()));
 
                 requiredTypes.Add((NamedTypeSymbol)member.ContainingType);
             }
@@ -258,15 +251,15 @@ class C
         var comp = CreateCompilationWithRequiredMembers(code, parseOptions: TestOptions.Regular10);
 
         comp.VerifyDiagnostics(
-            // (5,27): error CS8652: The feature 'required members' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            // (5,27): error CS8936: Feature 'required members' is not available in C# 10.0. Please use language version 11.0 or greater.
             //     internal required int Field;
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "Field").WithArguments("required members").WithLocation(5, 27),
-            // (6,27): error CS8652: The feature 'required members' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "Field").WithArguments("required members", "11.0").WithLocation(5, 27),
+            // (6,27): error CS8936: Feature 'required members' is not available in C# 10.0. Please use language version 11.0 or greater.
             //     internal required int Prop { get; set; }
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "Prop").WithArguments("required members").WithLocation(6, 27)
+            Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "Prop").WithArguments("required members", "11.0").WithLocation(6, 27)
         );
 
-        comp = CreateCompilationWithRequiredMembers(code, parseOptions: TestOptions.RegularNext);
+        comp = CreateCompilationWithRequiredMembers(code, parseOptions: TestOptions.Regular11);
         comp.VerifyDiagnostics();
     }
 
@@ -335,7 +328,7 @@ namespace N8
     class required<T> {}
 }
 ";
-        var comp = CreateCompilationWithRequiredMembers(code, parseOptions: use10 ? TestOptions.Regular10 : TestOptions.RegularNext);
+        var comp = CreateCompilationWithRequiredMembers(code, parseOptions: use10 ? TestOptions.Regular10 : TestOptions.Regular11);
 
         comp.VerifyDiagnostics(
             use10 ?
@@ -396,7 +389,7 @@ namespace N8
         );
 
         code = code.Replace("required", "@required");
-        comp = CreateCompilationWithRequiredMembers(code, parseOptions: use10 ? TestOptions.Regular10 : TestOptions.RegularNext);
+        comp = CreateCompilationWithRequiredMembers(code, parseOptions: use10 ? TestOptions.Regular10 : TestOptions.Regular11);
         comp.VerifyDiagnostics();
     }
 
@@ -3637,7 +3630,10 @@ class C
         comp.VerifyDiagnostics(
             // (9,12): warning CS8618: Non-nullable field '_field' must contain a non-null value when exiting constructor. Consider declaring the field as nullable.
             //     public C() { }
-            Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "C").WithArguments("field", "_field").WithLocation(9, 12)
+            Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "C").WithArguments("field", "_field").WithLocation(9, 12),
+            // (13,9): warning CS8602: Dereference of a possibly null reference.
+            //         Field.ToString();
+            Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "Field").WithLocation(13, 9)
         );
     }
 
@@ -3947,10 +3943,10 @@ public class Derived : Base
     }
 
     [Fact, CompilerTrait(CompilerFeature.NullableReferenceTypes)]
-    public void RequiredMemberSuppressesNullabilityWarnings_ChainedConstructor_09()
+    [WorkItem(61718, "https://github.com/dotnet/roslyn/issues/61718")]
+    public void RequiredMemberSuppressesNullabilityWarnings_ChainedConstructor_09A()
     {
-        var code = """
-            using System.Diagnostics.CodeAnalysis;
+        var @base = $$"""
             #nullable enable
             public class Base
             {
@@ -3959,7 +3955,12 @@ public class Derived : Base
 
                 protected Base() {}
             }
-            
+            """;
+
+        var derived = $$"""
+            using System.Diagnostics.CodeAnalysis;
+            #nullable enable
+
             public class Derived : Base
             {
                 public required string Prop3 { get; set; }
@@ -3970,7 +3971,7 @@ public class Derived : Base
                 {
                     Prop4 = null!;
                 }
-            
+
                 public Derived() : this(0)
                 {
                     Prop1.ToString();
@@ -3981,14 +3982,148 @@ public class Derived : Base
             }
             """;
 
+        var comp = CreateCompilationWithRequiredMembers(new[] { derived, @base });
+
+        comp.VerifyDiagnostics(
+            // (10,12): warning CS8618: Non-nullable property 'Prop3' must contain a non-null value when exiting constructor. Consider declaring the property as nullable.
+            //     public Derived(int unused) : base()
+            Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "Derived").WithArguments("property", "Prop3").WithLocation(10, 12),
+            // (10,12): warning CS8618: Non-nullable property 'Prop1' must contain a non-null value when exiting constructor. Consider declaring the property as nullable.
+            //     public Derived(int unused) : base()
+            Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "Derived").WithArguments("property", "Prop1").WithLocation(10, 12),
+            // (15,24): error CS9039: This constructor must add 'SetsRequiredMembers' because it chains to a constructor that has that attribute.
+            //     public Derived() : this(0)
+            Diagnostic(ErrorCode.ERR_ChainingToSetsRequiredMembersRequiresSetsRequiredMembers, "this").WithLocation(15, 24)
+        );
+
+        var baseComp = CreateCompilationWithRequiredMembers(@base);
+        comp = CreateCompilation(derived, new[] { baseComp.EmitToImageReference() });
+        comp.VerifyDiagnostics(
+            // (10,12): warning CS8618: Non-nullable property 'Prop3' must contain a non-null value when exiting constructor. Consider declaring the property as nullable.
+            //     public Derived(int unused) : base()
+            Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "Derived").WithArguments("property", "Prop3").WithLocation(10, 12),
+            // (10,12): warning CS8618: Non-nullable property 'Prop1' must contain a non-null value when exiting constructor. Consider declaring the property as nullable.
+            //     public Derived(int unused) : base()
+            Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "Derived").WithArguments("property", "Prop1").WithLocation(10, 12),
+            // (15,24): error CS9039: This constructor must add 'SetsRequiredMembers' because it chains to a constructor that has that attribute.
+            //     public Derived() : this(0)
+            Diagnostic(ErrorCode.ERR_ChainingToSetsRequiredMembersRequiresSetsRequiredMembers, "this").WithLocation(15, 24)
+        );
+    }
+
+    [Fact, CompilerTrait(CompilerFeature.NullableReferenceTypes)]
+    [WorkItem(61718, "https://github.com/dotnet/roslyn/issues/61718")]
+    public void RequiredMemberSuppressesNullabilityWarnings_ChainedConstructor_09B()
+    {
+        var code = """
+            using System.Diagnostics.CodeAnalysis;
+            #nullable enable
+            public class Base
+            {
+                public required string Field1;
+                public string Field2 = null!;
+
+                protected Base() {}
+            }
+
+            public class Derived : Base
+            {
+                public required string Field3;
+                public string Field4;
+
+                [SetsRequiredMembers]
+                public Derived(int unused) : base()
+                {
+                    Field4 = null!;
+                }
+
+                public Derived() : this(0)
+                {
+                    Field1.ToString();
+                    Field2.ToString();
+                    Field3.ToString();
+                    Field4.ToString();
+                }
+            }
+            """;
+
         var comp = CreateCompilationWithRequiredMembers(code);
         comp.VerifyDiagnostics(
-            // (17,12): warning CS8618: Non-nullable property 'Prop3' must contain a non-null value when exiting constructor. Consider declaring the property as nullable.
+            // (17,12): warning CS8618: Non-nullable field 'Field3' must contain a non-null value when exiting constructor. Consider declaring the field as nullable.
             //     public Derived(int unused) : base()
-            Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "Derived").WithArguments("property", "Prop3").WithLocation(17, 12),
+            Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "Derived").WithArguments("field", "Field3").WithLocation(17, 12),
+            // (17,12): warning CS8618: Non-nullable field 'Field1' must contain a non-null value when exiting constructor. Consider declaring the field as nullable.
+            //     public Derived(int unused) : base()
+            Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "Derived").WithArguments("field", "Field1").WithLocation(17, 12),
             // (22,24): error CS9039: This constructor must add 'SetsRequiredMembers' because it chains to a constructor that has that attribute.
             //     public Derived() : this(0)
             Diagnostic(ErrorCode.ERR_ChainingToSetsRequiredMembersRequiresSetsRequiredMembers, "this").WithLocation(22, 24)
+        );
+    }
+
+    [Fact, CompilerTrait(CompilerFeature.NullableReferenceTypes)]
+    [WorkItem(61718, "https://github.com/dotnet/roslyn/issues/61718")]
+    public void RequiredMemberSuppressesNullabilityWarnings_ChainedConstructor_09C()
+    {
+        var @base = $$"""
+            #nullable enable
+            public class Base
+            {
+                private string _field1 = null!;
+                public required string Prop1 { get => _field1; set => _field1 = value; }
+
+                protected Base() {}
+            }
+            """;
+
+        var derived = $$"""
+            using System.Diagnostics.CodeAnalysis;
+            #nullable enable
+
+            public class Derived : Base
+            {
+                private string _field2 = null!;
+                public required string Prop2 { get => _field2; set => _field2 = value; }
+
+                [SetsRequiredMembers]
+                public Derived(int unused) : base()
+                {
+                }
+
+                public Derived() : this(0)
+                {
+                    Prop1.ToString();
+                    Prop2.ToString();
+                }
+            }
+            """;
+
+        var comp = CreateCompilationWithRequiredMembers(new[] { derived, @base });
+
+        comp.VerifyDiagnostics(
+            // (10,12): warning CS8618: Non-nullable property 'Prop1' must contain a non-null value when exiting constructor. Consider declaring the property as nullable.
+            //     public Derived(int unused) : base()
+            Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "Derived").WithArguments("property", "Prop1").WithLocation(10, 12),
+            // (10,12): warning CS8618: Non-nullable property 'Prop2' must contain a non-null value when exiting constructor. Consider declaring the property as nullable.
+            //     public Derived(int unused) : base()
+            Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "Derived").WithArguments("property", "Prop2").WithLocation(10, 12),
+            // (14,24): error CS9039: This constructor must add 'SetsRequiredMembers' because it chains to a constructor that has that attribute.
+            //     public Derived() : this(0)
+            Diagnostic(ErrorCode.ERR_ChainingToSetsRequiredMembersRequiresSetsRequiredMembers, "this").WithLocation(14, 24)
+        );
+
+        var baseComp = CreateCompilationWithRequiredMembers(@base);
+        comp = CreateCompilation(derived, new[] { baseComp.EmitToImageReference() });
+        comp.VerifyDiagnostics(
+            // (10,12): warning CS8618: Non-nullable property 'Prop1' must contain a non-null value when exiting constructor. Consider declaring the property as nullable.
+            //     public Derived(int unused) : base()
+            Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "Derived").WithArguments("property", "Prop1").WithLocation(10, 12),
+            // (10,12): warning CS8618: Non-nullable property 'Prop2' must contain a non-null value when exiting constructor. Consider declaring the property as nullable.
+            //     public Derived(int unused) : base()
+            Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "Derived").WithArguments("property", "Prop2").WithLocation(10, 12),
+            // (14,24): error CS9039: This constructor must add 'SetsRequiredMembers' because it chains to a constructor that has that attribute.
+            //     public Derived() : this(0)
+            Diagnostic(ErrorCode.ERR_ChainingToSetsRequiredMembersRequiresSetsRequiredMembers, "this").WithLocation(14, 24)
         );
     }
 
@@ -4811,6 +4946,67 @@ public class Derived : Base
             //     public required int Test { get; set; }
             Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "Test").WithArguments("C", "Test").WithLocation(4, 25)
         );
+    }
 
+    [Theory, CombinatorialData]
+    public void FirstAccessOfIsRequiredDoesNotMatter(bool accessAttributesFirst)
+    {
+        // Accessing attributes will populate IsRequired if it's not already populated, so we want to test both codepaths explicitly.
+        var comp = CreateCompilationWithRequiredMembers("""
+            public class C
+            {
+                public required int Field1;
+                public required int Property1 { get; set; }
+            }
+
+            public class D
+            {
+                public int Field2;
+                public int Property2 { get; set; }
+            }
+            """);
+
+        CompileAndVerify(comp, symbolValidator: module =>
+        {
+            var c = module.ContainingAssembly.GetTypeByMetadataName("C");
+            AssertEx.NotNull(c);
+            FieldSymbol field1 = c.GetMember<FieldSymbol>("Field1");
+            PropertySymbol property1 = c.GetMember<PropertySymbol>("Property1");
+            var d = module.ContainingAssembly.GetTypeByMetadataName("D");
+            AssertEx.NotNull(d);
+            FieldSymbol field2 = d.GetMember<FieldSymbol>("Field2");
+            PropertySymbol property2 = d.GetMember<PropertySymbol>("Property2");
+
+            if (accessAttributesFirst)
+            {
+                assertAttributesEmpty();
+                assertIsRequired();
+            }
+            else
+            {
+                assertIsRequired();
+                assertAttributesEmpty();
+            }
+
+            void assertIsRequired()
+            {
+                Assert.True(c.HasDeclaredRequiredMembers);
+                Assert.True(field1.IsRequired);
+                Assert.True(property1.IsRequired);
+                Assert.False(d.HasDeclaredRequiredMembers);
+                Assert.False(field2.IsRequired);
+                Assert.False(property2.IsRequired);
+            }
+
+            void assertAttributesEmpty()
+            {
+                Assert.Empty(c.GetAttributes());
+                Assert.Empty(field1.GetAttributes());
+                Assert.Empty(property1.GetAttributes());
+                Assert.Empty(d.GetAttributes());
+                Assert.Empty(field2.GetAttributes());
+                Assert.Empty(property2.GetAttributes());
+            }
+        });
     }
 }

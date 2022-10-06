@@ -18,9 +18,10 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.CommentSelection
 {
     [UseExportProvider]
+    [Trait(Traits.Feature, Traits.Features.ToggleBlockComment)]
     public class ToggleBlockCommentCommandHandlerTests : AbstractToggleCommentTestBase
     {
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ToggleBlockComment)]
+        [WpfFact]
         public void AddComment_EmptyCaret()
         {
             var markup = @"$$";
@@ -29,7 +30,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CommentSelection
             ToggleComment(markup, expected);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ToggleBlockComment)]
+        [WpfFact]
         public void AddComment_EmptySelection()
         {
             var markup = @"[| |]";
@@ -38,7 +39,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CommentSelection
             ToggleComment(markup, expected);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ToggleBlockComment)]
+        [WpfFact]
         public void AddComment_SingleLineSelected()
         {
             var markup =
@@ -63,7 +64,7 @@ class C
             ToggleComment(markup, expected);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ToggleBlockComment)]
+        [WpfFact]
         public void AddComment_SingleLineWithWhitespaceSelected()
         {
             var markup =
@@ -88,7 +89,7 @@ class C
             ToggleComment(markup, expected);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ToggleBlockComment)]
+        [WpfFact]
         public void AddComment_CaretInsideSingleLine()
         {
             var markup =
@@ -113,7 +114,7 @@ class C
             ToggleComment(markup, expected);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ToggleBlockComment)]
+        [WpfFact]
         public void AddComment_PartialLineSelected()
         {
             var markup =
@@ -138,7 +139,7 @@ class C
             ToggleComment(markup, expected);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ToggleBlockComment)]
+        [WpfFact]
         public void AddComment_CaretInsideToken()
         {
             var markup =
@@ -163,7 +164,7 @@ class C
             ToggleComment(markup, expected);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ToggleBlockComment)]
+        [WpfFact]
         public void AddComment_CaretInsideOperatorToken()
         {
             var markup = @"
@@ -187,7 +188,7 @@ class C
             ToggleComment(markup, expected);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ToggleBlockComment)]
+        [WpfFact]
         public void AddComment_CaretInsideNewline()
         {
             var markup =
@@ -212,7 +213,7 @@ class C
             ToggleComment(markup, expected);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ToggleBlockComment)]
+        [WpfFact]
         public void AddComment_MultiLineSelection()
         {
             var markup =
@@ -241,7 +242,7 @@ class C
             ToggleComment(markup, expected);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ToggleBlockComment)]
+        [WpfFact]
         public void AddComment_MultiLineSelectionWithWhitespace()
         {
             var markup =
@@ -274,7 +275,7 @@ class C
             ToggleComment(markup, expected);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ToggleBlockComment)]
+        [WpfFact]
         public void AddComment_SingleLineCommentInSelection()
         {
             var markup =
@@ -301,7 +302,7 @@ class C
             ToggleComment(markup, expected);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ToggleBlockComment)]
+        [WpfFact]
         public void AddComment_BlockCommentBetweenCodeInSelection()
         {
             var markup =
@@ -332,7 +333,7 @@ class C
             ToggleComment(markup, expected);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ToggleBlockComment)]
+        [WpfFact]
         public void AddComment_SequentialBlockCommentBetweenCodeInSelection()
         {
             var markup =
@@ -365,7 +366,7 @@ class C
             ToggleComment(markup, expected);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ToggleBlockComment)]
+        [WpfFact]
         public void AddComment_SequentialBlockCommentsAndWhitespaceBetweenCodeInSelection()
         {
             var markup =
@@ -402,7 +403,7 @@ class C
             ToggleComment(markup, expected);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ToggleBlockComment)]
+        [WpfFact]
         public void AddComment_CodeBetweenBlockCommentsInSelection()
         {
             var markup =
@@ -435,7 +436,7 @@ class C
             ToggleComment(markup, expected);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ToggleBlockComment)]
+        [WpfFact]
         public void AddComment_CodeThenCommentInSelection()
         {
             var markup =
@@ -464,7 +465,7 @@ class C
             ToggleComment(markup, expected);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ToggleBlockComment)]
+        [WpfFact]
         public void AddComment_CodeThenCommentAndWhitespaceInSelection()
         {
             var markup =
@@ -495,7 +496,7 @@ class C
             ToggleComment(markup, expected);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ToggleBlockComment)]
+        [WpfFact]
         public void AddComment_CloseCommentOnlyInSelection()
         {
             var markup =
@@ -524,7 +525,7 @@ class C
             ToggleComment(markup, expected);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ToggleBlockComment)]
+        [WpfFact]
         public void AddComment_CodeThenPartialCommentInSelection()
         {
             var markup =
@@ -553,7 +554,7 @@ class C
             ToggleComment(markup, expected);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ToggleBlockComment)]
+        [WpfFact]
         public void AddComment_CommentThenCodeInSelection()
         {
             var markup =
@@ -582,7 +583,7 @@ class C
             ToggleComment(markup, expected);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ToggleBlockComment)]
+        [WpfFact]
         public void AddComment_CommentAndWhitespaceThenCodeInSelection()
         {
             var markup =
@@ -613,7 +614,7 @@ class C
             ToggleComment(markup, expected);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ToggleBlockComment)]
+        [WpfFact]
         public void AddComment_CommentCloseMarkerThenCodeInSelection()
         {
             var markup =
@@ -642,7 +643,7 @@ class C
             ToggleComment(markup, expected);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ToggleBlockComment)]
+        [WpfFact]
         public void AddComment_CodeThenCommentStartMarkerInSelection()
         {
             var markup =
@@ -671,7 +672,7 @@ class C
             ToggleComment(markup, expected);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ToggleBlockComment)]
+        [WpfFact]
         public void AddComment_PartialCommentThenCodeInSelection()
         {
             var markup =
@@ -700,7 +701,7 @@ class C
             ToggleComment(markup, expected);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ToggleBlockComment)]
+        [WpfFact]
         public void AddComment_CaretBeforeBlockOnNewLine()
         {
             var markup =
@@ -725,7 +726,7 @@ class C
             ToggleComment(markup, expected);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ToggleBlockComment)]
+        [WpfFact]
         public void AddComment_CaretBeforeCodeAndBlock()
         {
             var markup =
@@ -750,7 +751,7 @@ class C
             ToggleComment(markup, expected);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ToggleBlockComment)]
+        [WpfFact]
         public void AddComment_CaretAfterBlockOnNewLine()
         {
             var markup =
@@ -777,7 +778,7 @@ class C
             ToggleComment(markup, expected);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ToggleBlockComment)]
+        [WpfFact]
         public void AddComment_CaretAfterBlockAndCode()
         {
             var markup =
@@ -802,7 +803,7 @@ class C
             ToggleComment(markup, expected);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ToggleBlockComment)]
+        [WpfFact]
         public void AddComment_BlockSelection()
         {
             var markup =
@@ -831,7 +832,7 @@ class C
             ToggleComment(markup, expected);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ToggleBlockComment)]
+        [WpfFact]
         public void AddComment_BlockSelectionPartiallyCommented()
         {
             var markup =
@@ -860,7 +861,7 @@ class C
             ToggleComment(markup, expected);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ToggleBlockComment)]
+        [WpfFact]
         public void AddComment_DirectiveInsideSelection()
         {
             var markup =
@@ -893,7 +894,7 @@ class C
             ToggleComment(markup, expected);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ToggleBlockComment)]
+        [WpfFact]
         public void AddComment_WithProjectionBuffer()
         {
             var surfaceMarkup = @"&lt; html &gt;@{|S1:|}";
@@ -917,7 +918,7 @@ class C
             ToggleCommentWithProjectionBuffer(surfaceMarkup, csharpMarkup, expected);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ToggleBlockComment)]
+        [WpfFact]
         public void RemoveComment_AtBeginningOfFile()
         {
             var markup = @"[|/**/|]";
@@ -926,7 +927,7 @@ class C
             ToggleComment(markup, expected);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ToggleBlockComment)]
+        [WpfFact]
         public void RemoveComment_CaretInsideBlock()
         {
             var markup =
@@ -955,7 +956,7 @@ class C
             ToggleComment(markup, expected);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ToggleBlockComment)]
+        [WpfFact]
         public void RemoveComment_CaretInsideSequentialBlock()
         {
             var markup =
@@ -984,7 +985,7 @@ class C
             ToggleComment(markup, expected);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ToggleBlockComment)]
+        [WpfFact]
         public void RemoveComment_CaretBeforeBlockOnlyWhitespace()
         {
             var markup =
@@ -1013,7 +1014,7 @@ class C
             ToggleComment(markup, expected);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ToggleBlockComment)]
+        [WpfFact]
         public void RemoveComment_CaretBeforeMultipleBlocksOnlyWhitespace()
         {
             var markup =
@@ -1042,7 +1043,7 @@ class C
             ToggleComment(markup, expected);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ToggleBlockComment)]
+        [WpfFact]
         public void RemoveComment_CaretAfterBlockOnlyWhitespace()
         {
             var markup =
@@ -1069,7 +1070,7 @@ class C
             ToggleComment(markup, expected);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ToggleBlockComment)]
+        [WpfFact]
         public void RemoveComment_CaretAfterMultipleBlocksOnlyWhitespace()
         {
             var markup =
@@ -1096,7 +1097,7 @@ class C
             ToggleComment(markup, expected);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ToggleBlockComment)]
+        [WpfFact]
         public void RemoveComment_CaretInsideUnclosedBlock()
         {
             var markup =
@@ -1125,7 +1126,7 @@ class C
             ToggleComment(markup, expected);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ToggleBlockComment)]
+        [WpfFact]
         public void RemoveComment_CommentInsideSelection()
         {
             var markup =
@@ -1154,7 +1155,7 @@ class C
             ToggleComment(markup, expected);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ToggleBlockComment)]
+        [WpfFact]
         public void RemoveComment_CommentAndWhitespaceInSelection()
         {
             var markup =
@@ -1185,7 +1186,7 @@ class C
             ToggleComment(markup, expected);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ToggleBlockComment)]
+        [WpfFact]
         public void RemoveComment_CommentWithSingleLineCommentInSelection()
         {
             var markup =
@@ -1214,7 +1215,7 @@ class C
             ToggleComment(markup, expected);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ToggleBlockComment)]
+        [WpfFact]
         public void RemoveComment_SequentialBlockInSelection()
         {
             var markup =
@@ -1243,7 +1244,7 @@ class C
             ToggleComment(markup, expected);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ToggleBlockComment)]
+        [WpfFact]
         public void RemoveComment_SequentialBlockAndWhitespaceInSelection()
         {
             var markup =
@@ -1276,7 +1277,7 @@ class C
             ToggleComment(markup, expected);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ToggleBlockComment)]
+        [WpfFact]
         public void RemoveComment_CommentPartiallyInsideSelection()
         {
             var markup =
@@ -1305,7 +1306,7 @@ class C
             ToggleComment(markup, expected);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ToggleBlockComment)]
+        [WpfFact]
         public void RemoveComment_PartialSequentialBlockInSelection()
         {
             var markup =
@@ -1334,7 +1335,7 @@ class C
             ToggleComment(markup, expected);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ToggleBlockComment)]
+        [WpfFact]
         public void RemoveComment_BlockSelectionWithMultipleComments()
         {
             var markup =
@@ -1363,7 +1364,7 @@ class C
             ToggleComment(markup, expected);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ToggleBlockComment)]
+        [WpfFact]
         public void RemoveComment_BlockSelectionWithOneComment()
         {
             var markup =
@@ -1392,7 +1393,7 @@ class C
             ToggleComment(markup, expected);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ToggleBlockComment)]
+        [WpfFact]
         public void RemoveComment_WithProjectionBuffer()
         {
             var surfaceMarkup = @"&lt; html &gt;@{|S1:|}";
@@ -1416,7 +1417,7 @@ class C
             ToggleCommentWithProjectionBuffer(surfaceMarkup, csharpMarkup, expected);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ToggleBlockComment)]
+        [WpfFact]
         public void ToggleComment_MultiLineSelection()
         {
             var markup =
@@ -1457,7 +1458,7 @@ class C
             ToggleCommentMultiple(markup, expectedText);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ToggleBlockComment)]
+        [WpfFact]
         public void ToggleComment_MultiCommentSelection()
         {
             var markup =

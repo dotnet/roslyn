@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Immutable;
+using System.Globalization;
 using System.Linq;
 using System.Text;
 using Microsoft.CodeAnalysis.CodeStyle;
@@ -35,7 +36,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UseUtf8StringLiteral
             : base(IDEDiagnosticIds.UseUtf8StringLiteralDiagnosticId,
                 EnforceOnBuildValues.UseUtf8StringLiteral,
                 CSharpCodeStyleOptions.PreferUtf8StringLiterals,
-                LanguageNames.CSharp,
                 new LocalizableResourceString(nameof(CSharpAnalyzersResources.Use_Utf8_string_literal), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)))
         {
         }
@@ -152,9 +152,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UseUtf8StringLiteral
             for (var i = 0; i < arrayCreationElements.Length;)
             {
                 // Need to call a method to do the actual rune decoding as it uses stackalloc, and stackalloc
-                // in a loop is a bad idea
-                if (!TryGetNextRune(arrayCreationElements, i, out var rune, out var bytesConsumed))
+                // in a loop is a bad idea. We also exclude any characters that are control or format chars
+                if (!TryGetNextRune(arrayCreationElements, i, out var rune, out var bytesConsumed) ||
+                    IsControlOrFormatRune(rune))
+                {
                     return false;
+                }
 
                 i += bytesConsumed;
 
@@ -173,6 +176,18 @@ namespace Microsoft.CodeAnalysis.CSharp.UseUtf8StringLiteral
             }
 
             return true;
+
+            // We allow the three control characters that users are familiar with and wouldn't be surprised to
+            // see in a string literal
+            static bool IsControlOrFormatRune(Rune rune)
+                => Rune.GetUnicodeCategory(rune) is UnicodeCategory.Control or UnicodeCategory.Format
+                    && rune.Value switch
+                    {
+                        '\r' => false,
+                        '\n' => false,
+                        '\t' => false,
+                        _ => true
+                    };
         }
 
         private static bool TryGetNextRune(ImmutableArray<IOperation> arrayCreationElements, int startIndex, out Rune rune, out int bytesConsumed)

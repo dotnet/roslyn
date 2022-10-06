@@ -35,9 +35,9 @@ namespace Microsoft.CodeAnalysis.Emit
         private readonly IReadOnlyDictionary<EncHoistedLocalInfo, int>? _hoistedLocalSlots;
         private readonly int _awaiterCount;
         private readonly IReadOnlyDictionary<Cci.ITypeReference, int>? _awaiterMap;
-        private readonly IReadOnlyDictionary<int, int>? _stateMachineStateMap; // SyntaxOffset -> State Ordinal
-        private readonly int? _firstUnusedDecreasingStateMachineState;
-        private readonly int? _firstUnusedIncreasingStateMachineState;
+        private readonly IReadOnlyDictionary<int, StateMachineState>? _stateMachineStateMap; // SyntaxOffset -> State Ordinal
+        private readonly StateMachineState? _firstUnusedDecreasingStateMachineState;
+        private readonly StateMachineState? _firstUnusedIncreasingStateMachineState;
 
         // closures:
         private readonly IReadOnlyDictionary<int, KeyValuePair<DebugId, int>>? _lambdaMap; // SyntaxOffset -> (Lambda Id, Closure Ordinal)
@@ -58,9 +58,9 @@ namespace Microsoft.CodeAnalysis.Emit
             IReadOnlyDictionary<EncHoistedLocalInfo, int>? hoistedLocalSlots,
             int awaiterCount,
             IReadOnlyDictionary<Cci.ITypeReference, int>? awaiterMap,
-            IReadOnlyDictionary<int, int>? stateMachineStateMap,
-            int? firstUnusedIncreasingStateMachineState,
-            int? firstUnusedDecreasingStateMachineState,
+            IReadOnlyDictionary<int, StateMachineState>? stateMachineStateMap,
+            StateMachineState? firstUnusedIncreasingStateMachineState,
+            StateMachineState? firstUnusedDecreasingStateMachineState,
             LambdaSyntaxFacts lambdaSyntaxFacts)
         {
             Debug.Assert(!previousLocals.IsDefault);
@@ -329,19 +329,19 @@ namespace Microsoft.CodeAnalysis.Emit
             return false;
         }
 
-        public override int? GetFirstUnusedStateMachineState(bool increasing)
+        public override StateMachineState? GetFirstUnusedStateMachineState(bool increasing)
             => increasing ? _firstUnusedIncreasingStateMachineState : _firstUnusedDecreasingStateMachineState;
 
-        public override bool TryGetPreviousStateMachineState(SyntaxNode syntax, out int stateOrdinal)
+        public override bool TryGetPreviousStateMachineState(SyntaxNode syntax, out StateMachineState state)
         {
             if (_stateMachineStateMap != null &&
                 TryGetPreviousSyntaxOffset(syntax, out int syntaxOffset) &&
-                _stateMachineStateMap.TryGetValue(syntaxOffset, out stateOrdinal))
+                _stateMachineStateMap.TryGetValue(syntaxOffset, out state))
             {
                 return true;
             }
 
-            stateOrdinal = -1;
+            state = default;
             return false;
         }
     }
