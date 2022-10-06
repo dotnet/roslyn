@@ -1947,7 +1947,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         && isMixableParameter(parameter)
                         // assume any declaration variable is a valid mixing destination,
                         // since we are going to infer a val-escape which makes it valid.
-                        && !IsLocalDeclarationExpression(argument, out _))
+                        && !ShouldInferDeclarationExpressionValEscape(argument, out _))
                     {
                         mixableArguments.Add(new MixableDestination(parameter, argument));
                     }
@@ -2199,7 +2199,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return method?.UseUpdatedEscapeRules == true;
         }
 
-        private static bool IsLocalDeclarationExpression(BoundExpression argument, [NotNullWhen(true)] out SourceLocalSymbol? localSymbol)
+        private static bool ShouldInferDeclarationExpressionValEscape(BoundExpression argument, [NotNullWhen(true)] out SourceLocalSymbol? localSymbol)
         {
             var symbol = argument switch
             {
@@ -2207,7 +2207,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 BoundLocal { DeclarationKind: not BoundLocalDeclarationKind.None } l => l.ExpressionSymbol,
                 _ => null
             };
-            if (symbol is SourceLocalSymbol local)
+            if (symbol is SourceLocalSymbol { ValEscapeScope: CallingMethodScope } local)
             {
                 localSymbol = local;
                 return true;
@@ -2280,7 +2280,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 foreach (var (_, argument, refKind) in escapeArguments)
                 {
-                    if (IsLocalDeclarationExpression(argument, out _))
+                    if (ShouldInferDeclarationExpressionValEscape(argument, out _))
                     {
                         // assume any declaration variable is a valid mixing destination,
                         // since we are going to infer a val-escape which makes it valid.
@@ -2301,12 +2301,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 // track the widest scope that arguments could safely escape to.
                 // use this scope as the inferred STE of declaration expressions.
-                var escapeFrom = CallingMethodScope;
+                var inferredDestinationValEscape = CallingMethodScope;
                 foreach (var (parameter, argument, _) in escapeArguments)
                 {
                     // in the old rules, we assume that refs cannot escape into ref struct variables.
                     // e.g. in `dest = M(ref arg)`, we assume `ref arg` will not escape into `dest`, but `arg` might.
-                    escapeFrom = Math.Max(escapeFrom, GetValEscape(argument, scopeOfTheContainingExpression));
+                    inferredDestinationValEscape = Math.Max(inferredDestinationValEscape, GetValEscape(argument, scopeOfTheContainingExpression));
                     var valid = CheckValEscape(argument.Syntax, argument, scopeOfTheContainingExpression, escapeTo, false, diagnostics);
 
                     if (!valid)
@@ -2319,9 +2319,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 foreach (var (_, argument, _) in escapeArguments)
                 {
-                    if (IsLocalDeclarationExpression(argument, out var localSymbol))
+                    if (ShouldInferDeclarationExpressionValEscape(argument, out var localSymbol))
                     {
-                        localSymbol.SetValEscape(escapeFrom);
+                        localSymbol.SetValEscape(inferredDestinationValEscape);
                     }
                 }
             }
@@ -2413,7 +2413,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             foreach (var (_, fromArg, _, _) in escapeValues)
             {
-                if (IsLocalDeclarationExpression(fromArg, out var localSymbol))
+                if (ShouldInferDeclarationExpressionValEscape(fromArg, out var localSymbol))
                 {
                     localSymbol.SetValEscape(escapeFrom);
                 }

@@ -4730,14 +4730,33 @@ class Program
                         M0(ref rs3, out var rs4);
                         return rs4; // 1
                     }
+
+                    static RS M2(scoped ref RS rs3)
+                    {
+                        M0(ref rs3, out RS rs4);
+                        return rs4; // 2
+                    }
+
+                    static RS M3(scoped ref RS rs3)
+                    {
+                        RS rs4;
+                        M0(rs3, out rs4); // 3
+                        return rs4;
+                    }
                 }
                 """;
 
-            var comp = CreateCompilation(source, runtimeFeature: RuntimeFlag.ByRefFields);
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (19,16): error CS8352: Cannot use variable 'rs4' in this context because it may expose referenced variables outside of their declaration scope
                 //         return rs4; // 1
-                Diagnostic(ErrorCode.ERR_EscapeVariable, "rs4").WithArguments("rs4").WithLocation(19, 16));
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "rs4").WithArguments("rs4").WithLocation(19, 16),
+                // (25,16): error CS8352: Cannot use variable 'rs4' in this context because it may expose referenced variables outside of their declaration scope
+                //         return rs4; // 2
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "rs4").WithArguments("rs4").WithLocation(25, 16),
+                // (31,12): error CS1620: Argument 1 must be passed with the 'ref' keyword
+                //         M0(rs3, out rs4); // 3
+                Diagnostic(ErrorCode.ERR_BadArgRef, "rs3").WithArguments("1", "ref").WithLocation(31, 12));
         }
 
         [Fact]
@@ -4761,14 +4780,36 @@ class Program
                         M0(rs3, out var rs4);
                         return rs4; // 1
                     }
+
+                    static RS M2(scoped RS rs3)
+                    {
+                        M0(rs3, out RS rs4);
+                        return rs4; // 2
+                    }
+
+                    static RS M3(scoped RS rs3)
+                    {
+                        RS rs4;
+                        M0(rs3, out rs4); // 3
+                        return rs4;
+                    }
                 }
                 """;
 
-            var comp = CreateCompilation(source, runtimeFeature: RuntimeFlag.ByRefFields);
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (16,16): error CS8352: Cannot use variable 'rs4' in this context because it may expose referenced variables outside of their declaration scope
                 //         return rs4; // 1
-                Diagnostic(ErrorCode.ERR_EscapeVariable, "rs4").WithArguments("rs4").WithLocation(16, 16));
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "rs4").WithArguments("rs4").WithLocation(16, 16),
+                // (22,16): error CS8352: Cannot use variable 'rs4' in this context because it may expose referenced variables outside of their declaration scope
+                //         return rs4; // 2
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "rs4").WithArguments("rs4").WithLocation(22, 16),
+                // (28,9): error CS8350: This combination of arguments to 'Program.M0(RS, out RS)' is disallowed because it may expose variables referenced by parameter 'rs1' outside of their declaration scope
+                //         M0(rs3, out rs4); // 3
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "M0(rs3, out rs4)").WithArguments("Program.M0(RS, out RS)", "rs1").WithLocation(28, 9),
+                // (28,12): error CS8352: Cannot use variable 'RS' in this context because it may expose referenced variables outside of their declaration scope
+                //         M0(rs3, out rs4); // 3
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "rs3").WithArguments("RS").WithLocation(28, 12));
         }
 
         [Fact]
@@ -4791,7 +4832,7 @@ class Program
                 }
                 """;
 
-            var comp = CreateCompilation(source, runtimeFeature: RuntimeFlag.ByRefFields);
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics();
         }
 
@@ -4897,7 +4938,7 @@ class Program
                         return rs5; // 3
                     }
 
-                    static RS M2(ref int i1)
+                    static RS M3(ref int i1)
                     {
                         M0(out var rs5, __arglist(ref i1));
                         return rs5;
@@ -4905,7 +4946,7 @@ class Program
                 }
                 """;
 
-            var comp = CreateCompilation(source, runtimeFeature: RuntimeFlag.ByRefFields);
+            var comp = CreateCompilationWithMscorlibAndSpan(source);
             comp.VerifyDiagnostics(
                 // (17,15): error CS8347: Cannot use a result of 'RS.RS(ref int)' in this context because it may expose variables referenced by parameter 'i' outside of their declaration scope
                 //         rs1 = new RS(ref __refvalue(ai.GetNextArg(), int)); // 1
@@ -4945,10 +4986,17 @@ class Program
                         M0(out var rs4);
                         return rs4; // 1
                     }
+
+                    [UnscopedRef]
+                    RS M2()
+                    {
+                        M0(out var rs4);
+                        return rs4;
+                    }
                 }
                 """;
 
-            var comp = CreateCompilation(new[] { source, UnscopedRefAttributeDefinition }, runtimeFeature: RuntimeFlag.ByRefFields);
+            var comp = CreateCompilation(new[] { source, UnscopedRefAttributeDefinition });
             comp.VerifyDiagnostics(
                 // (19,16): error CS8352: Cannot use variable 'rs4' in this context because it may expose referenced variables outside of their declaration scope
                 //         return rs4; // 1
@@ -4975,7 +5023,7 @@ class Program
                 }
                 """;
 
-            var comp = CreateCompilation(new[] { source, UnscopedRefAttributeDefinition }, runtimeFeature: RuntimeFlag.ByRefFields);
+            var comp = CreateCompilation(new[] { source, UnscopedRefAttributeDefinition });
             comp.VerifyDiagnostics(
                 // (12,20): error CS8347: Cannot use a result of 'Program.F1(out int)' in this context because it may expose variables referenced by parameter 'i' outside of their declaration scope
                 //         return ref F1(out int i); // 1
@@ -4983,6 +5031,51 @@ class Program
                 // (12,27): error CS8168: Cannot return local 'i' by reference because it is not a ref local
                 //         return ref F1(out int i); // 1
                 Diagnostic(ErrorCode.ERR_RefReturnLocal, "int i").WithArguments("i").WithLocation(12, 27));
+        }
+
+        [Fact]
+        public void LocalScope_DeclarationExpression_08()
+        {
+            var source = """
+                ref struct RS
+                {
+                    public RS(ref RS rs) => throw null!;
+                }
+
+                class Program
+                {
+                    static void M0(ref RS rs1, out RS rs2)
+                    {
+                        // ok. RSTE of rs1 is ReturnOnly. STE of rs2 is ReturnOnly.
+                        rs2 = new RS(ref rs1);
+                    }
+
+                    static RS M1(ref RS rs3)
+                    {
+                        // RSTE of rs3 is ReturnOnly.
+                        // However, since rs4 is 'scoped', its STE should be narrowed to CurrentMethod
+                        M0(ref rs3, out scoped var rs4);
+                        return rs4; // 1
+                    }
+                }
+                """;
+
+            // Once 'out scoped var' support is added, this test baseline should be updated.
+            // https://github.com/dotnet/roslyn/issues/64556
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (18,25): error CS0246: The type or namespace name 'scoped' could not be found (are you missing a using directive or an assembly reference?)
+                //         M0(ref rs3, out scoped var rs4);
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "scoped").WithArguments("scoped").WithLocation(18, 25),
+                // (18,36): error CS1003: Syntax error, ',' expected
+                //         M0(ref rs3, out scoped var rs4);
+                Diagnostic(ErrorCode.ERR_SyntaxError, "rs4").WithArguments(",").WithLocation(18, 36),
+                // (18,36): error CS0103: The name 'rs4' does not exist in the current context
+                //         M0(ref rs3, out scoped var rs4);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "rs4").WithArguments("rs4").WithLocation(18, 36),
+                // (19,16): error CS0103: The name 'rs4' does not exist in the current context
+                //         return rs4; // 1
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "rs4").WithArguments("rs4").WithLocation(19, 16));
         }
     }
 }
