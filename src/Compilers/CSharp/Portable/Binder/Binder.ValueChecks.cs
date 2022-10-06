@@ -1945,8 +1945,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     if (mixableArguments is not null
                         && isMixableParameter(parameter)
-                        // assume any declaration variable is a valid mixing destination,
-                        // since we are going to infer a val-escape which makes it valid.
+                        // assume any expression variable is a valid mixing destination,
+                        // since we will infer a legal val-escape for it (if it doesn't already have a narrower one).
                         && !ShouldInferDeclarationExpressionValEscape(argument, out _))
                     {
                         mixableArguments.Add(new MixableDestination(parameter, argument));
