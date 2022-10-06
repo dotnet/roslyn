@@ -363,7 +363,6 @@ namespace Microsoft.CodeAnalysis.Remote
                     // before the writer is passed to the RPC proxy. Once it's passed to the proxy 
                     // the proxy should complete it as soon as the remote side completes it.
                     await pipe.Writer.CompleteAsync(e).ConfigureAwait(false);
-
                     throw;
                 }
             }, mustNotCancelToken);
