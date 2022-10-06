@@ -91,13 +91,18 @@ namespace Microsoft.CodeAnalysis.Remote
         /// <em>every</em> write.  That's undesirable as that will then block a thread pool thread on the actual
         /// asynchronous flush call to the underlying PipeWriter
         /// </summary>
+        /// <remarks>
+        /// Note: this stream does not have to <see cref="PipeWriter.Complete"/> the underlying <see cref="_writer"/> it
+        /// is holding onto (including within <see cref="Flush"/>, <see cref="FlushAsync"/>, or <see cref="Dispose"/>).
+        /// Responsibility for that is solely in the hands of <see cref="GetAssetsAsync"/>.
+        /// </remarks>
         private class PipeWriterStream : Stream, IDisposableObservable
         {
             private readonly PipeWriter _writer;
 
             internal PipeWriterStream(PipeWriter writer)
             {
-                _writer = writer ?? throw new ArgumentNullException(nameof(writer));
+                _writer = writer;
             }
 
             public override bool CanRead => false;
@@ -151,10 +156,16 @@ namespace Microsoft.CodeAnalysis.Remote
             public override void Flush()
             {
                 Verify.NotDisposed(this);
+
+                // DO NOT CALL .Complete on the PipeWriter here (see remarks on type).
             }
 
             public override async Task FlushAsync(CancellationToken cancellationToken)
-                => await _writer.FlushAsync(cancellationToken).ConfigureAwait(false);
+            {
+                await _writer.FlushAsync(cancellationToken).ConfigureAwait(false);
+
+                // DO NOT CALL .Complete on the PipeWriter here (see remarks on type).
+            }
 
             public override void Write(byte[] buffer, int offset, int count)
             {
@@ -204,6 +215,8 @@ namespace Microsoft.CodeAnalysis.Remote
             {
                 this.IsDisposed = true;
                 base.Dispose(disposing);
+
+                // DO NOT CALL .Complete on the PipeWriter here (see remarks on type).
             }
 
             private Exception ThrowDisposedOr(Exception ex)
