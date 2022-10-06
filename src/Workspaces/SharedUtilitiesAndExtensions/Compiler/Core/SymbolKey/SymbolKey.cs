@@ -99,6 +99,12 @@ namespace Microsoft.CodeAnalysis
     /// versions may change the encoded format and may no longer be able to <see cref="Resolve"/> previous keys.  As
     /// such, only persist if using for a cache that can be regenerated if necessary.
     /// </para>
+    /// <para>
+    /// The string values produced by <see cref="CreateString"/> (or <see cref="SymbolKey.ToString"/>) should not be
+    /// directly compared for equality or used in hashing scenarios.  Specifically, two symbol keys which represent the
+    /// 'same' symbol might produce different strings.  Instead, to compare keys use <see cref="SymbolKey.GetComparer"/>
+    /// to get a suitable comparer that exposes the desired semantics.
+    /// </para>
     /// </summary>
     [DataContract]
     internal partial struct SymbolKey : IEquatable<SymbolKey>
@@ -120,7 +126,7 @@ namespace Microsoft.CodeAnalysis
         /// from any other source is not supported.
         /// </summary>
         public SymbolKey(string data)
-            => _symbolKeyData = data ?? throw new ArgumentNullException();
+            => _symbolKeyData = data ?? throw new ArgumentNullException(nameof(data));
 
         /// <summary>
         /// Constructs a new <see cref="SymbolKey"/> representing the provided <paramref name="symbol"/>.
@@ -205,8 +211,11 @@ namespace Microsoft.CodeAnalysis
             using var writer = SymbolKeyWriter.GetWriter(cancellationToken);
             writer.WriteFormatVersion(version);
 
-            // include the language just for help diagnosing issues.
+            // include the language just for help diagnosing issues.  Note: the language is not considered part of the
+            // 'value' of the key.  In other words two keys that represent the same symbol (like 'System.Int32'), but
+            // which differ on language, will still be considered equal. to each other.
             writer.WriteString(symbol?.Language);
+
             writer.WriteSymbolKey(symbol);
             return writer.CreateKey();
         }
