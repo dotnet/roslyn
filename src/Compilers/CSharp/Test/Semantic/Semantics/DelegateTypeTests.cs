@@ -13507,7 +13507,7 @@ class Program
 	.method private hidebysig specialname rtspecialname static 
 		void .cctor () cil managed 
 	{{
-		// Method begins at RVA 0x208b
+		// Method begins at RVA 0x20a2
 		// Code size 11 (0xb)
 		.maxstack 8
 		IL_0000: newobj instance void Program/'<>c'::.ctor()
@@ -13517,7 +13517,7 @@ class Program
 	.method public hidebysig specialname rtspecialname 
 		instance void .ctor () cil managed 
 	{{
-		// Method begins at RVA 0x2083
+		// Method begins at RVA 0x209a
 		// Code size 7 (0x7)
 		.maxstack 8
 		IL_0000: ldarg.0
@@ -13534,7 +13534,7 @@ class Program
 			.custom instance void [{s_libPrefix}]System.Runtime.CompilerServices.DynamicAttribute::.ctor() = (
 				01 00 00 00
 			)
-		// Method begins at RVA 0x2097
+		// Method begins at RVA 0x20ae
 		// Code size 3 (0x3)
 		.maxstack 8
 		IL_0000: ldarg.1
