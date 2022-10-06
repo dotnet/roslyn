@@ -316,5 +316,31 @@ csharp_new_line_before_open_brace = methods
                 FixedState = { Sources = { fixedCode } },
             }.RunAsync();
         }
+
+        [Fact]
+        public async Task TestRegion()
+        {
+            var testCode = @"
+class MyClass
+{
+#if true
+    public void M()
+    {
+        #region ABC
+        System.Console.WriteLine();
+        #endregion
+    }
+#else
+    public void M()
+    {
+        #region ABC
+        System.Console.WriteLine();
+        #endregion
+    }
+#endif
+}
+";
+            await Verify.VerifyCodeFixAsync(testCode, testCode);
+        }
     }
 }

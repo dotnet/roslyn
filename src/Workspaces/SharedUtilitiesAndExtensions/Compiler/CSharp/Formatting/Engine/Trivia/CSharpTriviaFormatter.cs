@@ -99,7 +99,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
 
                 if (trivia2.IsKind(SyntaxKind.RegionDirectiveTrivia) || trivia2.IsKind(SyntaxKind.EndRegionDirectiveTrivia))
                 {
-                    return LineColumnRule.PreserveLinesWithDefaultIndentation(lines);
+                    var previous = trivia2;
+                    while ((previous = previous.GetPreviousTrivia(previous.SyntaxTree, CancellationToken.None)).IsKind(SyntaxKind.WhitespaceTrivia))
+                    {
+                        // skip whitespace trivia.
+                    }
+
+                    if (!previous.IsKind(SyntaxKind.DisabledTextTrivia))
+                    {
+                        return LineColumnRule.PreserveLinesWithDefaultIndentation(lines);
+                    }
+                    else
+                    {
+                        return LineColumnRule.Preserve;
+                    }
                 }
 
                 return LineColumnRule.PreserveLinesWithAbsoluteIndentation(lines, indentation: 0);
