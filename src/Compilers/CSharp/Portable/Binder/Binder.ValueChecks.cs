@@ -2209,8 +2209,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             };
             if (symbol is SourceLocalSymbol local)
             {
-                // when we check this, the local val escape should not have been inferred yet.
-                Debug.Assert(local.ValEscapeScope == CallingMethodScope);
                 localSymbol = local;
                 return true;
             }
