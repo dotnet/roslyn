@@ -194,6 +194,7 @@ namespace Microsoft.CodeAnalysis
                 return default;
             }
 
+            // Read out the language info which was included just for diagnostic purposes.
             var language = reader.ReadString();
 
             // Initial entrypoint.  No contextual symbol to pass along.
