@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             bool negateBinary,
             CancellationToken cancellationToken)
         {
-            return Negate(generator, generatorInternal, expressionOrPattern, semanticModel, negateBinary, swapBooleans: true, cancellationToken);
+            return Negate(generator, generatorInternal, expressionOrPattern, semanticModel, negateBinary, allowSwappingBooleans: true, cancellationToken);
         }
 
         public static SyntaxNode Negate(
@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             SyntaxNode expressionOrPattern,
             SemanticModel semanticModel,
             bool negateBinary,
-            bool swapBooleans,
+            bool allowSwappingBooleans,
             CancellationToken cancellationToken)
         {
             var options = semanticModel.SyntaxTree.Options;
@@ -105,7 +105,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 return GetNegationOfBinaryPattern(expressionOrPattern, generator, generatorInternal, semanticModel, cancellationToken);
 
             if (syntaxFacts.IsConstantPattern(expressionOrPattern))
-                return GetNegationOfConstantPattern(expressionOrPattern, generator, generatorInternal, swapBooleans);
+                return GetNegationOfConstantPattern(expressionOrPattern, generator, generatorInternal, allowSwappingBooleans);
 
             if (syntaxFacts.IsUnaryPattern(expressionOrPattern))
                 return GetNegationOfUnaryPattern(expressionOrPattern, generator, generatorInternal, syntaxFacts);
@@ -244,7 +244,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 // If the value isn't a Boolean and the pattern `is true/false`, swapping to `is false/true` is incorrect since non-Booleans match neither.
                 var operation = semanticModel.GetOperation(isExpression, cancellationToken);
                 var isValueBoolean = operation is IIsPatternOperation isPatternOperation && isPatternOperation.Value.Type?.SpecialType == SpecialType.System_Boolean;
-                negatedPattern = generator.Negate(generatorInternal, pattern, semanticModel, negateBinary: true, swapBooleans: isValueBoolean, cancellationToken);
+                negatedPattern = generator.Negate(generatorInternal, pattern, semanticModel, negateBinary: true, allowSwappingBooleans: isValueBoolean, cancellationToken);
             }
             else if (syntaxFacts.IsNotPattern(pattern))
             {
@@ -439,12 +439,12 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             SyntaxNode pattern,
             SyntaxGenerator generator,
             SyntaxGeneratorInternal generatorInternal,
-            bool swapBooleans)
+            bool allowSwappingBooleans)
         {
             var syntaxFacts = generatorInternal.SyntaxFacts;
 
             // If we have `is true/false` just swap that to be `is false/true` if allowed.
-            if (swapBooleans)
+            if (allowSwappingBooleans)
             {
                 var expression = syntaxFacts.GetExpressionOfConstantPattern(pattern);
                 if (syntaxFacts.IsTrueLiteralExpression(expression))
