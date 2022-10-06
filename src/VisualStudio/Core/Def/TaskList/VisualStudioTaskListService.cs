@@ -111,8 +111,7 @@ namespace Microsoft.VisualStudio.LanguageServices.TaskList
             await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
             var taskList = await _asyncServiceProvider.GetServiceAsync<SVsTaskList, ITaskList>(_threadingContext.JoinableTaskFactory).ConfigureAwait(true);
 
-            var tableControl = taskList.TableControl;
-            var control = tableControl.Control;
+            var control = taskList.TableControl.Control;
 
             // if control is already visible, we can proceed to collect task list items.
             if (control.IsVisible)
@@ -120,15 +119,15 @@ namespace Microsoft.VisualStudio.LanguageServices.TaskList
 
             // otherwise, wait for it to become visible.
             var taskSource = new TaskCompletionSource<bool>();
-            control.IsVisibleChanged += Table_IsVisibleChanged;
+            control.IsVisibleChanged += Control_IsVisibleChanged;
 
             await taskSource.Task.ConfigureAwait(false);
 
-            void Table_IsVisibleChanged(object sender, System.Windows.DependencyPropertyChangedEventArgs e)
+            void Control_IsVisibleChanged(object sender, System.Windows.DependencyPropertyChangedEventArgs e)
             {
                 if (control.IsVisible)
                 {
-                    control.IsVisibleChanged -= Table_IsVisibleChanged;
+                    control.IsVisibleChanged -= Control_IsVisibleChanged;
                     taskSource.TrySetResult(true);
                 }
             }
