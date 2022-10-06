@@ -38,18 +38,18 @@ namespace Microsoft.CodeAnalysis.Remote
             // The responsibility is on us (as per the requirements of RemoteCallback.InvokeAsync) to Complete the
             // pipewriter.  This will signal to streamjsonrpc that the writer passed into it is complete, which will
             // allow the calling side know to stop reading results.
+            Exception? exception = null;
             try
             {
                 await GetAssetsWorkerAsync(pipeWriter, solutionChecksum, checksums, cancellationToken).ConfigureAwait(false);
             }
-            catch (Exception ex)
+            catch (Exception ex) when ((exception = ex) == null)
             {
-                await pipeWriter.CompleteAsync(ex).ConfigureAwait(false);
-                throw;
+                throw ExceptionUtilities.Unreachable();
             }
             finally
             {
-                await pipeWriter.CompleteAsync().ConfigureAwait(false);
+                await pipeWriter.CompleteAsync(exception).ConfigureAwait(false);
             }
         }
 

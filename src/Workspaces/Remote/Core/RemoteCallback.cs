@@ -121,22 +121,21 @@ namespace Microsoft.CodeAnalysis.Remote
 
                 _ = WriteAsync(service, pipe.Writer);
 
+                Exception? exception = null;
                 try
                 {
                     return await reader(pipe.Reader, cancellationToken).ConfigureAwait(false);
                 }
-                catch (Exception e)
+                catch (Exception ex) when ((exception = ex) == null)
+                {
+                    throw ExceptionUtilities.Unreachable();
+                }
+                finally
                 {
                     // ensure we always complete the reader so the pipe can clean up all its resources. in the case of
                     // an exception, attempt to complete the reader with that as well as that will tear down the writer
                     // allowing it to stop writing and allowing the pipe to be cleaned up.
-                    await pipe.Reader.CompleteAsync(e).ConfigureAwait(false);
-                    throw;
-                }
-                finally
-                {
-                    // ensure we always complete the reader so the pipe can clean up all its resources.
-                    await pipe.Reader.CompleteAsync().ConfigureAwait(false);
+                    await pipe.Reader.CompleteAsync(exception).ConfigureAwait(false);
                 }
             }
 
