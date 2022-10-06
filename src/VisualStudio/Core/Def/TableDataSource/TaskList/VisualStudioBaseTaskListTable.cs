@@ -88,11 +88,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             public override string Identifier => _identifier;
             public override object GetItemKey(TaskListUpdatedArgs data) => data.DocumentId;
 
-            public override IDisposable Subscribe(ITableDataSink sink)
-            {
-                return base.Subscribe(sink);
-            }
-
             protected override object GetOrUpdateAggregationKey(TaskListUpdatedArgs data)
             {
                 var key = TryGetAggregateKey(data);

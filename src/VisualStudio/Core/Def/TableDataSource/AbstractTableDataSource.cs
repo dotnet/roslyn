@@ -323,7 +323,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
         private void RemoveAggregateKey_NoLock(TData data)
             => _aggregateKeyMap.Remove(GetItemKey(data));
 
-        public virtual IDisposable Subscribe(ITableDataSink sink)
+        IDisposable ITableDataSource.Subscribe(ITableDataSink sink)
         {
             lock (_gate)
             {
