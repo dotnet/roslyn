@@ -8541,6 +8541,120 @@ public ref struct StructWithRefField
             Assert.True(comp.GetTypeByMetadataName("StructWithIndirectRefField").IsManagedTypeNoUseSiteDiagnostics);
         }
 
+        [WorkItem(62618, "https://github.com/dotnet/roslyn/issues/62618")]
+        [Theory]
+        [InlineData(LanguageVersion.CSharp10)]
+        [InlineData(LanguageVersion.CSharp11)]
+        public void RefAssignValueScopeMismatch_01(LanguageVersion languageVersion)
+        {
+            var source =
+@"using System;
+class Program
+{
+    static void Main()
+    {
+        Span<int> s = new[] { 1 };
+        M(ref s);
+    }
+    static void M(ref Span<int> s)
+    {
+        Span<int> local = stackalloc int[] { 1 };
+        ref Span<int> rL = ref local;
+        rL = ref s; // 1
+        rL = local;
+    }
+}";
+            var comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
+            comp.VerifyEmitDiagnostics(
+                // (13,9): error CS8374: Cannot ref-assign 's' to 'rL' because 's' has a narrower escape scope than 'rL'.
+                //         rL = ref s; // 1
+                Diagnostic(ErrorCode.ERR_RefAssignNarrower, "rL = ref s").WithArguments("rL", "s").WithLocation(13, 9));
+        }
+
+        [WorkItem(62618, "https://github.com/dotnet/roslyn/issues/62618")]
+        [Theory]
+        [CombinatorialData]
+        public void RefAssignValueScopeMismatch_02(
+            [CombinatorialValues(LanguageVersion.CSharp10, LanguageVersion.CSharp11)] LanguageVersion languageVersion,
+            bool useUnsafe)
+        {
+            string unsafeModifier = useUnsafe ? "unsafe" : "";
+            var source =
+$@"ref struct R
+{{
+    public R(ref int i) {{ }}
+}}
+class Program
+{{
+    static void Main()
+    {{
+        R r = default;
+        M(ref r);
+    }}
+    {unsafeModifier} static void M(ref R r1)
+    {{
+        int i = 0;
+        R local = new R(ref i);
+        ref R r2 = ref local;
+        r2 = ref r1; // 1
+        r2 = local;
+    }}
+}}";
+            var comp = CreateCompilation(source,
+                parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion),
+                options: (useUnsafe ? TestOptions.UnsafeReleaseExe : null));
+            if (languageVersion == LanguageVersion.CSharp10)
+            {
+                comp.VerifyEmitDiagnostics();
+            }
+            else
+            {
+                comp.VerifyEmitDiagnostics(
+                    // (17,9): error CS8374: Cannot ref-assign 'r1' to 'r2' because 'r1' has a narrower escape scope than 'r2'.
+                    //         r2 = ref r1; // 1
+                    Diagnostic(ErrorCode.ERR_RefAssignNarrower, "r2 = ref r1").WithArguments("r2", "r1").WithLocation(17, 9));
+            }
+        }
+
+        [WorkItem(62618, "https://github.com/dotnet/roslyn/issues/62618")]
+        [Theory]
+        [InlineData(LanguageVersion.CSharp10)]
+        [InlineData(LanguageVersion.CSharp11)]
+        public void RefAssignValueScopeMismatch_03(LanguageVersion languageVersion)
+        {
+            var source =
+@"ref struct R
+{
+    public R(ref int i) { }
+}
+class Program
+{
+    static R F()
+    {
+        int i = 0;
+        R a = new R(ref i);
+        ref R r1 = ref a;
+        R b = default;
+        ref R r2 = ref b;
+        r1 = ref r2; // 1
+        r1 = a;
+        return b;
+    }
+}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
+            if (languageVersion == LanguageVersion.CSharp10)
+            {
+                comp.VerifyEmitDiagnostics();
+            }
+            else
+            {
+                comp.VerifyEmitDiagnostics(
+                    // (14,9): error CS8374: Cannot ref-assign 'r2' to 'r1' because 'r2' has a narrower escape scope than 'r1'.
+                    //         r1 = ref r2; // 1
+                    Diagnostic(ErrorCode.ERR_RefAssignNarrower, "r1 = ref r2").WithArguments("r1", "r2").WithLocation(14, 9));
+            }
+        }
+
         // Breaking change in C#11: Cannot return an 'out' parameter by reference.
         [Fact]
         public void BreakingChange_ReturnOutByRef()
@@ -11387,9 +11501,9 @@ class ClassEnumerator
                 // (24,13): error CS8374: Cannot ref-assign 'r5' to 'r0' because 'r5' has a narrower escape scope than 'r0'.
                 //             r0 = ref r5; // 3
                 Diagnostic(ErrorCode.ERR_RefAssignNarrower, "r0 = ref r5").WithArguments("r0", "r5").WithLocation(24, 13),
-                // (28,22): error CS8352: Cannot use variable 'r6' in this context because it may expose referenced variables outside of their declaration scope
+                // (28,13): error CS8374: Cannot ref-assign 'r6' to 'r0' because 'r6' has a narrower escape scope than 'r0'.
                 //             r0 = ref r6; // 4
-                Diagnostic(ErrorCode.ERR_EscapeVariable, "r6").WithArguments("r6").WithLocation(28, 22));
+                Diagnostic(ErrorCode.ERR_RefAssignNarrower, "r0 = ref r6").WithArguments("r0", "r6").WithLocation(28, 13));
         }
 
         [Theory]
