@@ -55,10 +55,10 @@ namespace Microsoft.CodeAnalysis
 
             return GetExtensionsSlow(language, analyzerReferences);
 
-            ImmutableArray<TExtension> GetExtensionsSlow(string language, IReadOnlyList<AnalyzerReference> analyzerReferences)
+            static ImmutableArray<TExtension> GetExtensionsSlow(string language, IReadOnlyList<AnalyzerReference> analyzerReferences)
                 => s_referencesToExtensionsMap.GetValue(analyzerReferences, _ => new(ComputeExtensions(language, analyzerReferences))).Value;
 
-            ImmutableArray<TExtension> ComputeExtensions(string language, IReadOnlyList<AnalyzerReference> analyzerReferences)
+            static ImmutableArray<TExtension> ComputeExtensions(string language, IReadOnlyList<AnalyzerReference> analyzerReferences)
             {
                 using var _ = ArrayBuilder<TExtension>.GetInstance(out var builder);
                 foreach (var reference in analyzerReferences)

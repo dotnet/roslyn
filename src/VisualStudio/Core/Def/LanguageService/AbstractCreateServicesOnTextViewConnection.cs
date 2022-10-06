@@ -29,13 +29,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
     internal abstract class AbstractCreateServicesOnTextViewConnection : IWpfTextViewConnectionListener
     {
         private readonly string _languageName;
-        private readonly AsyncBatchingWorkQueue<DocumentId?> _workQueue;
+        private readonly AsyncBatchingWorkQueue<ProjectId?> _workQueue;
         private bool _initialized = false;
 
         protected VisualStudioWorkspace Workspace { get; }
         protected IGlobalOptionService GlobalOptions { get; }
 
-        protected virtual Task InitializeServiceForOpenedDocumentAsync(Document document)
+        protected virtual Task InitializeServiceForProjectWithOpenedDocumentAsync(Project project)
             => Task.CompletedTask;
 
         public AbstractCreateServicesOnTextViewConnection(
@@ -49,11 +49,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
             GlobalOptions = globalOptions;
             _languageName = languageName;
 
-            _workQueue = new AsyncBatchingWorkQueue<DocumentId?>(
+            _workQueue = new AsyncBatchingWorkQueue<ProjectId?>(
                     TimeSpan.FromSeconds(1),
-                    ProcessBatchDocumentOpenedAsync,
-                    EqualityComparer<DocumentId?>.Default,
-                    listenerProvider.GetListener(FeatureAttribute.Workspace),
+                    BatchProcessProjectsWithOpenedDocumentAsync,
+                    EqualityComparer<ProjectId?>.Default,
+                    listenerProvider.GetListener(FeatureAttribute.CompletionSet),
                     threadingContext.DisposalToken);
 
             Workspace.DocumentOpened += QueueWorkOnDocumentOpened;
@@ -65,7 +65,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
             {
                 _initialized = true;
                 // use `null` to trigger per VS session intialization task
-                _workQueue.AddWork((DocumentId?)null);
+                _workQueue.AddWork((ProjectId?)null);
             }
         }
 
@@ -73,25 +73,28 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
         {
         }
 
-        private async ValueTask ProcessBatchDocumentOpenedAsync(ImmutableSegmentedList<DocumentId?> documentIds, CancellationToken cancellationToken)
+        private async ValueTask BatchProcessProjectsWithOpenedDocumentAsync(ImmutableSegmentedList<ProjectId?> projectIds, CancellationToken cancellationToken)
         {
-            foreach (var documentId in documentIds)
+            foreach (var projectId in projectIds)
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
-                if (documentId is null)
+                if (projectId is null)
                 {
                     InitializePerVSSessionServices();
                 }
-                else if (Workspace.CurrentSolution.GetDocument(documentId) is Document document && document.Project.Language == _languageName)
+                else if (Workspace.CurrentSolution.GetProject(projectId) is Project project)
                 {
-                    await InitializeServiceForOpenedDocumentAsync(document).ConfigureAwait(false);
+                    await InitializeServiceForProjectWithOpenedDocumentAsync(project).ConfigureAwait(false);
                 }
             }
         }
 
         private void QueueWorkOnDocumentOpened(object sender, DocumentEventArgs e)
-            => _workQueue.AddWork(e.Document.Id);
+        {
+            if (e.Document.Project.Language == _languageName)
+                _workQueue.AddWork(e.Document.Project.Id);
+        }
 
         private void InitializePerVSSessionServices()
         {

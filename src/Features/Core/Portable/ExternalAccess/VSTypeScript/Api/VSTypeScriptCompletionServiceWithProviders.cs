@@ -13,6 +13,8 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript.Api
 {
     internal abstract class VSTypeScriptCompletionServiceWithProviders : CompletionService
     {
+        // Pass in NullProvider since it's only used for testing project reference based CompletionProvider,
+        // which TypeScript does not need.
         internal VSTypeScriptCompletionServiceWithProviders(Workspace workspace)
             : base(workspace.Services.SolutionServices, AsynchronousOperationListenerProvider.NullProvider)
         {

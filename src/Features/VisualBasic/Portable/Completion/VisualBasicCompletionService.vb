@@ -25,7 +25,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion
 
             <ImportingConstructor>
             <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
-            Public Sub New(Optional listenerProvider As IAsynchronousOperationListenerProvider = Nothing)
+            Public Sub New(listenerProvider As IAsynchronousOperationListenerProvider)
                 _listenerProvider = listenerProvider
             End Sub
 

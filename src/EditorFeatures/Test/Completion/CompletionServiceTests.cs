@@ -48,13 +48,13 @@ class Test {
             var completions = await completionService.GetCompletionsAsync(document, caretPosition, CompletionOptions.Default, OptionValueSet.Empty);
 
             // NuGet providers are not included until it's loaded and cached, this is to avoid potential delays, especially on UI thread.
-            Assert.True(completions.IsEmpty);
+            Assert.Empty(completions.ItemsList);
 
             // NuGet analyzers for the project will be loaded when this returns 
-            Assert.True((await completionService.GetTestAccessor().GetProjectProvidersAsync(project).ConfigureAwait(false)).Single() is DebugAssertTestCompletionProvider);
+            Assert.IsType<DebugAssertTestCompletionProvider>((await completionService.GetTestAccessor().GetProjectProvidersAsync(project).ConfigureAwait(false)).Single());
             completions = await completionService.GetCompletionsAsync(document, caretPosition, CompletionOptions.Default, OptionValueSet.Empty);
 
-            Assert.False(completions.IsEmpty);
+            Assert.NotEmpty(completions.ItemsList);
 
             var item = Assert.Single(completions.ItemsList.Where(item => item.ProviderName == typeof(DebugAssertTestCompletionProvider).FullName));
             Assert.Equal(nameof(DebugAssertTestCompletionProvider), item.DisplayText);

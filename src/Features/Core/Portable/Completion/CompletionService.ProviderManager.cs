@@ -68,13 +68,15 @@ namespace Microsoft.CodeAnalysis.Completion
                 foreach (var references in referencesList)
                 {
                     cancellationToken.ThrowIfCancellationRequested();
+                    // Go through the potentially slow path to ensure project providers are loaded.
+                    // We only do this in background here to avoid UI delays.
                     _ = ProjectCompletionProvider.GetExtensions(_service.Language, references);
                 }
 
                 return ValueTaskFactory.CompletedTask;
             }
 
-            private ImmutableArray<CompletionProvider> GetProjectCompletionProviders(Project? project)
+            private ImmutableArray<CompletionProvider> GetCachedProjectCompletionProvidersOrQueueLoadInBackground(Project? project)
             {
                 if (project is null || project.Solution.WorkspaceKind == WorkspaceKind.Interactive)
                 {
@@ -140,14 +142,14 @@ namespace Microsoft.CodeAnalysis.Completion
                 }
 
                 using var _ = PooledDelegates.GetPooledFunction(static (p, n) => p.Name == n, item.ProviderName, out Func<CompletionProvider, bool> isNameMatchingProviderPredicate);
-                return GetProjectCompletionProviders(project).FirstOrDefault(isNameMatchingProviderPredicate);
+                return GetCachedProjectCompletionProvidersOrQueueLoadInBackground(project).FirstOrDefault(isNameMatchingProviderPredicate);
             }
 
             public ConcatImmutableArray<CompletionProvider> GetFilteredProviders(
                 Project? project, ImmutableHashSet<string>? roles, CompletionTrigger trigger, in CompletionOptions options)
             {
                 var allCompletionProviders = FilterProviders(GetImportedAndBuiltInProviders(roles), trigger, options);
-                var projectCompletionProviders = FilterProviders(GetProjectCompletionProviders(project), trigger, options);
+                var projectCompletionProviders = FilterProviders(GetCachedProjectCompletionProvidersOrQueueLoadInBackground(project), trigger, options);
                 return allCompletionProviders.ConcatFast(projectCompletionProviders);
             }
 
@@ -269,7 +271,8 @@ namespace Microsoft.CodeAnalysis.Completion
                 {
                     _providerManager._projectProvidersWorkQueue.AddWork(project.AnalyzerReferences);
                     await _providerManager._projectProvidersWorkQueue.WaitUntilCurrentBatchCompletesAsync().ConfigureAwait(false);
-                    return _providerManager.GetProjectCompletionProviders(project);
+                    // Now the extension cache is guaranteed to be populated.
+                    return _providerManager.GetCachedProjectCompletionProvidersOrQueueLoadInBackground(project);
                 }
             }
         }

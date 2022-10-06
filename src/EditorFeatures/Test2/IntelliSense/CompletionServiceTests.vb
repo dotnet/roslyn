@@ -34,7 +34,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
 
             Using workspace = TestWorkspace.Create(workspaceDefinition, composition:=composition)
                 Dim document = workspace.CurrentSolution.Projects.First.Documents.First
-                Dim completionService = New TestCompletionService(workspace.Services.SolutionServices)
+                Dim completionService = New TestCompletionService(workspace.Services.SolutionServices, workspace.GetService(Of IAsynchronousOperationListenerProvider)())
 
                 Dim list = Await completionService.GetCompletionsAsync(
                     document, caretPosition:=0, CompletionOptions.Default, OptionValueSet.Empty, CompletionTrigger.Invoke)
@@ -48,8 +48,8 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
         Friend Class TestCompletionService
             Inherits CompletionService
 
-            Public Sub New(services As SolutionServices)
-                MyBase.New(services, AsynchronousOperationListenerProvider.NullProvider)
+            Public Sub New(services As SolutionServices, listenerProvider As IAsynchronousOperationListenerProvider)
+                MyBase.New(services, listenerProvider)
             End Sub
 
             Public Overrides ReadOnly Property Language As String

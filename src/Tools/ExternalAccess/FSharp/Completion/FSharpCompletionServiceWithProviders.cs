@@ -9,6 +9,8 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Completion
 {
     internal abstract class FSharpCompletionServiceWithProviders : CompletionService
     {
+        // Pass in NullProvider since it's only used for testing project reference based CompletionProvider,
+        // which F# does not need.
         internal FSharpCompletionServiceWithProviders(Workspace workspace)
             : base(workspace.Services.SolutionServices, AsynchronousOperationListenerProvider.NullProvider)
         {
