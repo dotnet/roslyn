@@ -110,28 +110,28 @@ namespace Microsoft.CodeAnalysis.ConvertIfToSwitch
                     current++;
                 }
 
+                defaultBodyOpt = null;
                 if (current == 0)
                 {
                     // didn't consume a sequence of if-statements with unreachable ends.  Check for the last case.
-                    if (operations.Length > 0)
-                        return ParseIfStatement(operations[0], sections, out defaultBodyOpt);
+                    return operations.Length > 0 && ParseIfStatement(operations[0], sections, out defaultBodyOpt);
                 }
-                else if (current < operations.Length)
+                else
                 {
-                    // consumed a sequence of if-statements with unreachable-ends.  If we end with a normal
-                    // if-statement, we're done.  Otherwise, we end with whatever last return/throw we see.
-                    var nextStatement = operations[current];
-                    if (!ParseIfStatement(nextStatement, sections, out defaultBodyOpt))
+                    if (current < operations.Length)
                     {
-                        if (nextStatement is IReturnOperation { ReturnedValue: not null } or IThrowOperation { Exception: not null })
+                        // consumed a sequence of if-statements with unreachable-ends.  If we end with a normal
+                        // if-statement, we're done.  Otherwise, we end with whatever last return/throw we see.
+                        var nextStatement = operations[current];
+                        if (!ParseIfStatement(nextStatement, sections, out defaultBodyOpt) &&
+                            nextStatement is IReturnOperation { ReturnedValue: not null } or IThrowOperation { Exception: not null })
+                        {
                             defaultBodyOpt = nextStatement;
+                        }
                     }
 
                     return true;
                 }
-
-                defaultBodyOpt = null;
-                return false;
             }
 
             // Tree to parse:
