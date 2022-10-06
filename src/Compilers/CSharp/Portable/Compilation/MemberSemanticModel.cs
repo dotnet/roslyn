@@ -2278,6 +2278,7 @@ done:
                     case SyntaxKind.ParenthesizedExpression:
                     case SyntaxKind.RefExpression:
                     case SyntaxKind.RefType:
+                    case SyntaxKind.ScopedType:
                         var pp = parent.Parent;
                         if (pp == null) break;
                         parent = pp;
@@ -2330,12 +2331,12 @@ foundParent:;
 
         internal sealed override Func<SyntaxNode, bool> GetSyntaxNodesToAnalyzeFilter(SyntaxNode declaredNode, ISymbol declaredSymbol)
         {
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 
         internal override bool ShouldSkipSyntaxNodeAnalysis(SyntaxNode node, ISymbol containingSymbol)
         {
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 
         /// <summary>

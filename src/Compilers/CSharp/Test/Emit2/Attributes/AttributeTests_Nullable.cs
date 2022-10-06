@@ -743,7 +743,8 @@ class Program
     object? F() => null;
 }";
 
-            var comp = CreateCompilation(source);
+            var parseOptions = TestOptions.Regular.WithNoRefSafetyRulesAttribute();
+            var comp = CreateCompilation(source, parseOptions: parseOptions);
             comp.MakeTypeMissing(WellKnownType.System_AttributeUsageAttribute);
             comp.VerifyEmitDiagnostics(
                 // error CS0656: Missing compiler required member 'System.AttributeUsageAttribute..ctor'
@@ -759,7 +760,7 @@ class Program
                 // error CS0656: Missing compiler required member 'System.AttributeUsageAttribute.Inherited'
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember).WithArguments("System.AttributeUsageAttribute", "Inherited").WithLocation(1, 1));
 
-            comp = CreateCompilation(source);
+            comp = CreateCompilation(source, parseOptions: parseOptions);
             comp.MakeMemberMissing(WellKnownMember.System_AttributeUsageAttribute__ctor);
             comp.VerifyEmitDiagnostics(
                 // error CS0656: Missing compiler required member 'System.AttributeUsageAttribute..ctor'
@@ -767,7 +768,7 @@ class Program
                 // error CS0656: Missing compiler required member 'System.AttributeUsageAttribute..ctor'
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember).WithArguments("System.AttributeUsageAttribute", ".ctor").WithLocation(1, 1));
 
-            comp = CreateCompilation(source);
+            comp = CreateCompilation(source, parseOptions: parseOptions);
             comp.MakeMemberMissing(WellKnownMember.System_AttributeUsageAttribute__AllowMultiple);
             comp.VerifyEmitDiagnostics(
                 // error CS0656: Missing compiler required member 'System.AttributeUsageAttribute.AllowMultiple'
@@ -775,7 +776,7 @@ class Program
                 // error CS0656: Missing compiler required member 'System.AttributeUsageAttribute.AllowMultiple'
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember).WithArguments("System.AttributeUsageAttribute", "AllowMultiple").WithLocation(1, 1));
 
-            comp = CreateCompilation(source);
+            comp = CreateCompilation(source, parseOptions: parseOptions);
             comp.MakeMemberMissing(WellKnownMember.System_AttributeUsageAttribute__Inherited);
             comp.VerifyEmitDiagnostics(
                 // error CS0656: Missing compiler required member 'System.AttributeUsageAttribute.Inherited'
@@ -4389,7 +4390,7 @@ class C3B : I3<int>
     public struct IntPtr { }
     public class MulticastDelegate { }
 }";
-            var comp0 = CreateEmptyCompilation(source0);
+            var comp0 = CreateEmptyCompilation(source0, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute());
             var ref0 = comp0.EmitToImageReference();
 
             var source =
@@ -4411,7 +4412,7 @@ class C
             var comp = CreateEmptyCompilation(
                 source,
                 references: new[] { ref0 },
-                parseOptions: TestOptions.Regular8);
+                parseOptions: TestOptions.Regular8.WithNoRefSafetyRulesAttribute());
             comp.VerifyEmitDiagnostics();
         }
 

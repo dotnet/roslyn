@@ -261,7 +261,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             static bool hasDefaultScope(bool useUpdatedEscapeRules, AnonymousTypeField field)
             {
-                return (field.Scope, ParameterHelpers.IsRefScopedByDefault(useUpdatedEscapeRules, field.RefKind, field.TypeWithAnnotations)) switch
+                return (field.Scope, ParameterHelpers.IsRefScopedByDefault(useUpdatedEscapeRules, field.RefKind)) switch
                 {
                     (DeclarationScope.Unscoped, false) => true,
                     (DeclarationScope.RefScoped, true) => true,
@@ -734,7 +734,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     return ((MethodSymbol)member).AsMember(translatedType);
                 }
             }
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 
         /// <summary> 

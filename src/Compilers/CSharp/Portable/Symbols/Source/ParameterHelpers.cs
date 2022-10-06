@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
     internal static class ParameterHelpers
     {
-        public static ImmutableArray<ParameterSymbol> MakeParameters(
+        public static ImmutableArray<SourceParameterSymbol> MakeParameters(
             Binder withTypeParametersBinder,
             Symbol owner,
             BaseParameterListSyntax syntax,
@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             bool allowThis,
             bool addRefReadOnlyModifier)
         {
-            return MakeParameters<ParameterSyntax, ParameterSymbol, Symbol>(
+            return MakeParameters<ParameterSyntax, SourceParameterSymbol, Symbol>(
                 withTypeParametersBinder,
                 owner,
                 syntax.Parameters,
@@ -190,8 +190,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 TParameterSymbol parameter = parameterCreationFunc(withTypeParametersBinder, owner, parameterType, parameterSyntax, refKind, parameterIndex, paramsKeyword, thisKeyword, addRefReadOnlyModifier, scope, diagnostics);
 
+                DeclarationScope? declaredScope = parameter is SourceParameterSymbol s ? s.DeclaredScope : null;
                 ReportParameterErrors(owner, parameterSyntax, parameter.Ordinal, parameter.IsParams, parameter.TypeWithAnnotations,
-                                      parameter.RefKind, parameter.DeclaredScope, parameter.ContainingSymbol, thisKeyword, paramsKeyword, firstDefault, diagnostics);
+                                      parameter.RefKind, declaredScope, parameter.ContainingSymbol, thisKeyword, paramsKeyword, firstDefault, diagnostics);
 
                 builder.Add(parameter);
                 ++parameterIndex;
@@ -307,7 +308,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             Debug.Assert(!parameter.IsThis);
 
-            var scope = parameter.DeclaredScope;
+            var scope = parameter.EffectiveScope;
             if (scope == DeclarationScope.Unscoped)
             {
                 return false;
@@ -321,34 +322,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal static bool IsRefScopedByDefault(ParameterSymbol parameter)
         {
-            return IsRefScopedByDefault(parameter.UseUpdatedEscapeRules, parameter.RefKind, parameter.TypeWithAnnotations);
+            return IsRefScopedByDefault(parameter.UseUpdatedEscapeRules, parameter.RefKind);
         }
 
-        internal static bool IsRefScopedByDefault(bool useUpdatedEscapeRules, RefKind refKind, TypeWithAnnotations parameterType)
+        internal static bool IsRefScopedByDefault(bool useUpdatedEscapeRules, RefKind refKind)
         {
-            if (!useUpdatedEscapeRules)
-            {
-                return false;
-            }
-
-            switch (refKind)
-            {
-                case RefKind.Out:
-                    return true;
-                case RefKind.Ref:
-                case RefKind.In:
-                    return parameterType.IsRefLikeType();
-                default:
-                    return false;
-            }
-        }
-
-        internal static DeclarationScope CalculateEffectiveScopeIgnoringAttributes(ParameterSymbol parameter)
-        {
-            var declaredScope = parameter.DeclaredScope;
-            return declaredScope == DeclarationScope.Unscoped && IsRefScopedByDefault(parameter) ?
-                DeclarationScope.RefScoped :
-                declaredScope;
+            return useUpdatedEscapeRules && refKind == RefKind.Out;
         }
 
         internal static void EnsureScopedRefAttributeExists(PEModuleBuilder moduleBuilder, ImmutableArray<ParameterSymbol> parameters)
@@ -437,7 +416,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var seenOut = false;
             var seenParams = false;
             var seenIn = false;
-            bool scopedBeforeRef = false;
+            bool seenScoped = false;
 
             foreach (var modifier in parameter.Modifiers)
             {
@@ -591,29 +570,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                     case SyntaxKind.ScopedKeyword when !parsingFunctionPointerParams:
                         ModifierUtils.CheckScopedModifierAvailability(parameter, modifier, diagnostics);
-                        if (seenIn)
-                        {
-                            addERR_BadParameterModifiersOrder(diagnostics, modifier, SyntaxKind.InKeyword);
-                        }
-                        else if (seenOut)
-                        {
-                            addERR_BadParameterModifiersOrder(diagnostics, modifier, SyntaxKind.OutKeyword);
-                        }
-                        else if (seenRef)
-                        {
-                            addERR_BadParameterModifiersOrder(diagnostics, modifier, SyntaxKind.RefKeyword);
-                        }
-                        else
-                        {
-                            if (scopedBeforeRef)
-                            {
-                                addERR_DupParamMod(diagnostics, modifier);
-                            }
-                            else
-                            {
-                                scopedBeforeRef = true;
-                            }
-                        }
+                        Debug.Assert(!seenIn);
+                        Debug.Assert(!seenOut);
+                        Debug.Assert(!seenRef);
+                        Debug.Assert(!seenScoped);
+
+                        seenScoped = true;
                         break;
 
                     case SyntaxKind.ReadOnlyKeyword:
@@ -635,11 +597,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 diagnostics.Add(ErrorCode.ERR_DupParamMod, modifier.GetLocation(), SyntaxFacts.GetText(modifier.Kind()));
             }
 
-            static void addERR_BadParameterModifiersOrder(BindingDiagnosticBag diagnostics, SyntaxToken modifier, SyntaxKind otherModifierKind)
-            {
-                diagnostics.Add(ErrorCode.ERR_BadParameterModifiersOrder, modifier.GetLocation(), SyntaxFacts.GetText(modifier.Kind()), SyntaxFacts.GetText(otherModifierKind));
-            }
-
             static void addERR_BadParameterModifiers(BindingDiagnosticBag diagnostics, SyntaxToken modifier, SyntaxKind otherModifierKind)
             {
                 diagnostics.Add(ErrorCode.ERR_BadParameterModifiers, modifier.GetLocation(), SyntaxFacts.GetText(modifier.Kind()), SyntaxFacts.GetText(otherModifierKind));
@@ -658,7 +615,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             bool isParams,
             TypeWithAnnotations typeWithAnnotations,
             RefKind refKind,
-            DeclarationScope scope,
+            DeclarationScope? declaredScope,
             Symbol? containingSymbol,
             SyntaxToken thisKeyword,
             SyntaxToken paramsKeyword,
@@ -692,7 +649,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // error CS0721: '{0}': static types cannot be used as parameters
                 diagnostics.Add(
                     ErrorFacts.GetStaticClassParameterCode(containingSymbol?.ContainingType?.IsInterfaceType() ?? false),
-                    (owner is null || owner.Locations.IsEmpty) ? syntax.GetLocation() : owner.Locations[0],
+                    syntax.Type?.Location ?? syntax.GetLocation(),
                     typeWithAnnotations.Type);
             }
             else if (firstDefault != -1 && parameterIndex > firstDefault && !isDefault && !isParams)
@@ -708,7 +665,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 diagnostics.Add(ErrorCode.ERR_MethodArgCantBeRefAny, syntax.Location, typeWithAnnotations.Type);
             }
 
-            if (scope == DeclarationScope.ValueScoped && !typeWithAnnotations.IsRefLikeType())
+            if (declaredScope == DeclarationScope.ValueScoped && !typeWithAnnotations.IsRefLikeType())
             {
                 diagnostics.Add(ErrorCode.ERR_ScopedRefAndRefStructOnly, syntax.Location);
             }
@@ -927,7 +884,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal static RefKind GetModifiers(SyntaxTokenList modifiers, out SyntaxToken refnessKeyword, out SyntaxToken paramsKeyword, out SyntaxToken thisKeyword, out DeclarationScope scope)
         {
             var refKind = RefKind.None;
-            bool scopedBeforeRef = false;
+            bool isScoped = false;
 
             refnessKeyword = default(SyntaxToken);
             paramsKeyword = default(SyntaxToken);
@@ -965,15 +922,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         thisKeyword = modifier;
                         break;
                     case SyntaxKind.ScopedKeyword:
-                        if (refKind == RefKind.None)
-                        {
-                            scopedBeforeRef = true;
-                        }
+                        Debug.Assert(refKind == RefKind.None);
+                        isScoped = true;
                         break;
                 }
             }
 
-            if (scopedBeforeRef)
+            if (isScoped)
             {
                 scope = (refKind == RefKind.None) ? DeclarationScope.ValueScoped : DeclarationScope.RefScoped;
             }

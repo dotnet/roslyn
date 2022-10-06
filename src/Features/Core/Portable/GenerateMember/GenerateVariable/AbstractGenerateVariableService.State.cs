@@ -419,7 +419,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
                     index++;
                 }
 
-                throw ExceptionUtilities.Unreachable;
+                throw ExceptionUtilities.Unreachable();
             }
 
             private void DetermineFieldType(

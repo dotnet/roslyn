@@ -64,10 +64,10 @@ namespace Microsoft.CodeAnalysis.SourceGeneratorTelemetry
                     map[nameof(telemetryKey.FileVersion)] = telemetryKey.FileVersion;
 
                     var result = elapsedTimeCounter.GetStatisticResult();
-                    result.WriteTelemetryPropertiesTo(map, prefix: "ElapsedTimePerRun.");
+                    result.WriteTelemetryPropertiesTo(map, prefix: "ElapsedTimePerRun");
 
                     var producedFileCount = _producedFilesByGenerator.GetStatisticResult(telemetryKey);
-                    producedFileCount.WriteTelemetryPropertiesTo(map, prefix: "GeneratedFileCountPerRun.");
+                    producedFileCount.WriteTelemetryPropertiesTo(map, prefix: "GeneratedFileCountPerRun");
                 }));
             }
         }

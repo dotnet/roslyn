@@ -177,7 +177,7 @@ namespace BuildValidator
                     if (hasEmbeddedPdb)
                     {
                         var peReader = new PEReader(rebuildBytes.ToImmutableArray());
-                        return peReader.GetEmbeddedPdbMetadataReader() ?? throw ExceptionUtilities.Unreachable;
+                        return peReader.GetEmbeddedPdbMetadataReader() ?? throw ExceptionUtilities.Unreachable();
                     }
                     else
                     {

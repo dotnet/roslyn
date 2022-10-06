@@ -157,7 +157,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override bool AreLocalsZeroed
         {
-            get { throw ExceptionUtilities.Unreachable; }
+            get { throw ExceptionUtilities.Unreachable(); }
         }
 
         internal override IEnumerable<Cci.SecurityAttribute> GetSecurityInformation()
@@ -409,12 +409,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override int CalculateLocalSyntaxOffset(int localPosition, SyntaxTree localTree)
         {
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 
         internal sealed override bool IsNullableAnalysisEnabled() => false;
 
-        protected sealed override bool HasSetsRequiredMembersImpl => throw ExceptionUtilities.Unreachable;
+        protected sealed override bool HasSetsRequiredMembersImpl => throw ExceptionUtilities.Unreachable();
 
         internal sealed override bool HasUnscopedRefAttribute => false;
 
@@ -468,6 +468,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             ) : base(container, TypeWithAnnotations.Create(type), ordinal, RefKind.None, DeclarationScope.Unscoped, name)
             {
             }
+
+            internal override bool IsMetadataIn => RefKind == RefKind.In;
+
+            internal override bool IsMetadataOut => RefKind == RefKind.Out;
 
             public override bool Equals(Symbol obj, TypeCompareKind compareKind)
             {

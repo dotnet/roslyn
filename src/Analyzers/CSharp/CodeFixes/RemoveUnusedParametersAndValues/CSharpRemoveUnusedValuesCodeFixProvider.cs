@@ -82,7 +82,7 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnusedParametersAndValues
         protected override SyntaxNode TryUpdateParentOfUpdatedNode(SyntaxNode parent, SyntaxNode newNameNode, SyntaxEditor editor, ISyntaxFacts syntaxFacts)
         {
             if (newNameNode.IsKind(SyntaxKind.DiscardDesignation)
-                && parent.IsKind(SyntaxKind.DeclarationPattern, out DeclarationPatternSyntax declarationPattern)
+                && parent is DeclarationPatternSyntax declarationPattern
                 && parent.SyntaxTree.Options.LanguageVersion() >= LanguageVersion.CSharp9)
             {
                 var trailingTrivia = declarationPattern.Type.GetTrailingTrivia()
@@ -171,7 +171,7 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnusedParametersAndValues
         protected override SyntaxNode GetReplacementNodeForVarPattern(SyntaxNode originalVarPattern, SyntaxNode newNameNode)
         {
             if (originalVarPattern is not VarPatternSyntax pattern)
-                throw ExceptionUtilities.Unreachable;
+                throw ExceptionUtilities.Unreachable();
 
             // If the replacement node is DiscardDesignationSyntax
             // then we need to just change the incoming var's pattern designation

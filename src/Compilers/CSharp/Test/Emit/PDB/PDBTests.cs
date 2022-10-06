@@ -9891,7 +9891,7 @@ class C
         };
     }
 }");
-            var verifier = CompileAndVerify(source, options: TestOptions.DebugDll);
+            var verifier = CompileAndVerify(source, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), options: TestOptions.DebugDll);
             verifier.VerifyTypeIL("C",
 @".class private auto ansi beforefieldinit C
 	extends [netstandard]System.Object
@@ -10100,7 +10100,7 @@ class C
         };
     }
 }");
-            var verifier = CompileAndVerify(source, options: TestOptions.DebugDll);
+            var verifier = CompileAndVerify(source, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), options: TestOptions.DebugDll);
             verifier.VerifyTypeIL("C",
 @".class private auto ansi beforefieldinit C
 	extends [netstandard]System.Object

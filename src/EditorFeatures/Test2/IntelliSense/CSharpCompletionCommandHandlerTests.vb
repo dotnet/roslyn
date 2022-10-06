@@ -2958,6 +2958,115 @@ class Program
             End Using
         End Function
 
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function SelectEnumMemberAdditionalFilterTextMatchOverInferiorFilterTextMatch() As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                              <Document>
+public enum Colors
+{
+    Red,
+    Green
+}
+
+class Program
+{
+    Colors GreenNode { get; }                           
+    void M()
+    {
+        Colors c = Green$$
+    }
+}                               </Document>)
+                state.SendInvokeCompletionList()
+                Await state.AssertCompletionItemsContainAll("Colors.Green", "GreenNode")
+                ' select full match "Colors.Green" over prefix match "GreenNode"
+                Await state.AssertSelectedCompletionItem("Colors.Green", isHardSelected:=True)
+            End Using
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function DoNotSelectEnumMemberAdditionalFilterTextMatchOverEqualFilterTextMatch() As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                              <Document>
+public enum Colors
+{
+    Red,
+    Green
+}
+
+class Program
+{            
+    Colors Green { get; }               
+    void M()
+    {
+        Colors c = gree$$
+    }
+}                               </Document>)
+                state.SendInvokeCompletionList()
+                Await state.AssertCompletionItemsContainAll("Colors.Green", "Green")
+                ' Select FilterText match "Green" over AdditionalFilterText match "Colors.Green"
+                Await state.AssertSelectedCompletionItem("Green", isHardSelected:=True)
+            End Using
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function SelectStaticMemberAdditionalFilterTextMatchOverInferiorFilterTextMatch() As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                              <Document>
+public class MyArray
+{
+    public static MyArray Empty { get; }
+}
+
+class Program
+{         
+    string EmptyString = "";                 
+    void M()
+    {                       
+        MyArray c = Empty$$
+    }
+}                               </Document>)
+                state.SendInvokeCompletionList()
+                Await state.AssertCompletionItemsContainAll("MyArray.Empty", "EmptyString")
+                ' select full match "MyArray.Empty" over prefix match "EmptyString"
+                Await state.AssertSelectedCompletionItem("MyArray.Empty", isHardSelected:=True)
+            End Using
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function SelectCompletionListStaticMemberAdditionalFilterTextMatchOverInferiorFilterTextMatch() As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                              <Document><![CDATA[
+namespace NS
+{
+
+    /// <completionlist cref="TypeContainer"/>
+    public class SomeType
+    { }
+
+    public static class TypeContainer
+    {
+        public static SomeType Foo1 = new SomeType();
+        public static Program Foo2 = new Program();
+    }
+
+    public class Program
+    {
+        void Goo()
+        {
+            var myFoo = true;
+            SomeType c = $$
+        }
+    }
+}                             ]]></Document>)
+
+                state.SendInvokeCompletionList()
+                Await state.AssertCompletionItemsContainAll("myFoo", "TypeContainer", "TypeContainer.Foo1", "TypeContainer.Foo2")
+
+                state.SendTypeChars("foo")
+                Await state.AssertSelectedCompletionItem("TypeContainer.Foo1", isHardSelected:=True)
+            End Using
+        End Function
+
         <WorkItem(49632, "https://github.com/dotnet/roslyn/pull/49632")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function CompletionEnumTypeAndValuesWithAlias() As Task
@@ -5652,6 +5761,115 @@ class C
                 Await state.WaitForUIRenderedAsync()
                 Await state.AssertSelectedCompletionItem("Red")
                 Await state.AssertCompletionItemsContainAll({"Red", "Green", "Blue", "Equals"})
+            End Using
+        End Function
+
+        <WpfFact>
+        <Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestEnumMemberFilter() As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document><![CDATA[
+
+public enum Color
+{
+    Red,
+    Green,
+    Blue
+}
+
+class C
+{
+    void M()
+    {
+        Color x = $$
+    }
+}
+            ]]></Document>)
+
+                state.SendInvokeCompletionList()
+                Await state.WaitForUIRenderedAsync()
+
+                Await state.AssertCompletionItemsContainAll("Color.Red", "Color.Green", "Color.Blue", "Color")
+
+                Dim oldFilters = state.GetCompletionItemFilters()
+                Dim newFiltersBuilder = ArrayBuilder(Of Data.CompletionFilterWithState).GetInstance()
+
+                ' ensure both Enum and EnumMembers filter present, and then select EnumMember filter
+                Dim hasEnumerFilter = False, hasEnumMemberFilter = False
+                For Each oldState In oldFilters
+
+                    If Object.ReferenceEquals(oldState.Filter, FilterSet.EnumMemberFilter) Then
+                        hasEnumMemberFilter = True
+                        newFiltersBuilder.Add(oldState.WithSelected(True))
+                        Continue For
+                    End If
+
+                    If Object.ReferenceEquals(oldState.Filter, FilterSet.EnumFilter) Then
+                        hasEnumerFilter = True
+                    End If
+
+                    newFiltersBuilder.Add(oldState.WithSelected(False))
+                Next
+
+                Assert.True(hasEnumerFilter And hasEnumMemberFilter)
+
+                state.RaiseFiltersChanged(newFiltersBuilder.ToImmutableAndFree())
+
+                Await state.WaitForUIRenderedAsync()
+                Await state.AssertCompletionItemsContainAll("Color.Red", "Color.Green", "Color.Blue")
+                Await state.AssertCompletionItemsDoNotContainAny("Color")
+            End Using
+        End Function
+
+        <WpfFact>
+        <Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestEnumMembersMatchTargetType() As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document><![CDATA[
+
+public enum Color
+{
+    Red,
+    Green,
+    Blue
+}
+
+class C
+{
+    void M()
+    {
+        Color x = $$
+    }
+}
+            ]]></Document>)
+
+                state.SendInvokeCompletionList()
+                Await state.WaitForUIRenderedAsync()
+
+                Await state.AssertCompletionItemsContainAll("Color.Red", "Color.Green", "Color.Blue", "Color")
+
+                Dim oldFilters = state.GetCompletionItemFilters()
+                Dim newFiltersBuilder = ArrayBuilder(Of Data.CompletionFilterWithState).GetInstance()
+
+                Dim hasTargetTypedFilter = False
+                For Each oldState In oldFilters
+
+                    If Object.ReferenceEquals(oldState.Filter, FilterSet.TargetTypedFilter) Then
+                        hasTargetTypedFilter = True
+                        newFiltersBuilder.Add(oldState.WithSelected(True))
+                        Continue For
+                    End If
+
+                    newFiltersBuilder.Add(oldState.WithSelected(False))
+                Next
+
+                Assert.True(hasTargetTypedFilter)
+
+                state.RaiseFiltersChanged(newFiltersBuilder.ToImmutableAndFree())
+
+                Await state.WaitForUIRenderedAsync()
+                Await state.AssertCompletionItemsContainAll("Color.Red", "Color.Green", "Color.Blue")
+                Await state.AssertCompletionItemsDoNotContainAny("Color")
             End Using
         End Function
 
@@ -9357,10 +9575,11 @@ public unsafe class AA
             End Using
         End Function
 
-        <WpfTheory, CombinatorialData>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.Completion)>
+        <WorkItem(63922, "https://github.com/dotnet/roslyn/issues/63922")>
         <WorkItem(55546, "https://github.com/dotnet/roslyn/issues/55546")>
-        Public Async Function PreferHigherMatchPriorityOverCaseSensitiveWithOnlyLowercaseTyped(showCompletionInArgumentLists As Boolean) As Task
+        Public Async Function DoNotSelectMatchPriorityDeprioritizeAndBetterCaseSensitiveWithOnlyLowercaseTyped() As Task
             Using state = TestStateFactory.CreateCSharpTestState(
             <Document>
 using System;
@@ -9374,8 +9593,7 @@ public class AA
     {
         var y = x.$$
     }
-}</Document>,
-                showCompletionInArgumentLists:=showCompletionInArgumentLists)
+}</Document>)
 
                 state.SendInvokeCompletionList()
                 Await state.WaitForAsynchronousOperationsAsync()
@@ -9385,25 +9603,39 @@ public class AA
                 Await state.WaitForAsynchronousOperationsAsync()
                 Await state.WaitForUIRenderedAsync()
 
+                ' "(short)" item has a MatchPriority of "Deprioritize", so we don't want to select it over regular item "Should"
+                ' even if it matches with filter text better in term of case-sensitivity.
                 Await state.AssertSelectedCompletionItem("Should")
+                Await state.AssertCompletionItemsContain(Function(item)
+                                                             Return item.GetEntireDisplayText() = "(short)"
+                                                         End Function)
             End Using
         End Function
 
-        <WpfTheory, CombinatorialData>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.Completion)>
         <WorkItem(55546, "https://github.com/dotnet/roslyn/issues/55546")>
-        Public Async Function PreferBestMatchPriorityAndCaseSensitiveWithOnlyLowercaseTyped(showCompletionInArgumentLists As Boolean) As Task
+        <WorkItem(63922, "https://github.com/dotnet/roslyn/issues/63922")>
+        Public Async Function PreferBestMatchPriorityAndCaseSensitiveOverPreselect() As Task
             Using state = TestStateFactory.CreateCSharpTestState(
             <Document>
 public class AA
 {
-    private static void CC)
+    private static void CC()
     {
         $$
     }
 }</Document>,
-                extraExportedTypes:={GetType(MultipleLowercaseItemsWithNoHigherMatchPriorityProvider)}.ToList(),
-                showCompletionInArgumentLists:=showCompletionInArgumentLists)
+                extraExportedTypes:={GetType(TestMatchPriorityCompletionProvider)}.ToList())
+
+                Dim completionService = state.Workspace.Services.GetLanguageServices(LanguageNames.CSharp).GetRequiredService(Of CompletionService)()
+                Dim provider = completionService.GetTestAccessor().GetAllProviders(ImmutableHashSet(Of String).Empty).OfType(Of TestMatchPriorityCompletionProvider)().Single()
+
+                provider.AddItems(New(displayText As String, matchPriority As Integer)() {
+                                  ("item1", MatchPriority.Default - 1),
+                                  ("item2", MatchPriority.Default + 1),
+                                  ("item3", MatchPriority.Default),
+                                  ("Item4", MatchPriority.Preselect)})
 
                 state.SendInvokeCompletionList()
                 Await state.WaitForAsynchronousOperationsAsync()
@@ -9413,55 +9645,34 @@ public class AA
                 Await state.WaitForAsynchronousOperationsAsync()
                 Await state.WaitForUIRenderedAsync()
 
-                ' We have multiple items have "item" prefix but with different MatchPriority, 
-                ' need to ensure we select the one with best casing AND MatchPriority.
+                ' always prefer case-sensitive match of highest priority, even in the presence of item with MatchPriority.Preselect
                 Await state.AssertSelectedCompletionItem("item2")
             End Using
         End Function
 
-        <ExportCompletionProvider(NameOf(MultipleLowercaseItemsWithNoHigherMatchPriorityProvider), LanguageNames.CSharp)>
-        <[Shared]>
-        <PartNotDiscoverable>
-        Private Class MultipleLowercaseItemsWithNoHigherMatchPriorityProvider
-            Inherits CompletionProvider
-
-            Private ReadOnly highPriorityRule As CompletionItemRules = CompletionItemRules.Default.WithMatchPriority(MatchPriority.Default + 1)
-            Private ReadOnly lowPriorityRule As CompletionItemRules = CompletionItemRules.Default.WithMatchPriority(MatchPriority.Default - 1)
-
-            <ImportingConstructor>
-            <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
-            Public Sub New()
-            End Sub
-
-            ' All lowercase items have lower MatchPriority than uppercase item, except one with equal value.
-            Public Overrides Function ProvideCompletionsAsync(context As CompletionContext) As Task
-                context.AddItem(CompletionItem.Create(displayText:="item1", rules:=lowPriorityRule))
-                context.AddItem(CompletionItem.Create(displayText:="item2", rules:=highPriorityRule))
-                context.AddItem(CompletionItem.Create(displayText:="item3", rules:=CompletionItemRules.Default))
-                context.AddItem(CompletionItem.Create(displayText:="Item4", rules:=highPriorityRule))
-                Return Task.CompletedTask
-            End Function
-
-            Public Overrides Function ShouldTriggerCompletion(text As SourceText, caretPosition As Integer, trigger As CompletionTrigger, options As OptionSet) As Boolean
-                Return True
-            End Function
-        End Class
-
         <WpfTheory, CombinatorialData>
         <Trait(Traits.Feature, Traits.Features.Completion)>
         <WorkItem(55546, "https://github.com/dotnet/roslyn/issues/55546")>
-        Public Async Function PreferBestCaseSensitiveWithUppercaseTyped(showCompletionInArgumentLists As Boolean) As Task
+        <WorkItem(63922, "https://github.com/dotnet/roslyn/issues/63922")>
+        Public Async Function PreferBestCaseSensitiveWithUppercaseTyped(uppercaseItemIsDeprioritize As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
             <Document>
 public class AA
 {
-    private static void CC)
+    private static void CC()
     {
         $$
     }
 }</Document>,
-                extraExportedTypes:={GetType(UppercaseItemWithLowerPriorityProvider)}.ToList(),
-                showCompletionInArgumentLists:=showCompletionInArgumentLists)
+                extraExportedTypes:={GetType(TestMatchPriorityCompletionProvider)}.ToList())
+
+                Dim completionService = state.Workspace.Services.GetLanguageServices(LanguageNames.CSharp).GetRequiredService(Of CompletionService)()
+                Dim provider = completionService.GetTestAccessor().GetAllProviders(ImmutableHashSet(Of String).Empty).OfType(Of TestMatchPriorityCompletionProvider)().Single()
+
+                provider.AddItems(New(displayText As String, matchPriority As Integer)() {
+                                  ("item1", MatchPriority.Preselect),
+                                  ("item2", MatchPriority.Default + 1),
+                                  ("Item3", If(uppercaseItemIsDeprioritize, MatchPriority.Deprioritize, MatchPriority.Default - 1))})
 
                 state.SendInvokeCompletionList()
                 Await state.WaitForAsynchronousOperationsAsync()
@@ -9470,28 +9681,36 @@ public class AA
                 state.SendTypeChars("Item")
                 Await state.WaitForAsynchronousOperationsAsync()
                 Await state.WaitForUIRenderedAsync()
-                Await state.AssertSelectedCompletionItem("Item3")   ' ensure we prefer casing over match priority if uppercase is typed
+
+                ' regardless of priority, if any uppercase letter is typed, ensure we prefer casing over match priority (including Preselect items) if uppercase is typed
+                ' even if item with best matched casing has MatchPriority.Deprioritize
+                Await state.AssertSelectedCompletionItem("Item3")
             End Using
         End Function
 
-        <ExportCompletionProvider(NameOf(UppercaseItemWithLowerPriorityProvider), LanguageNames.CSharp)>
-        <[Shared]>
         <PartNotDiscoverable>
-        Private Class UppercaseItemWithLowerPriorityProvider
+        <[Shared], ExportCompletionProvider(NameOf(TestMatchPriorityCompletionProvider), LanguageNames.CSharp)>
+        Private Class TestMatchPriorityCompletionProvider
             Inherits CompletionProvider
 
-            Private ReadOnly highPriorityRule As CompletionItemRules = CompletionItemRules.Default.WithMatchPriority(MatchPriority.Default + 1)
-            Private ReadOnly lowPriorityRule As CompletionItemRules = CompletionItemRules.Default.WithMatchPriority(MatchPriority.Default - 1)
+            Public Property Items As ImmutableArray(Of CompletionItem)
 
             <ImportingConstructor>
             <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
             Public Sub New()
             End Sub
 
+            Public Sub AddItems(items As (displayText As String, matchPriority As Integer)())
+                Dim builder = ArrayBuilder(Of CompletionItem).GetInstance(items.Length)
+                For Each item In items
+                    builder.Add(CompletionItem.Create(displayText:=item.displayText, rules:=CompletionItemRules.Default.WithMatchPriority(item.matchPriority)))
+                Next
+                Me.Items = builder.ToImmutableAndFree()
+            End Sub
+
+            ' All lowercase items have lower MatchPriority than uppercase item, except one with equal value.
             Public Overrides Function ProvideCompletionsAsync(context As CompletionContext) As Task
-                context.AddItem(CompletionItem.Create(displayText:="item1", rules:=highPriorityRule))
-                context.AddItem(CompletionItem.Create(displayText:="item2", rules:=highPriorityRule))
-                context.AddItem(CompletionItem.Create(displayText:="Item3", rules:=lowPriorityRule))
+                context.AddItems(Items)
                 Return Task.CompletedTask
             End Function
 
@@ -9499,6 +9718,39 @@ public class AA
                 Return True
             End Function
         End Class
+
+        <WpfFact>
+        <Trait(Traits.Feature, Traits.Features.Completion)>
+        <WorkItem(63922, "https://github.com/dotnet/roslyn/issues/63922")>
+        Public Async Function DoNotSelectItemWithHigherMatchPriorityButWorseCaseSensitivity() As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+            <Document>
+using System;
+public class AA
+{
+    public void F(object node)
+    {
+        var Node = (string)nod$$
+    }
+}</Document>)
+
+                state.SendInvokeCompletionList()
+                Await state.WaitForAsynchronousOperationsAsync()
+                Await state.WaitForUIRenderedAsync()
+
+                ' test prefix match
+                Await state.AssertSelectedCompletionItem("node", isHardSelected:=True)
+                Await state.AssertCompletionItemsContain("Node", "")
+
+                state.SendTypeChars("e")
+                Await state.WaitForAsynchronousOperationsAsync()
+                Await state.WaitForUIRenderedAsync()
+
+                ' test complete match
+                Await state.AssertSelectedCompletionItem("node", isHardSelected:=True)
+                Await state.AssertCompletionItemsContain("Node", "")
+            End Using
+        End Function
 
         <WpfTheory, CombinatorialData>
         <Trait(Traits.Feature, Traits.Features.Completion)>

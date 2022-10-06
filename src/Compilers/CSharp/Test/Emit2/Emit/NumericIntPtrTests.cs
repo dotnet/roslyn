@@ -312,6 +312,15 @@ class Program
         public string ToString(IFormatProvider provider) => default;
         public string ToString(string format, IFormatProvider provider) => default;
     }
+    public class Attribute { }
+    public class AttributeUsageAttribute : Attribute
+    {
+        public AttributeUsageAttribute(AttributeTargets t) { }
+        public bool AllowMultiple { get; set; }
+        public bool Inherited { get; set; }
+    }
+    public struct Enum { }
+    public enum AttributeTargets { }
 }
 " + RuntimeFeature_NumericIntPtr;
 
@@ -405,6 +414,15 @@ class Program
         public static bool operator==(UIntPtr x, UIntPtr y) => default;
         public static bool operator!=(UIntPtr x, UIntPtr y) => default;
     }
+    public class Attribute { }
+    public class AttributeUsageAttribute : Attribute
+    {
+        public AttributeUsageAttribute(AttributeTargets t) { }
+        public bool AllowMultiple { get; set; }
+        public bool Inherited { get; set; }
+    }
+    public struct Enum { }
+    public enum AttributeTargets { }
 }
 " + RuntimeFeature_NumericIntPtr;
             var comp = CreateEmptyCompilation(sourceA, options: TestOptions.UnsafeReleaseDll);
@@ -506,6 +524,15 @@ class Program
         public override int GetHashCode() => 0;
         public override bool Equals(object obj) => false;
     }
+    public class Attribute { }
+    public class AttributeUsageAttribute : Attribute
+    {
+        public AttributeUsageAttribute(AttributeTargets t) { }
+        public bool AllowMultiple { get; set; }
+        public bool Inherited { get; set; }
+    }
+    public struct Enum { }
+    public enum AttributeTargets { }
 }
 " + RuntimeFeature_NumericIntPtr;
 
@@ -582,6 +609,15 @@ class Program
         UIntPtr I<UIntPtr>.P => this;
         UIntPtr I<UIntPtr>.F() => this;
     }
+    public class Attribute { }
+    public class AttributeUsageAttribute : Attribute
+    {
+        public AttributeUsageAttribute(AttributeTargets t) { }
+        public bool AllowMultiple { get; set; }
+        public bool Inherited { get; set; }
+    }
+    public struct Enum { }
+    public enum AttributeTargets { }
 }
 " + RuntimeFeature_NumericIntPtr;
 
@@ -757,6 +793,15 @@ class Program
         internal UIntPtr F2() => default;
         public static UIntPtr F3() => default;
     }
+    public class Attribute { }
+    public class AttributeUsageAttribute : Attribute
+    {
+        public AttributeUsageAttribute(AttributeTargets t) { }
+        public bool AllowMultiple { get; set; }
+        public bool Inherited { get; set; }
+    }
+    public struct Enum { }
+    public enum AttributeTargets { }
 }
 " + RuntimeFeature_NumericIntPtr;
 
@@ -979,6 +1024,141 @@ class B4 : A
 
             comp = CreateNumericIntPtrCompilation(source, references: new[] { MscorlibRefWithoutSharingCachedSymbols }, options: TestOptions.ReleaseDll.WithWarningLevel(6), parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem(63860, "https://github.com/dotnet/roslyn/issues/63860")]
+        public void AddUIntPtrAndInt()
+        {
+            var source = @"
+using System;
+
+class C
+{
+    UIntPtr M(UIntPtr i, int j) => i + j;
+}
+";
+            var comp = CreateNumericIntPtrCompilation(source, references: new[] { MscorlibRefWithoutSharingCachedSymbols });
+            comp.VerifyDiagnostics(
+                // (6,36): error CS0034: Operator '+' is ambiguous on operands of type 'nuint' and 'int'
+                //     UIntPtr M(UIntPtr i, int j) => i + j;
+                Diagnostic(ErrorCode.ERR_AmbigBinaryOps, "i + j").WithArguments("+", "nuint", "int").WithLocation(6, 36)
+                );
+
+            comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp);
+            verifier.VerifyIL("C.M", @"
+{
+  // Code size        8 (0x8)
+  .maxstack  2
+  IL_0000:  ldarg.1
+  IL_0001:  ldarg.2
+  IL_0002:  call       ""System.UIntPtr System.UIntPtr.op_Addition(System.UIntPtr, int)""
+  IL_0007:  ret
+}
+");
+        }
+
+        [Fact, WorkItem(63860, "https://github.com/dotnet/roslyn/issues/63860")]
+        public void AddNUIntAndInt()
+        {
+            var source = @"
+class C
+{
+    nuint M(nuint i, int j) => i + j;
+}";
+            var comp = CreateNumericIntPtrCompilation(source, references: new[] { MscorlibRefWithoutSharingCachedSymbols });
+            comp.VerifyDiagnostics(
+                // (4,32): error CS0034: Operator '+' is ambiguous on operands of type 'nuint' and 'int'
+                //     nuint M(nuint i, int j) => i + j;
+                Diagnostic(ErrorCode.ERR_AmbigBinaryOps, "i + j").WithArguments("+", "nuint", "int").WithLocation(4, 32)
+                );
+
+            comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (4,32): error CS0034: Operator '+' is ambiguous on operands of type 'nuint' and 'int'
+                //     nuint M(nuint i, int j) => i + j;
+                Diagnostic(ErrorCode.ERR_AmbigBinaryOps, "i + j").WithArguments("+", "nuint", "int").WithLocation(4, 32)
+                );
+        }
+
+        [Fact, WorkItem(63860, "https://github.com/dotnet/roslyn/issues/63860")]
+        public void AddIntPtrAndInt()
+        {
+            var source = @"
+using System;
+
+class C
+{
+    IntPtr M(IntPtr i, int j) => i + j;
+}";
+            var comp = CreateNumericIntPtrCompilation(source, references: new[] { MscorlibRefWithoutSharingCachedSymbols });
+            comp.VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp);
+            verifier.VerifyIL("C.M", @"
+{
+  // Code size        5 (0x5)
+  .maxstack  2
+  IL_0000:  ldarg.1
+  IL_0001:  ldarg.2
+  IL_0002:  conv.i
+  IL_0003:  add
+  IL_0004:  ret
+}
+");
+            comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+
+            verifier = CompileAndVerify(comp);
+            verifier.VerifyIL("C.M", @"
+{
+  // Code size        8 (0x8)
+  .maxstack  2
+  IL_0000:  ldarg.1
+  IL_0001:  ldarg.2
+  IL_0002:  call       ""System.IntPtr System.IntPtr.op_Addition(System.IntPtr, int)""
+  IL_0007:  ret
+}
+");
+        }
+
+        [Fact, WorkItem(63860, "https://github.com/dotnet/roslyn/issues/63860")]
+        public void AddNIntAndInt()
+        {
+            var source = @"
+class C
+{
+    nint M(nint i, int j) => i + j;
+}";
+            var comp = CreateNumericIntPtrCompilation(source, references: new[] { MscorlibRefWithoutSharingCachedSymbols });
+            comp.VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp);
+            verifier.VerifyIL("C.M", @"
+{
+  // Code size        5 (0x5)
+  .maxstack  2
+  IL_0000:  ldarg.1
+  IL_0001:  ldarg.2
+  IL_0002:  conv.i
+  IL_0003:  add
+  IL_0004:  ret
+}
+");
+
+            comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+            verifier = CompileAndVerify(comp);
+            verifier.VerifyIL("C.M", @"
+{
+  // Code size        5 (0x5)
+  .maxstack  2
+  IL_0000:  ldarg.1
+  IL_0001:  ldarg.2
+  IL_0002:  conv.i
+  IL_0003:  add
+  IL_0004:  ret
+}
+");
         }
 
         [Fact]
@@ -1511,7 +1691,7 @@ public class A
         }
 
         [Theory, CombinatorialData]
-        public void BuiltInOperators_NativeIntegers(bool useCompilationReference, bool useSystemTypes)
+        public void BuiltInOperators_NativeIntegers(bool useCSharp9, bool useCompilationReference, bool useSystemTypes)
         {
             var nintType = useSystemTypes ? "System.IntPtr" : "nint";
             var nuintType = useSystemTypes ? "System.UIntPtr" : "nuint";
@@ -1545,7 +1725,7 @@ public class A
         F4 = F4 / F2;
     }
 }";
-            comp = CreateEmptyCompilation(sourceB, references: new[] { refA, mscorlibRefWithoutSharing }, parseOptions: TestOptions.Regular9);
+            comp = CreateEmptyCompilation(sourceB, references: new[] { refA, mscorlibRefWithoutSharing }, parseOptions: useCSharp9 ? TestOptions.Regular9 : TestOptions.Regular8);
             comp.VerifyDiagnostics();
             var verifier = CompileAndVerify(comp);
             verifier.VerifyIL("B.Main",
@@ -1634,33 +1814,54 @@ public class A
   IL_00f1:  stsfld     ""nuint? A.F4""
   IL_00f6:  ret
 }");
+        }
 
-            comp = CreateEmptyCompilation(sourceB, references: new[] { refA, mscorlibRefWithoutSharing }, parseOptions: TestOptions.Regular8);
-            comp.VerifyDiagnostics(
-                // (5,14): error CS8400: Feature 'native-sized integers' is not available in C# 8.0. Please use language version 9.0 or greater.
-                //         F1 = -F1;
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "-F1").WithArguments("native-sized integers", "9.0").WithLocation(5, 14),
-                // (6,14): error CS8400: Feature 'native-sized integers' is not available in C# 8.0. Please use language version 9.0 or greater.
-                //         F2 = +F2;
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "+F2").WithArguments("native-sized integers", "9.0").WithLocation(6, 14),
-                // (7,14): error CS8400: Feature 'native-sized integers' is not available in C# 8.0. Please use language version 9.0 or greater.
-                //         F3 = -F3;
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "-F3").WithArguments("native-sized integers", "9.0").WithLocation(7, 14),
-                // (8,14): error CS8400: Feature 'native-sized integers' is not available in C# 8.0. Please use language version 9.0 or greater.
-                //         F4 = +F4;
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "+F4").WithArguments("native-sized integers", "9.0").WithLocation(8, 14),
-                // (9,14): error CS8400: Feature 'native-sized integers' is not available in C# 8.0. Please use language version 9.0 or greater.
-                //         F1 = F1 * F1;
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "F1 * F1").WithArguments("native-sized integers", "9.0").WithLocation(9, 14),
-                // (10,14): error CS8400: Feature 'native-sized integers' is not available in C# 8.0. Please use language version 9.0 or greater.
-                //         F2 = F2 / F2;
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "F2 / F2").WithArguments("native-sized integers", "9.0").WithLocation(10, 14),
-                // (11,14): error CS8400: Feature 'native-sized integers' is not available in C# 8.0. Please use language version 9.0 or greater.
-                //         F3 = F3 * F1;
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "F3 * F1").WithArguments("native-sized integers", "9.0").WithLocation(11, 14),
-                // (12,14): error CS8400: Feature 'native-sized integers' is not available in C# 8.0. Please use language version 9.0 or greater.
-                //         F4 = F4 / F2;
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "F4 / F2").WithArguments("native-sized integers", "9.0").WithLocation(12, 14));
+        [Fact, WorkItem(63860, "https://github.com/dotnet/roslyn/issues/63860")]
+        public void IntPtrOperator_OnPlatformWithNumericIntPtr()
+        {
+            var source = """
+using System;
+
+class C
+{
+    public static void M()
+    {
+        IntPtr a = default;
+        bool b = a == IntPtr.Zero;
+        a += 1;
+        _ = a + 1;
+    }
+}
+""";
+            var comp = CreateNumericIntPtrCompilation(source, references: new[] { MscorlibRefWithoutSharingCachedSymbols }, parseOptions: TestOptions.Regular7_3);
+            comp.VerifyDiagnostics();
+
+            comp = CreateNumericIntPtrCompilation(source, references: new[] { MscorlibRefWithoutSharingCachedSymbols });
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem(63860, "https://github.com/dotnet/roslyn/issues/63860")]
+        public void IntPtrOperator_OnPlatformWithoutNumericIntPtr()
+        {
+            var source = """
+using System;
+
+class C
+{
+    public static void M()
+    {
+        IntPtr a = default;
+        bool b = a == IntPtr.Zero;
+        a += 1;
+        _ = a + 1;
+    }
+}
+""";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_3);
+            comp.VerifyDiagnostics();
+
+            comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
         }
 
         [Theory]
@@ -6808,7 +7009,7 @@ $@"class MyInt
                     "nint?" => "System.IntPtr?",
                     "nuint" => "System.UIntPtr",
                     "nuint?" => "System.UIntPtr?",
-                    _ => throw ExceptionUtilities.Unreachable
+                    _ => throw ExceptionUtilities.Unreachable()
                 };
                 binaryOps(op, fullLeftType, rightType, expectedSymbol1, expectedSymbol2, diagnostics1, diagnostics2);
             }
@@ -10095,7 +10296,7 @@ interface I
     void M(nint x1, System.IntPtr x2, nuint x3, System.UIntPtr x4);
 }
 ";
-            var parseOptions = useCSharp11 ? TestOptions.Regular11 : TestOptions.Regular10;
+            var parseOptions = (useCSharp11 ? TestOptions.Regular11 : TestOptions.Regular10).WithNoRefSafetyRulesAttribute();
 
             var comp = CreateEmptyCompilation(new[] { source, corlib_cs }, parseOptions: parseOptions);
             verify(comp);
@@ -10866,6 +11067,14 @@ namespace System
     public struct RuntimeTypeHandle { }
     public class MulticastDelegate : Delegate { }
     public class Attribute { }
+    public class AttributeUsageAttribute : Attribute
+    {
+        public AttributeUsageAttribute(AttributeTargets t) { }
+        public bool AllowMultiple { get; set; }
+        public bool Inherited { get; set; }
+    }
+    public class Enum { }
+    public enum AttributeTargets { }
 
     public delegate void Action();
 

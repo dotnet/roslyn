@@ -6,6 +6,7 @@ Imports Microsoft.CodeAnalysis.CodeRefactorings
 Imports Microsoft.CodeAnalysis.VisualBasic.Wrapping
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Wrapping
+    <Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)>
     Public Class InitializerExpressionWrappingTests
         Inherits AbstractWrappingTests
 
@@ -13,7 +14,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Wrapping
             Return New VisualBasicWrappingCodeRefactoringProvider()
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)>
+        <Fact>
         Public Async Function TestNoWrappingSuggestions() As Task
             Await TestMissingAsync(
 "Class C
@@ -23,7 +24,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Wrapping
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)>
+        <Fact>
         Public Async Function TestWrappingShortInitializerExpression() As Task
             Await TestAllWrappingCasesAsync(
 "Class C
@@ -47,7 +48,7 @@ End Class", "Class C
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)>
+        <Fact>
         Public Async Function TestWrappingLongIntializerExpression() As Task
             Await TestAllWrappingCasesAsync("Class C
     Public Sub Bar()
@@ -76,7 +77,7 @@ End Class")
 }")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)>
+        <Fact>
         Public Async Function TestWrappingMultiLineLongIntializerExpression() As Task
             Await TestAllWrappingCasesAsync("Class C
     Public Sub Bar()
@@ -115,7 +116,7 @@ End Class")
 }")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)>
+        <Fact>
         Public Async Function TestShortInitializerExpressionRefactorings() As Task
             Await TestAllWrappingCasesAsync("Class C
     Public Sub Bar()
@@ -137,7 +138,7 @@ End Class", "Class C
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)>
+        <Fact>
         Public Async Function TestLongIntializerExpressionRefactorings() As Task
             Await TestAllWrappingCasesAsync("Class C
     Public Sub Bar()
@@ -166,7 +167,7 @@ End Class", "Class C
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)>
+        <Fact>
         Public Async Function TestListIntializerExpressionRefactorings() As Task
             Await TestAllWrappingCasesAsync("Class C
     Public Sub Bar()
@@ -196,7 +197,7 @@ End Class", "Class C
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)>
+        <Fact>
         Public Async Function TestWrappedListIntializerExpressionRefactorings() As Task
             Await TestAllWrappingCasesAsync("Class C
     Public Sub Bar()
@@ -226,7 +227,7 @@ End Class", "Class C
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)>
+        <Fact>
         Public Async Function TestObjectIntializerExpressionRefactorings() As Task
             Await TestAllWrappingCasesAsync("Class C
     Public Sub Bar()
@@ -249,7 +250,7 @@ End Class", "Class C
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)>
+        <Fact>
         Public Async Function TestWrappedObjectIntializerExpressionRefactorings() As Task
             Await TestAllWrappingCasesAsync("Class C
     Public Sub Bar()
@@ -272,7 +273,7 @@ End Class", "Class C
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)>
+        <Fact>
         Public Async Function TestReturnIntializerExpressionRefactorings() As Task
             Await TestAllWrappingCasesAsync("Class C
     Public Sub Bar()
@@ -302,7 +303,7 @@ End Class", "Class C
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)>
+        <Fact>
         Public Async Function TestWrappedReturnIntializerExpressionRefactorings() As Task
             Await TestAllWrappingCasesAsync("Class C
     Public Sub Bar()
@@ -332,7 +333,7 @@ End Class", "Class C
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)>
+        <Fact>
         Public Async Function TestClassPropertyIntializerExpressionRefactorings() As Task
             Await TestAllWrappingCasesAsync("Public Class C
     Public Property B As New List(Of Integer) From [||]{0, 1, 2, 3, 4, 5, 6, 7, 8, 9}
@@ -356,7 +357,7 @@ End Class", "Public Class C
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)>
+        <Fact>
         Public Async Function TestWrappedClassPropertyIntializerExpressionRefactorings() As Task
             Await TestAllWrappingCasesAsync("Public Class C
     Public Property B As New List(Of Integer) From [||]{
@@ -380,7 +381,7 @@ End Class", "Public Class C
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)>
+        <Fact>
         Public Async Function TestArgumentIntializerExpressionRefactorings() As Task
             Await TestAllWrappingCasesAsync("Public Sub F
     Dim result = FakeFunction(New List(Of Integer) From [||]{0, 1, 2, 3, 4, 5, 6, 7, 8, 9})
@@ -404,7 +405,7 @@ End Sub", "Public Sub F
 End Sub")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)>
+        <Fact>
         Public Async Function TestWrappedArgumentIntializerExpressionRefactorings() As Task
             Await TestAllWrappingCasesAsync("Public Sub F
     Dim result = FakeFunction(New List(Of Integer) From [||]{
@@ -426,6 +427,46 @@ End Sub", "Public Sub F
         0, 1, 2, 3, 4, 5, 6, 7, 8, 9
     })
 End Sub")
+        End Function
+
+        <Fact, WorkItem(63732, "https://github.com/dotnet/roslyn/issues/63732")>
+        Public Async Function TestMissingStartToken1() As Task
+            Await TestMissingAsync(
+"Class C
+    Public Sub Bar()
+        Dim test() As Integer = New Integer() [||] }
+    End Sub
+End Class")
+        End Function
+
+        <Fact, WorkItem(63732, "https://github.com/dotnet/roslyn/issues/63732")>
+        Public Async Function TestMissingStartToken2() As Task
+            Await TestMissingAsync(
+"Class C
+    Public Sub Bar()
+        Dim test() As Integer = New Integer() [||]1, 2 }
+    End Sub
+End Class")
+        End Function
+
+        <Fact, WorkItem(63732, "https://github.com/dotnet/roslyn/issues/63732")>
+        Public Async Function TestMissingEndToken1() As Task
+            Await TestMissingAsync(
+"Class C
+    Public Sub Bar()
+        Dim test() As Integer = New Integer() {[||]
+    End Sub
+End Class")
+        End Function
+
+        <Fact, WorkItem(63732, "https://github.com/dotnet/roslyn/issues/63732")>
+        Public Async Function TestMissingEndToken2() As Task
+            Await TestMissingAsync(
+"Class C
+    Public Sub Bar()
+        Dim test() As Integer = New Integer() {[||]1, 2
+    End Sub
+End Class")
         End Function
     End Class
 End Namespace
