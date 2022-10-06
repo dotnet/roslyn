@@ -4,6 +4,7 @@
 
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Editor;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
@@ -60,7 +61,7 @@ namespace Roslyn.VisualStudio.IntegrationTests
         protected async Task ClearEditorAsync(CancellationToken cancellationToken)
             => await SetUpEditorAsync("$$", cancellationToken);
 
-        protected async Task SetUpEditorAsync(string markupCode, CancellationToken cancellationToken)
+        protected async Task SetUpEditorAsync(string markupCode, CancellationToken cancellationToken, string contentType = ContentTypeNames.RoslynContentType)
         {
             MarkupTestFile.GetPositionAndSpans(markupCode, out var code, out int? caretPosition, out var spans);
 
@@ -78,7 +79,7 @@ namespace Roslyn.VisualStudio.IntegrationTests
 
                 if (caretPosition.HasValue)
                 {
-                    await TestServices.Editor.MoveCaretAsync(caretPosition.Value, cancellationToken);
+                    await TestServices.Editor.MoveCaretAsync(caretPosition.Value, cancellationToken, contentType);
                 }
                 else
                 {
