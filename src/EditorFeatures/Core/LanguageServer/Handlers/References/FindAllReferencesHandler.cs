@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
     /// </summary>
     [ExportCSharpVisualBasicStatelessLspService(typeof(FindAllReferencesHandler)), Shared]
     [Method(LSP.Methods.TextDocumentReferencesName)]
-    internal class FindAllReferencesHandler : IRequestHandler<LSP.ReferenceParams, LSP.VSInternalReferenceItem[]?>
+    internal class FindAllReferencesHandler : ILspServiceDocumentRequestHandler<LSP.ReferenceParams, LSP.VSInternalReferenceItem[]?>
     {
         private readonly IMetadataAsSourceFileService _metadataAsSourceFileService;
         private readonly IAsynchronousOperationListener _asyncListener;
@@ -49,14 +49,17 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         public bool MutatesSolutionState => false;
         public bool RequiresLSPSolution => true;
 
-        public TextDocumentIdentifier? GetTextDocumentIdentifier(ReferenceParams request) => request.TextDocument;
+        public TextDocumentIdentifier GetTextDocumentIdentifier(ReferenceParams request) => request.TextDocument;
 
         public async Task<LSP.VSInternalReferenceItem[]?> HandleRequestAsync(ReferenceParams referenceParams, RequestContext context, CancellationToken cancellationToken)
         {
-            Debug.Assert(context.ClientCapabilities.HasVisualStudioLspCapability());
+            var clientCapabilities = context.GetRequiredClientCapabilities();
+            Debug.Assert(clientCapabilities.HasVisualStudioLspCapability());
 
             var document = context.Document;
+            var workspace = context.Workspace;
             Contract.ThrowIfNull(document);
+            Contract.ThrowIfNull(workspace);
 
             using var progress = BufferedProgress.Create<VSInternalReferenceItem>(referenceParams.PartialResultToken);
 
@@ -65,7 +68,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 ProtocolConversions.PositionToLinePosition(referenceParams.Position), cancellationToken).ConfigureAwait(false);
 
             var findUsagesContext = new FindUsagesLSPContext(
-                progress, document, position, _metadataAsSourceFileService, _asyncListener, _globalOptions, cancellationToken);
+                progress, workspace, document, position, _metadataAsSourceFileService, _asyncListener, _globalOptions, cancellationToken);
 
             // Finds the references for the symbol at the specific position in the document, reporting them via streaming to the LSP client.
             await findUsagesService.FindReferencesAsync(findUsagesContext, document, position, cancellationToken).ConfigureAwait(false);

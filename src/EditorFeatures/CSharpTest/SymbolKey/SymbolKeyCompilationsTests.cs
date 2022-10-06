@@ -108,8 +108,7 @@ public void Method()
             ResolveAndVerifySymbolList(newSymbols, originalSymbols, comp1);
         }
 
-        [Fact]
-        [WorkItem(820263, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/820263")]
+        [Fact, WorkItem(820263, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/820263")]
         public void PartialDefinitionAndImplementationResolveCorrectly()
         {
             var src = @"using System;
@@ -161,8 +160,7 @@ namespace NS
             Assert.Equal(implementation, ResolveSymbol(implementation, comp, SymbolKeyComparison.None));
         }
 
-        [Fact]
-        [WorkItem(916341, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/916341")]
+        [Fact, WorkItem(916341, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/916341")]
         public void ExplicitIndexerImplementationResolvesCorrectly()
         {
             var src = @"
@@ -478,8 +476,7 @@ public class Test
             ResolveAndVerifySymbolList(newSymbols, originalSymbols, comp1);
         }
 
-        [WorkItem(542700, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542700")]
-        [Fact]
+        [Fact, WorkItem(542700, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542700")]
         public void C2CIndexerSymbolChanged01()
         {
             var src1 = @"using System;

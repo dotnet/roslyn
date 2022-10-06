@@ -5,7 +5,6 @@
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Indentation;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.Wrapping.SeparatedSyntaxList
@@ -43,6 +42,8 @@ namespace Microsoft.CodeAnalysis.Wrapping.SeparatedSyntaxList
         protected abstract bool ShouldMoveCloseBraceToNewLine { get; }
         protected abstract bool ShouldMoveOpenBraceToNewLine(SyntaxWrappingOptions options);
 
+        protected abstract SyntaxToken FirstToken(TListSyntax listSyntax);
+        protected abstract SyntaxToken LastToken(TListSyntax listSyntax);
         protected abstract TListSyntax? TryGetApplicableList(SyntaxNode node);
         protected abstract SeparatedSyntaxList<TListItemSyntax> GetListItems(TListSyntax listSyntax);
         protected abstract bool PositionIsApplicable(
@@ -53,6 +54,12 @@ namespace Microsoft.CodeAnalysis.Wrapping.SeparatedSyntaxList
         {
             var listSyntax = TryGetApplicableList(declaration);
             if (listSyntax == null || listSyntax.Span.IsEmpty)
+                return null;
+
+            var firstToken = FirstToken(listSyntax);
+            var lastToken = LastToken(listSyntax);
+
+            if (firstToken.IsMissing || lastToken.IsMissing || firstToken.Span.IsEmpty || lastToken.Span.IsEmpty)
                 return null;
 
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);

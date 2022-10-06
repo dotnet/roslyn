@@ -17,9 +17,10 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.DecompiledSource
 {
     [UseExportProvider]
+    [Trait(Traits.Feature, Traits.Features.DecompiledSource)]
     public class DecompiledSourceFormattingTests
     {
-        [Fact, Trait(Traits.Feature, Traits.Features.DecompiledSource)]
+        [Fact]
         public async Task TestIfFormatting1()
         {
             await TestAsync(
@@ -40,7 +41,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.DecompiledSource
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DecompiledSource)]
+        [Fact]
         public async Task TestIfFormatting2()
         {
             await TestAsync(
@@ -64,7 +65,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.DecompiledSource
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DecompiledSource)]
+        [Fact]
         public async Task TestIfFormatting3()
         {
             await TestAsync(
@@ -91,7 +92,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.DecompiledSource
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DecompiledSource)]
+        [Fact]
         public async Task TestTryCatchFinally()
         {
             await TestAsync(
@@ -120,7 +121,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.DecompiledSource
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DecompiledSource)]
+        [Fact]
         public async Task TestDoWhile()
         {
             await TestAsync(
@@ -141,7 +142,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.DecompiledSource
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DecompiledSource)]
+        [Fact]
         public async Task TestNestedIf()
         {
             await TestAsync(
@@ -167,7 +168,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.DecompiledSource
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DecompiledSource)]
+        [Fact]
         public async Task TestBraces()
         {
             await TestAsync(

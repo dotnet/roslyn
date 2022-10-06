@@ -191,7 +191,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
                 _instance.Workspace.WaitForAllAsyncOperations(
                     Helper.HangMitigatingTimeout,
                     FeatureAttribute.Workspace,
-                    FeatureAttribute.SolutionCrawler,
+                    FeatureAttribute.SolutionCrawlerLegacy,
                     FeatureAttribute.DiagnosticService,
                     FeatureAttribute.ErrorSquiggles);
                 var actualTags = _textViewWindow.GetErrorTags();

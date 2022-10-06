@@ -14,8 +14,9 @@ Imports Roslyn.Utilities
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Snippets
     <[UseExportProvider]>
+    <Trait(Traits.Feature, Traits.Features.Snippets)>
     Public Class SnippetCompletionProviderTests
-        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/46295"), Trait(Traits.Feature, Traits.Features.Snippets)>
+        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/46295")>
         Public Async Function SnippetCompletion() As Task
             Dim markup = "a?$$"
             Dim testState = SnippetTestState.CreateTestState(markup, LanguageNames.VisualBasic, extraParts:={GetType(MockSnippetInfoService)})
@@ -38,7 +39,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Snippets
             End Using
         End Function
 
-        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/46295"), Trait(Traits.Feature, Traits.Features.Snippets)>
+        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/46295")>
         Public Async Function TracksChangeSpanCorrectly() As Task
             Dim markup = "a?$$"
             Dim testState = SnippetTestState.CreateTestState(markup, LanguageNames.VisualBasic, extraParts:={GetType(MockSnippetInfoService)})
@@ -57,7 +58,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Snippets
             End Using
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Snippets)>
+        <WpfFact>
         Public Async Function SnippetListOnlyIfTextBeforeQuestionMark() As Task
             Dim markup = <File>
 Class C
@@ -72,7 +73,7 @@ End Class</File>.Value
         End Function
 
         <WorkItem(21801, "https://github.com/dotnet/roslyn/issues/21801")>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Snippets)>
+        <WpfFact>
         Public Async Function SnippetNotOfferedInComments() As Task
             Dim markup = <File>
 Class C
@@ -89,7 +90,7 @@ End Class</File>.Value
         End Function
 
         <WorkItem(21801, "https://github.com/dotnet/roslyn/issues/21801")>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Snippets)>
+        <WpfFact>
         Public Async Function SnippetsNotOfferedInDocComments() As Task
             Dim markup = <File>
 Class C
@@ -105,7 +106,7 @@ End Class</File>.Value
             End Using
         End Function
 
-        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/46295"), Trait(Traits.Feature, Traits.Features.Snippets)>
+        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/46295")>
         Public Async Function SnippetsAlwaysOfferedOutsideComment() As Task
             Dim markup = <File>
 Class C

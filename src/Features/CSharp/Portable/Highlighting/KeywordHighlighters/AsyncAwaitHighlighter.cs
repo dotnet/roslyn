@@ -102,7 +102,7 @@ namespace Microsoft.CodeAnalysis.CSharp.KeywordHighlighting.KeywordHighlighters
 
         private static bool TryAddAsyncOrAwaitKeyword(SyntaxToken mod, List<TextSpan> spans)
         {
-            if (mod.IsKind(SyntaxKind.AsyncKeyword, SyntaxKind.AwaitKeyword))
+            if (mod.Kind() is SyntaxKind.AsyncKeyword or SyntaxKind.AwaitKeyword)
             {
                 // Note if there is already a highlight for the previous token, merge it with this
                 // span. That way, we highlight nested awaits with a single span.

@@ -595,7 +595,7 @@ class Program
             comp.VerifyDiagnostics(
                 // (7,20): error CS0721: 'StaticClass': static types cannot be used as parameters
                 //         var lam = (StaticClass sc) => sc;
-                Diagnostic(ErrorCode.ERR_ParameterIsStaticClass, "StaticClass sc").WithArguments("StaticClass").WithLocation(7, 20));
+                Diagnostic(ErrorCode.ERR_ParameterIsStaticClass, "StaticClass").WithArguments("StaticClass").WithLocation(7, 20));
         }
 
         [Fact]

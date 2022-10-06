@@ -360,7 +360,7 @@ namespace Microsoft.CodeAnalysis.Remote
                     }
                     catch (Exception e) when ((exception = e) == null)
                     {
-                        throw ExceptionUtilities.Unreachable;
+                        throw ExceptionUtilities.Unreachable();
                     }
                     finally
                     {

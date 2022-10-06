@@ -232,7 +232,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             MessageID.IDS_FeatureLambdaReturnType.CheckFeatureAvailability(diagnostics, syntax);
 
-            syntax = syntax.SkipRef(out RefKind refKind);
+            Debug.Assert(syntax is not ScopedTypeSyntax);
+            syntax = syntax.SkipScoped(out _).SkipRef(out RefKind refKind);
             if ((syntax as IdentifierNameSyntax)?.Identifier.ContextualKind() == SyntaxKind.VarKeyword)
             {
                 diagnostics.Add(ErrorCode.ERR_LambdaExplicitReturnTypeVar, syntax.Location);
@@ -315,7 +316,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     // UNDONE: Where do we report improper use of pointer types?
                     ParameterHelpers.ReportParameterErrors(owner: null, paramSyntax, ordinal: i, isParams: false, lambda.ParameterTypeWithAnnotations(i),
-                         lambda.RefKind(i), lambda.Scope(i), containingSymbol: null, thisKeyword: default, paramsKeyword: default, firstDefault, diagnostics);
+                         lambda.RefKind(i), lambda.DeclaredScope(i), containingSymbol: null, thisKeyword: default, paramsKeyword: default, firstDefault, diagnostics);
                 }
             }
 

@@ -13,6 +13,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.IntroduceVariable
 {
+    [Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
     public class InteractiveIntroduceVariableTests : AbstractCSharpCodeActionTest
     {
         protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace, TestParameters parameters)
@@ -24,7 +25,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Introd
         protected Task TestAsync(string initial, string expected, int index = 0)
             => TestAsync(initial, expected, Options.Script, null, index);
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact]
         public async Task TestMethodFix1()
         {
             await TestAsync(
@@ -42,7 +43,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Introd
                 index: 2);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact]
         public async Task TestMethodFix2()
         {
             await TestAsync(
@@ -60,7 +61,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Introd
                 index: 3);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact]
         public async Task TestFieldFix1()
         {
             var code =
@@ -73,7 +74,7 @@ int i = V + (1 + 1);";
             await TestAsync(code, expected, index: 0);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact]
         public async Task TestFieldFix2()
         {
             var code =
@@ -86,7 +87,7 @@ int i = V + V;";
             await TestAsync(code, expected, index: 1);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact]
         public async Task TestParameterFix1()
         {
             await TestAsync(
@@ -101,7 +102,7 @@ void Bar(int i = V, int j = 1 + 1)
                 index: 0);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact]
         public async Task TestParameterFix2()
         {
             await TestAsync(
@@ -133,7 +134,7 @@ void Bar()
                 index: 0);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact]
         public async Task TestAttributeFix2()
         {
             await TestAsync(
@@ -150,8 +151,7 @@ void Bar()
                 index: 1);
         }
 
-        [WorkItem(541287, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541287")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact, WorkItem(541287, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541287")]
         public async Task TestBlockFormatting()
         {
             await TestAsync(
@@ -183,8 +183,7 @@ class C
 index: 1);
         }
 
-        [WorkItem(546465, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546465")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [Fact, WorkItem(546465, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546465")]
         public async Task TestPreserveTrivia()
         {
             await TestAsync(

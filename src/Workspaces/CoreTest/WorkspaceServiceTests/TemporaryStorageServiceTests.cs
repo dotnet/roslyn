@@ -18,9 +18,10 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.UnitTests
 {
     [UseExportProvider]
+    [Trait(Traits.Feature, Traits.Features.Workspace)]
     public class TemporaryStorageServiceTests
     {
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact]
         public void TestTemporaryStorageText()
         {
             using var workspace = new AdhocWorkspace();
@@ -40,8 +41,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             TestTemporaryStorage(service, text);
         }
 
-        [WorkItem(531188, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531188")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact, WorkItem(531188, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531188")]
         public void TestTemporaryStorageStream()
         {
             using var workspace = new AdhocWorkspace();
@@ -84,7 +84,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             temporaryStorage.Dispose();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact]
         public void TestTemporaryTextStorageExceptions()
         {
             using var workspace = new AdhocWorkspace();
@@ -105,7 +105,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Throws<AggregateException>(() => storage.WriteTextAsync(text).Wait());
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact]
         public void TestTemporaryStreamStorageExceptions()
         {
             using var workspace = new AdhocWorkspace();
@@ -149,7 +149,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact]
         public void TestTemporaryStorageMemoryMappedFileManagement()
         {
             using var workspace = new AdhocWorkspace();
@@ -192,7 +192,6 @@ namespace Microsoft.CodeAnalysis.UnitTests
         }
 
         [Fact(Skip = "This test exists so it can be locally executed for scale testing, when required. Do not remove this test or unskip it in CI.")]
-        [Trait(Traits.Feature, Traits.Features.Workspace)]
         public void TestTemporaryStorageScaling()
         {
             // This will churn through 4GB of memory.  It validates that we don't
@@ -330,7 +329,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact]
         public void TestTemporaryStorageTextEncoding()
         {
             using var workspace = new AdhocWorkspace();

@@ -15,11 +15,12 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
         /// <summary>
         /// Generates a file from metadata. Will be called under a lock to prevent concurrent access.
         /// </summary>
-        Task<MetadataAsSourceFile?> GetGeneratedFileAsync(Workspace workspace, Project project, ISymbol symbol, bool signaturesOnly, MetadataAsSourceOptions options, string tempPath, CancellationToken cancellationToken);
+        Task<MetadataAsSourceFile?> GetGeneratedFileAsync(
+            MetadataAsSourceWorkspace metadataWorkspace, Workspace sourceWorkspace, Project sourceProject, ISymbol symbol, bool signaturesOnly, MetadataAsSourceOptions options, string tempPath, CancellationToken cancellationToken);
 
         /// <summary>
-        /// Called when the file returned from <see cref="GetGeneratedFileAsync(Workspace, Project, ISymbol, bool, MetadataAsSourceOptions, string, CancellationToken)"/>
-        /// needs to be added to the workspace, to be opened. Will be called under a lock to prevent concurrent access.
+        /// Called when the file returned from <see cref="GetGeneratedFileAsync"/> needs to be added to the workspace,
+        /// to be opened. Will be called under a lock to prevent concurrent access.
         /// </summary>
         bool TryAddDocumentToWorkspace(Workspace workspace, string filePath, SourceTextContainer sourceTextContainer);
 

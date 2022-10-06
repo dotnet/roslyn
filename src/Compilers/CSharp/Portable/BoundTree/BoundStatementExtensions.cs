@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             return;
                         }
                     }
-                    throw ExceptionUtilities.Unreachable;
+                    throw ExceptionUtilities.Unreachable();
 
                 default:
                     throw ExceptionUtilities.UnexpectedValue(node.Kind);

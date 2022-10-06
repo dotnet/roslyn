@@ -680,8 +680,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.False(generatorRan);
         }
 
-        [Fact]
-        [WorkItem(56702, "https://github.com/dotnet/roslyn/issues/56702")]
+        [Fact, WorkItem(56702, "https://github.com/dotnet/roslyn/issues/56702")]
         public async Task ForkAfterFreezeNoLongerRunsGenerators()
         {
             using var workspace = CreateWorkspaceWithPartialSemantics();
@@ -709,8 +708,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Equal("// Something else", (await document.GetRequiredSyntaxRootAsync(CancellationToken.None)).ToFullString());
         }
 
-        [Fact]
-        [WorkItem(56702, "https://github.com/dotnet/roslyn/issues/56702")]
+        [Fact, WorkItem(56702, "https://github.com/dotnet/roslyn/issues/56702")]
         public async Task ForkAfterFreezeNoLongerRunsGeneratorsEvenIfCompilationFallsAwayBeforeFreeze()
         {
             using var workspace = CreateWorkspaceWithPartialSemanticsAndWeakCompilations();

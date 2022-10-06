@@ -98,7 +98,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.MakeStatementAsynchronous
 
         private static SyntaxNode? TryGetStatementToFix(SyntaxNode node)
         {
-            if (node.IsParentKind(SyntaxKind.ForEachStatement, SyntaxKind.ForEachVariableStatement, SyntaxKind.UsingStatement))
+            if (node.Parent is (kind:
+                    SyntaxKind.ForEachStatement or
+                    SyntaxKind.ForEachVariableStatement or
+                    SyntaxKind.UsingStatement))
             {
                 return node.Parent;
             }
