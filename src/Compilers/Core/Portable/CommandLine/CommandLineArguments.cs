@@ -494,6 +494,24 @@ namespace Microsoft.CodeAnalysis
                 var analyzerReference = o as AnalyzerFileReference;
                 RoslynDebug.Assert(analyzerReference is object);
                 DiagnosticInfo? diagnostic;
+
+                // <Metalama>
+                if ( e.Exception != null)
+                {
+                    try
+                    {
+                        var crashReportDirectory = Path.Combine( Path.GetTempPath(), "Metalama", "ExtractExceptions" );
+                        if (!Directory.Exists(crashReportDirectory))
+                        {
+                            Directory.CreateDirectory(crashReportDirectory);
+                        }
+                        var crashReportPath = Path.Combine( crashReportDirectory, $"exception-{Guid.NewGuid()}.txt");
+                        File.WriteAllText( crashReportPath, e.Exception.ToString());
+                    }
+                    catch {}
+                }
+                // </Metalama>
+
                 switch (e.ErrorCode)
                 {
                     case AnalyzerLoadFailureEventArgs.FailureErrorCode.UnableToLoadAnalyzer:
