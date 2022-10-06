@@ -130,6 +130,8 @@ namespace Microsoft.CodeAnalysis.Remote
                 try
                 {
                     // Intentionally yield this thread so that the caller can proceed concurrently and start reading.
+                    // This is not strictly necessary (as we know the writer will always call FlushAsync()), but it is nice
+                    // as it allows both to proceed concurrently on the initial writing/reading.
                     await Task.Yield();
 
                     await invocation(service, pipeWriter, cancellationToken).ConfigureAwait(false);
