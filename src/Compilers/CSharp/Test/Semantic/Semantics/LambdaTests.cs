@@ -7310,7 +7310,7 @@ class Program
             comp.VerifyDiagnostics();
         }
 
-        [ConditionalFact(typeof(NoIOperationValidation))]
+        [Fact]
         public void LambdaDefaultLocalConstantExpression()
         {
             var source = """
@@ -7335,7 +7335,7 @@ class Program
                 Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "i2").WithArguments("i2").WithLocation(6, 19));
         }
 
-        [ConditionalFact(typeof(NoIOperationValidation))]
+        [Fact]
         public void AnonymousMethodDefaultLocalConstantExpression()
         {
             var source = """
@@ -7522,7 +7522,7 @@ class Program
             comp.VerifyDiagnostics();
         }
 
-        [ConditionalFact(typeof(NoIOperationValidation))]
+        [Fact]
         public void LambdaDefaultWithinNestedScope()
         {
             var source = """
