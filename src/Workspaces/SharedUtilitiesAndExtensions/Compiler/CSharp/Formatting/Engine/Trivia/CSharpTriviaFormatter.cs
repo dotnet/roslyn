@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             return _newLine;
         }
 
-        protected override LineColumnRule GetLineColumnRuleBetween(SyntaxTrivia trivia1, LineColumnDelta existingWhitespaceBetween, bool implicitLineBreak, SyntaxTrivia trivia2)
+        protected override LineColumnRule GetLineColumnRuleBetween(SyntaxTrivia trivia1, LineColumnDelta existingWhitespaceBetween, bool implicitLineBreak, SyntaxTrivia trivia2, CancellationToken cancellationToken)
         {
             if (IsStartOrEndOfFile(trivia1, trivia2))
             {
@@ -100,7 +100,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 if (trivia2.IsKind(SyntaxKind.RegionDirectiveTrivia) || trivia2.IsKind(SyntaxKind.EndRegionDirectiveTrivia))
                 {
                     var previous = trivia2;
-                    while ((previous = previous.GetPreviousTrivia(previous.SyntaxTree, CancellationToken.None)).IsKind(SyntaxKind.WhitespaceTrivia))
+                    while ((previous = previous.GetPreviousTrivia(previous.SyntaxTree, cancellationToken)).IsKind(SyntaxKind.WhitespaceTrivia))
                     {
                         // skip whitespace trivia.
                     }
