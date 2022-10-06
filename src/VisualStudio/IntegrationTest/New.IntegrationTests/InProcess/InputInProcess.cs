@@ -103,7 +103,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.InProcess
             {
                 await TestServices.JoinableTaskFactory.SwitchToMainThreadAsync();
                 var searchBox = Assert.IsAssignableFrom<TextBox>(Keyboard.FocusedElement);
-                Assert.Equal("PART_SearchBox", searchBox.Name);
+                Assert.Equal("SearchBoxControl", searchBox.Name);
             });
 
             callback(new InputSimulator());
