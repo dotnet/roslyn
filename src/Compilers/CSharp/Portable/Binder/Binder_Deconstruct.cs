@@ -305,7 +305,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     var elementSyntax = syntax.Kind() == SyntaxKind.TupleExpression ? ((TupleExpressionSyntax)syntax).Arguments[i] : syntax;
 
-                    hasErrors |= !MakeDeconstructionConversion(tupleOrDeconstructedTypes[i], elementSyntax, rightSyntax, /*PROTOTYPE:*/LocalScopeDepth, diagnostics,
+                    hasErrors |= !MakeDeconstructionConversion(tupleOrDeconstructedTypes[i], elementSyntax, rightSyntax, LocalScopeDepth, diagnostics,
                         variable.NestedVariables, out nestedConversion);
 
                     Debug.Assert(nestedConversion.Kind == ConversionKind.Deconstruction);
@@ -646,7 +646,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 for (int i = 0; i < numCheckedVariables; i++)
                 {
-                    var variableOpt = variablesOpt?[i].Single; // PROTOTYPE: Do we need to handle the multiple case?
+                    var variableOpt = variablesOpt?[i].Single;
                     uint valEscape = variableOpt is null ? LocalScopeDepth : GetValEscape(variableOpt, LocalScopeDepth);
                     var variable = new OutDeconstructVarPendingInference(receiverSyntax, valEscape);
                     analyzedArguments.Arguments.Add(variable);
