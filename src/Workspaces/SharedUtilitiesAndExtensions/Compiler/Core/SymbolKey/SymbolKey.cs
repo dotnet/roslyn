@@ -188,7 +188,7 @@ namespace Microsoft.CodeAnalysis
                 return default;
             }
 
-            var langauge = reader.ReadString();
+            var language = reader.ReadString();
 
             // Initial entrypoint.  No contextual symbol to pass along.
             var result = reader.ReadSymbolKey(contextualSymbol: null, out failureReason);
@@ -321,13 +321,46 @@ namespace Microsoft.CodeAnalysis
                 _ => false,
             };
 
+        private static int GetDataStartPosition(string key)
+        {
+            using var reader = SymbolKeyReader.GetReader(key, compilation: null!, ignoreAssemblyKey: false, CancellationToken.None);
+            reader.ReadFormatVersion();
+            reader.ReadString();
+            return reader.Position;
+        }
+
         public override int GetHashCode()
-            => _symbolKeyData.GetHashCode();
+        {
+            var position = GetDataStartPosition(_symbolKeyData);
+
+#if NETSTANDARD
+            var hashCode = 0;
+            foreach (var ch in _symbolKeyData[position..])
+                hashCode = Hash.Combine(ch, hashCode);
+
+            return hashCode;
+#else
+            return string.GetHashCode(_symbolKeyData.AsSpan()[position..]);
+#endif
+        }
 
         public override bool Equals(object? obj)
             => obj is SymbolKey symbolKey && this.Equals(symbolKey);
 
         public bool Equals(SymbolKey other)
-            => _symbolKeyData == other._symbolKeyData;
+            => Equals(other, ignoreCase: false);
+
+        private bool Equals(SymbolKey other, bool ignoreCase)
+        {
+            var position1 = GetDataStartPosition(_symbolKeyData);
+            var position2 = GetDataStartPosition(other._symbolKeyData);
+
+            var keySpan1 = _symbolKeyData.AsSpan()[position1..];
+            var keySpan2 = other._symbolKeyData.AsSpan()[position2..];
+
+            return ignoreCase
+                ? CaseInsensitiveComparison.Equals(keySpan1, keySpan2)
+                : keySpan1.SequenceEqual(keySpan2);
+        }
     }
 }

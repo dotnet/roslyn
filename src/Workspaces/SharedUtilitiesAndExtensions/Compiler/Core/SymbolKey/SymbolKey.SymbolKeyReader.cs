@@ -251,6 +251,11 @@ namespace Microsoft.CodeAnalysis
 
             public string RemoveAssemblySymbolKeys()
             {
+                this.ReadFormatVersion();
+
+                // read out the language as well, it's not part of any symbol key comparison
+                this.ReadString();
+
                 while (Position < Data.Length)
                 {
                     var ch = Data[Position];
