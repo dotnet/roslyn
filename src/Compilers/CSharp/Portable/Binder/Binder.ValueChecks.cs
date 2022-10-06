@@ -2403,10 +2403,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // find the widest scope that arguments could safely escape to.
             // use this scope as the inferred STE of declaration expressions.
-            var escapeFrom = CallingMethodScope;
+            var inferredDestinationValEscape = CallingMethodScope;
             foreach (var (_, fromArg, _, isRefEscape) in escapeValues)
             {
-                escapeFrom = Math.Max(escapeFrom, isRefEscape
+                inferredDestinationValEscape = Math.Max(inferredDestinationValEscape, isRefEscape
                     ? GetRefEscape(fromArg, scopeOfTheContainingExpression)
                     : GetValEscape(fromArg, scopeOfTheContainingExpression));
             }
@@ -2415,7 +2415,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (ShouldInferDeclarationExpressionValEscape(fromArg, out var localSymbol))
                 {
-                    localSymbol.SetValEscape(escapeFrom);
+                    localSymbol.SetValEscape(inferredDestinationValEscape);
                 }
             }
 
