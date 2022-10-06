@@ -242,6 +242,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             {
                 // We do support 'not' patterns.  So attempt to push a 'not' pattern into the current is-pattern RHS.
                 // If the value isn't a Boolean and the pattern `is true/false`, swapping to `is false/true` is incorrect since non-Booleans match neither.
+                // As an example, `!(new object() is true)` is equivalent to `new object() is not true` but not `new object() is false`.
                 var operation = semanticModel.GetOperation(isExpression, cancellationToken);
                 var isValueBoolean = operation is IIsPatternOperation isPatternOperation && isPatternOperation.Value.Type?.SpecialType == SpecialType.System_Boolean;
                 negatedPattern = generator.Negate(generatorInternal, pattern, semanticModel, negateBinary: true, allowSwappingBooleans: isValueBoolean, cancellationToken);
