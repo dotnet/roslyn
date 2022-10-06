@@ -64,6 +64,7 @@ static class Utils
             "System.Linq.Expressions.Expression`1" :
             "System.Linq.Expressions.Expression1`1";
         private static readonly string s_libPrefix = ExecutionConditionUtil.IsDesktop ? "mscorlib" : "netstandard";
+        private static readonly string s_corePrefix = ExecutionConditionUtil.IsDesktop ? "System.Core" : "netstandard";
 
         private void TestDiagnosticsInMain(string mainBody, string[]? usings = null, TargetFramework targetFramework = TargetFramework.Standard, params DiagnosticDescription[] expectedDiagnostics)
         {
@@ -13438,7 +13439,7 @@ $@"
 		) runtime managed 
 	{{
 		.param [1] = nullref
-			.custom instance void [{s_libPrefix}]System.Runtime.CompilerServices.DynamicAttribute::.ctor() = (
+			.custom instance void [{s_corePrefix}]System.Runtime.CompilerServices.DynamicAttribute::.ctor() = (
 				01 00 00 00
 			)
 	}} // end of method '<>f__AnonymousDelegate0'::Invoke
@@ -13531,7 +13532,7 @@ class Program
 		) cil managed 
 	{{
 		.param [2]
-			.custom instance void [{s_libPrefix}]System.Runtime.CompilerServices.DynamicAttribute::.ctor() = (
+			.custom instance void [{s_corePrefix}]System.Runtime.CompilerServices.DynamicAttribute::.ctor() = (
 				01 00 00 00
 			)
 		// Method begins at RVA 0x20ae
