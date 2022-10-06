@@ -83,7 +83,10 @@ namespace Microsoft.VisualStudio.LanguageServices.TaskList
                 var workspaceStatus = workspace.Services.GetRequiredService<IWorkspaceStatusService>();
                 await workspaceStatus.WaitUntilFullyLoadedAsync(_threadingContext.DisposalToken).ConfigureAwait(false);
 
-                // Wait until the task list is actually visible:
+                // Wait until the task list is actually visible so that we don't perform pointless work analyzing files
+                // when the user would not even see the results.  When we actually do register the analyer (in
+                // _listener.Start below), solution-crawler will reanalyze everything with this analayzer, so it will
+                // still find and present all the relevant items to the user.
                 await WaitUntilTaskListActivatedAsync().ConfigureAwait(false);
 
                 // Now that we've started, let the VS todo list know to start listening to us
