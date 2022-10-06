@@ -132,17 +132,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             => _solution.ContainsDocument(documentId);
 
         /// <summary>
-        /// Observes the content of the specified document checks if it matches the PDB.
-        /// </summary>
-        /// <remarks>
-        /// When the <see cref="DebuggingSession"/> is started we check the content of all open documents against the PDB.
-        /// Then we check the content whenever another document is opened. This approach gives us the opportunity to record the
-        /// document content state before the user has a chance to edit the files.
-        /// </remarks>
-        public Task OnSourceFileUpdatedAsync(Document document, CancellationToken cancellationToken)
-            => GetDocumentAndStateAsync(document.Id, document, cancellationToken, reloadOutOfSyncDocument: true);
-
-        /// <summary>
         /// Returns a document snapshot for given <see cref="Document"/> whose content exactly matches
         /// the source file used to compile the binary currently loaded in the debuggee. Returns null
         /// if it fails to find a document snapshot whose content hash maches the one recorded in the PDB.
@@ -325,13 +314,13 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             var maybePdbHasDocument = TryReadSourceFileChecksumFromPdb(document, out var requiredChecksum, out var checksumAlgorithm);
 
             var maybeMatchingSourceText = (maybePdbHasDocument == true) ?
-                await TryGetMatchingSourceTextAsync(sourceText, document.FilePath, currentDocument, requiredChecksum, checksumAlgorithm, cancellationToken).ConfigureAwait(false) : default;
+                await TryGetMatchingSourceTextAsync(sourceText, document.FilePath, currentDocument, _debuggingSession.SourceTextProvider, requiredChecksum, checksumAlgorithm, cancellationToken).ConfigureAwait(false) : default;
 
             return (maybeMatchingSourceText, maybePdbHasDocument);
         }
 
         private static async ValueTask<Optional<SourceText?>> TryGetMatchingSourceTextAsync(
-            SourceText sourceText, string filePath, Document? currentDocument, ImmutableArray<byte> requiredChecksum, SourceHashAlgorithm checksumAlgorithm, CancellationToken cancellationToken)
+            SourceText sourceText, string filePath, Document? currentDocument, IPdbMatchingSourceTextProvider sourceTextProvider, ImmutableArray<byte> requiredChecksum, SourceHashAlgorithm checksumAlgorithm, CancellationToken cancellationToken)
         {
             if (IsMatchingSourceText(sourceText, requiredChecksum, checksumAlgorithm))
             {
@@ -347,12 +336,19 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 }
             }
 
+            var text = await sourceTextProvider.TryGetMatchingSourceTextAsync(filePath, requiredChecksum, checksumAlgorithm, cancellationToken).ConfigureAwait(false);
+            if (text != null)
+            {
+                return SourceText.From(text, sourceText.Encoding, checksumAlgorithm);
+            }
+
             return await Task.Run(() => TryGetPdbMatchingSourceTextFromDisk(filePath, sourceText.Encoding, requiredChecksum, checksumAlgorithm), cancellationToken).ConfigureAwait(false);
         }
 
         internal static async Task<IEnumerable<KeyValuePair<DocumentId, DocumentState>>> GetMatchingDocumentsAsync(
             IEnumerable<(Project, IEnumerable<CodeAnalysis.DocumentState>)> documentsByProject,
             Func<Project, CompilationOutputs> compilationOutputsProvider,
+            IPdbMatchingSourceTextProvider sourceTextProvider,
             CancellationToken cancellationToken)
         {
             var projectTasks = documentsByProject.Select(async projectDocumentStates =>
@@ -392,7 +388,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                         // TODO: https://github.com/dotnet/roslyn/issues/51993
                         // avoid rereading the file in common case - the workspace should create source texts with the right checksum algorithm and encoding
                         if (TryReadSourceFileChecksumFromPdb(debugInfoReader, sourceFilePath, out var requiredChecksum, out var checksumAlgorithm) == true &&
-                            await TryGetMatchingSourceTextAsync(sourceText, sourceFilePath, currentDocument: null, requiredChecksum, checksumAlgorithm, cancellationToken).ConfigureAwait(false) is { HasValue: true, Value: not null })
+                            await TryGetMatchingSourceTextAsync(sourceText, sourceFilePath, currentDocument: null, sourceTextProvider, requiredChecksum, checksumAlgorithm, cancellationToken).ConfigureAwait(false) is { HasValue: true, Value: not null })
                         {
                             return documentState.Id;
                         }
