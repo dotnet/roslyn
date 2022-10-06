@@ -125,42 +125,6 @@ namespace Microsoft.CodeAnalysis.Remote
                 throw ex;
             }
 
-            #region read/seek api (not supported)
-
-            public override long Length => throw this.ThrowDisposedOr(new NotSupportedException());
-            public override long Position
-            {
-                get => throw this.ThrowDisposedOr(new NotSupportedException());
-                set => this.ThrowDisposedOr(new NotSupportedException());
-            }
-
-            public override int Read(byte[] buffer, int offset, int count)
-                => throw this.ThrowDisposedOr(new NotSupportedException());
-
-            public override Task<int> ReadAsync(byte[] buffer, int offset, int count, CancellationToken cancellationToken)
-                => throw this.ThrowDisposedOr(new NotSupportedException());
-
-#if !NETSTANDARD
-
-            public override int Read(Span<byte> buffer)
-                => throw this.ThrowDisposedOr(new NotSupportedException());
-
-            public override ValueTask<int> ReadAsync(Memory<byte> buffer, CancellationToken cancellationToken)
-                => throw this.ThrowDisposedOr(new NotSupportedException());
-
-#endif
-
-            public override int ReadByte()
-                => throw this.ThrowDisposedOr(new NotSupportedException());
-
-            public override long Seek(long offset, SeekOrigin origin)
-                => throw this.ThrowDisposedOr(new NotSupportedException());
-
-            public override void SetLength(long value)
-                => this.ThrowDisposedOr(new NotSupportedException());
-
-            #endregion
-
             /// <summary>
             /// Intentionally a no op. We know that we and <see cref="RemoteHostAssetSerialization.WriteDataAsync"/>
             /// will call <see cref="FlushAsync"/> at appropriate times to ensure data is being sent through the writer
@@ -223,6 +187,42 @@ namespace Microsoft.CodeAnalysis.Remote
             }
 
 #endif
+
+            #region read/seek api (not supported)
+
+            public override long Length => throw this.ThrowDisposedOr(new NotSupportedException());
+            public override long Position
+            {
+                get => throw this.ThrowDisposedOr(new NotSupportedException());
+                set => this.ThrowDisposedOr(new NotSupportedException());
+            }
+
+            public override int Read(byte[] buffer, int offset, int count)
+                => throw this.ThrowDisposedOr(new NotSupportedException());
+
+            public override Task<int> ReadAsync(byte[] buffer, int offset, int count, CancellationToken cancellationToken)
+                => throw this.ThrowDisposedOr(new NotSupportedException());
+
+#if !NETSTANDARD
+
+            public override int Read(Span<byte> buffer)
+                => throw this.ThrowDisposedOr(new NotSupportedException());
+
+            public override ValueTask<int> ReadAsync(Memory<byte> buffer, CancellationToken cancellationToken)
+                => throw this.ThrowDisposedOr(new NotSupportedException());
+
+#endif
+
+            public override int ReadByte()
+                => throw this.ThrowDisposedOr(new NotSupportedException());
+
+            public override long Seek(long offset, SeekOrigin origin)
+                => throw this.ThrowDisposedOr(new NotSupportedException());
+
+            public override void SetLength(long value)
+                => this.ThrowDisposedOr(new NotSupportedException());
+
+            #endregion
         }
     }
 }
