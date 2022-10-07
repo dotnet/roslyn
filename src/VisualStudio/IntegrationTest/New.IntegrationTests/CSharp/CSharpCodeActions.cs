@@ -1440,7 +1440,7 @@ public class Program
                 new[]
                 {
                     FeatureAttribute.Workspace,
-                    FeatureAttribute.SolutionCrawler,
+                    FeatureAttribute.SolutionCrawlerLegacy,
                     FeatureAttribute.DiagnosticService,
                     FeatureAttribute.ErrorSquiggles
                 },
