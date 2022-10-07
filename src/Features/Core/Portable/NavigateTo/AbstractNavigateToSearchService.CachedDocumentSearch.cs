@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading;
@@ -70,11 +71,18 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             var client = await RemoteHostClient.TryGetClientAsync(project, cancellationToken).ConfigureAwait(false);
             if (client != null)
             {
-                var callback = new NavigateToSearchServiceCallback(onItemFound);
-                await client.TryInvokeAsync<IRemoteNavigateToSearchService>(
-                    (service, callbackId, cancellationToken) =>
-                        service.SearchCachedDocumentsAsync(documentKeys, priorityDocumentKeys, searchPattern, kinds.ToImmutableArray(), callbackId, cancellationToken),
-                    callback, cancellationToken).ConfigureAwait(false);
+                var result = client.TryInvokeStreamAsync<IRemoteNavigateToSearchService, RoslynNavigateToItem>(
+                    (service, cancellationToken) =>
+                        service.SearchCachedDocumentsAsync(documentKeys, priorityDocumentKeys, searchPattern, kinds.ToImmutableArray(), cancellationToken),
+                    cancellationToken);
+
+                await foreach (var item in result.WithCancellation(cancellationToken))
+                {
+                    if (!item.HasValue)
+                        return;
+
+                    await onItemFound(item.Value).ConfigureAwait(false);
+                }
 
                 return;
             }

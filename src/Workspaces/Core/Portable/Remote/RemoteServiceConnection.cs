@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.IO.Pipelines;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -30,6 +31,10 @@ namespace Microsoft.CodeAnalysis.Remote
             Func<TService, CancellationToken, ValueTask<TResult>> invocation,
             CancellationToken cancellationToken);
 
+        public abstract IAsyncEnumerable<Optional<TResult>> TryInvokeStreamAsync<TResult>(
+            Func<TService, CancellationToken, IAsyncEnumerable<TResult>> invocation,
+            CancellationToken cancellationToken);
+
         // no solution, callback
 
         public abstract ValueTask<bool> TryInvokeAsync(
@@ -52,6 +57,11 @@ namespace Microsoft.CodeAnalysis.Remote
             Func<TService, Checksum, CancellationToken, ValueTask<TResult>> invocation,
             CancellationToken cancellationToken);
 
+        public abstract IAsyncEnumerable<Optional<TResult>> TryInvokeStreamAsync<TResult>(
+            Solution solution,
+            Func<TService, Checksum, CancellationToken, IAsyncEnumerable<TResult>> invocation,
+            CancellationToken cancellationToken);
+
         // project, no callback
 
         public abstract ValueTask<bool> TryInvokeAsync(
@@ -62,6 +72,11 @@ namespace Microsoft.CodeAnalysis.Remote
         public abstract ValueTask<Optional<TResult>> TryInvokeAsync<TResult>(
             Project project,
             Func<TService, Checksum, CancellationToken, ValueTask<TResult>> invocation,
+            CancellationToken cancellationToken);
+
+        public abstract IAsyncEnumerable<Optional<TResult>> TryInvokeStreamAsync<TResult>(
+            Project project,
+            Func<TService, Checksum, CancellationToken, IAsyncEnumerable<TResult>> invocation,
             CancellationToken cancellationToken);
 
         // solution, callback

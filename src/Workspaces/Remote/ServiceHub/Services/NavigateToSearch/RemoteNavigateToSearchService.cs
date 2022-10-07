@@ -15,19 +15,15 @@ namespace Microsoft.CodeAnalysis.Remote
 {
     internal sealed class RemoteNavigateToSearchService : BrokeredServiceBase, IRemoteNavigateToSearchService
     {
-        internal sealed class Factory : FactoryBase<IRemoteNavigateToSearchService, IRemoteNavigateToSearchService.ICallback>
+        internal sealed class Factory : FactoryBase<IRemoteNavigateToSearchService>
         {
-            protected override IRemoteNavigateToSearchService CreateService(
-                in ServiceConstructionArguments arguments, RemoteCallback<IRemoteNavigateToSearchService.ICallback> callback)
-                => new RemoteNavigateToSearchService(arguments, callback);
+            protected override IRemoteNavigateToSearchService CreateService(in ServiceConstructionArguments arguments)
+                => new RemoteNavigateToSearchService(arguments);
         }
 
-        private readonly RemoteCallback<IRemoteNavigateToSearchService.ICallback> _callback;
-
-        public RemoteNavigateToSearchService(in ServiceConstructionArguments arguments, RemoteCallback<IRemoteNavigateToSearchService.ICallback> callback)
+        public RemoteNavigateToSearchService(in ServiceConstructionArguments arguments)
             : base(arguments)
         {
-            _callback = callback;
         }
 
         private Func<RoslynNavigateToItem, Task> GetCallback(

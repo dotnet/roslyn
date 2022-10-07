@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
@@ -28,13 +29,19 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             var client = await RemoteHostClient.TryGetClientAsync(project, cancellationToken).ConfigureAwait(false);
             if (client != null)
             {
-                var callback = new NavigateToSearchServiceCallback(onItemFound);
-
-                await client.TryInvokeAsync<IRemoteNavigateToSearchService>(
+                var result = client.TryInvokeStreamAsync<IRemoteNavigateToSearchService, RoslynNavigateToItem>(
                     solution,
-                    (service, solutionInfo, callbackId, cancellationToken) =>
-                        service.SearchGeneratedDocumentsAsync(solutionInfo, project.Id, searchPattern, kinds.ToImmutableArray(), callbackId, cancellationToken),
-                    callback, cancellationToken).ConfigureAwait(false);
+                    (service, solutionInfo, cancellationToken) =>
+                        service.SearchGeneratedDocumentsAsync(solutionInfo, project.Id, searchPattern, kinds.ToImmutableArray(), cancellationToken),
+                    cancellationToken);
+
+                await foreach (var item in result.WithCancellation(cancellationToken))
+                {
+                    if (!item.HasValue)
+                        return;
+
+                    await onItemFound(item.Value).ConfigureAwait(false);
+                }
 
                 return;
             }

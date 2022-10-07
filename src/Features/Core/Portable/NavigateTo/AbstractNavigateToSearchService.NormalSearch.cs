@@ -3,16 +3,10 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.FindSymbols;
-using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.PatternMatching;
 using Microsoft.CodeAnalysis.Remote;
-using Microsoft.CodeAnalysis.Storage;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.NavigateTo
 {
@@ -32,13 +26,20 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             var client = await RemoteHostClient.TryGetClientAsync(document.Project, cancellationToken).ConfigureAwait(false);
             if (client != null)
             {
-                var callback = new NavigateToSearchServiceCallback(onItemFound);
                 // Don't need to sync the full solution when searching a particular project.
-                await client.TryInvokeAsync<IRemoteNavigateToSearchService>(
+                var result = client.TryInvokeStreamAsync<IRemoteNavigateToSearchService, RoslynNavigateToItem>(
                     document.Project,
-                    (service, solutionInfo, callbackId, cancellationToken) =>
-                    service.SearchDocumentAsync(solutionInfo, document.Id, searchPattern, kinds.ToImmutableArray(), callbackId, cancellationToken),
-                    callback, cancellationToken).ConfigureAwait(false);
+                    (service, solutionInfo, cancellationToken) =>
+                        service.SearchDocumentAsync(solutionInfo, document.Id, searchPattern, kinds.ToImmutableArray(), cancellationToken),
+                    cancellationToken);
+
+                await foreach (var item in result.WithCancellation(cancellationToken))
+                {
+                    if (!item.HasValue)
+                        return;
+
+                    await onItemFound(item.Value).ConfigureAwait(false);
+                }
 
                 return;
             }
@@ -69,13 +70,20 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             if (client != null)
             {
                 var priorityDocumentIds = priorityDocuments.SelectAsArray(d => d.Id);
-                var callback = new NavigateToSearchServiceCallback(onItemFound);
 
-                await client.TryInvokeAsync<IRemoteNavigateToSearchService>(
+                var result = client.TryInvokeStreamAsync<IRemoteNavigateToSearchService, RoslynNavigateToItem>(
                     solution,
-                    (service, solutionInfo, callbackId, cancellationToken) =>
-                        service.SearchProjectAsync(solutionInfo, project.Id, priorityDocumentIds, searchPattern, kinds.ToImmutableArray(), callbackId, cancellationToken),
-                    callback, cancellationToken).ConfigureAwait(false);
+                    (service, solutionInfo, cancellationToken) =>
+                        service.SearchProjectAsync(solutionInfo, project.Id, priorityDocumentIds, searchPattern, kinds.ToImmutableArray(), cancellationToken),
+                    cancellationToken);
+
+                await foreach (var item in result.WithCancellation(cancellationToken))
+                {
+                    if (!item.HasValue)
+                        return;
+
+                    await onItemFound(item.Value).ConfigureAwait(false);
+                }
 
                 return;
             }
