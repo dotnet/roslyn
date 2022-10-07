@@ -51,11 +51,11 @@ public interface I1
             return isStatic ? Verification.Skipped : VerifyOnMonoOrCoreClr;
         }
 
-        private static bool Execute(bool isStatic, bool haveImplementationInDerivedInterface = false, bool hasImplementationOfStaticVirtualInDerivedType = false)
+        private static bool Execute(bool isStatic, bool haveImplementationInDerivedInterface = false, bool hasImplementationOfVirtualInDerivedType = false)
         {
             // The runtime ignores the implementation of a static virtual method in derived types
             // Tracked by https://github.com/dotnet/roslyn/issues/64501
-            if (hasImplementationOfStaticVirtualInDerivedType)
+            if (isStatic && hasImplementationOfVirtualInDerivedType)
             {
                 return false;
             }
@@ -804,7 +804,7 @@ class Test : I1
             Validate(compilation1.SourceModule);
 
             CompileAndVerify(compilation1,
-                expectedOutput: !Execute(isStatic, hasImplementationOfStaticVirtualInDerivedType: true) ? null :
+                expectedOutput: !Execute(isStatic, hasImplementationOfVirtualInDerivedType: true) ? null :
 @"Test.M1
 Test.M2",
                 verify: Verify(isStatic),
@@ -906,7 +906,7 @@ class Test : I1
             Validate(compilation1.SourceModule);
 
             CompileAndVerify(compilation1,
-                expectedOutput: !Execute(isStatic, hasImplementationOfStaticVirtualInDerivedType: true) ? null :
+                expectedOutput: !Execute(isStatic, hasImplementationOfVirtualInDerivedType: true) ? null :
 @"Test.M1
 Test.M2",
                 verify: Verify(isStatic),
@@ -1139,7 +1139,7 @@ class Test2 : I1
             Assert.Equal("void Test2.I1.M1()", test1.FindImplementationForInterfaceMember(m1).ToTestDisplayString());
 
             CompileAndVerify(compilation1,
-                expectedOutput: Execute(isStatic, hasImplementationOfStaticVirtualInDerivedType: true) ? "Test2.M1" : null,
+                expectedOutput: Execute(isStatic, hasImplementationOfVirtualInDerivedType: true) ? "Test2.M1" : null,
                 verify: Verify(isStatic),
                 symbolValidator: (m) =>
                 {
@@ -1218,7 +1218,7 @@ class Test2 : I1
             Assert.Equal("void Test2.M1()", test1.FindImplementationForInterfaceMember(m1).ToTestDisplayString());
 
             CompileAndVerify(compilation1,
-                expectedOutput: Execute(isStatic, hasImplementationOfStaticVirtualInDerivedType: true) ? "Test2.M1" : null,
+                expectedOutput: Execute(isStatic, hasImplementationOfVirtualInDerivedType: true) ? "Test2.M1" : null,
                 verify: Verify(isStatic),
                 symbolValidator: (m) =>
                 {
@@ -1472,7 +1472,7 @@ class Test2 : I1
             Assert.Equal("System.Int32 Test2.I1.M2()", test1.FindImplementationForInterfaceMember(m2).ToTestDisplayString());
 
             CompileAndVerify(compilation1,
-                expectedOutput: !Execute(isStatic, hasImplementationOfStaticVirtualInDerivedType: true) ? null :
+                expectedOutput: !Execute(isStatic, hasImplementationOfVirtualInDerivedType: true) ? null :
 @"Test2.M1
 2",
                 verify: Verify(isStatic),
@@ -1560,7 +1560,7 @@ class Test2 : I1
             Assert.Equal("System.Int32 Test2.M2()", test1.FindImplementationForInterfaceMember(m2).ToTestDisplayString());
 
             CompileAndVerify(compilation1,
-                expectedOutput: !Execute(isStatic, hasImplementationOfStaticVirtualInDerivedType: true) ? null :
+                expectedOutput: !Execute(isStatic, hasImplementationOfVirtualInDerivedType: true) ? null :
 @"Test2.M1
 2",
                 verify: Verify(isStatic),
@@ -3836,7 +3836,7 @@ class Test : I1
             Validate(compilation1.SourceModule);
 
             CompileAndVerify(compilation1,
-                expectedOutput: !Execute(isStatic, hasImplementationOfStaticVirtualInDerivedType: true) ? null :
+                expectedOutput: !Execute(isStatic, hasImplementationOfVirtualInDerivedType: true) ? null :
 @"100
 200
 300
@@ -3988,7 +3988,7 @@ class Test : I1
             Validate(compilation1.SourceModule);
 
             CompileAndVerify(compilation1,
-                expectedOutput: !Execute(isStatic, hasImplementationOfStaticVirtualInDerivedType: true) ? null :
+                expectedOutput: !Execute(isStatic, hasImplementationOfVirtualInDerivedType: true) ? null :
 @"100
 200
 300
@@ -6870,7 +6870,7 @@ class Test : I1 {}
             ValidateEventImplementation_201(compilation1.SourceModule);
 
             CompileAndVerify(compilation1,
-                expectedOutput: !Execute(isStatic, hasImplementationOfStaticVirtualInDerivedType: true) ? null :
+                expectedOutput: !Execute(isStatic, hasImplementationOfVirtualInDerivedType: true) ? null :
 @"add E7
 remove E7
 add E8
@@ -6977,7 +6977,7 @@ class Test : I1
             Validate(compilation1.SourceModule);
 
             CompileAndVerify(compilation1,
-                expectedOutput: !Execute(isStatic, hasImplementationOfStaticVirtualInDerivedType: true) ? null :
+                expectedOutput: !Execute(isStatic, hasImplementationOfVirtualInDerivedType: true) ? null :
 @"add E7
 remove E7
 add E8
@@ -7084,7 +7084,7 @@ class Test : I1
             Validate(compilation1.SourceModule);
 
             CompileAndVerify(compilation1,
-                expectedOutput: !Execute(isStatic, hasImplementationOfStaticVirtualInDerivedType: true) ? null :
+                expectedOutput: !Execute(isStatic, hasImplementationOfVirtualInDerivedType: true) ? null :
 @"add E7
 remove E7
 add E8
