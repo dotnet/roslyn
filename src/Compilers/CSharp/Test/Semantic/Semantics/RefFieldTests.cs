@@ -8070,7 +8070,7 @@ class Program
         [Theory]
         [InlineData(LanguageVersion.CSharp10)]
         [InlineData(LanguageVersion.CSharp11)]
-        public void Deconstruct_03A(LanguageVersion languageVersion)
+        public void Deconstruct_02A(LanguageVersion languageVersion)
         {
             var source =
 @"using System;
@@ -8093,7 +8093,7 @@ static class Program
         [Theory]
         [InlineData(LanguageVersion.CSharp10)]
         [InlineData(LanguageVersion.CSharp11)]
-        public void Deconstruct_03B(LanguageVersion languageVersion)
+        public void Deconstruct_02B(LanguageVersion languageVersion)
         {
             var source =
 @"using System;
@@ -8116,7 +8116,7 @@ static class Program
         [Theory]
         [InlineData(LanguageVersion.CSharp10)]
         [InlineData(LanguageVersion.CSharp11)]
-        public void Deconstruct_04A(LanguageVersion languageVersion)
+        public void Deconstruct_03A(LanguageVersion languageVersion)
         {
             var source =
 @"using System;
@@ -8196,7 +8196,7 @@ static class Program
         [Theory]
         [InlineData(LanguageVersion.CSharp10)]
         [InlineData(LanguageVersion.CSharp11)]
-        public void Deconstruct_04B(LanguageVersion languageVersion)
+        public void Deconstruct_03B(LanguageVersion languageVersion)
         {
             var source =
 @"using System;
@@ -8275,7 +8275,7 @@ static class Program
         [Theory]
         [InlineData(LanguageVersion.CSharp10)]
         [InlineData(LanguageVersion.CSharp11)]
-        public void Deconstruct_06(LanguageVersion languageVersion)
+        public void Deconstruct_04(LanguageVersion languageVersion)
         {
             var source =
 @"using System;
@@ -8327,7 +8327,7 @@ static class Program
         [Theory]
         [InlineData(LanguageVersion.CSharp10)]
         [InlineData(LanguageVersion.CSharp11)]
-        public void Deconstruct_07(LanguageVersion languageVersion)
+        public void Deconstruct_05(LanguageVersion languageVersion)
         {
             var source =
 @"ref struct R
@@ -8349,7 +8349,7 @@ static class Program
         [Theory]
         [InlineData(LanguageVersion.CSharp10)]
         [InlineData(LanguageVersion.CSharp11)]
-        public void Deconstruct_08(LanguageVersion languageVersion)
+        public void Deconstruct_06(LanguageVersion languageVersion)
         {
             var source =
 @"using System;
@@ -8369,7 +8369,7 @@ static class Program
 
         [WorkItem(64448, "https://github.com/dotnet/roslyn/issues/64448")]
         [Fact]
-        public void Deconstruct_09()
+        public void Deconstruct_07()
         {
             var source =
 @"ref struct R1
@@ -8399,7 +8399,7 @@ class Program
         [Theory]
         [InlineData(LanguageVersion.CSharp10)]
         [InlineData(LanguageVersion.CSharp11)]
-        public void Deconstruct_10(LanguageVersion languageVersion)
+        public void Deconstruct_08(LanguageVersion languageVersion)
         {
             var source =
 @"using System;
@@ -8425,7 +8425,7 @@ static class Program
         [Theory]
         [InlineData(LanguageVersion.CSharp10)]
         [InlineData(LanguageVersion.CSharp11)]
-        public void Deconstruct_11(LanguageVersion languageVersion)
+        public void Deconstruct_09(LanguageVersion languageVersion)
         {
             var source =
 @"ref struct R1
@@ -8506,7 +8506,7 @@ class Program
         [Theory]
         [InlineData(LanguageVersion.CSharp10)]
         [InlineData(LanguageVersion.CSharp11)]
-        public void Deconstruct_12(LanguageVersion languageVersion)
+        public void Deconstruct_10(LanguageVersion languageVersion)
         {
             var source =
 @"using System;
@@ -8563,7 +8563,7 @@ static class Program
         [Theory]
         [InlineData(LanguageVersion.CSharp10)]
         [InlineData(LanguageVersion.CSharp11)]
-        public void Deconstruct_13(LanguageVersion languageVersion)
+        public void Deconstruct_11(LanguageVersion languageVersion)
         {
             var source =
 @"using System;
