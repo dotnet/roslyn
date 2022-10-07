@@ -22,34 +22,6 @@ namespace Microsoft.CodeAnalysis.Remote
     internal sealed partial class RemoteWorkspace : Workspace
     {
         /// <summary>
-        /// Corresponds to a solution that is being used in the remote workspace and has been 'pinned' so that it will
-        /// not be released.  While pinned any concurrent calls into the remote workspace for the same solution checksum
-        /// will get the same solution instance.  Note: services should almost always use <see
-        /// cref="RunWithSolutionAsync{T}(AssetProvider, Checksum, Func{Solution, ValueTask{T}}, CancellationToken)"/>
-        /// instead of calling <see cref="GetPinnedSolutionAsync"/>.  The former ensures that the ref-counts around the
-        /// pinned solution are properly handled.  If <see cref="GetPinnedSolutionAsync"/> is used, great care must be
-        /// followed to ensure it is properly disposed so that data is not held around indefinitely.
-        /// </summary>
-        public sealed class PinnedSolution : System.IAsyncDisposable
-        {
-            private readonly RemoteWorkspace _workspace;
-            private readonly InFlightSolution _inFlightSolution;
-            public readonly Solution Solution;
-
-            public PinnedSolution(RemoteWorkspace workspace, InFlightSolution inFlightSolution, Solution solution)
-            {
-                _workspace = workspace;
-                _inFlightSolution = inFlightSolution;
-                Solution = solution;
-            }
-
-            public async ValueTask DisposeAsync()
-            {
-                await _workspace.DecrementInFlightCountAsync(_inFlightSolution).ConfigureAwait(false);
-            }
-        }
-
-        /// <summary>
         /// Guards updates to all mutable state in this workspace.
         /// </summary>
         private readonly SemaphoreSlim _gate = new(initialCount: 1);
@@ -126,6 +98,14 @@ namespace Microsoft.CodeAnalysis.Remote
             return RunWithSolutionAsync(assetProvider, solutionChecksum, workspaceVersion: -1, updatePrimaryBranch: false, implementation, cancellationToken);
         }
 
+        public ValueTask<PinnedSolution> GetPinnedSolutionAsync(
+            AssetProvider assetProvider,
+            Checksum solutionChecksum,
+            CancellationToken cancellationToken)
+        {
+            return GetPinnedSolutionAsync(assetProvider, solutionChecksum, workspaceVersion: -1, updatePrimaryBranch: false, cancellationToken);
+        }
+
         private async ValueTask<(Solution solution, T result)> RunWithSolutionAsync<T>(
             AssetProvider assetProvider,
             Checksum solutionChecksum,
@@ -148,7 +128,7 @@ namespace Microsoft.CodeAnalysis.Remote
             }
         }
 
-        public async ValueTask<PinnedSolution> GetPinnedSolutionAsync(
+        private async ValueTask<PinnedSolution> GetPinnedSolutionAsync(
             AssetProvider assetProvider,
             Checksum solutionChecksum,
             int workspaceVersion,

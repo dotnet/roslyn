@@ -110,11 +110,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
             // Ensure the solution stays pinned while we're streaming results back.
             var pinnedSolution = await workspace.GetPinnedSolutionAsync(
-                assetProvider,
-                solutionChecksum,
-                workspaceVersion: -1,
-                updatePrimaryBranch: false,
-                cancellationToken).ConfigureAwait(false);
+                assetProvider, solutionChecksum, cancellationToken).ConfigureAwait(false);
             await using (pinnedSolution.ConfigureAwait(false))
             {
                 await foreach (var item in implementation(pinnedSolution.Solution, cancellationToken).WithCancellation(cancellationToken))
