@@ -382,12 +382,12 @@ function TestUsingRunTests() {
   $args += " --configuration $configuration"
 
   if ($testCoreClr) {
-    $args += " --tfm net7.0"
+    $args += " --tfm net6.0 --tfm net7.0"
     $args += " --timeout 90"
     if ($testCompilerOnly) {
       $args += GetCompilerTestAssembliesIncludePaths
     } else {
-      $args += " --tfm net7.0-windows"
+      $args += " --tfm net6.0-windows"
       $args += " --include '\.UnitTests'"
     }
   }
