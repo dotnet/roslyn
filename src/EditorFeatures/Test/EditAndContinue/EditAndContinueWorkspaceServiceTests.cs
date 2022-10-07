@@ -409,7 +409,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             internal override Task<TextAndVersion> LoadTextAndVersionAsync(LoadTextOptions options, CancellationToken cancellationToken)
             {
                 Assert.True(false, $"Content of document should never be loaded");
-                throw ExceptionUtilities.Unreachable;
+                throw ExceptionUtilities.Unreachable();
             }
         }
 
