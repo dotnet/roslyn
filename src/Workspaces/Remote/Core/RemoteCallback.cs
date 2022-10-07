@@ -127,6 +127,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
             async Task WriteAsync(T service, PipeWriter pipeWriter)
             {
+                Exception? exception = null;
                 try
                 {
                     // Intentionally yield this thread so that the caller can proceed concurrently and start reading.
@@ -136,38 +137,37 @@ namespace Microsoft.CodeAnalysis.Remote
 
                     await invocation(service, pipeWriter, cancellationToken).ConfigureAwait(false);
                 }
-                catch (Exception e)
+                catch (Exception ex) when ((exception = ex) == null)
                 {
-                    // Ensure that the writer is complete if an exception is thrown. This passes the information to the
-                    // reading side as well so it can stop doing work.
-                    await pipeWriter.CompleteAsync(e).ConfigureAwait(false);
-
-                    // Ensure that this tasks completes with this exception as well.  This ensures that the Task.WhenAll
-                    // will see this exception in case it got sent over to the reader and the reader itself was already done.
-                    throw;
+                    throw ExceptionUtilities.Unreachable();
                 }
-#if false
-                // Absolutely do not Complete/CompleteAsync the writer here.  The writer is passed to StreamJsonRPC
-                // which takes ownership of it.  The *inside* of that rpc is responsible for Completing the writer *it*
-                // is passed, which will signal the completion of the writer we have here.  Note: we *do* need to
-                // complete this writer in the event if an exception as that may have happened *prior* to even issuing
-                // the rpc.  If we don't complete the writer we will hang.  If the exception happened within the RPC
-                // the writer may already be completed, but it's fine for us to complete it a second time.
-                //
-                // It is *not* fine for us to complete the writer in a non-exception event as it is legal (and is the
-                // case) that the code in StreamJsonRPC may still be using it (see
-                // https://github.com/AArnott/Nerdbank.Streams/blob/dafeb5846702bc29e261c9ddf60f42feae01654c/src/Nerdbank.Streams/PipeExtensions.cs#L428)
-                // where the writer may be advanced in an independent Task even once the rpc message has returned to the
-                // caller (us). 
-                //
-                // NOTE: it is intentinonal that the try/catch pattern here does NOT match the one in ReadAsync.  There
-                // are very different semantics around each.  The writer code passes ownership to StreamJsonRPC, while
-                // the reader code does not.  As such, the reader code is responsible for completing the reader in all
-                // cases, whereas the writer code only completes when faulting.
                 finally
                 {
+                    // Absolutely do not Complete/CompleteAsync the writer here *unless* an exception occurred.  The
+                    // writer is passed to StreamJsonRPC which takes ownership of it.  The *inside* of that rpc is
+                    // responsible for Completing the writer *it* is passed, which will signal the completion of the
+                    // writer we have here.
+                    //
+                    // We *do* need to complete this writer in the event if an exception as that may have happened
+                    // *prior* to even issuing the rpc.  If we don't complete the writer we will hang.  If the exception
+                    // happened within the RPC the writer may already be completed, but it's fine for us to complete it
+                    // a second time.
+                    //
+                    // The reason is *not* fine for us to complete the writer in a non-exception event is that it legal
+                    // (and is the case in practice) that the code in StreamJsonRPC may still be using it (see
+                    // https://github.com/AArnott/Nerdbank.Streams/blob/dafeb5846702bc29e261c9ddf60f42feae01654c/src/Nerdbank.Streams/PipeExtensions.cs#L428)
+                    // where the writer may be advanced in an independent Task even once the rpc message has returned to
+                    // the caller (us). 
+                    //
+                    // NOTE: it is intentinonal that the try/catch pattern here does NOT match the one in ReadAsync.  There
+                    // are very different semantics around each.  The writer code passes ownership to StreamJsonRPC, while
+                    // the reader code does not.  As such, the reader code is responsible for completing the reader in all
+                    // cases, whereas the writer code only completes when faulting.
+
+                    // DO NOT REMOVE THIS NULL CHECK WITHOUT DEEP AND CAREFUL REVIEW.
+                    if (exception != null)
+                        await pipeWriter.CompleteAsync(exception).ConfigureAwait(false);
                 }
-#endif
             }
 
             async Task<TResult> ReadAsync(PipeReader pipeReader)
