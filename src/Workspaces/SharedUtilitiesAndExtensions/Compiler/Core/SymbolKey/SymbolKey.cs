@@ -279,9 +279,7 @@ namespace Microsoft.CodeAnalysis
             PooledArrayBuilder<RefKind> refKinds)
         {
             if (parameters.Length != refKinds.Count)
-            {
                 return false;
-            }
 
             for (var i = 0; i < refKinds.Count; i++)
             {
@@ -323,15 +321,18 @@ namespace Microsoft.CodeAnalysis
         public static bool IsBodyLevelSymbol(ISymbol symbol)
             => symbol switch
             {
-                ILabelSymbol _ => true,
-                IRangeVariableSymbol _ => true,
-                ILocalSymbol _ => true,
-                IMethodSymbol { MethodKind: MethodKind.LocalFunction } _ => true,
+                ILabelSymbol => true,
+                IRangeVariableSymbol => true,
+                ILocalSymbol => true,
+                IMethodSymbol { MethodKind: MethodKind.LocalFunction } => true,
                 _ => false,
             };
 
         private static int GetDataStartPosition(string key)
         {
+            if (string.IsNullOrEmpty(key))
+                return 0;
+
             using var reader = SymbolKeyReader.GetReader(key, compilation: null!, ignoreAssemblyKey: false, CancellationToken.None);
             reader.ReadFormatVersion();
             reader.ReadString();

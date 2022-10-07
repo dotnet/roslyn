@@ -1233,6 +1233,23 @@ public class C
             }
         }
 
+        [Fact]
+        public void TestCrossLanguageEquality1()
+        {
+            var compilation1 = GetCompilation("", LanguageNames.CSharp);
+            var compilation2 = GetCompilation("", LanguageNames.VisualBasic);
+
+            var symbolKey1 = SymbolKey.Create(compilation1.GetSpecialType(SpecialType.System_Int32));
+            var symbolKey2 = SymbolKey.Create(compilation2.GetSpecialType(SpecialType.System_Int32));
+
+            Assert.NotEqual(symbolKey1.ToString(), symbolKey2.ToString());
+
+            Assert.True(symbolKey1.Equals(symbolKey2));
+            Assert.True(SymbolKey.GetComparer(ignoreCase: true).Equals(symbolKey1, symbolKey2));
+            Assert.True(SymbolKey.GetComparer(ignoreAssemblyKeys: true).Equals(symbolKey1, symbolKey2));
+            Assert.True(SymbolKey.GetComparer(ignoreCase: true, ignoreAssemblyKeys: true).Equals(symbolKey1, symbolKey2));
+        }
+
         private static void TestRoundTrip(IEnumerable<ISymbol> symbols, Compilation compilation, Func<ISymbol, object> fnId = null)
         {
             foreach (var symbol in symbols)
