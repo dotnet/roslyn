@@ -948,6 +948,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 { RefKind: RefKind.None } => Binder.CurrentMethodScope,
                 { EffectiveScope: DeclarationScope.RefScoped } => Binder.CurrentMethodScope,
+                { RefKind: RefKind.Out } => Binder.ReturnOnlyScope,
+                { HasUnscopedRefAttribute: true, IsThis: false } => Binder.CallingMethodScope,
                 _ => Binder.ReturnOnlyScope
             };
         }
