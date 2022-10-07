@@ -172,7 +172,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
             async Task<TResult> ReadAsync(PipeReader pipeReader)
             {
-                // NOTE: it is intentinonal that the try/catch pattern here does NOT match the one in WriteAsync.  There
+                // NOTE: it is intentional that the try/catch pattern here does NOT match the one in WriteAsync.  There
                 // are very different semantics around each.  The writer code passes ownership to StreamJsonRPC, while
                 // the reader code does not.  As such, the reader code is responsible for completing the reader in all
                 // cases, whereas the writer code only completes when faulting.
