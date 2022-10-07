@@ -8623,22 +8623,28 @@ class Program
         public void RefAssignValueScopeMismatch_03(LanguageVersion languageVersion)
         {
             var source =
-@"ref struct R
+@"ref struct R1
 {
-    public R(ref int i) { }
+    public R2 F;
+}
+ref struct R2
+{
+    public R2(ref int i) { }
 }
 class Program
 {
-    static R F()
+    static void Main()
+    {
+        R1 r = default;
+        M(ref r);
+    }
+    static void M(ref R1 r1)
     {
         int i = 0;
-        R a = new R(ref i);
-        ref R r1 = ref a;
-        R b = default;
-        ref R r2 = ref b;
-        r1 = ref r2; // 1
-        r1 = a;
-        return b;
+        R2 local = new R2(ref i);
+        ref R2 r2 = ref local;
+        r2 = ref r1.F; // 1
+        r2 = local;
     }
 }";
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
@@ -8649,9 +8655,9 @@ class Program
             else
             {
                 comp.VerifyEmitDiagnostics(
-                    // (14,9): error CS8374: Cannot ref-assign 'r2' to 'r1' because 'r2' has a narrower escape scope than 'r1'.
-                    //         r1 = ref r2; // 1
-                    Diagnostic(ErrorCode.ERR_RefAssignNarrower, "r1 = ref r2").WithArguments("r1", "r2").WithLocation(14, 9));
+                    // (21,9): error CS8374: Cannot ref-assign 'r1.F' to 'r2' because 'r1.F' has a narrower escape scope than 'r2'.
+                    //         r2 = ref r1.F; // 1
+                    Diagnostic(ErrorCode.ERR_RefAssignNarrower, "r2 = ref r1.F").WithArguments("r2", "r1.F").WithLocation(21, 9));
             }
         }
 
