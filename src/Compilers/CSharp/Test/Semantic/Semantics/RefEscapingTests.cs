@@ -4810,9 +4810,9 @@ class Program
                 // (28,9): error CS8350: This combination of arguments to 'Program.M0(RS, out RS)' is disallowed because it may expose variables referenced by parameter 'rs1' outside of their declaration scope
                 //         M0(rs3, out rs4); // 3
                 Diagnostic(ErrorCode.ERR_CallArgMixing, "M0(rs3, out rs4)").WithArguments("Program.M0(RS, out RS)", "rs1").WithLocation(28, 9),
-                // (28,12): error CS8352: Cannot use variable 'RS' in this context because it may expose referenced variables outside of their declaration scope
+                // (28,12): error CS8352: Cannot use variable 'scoped RS' in this context because it may expose referenced variables outside of their declaration scope
                 //         M0(rs3, out rs4); // 3
-                Diagnostic(ErrorCode.ERR_EscapeVariable, "rs3").WithArguments("RS").WithLocation(28, 12));
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "rs3").WithArguments("scoped RS").WithLocation(28, 12));
         }
 
         [Fact]
@@ -5099,6 +5099,68 @@ class Program
                 // (27,16): error CS0103: The name 'rs6' does not exist in the current context
                 //         return rs6; // 2
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "rs6").WithArguments("rs6").WithLocation(27, 16));
+        }
+
+        [Fact]
+        public void Test1()
+        {
+            var source = """
+                ref struct RS
+                {
+                    public RS(ref int i) { }
+                }
+
+                class C {
+                    public RS M(RS x, scoped RS y, int i) {
+                        // x has STE of CallingMethod
+                        // y has STE of CurrentMethod
+
+                        ref RS rx = ref x;
+                        ref RS ry = ref y;
+
+                        // rx and ry have equal RSTE: both CurrentMethod.
+                        ry = ref rx;
+
+                        // now 'x' contains a reference to 'i'
+                        ry = new RS(ref i);
+                        // whoops, we just returned it
+                        return x;
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void Test2()
+        {
+            var source = """
+                ref struct RS
+                {
+                    public RS(ref int i) { }
+                }
+
+                class C {
+                    public RS M(RS x, scoped RS y, int i) {
+                        // x has STE of CallingMethod
+                        // y has STE of CurrentMethod
+
+                        ref RS rx = ref x;
+                        ref RS ry = ref y;
+
+                        // rx and ry have equal RSTE: both CurrentMethod.
+                        rx = ref ry;
+
+                        // whoops, we just returned 'y'
+                        return rx;
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
         }
     }
 }
