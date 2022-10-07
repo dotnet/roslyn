@@ -17,6 +17,7 @@ using Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.Writing;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
+using LspProtocol = Microsoft.VisualStudio.LanguageServer.Protocol;
 using Methods = Microsoft.VisualStudio.LanguageServer.Protocol.Methods;
 
 namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
@@ -33,6 +34,20 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
         private const bool FoldingRangeProvider = true;
         private const bool DiagnosticProvider = false;
 
+        private static readonly LspProtocol.ClientCapabilities LspClientCapabilities = new()
+        {
+            TextDocument = new LspProtocol.TextDocumentClientCapabilities()
+            {
+                Hover = new LspProtocol.HoverSetting()
+                {
+                    ContentFormat = new[]
+                    {
+                        LspProtocol.MarkupKind.PlainText,
+                        LspProtocol.MarkupKind.Markdown,
+                    }
+                }
+            }
+        };
         private readonly ILsifJsonWriter _lsifJsonWriter;
         private readonly IdFactory _idFactory = new IdFactory();
 
@@ -252,7 +267,7 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
                     // See https://github.com/Microsoft/language-server-protocol/blob/main/indexFormat/specification.md#resultset for an example.
                     if (symbolResultsTracker.ResultSetNeedsInformationalEdgeAdded(symbolForLinkedResultSet, Methods.TextDocumentHoverName))
                     {
-                        var hover = await HoverHandler.GetHoverAsync(semanticModel, syntaxToken.SpanStart, options.SymbolDescriptionOptions, languageServices, CancellationToken.None);
+                        var hover = await HoverHandler.GetHoverAsync(semanticModel, syntaxToken.SpanStart, options.SymbolDescriptionOptions, languageServices, LspClientCapabilities, CancellationToken.None);
                         if (hover != null)
                         {
                             var hoverResult = new HoverResult(hover, idFactory);
