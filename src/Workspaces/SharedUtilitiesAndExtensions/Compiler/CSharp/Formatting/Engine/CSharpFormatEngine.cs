@@ -27,6 +27,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
         {
         }
 
+        protected CSharpFormatEngine(
+            TreeData treeData,
+            SyntaxFormattingOptions options,
+            IEnumerable<AbstractFormattingRule> formattingRules,
+            SyntaxToken startToken,
+            SyntaxToken endToken)
+            : base(treeData,
+                 options,
+                 formattingRules,
+                 startToken,
+                 endToken)
+        {
+        }
+
         internal override IHeaderFacts HeaderFacts => CSharpHeaderFacts.Instance;
 
         protected override AbstractTriviaDataFactory CreateTriviaFactory()
