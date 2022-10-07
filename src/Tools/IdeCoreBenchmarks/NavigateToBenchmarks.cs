@@ -201,15 +201,12 @@ namespace IdeCoreBenchmarks
         {
             var service = project.Services.GetService<INavigateToSearchService>();
             var results = new List<INavigateToSearchResult>();
-            await service.SearchProjectAsync(
-                project, priorityDocuments, "Syntax", service.KindsProvided, activeDocument: null,
-                r =>
-                {
-                    lock (results)
-                        results.Add(r);
-
-                    return Task.CompletedTask;
-                }, CancellationToken.None);
+            await foreach (var item in service.SearchProjectAsync(
+                project, priorityDocuments, "Syntax", service.KindsProvided, activeDocument: null, CancellationToken.None))
+            {
+                lock (results)
+                    results.Add(item);
+            }
 
             return results.Count;
         }

@@ -37,58 +37,70 @@ namespace Microsoft.CodeAnalysis.Remote
             return RunServiceAsync(solutionChecksum, solution => ValueTaskFactory.CompletedTask, cancellationToken);
         }
 
-        public async IAsyncEnumerable<RoslynNavigateToItem> SearchDocumentAsync(
+        public IAsyncEnumerable<RoslynNavigateToItem> SearchDocumentAsync(
             Checksum solutionChecksum,
             DocumentId documentId,
             string searchPattern,
             ImmutableArray<string> kinds,
-            [EnumeratorCancellation] CancellationToken cancellationToken)
+            CancellationToken cancellationToken)
         {
-            return RunServiceAsync(solutionChecksum, async solution =>
+            return StreamWithSolutionAsync(solutionChecksum, SearchDocumentWorkerAsync, cancellationToken);
+
+            async IAsyncEnumerable<RoslynNavigateToItem> SearchDocumentWorkerAsync(Solution solution, [EnumeratorCancellation] CancellationToken cancellationToken)
             {
                 var document = solution.GetRequiredDocument(documentId);
-                var callback = GetCallback(callbackId, cancellationToken);
 
-                await AbstractNavigateToSearchService.SearchDocumentInCurrentProcessAsync(
-                    document, searchPattern, kinds.ToImmutableHashSet(), callback, cancellationToken).ConfigureAwait(false);
-            }, cancellationToken);
+                await foreach (var item in AbstractNavigateToSearchService.SearchDocumentInCurrentProcessAsync(
+                    document, searchPattern, kinds.ToImmutableHashSet(), cancellationToken).WithCancellation(cancellationToken))
+                {
+                    yield return item;
+                }
+            }
         }
 
-        public async IAsyncEnumerable<RoslynNavigateToItem> SearchProjectAsync(
+        public IAsyncEnumerable<RoslynNavigateToItem> SearchProjectAsync(
             Checksum solutionChecksum,
             ProjectId projectId,
             ImmutableArray<DocumentId> priorityDocumentIds,
             string searchPattern,
             ImmutableArray<string> kinds,
-            [EnumeratorCancellation] CancellationToken cancellationToken)
+            CancellationToken cancellationToken)
         {
-            return RunServiceAsync(solutionChecksum, async solution =>
+            return StreamWithSolutionAsync(solutionChecksum, SearchProjectWorkerAsync, cancellationToken);
+
+            async IAsyncEnumerable<RoslynNavigateToItem> SearchProjectWorkerAsync(Solution solution, [EnumeratorCancellation] CancellationToken cancellationToken)
             {
                 var project = solution.GetRequiredProject(projectId);
-                var callback = GetCallback(callbackId, cancellationToken);
 
                 var priorityDocuments = priorityDocumentIds.SelectAsArray(d => solution.GetRequiredDocument(d));
 
-                await AbstractNavigateToSearchService.SearchProjectInCurrentProcessAsync(
-                    project, priorityDocuments, searchPattern, kinds.ToImmutableHashSet(), callback, cancellationToken).ConfigureAwait(false);
-            }, cancellationToken);
+                await foreach (var item in AbstractNavigateToSearchService.SearchProjectInCurrentProcessAsync(
+                    project, priorityDocuments, searchPattern, kinds.ToImmutableHashSet(), cancellationToken).WithCancellation(cancellationToken))
+                {
+                    yield return item;
+                }
+            }
         }
 
-        public async IAsyncEnumerable<RoslynNavigateToItem> SearchGeneratedDocumentsAsync(
+        public IAsyncEnumerable<RoslynNavigateToItem> SearchGeneratedDocumentsAsync(
             Checksum solutionChecksum,
             ProjectId projectId,
             string searchPattern,
             ImmutableArray<string> kinds,
-            [EnumeratorCancellation] CancellationToken cancellationToken)
+            CancellationToken cancellationToken)
         {
-            return RunServiceAsync(solutionChecksum, async solution =>
+            return StreamWithSolutionAsync(solutionChecksum, SearchGeneratedDocumentsWorkerAsync, cancellationToken);
+
+            async IAsyncEnumerable<RoslynNavigateToItem> SearchGeneratedDocumentsWorkerAsync(Solution solution, [EnumeratorCancellation] CancellationToken cancellationToken)
             {
                 var project = solution.GetRequiredProject(projectId);
-                var callback = GetCallback(callbackId, cancellationToken);
 
-                await AbstractNavigateToSearchService.SearchGeneratedDocumentsInCurrentProcessAsync(
-                    project, searchPattern, kinds.ToImmutableHashSet(), callback, cancellationToken).ConfigureAwait(false);
-            }, cancellationToken);
+                await foreach (var item in AbstractNavigateToSearchService.SearchGeneratedDocumentsInCurrentProcessAsync(
+                    project, searchPattern, kinds.ToImmutableHashSet(), cancellationToken).WithCancellation(cancellationToken))
+                {
+                    yield return item;
+                }
+            }
         }
 
         public async IAsyncEnumerable<RoslynNavigateToItem> SearchCachedDocumentsAsync(
@@ -98,16 +110,17 @@ namespace Microsoft.CodeAnalysis.Remote
             ImmutableArray<string> kinds,
             [EnumeratorCancellation] CancellationToken cancellationToken)
         {
-            return RunServiceAsync(async cancellationToken =>
+            WorkspaceManager.SolutionAssetCache.UpdateLastActivityTime();
+
+            // Intentionally do not call GetSolutionAsync here.  We do not want the cost of
+            // synchronizing the solution over to the remote side.  Instead, we just directly
+            // check whatever cached data we have from the previous vs session.
+            var storageService = GetWorkspaceServices().GetPersistentStorageService();
+            await foreach (var item in AbstractNavigateToSearchService.SearchCachedDocumentsInCurrentProcessAsync(
+                storageService, documentKeys, priorityDocumentKeys, searchPattern, kinds.ToImmutableHashSet(), cancellationToken).WithCancellation(cancellationToken))
             {
-                // Intentionally do not call GetSolutionAsync here.  We do not want the cost of
-                // synchronizing the solution over to the remote side.  Instead, we just directly
-                // check whatever cached data we have from the previous vs session.
-                var callback = GetCallback(callbackId, cancellationToken);
-                var storageService = GetWorkspaceServices().GetPersistentStorageService();
-                await AbstractNavigateToSearchService.SearchCachedDocumentsInCurrentProcessAsync(
-                    storageService, documentKeys, priorityDocumentKeys, searchPattern, kinds.ToImmutableHashSet(), callback, cancellationToken).ConfigureAwait(false);
-            }, cancellationToken);
+                yield return item;
+            }
         }
     }
 }

@@ -138,7 +138,7 @@ namespace Microsoft.CodeAnalysis.Remote
             }
         }
 
-        public async ValueTask<PinnedSolution?> GetPinnedSolutionAsync(
+        public async ValueTask<PinnedSolution> GetPinnedSolutionAsync(
             AssetProvider assetProvider,
             Checksum solutionChecksum,
             int workspaceVersion,
