@@ -37,7 +37,7 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
 
                 while (true)
                 {
-                    //cancellationToken.ThrowIfCancellationRequested();
+                    cancellationToken.ThrowIfCancellationRequested();
 
                     // Take no direct action regarding activation, but assert the correct item already has focus
                     TestServices.JoinableTaskFactory.Run(async () =>
@@ -59,6 +59,9 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
                         return isAllInOneSearchActive.Value;
                     }
 
+                    // If the dialog has not been displayed, then wait some time for it to show. The
+                    // cancellation token passed into should be hang mitigating to avoid possible
+                    // infinite loop.
                     await Task.Delay(100);
                 }
             }
