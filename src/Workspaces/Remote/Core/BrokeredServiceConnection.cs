@@ -299,6 +299,25 @@ namespace Microsoft.CodeAnalysis.Remote
             }
         }
 
+        // multi-solution, no callback
+
+        public override async ValueTask<bool> TryInvokeAsync(Solution solution1, Solution solution2, Func<TService, Checksum, Checksum, CancellationToken, ValueTask> invocation, CancellationToken cancellationToken)
+        {
+            try
+            {
+                using var scope1 = await _solutionAssetStorage.StoreAssetsAsync(solution1, cancellationToken).ConfigureAwait(false);
+                using var scope2 = await _solutionAssetStorage.StoreAssetsAsync(solution2, cancellationToken).ConfigureAwait(false);
+                using var rental = await RentServiceAsync(cancellationToken).ConfigureAwait(false);
+                await invocation(rental.Service, scope1.SolutionChecksum, scope2.SolutionChecksum, cancellationToken).ConfigureAwait(false);
+                return true;
+            }
+            catch (Exception exception) when (ReportUnexpectedException(exception, cancellationToken))
+            {
+                OnUnexpectedException(exception, cancellationToken);
+                return false;
+            }
+        }
+
         // streaming
 
         /// <param name="service">The service instance.</param>
@@ -344,7 +363,6 @@ namespace Microsoft.CodeAnalysis.Remote
                     // before the writer is passed to the RPC proxy. Once it's passed to the proxy 
                     // the proxy should complete it as soon as the remote side completes it.
                     await pipe.Writer.CompleteAsync(e).ConfigureAwait(false);
-
                     throw;
                 }
             }, mustNotCancelToken);
@@ -360,7 +378,7 @@ namespace Microsoft.CodeAnalysis.Remote
                     }
                     catch (Exception e) when ((exception = e) == null)
                     {
-                        throw ExceptionUtilities.Unreachable;
+                        throw ExceptionUtilities.Unreachable();
                     }
                     finally
                     {

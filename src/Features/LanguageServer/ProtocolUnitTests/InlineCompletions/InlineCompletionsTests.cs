@@ -240,7 +240,7 @@ class A
             $0
         }";
 
-        using var testLspServer = await CreateTestLspServerAsync(markup);
+        await using var testLspServer = await CreateTestLspServerAsync(markup);
         var locationTyped = testLspServer.GetLocations("tab").Single();
 
         var document = testLspServer.GetCurrentSolution().GetDocuments(locationTyped.Uri).Single();
@@ -265,7 +265,7 @@ class A
 
     private async Task VerifyMarkupAndExpected(string markup, string expected, LSP.FormattingOptions? options = null)
     {
-        using var testLspServer = await CreateTestLspServerAsync(markup);
+        await using var testLspServer = await CreateTestLspServerAsync(markup);
         var locationTyped = testLspServer.GetLocations("tab").Single();
 
         var document = testLspServer.GetCurrentSolution().GetDocuments(locationTyped.Uri).Single();

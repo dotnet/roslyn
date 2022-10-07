@@ -575,7 +575,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (!Flags.HasFlag(BinderFlags.SuppressConstraintChecks))
                 {
-                    CheckManagedAddr(Compilation, elementType.Type, warnForManaged: Flags.HasFlag(BinderFlags.AllowManagedPointer), node.Location, diagnostics);
+                    CheckManagedAddr(Compilation, elementType.Type, node.Location, diagnostics);
                 }
 
                 return TypeWithAnnotations.Create(new PointerTypeSymbol(elementType));

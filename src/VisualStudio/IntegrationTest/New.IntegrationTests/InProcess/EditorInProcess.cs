@@ -59,15 +59,6 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
 {
     internal partial class EditorInProcess
     {
-        public async Task<string> GetDirtyIndicatorAsync(CancellationToken cancellationToken)
-        {
-            var version = await TestServices.Shell.GetVersionAsync(cancellationToken);
-            if (version < Version.Parse("17.2.32224.407"))
-                return "*";
-
-            return " ⬤";
-        }
-
         public async Task WaitForEditorOperationsAsync(CancellationToken cancellationToken)
         {
             await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
@@ -516,7 +507,7 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
             if (itemIndex < 0)
             {
                 Assert.Contains(item, await GetNavigationBarItemsAsync(index, cancellationToken));
-                throw ExceptionUtilities.Unreachable;
+                throw ExceptionUtilities.Unreachable();
             }
 
             await ExpandNavigationBarAsync(index, cancellationToken);

@@ -421,7 +421,7 @@ namespace Microsoft.CodeAnalysis.UnifiedSuggestions
                 case DiagnosticSeverity.Error:
                     return UnifiedPredefinedSuggestedActionCategoryNames.ErrorFix;
                 default:
-                    throw ExceptionUtilities.Unreachable;
+                    throw ExceptionUtilities.Unreachable();
             }
         }
 

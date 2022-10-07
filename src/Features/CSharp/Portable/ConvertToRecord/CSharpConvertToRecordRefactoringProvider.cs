@@ -24,11 +24,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertToRecord
         {
             var (document, _, cancellationToken) = context;
 
-            if (!context.Options.GetOptions(document.Project.Services).EnableConvertToRecord)
-            {
-                return;
-            }
-
             var typeDeclaration = await context.TryGetRelevantNodeAsync<TypeDeclarationSyntax>().ConfigureAwait(false);
             if (typeDeclaration == null)
             {

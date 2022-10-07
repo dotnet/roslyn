@@ -589,12 +589,12 @@
       </trans-unit>
       <trans-unit id="ERR_FileLocalDuplicateNameInNS">
         <source>The namespace '{1}' already contains a definition for '{0}' in this file.</source>
-        <target state="new">The namespace '{1}' already contains a definition for '{0}' in this file.</target>
+        <target state="translated">L'espace de noms '{1}' contient déjà une définition pour '{0}' dans ce fichier.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_FilePathCannotBeConvertedToUtf8">
         <source>File-local type '{0}' cannot be used because the containing file path cannot be converted into the equivalent UTF-8 byte representation. {1}</source>
-        <target state="new">File-local type '{0}' cannot be used because the containing file path cannot be converted into the equivalent UTF-8 byte representation. {1}</target>
+        <target state="translated">Impossible d’utiliser le type de fichier local '{0}', car le chemin d’accès du fichier conteneur ne peut pas être converti en représentation d’octet UTF-8 équivalente. {1}</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_FileScopedAndNormalNamespace">
@@ -634,7 +634,7 @@
       </trans-unit>
       <trans-unit id="ERR_FileTypeNonUniquePath">
         <source>File-local type '{0}' must be declared in a file with a unique path. Path '{1}' is used in multiple files.</source>
-        <target state="new">File-local type '{0}' must be declared in a file with a unique path. Path '{1}' is used in multiple files.</target>
+        <target state="translated">Le type de fichier local '{0}' doit être déclaré dans un fichier avec un chemin d’accès unique. Le chemin d’accès '{1}' est utilisé dans plusieurs fichiers.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_FixedFieldMustNotBeRef">
@@ -1269,7 +1269,7 @@
       </trans-unit>
       <trans-unit id="ERR_ReadOnlyNotSuppAsParamModDidYouMeanIn">
         <source>'readonly' is not supported as a parameter modifier. Did you mean 'in'?</source>
-        <target state="new">'readonly' is not supported as a parameter modifier. Did you mean 'in'?</target>
+        <target state="translated">'readonly' n’est pas pris en charge en tant que modificateur de paramètre. Vouliez-vous dire « in » ?</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RecordAmbigCtor">
@@ -1289,7 +1289,7 @@
       </trans-unit>
       <trans-unit id="ERR_RefAssignReturnOnly">
         <source>Cannot ref-assign '{1}' to '{0}' because '{1}' can only escape the current method through a return statement.</source>
-        <target state="new">Cannot ref-assign '{1}' to '{0}' because '{1}' can only escape the current method through a return statement.</target>
+        <target state="translated">Cette référence ne peut pas effectuer une attribution par référence '{1}' à '{0}', car '{1}' ne peut échapper à la méthode actuelle qu’à l’aide d’une instruction return.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RefFieldCannotReferToRefStruct">
@@ -1309,22 +1309,22 @@
       </trans-unit>
       <trans-unit id="ERR_RefReturnOnlyParameter">
         <source>Cannot return a parameter by reference '{0}' through a ref parameter; it can only be returned in a return statement</source>
-        <target state="new">Cannot return a parameter by reference '{0}' through a ref parameter; it can only be returned in a return statement</target>
+        <target state="translated">Ne peut pas retourner un paramètre par référence '{0}' par le biais d’un paramètre ref ; il ne peut être retourné que dans une instruction return</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RefReturnOnlyParameter2">
         <source>Cannot return by reference a member of parameter '{0}' through a ref parameter; it can only be returned in a return statement</source>
-        <target state="new">Cannot return by reference a member of parameter '{0}' through a ref parameter; it can only be returned in a return statement</target>
+        <target state="translated">Impossible de retourner par référence un membre du paramètre '{0}' par le biais d’un paramètre ref ; il ne peut être retourné que dans une instruction return</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RefReturnScopedParameter">
         <source>Cannot return a parameter by reference '{0}' because it is scoped to the current method</source>
-        <target state="new">Cannot return a parameter by reference '{0}' because it is scoped to the current method</target>
+        <target state="translated">Impossible de retourner un paramètre par référence '{0}', car il est étendu à la méthode actuelle</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RefReturnScopedParameter2">
         <source>Cannot return by reference a member of parameter '{0}' because it is scoped to the current method</source>
-        <target state="new">Cannot return by reference a member of parameter '{0}' because it is scoped to the current method</target>
+        <target state="translated">Impossible de retourner par référence un membre du paramètre '{0}', car il est étendu à la méthode actuelle</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RefReturningPropertiesCannotBeRequired">
@@ -1619,7 +1619,7 @@
       </trans-unit>
       <trans-unit id="ERR_UnscopedRefAttributeUnsupportedTarget">
         <source>UnscopedRefAttribute cannot be applied to this item because it is unscoped by default.</source>
-        <target state="needs-review-translation">UnscopedRefAttribute ne peut être appliqué qu’aux paramètres 'out', 'ref' et 'in' qui font référence aux types 'ref struct', ainsi qu’aux méthodes et propriétés d’instance sur les types 'struct' autres que les constructeurs et les accesseurs 'init'.</target>
+        <target state="translated">UnscopedRefAttribute ne peut pas être appliqué à cet élément, car il n’a pas d’étendue par défaut.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnscopedScoped">
@@ -1884,12 +1884,12 @@
       </trans-unit>
       <trans-unit id="WRN_CallArgMixing">
         <source>This combination of arguments to '{0}' may expose variables referenced by parameter '{1}' outside of their declaration scope</source>
-        <target state="new">This combination of arguments to '{0}' may expose variables referenced by parameter '{1}' outside of their declaration scope</target>
+        <target state="translated">Cette combinaison d'arguments pour '{0}' peut exposer les variables référencées par le paramètre '{1}' en dehors de la portée de leur déclaration</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_CallArgMixing_Title">
         <source>This combination of arguments may expose variables referenced by parameter outside of their declaration scope</source>
-        <target state="new">This combination of arguments may expose variables referenced by parameter outside of their declaration scope</target>
+        <target state="translated">Cette combinaison d'arguments pour peut exposer les variables référencées par le paramètre en dehors de la portée de leur déclaration</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_CallerArgumentExpressionAttributeHasInvalidParameterName">
@@ -1974,52 +1974,52 @@
       </trans-unit>
       <trans-unit id="WRN_DuplicateAnalyzerReference">
         <source>Analyzer reference '{0}' specified multiple times</source>
-        <target state="new">Analyzer reference '{0}' specified multiple times</target>
+        <target state="translated">Référence de l’analyseur '{0}' spécifiée plusieurs fois</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_DuplicateAnalyzerReference_Title">
         <source>Analyzer reference specified multiple times</source>
-        <target state="new">Analyzer reference specified multiple times</target>
+        <target state="translated">Référence de l’analyseur spécifiée plusieurs fois</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_EscapeCall">
         <source>Use of result of '{0}' in this context may expose variables referenced by parameter '{1}' outside of their declaration scope</source>
-        <target state="new">Use of result of '{0}' in this context may expose variables referenced by parameter '{1}' outside of their declaration scope</target>
+        <target state="translated">Utiliser un résultat de '{0}' dans ce contexte peut exposer les variables référencées par le paramètre '{1}' en dehors de la portée de leur déclaration</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_EscapeCall2">
         <source>Use of member of result of '{0}' in this context may expose variables referenced by parameter '{1}' outside of their declaration scope</source>
-        <target state="new">Use of member of result of '{0}' in this context may expose variables referenced by parameter '{1}' outside of their declaration scope</target>
+        <target state="translated">Utiliser un membre du résultat de '{0}' dans ce contexte peut exposer les variables référencées par le paramètre '{1}' en dehors de la portée de leur déclaration</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_EscapeCall2_Title">
         <source>Use of member of result in this context may expose variables referenced by parameter outside of their declaration scope</source>
-        <target state="new">Use of member of result in this context may expose variables referenced by parameter outside of their declaration scope</target>
+        <target state="translated">Utiliser un membre du résultat dans ce contexte peut exposer les variables référencées par le paramètre en dehors de la portée de leur déclaration</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_EscapeCall_Title">
         <source>Use of result in this context may expose variables referenced by parameter outside of their declaration scope</source>
-        <target state="new">Use of result in this context may expose variables referenced by parameter outside of their declaration scope</target>
+        <target state="translated">Utiliser un résultat dans ce contexte peut exposer les variables référencées par le paramètre en dehors de la portée de leur déclaration</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_EscapeStackAlloc">
         <source>A result of a stackalloc expression of type '{0}' in this context may be exposed outside of the containing method</source>
-        <target state="new">A result of a stackalloc expression of type '{0}' in this context may be exposed outside of the containing method</target>
+        <target state="translated">Un résultat d'une expression stackalloc de type '{0}' dans ce contexte peut être exposé en dehors de la méthode conteneur</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_EscapeStackAlloc_Title">
         <source>A result of a stackalloc expression of this type in this context may be exposed outside of the containing method</source>
-        <target state="new">A result of a stackalloc expression of this type in this context may be exposed outside of the containing method</target>
+        <target state="translated">Un résultat d'une expression stackalloc de ce type dans ce contexte peut être exposé en dehors de la méthode conteneur</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_EscapeVariable">
         <source>Use of variable '{0}' in this context may expose referenced variables outside of their declaration scope</source>
-        <target state="new">Use of variable '{0}' in this context may expose referenced variables outside of their declaration scope</target>
+        <target state="translated">Utiliser la variable '{0}' dans ce contexte peut exposer des variables de référence en dehors de leur étendue de déclaration</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_EscapeVariable_Title">
         <source>Use of variable in this context may expose referenced variables outside of their declaration scope</source>
-        <target state="new">Use of variable in this context may expose referenced variables outside of their declaration scope</target>
+        <target state="translated">Utiliser la variable dans ce contexte peut exposer des variables de référence en dehors de leur étendue de déclaration</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_InterpolatedStringHandlerArgumentAttributeIgnoredOnLambdaParameters">
@@ -2044,12 +2044,12 @@
       </trans-unit>
       <trans-unit id="WRN_ManagedAddr">
         <source>This takes the address of, gets the size of, or declares a pointer to a managed type ('{0}')</source>
-        <target state="new">This takes the address of, gets the size of, or declares a pointer to a managed type ('{0}')</target>
+        <target state="translated">Peut prendre l'adresse, obtenir la taille ou déclarer un pointeur vers un type managé ('{0}')</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ManagedAddr_Title">
         <source>This takes the address of, gets the size of, or declares a pointer to a managed type</source>
-        <target state="new">This takes the address of, gets the size of, or declares a pointer to a managed type</target>
+        <target state="translated">Peut prendre l'adresse, obtenir la taille ou déclarer un pointeur vers un type managé</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_MethGrpToNonDel">
@@ -2064,12 +2064,12 @@
       </trans-unit>
       <trans-unit id="WRN_MismatchedRefEscapeInTernary">
         <source>The branches of the ref conditional operator refer to variables with incompatible declaration scopes</source>
-        <target state="new">The branches of the ref conditional operator refer to variables with incompatible declaration scopes</target>
+        <target state="translated">Les branches d'un opérateur conditionnel ref font référence à des variables ayant des étendues de déclaration incompatibles</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_MismatchedRefEscapeInTernary_Title">
         <source>The branches of the ref conditional operator refer to variables with incompatible declaration scopes</source>
-        <target state="new">The branches of the ref conditional operator refer to variables with incompatible declaration scopes</target>
+        <target state="translated">Les branches d'un opérateur conditionnel ref font référence à des variables ayant des étendues de déclaration incompatibles</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ObsoleteMembersShouldNotBeRequired">
@@ -2139,132 +2139,132 @@
       </trans-unit>
       <trans-unit id="WRN_RefAssignNarrower">
         <source>This ref-assigns '{1}' to '{0}' but '{1}' has a narrower escape scope than '{0}'.</source>
-        <target state="new">This ref-assigns '{1}' to '{0}' but '{1}' has a narrower escape scope than '{0}'.</target>
+        <target state="translated">Effectue une attribution par référence de '{1}' vers '{0}', mais '{1}' a une portée de sortie plus limitée que '{0}'.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_RefAssignNarrower_Title">
         <source>This ref-assigns a value that has a narrower escape scope than the target.</source>
-        <target state="new">This ref-assigns a value that has a narrower escape scope than the target.</target>
+        <target state="translated">Cette référence attribue une valeur par référence dont l’étendue d’échappement est plus étroite que la cible.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_RefAssignReturnOnly">
         <source>This ref-assigns '{1}' to '{0}' but '{1}' can only escape the current method through a return statement.</source>
-        <target state="new">This ref-assigns '{1}' to '{0}' but '{1}' can only escape the current method through a return statement.</target>
+        <target state="translated">Cette référence effectue une attribution par référence '{1}' à '{0}', mais '{1}' ne peut échapper à la méthode actuelle qu’à l’aide d’une instruction return.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_RefAssignReturnOnly_Title">
         <source>This ref-assigns a value that can only escape the current method through a return statement.</source>
-        <target state="new">This ref-assigns a value that can only escape the current method through a return statement.</target>
+        <target state="translated">Cette référence effectue une valeur qui ne peut échapper à la méthode actuelle qu’à l’aide d’une instruction return.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_RefReturnLocal">
         <source>This returns local '{0}' by reference but it is not a ref local</source>
-        <target state="new">This returns local '{0}' by reference but it is not a ref local</target>
+        <target state="translated">Retourne une variable locale '{0}' par référence, mais il ne s'agit pas d'une variable locale de référence</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_RefReturnLocal2">
         <source>This returns a member of local '{0}' by reference but it is not a ref local</source>
-        <target state="new">This returns a member of local '{0}' by reference but it is not a ref local</target>
+        <target state="translated">Retourne un membre de la variable locale '{0}' par référence, mais il ne s'agit pas d'une variable locale de référence</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_RefReturnLocal2_Title">
         <source>This returns a member of local by reference but it is not a ref local</source>
-        <target state="new">This returns a member of local by reference but it is not a ref local</target>
+        <target state="translated">Retourne un membre de la variable locale par référence, mais il ne s'agit pas d'une variable locale de référence</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_RefReturnLocal_Title">
         <source>This returns local by reference but it is not a ref local</source>
-        <target state="new">This returns local by reference but it is not a ref local</target>
+        <target state="translated">Retourne une variable locale par référence, mais il ne s'agit pas d'une variable locale de référence</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_RefReturnNonreturnableLocal">
         <source>Local '{0}' is returned by reference but was initialized to a value that cannot be returned by reference</source>
-        <target state="new">Local '{0}' is returned by reference but was initialized to a value that cannot be returned by reference</target>
+        <target state="translated">La variable local '{0}' est retournée par référence, mais elle a été initialisée à une valeur qui ne peut pas être retournée par référence</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_RefReturnNonreturnableLocal2">
         <source>A member of '{0}' is returned by reference but was initialized to a value that cannot be returned by reference</source>
-        <target state="new">A member of '{0}' is returned by reference but was initialized to a value that cannot be returned by reference</target>
+        <target state="translated">Un membre de '{0}' est retourné par référence, mais il a été initialisé à une valeur qui ne peut pas être retournée par référence</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_RefReturnNonreturnableLocal2_Title">
         <source>A member is returned by reference but was initialized to a value that cannot be returned by reference</source>
-        <target state="new">A member is returned by reference but was initialized to a value that cannot be returned by reference</target>
+        <target state="translated">Un membre est retourné par référence, mais il a été initialisé à une valeur qui ne peut pas être retournée par référence</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_RefReturnNonreturnableLocal_Title">
         <source>Local is returned by reference but was initialized to a value that cannot be returned by reference</source>
-        <target state="new">Local is returned by reference but was initialized to a value that cannot be returned by reference</target>
+        <target state="translated">La variable local est retournée par référence, mais elle a été initialisée à une valeur qui ne peut pas être retournée par référence</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_RefReturnOnlyParameter">
         <source>This returns a parameter by reference '{0}' through a ref parameter; but it can only safely be returned in a return statement</source>
-        <target state="new">This returns a parameter by reference '{0}' through a ref parameter; but it can only safely be returned in a return statement</target>
+        <target state="translated">Retourne un paramètre par référence '{0}' par le biais d’un paramètre ref ; mais il peut uniquement être retourné en toute sécurité dans une instruction return</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_RefReturnOnlyParameter2">
         <source>This returns by reference a member of parameter '{0}' through a ref parameter; but it can only safely be returned in a return statement</source>
-        <target state="new">This returns by reference a member of parameter '{0}' through a ref parameter; but it can only safely be returned in a return statement</target>
+        <target state="translated">Retourne par référence un membre du paramètre '{0}' via un paramètre ref ; mais il peut uniquement être retourné en toute sécurité dans une instruction return</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_RefReturnOnlyParameter2_Title">
         <source>This returns by reference a member of parameter through a ref parameter; but it can only safely be returned in a return statement</source>
-        <target state="new">This returns by reference a member of parameter through a ref parameter; but it can only safely be returned in a return statement</target>
+        <target state="translated">Retourne par référence un membre du paramètre via un paramètre ref ; mais il peut uniquement être retourné en toute sécurité dans une instruction return</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_RefReturnOnlyParameter_Title">
         <source>This returns a parameter by reference through a ref parameter; but it can only safely be returned in a return statement</source>
-        <target state="new">This returns a parameter by reference through a ref parameter; but it can only safely be returned in a return statement</target>
+        <target state="translated">Retourne un paramètre par référence par le biais d’un paramètre ref ; mais il peut uniquement être retourné en toute sécurité dans une instruction return</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_RefReturnParameter">
         <source>This returns a parameter by reference '{0}' but it is not a ref parameter</source>
-        <target state="new">This returns a parameter by reference '{0}' but it is not a ref parameter</target>
+        <target state="translated">Retourne un paramètre par référence '{0}', mais il ne s’agit pas d’un paramètre ref</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_RefReturnParameter2">
         <source>This returns by reference a member of parameter '{0}' that is not a ref or out parameter</source>
-        <target state="new">This returns by reference a member of parameter '{0}' that is not a ref or out parameter</target>
+        <target state="translated">Retourne par référence un membre du paramètre '{0}' qui n’est pas un paramètre ref ou out</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_RefReturnParameter2_Title">
         <source>This returns by reference a member of parameter that is not a ref or out parameter</source>
-        <target state="new">This returns by reference a member of parameter that is not a ref or out parameter</target>
+        <target state="translated">Retourne par référence un membre du paramètre qui n’est pas un paramètre ref ou out</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_RefReturnParameter_Title">
         <source>This returns a parameter by reference but it is not a ref parameter</source>
-        <target state="new">This returns a parameter by reference but it is not a ref parameter</target>
+        <target state="translated">Retourne un paramètre par référence, mais il ne s’agit pas d’un paramètre ref</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_RefReturnScopedParameter">
         <source>This returns a parameter by reference '{0}' but it is scoped to the current method</source>
-        <target state="new">This returns a parameter by reference '{0}' but it is scoped to the current method</target>
+        <target state="translated">Retourne un paramètre par référence '{0}' mais il est étendu à la méthode actuelle</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_RefReturnScopedParameter2">
         <source>This returns by reference a member of parameter '{0}' that is scoped to the current method</source>
-        <target state="new">This returns by reference a member of parameter '{0}' that is scoped to the current method</target>
+        <target state="translated">Retourne par référence un membre du paramètre '{0}' qui est étendu à la méthode actuelle</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_RefReturnScopedParameter2_Title">
         <source>This returns by reference a member of parameter that is scoped to the current method</source>
-        <target state="new">This returns by reference a member of parameter that is scoped to the current method</target>
+        <target state="translated">Retourne par référence un membre du paramètre qui est étendu à la méthode actuelle</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_RefReturnScopedParameter_Title">
         <source>This returns a parameter by reference but it is scoped to the current method</source>
-        <target state="new">This returns a parameter by reference but it is scoped to the current method</target>
+        <target state="translated">Retourne un paramètre par référence, mais il est étendu à la méthode actuelle</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_RefReturnStructThis">
         <source>Struct member returns 'this' or other instance members by reference</source>
-        <target state="new">Struct member returns 'this' or other instance members by reference</target>
+        <target state="translated">Le membre struct retourne 'this' ou d'autres membres d'instance par référence</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_RefReturnStructThis_Title">
         <source>Struct member returns 'this' or other instance members by reference</source>
-        <target state="new">Struct member returns 'this' or other instance members by reference</target>
+        <target state="translated">Le membre struct retourne 'this' ou d'autres membres d'instance par référence</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ReturnNotNullIfNotNull">
@@ -2279,22 +2279,22 @@
       </trans-unit>
       <trans-unit id="WRN_ScopedMismatchInParameterOfOverrideOrImplementation">
         <source>The 'scoped' modifier of parameter '{0}' doesn't match overridden or implemented member.</source>
-        <target state="new">The 'scoped' modifier of parameter '{0}' doesn't match overridden or implemented member.</target>
+        <target state="translated">Le modificateur 'scoped' du paramètre '{0}' ne correspond pas au membre substitué ou implémenté.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ScopedMismatchInParameterOfOverrideOrImplementation_Title">
         <source>The 'scoped' modifier of parameter doesn't match overridden or implemented member.</source>
-        <target state="new">The 'scoped' modifier of parameter doesn't match overridden or implemented member.</target>
+        <target state="translated">Le modificateur 'scoped' du paramètre ne correspond pas au membre substitué ou implémenté.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ScopedMismatchInParameterOfTarget">
         <source>The 'scoped' modifier of parameter '{0}' doesn't match target '{1}'.</source>
-        <target state="new">The 'scoped' modifier of parameter '{0}' doesn't match target '{1}'.</target>
+        <target state="translated">Le modificateur 'scoped' du paramètre '{0}' ne correspond pas au '{1}' cible.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ScopedMismatchInParameterOfTarget_Title">
         <source>The 'scoped' modifier of parameter doesn't match target.</source>
-        <target state="new">The 'scoped' modifier of parameter doesn't match target.</target>
+        <target state="translated">Le modificateur 'scoped' du paramètre ne correspond pas à la cible.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_SwitchExpressionNotExhaustiveWithUnnamedEnumValue">
@@ -5348,7 +5348,7 @@
       </trans-unit>
       <trans-unit id="ERR_ParamsLast">
         <source>A params parameter must be the last parameter in a parameter list</source>
-        <target state="needs-review-translation">Un paramètre params doit être le dernier paramètre dans une liste de paramètres formels</target>
+        <target state="translated">Un paramètre params doit être le dernier paramètre dans une liste de paramètres</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_SizeofUnsafe">
@@ -5463,7 +5463,7 @@
       </trans-unit>
       <trans-unit id="ERR_VarargsLast">
         <source>An __arglist parameter must be the last parameter in a parameter list</source>
-        <target state="needs-review-translation">Le paramètre __arglist doit être le dernier paramètre spécifié dans une liste de paramètres formels</target>
+        <target state="translated">Le paramètre __arglist doit être le dernier paramètre spécifié dans une liste de paramètres</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MissingPartial">
@@ -8366,12 +8366,12 @@ Un bloc catch() après un bloc catch (System.Exception e) peut intercepter des e
       </trans-unit>
       <trans-unit id="ERR_AssignReadonlyNotField">
         <source>Cannot assign to {0} '{1}' or use it as the right hand side of a ref assignment because it is a readonly variable</source>
-        <target state="needs-review-translation">Impossible d'effectuer l'assignation à {0} '{1}', car il s'agit d'une variable en lecture seule</target>
+        <target state="translated">Impossible d’assigner à {0} '{1}' ou de l’utiliser comme partie droite d’une affectation ref, car il s’agit d’une variable en lecture seule</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_AssignReadonlyNotField2">
         <source>Cannot assign to a member of {0} '{1}' or use it as the right hand side of a ref assignment because it is a readonly variable</source>
-        <target state="needs-review-translation">Impossible d'effectuer l'assignation à un membre de {0} '{1}', car il s'agit d'une variable en lecture seule</target>
+        <target state="translated">Impossible d’assigner à un membre de {0} '{1}' ou de l’utiliser comme partie droite d’une affectation ref, car il s’agit d’une variable en lecture seule</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RefReturnReadonlyNotField">
@@ -10176,7 +10176,7 @@ Supprimez l'avertissement seulement si vous êtes sûr de ne pas vouloir attendr
       </trans-unit>
       <trans-unit id="ERR_NoCorrespondingArgument">
         <source>There is no argument given that corresponds to the required parameter '{0}' of '{1}'</source>
-        <target state="needs-review-translation">Parmi les arguments spécifiés, aucun ne correspond au paramètre formel obligatoire '{0}' de '{1}'</target>
+        <target state="translated">Parmi les arguments spécifiés, aucun ne correspond au paramètre obligatoire '{0}' de '{1}'</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_UnimplementedCommandLineSwitch">

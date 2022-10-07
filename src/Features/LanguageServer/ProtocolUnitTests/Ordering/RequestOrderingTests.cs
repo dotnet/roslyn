@@ -7,7 +7,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Roslyn.Test.Utilities;
@@ -36,7 +35,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.RequestOrdering
                 new TestRequest(MutatingRequestHandler.MethodName),
             };
 
-            using var testLspServer = await CreateTestLspServerAsync("class C { }");
+            await using var testLspServer = await CreateTestLspServerAsync("class C { }");
             var responses = await TestAsync(testLspServer, requests);
 
             // Every request should have started at or after the one before it
@@ -53,7 +52,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.RequestOrdering
                 new TestRequest(NonMutatingRequestHandler.MethodName),
             };
 
-            using var testLspServer = await CreateTestLspServerAsync("class C { }");
+            await using var testLspServer = await CreateTestLspServerAsync("class C { }");
             var responses = await TestAsync(testLspServer, requests);
 
             // Every request should have started immediately, without waiting
@@ -70,7 +69,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.RequestOrdering
                 new TestRequest(NonMutatingRequestHandler.MethodName),
             };
 
-            using var testLspServer = await CreateTestLspServerAsync("class C { }");
+            await using var testLspServer = await CreateTestLspServerAsync("class C { }");
             var responses = await TestAsync(testLspServer, requests);
 
             // The non mutating tasks should have waited for the first task to finish
@@ -90,7 +89,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.RequestOrdering
                 new TestRequest(MutatingRequestHandler.MethodName),
             };
 
-            using var testLspServer = await CreateTestLspServerAsync("class C { }");
+            await using var testLspServer = await CreateTestLspServerAsync("class C { }");
             var responses = await TestAsync(testLspServer, requests);
 
             // All tasks should start without waiting for any to finish
@@ -110,7 +109,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.RequestOrdering
                 new TestRequest(NonMutatingRequestHandler.MethodName),
             };
 
-            using var testLspServer = await CreateTestLspServerAsync("class C { }");
+            await using var testLspServer = await CreateTestLspServerAsync("class C { }");
             var waitables = StartTestRun(testLspServer, requests);
 
             // first task should fail
@@ -133,7 +132,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.RequestOrdering
                 new TestRequest(NonMutatingRequestHandler.MethodName),
             };
 
-            using var testLspServer = await CreateTestLspServerAsync("class C { }");
+            await using var testLspServer = await CreateTestLspServerAsync("class C { }");
 
             // Cancel all requests if the request queue is blocked for 1 minute. This will result in a failed test run.
             using var cts = new CancellationTokenSource(TimeSpan.FromMinutes(1));
@@ -165,7 +164,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.RequestOrdering
                 new TestRequest(NonMutatingRequestHandler.MethodName),
             };
 
-            using var testLspServer = await CreateTestLspServerAsync("class C { }");
+            await using var testLspServer = await CreateTestLspServerAsync("class C { }");
             var waitables = StartTestRun(testLspServer, requests);
 
             // first task should fail
@@ -173,17 +172,17 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.RequestOrdering
 
             // The failed request returns to the client before the shutdown completes.
             // Wait for the queue to finish handling the failed request and shutdown.
-            await testLspServer.GetQueueAccessor().WaitForProcessingToStopAsync().ConfigureAwait(false);
+            await testLspServer.GetQueueAccessor()!.Value.WaitForProcessingToStopAsync().ConfigureAwait(false);
 
             // remaining tasks should be canceled
-            var areAllItemsCancelled = await testLspServer.GetQueueAccessor().AreAllItemsCancelledUnsafeAsync();
+            var areAllItemsCancelled = await testLspServer.GetQueueAccessor()!.Value.AreAllItemsCancelledUnsafeAsync();
             Assert.True(areAllItemsCancelled);
         }
 
         [Fact]
         public async Task NonMutatingRequestsOperateOnTheSameSolutionAfterMutation()
         {
-            using var testLspServer = await CreateTestLspServerAsync("class C { {|caret:|} }");
+            await using var testLspServer = await CreateTestLspServerAsync("class C { {|caret:|} }");
 
             var expectedSolution = testLspServer.GetCurrentSolution();
 
@@ -223,7 +222,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.RequestOrdering
         [Fact]
         public async Task HandlerThatSkipsBuildingLSPSolutionGetsWorkspaceSolution()
         {
-            using var testLspServer = await CreateTestLspServerAsync("class C { {|caret:|} }");
+            await using var testLspServer = await CreateTestLspServerAsync("class C { {|caret:|} }");
 
             var solution = await GetLSPSolution(testLspServer, NonLSPSolutionRequestHandler.MethodName);
             Assert.Null(solution);

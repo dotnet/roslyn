@@ -495,7 +495,27 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InvertLogical
         }
 
         [Fact, WorkItem(42368, "https://github.com/dotnet/roslyn/issues/42368")]
-        public async Task InvertIsTruePattern1_CSharp9()
+        public async Task InvertBooleanIsTruePattern1_CSharp9()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    void M(bool x, int a, object b)
+    {
+        var c = a > 10 [||]&& x is true;
+    }
+}",
+@"class C
+{
+    void M(bool x, int a, object b)
+    {
+        var c = !(a <= 10 || x is false);
+    }
+}", parseOptions: CSharp9);
+        }
+
+        [Fact, WorkItem(64292, "https://github.com/dotnet/roslyn/issues/64292")]
+        public async Task InvertNonBooleanIsTruePattern1_CSharp9()
         {
             await TestInRegularAndScriptAsync(
 @"class C
@@ -509,7 +529,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InvertLogical
 {
     void M(bool x, int a, object b)
     {
-        var c = !(a <= 10 || b is false);
+        var c = !(a <= 10 || b is not true);
     }
 }", parseOptions: CSharp9);
         }
@@ -535,7 +555,27 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InvertLogical
         }
 
         [Fact, WorkItem(42368, "https://github.com/dotnet/roslyn/issues/42368")]
-        public async Task InvertIsFalsePattern1_CSharp9()
+        public async Task InvertBooleanIsFalsePattern1_CSharp9()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    void M(bool x, int a, object b)
+    {
+        var c = a > 10 [||]&& x is false;
+    }
+}",
+@"class C
+{
+    void M(bool x, int a, object b)
+    {
+        var c = !(a <= 10 || x is true);
+    }
+}", parseOptions: CSharp9);
+        }
+
+        [Fact, WorkItem(64292, "https://github.com/dotnet/roslyn/issues/64292")]
+        public async Task InvertNonBooleanIsFalsePattern1_CSharp9()
         {
             await TestInRegularAndScriptAsync(
 @"class C
@@ -549,7 +589,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InvertLogical
 {
     void M(bool x, int a, object b)
     {
-        var c = !(a <= 10 || b is true);
+        var c = !(a <= 10 || b is not false);
     }
 }", parseOptions: CSharp9);
         }

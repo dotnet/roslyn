@@ -228,7 +228,7 @@ class C
                 new[]
                 {
                     FeatureAttribute.Workspace,
-                    FeatureAttribute.SolutionCrawler,
+                    FeatureAttribute.SolutionCrawlerLegacy,
                     FeatureAttribute.DiagnosticService,
                     FeatureAttribute.ErrorSquiggles
                 },
@@ -247,7 +247,7 @@ csharp_style_expression_bodied_properties = true:warning
                 new[]
                 {
                     FeatureAttribute.Workspace,
-                    FeatureAttribute.SolutionCrawler,
+                    FeatureAttribute.SolutionCrawlerLegacy,
                     FeatureAttribute.DiagnosticService,
                     FeatureAttribute.ErrorSquiggles
                 },
@@ -274,7 +274,7 @@ csharp_style_expression_bodied_properties = true:warning
                 new[]
                 {
                     FeatureAttribute.Workspace,
-                    FeatureAttribute.SolutionCrawler,
+                    FeatureAttribute.SolutionCrawlerLegacy,
                     FeatureAttribute.DiagnosticService,
                     FeatureAttribute.ErrorSquiggles
                 },
@@ -505,7 +505,7 @@ public class P2 { }", HangMitigatingCancellationToken);
                     FeatureAttribute.EventHookup,
                     FeatureAttribute.Rename,
                     FeatureAttribute.RenameTracking,
-                    FeatureAttribute.SolutionCrawler,
+                    FeatureAttribute.SolutionCrawlerLegacy,
                     FeatureAttribute.DiagnosticService,
                     FeatureAttribute.ErrorSquiggles,
                 },
@@ -570,7 +570,7 @@ namespace NS
                     FeatureAttribute.EventHookup,
                     FeatureAttribute.Rename,
                     FeatureAttribute.RenameTracking,
-                    FeatureAttribute.SolutionCrawler,
+                    FeatureAttribute.SolutionCrawlerLegacy,
                     FeatureAttribute.DiagnosticService,
                     FeatureAttribute.ErrorSquiggles,
                 },
@@ -776,7 +776,7 @@ class C
                 new[]
                 {
                     FeatureAttribute.Workspace,
-                    FeatureAttribute.SolutionCrawler,
+                    FeatureAttribute.SolutionCrawlerLegacy,
                     FeatureAttribute.DiagnosticService,
                     FeatureAttribute.ErrorSquiggles,
                 },
@@ -813,7 +813,7 @@ class C
                 new[]
                 {
                     FeatureAttribute.Workspace,
-                    FeatureAttribute.SolutionCrawler,
+                    FeatureAttribute.SolutionCrawlerLegacy,
                     FeatureAttribute.DiagnosticService,
                     FeatureAttribute.ErrorSquiggles,
                 },
@@ -856,7 +856,7 @@ class C
                 new[]
                 {
                     FeatureAttribute.Workspace,
-                    FeatureAttribute.SolutionCrawler,
+                    FeatureAttribute.SolutionCrawlerLegacy,
                     FeatureAttribute.DiagnosticService,
                     FeatureAttribute.ErrorSquiggles,
                 },
@@ -876,7 +876,7 @@ dotnet_diagnostic.CS0168.severity = ", HangMitigatingCancellationToken);
                 new[]
                 {
                     FeatureAttribute.Workspace,
-                    FeatureAttribute.SolutionCrawler,
+                    FeatureAttribute.SolutionCrawlerLegacy,
                     FeatureAttribute.DiagnosticService,
                     FeatureAttribute.ErrorSquiggles,
                 },
@@ -888,7 +888,7 @@ dotnet_diagnostic.CS0168.severity = ", HangMitigatingCancellationToken);
                 new[]
                 {
                     FeatureAttribute.Workspace,
-                    FeatureAttribute.SolutionCrawler,
+                    FeatureAttribute.SolutionCrawlerLegacy,
                     FeatureAttribute.DiagnosticService,
                     FeatureAttribute.ErrorSquiggles,
                 },
@@ -983,7 +983,7 @@ class OtherType
                 new[]
                 {
                     FeatureAttribute.Workspace,
-                    FeatureAttribute.SolutionCrawler,
+                    FeatureAttribute.SolutionCrawlerLegacy,
                     FeatureAttribute.DiagnosticService,
                     FeatureAttribute.ErrorSquiggles
                 },
@@ -1149,7 +1149,7 @@ class OtherType2
                 new[]
                 {
                     FeatureAttribute.Workspace,
-                    FeatureAttribute.SolutionCrawler,
+                    FeatureAttribute.SolutionCrawlerLegacy,
                     FeatureAttribute.DiagnosticService,
                     FeatureAttribute.ErrorSquiggles
                 },
@@ -1229,7 +1229,7 @@ class C2
                 new[]
                 {
                     FeatureAttribute.Workspace,
-                    FeatureAttribute.SolutionCrawler,
+                    FeatureAttribute.SolutionCrawlerLegacy,
                     FeatureAttribute.DiagnosticService,
                     FeatureAttribute.ErrorSquiggles
                 },
@@ -1363,7 +1363,7 @@ class C2
                 new[]
                 {
                     FeatureAttribute.Workspace,
-                    FeatureAttribute.SolutionCrawler,
+                    FeatureAttribute.SolutionCrawlerLegacy,
                     FeatureAttribute.DiagnosticService,
                     FeatureAttribute.ErrorSquiggles
                 },
@@ -1403,7 +1403,7 @@ public class Program
                     FeatureAttribute.EventHookup,
                     FeatureAttribute.Rename,
                     FeatureAttribute.RenameTracking,
-                    FeatureAttribute.SolutionCrawler,
+                    FeatureAttribute.SolutionCrawlerLegacy,
                     FeatureAttribute.DiagnosticService,
                     FeatureAttribute.ErrorSquiggles,
                 },

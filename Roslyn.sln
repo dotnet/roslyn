@@ -513,6 +513,12 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.CSha
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.TestAnalyzerReference", "src\Workspaces\TestAnalyzerReference\Microsoft.CodeAnalysis.TestAnalyzerReference.csproj", "{E537C074-25BD-4521-BB16-6F4E78E97C81}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CommonLanguageServerProtocol.Framework", "src\Features\LanguageServer\Microsoft.CommonLanguageServerProtocol.Framework\Microsoft.CommonLanguageServerProtocol.Framework.csproj", "{D2589BCE-4F2E-4113-B7E7-37392C0C5492}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CommonLanguageServerProtocol.Framework.Example", "src\Features\LanguageServer\Microsoft.CommonLanguageServerProtocol.Framework.Example\Microsoft.CommonLanguageServerProtocol.Framework.Example.csproj", "{BD9539EB-AA5E-4E67-AC7F-97D7CBC4D0C9}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CommonLanguageServerProtocol.Framework.UnitTests", "src\Features\LanguageServer\Microsoft.CommonLanguageServerProtocol.Framework.UnitTests\Microsoft.CommonLanguageServerProtocol.Framework.UnitTests.csproj", "{58AD1B2C-6FFC-47CB-838A-54D0CA2BF0C8}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -1247,6 +1253,18 @@ Global
 		{E537C074-25BD-4521-BB16-6F4E78E97C81}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{E537C074-25BD-4521-BB16-6F4E78E97C81}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{E537C074-25BD-4521-BB16-6F4E78E97C81}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D2589BCE-4F2E-4113-B7E7-37392C0C5492}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D2589BCE-4F2E-4113-B7E7-37392C0C5492}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D2589BCE-4F2E-4113-B7E7-37392C0C5492}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D2589BCE-4F2E-4113-B7E7-37392C0C5492}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BD9539EB-AA5E-4E67-AC7F-97D7CBC4D0C9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BD9539EB-AA5E-4E67-AC7F-97D7CBC4D0C9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BD9539EB-AA5E-4E67-AC7F-97D7CBC4D0C9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BD9539EB-AA5E-4E67-AC7F-97D7CBC4D0C9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{58AD1B2C-6FFC-47CB-838A-54D0CA2BF0C8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{58AD1B2C-6FFC-47CB-838A-54D0CA2BF0C8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{58AD1B2C-6FFC-47CB-838A-54D0CA2BF0C8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{58AD1B2C-6FFC-47CB-838A-54D0CA2BF0C8}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -1480,6 +1498,9 @@ Global
 		{A9A8ADE5-F123-4109-9FA4-4B92F1657043} = {C52D8057-43AF-40E6-A01B-6CDBB7301985}
 		{C247414A-8946-4BAB-BE1F-C82B90C63EF6} = {32A48625-F0AD-419D-828B-A50BDABA38EA}
 		{E537C074-25BD-4521-BB16-6F4E78E97C81} = {55A62CFA-1155-46F1-ADF3-BEEE51B58AB5}
+		{D2589BCE-4F2E-4113-B7E7-37392C0C5492} = {3E5FE3DB-45F7-4D83-9097-8F05D3B3AEC6}
+		{BD9539EB-AA5E-4E67-AC7F-97D7CBC4D0C9} = {3E5FE3DB-45F7-4D83-9097-8F05D3B3AEC6}
+		{58AD1B2C-6FFC-47CB-838A-54D0CA2BF0C8} = {3E5FE3DB-45F7-4D83-9097-8F05D3B3AEC6}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {604E6B91-7BC0-4126-AE07-D4D2FEFC3D29}
