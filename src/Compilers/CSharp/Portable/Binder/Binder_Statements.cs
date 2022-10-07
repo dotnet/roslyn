@@ -1548,9 +1548,25 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // 2. e1 = ref e2: where e1 is a ref local or ref parameter then e2 must have a safe-to-escape equal to safe-to-escape for e1 and
                         //    e2 must have ref-safe-to-escape at least as large as ref-safe-to-escape of the ref-safe-to-escape of e1
 
+                        bool reportRefEscape;
                         var leftEscape = GetRefEscape(op1, LocalScopeDepth);
                         var rightEscape = GetRefEscape(op2, LocalScopeDepth);
                         if (leftEscape < rightEscape)
+                        {
+                            reportRefEscape = true;
+                        }
+                        else if (op1.Kind is BoundKind.Local or BoundKind.Parameter &&
+                            (leftEscape = GetValEscape(op1, LocalScopeDepth)) != (rightEscape = GetValEscape(op2, LocalScopeDepth)))
+                        {
+                            Debug.Assert(op1.Kind != BoundKind.Parameter); // If the assert fails, add a corresponding test.
+                            reportRefEscape = true;
+                        }
+                        else
+                        {
+                            reportRefEscape = false;
+                        }
+
+                        if (reportRefEscape)
                         {
                             var errorCode = (rightEscape, this.InUnsafeRegion) switch
                             {
@@ -1565,12 +1581,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                             {
                                 op2 = ToBadExpression(op2);
                             }
-                        }
-                        else if (op1.Kind is BoundKind.Local or BoundKind.Parameter &&
-                            GetValEscape(op1, LocalScopeDepth) != GetValEscape(op2, LocalScopeDepth))
-                        {
-                            Error(diagnostics, ErrorCode.ERR_RefAssignNarrower, node, getName(op1), op2.Syntax);
-                            op2 = ToBadExpression(op2);
                         }
                     }
 

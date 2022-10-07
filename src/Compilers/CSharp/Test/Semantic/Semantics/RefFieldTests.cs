@@ -8607,6 +8607,13 @@ class Program
             {
                 comp.VerifyEmitDiagnostics();
             }
+            else if (useUnsafe)
+            {
+                comp.VerifyEmitDiagnostics(
+                    // (17,9): warning CS9085: This ref-assigns 'r1' to 'r2' but 'r1' has a narrower escape scope than 'r2'.
+                    //         r2 = ref r1; // 1
+                    Diagnostic(ErrorCode.WRN_RefAssignNarrower, "r2 = ref r1").WithArguments("r2", "r1").WithLocation(17, 9));
+            }
             else
             {
                 comp.VerifyEmitDiagnostics(
