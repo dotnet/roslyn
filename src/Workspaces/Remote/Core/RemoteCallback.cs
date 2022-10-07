@@ -141,7 +141,7 @@ namespace Microsoft.CodeAnalysis.Remote
                     // Ensure that the writer is complete if an exception is thrown. This passes the information to the
                     // reading side as well so it can stop doing work.
                     await pipeWriter.CompleteAsync(e).ConfigureAwait(false);
-                    
+
                     // Ensure that this tasks completes with this exception as well.  This ensures that the Task.WhenAll
                     // will see this exception in case it got sent over to the reader and the reader itself was already done.
                     throw;
