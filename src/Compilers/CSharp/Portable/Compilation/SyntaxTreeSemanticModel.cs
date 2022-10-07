@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// <summary>
     /// Allows asking semantic questions about any node in a SyntaxTree within a Compilation.
     /// </summary>
-    internal partial class SyntaxTreeSemanticModel : CSharpSemanticModel
+    internal partial class SyntaxTreeSemanticModel : PublicSemanticModel
     {
         private readonly CSharpCompilation _compilation;
         private readonly SyntaxTree _syntaxTree;
@@ -50,11 +50,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             _binderFactory = compilation.GetBinderFactory(SyntaxTree, ignoreAccessibility);
         }
 
-        internal SyntaxTreeSemanticModel(CSharpCompilation parentCompilation, SyntaxTree parentSyntaxTree, SyntaxTree speculatedSyntaxTree)
+        internal SyntaxTreeSemanticModel(CSharpCompilation parentCompilation, SyntaxTree parentSyntaxTree, SyntaxTree speculatedSyntaxTree, bool ignoreAccessibility)
         {
             _compilation = parentCompilation;
             _syntaxTree = speculatedSyntaxTree;
-            _binderFactory = _compilation.GetBinderFactory(parentSyntaxTree);
+            _binderFactory = _compilation.GetBinderFactory(parentSyntaxTree, ignoreAccessibility);
+            _ignoresAccessibility = ignoreAccessibility;
         }
 
         /// <summary>
@@ -591,7 +592,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             get { return this; }
         }
 
-        internal sealed override bool TryGetSpeculativeSemanticModelCore(SyntaxTreeSemanticModel parentModel, int position, TypeSyntax type, SpeculativeBindingOption bindingOption, out SemanticModel speculativeModel)
+        internal sealed override bool TryGetSpeculativeSemanticModelCore(SyntaxTreeSemanticModel parentModel, int position, TypeSyntax type, SpeculativeBindingOption bindingOption, out PublicSemanticModel speculativeModel)
         {
             position = CheckAndAdjustPosition(position);
 
@@ -612,7 +613,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return false;
         }
 
-        internal override bool TryGetSpeculativeSemanticModelCore(SyntaxTreeSemanticModel parentModel, int position, CrefSyntax crefSyntax, out SemanticModel speculativeModel)
+        internal override bool TryGetSpeculativeSemanticModelCore(SyntaxTreeSemanticModel parentModel, int position, CrefSyntax crefSyntax, out PublicSemanticModel speculativeModel)
         {
             position = CheckAndAdjustPosition(position);
 
@@ -627,7 +628,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return false;
         }
 
-        internal sealed override bool TryGetSpeculativeSemanticModelCore(SyntaxTreeSemanticModel parentModel, int position, StatementSyntax statement, out SemanticModel speculativeModel)
+        internal sealed override bool TryGetSpeculativeSemanticModelCore(SyntaxTreeSemanticModel parentModel, int position, StatementSyntax statement, out PublicSemanticModel speculativeModel)
         {
             position = CheckAndAdjustPosition(position);
 
@@ -641,7 +642,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return false;
         }
 
-        internal sealed override bool TryGetSpeculativeSemanticModelForMethodBodyCore(SyntaxTreeSemanticModel parentModel, int position, BaseMethodDeclarationSyntax method, out SemanticModel speculativeModel)
+        internal sealed override bool TryGetSpeculativeSemanticModelForMethodBodyCore(SyntaxTreeSemanticModel parentModel, int position, BaseMethodDeclarationSyntax method, out PublicSemanticModel speculativeModel)
         {
             position = CheckAndAdjustPosition(position);
 
@@ -655,7 +656,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return false;
         }
 
-        internal sealed override bool TryGetSpeculativeSemanticModelForMethodBodyCore(SyntaxTreeSemanticModel parentModel, int position, AccessorDeclarationSyntax accessor, out SemanticModel speculativeModel)
+        internal sealed override bool TryGetSpeculativeSemanticModelForMethodBodyCore(SyntaxTreeSemanticModel parentModel, int position, AccessorDeclarationSyntax accessor, out PublicSemanticModel speculativeModel)
         {
             position = CheckAndAdjustPosition(position);
 
@@ -669,7 +670,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return false;
         }
 
-        internal sealed override bool TryGetSpeculativeSemanticModelCore(SyntaxTreeSemanticModel parentModel, int position, EqualsValueClauseSyntax initializer, out SemanticModel speculativeModel)
+        internal sealed override bool TryGetSpeculativeSemanticModelCore(SyntaxTreeSemanticModel parentModel, int position, EqualsValueClauseSyntax initializer, out PublicSemanticModel speculativeModel)
         {
             position = CheckAndAdjustPosition(position);
 
@@ -683,7 +684,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return false;
         }
 
-        internal override bool TryGetSpeculativeSemanticModelCore(SyntaxTreeSemanticModel parentModel, int position, ArrowExpressionClauseSyntax expressionBody, out SemanticModel speculativeModel)
+        internal override bool TryGetSpeculativeSemanticModelCore(SyntaxTreeSemanticModel parentModel, int position, ArrowExpressionClauseSyntax expressionBody, out PublicSemanticModel speculativeModel)
         {
             position = CheckAndAdjustPosition(position);
 
@@ -697,7 +698,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return false;
         }
 
-        internal sealed override bool TryGetSpeculativeSemanticModelCore(SyntaxTreeSemanticModel parentModel, int position, ConstructorInitializerSyntax constructorInitializer, out SemanticModel speculativeModel)
+        internal sealed override bool TryGetSpeculativeSemanticModelCore(SyntaxTreeSemanticModel parentModel, int position, ConstructorInitializerSyntax constructorInitializer, out PublicSemanticModel speculativeModel)
         {
             position = CheckAndAdjustPosition(position);
 
@@ -716,7 +717,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return false;
         }
 
-        internal sealed override bool TryGetSpeculativeSemanticModelCore(SyntaxTreeSemanticModel parentModel, int position, PrimaryConstructorBaseTypeSyntax constructorInitializer, out SemanticModel speculativeModel)
+        internal sealed override bool TryGetSpeculativeSemanticModelCore(SyntaxTreeSemanticModel parentModel, int position, PrimaryConstructorBaseTypeSyntax constructorInitializer, out PublicSemanticModel speculativeModel)
         {
             position = CheckAndAdjustPosition(position);
 
@@ -757,7 +758,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return GetSpeculativelyBoundExpressionWithoutNullability(position, expression, bindingOption, out binder, out crefSymbols);
         }
 
-        internal AttributeSemanticModel CreateSpeculativeAttributeSemanticModel(int position, AttributeSyntax attribute, Binder binder, AliasSymbol aliasOpt, NamedTypeSymbol attributeType)
+        internal PublicSemanticModel CreateSpeculativeAttributeSemanticModel(int position, AttributeSyntax attribute, Binder binder, AliasSymbol aliasOpt, NamedTypeSymbol attributeType)
         {
             var memberModel = IsNullableAnalysisEnabledAtSpeculativePosition(position, attribute) ? GetMemberModel(position) : null;
             return AttributeSemanticModel.CreateSpeculative(this, attribute, attributeType, aliasOpt, binder, memberModel?.GetRemappedSymbols(), position);
