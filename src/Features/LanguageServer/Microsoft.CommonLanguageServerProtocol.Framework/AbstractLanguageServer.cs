@@ -18,9 +18,9 @@ namespace Microsoft.CommonLanguageServerProtocol.Framework;
 public abstract class AbstractLanguageServer<TRequestContext> : ILifeCycleManager, IAsyncDisposable
 {
     private readonly JsonRpc _jsonRpc;
-    private IRequestExecutionQueue<TRequestContext>? _queue;
+    private readonly Lazy<IRequestExecutionQueue<TRequestContext>> _queue;
     protected readonly ILspLogger _logger;
-    private ILspServices? _lspServices;
+    private readonly Lazy<ILspServices> _lspServices;
 
     public bool IsInitialized { get; private set; }
 
@@ -38,6 +38,8 @@ public abstract class AbstractLanguageServer<TRequestContext> : ILifeCycleManage
         _jsonRpc = jsonRpc;
         _jsonRpc.AddLocalRpcTarget(this);
         _jsonRpc.Disconnected += JsonRpc_Disconnected;
+        _lspServices = new Lazy<ILspServices>(() => ConstructLspServices());
+        _queue = new Lazy<IRequestExecutionQueue<TRequestContext>>(() => ConstructRequestExecutionQueue());
     }
 
     /// <summary>
@@ -53,25 +55,19 @@ public abstract class AbstractLanguageServer<TRequestContext> : ILifeCycleManage
     /// Extension point to allow creation of <see cref="ILspServices"/> since that can't always be handled in the constructor.
     /// </summary>
     /// <returns>An <see cref="ILspServices"/> instance for this server.</returns>
-    /// <remarks>This should only be called once (by <see cref="GetLspServices"/>), and then cached.</remarks>
+    /// <remarks>This should only be called once, and then cached.</remarks>
     protected abstract ILspServices ConstructLspServices();
-
-    protected ILspServices GetLspServices()
-    {
-        if (_lspServices is null)
-            _lspServices = ConstructLspServices();
-
-        return _lspServices;
-    }
 
     protected virtual IHandlerProvider GetHandlerProvider()
     {
-        var lspServices = GetLspServices();
+        var lspServices = _lspServices.Value;
         var handlerProvider = new HandlerProvider(lspServices);
         SetupRequestDispatcher(handlerProvider);
 
         return handlerProvider;
     }
+
+    public ILspServices GetLspServices() => _lspServices.Value;
 
     protected virtual void SetupRequestDispatcher(IHandlerProvider handlerProvider)
     {
@@ -121,6 +117,20 @@ public abstract class AbstractLanguageServer<TRequestContext> : ILifeCycleManage
             };
             _jsonRpc.AddLocalRpcMethod(genericEntryPointMethod, delegatingEntryPoint, methodAttribute);
         }
+
+        var exitMethodAttribute = new JsonRpcMethodAttribute("exit")
+        {
+            UseSingleObjectParameterDeserialization = true,
+        };
+        _jsonRpc.AddLocalRpcTarget(this);
+    }
+
+    [JsonRpcMethod("exit")]
+    public Task ExitAsync(CancellationToken _)
+    {
+        var lspServices = _lspServices.Value;
+        var lifeCycleManager = lspServices.GetRequiredService<ILifeCycleManager>();
+        return lifeCycleManager.ExitAsync();
     }
 
     public virtual void OnInitialized()
@@ -140,10 +150,7 @@ public abstract class AbstractLanguageServer<TRequestContext> : ILifeCycleManage
 
     protected IRequestExecutionQueue<TRequestContext> GetRequestExecutionQueue()
     {
-        if (_queue is null)
-            _queue = ConstructRequestExecutionQueue();
-
-        return _queue;
+        return _queue.Value;
     }
 
     /// <summary>

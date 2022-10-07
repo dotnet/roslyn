@@ -79,7 +79,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             AddBaseService<IMethodHandler>(new InitializeHandler());
             AddBaseService<IMethodHandler>(new InitializedHandler());
             AddBaseService<IMethodHandler>(new ShutdownHandler());
-            AddBaseService<IMethodHandler>(new ExitHandler());
 
             return baseServices.ToImmutableDictionary();
 
