@@ -4740,7 +4740,7 @@ class Program
                     static RS M3(scoped ref RS rs3)
                     {
                         RS rs4;
-                        M0(rs3, out rs4); // 3
+                        M0(ref rs3, out rs4); // 3
                         return rs4;
                     }
                 }
@@ -4754,9 +4754,12 @@ class Program
                 // (25,16): error CS8352: Cannot use variable 'rs4' in this context because it may expose referenced variables outside of their declaration scope
                 //         return rs4; // 2
                 Diagnostic(ErrorCode.ERR_EscapeVariable, "rs4").WithArguments("rs4").WithLocation(25, 16),
-                // (31,12): error CS1620: Argument 1 must be passed with the 'ref' keyword
-                //         M0(rs3, out rs4); // 3
-                Diagnostic(ErrorCode.ERR_BadArgRef, "rs3").WithArguments("1", "ref").WithLocation(31, 12));
+                // (31,9): error CS8350: This combination of arguments to 'Program.M0(ref RS, out RS)' is disallowed because it may expose variables referenced by parameter 'rs1' outside of their declaration scope
+                //         M0(ref rs3, out rs4); // 3
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "M0(ref rs3, out rs4)").WithArguments("Program.M0(ref RS, out RS)", "rs1").WithLocation(31, 9),
+                // (31,16): error CS9075: Cannot return a parameter by reference 'rs3' because it is scoped to the current method
+                //         M0(ref rs3, out rs4); // 3
+                Diagnostic(ErrorCode.ERR_RefReturnScopedParameter, "rs3").WithArguments("rs3").WithLocation(31, 16));
         }
 
         [Fact]
@@ -5057,6 +5060,14 @@ class Program
                         M0(ref rs3, out scoped var rs4);
                         return rs4; // 1
                     }
+
+                    static RS M2(ref RS rs5)
+                    {
+                        // RSTE of rs3 is ReturnOnly.
+                        // However, since rs6 is 'scoped', its STE should be narrowed to CurrentMethod
+                        M0(ref rs5, out scoped RS rs6);
+                        return rs6; // 2
+                    }
                 }
                 """;
 
@@ -5075,7 +5086,19 @@ class Program
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "rs4").WithArguments("rs4").WithLocation(18, 36),
                 // (19,16): error CS0103: The name 'rs4' does not exist in the current context
                 //         return rs4; // 1
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "rs4").WithArguments("rs4").WithLocation(19, 16));
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "rs4").WithArguments("rs4").WithLocation(19, 16),
+                // (26,25): error CS0246: The type or namespace name 'scoped' could not be found (are you missing a using directive or an assembly reference?)
+                //         M0(ref rs5, out scoped RS rs6);
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "scoped").WithArguments("scoped").WithLocation(26, 25),
+                // (26,35): error CS1003: Syntax error, ',' expected
+                //         M0(ref rs5, out scoped RS rs6);
+                Diagnostic(ErrorCode.ERR_SyntaxError, "rs6").WithArguments(",").WithLocation(26, 35),
+                // (26,35): error CS0103: The name 'rs6' does not exist in the current context
+                //         M0(ref rs5, out scoped RS rs6);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "rs6").WithArguments("rs6").WithLocation(26, 35),
+                // (27,16): error CS0103: The name 'rs6' does not exist in the current context
+                //         return rs6; // 2
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "rs6").WithArguments("rs6").WithLocation(27, 16));
         }
     }
 }
