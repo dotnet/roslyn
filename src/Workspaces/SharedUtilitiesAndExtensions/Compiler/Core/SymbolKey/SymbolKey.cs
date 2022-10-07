@@ -310,9 +310,7 @@ namespace Microsoft.CodeAnalysis
                 foreach (var member in members)
                 {
                     if (member is TSymbol symbol)
-                    {
                         result.AddIfNotNull(symbol);
-                    }
                 }
             }
 
@@ -335,8 +333,8 @@ namespace Microsoft.CodeAnalysis
                 return 0;
 
             using var reader = SymbolKeyReader.GetReader(key, compilation: null!, ignoreAssemblyKey: false, CancellationToken.None);
-            reader.ReadFormatVersion();
-            reader.ReadString();
+            _ = reader.ReadFormatVersion();
+            _ = reader.ReadString();
             return reader.Position;
         }
 
@@ -351,7 +349,7 @@ namespace Microsoft.CodeAnalysis
 
             return hashCode;
 #else
-            return string.GetHashCode(_symbolKeyData.AsSpan()[position..]);
+            return string.GetHashCode(_symbolKeyData.AsSpan(position));
 #endif
         }
 
@@ -366,12 +364,11 @@ namespace Microsoft.CodeAnalysis
             var position1 = GetDataStartPosition(_symbolKeyData);
             var position2 = GetDataStartPosition(other._symbolKeyData);
 
-            var keySpan1 = _symbolKeyData.AsSpan()[position1..];
-            var keySpan2 = other._symbolKeyData.AsSpan()[position2..];
+            var keySpan1 = _symbolKeyData.AsSpan(position1);
+            var keySpan2 = other._symbolKeyData.AsSpan(position2);
 
-            return ignoreCase
-                ? CaseInsensitiveComparison.Equals(keySpan1, keySpan2)
-                : keySpan1.SequenceEqual(keySpan2);
+            var comparison = ignoreCase ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal;
+            return keySpan1.Equals(keySpan2, comparison);
         }
     }
 }
