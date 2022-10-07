@@ -112,8 +112,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                         {
                             return LineColumnRule.Preserve;
                         }
-
-                        if (previous.HasStructure && previous.GetStructure() is BranchingDirectiveTriviaSyntax branchingDirectiveTrivia)
+                        else if (previous.IsKind(SyntaxKind.EndIfDirectiveTrivia))
+                        {
+                            // We cannot go back further to determine if we are in a disabled region or not.
+                            // We assume we are in active region, but that might not be correct.
+                            break;
+                        }
+                        else if (previous.HasStructure && previous.GetStructure() is BranchingDirectiveTriviaSyntax branchingDirectiveTrivia)
                         {
                             if (!branchingDirectiveTrivia.BranchTaken)
                             {
