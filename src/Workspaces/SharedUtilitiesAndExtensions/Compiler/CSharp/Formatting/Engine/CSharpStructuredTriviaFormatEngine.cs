@@ -11,7 +11,7 @@ using Microsoft.CodeAnalysis.LanguageService;
 
 namespace Microsoft.CodeAnalysis.CSharp.Formatting
 {
-    internal class CSharpStructuredTriviaFormatEngine : AbstractFormatEngine
+    internal class CSharpStructuredTriviaFormatEngine : CSharpFormatEngine
     {
         public static IFormattingResult Format(
             SyntaxTrivia trivia,
@@ -40,11 +40,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
         {
         }
 
-        internal override IHeaderFacts HeaderFacts => CSharpHeaderFacts.Instance;
-
-        protected override AbstractTriviaDataFactory CreateTriviaFactory()
-            => new TriviaDataFactory(this.TreeData, this.Options);
-
         protected override FormattingContext CreateFormattingContext(TokenStream tokenStream, CancellationToken cancellationToken)
             => new(this, tokenStream);
 
@@ -53,8 +48,5 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             // ignore all node operations for structured trivia since it is not possible for this to have any impact currently.
             return NodeOperations.Empty;
         }
-
-        protected override AbstractFormattingResult CreateFormattingResult(TokenStream tokenStream)
-            => new FormattingResult(this.TreeData, tokenStream, this.SpanToFormat);
     }
 }
