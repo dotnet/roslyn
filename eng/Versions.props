@@ -300,7 +300,7 @@
     <UsingToolVSSDK>true</UsingToolVSSDK>
   </PropertyGroup>
   <PropertyGroup>
-    <UsingToolPdbConverter>true</UsingToolPdbConverter>
+    <UsingToolPdbConverter>false</UsingToolPdbConverter>
     <UsingToolSymbolUploader>true</UsingToolSymbolUploader>
     <UsingToolNuGetRepack>true</UsingToolNuGetRepack>
     <UsingToolNetFrameworkReferenceAssemblies>true</UsingToolNetFrameworkReferenceAssemblies>
@@ -308,7 +308,6 @@
     <UsingToolVisualStudioIbcTraining>true</UsingToolVisualStudioIbcTraining>
     <UsingToolXliff>true</UsingToolXliff>
     <UsingToolXUnit>true</UsingToolXUnit>
-    <DiscoverEditorConfigFiles>true</DiscoverEditorConfigFiles>
     <!--
       When using a bootstrap builder we don't want to use the Microsoft.Net.Compilers.Toolset package but
       rather explicitly override it.

@@ -376,6 +376,5 @@
     </ItemGroup>
   </Target>
 
-  <Import Project="DoNotDeployToSymStore_Workaround.targets" Condition="'$(UsingToolPdbConverter)' == 'false'" />
   <Import Project="DoNotGenerateSatelliteAssemblies_Workaround.targets" Condition="'$(GenerateSatelliteAssemblies)' == 'false'" />
 </Project>
