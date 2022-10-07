@@ -2082,6 +2082,16 @@
         <target state="translated">'ObsoleteAttribute' özniteliğine sahip üyeler, kapsayan tür veya tüm oluşturucular artık kullanılmadığı sürece gerekli olmamalıdır.</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_ParameterCouldBeScoped">
+        <source>Parameter '{0}' could be marked scoped.</source>
+        <target state="new">Parameter '{0}' could be marked scoped.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_ParameterCouldBeScoped_Title">
+        <source>Parameter could be marked scoped.</source>
+        <target state="new">Parameter could be marked scoped.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_ParameterNotNullIfNotNull">
         <source>Parameter '{0}' must have a non-null value when exiting because parameter '{1}' is non-null.</source>
         <target state="translated">'{1}' parametresi null olmadığından '{0}' parametresi çıkış yaparken null olmayan bir değere sahip olmalıdır.</target>

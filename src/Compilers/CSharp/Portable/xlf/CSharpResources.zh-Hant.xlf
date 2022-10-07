@@ -2082,6 +2082,16 @@
         <target state="translated">除非包含的類型已過時或所有建構函式已過時，否則不應要求具有 'ObsoleteAttribute' 屬性的成員。</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_ParameterCouldBeScoped">
+        <source>Parameter '{0}' could be marked scoped.</source>
+        <target state="new">Parameter '{0}' could be marked scoped.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_ParameterCouldBeScoped_Title">
+        <source>Parameter could be marked scoped.</source>
+        <target state="new">Parameter could be marked scoped.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_ParameterNotNullIfNotNull">
         <source>Parameter '{0}' must have a non-null value when exiting because parameter '{1}' is non-null.</source>
         <target state="translated">因為參數 '{1}' 不是 null，所以參數 '{0}' 在結束時必須具有非 Null 值。</target>

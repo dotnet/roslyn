@@ -952,12 +952,24 @@ namespace Microsoft.CodeAnalysis.CSharp
             };
         }
 
+        private bool MarkParameter(SyntaxNode node, ParameterSymbol parameter, uint escapeTo, bool refEscape, BindingDiagnosticBag diagnostics)
+        {
+            if (escapeTo <= 1 &&
+                ((parameter.RefKind != RefKind.None) == refEscape))
+            {
+                Error(diagnostics, ErrorCode.WRN_ParameterCouldBeScoped, node, parameter);
+                return true;
+            }
+            return false;
+        }
+
         private static EscapeLevel? GetParameterRefEscapeLevel(ParameterSymbol parameter) =>
             EscapeLevelFromScope(GetParameterRefEscape(parameter));
 
         private bool CheckParameterValEscape(SyntaxNode node, ParameterSymbol parameter, uint escapeTo, BindingDiagnosticBag diagnostics)
         {
             Debug.Assert(escapeTo is Binder.CallingMethodScope or Binder.ReturnOnlyScope);
+            MarkParameter(node, parameter, escapeTo, refEscape: false, diagnostics);
             if (UseUpdatedEscapeRules)
             {
                 if (GetParameterValEscape(parameter) > escapeTo)
@@ -976,6 +988,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private bool CheckParameterRefEscape(SyntaxNode node, BoundExpression parameter, ParameterSymbol parameterSymbol, uint escapeTo, bool checkingReceiver, BindingDiagnosticBag diagnostics)
         {
+            MarkParameter(node, parameterSymbol, escapeTo, refEscape: true, diagnostics);
             var refSafeToEscape = GetParameterRefEscape(parameterSymbol);
             if (refSafeToEscape > escapeTo)
             {

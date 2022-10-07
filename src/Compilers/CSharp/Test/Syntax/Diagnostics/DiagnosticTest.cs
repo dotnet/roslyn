@@ -403,6 +403,7 @@ class X
                             Assert.Equal(6, ErrorFacts.GetWarningLevel(errorCode));
                             break;
                         case ErrorCode.WRN_LowerCaseTypeName:
+                        case ErrorCode.WRN_ParameterCouldBeScoped:
                             // These are the warnings introduced with the warning "wave" shipped with dotnet 7 and C# 11.
                             Assert.Equal(7, ErrorFacts.GetWarningLevel(errorCode));
                             break;
