@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
 {
     public class NumericIntPtrTests : CSharpTestBase
     {
-        private static string IncludeExpectedOutput(string expectedOutput) => ExecutionConditionUtil.IsCoreClr ? expectedOutput : null;
+        private static string IncludeExpectedOutput(string expectedOutput) => ExecutionConditionUtil.IsMonoOrCoreClr ? expectedOutput : null;
 
         internal static readonly ConversionKind[] Identity = new[] { ConversionKind.Identity };
         internal static readonly ConversionKind[] NoConversion = new[] { ConversionKind.NoConversion };

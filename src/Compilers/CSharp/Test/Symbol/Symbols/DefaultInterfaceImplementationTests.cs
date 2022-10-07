@@ -66,13 +66,6 @@ public interface I1
                 return false;
             }
 
-#if !NET7_0_OR_GREATER
-            if (isStatic)
-            {
-                return false;
-            }
-#endif
-
             return true;
         }
 

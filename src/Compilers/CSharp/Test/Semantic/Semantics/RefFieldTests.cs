@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     public class RefFieldTests : CSharpTestBase
     {
-        private static string IncludeExpectedOutput(string expectedOutput) => ExecutionConditionUtil.IsCoreClr ? expectedOutput : null;
+        private static string IncludeExpectedOutput(string expectedOutput) => ExecutionConditionUtil.IsMonoOrCoreClr ? expectedOutput : null;
 
         [CombinatorialData]
         [Theory]
