@@ -3,7 +3,9 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.NavigateTo;
@@ -26,14 +28,6 @@ namespace Microsoft.CodeAnalysis.Remote
         {
         }
 
-        private Func<RoslynNavigateToItem, Task> GetCallback(
-            RemoteServiceCallbackId callbackId, CancellationToken cancellationToken)
-        {
-            return async i => await _callback.InvokeAsync((callback, c) =>
-                callback.OnResultFoundAsync(callbackId, i),
-                cancellationToken).ConfigureAwait(false);
-        }
-
         public ValueTask HydrateAsync(Checksum solutionChecksum, CancellationToken cancellationToken)
         {
             // All we need to do is request the solution.  This will ensure that all assets are
@@ -43,13 +37,12 @@ namespace Microsoft.CodeAnalysis.Remote
             return RunServiceAsync(solutionChecksum, solution => ValueTaskFactory.CompletedTask, cancellationToken);
         }
 
-        public ValueTask SearchDocumentAsync(
+        public async IAsyncEnumerable<RoslynNavigateToItem> SearchDocumentAsync(
             Checksum solutionChecksum,
             DocumentId documentId,
             string searchPattern,
             ImmutableArray<string> kinds,
-            RemoteServiceCallbackId callbackId,
-            CancellationToken cancellationToken)
+            [EnumeratorCancellation] CancellationToken cancellationToken)
         {
             return RunServiceAsync(solutionChecksum, async solution =>
             {
@@ -61,14 +54,13 @@ namespace Microsoft.CodeAnalysis.Remote
             }, cancellationToken);
         }
 
-        public ValueTask SearchProjectAsync(
+        public async IAsyncEnumerable<RoslynNavigateToItem> SearchProjectAsync(
             Checksum solutionChecksum,
             ProjectId projectId,
             ImmutableArray<DocumentId> priorityDocumentIds,
             string searchPattern,
             ImmutableArray<string> kinds,
-            RemoteServiceCallbackId callbackId,
-            CancellationToken cancellationToken)
+            [EnumeratorCancellation] CancellationToken cancellationToken)
         {
             return RunServiceAsync(solutionChecksum, async solution =>
             {
@@ -82,13 +74,12 @@ namespace Microsoft.CodeAnalysis.Remote
             }, cancellationToken);
         }
 
-        public ValueTask SearchGeneratedDocumentsAsync(
+        public async IAsyncEnumerable<RoslynNavigateToItem> SearchGeneratedDocumentsAsync(
             Checksum solutionChecksum,
             ProjectId projectId,
             string searchPattern,
             ImmutableArray<string> kinds,
-            RemoteServiceCallbackId callbackId,
-            CancellationToken cancellationToken)
+            [EnumeratorCancellation] CancellationToken cancellationToken)
         {
             return RunServiceAsync(solutionChecksum, async solution =>
             {
@@ -100,7 +91,12 @@ namespace Microsoft.CodeAnalysis.Remote
             }, cancellationToken);
         }
 
-        public ValueTask SearchCachedDocumentsAsync(ImmutableArray<DocumentKey> documentKeys, ImmutableArray<DocumentKey> priorityDocumentKeys, string searchPattern, ImmutableArray<string> kinds, RemoteServiceCallbackId callbackId, CancellationToken cancellationToken)
+        public async IAsyncEnumerable<RoslynNavigateToItem> SearchCachedDocumentsAsync(
+            ImmutableArray<DocumentKey> documentKeys,
+            ImmutableArray<DocumentKey> priorityDocumentKeys,
+            string searchPattern,
+            ImmutableArray<string> kinds,
+            [EnumeratorCancellation] CancellationToken cancellationToken)
         {
             return RunServiceAsync(async cancellationToken =>
             {
