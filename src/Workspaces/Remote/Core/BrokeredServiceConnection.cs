@@ -124,7 +124,7 @@ namespace Microsoft.CodeAnalysis.Remote
             }
         }
 
-        public override async IAsyncEnumerable<Optional<TResult>> TryInvokeStreamAsync<TResult>(
+        public override async IAsyncEnumerable<TResult> TryInvokeStreamAsync<TResult>(
             Func<TService, CancellationToken, IAsyncEnumerable<TResult>> invocation,
             [EnumeratorCancellation] CancellationToken cancellationToken)
         {
@@ -201,7 +201,7 @@ namespace Microsoft.CodeAnalysis.Remote
             }
         }
 
-        public override async IAsyncEnumerable<Optional<TResult>> TryInvokeStreamAsync<TResult>(
+        public override async IAsyncEnumerable<TResult> TryInvokeStreamAsync<TResult>(
             Solution solution,
             Func<TService, Checksum, CancellationToken, IAsyncEnumerable<TResult>> invocation,
             [EnumeratorCancellation] CancellationToken cancellationToken)
@@ -245,7 +245,7 @@ namespace Microsoft.CodeAnalysis.Remote
             }
         }
 
-        public override async IAsyncEnumerable<Optional<TResult>> TryInvokeStreamAsync<TResult>(
+        public override async IAsyncEnumerable<TResult> TryInvokeStreamAsync<TResult>(
             Project project,
             Func<TService, Checksum, CancellationToken, IAsyncEnumerable<TResult>> invocation,
             [EnumeratorCancellation] CancellationToken cancellationToken)

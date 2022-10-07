@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.Remote
             Func<TService, CancellationToken, ValueTask<TResult>> invocation,
             CancellationToken cancellationToken);
 
-        public abstract IAsyncEnumerable<Optional<TResult>> TryInvokeStreamAsync<TResult>(
+        public abstract IAsyncEnumerable<TResult> TryInvokeStreamAsync<TResult>(
             Func<TService, CancellationToken, IAsyncEnumerable<TResult>> invocation,
             CancellationToken cancellationToken);
 
@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.Remote
             Func<TService, Checksum, CancellationToken, ValueTask<TResult>> invocation,
             CancellationToken cancellationToken);
 
-        public abstract IAsyncEnumerable<Optional<TResult>> TryInvokeStreamAsync<TResult>(
+        public abstract IAsyncEnumerable<TResult> TryInvokeStreamAsync<TResult>(
             Solution solution,
             Func<TService, Checksum, CancellationToken, IAsyncEnumerable<TResult>> invocation,
             CancellationToken cancellationToken);
@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis.Remote
             Func<TService, Checksum, CancellationToken, ValueTask<TResult>> invocation,
             CancellationToken cancellationToken);
 
-        public abstract IAsyncEnumerable<Optional<TResult>> TryInvokeStreamAsync<TResult>(
+        public abstract IAsyncEnumerable<TResult> TryInvokeStreamAsync<TResult>(
             Project project,
             Func<TService, Checksum, CancellationToken, IAsyncEnumerable<TResult>> invocation,
             CancellationToken cancellationToken);

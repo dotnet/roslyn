@@ -81,7 +81,7 @@ namespace Microsoft.CodeAnalysis.Remote
             return await connection.TryInvokeAsync(invocation, cancellationToken).ConfigureAwait(false);
         }
 
-        public async IAsyncEnumerable<Optional<TResult>> TryInvokeStreamAsync<TService, TResult>(
+        public async IAsyncEnumerable<TResult> TryInvokeStreamAsync<TService, TResult>(
             Func<TService, CancellationToken, IAsyncEnumerable<TResult>> invocation,
             [EnumeratorCancellation] CancellationToken cancellationToken)
             where TService : class
@@ -135,7 +135,7 @@ namespace Microsoft.CodeAnalysis.Remote
             return await connection.TryInvokeAsync(solution, invocation, cancellationToken).ConfigureAwait(false);
         }
 
-        public async IAsyncEnumerable<Optional<TResult>> TryInvokeStreamAsync<TService, TResult>(
+        public async IAsyncEnumerable<TResult> TryInvokeStreamAsync<TService, TResult>(
             Solution solution,
             Func<TService, Checksum, CancellationToken, IAsyncEnumerable<TResult>> invocation,
             [EnumeratorCancellation] CancellationToken cancellationToken)
@@ -180,7 +180,7 @@ namespace Microsoft.CodeAnalysis.Remote
             return await connection.TryInvokeAsync(project, invocation, cancellationToken).ConfigureAwait(false);
         }
 
-        public async IAsyncEnumerable<Optional<TResult>> TryInvokeStreamAsync<TService, TResult>(
+        public async IAsyncEnumerable<TResult> TryInvokeStreamAsync<TService, TResult>(
             Project project,
             Func<TService, Checksum, CancellationToken, IAsyncEnumerable<TResult>> invocation,
             [EnumeratorCancellation] CancellationToken cancellationToken)

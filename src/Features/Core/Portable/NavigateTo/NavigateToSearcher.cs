@@ -147,10 +147,11 @@ namespace Microsoft.CodeAnalysis.NavigateTo
                 return;
 
             await AddProgressItemsAsync(1, cancellationToken).ConfigureAwait(false);
-            await service.SearchDocumentAsync(
-                _activeDocument, _searchPattern, _kinds, _activeDocument,
-                r => _callback.AddItemAsync(project, r, cancellationToken),
-                cancellationToken).ConfigureAwait(false);
+            await foreach (var item in service.SearchDocumentAsync(
+                _activeDocument, _searchPattern, _kinds, _activeDocument, cancellationToken))
+            {
+                await _callback.AddItemAsync(project, item, cancellationToken).ConfigureAwait(false);
+            }
         }
 
         private async Task SearchAllProjectsAsync(
@@ -280,7 +281,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             bool parallel,
             ImmutableArray<ImmutableArray<Project>> orderedProjects,
             HashSet<INavigateToSearchResult> seenItems,
-            Func<INavigateToSearchService, Project, Func<INavigateToSearchResult, Task>, Task> processProjectAsync,
+            Func<INavigateToSearchService, Project, IAsyncEnumerable<INavigateToSearchResult>> processProjectAsync,
             CancellationToken cancellationToken)
         {
             // Process each group one at a time.  However, in each group process all projects in parallel to get results
@@ -314,19 +315,19 @@ namespace Microsoft.CodeAnalysis.NavigateTo
                     if (service == null)
                         return;
 
-                    await processProjectAsync(service, project, result =>
+                    await foreach (var item in processProjectAsync(service, project).WithCancellation(cancellationToken))
                     {
                         // If we're seeing a dupe in another project, then filter it out here.  The results from
                         // the individual projects will already contain the information about all the projects
                         // leading to a better condensed view that doesn't look like it contains duplicate info.
                         lock (seenItems)
                         {
-                            if (!seenItems.Add(result))
-                                return Task.CompletedTask;
+                            if (!seenItems.Add(item))
+                                continue;
                         }
 
-                        return _callback.AddItemAsync(project, result, cancellationToken);
-                    }).ConfigureAwait(false);
+                        await _callback.AddItemAsync(project, item, cancellationToken).ConfigureAwait(false);
+                    }
                 }
                 finally
                 {
@@ -349,7 +350,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
                 parallel: true,
                 orderedProjects,
                 seenItems,
-                (s, p, cb) => s.SearchProjectAsync(p, GetPriorityDocuments(p), _searchPattern, _kinds, _activeDocument, cb, cancellationToken),
+                (s, p) => s.SearchProjectAsync(p, GetPriorityDocuments(p), _searchPattern, _kinds, _activeDocument, cancellationToken),
                 cancellationToken);
         }
 
@@ -366,7 +367,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
                 parallel: true,
                 orderedProjects,
                 seenItems,
-                (s, p, cb) => s.SearchCachedDocumentsAsync(p, GetPriorityDocuments(p), _searchPattern, _kinds, _activeDocument, cb, cancellationToken),
+                (s, p) => s.SearchCachedDocumentsAsync(p, GetPriorityDocuments(p), _searchPattern, _kinds, _activeDocument, cancellationToken),
                 cancellationToken);
         }
 
@@ -394,7 +395,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
                 parallel: false,
                 allProjects,
                 seenItems,
-                (s, p, cb) => s.SearchGeneratedDocumentsAsync(p, _searchPattern, _kinds, _activeDocument, cb, cancellationToken),
+                (s, p) => s.SearchGeneratedDocumentsAsync(p, _searchPattern, _kinds, _activeDocument, cancellationToken),
                 cancellationToken);
         }
     }
