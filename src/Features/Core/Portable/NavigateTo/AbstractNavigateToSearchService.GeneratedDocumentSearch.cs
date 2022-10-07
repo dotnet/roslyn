@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
                         service.SearchGeneratedDocumentsAsync(solutionInfo, project.Id, searchPattern, kinds.ToImmutableArray(), cancellationToken),
                     cancellationToken);
 
-                await foreach (var item in ConvertItemsAsync(solution, activeDocument, result, cancellationToken).WithCancellation(cancellationToken))
+                await foreach (var item in ConvertItemsAsync(solution, activeDocument, result, cancellationToken).ConfigureAwait(false))
                     yield return item;
             }
             else
@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
                 var result = SearchGeneratedDocumentsInCurrentProcessAsync(
                     project, searchPattern, kinds, cancellationToken);
 
-                await foreach (var item in ConvertItemsAsync(solution, activeDocument, result, cancellationToken).WithCancellation(cancellationToken))
+                await foreach (var item in ConvertItemsAsync(solution, activeDocument, result, cancellationToken).ConfigureAwait(false))
                     yield return item;
             }
         }
@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
 
             // First generate all the source-gen docs.  Then handoff to the standard search routine to find matches in them.  
             var generatedDocs = await project.GetSourceGeneratedDocumentsAsync(cancellationToken).ConfigureAwait(false);
-            await foreach (var item in ProcessDocumentsAsync(searchDocument: null, patternName, patternContainerOpt, declaredSymbolInfoKindsSet, generatedDocs.ToSet<Document>(), cancellationToken).WithCancellation(cancellationToken))
+            await foreach (var item in ProcessDocumentsAsync(searchDocument: null, patternName, patternContainerOpt, declaredSymbolInfoKindsSet, generatedDocs.ToSet<Document>(), cancellationToken).ConfigureAwait(false))
                 yield return item;
         }
     }

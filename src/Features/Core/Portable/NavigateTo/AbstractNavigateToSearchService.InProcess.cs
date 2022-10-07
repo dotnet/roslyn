@@ -55,12 +55,12 @@ namespace Microsoft.CodeAnalysis.NavigateTo
 
             // Prioritize the active documents if we have any.
             var highPriDocs = priorityDocuments.Where(d => project.ContainsDocument(d.Id)).ToSet();
-            await foreach (var item in ProcessDocumentsAsync(searchDocument, patternName, patternContainerOpt, declaredSymbolInfoKindsSet, highPriDocs, cancellationToken).WithCancellation(cancellationToken))
+            await foreach (var item in ProcessDocumentsAsync(searchDocument, patternName, patternContainerOpt, declaredSymbolInfoKindsSet, highPriDocs, cancellationToken).ConfigureAwait(false))
                 yield return item;
 
             // Then process non-priority documents.
             var lowPriDocs = project.Documents.Where(d => !highPriDocs.Contains(d)).ToSet();
-            await foreach (var item in ProcessDocumentsAsync(searchDocument, patternName, patternContainerOpt, declaredSymbolInfoKindsSet, lowPriDocs, cancellationToken).WithCancellation(cancellationToken))
+            await foreach (var item in ProcessDocumentsAsync(searchDocument, patternName, patternContainerOpt, declaredSymbolInfoKindsSet, lowPriDocs, cancellationToken).ConfigureAwait(false))
                 yield return item;
         }
 
@@ -96,7 +96,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             var index = await TopLevelSyntaxTreeIndex.GetRequiredIndexAsync(document, cancellationToken).ConfigureAwait(false);
 
             await foreach (var item in ProcessIndexAsync(
-                document.Id, document, patternName, patternContainer, kinds, index, cancellationToken).WithCancellation(cancellationToken))
+                document.Id, document, patternName, patternContainer, kinds, index, cancellationToken).ConfigureAwait(false))
             {
                 yield return item;
             }
@@ -115,7 +115,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
                 yield break;
 
             await foreach (var item in ProcessIndexAsync(
-                documentKey.Id, document: null, patternName, patternContainer, kinds, index, cancellationToken).WithCancellation(cancellationToken))
+                documentKey.Id, document: null, patternName, patternContainer, kinds, index, cancellationToken).ConfigureAwait(false))
             {
                 yield return item;
             }

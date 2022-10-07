@@ -87,7 +87,7 @@ namespace Microsoft.CodeAnalysis.Remote
             where TService : class
         {
             using var connection = CreateConnection<TService>(callbackTarget: null);
-            await foreach (var result in connection.TryInvokeStreamAsync(invocation, cancellationToken).WithCancellation(cancellationToken))
+            await foreach (var result in connection.TryInvokeStreamAsync(invocation, cancellationToken).ConfigureAwait(false))
                 yield return result;
         }
 
@@ -187,7 +187,7 @@ namespace Microsoft.CodeAnalysis.Remote
             where TService : class
         {
             using var connection = CreateConnection<TService>(callbackTarget: null);
-            await foreach (var item in connection.TryInvokeStreamAsync(project, invocation, cancellationToken).WithCancellation(cancellationToken))
+            await foreach (var item in connection.TryInvokeStreamAsync(project, invocation, cancellationToken).ConfigureAwait(false))
                 yield return item;
         }
 

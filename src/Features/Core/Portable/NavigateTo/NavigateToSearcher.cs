@@ -315,7 +315,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
                     if (service == null)
                         return;
 
-                    await foreach (var result in processProjectAsync(service, project).WithCancellation(cancellationToken))
+                    await foreach (var result in processProjectAsync(service, project).ConfigureAwait(false))
                     {
                         // If we're seeing a dupe in another project, then filter it out here.  The results from
                         // the individual projects will already contain the information about all the projects

@@ -113,7 +113,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 assetProvider, solutionChecksum, cancellationToken).ConfigureAwait(false);
             await using (pinnedSolution.ConfigureAwait(false))
             {
-                await foreach (var item in implementation(pinnedSolution.Solution, cancellationToken).WithCancellation(cancellationToken))
+                await foreach (var item in implementation(pinnedSolution.Solution, cancellationToken).ConfigureAwait(false))
                     yield return item;
             }
         }

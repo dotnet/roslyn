@@ -76,7 +76,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
                         service.SearchCachedDocumentsAsync(documentKeys, priorityDocumentKeys, searchPattern, kinds.ToImmutableArray(), cancellationToken),
                     cancellationToken);
 
-                await foreach (var item in ConvertItemsAsync(solution, activeDocument, result, cancellationToken).WithCancellation(cancellationToken))
+                await foreach (var item in ConvertItemsAsync(solution, activeDocument, result, cancellationToken).ConfigureAwait(false))
                     yield return item;
             }
             else
@@ -85,7 +85,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
                 var result = SearchCachedDocumentsInCurrentProcessAsync(
                     storageService, documentKeys, priorityDocumentKeys, searchPattern, kinds, cancellationToken);
 
-                await foreach (var item in ConvertItemsAsync(solution, activeDocument, result, cancellationToken).WithCancellation(cancellationToken))
+                await foreach (var item in ConvertItemsAsync(solution, activeDocument, result, cancellationToken).ConfigureAwait(false))
                     yield return item;
             }
         }
@@ -111,14 +111,14 @@ namespace Microsoft.CodeAnalysis.NavigateTo
 
             await foreach (var item in SearchCachedDocumentsInCurrentProcessAsync(
                 storageService, patternName, patternContainer, declaredSymbolInfoKindsSet,
-                priorityDocumentKeys, cancellationToken).WithCancellation(cancellationToken))
+                priorityDocumentKeys, cancellationToken).ConfigureAwait(false))
             {
                 yield return item;
             }
 
             await foreach (var item in SearchCachedDocumentsInCurrentProcessAsync(
                 storageService, patternName, patternContainer, declaredSymbolInfoKindsSet,
-                lowPriDocs, cancellationToken).WithCancellation(cancellationToken))
+                lowPriDocs, cancellationToken).ConfigureAwait(false))
             {
                 yield return item;
             }
