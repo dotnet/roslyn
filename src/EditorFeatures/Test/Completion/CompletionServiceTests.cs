@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Xunit;
@@ -51,7 +52,9 @@ class Test {
             Assert.Empty(completions.ItemsList);
 
             // NuGet analyzers for the project will be loaded when this returns 
-            Assert.IsType<DebugAssertTestCompletionProvider>((await completionService.GetTestAccessor().GetProjectProvidersAsync(project).ConfigureAwait(false)).Single());
+            var waiter = workspace.ExportProvider.GetExportedValue<AsynchronousOperationListenerProvider>().GetWaiter(FeatureAttribute.CompletionSet);
+            await waiter.ExpeditedWaitAsync();
+
             completions = await completionService.GetCompletionsAsync(document, caretPosition, CompletionOptions.Default, OptionValueSet.Empty);
 
             Assert.NotEmpty(completions.ItemsList);
