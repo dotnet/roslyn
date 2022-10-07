@@ -134,6 +134,8 @@ namespace Microsoft.CodeAnalysis.Remote
             }
             catch (Exception ex) when (FatalError.ReportAndPropagateUnlessCanceled(ex, cancellationToken, ErrorSeverity.Critical))
             {
+                // Any non-cancellation exception is bad and needs to be reported.  We will still ensure that we cleanup
+                // below though no matter what happens so that other calls to OOP can properly work.
                 throw ExceptionUtilities.Unreachable();
             }
         }
