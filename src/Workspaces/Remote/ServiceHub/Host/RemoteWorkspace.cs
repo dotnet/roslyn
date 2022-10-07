@@ -16,12 +16,20 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Remote
 {
-
     /// <summary>
     /// Workspace created by the remote host that mirrors the corresponding client workspace.
     /// </summary>
     internal sealed partial class RemoteWorkspace : Workspace
     {
+        /// <summary>
+        /// Corresponds to a solution that is being used in the remote workspace and has been 'pinned' so that it will
+        /// not be released.  While pinned any concurrent calls into the remote workspace for the same solution checksum
+        /// will get the same solution instance.  Note: services should almost always use <see
+        /// cref="RunWithSolutionAsync{T}(AssetProvider, Checksum, Func{Solution, ValueTask{T}}, CancellationToken)"/>
+        /// instead of calling <see cref="GetPinnedSolutionAsync"/>.  The former ensures that the ref-counts around the
+        /// pinned solution are properly handled.  If <see cref="GetPinnedSolutionAsync"/> is used, great care must be
+        /// followed to ensure it is properly disposed so that data is not held around indefinitely.
+        /// </summary>
         public sealed class PinnedSolution : System.IAsyncDisposable
         {
             private readonly RemoteWorkspace _workspace;
