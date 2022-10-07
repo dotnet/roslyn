@@ -81,19 +81,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.InProcess
             });
         }
 
-        internal Task SendToNavigateToAsync(params InputKey[] keys)
-        {
-            return SendToNavigateToAsync(
-                simulator =>
-                {
-                    foreach (var key in keys)
-                    {
-                        key.Apply(simulator);
-                    }
-                });
-        }
-
-        internal async Task SendToNavigateToAsync(Action<IInputSimulator> callback)
+        internal async Task SendToNavigateToAsync(params InputKey[] keys)
         {
             // AbstractSendKeys runs synchronously, so switch to a background thread before the call
             await TaskScheduler.Default;
@@ -102,11 +90,17 @@ namespace Roslyn.VisualStudio.IntegrationTests.InProcess
             TestServices.JoinableTaskFactory.Run(async () =>
             {
                 await TestServices.JoinableTaskFactory.SwitchToMainThreadAsync();
-                var searchBox = Assert.IsAssignableFrom<TextBox>(Keyboard.FocusedElement);
-                Assert.Equal("PART_SearchBox", searchBox.Name);
+                var searchBox = Assert.IsAssignableFrom<Control>(Keyboard.FocusedElement);
+                Assert.Contains(searchBox.Name, new[] { "PART_SearchBox", "SearchBoxControl" });
             });
 
-            callback(new InputSimulator());
+            var inputSimulator = new InputSimulator();
+            foreach (var key in keys)
+            {
+                key.Apply(inputSimulator);
+
+                await Task.Delay(1000);
+            }
 
             TestServices.JoinableTaskFactory.Run(async () =>
             {
