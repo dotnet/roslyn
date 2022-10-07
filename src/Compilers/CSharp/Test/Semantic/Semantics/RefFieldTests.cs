@@ -8272,7 +8272,6 @@ static class Program
             }
         }
 
-        [WorkItem(64448, "https://github.com/dotnet/roslyn/issues/64448")]
         [Theory]
         [InlineData(LanguageVersion.CSharp10)]
         [InlineData(LanguageVersion.CSharp11)]
@@ -8286,17 +8285,16 @@ ref struct R1
 }
 ref struct R2
 {
-    public R2(ref int i) { }
+    public R2(Span<byte> s) { }
 }
 static class Program
 {
     static void Main()
     {
         Span<int> s = stackalloc int[10];
-        int i = 0;
-        R2 x = new R2(ref i);
-        R2 y = new R2(ref i);
-        R2 z1 = new R2(ref i);
+        R2 x = new R2(stackalloc byte[1]);
+        R2 y = new R2(stackalloc byte[1]);
+        R2 z1 = new R2(stackalloc byte[1]);
         (x, (y, z1)) = s;
         R2 z2 = default;
         (x, (y, z2)) = s; // 1
@@ -8307,34 +8305,22 @@ static class Program
             if (languageVersion == LanguageVersion.CSharp10)
             {
                 comp.VerifyEmitDiagnostics(
-                    // (19,9): error CS8352: Cannot use variable '(x, (y, z1)) = s' in this context because it may expose referenced variables outside of their declaration scope
-                    //         (x, (y, z1)) = s;
-                    Diagnostic(ErrorCode.ERR_EscapeVariable, "(x, (y, z1)) = s").WithArguments("(x, (y, z1)) = s").WithLocation(19, 9),
-                    // (19,9): error CS8352: Cannot use variable '(x, (y, z1)) = s' in this context because it may expose referenced variables outside of their declaration scope
-                    //         (x, (y, z1)) = s;
-                    Diagnostic(ErrorCode.ERR_EscapeVariable, "(x, (y, z1)) = s").WithArguments("(x, (y, z1)) = s").WithLocation(19, 9),
-                    // (19,24): error CS8350: This combination of arguments to 'Program.Deconstruct(Span<int>, out R2, out R1)' is disallowed because it may expose variables referenced by parameter 's' outside of their declaration scope
-                    //         (x, (y, z1)) = s;
-                    Diagnostic(ErrorCode.ERR_CallArgMixing, "s").WithArguments("Program.Deconstruct(System.Span<int>, out R2, out R1)", "s").WithLocation(19, 24),
-                    // (21,9): error CS8352: Cannot use variable '(x, (y, z2)) = s' in this context because it may expose referenced variables outside of their declaration scope
+                    // (20,9): error CS8352: Cannot use variable '(x, (y, z2)) = s' in this context because it may expose referenced variables outside of their declaration scope
                     //         (x, (y, z2)) = s; // 1
-                    Diagnostic(ErrorCode.ERR_EscapeVariable, "(x, (y, z2)) = s").WithArguments("(x, (y, z2)) = s").WithLocation(21, 9),
-                    // (21,9): error CS8352: Cannot use variable '(x, (y, z2)) = s' in this context because it may expose referenced variables outside of their declaration scope
+                    Diagnostic(ErrorCode.ERR_EscapeVariable, "(x, (y, z2)) = s").WithArguments("(x, (y, z2)) = s").WithLocation(20, 9),
+                    // (20,24): error CS8350: This combination of arguments to 'R1.Deconstruct(out R2, out R2)' is disallowed because it may expose variables referenced by parameter 'x' outside of their declaration scope
                     //         (x, (y, z2)) = s; // 1
-                    Diagnostic(ErrorCode.ERR_EscapeVariable, "(x, (y, z2)) = s").WithArguments("(x, (y, z2)) = s").WithLocation(21, 9),
-                    // (21,24): error CS8350: This combination of arguments to 'Program.Deconstruct(Span<int>, out R2, out R1)' is disallowed because it may expose variables referenced by parameter 's' outside of their declaration scope
-                    //         (x, (y, z2)) = s; // 1
-                    Diagnostic(ErrorCode.ERR_CallArgMixing, "s").WithArguments("Program.Deconstruct(System.Span<int>, out R2, out R1)", "s").WithLocation(21, 24));
+                    Diagnostic(ErrorCode.ERR_CallArgMixing, "s").WithArguments("R1.Deconstruct(out R2, out R2)", "x").WithLocation(20, 24));
             }
             else
             {
                 comp.VerifyEmitDiagnostics(
-                    // (21,9): error CS8352: Cannot use variable '(x, (y, z2)) = s' in this context because it may expose referenced variables outside of their declaration scope
+                    // (20,9): error CS8352: Cannot use variable '(x, (y, z2)) = s' in this context because it may expose referenced variables outside of their declaration scope
                     //         (x, (y, z2)) = s; // 1
-                    Diagnostic(ErrorCode.ERR_EscapeVariable, "(x, (y, z2)) = s").WithArguments("(x, (y, z2)) = s").WithLocation(21, 9),
-                    // (21,24): error CS8350: This combination of arguments to 'R1.Deconstruct(out R2, out R2)' is disallowed because it may expose variables referenced by parameter 'this' outside of their declaration scope
+                    Diagnostic(ErrorCode.ERR_EscapeVariable, "(x, (y, z2)) = s").WithArguments("(x, (y, z2)) = s").WithLocation(20, 9),
+                    // (20,24): error CS8350: This combination of arguments to 'R1.Deconstruct(out R2, out R2)' is disallowed because it may expose variables referenced by parameter 'this' outside of their declaration scope
                     //         (x, (y, z2)) = s; // 1
-                    Diagnostic(ErrorCode.ERR_CallArgMixing, "s").WithArguments("R1.Deconstruct(out R2, out R2)", "this").WithLocation(21, 24));
+                    Diagnostic(ErrorCode.ERR_CallArgMixing, "s").WithArguments("R1.Deconstruct(out R2, out R2)", "this").WithLocation(20, 24));
             }
         }
 
