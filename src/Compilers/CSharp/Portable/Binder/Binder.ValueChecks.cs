@@ -2217,7 +2217,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // No need to infer a val escape for a global variable.
                 // These are only used in top-level statements in scripting mode,
                 // and since they are class fields, their scope is always CallingMethod.
-                Debug.Assert(symbol is null or GlobalExpressionVariable);
+                Debug.Assert(symbol is null or SourceLocalSymbol or GlobalExpressionVariable);
                 localSymbol = null;
                 return false;
             }
@@ -2401,27 +2401,32 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            // find the widest scope that arguments could safely escape to.
-            // use this scope as the inferred STE of declaration expressions.
-            var inferredDestinationValEscape = CallingMethodScope;
-            foreach (var (_, fromArg, _, isRefEscape) in escapeValues)
-            {
-                inferredDestinationValEscape = Math.Max(inferredDestinationValEscape, isRefEscape
-                    ? GetRefEscape(fromArg, scopeOfTheContainingExpression)
-                    : GetValEscape(fromArg, scopeOfTheContainingExpression));
-            }
-
-            foreach (var (_, fromArg, _, _) in escapeValues)
-            {
-                if (ShouldInferDeclarationExpressionValEscape(fromArg, out var localSymbol))
-                {
-                    localSymbol.SetValEscape(inferredDestinationValEscape);
-                }
-            }
+            inferDeclarationExpressionValEscape();
 
             mixableArguments.Free();
             escapeValues.Free();
             return valid;
+
+            void inferDeclarationExpressionValEscape()
+            {
+                // find the widest scope that arguments could safely escape to.
+                // use this scope as the inferred STE of declaration expressions.
+                var inferredDestinationValEscape = CallingMethodScope;
+                foreach (var (_, fromArg, _, isRefEscape) in escapeValues)
+                {
+                    inferredDestinationValEscape = Math.Max(inferredDestinationValEscape, isRefEscape
+                        ? GetRefEscape(fromArg, scopeOfTheContainingExpression)
+                        : GetValEscape(fromArg, scopeOfTheContainingExpression));
+                }
+
+                foreach (var (_, fromArg, _, _) in escapeValues)
+                {
+                    if (ShouldInferDeclarationExpressionValEscape(fromArg, out var localSymbol))
+                    {
+                        localSymbol.SetValEscape(inferredDestinationValEscape);
+                    }
+                }
+            }
         }
 
         private static bool IsReceiverRefReadOnly(Symbol methodOrPropertySymbol) => methodOrPropertySymbol switch
