@@ -6,13 +6,14 @@
     <OutputType>Exe</OutputType>
     <RootNamespace>Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator</RootNamespace>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
-    <TargetFramework>net472</TargetFramework>
+    <TargetFrameworks>net6.0;net472</TargetFrameworks>
     <PlatformTarget>AnyCPU</PlatformTarget>
     <RuntimeIdentifiers>$(RoslynPortableRuntimeIdentifiers)</RuntimeIdentifiers>
 
     <!-- We want to pack this entire project and it's dependencies as a tool in the tools/ subdirectory -->
     <IsPackable>true</IsPackable>
     <IsTool>true</IsTool>
+    <IncludeBuildOutput>false</IncludeBuildOutput>
     <ContentTargetFolders>tools</ContentTargetFolders>
     <TargetsForTfmSpecificContentInPackage>$(TargetsForTfmSpecificContentInPackage);_GetFilesToPackage</TargetsForTfmSpecificContentInPackage>
 
@@ -30,14 +31,14 @@
     <IsShipping>false</IsShipping>
   </PropertyGroup>
 
-  <Target Name="_GetFilesToPackage" DependsOnTargets="ResolveReferences">
+  <Target Name="_GetFilesToPackage" DependsOnTargets="ResolveReferences;BuiltProjectOutputGroup">
     <ItemGroup>
       <!-- Include all dependencies; the DestinationSubDierctory is to handle culture-specific resource files that should be placed in
            subdirectories -->
-      <TfmSpecificPackageFile Include="@(ReferenceCopyLocalPaths)" PackagePath="tools\%(ReferenceCopyLocalPaths.DestinationSubDirectory)" />
+      <TfmSpecificPackageFile Include="@(ReferenceCopyLocalPaths)" PackagePath="tools\$(TargetFramework)\any\%(ReferenceCopyLocalPaths.DestinationSubDirectory)" />
 
-      <!-- Include our app.config with generated binding redirects -->
-      <TfmSpecificPackageFile Include="@(AppConfigWithTargetPath)" PackagePath="tools" />
+      <TfmSpecificPackageFile Include="@(BuiltProjectOutputGroupOutput)" PackagePath="tools\$(TargetFramework)\any" />
+
     </ItemGroup>
   </Target>
 
