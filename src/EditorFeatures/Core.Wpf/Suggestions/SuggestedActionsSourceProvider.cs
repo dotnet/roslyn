@@ -31,7 +31,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
     [ContentType(ContentTypeNames.XamlContentType)]
     // ContentType("text") requires DeferCreation(IsRoslynPackageLoadedOption.OptionName).
     // See https://github.com/dotnet/roslyn/issues/62877#issuecomment-1271493105 for more details.
-    [ContentType("text")]
+    // TODO: Uncomment the below attribute, tracked with https://github.com/dotnet/roslyn/issues/64567
+    // [ContentType("text")]
     [DeferCreation(OptionName = IsRoslynPackageLoadedOption.OptionName)]
     [Name("Roslyn Code Fix")]
     [Order]

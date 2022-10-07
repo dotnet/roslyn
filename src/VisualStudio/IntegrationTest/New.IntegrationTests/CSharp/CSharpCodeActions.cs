@@ -1423,7 +1423,7 @@ public class Program
             await TestServices.EditorVerifier.CodeActionsAsync(expectedItems, ensureExpectedItemsAreOrdered: true, cancellationToken: HangMitigatingCancellationToken);
         }
 
-        [IdeFact]
+        [IdeFact(Skip = "https://github.com/dotnet/roslyn/issues/64567")]
         public async Task TestNonSourceDocumentRefactoring()
         {
             var markup = @"$$# Editorconfig File";
