@@ -117,16 +117,10 @@ public abstract class AbstractLanguageServer<TRequestContext> : ILifeCycleManage
             };
             _jsonRpc.AddLocalRpcMethod(genericEntryPointMethod, delegatingEntryPoint, methodAttribute);
         }
-
-        var exitMethodAttribute = new JsonRpcMethodAttribute("exit")
-        {
-            UseSingleObjectParameterDeserialization = true,
-        };
-        _jsonRpc.AddLocalRpcTarget(this);
     }
 
     [JsonRpcMethod("exit")]
-    public Task ExitAsync(CancellationToken _)
+    public Task HandleExitNotificationAsync(CancellationToken _)
     {
         var lspServices = _lspServices.Value;
         var lifeCycleManager = lspServices.GetRequiredService<ILifeCycleManager>();
