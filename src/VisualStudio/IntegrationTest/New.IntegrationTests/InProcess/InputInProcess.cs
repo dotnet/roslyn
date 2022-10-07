@@ -91,6 +91,8 @@ namespace Roslyn.VisualStudio.IntegrationTests.InProcess
             {
                 await TestServices.JoinableTaskFactory.SwitchToMainThreadAsync();
                 var searchBox = Assert.IsAssignableFrom<Control>(Keyboard.FocusedElement);
+                // Validate the focused control against the "old" search experience as well as the 
+                // all-in-one search experience.
                 Assert.Contains(searchBox.Name, new[] { "PART_SearchBox", "SearchBoxControl" });
             });
 
@@ -99,6 +101,9 @@ namespace Roslyn.VisualStudio.IntegrationTests.InProcess
             {
                 key.Apply(inputSimulator);
 
+                // Since the all-in-one search experience populates its results asychronously we need
+                // to give it time to update prior to applying the next InputKey otherwise we may apply
+                // a Return key meant to select an item before it is in the result set.
                 await Task.Delay(1000);
             }
 
