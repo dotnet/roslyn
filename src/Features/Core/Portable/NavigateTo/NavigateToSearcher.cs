@@ -315,18 +315,18 @@ namespace Microsoft.CodeAnalysis.NavigateTo
                     if (service == null)
                         return;
 
-                    await foreach (var item in processProjectAsync(service, project).WithCancellation(cancellationToken))
+                    await foreach (var result in processProjectAsync(service, project).WithCancellation(cancellationToken))
                     {
                         // If we're seeing a dupe in another project, then filter it out here.  The results from
                         // the individual projects will already contain the information about all the projects
                         // leading to a better condensed view that doesn't look like it contains duplicate info.
                         lock (seenItems)
                         {
-                            if (!seenItems.Add(item))
+                            if (!seenItems.Add(result))
                                 continue;
                         }
 
-                        await _callback.AddItemAsync(project, item, cancellationToken).ConfigureAwait(false);
+                        await _callback.AddItemAsync(project, result, cancellationToken).ConfigureAwait(false);
                     }
                 }
                 finally
