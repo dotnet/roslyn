@@ -84,7 +84,7 @@
 
   <!-- Needed to override the transitive 9.0.1 version brought in by the 16.1.1 Microsoft.NET.Test.Sdk -->
   <ItemGroup>
-    <PackageReference Include="Newtonsoft.Json" Version="$(NewtonsoftJsonVersion)" />
+    <PackageReference Include="Newtonsoft.Json" Version="$(NewtonsoftJsonVersion)" ExcludeAssets="all" />
   </ItemGroup>
 
   <!-- Use a different versioning scheme for nuget packages -->
