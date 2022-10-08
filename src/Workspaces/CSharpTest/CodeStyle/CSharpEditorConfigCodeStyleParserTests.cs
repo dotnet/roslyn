@@ -61,6 +61,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeStyle
             Assert.NotSame(defaultValue, codeStyleOption);
             Assert.Equal((ExpressionBodyPreference)parsedValue, codeStyleOption.Value);
             Assert.Equal(severity, codeStyleOption.Notification.Severity);
+            throw new System.Exception("JCOUV");
         }
 
         [Theory]
