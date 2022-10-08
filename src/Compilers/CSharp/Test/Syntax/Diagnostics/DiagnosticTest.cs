@@ -374,6 +374,7 @@ class X
                         case ErrorCode.WRN_RefAssignReturnOnly:
                         case ErrorCode.WRN_RefReturnOnlyParameter:
                         case ErrorCode.WRN_RefReturnOnlyParameter2:
+                        case ErrorCode.WRN_RefAssignValEscapeWider:
                             Assert.Equal(1, ErrorFacts.GetWarningLevel(errorCode));
                             break;
                         case ErrorCode.WRN_InvalidVersionFormat:

@@ -8572,7 +8572,7 @@ class Program
             if (useUnsafe)
             {
                 comp.VerifyEmitDiagnostics(
-                    // (13,9): error CS9097: This ref-assigns 's' to 'rL' but 's' has a wider value escape scope than 'rL' allowing assignment through 'rL' of values with narrower escapes scopes than 's'.
+                    // (13,9): warning CS9097: This ref-assigns 's' to 'rL' but 's' has a wider value escape scope than 'rL' allowing assignment through 'rL' of values with narrower escapes scopes than 's'.
                     //         rL = ref s; // 1
                     Diagnostic(ErrorCode.WRN_RefAssignValEscapeWider, "rL = ref s").WithArguments("rL", "s").WithLocation(13, 9));
             }
@@ -8624,7 +8624,7 @@ class Program
             else if (useUnsafe)
             {
                 comp.VerifyEmitDiagnostics(
-                    // (17,9): error CS9097: This ref-assigns 'r1' to 'r2' but 'r1' has a wider value escape scope than 'r2' allowing assignment through 'r2' of values with narrower escapes scopes than 'r1'.
+                    // (17,9): warning CS9097: This ref-assigns 'r1' to 'r2' but 'r1' has a wider value escape scope than 'r2' allowing assignment through 'r2' of values with narrower escapes scopes than 'r1'.
                     //         r2 = ref r1; // 1
                     Diagnostic(ErrorCode.WRN_RefAssignValEscapeWider, "r2 = ref r1").WithArguments("r2", "r1").WithLocation(17, 9));
             }
