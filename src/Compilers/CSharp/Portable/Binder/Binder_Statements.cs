@@ -1566,16 +1566,26 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 op2 = ToBadExpression(op2);
                             }
                         }
-                        else if (op1.Kind is BoundKind.Local or BoundKind.Parameter &&
-                            (leftEscape = GetValEscape(op1, LocalScopeDepth)) != (rightEscape = GetValEscape(op2, LocalScopeDepth)))
+                        else if (op1.Kind is BoundKind.Local or BoundKind.Parameter)
                         {
-                            Debug.Assert(op1.Kind != BoundKind.Parameter); // If the assert fails, add a corresponding test.
+                            leftEscape = GetValEscape(op1, LocalScopeDepth);
+                            rightEscape = GetValEscape(op2, LocalScopeDepth);
 
-                            var errorCode = this.InUnsafeRegion ? ErrorCode.WRN_RefAssignValEscapeWider : ErrorCode.ERR_RefAssignValEscapeWider;
-                            Error(diagnostics, errorCode, node, getName(op1), op2.Syntax);
-                            if (!this.InUnsafeRegion)
+                            Debug.Assert(leftEscape == rightEscape || op1.Type.IsRefLikeType);
+
+                            // We only check if the safe-to-escape of e2 is wider than the safe-to-escape of e1 here, we don't
+                            // check for equality. The case where the safe-to-escape of e2 is narrower than safe-to-escape of e1
+                            // is handled outside of the if (isRef) { ... } block in if (op1.Type.IsRefLikeType) { ... }.
+                            if (leftEscape > rightEscape)
                             {
-                                op2 = ToBadExpression(op2);
+                                Debug.Assert(op1.Kind != BoundKind.Parameter); // If the assert fails, add a corresponding test.
+
+                                var errorCode = this.InUnsafeRegion ? ErrorCode.WRN_RefAssignValEscapeWider : ErrorCode.ERR_RefAssignValEscapeWider;
+                                Error(diagnostics, errorCode, node, getName(op1), op2.Syntax);
+                                if (!this.InUnsafeRegion)
+                                {
+                                    op2 = ToBadExpression(op2);
+                                }
                             }
                         }
                     }

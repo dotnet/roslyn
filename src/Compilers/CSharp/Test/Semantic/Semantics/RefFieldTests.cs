@@ -8682,6 +8682,105 @@ class Program
             }
         }
 
+        [WorkItem(62618, "https://github.com/dotnet/roslyn/issues/62618")]
+        [Fact]
+        public void RefAssignValueScopeMismatch_04()
+        {
+            var source =
+@"using System;
+class Program
+{
+    static Span<int> F()
+    {
+        Span<int> s1 = default;
+        {
+            scoped ref Span<int> r1 = ref s1;
+            Span<int> s2 = stackalloc int[1];
+            ref Span<int> r2 = ref s2;
+            r2 = ref r1; // 1
+            r2 = s2;
+        }
+        return s1;
+    }
+}";
+            var comp = CreateCompilationWithSpanAndMemoryExtensions(source);
+            comp.VerifyEmitDiagnostics(
+                // (11,13): error CS9096: Cannot ref-assign 'r1' to 'r2' because 'r1' has a wider value escape scope than 'r2' allowing assignment through 'r2' of values with narrower escapes scopes than 'r1'.
+                //             r2 = ref r1; // 1
+                Diagnostic(ErrorCode.ERR_RefAssignValEscapeWider, "r2 = ref r1").WithArguments("r2", "r1").WithLocation(11, 13));
+        }
+
+        [WorkItem(62618, "https://github.com/dotnet/roslyn/issues/62618")]
+        [Fact]
+        public void RefAssignValueScopeMismatch_05()
+        {
+            var source =
+@"ref struct S
+{
+    public S(ref int i) { }
+}
+class Program
+{
+    static S F()
+    {
+        S s1 = default;
+        scoped ref S r1 = ref s1;
+        int i = 0;
+        S s2 = new S(ref i);
+        ref S r2 = ref s2;
+        r2 = ref r1; // 1
+        r2 = s2;
+        return s1;
+    }
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (14,9): error CS9096: Cannot ref-assign 'r1' to 'r2' because 'r1' has a wider value escape scope than 'r2' allowing assignment through 'r2' of values with narrower escapes scopes than 'r1'.
+                //         r2 = ref r1; // 1
+                Diagnostic(ErrorCode.ERR_RefAssignValEscapeWider, "r2 = ref r1").WithArguments("r2", "r1").WithLocation(14, 9));
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void RefAssignValueScopeMismatch_06(bool useUnsafe)
+        {
+            string unsafeModifier = useUnsafe ? "unsafe" : "";
+            var source =
+$@"ref struct S
+{{
+    public S(ref int i) {{ }}
+}}
+class Program
+{{
+    {unsafeModifier} static S F()
+    {{
+        S s1 = default;
+        scoped ref S r1 = ref s1;
+        scoped S s2 = default;
+        ref S r2 = ref s2;
+        r1 = ref r2; // 1
+        r2 = s2;
+        return s1;
+    }}
+}}";
+            var comp = CreateCompilation(source,
+                options: (useUnsafe ? TestOptions.UnsafeReleaseDll : null));
+            if (useUnsafe)
+            {
+                comp.VerifyEmitDiagnostics(
+                    // (13,18): warning CS9080: Use of variable 'r2' in this context may expose referenced variables outside of their declaration scope
+                    //         r1 = ref r2; // 1
+                    Diagnostic(ErrorCode.WRN_EscapeVariable, "r2").WithArguments("r2").WithLocation(13, 18));
+            }
+            else
+            {
+                comp.VerifyEmitDiagnostics(
+                    // (13,18): error CS8352: Cannot use variable 'r2' in this context because it may expose referenced variables outside of their declaration scope
+                    //         r1 = ref r2;
+                    Diagnostic(ErrorCode.ERR_EscapeVariable, "r2").WithArguments("r2").WithLocation(13, 18));
+            }
+        }
+
         // Breaking change in C#11: Cannot return an 'out' parameter by reference.
         [Fact]
         public void BreakingChange_ReturnOutByRef()
@@ -11528,9 +11627,9 @@ class ClassEnumerator
                 // (24,13): error CS8374: Cannot ref-assign 'r5' to 'r0' because 'r5' has a narrower escape scope than 'r0'.
                 //             r0 = ref r5; // 3
                 Diagnostic(ErrorCode.ERR_RefAssignNarrower, "r0 = ref r5").WithArguments("r0", "r5").WithLocation(24, 13),
-                // (28,13): error CS9096: Cannot ref-assign 'r6' to 'r0' because 'r6' has a wider value escape scope than 'r0' allowing assignment through 'r0' of values with narrower escapes scopes than 'r6'.
+                // (28,22): error CS8352: Cannot use variable 'r6' in this context because it may expose referenced variables outside of their declaration scope
                 //             r0 = ref r6; // 4
-                Diagnostic(ErrorCode.ERR_RefAssignValEscapeWider, "r0 = ref r6").WithArguments("r0", "r6").WithLocation(28, 13));
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "r6").WithArguments("r6").WithLocation(28, 22));
         }
 
         [Theory]
