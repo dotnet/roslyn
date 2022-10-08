@@ -1,1 +1,1 @@
-{"Dependencies":{"PostSharp.Engineering":"1.0.95","Metalama.Backstage":"0.5.24"}}
+{"Dependencies":{"PostSharp.Engineering":"1.0.96","Metalama.Backstage":"0.5.25"}}

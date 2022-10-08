@@ -11,7 +11,7 @@
              If Roslyn has a patch version `p`, our patch version will be `(p + 1) * 1000 + OUR`
              where OUR is the value of OurPatchVersion. -->
         <PatchVersion>$([MSBuild]::Add($(OurPatchVersion), $([MSBuild]::Multiply($([MSBuild]::Add($(RoslynPatchVersion),1)),1000))  ))</PatchVersion>
-        <MainVersion>4.3.1005</MainVersion>
+        <MainVersion>4.3.1006</MainVersion>
         <PackageVersionSuffix>-preview</PackageVersionSuffix>
     </PropertyGroup>
 </Project>
