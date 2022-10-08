@@ -740,8 +740,7 @@ class Class
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
-        [WorkItem(54212, "https://github.com/dotnet/roslyn/issues/54212")]
+        [Fact, WorkItem(54212, "https://github.com/dotnet/roslyn/issues/54212")]
         public async Task TestInArgument()
         {
             await TestInRegularAndScriptAsync(
