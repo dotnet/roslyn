@@ -226,7 +226,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
             public virtual void FinishFilterCondition(ILBuilder builder)
             {
-                throw ExceptionUtilities.Unreachable;
+                throw ExceptionUtilities.Unreachable();
             }
 
             public bool IsExceptionHandler

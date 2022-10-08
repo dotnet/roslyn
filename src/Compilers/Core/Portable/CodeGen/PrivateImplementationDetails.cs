@@ -402,7 +402,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
         public int Offset
         {
-            get { throw ExceptionUtilities.Unreachable; }
+            get { throw ExceptionUtilities.Unreachable(); }
         }
 
         public Cci.ITypeDefinition ContainingTypeDefinition => _containingType;
@@ -421,7 +421,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
         public Cci.IDefinition AsDefinition(EmitContext context)
         {
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 
         Symbols.ISymbolInternal? Cci.IReference.GetInternalSymbol() => null;
@@ -444,19 +444,19 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
         public MetadataConstant Constant
         {
-            get { throw ExceptionUtilities.Unreachable; }
+            get { throw ExceptionUtilities.Unreachable(); }
         }
 
         public sealed override bool Equals(object? obj)
         {
             // It is not supported to rely on default equality of these Cci objects, an explicit way to compare and hash them should be used.
-            throw Roslyn.Utilities.ExceptionUtilities.Unreachable;
+            throw Roslyn.Utilities.ExceptionUtilities.Unreachable();
         }
 
         public sealed override int GetHashCode()
         {
             // It is not supported to rely on default equality of these Cci objects, an explicit way to compare and hash them should be used.
-            throw Roslyn.Utilities.ExceptionUtilities.Unreachable;
+            throw Roslyn.Utilities.ExceptionUtilities.Unreachable();
         }
     }
 
@@ -573,7 +573,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
         public TypeDefinitionHandle TypeDef
         {
-            get { throw ExceptionUtilities.Unreachable; }
+            get { throw ExceptionUtilities.Unreachable(); }
         }
 
         public Cci.IGenericMethodParameterReference? AsGenericMethodParameterReference => null;
@@ -602,7 +602,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
         public virtual Cci.ITypeReference GetBaseClass(EmitContext context)
         {
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 
         public virtual LayoutKind Layout => LayoutKind.Auto;
@@ -611,7 +611,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
         public virtual void Dispatch(Cci.MetadataVisitor visitor)
         {
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 
         public virtual bool IsValueType => false;
@@ -619,13 +619,13 @@ namespace Microsoft.CodeAnalysis.CodeGen
         public sealed override bool Equals(object? obj)
         {
             // It is not supported to rely on default equality of these Cci objects, an explicit way to compare and hash them should be used.
-            throw Roslyn.Utilities.ExceptionUtilities.Unreachable;
+            throw Roslyn.Utilities.ExceptionUtilities.Unreachable();
         }
 
         public sealed override int GetHashCode()
         {
             // It is not supported to rely on default equality of these Cci objects, an explicit way to compare and hash them should be used.
-            throw Roslyn.Utilities.ExceptionUtilities.Unreachable;
+            throw Roslyn.Utilities.ExceptionUtilities.Unreachable();
         }
     }
 }

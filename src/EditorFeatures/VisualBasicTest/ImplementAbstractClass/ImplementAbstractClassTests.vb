@@ -364,8 +364,8 @@ Class c
 End Class")
         End Function
 
-        <WorkItem(916114, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/916114")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)>
+        <WorkItem(916114, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/916114")>
         Public Async Function TestOptionalNullableStructParameter() As Task
             Await TestInRegularAndScriptAsync(
 "Structure S
@@ -390,8 +390,8 @@ Class c
 End Class")
         End Function
 
-        <WorkItem(916114, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/916114")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)>
+        <WorkItem(916114, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/916114")>
         Public Async Function TestOptionalNullableIntParameter() As Task
             Await TestInRegularAndScriptAsync(
 "MustInherit Class b
@@ -437,8 +437,8 @@ Class c
 End Class")
         End Function
 
-        <WorkItem(544641, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544641")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)>
+        <WorkItem(544641, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544641")>
         Public Async Function TestClassStatementTerminators1() As Task
             Await TestInRegularAndScriptAsync(
 "Imports System
@@ -458,8 +458,8 @@ Class C : Inherits D
 End Class")
         End Function
 
-        <WorkItem(544641, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544641")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)>
+        <WorkItem(544641, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544641")>
         Public Async Function TestClassStatementTerminators2() As Task
             Await TestInRegularAndScriptAsync(
 "Imports System
@@ -479,8 +479,8 @@ Class C : Inherits D : Implements IDisposable
 End Class")
         End Function
 
-        <WorkItem(530737, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530737")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)>
+        <WorkItem(530737, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530737")>
         Public Async Function TestRenameTypeParameters() As Task
             Await TestInRegularAndScriptAsync(
 "MustInherit Class A(Of T)
@@ -501,7 +501,7 @@ Class C(Of S)
 End Class")
         End Function
 
-        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)>
         Public Async Function TestFormattingInImplementAbstractClass() As Task
             Await TestInRegularAndScriptAsync(
 <Text>Imports System
@@ -532,8 +532,8 @@ End Class
 </Text>.Value.Replace(vbLf, vbCrLf))
         End Function
 
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)>
         <WorkItem(2407, "https://github.com/dotnet/roslyn/issues/2407")>
-        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)>
         Public Async Function TestImplementClassWithInaccessibleMembers() As Task
             Await TestInRegularAndScriptAsync(
 "Imports System
@@ -600,9 +600,9 @@ Class x
 End Class")
         End Function
 
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
         <WorkItem(13932, "https://github.com/dotnet/roslyn/issues/13932")>
         <WorkItem(5898, "https://github.com/dotnet/roslyn/issues/5898")>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
         Public Async Function TestAutoProperties() As Task
             Await TestInRegularAndScript1Async(
 "MustInherit Class AbstractClass

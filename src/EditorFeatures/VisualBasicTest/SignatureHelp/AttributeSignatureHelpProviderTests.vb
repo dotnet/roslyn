@@ -13,8 +13,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.SignatureHelp
             Return GetType(AttributeSignatureHelpProvider)
         End Function
 
-        <WorkItem(7336, "DevDiv_Projects/Roslyn")>
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WorkItem(7336, "DevDiv_Projects/Roslyn")>
         Public Async Function TestEditorBrowsable_AttributeConstructor_BrowsableStateAlways() As Task
 
             Dim markup = <Text><![CDATA[
@@ -42,8 +42,8 @@ End Class
                                                 referencedLanguage:=LanguageNames.VisualBasic)
         End Function
 
-        <WorkItem(7336, "DevDiv_Projects/Roslyn")>
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WorkItem(7336, "DevDiv_Projects/Roslyn")>
         Public Async Function TestEditorBrowsable_AttributeConstructor_BrowsableStateNever() As Task
 
             Dim markup = <Text><![CDATA[
@@ -71,8 +71,8 @@ End Class
                                                 referencedLanguage:=LanguageNames.VisualBasic)
         End Function
 
-        <WorkItem(7336, "DevDiv_Projects/Roslyn")>
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WorkItem(7336, "DevDiv_Projects/Roslyn")>
         Public Async Function TestEditorBrowsable_AttributeConstructor_BrowsableStateAdvanced() As Task
 
             Dim markup = <Text><![CDATA[
@@ -109,8 +109,8 @@ End Class
                                     hideAdvancedMembers:=False)
         End Function
 
-        <WorkItem(7336, "DevDiv_Projects/Roslyn")>
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WorkItem(7336, "DevDiv_Projects/Roslyn")>
         Public Async Function TestEditorBrowsable_AttributeConstructor_BrowsableStateMixed() As Task
 
             Dim markup = <Text><![CDATA[
@@ -245,8 +245,8 @@ End Class
             Await VerifyCurrentParameterNameAsync(markupWithPosition:=markup, expectedParameterName:="y")
         End Function
 
-        <WorkItem(1094379, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1094379")>
         <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        <WorkItem(1094379, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1094379")>
         Public Async Function TestAttributeSigHelpWithNoArgumentList() As Task
             Dim markup = "
 Imports System

@@ -354,22 +354,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void ReadOnlyRefParameter(LanguageVersion languageVersion)
         {
             string source = "class C { void M(readonly ref int i) { } }";
-            UsingDeclaration(source, TestOptions.Regular.WithLanguageVersion(languageVersion),
-                // (1,1): error CS1073: Unexpected token '}'
-                // class C { void M(readonly ref int i) { } }
-                Diagnostic(ErrorCode.ERR_UnexpectedToken, "class C { void M(readonly ref int i) { }").WithArguments("}").WithLocation(1, 1),
-                // (1,18): error CS1026: ) expected
-                // class C { void M(readonly ref int i) { } }
-                Diagnostic(ErrorCode.ERR_CloseParenExpected, "readonly").WithLocation(1, 18),
-                // (1,18): error CS1002: ; expected
-                // class C { void M(readonly ref int i) { } }
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "readonly").WithLocation(1, 18),
-                // (1,36): error CS1003: Syntax error, ',' expected
-                // class C { void M(readonly ref int i) { } }
-                Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments(",").WithLocation(1, 36),
-                // (1,40): error CS1002: ; expected
-                // class C { void M(readonly ref int i) { } }
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "}").WithLocation(1, 40));
+            UsingDeclaration(source, TestOptions.Regular.WithLanguageVersion(languageVersion));
 
             N(SyntaxKind.ClassDeclaration);
             {
@@ -386,29 +371,23 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     N(SyntaxKind.ParameterList);
                     {
                         N(SyntaxKind.OpenParenToken);
-                        M(SyntaxKind.CloseParenToken);
-                    }
-                    M(SyntaxKind.SemicolonToken);
-                }
-                N(SyntaxKind.FieldDeclaration);
-                {
-                    N(SyntaxKind.ReadOnlyKeyword);
-                    N(SyntaxKind.VariableDeclaration);
-                    {
-                        N(SyntaxKind.RefType);
+                        N(SyntaxKind.Parameter);
                         {
+                            N(SyntaxKind.ReadOnlyKeyword);
                             N(SyntaxKind.RefKeyword);
                             N(SyntaxKind.PredefinedType);
                             {
                                 N(SyntaxKind.IntKeyword);
                             }
-                        }
-                        N(SyntaxKind.VariableDeclarator);
-                        {
                             N(SyntaxKind.IdentifierToken, "i");
                         }
+                        N(SyntaxKind.CloseParenToken);
                     }
-                    M(SyntaxKind.SemicolonToken);
+                    N(SyntaxKind.Block);
+                    {
+                        N(SyntaxKind.OpenBraceToken);
+                        N(SyntaxKind.CloseBraceToken);
+                    }
                 }
                 N(SyntaxKind.CloseBraceToken);
             }

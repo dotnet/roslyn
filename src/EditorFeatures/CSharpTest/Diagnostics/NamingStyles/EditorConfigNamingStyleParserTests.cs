@@ -69,8 +69,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.NamingStyle
             Assert.Equal(Capitalization.PascalCase, namingStyle.CapitalizationScheme);
         }
 
-        [Fact]
-        [WorkItem(40705, "https://github.com/dotnet/roslyn/issues/40705")]
+        [Fact, WorkItem(40705, "https://github.com/dotnet/roslyn/issues/40705")]
         public static void TestPascalCaseRuleWithKeyCapitalization()
         {
             var dictionary = new Dictionary<string, string>()
@@ -427,8 +426,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.NamingStyle
                          vbResult.SymbolSpecifications.SelectMany(x => x.RequiredModifierList.Select(y => y.ModifierKindWrapper)));
         }
 
-        [Fact]
-        [WorkItem(38513, "https://github.com/dotnet/roslyn/issues/38513")]
+        [Fact, WorkItem(38513, "https://github.com/dotnet/roslyn/issues/38513")]
         public static void TestPrefixParse()
         {
             var rule = new Dictionary<string, string>()

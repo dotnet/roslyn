@@ -15,6 +15,7 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Debugging
 {
     [UseExportProvider]
+    [Trait(Traits.Feature, Traits.Features.DebuggingNameResolver)]
     public class NameResolverTests
     {
         private static async Task TestAsync(string text, string searchText, params string[] expectedNames)
@@ -27,7 +28,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Debugging
             Assert.Equal(expectedNames, results.Select(r => r.LocationNameOpt));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingNameResolver)]
+        [Fact]
         public async Task TestCSharpLanguageDebugInfoCreateNameResolver()
         {
             using var workspace = TestWorkspace.CreateCSharp(" ");
@@ -37,7 +38,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Debugging
             Assert.Equal(0, results.Count());
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingNameResolver)]
+        [Fact]
         public async Task TestSimpleNameInClass()
         {
             var text =
@@ -58,7 +59,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Debugging
             await TestAsync(text, "Goo(int)");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingNameResolver)]
+        [Fact]
         public async Task TestSimpleNameInNamespace()
         {
             var text =
@@ -86,7 +87,7 @@ namespace N
             await TestAsync(text, "Goo(a)");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingNameResolver)]
+        [Fact]
         public async Task TestSimpleNameInGenericClassNamespace()
         {
             var text =
@@ -115,7 +116,7 @@ namespace N
             await TestAsync(text, "Goo(a)");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingNameResolver)]
+        [Fact]
         public async Task TestGenericNameInClassNamespace()
         {
             var text =
@@ -149,7 +150,7 @@ namespace N
             await TestAsync(text, "Goo<T>(a)");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingNameResolver)]
+        [Fact]
         public async Task TestOverloadsInSingleClass()
         {
             var text =
@@ -175,7 +176,7 @@ namespace N
             await TestAsync(text, "Goo(i)", "C.Goo(int)");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingNameResolver)]
+        [Fact]
         public async Task TestMethodsInMultipleClasses()
         {
             var text =
@@ -211,7 +212,7 @@ namespace N1
             await TestAsync(text, "Goo(i)", "N1.C.Goo(int)");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingNameResolver)]
+        [Fact]
         public async Task TestMethodsWithDifferentArityInMultipleClasses()
         {
             var text =
@@ -251,7 +252,7 @@ namespace N1
             await TestAsync(text, "Goo<T>(i)", "N1.C.Goo<T>(int)");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingNameResolver)]
+        [Fact]
         public async Task TestOverloadsWithMultipleParametersInSingleClass()
         {
             var text =
@@ -293,7 +294,7 @@ namespace N1
             await TestAsync(text, "Goo(__arglist)", "C.Goo(int)");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingNameResolver)]
+        [Fact]
         public async Task AccessorTests()
         {
             var text =
@@ -308,7 +309,7 @@ namespace N1
             await TestAsync(text, "Property3", "C.Property3");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingNameResolver)]
+        [Fact]
         public async Task NegativeTests()
         {
             var text =
@@ -358,7 +359,7 @@ abstract class C
             await TestAsync(text, "");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingNameResolver)]
+        [Fact]
         public async Task TestInstanceConstructors()
         {
             var text =
@@ -399,7 +400,7 @@ class G<T>
             await TestAsync(text, "Finalize", "G<T>.~G()");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingNameResolver)]
+        [Fact]
         public async Task TestStaticConstructors()
         {
             var text =
@@ -422,7 +423,7 @@ class G<T>
             await TestAsync(text, "C.cctor()");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingNameResolver)]
+        [Fact]
         public async Task TestAllConstructors()
         {
             var text =
@@ -447,7 +448,7 @@ class G<T>
             await TestAsync(text, "C(i)", "C.C(int)");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingNameResolver)]
+        [Fact]
         public async Task TestPartialMethods()
         {
             var text =
@@ -474,7 +475,7 @@ class G<T>
             await TestAsync(text, "M4", "C.M4()");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingNameResolver)]
+        [Fact]
         public async Task TestLeadingAndTrailingText()
         {
             var text =
@@ -499,7 +500,7 @@ class G<T>
            Goo(/* params */); /* comment", "C.Goo()");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingNameResolver)]
+        [Fact]
         public async Task TestEscapedKeywords()
         {
             var text =
@@ -518,7 +519,7 @@ class @foreach
             await TestAsync(text, "false");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingNameResolver)]
+        [Fact]
         public async Task TestAliasQualifiedNames()
         {
             var text =
@@ -534,7 +535,7 @@ class C
             await TestAsync(text, "C.Goo(A::Q)", "C.Goo(D)");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingNameResolver)]
+        [Fact]
         public async Task TestNestedTypesAndNamespaces()
         {
             var text =
@@ -581,7 +582,7 @@ class C
             await TestAsync(text, "N5.C.Goo");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingNameResolver)]
+        [Fact]
         public async Task TestInterfaces()
         {
             var text =

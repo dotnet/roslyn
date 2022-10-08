@@ -7,6 +7,7 @@ Imports Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings
 Imports Microsoft.CodeAnalysis.ReplacePropertyWithMethods
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeActions.ReplacePropertyWithMethods
+    <Trait(Traits.Feature, Traits.Features.CodeActionsReplacePropertyWithMethods)>
     Public Class ReplacePropertyWithMethodsTests
         Inherits AbstractVisualBasicCodeActionTest
 
@@ -14,7 +15,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeActions.Replac
             Return New ReplacePropertyWithMethodsCodeRefactoringProvider()
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplacePropertyWithMethods)>
+        <Fact>
         Public Async Function TestGetWithBody() As Task
             Await TestInRegularAndScriptAsync(
 "class C
@@ -31,7 +32,7 @@ end class",
 end class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplacePropertyWithMethods)>
+        <Fact>
         Public Async Function TestGetWithBodyLineContinuation() As Task
             Await TestInRegularAndScriptAsync(
 "class C
@@ -50,7 +51,7 @@ end class",
 end class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplacePropertyWithMethods)>
+        <Fact>
         Public Async Function TestGetWithBodyCommentsAfterLineContinuation() As Task
             Await TestInRegularAndScriptAsync(
 "class C
@@ -69,7 +70,7 @@ end class",
 end class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplacePropertyWithMethods)>
+        <Fact>
         Public Async Function TestIndentation() As Task
             Await TestInRegularAndScriptAsync(
 "class C
@@ -94,7 +95,7 @@ end class",
 end class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplacePropertyWithMethods)>
+        <Fact>
         Public Async Function TestPrivateProperty() As Task
             Await TestInRegularAndScriptAsync(
 "class C
@@ -111,7 +112,7 @@ end class",
 end class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplacePropertyWithMethods)>
+        <Fact>
         Public Async Function TestAnonyousType1() As Task
             Await TestInRegularAndScriptAsync(
 "class C
@@ -135,7 +136,7 @@ end class",
 end class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplacePropertyWithMethods)>
+        <Fact>
         Public Async Function TestAnonyousType2() As Task
             Await TestInRegularAndScriptAsync(
 "class C
@@ -160,7 +161,7 @@ end class",
 end class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplacePropertyWithMethods)>
+        <Fact>
         Public Async Function TestPassedToRef1() As Task
             Await TestInRegularAndScriptAsync(
 "class C
@@ -188,7 +189,7 @@ end class",
 end class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplacePropertyWithMethods)>
+        <Fact>
         Public Async Function TestUsedInAttribute1() As Task
             Await TestInRegularAndScriptAsync(
 "
@@ -225,7 +226,7 @@ end class
 ")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplacePropertyWithMethods)>
+        <Fact>
         Public Async Function TestSetWithBody1() As Task
             Await TestInRegularAndScriptAsync(
 "class C
@@ -242,7 +243,7 @@ end class",
 end class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplacePropertyWithMethods)>
+        <Fact>
         Public Async Function TestSetWithBody2() As Task
             Await TestInRegularAndScriptAsync(
 "class C
@@ -259,7 +260,7 @@ end class",
 end class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplacePropertyWithMethods)>
+        <Fact>
         Public Async Function TestSetReference1() As Task
             Await TestInRegularAndScriptAsync(
 "class C
@@ -283,7 +284,7 @@ end class",
 end class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplacePropertyWithMethods)>
+        <Fact>
         Public Async Function TestGetterAndSetter() As Task
             Await TestInRegularAndScriptAsync(
 "class C
@@ -307,7 +308,7 @@ end class",
 end class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplacePropertyWithMethods)>
+        <Fact>
         Public Async Function TestRecursiveGet() As Task
             Await TestInRegularAndScriptAsync(
 "class C
@@ -324,7 +325,7 @@ end class",
 end class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplacePropertyWithMethods)>
+        <Fact>
         Public Async Function TestRecursiveSet() As Task
             Await TestInRegularAndScriptAsync(
 "class C
@@ -342,7 +343,7 @@ end class",
 end class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplacePropertyWithMethods)>
+        <Fact>
         Public Async Function TestAbstractProperty() As Task
             Await TestInRegularAndScriptAsync(
 "class C
@@ -360,7 +361,7 @@ end class",
 end class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplacePropertyWithMethods)>
+        <Fact>
         Public Async Function TestVirtualProperty() As Task
             Await TestInRegularAndScriptAsync(
 "class C
@@ -385,7 +386,7 @@ end class",
 end class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplacePropertyWithMethods)>
+        <Fact>
         Public Async Function TestInterfaceProperty1() As Task
             Await TestInRegularAndScriptAsync(
 "interface I
@@ -396,7 +397,7 @@ end interface",
 end interface")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplacePropertyWithMethods)>
+        <Fact>
         Public Async Function TestInterfaceProperty2() As Task
             Await TestInRegularAndScriptAsync(
 "interface I
@@ -407,7 +408,7 @@ end interface",
 end interface")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplacePropertyWithMethods)>
+        <Fact>
         Public Async Function TestInterfaceProperty3() As Task
             Await TestInRegularAndScriptAsync(
 "interface I
@@ -419,7 +420,7 @@ end interface",
 end interface")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplacePropertyWithMethods)>
+        <Fact>
         Public Async Function TestAutoProperty1() As Task
             Await TestInRegularAndScriptAsync(
 "class C
@@ -434,7 +435,7 @@ end class",
 end class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplacePropertyWithMethods)>
+        <Fact>
         Public Async Function TestAutoProperty2() As Task
             Await TestInRegularAndScriptAsync(
 "class C
@@ -456,7 +457,7 @@ end class",
 end class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplacePropertyWithMethods)>
+        <Fact>
         Public Async Function TestAutoProperty4() As Task
             Await TestInRegularAndScriptAsync(
 "class C
@@ -470,8 +471,7 @@ end class",
 end class")
         End Function
 
-        <WorkItem(18234, "https://github.com/dotnet/roslyn/issues/18234")>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplacePropertyWithMethods)>
+        <Fact, WorkItem(18234, "https://github.com/dotnet/roslyn/issues/18234")>
         Public Async Function TestDocumentationComment1() As Task
             Await TestInRegularAndScriptAsync(
 "Interface ILanguageServiceHost
@@ -494,8 +494,7 @@ End Interface",
 End Interface")
         End Function
 
-        <WorkItem(18234, "https://github.com/dotnet/roslyn/issues/18234")>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplacePropertyWithMethods)>
+        <Fact, WorkItem(18234, "https://github.com/dotnet/roslyn/issues/18234")>
         Public Async Function TestDocumentationComment2() As Task
             Await TestInRegularAndScriptAsync(
 "Interface ILanguageServiceHost
@@ -518,8 +517,7 @@ End Interface",
 End Interface")
         End Function
 
-        <WorkItem(18234, "https://github.com/dotnet/roslyn/issues/18234")>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplacePropertyWithMethods)>
+        <Fact, WorkItem(18234, "https://github.com/dotnet/roslyn/issues/18234")>
         Public Async Function TestDocumentationComment3() As Task
             Await TestInRegularAndScriptAsync(
 "Interface ILanguageServiceHost
@@ -549,8 +547,7 @@ End Interface",
 End Interface")
         End Function
 
-        <WorkItem(18234, "https://github.com/dotnet/roslyn/issues/18234")>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplacePropertyWithMethods)>
+        <Fact, WorkItem(18234, "https://github.com/dotnet/roslyn/issues/18234")>
         Public Async Function TestDocumentationComment4() As Task
             Await TestInRegularAndScriptAsync(
 "Interface ILanguageServiceHost
@@ -577,8 +574,7 @@ Structure AStruct
 End Structure")
         End Function
 
-        <WorkItem(18234, "https://github.com/dotnet/roslyn/issues/18234")>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplacePropertyWithMethods)>
+        <Fact, WorkItem(18234, "https://github.com/dotnet/roslyn/issues/18234")>
         Public Async Function TestDocumentationComment5() As Task
             Await TestInRegularAndScriptAsync(
 "Interface ILanguageServiceHost
@@ -610,8 +606,8 @@ Structure AStruct
 End Structure")
         End Function
 
+        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/18261")>
         <WorkItem(18234, "https://github.com/dotnet/roslyn/issues/18234")>
-        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/18261"), Trait(Traits.Feature, Traits.Features.CodeActionsReplacePropertyWithMethods)>
         Public Async Function TestDocumentationComment6() As Task
             Await TestInRegularAndScriptAsync(
 "Interface ISomeInterface(Of T)
@@ -632,8 +628,7 @@ Structure AStruct
 End Structure")
         End Function
 
-        <WorkItem(440371, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/440371")>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplacePropertyWithMethods)>
+        <Fact, WorkItem(440371, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/440371")>
         Public Async Function TestInterfaceReplacement1() As Task
             Await TestInRegularAndScriptAsync(
 "Interface IGoo
@@ -665,8 +660,7 @@ Class C
 End Class")
         End Function
 
-        <WorkItem(45171, "https://github.com/dotnet/roslyn/issues/45171")>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplacePropertyWithMethods)>
+        <Fact, WorkItem(45171, "https://github.com/dotnet/roslyn/issues/45171")>
         Public Async Function TestReferenceInObjectInitializer() As Task
             Await TestInRegularAndScriptAsync(
 "Public Class Tweet

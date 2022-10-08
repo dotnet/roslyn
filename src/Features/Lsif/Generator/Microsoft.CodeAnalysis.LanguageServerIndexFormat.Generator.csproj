@@ -6,13 +6,14 @@
     <OutputType>Exe</OutputType>
     <RootNamespace>Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator</RootNamespace>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
-    <TargetFramework>net472</TargetFramework>
+    <TargetFrameworks>net6.0;net472</TargetFrameworks>
     <PlatformTarget>AnyCPU</PlatformTarget>
     <RuntimeIdentifiers>$(RoslynPortableRuntimeIdentifiers)</RuntimeIdentifiers>
 
     <!-- We want to pack this entire project and it's dependencies as a tool in the tools/ subdirectory -->
     <IsPackable>true</IsPackable>
     <IsTool>true</IsTool>
+    <IncludeBuildOutput>false</IncludeBuildOutput>
     <ContentTargetFolders>tools</ContentTargetFolders>
     <TargetsForTfmSpecificContentInPackage>$(TargetsForTfmSpecificContentInPackage);_GetFilesToPackage</TargetsForTfmSpecificContentInPackage>
 
@@ -30,14 +31,14 @@
     <IsShipping>false</IsShipping>
   </PropertyGroup>
 
-  <Target Name="_GetFilesToPackage" DependsOnTargets="ResolveReferences">
+  <Target Name="_GetFilesToPackage" DependsOnTargets="ResolveReferences;BuiltProjectOutputGroup">
     <ItemGroup>
       <!-- Include all dependencies; the DestinationSubDierctory is to handle culture-specific resource files that should be placed in
            subdirectories -->
-      <TfmSpecificPackageFile Include="@(ReferenceCopyLocalPaths)" PackagePath="tools\%(ReferenceCopyLocalPaths.DestinationSubDirectory)" />
+      <TfmSpecificPackageFile Include="@(ReferenceCopyLocalPaths)" PackagePath="tools\$(TargetFramework)\any\%(ReferenceCopyLocalPaths.DestinationSubDirectory)" />
 
-      <!-- Include our app.config with generated binding redirects -->
-      <TfmSpecificPackageFile Include="@(AppConfigWithTargetPath)" PackagePath="tools" />
+      <TfmSpecificPackageFile Include="@(BuiltProjectOutputGroupOutput)" PackagePath="tools\$(TargetFramework)\any" />
+
     </ItemGroup>
   </Target>
 
@@ -57,6 +58,10 @@
     <PackageReference Include="Microsoft.Build.Framework" Version="$(RefOnlyMicrosoftBuildFrameworkVersion)" ExcludeAssets="runtime" PrivateAssets="all" />
     <PackageReference Include="Microsoft.Build.Tasks.Core" Version="$(RefOnlyMicrosoftBuildTasksCoreVersion)" ExcludeAssets="runtime" PrivateAssets="all" />
     <PackageReference Include="Microsoft.Build.Utilities.Core" Version="$(RefOnlyMicrosoftBuildUtilitiesCoreVersion)" ExcludeAssets="runtime" PrivateAssets="all" />
+
+    <!-- Work around https://github.com/dotnet/msbuild/issues/7873; without this we won't have a new enough System.Memory and we'll get
+         method missing exceptions when we are running with some newer MSBuild versions. -->
+    <PackageReference Include="System.Memory" Version="$(SystemMemoryVersion)" />
   </ItemGroup>
 
   <ItemGroup>

@@ -14,6 +14,7 @@ using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.OnAutoInsert
 {
+    [Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
     public class OnAutoInsertTests : AbstractLanguageServerProtocolTests
     {
         [Fact]
@@ -247,7 +248,7 @@ End Class";
             await VerifyMarkupAndExpected("\n", markup, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [Fact]
         public async Task OnAutoInsert_BraceFormatting()
         {
             // The test starts with the closing brace already on a new line.
@@ -271,7 +272,7 @@ End Class";
             await VerifyMarkupAndExpected("\n", markup, expected, serverKind: WellKnownLspServerKinds.RazorLspServer);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [Fact]
         public async Task OnAutoInsert_BraceFormattingWithTabs()
         {
             var markup =
@@ -293,7 +294,7 @@ End Class";
             await VerifyMarkupAndExpected("\n", markup, expected, insertSpaces: false, tabSize: 4, serverKind: WellKnownLspServerKinds.RazorLspServer);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [Fact]
         public async Task OnAutoInsert_BraceFormattingInsideMethod()
         {
             var markup =
@@ -319,7 +320,7 @@ End Class";
             await VerifyMarkupAndExpected("\n", markup, expected, serverKind: WellKnownLspServerKinds.RazorLspServer);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [Fact]
         public async Task OnAutoInsert_BraceFormattingNoResultInInterpolation()
         {
             var markup =
@@ -333,8 +334,7 @@ End Class";
             await VerifyNoResult("\n", markup);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
-        [WorkItem(1260219, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1260219")]
+        [Fact, WorkItem(1260219, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1260219")]
         public async Task OnAutoInsert_BraceFormattingDoesNotInsertExtraEmptyLines()
         {
             // The test starts with the closing brace already on a new line.
@@ -353,8 +353,7 @@ End Class";
             await VerifyNoResult("\n", markup);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
-        [WorkItem(1260219, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1260219")]
+        [Fact, WorkItem(1260219, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1260219")]
         public async Task OnAutoInsert_BraceFormattingDoesNotMoveCaretOnEnterInsideBraces()
         {
             // The test starts with the closing brace already on a new line.
@@ -396,7 +395,7 @@ End Class";
                 throw ExceptionUtilities.UnexpectedValue(languageName);
             }
 
-            using var testLspServer = await testLspServerTask;
+            await using var testLspServer = await testLspServerTask;
             var locationTyped = testLspServer.GetLocations("type").Single();
 
             var document = testLspServer.GetCurrentSolution().GetDocuments(locationTyped.Uri).Single();
@@ -412,7 +411,7 @@ End Class";
 
         private async Task VerifyNoResult(string characterTyped, string markup, bool insertSpaces = true, int tabSize = 4)
         {
-            using var testLspServer = await CreateTestLspServerAsync(markup);
+            await using var testLspServer = await CreateTestLspServerAsync(markup);
             var locationTyped = testLspServer.GetLocations("type").Single();
             var documentText = await testLspServer.GetCurrentSolution().GetDocuments(locationTyped.Uri).Single().GetTextAsync();
 

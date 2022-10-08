@@ -117,8 +117,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator.UnitTests
             Next
         End Sub
 
-        <Fact>
-        <WorkItem(5667, "https://github.com/dotnet/roslyn/issues/5667")>
+        <Fact, WorkItem(5667, "https://github.com/dotnet/roslyn/issues/5667")>
         Public Sub NoMembers()
             Using New EnsureEnglishUICulture()
                 Dim expression = "o"

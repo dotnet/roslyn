@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             // Putting cacheService.CreateStrongReference in a using statement
             // creates a temporary local that isn't collected in Debug builds
             // Wrapping it in a lambda allows it to get collected.
-            var cacheService = new ProjectCacheService(null, TimeSpan.MaxValue);
+            var cacheService = new ProjectCacheService(null, createImplicitCache: true);
             var projectId = ProjectId.CreateNewId();
             var owner = new Owner();
             var instance = ObjectReference.CreateFromFactory(() => new object());
@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         }
 
         [WorkItem(28639, "https://github.com/dotnet/roslyn/issues/28639")]
-        [ConditionalFact(typeof(x86))]
+        [ConditionalFact(typeof(Bitness32))]
         public void TestCacheKeepsObjectAlive1()
         {
             Test((cacheService, projectId, owner, instance) =>
@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         }
 
         [WorkItem(28639, "https://github.com/dotnet/roslyn/issues/28639")]
-        [ConditionalFact(typeof(x86))]
+        [ConditionalFact(typeof(Bitness32))]
         public void TestCacheKeepsObjectAlive2()
         {
             Test((cacheService, projectId, owner, instance) =>
@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         }
 
         [WorkItem(28639, "https://github.com/dotnet/roslyn/issues/28639")]
-        [ConditionalFact(typeof(x86))]
+        [ConditionalFact(typeof(Bitness32))]
         public void TestCacheDoesNotKeepObjectsAliveAfterOwnerIsCollected1()
         {
             Test((cacheService, projectId, owner, instance) =>
@@ -94,7 +94,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         }
 
         [WorkItem(28639, "https://github.com/dotnet/roslyn/issues/28639")]
-        [ConditionalFact(typeof(x86))]
+        [ConditionalFact(typeof(Bitness32))]
         public void TestCacheDoesNotKeepObjectsAliveAfterOwnerIsCollected2()
         {
             Test((cacheService, projectId, owner, instance) =>
@@ -110,11 +110,11 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         }
 
         [WorkItem(28639, "https://github.com/dotnet/roslyn/issues/28639")]
-        [ConditionalFact(typeof(x86))]
+        [ConditionalFact(typeof(Bitness32))]
         public void TestImplicitCacheKeepsObjectAlive1()
         {
             var workspace = new AdhocWorkspace(MockHostServices.Instance, workspaceKind: WorkspaceKind.Host);
-            var cacheService = new ProjectCacheService(workspace, TimeSpan.MaxValue);
+            var cacheService = new ProjectCacheService(workspace, createImplicitCache: true);
             var reference = ObjectReference.CreateFromFactory(() => new object());
             reference.UseReference(r => cacheService.CacheObjectIfCachingEnabledForKey(ProjectId.CreateNewId(), (object)null, r));
             reference.AssertHeld();
@@ -126,7 +126,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         public void TestImplicitCacheMonitoring()
         {
             var workspace = new AdhocWorkspace(MockHostServices.Instance, workspaceKind: WorkspaceKind.Host);
-            var cacheService = new ProjectCacheService(workspace, TimeSpan.FromMilliseconds(10));
+            var cacheService = new ProjectCacheService(workspace, createImplicitCache: true);
             var weak = PutObjectInImplicitCache(cacheService);
 
             weak.AssertReleased();
@@ -144,7 +144,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         }
 
         [WorkItem(28639, "https://github.com/dotnet/roslyn/issues/28639")]
-        [ConditionalFact(typeof(x86))]
+        [ConditionalFact(typeof(Bitness32))]
         public void TestP2PReference()
         {
             var workspace = new AdhocWorkspace();
@@ -157,7 +157,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 
             var instanceTracker = ObjectReference.CreateFromFactory(() => new object());
 
-            var cacheService = new ProjectCacheService(workspace, TimeSpan.MaxValue);
+            var cacheService = new ProjectCacheService(workspace, createImplicitCache: true);
             using (var cache = cacheService.EnableCaching(project2.Id))
             {
                 instanceTracker.UseReference(r => cacheService.CacheObjectIfCachingEnabledForKey(project1.Id, (object)null, r));
@@ -172,7 +172,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         }
 
         [WorkItem(28639, "https://github.com/dotnet/roslyn/issues/28639")]
-        [ConditionalFact(typeof(x86))]
+        [ConditionalFact(typeof(Bitness32))]
         public void TestEjectFromImplicitCache()
         {
             var compilations = new List<Compilation>();
@@ -185,7 +185,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             var weakLast = ObjectReference.Create(compilations[compilations.Count - 1]);
 
             var workspace = new AdhocWorkspace(MockHostServices.Instance, workspaceKind: WorkspaceKind.Host);
-            var cache = new ProjectCacheService(workspace, TimeSpan.MaxValue);
+            var cache = new ProjectCacheService(workspace, createImplicitCache: true);
             for (var i = 0; i < ProjectCacheService.ImplicitCacheSize + 1; i++)
             {
                 cache.CacheObjectIfCachingEnabledForKey(ProjectId.CreateNewId(), (object)null, compilations[i]);
@@ -202,7 +202,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         }
 
         [WorkItem(28639, "https://github.com/dotnet/roslyn/issues/28639")]
-        [ConditionalFact(typeof(x86))]
+        [ConditionalFact(typeof(Bitness32))]
         public void TestCacheCompilationTwice()
         {
             var comp1 = CSharpCompilation.Create("1");
@@ -213,7 +213,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             var weak1 = ObjectReference.Create(comp1);
 
             var workspace = new AdhocWorkspace(MockHostServices.Instance, workspaceKind: WorkspaceKind.Host);
-            var cache = new ProjectCacheService(workspace, TimeSpan.MaxValue);
+            var cache = new ProjectCacheService(workspace, createImplicitCache: true);
             var key = ProjectId.CreateNewId();
             var owner = new object();
             cache.CacheObjectIfCachingEnabledForKey(key, owner, comp1);

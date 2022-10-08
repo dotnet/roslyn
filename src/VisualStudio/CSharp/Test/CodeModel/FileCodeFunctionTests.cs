@@ -16,6 +16,7 @@ using Xunit;
 
 namespace Microsoft.VisualStudio.LanguageServices.CSharp.UnitTests.CodeModel
 {
+    [Trait(Traits.Feature, Traits.Features.CodeModel)]
     public class FileCodeFunctionTests : AbstractFileCodeElementTests
     {
         public FileCodeFunctionTests()
@@ -114,7 +115,6 @@ public class Ref<T> where T : Entity
         }
 
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public void CanOverride_False()
         {
             var testObject = GetCodeFunction("A", "MethodA");
@@ -123,7 +123,6 @@ public class Ref<T> where T : Entity
         }
 
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public void CanOverride_True()
         {
             var testObject = GetCodeFunction("A", "MethodB");
@@ -132,7 +131,6 @@ public class Ref<T> where T : Entity
         }
 
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public void FullName()
         {
             var testObject = GetCodeFunction("A", "MethodD");
@@ -141,7 +139,6 @@ public class Ref<T> where T : Entity
         }
 
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public void FunctionKind_Function()
         {
             var testObject = GetCodeFunction("A", "MethodA");
@@ -150,7 +147,6 @@ public class Ref<T> where T : Entity
         }
 
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public void FunctionKind_Constructor()
         {
             var testObject = GetCodeFunction("A", 1);
@@ -159,7 +155,6 @@ public class Ref<T> where T : Entity
         }
 
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public void FunctionKind_Finalizer()
         {
             var testObject = GetCodeFunction("A", 2);
@@ -168,7 +163,6 @@ public class Ref<T> where T : Entity
         }
 
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public void IsOverloaded_True()
         {
             var testObject = GetCodeFunction("A", "MethodE");
@@ -177,7 +171,6 @@ public class Ref<T> where T : Entity
         }
 
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public void IsOverloaded_False()
         {
             var testObject = GetCodeFunction("A", "MethodA");
@@ -186,7 +179,6 @@ public class Ref<T> where T : Entity
         }
 
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public void IsShared_False()
         {
             var testObject = GetCodeFunction("A", "MethodA");
@@ -195,7 +187,6 @@ public class Ref<T> where T : Entity
         }
 
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public void IsShared_True()
         {
             var testObject = GetCodeFunction("A", "MethodC");
@@ -204,7 +195,6 @@ public class Ref<T> where T : Entity
         }
 
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public void Kind()
         {
             var testObject = GetCodeFunction("A", "MethodA");
@@ -213,7 +203,6 @@ public class Ref<T> where T : Entity
         }
 
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public void Name()
         {
             var testObject = GetCodeFunction("A", "MethodC");
@@ -222,7 +211,6 @@ public class Ref<T> where T : Entity
         }
 
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public void Parameters_Count()
         {
             var testObject = GetCodeFunction("A", "MethodD");
@@ -231,7 +219,6 @@ public class Ref<T> where T : Entity
         }
 
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public void Parent()
         {
             var testObject = GetCodeFunction("A", "MethodA");
@@ -242,7 +229,6 @@ public class Ref<T> where T : Entity
         }
 
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public void Type()
         {
             var testObject = GetCodeFunction("A", "MethodA");
@@ -251,7 +237,6 @@ public class Ref<T> where T : Entity
         }
 
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public void Comment()
         {
             var testObject = GetCodeFunction("C", "MethodB");
@@ -262,7 +247,6 @@ public class Ref<T> where T : Entity
         }
 
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public void DocComment()
         {
             var testObject = GetCodeFunction("C", "MethodA");
@@ -273,7 +257,6 @@ public class Ref<T> where T : Entity
         }
 
         [WpfFact(Skip = "636860")]
-        [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public void Overloads_Count()
         {
             var testObject = GetCodeFunction("A", "MethodE");
@@ -282,7 +265,6 @@ public class Ref<T> where T : Entity
         }
 
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public void GetStartPoint_Attributes()
         {
             var testObject = GetCodeFunction("A", "MethodA");
@@ -290,7 +272,6 @@ public class Ref<T> where T : Entity
         }
 
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public void GetStartPoint_AttributesWithDelimiter()
         {
             var testObject = GetCodeFunction("A", "MethodA");
@@ -298,7 +279,6 @@ public class Ref<T> where T : Entity
         }
 
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public void GetStartPoint_Body()
         {
             var testObject = GetCodeFunction("A", "MethodA");
@@ -310,7 +290,6 @@ public class Ref<T> where T : Entity
         }
 
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public void GetStartPoint_BodyWithDelimiter()
         {
             var testObject = GetCodeFunction("A", "MethodA");
@@ -318,7 +297,6 @@ public class Ref<T> where T : Entity
         }
 
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public void GetStartPoint_Header()
         {
             var testObject = GetCodeFunction("A", "MethodA");
@@ -330,7 +308,6 @@ public class Ref<T> where T : Entity
         }
 
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public void GetStartPoint_HeaderWithAttributes()
         {
             var testObject = GetCodeFunction("A", "MethodA");
@@ -338,7 +315,6 @@ public class Ref<T> where T : Entity
         }
 
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public void GetStartPoint_Name()
         {
             var testObject = GetCodeFunction("A", "MethodA");
@@ -346,7 +322,6 @@ public class Ref<T> where T : Entity
         }
 
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public void GetStartPoint_Navigate()
         {
             var testObject = GetCodeFunction("A", "MethodA");
@@ -358,7 +333,6 @@ public class Ref<T> where T : Entity
         }
 
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public void GetStartPoint_NavigateWithBlankLine()
         {
             var testObject = GetCodeFunction("A", "MethodWithBlankLine");
@@ -370,7 +344,6 @@ public class Ref<T> where T : Entity
         }
 
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public void GetStartPoint_Whole()
         {
             var testObject = GetCodeFunction("A", "MethodA");
@@ -378,7 +351,6 @@ public class Ref<T> where T : Entity
         }
 
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public void GetStartPoint_WholeWithAttributes()
         {
             var testObject = GetCodeFunction("A", "MethodA");
@@ -390,7 +362,6 @@ public class Ref<T> where T : Entity
         }
 
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public void GetEndPoint_Attributes()
         {
             var testObject = GetCodeFunction("A", "MethodA");
@@ -398,7 +369,6 @@ public class Ref<T> where T : Entity
         }
 
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public void GetEndPoint_AttributesWithDelimiter()
         {
             var testObject = GetCodeFunction("A", "MethodA");
@@ -406,7 +376,6 @@ public class Ref<T> where T : Entity
         }
 
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public void GetEndPoint_Body()
         {
             var testObject = GetCodeFunction("A", "MethodA");
@@ -418,7 +387,6 @@ public class Ref<T> where T : Entity
         }
 
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public void GetEndPoint_BodyWithDelimiter()
         {
             var testObject = GetCodeFunction("A", "MethodA");
@@ -426,7 +394,6 @@ public class Ref<T> where T : Entity
         }
 
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public void GetEndPoint_Header()
         {
             var testObject = GetCodeFunction("A", "MethodA");
@@ -434,7 +401,6 @@ public class Ref<T> where T : Entity
         }
 
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public void GetEndPoint_HeaderWithAttributes()
         {
             var testObject = GetCodeFunction("A", "MethodA");
@@ -442,7 +408,6 @@ public class Ref<T> where T : Entity
         }
 
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public void GetEndPoint_Name()
         {
             var testObject = GetCodeFunction("A", "MethodA");
@@ -450,7 +415,6 @@ public class Ref<T> where T : Entity
         }
 
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public void GetEndPoint_Navigate()
         {
             var testObject = GetCodeFunction("A", "MethodA");
@@ -462,7 +426,6 @@ public class Ref<T> where T : Entity
         }
 
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public void GetEndPoint_Whole()
         {
             var testObject = GetCodeFunction("A", "MethodA");
@@ -470,7 +433,6 @@ public class Ref<T> where T : Entity
         }
 
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public void GetEndPoint_WholeWithAttributes()
         {
             var testObject = GetCodeFunction("A", "MethodA");
@@ -482,7 +444,6 @@ public class Ref<T> where T : Entity
         }
 
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public void StartPoint()
         {
             var testObject = GetCodeFunction("A", "MethodA");
@@ -494,7 +455,6 @@ public class Ref<T> where T : Entity
         }
 
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public void EndPoint()
         {
             var testObject = GetCodeFunction("A", "MethodA");
@@ -506,7 +466,6 @@ public class Ref<T> where T : Entity
         }
 
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public void DynamicReturnType()
         {
             var testObject = (CodeVariable)GetCodeElement("C", "DynamicField");
@@ -519,7 +478,6 @@ public class Ref<T> where T : Entity
         }
 
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public void DynamicParameter()
         {
             var testObject = GetCodeFunction("C", "DynamicMethod");
@@ -531,9 +489,7 @@ public class Ref<T> where T : Entity
             Assert.Equal(vsCMTypeRef.vsCMTypeRefOther, returnType.TypeKind);
         }
 
-        [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.CodeModel)]
-        [WorkItem(530496, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530496")]
+        [WpfFact, WorkItem(530496, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530496")]
         public async Task TestCodeElementFromPoint()
         {
             var text = await (GetCurrentDocument()).GetTextAsync();
@@ -546,9 +502,7 @@ public class Ref<T> where T : Entity
             Assert.Equal("DynamicMethod", element.Name);
         }
 
-        [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.CodeModel)]
-        [WorkItem(726710, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/726710")]
+        [WpfFact, WorkItem(726710, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/726710")]
         public async Task TestCodeElementFromPointBetweenMembers()
         {
             var text = await (GetCurrentDocument()).GetTextAsync();
@@ -565,16 +519,13 @@ public class Ref<T> where T : Entity
         }
 
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public void Operator()
         {
             var functionObject = GetCodeFunction("A", 3);
             Assert.Equal("operator +", functionObject.Name);
         }
 
-        [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.CodeModel)]
-        [WorkItem(924179, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/924179")]
+        [WpfFact, WorkItem(924179, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/924179")]
         public void ConversionOperator()
         {
             var classObject = (CodeClass)GetCodeElement("Ref");

@@ -24,29 +24,33 @@ namespace Microsoft.CodeAnalysis.CSharp
             /// the underlying full tree to stay alive.  Think of it more as a 
             /// key that can be used to identify a tree rather than the tree itself.
             /// </summary>
-            internal sealed class RecoverableSyntaxTree : CSharpSyntaxTree, IRecoverableSyntaxTree<CompilationUnitSyntax>, ICachedObjectOwner
+            internal sealed class RecoverableSyntaxTree : CSharpSyntaxTree, IRecoverableSyntaxTree<CSharpSyntaxNode>, ICachedObjectOwner
             {
-                private readonly RecoverableSyntaxRoot<CompilationUnitSyntax> _recoverableRoot;
+                private readonly RecoverableSyntaxRoot<CSharpSyntaxNode> _recoverableRoot;
                 private readonly SyntaxTreeInfo _info;
-                private readonly IProjectCacheHostService _projectCacheService;
+                private readonly AbstractSyntaxTreeFactoryService _service;
                 private readonly ProjectId _cacheKey;
+
+                public override bool HasCompilationUnitRoot { get; }
 
                 object ICachedObjectOwner.CachedObject { get; set; }
 
-                private RecoverableSyntaxTree(AbstractSyntaxTreeFactoryService service, ProjectId cacheKey, CompilationUnitSyntax root, SyntaxTreeInfo info)
+                private RecoverableSyntaxTree(AbstractSyntaxTreeFactoryService service, ProjectId cacheKey, CSharpSyntaxNode root, SyntaxTreeInfo info)
                 {
-                    _recoverableRoot = new RecoverableSyntaxRoot<CompilationUnitSyntax>(service, root, this);
+                    _recoverableRoot = new RecoverableSyntaxRoot<CSharpSyntaxNode>(service, root, this);
                     _info = info;
-                    _projectCacheService = service.SolutionServices.GetService<IProjectCacheHostService>();
+                    _service = service;
                     _cacheKey = cacheKey;
+                    HasCompilationUnitRoot = root.IsKind(SyntaxKind.CompilationUnit);
                 }
 
                 private RecoverableSyntaxTree(RecoverableSyntaxTree original, SyntaxTreeInfo info)
                 {
                     _recoverableRoot = original._recoverableRoot.WithSyntaxTree(this);
                     _info = info;
-                    _projectCacheService = original._projectCacheService;
+                    _service = original._service;
                     _cacheKey = original._cacheKey;
+                    HasCompilationUnitRoot = original.HasCompilationUnitRoot;
                 }
 
                 internal static SyntaxTree CreateRecoverableTree(
@@ -72,19 +76,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 public override string FilePath
-                {
-                    get { return _info.FilePath; }
-                }
+                    => _info.FilePath;
 
                 public override CSharpParseOptions Options
-                {
-                    get { return (CSharpParseOptions)_info.Options; }
-                }
+                    => (CSharpParseOptions)_info.Options;
 
                 public override int Length
-                {
-                    get { return _info.Length; }
-                }
+                    => _info.Length;
 
                 public override bool TryGetText(out SourceText text)
                     => _info.TryGetText(out text);
@@ -96,12 +94,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     => _info.GetTextAsync(cancellationToken);
 
                 public override Encoding Encoding
-                {
-                    get { return _info.Encoding; }
-                }
+                    => _info.Encoding;
 
-                private CompilationUnitSyntax CacheRootNode(CompilationUnitSyntax node)
-                    => _projectCacheService.CacheObjectIfCachingEnabledForKey(_cacheKey, this, node);
+                private CSharpSyntaxNode CacheRootNode(CSharpSyntaxNode node)
+                    => _service.SolutionServices.GetRequiredService<IProjectCacheHostService>().CacheObjectIfCachingEnabledForKey(_cacheKey, this, node);
 
                 public override bool TryGetRoot(out CSharpSyntaxNode root)
                 {
@@ -116,11 +112,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 public override async Task<CSharpSyntaxNode> GetRootAsync(CancellationToken cancellationToken)
                     => CacheRootNode(await _recoverableRoot.GetValueAsync(cancellationToken).ConfigureAwait(false));
-
-                public override bool HasCompilationUnitRoot
-                {
-                    get { return true; }
-                }
 
                 public override SyntaxReference GetReference(SyntaxNode node)
                 {
@@ -143,19 +134,20 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 }
 
-                CompilationUnitSyntax IRecoverableSyntaxTree<CompilationUnitSyntax>.CloneNodeAsRoot(CompilationUnitSyntax root)
+                CSharpSyntaxNode IRecoverableSyntaxTree<CSharpSyntaxNode>.CloneNodeAsRoot(CSharpSyntaxNode root)
                     => CloneNodeAsRoot(root);
 
                 public bool ContainsDirectives => _info.ContainsDirectives;
 
                 public override SyntaxTree WithRootAndOptions(SyntaxNode root, ParseOptions options)
                 {
-                    if (ReferenceEquals(_info.Options, options) && this.TryGetRoot(out var oldRoot) && ReferenceEquals(root, oldRoot))
+                    if (ReferenceEquals(_info.Options, options) && TryGetRoot(out var oldRoot) && ReferenceEquals(root, oldRoot))
                     {
                         return this;
                     }
 
-                    return Create((CSharpSyntaxNode)root, this.Options, _info.FilePath);
+                    return new RecoverableSyntaxTree(_service, _cacheKey, (CSharpSyntaxNode)root,
+                        _info.WithOptionsAndLengthAndContainsDirectives(options, root.FullSpan.Length, root.ContainsDirectives));
                 }
 
                 public override SyntaxTree WithFilePath(string path)

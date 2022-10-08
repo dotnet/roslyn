@@ -192,7 +192,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
             {
                 ChangeSignatureAnalysisSucceededContext changeSignatureAnalyzedSucceedContext => await GetChangeSignatureResultAsync(changeSignatureAnalyzedSucceedContext, options, cancellationToken).ConfigureAwait(false),
                 CannotChangeSignatureAnalyzedContext cannotChangeSignatureAnalyzedContext => new ChangeSignatureResult(succeeded: false, changeSignatureFailureKind: cannotChangeSignatureAnalyzedContext.CannotChangeSignatureReason),
-                _ => throw ExceptionUtilities.Unreachable,
+                _ => throw ExceptionUtilities.Unreachable(),
             };
 
             async Task<ChangeSignatureResult> GetChangeSignatureResultAsync(ChangeSignatureAnalysisSucceededContext context, ChangeSignatureOptionsResult? options, CancellationToken cancellationToken)
@@ -1053,6 +1053,23 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
             }
 
             return false;
+        }
+
+        protected static int GetParameterIndexFromInvocationArgument(SyntaxNode argument, Document document, SemanticModel semanticModel, CancellationToken cancellationToken)
+        {
+            var semanticFacts = document.GetRequiredLanguageService<ISemanticFactsService>();
+            var parameter = semanticFacts.FindParameterForArgument(semanticModel, argument, cancellationToken);
+            var parameterIndex = parameter.Ordinal;
+
+            if (parameter.ContainingSymbol is IMethodSymbol methodSymbol && methodSymbol.MethodKind is MethodKind.ReducedExtension)
+            {
+                // We're in the invocation of an extension method that is called via this.Method(params).
+                // The 'this' argument has an ordinal value of -1 but change signature is expecting all params
+                // to start at 0 (including the 'this' param).
+                parameterIndex += 1;
+            }
+
+            return parameterIndex;
         }
     }
 }

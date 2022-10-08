@@ -17,6 +17,21 @@
         <target state="translated">Sestavení, které obsahuje typ {0}, se odkazuje na architekturu .NET Framework, což se nepodporuje.</target>
         <note />
       </trans-unit>
+      <trans-unit id="BadBuiltInOps1">
+        <source>Illegal built-in operator name '{0}'</source>
+        <target state="translated">Neplatný předdefinovaný název operátoru {0}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="BadBuiltInOps2">
+        <source>Unsupported built-in operator: {0}</source>
+        <target state="translated">Nepodporovaný předdefinovaný operátor: {0}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="BadBuiltInOps3">
+        <source>'{0}' was not a valid built-in operator name</source>
+        <target state="translated">{0} nebyl platný předdefinovaný název operátoru</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ChangesMustBeWithinBoundsOfSourceText">
         <source>Changes must be within bounds of SourceText</source>
         <target state="translated">Změny musí spadat do mezí SourceText.</target>
@@ -51,12 +66,12 @@
       </trans-unit>
       <trans-unit id="GeneratorNameColumnHeader">
         <source>Generator</source>
-        <target state="new">Generator</target>
+        <target state="translated">Generátor</target>
         <note />
       </trans-unit>
       <trans-unit id="GeneratorTotalExecutionTime">
         <source>Total generator execution time: {0} seconds.</source>
-        <target state="new">Total generator execution time: {0} seconds.</target>
+        <target state="translated">Celková doba spuštění generátoru: {0} sekund.</target>
         <note />
       </trans-unit>
       <trans-unit id="HintNameInvalidChar">

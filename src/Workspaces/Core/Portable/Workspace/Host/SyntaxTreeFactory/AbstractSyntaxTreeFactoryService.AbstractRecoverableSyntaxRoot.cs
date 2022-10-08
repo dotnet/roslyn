@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.Host
                     ContainsDirectives);
             }
 
-            internal SyntaxTreeInfo WithOptionsAndLength(ParseOptions options, int length)
+            internal SyntaxTreeInfo WithOptionsAndLengthAndContainsDirectives(ParseOptions options, int length, bool containsDirectives)
             {
                 return new SyntaxTreeInfo(
                     FilePath,
@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis.Host
                     TextSource,
                     Encoding,
                     length,
-                    ContainsDirectives);
+                    containsDirectives);
             }
 
             internal SyntaxTreeInfo WithOptions(ParseOptions options)
@@ -154,7 +154,7 @@ namespace Microsoft.CodeAnalysis.Host
             {
                 Contract.ThrowIfNull(_storage);
 
-                using (RoslynEventSource.LogInformationalBlock(FunctionId.Workspace_Recoverable_RecoverRootAsync, _containingTree.FilePath, cancellationToken))
+                using (Logger.LogBlock(FunctionId.Workspace_Recoverable_RecoverRootAsync, _containingTree.FilePath, cancellationToken, LogLevel.Information))
                 {
                     using var stream = await _storage.ReadStreamAsync(cancellationToken).ConfigureAwait(false);
                     return RecoverRoot(stream, cancellationToken);
@@ -165,7 +165,7 @@ namespace Microsoft.CodeAnalysis.Host
             {
                 Contract.ThrowIfNull(_storage);
 
-                using (RoslynEventSource.LogInformationalBlock(FunctionId.Workspace_Recoverable_RecoverRoot, _containingTree.FilePath, cancellationToken))
+                using (Logger.LogBlock(FunctionId.Workspace_Recoverable_RecoverRoot, _containingTree.FilePath, cancellationToken, LogLevel.Information))
                 {
                     using var stream = _storage.ReadStream(cancellationToken);
                     return RecoverRoot(stream, cancellationToken);

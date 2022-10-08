@@ -4,11 +4,8 @@
 
 using System;
 using System.Composition;
-using Microsoft.CodeAnalysis.ErrorReporting;
-using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 
 namespace Microsoft.CodeAnalysis.Formatting;
@@ -25,16 +22,12 @@ internal sealed class LegacyIndentationManagerWorkspaceService : ILegacyIndentat
         _indentationManagerService = indentationManagerService;
     }
 
-    private static ITextBuffer GetRequiredTextBuffer(SourceText text)
-        => text.Container.TryGetTextBuffer() ?? throw new InvalidOperationException(
-            "We had an open document but it wasn't associated with a buffer. That meant we couldn't apply formatting settings.");
+    public bool? UseSpacesForWhitespace(SourceText text)
+        => text.Container.TryGetTextBuffer() is { } buffer ? _indentationManagerService.UseSpacesForWhitespace(buffer, explicitFormat: false) : null;
 
-    public bool UseSpacesForWhitespace(SourceText text)
-        => _indentationManagerService.UseSpacesForWhitespace(GetRequiredTextBuffer(text), explicitFormat: false);
+    public int? GetTabSize(SourceText text)
+        => text.Container.TryGetTextBuffer() is { } buffer ? _indentationManagerService.GetTabSize(buffer, explicitFormat: false) : null;
 
-    public int GetTabSize(SourceText text)
-        => _indentationManagerService.GetTabSize(GetRequiredTextBuffer(text), explicitFormat: false);
-
-    public int GetIndentSize(SourceText text)
-        => _indentationManagerService.GetIndentSize(GetRequiredTextBuffer(text), explicitFormat: false);
+    public int? GetIndentSize(SourceText text)
+        => text.Container.TryGetTextBuffer() is { } buffer ? _indentationManagerService.GetIndentSize(buffer, explicitFormat: false) : null;
 }

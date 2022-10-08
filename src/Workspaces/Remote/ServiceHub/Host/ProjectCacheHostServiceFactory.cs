@@ -9,12 +9,9 @@ using Microsoft.CodeAnalysis.Host.Mef;
 
 namespace Microsoft.CodeAnalysis.Remote
 {
-    [ExportWorkspaceServiceFactory(typeof(IProjectCacheHostService), ServiceLayer.Host)]
-    [Shared]
+    [ExportWorkspaceServiceFactory(typeof(IProjectCacheHostService), ServiceLayer.Host), Shared]
     internal partial class ProjectCacheHostServiceFactory : IWorkspaceServiceFactory
     {
-        private static readonly TimeSpan s_implicitCacheTimeout = TimeSpan.FromMilliseconds(10000);
-
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public ProjectCacheHostServiceFactory()
@@ -22,6 +19,6 @@ namespace Microsoft.CodeAnalysis.Remote
         }
 
         public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
-            => new ProjectCacheService(workspaceServices.Workspace, s_implicitCacheTimeout);
+            => new ProjectCacheService(workspaceServices.Workspace, createImplicitCache: true);
     }
 }

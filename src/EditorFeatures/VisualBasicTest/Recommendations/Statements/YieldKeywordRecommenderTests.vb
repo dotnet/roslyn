@@ -3,15 +3,16 @@
 ' See the LICENSE file in the project root for more information.
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.Statements
+    <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
     Public Class YieldKeywordRecommenderTests
         Inherits RecommenderTests
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact>
         Public Sub InMethodBodyTest()
             VerifyRecommendationsContain(<MethodBody>|</MethodBody>, "Yield")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact>
         Public Sub InLambdaBodyTest()
             Dim code =
 <MethodBody>
@@ -23,7 +24,7 @@ Dim f = Function()
             VerifyRecommendationsContain(code, "Yield")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Fact>
         Public Sub NotInExpressionTest()
             Dim code =
 <MethodBody>
