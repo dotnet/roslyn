@@ -8,6 +8,7 @@ using System.Linq;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Windows;
 using Microsoft.CodeAnalysis.UnitTests;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
@@ -93,6 +94,30 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
                 await Task.WhenAll(tasks);
             }
         }
+
+        public async Task OpenCodeAndFeatureSearchWindowAsync(CancellationToken cancellationToken)
+        {
+            var currentWindow = Application.Current.MainWindow;
+            var taskCompletionSource = new TaskCompletionSource<bool>();
+            using var _ = cancellationToken.Register(() => taskCompletionSource.TrySetCanceled());
+
+            try
+            {
+                currentWindow.Deactivated += CurrentWindow_Deactivated;
+                await TestServices.Shell.ExecuteCommandAsync(VSConstants.VSStd12CmdID.NavigateTo, cancellationToken);
+                await taskCompletionSource.Task;
+                await WaitForApplicationIdleAsync(cancellationToken);
+            }
+            finally
+            {
+                currentWindow.Deactivated -= CurrentWindow_Deactivated;
+            }
+
+            void CurrentWindow_Deactivated(object sender, EventArgs e)
+            {
+                taskCompletionSource.SetResult(true);
+            }
+       }
 
         public readonly struct PauseFileChangesRestorer : IAsyncDisposable
         {
