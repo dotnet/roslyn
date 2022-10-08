@@ -8543,32 +8543,46 @@ public ref struct StructWithRefField
 
         [WorkItem(62618, "https://github.com/dotnet/roslyn/issues/62618")]
         [Theory]
-        [InlineData(LanguageVersion.CSharp10)]
-        [InlineData(LanguageVersion.CSharp11)]
-        public void RefAssignValueScopeMismatch_01(LanguageVersion languageVersion)
+        [CombinatorialData]
+        public void RefAssignValueScopeMismatch_01(
+            [CombinatorialValues(LanguageVersion.CSharp10, LanguageVersion.CSharp11)] LanguageVersion languageVersion,
+            bool useUnsafe)
         {
+            string unsafeModifier = useUnsafe ? "unsafe" : "";
             var source =
-@"using System;
+$@"using System;
 class Program
-{
+{{
     static void Main()
-    {
-        Span<int> s = new[] { 1 };
+    {{
+        Span<int> s = new[] {{ 1 }};
         M(ref s);
-    }
-    static void M(ref Span<int> s)
-    {
-        Span<int> local = stackalloc int[] { 1 };
+    }}
+    {unsafeModifier} static void M(ref Span<int> s)
+    {{
+        Span<int> local = stackalloc int[] {{ 1 }};
         ref Span<int> rL = ref local;
         rL = ref s; // 1
         rL = local;
-    }
-}";
-            var comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
-            comp.VerifyEmitDiagnostics(
-                // (13,9): error CS9096: Cannot ref-assign 's' to 'rL' because 's' has a wider value escape scope than 'rL' allowing assignment through 'rL' of values with narrower escapes scopes than 's'.
-                //         rL = ref s; // 1
-                Diagnostic(ErrorCode.ERR_RefAssignValEscapeWider, "rL = ref s").WithArguments("rL", "s").WithLocation(13, 9));
+    }}
+}}";
+            var comp = CreateCompilationWithSpanAndMemoryExtensions(source,
+                parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion),
+                options: (useUnsafe ? TestOptions.UnsafeReleaseExe : null));
+            if (useUnsafe)
+            {
+                comp.VerifyEmitDiagnostics(
+                    // (13,9): error CS9097: This ref-assigns 's' to 'rL' but 's' has a wider value escape scope than 'rL' allowing assignment through 'rL' of values with narrower escapes scopes than 's'.
+                    //         rL = ref s; // 1
+                    Diagnostic(ErrorCode.WRN_RefAssignValEscapeWider, "rL = ref s").WithArguments("rL", "s").WithLocation(13, 9));
+            }
+            else
+            {
+                comp.VerifyEmitDiagnostics(
+                    // (13,9): error CS9096: Cannot ref-assign 's' to 'rL' because 's' has a wider value escape scope than 'rL' allowing assignment through 'rL' of values with narrower escapes scopes than 's'.
+                    //         rL = ref s; // 1
+                    Diagnostic(ErrorCode.ERR_RefAssignValEscapeWider, "rL = ref s").WithArguments("rL", "s").WithLocation(13, 9));
+            }
         }
 
         [WorkItem(62618, "https://github.com/dotnet/roslyn/issues/62618")]
