@@ -1292,6 +1292,11 @@
         <target state="translated">'{1}' は return ステートメントを介してのみ現在のメソッドをエスケープできるため、'{1}' を '{0}' に ref 割り当てすることはできません。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_RefAssignValEscapeWider">
+        <source>Cannot ref-assign '{1}' to '{0}' because '{1}' has a wider value escape scope than '{0}' allowing assignment through '{0}' of values with narrower escapes scopes than '{1}'.</source>
+        <target state="new">Cannot ref-assign '{1}' to '{0}' because '{1}' has a wider value escape scope than '{0}' allowing assignment through '{0}' of values with narrower escapes scopes than '{1}'.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_RefFieldCannotReferToRefStruct">
         <source>A ref field cannot refer to a ref struct.</source>
         <target state="translated">ref フィールドは ref 構造体を参照できません。</target>
@@ -2155,6 +2160,16 @@
       <trans-unit id="WRN_RefAssignReturnOnly_Title">
         <source>This ref-assigns a value that can only escape the current method through a return statement.</source>
         <target state="translated">これは、return ステートメントを介してのみ現在のメソッドをエスケープできる値を ref 割り当てします。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_RefAssignValEscapeWider">
+        <source>This ref-assigns '{1}' to '{0}' but '{1}' has a wider value escape scope than '{0}' allowing assignment through '{0}' of values with narrower escapes scopes than '{1}'.</source>
+        <target state="new">This ref-assigns '{1}' to '{0}' but '{1}' has a wider value escape scope than '{0}' allowing assignment through '{0}' of values with narrower escapes scopes than '{1}'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_RefAssignValEscapeWider_Title">
+        <source>This ref-assigns a value that has a wider value escape scope than the target allowing assignment through the target of values with narrower escapes scopes.</source>
+        <target state="new">This ref-assigns a value that has a wider value escape scope than the target allowing assignment through the target of values with narrower escapes scopes.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_RefReturnLocal">

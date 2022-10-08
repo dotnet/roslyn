@@ -8566,9 +8566,9 @@ class Program
 }";
             var comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
             comp.VerifyEmitDiagnostics(
-                // (13,9): error CS8374: Cannot ref-assign 's' to 'rL' because 's' has a narrower escape scope than 'rL'.
+                // (13,9): error CS9096: Cannot ref-assign 's' to 'rL' because 's' has a wider value escape scope than 'rL' allowing assignment through 'rL' of values with narrower escapes scopes than 's'.
                 //         rL = ref s; // 1
-                Diagnostic(ErrorCode.ERR_RefAssignNarrower, "rL = ref s").WithArguments("rL", "s").WithLocation(13, 9));
+                Diagnostic(ErrorCode.ERR_RefAssignValEscapeWider, "rL = ref s").WithArguments("rL", "s").WithLocation(13, 9));
         }
 
         [WorkItem(62618, "https://github.com/dotnet/roslyn/issues/62618")]
@@ -8610,16 +8610,16 @@ class Program
             else if (useUnsafe)
             {
                 comp.VerifyEmitDiagnostics(
-                    // (17,9): warning CS9085: This ref-assigns 'r1' to 'r2' but 'r1' has a narrower escape scope than 'r2'.
+                    // (17,9): error CS9097: This ref-assigns 'r1' to 'r2' but 'r1' has a wider value escape scope than 'r2' allowing assignment through 'r2' of values with narrower escapes scopes than 'r1'.
                     //         r2 = ref r1; // 1
-                    Diagnostic(ErrorCode.WRN_RefAssignNarrower, "r2 = ref r1").WithArguments("r2", "r1").WithLocation(17, 9));
+                    Diagnostic(ErrorCode.WRN_RefAssignValEscapeWider, "r2 = ref r1").WithArguments("r2", "r1").WithLocation(17, 9));
             }
             else
             {
                 comp.VerifyEmitDiagnostics(
-                    // (17,9): error CS8374: Cannot ref-assign 'r1' to 'r2' because 'r1' has a narrower escape scope than 'r2'.
+                    // (17,9): error CS9096: Cannot ref-assign 'r1' to 'r2' because 'r1' has a wider value escape scope than 'r2' allowing assignment through 'r2' of values with narrower escapes scopes than 'r1'.
                     //         r2 = ref r1; // 1
-                    Diagnostic(ErrorCode.ERR_RefAssignNarrower, "r2 = ref r1").WithArguments("r2", "r1").WithLocation(17, 9));
+                    Diagnostic(ErrorCode.ERR_RefAssignValEscapeWider, "r2 = ref r1").WithArguments("r2", "r1").WithLocation(17, 9));
             }
         }
 
@@ -8662,9 +8662,9 @@ class Program
             else
             {
                 comp.VerifyEmitDiagnostics(
-                    // (21,9): error CS8374: Cannot ref-assign 'r1.F' to 'r2' because 'r1.F' has a narrower escape scope than 'r2'.
+                    // (21,9): error CS9096: Cannot ref-assign 'r1.F' to 'r2' because 'r1.F' has a wider value escape scope than 'r2' allowing assignment through 'r2' of values with narrower escapes scopes than 'r1.F'.
                     //         r2 = ref r1.F; // 1
-                    Diagnostic(ErrorCode.ERR_RefAssignNarrower, "r2 = ref r1.F").WithArguments("r2", "r1.F").WithLocation(21, 9));
+                    Diagnostic(ErrorCode.ERR_RefAssignValEscapeWider, "r2 = ref r1.F").WithArguments("r2", "r1.F").WithLocation(21, 9));
             }
         }
 
@@ -11514,9 +11514,9 @@ class ClassEnumerator
                 // (24,13): error CS8374: Cannot ref-assign 'r5' to 'r0' because 'r5' has a narrower escape scope than 'r0'.
                 //             r0 = ref r5; // 3
                 Diagnostic(ErrorCode.ERR_RefAssignNarrower, "r0 = ref r5").WithArguments("r0", "r5").WithLocation(24, 13),
-                // (28,13): error CS8374: Cannot ref-assign 'r6' to 'r0' because 'r6' has a narrower escape scope than 'r0'.
+                // (28,13): error CS9096: Cannot ref-assign 'r6' to 'r0' because 'r6' has a wider value escape scope than 'r0' allowing assignment through 'r0' of values with narrower escapes scopes than 'r6'.
                 //             r0 = ref r6; // 4
-                Diagnostic(ErrorCode.ERR_RefAssignNarrower, "r0 = ref r6").WithArguments("r0", "r6").WithLocation(28, 13));
+                Diagnostic(ErrorCode.ERR_RefAssignValEscapeWider, "r0 = ref r6").WithArguments("r0", "r6").WithLocation(28, 13));
         }
 
         [Theory]
