@@ -1573,9 +1573,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                             Debug.Assert(leftEscape == rightEscape || op1.Type.IsRefLikeType);
 
-                            // We only check if the safe-to-escape of e2 is wider than the safe-to-escape of e1 here, we don't
-                            // check for equality. The case where the safe-to-escape of e2 is narrower than safe-to-escape of e1
-                            // is handled outside of the if (isRef) { ... } block in if (op1.Type.IsRefLikeType) { ... }.
+                            // We only check if the safe-to-escape of e2 is wider than the safe-to-escape of e1 here,
+                            // we don't check for equality. The case where the safe-to-escape of e2 is narrower than
+                            // e1 is handled in the if (op1.Type.IsRefLikeType) { ... } block later.
                             if (leftEscape > rightEscape)
                             {
                                 Debug.Assert(op1.Kind != BoundKind.Parameter); // If the assert fails, add a corresponding test.
