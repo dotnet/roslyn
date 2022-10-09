@@ -31,7 +31,7 @@
     </When>
     <Otherwise>
       <PropertyGroup>
-        <NuGetApiVersion>5.6.0</NuGetApiVersion>
+        <NuGetApiVersion>6.3.0</NuGetApiVersion>
       </PropertyGroup>
     </Otherwise>
   </Choose>
