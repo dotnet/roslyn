@@ -1101,7 +1101,7 @@ class MyClass
             var code = @"class MyClass
 {
     private void M() { }
-    private string _goo = nameof(M);
+    public string _goo = nameof(M);
 }";
 
             await VerifyCS.VerifyCodeFixAsync(code, code);
@@ -1113,7 +1113,7 @@ class MyClass
             var code = @"class MyClass<T>
 {
     private void M() { }
-    private string _goo2 = nameof(MyClass<int>.M);
+    public string _goo2 = nameof(MyClass<int>.M);
 }
 ";
 
@@ -2721,6 +2721,72 @@ public class MyClass
 }";
 
             await VerifyCS.VerifyCodeFixAsync(code, code);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
+        [WorkItem(54972, "https://github.com/dotnet/roslyn/issues/54972")]
+        public async Task NameOfIsUsed()
+        {
+            var source =
+@"public class C
+{
+    private int [|i|];
+    public string M()
+    {
+        return nameof(C);
+    }
+}";
+            var fixedSource =
+@"public class C
+{
+    public string M()
+    {
+        return nameof(C);
+    }
+}";
+            await VerifyCS.VerifyCodeFixAsync(source, fixedSource);
+        }
+
+        [Fact, WorkItem(54972, "https://github.com/dotnet/roslyn/issues/54972")]
+        public async Task FieldIsNotRead_NameOfIsUsed()
+        {
+            var code = @"
+public class C
+{
+    private string {|IDE0052:_field|};
+    public void M() => _field = nameof(C);
+}";
+
+            await VerifyCS.VerifyCodeFixAsync(code, code);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
+        [WorkItem(54972, "https://github.com/dotnet/roslyn/issues/54972")]
+        public async Task RangesIsUsed()
+        {
+            var source =
+@"public class C
+{
+    private int [|i|];
+    public string M()
+    {
+        return ""Hello World!""[0..];
+    }
+}";
+            var fixedSource =
+@"public class C
+{
+    public string M()
+    {
+        return ""Hello World!""[0..];
+    }
+}";
+            await new VerifyCS.Test
+            {
+                ReferenceAssemblies = ReferenceAssemblies.NetCore.NetCoreApp31,
+                TestCode = source,
+                FixedCode = fixedSource,
+            }.RunAsync();
         }
     }
 }
