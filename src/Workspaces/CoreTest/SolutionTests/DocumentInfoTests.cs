@@ -87,13 +87,17 @@ namespace Microsoft.CodeAnalysis.UnitTests
         }
 
         [Theory]
-        [InlineData(null)]
-        [InlineData("")]
-        [InlineData("path")]
-        public void Create_FilePath(string path)
+        [InlineData(SourceCodeKind.Script, null, "")]
+        [InlineData(SourceCodeKind.Script, "", "")]
+        [InlineData(SourceCodeKind.Script, "path", "path")]
+        [InlineData(SourceCodeKind.Regular, null, "doc_name")]
+        [InlineData(SourceCodeKind.Regular, "", "")]
+        [InlineData(SourceCodeKind.Regular, "path", "path")]
+        public void Create_FilePath(SourceCodeKind kind, string path, string expectedSyntaxTreeFilePath)
         {
-            var info = DocumentInfo.Create(DocumentId.CreateNewId(ProjectId.CreateNewId()), "doc", filePath: path);
+            var info = DocumentInfo.Create(DocumentId.CreateNewId(ProjectId.CreateNewId()), "doc_name", filePath: path, sourceCodeKind: kind);
             Assert.Equal(path, info.FilePath);
+            Assert.Equal(expectedSyntaxTreeFilePath, info.Attributes.SyntaxTreeFilePath);
         }
 
         [Fact]
