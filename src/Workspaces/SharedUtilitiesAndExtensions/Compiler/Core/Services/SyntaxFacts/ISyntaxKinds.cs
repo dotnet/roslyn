@@ -153,6 +153,7 @@ namespace Microsoft.CodeAnalysis.LanguageService
         int? RecursivePattern { get; }
         int? TypePattern { get; }
         int? VarPattern { get; }
+        int? RelationalPattern { get; }
 
         #endregion
 

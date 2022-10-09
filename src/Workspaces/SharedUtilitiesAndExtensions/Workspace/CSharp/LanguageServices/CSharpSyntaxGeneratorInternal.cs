@@ -182,6 +182,18 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         public override SyntaxNode UnaryPattern(SyntaxToken operatorToken, SyntaxNode pattern)
             => SyntaxFactory.UnaryPattern(operatorToken, (PatternSyntax)Parenthesize(pattern));
 
+        public override SyntaxNode LessThanPattern(SyntaxNode expression)
+            => SyntaxFactory.RelationalPattern(SyntaxFactory.Token(SyntaxKind.LessThanToken), (ExpressionSyntax)expression);
+
+        public override SyntaxNode LessThanEqualsPattern(SyntaxNode expression)
+            => SyntaxFactory.RelationalPattern(SyntaxFactory.Token(SyntaxKind.LessThanEqualsToken), (ExpressionSyntax)expression);
+
+        public override SyntaxNode GreaterThanPattern(SyntaxNode expression)
+            => SyntaxFactory.RelationalPattern(SyntaxFactory.Token(SyntaxKind.GreaterThanToken), (ExpressionSyntax)expression);
+
+        public override SyntaxNode GreaterThanEqualsPattern(SyntaxNode expression)
+            => SyntaxFactory.RelationalPattern(SyntaxFactory.Token(SyntaxKind.GreaterThanEqualsToken), (ExpressionSyntax)expression);
+
         #endregion
     }
 }

@@ -876,6 +876,9 @@ namespace Microsoft.CodeAnalysis.LanguageService
         public static bool IsVarPattern(this ISyntaxFacts syntaxFacts, [NotNullWhen(true)] SyntaxNode? node)
             => node?.RawKind == syntaxFacts.SyntaxKinds.VarPattern;
 
+        public static bool IsRelationalPattern(this ISyntaxFacts syntaxFacts, [NotNullWhen(true)] SyntaxNode? node)
+            => node?.RawKind == syntaxFacts.SyntaxKinds.RelationalPattern;
+
         #endregion
 
         #region statements

@@ -594,6 +594,66 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InvertLogical
 }", parseOptions: CSharp9);
         }
 
+        [Fact, WorkItem(64558, "https://github.com/dotnet/roslyn/issues/64558")]
+        public async Task InvertNumericIsGreaterThanPattern1_CSharp9()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    void M(bool x, int a, object b)
+    {
+        var c = a > 10 [||]&& a is > 20;
+    }
+}",
+@"class C
+{
+    void M(bool x, int a, object b)
+    {
+        var c = !(a <= 10 || a is <= 20);
+    }
+}", parseOptions: CSharp9);
+        }
+
+        [Fact, WorkItem(64558, "https://github.com/dotnet/roslyn/issues/64558")]
+        public async Task InvertNullableNumericIsGreaterThanPattern1_CSharp9()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    void M(bool x, int? a, object b)
+    {
+        var c = x [||]&& a is > 20;
+    }
+}",
+@"class C
+{
+    void M(bool x, int? a, object b)
+    {
+        var c = !(!x || a is not > 20);
+    }
+}", parseOptions: CSharp9);
+        }
+
+        [Fact, WorkItem(64558, "https://github.com/dotnet/roslyn/issues/64558")]
+        public async Task InvertNonNumericIsGreaterThanPattern1_CSharp9()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    void M(bool x, int a, object b)
+    {
+        var c = a > 10 [||]&& b is > 20;
+    }
+}",
+@"class C
+{
+    void M(bool x, int a, object b)
+    {
+        var c = !(a <= 10 || b is not > 20);
+    }
+}", parseOptions: CSharp9);
+        }
+
         [Fact, WorkItem(42368, "https://github.com/dotnet/roslyn/issues/42368")]
         public async Task InvertIsAndPattern1_CSharp8()
         {

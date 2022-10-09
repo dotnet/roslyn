@@ -104,6 +104,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageService
         Public ReadOnly Property RecursivePattern As Integer? Implements ISyntaxKinds.RecursivePattern
         Public ReadOnly Property TypePattern As Integer? Implements ISyntaxKinds.TypePattern
         Public ReadOnly Property VarPattern As Integer? Implements ISyntaxKinds.VarPattern
+        Public ReadOnly Property RelationalPattern As Integer? Implements ISyntaxKinds.RelationalPattern
         Public ReadOnly Property IndexerMemberCref As Integer? Implements ISyntaxKinds.IndexerMemberCref
 
         Public ReadOnly Property EndOfFileToken As Integer = SyntaxKind.EndOfFileToken Implements ISyntaxKinds.EndOfFileToken

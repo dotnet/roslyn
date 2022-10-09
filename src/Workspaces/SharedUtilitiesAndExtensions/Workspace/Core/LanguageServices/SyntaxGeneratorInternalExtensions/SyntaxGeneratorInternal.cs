@@ -107,6 +107,10 @@ namespace Microsoft.CodeAnalysis.Editing
         public abstract SyntaxNode ParenthesizedPattern(SyntaxNode pattern);
         public abstract SyntaxNode TypePattern(SyntaxNode type);
         public abstract SyntaxNode UnaryPattern(SyntaxToken operatorToken, SyntaxNode pattern);
+        public abstract SyntaxNode LessThanPattern(SyntaxNode expression);
+        public abstract SyntaxNode LessThanEqualsPattern(SyntaxNode expression);
+        public abstract SyntaxNode GreaterThanPattern(SyntaxNode expression);
+        public abstract SyntaxNode GreaterThanEqualsPattern(SyntaxNode expression);
 
         #endregion
     }
