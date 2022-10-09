@@ -44,6 +44,8 @@ namespace Analyzer.Utilities
         public INamedTypeSymbol? IAsyncDisposable { get; }
         public INamedTypeSymbol? Task { get; }
         public INamedTypeSymbol? ValueTask { get; }
+        public INamedTypeSymbol? StringReader { get; }
+        public INamedTypeSymbol? MemoryStream { get; }
 
         private DisposeAnalysisHelper(Compilation compilation)
         {
@@ -53,6 +55,8 @@ namespace Analyzer.Utilities
             IAsyncDisposable = _wellKnownTypeProvider.GetOrCreateTypeByMetadataName(WellKnownTypeNames.SystemIAsyncDisposable);
             Task = _wellKnownTypeProvider.GetOrCreateTypeByMetadataName(WellKnownTypeNames.SystemThreadingTasksTask);
             ValueTask = _wellKnownTypeProvider.GetOrCreateTypeByMetadataName(WellKnownTypeNames.SystemThreadingTasksValueTask);
+            StringReader = _wellKnownTypeProvider.GetOrCreateTypeByMetadataName(WellKnownTypeNames.SystemIOStringReader);
+            MemoryStream = _wellKnownTypeProvider.GetOrCreateTypeByMetadataName(WellKnownTypeNames.SystemIOMemoryStream);
 
             _disposeOwnershipTransferLikelyTypes = IDisposable != null ?
                 GetDisposeOwnershipTransferLikelyTypes(compilation) :
@@ -145,6 +149,16 @@ namespace Analyzer.Utilities
                 HasDisposableOwnershipTransferForConstructorParameter(containingMethod);
         }
 
+        public bool IsDisposableTypeNotRequiringToBeDisposed(ITypeSymbol typeSymbol) =>
+            // Common case doesn't require dispose. https://learn.microsoft.com/dotnet/api/system.threading.tasks.task.dispose
+            typeSymbol.DerivesFrom(Task, baseTypesOnly: true) ||
+            // StringReader doesn't need to be disposed: https://learn.microsoft.com/dotnet/api/system.io.stringreader
+            SymbolEqualityComparer.Default.Equals(typeSymbol, StringReader) ||
+            // MemoryStream doesn't need to be disposed. https://learn.microsoft.com/dotnet/api/system.io.memorystream
+            // Subclasses *might* need to be disposed, but that is the less common case,
+            // and the common case is a huge source of noisy warnings.
+            SymbolEqualityComparer.Default.Equals(typeSymbol, MemoryStream);
+
         public ImmutableHashSet<IFieldSymbol> GetDisposableFields(INamedTypeSymbol namedType)
         {
             EnsureDisposableFieldsMap();
@@ -163,7 +177,7 @@ namespace Analyzer.Utilities
             {
                 disposableFields = namedType.GetMembers()
                     .OfType<IFieldSymbol>()
-                    .Where(f => IsDisposable(f.Type) && !f.Type.DerivesFrom(Task))
+                    .Where(f => IsDisposable(f.Type) && !IsDisposableTypeNotRequiringToBeDisposed(f.Type))
                     .ToImmutableHashSet();
             }
 
