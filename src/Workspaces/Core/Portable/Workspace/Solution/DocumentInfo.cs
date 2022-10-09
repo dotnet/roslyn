@@ -236,6 +236,12 @@ namespace Microsoft.CodeAnalysis
                 return new DocumentAttributes(newId, newName, newFolders, newSourceCodeKind, newFilePath, newIsGenerated, newDesignTimeOnly);
             }
 
+            // This is the string used to represent the FilePath property on a SyntaxTree object.
+            // if the document does not yet have a file path, use the document's name instead in regular code
+            // or an empty string in script code.
+            public string SyntaxTreeFilePath
+                => FilePath ?? (SourceCodeKind == SourceCodeKind.Regular ? Name : "");
+
             bool IObjectWritable.ShouldReuseInSerialization => true;
 
             public void WriteTo(ObjectWriter writer)

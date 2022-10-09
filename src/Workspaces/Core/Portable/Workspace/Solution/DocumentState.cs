@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis
                     TextAndVersionSource,
                     LoadTextOptions,
                     info.Id.ProjectId,
-                    GetSyntaxTreeFilePath(info.Attributes),
+                    info.Attributes.SyntaxTreeFilePath,
                     options,
                     languageServices);
             }
@@ -99,21 +99,6 @@ namespace Microsoft.CodeAnalysis
 
         public bool IsGenerated
             => Attributes.IsGenerated;
-
-        // This is the string used to represent the FilePath property on a SyntaxTree object.
-        // if the document does not yet have a file path, use the document's name instead in regular code
-        // or an empty string in script code.
-        private static string GetSyntaxTreeFilePath(DocumentInfo.DocumentAttributes info)
-        {
-            if (info.FilePath != null)
-            {
-                return info.FilePath;
-            }
-
-            return info.SourceCodeKind == SourceCodeKind.Regular
-                ? info.Name
-                : "";
-        }
 
         protected static ValueSource<TreeAndVersion> CreateLazyFullyParsedTree(
             ITextAndVersionSource newTextSource,
@@ -358,7 +343,7 @@ namespace Microsoft.CodeAnalysis
                 TextAndVersionSource,
                 newLoadTextOptions,
                 Id.ProjectId,
-                GetSyntaxTreeFilePath(Attributes),
+                Attributes.SyntaxTreeFilePath,
                 _options,
                 _languageServices) : null;
 
@@ -419,7 +404,7 @@ namespace Microsoft.CodeAnalysis
                 else if (existingTree.TryGetRoot(out var existingRoot) && !existingRoot.ContainsDirectives)
                 {
                     var treeFactory = _languageServices.GetRequiredService<ISyntaxTreeFactoryService>();
-                    newTree = treeFactory.CreateSyntaxTree(GetSyntaxTreeFilePath(Attributes), options, existingTree.Encoding, LoadTextOptions.ChecksumAlgorithm, existingRoot);
+                    newTree = treeFactory.CreateSyntaxTree(Attributes.SyntaxTreeFilePath, options, existingTree.Encoding, LoadTextOptions.ChecksumAlgorithm, existingRoot);
                 }
 
                 if (newTree is not null)
@@ -431,7 +416,7 @@ namespace Microsoft.CodeAnalysis
                 TextAndVersionSource,
                 LoadTextOptions,
                 Id.ProjectId,
-                GetSyntaxTreeFilePath(Attributes),
+                Attributes.SyntaxTreeFilePath,
                 options,
                 _languageServices);
 
@@ -493,7 +478,7 @@ namespace Microsoft.CodeAnalysis
                     TextAndVersionSource,
                     LoadTextOptions,
                     Id.ProjectId,
-                    GetSyntaxTreeFilePath(newAttributes),
+                    newAttributes.SyntaxTreeFilePath,
                     _options,
                     _languageServices) : null;
 
@@ -533,7 +518,7 @@ namespace Microsoft.CodeAnalysis
                     newTextSource,
                     LoadTextOptions,
                     Id.ProjectId,
-                    GetSyntaxTreeFilePath(Attributes),
+                    Attributes.SyntaxTreeFilePath,
                     _options,
                     _languageServices,
                     mode); // TODO: understand why the mode is given here. If we're preserving text by identity, why also preserve the tree?
@@ -655,7 +640,7 @@ namespace Microsoft.CodeAnalysis
 
             if (mode == PreservationMode.PreserveIdentity || !factory.CanCreateRecoverableTree(newRoot))
             {
-                tree = factory.CreateSyntaxTree(GetSyntaxTreeFilePath(attributes), options, encoding, checksumAlgorithm, newRoot);
+                tree = factory.CreateSyntaxTree(attributes.SyntaxTreeFilePath, options, encoding, checksumAlgorithm, newRoot);
 
                 // its okay to use a strong cached AsyncLazy here because the compiler layer SyntaxTree will also keep the text alive once its built.
                 lazyTextAndVersion = new TreeTextSource(
@@ -683,7 +668,7 @@ namespace Microsoft.CodeAnalysis
                             cacheResult: false)),
                     textVersion);
 
-                tree = factory.CreateRecoverableTree(attributes.Id.ProjectId, GetSyntaxTreeFilePath(attributes), options, lazyTextAndVersion, new LoadTextOptions(checksumAlgorithm), encoding, newRoot);
+                tree = factory.CreateRecoverableTree(attributes.Id.ProjectId, attributes.SyntaxTreeFilePath, options, lazyTextAndVersion, new LoadTextOptions(checksumAlgorithm), encoding, newRoot);
             }
 
             return (lazyTextAndVersion, new TreeAndVersion(tree, treeVersion));
