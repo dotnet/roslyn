@@ -100,7 +100,7 @@ namespace Roslyn.Test.Utilities
 
         protected virtual TestComposition Composition => s_composition;
 
-        private protected virtual TestAnalyzerReferenceByLanguage TestAnalyzerReferences
+        private protected virtual TestAnalyzerReferenceByLanguage CreateTestAnalyzersReference()
             => new(DiagnosticExtensions.GetCompilerDiagnosticAnalyzersMap());
 
         protected static LSP.ClientCapabilities CapabilitiesWithVSExtensions => new LSP.VSInternalClientCapabilities { SupportsVisualStudioExtensions = true };
@@ -332,7 +332,7 @@ namespace Roslyn.Test.Utilities
                 solution = solution.WithProjectFilePath(project.Id, GetDocumentFilePathFromName(project.FilePath));
             }
 
-            solution = solution.WithAnalyzerReferences(new[] { TestAnalyzerReferences });
+            solution = solution.WithAnalyzerReferences(new[] { CreateTestAnalyzersReference() });
             workspace.ChangeSolution(solution);
 
             // Important: We must wait for workspace creation operations to finish.
@@ -354,12 +354,16 @@ namespace Roslyn.Test.Utilities
 
             lspOptions.OptionUpdater?.Invoke(workspace.GetService<IGlobalOptionService>());
 
-            workspace.TryApplyChanges(workspace.CurrentSolution.WithAnalyzerReferences(new[] { TestAnalyzerReferences }));
+            var analyzerReference = CreateTestAnalyzersReference();
+            workspace.TryApplyChanges(workspace.CurrentSolution.WithAnalyzerReferences(new[] { analyzerReference }));
 
             // Important: We must wait for workspace creation operations to finish.
             // Otherwise we could have a race where workspace change events triggered by creation are changing the state
             // created by the initial test steps. This can interfere with the expected test state.
             await WaitForWorkspaceOperationsAsync(workspace);
+
+            Assert.Same(workspace.CurrentSolution.AnalyzerReferences.Single(), analyzerReference);
+
             return await TestLspServer.CreateAsync(workspace, lspOptions);
         }
 

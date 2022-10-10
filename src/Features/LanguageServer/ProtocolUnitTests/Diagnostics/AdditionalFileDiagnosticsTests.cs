@@ -122,8 +122,10 @@ public class AdditionalFileDiagnosticsTests : AbstractPullDiagnosticTestsBase
 
     protected override TestComposition Composition => base.Composition.AddParts(typeof(MockAdditionalFileDiagnosticAnalyzer));
 
-    private protected override TestAnalyzerReferenceByLanguage TestAnalyzerReferences => new(ImmutableDictionary.Create<string, ImmutableArray<DiagnosticAnalyzer>>()
-        .Add(LanguageNames.CSharp, ImmutableArray.Create(DiagnosticExtensions.GetCompilerDiagnosticAnalyzer(LanguageNames.CSharp), new MockAdditionalFileDiagnosticAnalyzer())));
+    private protected override TestAnalyzerReferenceByLanguage CreateTestAnalyzersReference()
+        => new(ImmutableDictionary<string, ImmutableArray<DiagnosticAnalyzer>>.Empty.Add(LanguageNames.CSharp, ImmutableArray.Create(
+                DiagnosticExtensions.GetCompilerDiagnosticAnalyzer(LanguageNames.CSharp),
+                new MockAdditionalFileDiagnosticAnalyzer())));
 
     [DiagnosticAnalyzer(LanguageNames.CSharp), PartNotDiscoverable]
     private class MockAdditionalFileDiagnosticAnalyzer : DiagnosticAnalyzer
