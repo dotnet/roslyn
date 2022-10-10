@@ -19,15 +19,22 @@ namespace Microsoft.CodeAnalysis.Serialization
     /// </summary>
     internal partial class SerializerService
     {
-        public void SerializeSourceText(SerializableSourceText text, ObjectWriter writer, SolutionReplicationContext context, CancellationToken cancellationToken)
+        public void SerializeSourceText(SourceText text, ObjectWriter writer, SolutionReplicationContext context, CancellationToken cancellationToken)
         {
-            text.Serialize(writer, context, cancellationToken);
+            writer.WriteInt32((int)text.ChecksumAlgorithm);
+            writer.WriteEncoding(text.Encoding);
+            writer.WriteInt32((int)SerializationKinds.Bits);
+            text.WriteTo(writer, cancellationToken);
         }
 
         private SourceText DeserializeSourceText(ObjectReader reader, CancellationToken cancellationToken)
         {
-            var serializableSourceText = SerializableSourceText.Deserialize(reader, _storageService, _textService, cancellationToken);
-            return serializableSourceText.GetText(cancellationToken);
+            var checksumAlgorithm = (SourceHashAlgorithm)reader.ReadInt32();
+            var encoding = (Encoding)reader.ReadValue();
+
+            var kind = (SerializationKinds)reader.ReadInt32();
+            Contract.ThrowIfFalse(kind == SerializationKinds.Bits);
+            return SourceTextExtensions.ReadFrom(_textService, reader, encoding, checksumAlgorithm, cancellationToken);
         }
 
         public void SerializeCompilationOptions(CompilationOptions options, ObjectWriter writer, CancellationToken cancellationToken)

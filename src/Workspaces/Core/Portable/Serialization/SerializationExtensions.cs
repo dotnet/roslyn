@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.Serialization
                 ProjectReference _ => WellKnownSynchronizationKind.ProjectReference,
                 MetadataReference _ => WellKnownSynchronizationKind.MetadataReference,
                 AnalyzerReference _ => WellKnownSynchronizationKind.AnalyzerReference,
-                SerializableSourceText _ => WellKnownSynchronizationKind.SerializableSourceText,
+                // SerializableSourceText _ => WellKnownSynchronizationKind.SerializableSourceText,
                 SourceText _ => WellKnownSynchronizationKind.SourceText,
                 SourceGeneratedDocumentIdentity _ => WellKnownSynchronizationKind.SourceGeneratedDocumentIdentity,
                 _ => throw ExceptionUtilities.UnexpectedValue(value),

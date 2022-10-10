@@ -6,6 +6,7 @@ using System.Threading;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Serialization
@@ -14,7 +15,7 @@ namespace Microsoft.CodeAnalysis.Serialization
     {
         void Serialize(object value, ObjectWriter writer, SolutionReplicationContext context, CancellationToken cancellationToken);
 
-        void SerializeSourceText(SerializableSourceText text, ObjectWriter writer, SolutionReplicationContext context, CancellationToken cancellationToken);
+        void SerializeSourceText(SourceText text, ObjectWriter writer, SolutionReplicationContext context, CancellationToken cancellationToken);
 
         void SerializeCompilationOptions(CompilationOptions options, ObjectWriter writer, CancellationToken cancellationToken);
 

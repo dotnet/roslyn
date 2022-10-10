@@ -12,6 +12,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Serialization;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 using Nerdbank.Streams;
 using Roslyn.Utilities;
 
@@ -83,8 +84,25 @@ namespace Microsoft.CodeAnalysis.Remote
         public static async ValueTask<ImmutableArray<(Checksum, object)>> ReadDataAsync(
             PipeReader pipeReader, Checksum solutionChecksum, ISet<Checksum> checksums, ISerializerService serializerService, CancellationToken cancellationToken)
         {
+            var stopWatch = SharedStopwatch.StartNew();
             using var stream = await pipeReader.AsPrebufferedStreamAsync(cancellationToken).ConfigureAwait(false);
-            return ReadData(stream, solutionChecksum, checksums, serializerService, cancellationToken);
+            try
+            {
+                var result = ReadData(stream, solutionChecksum, checksums, serializerService, cancellationToken);
+
+                //foreach (var (_, data) in result)
+                //{
+                //    if (data is SerializableSourceText sourceText)
+                //        await sourceText.GetTextAsync(cancellationToken).ConfigureAwait(false);
+                //}
+
+                return result;
+            }
+            finally
+            {
+                IOUtilities.PerformIO(() =>
+                    File.AppendAllText(@"c:\temp\ReadData.txt", $"{checksums.Count}\t{stream.Length}\t{stopWatch.Elapsed}\r\n"));
+            }
         }
 
         public static ImmutableArray<(Checksum, object)> ReadData(Stream stream, Checksum solutionChecksum, ISet<Checksum> checksums, ISerializerService serializerService, CancellationToken cancellationToken)

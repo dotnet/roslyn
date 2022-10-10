@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.Serialization
         AnalyzerReference,
         SourceText,
 
-        SerializableSourceText,
+        // SerializableSourceText,
 
         //
 

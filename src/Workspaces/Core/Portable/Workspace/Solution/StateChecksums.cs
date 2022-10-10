@@ -61,7 +61,8 @@ namespace Microsoft.CodeAnalysis.Serialization
             if (searchingChecksumsLeft.Remove(FrozenSourceGeneratedDocumentText))
             {
                 Contract.ThrowIfNull(state.FrozenSourceGeneratedDocumentState, "We should not have had a FrozenSourceGeneratedDocumentState checksum if we didn't have a text in the first place.");
-                result[FrozenSourceGeneratedDocumentText] = await SerializableSourceText.FromTextDocumentStateAsync(state.FrozenSourceGeneratedDocumentState, cancellationToken).ConfigureAwait(false);
+                result[FrozenSourceGeneratedDocumentText] = await state.FrozenSourceGeneratedDocumentState.GetTextAsync(cancellationToken).ConfigureAwait(false);
+                    //await SerializableSourceText.FromTextDocumentStateAsync(state.FrozenSourceGeneratedDocumentState, cancellationToken).ConfigureAwait(false);
             }
 
             if (searchingChecksumsLeft.Remove(Projects.Checksum))
@@ -243,7 +244,7 @@ namespace Microsoft.CodeAnalysis.Serialization
 
             if (searchingChecksumsLeft.Remove(Text))
             {
-                result[Text] = await SerializableSourceText.FromTextDocumentStateAsync(state, cancellationToken).ConfigureAwait(false);
+                result[Text] = await state.GetTextAsync(cancellationToken).ConfigureAwait(false);
             }
         }
     }

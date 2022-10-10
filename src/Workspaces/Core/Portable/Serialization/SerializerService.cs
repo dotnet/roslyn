@@ -87,8 +87,8 @@ namespace Microsoft.CodeAnalysis.Serialization
                     case WellKnownSynchronizationKind.AnalyzerReference:
                         return Checksum.Create(CreateChecksum((AnalyzerReference)value, cancellationToken));
 
-                    case WellKnownSynchronizationKind.SerializableSourceText:
-                        return Checksum.Create(((SerializableSourceText)value).GetChecksum());
+                    //case WellKnownSynchronizationKind.SerializableSourceText:
+                    //    return Checksum.Create(((SerializableSourceText)value).GetChecksum());
 
                     case WellKnownSynchronizationKind.SourceText:
                         return Checksum.Create(((SourceText)value).GetChecksum());
@@ -149,12 +149,12 @@ namespace Microsoft.CodeAnalysis.Serialization
                         SerializeAnalyzerReference((AnalyzerReference)value, writer, cancellationToken: cancellationToken);
                         return;
 
-                    case WellKnownSynchronizationKind.SerializableSourceText:
-                        SerializeSourceText((SerializableSourceText)value, writer, context, cancellationToken);
-                        return;
+                    //case WellKnownSynchronizationKind.SerializableSourceText:
+                    //    SerializeSourceText((SerializableSourceText)value, writer, context, cancellationToken);
+                    //    return;
 
                     case WellKnownSynchronizationKind.SourceText:
-                        SerializeSourceText(new SerializableSourceText((SourceText)value), writer, context, cancellationToken);
+                        SerializeSourceText((SourceText)value, writer, context, cancellationToken);
                         return;
 
                     default:
@@ -200,8 +200,8 @@ namespace Microsoft.CodeAnalysis.Serialization
                         return (T)(object)DeserializeMetadataReference(reader, cancellationToken);
                     case WellKnownSynchronizationKind.AnalyzerReference:
                         return (T)(object)DeserializeAnalyzerReference(reader, cancellationToken);
-                    case WellKnownSynchronizationKind.SerializableSourceText:
-                        return (T)(object)SerializableSourceText.Deserialize(reader, _storageService, _textService, cancellationToken);
+                    //case WellKnownSynchronizationKind.SerializableSourceText:
+                    //    return (T)(object)SerializableSourceText.Deserialize(reader, _storageService, _textService, cancellationToken);
                     case WellKnownSynchronizationKind.SourceText:
                         return (T)(object)DeserializeSourceText(reader, cancellationToken);
 

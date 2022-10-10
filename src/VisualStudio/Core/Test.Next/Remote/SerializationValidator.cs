@@ -185,8 +185,8 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
                 documentObject.Info, WellKnownSynchronizationKind.DocumentAttributes,
                 (v, k, s) => new SolutionAsset(s.CreateChecksum(v, CancellationToken.None), v)).ConfigureAwait(false);
 
-            await VerifyAssetSerializationAsync<SerializableSourceText>(
-                documentObject.Text, WellKnownSynchronizationKind.SerializableSourceText,
+            await VerifyAssetSerializationAsync<SourceText>(
+                documentObject.Text, WellKnownSynchronizationKind.SourceText,
                 (v, k, s) => new SolutionAsset(s.CreateChecksum(v, CancellationToken.None), v));
         }
 
@@ -325,7 +325,7 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
         {
             await VerifyChecksumInServiceAsync(documentObject.Checksum, documentObject.GetWellKnownSynchronizationKind()).ConfigureAwait(false);
             await VerifyChecksumInServiceAsync(documentObject.Info, WellKnownSynchronizationKind.DocumentAttributes).ConfigureAwait(false);
-            await VerifyChecksumInServiceAsync(documentObject.Text, WellKnownSynchronizationKind.SerializableSourceText).ConfigureAwait(false);
+            await VerifyChecksumInServiceAsync(documentObject.Text, WellKnownSynchronizationKind.SourceText).ConfigureAwait(false);
         }
 
         internal async Task VerifySynchronizationObjectInServiceAsync(SolutionAsset syncObject)
