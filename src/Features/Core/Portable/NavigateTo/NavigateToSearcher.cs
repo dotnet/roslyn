@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
@@ -20,6 +21,8 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.NavigateTo
 {
+    using NavigateToResultStream = IAsyncEnumerable<(Project project, INavigateToSearchResult result)>;
+
     [Flags]
     internal enum NavigateToSearchScope
     {
@@ -176,10 +179,10 @@ namespace Microsoft.CodeAnalysis.NavigateTo
                     cancellationToken).ConfigureAwait(false);
 
                 if (searchRegularDocuments)
-                    await SearchFullyLoadedProjectsAsync(orderedProjects, seenItems, cancellationToken).ConfigureAwait(false);
+                    await ProcessResultsAsync(seenItems, SearchFullyLoadedProjectsAsync(orderedProjects, cancellationToken), cancellationToken).ConfigureAwait(false);
 
                 if (searchGeneratedDocuments)
-                    await SearchGeneratedDocumentsAsync(seenItems, cancellationToken).ConfigureAwait(false);
+                    await ProcessResultsAsync(seenItems, SearchGeneratedDocumentsAsync(cancellationToken), cancellationToken).ConfigureAwait(false);
             }
             else
             {
@@ -192,14 +195,16 @@ namespace Microsoft.CodeAnalysis.NavigateTo
                         projectCount * 2,
                         cancellationToken).ConfigureAwait(false);
 
-                    await SearchCachedDocumentsAsync(orderedProjects, seenItems, cancellationToken).ConfigureAwait(false);
+                    await ProcessResultsAsync(
+                        seenItems, SearchCachedDocumentsAsync(orderedProjects, cancellationToken), cancellationToken).ConfigureAwait(false);
 
                     // If searching cached data returned any results, then we're done.  We've at least shown some results
                     // to the user.  That will hopefully serve them well enough until the solution fully loads.
                     if (seenItems.Count > 0)
                         return;
 
-                    await SearchFullyLoadedProjectsAsync(orderedProjects, seenItems, cancellationToken).ConfigureAwait(false);
+                    await ProcessResultsAsync(
+                        seenItems, SearchFullyLoadedProjectsAsync(orderedProjects, cancellationToken), cancellationToken).ConfigureAwait(false);
 
                     // Report a telemetry event to track if we found uncached items after failing to find cached items.
                     // In practice if we see that we are always finding uncached items, then it's likely something
@@ -207,6 +212,23 @@ namespace Microsoft.CodeAnalysis.NavigateTo
                     // we expect: foundFullItems <<< not foundFullItems.
                     Logger.Log(FunctionId.NavigateTo_CacheItemsMiss, KeyValueLogMessage.Create(m => m["FoundFullItems"] = seenItems.Count > 0));
                 }
+            }
+        }
+
+        private async Task ProcessResultsAsync(
+            HashSet<INavigateToSearchResult> seenItems,
+            NavigateToResultStream results,
+            CancellationToken cancellationToken)
+        {
+            await foreach (var (project, result) in results)
+            {
+                // If we're seeing a dupe in another project, then filter it out here.  The results from
+                // the individual projects will already contain the information about all the projects
+                // leading to a better condensed view that doesn't look like it contains duplicate info.
+                if (!seenItems.Add(result))
+                    continue;
+
+                await _callback.AddItemAsync(project, result, cancellationToken).ConfigureAwait(false);
             }
         }
 
@@ -277,12 +299,11 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             return result.ToImmutable();
         }
 
-        private async Task ProcessOrderedProjectsAsync(
+        private async NavigateToResultStream ProcessOrderedProjectsAsync(
             bool parallel,
             ImmutableArray<ImmutableArray<Project>> orderedProjects,
-            HashSet<INavigateToSearchResult> seenItems,
             Func<INavigateToSearchService, Project, IAsyncEnumerable<INavigateToSearchResult>> processProjectAsync,
-            CancellationToken cancellationToken)
+            [EnumeratorCancellation] CancellationToken cancellationToken)
         {
             // Process each group one at a time.  However, in each group process all projects in parallel to get results
             // as quickly as possible.  The net effect of this is that we will search the active doc immediately, then
@@ -294,18 +315,25 @@ namespace Microsoft.CodeAnalysis.NavigateTo
                 if (!parallel)
                 {
                     foreach (var project in projectGroup)
-                        await SearchCoreAsync(project).ConfigureAwait(false);
+                    {
+                        await foreach (var pair in SearchCoreAsync(project).ConfigureAwait(false))
+                            yield return pair;
+                    }
                 }
                 else
                 {
-                    var allTasks = projectGroup.Select(p => Task.Run(() => SearchCoreAsync(p), cancellationToken));
-                    await Task.WhenAll(allTasks).ConfigureAwait(false);
+                    var enumerables = new NavigateToResultStream[projectGroup.Length];
+                    for (var i = 0; i < projectGroup.Length; i++)
+                        enumerables[i] = SearchCoreAsync(projectGroup[i]);
+
+                    await foreach (var pair in enumerables.MergeAsync(cancellationToken).ConfigureAwait(false))
+                        yield return pair;
                 }
             }
 
-            return;
+            yield break;
 
-            async Task SearchCoreAsync(Project project)
+            async NavigateToResultStream SearchCoreAsync(Project project)
             {
                 try
                 {
@@ -313,24 +341,10 @@ namespace Microsoft.CodeAnalysis.NavigateTo
                     // complete search.  That way we don't call back into this project ever.
                     var service = _host.GetNavigateToSearchService(project);
                     if (service == null)
-                        return;
+                        yield break;
 
                     await foreach (var result in processProjectAsync(service, project).ConfigureAwait(false))
-                    {
-                        // If we're seeing a dupe in another project, then filter it out here.  The results from
-                        // the individual projects will already contain the information about all the projects
-                        // leading to a better condensed view that doesn't look like it contains duplicate info.
-                        //
-                        // Note: SearchCoreAsync may be running in parallel across many projects.  As such, we need to
-                        // lock this set to ensure we don't produce duplicates.
-                        lock (seenItems)
-                        {
-                            if (!seenItems.Add(result))
-                                continue;
-                        }
-
-                        await _callback.AddItemAsync(project, result, cancellationToken).ConfigureAwait(false);
-                    }
+                        yield return (project, result);
                 }
                 finally
                 {
@@ -340,9 +354,8 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             }
         }
 
-        private Task SearchFullyLoadedProjectsAsync(
+        private NavigateToResultStream SearchFullyLoadedProjectsAsync(
             ImmutableArray<ImmutableArray<Project>> orderedProjects,
-            HashSet<INavigateToSearchResult> seenItems,
             CancellationToken cancellationToken)
         {
             // Search the fully loaded project in parallel.  We know this will be called after we've already hydrated the 
@@ -352,14 +365,12 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             return ProcessOrderedProjectsAsync(
                 parallel: true,
                 orderedProjects,
-                seenItems,
                 (s, p) => s.SearchProjectAsync(p, GetPriorityDocuments(p), _searchPattern, _kinds, _activeDocument, cancellationToken),
                 cancellationToken);
         }
 
-        private Task SearchCachedDocumentsAsync(
+        private NavigateToResultStream SearchCachedDocumentsAsync(
             ImmutableArray<ImmutableArray<Project>> orderedProjects,
-            HashSet<INavigateToSearchResult> seenItems,
             CancellationToken cancellationToken)
         {
             // We search cached information in parallel.  This is because there's no syncing step when searching cached
@@ -369,14 +380,11 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             return ProcessOrderedProjectsAsync(
                 parallel: true,
                 orderedProjects,
-                seenItems,
                 (s, p) => s.SearchCachedDocumentsAsync(p, GetPriorityDocuments(p), _searchPattern, _kinds, _activeDocument, cancellationToken),
                 cancellationToken);
         }
 
-        private Task SearchGeneratedDocumentsAsync(
-            HashSet<INavigateToSearchResult> seenItems,
-            CancellationToken cancellationToken)
+        private NavigateToResultStream SearchGeneratedDocumentsAsync(CancellationToken cancellationToken)
         {
             // Process all projects, serially, in topological order.  Generating source can be expensive.  It requires
             // creating and processing the entire compilation for a project, which itself may require dependent compilations
@@ -397,7 +405,6 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             return ProcessOrderedProjectsAsync(
                 parallel: false,
                 allProjects,
-                seenItems,
                 (s, p) => s.SearchGeneratedDocumentsAsync(p, _searchPattern, _kinds, _activeDocument, cancellationToken),
                 cancellationToken);
         }
