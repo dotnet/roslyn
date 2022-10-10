@@ -57,7 +57,10 @@ namespace Microsoft.CodeAnalysis.Remote
             {
                 WriteAsset(writer, serializer, context, checksum, asset, cancellationToken);
 
-                // Flush after each item as a reasonably chunk of data to want to send over the pipe.
+                // We flush after each item as that forms a reasonably sized chunk of data to want to then send over the
+                // pipe for the reader on the other side to read.  This allows the item-writing to remain entirely
+                // synchronous without any blocking on async flushing, while also ensuring that we're not buffering the
+                // entire stream of data into the pipe before it gets sent to the other side.
                 await stream.FlushAsync(cancellationToken).ConfigureAwait(false);
             }
 

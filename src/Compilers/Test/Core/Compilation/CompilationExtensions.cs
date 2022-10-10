@@ -23,6 +23,7 @@ using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.FlowAnalysis;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
@@ -432,7 +433,7 @@ namespace System.Runtime.InteropServices.WindowsRuntime
             // WellKnownTypes and WellKnownMembers so it can be safely skipped here. 
             var compilation = CSharpCompilation.Create(
                 "System.Runtime.InteropServices.WindowsRuntime",
-                new[] { CSharpSyntaxTree.ParseText(source) },
+                new[] { CSharpSyntaxTree.ParseText(SourceText.From(source, encoding: null, SourceHashAlgorithms.Default)) },
                 references: TargetFrameworkUtil.GetReferences(TargetFramework.NetCoreApp),
                 options: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
             compilation.VerifyEmitDiagnostics();

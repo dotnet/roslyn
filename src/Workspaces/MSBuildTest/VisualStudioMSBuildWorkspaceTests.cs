@@ -247,6 +247,45 @@ namespace Microsoft.CodeAnalysis.MSBuild.UnitTests
             Assert.Equal("VisualBasicProject.dll", Path.GetFileName(p2.CompilationOutputInfo.AssemblyPath));
         }
 
+        [ConditionalTheory(typeof(VisualStudioMSBuildInstalled))]
+        [InlineData(LanguageNames.CSharp)]
+        [InlineData(LanguageNames.VisualBasic)]
+        public async Task TestChecksumAlgorithm_NonDefault(string language)
+        {
+            var files = language == LanguageNames.CSharp ?
+                GetSimpleCSharpSolutionFiles().WithFile(@"CSharpProject\CSharpProject.csproj", Resources.ProjectFiles.CSharp.WithChecksumAlgorithm) :
+                GetSimpleVisualBasicSolutionFiles().WithFile(@"VisualBasicProject\VisualBasicProject.csproj", Resources.ProjectFiles.VisualBasic.WithChecksumAlgorithm);
+
+            CreateFiles(files);
+            var solutionFilePath = GetSolutionFileName("TestSolution.sln");
+
+            using var workspace = CreateMSBuildWorkspace();
+            var solution = await workspace.OpenSolutionAsync(solutionFilePath);
+            var project = solution.Projects.Single();
+
+            Assert.Equal(SourceHashAlgorithm.Sha1, project.State.ChecksumAlgorithm);
+
+            Assert.All(project.Documents, d => Assert.Equal(SourceHashAlgorithm.Sha1, d.GetTextSynchronously(default).ChecksumAlgorithm));
+            Assert.All(project.AdditionalDocuments, d => Assert.Equal(SourceHashAlgorithm.Sha1, d.GetTextSynchronously(default).ChecksumAlgorithm));
+        }
+
+        [ConditionalTheory(typeof(VisualStudioMSBuildInstalled))]
+        [InlineData(LanguageNames.CSharp)]
+        [InlineData(LanguageNames.VisualBasic)]
+        public async Task TestChecksumAlgorithm_Default(string language)
+        {
+            CreateFiles(GetMultiProjectSolutionFiles());
+            var solutionFilePath = GetSolutionFileName("TestSolution.sln");
+
+            using var workspace = CreateMSBuildWorkspace();
+            var sol = await workspace.OpenSolutionAsync(solutionFilePath);
+            var project = sol.Projects.First(p => p.Language == language);
+
+            Assert.Equal(SourceHashAlgorithms.Default, project.State.ChecksumAlgorithm);
+
+            Assert.All(project.Documents, d => Assert.Equal(SourceHashAlgorithms.Default, d.GetTextSynchronously(default).ChecksumAlgorithm));
+        }
+
         [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
         public async Task TestCrossLanguageReferencesUsesInMemoryGeneratedMetadata()
         {
@@ -2326,10 +2365,10 @@ class C1
             var infos = await loader.LoadProjectInfoAsync(projectFullPath);
 
             var doc = infos[0].Documents[0];
-            var tav = doc.TextLoader.LoadTextAndVersionSynchronously(workspace, doc.Id, CancellationToken.None);
+            var tav = doc.TextLoader.LoadTextAndVersionSynchronously(new LoadTextOptions(SourceHashAlgorithms.Default), CancellationToken.None);
 
             var adoc = infos[0].AdditionalDocuments.First(a => a.Name == "XamlFile.xaml");
-            var atav = adoc.TextLoader.LoadTextAndVersionSynchronously(workspace, adoc.Id, CancellationToken.None);
+            var atav = adoc.TextLoader.LoadTextAndVersionSynchronously(new LoadTextOptions(SourceHashAlgorithms.Default), CancellationToken.None);
             Assert.Contains("Window", atav.Text.ToString(), StringComparison.Ordinal);
         }
 
