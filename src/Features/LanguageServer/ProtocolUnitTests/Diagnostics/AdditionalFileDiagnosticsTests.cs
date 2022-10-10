@@ -20,8 +20,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Diagnostics;
 public class AdditionalFileDiagnosticsTests : AbstractPullDiagnosticTestsBase
 {
     [Theory, CombinatorialData]
-    public async Task TestWorkspaceDiagnosticsReportsAdditionalFileDiagnostic(bool useVSDiagnostics)
+    public async Task TestWorkspaceDiagnosticsReportsAdditionalFileDiagnostic([CombinatorialRange(0, 100)] int iteration)
     {
+        _ = iteration;
+        var useVSDiagnostics = true;
         var workspaceXml =
 @$"<Workspace>
     <Project Language=""C#"" CommonReferences=""true"" AssemblyName=""CSProj1"" FilePath=""C:\CSProj1.csproj"">

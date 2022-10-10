@@ -123,9 +123,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.RequestOrdering
             Assert.All(responses, r => Assert.True(r!.EndTime > r!.StartTime));
         }
 
-        [Fact]
-        public async Task LongRunningSynchronousNonMutatingTaskDoesNotBlockQueue()
+        [Theory]
+        [CombinatorialData]
+        public async Task LongRunningSynchronousNonMutatingTaskDoesNotBlockQueue([CombinatorialRange(0, 100)] int iteration)
         {
+            _ = iteration;
             var requests = new[] {
                 new TestRequest(LongRunningNonMutatingRequestHandler.MethodName),
                 new TestRequest(MutatingRequestHandler.MethodName),
