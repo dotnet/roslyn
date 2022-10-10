@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 var document = solution.GetRequiredDocument(documentId);
 
                 await foreach (var item in AbstractNavigateToSearchService.SearchDocumentInCurrentProcessAsync(
-                    document, searchPattern, kinds.ToImmutableHashSet(), cancellationToken).WithCancellation(cancellationToken))
+                    document, searchPattern, kinds.ToImmutableHashSet(), cancellationToken).ConfigureAwait(false))
                 {
                     yield return item;
                 }
@@ -91,7 +91,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 var priorityDocuments = priorityDocumentIds.SelectAsArray(d => solution.GetRequiredDocument(d));
 
                 await foreach (var item in AbstractNavigateToSearchService.SearchProjectInCurrentProcessAsync(
-                    project, priorityDocuments, searchPattern, kinds.ToImmutableHashSet(), cancellationToken).WithCancellation(cancellationToken))
+                    project, priorityDocuments, searchPattern, kinds.ToImmutableHashSet(), cancellationToken).ConfigureAwait(false))
                 {
                     yield return item;
                 }
@@ -113,7 +113,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 var project = solution.GetRequiredProject(projectId);
 
                 await foreach (var item in AbstractNavigateToSearchService.SearchGeneratedDocumentsInCurrentProcessAsync(
-                    project, searchPattern, kinds.ToImmutableHashSet(), cancellationToken).WithCancellation(cancellationToken))
+                    project, searchPattern, kinds.ToImmutableHashSet(), cancellationToken).ConfigureAwait(false))
                 {
                     yield return item;
                 }
@@ -134,7 +134,7 @@ namespace Microsoft.CodeAnalysis.Remote
             // check whatever cached data we have from the previous vs session.
             var storageService = GetWorkspaceServices().GetPersistentStorageService();
             await foreach (var item in AbstractNavigateToSearchService.SearchCachedDocumentsInCurrentProcessAsync(
-                storageService, documentKeys, priorityDocumentKeys, searchPattern, kinds.ToImmutableHashSet(), cancellationToken).WithCancellation(cancellationToken))
+                storageService, documentKeys, priorityDocumentKeys, searchPattern, kinds.ToImmutableHashSet(), cancellationToken).ConfigureAwait(false))
             {
                 yield return item;
             }

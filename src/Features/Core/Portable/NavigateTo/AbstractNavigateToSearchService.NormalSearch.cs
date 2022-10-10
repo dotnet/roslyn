@@ -33,14 +33,14 @@ namespace Microsoft.CodeAnalysis.NavigateTo
                         service.SearchDocumentAsync(solutionInfo, document.Id, searchPattern, kinds.ToImmutableArray(), cancellationToken),
                     cancellationToken);
 
-                await foreach (var item in ConvertItemsAsync(solution, activeDocument, result, cancellationToken).WithCancellation(cancellationToken))
+                await foreach (var item in ConvertItemsAsync(solution, activeDocument, result, cancellationToken).ConfigureAwait(false))
                     yield return item;
             }
             else
             {
                 var result = SearchDocumentInCurrentProcessAsync(document, searchPattern, kinds, cancellationToken);
 
-                await foreach (var item in ConvertItemsAsync(solution, activeDocument, result, cancellationToken).WithCancellation(cancellationToken))
+                await foreach (var item in ConvertItemsAsync(solution, activeDocument, result, cancellationToken).ConfigureAwait(false))
                     yield return item;
             }
         }
@@ -74,14 +74,14 @@ namespace Microsoft.CodeAnalysis.NavigateTo
                         service.SearchProjectAsync(solutionInfo, project.Id, priorityDocumentIds, searchPattern, kinds.ToImmutableArray(), cancellationToken),
                     cancellationToken);
 
-                await foreach (var item in ConvertItemsAsync(solution, activeDocument, result, cancellationToken).WithCancellation(cancellationToken))
+                await foreach (var item in ConvertItemsAsync(solution, activeDocument, result, cancellationToken).ConfigureAwait(false))
                     yield return item;
             }
             else
             {
                 var result = SearchProjectInCurrentProcessAsync(project, priorityDocuments, searchPattern, kinds, cancellationToken);
 
-                await foreach (var item in ConvertItemsAsync(solution, activeDocument, result, cancellationToken).WithCancellation(cancellationToken))
+                await foreach (var item in ConvertItemsAsync(solution, activeDocument, result, cancellationToken).ConfigureAwait(false))
                     yield return item;
             }
         }

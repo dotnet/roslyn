@@ -129,7 +129,7 @@ namespace Microsoft.CodeAnalysis.Remote
             [EnumeratorCancellation] CancellationToken cancellationToken)
         {
             using var rental = await RentServiceAsync(cancellationToken).ConfigureAwait(false);
-            await foreach (var item in invocation(rental.Service, cancellationToken).WithCancellation(cancellationToken))
+            await foreach (var item in invocation(rental.Service, cancellationToken).ConfigureAwait(false))
                 yield return item;
         }
 
@@ -252,7 +252,7 @@ namespace Microsoft.CodeAnalysis.Remote
         {
             using var scope = await _solutionAssetStorage.StoreAssetsAsync(project, cancellationToken).ConfigureAwait(false);
             using var rental = await RentServiceAsync(cancellationToken).ConfigureAwait(false);
-            await foreach (var item in invocation(rental.Service, scope.SolutionChecksum, cancellationToken).WithCancellation(cancellationToken))
+            await foreach (var item in invocation(rental.Service, scope.SolutionChecksum, cancellationToken).ConfigureAwait(false))
                 yield return item;
         }
 
