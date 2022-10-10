@@ -796,54 +796,19 @@ namespace Roslyn.Utilities
 
         public void WriteEncoding(Encoding? encoding)
         {
-            var kind = GetEncodingKind(encoding);
-            WriteByte((byte)kind);
-
-            if (kind == TypeCode.EncodingName)
+            if (encoding == null)
             {
-                WriteString(encoding!.WebName);
+                WriteByte((byte)TypeCode.Null);
             }
-        }
-
-        private static TypeCode GetEncodingKind(Encoding? encoding)
-        {
-            if (encoding is null)
+            else if (encoding.TryGetEncodingKind(out var kind))
             {
-                return TypeCode.Null;
+                WriteByte((byte)((int)TypeCode.FirstWellKnownEncoding + kind));
             }
-
-            switch (encoding.CodePage)
+            else
             {
-                case 1200:
-                    Debug.Assert(HasPreamble(Encoding.Unicode));
-                    return (encoding.Equals(Encoding.Unicode) || HasPreamble(encoding)) ? TypeCode.EncodingUnicode_LE_BOM : TypeCode.EncodingUnicode_LE;
-
-                case 1201:
-                    Debug.Assert(HasPreamble(Encoding.BigEndianUnicode));
-                    return (encoding.Equals(Encoding.BigEndianUnicode) || HasPreamble(encoding)) ? TypeCode.EncodingUnicode_BE_BOM : TypeCode.EncodingUnicode_BE;
-
-                case 12000:
-                    Debug.Assert(HasPreamble(Encoding.UTF32));
-                    return (encoding.Equals(Encoding.UTF32) || HasPreamble(encoding)) ? TypeCode.EncodingUtf32_LE_BOM : TypeCode.EncodingUtf32_LE;
-
-                case 12001:
-                    Debug.Assert(HasPreamble(Encoding.UTF32));
-                    return (encoding.Equals(Encoding.UTF32) || HasPreamble(encoding)) ? TypeCode.EncodingUtf32_BE_BOM : TypeCode.EncodingUtf32_BE;
-
-                case 65001:
-                    Debug.Assert(HasPreamble(Encoding.UTF8));
-                    return (encoding.Equals(Encoding.UTF8) || HasPreamble(encoding)) ? TypeCode.EncodingUtf8_BOM : TypeCode.EncodingUtf8;
-
-                default:
-                    return TypeCode.EncodingName;
+                WriteByte((byte)TypeCode.EncodingName);
+                WriteString(encoding.WebName);
             }
-
-            static bool HasPreamble(Encoding encoding)
-#if NETCOREAPP
-                => !encoding.Preamble.IsEmpty;
-#else
-                => !encoding.GetPreamble().IsEmpty();
-#endif
         }
 
         private void WriteObject(object instance, IObjectWritable? instanceAsWritable)
@@ -950,7 +915,7 @@ namespace Roslyn.Utilities
         internal static readonly Dictionary<Type, TypeCode> s_typeMap;
 
         /// <summary>
-        /// Indexed by EncodingKind.
+        /// Indexed by <see cref="TypeCode"/>.
         /// </summary>
         internal static readonly ImmutableArray<Type> s_reverseTypeMap;
 
@@ -1306,17 +1271,11 @@ namespace Roslyn.Utilities
             /// </summary>
             EncodingName,
 
-            // well-known encodings (parameterized by BOM)
-            EncodingUtf8,
-            EncodingUtf8_BOM,
-            EncodingUtf32_BE,
-            EncodingUtf32_BE_BOM,
-            EncodingUtf32_LE,
-            EncodingUtf32_LE_BOM,
-            EncodingUnicode_BE,
-            EncodingUnicode_BE_BOM,
-            EncodingUnicode_LE,
-            EncodingUnicode_LE_BOM,
+            /// <summary>
+            /// Encoding serialized as <see cref="TextEncodingKind"/>.
+            /// </summary>
+            FirstWellKnownEncoding,
+            LastWellKnownEncoding = FirstWellKnownEncoding + TextEncodingKind.EncodingUnicode_LE_BOM,
 
             Last,
         }

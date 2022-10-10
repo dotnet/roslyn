@@ -230,8 +230,8 @@ namespace Roslyn.Utilities
 
         private object ReadValueWorker()
         {
-            var kind = (TypeCode)_reader.ReadByte();
-            switch (kind)
+            var code = (TypeCode)_reader.ReadByte();
+            switch (code)
             {
                 case TypeCode.Null: return null;
                 case TypeCode.Boolean_True: return true;
@@ -254,7 +254,7 @@ namespace Roslyn.Utilities
                 case TypeCode.Int32_8:
                 case TypeCode.Int32_9:
                 case TypeCode.Int32_10:
-                    return (int)kind - (int)TypeCode.Int32_0;
+                    return (int)code - (int)TypeCode.Int32_0;
                 case TypeCode.UInt32: return _reader.ReadUInt32();
                 case TypeCode.UInt32_1Byte: return (uint)_reader.ReadByte();
                 case TypeCode.UInt32_2Bytes: return (uint)_reader.ReadUInt16();
@@ -269,7 +269,7 @@ namespace Roslyn.Utilities
                 case TypeCode.UInt32_8:
                 case TypeCode.UInt32_9:
                 case TypeCode.UInt32_10:
-                    return (uint)((int)kind - (int)TypeCode.UInt32_0);
+                    return (uint)((int)code - (int)TypeCode.UInt32_0);
                 case TypeCode.Int64: return _reader.ReadInt64();
                 case TypeCode.UInt64: return _reader.ReadUInt64();
                 case TypeCode.Float4: return _reader.ReadSingle();
@@ -283,7 +283,7 @@ namespace Roslyn.Utilities
                 case TypeCode.StringRef_4Bytes:
                 case TypeCode.StringRef_1Byte:
                 case TypeCode.StringRef_2Bytes:
-                    return ReadStringValue(kind);
+                    return ReadStringValue(code);
                 case TypeCode.ObjectRef_4Bytes: return _objectReferenceMap.GetValue(_reader.ReadInt32());
                 case TypeCode.ObjectRef_1Byte: return _objectReferenceMap.GetValue(_reader.ReadByte());
                 case TypeCode.ObjectRef_2Bytes: return _objectReferenceMap.GetValue(_reader.ReadUInt16());
@@ -294,31 +294,15 @@ namespace Roslyn.Utilities
                 case TypeCode.Array_1:
                 case TypeCode.Array_2:
                 case TypeCode.Array_3:
-                    return ReadArray(kind);
+                    return ReadArray(code);
 
                 case TypeCode.EncodingName: return Encoding.GetEncoding(ReadString());
-                case TypeCode.EncodingUtf8: return s_encodingUtf8;
-                case TypeCode.EncodingUtf8_BOM: return Encoding.UTF8;
-                case TypeCode.EncodingUtf32_BE: return s_encodingUtf32_BE;
-                case TypeCode.EncodingUtf32_BE_BOM: return s_encodingUtf32_BE_BOM;
-                case TypeCode.EncodingUtf32_LE: return s_encodingUtf32_LE;
-                case TypeCode.EncodingUtf32_LE_BOM: return Encoding.UTF32;
-                case TypeCode.EncodingUnicode_BE: return s_encodingUnicode_BE;
-                case TypeCode.EncodingUnicode_BE_BOM: return Encoding.BigEndianUnicode;
-                case TypeCode.EncodingUnicode_LE: return s_encodingUnicode_LE;
-                case TypeCode.EncodingUnicode_LE_BOM: return Encoding.Unicode;
+                case >= TypeCode.FirstWellKnownEncoding and <= TypeCode.LastWellKnownEncoding: return ((TextEncodingKind)code).GetEncoding();
 
                 default:
-                    throw ExceptionUtilities.UnexpectedValue(kind);
+                    throw ExceptionUtilities.UnexpectedValue(code);
             }
         }
-
-        private static readonly Encoding s_encodingUtf8 = new UTF8Encoding(encoderShouldEmitUTF8Identifier: false);
-        private static readonly Encoding s_encodingUtf32_BE = new UTF32Encoding(bigEndian: true, byteOrderMark: false);
-        private static readonly Encoding s_encodingUtf32_BE_BOM = new UTF32Encoding(bigEndian: true, byteOrderMark: true);
-        private static readonly Encoding s_encodingUtf32_LE = new UTF32Encoding(bigEndian: false, byteOrderMark: false);
-        private static readonly Encoding s_encodingUnicode_BE = new UnicodeEncoding(bigEndian: true, byteOrderMark: false);
-        private static readonly Encoding s_encodingUnicode_LE = new UnicodeEncoding(bigEndian: false, byteOrderMark: false);
 
         /// <summary>
         /// A reference-id to object map, that can share base data efficiently.
