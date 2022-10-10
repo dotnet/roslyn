@@ -293,7 +293,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                     PredefinedOperator.LessThanOrEqual => generatorInternal.GreaterThanRelationalPattern(expression),
                     PredefinedOperator.GreaterThan => generatorInternal.LessThanEqualsRelationalPattern(expression),
                     PredefinedOperator.GreaterThanOrEqual => generatorInternal.LessThanRelationalPattern(expression),
-                    _ => throw ExceptionUtilities.UnexpectedValue(predefinedOperator)
+                    _ => generatorInternal.NotPattern(expressionNode)
                 };
             }
 
