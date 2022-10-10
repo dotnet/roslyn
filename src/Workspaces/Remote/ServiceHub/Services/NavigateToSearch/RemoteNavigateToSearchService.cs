@@ -12,11 +12,25 @@ using Microsoft.CodeAnalysis.NavigateTo;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Storage;
 using Roslyn.Utilities;
+using StreamJsonRpc;
 
 namespace Microsoft.CodeAnalysis.Remote
 {
     internal sealed class RemoteNavigateToSearchService : BrokeredServiceBase, IRemoteNavigateToSearchService
     {
+        /// <summary>
+        /// Navigate to is implemented using <see cref="IAsyncEnumerable{T}"/>.  This API works by having the client
+        /// "pull" for results from the server.  That means that the computation to produce the next result happens only
+        /// when the client is actually asking for that.  We would like to utilize resources more thuroughly when
+        /// searching, allowing for searching for results on multiple cores.  As such, we set a "max read ahead" amount
+        /// that allows the server to keep processing and producing results, even as the client is processing the batch
+        /// of results.
+        /// </summary>
+        /// <remarks>
+        /// This value was not determined empirically.
+        /// </remarks>
+        private const int MaxReadAhead = 64;
+
         internal sealed class Factory : FactoryBase<IRemoteNavigateToSearchService>
         {
             protected override IRemoteNavigateToSearchService CreateService(in ServiceConstructionArguments arguments)
@@ -44,7 +58,8 @@ namespace Microsoft.CodeAnalysis.Remote
             ImmutableArray<string> kinds,
             CancellationToken cancellationToken)
         {
-            return StreamWithSolutionAsync(solutionChecksum, SearchDocumentWorkerAsync, cancellationToken);
+            return StreamWithSolutionAsync(solutionChecksum, SearchDocumentWorkerAsync, cancellationToken).WithJsonRpcSettings(
+                new JsonRpcEnumerableSettings { MaxReadAhead = MaxReadAhead });
 
             async IAsyncEnumerable<RoslynNavigateToItem> SearchDocumentWorkerAsync(Solution solution, [EnumeratorCancellation] CancellationToken cancellationToken)
             {
@@ -66,7 +81,8 @@ namespace Microsoft.CodeAnalysis.Remote
             ImmutableArray<string> kinds,
             CancellationToken cancellationToken)
         {
-            return StreamWithSolutionAsync(solutionChecksum, SearchProjectWorkerAsync, cancellationToken);
+            return StreamWithSolutionAsync(solutionChecksum, SearchProjectWorkerAsync, cancellationToken).WithJsonRpcSettings(
+                new JsonRpcEnumerableSettings { MaxReadAhead = MaxReadAhead });
 
             async IAsyncEnumerable<RoslynNavigateToItem> SearchProjectWorkerAsync(Solution solution, [EnumeratorCancellation] CancellationToken cancellationToken)
             {
@@ -89,7 +105,8 @@ namespace Microsoft.CodeAnalysis.Remote
             ImmutableArray<string> kinds,
             CancellationToken cancellationToken)
         {
-            return StreamWithSolutionAsync(solutionChecksum, SearchGeneratedDocumentsWorkerAsync, cancellationToken);
+            return StreamWithSolutionAsync(solutionChecksum, SearchGeneratedDocumentsWorkerAsync, cancellationToken).WithJsonRpcSettings(
+                new JsonRpcEnumerableSettings { MaxReadAhead = MaxReadAhead });
 
             async IAsyncEnumerable<RoslynNavigateToItem> SearchGeneratedDocumentsWorkerAsync(Solution solution, [EnumeratorCancellation] CancellationToken cancellationToken)
             {
