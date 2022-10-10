@@ -13804,7 +13804,7 @@ public struct S2 { }
                 );
         }
 
-        [Fact]
+        [Fact, WorkItem(64605, "https://github.com/dotnet/roslyn/issues/64605")]
         public void ObsoleteWithInterpolation()
         {
             var source = """
