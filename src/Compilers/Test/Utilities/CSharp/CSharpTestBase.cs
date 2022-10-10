@@ -1191,15 +1191,6 @@ namespace System.Diagnostics.CodeAnalysis
             return CreateEmptyCompilation(source, TargetFrameworkUtil.GetReferences(targetFramework, references), options, parseOptions, assemblyName, sourceFileName, skipUsesIsNullable);
         }
 
-        public static MetadataReference GetMscorlibRefWithoutSharingCachedSymbols()
-        {
-            // Avoid sharing mscorlib symbols with other tests since we are about to change
-            // RuntimeSupportsByRefFields property for it.
-
-            return ((AssemblyMetadata)((MetadataImageReference)MscorlibRef).GetMetadata()).CopyWithoutSharingCachedSymbols().
-                GetReference(display: "mscorlib.v4_0_30319.dll");
-        }
-
         public static CSharpCompilation CreateEmptyCompilation(
             CSharpTestSource source,
             IEnumerable<MetadataReference> references = null,
