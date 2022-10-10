@@ -397,31 +397,31 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Fact]
         public void TestInt32EncodingKinds()
         {
-            Assert.Equal(ObjectWriter.EncodingKind.Int32_1, ObjectWriter.EncodingKind.Int32_0 + 1);
-            Assert.Equal(ObjectWriter.EncodingKind.Int32_2, ObjectWriter.EncodingKind.Int32_0 + 2);
-            Assert.Equal(ObjectWriter.EncodingKind.Int32_3, ObjectWriter.EncodingKind.Int32_0 + 3);
-            Assert.Equal(ObjectWriter.EncodingKind.Int32_4, ObjectWriter.EncodingKind.Int32_0 + 4);
-            Assert.Equal(ObjectWriter.EncodingKind.Int32_5, ObjectWriter.EncodingKind.Int32_0 + 5);
-            Assert.Equal(ObjectWriter.EncodingKind.Int32_6, ObjectWriter.EncodingKind.Int32_0 + 6);
-            Assert.Equal(ObjectWriter.EncodingKind.Int32_7, ObjectWriter.EncodingKind.Int32_0 + 7);
-            Assert.Equal(ObjectWriter.EncodingKind.Int32_8, ObjectWriter.EncodingKind.Int32_0 + 8);
-            Assert.Equal(ObjectWriter.EncodingKind.Int32_9, ObjectWriter.EncodingKind.Int32_0 + 9);
-            Assert.Equal(ObjectWriter.EncodingKind.Int32_10, ObjectWriter.EncodingKind.Int32_0 + 10);
+            Assert.Equal(ObjectWriter.TypeCode.Int32_1, ObjectWriter.TypeCode.Int32_0 + 1);
+            Assert.Equal(ObjectWriter.TypeCode.Int32_2, ObjectWriter.TypeCode.Int32_0 + 2);
+            Assert.Equal(ObjectWriter.TypeCode.Int32_3, ObjectWriter.TypeCode.Int32_0 + 3);
+            Assert.Equal(ObjectWriter.TypeCode.Int32_4, ObjectWriter.TypeCode.Int32_0 + 4);
+            Assert.Equal(ObjectWriter.TypeCode.Int32_5, ObjectWriter.TypeCode.Int32_0 + 5);
+            Assert.Equal(ObjectWriter.TypeCode.Int32_6, ObjectWriter.TypeCode.Int32_0 + 6);
+            Assert.Equal(ObjectWriter.TypeCode.Int32_7, ObjectWriter.TypeCode.Int32_0 + 7);
+            Assert.Equal(ObjectWriter.TypeCode.Int32_8, ObjectWriter.TypeCode.Int32_0 + 8);
+            Assert.Equal(ObjectWriter.TypeCode.Int32_9, ObjectWriter.TypeCode.Int32_0 + 9);
+            Assert.Equal(ObjectWriter.TypeCode.Int32_10, ObjectWriter.TypeCode.Int32_0 + 10);
         }
 
         [Fact]
         public void TestUInt32EncodingKinds()
         {
-            Assert.Equal(ObjectWriter.EncodingKind.UInt32_1, ObjectWriter.EncodingKind.UInt32_0 + 1);
-            Assert.Equal(ObjectWriter.EncodingKind.UInt32_2, ObjectWriter.EncodingKind.UInt32_0 + 2);
-            Assert.Equal(ObjectWriter.EncodingKind.UInt32_3, ObjectWriter.EncodingKind.UInt32_0 + 3);
-            Assert.Equal(ObjectWriter.EncodingKind.UInt32_4, ObjectWriter.EncodingKind.UInt32_0 + 4);
-            Assert.Equal(ObjectWriter.EncodingKind.UInt32_5, ObjectWriter.EncodingKind.UInt32_0 + 5);
-            Assert.Equal(ObjectWriter.EncodingKind.UInt32_6, ObjectWriter.EncodingKind.UInt32_0 + 6);
-            Assert.Equal(ObjectWriter.EncodingKind.UInt32_7, ObjectWriter.EncodingKind.UInt32_0 + 7);
-            Assert.Equal(ObjectWriter.EncodingKind.UInt32_8, ObjectWriter.EncodingKind.UInt32_0 + 8);
-            Assert.Equal(ObjectWriter.EncodingKind.UInt32_9, ObjectWriter.EncodingKind.UInt32_0 + 9);
-            Assert.Equal(ObjectWriter.EncodingKind.UInt32_10, ObjectWriter.EncodingKind.UInt32_0 + 10);
+            Assert.Equal(ObjectWriter.TypeCode.UInt32_1, ObjectWriter.TypeCode.UInt32_0 + 1);
+            Assert.Equal(ObjectWriter.TypeCode.UInt32_2, ObjectWriter.TypeCode.UInt32_0 + 2);
+            Assert.Equal(ObjectWriter.TypeCode.UInt32_3, ObjectWriter.TypeCode.UInt32_0 + 3);
+            Assert.Equal(ObjectWriter.TypeCode.UInt32_4, ObjectWriter.TypeCode.UInt32_0 + 4);
+            Assert.Equal(ObjectWriter.TypeCode.UInt32_5, ObjectWriter.TypeCode.UInt32_0 + 5);
+            Assert.Equal(ObjectWriter.TypeCode.UInt32_6, ObjectWriter.TypeCode.UInt32_0 + 6);
+            Assert.Equal(ObjectWriter.TypeCode.UInt32_7, ObjectWriter.TypeCode.UInt32_0 + 7);
+            Assert.Equal(ObjectWriter.TypeCode.UInt32_8, ObjectWriter.TypeCode.UInt32_0 + 8);
+            Assert.Equal(ObjectWriter.TypeCode.UInt32_9, ObjectWriter.TypeCode.UInt32_0 + 9);
+            Assert.Equal(ObjectWriter.TypeCode.UInt32_10, ObjectWriter.TypeCode.UInt32_0 + 10);
         }
 
         private void TestRoundTripType(Type type)
