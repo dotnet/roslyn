@@ -5055,7 +5055,7 @@ class Program
 
                     static RS M2(ref RS rs5)
                     {
-                        // RSTE of rs3 is ReturnOnly.
+                        // RSTE of rs5 is ReturnOnly.
                         // However, since rs6 is 'scoped', its STE should be narrowed to CurrentMethod
                         M0(ref rs5, out scoped RS rs6);
                         return rs6; // 2
