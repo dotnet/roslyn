@@ -236,7 +236,7 @@
     <SystemCommandLineExperimentalVersion>0.3.0-alpha.19577.1</SystemCommandLineExperimentalVersion>
     <SystemComponentModelCompositionVersion>6.0.0</SystemComponentModelCompositionVersion>
     <SystemConfigurationConfigurationManagerVersion>6.0.0</SystemConfigurationConfigurationManagerVersion>
-    <SystemDrawingCommonVersion>7.0.0-rtm.22504.4</SystemDrawingCommonVersion>
+    <SystemDrawingCommonVersion>6.0.0</SystemDrawingCommonVersion>
     <SystemIOFileSystemVersion>4.3.0</SystemIOFileSystemVersion>
     <SystemIOFileSystemPrimitivesVersion>4.3.0</SystemIOFileSystemPrimitivesVersion>
     <SystemIOPipesAccessControlVersion>5.0.0</SystemIOPipesAccessControlVersion>
