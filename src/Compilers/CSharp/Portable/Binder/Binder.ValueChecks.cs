@@ -1947,7 +1947,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         && isMixableParameter(parameter)
                         // assume any expression variable is a valid mixing destination,
                         // since we will infer a legal val-escape for it (if it doesn't already have a narrower one).
-                        && !ShouldInferDeclarationExpressionValEscape(argument, out _))
+                        && isMixableArgument(argument))
                     {
                         mixableArguments.Add(new MixableDestination(parameter, argument));
                     }
@@ -1971,6 +1971,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 parameter is not null &&
                 parameter.Type.IsRefLikeType &&
                 parameter.RefKind.IsWritableReference();
+
+            static bool isMixableArgument(BoundExpression argument) =>
+                argument is BoundDeconstructValuePlaceholder or BoundLocal { DeclarationKind: not BoundLocalDeclarationKind.None };
 
             static EscapeArgument getReceiver(Symbol symbol, BoundExpression receiver)
             {
