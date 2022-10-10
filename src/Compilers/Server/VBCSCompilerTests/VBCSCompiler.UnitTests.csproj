@@ -18,6 +18,7 @@
     <ProjectReference Include="..\..\CSharp\csc\AnyCpu\csc.csproj">
       <Aliases>csc</Aliases>
     </ProjectReference>
+    <ProjectReference Include="..\..\Test\Utilities\CSharp\Microsoft.CodeAnalysis.CSharp.Test.Utilities.csproj" />
     <ProjectReference Include="..\..\VisualBasic\vbc\AnyCpu\vbc.csproj">
       <Aliases>vbc</Aliases>
     </ProjectReference>
