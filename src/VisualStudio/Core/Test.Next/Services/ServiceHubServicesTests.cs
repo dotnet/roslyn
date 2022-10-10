@@ -136,38 +136,24 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             var solutionChecksum = await solution.State.GetChecksumAsync(CancellationToken.None);
             await remoteWorkspace.UpdatePrimaryBranchSolutionAsync(assetProvider, solutionChecksum, solution.WorkspaceVersion, CancellationToken.None);
 
-            var callback = new DesignerAttributeComputerCallback();
+            using var connection = client.CreateConnection<IRemoteDesignerAttributeDiscoveryService>(callbackTarget: null);
 
-            using var connection = client.CreateConnection<IRemoteDesignerAttributeDiscoveryService>(callback);
-
-            var invokeTask = connection.TryInvokeAsync(
+            var stream = connection.TryInvokeStreamAsync(
                 solution,
-                (service, checksum, callbackId, cancellationToken) => service.DiscoverDesignerAttributesAsync(callbackId, checksum, priorityDocument: null, cancellationToken),
+                (service, checksum, cancellationToken) => service.DiscoverDesignerAttributesAsync(checksum, priorityDocument: null, cancellationToken),
                 cancellationTokenSource.Token);
 
-            var infos = await callback.Infos;
-            Assert.Equal(1, infos.Length);
+            var items = new List<DesignerAttributeData>();
+            await foreach (var item in stream)
+                items.Add(item);
 
-            var info = infos[0];
+            Assert.Equal(1, items.Count);
+
+            var info = items[0];
             Assert.Equal("Form", info.Category);
             Assert.Equal(solution.Projects.Single().Documents.Single().Id, info.DocumentId);
 
             cancellationTokenSource.Cancel();
-
-            Assert.True(await invokeTask);
-        }
-
-        private class DesignerAttributeComputerCallback : IDesignerAttributeDiscoveryService.ICallback
-        {
-            private readonly TaskCompletionSource<ImmutableArray<DesignerAttributeData>> _infosSource = new();
-
-            public Task<ImmutableArray<DesignerAttributeData>> Infos => _infosSource.Task;
-
-            public ValueTask ReportDesignerAttributeDataAsync(ImmutableArray<DesignerAttributeData> infos, CancellationToken cancellationToken)
-            {
-                _infosSource.SetResult(infos);
-                return ValueTaskFactory.CompletedTask;
-            }
         }
 
         [Fact]

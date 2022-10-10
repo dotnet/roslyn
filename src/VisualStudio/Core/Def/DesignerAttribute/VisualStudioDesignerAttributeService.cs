@@ -125,13 +125,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
             var trackingService = _workspace.Services.GetRequiredService<IDocumentTrackingService>();
             var priorityDocument = trackingService.TryGetActiveDocument();
 
-            var stream = await client.TryInvokeAsync<IRemoteDesignerAttributeDiscoveryService>(
+            var stream = client.TryInvokeStreamAsync<IRemoteDesignerAttributeDiscoveryService, DesignerAttributeData>(
                 solution,
                 (service, checksum, cancellationToken) => service.DiscoverDesignerAttributesAsync(checksum, priorityDocument, cancellationToken),
-                cancellationToken).ConfigureAwait(false);
+                cancellationToken);
 
-
-            _projectSystemNotificationQueue.AddWork(data);
+            await foreach (var data in stream.ConfigureAwait(false))
+                _projectSystemNotificationQueue.AddWork(data);
         }
 
         private async ValueTask NotifyProjectSystemAsync(
