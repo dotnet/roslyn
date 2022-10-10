@@ -48,6 +48,7 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
                 }
             }
         };
+
         private readonly ILsifJsonWriter _lsifJsonWriter;
         private readonly IdFactory _idFactory = new IdFactory();
 
