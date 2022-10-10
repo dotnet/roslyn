@@ -47,12 +47,17 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         {
             // Code provided by Stephen Toub, but heavily modified after that.
 
-            var channel = Channel.CreateUnbounded<T>();
+            // 1024 chosen as a way to ensure we don't necessarily create a huge unbounded channel, while also making it
+            // so that we're unlikely to throttle on any stream unless there is truly a huge amount of results in it.
+            var channel = Channel.CreateBounded<T>(1024);
 
             var tasks = new Task[streams.Length];
             for (var i = 0; i < streams.Length; i++)
                 tasks[i] = Process(streams[i], channel.Writer, cancellationToken);
 
+            // Complete the channel writer with the result of all the tasks.  If nothing failed, t.Exception will be
+            // null and this will complete successfully.  If anything failed, the exception will propagate out.
+            //
             // Note: passing CancellationToken.None here is intentional/correct.  We must complete all the channels to
             // allow reading to complete as well.
             Task.WhenAll(tasks).ContinueWith(
