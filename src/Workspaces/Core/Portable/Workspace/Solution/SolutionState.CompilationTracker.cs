@@ -387,11 +387,7 @@ namespace Microsoft.CodeAnalysis
             {
                 if (this.TryGetCompilation(out var compilation))
                 {
-                    // PERF: This is a hot code path and Task<TResult> isn't cheap,
-                    // so cache the completed tasks to reduce allocations. We also
-                    // need to avoid keeping a strong reference to the Compilation,
-                    // so use a ConditionalWeakTable.
-                    return SpecializedTasks.FromResult(compilation);
+                    return Task.FromResult(compilation);
                 }
                 else if (cancellationToken.IsCancellationRequested)
                 {
