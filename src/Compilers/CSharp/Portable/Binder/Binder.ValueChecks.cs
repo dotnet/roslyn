@@ -1973,7 +1973,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 parameter.RefKind.IsWritableReference();
 
             static bool isMixableArgument(BoundExpression argument) =>
-                argument is BoundDeconstructValuePlaceholder or BoundLocal { DeclarationKind: not BoundLocalDeclarationKind.None };
+                argument is not (BoundDeconstructValuePlaceholder or BoundLocal { DeclarationKind: not BoundLocalDeclarationKind.None });
 
             static EscapeArgument getReceiver(Symbol symbol, BoundExpression receiver)
             {
@@ -2297,7 +2297,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 var hasMixingError = false;
-                
+
                 // track the widest scope that arguments could safely escape to.
                 // use this scope as the inferred STE of declaration expressions.
                 var inferredDestinationValEscape = CallingMethodScope;
