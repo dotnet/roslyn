@@ -8276,15 +8276,15 @@ class Program
 
             var variables = nodes.OfType<VariableDeclaratorSyntax>().Where(v => v.Identifier.Text == "d").ToArray();
             Assert.Equal(3, variables.Length);
-            VerifyLocalDelegateType(model, variables[0], "T <anonymous delegate>.Invoke(ref T)");
-            VerifyLocalDelegateType(model, variables[1], "U <anonymous delegate>.Invoke(ref U)");
-            VerifyLocalDelegateType(model, variables[2], "System.Double <anonymous delegate>.Invoke(ref System.Double)");
+            VerifyLocalDelegateType(model, variables[0], "T <anonymous delegate>.Invoke(ref T arg1)");
+            VerifyLocalDelegateType(model, variables[1], "U <anonymous delegate>.Invoke(ref U arg1)");
+            VerifyLocalDelegateType(model, variables[2], "System.Double <anonymous delegate>.Invoke(ref System.Double arg1)");
 
             var identifiers = nodes.OfType<InvocationExpressionSyntax>().Where(i => i.Expression is IdentifierNameSyntax id && id.Identifier.Text == "Report").Select(i => i.ArgumentList.Arguments[0].Expression).ToArray();
             Assert.Equal(3, identifiers.Length);
-            VerifyExpressionType(model, identifiers[0], "<anonymous delegate> d", "T <anonymous delegate>.Invoke(ref T)");
-            VerifyExpressionType(model, identifiers[1], "<anonymous delegate> d", "U <anonymous delegate>.Invoke(ref U)");
-            VerifyExpressionType(model, identifiers[2], "<anonymous delegate> d", "System.Double <anonymous delegate>.Invoke(ref System.Double)");
+            VerifyExpressionType(model, identifiers[0], "<anonymous delegate> d", "T <anonymous delegate>.Invoke(ref T arg1)");
+            VerifyExpressionType(model, identifiers[1], "<anonymous delegate> d", "U <anonymous delegate>.Invoke(ref U arg1)");
+            VerifyExpressionType(model, identifiers[2], "<anonymous delegate> d", "System.Double <anonymous delegate>.Invoke(ref System.Double arg1)");
         }
 
         [Fact]
