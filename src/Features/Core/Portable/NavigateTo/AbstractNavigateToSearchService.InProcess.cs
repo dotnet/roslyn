@@ -83,7 +83,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
                 builders.Add(ProcessDocumentAsync(document, patternName, patternContainer, kinds, cancellationToken));
             }
 
-            return builders.ToArray().MergeAsync(cancellationToken);
+            return builders.ToImmutable().MergeAsync(cancellationToken);
         }
 
         private static async IAsyncEnumerable<RoslynNavigateToItem> ProcessDocumentAsync(

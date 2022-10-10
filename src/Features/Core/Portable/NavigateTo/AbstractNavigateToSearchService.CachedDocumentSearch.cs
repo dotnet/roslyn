@@ -137,7 +137,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             foreach (var documentKey in documentKeys)
                 builder.Add(ProcessStaleIndexAsync(storageService, patternName, patternContainer, kinds, documentKey, cancellationToken));
 
-            return builder.ToArray().MergeAsync(cancellationToken);
+            return builder.ToImmutable().MergeAsync(cancellationToken);
         }
 
         private static Task<TopLevelSyntaxTreeIndex?> GetIndexAsync(

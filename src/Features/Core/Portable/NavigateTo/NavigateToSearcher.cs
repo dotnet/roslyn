@@ -322,11 +322,8 @@ namespace Microsoft.CodeAnalysis.NavigateTo
                 }
                 else
                 {
-                    var enumerables = new NavigateToResultStream[projectGroup.Length];
-                    for (var i = 0; i < projectGroup.Length; i++)
-                        enumerables[i] = SearchCoreAsync(projectGroup[i]);
-
-                    await foreach (var pair in enumerables.MergeAsync(cancellationToken).ConfigureAwait(false))
+                    var streams = projectGroup.SelectAsArray(SearchCoreAsync);
+                    await foreach (var pair in streams.MergeAsync(cancellationToken).ConfigureAwait(false))
                         yield return pair;
                 }
             }

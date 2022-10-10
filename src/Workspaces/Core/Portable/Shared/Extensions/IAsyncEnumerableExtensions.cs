@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         /// </summary>
         /// <remarks>This helper is useful when doign parallel processing of work where each job returns an <see
         /// cref="IAsyncEnumerable{T}"/>, but one final stream is desired as the result.</remarks>
-        public static IAsyncEnumerable<T> MergeAsync<T>(this IAsyncEnumerable<T>[] enumerables, CancellationToken cancellationToken)
+        public static IAsyncEnumerable<T> MergeAsync<T>(this ImmutableArray<IAsyncEnumerable<T>> enumerables, CancellationToken cancellationToken)
         {
             // Code provided by Stephen Toub, but heavily modified after that.
 
