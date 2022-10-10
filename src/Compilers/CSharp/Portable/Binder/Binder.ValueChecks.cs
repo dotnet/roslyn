@@ -2267,7 +2267,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var escapeArguments = ArrayBuilder<EscapeArgument>.GetInstance();
             GetInvocationArgumentsForEscape(
                 symbol,
-                receiver: null, // receiver handled explicitly below
+                receiverOpt,
                 parameters,
                 argsOpt,
                 argRefKindsOpt: default,
@@ -2293,12 +2293,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 }
 
-                if (escapeTo == scopeOfTheContainingExpression)
-                {
-                    // cannot fail. common case.
-                    return true;
-                }
-
+                var hasMixingError = false;
+                
                 // track the widest scope that arguments could safely escape to.
                 // use this scope as the inferred STE of declaration expressions.
                 var inferredDestinationValEscape = CallingMethodScope;
@@ -2307,13 +2303,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // in the old rules, we assume that refs cannot escape into ref struct variables.
                     // e.g. in `dest = M(ref arg)`, we assume `ref arg` will not escape into `dest`, but `arg` might.
                     inferredDestinationValEscape = Math.Max(inferredDestinationValEscape, GetValEscape(argument, scopeOfTheContainingExpression));
-                    var valid = CheckValEscape(argument.Syntax, argument, scopeOfTheContainingExpression, escapeTo, false, diagnostics);
-
-                    if (!valid)
+                    if (!hasMixingError && !CheckValEscape(argument.Syntax, argument, scopeOfTheContainingExpression, escapeTo, false, diagnostics))
                     {
                         string parameterName = GetInvocationParameterName(parameter);
                         Error(diagnostics, ErrorCode.ERR_CallArgMixing, syntax, symbol, parameterName);
-                        return false;
+                        hasMixingError = true;
                     }
                 }
 
@@ -2324,20 +2318,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                         localSymbol.SetValEscape(inferredDestinationValEscape);
                     }
                 }
+
+                return !hasMixingError;
             }
             finally
             {
                 escapeArguments.Free();
             }
-
-            // check val escape of receiver if ref-like
-            if (receiverOpt?.Type?.IsRefLikeType == true)
-            {
-                // Should we also report ErrorCode.ERR_CallArgMixing if CheckValEscape() fails?
-                return CheckValEscape(receiverOpt.Syntax, receiverOpt, scopeOfTheContainingExpression, escapeTo, false, diagnostics);
-            }
-
-            return true;
         }
 
         private bool CheckInvocationArgMixingWithUpdatedRules(
