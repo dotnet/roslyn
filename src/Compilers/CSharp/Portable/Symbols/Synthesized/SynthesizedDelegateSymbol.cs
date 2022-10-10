@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             _containingType = containingType;
 
-            Parameters = parameterDescriptions.SelectAsArrayWithIndex((p, i, m) => SynthesizedParameterSymbol.Create(m, p.Type, i, p.RefKind, scope: p.Scope), this);
+            Parameters = parameterDescriptions.SelectAsArrayWithIndex((p, i, m) => SynthesizedParameterSymbol.Create(m, p.Type, i, p.RefKind, GeneratedNames.AnonymousDelegateParameterName(i), p.Scope), this);
             ReturnTypeWithAnnotations = returnType;
             RefKind = refKind;
         }

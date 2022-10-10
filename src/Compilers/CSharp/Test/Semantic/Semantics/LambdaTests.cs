@@ -6903,9 +6903,9 @@ class Program
                 lam(1);
                 """;
             CreateCompilation(source).VerifyDiagnostics(
-                // (2,1): error CS7036: There is no argument given that corresponds to the required parameter '_1' of '<anonymous delegate>'
+                // (2,1): error CS7036: There is no argument given that corresponds to the required parameter 'arg2' of '<anonymous delegate>'
                 // lam(1);
-                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "lam").WithArguments("_1", "<anonymous delegate>").WithLocation(2, 1));
+                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "lam").WithArguments("arg2", "<anonymous delegate>").WithLocation(2, 1));
         }
     }
 }
