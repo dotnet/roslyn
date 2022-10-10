@@ -55,13 +55,9 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
             // Note: passing CancellationToken.None here is intentional/correct.  We must complete all the channels to
             // allow reading to complete as well.
-            Task.WhenAll(tasks).ContinueWith(t =>
-            {
-                if (t.IsFaulted)
-                    channel.Writer.Complete(t.Exception);
-                else
-                    channel.Writer.Complete();
-            }, CancellationToken.None, TaskContinuationOptions.None, TaskScheduler.Default);
+            Task.WhenAll(tasks).ContinueWith(
+                t => channel.Writer.Complete(t.Exception),
+                CancellationToken.None, TaskContinuationOptions.None, TaskScheduler.Default);
 
             return ReadAllAsync(channel.Reader, cancellationToken);
 
