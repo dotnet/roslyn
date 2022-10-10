@@ -30,10 +30,25 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
     {
         internal const string ProviderName = "Decompilation";
 
-        private readonly ConcurrentDictionary<UniqueDocumentKey, MetadataAsSourceGeneratedFileInfo> _keyToInformation = new();
+        /// <summary>
+        /// Accessed only in <see cref="GetGeneratedFileAsync"/> and <see cref="CleanupGeneratedFiles"/>, both of which
+        /// are called under a lock in <see cref="MetadataAsSourceFileService"/>.  So this is safe as a plain
+        /// dictionary.
+        /// </summary>
+        private readonly Dictionary<UniqueDocumentKey, MetadataAsSourceGeneratedFileInfo> _keyToInformation = new();
 
+        /// <summary>
+        /// Accessed both in <see cref="GetGeneratedFileAsync"/> and in UI thread operations.  Those should not
+        /// generally run concurrently.  However, to be safe, we make this a concurrent dictionary to be safe to that
+        /// potentially happening.
+        /// </summary>
         private readonly ConcurrentDictionary<string, MetadataAsSourceGeneratedFileInfo> _generatedFilenameToInformation = new(StringComparer.OrdinalIgnoreCase);
+
         private readonly IImplementationAssemblyLookupService _implementationAssemblyLookupService;
+
+        /// <summary>
+        /// Only accessed and mutated from UI thread.
+        /// </summary>
         private IBidirectionalMap<MetadataAsSourceGeneratedFileInfo, DocumentId> _openedDocumentIds = BidirectionalMap<MetadataAsSourceGeneratedFileInfo, DocumentId>.Empty;
 
         [ImportingConstructor]

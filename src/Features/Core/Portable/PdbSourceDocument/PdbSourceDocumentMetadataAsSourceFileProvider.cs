@@ -36,9 +36,26 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
         private readonly IImplementationAssemblyLookupService _implementationAssemblyLookupService;
         private readonly IPdbSourceDocumentLogger? _logger;
 
+        /// <summary>
+        /// Accessed only in <see cref="GetGeneratedFileAsync"/> and <see cref="CleanupGeneratedFiles"/>, both of which
+        /// are called under a lock in <see cref="MetadataAsSourceFileService"/>.  So this is safe as a plain
+        /// dictionary.
+        /// </summary>
         private readonly Dictionary<string, ProjectId> _assemblyToProjectMap = new();
-        private readonly ConcurrentDictionary<string, SourceDocumentInfo> _fileToDocumentInfoMap = new();
+
+        /// <summary>
+        /// Accessed only in <see cref="GetGeneratedFileAsync"/> and <see cref="CleanupGeneratedFiles"/>, both of which
+        /// are called under a lock in <see cref="MetadataAsSourceFileService"/>.  So this is safe as a plain
+        /// set.
+        /// </summary>
         private readonly HashSet<ProjectId> _sourceLinkEnabledProjects = new();
+
+        /// <summary>
+        /// Accessed both in <see cref="GetGeneratedFileAsync"/> and in UI thread operations.  Those should not
+        /// generally run concurrently.  However, to be safe, we make this a concurrent dictionary to be safe to that
+        /// potentially happening.
+        /// </summary>
+        private readonly ConcurrentDictionary<string, SourceDocumentInfo> _fileToDocumentInfoMap = new();
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
