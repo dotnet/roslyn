@@ -4,13 +4,11 @@
 
 using System;
 using System.Collections.Generic;
-using System.IO;
-using System.IO.Pipelines;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
-using Roslyn.Utilities;
 using Microsoft.CodeAnalysis.Host;
-using System.Runtime.CompilerServices;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Remote
 {
