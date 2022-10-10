@@ -6894,5 +6894,18 @@ class Program
             var model = comp.GetSemanticModel(syntaxTree);
             AssertEx.Equal("System.Action", model.GetTypeInfo(action).Type.ToTestDisplayString());
         }
+
+        [Fact, WorkItem(64436, "https://github.com/dotnet/roslyn/issues/64436")]
+        public void AnonymousDelegate_MissingRequiredParameter()
+        {
+            var source = """
+                var lam = (int x, ref int y) => { };
+                lam(1);
+                """;
+            CreateCompilation(source).VerifyDiagnostics(
+                // (2,1): error CS7036: There is no argument given that corresponds to the required parameter '_1' of '<anonymous delegate>'
+                // lam(1);
+                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "lam").WithArguments("_1", "<anonymous delegate>").WithLocation(2, 1));
+        }
     }
 }
