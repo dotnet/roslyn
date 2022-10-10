@@ -32,6 +32,8 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         FailsPEVerify = 1 << 2,
         FailsILVerify = 1 << 3,
         Fails = FailsPEVerify | FailsILVerify,
+
+        PassesOrFailFast = 1 << 4,
     }
 
     /// <summary>
