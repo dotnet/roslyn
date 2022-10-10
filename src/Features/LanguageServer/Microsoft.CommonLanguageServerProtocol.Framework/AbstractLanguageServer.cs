@@ -18,8 +18,13 @@ namespace Microsoft.CommonLanguageServerProtocol.Framework;
 public abstract class AbstractLanguageServer<TRequestContext> : ILifeCycleManager, IAsyncDisposable
 {
     private readonly JsonRpc _jsonRpc;
-    private readonly Lazy<IRequestExecutionQueue<TRequestContext>> _queue;
     protected readonly ILspLogger _logger;
+
+    /// <summary>
+    /// These are lazy to allow implementations to define custom variables that are used by
+    /// <see cref="ConstructRequestExecutionQueue"/> or <see cref="ConstructLspServices"/>
+    /// </summary>
+    private readonly Lazy<IRequestExecutionQueue<TRequestContext>> _queue;
     private readonly Lazy<ILspServices> _lspServices;
 
     public bool IsInitialized { get; private set; }

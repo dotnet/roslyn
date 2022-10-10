@@ -43,9 +43,7 @@ public class ExampleLanguageServer : AbstractLanguageServer<ExampleRequestContex
         _ = serviceCollection
             .AddSingleton<IMethodHandler, InitializeHandler<InitializeParams, InitializeResult, ExampleRequestContext>>()
             .AddSingleton<IMethodHandler, InitializedHandler<InitializedParams, ExampleRequestContext>>()
-            .AddSingleton<IMethodHandler, ShutdownHandler<ExampleRequestContext>>()
-            .AddSingleton<IMethodHandler, ExitHandler<ExampleRequestContext>>();
-
+            .AddSingleton<IMethodHandler, ShutdownHandler<ExampleRequestContext>>();
         return serviceCollection;
     }
 }
