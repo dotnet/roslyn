@@ -320,6 +320,9 @@ namespace Microsoft.CodeAnalysis.NavigateTo
                         // If we're seeing a dupe in another project, then filter it out here.  The results from
                         // the individual projects will already contain the information about all the projects
                         // leading to a better condensed view that doesn't look like it contains duplicate info.
+                        //
+                        // Note: SearchCoreAsync may be running in parallel across many projects.  As such, we need to
+                        // lock this set to ensure we don't produce duplicates.
                         lock (seenItems)
                         {
                             if (!seenItems.Add(result))
