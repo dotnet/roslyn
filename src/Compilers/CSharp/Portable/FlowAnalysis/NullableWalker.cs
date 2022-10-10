@@ -2846,6 +2846,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode? VisitLocal(BoundLocal node)
         {
             var local = node.LocalSymbol;
+
+            // Avoid cycles in nullable analysis.
+            if ((local as SourceLocalSymbol)?.IsVar == true && local.ForbiddenZone?.Contains(node.Syntax) == true)
+            {
+                SetResult(node, TypeWithState.ForType(node.Type), LvalueResultType, isLvalue: true);
+                return null;
+            }
+
             int slot = GetOrCreateSlot(local);
             var type = GetDeclaredLocalResult(local);
 
