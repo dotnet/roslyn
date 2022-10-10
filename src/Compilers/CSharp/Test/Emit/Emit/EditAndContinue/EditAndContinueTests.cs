@@ -4779,22 +4779,26 @@ namespace System.Runtime.CompilerServices
             var source0 = @"
 class C 
 {
+    private int _x;
     void F(int x) {}
 }" + attributeSource;
             var source1 = @"
 class C
 {
+    private int _x;
     void F(int x, int y) { }
 }" + attributeSource;
             var source2 = @"
 class C
 {
+    private int _x;
     void F(int x, int y) { System.Console.WriteLine(1); }
 }" + attributeSource;
             var source3 = @"
 [System.Obsolete]
 class C
 {
+    private int _x;
     void F(int x, int y) { System.Console.WriteLine(2); }
 }" + attributeSource;
 
@@ -4822,11 +4826,13 @@ class C
                 EmptyLocalsProvider);
 
             var baseTypeCount = reader0.TypeDefinitions.Count;
+            var baseFieldCount = reader0.FieldDefinitions.Count;
             var baseMethodCount = reader0.MethodDefinitions.Count;
             var baseAttributeCount = reader0.CustomAttributes.Count;
             var baseParameterCount = reader0.GetParameters().Count();
 
             Assert.Equal(3, baseTypeCount);
+            Assert.Equal(2, baseFieldCount);
             Assert.Equal(4, baseMethodCount);
             Assert.Equal(7, baseAttributeCount);
             Assert.Equal(2, baseParameterCount);
@@ -4848,6 +4854,8 @@ class C
 
                 CheckEncLogDefinitions(reader,
                     Row(baseTypeCount + generation, TableIndex.TypeDef, EditAndContinueOperation.Default), // adding a type def
+                    Row(baseTypeCount + generation, TableIndex.TypeDef, EditAndContinueOperation.AddField),
+                    Row(baseFieldCount + generation, TableIndex.Field, EditAndContinueOperation.Default),
                     Row(baseTypeCount + generation, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
                     Row(baseMethodCount + generation * 2 - 1, TableIndex.MethodDef, EditAndContinueOperation.Default),
                     Row(baseTypeCount + generation, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
@@ -4860,6 +4868,7 @@ class C
 
                 CheckEncMapDefinitions(reader,
                     Handle(baseTypeCount + generation, TableIndex.TypeDef),
+                    Handle(baseFieldCount + generation, TableIndex.Field),
                     Handle(baseMethodCount + generation * 2 - 1, TableIndex.MethodDef),
                     Handle(baseMethodCount + generation * 2, TableIndex.MethodDef),
                     Handle(baseParameterCount + generation * 2 - 1, TableIndex.Param),

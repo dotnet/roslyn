@@ -8,6 +8,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Globalization;
 using System.Linq;
 using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis;
@@ -40,6 +41,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
             : this(projectId, errorCodePrefix, LanguageNames.FSharp, (VisualStudioWorkspaceImpl)serviceProvider.GetMefService<VisualStudioWorkspace>())
         {
         }
+
+        private DiagnosticAnalyzerInfoCache AnalyzerInfoCache => _workspace.ExternalErrorDiagnosticUpdateSource.AnalyzerInfoCache;
 
         public ProjectExternalErrorReporter(ProjectId projectId, string errorCodePrefix, string language, VisualStudioWorkspaceImpl workspace)
         {
@@ -103,7 +106,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
                     error.bstrText,
                     GetDiagnosticSeverity(error),
                     _language,
-                    new FileLinePositionSpan(project.FilePath ?? "", span: default)));
+                    new FileLinePositionSpan(project.FilePath ?? "", span: default),
+                    AnalyzerInfoCache));
             }
 
             DiagnosticProvider.AddNewErrors(_projectId, projectErrors, documentErrorsMap);
@@ -179,7 +183,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
                 _language,
                 new FileLinePositionSpan(error.bstrFileName,
                     new LinePosition(line, column),
-                    new LinePosition(line, column)));
+                    new LinePosition(line, column)),
+                    AnalyzerInfoCache);
         }
 
         public int ReportError(string bstrErrorMessage, string bstrErrorId, [ComAliasName("VsShell.VSTASKPRIORITY")] VSTASKPRIORITY nPriority, int iLine, int iColumn, string bstrFileName)
@@ -234,7 +239,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
                 new FileLinePositionSpan(
                     bstrFileName,
                     new LinePosition(iStartLine, iStartColumn),
-                    new LinePosition(iEndLine, iEndColumn)));
+                    new LinePosition(iEndLine, iEndColumn)),
+                    AnalyzerInfoCache);
 
             if (documentId == null)
             {
@@ -259,25 +265,54 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
             string message,
             DiagnosticSeverity severity,
             string language,
-            FileLinePositionSpan unmappedSpan)
+            FileLinePositionSpan unmappedSpan,
+            DiagnosticAnalyzerInfoCache analyzerInfoCache)
         {
+            string title, description, category, helpLink;
+            DiagnosticSeverity defaultSeverity;
+            bool isEnabledByDefault;
+            ImmutableArray<string> customTags;
+
+            if (analyzerInfoCache != null && analyzerInfoCache.TryGetDescriptorForDiagnosticId(errorId, out var descriptor))
+            {
+                title = descriptor.Title.ToString(CultureInfo.CurrentUICulture);
+                description = descriptor.Description.ToString(CultureInfo.CurrentUICulture);
+                category = descriptor.Category;
+                defaultSeverity = descriptor.DefaultSeverity;
+                isEnabledByDefault = descriptor.IsEnabledByDefault;
+                customTags = descriptor.CustomTags.AsImmutableOrEmpty();
+                helpLink = descriptor.HelpLinkUri;
+            }
+            else
+            {
+                title = message;
+                description = message;
+                category = WellKnownDiagnosticTags.Build;
+                defaultSeverity = severity;
+                isEnabledByDefault = true;
+                customTags = IsCompilerDiagnostic(errorId) ? CompilerDiagnosticCustomTags : CustomTags;
+                helpLink = null;
+            }
+
             return new DiagnosticData(
                 id: errorId,
-                category: WellKnownDiagnosticTags.Build,
+                category: category,
                 message: message,
-                title: message,
+                title: title,
+                description: description,
                 severity: severity,
-                defaultSeverity: severity,
-                isEnabledByDefault: true,
+                defaultSeverity: defaultSeverity,
+                isEnabledByDefault: isEnabledByDefault,
                 warningLevel: (severity == DiagnosticSeverity.Error) ? 0 : 1,
-                customTags: IsCompilerDiagnostic(errorId) ? CompilerDiagnosticCustomTags : CustomTags,
+                customTags: customTags,
                 properties: DiagnosticData.PropertiesForBuildDiagnostic,
                 projectId: projectId,
                 location: new DiagnosticDataLocation(
                     unmappedSpan,
                     documentId,
                     mappedFileSpan: null),
-                language: language);
+                language: language,
+                helpLink: helpLink);
         }
 
         private static bool IsCompilerDiagnostic(string errorId)

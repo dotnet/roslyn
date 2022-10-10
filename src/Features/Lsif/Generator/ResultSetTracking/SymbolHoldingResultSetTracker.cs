@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable annotations
-
 using System;
 using System.Collections.Generic;
 using System.Threading;
@@ -37,7 +35,7 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.ResultSetTr
 
         private TrackedResultSet GetTrackedResultSet(ISymbol symbol)
         {
-            TrackedResultSet trackedResultSet;
+            TrackedResultSet? trackedResultSet;
 
             // First acquire a simple read lock to see if we already have a result set; we do this with
             // just a read lock to ensure we aren't contending a lot if the symbol already exists which
