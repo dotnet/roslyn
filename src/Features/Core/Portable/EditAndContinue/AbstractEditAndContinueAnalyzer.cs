@@ -2396,19 +2396,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 {
                     cancellationToken.ThrowIfCancellationRequested();
 
-                    if (edit.Kind == EditKind.Reorder)
-                    {
-                        // Currently we don't do any semantic checks for reordering
-                        // and we don't need to report them to the compiler either.
-                        // Consider: Currently symbol ordering changes are not reflected in metadata (Reflection will report original order).
-
-                        // Consider: Reordering of fields is not allowed since it changes the layout of the type.
-                        // This ordering should however not matter unless the type has explicit layout so we might want to allow it.
-                        // We do not check changes to the order if they occur across multiple documents (the containing type is partial).
-                        Debug.Assert(!IsDeclarationWithInitializer(edit.OldNode!) && !IsDeclarationWithInitializer(edit.NewNode!));
-                        continue;
-                    }
-
                     Debug.Assert(edit.OldNode is null || edit.NewNode is null || IsNamespaceDeclaration(edit.OldNode) == IsNamespaceDeclaration(edit.NewNode));
 
                     // We can ignore namespace nodes in newly added documents (old model is not available) since 
@@ -3066,10 +3053,45 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                             }
 
                             // For renames where the symbol allows deletion, we don't create an update edit, we create a delete
-                            // and an add. During emit an empty body will be created for the old name. Sometimes
-                            // when members are moved between documents in partial classes, they can appear as renames, so
-                            // we also check that the old symbol can't be resolved in the new compilation
-                            if (oldSymbol.Name != newSymbol.Name &&
+                            // and an add. During emit an empty body will be created for the old name.
+                            var createDeleteAndInsertEdits = oldSymbol.Name != newSymbol.Name;
+
+                            // When a methods parameters are reordered or there is an insert or an add, we need to handle things differently
+                            if (oldSymbol is IMethodSymbol oldMethod &&
+                                newSymbol is IMethodSymbol newMethod)
+                            {
+                                // For inserts and deletes, the edits for the parameter itself will do the work
+                                if (oldMethod.Parameters.Length != newMethod.Parameters.Length)
+                                {
+                                    continue;
+                                }
+
+                                // For reordering or parameters we need to report insert and delete edits, but we also need to account for
+                                // renames if the runtime doesn't support it. We track this with a syntax node that we can use to report
+                                // the rude edit.
+                                IParameterSymbol? renamedParameter = null;
+                                for (var i = 0; i < oldMethod.Parameters.Length; i++)
+                                {
+                                    var rudeEditKind = RudeEditKind.None;
+                                    var hasParameterTypeChange = false;
+                                    var unused = false;
+                                    AnalyzeParameterType(oldMethod.Parameters[i], newMethod.Parameters[i], capabilities, ref rudeEditKind, ref unused, ref hasParameterTypeChange, cancellationToken);
+
+                                    createDeleteAndInsertEdits |= hasParameterTypeChange;
+                                    renamedParameter ??= oldMethod.Parameters[i].Name != newMethod.Parameters[i].Name ? newMethod.Parameters[i] : null;
+                                }
+
+                                if (!createDeleteAndInsertEdits && renamedParameter is not null && !capabilities.Grant(EditAndContinueCapabilities.UpdateParameters))
+                                {
+                                    processedSymbols.Add(renamedParameter);
+                                    ReportUpdateRudeEdit(diagnostics, RudeEditKind.RenamingNotSupportedByRuntime, renamedParameter, GetRudeEditDiagnosticNode(renamedParameter, cancellationToken), cancellationToken);
+                                    continue;
+                                }
+                            }
+
+                            // Sometimes when members are moved between documents in partial classes, they can appear as renames,
+                            // so we also check that the old symbol can't be resolved in the new compilation
+                            if (createDeleteAndInsertEdits &&
                                 AllowsDeletion(oldSymbol) &&
                                 CanAddNewMember(oldSymbol, capabilities, cancellationToken) &&
                                 SymbolKey.Create(oldSymbol, cancellationToken).Resolve(newCompilation, ignoreAssemblyKey: true, cancellationToken).Symbol is null)
