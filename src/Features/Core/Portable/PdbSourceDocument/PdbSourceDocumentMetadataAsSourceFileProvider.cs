@@ -3,15 +3,13 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
-using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Reflection.Metadata.Ecma335;
-using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -39,7 +37,7 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
         private readonly IPdbSourceDocumentLogger? _logger;
 
         private readonly Dictionary<string, ProjectId> _assemblyToProjectMap = new();
-        private readonly Dictionary<string, SourceDocumentInfo> _fileToDocumentInfoMap = new();
+        private readonly ConcurrentDictionary<string, SourceDocumentInfo> _fileToDocumentInfoMap = new();
         private readonly HashSet<ProjectId> _sourceLinkEnabledProjects = new();
 
         [ImportingConstructor]
@@ -327,34 +325,39 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
             return documents.ToImmutable();
         }
 
-        public bool ShouldCollapseOnOpen(string filePath, BlockStructureOptions blockStructureOptions)
+        private static void AssertIsMainThread(MetadataAsSourceWorkspace workspace)
         {
-            if (_fileToDocumentInfoMap.TryGetValue(filePath, out _))
-            {
-                return blockStructureOptions.CollapseMetadataImplementationsWhenFirstOpened;
-            }
-
-            return false;
+            Contract.ThrowIfNull(workspace);
+            var threadingService = workspace.Services.GetRequiredService<IWorkspaceThreadingServiceProvider>().Service;
+            Contract.ThrowIfFalse(threadingService.IsOnMainThread);
         }
 
-        public bool TryAddDocumentToWorkspace(Workspace workspace, string filePath, SourceTextContainer sourceTextContainer)
+        public bool ShouldCollapseOnOpen(MetadataAsSourceWorkspace workspace, string filePath, BlockStructureOptions blockStructureOptions)
         {
+            AssertIsMainThread(workspace);
+            return _fileToDocumentInfoMap.TryGetValue(filePath, out _) && blockStructureOptions.CollapseMetadataImplementationsWhenFirstOpened;
+        }
+
+        public bool TryAddDocumentToWorkspace(MetadataAsSourceWorkspace workspace, string filePath, SourceTextContainer sourceTextContainer)
+        {
+            AssertIsMainThread(workspace);
+
             if (_fileToDocumentInfoMap.TryGetValue(filePath, out var info))
             {
                 workspace.OnDocumentOpened(info.DocumentId, sourceTextContainer);
-
                 return true;
             }
 
             return false;
         }
 
-        public bool TryRemoveDocumentFromWorkspace(Workspace workspace, string filePath)
+        public bool TryRemoveDocumentFromWorkspace(MetadataAsSourceWorkspace workspace, string filePath)
         {
+            AssertIsMainThread(workspace);
+
             if (_fileToDocumentInfoMap.TryGetValue(filePath, out var info))
             {
                 workspace.OnDocumentClosed(info.DocumentId, new WorkspaceFileTextLoader(workspace.Services.SolutionServices, filePath, info.Encoding));
-
                 return true;
             }
 
@@ -387,16 +390,10 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
             return null;
         }
 
-        public void CleanupGeneratedFiles(Workspace? workspace)
+        public void CleanupGeneratedFiles(MetadataAsSourceWorkspace workspace)
         {
-            if (workspace is not null)
-            {
-                var projectIds = _assemblyToProjectMap.Values;
-                foreach (var projectId in projectIds)
-                {
-                    workspace.OnProjectRemoved(projectId);
-                }
-            }
+            foreach (var projectId in _assemblyToProjectMap.Values)
+                workspace.OnProjectRemoved(projectId);
 
             _assemblyToProjectMap.Clear();
 

@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Composition;
 using System.Globalization;
@@ -17,6 +18,7 @@ using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.PdbSourceDocument;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Structure;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -28,9 +30,9 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
     {
         internal const string ProviderName = "Decompilation";
 
-        private readonly Dictionary<UniqueDocumentKey, MetadataAsSourceGeneratedFileInfo> _keyToInformation = new();
+        private readonly ConcurrentDictionary<UniqueDocumentKey, MetadataAsSourceGeneratedFileInfo> _keyToInformation = new();
 
-        private readonly Dictionary<string, MetadataAsSourceGeneratedFileInfo> _generatedFilenameToInformation = new(StringComparer.OrdinalIgnoreCase);
+        private readonly ConcurrentDictionary<string, MetadataAsSourceGeneratedFileInfo> _generatedFilenameToInformation = new(StringComparer.OrdinalIgnoreCase);
         private readonly IImplementationAssemblyLookupService _implementationAssemblyLookupService;
         private IBidirectionalMap<MetadataAsSourceGeneratedFileInfo, DocumentId> _openedDocumentIds = BidirectionalMap<MetadataAsSourceGeneratedFileInfo, DocumentId>.Empty;
 
@@ -229,8 +231,17 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
             return await MetadataAsSourceHelpers.GetLocationInGeneratedSourceAsync(symbolId, temporaryDocument, cancellationToken).ConfigureAwait(false);
         }
 
-        public bool ShouldCollapseOnOpen(string filePath, BlockStructureOptions blockStructureOptions)
+        private static void AssertIsMainThread(MetadataAsSourceWorkspace workspace)
         {
+            Contract.ThrowIfNull(workspace);
+            var threadingService = workspace.Services.GetRequiredService<IWorkspaceThreadingServiceProvider>().Service;
+            Contract.ThrowIfFalse(threadingService.IsOnMainThread);
+        }
+
+        public bool ShouldCollapseOnOpen(MetadataAsSourceWorkspace workspace, string filePath, BlockStructureOptions blockStructureOptions)
+        {
+            AssertIsMainThread(workspace);
+
             if (_generatedFilenameToInformation.TryGetValue(filePath, out var info))
             {
                 return info.SignaturesOnly
@@ -241,8 +252,10 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
             return false;
         }
 
-        public bool TryAddDocumentToWorkspace(Workspace workspace, string filePath, SourceTextContainer sourceTextContainer)
+        public bool TryAddDocumentToWorkspace(MetadataAsSourceWorkspace workspace, string filePath, SourceTextContainer sourceTextContainer)
         {
+            AssertIsMainThread(workspace);
+
             if (_generatedFilenameToInformation.TryGetValue(filePath, out var fileInfo))
             {
                 Contract.ThrowIfTrue(_openedDocumentIds.ContainsKey(fileInfo));
@@ -261,21 +274,23 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
             return false;
         }
 
-        public bool TryRemoveDocumentFromWorkspace(Workspace workspace, string filePath)
+        public bool TryRemoveDocumentFromWorkspace(MetadataAsSourceWorkspace workspace, string filePath)
         {
+            AssertIsMainThread(workspace);
+
             if (_generatedFilenameToInformation.TryGetValue(filePath, out var fileInfo))
             {
                 if (_openedDocumentIds.ContainsKey(fileInfo))
-                {
                     return RemoveDocumentFromWorkspace(workspace, fileInfo);
-                }
             }
 
             return false;
         }
 
-        private bool RemoveDocumentFromWorkspace(Workspace workspace, MetadataAsSourceGeneratedFileInfo fileInfo)
+        private bool RemoveDocumentFromWorkspace(MetadataAsSourceWorkspace workspace, MetadataAsSourceGeneratedFileInfo fileInfo)
         {
+            AssertIsMainThread(workspace);
+
             var documentId = _openedDocumentIds.GetValueOrDefault(fileInfo);
             Contract.ThrowIfNull(documentId);
 
@@ -302,19 +317,13 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
             return project;
         }
 
-        public void CleanupGeneratedFiles(Workspace? workspace)
+        public void CleanupGeneratedFiles(MetadataAsSourceWorkspace workspace)
         {
             // Clone the list so we don't break our own enumeration
-            var generatedFileInfoList = _generatedFilenameToInformation.Values.ToList();
-
-            foreach (var generatedFileInfo in generatedFileInfoList)
+            foreach (var generatedFileInfo in _generatedFilenameToInformation.Values.ToList())
             {
                 if (_openedDocumentIds.ContainsKey(generatedFileInfo))
-                {
-                    Contract.ThrowIfNull(workspace);
-
                     RemoveDocumentFromWorkspace(workspace, generatedFileInfo);
-                }
             }
 
             _generatedFilenameToInformation.Clear();
