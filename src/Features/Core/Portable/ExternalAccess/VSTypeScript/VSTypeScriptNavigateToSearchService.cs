@@ -75,6 +75,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript
             Document? activeDocument,
             CancellationToken cancellationToken)
         {
+            // we don't support searching cached documents.
             return AsyncEnumerable<INavigateToSearchResult>.Empty;
         }
 
@@ -85,6 +86,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript
             Document? activeDocument,
             CancellationToken cancellationToken)
         {
+            // we don't support searching generated documents.
             return AsyncEnumerable<INavigateToSearchResult>.Empty;
         }
 
