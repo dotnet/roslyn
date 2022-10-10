@@ -289,10 +289,10 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 syntaxFacts.TryGetPredefinedOperator(operatorToken, out var predefinedOperator);
                 return predefinedOperator switch
                 {
-                    PredefinedOperator.LessThan => generatorInternal.GreaterThanEqualsPattern(expression),
-                    PredefinedOperator.LessThanOrEqual => generatorInternal.GreaterThanPattern(expression),
-                    PredefinedOperator.GreaterThan => generatorInternal.LessThanEqualsPattern(expression),
-                    PredefinedOperator.GreaterThanOrEqual => generatorInternal.LessThanPattern(expression),
+                    PredefinedOperator.LessThan => generatorInternal.GreaterThanEqualsRelationalPattern(expression),
+                    PredefinedOperator.LessThanOrEqual => generatorInternal.GreaterThanRelationalPattern(expression),
+                    PredefinedOperator.GreaterThan => generatorInternal.LessThanEqualsRelationalPattern(expression),
+                    PredefinedOperator.GreaterThanOrEqual => generatorInternal.LessThanRelationalPattern(expression),
                     _ => throw ExceptionUtilities.UnexpectedValue(predefinedOperator)
                 };
             }

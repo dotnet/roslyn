@@ -167,16 +167,16 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 type.GenerateTypeSyntax(),
                 SyntaxFactory.SingleVariableDesignation(name.ToIdentifierToken()));
 
-        public override SyntaxNode LessThanPattern(SyntaxNode expression)
+        public override SyntaxNode LessThanRelationalPattern(SyntaxNode expression)
             => SyntaxFactory.RelationalPattern(SyntaxFactory.Token(SyntaxKind.LessThanToken), (ExpressionSyntax)expression);
 
-        public override SyntaxNode LessThanEqualsPattern(SyntaxNode expression)
+        public override SyntaxNode LessThanEqualsRelationalPattern(SyntaxNode expression)
             => SyntaxFactory.RelationalPattern(SyntaxFactory.Token(SyntaxKind.LessThanEqualsToken), (ExpressionSyntax)expression);
 
-        public override SyntaxNode GreaterThanPattern(SyntaxNode expression)
+        public override SyntaxNode GreaterThanRelationalPattern(SyntaxNode expression)
             => SyntaxFactory.RelationalPattern(SyntaxFactory.Token(SyntaxKind.GreaterThanToken), (ExpressionSyntax)expression);
 
-        public override SyntaxNode GreaterThanEqualsPattern(SyntaxNode expression)
+        public override SyntaxNode GreaterThanEqualsRelationalPattern(SyntaxNode expression)
             => SyntaxFactory.RelationalPattern(SyntaxFactory.Token(SyntaxKind.GreaterThanEqualsToken), (ExpressionSyntax)expression);
 
         public override SyntaxNode NotPattern(SyntaxNode pattern)

@@ -168,19 +168,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             Throw New NotImplementedException()
         End Function
 
-        Public Overrides Function LessThanPattern(expression As SyntaxNode) As SyntaxNode
+        Public Overrides Function LessThanRelationalPattern(expression As SyntaxNode) As SyntaxNode
             Throw New NotImplementedException()
         End Function
 
-        Public Overrides Function LessThanEqualsPattern(expression As SyntaxNode) As SyntaxNode
+        Public Overrides Function LessThanEqualsRelationalPattern(expression As SyntaxNode) As SyntaxNode
             Throw New NotImplementedException()
         End Function
 
-        Public Overrides Function GreaterThanPattern(expression As SyntaxNode) As SyntaxNode
+        Public Overrides Function GreaterThanRelationalPattern(expression As SyntaxNode) As SyntaxNode
             Throw New NotImplementedException()
         End Function
 
-        Public Overrides Function GreaterThanEqualsPattern(expression As SyntaxNode) As SyntaxNode
+        Public Overrides Function GreaterThanEqualsRelationalPattern(expression As SyntaxNode) As SyntaxNode
             Throw New NotImplementedException()
         End Function
 
