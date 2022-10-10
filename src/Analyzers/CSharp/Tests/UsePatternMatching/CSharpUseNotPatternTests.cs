@@ -77,6 +77,64 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UsePatternMatching
             }.RunAsync();
         }
 
+        [Fact, WorkItem(64292, "https://github.com/dotnet/roslyn/issues/64292")]
+        public async Task BooleanValueConstantPattern()
+        {
+            await new VerifyCS.Test
+            {
+                TestCode =
+@"class C
+{
+    void M(bool x)
+    {
+        if (!(x [|is|] true))
+        {
+        }
+    }
+}",
+                FixedCode =
+@"class C
+{
+    void M(bool x)
+    {
+        if (x is false)
+        {
+        }
+    }
+}",
+                LanguageVersion = LanguageVersion.CSharp9,
+            }.RunAsync();
+        }
+
+        [Fact, WorkItem(64292, "https://github.com/dotnet/roslyn/issues/64292")]
+        public async Task NonBooleanValueConstantPattern()
+        {
+            await new VerifyCS.Test
+            {
+                TestCode =
+@"class C
+{
+    void M(object x)
+    {
+        if (!(x [|is|] true))
+        {
+        }
+    }
+}",
+                FixedCode =
+@"class C
+{
+    void M(object x)
+    {
+        if (x is not true)
+        {
+        }
+    }
+}",
+                LanguageVersion = LanguageVersion.CSharp9,
+            }.RunAsync();
+        }
+
         [Fact, WorkItem(46699, "https://github.com/dotnet/roslyn/issues/46699")]
         public async Task UseNotPattern()
         {
