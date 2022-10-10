@@ -37,6 +37,7 @@ jobs:
       inputs:
         packageType: runtime
         version: 7.0.1
+        includePreviewVersions: true
         installationPath: '$(Build.SourcesDirectory)/.dotnet'
 
     - task: DownloadPipelineArtifact@2
