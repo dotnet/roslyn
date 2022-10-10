@@ -43,15 +43,15 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         /// </summary>
         /// <remarks>This helper is useful when doign parallel processing of work where each job returns an <see
         /// cref="IAsyncEnumerable{T}"/>, but one final stream is desired as the result.</remarks>
-        public static IAsyncEnumerable<T> MergeAsync<T>(this ImmutableArray<IAsyncEnumerable<T>> enumerables, CancellationToken cancellationToken)
+        public static IAsyncEnumerable<T> MergeAsync<T>(this ImmutableArray<IAsyncEnumerable<T>> streams, CancellationToken cancellationToken)
         {
             // Code provided by Stephen Toub, but heavily modified after that.
 
             var channel = Channel.CreateUnbounded<T>();
 
-            var tasks = new Task[enumerables.Length];
-            for (var i = 0; i < enumerables.Length; i++)
-                tasks[i] = Process(enumerables[i], channel.Writer, cancellationToken);
+            var tasks = new Task[streams.Length];
+            for (var i = 0; i < streams.Length; i++)
+                tasks[i] = Process(streams[i], channel.Writer, cancellationToken);
 
             Task.WhenAll(tasks).ContinueWith(t =>
             {
@@ -63,19 +63,19 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
             return ReadAllAsync(channel.Reader, cancellationToken);
 
-            static async Task Process(IAsyncEnumerable<T> ae, ChannelWriter<T> writer, CancellationToken cancellationToken)
+            static async Task Process(IAsyncEnumerable<T> stream, ChannelWriter<T> writer, CancellationToken cancellationToken)
             {
-                await foreach (var t in ae)
-                    await writer.WriteAsync(t, cancellationToken).ConfigureAwait(false);
+                await foreach (var value in stream)
+                    await writer.WriteAsync(value, cancellationToken).ConfigureAwait(false);
             }
-        }
 
-        private static async IAsyncEnumerable<T> ReadAllAsync<T>(ChannelReader<T> reader, [EnumeratorCancellation] CancellationToken cancellationToken)
-        {
-            while (await reader.WaitToReadAsync(cancellationToken).ConfigureAwait(false))
+            static async IAsyncEnumerable<T> ReadAllAsync(ChannelReader<T> reader, [EnumeratorCancellation] CancellationToken cancellationToken)
             {
-                while (reader.TryRead(out var item))
-                    yield return item;
+                while (await reader.WaitToReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    while (reader.TryRead(out var item))
+                        yield return item;
+                }
             }
         }
     }
