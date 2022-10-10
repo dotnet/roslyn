@@ -2,62 +2,52 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.DesignerAttribute;
 using Microsoft.CodeAnalysis.SolutionCrawler;
+using StreamJsonRpc;
 
 namespace Microsoft.CodeAnalysis.Remote
 {
     internal sealed class RemoteDesignerAttributeDiscoveryService : BrokeredServiceBase, IRemoteDesignerAttributeDiscoveryService
     {
-        private sealed class CallbackWrapper : IDesignerAttributeDiscoveryService.ICallback
+        /// <summary>
+        /// Allow designer attribute computation to continue on on the server, even while the client is processing the
+        /// last batch of results.
+        /// </summary>
+        /// <remarks>
+        /// This value was not determined empirically.
+        /// </remarks>
+        private const int MaxReadAhead = 64;
+
+        internal sealed class Factory : FactoryBase<IRemoteDesignerAttributeDiscoveryService>
         {
-            private readonly RemoteCallback<IRemoteDesignerAttributeDiscoveryService.ICallback> _callback;
-            private readonly RemoteServiceCallbackId _callbackId;
-
-            public CallbackWrapper(
-                RemoteCallback<IRemoteDesignerAttributeDiscoveryService.ICallback> callback,
-                RemoteServiceCallbackId callbackId)
-            {
-                _callback = callback;
-                _callbackId = callbackId;
-            }
-
-            public ValueTask ReportDesignerAttributeDataAsync(ImmutableArray<DesignerAttributeData> data, CancellationToken cancellationToken)
-                => _callback.InvokeAsync((callback, cancellationToken) => callback.ReportDesignerAttributeDataAsync(_callbackId, data, cancellationToken), cancellationToken);
+            protected override IRemoteDesignerAttributeDiscoveryService CreateService(in ServiceConstructionArguments arguments)
+                => new RemoteDesignerAttributeDiscoveryService(arguments);
         }
 
-        internal sealed class Factory : FactoryBase<IRemoteDesignerAttributeDiscoveryService, IRemoteDesignerAttributeDiscoveryService.ICallback>
-        {
-            protected override IRemoteDesignerAttributeDiscoveryService CreateService(in ServiceConstructionArguments arguments, RemoteCallback<IRemoteDesignerAttributeDiscoveryService.ICallback> callback)
-                => new RemoteDesignerAttributeDiscoveryService(arguments, callback);
-        }
-
-        private readonly RemoteCallback<IRemoteDesignerAttributeDiscoveryService.ICallback> _callback;
-
-        public RemoteDesignerAttributeDiscoveryService(in ServiceConstructionArguments arguments, RemoteCallback<IRemoteDesignerAttributeDiscoveryService.ICallback> callback)
+        public RemoteDesignerAttributeDiscoveryService(in ServiceConstructionArguments arguments)
             : base(arguments)
         {
-            _callback = callback;
         }
 
-        public ValueTask DiscoverDesignerAttributesAsync(
-            RemoteServiceCallbackId callbackId,
+        public IAsyncEnumerable<DesignerAttributeData> DiscoverDesignerAttributesAsync(
             Checksum solutionChecksum,
             DocumentId? priorityDocument,
             CancellationToken cancellationToken)
         {
-            return RunServiceAsync(
+            var stream = StreamWithSolutionAsync(
                 solutionChecksum,
-                solution =>
+                (solution, cancellationToken) =>
                 {
                     var service = solution.Services.GetRequiredService<IDesignerAttributeDiscoveryService>();
-                    return service.ProcessSolutionAsync(
-                        solution, priorityDocument, new CallbackWrapper(_callback, callbackId), cancellationToken);
-                },
-                cancellationToken);
+                    return service.ProcessSolutionAsync(solution, priorityDocument, cancellationToken);
+                }, cancellationToken);
+            return stream.WithJsonRpcSettings(new JsonRpcEnumerableSettings { MaxReadAhead = MaxReadAhead });
         }
     }
 }

@@ -31,7 +31,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
 {
     [ExportEventListener(WellKnownEventListeners.Workspace, WorkspaceKind.Host), Shared]
     internal class VisualStudioDesignerAttributeService :
-        ForegroundThreadAffinitizedObject, IDesignerAttributeDiscoveryService.ICallback, IEventListener<object>, IDisposable
+        ForegroundThreadAffinitizedObject, IEventListener<object>, IDisposable
     {
         private readonly VisualStudioWorkspaceImpl _workspace;
 
@@ -125,11 +125,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
             var trackingService = _workspace.Services.GetRequiredService<IDocumentTrackingService>();
             var priorityDocument = trackingService.TryGetActiveDocument();
 
-            await client.TryInvokeAsync<IRemoteDesignerAttributeDiscoveryService>(
+            var stream = await client.TryInvokeAsync<IRemoteDesignerAttributeDiscoveryService>(
                 solution,
-                (service, checksum, callbackId, cancellationToken) => service.DiscoverDesignerAttributesAsync(callbackId, checksum, priorityDocument, cancellationToken),
-                callbackTarget: this,
+                (service, checksum, cancellationToken) => service.DiscoverDesignerAttributesAsync(checksum, priorityDocument, cancellationToken),
                 cancellationToken).ConfigureAwait(false);
+
+
+            _projectSystemNotificationQueue.AddWork(data);
         }
 
         private async ValueTask NotifyProjectSystemAsync(
@@ -316,16 +318,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
                 var serviceProvider = new Shell.ServiceProvider(projectServiceProvider);
                 return serviceProvider.GetService(typeof(IProjectItemDesignerTypeUpdateService)) as IProjectItemDesignerTypeUpdateService;
             }
-        }
-
-        /// <summary>
-        /// Callback from the OOP service back into us.
-        /// </summary>
-        public ValueTask ReportDesignerAttributeDataAsync(ImmutableArray<DesignerAttributeData> data, CancellationToken cancellationToken)
-        {
-            Contract.ThrowIfNull(_projectSystemNotificationQueue);
-            _projectSystemNotificationQueue.AddWork(data);
-            return ValueTaskFactory.CompletedTask;
         }
     }
 }
