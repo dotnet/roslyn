@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
     /// This type essentially wraps each <see cref="CaptureId"/>, which is unique for each control flow graph,
     /// with its owning <see cref="ControlFlowGraph"/>.
     /// </summary>
-    public struct InterproceduralCaptureId : IEquatable<InterproceduralCaptureId>
+    public readonly struct InterproceduralCaptureId : IEquatable<InterproceduralCaptureId>
     {
         internal InterproceduralCaptureId(CaptureId captureId, ControlFlowGraph controlFlowGraph, bool isLValueFlowCapture)
         {
