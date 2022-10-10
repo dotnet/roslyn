@@ -197,7 +197,7 @@ public class RequestExecutionQueue<TRequestContext> : IRequestExecutionQueue<TRe
                     {
                         // Mutating requests block other requests from starting to ensure an up to date snapshot is used.
                         // Since we're explicitly awaiting exceptions to mutating requests will bubble up here.
-                        await work.StartRequestAsync(context, cancellationToken).ConfigureAwait(false);
+                        await WrapStartRequestTaskAsync(work.StartRequestAsync(context, cancellationToken)).ConfigureAwait(false);
                     }
                     else
                     {
