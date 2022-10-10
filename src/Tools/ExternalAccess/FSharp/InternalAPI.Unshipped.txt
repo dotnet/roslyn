@@ -326,7 +326,7 @@ Microsoft.CodeAnalysis.ExternalAccess.FSharp.Navigation.FSharpNavigationOptions2
 Microsoft.CodeAnalysis.ExternalAccess.FSharp.Navigation.FSharpNavigationOptions2.PreferProvisionalTab.get -> bool
 Microsoft.CodeAnalysis.ExternalAccess.FSharp.Navigation.FSharpNavigationOptions2.PreferProvisionalTab.init -> void
 Microsoft.CodeAnalysis.ExternalAccess.FSharp.Navigation.IFSharpCrossLanguageSymbolNavigationService
-Microsoft.CodeAnalysis.ExternalAccess.FSharp.Navigation.IFSharpCrossLanguageSymbolNavigationService.TryGetNavigableLocationAsync(string! documentationCommentId, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<Microsoft.CodeAnalysis.ExternalAccess.FSharp.Navigation.IFSharpNavigableLocation?>!
+Microsoft.CodeAnalysis.ExternalAccess.FSharp.Navigation.IFSharpCrossLanguageSymbolNavigationService.TryGetNavigableLocationAsync(string! assemblyName, string! documentationCommentId, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<Microsoft.CodeAnalysis.ExternalAccess.FSharp.Navigation.IFSharpNavigableLocation?>!
 Microsoft.CodeAnalysis.ExternalAccess.FSharp.Navigation.IFSharpDocumentNavigationService
 Microsoft.CodeAnalysis.ExternalAccess.FSharp.Navigation.IFSharpNavigableLocation
 Microsoft.CodeAnalysis.ExternalAccess.FSharp.Navigation.IFSharpNavigableLocation.NavigateToAsync(Microsoft.CodeAnalysis.ExternalAccess.FSharp.Navigation.FSharpNavigationOptions2! options, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<bool>!
