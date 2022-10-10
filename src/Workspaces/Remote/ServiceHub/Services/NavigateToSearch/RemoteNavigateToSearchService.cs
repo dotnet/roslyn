@@ -120,12 +120,12 @@ namespace Microsoft.CodeAnalysis.Remote
             }
         }
 
-        public async IAsyncEnumerable<RoslynNavigateToItem> SearchCachedDocumentsAsync(
+        public IAsyncEnumerable<RoslynNavigateToItem> SearchCachedDocumentsAsync(
             ImmutableArray<DocumentKey> documentKeys,
             ImmutableArray<DocumentKey> priorityDocumentKeys,
             string searchPattern,
             ImmutableArray<string> kinds,
-            [EnumeratorCancellation] CancellationToken cancellationToken)
+            CancellationToken cancellationToken)
         {
             WorkspaceManager.SolutionAssetCache.UpdateLastActivityTime();
 
@@ -133,11 +133,8 @@ namespace Microsoft.CodeAnalysis.Remote
             // synchronizing the solution over to the remote side.  Instead, we just directly
             // check whatever cached data we have from the previous vs session.
             var storageService = GetWorkspaceServices().GetPersistentStorageService();
-            await foreach (var item in AbstractNavigateToSearchService.SearchCachedDocumentsInCurrentProcessAsync(
-                storageService, documentKeys, priorityDocumentKeys, searchPattern, kinds.ToImmutableHashSet(), cancellationToken).ConfigureAwait(false))
-            {
-                yield return item;
-            }
+            return AbstractNavigateToSearchService.SearchCachedDocumentsInCurrentProcessAsync(
+                storageService, documentKeys, priorityDocumentKeys, searchPattern, kinds.ToImmutableHashSet(), cancellationToken);
         }
     }
 }
