@@ -102,15 +102,15 @@ namespace Microsoft.CodeAnalysis.Editing
         public abstract SyntaxNode AndPattern(SyntaxNode left, SyntaxNode right);
         public abstract SyntaxNode DeclarationPattern(INamedTypeSymbol type, string name);
         public abstract SyntaxNode ConstantPattern(SyntaxNode expression);
+        public abstract SyntaxNode GreaterThanPattern(SyntaxNode expression);
+        public abstract SyntaxNode GreaterThanEqualsPattern(SyntaxNode expression);
+        public abstract SyntaxNode LessThanPattern(SyntaxNode expression);
+        public abstract SyntaxNode LessThanEqualsPattern(SyntaxNode expression);
         public abstract SyntaxNode NotPattern(SyntaxNode pattern);
         public abstract SyntaxNode OrPattern(SyntaxNode left, SyntaxNode right);
         public abstract SyntaxNode ParenthesizedPattern(SyntaxNode pattern);
         public abstract SyntaxNode TypePattern(SyntaxNode type);
         public abstract SyntaxNode UnaryPattern(SyntaxToken operatorToken, SyntaxNode pattern);
-        public abstract SyntaxNode LessThanPattern(SyntaxNode expression);
-        public abstract SyntaxNode LessThanEqualsPattern(SyntaxNode expression);
-        public abstract SyntaxNode GreaterThanPattern(SyntaxNode expression);
-        public abstract SyntaxNode GreaterThanEqualsPattern(SyntaxNode expression);
 
         #endregion
     }

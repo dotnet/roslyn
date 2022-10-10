@@ -102,10 +102,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageService
         Public ReadOnly Property OrPattern As Integer? Implements ISyntaxKinds.OrPattern
         Public ReadOnly Property ParenthesizedPattern As Integer? Implements ISyntaxKinds.ParenthesizedPattern
         Public ReadOnly Property RecursivePattern As Integer? Implements ISyntaxKinds.RecursivePattern
+        Public ReadOnly Property RelationalPattern As Integer? Implements ISyntaxKinds.RelationalPattern
         Public ReadOnly Property TypePattern As Integer? Implements ISyntaxKinds.TypePattern
         Public ReadOnly Property VarPattern As Integer? Implements ISyntaxKinds.VarPattern
-        Public ReadOnly Property RelationalPattern As Integer? Implements ISyntaxKinds.RelationalPattern
-        Public ReadOnly Property IndexerMemberCref As Integer? Implements ISyntaxKinds.IndexerMemberCref
 
         Public ReadOnly Property EndOfFileToken As Integer = SyntaxKind.EndOfFileToken Implements ISyntaxKinds.EndOfFileToken
         Public ReadOnly Property AwaitKeyword As Integer = SyntaxKind.AwaitKeyword Implements ISyntaxKinds.AwaitKeyword
@@ -147,5 +146,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageService
         Public ReadOnly Property Interpolation As Integer = SyntaxKind.Interpolation Implements ISyntaxKinds.Interpolation
         Public ReadOnly Property InterpolatedStringExpression As Integer = SyntaxKind.InterpolatedStringExpression Implements ISyntaxKinds.InterpolatedStringExpression
         Public ReadOnly Property InterpolatedStringText As Integer = SyntaxKind.InterpolatedStringText Implements ISyntaxKinds.InterpolatedStringText
+        Public ReadOnly Property IndexerMemberCref As Integer? Implements ISyntaxKinds.IndexerMemberCref
     End Class
 End Namespace

@@ -100,9 +100,9 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageService
         public int? OrPattern => (int)SyntaxKind.OrPattern;
         public int? ParenthesizedPattern => (int)SyntaxKind.ParenthesizedPattern;
         public int? RecursivePattern => (int)SyntaxKind.RecursivePattern;
+        public int? RelationalPattern => (int)SyntaxKind.RelationalPattern;
         public int? TypePattern => (int)SyntaxKind.TypePattern;
         public int? VarPattern => (int)SyntaxKind.VarPattern;
-        public int? RelationalPattern => (int)SyntaxKind.RelationalPattern;
 
         public int EndOfFileToken => (int)SyntaxKind.EndOfFileToken;
         public int AwaitKeyword => (int)SyntaxKind.AwaitKeyword;

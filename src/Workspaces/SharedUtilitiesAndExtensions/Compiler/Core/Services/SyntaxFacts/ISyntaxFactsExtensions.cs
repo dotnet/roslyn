@@ -870,14 +870,14 @@ namespace Microsoft.CodeAnalysis.LanguageService
         public static bool IsRecursivePattern(this ISyntaxFacts syntaxFacts, [NotNullWhen(true)] SyntaxNode? node)
             => node?.RawKind == syntaxFacts.SyntaxKinds.RecursivePattern;
 
+        public static bool IsRelationalPattern(this ISyntaxFacts syntaxFacts, [NotNullWhen(true)] SyntaxNode? node)
+            => node?.RawKind == syntaxFacts.SyntaxKinds.RelationalPattern;
+
         public static bool IsTypePattern(this ISyntaxFacts syntaxFacts, [NotNullWhen(true)] SyntaxNode? node)
             => node?.RawKind == syntaxFacts.SyntaxKinds.TypePattern;
 
         public static bool IsVarPattern(this ISyntaxFacts syntaxFacts, [NotNullWhen(true)] SyntaxNode? node)
             => node?.RawKind == syntaxFacts.SyntaxKinds.VarPattern;
-
-        public static bool IsRelationalPattern(this ISyntaxFacts syntaxFacts, [NotNullWhen(true)] SyntaxNode? node)
-            => node?.RawKind == syntaxFacts.SyntaxKinds.RelationalPattern;
 
         #endregion
 

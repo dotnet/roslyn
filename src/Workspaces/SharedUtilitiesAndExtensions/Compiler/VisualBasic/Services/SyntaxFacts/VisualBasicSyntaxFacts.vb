@@ -1689,6 +1689,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageService
         Public Sub GetPartsOfUnaryPattern(node As SyntaxNode, ByRef operatorToken As SyntaxToken, ByRef pattern As SyntaxNode) Implements ISyntaxFacts.GetPartsOfUnaryPattern
             Throw New InvalidOperationException(DoesNotExistInVBErrorMessage)
         End Sub
+
         Public Sub GetPartsOfRelationalPattern(node As SyntaxNode, ByRef operatorToken As SyntaxToken, ByRef expression As SyntaxNode) Implements ISyntaxFacts.GetPartsOfRelationalPattern
             Throw New InvalidOperationException(DoesNotExistInVBErrorMessage)
         End Sub
