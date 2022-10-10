@@ -2848,7 +2848,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var local = node.LocalSymbol;
 
             // Avoid cycles in nullable analysis.
-            if ((local as SourceLocalSymbol)?.IsVar == true && local.ForbiddenZone?.Contains(node.Syntax) == true)
+            if (local is SourceLocalSymbol { IsVar: true } && local.ForbiddenZone?.Contains(node.Syntax) == true)
             {
                 SetResult(node, TypeWithState.ForType(node.Type), LvalueResultType, isLvalue: true);
                 return null;
