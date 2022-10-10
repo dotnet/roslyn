@@ -294,7 +294,7 @@ public abstract class AbstractLanguageServer<TRequestContext> : ILifeCycleManage
 
         internal RequestExecutionQueue<TRequestContext>.TestAccessor? GetQueueAccessor()
         {
-            if (_server._queue is RequestExecutionQueue<TRequestContext> requestExecution)
+            if (_server._queue.Value is RequestExecutionQueue<TRequestContext> requestExecution)
                 return requestExecution.GetTestAccessor();
 
             return null;
