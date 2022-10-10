@@ -110,7 +110,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.DecompiledSource
             text += logger.ToString();
             text += "#endif" + Environment.NewLine;
 
-            return document.WithText(SourceText.From(text));
+            return document.WithText(SourceText.From(text, encoding: null, checksumAlgorithm: SourceHashAlgorithms.Default));
         }
 
         private static async Task<Document> AddAssemblyInfoRegionAsync(Document document, ISymbol symbol, CancellationToken cancellationToken)
