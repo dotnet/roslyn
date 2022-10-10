@@ -53,6 +53,8 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             for (var i = 0; i < streams.Length; i++)
                 tasks[i] = Process(streams[i], channel.Writer, cancellationToken);
 
+            // Note: passing CancellationToken.None here is intentional/correct.  We must complete all the channels to
+            // allow reading to complete as well.
             Task.WhenAll(tasks).ContinueWith(t =>
             {
                 if (t.IsFaulted)
