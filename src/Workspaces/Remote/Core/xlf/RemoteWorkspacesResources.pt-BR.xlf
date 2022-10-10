@@ -77,6 +77,11 @@
         <target state="translated">Margem de herança</target>
         <note />
       </trans-unit>
+      <trans-unit id="FeatureName_LegacySolutionEventsAggregation">
+        <source>Solution Events</source>
+        <target state="new">Solution Events</target>
+        <note />
+      </trans-unit>
       <trans-unit id="FeatureName_MissingImportDiscovery">
         <source>Missing import discovery</source>
         <target state="translated">Descoberta de importação ausente</target>
