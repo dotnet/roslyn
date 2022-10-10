@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.Remote
             // instead to allow data to be released from process address space when it is also held in temporary
             // storage.
             // https://github.com/dotnet/roslyn/issues/43802
-            Contract.ThrowIfTrue(kind is WellKnownSynchronizationKind.SourceText);
+            // Contract.ThrowIfTrue(kind is WellKnownSynchronizationKind.SourceText);
 
             Checksum = checksum;
             Kind = kind;
