@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.CSharp.UnitTests;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -69,7 +70,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.Semantics
             BecomesLocal,
         }
 
-        private void VerifyTypeIL(CSharpCompilation compilation, string typeName, string expected)
+        private void VerifyTypeIL(CSharpCompilation compilation, string typeName, string expected, Verification verify = Verification.Passes)
         {
             if (!ExecutionConditionUtil.IsDesktop)
             {
@@ -77,7 +78,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.Semantics
                 expected = expected.Replace("[mscorlib]", "[netstandard]");
             }
 
-            CompileAndVerify(compilation).VerifyTypeIL(typeName, expected);
+            CompileAndVerify(compilation, verify: verify).VerifyTypeIL(typeName, expected);
         }
 
         [Theory, CombinatorialData]
@@ -291,7 +292,7 @@ public interface I
 		.get int32 I::get_P()
 	}
 } // end of class I
-");
+", Verification.FailsPEVerify);
             var @interface = comp.GetTypeByMetadataName("I");
             Assert.Equal("System.Int32 I.<P>k__BackingField", @interface.GetFieldsToEmit().Single().ToTestDisplayString());
             Assert.Empty(@interface.GetMembers().OfType<FieldSymbol>());
@@ -2964,11 +2965,11 @@ class Test
             CompileAndVerify(comp, expectedOutput: "3").VerifyDiagnostics();
             VerifyTypeIL(comp, "Test", @"
 .class private auto ansi beforefieldinit Test
-	extends [netstandard]System.Object
+	extends [mscorlib]System.Object
 {
 	// Fields
 	.field private initonly int32 '<X>k__BackingField'
-	.custom instance void [netstandard]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+	.custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
 		01 00 00 00
 	)
 	// Methods
@@ -2979,13 +2980,13 @@ class Test
 		// Code size 25 (0x19)
 		.maxstack 8
 		IL_0000: ldarg.0
-		IL_0001: call instance void [netstandard]System.Object::.ctor()
+		IL_0001: call instance void [mscorlib]System.Object::.ctor()
 		IL_0006: ldarg.0
 		IL_0007: ldc.i4.3
 		IL_0008: stfld int32 Test::'<X>k__BackingField'
 		IL_000d: ldarg.0
 		IL_000e: call instance int32 Test::get_X()
-		IL_0013: call void [netstandard]System.Console::WriteLine(int32)
+		IL_0013: call void [mscorlib]System.Console::WriteLine(int32)
 		IL_0018: ret
 	} // end of method Test::.ctor
 	.method private hidebysig specialname 
