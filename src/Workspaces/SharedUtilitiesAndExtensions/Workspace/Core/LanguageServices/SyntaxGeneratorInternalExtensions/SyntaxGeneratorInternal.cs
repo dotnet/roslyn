@@ -100,8 +100,8 @@ namespace Microsoft.CodeAnalysis.Editing
         public abstract SyntaxNode IsPatternExpression(SyntaxNode expression, SyntaxToken isToken, SyntaxNode pattern);
 
         public abstract SyntaxNode AndPattern(SyntaxNode left, SyntaxNode right);
-        public abstract SyntaxNode DeclarationPattern(INamedTypeSymbol type, string name);
         public abstract SyntaxNode ConstantPattern(SyntaxNode expression);
+        public abstract SyntaxNode DeclarationPattern(INamedTypeSymbol type, string name);
         public abstract SyntaxNode GreaterThanPattern(SyntaxNode expression);
         public abstract SyntaxNode GreaterThanEqualsPattern(SyntaxNode expression);
         public abstract SyntaxNode LessThanPattern(SyntaxNode expression);

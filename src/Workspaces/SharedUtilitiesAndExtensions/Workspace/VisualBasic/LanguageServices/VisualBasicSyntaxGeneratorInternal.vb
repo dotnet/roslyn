@@ -156,6 +156,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             Throw New NotImplementedException()
         End Function
 
+        Public Overrides Function AndPattern(left As SyntaxNode, right As SyntaxNode) As SyntaxNode
+            Throw New NotImplementedException()
+        End Function
+
         Public Overrides Function ConstantPattern(expression As SyntaxNode) As SyntaxNode
             Throw New NotImplementedException()
         End Function
@@ -164,7 +168,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             Throw New NotImplementedException()
         End Function
 
-        Public Overrides Function AndPattern(left As SyntaxNode, right As SyntaxNode) As SyntaxNode
+        Public Overrides Function LessThanPattern(expression As SyntaxNode) As SyntaxNode
+            Throw New NotImplementedException()
+        End Function
+
+        Public Overrides Function LessThanEqualsPattern(expression As SyntaxNode) As SyntaxNode
+            Throw New NotImplementedException()
+        End Function
+
+        Public Overrides Function GreaterThanPattern(expression As SyntaxNode) As SyntaxNode
+            Throw New NotImplementedException()
+        End Function
+
+        Public Overrides Function GreaterThanEqualsPattern(expression As SyntaxNode) As SyntaxNode
             Throw New NotImplementedException()
         End Function
 
@@ -185,22 +201,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
         End Function
 
         Public Overrides Function UnaryPattern(operatorToken As SyntaxToken, pattern As SyntaxNode) As SyntaxNode
-            Throw New NotImplementedException()
-        End Function
-
-        Public Overrides Function LessThanPattern(expression As SyntaxNode) As SyntaxNode
-            Throw New NotImplementedException()
-        End Function
-
-        Public Overrides Function LessThanEqualsPattern(expression As SyntaxNode) As SyntaxNode
-            Throw New NotImplementedException()
-        End Function
-
-        Public Overrides Function GreaterThanPattern(expression As SyntaxNode) As SyntaxNode
-            Throw New NotImplementedException()
-        End Function
-
-        Public Overrides Function GreaterThanEqualsPattern(expression As SyntaxNode) As SyntaxNode
             Throw New NotImplementedException()
         End Function
 
