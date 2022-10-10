@@ -250,6 +250,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             IDisposableNamedType = WellKnownTypeProvider.GetOrCreateTypeByMetadataName(WellKnownTypeNames.SystemIDisposable);
             IAsyncDisposableNamedType = WellKnownTypeProvider.GetOrCreateTypeByMetadataName(WellKnownTypeNames.SystemIAsyncDisposable);
             TaskNamedType = WellKnownTypeProvider.GetOrCreateTypeByMetadataName(WellKnownTypeNames.SystemThreadingTasksTask);
+            MemoryStreamNamedType = WellKnownTypeProvider.GetOrCreateTypeByMetadataName(WellKnownTypeNames.SystemIOMemoryStream);
             ValueTaskNamedType = WellKnownTypeProvider.GetOrCreateTypeByMetadataName(WellKnownTypeNames.SystemThreadingTasksValueTask);
             GenericTaskNamedType = WellKnownTypeProvider.GetOrCreateTypeByMetadataName(WellKnownTypeNames.SystemThreadingTasksTask1);
             MonitorNamedType = WellKnownTypeProvider.GetOrCreateTypeByMetadataName(WellKnownTypeNames.SystemThreadingMonitor);
@@ -257,6 +258,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             SerializationInfoNamedType = WellKnownTypeProvider.GetOrCreateTypeByMetadataName(WellKnownTypeNames.SystemRuntimeSerializationSerializationInfo);
             StreamingContextNamedType = WellKnownTypeProvider.GetOrCreateTypeByMetadataName(WellKnownTypeNames.SystemRuntimeSerializationStreamingContext);
             GenericIEquatableNamedType = WellKnownTypeProvider.GetOrCreateTypeByMetadataName(WellKnownTypeNames.SystemIEquatable1);
+            StringReaderType = WellKnownTypeProvider.GetOrCreateTypeByMetadataName(WellKnownTypeNames.SystemIOStringReader);
             CollectionNamedTypes = GetWellKnownCollectionTypes();
             DebugAssertMethod = WellKnownTypeProvider.GetOrCreateTypeByMetadataName(WellKnownTypeNames.SystemDiagnosticsDebug)?.GetMembers("Assert")
                     .OfType<IMethodSymbol>().FirstOrDefault(HasDebugAssertSignature);
@@ -4019,6 +4021,11 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         protected INamedTypeSymbol? TaskNamedType { get; }
 
         /// <summary>
+        /// <see cref="INamedTypeSymbol"/> for <see cref="System.IO.MemoryStream"/>
+        /// </summary>
+        protected INamedTypeSymbol? MemoryStreamNamedType { get; }
+
+        /// <summary>
         /// <see cref="INamedTypeSymbol"/> for System.Threading.Tasks.ValueTask/>
         /// </summary>
         private INamedTypeSymbol? ValueTaskNamedType { get; }
@@ -4052,6 +4059,11 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         /// <see cref="INamedTypeSymbol"/> for <see cref="System.IEquatable{T}"/>
         /// </summary>
         protected INamedTypeSymbol? GenericIEquatableNamedType { get; }
+
+        /// <summary>
+        /// <see cref="INamedTypeSymbol"/> for <see cref="System.IO.StringReader"/>
+        /// </summary>
+        protected INamedTypeSymbol? StringReaderType { get; }
 
         /// <summary>
         /// Set containing following named types, if not null:
