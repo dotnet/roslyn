@@ -122,7 +122,6 @@ class Program
 """;
             var comp = CreateEmptyCompilation(new[] { sourceA, sourceB }, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics();
-            throw new System.Exception("JCOUV");
         }
 
         [Theory]
