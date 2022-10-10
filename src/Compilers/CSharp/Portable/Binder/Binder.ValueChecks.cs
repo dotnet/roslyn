@@ -2019,7 +2019,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// whether analysis should consider value or ref escape. Not all method arguments
         /// are included, and some arguments may be included twice - once for value, once for ref.
         /// </summary>
-        private void GetFilteredInvocationArgumentsForEscapeWithUpdatedRules(
+        private static void GetFilteredInvocationArgumentsForEscapeWithUpdatedRules(
             Symbol symbol,
             BoundExpression? receiver,
             ImmutableArray<ParameterSymbol> parameters,
@@ -2095,7 +2095,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Optionally this will also return all of the <see cref="MixableDestination" /> that 
         /// result from this invocation. That is useful for MAMM analysis.
         /// </summary>
-        private void GetEscapeValuesForUpdatedRules(
+        private static void GetEscapeValuesForUpdatedRules(
             Symbol symbol,
             BoundExpression? receiver,
             ImmutableArray<ParameterSymbol> parameters,
