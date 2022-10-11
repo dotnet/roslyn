@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             ActiveStatementFlags[]? flags = null)
         {
             return ActiveStatementsDescription.GetActiveStatementDebugInfos(
-                (source, path) => SyntaxFactory.ParseSyntaxTree(source, path: path),
+                (source, path) => SyntaxFactory.ParseSyntaxTree(SourceText.From(source, encoding: null, SourceHashAlgorithms.Default), path: path),
                 markedSources,
                 filePaths,
                 extension: ".cs",

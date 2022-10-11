@@ -35,18 +35,28 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.Api
         [DataMember(Order = 3)]
         public readonly int MethodParameterCount;
 
-        public static UnitTestingSearchQuery ForType(string fullyQualifiedTypeName)
-            => new(fullyQualifiedTypeName, methodName: null, methodArity: 0, methodParameterCount: 0);
+        /// <summary>
+        /// Whether or not this is a strict search or not.  Strict searches require matching arity and parameter counts,
+        /// while non-strict searches do not.  Non-strict searches are useful in cases where the initial searching data
+        /// may not be produced in a well formed fashion (for example, some legacy test providers that do not follow:
+        /// https://github.com/microsoft/vstest-docs/blob/main/RFCs/0017-Managed-TestCase-Properties.md).
+        /// </summary>
+        [DataMember(Order = 4)]
+        public readonly bool Strict;
 
-        public static UnitTestingSearchQuery ForMethod(string fullyQualifiedTypeName, string methodName, int methodArity, int methodParameterCount)
-            => new(fullyQualifiedTypeName, methodName, methodArity, methodParameterCount);
+        public static UnitTestingSearchQuery ForType(string fullyQualifiedTypeName, bool strict = true)
+            => new(fullyQualifiedTypeName, methodName: null, methodArity: 0, methodParameterCount: 0, strict);
 
-        private UnitTestingSearchQuery(string fullyQualifiedTypeName, string? methodName, int methodArity, int methodParameterCount)
+        public static UnitTestingSearchQuery ForMethod(string fullyQualifiedTypeName, string methodName, int methodArity, int methodParameterCount, bool strict = true)
+            => new(fullyQualifiedTypeName, methodName, methodArity, methodParameterCount, strict);
+
+        private UnitTestingSearchQuery(string fullyQualifiedTypeName, string? methodName, int methodArity, int methodParameterCount, bool strict)
         {
             FullyQualifiedTypeName = fullyQualifiedTypeName;
             MethodName = methodName;
             MethodArity = methodArity;
             MethodParameterCount = methodParameterCount;
+            Strict = strict;
         }
     }
 }

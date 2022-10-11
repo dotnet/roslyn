@@ -14929,5 +14929,398 @@ ref struct R2
             }
             EOF();
         }
+
+        [Fact]
+        public void Fixed_01()
+        {
+            string source =
+@"
+fixed (scoped int* a = b);
+";
+            UsingTree(source,
+                // (2,15): error CS1001: Identifier expected
+                // fixed (scoped int* a = b);
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "int").WithLocation(2, 15),
+                // (2,15): error CS1003: Syntax error, ',' expected
+                // fixed (scoped int* a = b);
+                Diagnostic(ErrorCode.ERR_SyntaxError, "int").WithArguments(",").WithLocation(2, 15)
+                );
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.GlobalStatement);
+                {
+                    N(SyntaxKind.FixedStatement);
+                    {
+                        N(SyntaxKind.FixedKeyword);
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.VariableDeclaration);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "scoped");
+                            }
+                            M(SyntaxKind.VariableDeclarator);
+                            {
+                                M(SyntaxKind.IdentifierToken);
+                            }
+                        }
+                        N(SyntaxKind.CloseParenToken);
+                        N(SyntaxKind.EmptyStatement);
+                        {
+                            N(SyntaxKind.SemicolonToken);
+                        }
+                    }
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void Fixed_02()
+        {
+            string source =
+@"
+fixed (scoped ref int* a = b);
+";
+            UsingTree(source,
+                // (2,15): error CS1001: Identifier expected
+                // fixed (scoped ref int* a = b);
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "ref").WithLocation(2, 15),
+                // (2,15): error CS1003: Syntax error, ',' expected
+                // fixed (scoped ref int* a = b);
+                Diagnostic(ErrorCode.ERR_SyntaxError, "ref").WithArguments(",").WithLocation(2, 15)
+                );
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.GlobalStatement);
+                {
+                    N(SyntaxKind.FixedStatement);
+                    {
+                        N(SyntaxKind.FixedKeyword);
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.VariableDeclaration);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "scoped");
+                            }
+                            M(SyntaxKind.VariableDeclarator);
+                            {
+                                M(SyntaxKind.IdentifierToken);
+                            }
+                        }
+                        N(SyntaxKind.CloseParenToken);
+                        N(SyntaxKind.EmptyStatement);
+                        {
+                            N(SyntaxKind.SemicolonToken);
+                        }
+                    }
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void Fixed_03()
+        {
+            string source =
+@"
+fixed (scoped ref readonly int* a = b);
+";
+            UsingTree(source,
+                // (2,15): error CS1001: Identifier expected
+                // fixed (scoped ref readonly int* a = b);
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "ref").WithLocation(2, 15),
+                // (2,15): error CS1003: Syntax error, ',' expected
+                // fixed (scoped ref readonly int* a = b);
+                Diagnostic(ErrorCode.ERR_SyntaxError, "ref").WithArguments(",").WithLocation(2, 15)
+                );
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.GlobalStatement);
+                {
+                    N(SyntaxKind.FixedStatement);
+                    {
+                        N(SyntaxKind.FixedKeyword);
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.VariableDeclaration);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "scoped");
+                            }
+                            M(SyntaxKind.VariableDeclarator);
+                            {
+                                M(SyntaxKind.IdentifierToken);
+                            }
+                        }
+                        N(SyntaxKind.CloseParenToken);
+                        N(SyntaxKind.EmptyStatement);
+                        {
+                            N(SyntaxKind.SemicolonToken);
+                        }
+                    }
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void Catch_01()
+        {
+            string source =
+@"
+try {}
+catch (scoped T a) {}
+";
+            UsingTree(source,
+                // (3,17): error CS1026: ) expected
+                // catch (scoped T a) {}
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, "a").WithLocation(3, 17),
+                // (3,17): error CS1514: { expected
+                // catch (scoped T a) {}
+                Diagnostic(ErrorCode.ERR_LbraceExpected, "a").WithLocation(3, 17),
+                // (3,18): error CS1002: ; expected
+                // catch (scoped T a) {}
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, ")").WithLocation(3, 18),
+                // (3,18): error CS1513: } expected
+                // catch (scoped T a) {}
+                Diagnostic(ErrorCode.ERR_RbraceExpected, ")").WithLocation(3, 18),
+                // (3,22): error CS1513: } expected
+                // catch (scoped T a) {}
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(3, 22)
+                );
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.GlobalStatement);
+                {
+                    N(SyntaxKind.TryStatement);
+                    {
+                        N(SyntaxKind.TryKeyword);
+                        N(SyntaxKind.Block);
+                        {
+                            N(SyntaxKind.OpenBraceToken);
+                            N(SyntaxKind.CloseBraceToken);
+                        }
+                        N(SyntaxKind.CatchClause);
+                        {
+                            N(SyntaxKind.CatchKeyword);
+                            N(SyntaxKind.CatchDeclaration);
+                            {
+                                N(SyntaxKind.OpenParenToken);
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "scoped");
+                                }
+                                N(SyntaxKind.IdentifierToken, "T");
+                                M(SyntaxKind.CloseParenToken);
+                            }
+                            N(SyntaxKind.Block);
+                            {
+                                M(SyntaxKind.OpenBraceToken);
+                                N(SyntaxKind.ExpressionStatement);
+                                {
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "a");
+                                    }
+                                    M(SyntaxKind.SemicolonToken);
+                                }
+                                N(SyntaxKind.Block);
+                                {
+                                    N(SyntaxKind.OpenBraceToken);
+                                    N(SyntaxKind.CloseBraceToken);
+                                }
+                                M(SyntaxKind.CloseBraceToken);
+                            }
+                        }
+                    }
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void Catch_02()
+        {
+            string source =
+@"
+try {}
+catch (scoped ref T a) {}
+";
+            UsingTree(source,
+                // (3,15): error CS1026: ) expected
+                // catch (scoped ref T a) {}
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, "ref").WithLocation(3, 15),
+                // (3,15): error CS1514: { expected
+                // catch (scoped ref T a) {}
+                Diagnostic(ErrorCode.ERR_LbraceExpected, "ref").WithLocation(3, 15),
+                // (3,22): error CS1002: ; expected
+                // catch (scoped ref T a) {}
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, ")").WithLocation(3, 22),
+                // (3,22): error CS1513: } expected
+                // catch (scoped ref T a) {}
+                Diagnostic(ErrorCode.ERR_RbraceExpected, ")").WithLocation(3, 22),
+                // (3,26): error CS1513: } expected
+                // catch (scoped ref T a) {}
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(3, 26)
+                );
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.GlobalStatement);
+                {
+                    N(SyntaxKind.TryStatement);
+                    {
+                        N(SyntaxKind.TryKeyword);
+                        N(SyntaxKind.Block);
+                        {
+                            N(SyntaxKind.OpenBraceToken);
+                            N(SyntaxKind.CloseBraceToken);
+                        }
+                        N(SyntaxKind.CatchClause);
+                        {
+                            N(SyntaxKind.CatchKeyword);
+                            N(SyntaxKind.CatchDeclaration);
+                            {
+                                N(SyntaxKind.OpenParenToken);
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "scoped");
+                                }
+                                M(SyntaxKind.CloseParenToken);
+                            }
+                            N(SyntaxKind.Block);
+                            {
+                                M(SyntaxKind.OpenBraceToken);
+                                N(SyntaxKind.LocalDeclarationStatement);
+                                {
+                                    N(SyntaxKind.VariableDeclaration);
+                                    {
+                                        N(SyntaxKind.RefType);
+                                        {
+                                            N(SyntaxKind.RefKeyword);
+                                            N(SyntaxKind.IdentifierName);
+                                            {
+                                                N(SyntaxKind.IdentifierToken, "T");
+                                            }
+                                        }
+                                        N(SyntaxKind.VariableDeclarator);
+                                        {
+                                            N(SyntaxKind.IdentifierToken, "a");
+                                        }
+                                    }
+                                    M(SyntaxKind.SemicolonToken);
+                                }
+                                N(SyntaxKind.Block);
+                                {
+                                    N(SyntaxKind.OpenBraceToken);
+                                    N(SyntaxKind.CloseBraceToken);
+                                }
+                                M(SyntaxKind.CloseBraceToken);
+                            }
+                        }
+                    }
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void Catch_03()
+        {
+            string source =
+@"
+try {}
+catch (scoped ref readonly T a) {}
+";
+            UsingTree(source,
+                // (3,15): error CS1026: ) expected
+                // catch (scoped ref readonly T a) {}
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, "ref").WithLocation(3, 15),
+                // (3,15): error CS1514: { expected
+                // catch (scoped ref readonly T a) {}
+                Diagnostic(ErrorCode.ERR_LbraceExpected, "ref").WithLocation(3, 15),
+                // (3,31): error CS1002: ; expected
+                // catch (scoped ref readonly T a) {}
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, ")").WithLocation(3, 31),
+                // (3,31): error CS1513: } expected
+                // catch (scoped ref readonly T a) {}
+                Diagnostic(ErrorCode.ERR_RbraceExpected, ")").WithLocation(3, 31),
+                // (3,35): error CS1513: } expected
+                // catch (scoped ref readonly T a) {}
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(3, 35)
+                );
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.GlobalStatement);
+                {
+                    N(SyntaxKind.TryStatement);
+                    {
+                        N(SyntaxKind.TryKeyword);
+                        N(SyntaxKind.Block);
+                        {
+                            N(SyntaxKind.OpenBraceToken);
+                            N(SyntaxKind.CloseBraceToken);
+                        }
+                        N(SyntaxKind.CatchClause);
+                        {
+                            N(SyntaxKind.CatchKeyword);
+                            N(SyntaxKind.CatchDeclaration);
+                            {
+                                N(SyntaxKind.OpenParenToken);
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "scoped");
+                                }
+                                M(SyntaxKind.CloseParenToken);
+                            }
+                            N(SyntaxKind.Block);
+                            {
+                                M(SyntaxKind.OpenBraceToken);
+                                N(SyntaxKind.LocalDeclarationStatement);
+                                {
+                                    N(SyntaxKind.VariableDeclaration);
+                                    {
+                                        N(SyntaxKind.RefType);
+                                        {
+                                            N(SyntaxKind.RefKeyword);
+                                            N(SyntaxKind.ReadOnlyKeyword);
+                                            N(SyntaxKind.IdentifierName);
+                                            {
+                                                N(SyntaxKind.IdentifierToken, "T");
+                                            }
+                                        }
+                                        N(SyntaxKind.VariableDeclarator);
+                                        {
+                                            N(SyntaxKind.IdentifierToken, "a");
+                                        }
+                                    }
+                                    M(SyntaxKind.SemicolonToken);
+                                }
+                                N(SyntaxKind.Block);
+                                {
+                                    N(SyntaxKind.OpenBraceToken);
+                                    N(SyntaxKind.CloseBraceToken);
+                                }
+                                M(SyntaxKind.CloseBraceToken);
+                            }
+                        }
+                    }
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
     }
 }

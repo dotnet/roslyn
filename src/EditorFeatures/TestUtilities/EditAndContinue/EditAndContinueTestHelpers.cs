@@ -382,7 +382,16 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 
         private void CreateProjects(EditScript<SyntaxNode>[] editScripts, AdhocWorkspace workspace, TargetFramework targetFramework, out Project oldProject, out Project newProject)
         {
-            var projectInfo = ProjectInfo.Create(ProjectId.CreateNewId(), VersionStamp.Create(), name: "project", assemblyName: "project", LanguageName, filePath: Path.Combine(TempRoot.Root, "project" + ProjectFileExtension));
+            var projectInfo = ProjectInfo.Create(
+                new ProjectInfo.ProjectAttributes(
+                    id: ProjectId.CreateNewId(),
+                    version: VersionStamp.Create(),
+                    name: "project",
+                    assemblyName: "project",
+                    language: LanguageName,
+                    compilationOutputFilePaths: default,
+                    filePath: Path.Combine(TempRoot.Root, "project" + ProjectFileExtension),
+                    checksumAlgorithm: SourceHashAlgorithms.Default));
 
             oldProject = workspace.AddProject(projectInfo).WithMetadataReferences(TargetFrameworkUtil.GetReferences(targetFramework));
             foreach (var editScript in editScripts)

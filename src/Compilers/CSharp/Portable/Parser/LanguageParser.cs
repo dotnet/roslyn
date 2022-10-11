@@ -6780,7 +6780,7 @@ tryAgain:
                     }
 
                 default:
-                    throw ExceptionUtilities.Unreachable;
+                    throw ExceptionUtilities.Unreachable();
             }
         }
 

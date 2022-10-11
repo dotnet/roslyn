@@ -88,7 +88,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         n = w.WhenFalse;
                         break;
                     default:
-                        throw ExceptionUtilities.Unreachable;
+                        throw ExceptionUtilities.Unreachable();
                 }
             }
 
@@ -555,7 +555,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return $"> ({type.ToDisplayString()})uint.MaxValue";
             }
 
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 
         private static string ValueString(ConstantValue value, TypeSymbol type, bool requireExactType)

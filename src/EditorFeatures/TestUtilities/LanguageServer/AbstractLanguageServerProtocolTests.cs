@@ -333,7 +333,7 @@ namespace Roslyn.Test.Utilities
                 solution = solution.WithDocumentFilePath(document.Id, GetDocumentFilePathFromName(document.Name));
 
                 var documentText = await solution.GetRequiredDocument(document.Id).GetTextAsync(CancellationToken.None);
-                solution = solution.WithDocumentText(document.Id, SourceText.From(documentText.ToString(), System.Text.Encoding.UTF8));
+                solution = solution.WithDocumentText(document.Id, SourceText.From(documentText.ToString(), System.Text.Encoding.UTF8, SourceHashAlgorithms.Default));
             }
 
             foreach (var project in workspace.Projects)
@@ -397,8 +397,14 @@ namespace Roslyn.Test.Utilities
             var generatedDocumentId = DocumentId.CreateNewId(workspace.CurrentSolution.ProjectIds.First());
             var version = VersionStamp.Create();
             var loader = TextLoader.From(TextAndVersion.Create(SourceText.From(markup), version, TestSpanMapper.GeneratedFileName));
-            var generatedDocumentInfo = DocumentInfo.Create(generatedDocumentId, TestSpanMapper.GeneratedFileName, SpecializedCollections.EmptyReadOnlyList<string>(),
-                SourceCodeKind.Regular, loader, $"C:\\{TestSpanMapper.GeneratedFileName}", isGenerated: true, designTimeOnly: false, new TestSpanMapperProvider());
+            var generatedDocumentInfo = DocumentInfo.Create(
+                generatedDocumentId,
+                TestSpanMapper.GeneratedFileName,
+                loader: loader,
+                filePath: $"C:\\{TestSpanMapper.GeneratedFileName}",
+                isGenerated: true)
+                .WithDocumentServiceProvider(new TestSpanMapperProvider());
+
             var newSolution = workspace.CurrentSolution.AddDocument(generatedDocumentInfo);
             workspace.TryApplyChanges(newSolution);
         }
@@ -671,7 +677,7 @@ namespace Roslyn.Test.Utilities
                 // Some tests manually call shutdown, so avoid calling shutdown twice if already called.
                 if (!LanguageServer.HasShutdownStarted)
                 {
-                    await LanguageServer.GetTestAccessor().ShutdownServerAsync();
+                    await LanguageServer.GetTestAccessor().ShutdownServerAsync("Disposing of test lsp server");
                 }
 
                 await LanguageServer.GetTestAccessor().ExitServerAsync();

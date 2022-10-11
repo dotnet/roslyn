@@ -9,6 +9,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client.Projects
@@ -17,20 +18,21 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client.Projects
     /// This is a FileTextLoader which no-ops if the file is not available on disk. This is the common case for
     /// Cascade and throwing exceptions slows down GetText operations significantly enough to have visible UX impact.
     /// </summary>
-    internal class FileTextLoaderNoException : FileTextLoader
+    internal sealed class WorkspaceFileTextLoaderNoException : WorkspaceFileTextLoader
     {
-        public FileTextLoaderNoException(string path, Encoding defaultEncoding) : base(path, defaultEncoding)
+        public WorkspaceFileTextLoaderNoException(SolutionServices services, string path, Encoding defaultEncoding)
+            : base(services, path, defaultEncoding)
         {
         }
 
-        public override Task<TextAndVersion> LoadTextAndVersionAsync(CodeAnalysis.Workspace workspace, DocumentId documentId, CancellationToken cancellationToken)
+        internal override Task<TextAndVersion> LoadTextAndVersionAsync(LoadTextOptions options, CancellationToken cancellationToken)
         {
             if (!File.Exists(Path))
             {
-                return Task.FromResult(TextAndVersion.Create(SourceText.From(""), VersionStamp.Create()));
+                return Task.FromResult(TextAndVersion.Create(SourceText.From("", encoding: null, options.ChecksumAlgorithm), VersionStamp.Create()));
             }
 
-            return base.LoadTextAndVersionAsync(workspace, documentId, cancellationToken);
+            return base.LoadTextAndVersionAsync(options, cancellationToken);
         }
     }
 }
