@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
         [SuggestedActionPriority(DefaultOrderings.Highest)]
         [SuggestedActionPriority(DefaultOrderings.Default)]
         [SuggestedActionPriority(DefaultOrderings.Lowest)]
-        private sealed class SourceDocumentProvider : SuggestedActionsSourceProvider
+        internal sealed class SourceDocumentProvider : SuggestedActionsSourceProvider
         {
             [ImportingConstructor]
             [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
