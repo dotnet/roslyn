@@ -390,7 +390,7 @@ End Class</a>
             triggerInfo = If(triggerInfo, CompletionTrigger.CreateInsertionTrigger("a"c))
 
             Dim service = GetCompletionService(document.Project)
-            Dim provider = Assert.Single(service.GetTestAccessor().GetAllProviders(ImmutableHashSet(Of String).Empty))
+            Dim provider = Assert.Single(service.GetTestAccessor().GetImportedAndBuiltInProviders(ImmutableHashSet(Of String).Empty))
             Dim context = Await service.GetTestAccessor().GetContextAsync(
                 provider, document, position, triggerInfo.Value, options, CancellationToken.None)
 
