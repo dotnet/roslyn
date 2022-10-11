@@ -11,17 +11,38 @@ Imports Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings
 Imports Microsoft.CodeAnalysis.Remote.Testing
 Imports Microsoft.CodeAnalysis.VisualBasic.ConvertTupleToStruct
 
+Imports VerifyVB = Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions.VisualBasicCodeRefactoringVerifier(Of
+    Microsoft.CodeAnalysis.VisualBasic.ConvertTupleToStruct.VisualBasicConvertTupleToStructCodeRefactoringProvider)
+
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.ConvertTupleToStruct
     <Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)>
     Public Class ConvertTupleToStructTests
-        Inherits AbstractVisualBasicCodeActionTest
 
-        Protected Overrides Function CreateCodeRefactoringProvider(workspace As Workspace, parameters As TestParameters) As CodeRefactoringProvider
-            Return New VisualBasicConvertTupleToStructCodeRefactoringProvider()
-        End Function
+        Private Shared Async Function TestAsync(
+            text As String,
+            expected As String,
+            Optional index As Integer = 0,
+            Optional equivalenceKey As String = Nothing,
+            Optional LanguageVersion As LanguageVersion = LanguageVersion.VisualBasic9,
+            Optional testHost As TestHost = TestHost.InProcess,
+            Optional actions As String() = Nothing) As Task
 
-        Protected Overrides Function MassageActions(actions As ImmutableArray(Of CodeAction)) As ImmutableArray(Of CodeAction)
-            Return FlattenActions(actions)
+            If index <> 0 Then
+                Assert.NotNull(equivalenceKey)
+            End If
+
+            ' Options ??= new OptionsCollection(LanguageNames.CSharp);
+
+            Dim test = New VerifyVB.Test With {
+                .TestCode = text,
+                .FixedCode = expected,
+                .TestHost = testHost,
+                .LanguageVersion = LanguageVersion,
+                .CodeActionIndex = index,
+                .CodeActionEquivalenceKey = equivalenceKey,
+                .ExactActionSetOffered = actions
+            }
+            Await test.RunAsync()
         End Function
 
 #Region "update containing member tests"
