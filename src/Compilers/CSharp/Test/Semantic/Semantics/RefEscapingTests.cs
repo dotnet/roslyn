@@ -3658,6 +3658,76 @@ public static class Extensions
             }
         }
 
+        [ConditionalTheory(typeof(CoreClrOnly))]
+        [InlineData(LanguageVersion.CSharp10)]
+        [InlineData(LanguageVersion.CSharp11)]
+        public void DeconstructionAssignmentWithRefReadonlyExtension_02(LanguageVersion languageVersion)
+        {
+            var text = @"
+using System;
+
+public class C
+{
+    static void M()
+    {
+        Span<int> local = stackalloc int[10];
+        Span<int> x1, y1;
+        (x1, y1) = local; // 1
+        var (x2, y2) = local;
+        (var x3, var y3) = local;
+        (Span<int> x4, Span<int> y4) = local;
+    }
+}
+public static class Extensions
+{
+    public static void Deconstruct(in this Span<int> self, out Span<int> x, out Span<int> y) => throw null;
+}
+";
+            var comp = CreateCompilation(text, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion), targetFramework: TargetFramework.NetCoreApp);
+            comp.VerifyDiagnostics(
+                // (10,9): error CS8352: Cannot use variable '(x1, y1) = local' in this context because it may expose referenced variables outside of their declaration scope
+                //         (x1, y1) = local; // 1
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "(x1, y1) = local").WithArguments("(x1, y1) = local").WithLocation(10, 9),
+                // (10,20): error CS8350: This combination of arguments to 'Extensions.Deconstruct(in Span<int>, out Span<int>, out Span<int>)' is disallowed because it may expose variables referenced by parameter 'self' outside of their declaration scope
+                //         (x1, y1) = local; // 1
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "local").WithArguments("Extensions.Deconstruct(in System.Span<int>, out System.Span<int>, out System.Span<int>)", "self").WithLocation(10, 20));
+        }
+
+        [ConditionalTheory(typeof(CoreClrOnly))]
+        [InlineData(LanguageVersion.CSharp10)]
+        [InlineData(LanguageVersion.CSharp11)]
+        public void DeconstructionAssignmentWithRefReadonlyExtension_03(LanguageVersion languageVersion)
+        {
+            var text = @"
+using System;
+
+public class C
+{
+    static void M()
+    {
+        ReadOnlySpan<int> local = stackalloc int[10];
+        ReadOnlySpan<int> x1, y1;
+        (x1, y1) = local; // 1
+        var (x2, y2) = local;
+        (var x3, var y3) = local;
+        (ReadOnlySpan<int> x4, ReadOnlySpan<int> y4) = local;
+    }
+}
+public static class Extensions
+{
+    public static void Deconstruct(in this ReadOnlySpan<int> self, out ReadOnlySpan<int> x, out ReadOnlySpan<int> y) => throw null;
+}
+";
+            var comp = CreateCompilation(text, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion), targetFramework: TargetFramework.NetCoreApp);
+            comp.VerifyDiagnostics(
+                // (10,9): error CS8352: Cannot use variable '(x1, y1) = local' in this context because it may expose referenced variables outside of their declaration scope
+                //         (x1, y1) = local; // 1
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "(x1, y1) = local").WithArguments("(x1, y1) = local").WithLocation(10, 9),
+                // (10,20): error CS8350: This combination of arguments to 'Extensions.Deconstruct(in ReadOnlySpan<int>, out ReadOnlySpan<int>, out ReadOnlySpan<int>)' is disallowed because it may expose variables referenced by parameter 'self' outside of their declaration scope
+                //         (x1, y1) = local; // 1
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "local").WithArguments("Extensions.Deconstruct(in System.ReadOnlySpan<int>, out System.ReadOnlySpan<int>, out System.ReadOnlySpan<int>)", "self").WithLocation(10, 20));
+        }
+
         [Theory]
         [InlineData(LanguageVersion.CSharp10)]
         [InlineData(LanguageVersion.CSharp11)]
@@ -4033,20 +4103,14 @@ public static class Extensions
     public static void Deconstruct(this Span<int> self, out Span<int> x, out Span<int> y) => throw null;
 }
 ";
-            CreateCompilationWithMscorlibAndSpan(text, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion)).VerifyDiagnostics(
-                // (9,9): error CS8352: Cannot use variable 'var (local1, local2) = local' in this context because it may expose referenced variables outside of their declaration scope
-                //         var (local1, local2) = local;
-                Diagnostic(ErrorCode.ERR_EscapeVariable, "var (local1, local2) = local").WithArguments("var (local1, local2) = local").WithLocation(9, 9),
-                // (9,32): error CS8350: This combination of arguments to 'Extensions.Deconstruct(Span<int>, out Span<int>, out Span<int>)' is disallowed because it may expose variables referenced by parameter 'self' outside of their declaration scope
-                //         var (local1, local2) = local;
-                Diagnostic(ErrorCode.ERR_CallArgMixing, "local").WithArguments("Extensions.Deconstruct(System.Span<int>, out System.Span<int>, out System.Span<int>)", "self").WithLocation(9, 32),
+            var comp = CreateCompilationWithMscorlibAndSpan(text, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
+            comp.VerifyDiagnostics(
                 // (10,18): error CS8352: Cannot use variable 'local1' in this context because it may expose referenced variables outside of their declaration scope
                 //         global = local1; // error 1
                 Diagnostic(ErrorCode.ERR_EscapeVariable, "local1").WithArguments("local1").WithLocation(10, 18),
                 // (11,18): error CS8352: Cannot use variable 'local2' in this context because it may expose referenced variables outside of their declaration scope
                 //         global = local2; // error 2
-                Diagnostic(ErrorCode.ERR_EscapeVariable, "local2").WithArguments("local2").WithLocation(11, 18)
-            );
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "local2").WithArguments("local2").WithLocation(11, 18));
         }
 
         [Theory]
@@ -4117,35 +4181,50 @@ public ref struct S
 }
 ";
             var comp = CreateCompilationWithMscorlibAndSpan(text, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
-            if (languageVersion == LanguageVersion.CSharp10)
-            {
-                comp.VerifyDiagnostics(
-                    // (9,18): error CS8352: Cannot use variable 'var (local1, local2)' in this context because it may expose referenced variables outside of their declaration scope
-                    //         foreach (var (local1, local2) in localCollection)
-                    Diagnostic(ErrorCode.ERR_EscapeVariable, "var (local1, local2)").WithArguments("var (local1, local2)").WithLocation(9, 18),
-                    // (11,22): error CS8352: Cannot use variable 'local1' in this context because it may expose referenced variables outside of their declaration scope
-                    //             global = local1; // error 1
-                    Diagnostic(ErrorCode.ERR_EscapeVariable, "local1").WithArguments("local1").WithLocation(11, 22),
-                    // (12,22): error CS8352: Cannot use variable 'local2' in this context because it may expose referenced variables outside of their declaration scope
-                    //             global = local2; // error 2
-                    Diagnostic(ErrorCode.ERR_EscapeVariable, "local2").WithArguments("local2").WithLocation(12, 22));
-            }
-            else
-            {
-                comp.VerifyDiagnostics(
-                    // (9,18): error CS8352: Cannot use variable 'var (local1, local2)' in this context because it may expose referenced variables outside of their declaration scope
-                    //         foreach (var (local1, local2) in localCollection)
-                    Diagnostic(ErrorCode.ERR_EscapeVariable, "var (local1, local2)").WithArguments("var (local1, local2)").WithLocation(9, 18),
-                    // (9,42): error CS8350: This combination of arguments to 'S.Deconstruct(out S, out S)' is disallowed because it may expose variables referenced by parameter 'this' outside of their declaration scope
-                    //         foreach (var (local1, local2) in localCollection)
-                    Diagnostic(ErrorCode.ERR_CallArgMixing, "localCollection").WithArguments("S.Deconstruct(out S, out S)", "this").WithLocation(9, 42),
-                    // (11,22): error CS8352: Cannot use variable 'local1' in this context because it may expose referenced variables outside of their declaration scope
-                    //             global = local1; // error 1
-                    Diagnostic(ErrorCode.ERR_EscapeVariable, "local1").WithArguments("local1").WithLocation(11, 22),
-                    // (12,22): error CS8352: Cannot use variable 'local2' in this context because it may expose referenced variables outside of their declaration scope
-                    //             global = local2; // error 2
-                    Diagnostic(ErrorCode.ERR_EscapeVariable, "local2").WithArguments("local2").WithLocation(12, 22));
-            }
+            comp.VerifyDiagnostics(
+                // (11,22): error CS8352: Cannot use variable 'local1' in this context because it may expose referenced variables outside of their declaration scope
+                //             global = local1; // error 1
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "local1").WithArguments("local1").WithLocation(11, 22),
+                // (12,22): error CS8352: Cannot use variable 'local2' in this context because it may expose referenced variables outside of their declaration scope
+                //             global = local2; // error 2
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "local2").WithArguments("local2").WithLocation(12, 22));
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void RefLikeDeconstruction(
+            [CombinatorialValues(LanguageVersion.CSharp10, LanguageVersion.CSharp11)] LanguageVersion languageVersion,
+            bool useReadOnly)
+        {
+            string refModifier = useReadOnly ? "readonly" : "";
+            var text = $@"
+using System;
+
+public class C
+{{
+    public void M(ref S global)
+    {{
+        S localCollection = stackalloc int[10];
+        var (local1, local2) = localCollection;
+        global = local1; // error 1
+        global = local2; // error 2
+    }}
+}}
+
+public {refModifier} ref struct S
+{{
+    public static implicit operator S(Span<int> s) => throw null;
+    public void Deconstruct(out S s1, out S s2) => throw null;
+}}
+";
+            var comp = CreateCompilationWithMscorlibAndSpan(text, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
+            comp.VerifyDiagnostics(
+                // (10,18): error CS8352: Cannot use variable 'local1' in this context because it may expose referenced variables outside of their declaration scope
+                //         global = local1; // error 1
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "local1").WithArguments("local1").WithLocation(10, 18),
+                // (11,18): error CS8352: Cannot use variable 'local2' in this context because it may expose referenced variables outside of their declaration scope
+                //         global = local2; // error 2
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "local2").WithArguments("local2").WithLocation(11, 18));
         }
 
         [WorkItem(22361, "https://github.com/dotnet/roslyn/issues/22361")]

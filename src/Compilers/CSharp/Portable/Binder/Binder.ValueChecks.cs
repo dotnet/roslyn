@@ -1973,7 +1973,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 parameter.RefKind.IsWritableReference();
 
             static bool isMixableArgument(BoundExpression argument) =>
-                argument is not (BoundDeconstructValuePlaceholder or BoundLocal { DeclarationKind: not BoundLocalDeclarationKind.None });
+                argument is not (BoundDeconstructValuePlaceholder { VariableSymbol: not null } or BoundLocal { DeclarationKind: not BoundLocalDeclarationKind.None });
 
             static EscapeArgument getReceiver(Symbol symbol, BoundExpression receiver)
             {
@@ -2206,8 +2206,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var symbol = argument switch
             {
-                BoundDeconstructValuePlaceholder p => p.ExpressionSymbol,
-                BoundLocal { DeclarationKind: not BoundLocalDeclarationKind.None } l => l.ExpressionSymbol,
+                BoundDeconstructValuePlaceholder p => p.VariableSymbol,
+                BoundLocal { DeclarationKind: not BoundLocalDeclarationKind.None } l => l.LocalSymbol,
                 _ => null
             };
             if (symbol is SourceLocalSymbol { ValEscapeScope: CallingMethodScope } local)
