@@ -16,9 +16,15 @@ namespace Microsoft.CodeAnalysis.LanguageServer
         {
         }
 
-        public override Task WrapStartRequestTaskAsync(Task nonMutatingRequestTask)
+        public override Task WrapStartRequestTaskAsync(Task nonMutatingRequestTask, bool rethrowExceptions)
         {
-            return nonMutatingRequestTask.ReportNonFatalErrorAsync();
+            if (rethrowExceptions)
+            {
+                return nonMutatingRequestTask;
+            }
+            else{
+                return nonMutatingRequestTask.ReportNonFatalErrorAsync();
+            }
         }
     }
 }

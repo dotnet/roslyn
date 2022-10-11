@@ -197,7 +197,7 @@ public class RequestExecutionQueue<TRequestContext> : IRequestExecutionQueue<TRe
                     {
                         // Mutating requests block other requests from starting to ensure an up to date snapshot is used.
                         // Since we're explicitly awaiting exceptions to mutating requests will bubble up here.
-                        await WrapStartRequestTaskAsync(work.StartRequestAsync(context, cancellationToken)).ConfigureAwait(false);
+                        await WrapStartRequestTaskAsync(work.StartRequestAsync(context, cancellationToken), rethrowExceptions: true).ConfigureAwait(false);
                     }
                     else
                     {
@@ -206,7 +206,7 @@ public class RequestExecutionQueue<TRequestContext> : IRequestExecutionQueue<TRe
                         // though these errors don't put us into a bad state as far as the rest of the queue goes.
                         // Furthermore we use Task.Run here to protect ourselves against synchronous execution of work
                         // blocking the request queue for longer periods of time (it enforces parallelizabilty).
-                        _ = WrapStartRequestTaskAsync(Task.Run(() => work.StartRequestAsync(context, cancellationToken), cancellationToken));
+                        _ = WrapStartRequestTaskAsync(Task.Run(() => work.StartRequestAsync(context, cancellationToken), cancellationToken), rethrowExceptions: false);
                     }
                 }
                 catch (OperationCanceledException ex) when (ex.CancellationToken == queueItem.cancellationToken)
@@ -242,7 +242,7 @@ public class RequestExecutionQueue<TRequestContext> : IRequestExecutionQueue<TRe
     /// </summary>
     /// <param name="nonMutatingRequestTask">The task to be inspected.</param>
     /// <returns>The task from <paramref name="nonMutatingRequestTask"/>, to allow chained calls if needed.</returns>
-    public virtual Task WrapStartRequestTaskAsync(Task nonMutatingRequestTask)
+    public virtual Task WrapStartRequestTaskAsync(Task nonMutatingRequestTask, bool rethrowExceptions)
     {
         return nonMutatingRequestTask;
     }
