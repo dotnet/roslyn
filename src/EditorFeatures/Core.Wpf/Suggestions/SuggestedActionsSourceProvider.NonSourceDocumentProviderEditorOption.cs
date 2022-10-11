@@ -13,6 +13,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 {
     internal partial class SuggestedActionsSourceProvider
     {
+        /// <summary>
+        /// Method to enable quick actions inside non-source documents, i.e. <see cref="AdditionalDocument"/> and
+        /// <see cref="AnalyzerConfigDocument"/>.
+        /// </summary>
+        /// <remarks>This method must be invoked on the UI thread.</remarks>
         public static void EnableForNonSourceDocuments(IEditorOptionsFactoryService editorOptionsFactory)
             => editorOptionsFactory.GlobalOptions.SetOptionValue(NonSourceDocumentProviderEditorOption.OptionName, true);
 
