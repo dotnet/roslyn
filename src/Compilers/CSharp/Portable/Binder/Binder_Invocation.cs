@@ -1128,7 +1128,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (!gotError)
             {
-                gotError = !CheckInvocationArgMixing(
+                CheckInvocationArgMixing(
                     node,
                     method,
                     receiver,
