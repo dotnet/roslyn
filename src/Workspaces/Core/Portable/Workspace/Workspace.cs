@@ -419,6 +419,8 @@ namespace Microsoft.CodeAnalysis
             {
                 var (oldSolution, newSolution) = this.SetCurrentSolution(this.CreateSolution(reloadedSolutionInfo));
 
+                // Pass 'silent: true' so we don't issue individual project adds.  We'll just issue one event
+                // representing the entire solution-reload.
                 foreach (var project in reloadedSolutionInfo.Projects)
                     (_, newSolution) = OnProjectAdded_NoLock(project, silent: true);
 
