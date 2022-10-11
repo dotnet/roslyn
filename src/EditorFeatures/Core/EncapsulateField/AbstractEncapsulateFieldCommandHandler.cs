@@ -115,12 +115,16 @@ namespace Microsoft.CodeAnalysis.EncapsulateField
         {
             var finalSolution = await result.GetSolutionAsync(cancellationToken).ConfigureAwait(false);
 
+            // Move to the UI thread to apply changes
+            await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
             var solution = document.Project.Solution;
             var workspace = solution.Workspace;
             var previewService = workspace.Services.GetService<IPreviewDialogService>();
             if (previewService != null)
             {
-                await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+                // Configure await true because TryApplyChanges below must be
+                // called on the UI thread
                 finalSolution = await previewService.PreviewChangesAsync(
                     string.Format(EditorFeaturesResources.Preview_Changes_0, EditorFeaturesResources.Encapsulate_Field),
                      "vs.csharp.refactoring.preview",
@@ -129,7 +133,7 @@ namespace Microsoft.CodeAnalysis.EncapsulateField
                     result.Glyph,
                     finalSolution,
                     solution,
-                    cancellationToken).ConfigureAwait(false);
+                    cancellationToken).ConfigureAwait(true);
             }
 
             if (finalSolution == null)

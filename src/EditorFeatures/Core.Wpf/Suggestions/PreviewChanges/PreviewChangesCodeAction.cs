@@ -47,8 +47,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                         CodeAnalysis.Glyph.OpenFolder,
                         _changeSummary.NewSolution,
                         _changeSummary.OldSolution,
-                        cancellationToken,
-                        showCheckBoxes: false).ConfigureAwait(false);
+                        showCheckBoxes: false,
+                        cancellationToken).ConfigureAwait(false);
 
                     if (changedSolution == null)
                     {

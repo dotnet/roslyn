@@ -37,6 +37,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Preview
         public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
             => this;
 
+        public Task<Solution?> PreviewChangesAsync(
+           string title,
+           string helpString,
+           string description,
+           string? topLevelName,
+           Glyph topLevelGlyph,
+           Solution newSolution,
+           Solution oldSolution,
+           CancellationToken cancellationToken)
+            => PreviewChangesAsync(title, helpString, description, topLevelName, topLevelGlyph, newSolution, oldSolution, showCheckBoxes: true, cancellationToken);
+
         public async Task<Solution?> PreviewChangesAsync(
             string title,
             string helpString,
@@ -45,8 +56,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Preview
             Glyph topLevelGlyph,
             Solution newSolution,
             Solution oldSolution,
-            CancellationToken cancellationToken,
-            bool showCheckBoxes = true)
+            bool showCheckBoxes,
+            CancellationToken cancellationToken)
         {
             await ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 

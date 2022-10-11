@@ -93,8 +93,6 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
                     _globalOptions.CreateProvider(),
                     cancellationToken).ConfigureAwait(false);
 
-                // UI thread bound operation to show the change signature dialog.
-                await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
                 var changeSignatureOptions = AbstractChangeSignatureService.GetChangeSignatureOptions(changeSignatureContext);
 
                 // Async operation to compute the new solution created from the specified options.
@@ -143,7 +141,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
                     string.Format(EditorFeaturesResources.Preview_Changes_0, EditorFeaturesResources.Change_Signature),
                     "vs.csharp.refactoring.preview",
                     EditorFeaturesResources.Change_Signature_colon,
-                    result.Name ?? "",
+                    result.Name,
                     result.Glyph.GetValueOrDefault(),
                     result.UpdatedSolution,
                     oldSolution,
