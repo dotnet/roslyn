@@ -419,7 +419,10 @@ namespace Microsoft.CodeAnalysis
                 reloadedSolutionInfo.Projects.Do(pi => OnProjectAdded_NoLock(pi, silent: true));
 
                 newSolution = this.AdjustReloadedSolution(oldSolution, this.CurrentSolution);
-                (oldSolution, newSolution) = this.SetCurrentSolution(newSolution);
+
+                // Ignore 'oldSolution' here.  We care about the original oldSolution prior to all these individual
+                // changes we're making.
+                (_, newSolution) = this.SetCurrentSolution(newSolution);
 
                 this.RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.SolutionReloaded, oldSolution, newSolution);
             }
