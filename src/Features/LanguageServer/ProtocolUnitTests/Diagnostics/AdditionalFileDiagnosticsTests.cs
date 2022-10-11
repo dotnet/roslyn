@@ -24,6 +24,7 @@ public class AdditionalFileDiagnosticsTests : AbstractPullDiagnosticTestsBase
     public AdditionalFileDiagnosticsTests(ITestOutputHelper testOutputHelper)
     {
         _testOutputLogger = new TestOutputLspLogger(testOutputHelper);
+        Console.SetOut(_testOutputLogger);
     }
 
     [Theory]
@@ -147,13 +148,20 @@ public class AdditionalFileDiagnosticsTests : AbstractPullDiagnosticTestsBase
             => ImmutableArray.Create(_descriptor);
 
         public override void Initialize(AnalysisContext context)
-            => context.RegisterCompilationStartAction(CreateAnalyzerWithinCompilation);
+        {
+            Console.WriteLine("Initializing mockdiagnosticanalyzer");
+            context.RegisterCompilationStartAction(CreateAnalyzerWithinCompilation);
+        }
 
         public void CreateAnalyzerWithinCompilation(CompilationStartAnalysisContext context)
             => context.RegisterAdditionalFileAction(AnalyzeCompilation);
 
         public void AnalyzeCompilation(AdditionalFileAnalysisContext context)
-            => context.ReportDiagnostic(Diagnostic.Create(_descriptor,
-                location: Location.Create(context.AdditionalFile.Path, Text.TextSpan.FromBounds(0, 0), new Text.LinePositionSpan(new Text.LinePosition(0, 0), new Text.LinePosition(0, 0))), "args"));
+        {
+            Console.WriteLine($"analyze compilation");
+            Console.WriteLine($"analyzing additional file: {context.AdditionalFile.Path}");
+            context.ReportDiagnostic(Diagnostic.Create(_descriptor,
+                        location: Location.Create(context.AdditionalFile.Path, Text.TextSpan.FromBounds(0, 0), new Text.LinePositionSpan(new Text.LinePosition(0, 0), new Text.LinePosition(0, 0))), "args"));
+        }
     }
 }

@@ -4,19 +4,37 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests;
-internal class TestOutputLspLogger : ILspServiceLogger
+internal class TestOutputLspLogger : TextWriter, ILspServiceLogger
 {
     private readonly ITestOutputHelper _testOutputHelper;
     public TestOutputLspLogger(ITestOutputHelper testOutputHelper)
     {
         _testOutputHelper = testOutputHelper;
     }
+
+    public override Encoding Encoding => Encoding.UTF8;
+
+    public override void WriteLine(string message)
+    {
+        Log("Console", message);
+    }
+    public override void WriteLine(string format, params object[] args)
+    {
+        Log("Console", format, args);
+    }
+
+    public override void Write(char value)
+    {
+        throw new NotSupportedException("This text writer only supports WriteLine(string) and WriteLine(string, params object[]).");
+    }
+
     public void LogEndContext(string message, params object[] @params) => Log("End", message, @params);
 
     public void LogError(string message, params object[] @params) => Log("Error", message, @params);

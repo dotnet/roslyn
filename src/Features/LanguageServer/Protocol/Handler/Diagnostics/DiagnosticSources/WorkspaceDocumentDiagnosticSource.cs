@@ -48,7 +48,7 @@ internal sealed class WorkspaceDocumentDiagnosticSource : AbstractDocumentDiagno
             var documentDiagnostics = await diagnosticAnalyzerService.GetDiagnosticsForIdsAsync(Document.Project.Solution, Document.Project.Id, Document.Id, cancellationToken: cancellationToken).ConfigureAwait(false);
             if (Document.FilePath?.Contains("Test.txt") == true && documentDiagnostics.IsEmpty)
             {
-                context.TraceInformation("What analyzers? " + string.Join(",", Document.Project.Solution.AnalyzerReferences.Select(s => s.Display)));
+                context.TraceInformation("What analyzers? " + string.Join(",", Document.Project.Solution.AnalyzerReferences.SelectMany(s => s.GetAnalyzersForAllLanguages()).Select(a => a.GetType().Name)));
                 //Debugger.Launch();
             }
 
