@@ -17,15 +17,19 @@ internal class TestOutputLspLogger : ILspServiceLogger
     {
         _testOutputHelper = testOutputHelper;
     }
-    public void LogEndContext(string message, params object[] @params) => _testOutputHelper.WriteLine($"[End]{message}", @params);
+    public void LogEndContext(string message, params object[] @params) => Log("End", message, @params);
 
-    public void LogError(string message, params object[] @params) => _testOutputHelper.WriteLine($"[Error]{message}", @params);
+    public void LogError(string message, params object[] @params) => Log("Error", message, @params);
 
-    public void LogException(Exception exception, string? message = null, params object[] @params) => _testOutputHelper.WriteLine(format: $"[Exception]{message}{Environment.NewLine}{exception}", @params);
+    public void LogException(Exception exception, string? message = null, params object[] @params)
+        => Log("Warning", $"{message}{Environment.NewLine}{exception}", @params);
 
-    public void LogInformation(string message, params object[] @params) => _testOutputHelper.WriteLine($"[Info]{message}", @params);
+    public void LogInformation(string message, params object[] @params) => Log("Info", message, @params);
 
-    public void LogStartContext(string message, params object[] @params) => _testOutputHelper.WriteLine(format: $"[Start]{message}", @params);
+    public void LogStartContext(string message, params object[] @params) => Log("Start", message, @params);
 
-    public void LogWarning(string message, params object[] @params) => _testOutputHelper.WriteLine($"[Warning]{message}", @params);
+    public void LogWarning(string message, params object[] @params) => Log("Warning", message, @params);
+
+    private void Log(string level, string message, params object[] @params)
+        => _testOutputHelper.WriteLine($"[{DateTime.UtcNow:hh:mm:ss.fff}][{level}]{message}", @params);
 }

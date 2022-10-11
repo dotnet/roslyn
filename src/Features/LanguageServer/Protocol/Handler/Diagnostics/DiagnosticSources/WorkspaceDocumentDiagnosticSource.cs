@@ -4,6 +4,8 @@
 
 using System;
 using System.Collections.Immutable;
+using System.Diagnostics;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -44,6 +46,12 @@ internal sealed class WorkspaceDocumentDiagnosticSource : AbstractDocumentDiagno
             // including those reported as a compilation end diagnostic.  These are not included in document pull (uses GetDiagnosticsForSpan) due to cost.
             // However we can include them as a part of workspace pull when FSA is on.
             var documentDiagnostics = await diagnosticAnalyzerService.GetDiagnosticsForIdsAsync(Document.Project.Solution, Document.Project.Id, Document.Id, cancellationToken: cancellationToken).ConfigureAwait(false);
+            if (Document.FilePath?.Contains("Test.txt") == true && documentDiagnostics.IsEmpty)
+            {
+                context.TraceInformation("What analyzers? " + string.Join(",", Document.Project.Solution.AnalyzerReferences.Select(s => s.Display)));
+                //Debugger.Launch();
+            }
+
             return documentDiagnostics;
         }
     }
