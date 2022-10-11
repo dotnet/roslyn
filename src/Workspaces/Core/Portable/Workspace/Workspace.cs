@@ -400,6 +400,8 @@ namespace Microsoft.CodeAnalysis
 
                 var (oldSolution, newSolution) = this.SetCurrentSolution(this.CreateSolution(solutionInfo));
 
+                // Pass 'silent: true' so we don't issue individual project events.  We'll just issue one event
+                // representing the entire solution-add.
                 foreach (var project in solutionInfo.Projects)
                     (_, newSolution) = OnProjectAdded_NoLock(project, silent: true);
 
