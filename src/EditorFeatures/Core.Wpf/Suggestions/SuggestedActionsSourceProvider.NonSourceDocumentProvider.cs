@@ -21,6 +21,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 {
     internal partial class SuggestedActionsSourceProvider
     {
+        /// <summary>
+        /// <see cref="ISuggestedActionsSourceProvider"/> for non-source documents,
+        /// i.e. <see cref="AdditionalDocument"/> and <see cref="AnalyzerConfigDocument"/>.
+        /// </summary>
         [Export(typeof(ISuggestedActionsSourceProvider))]
         [Export(typeof(NonSourceDocumentProvider))]
         // ContentType("text") requires DeferCreation(IsRoslynPackageLoadedOption.OptionName).

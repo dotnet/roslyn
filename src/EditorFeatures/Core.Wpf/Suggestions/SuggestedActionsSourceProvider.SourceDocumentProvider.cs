@@ -20,6 +20,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 {
     internal partial class SuggestedActionsSourceProvider
     {
+        /// <summary>
+        /// <see cref="ISuggestedActionsSourceProvider"/> for source documents.
+        /// </summary>
         [Export(typeof(ISuggestedActionsSourceProvider))]
         [Export(typeof(SourceDocumentProvider))]
         [ContentType(ContentTypeNames.RoslynContentType)]
