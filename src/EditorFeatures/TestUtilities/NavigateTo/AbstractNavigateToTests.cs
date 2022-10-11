@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigateTo
         }
 
         private protected static NavigateToItemProvider CreateProvider(TestWorkspace workspace)
-            => new NavigateToItemProvider(
+            => new(
                 workspace,
                 workspace.GetService<IThreadingContext>(),
                 workspace.GetService<IUIThreadOperationExecutor>(),

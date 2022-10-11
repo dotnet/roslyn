@@ -44,7 +44,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             BindingDiagnosticBag diagnostics)
         {
             Binder binder = delegateType.GetBinder(syntax.ParameterList);
-            TypeSyntax returnTypeSyntax = syntax.ReturnType.SkipRef(out RefKind refKind, allowScoped: false, diagnostics);
+            TypeSyntax returnTypeSyntax = syntax.ReturnType;
+            Debug.Assert(returnTypeSyntax is not ScopedTypeSyntax);
+
+            returnTypeSyntax = returnTypeSyntax.SkipScoped(out _).SkipRef(out RefKind refKind);
             var returnType = binder.BindType(returnTypeSyntax, diagnostics);
 
             // reuse types to avoid reporting duplicate errors if missing:
@@ -96,6 +99,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 diagnostics.Add(ErrorCode.ERR_BadVisDelegateReturn, delegateType.Locations[0], delegateType, invoke.ReturnType);
             }
 
+            var delegateTypeIsFile = delegateType.HasFileLocalTypes();
+            if (!delegateTypeIsFile && invoke.ReturnType.HasFileLocalTypes())
+            {
+                diagnostics.Add(ErrorCode.ERR_FileTypeDisallowedInSignature, delegateType.Locations[0], invoke.ReturnType, delegateType);
+            }
+
             for (int i = 0; i < invoke.Parameters.Length; i++)
             {
                 var parameterSymbol = invoke.Parameters[i];
@@ -103,6 +112,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     // Inconsistent accessibility: parameter type '{1}' is less accessible than delegate '{0}'
                     diagnostics.Add(ErrorCode.ERR_BadVisDelegateParam, delegateType.Locations[0], delegateType, parameterSymbol.Type);
+                }
+                else if (!delegateTypeIsFile && parameterSymbol.Type.HasFileLocalTypes())
+                {
+                    diagnostics.Add(ErrorCode.ERR_FileTypeDisallowedInSignature, delegateType.Locations[0], parameterSymbol.Type, delegateType);
                 }
             }
 
@@ -283,7 +296,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     _refCustomModifiers = ImmutableArray<CustomModifier>.Empty;
                 }
 
-                InitializeParameters(parameters);
+                InitializeParameters(parameters.Cast<SourceParameterSymbol, ParameterSymbol>());
             }
 
             public override string Name
@@ -330,7 +343,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
 
                 ParameterHelpers.EnsureNativeIntegerAttributeExists(compilation, Parameters, diagnostics, modifyCompilation: true);
-                ParameterHelpers.EnsureLifetimeAnnotationAttributeExists(compilation, Parameters, diagnostics, modifyCompilation: true);
+                ParameterHelpers.EnsureScopedRefAttributeExists(compilation, Parameters, diagnostics, modifyCompilation: true);
 
                 if (compilation.ShouldEmitNullableAttributes(this) &&
                     ReturnTypeWithAnnotations.NeedsNullableAttribute())

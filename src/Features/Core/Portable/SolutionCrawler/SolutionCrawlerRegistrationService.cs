@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
             AssertAnalyzerProviders(_analyzerProviders);
 
             _documentWorkCoordinatorMap = new Dictionary<Workspace, WorkCoordinator>(ReferenceEqualityComparer.Instance);
-            _listener = listenerProvider.GetListener(FeatureAttribute.SolutionCrawler);
+            _listener = listenerProvider.GetListener(FeatureAttribute.SolutionCrawlerLegacy);
         }
 
         public void Register(Workspace workspace)
@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
         {
             Contract.ThrowIfNull(workspace.Kind);
 
-            var correlationId = LogAggregator.GetNextId();
+            var correlationId = CorrelationIdFactory.GetNextId();
 
             lock (_gate)
             {

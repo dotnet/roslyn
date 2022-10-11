@@ -42,19 +42,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
         public static VisualStudioWorkspace_InProc Create()
             => new VisualStudioWorkspace_InProc();
 
-        public void SetOptionInfer(string projectName, bool value)
-            => InvokeOnUIThread(cancellationToken =>
-            {
-                var convertedValue = value ? 1 : 0;
-                var project = GetProject(projectName);
-                project.Properties.Item("OptionInfer").Value = convertedValue;
-            });
-
-        private static EnvDTE.Project GetProject(string nameOrFileName)
-            => GetDTE().Solution.Projects.OfType<EnvDTE.Project>().First(p =>
-               string.Compare(p.FileName, nameOrFileName, StringComparison.OrdinalIgnoreCase) == 0
-                || string.Compare(p.Name, nameOrFileName, StringComparison.OrdinalIgnoreCase) == 0);
-
         public bool IsPrettyListingOn(string languageName)
             => _globalOptions.GetOption(FeatureOnOffOptions.PrettyListing, languageName);
 
@@ -145,7 +132,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             // Local function
             void ResetOption(IOption option)
             {
-                if (option is IPerLanguageOption)
+                if (option is IPerLanguageValuedOption)
                 {
                     _globalOptions.SetGlobalOption(new OptionKey(option, LanguageNames.CSharp), option.DefaultValue);
                     _globalOptions.SetGlobalOption(new OptionKey(option, LanguageNames.VisualBasic), option.DefaultValue);

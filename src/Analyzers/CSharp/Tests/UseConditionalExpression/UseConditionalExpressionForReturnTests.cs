@@ -17,6 +17,7 @@ using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseConditionalExpression
 {
+    [Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]
     public partial class UseConditionalExpressionForReturnTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
     {
         private static readonly ParseOptions CSharp8 = CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp8);
@@ -31,7 +32,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseConditionalExpressio
             => (new CSharpUseConditionalExpressionForReturnDiagnosticAnalyzer(),
                 new CSharpUseConditionalExpressionForReturnCodeFixProvider());
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]
+        [Fact]
         public async Task TestOnSimpleReturn()
         {
             await TestInRegularAndScript1Async(
@@ -60,8 +61,7 @@ class C
 }");
         }
 
-        [WorkItem(43291, "https://github.com/dotnet/roslyn/issues/43291")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]
+        [Fact, WorkItem(43291, "https://github.com/dotnet/roslyn/issues/43291")]
         public async Task TestOnSimpleReturn_Throw1()
         {
             await TestInRegularAndScript1Async(
@@ -90,8 +90,7 @@ class C
 }");
         }
 
-        [WorkItem(43291, "https://github.com/dotnet/roslyn/issues/43291")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]
+        [Fact, WorkItem(43291, "https://github.com/dotnet/roslyn/issues/43291")]
         public async Task TestOnSimpleReturn_Throw2()
         {
             await TestInRegularAndScript1Async(
@@ -120,8 +119,7 @@ class C
 }");
         }
 
-        [WorkItem(43291, "https://github.com/dotnet/roslyn/issues/43291")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]
+        [Fact, WorkItem(43291, "https://github.com/dotnet/roslyn/issues/43291")]
         public async Task TestNotWithTwoThrows()
         {
             await TestMissingAsync(
@@ -142,8 +140,7 @@ class C
 }");
         }
 
-        [WorkItem(43291, "https://github.com/dotnet/roslyn/issues/43291")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]
+        [Fact, WorkItem(43291, "https://github.com/dotnet/roslyn/issues/43291")]
         public async Task TestNotOnSimpleReturn_Throw1_CSharp6()
         {
             await TestMissingAsync(
@@ -164,8 +161,7 @@ class C
 }", parameters: new TestParameters(parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp6)));
         }
 
-        [WorkItem(43291, "https://github.com/dotnet/roslyn/issues/43291")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]
+        [Fact, WorkItem(43291, "https://github.com/dotnet/roslyn/issues/43291")]
         public async Task TestNotWithSimpleThrow()
         {
             await TestMissingAsync(
@@ -186,7 +182,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]
+        [Fact]
         public async Task TestOnSimpleReturnNoBlocks()
         {
             await TestInRegularAndScript1Async(
@@ -211,7 +207,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]
+        [Fact]
         public async Task TestOnSimpleReturnNoBlocks_NotInBlock()
         {
             await TestInRegularAndScript1Async(
@@ -238,7 +234,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]
+        [Fact]
         public async Task TestMissingReturnValue1()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -259,8 +255,7 @@ class C
 }");
         }
 
-        [WorkItem(43291, "https://github.com/dotnet/roslyn/issues/43291")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]
+        [Fact, WorkItem(43291, "https://github.com/dotnet/roslyn/issues/43291")]
         public async Task TestMissingReturnValue1_Throw()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -281,7 +276,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]
+        [Fact]
         public async Task TestMissingReturnValue2()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -302,8 +297,7 @@ class C
 }");
         }
 
-        [WorkItem(43291, "https://github.com/dotnet/roslyn/issues/43291")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]
+        [Fact, WorkItem(43291, "https://github.com/dotnet/roslyn/issues/43291")]
         public async Task TestMissingReturnValue2_Throw()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -324,7 +318,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]
+        [Fact]
         public async Task TestMissingReturnValue3()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -345,7 +339,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]
+        [Fact]
         public async Task TestWithNoElseBlockButFollowingReturn()
         {
             await TestInRegularAndScript1Async(
@@ -372,8 +366,7 @@ class C
 }");
         }
 
-        [WorkItem(43291, "https://github.com/dotnet/roslyn/issues/43291")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]
+        [Fact, WorkItem(43291, "https://github.com/dotnet/roslyn/issues/43291")]
         public async Task TestWithNoElseBlockButFollowingReturn_Throw1()
         {
             await TestInRegularAndScript1Async(
@@ -400,8 +393,7 @@ class C
 }");
         }
 
-        [WorkItem(43291, "https://github.com/dotnet/roslyn/issues/43291")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]
+        [Fact, WorkItem(43291, "https://github.com/dotnet/roslyn/issues/43291")]
         public async Task TestWithNoElseBlockButFollowingReturn_Throw2()
         {
             await TestInRegularAndScript1Async(
@@ -428,7 +420,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]
+        [Fact]
         public async Task TestMissingWithoutElse()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -445,8 +437,7 @@ class C
 }");
         }
 
-        [WorkItem(43291, "https://github.com/dotnet/roslyn/issues/43291")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]
+        [Fact, WorkItem(43291, "https://github.com/dotnet/roslyn/issues/43291")]
         public async Task TestMissingWithoutElse_Throw()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -463,7 +454,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]
+        [Fact]
         public async Task TestConversion1_CSharp8()
         {
             await TestInRegularAndScriptAsync(
@@ -492,7 +483,7 @@ class C
 }", parseOptions: CSharp8);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]
+        [Fact]
         public async Task TestConversion1_CSharp9()
         {
             await TestInRegularAndScriptAsync(
@@ -521,8 +512,7 @@ class C
 }", parseOptions: CSharp9);
         }
 
-        [WorkItem(43291, "https://github.com/dotnet/roslyn/issues/43291")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]
+        [Fact, WorkItem(43291, "https://github.com/dotnet/roslyn/issues/43291")]
         public async Task TestConversion1_Throw1_CSharp8()
         {
             await TestInRegularAndScriptAsync(
@@ -551,8 +541,7 @@ class C
 }", parseOptions: CSharp8);
         }
 
-        [WorkItem(43291, "https://github.com/dotnet/roslyn/issues/43291")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]
+        [Fact, WorkItem(43291, "https://github.com/dotnet/roslyn/issues/43291")]
         public async Task TestConversion1_Throw1_CSharp9()
         {
             await TestInRegularAndScriptAsync(
@@ -581,8 +570,7 @@ class C
 }", parseOptions: CSharp9);
         }
 
-        [WorkItem(43291, "https://github.com/dotnet/roslyn/issues/43291")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]
+        [Fact, WorkItem(43291, "https://github.com/dotnet/roslyn/issues/43291")]
         public async Task TestConversion1_Throw2_CSharp8()
         {
             await TestInRegularAndScriptAsync(
@@ -611,8 +599,7 @@ class C
 }", parseOptions: CSharp8);
         }
 
-        [WorkItem(43291, "https://github.com/dotnet/roslyn/issues/43291")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]
+        [Fact, WorkItem(43291, "https://github.com/dotnet/roslyn/issues/43291")]
         public async Task TestConversion1_Throw2_CSharp9()
         {
             await TestInRegularAndScriptAsync(
@@ -641,7 +628,7 @@ class C
 }", parseOptions: CSharp9);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]
+        [Fact]
         public async Task TestConversion2()
         {
             await TestInRegularAndScript1Async(
@@ -670,8 +657,7 @@ class C
 }");
         }
 
-        [WorkItem(43291, "https://github.com/dotnet/roslyn/issues/43291")]
-        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]
+        [Theory, WorkItem(43291, "https://github.com/dotnet/roslyn/issues/43291")]
         [InlineData(LanguageVersion.CSharp8, "(string)null")]
         [InlineData(LanguageVersion.CSharp9, "null")]
         public async Task TestConversion2_Throw1(LanguageVersion languageVersion, string expectedFalseExpression)
@@ -702,8 +688,7 @@ class C
 }", parameters: new(parseOptions: CSharpParseOptions.Default.WithLanguageVersion(languageVersion)));
         }
 
-        [WorkItem(43291, "https://github.com/dotnet/roslyn/issues/43291")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]
+        [Fact, WorkItem(43291, "https://github.com/dotnet/roslyn/issues/43291")]
         public async Task TestConversion2_Throw2()
         {
             await TestInRegularAndScript1Async(
@@ -732,7 +717,7 @@ class C
 }");
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]
+        [Theory]
         [InlineData(LanguageVersion.CSharp8, "(string)null")]
         [InlineData(LanguageVersion.CSharp9, "null")]
         public async Task TestConversion3(LanguageVersion languageVersion, string expectedFalseExpression)
@@ -763,8 +748,7 @@ class C
 }", parameters: new(parseOptions: CSharpParseOptions.Default.WithLanguageVersion(languageVersion)));
         }
 
-        [WorkItem(43291, "https://github.com/dotnet/roslyn/issues/43291")]
-        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]
+        [Theory, WorkItem(43291, "https://github.com/dotnet/roslyn/issues/43291")]
         [InlineData(LanguageVersion.CSharp8, "(string)null")]
         [InlineData(LanguageVersion.CSharp9, "null")]
         public async Task TestConversion3_Throw1(LanguageVersion languageVersion, string expectedFalseExpression)
@@ -795,8 +779,7 @@ class C
 }", parameters: new(parseOptions: CSharpParseOptions.Default.WithLanguageVersion(languageVersion)));
         }
 
-        [WorkItem(43291, "https://github.com/dotnet/roslyn/issues/43291")]
-        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]
+        [Theory, WorkItem(43291, "https://github.com/dotnet/roslyn/issues/43291")]
         [InlineData(LanguageVersion.CSharp8, "(string)null")]
         [InlineData(LanguageVersion.CSharp9, "null")]
         public async Task TestConversion3_Throw2(LanguageVersion languageVersion, string expectedTrue)
@@ -827,7 +810,7 @@ class C
 }", parameters: new(parseOptions: CSharpParseOptions.Default.WithLanguageVersion(languageVersion)));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]
+        [Fact]
         public async Task TestKeepTriviaAroundIf()
         {
             await TestInRegularAndScript1Async(
@@ -858,7 +841,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]
+        [Fact]
         public async Task TestFixAll1()
         {
             await TestInRegularAndScript1Async(
@@ -896,7 +879,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]
+        [Fact]
         public async Task TestMultiLine1()
         {
             await TestInRegularAndScript1Async(
@@ -929,7 +912,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]
+        [Fact]
         public async Task TestMultiLine2()
         {
             await TestInRegularAndScript1Async(
@@ -962,7 +945,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]
+        [Fact]
         public async Task TestMultiLine3()
         {
             await TestInRegularAndScript1Async(
@@ -997,7 +980,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]
+        [Fact]
         public async Task TestElseIfWithBlock()
         {
             await TestInRegularAndScript1Async(
@@ -1035,8 +1018,7 @@ class C
 }");
         }
 
-        [WorkItem(43291, "https://github.com/dotnet/roslyn/issues/43291")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]
+        [Fact, WorkItem(43291, "https://github.com/dotnet/roslyn/issues/43291")]
         public async Task TestElseIfWithBlock_Throw1()
         {
             await TestInRegularAndScript1Async(
@@ -1074,8 +1056,7 @@ class C
 }");
         }
 
-        [WorkItem(43291, "https://github.com/dotnet/roslyn/issues/43291")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]
+        [Fact, WorkItem(43291, "https://github.com/dotnet/roslyn/issues/43291")]
         public async Task TestElseIfWithBlock_Throw2()
         {
             await TestInRegularAndScript1Async(
@@ -1113,7 +1094,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]
+        [Fact]
         public async Task TestElseIfWithoutBlock()
         {
             await TestInRegularAndScript1Async(
@@ -1138,7 +1119,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]
+        [Fact]
         public async Task TestRefReturns1()
         {
             await TestInRegularAndScript1Async(
@@ -1167,8 +1148,7 @@ class C
 }");
         }
 
-        [WorkItem(43291, "https://github.com/dotnet/roslyn/issues/43291")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]
+        [Fact, WorkItem(43291, "https://github.com/dotnet/roslyn/issues/43291")]
         public async Task TestRefReturns1_Throw1()
         {
             await TestMissingAsync(
@@ -1189,8 +1169,7 @@ class C
 }");
         }
 
-        [WorkItem(43291, "https://github.com/dotnet/roslyn/issues/43291")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]
+        [Fact, WorkItem(43291, "https://github.com/dotnet/roslyn/issues/43291")]
         public async Task TestRefReturns1_Throw2()
         {
             await TestMissingAsync(
@@ -1211,8 +1190,7 @@ class C
 }");
         }
 
-        [WorkItem(27960, "https://github.com/dotnet/roslyn/issues/27960")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]
+        [Fact, WorkItem(27960, "https://github.com/dotnet/roslyn/issues/27960")]
         public async Task TestOnYieldReturn()
         {
             await TestInRegularAndScript1Async(
@@ -1241,9 +1219,8 @@ class C
 }");
         }
 
+        [Fact, WorkItem(27960, "https://github.com/dotnet/roslyn/issues/27960")]
         [WorkItem(43291, "https://github.com/dotnet/roslyn/issues/43291")]
-        [WorkItem(27960, "https://github.com/dotnet/roslyn/issues/27960")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]
         public async Task TestOnYieldReturn_Throw1()
         {
             await TestInRegularAndScript1Async(
@@ -1272,9 +1249,8 @@ class C
 }");
         }
 
+        [Fact, WorkItem(27960, "https://github.com/dotnet/roslyn/issues/27960")]
         [WorkItem(43291, "https://github.com/dotnet/roslyn/issues/43291")]
-        [WorkItem(27960, "https://github.com/dotnet/roslyn/issues/27960")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]
         public async Task TestOnYieldReturn_Throw2()
         {
             await TestInRegularAndScript1Async(
@@ -1303,8 +1279,7 @@ class C
 }");
         }
 
-        [WorkItem(27960, "https://github.com/dotnet/roslyn/issues/27960")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]
+        [Fact, WorkItem(27960, "https://github.com/dotnet/roslyn/issues/27960")]
         public async Task TestOnYieldReturn_IEnumerableReturnType()
         {
             await TestInRegularAndScript1Async(
@@ -1337,8 +1312,7 @@ class C
 }");
         }
 
-        [WorkItem(27960, "https://github.com/dotnet/roslyn/issues/27960")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]
+        [Fact, WorkItem(27960, "https://github.com/dotnet/roslyn/issues/27960")]
         public async Task TestNotOnMixedYields()
         {
             await TestMissingAsync(
@@ -1359,9 +1333,8 @@ class C
 }");
         }
 
+        [Fact, WorkItem(27960, "https://github.com/dotnet/roslyn/issues/27960")]
         [WorkItem(43291, "https://github.com/dotnet/roslyn/issues/43291")]
-        [WorkItem(27960, "https://github.com/dotnet/roslyn/issues/27960")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]
         public async Task TestNotOnMixedYields_Throw1()
         {
             await TestMissingAsync(
@@ -1382,8 +1355,7 @@ class C
 }");
         }
 
-        [WorkItem(27960, "https://github.com/dotnet/roslyn/issues/27960")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]
+        [Fact, WorkItem(27960, "https://github.com/dotnet/roslyn/issues/27960")]
         public async Task TestNotOnMixedYields_IEnumerableReturnType()
         {
             await TestMissingAsync(
@@ -1406,8 +1378,7 @@ class C
 }");
         }
 
-        [WorkItem(27960, "https://github.com/dotnet/roslyn/issues/27960")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]
+        [Fact, WorkItem(27960, "https://github.com/dotnet/roslyn/issues/27960")]
         public async Task TestNotWithNoElseBlockButFollowingYieldReturn()
         {
             await TestMissingAsync(
@@ -1426,9 +1397,8 @@ class C
 }");
         }
 
+        [Fact, WorkItem(27960, "https://github.com/dotnet/roslyn/issues/27960")]
         [WorkItem(43291, "https://github.com/dotnet/roslyn/issues/43291")]
-        [WorkItem(27960, "https://github.com/dotnet/roslyn/issues/27960")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]
         public async Task TestWithNoElseBlockButFollowingYieldReturn_Throw1()
         {
             await TestInRegularAndScript1Async(
@@ -1456,9 +1426,8 @@ class C
 }");
         }
 
+        [Fact, WorkItem(27960, "https://github.com/dotnet/roslyn/issues/27960")]
         [WorkItem(43291, "https://github.com/dotnet/roslyn/issues/43291")]
-        [WorkItem(27960, "https://github.com/dotnet/roslyn/issues/27960")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]
         public async Task TestNotWithNoElseBlockButFollowingYieldReturn_Throw2()
         {
             await TestMissingAsync(
@@ -1477,8 +1446,7 @@ class C
 }");
         }
 
-        [WorkItem(27960, "https://github.com/dotnet/roslyn/issues/27960")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]
+        [Fact, WorkItem(27960, "https://github.com/dotnet/roslyn/issues/27960")]
         public async Task TestNotWithNoElseBlockButFollowingYieldReturn_IEnumerableReturnType()
         {
             await TestMissingAsync(
@@ -1499,7 +1467,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]
+        [Fact]
         public async Task TestReturnTrueFalse1()
         {
             await TestInRegularAndScript1Async(
@@ -1528,8 +1496,7 @@ class C
 }");
         }
 
-        [WorkItem(43291, "https://github.com/dotnet/roslyn/issues/43291")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]
+        [Fact, WorkItem(43291, "https://github.com/dotnet/roslyn/issues/43291")]
         public async Task TestReturnTrueFalse1_Throw1()
         {
             await TestInRegularAndScript1Async(
@@ -1558,8 +1525,7 @@ class C
 }");
         }
 
-        [WorkItem(43291, "https://github.com/dotnet/roslyn/issues/43291")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]
+        [Fact, WorkItem(43291, "https://github.com/dotnet/roslyn/issues/43291")]
         public async Task TestReturnTrueFalse1_Throw2()
         {
             await TestInRegularAndScript1Async(
@@ -1588,7 +1554,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]
+        [Fact]
         public async Task TestReturnTrueFalse2()
         {
             await TestInRegularAndScript1Async(
@@ -1617,8 +1583,7 @@ class C
 }");
         }
 
-        [WorkItem(43291, "https://github.com/dotnet/roslyn/issues/43291")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]
+        [Fact, WorkItem(43291, "https://github.com/dotnet/roslyn/issues/43291")]
         public async Task TestReturnTrueFalse2_Throw1()
         {
             await TestInRegularAndScript1Async(
@@ -1647,8 +1612,7 @@ class C
 }");
         }
 
-        [WorkItem(43291, "https://github.com/dotnet/roslyn/issues/43291")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]
+        [Fact, WorkItem(43291, "https://github.com/dotnet/roslyn/issues/43291")]
         public async Task TestReturnTrueFalse2_Throw2()
         {
             await TestInRegularAndScript1Async(
@@ -1677,7 +1641,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]
+        [Fact]
         public async Task TestReturnTrueFalse3()
         {
             await TestInRegularAndScript1Async(
@@ -1704,8 +1668,7 @@ class C
 }");
         }
 
-        [WorkItem(43291, "https://github.com/dotnet/roslyn/issues/43291")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]
+        [Fact, WorkItem(43291, "https://github.com/dotnet/roslyn/issues/43291")]
         public async Task TestReturnTrueFalse3_Throw1()
         {
             await TestInRegularAndScript1Async(
@@ -1732,8 +1695,7 @@ class C
 }");
         }
 
-        [WorkItem(43291, "https://github.com/dotnet/roslyn/issues/43291")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]
+        [Fact, WorkItem(43291, "https://github.com/dotnet/roslyn/issues/43291")]
         public async Task TestReturnTrueFalse3_Throw2()
         {
             await TestInRegularAndScript1Async(
@@ -1760,7 +1722,7 @@ class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]
+        [Fact]
         public async Task TestReturnTrueFalse4()
         {
             await TestInRegularAndScript1Async(
@@ -1793,8 +1755,7 @@ class C
 }");
         }
 
-        [WorkItem(43291, "https://github.com/dotnet/roslyn/issues/43291")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]
+        [Fact, WorkItem(43291, "https://github.com/dotnet/roslyn/issues/43291")]
         public async Task TestReturnTrueFalse4_Throw1()
         {
             await TestInRegularAndScript1Async(
@@ -1827,8 +1788,7 @@ class C
 }");
         }
 
-        [WorkItem(43291, "https://github.com/dotnet/roslyn/issues/43291")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]
+        [Fact, WorkItem(43291, "https://github.com/dotnet/roslyn/issues/43291")]
         public async Task TestReturnTrueFalse4_Throw2()
         {
             await TestInRegularAndScript1Async(
@@ -1861,8 +1821,7 @@ class C
 }");
         }
 
-        [WorkItem(36117, "https://github.com/dotnet/roslyn/issues/36117")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]
+        [Fact, WorkItem(36117, "https://github.com/dotnet/roslyn/issues/36117")]
         public async Task TestMissingWhenCrossingPreprocessorDirective()
         {
             await TestMissingInRegularAndScriptAsync(

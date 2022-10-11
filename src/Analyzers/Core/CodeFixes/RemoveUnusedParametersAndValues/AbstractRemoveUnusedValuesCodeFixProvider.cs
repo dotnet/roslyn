@@ -17,7 +17,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Formatting;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.MoveDeclarationNearReference;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -288,7 +288,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
             var semanticFacts = document.GetRequiredLanguageService<ISemanticFactsService>();
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
-            var editor = new SyntaxEditor(root, document.Project.Solution.Workspace.Services);
+            var editor = new SyntaxEditor(root, document.Project.Solution.Services);
 
             // We compute the code fix in two passes:
             //   1. The first pass groups the diagnostics to fix by containing member declaration and
@@ -363,7 +363,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                     break;
 
                 default:
-                    throw ExceptionUtilities.Unreachable;
+                    throw ExceptionUtilities.Unreachable();
             }
         }
 
@@ -795,12 +795,9 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
         {
             var service = document.GetLanguageService<IReplaceDiscardDeclarationsWithAssignmentsService>();
             if (service == null)
-            {
                 return memberDeclaration;
-            }
 
-            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            return await service.ReplaceAsync(memberDeclaration, semanticModel, document.Project.Solution.Workspace.Services, cancellationToken).ConfigureAwait(false);
+            return await service.ReplaceAsync(document, memberDeclaration, cancellationToken).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -841,7 +838,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
             var provider = GetSyntaxFormatting();
             rootWithTrackedNodes = FormatterHelper.Format(rootWithTrackedNodes, originalDeclStatementsToMoveOrRemove.Select(s => s.Span), provider, options, rules: null, cancellationToken);
 #else
-            var provider = document.Project.Solution.Workspace.Services;
+            var provider = document.Project.Solution.Services;
             rootWithTrackedNodes = Formatter.Format(rootWithTrackedNodes, originalDeclStatementsToMoveOrRemove.Select(s => s.Span), provider, options, rules: null, cancellationToken);
 #endif
 

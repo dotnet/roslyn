@@ -17,6 +17,21 @@
         <target state="translated">'{0}' türünü içeren bütünleştirilmiş kod, desteklenmeyen .NET Framework'e başvuruyor.</target>
         <note />
       </trans-unit>
+      <trans-unit id="BadBuiltInOps1">
+        <source>Illegal built-in operator name '{0}'</source>
+        <target state="translated">Geçersiz yerleşik operatör adı '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="BadBuiltInOps2">
+        <source>Unsupported built-in operator: {0}</source>
+        <target state="translated">Desteklenmeyen yerleşik operatör: {0}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="BadBuiltInOps3">
+        <source>'{0}' was not a valid built-in operator name</source>
+        <target state="translated">'{0}' geçerli bir yerleşik operatör adı değildi</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ChangesMustBeWithinBoundsOfSourceText">
         <source>Changes must be within bounds of SourceText</source>
         <target state="translated">Değişiklikler, SourceText sınırları içinde olmalıdır</target>
@@ -47,6 +62,16 @@
       <trans-unit id="EncCannotResumeSuspendedIteratorMethod">
         <source>Edit and Continue can't resume suspended iterator since the corresponding yield return statement has been deleted</source>
         <target state="translated">İlgili yield return deyimi silindiğinden Düzenle ve Devam Et, askıya alınmış yineleyiciyi sürdüremiyor</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="GeneratorNameColumnHeader">
+        <source>Generator</source>
+        <target state="translated">Oluşturucu</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="GeneratorTotalExecutionTime">
+        <source>Total generator execution time: {0} seconds.</source>
+        <target state="translated">Toplam oluşturucu yürütme süresi: {0} saniye.</target>
         <note />
       </trans-unit>
       <trans-unit id="HintNameInvalidChar">

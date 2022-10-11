@@ -853,7 +853,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 }
             }
 
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 
         internal static Type GetInterfaceListEntry(this Type interfaceType, Type declaration)

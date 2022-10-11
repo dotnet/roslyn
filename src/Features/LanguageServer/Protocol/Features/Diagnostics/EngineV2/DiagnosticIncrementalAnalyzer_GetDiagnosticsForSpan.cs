@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -62,6 +63,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
             private readonly DiagnosticIncrementalAnalyzer _owner;
             private readonly Document _document;
+            private readonly SourceText _text;
 
             private readonly IEnumerable<StateSet> _stateSets;
             private readonly CompilationWithAnalyzers? _compilationWithAnalyzers;
@@ -73,6 +75,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             private readonly Func<string, bool>? _shouldIncludeDiagnostic;
             private readonly bool _includeCompilerDiagnostics;
             private readonly Func<string, IDisposable?>? _addOperationScope;
+            private readonly bool _cacheFullDocumentDiagnostics;
 
             private delegate Task<IEnumerable<DiagnosticData>> DiagnosticsGetterAsync(DiagnosticAnalyzer analyzer, DocumentAnalysisExecutor executor, CancellationToken cancellationToken);
 
@@ -88,16 +91,23 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                  Func<string, bool>? shouldIncludeDiagnostic,
                  CancellationToken cancellationToken)
             {
+                var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
                 var stateSets = owner._stateManager
                                      .GetOrCreateStateSets(document.Project).Where(s => DocumentAnalysisExecutor.IsAnalyzerEnabledForProject(s.Analyzer, document.Project, owner.GlobalOptions));
 
                 var ideOptions = owner.AnalyzerService.GlobalOptions.GetIdeAnalyzerOptions(document.Project);
 
+                // We want to cache computed full document diagnostics in LatestDiagnosticsForSpanGetter
+                // only in LSP pull diagnostics mode. In LSP push diagnostics mode,
+                // the background analysis from solution crawler handles caching these diagnostics and
+                // updating the error list simultaneously.
+                var cacheFullDocumentDiagnostics = owner.AnalyzerService.GlobalOptions.IsPullDiagnostics(InternalDiagnosticsOptions.NormalDiagnosticMode);
+
                 var compilationWithAnalyzers = await GetOrCreateCompilationWithAnalyzersAsync(document.Project, ideOptions, stateSets, includeSuppressedDiagnostics, cancellationToken).ConfigureAwait(false);
 
                 return new LatestDiagnosticsForSpanGetter(
-                    owner, compilationWithAnalyzers, document, stateSets, shouldIncludeDiagnostic, includeCompilerDiagnostics,
-                    range, blockForData, addOperationScope, includeSuppressedDiagnostics, priority);
+                    owner, compilationWithAnalyzers, document, text, stateSets, shouldIncludeDiagnostic, includeCompilerDiagnostics,
+                    range, blockForData, addOperationScope, includeSuppressedDiagnostics, priority, cacheFullDocumentDiagnostics);
             }
 
             private static async Task<CompilationWithAnalyzers?> GetOrCreateCompilationWithAnalyzersAsync(
@@ -130,6 +140,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 DiagnosticIncrementalAnalyzer owner,
                 CompilationWithAnalyzers? compilationWithAnalyzers,
                 Document document,
+                SourceText text,
                 IEnumerable<StateSet> stateSets,
                 Func<string, bool>? shouldIncludeDiagnostic,
                 bool includeCompilerDiagnostics,
@@ -137,11 +148,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 bool blockForData,
                 Func<string, IDisposable?>? addOperationScope,
                 bool includeSuppressedDiagnostics,
-                CodeActionRequestPriority priority)
+                CodeActionRequestPriority priority,
+                bool cacheFullDocumentDiagnostics)
             {
                 _owner = owner;
                 _compilationWithAnalyzers = compilationWithAnalyzers;
                 _document = document;
+                _text = text;
                 _stateSets = stateSets;
                 _shouldIncludeDiagnostic = shouldIncludeDiagnostic;
                 _includeCompilerDiagnostics = includeCompilerDiagnostics;
@@ -150,6 +163,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 _addOperationScope = addOperationScope;
                 _includeSuppressedDiagnostics = includeSuppressedDiagnostics;
                 _priority = priority;
+                _cacheFullDocumentDiagnostics = cacheFullDocumentDiagnostics;
             }
 
             public async Task<bool> TryGetAsync(ArrayBuilder<DiagnosticData> list, CancellationToken cancellationToken)
@@ -159,16 +173,16 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     var containsFullResult = true;
 
                     // Try to get cached diagnostics, and also compute non-cached state sets that need diagnostic computation.
-                    using var _1 = ArrayBuilder<DiagnosticAnalyzer>.GetInstance(out var syntaxAnalyzers);
-                    using var _2 = ArrayBuilder<DiagnosticAnalyzer>.GetInstance(out var semanticSpanBasedAnalyzers);
-                    using var _3 = ArrayBuilder<DiagnosticAnalyzer>.GetInstance(out var semanticDocumentBasedAnalyzers);
+                    using var _1 = ArrayBuilder<StateSet>.GetInstance(out var syntaxAnalyzers);
+                    using var _2 = ArrayBuilder<StateSet>.GetInstance(out var semanticSpanBasedAnalyzers);
+                    using var _3 = ArrayBuilder<StateSet>.GetInstance(out var semanticDocumentBasedAnalyzers);
                     foreach (var stateSet in _stateSets)
                     {
                         if (!ShouldIncludeAnalyzer(stateSet.Analyzer, _shouldIncludeDiagnostic, _owner))
                             continue;
 
                         if (!await TryAddCachedDocumentDiagnosticsAsync(stateSet, AnalysisKind.Syntax, list, cancellationToken).ConfigureAwait(false))
-                            syntaxAnalyzers.Add(stateSet.Analyzer);
+                            syntaxAnalyzers.Add(stateSet);
 
                         if (!await TryAddCachedDocumentDiagnosticsAsync(stateSet, AnalysisKind.Semantic, list, cancellationToken).ConfigureAwait(false))
                         {
@@ -181,15 +195,15 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                             else
                             {
                                 var stateSets = spanBased ? semanticSpanBasedAnalyzers : semanticDocumentBasedAnalyzers;
-                                stateSets.Add(stateSet.Analyzer);
+                                stateSets.Add(stateSet);
                             }
                         }
                     }
 
                     // Compute diagnostics for non-cached state sets.
-                    await ComputeDocumentDiagnosticsAsync(syntaxAnalyzers.ToImmutable(), AnalysisKind.Syntax, _range, list, cancellationToken).ConfigureAwait(false);
-                    await ComputeDocumentDiagnosticsAsync(semanticSpanBasedAnalyzers.ToImmutable(), AnalysisKind.Semantic, _range, list, cancellationToken).ConfigureAwait(false);
-                    await ComputeDocumentDiagnosticsAsync(semanticDocumentBasedAnalyzers.ToImmutable(), AnalysisKind.Semantic, span: null, list, cancellationToken).ConfigureAwait(false);
+                    await ComputeDocumentDiagnosticsAsync(syntaxAnalyzers.ToImmutable(), AnalysisKind.Syntax, _range, list, supportsSpanBasedAnalysis: false, cancellationToken).ConfigureAwait(false);
+                    await ComputeDocumentDiagnosticsAsync(semanticSpanBasedAnalyzers.ToImmutable(), AnalysisKind.Semantic, _range, list, supportsSpanBasedAnalysis: true, cancellationToken).ConfigureAwait(false);
+                    await ComputeDocumentDiagnosticsAsync(semanticDocumentBasedAnalyzers.ToImmutable(), AnalysisKind.Semantic, span: null, list, supportsSpanBasedAnalysis: false, cancellationToken).ConfigureAwait(false);
 
                     // If we are blocked for data, then we should always have full result.
                     Debug.Assert(!_blockForData || containsFullResult);
@@ -197,7 +211,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 }
                 catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
                 {
-                    throw ExceptionUtilities.Unreachable;
+                    throw ExceptionUtilities.Unreachable();
                 }
 
                 // Local functions
@@ -265,34 +279,98 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             }
 
             private async Task ComputeDocumentDiagnosticsAsync(
-                ImmutableArray<DiagnosticAnalyzer> analyzers,
+                ImmutableArray<StateSet> stateSets,
                 AnalysisKind kind,
                 TextSpan? span,
-                ArrayBuilder<DiagnosticData> list,
+                ArrayBuilder<DiagnosticData> builder,
+                bool supportsSpanBasedAnalysis,
                 CancellationToken cancellationToken)
             {
-                analyzers = analyzers.WhereAsArray(a => MatchesPriority(a));
+                Debug.Assert(!supportsSpanBasedAnalysis || kind == AnalysisKind.Semantic);
+                Debug.Assert(!supportsSpanBasedAnalysis || stateSets.All(stateSet => stateSet.Analyzer.SupportsSpanBasedSemanticDiagnosticAnalysis()));
 
-                if (analyzers.IsEmpty)
+                stateSets = stateSets.WhereAsArray(s => MatchesPriority(s.Analyzer));
+
+                if (stateSets.IsEmpty)
                     return;
 
+                var analyzers = stateSets.SelectAsArray(stateSet => stateSet.Analyzer);
                 var analysisScope = new DocumentAnalysisScope(_document, span, analyzers, kind);
                 var executor = new DocumentAnalysisExecutor(analysisScope, _compilationWithAnalyzers, _owner._diagnosticAnalyzerRunner, logPerformanceInfo: false);
-                foreach (var analyzer in analyzers)
-                {
-                    cancellationToken.ThrowIfCancellationRequested();
+                var version = await GetDiagnosticVersionAsync(_document.Project, cancellationToken).ConfigureAwait(false);
 
-                    var analyzerTypeName = analyzer.GetType().Name;
-                    using (_addOperationScope?.Invoke(analyzerTypeName))
-                    using (_addOperationScope is object ? RoslynEventSource.LogInformationalBlock(FunctionId.DiagnosticAnalyzerService_GetDiagnosticsForSpanAsync, analyzerTypeName, cancellationToken) : default)
+                // If we are computing full document diagnostics, and the provided analyzers
+                // support span based analysis, we will attempt to perform incremental
+                // member edit analysis.
+                // This analysis is currently guarded with 'IncrementalMemberEditAnalysisFeatureFlag'
+                var incrementalAnalysis = !span.HasValue
+                    && supportsSpanBasedAnalysis
+                    && _document.SupportsSyntaxTree
+                    && _owner.GlobalOptions.GetOption(DiagnosticOptionsStorage.IncrementalMemberEditAnalysisFeatureFlag);
+
+                ImmutableDictionary<DiagnosticAnalyzer, ImmutableArray<DiagnosticData>> diagnosticsMap;
+                if (incrementalAnalysis)
+                {
+                    diagnosticsMap = await _owner._incrementalMemberEditAnalyzer.ComputeDiagnosticsAsync(
+                        executor,
+                        stateSets,
+                        version,
+                        ComputeDocumentDiagnosticsForAnalyzerCoreAsync,
+                        ComputeDocumentDiagnosticsCoreAsync,
+                        cancellationToken).ConfigureAwait(false);
+                }
+                else
+                {
+                    diagnosticsMap = await ComputeDocumentDiagnosticsCoreAsync(executor, cancellationToken).ConfigureAwait(false);
+                }
+
+                foreach (var stateSet in stateSets)
+                {
+                    var diagnostics = diagnosticsMap[stateSet.Analyzer];
+                    builder.AddRange(diagnostics.Where(ShouldInclude));
+
+                    // Save the computed diagnostics if caching is enabled and diagnostics were computed for the entire document.
+                    if (_cacheFullDocumentDiagnostics && !span.HasValue)
                     {
-                        var dx = await executor.ComputeDiagnosticsAsync(analyzer, cancellationToken).ConfigureAwait(false);
-                        if (dx != null)
-                        {
-                            // no state yet
-                            list.AddRange(dx.Where(ShouldInclude));
-                        }
+                        var state = stateSet.GetOrCreateActiveFileState(_document.Id);
+                        var data = new DocumentAnalysisData(version, diagnostics);
+                        state.Save(executor.AnalysisScope.Kind, data);
                     }
+                }
+
+                if (incrementalAnalysis)
+                    _owner._incrementalMemberEditAnalyzer.UpdateDocumentWithCachedDiagnostics(_document);
+            }
+
+            private async Task<ImmutableDictionary<DiagnosticAnalyzer, ImmutableArray<DiagnosticData>>> ComputeDocumentDiagnosticsCoreAsync(
+                DocumentAnalysisExecutor executor,
+                CancellationToken cancellationToken)
+            {
+                using var _ = PooledDictionary<DiagnosticAnalyzer, ImmutableArray<DiagnosticData>>.GetInstance(out var builder);
+                foreach (var analyzer in executor.AnalysisScope.Analyzers)
+                {
+                    var diagnostics = await ComputeDocumentDiagnosticsForAnalyzerCoreAsync(analyzer, executor, cancellationToken).ConfigureAwait(false);
+                    builder.Add(analyzer, diagnostics);
+                }
+
+                return builder.ToImmutableDictionary();
+            }
+
+            private async Task<ImmutableArray<DiagnosticData>> ComputeDocumentDiagnosticsForAnalyzerCoreAsync(
+                DiagnosticAnalyzer analyzer,
+                DocumentAnalysisExecutor executor,
+                CancellationToken cancellationToken)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+
+                var analyzerTypeName = analyzer.GetType().Name;
+                var document = executor.AnalysisScope.TextDocument;
+
+                using (_addOperationScope?.Invoke(analyzerTypeName))
+                using (_addOperationScope is object ? RoslynEventSource.LogInformationalBlock(FunctionId.DiagnosticAnalyzerService_GetDiagnosticsForSpanAsync, analyzerTypeName, cancellationToken) : default)
+                {
+                    var diagnostics = await executor.ComputeDiagnosticsAsync(analyzer, cancellationToken).ConfigureAwait(false);
+                    return diagnostics?.ToImmutableArrayOrEmpty() ?? ImmutableArray<DiagnosticData>.Empty;
                 }
             }
 
@@ -321,7 +399,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             private bool ShouldInclude(DiagnosticData diagnostic)
             {
                 return diagnostic.DocumentId == _document.Id &&
-                    (_range == null || _range.Value.IntersectsWith(diagnostic.GetTextSpan()))
+                    (_range == null || _range.Value.IntersectsWith(diagnostic.DataLocation.UnmappedFileSpan.GetClampedTextSpan(_text)))
                     && (_includeSuppressedDiagnostics || !diagnostic.IsSuppressed)
                     && (_includeCompilerDiagnostics || !diagnostic.CustomTags.Any(static t => t is WellKnownDiagnosticTags.Compiler))
                     && (_shouldIncludeDiagnostic == null || _shouldIncludeDiagnostic(diagnostic.Id));

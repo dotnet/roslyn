@@ -45,7 +45,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             _parameterOffset = substitutedSourceMethod.IsStatic ? 0 : 1;
             _targetParameters = method.Parameters;
             // PROTOTYPE(semi-auto-props): We may want to introduce a field keyword binder.
-            _sourceBinder = new InMethodBinder(substitutedSourceMethod, new BuckStopsHereBinder(next.Compilation));
+            // Note that we never expect this InMethodBinder to find candidate symbols which may be file-local, and therefore pass 'associatedFileIdentifier: null' to the BuckStopsHereBinder.
+            _sourceBinder = new InMethodBinder(substitutedSourceMethod, new BuckStopsHereBinder(next.Compilation, associatedFileIdentifier: null));
         }
 
         internal override void LookupSymbolsInSingleBinder(LookupResult result, string name, int arity, ConsList<TypeSymbol> basesBeingResolved, LookupOptions options, Binder originalBinder, bool diagnose, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)

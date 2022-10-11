@@ -7,6 +7,7 @@ Imports Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings
 Imports Microsoft.CodeAnalysis.VisualBasic.ConvertIfToSwitch
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeActions.ConvertIfToSwitch
+    <Trait(Traits.Feature, Traits.Features.CodeActionsConvertIfToSwitch)>
     Public Class ConvertIfToSwitchFixAllTests
         Inherits AbstractVisualBasicCodeActionTest
 
@@ -14,7 +15,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeActions.Conver
             Return New VisualBasicConvertIfToSwitchCodeRefactoringProvider()
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertIfToSwitch)>
+        <Fact>
         Public Async Function ConvertIfToSwitchStatement_FixAllInDocument() As Task
             Await TestInRegularAndScriptAsync(
 "Class C
@@ -63,7 +64,7 @@ End Class",
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertIfToSwitch)>
+        <Fact>
         Public Async Function ConvertIfToSwitchStatement_FixAllInProject() As Task
             Await TestInRegularAndScriptAsync(
 "
@@ -161,7 +162,7 @@ End Class
 </Workspace>")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertIfToSwitch)>
+        <Fact>
         Public Async Function ConvertIfToSwitchStatement_FixAllInSolution() As Task
             Await TestInRegularAndScriptAsync(
 "
@@ -260,7 +261,7 @@ End Class
 </Workspace>")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertIfToSwitch)>
+        <Fact>
         Public Async Function ConvertIfToSwitchStatement_FixAllInContainingMember() As Task
             Await TestInRegularAndScriptAsync(
 "Class C
@@ -308,7 +309,7 @@ End Class",
 End Class")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertIfToSwitch)>
+        <Fact>
         Public Async Function ConvertIfToSwitchStatement_FixAllInContainingType() As Task
             Await TestInRegularAndScriptAsync(
 "Class C

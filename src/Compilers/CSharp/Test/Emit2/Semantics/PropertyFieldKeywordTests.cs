@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.CSharp.UnitTests;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -69,7 +70,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.Semantics
             BecomesLocal,
         }
 
-        private void VerifyTypeIL(CSharpCompilation compilation, string typeName, string expected)
+        private void VerifyTypeIL(CSharpCompilation compilation, string typeName, string expected, Verification verify = Verification.Passes)
         {
             if (!ExecutionConditionUtil.IsDesktop)
             {
@@ -77,7 +78,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.Semantics
                 expected = expected.Replace("[mscorlib]", "[netstandard]");
             }
 
-            CompileAndVerify(compilation).VerifyTypeIL(typeName, expected);
+            CompileAndVerify(compilation, verify: verify).VerifyTypeIL(typeName, expected);
         }
 
         [Theory, CombinatorialData]
@@ -270,28 +271,28 @@ public interface I
             VerifyTypeIL(comp, "I", @"
 .class interface public auto ansi abstract I
 {
-    // Fields
-    .field private static initonly int32 '<P>k__BackingField'
-    .custom instance void [System.Runtime]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
-    	01 00 00 00
-    )
-    // Methods
-    .method public hidebysig specialname static 
-    	int32 get_P () cil managed 
-    {
-    	// Method begins at RVA 0x2050
-    	// Code size 6 (0x6)
-    	.maxstack 8
-    	IL_0000: ldsfld int32 I::'<P>k__BackingField'
-    	IL_0005: ret
-    } // end of method I::get_P
-    // Properties
-    .property int32 P()
-    {
-    	.get int32 I::get_P()
-    }
+	// Fields
+	.field private static initonly int32 '<P>k__BackingField'
+	.custom instance void [System.Runtime]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+		01 00 00 00
+	)
+	// Methods
+	.method public hidebysig specialname static 
+		int32 get_P () cil managed 
+	{
+		// Method begins at RVA 0x2067
+		// Code size 6 (0x6)
+		.maxstack 8
+		IL_0000: ldsfld int32 I::'<P>k__BackingField'
+		IL_0005: ret
+	} // end of method I::get_P
+	// Properties
+	.property int32 P()
+	{
+		.get int32 I::get_P()
+	}
 } // end of class I
-");
+", Verification.FailsPEVerify);
             var @interface = comp.GetTypeByMetadataName("I");
             Assert.Equal("System.Int32 I.<P>k__BackingField", @interface.GetFieldsToEmit().Single().ToTestDisplayString());
             Assert.Empty(@interface.GetMembers().OfType<FieldSymbol>());
@@ -462,7 +463,7 @@ public class C
 	.method public hidebysig specialname 
 		instance int32 get_P () cil managed 
 	{
-		// Method begins at RVA 0x2050
+		// Method begins at RVA 0x2067
 		// Code size 13 (0xd)
 		.maxstack 8
 		IL_0000: ldarg.0
@@ -476,7 +477,7 @@ public class C
 			int32 x
 		) cil managed 
 	{
-		// Method begins at RVA 0x205e
+		// Method begins at RVA 0x2075
 		// Code size 2 (0x2)
 		.maxstack 8
 		IL_0000: ldc.i4.0
@@ -485,7 +486,7 @@ public class C
 	.method public hidebysig specialname rtspecialname 
 		instance void .ctor () cil managed 
 	{
-		// Method begins at RVA 0x2061
+		// Method begins at RVA 0x2078
 		// Code size 7 (0x7)
 		.maxstack 8
 		IL_0000: ldarg.0
@@ -856,7 +857,7 @@ public class MyAttribute : System.Attribute
 	.method public hidebysig specialname 
 		instance int32 get_P () cil managed 
 	{
-		// Method begins at RVA 0x2069
+		// Method begins at RVA 0x2080
 		// Code size 20 (0x14)
 		.maxstack 8
 		IL_0000: call int32 C::'<get_P>g__local1|1_0'()
@@ -871,7 +872,7 @@ public class MyAttribute : System.Attribute
 	.method public hidebysig specialname rtspecialname 
 		instance void .ctor () cil managed 
 	{
-		// Method begins at RVA 0x2061
+		// Method begins at RVA 0x2078
 		// Code size 7 (0x7)
 		.maxstack 8
 		IL_0000: ldarg.0
@@ -887,7 +888,7 @@ public class MyAttribute : System.Attribute
 		.custom instance void MyAttribute::.ctor(int32) = (
 			01 00 05 00 00 00 00 00
 		)
-		// Method begins at RVA 0x207e
+		// Method begins at RVA 0x2095
 		// Code size 2 (0x2)
 		.maxstack 8
 		IL_0000: ldc.i4.0
@@ -902,7 +903,7 @@ public class MyAttribute : System.Attribute
 			01 00 00 00
 		)
 		.param [1] = int32(5)
-		// Method begins at RVA 0x2081
+		// Method begins at RVA 0x2098
 		// Code size 2 (0x2)
 		.maxstack 8
 		IL_0000: ldarg.0
@@ -917,7 +918,7 @@ public class MyAttribute : System.Attribute
 			01 00 00 00
 		)
 		.param [1] = int32(5)
-		// Method begins at RVA 0x2081
+		// Method begins at RVA 0x2098
 		// Code size 2 (0x2)
 		.maxstack 8
 		IL_0000: ldarg.0
@@ -1019,7 +1020,7 @@ public class C
 	.method public hidebysig specialname 
 		instance int32 get_P () cil managed 
 	{
-		// Method begins at RVA 0x206c
+		// Method begins at RVA 0x2080
 		// Code size 16 (0x10)
 		.maxstack 2
 		.locals init (
@@ -1035,7 +1036,7 @@ public class C
 	.method public hidebysig specialname rtspecialname 
 		instance void .ctor () cil managed 
 	{
-		// Method begins at RVA 0x2061
+		// Method begins at RVA 0x2078
 		// Code size 7 (0x7)
 		.maxstack 8
 		IL_0000: ldarg.0
@@ -1050,7 +1051,7 @@ public class C
 		.custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
 			01 00 00 00
 		)
-		// Method begins at RVA 0x2088
+		// Method begins at RVA 0x209c
 		// Code size 7 (0x7)
 		.maxstack 8
 		IL_0000: ldarg.0
@@ -1106,7 +1107,7 @@ public class C
 		.method public hidebysig specialname rtspecialname 
 			instance void .ctor () cil managed 
 		{
-			// Method begins at RVA 0x2061
+			// Method begins at RVA 0x2078
 			// Code size 7 (0x7)
 			.maxstack 8
 			IL_0000: ldarg.0
@@ -1116,7 +1117,7 @@ public class C
 		.method assembly hidebysig 
 			instance int32 '<get_P>b__0' () cil managed 
 		{
-			// Method begins at RVA 0x2087
+			// Method begins at RVA 0x209e
 			// Code size 7 (0x7)
 			.maxstack 8
 			IL_0000: ldarg.0
@@ -1128,7 +1129,7 @@ public class C
 	.method public hidebysig specialname 
 		instance int32 get_P () cil managed 
 	{
-		// Method begins at RVA 0x2069
+		// Method begins at RVA 0x2080
 		// Code size 29 (0x1d)
 		.maxstack 8
 		IL_0000: newobj instance void C/'<>c__DisplayClass1_0'::.ctor()
@@ -1143,7 +1144,7 @@ public class C
 	.method public hidebysig specialname rtspecialname 
 		instance void .ctor () cil managed 
 	{
-		// Method begins at RVA 0x2061
+		// Method begins at RVA 0x2078
 		// Code size 7 (0x7)
 		.maxstack 8
 		IL_0000: ldarg.0
@@ -1328,7 +1329,7 @@ public class C
 	.method public hidebysig specialname 
 		instance int32 get_P () cil managed 
 	{
-		// Method begins at RVA 0x2069
+		// Method begins at RVA 0x2080
 		// Code size 7 (0x7)
 		.maxstack 8
 		IL_0000: ldarg.0
@@ -1338,7 +1339,7 @@ public class C
 	.method public hidebysig specialname rtspecialname 
 		instance void .ctor () cil managed 
 	{
-		// Method begins at RVA 0x2071
+		// Method begins at RVA 0x2088
 		// Code size 14 (0xe)
 		.maxstack 8
 		IL_0000: ldarg.0
@@ -1354,7 +1355,7 @@ public class C
 		.custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
 			01 00 00 00
 		)
-		// Method begins at RVA 0x2080
+		// Method begins at RVA 0x2097
 		// Code size 7 (0x7)
 		.maxstack 8
 		IL_0000: ldarg.0
@@ -1406,7 +1407,7 @@ public class C
 	.method public hidebysig specialname 
 		instance int32 get_P () cil managed 
 	{
-		// Method begins at RVA 0x2050
+		// Method begins at RVA 0x2067
 		// Code size 12 (0xc)
 		.maxstack 8
 		IL_0000: ldarg.0
@@ -1417,7 +1418,7 @@ public class C
 	.method public hidebysig specialname rtspecialname 
 		instance void .ctor () cil managed 
 	{
-		// Method begins at RVA 0x205d
+		// Method begins at RVA 0x2074
 		// Code size 7 (0x7)
 		.maxstack 8
 		IL_0000: ldarg.0
@@ -1432,7 +1433,7 @@ public class C
 		.custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
 			01 00 00 00
 		)
-		// Method begins at RVA 0x2065
+		// Method begins at RVA 0x207c
 		// Code size 2 (0x2)
 		.maxstack 8
 		IL_0000: ldc.i4.0
@@ -1480,7 +1481,7 @@ public class C
 	.method public hidebysig specialname 
 		instance int32 get_P () cil managed 
 	{
-		// Method begins at RVA 0x2069
+		// Method begins at RVA 0x2080
 		// Code size 18 (0x12)
 		.maxstack 8
 		IL_0000: ldarg.0
@@ -1492,7 +1493,7 @@ public class C
 	.method public hidebysig specialname rtspecialname 
 		instance void .ctor () cil managed 
 	{
-		// Method begins at RVA 0x207c
+		// Method begins at RVA 0x2093
 		// Code size 14 (0xe)
 		.maxstack 8
 		IL_0000: ldarg.0
@@ -1508,7 +1509,7 @@ public class C
 		.custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
 			01 00 00 00
 		)
-		// Method begins at RVA 0x208b
+		// Method begins at RVA 0x20a2
 		// Code size 7 (0x7)
 		.maxstack 8
 		IL_0000: ldarg.0
@@ -1597,7 +1598,7 @@ public class C
 	.method public hidebysig specialname rtspecialname 
 		instance void .ctor () cil managed 
 	{
-		// Method begins at RVA 0x2050
+		// Method begins at RVA 0x2069
 		// Code size 16 (0x10)
 		.maxstack 8
 		IL_0000: ldarg.0
@@ -1612,7 +1613,7 @@ public class C
 	.method public hidebysig specialname 
 		instance int32 get_P () cil managed 
 	{
-		// Method begins at RVA 0x2061
+		// Method begins at RVA 0x207a
 		// Code size 7 (0x7)
 		.maxstack 8
 		IL_0000: ldarg.0
@@ -1622,7 +1623,7 @@ public class C
 	.method public hidebysig static 
 		void Main () cil managed 
 	{
-		// Method begins at RVA 0x2069
+		// Method begins at RVA 0x2082
 		// Code size 18 (0x12)
 		.maxstack 8
 		.entrypoint
@@ -1976,7 +1977,7 @@ public class C
 	.method public hidebysig specialname 
 		instance int32 get_P () cil managed 
 	{
-		// Method begins at RVA 0x2050
+		// Method begins at RVA 0x2067
 		// Code size 7 (0x7)
 		.maxstack 8
 		IL_0000: ldarg.0
@@ -1986,7 +1987,7 @@ public class C
 	.method public hidebysig specialname rtspecialname 
 		instance void .ctor () cil managed 
 	{
-		// Method begins at RVA 0x2058
+		// Method begins at RVA 0x206f
 		// Code size 7 (0x7)
 		.maxstack 8
 		IL_0000: ldarg.0
@@ -2168,7 +2169,7 @@ public class C
 	.method public hidebysig specialname 
 		instance string get_P () cil managed 
 	{
-		// Method begins at RVA 0x2050
+		// Method begins at RVA 0x2067
 		// Code size 7 (0x7)
 		.maxstack 8
 		IL_0000: ldarg.0
@@ -2178,7 +2179,7 @@ public class C
 	.method public hidebysig specialname rtspecialname 
 		instance void .ctor () cil managed 
 	{
-		// Method begins at RVA 0x2058
+		// Method begins at RVA 0x206f
 		// Code size 7 (0x7)
 		.maxstack 8
 		IL_0000: ldarg.0
@@ -2276,7 +2277,7 @@ public class C
 	.method public hidebysig specialname 
 		instance int32 get_P () cil managed 
 	{
-		// Method begins at RVA 0x2050
+		// Method begins at RVA 0x2067
 		// Code size 18 (0x12)
 		.maxstack 8
 		IL_0000: ldarg.0
@@ -2291,7 +2292,7 @@ public class C
 	.method public hidebysig 
 		instance bool GetBoolValue () cil managed 
 	{
-		// Method begins at RVA 0x2063
+		// Method begins at RVA 0x207a
 		// Code size 2 (0x2)
 		.maxstack 8
 		IL_0000: ldc.i4.1
@@ -2300,7 +2301,7 @@ public class C
 	.method public hidebysig specialname rtspecialname 
 		instance void .ctor () cil managed 
 	{
-		// Method begins at RVA 0x2066
+		// Method begins at RVA 0x207d
 		// Code size 7 (0x7)
 		.maxstack 8
 		IL_0000: ldarg.0
@@ -2361,7 +2362,7 @@ public class C : B
 	.method public hidebysig specialname 
 		instance string get_P () cil managed 
 	{
-		// Method begins at RVA 0x2058
+		// Method begins at RVA 0x206f
 		// Code size 7 (0x7)
 		.maxstack 8
 		IL_0000: ldarg.0
@@ -2371,7 +2372,7 @@ public class C : B
 	.method public hidebysig specialname rtspecialname 
 		instance void .ctor () cil managed 
 	{
-		// Method begins at RVA 0x2060
+		// Method begins at RVA 0x2077
 		// Code size 7 (0x7)
 		.maxstack 8
 		IL_0000: ldarg.0
@@ -2542,7 +2543,7 @@ public class C
 			int32 i
 		) cil managed 
 	{
-		// Method begins at RVA 0x2050
+		// Method begins at RVA 0x2067
 		// Code size 7 (0x7)
 		.maxstack 8
 		IL_0000: ldarg.0
@@ -2555,7 +2556,7 @@ public class C
 			int32 'value'
 		) cil managed 
 	{
-		// Method begins at RVA 0x2058
+		// Method begins at RVA 0x206f
 		// Code size 8 (0x8)
 		.maxstack 8
 		IL_0000: ldarg.0
@@ -2566,7 +2567,7 @@ public class C
 	.method public hidebysig specialname rtspecialname 
 		instance void .ctor () cil managed 
 	{
-		// Method begins at RVA 0x2061
+		// Method begins at RVA 0x2078
 		// Code size 7 (0x7)
 		.maxstack 8
 		IL_0000: ldarg.0
@@ -2615,7 +2616,7 @@ public class C
 			int32 i
 		) cil managed 
 	{
-		// Method begins at RVA 0x2050
+		// Method begins at RVA 0x2067
 		// Code size 2 (0x2)
 		.maxstack 8
 		IL_0000: ldarg.1
@@ -2627,7 +2628,7 @@ public class C
 			int32 'value'
 		) cil managed 
 	{
-		// Method begins at RVA 0x2053
+		// Method begins at RVA 0x206a
 		// Code size 1 (0x1)
 		.maxstack 8
 		IL_0000: ret
@@ -2635,7 +2636,7 @@ public class C
 	.method public hidebysig specialname rtspecialname 
 		instance void .ctor () cil managed 
 	{
-		// Method begins at RVA 0x2055
+		// Method begins at RVA 0x206c
 		// Code size 7 (0x7)
 		.maxstack 8
 		IL_0000: ldarg.0
@@ -2964,45 +2965,45 @@ class Test
             CompileAndVerify(comp, expectedOutput: "3").VerifyDiagnostics();
             VerifyTypeIL(comp, "Test", @"
 .class private auto ansi beforefieldinit Test
-    extends [mscorlib]System.Object
+	extends [mscorlib]System.Object
 {
-    // Fields
-    .field private initonly int32 '<X>k__BackingField'
-    .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
-    	01 00 00 00
-    )
-    // Methods
-    .method public hidebysig specialname rtspecialname 
-    	instance void .ctor () cil managed 
-    {
-    	// Method begins at RVA 0x2060
-    	// Code size 25 (0x19)
-    	.maxstack 8
-    	IL_0000: ldarg.0
-    	IL_0001: call instance void [mscorlib]System.Object::.ctor()
-    	IL_0006: ldarg.0
-    	IL_0007: ldc.i4.3
-    	IL_0008: stfld int32 Test::'<X>k__BackingField'
-    	IL_000d: ldarg.0
-    	IL_000e: call instance int32 Test::get_X()
-    	IL_0013: call void [mscorlib]System.Console::WriteLine(int32)
-    	IL_0018: ret
-    } // end of method Test::.ctor
-    .method private hidebysig specialname 
-    	instance int32 get_X () cil managed 
-    {
-    	// Method begins at RVA 0x207a
-    	// Code size 7 (0x7)
-    	.maxstack 8
-    	IL_0000: ldarg.0
-    	IL_0001: ldfld int32 Test::'<X>k__BackingField'
-    	IL_0006: ret
-    } // end of method Test::get_X
-    // Properties
-    .property instance int32 X()
-    {
-    	.get instance int32 Test::get_X()
-    }
+	// Fields
+	.field private initonly int32 '<X>k__BackingField'
+	.custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+		01 00 00 00
+	)
+	// Methods
+	.method public hidebysig specialname rtspecialname 
+		instance void .ctor () cil managed 
+	{
+		// Method begins at RVA 0x2077
+		// Code size 25 (0x19)
+		.maxstack 8
+		IL_0000: ldarg.0
+		IL_0001: call instance void [mscorlib]System.Object::.ctor()
+		IL_0006: ldarg.0
+		IL_0007: ldc.i4.3
+		IL_0008: stfld int32 Test::'<X>k__BackingField'
+		IL_000d: ldarg.0
+		IL_000e: call instance int32 Test::get_X()
+		IL_0013: call void [mscorlib]System.Console::WriteLine(int32)
+		IL_0018: ret
+	} // end of method Test::.ctor
+	.method private hidebysig specialname 
+		instance int32 get_X () cil managed 
+	{
+		// Method begins at RVA 0x2091
+		// Code size 7 (0x7)
+		.maxstack 8
+		IL_0000: ldarg.0
+		IL_0001: ldfld int32 Test::'<X>k__BackingField'
+		IL_0006: ret
+	} // end of method Test::get_X
+	// Properties
+	.property instance int32 X()
+	{
+		.get instance int32 Test::get_X()
+	}
 } // end of class Test
 ");
             Assert.Equal(0, accessorBindingData.NumberOfPerformedAccessorBinding);
@@ -3119,7 +3120,7 @@ public class C
 	.method public hidebysig specialname 
 		instance int32 get_P () cil managed 
 	{
-		// Method begins at RVA 0x2050
+		// Method begins at RVA 0x2067
 		// Code size 7 (0x7)
 		.maxstack 8
 		IL_0000: ldarg.0
@@ -3129,7 +3130,7 @@ public class C
 	.method public hidebysig specialname rtspecialname 
 		instance void .ctor () cil managed 
 	{
-		// Method begins at RVA 0x2058
+		// Method begins at RVA 0x206f
 		// Code size 7 (0x7)
 		.maxstack 8
 		IL_0000: ldarg.0
@@ -3142,7 +3143,7 @@ public class C
 		.custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
 			01 00 00 00
 		)
-		// Method begins at RVA 0x2060
+		// Method begins at RVA 0x2077
 		// Code size 7 (0x7)
 		.maxstack 8
 		IL_0000: ldarg.0
@@ -3199,7 +3200,7 @@ public class C
 		.method private hidebysig specialname rtspecialname static 
 			void .cctor () cil managed 
 		{
-			// Method begins at RVA 0x2084
+			// Method begins at RVA 0x209b
 			// Code size 11 (0xb)
 			.maxstack 8
 			IL_0000: newobj instance void C/'<>c'::.ctor()
@@ -3209,7 +3210,7 @@ public class C
 		.method public hidebysig specialname rtspecialname 
 			instance void .ctor () cil managed 
 		{
-			// Method begins at RVA 0x207c
+			// Method begins at RVA 0x2093
 			// Code size 7 (0x7)
 			.maxstack 8
 			IL_0000: ldarg.0
@@ -3219,7 +3220,7 @@ public class C
 		.method assembly hidebysig 
 			instance int32 '<get_P>b__1_0' () cil managed 
 		{
-			// Method begins at RVA 0x2090
+			// Method begins at RVA 0x20a7
 			// Code size 6 (0x6)
 			.maxstack 8
 			IL_0000: ldsfld int32 C::'<P>k__BackingField'
@@ -3235,7 +3236,7 @@ public class C
 	.method public hidebysig specialname static 
 		int32 get_P () cil managed 
 	{
-		// Method begins at RVA 0x2050
+		// Method begins at RVA 0x2067
 		// Code size 43 (0x2b)
 		.maxstack 8
 		IL_0000: ldsfld class [mscorlib]System.Func`1<int32> C/'<>c'::'<>9__1_0'
@@ -3255,7 +3256,7 @@ public class C
 	.method public hidebysig specialname rtspecialname 
 		instance void .ctor () cil managed 
 	{
-		// Method begins at RVA 0x207c
+		// Method begins at RVA 0x2093
 		// Code size 7 (0x7)
 		.maxstack 8
 		IL_0000: ldarg.0
@@ -3307,7 +3308,7 @@ public class C
 	.method public hidebysig specialname 
 		instance int32 get_P () cil managed 
 	{
-		// Method begins at RVA 0x2050
+		// Method begins at RVA 0x2067
 		// Code size 24 (0x18)
 		.maxstack 8
 		IL_0000: ldarg.0
@@ -3321,7 +3322,7 @@ public class C
 	.method public hidebysig specialname rtspecialname 
 		instance void .ctor () cil managed 
 	{
-		// Method begins at RVA 0x2069
+		// Method begins at RVA 0x2080
 		// Code size 7 (0x7)
 		.maxstack 8
 		IL_0000: ldarg.0
@@ -3334,7 +3335,7 @@ public class C
 		.custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
 			01 00 00 00
 		)
-		// Method begins at RVA 0x2071
+		// Method begins at RVA 0x2088
 		// Code size 7 (0x7)
 		.maxstack 8
 		IL_0000: ldarg.0
@@ -6114,9 +6115,9 @@ public unsafe struct S2
             comp.TestOnlyCompilationData = accessorBindingData;
 
             comp.VerifyDiagnostics(
-                // (4,16): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('S1')
+                // (4,16): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('S1')
                 //     public S1* s;
-                Diagnostic(ErrorCode.ERR_ManagedAddr, "s").WithArguments("S1").WithLocation(4, 16));
+                Diagnostic(ErrorCode.WRN_ManagedAddr, "s").WithArguments("S1").WithLocation(4, 16));
             // PROTOTYPE(semi-auto-props): (Applies to all TestERR_ManagedAddrXX tests) There shouldn't be extra bindings.
             Assert.Equal(2, accessorBindingData.NumberOfPerformedAccessorBinding);
         }
@@ -6140,9 +6141,9 @@ public unsafe struct S2
             comp.TestOnlyCompilationData = accessorBindingData;
 
             comp.VerifyDiagnostics(
-                // (5,16): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('S1')
+                // (5,16): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('S1')
                 //     public S1* P { get => field; }
-                Diagnostic(ErrorCode.ERR_ManagedAddr, "P").WithArguments("S1").WithLocation(5, 16));
+                Diagnostic(ErrorCode.WRN_ManagedAddr, "P").WithArguments("S1").WithLocation(5, 16));
 
             Assert.Equal(1, accessorBindingData.NumberOfPerformedAccessorBinding);
         }
@@ -6165,9 +6166,9 @@ public unsafe class C
             comp.TestOnlyCompilationData = accessorBindingData;
 
             comp.VerifyDiagnostics(
-                    // (9,23): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('S1')
-                    //     public void M(S1* x) { }
-                    Diagnostic(ErrorCode.ERR_ManagedAddr, "x").WithArguments("S1").WithLocation(9, 23));
+                // (9,23): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('S1')
+                //     public void M(S1* x) { }
+                Diagnostic(ErrorCode.WRN_ManagedAddr, "x").WithArguments("S1").WithLocation(9, 23));
 
             Assert.Equal(1, accessorBindingData.NumberOfPerformedAccessorBinding);
         }
@@ -6198,15 +6199,15 @@ public unsafe class C : I<S1*>
                 // (12,21): error CS0306: The type 'S1*' may not be used as a type argument
                 // public unsafe class C : I<S1*>
                 Diagnostic(ErrorCode.ERR_BadTypeArgument, "C").WithArguments("S1*").WithLocation(12, 21),
-                // (12,21): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('S1')
+                // (12,21): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('S1')
                 // public unsafe class C : I<S1*>
-                Diagnostic(ErrorCode.ERR_ManagedAddr, "C").WithArguments("S1").WithLocation(12, 21),
+                Diagnostic(ErrorCode.WRN_ManagedAddr, "C").WithArguments("S1").WithLocation(12, 21),
                 // (14,10): error CS0306: The type 'S1*' may not be used as a type argument
                 //     void I<S1*>.M() { }
                 Diagnostic(ErrorCode.ERR_BadTypeArgument, "I<S1*>").WithArguments("S1*").WithLocation(14, 10),
-                // (14,10): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('S1')
+                // (14,10): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('S1')
                 //     void I<S1*>.M() { }
-                Diagnostic(ErrorCode.ERR_ManagedAddr, "I<S1*>").WithArguments("S1").WithLocation(14, 10));
+                Diagnostic(ErrorCode.WRN_ManagedAddr, "I<S1*>").WithArguments("S1").WithLocation(14, 10));
 
             Assert.Equal(1, accessorBindingData.NumberOfPerformedAccessorBinding);
         }
@@ -6237,15 +6238,15 @@ public unsafe class C : I<S1*>
                 // (12,21): error CS0306: The type 'S1*' may not be used as a type argument
                 // public unsafe class C : I<S1*>
                 Diagnostic(ErrorCode.ERR_BadTypeArgument, "C").WithArguments("S1*").WithLocation(12, 21),
-                // (12,21): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('S1')
+                // (12,21): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('S1')
                 // public unsafe class C : I<S1*>
-                Diagnostic(ErrorCode.ERR_ManagedAddr, "C").WithArguments("S1").WithLocation(12, 21),
+                Diagnostic(ErrorCode.WRN_ManagedAddr, "C").WithArguments("S1").WithLocation(12, 21),
                 // (14,9): error CS0306: The type 'S1*' may not be used as a type argument
                 //     int I<S1*>.P { get => throw new System.NotImplementedException(); set => throw new System.NotImplementedException(); }
                 Diagnostic(ErrorCode.ERR_BadTypeArgument, "I<S1*>").WithArguments("S1*").WithLocation(14, 9),
-                // (14,9): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('S1')
+                // (14,9): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('S1')
                 //     int I<S1*>.P { get => throw new System.NotImplementedException(); set => throw new System.NotImplementedException(); }
-                Diagnostic(ErrorCode.ERR_ManagedAddr, "I<S1*>").WithArguments("S1").WithLocation(14, 9));
+                Diagnostic(ErrorCode.WRN_ManagedAddr, "I<S1*>").WithArguments("S1").WithLocation(14, 9));
 
             Assert.Equal(1, accessorBindingData.NumberOfPerformedAccessorBinding);
         }
@@ -6272,9 +6273,9 @@ public unsafe class C
             comp.TestOnlyCompilationData = accessorBindingData;
 
             comp.VerifyDiagnostics(
-                // (9,24): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('S1')
+                // (9,25): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('S1')
                 //     public int this[S1* i]
-                Diagnostic(ErrorCode.ERR_ManagedAddr, "i").WithArguments("S1").WithLocation(9, 25));
+                Diagnostic(ErrorCode.WRN_ManagedAddr, "i").WithArguments("S1").WithLocation(9, 25));
 
             Assert.Equal(1, accessorBindingData.NumberOfPerformedAccessorBinding);
         }
@@ -6297,9 +6298,9 @@ public unsafe class C
             comp.TestOnlyCompilationData = accessorBindingData;
 
             comp.VerifyDiagnostics(
-                // (9,18): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('S1')
+                // (9,18): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('S1')
                 //     public C(S1* x) { }
-                Diagnostic(ErrorCode.ERR_ManagedAddr, "x").WithArguments("S1").WithLocation(9, 18));
+                Diagnostic(ErrorCode.WRN_ManagedAddr, "x").WithArguments("S1").WithLocation(9, 18));
 
             Assert.Equal(1, accessorBindingData.NumberOfPerformedAccessorBinding);
         }
@@ -6332,15 +6333,15 @@ public unsafe class C : I<S1*>
                 // (14,21): error CS0306: The type 'S1*' may not be used as a type argument
                 // public unsafe class C : I<S1*>
                 Diagnostic(ErrorCode.ERR_BadTypeArgument, "C").WithArguments("S1*").WithLocation(14, 21),
-                // (14,21): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('S1')
+                // (14,21): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('S1')
                 // public unsafe class C : I<S1*>
-                Diagnostic(ErrorCode.ERR_ManagedAddr, "C").WithArguments("S1").WithLocation(14, 21),
+                Diagnostic(ErrorCode.WRN_ManagedAddr, "C").WithArguments("S1").WithLocation(14, 21),
                 // (16,24): error CS0306: The type 'S1*' may not be used as a type argument
                 //     event EventHandler I<S1*>.E { add { } remove { } }
                 Diagnostic(ErrorCode.ERR_BadTypeArgument, "I<S1*>").WithArguments("S1*").WithLocation(16, 24),
-                // (16,24): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('S1')
+                // (16,24): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('S1')
                 //     event EventHandler I<S1*>.E { add { } remove { } }
-                Diagnostic(ErrorCode.ERR_ManagedAddr, "I<S1*>").WithArguments("S1").WithLocation(16, 24));
+                Diagnostic(ErrorCode.WRN_ManagedAddr, "I<S1*>").WithArguments("S1").WithLocation(16, 24));
 
             Assert.Equal(1, accessorBindingData.NumberOfPerformedAccessorBinding);
         }
@@ -6374,15 +6375,15 @@ public unsafe class C : I<MyAlias*>
                 // (15,21): error CS0306: The type 'S1*' may not be used as a type argument
                 // public unsafe class C : I<MyAlias*>
                 Diagnostic(ErrorCode.ERR_BadTypeArgument, "C").WithArguments("S1*").WithLocation(15, 21),
-                // (15,21): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('S1')
+                // (15,21): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('S1')
                 // public unsafe class C : I<MyAlias*>
-                Diagnostic(ErrorCode.ERR_ManagedAddr, "C").WithArguments("S1").WithLocation(15, 21),
+                Diagnostic(ErrorCode.WRN_ManagedAddr, "C").WithArguments("S1").WithLocation(15, 21),
                 // (17,24): error CS0306: The type 'S1*' may not be used as a type argument
                 //     event EventHandler I<MyAlias*>.E { add { } remove { } }
                 Diagnostic(ErrorCode.ERR_BadTypeArgument, "I<MyAlias*>").WithArguments("S1*").WithLocation(17, 24),
-                // (17,24): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('S1')
+                // (17,24): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('S1')
                 //     event EventHandler I<MyAlias*>.E { add { } remove { } }
-                Diagnostic(ErrorCode.ERR_ManagedAddr, "I<MyAlias*>").WithArguments("S1").WithLocation(17, 24));
+                Diagnostic(ErrorCode.WRN_ManagedAddr, "I<MyAlias*>").WithArguments("S1").WithLocation(17, 24));
 
             Assert.Equal(1, accessorBindingData.NumberOfPerformedAccessorBinding);
         }
@@ -6405,15 +6406,15 @@ public unsafe class C
             comp.TestOnlyCompilationData = accessorBindingData;
 
             comp.VerifyDiagnostics(
-                    // (9,15): error CS0066: 'C.E': event must be of a delegate type
-                    //     event S1* E;
-                    Diagnostic(ErrorCode.ERR_EventNotDelegate, "E").WithArguments("C.E").WithLocation(9, 15),
-                    // (9,15): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('S1')
-                    //     event S1* E;
-                    Diagnostic(ErrorCode.ERR_ManagedAddr, "E").WithArguments("S1").WithLocation(9, 15),
-                    // (9,15): warning CS0067: The event 'C.E' is never used
-                    //     event S1* E;
-                    Diagnostic(ErrorCode.WRN_UnreferencedEvent, "E").WithArguments("C.E").WithLocation(9, 15));
+                // (9,15): error CS0066: 'C.E': event must be of a delegate type
+                //     event S1* E;
+                Diagnostic(ErrorCode.ERR_EventNotDelegate, "E").WithArguments("C.E").WithLocation(9, 15),
+                // (9,15): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('S1')
+                //     event S1* E;
+                Diagnostic(ErrorCode.WRN_ManagedAddr, "E").WithArguments("S1").WithLocation(9, 15),
+                // (9,15): warning CS0067: The event 'C.E' is never used
+                //     event S1* E;
+                Diagnostic(ErrorCode.WRN_UnreferencedEvent, "E").WithArguments("C.E").WithLocation(9, 15));
 
             Assert.Equal(1, accessorBindingData.NumberOfPerformedAccessorBinding);
         }
@@ -6440,9 +6441,9 @@ public unsafe class C<T> where T : I<S1*>
                 // (9,23): error CS0306: The type 'S1*' may not be used as a type argument
                 // public unsafe class C<T> where T : I<S1*>
                 Diagnostic(ErrorCode.ERR_BadTypeArgument, "T").WithArguments("S1*").WithLocation(9, 23),
-                // (9,23): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('S1')
+                // (9,23): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('S1')
                 // public unsafe class C<T> where T : I<S1*>
-                Diagnostic(ErrorCode.ERR_ManagedAddr, "T").WithArguments("S1").WithLocation(9, 23));
+                Diagnostic(ErrorCode.WRN_ManagedAddr, "T").WithArguments("S1").WithLocation(9, 23));
 
             Assert.Equal(1, accessorBindingData.NumberOfPerformedAccessorBinding);
         }

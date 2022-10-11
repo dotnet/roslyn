@@ -855,15 +855,15 @@ struct S1
 
             var comp = CreateCompilation(source, options: WithNullableEnable(), parseOptions: TestOptions.Regular10);
             comp.VerifyDiagnostics(
-                // (5,12): error CS0843: Auto-implemented property 'S1.Prop' must be fully assigned before control is returned to the caller. Consider updating to language version 'preview' to auto-default the property.
+                // (5,12): error CS0843: Auto-implemented property 'S1.Prop' must be fully assigned before control is returned to the caller. Consider updating to language version '11.0' to auto-default the property.
                 //     public S1(string s) // 1
-                Diagnostic(ErrorCode.ERR_UnassignedThisAutoPropertyUnsupportedVersion, "S1").WithArguments("S1.Prop", "preview").WithLocation(5, 12),
+                Diagnostic(ErrorCode.ERR_UnassignedThisAutoPropertyUnsupportedVersion, "S1").WithArguments("S1.Prop", "11.0").WithLocation(5, 12),
                 // (7,9): warning CS8602: Dereference of a possibly null reference.
                 //         Prop.ToString(); // 2
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "Prop").WithLocation(7, 9),
-                // (7,9): error CS9013: Use of possibly unassigned auto-implemented property 'Prop'. Consider updating to language version 'preview' to auto-default the property.
+                // (7,9): error CS9014: Use of possibly unassigned auto-implemented property 'Prop'. Consider updating to language version '11.0' to auto-default the property.
                 //         Prop.ToString(); // 2
-                Diagnostic(ErrorCode.ERR_UseDefViolationPropertyUnsupportedVersion, "Prop").WithArguments("Prop", "preview").WithLocation(7, 9),
+                Diagnostic(ErrorCode.ERR_UseDefViolationPropertyUnsupportedVersion, "Prop").WithArguments("Prop", "11.0").WithLocation(7, 9),
                 // (12,9): warning CS8602: Dereference of a possibly null reference.
                 //         Prop.ToString(); // 3
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "Prop").WithLocation(12, 9),
@@ -871,7 +871,7 @@ struct S1
                 //     public S1(object obj1, object obj2) : this() // 4
                 Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "S1").WithArguments("property", "Prop").WithLocation(15, 12));
 
-            var verifier = CompileAndVerify(source, options: WithNullableEnable(), parseOptions: TestOptions.RegularNext);
+            var verifier = CompileAndVerify(source, options: WithNullableEnable(), parseOptions: TestOptions.Regular11);
             verifier.VerifyDiagnostics(
                 // (7,9): warning CS8602: Dereference of a possibly null reference.
                 //         Prop.ToString(); // 2
@@ -980,7 +980,7 @@ public struct S2
     public object F2;
 }
 ";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularNext);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular11);
             comp.VerifyDiagnostics(
                 // (10,9): warning CS8602: Dereference of a possibly null reference.
                 //         F1.ToString(); // 1
@@ -1054,15 +1054,15 @@ struct S1
                 // (13,12): warning CS8618: Non-nullable field 'field' must contain a non-null value when exiting constructor. Consider declaring the field as nullable.
                 //     public S1(string s) // 1, 2
                 Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "S1").WithArguments("field", "field").WithLocation(13, 12),
-                // (13,12): error CS0171: Field 'S1.field' must be fully assigned before control is returned to the caller. Consider updating to language version 'preview' to auto-default the field.
+                // (13,12): error CS0171: Field 'S1.field' must be fully assigned before control is returned to the caller. Consider updating to language version '11.0' to auto-default the field.
                 //     public S1(string s) // 1, 2
-                Diagnostic(ErrorCode.ERR_UnassignedThisUnsupportedVersion, "S1").WithArguments("S1.field", "preview").WithLocation(13, 12),
-                // (15,30): error CS9014: Use of possibly unassigned field 'field'. Consider updating to language version 'preview' to auto-default the field.
+                Diagnostic(ErrorCode.ERR_UnassignedThisUnsupportedVersion, "S1").WithArguments("S1.field", "11.0").WithLocation(13, 12),
+                // (15,30): error CS9015: Use of possibly unassigned field 'field'. Consider updating to language version '11.0' to auto-default the field.
                 //         System.Console.Write(field); // 3
-                Diagnostic(ErrorCode.ERR_UseDefViolationFieldUnsupportedVersion, "field").WithArguments("field", "preview").WithLocation(15, 30)
+                Diagnostic(ErrorCode.ERR_UseDefViolationFieldUnsupportedVersion, "field").WithArguments("field", "11.0").WithLocation(15, 30)
                 );
 
-            var verifier = CompileAndVerify(source, parseOptions: TestOptions.RegularNext);
+            var verifier = CompileAndVerify(source, parseOptions: TestOptions.Regular11);
             verifier.VerifyDiagnostics(
                 // (13,12): warning CS8618: Non-nullable field 'field' must contain a non-null value when exiting constructor. Consider declaring the field as nullable.
                 //     public S1(string s) // 1, 2
@@ -1787,14 +1787,14 @@ class C5<T, U> where T : A where U : T
                 // (6,14): warning CS8618: Non-nullable field 'F' must contain a non-null value when exiting constructor. Consider declaring the field as nullable.
                 //     internal S(string s)
                 Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "S").WithArguments("field", "F").WithLocation(6, 14),
-                // (6,14): error CS0843: Auto-implemented property 'S.P' must be fully assigned before control is returned to the caller. Consider updating to language version 'preview' to auto-default the property.
+                // (6,14): error CS0843: Auto-implemented property 'S.P' must be fully assigned before control is returned to the caller. Consider updating to language version '11.0' to auto-default the property.
                 //     internal S(string s)
-                Diagnostic(ErrorCode.ERR_UnassignedThisAutoPropertyUnsupportedVersion, "S").WithArguments("S.P", "preview").WithLocation(6, 14),
-                // (6,14): error CS0171: Field 'S.F' must be fully assigned before control is returned to the caller. Consider updating to language version 'preview' to auto-default the field.
+                Diagnostic(ErrorCode.ERR_UnassignedThisAutoPropertyUnsupportedVersion, "S").WithArguments("S.P", "11.0").WithLocation(6, 14),
+                // (6,14): error CS0171: Field 'S.F' must be fully assigned before control is returned to the caller. Consider updating to language version '11.0' to auto-default the field.
                 //     internal S(string s)
-                Diagnostic(ErrorCode.ERR_UnassignedThisUnsupportedVersion, "S").WithArguments("S.F", "preview").WithLocation(6, 14));
+                Diagnostic(ErrorCode.ERR_UnassignedThisUnsupportedVersion, "S").WithArguments("S.F", "11.0").WithLocation(6, 14));
 
-            var verifier = CompileAndVerify(new[] { source }, options: WithNullableEnable(), parseOptions: TestOptions.RegularNext);
+            var verifier = CompileAndVerify(new[] { source }, options: WithNullableEnable(), parseOptions: TestOptions.Regular11);
             verifier.VerifyDiagnostics(
                 // (6,14): warning CS8618: Non-nullable property 'P' must contain a non-null value when exiting constructor. Consider declaring the property as nullable.
                 //     internal S(string s)

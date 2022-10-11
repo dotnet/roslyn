@@ -8,7 +8,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
@@ -110,16 +110,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                 state, name, cancellationToken).ConfigureAwait(false);
 
             initialReferences.AddRange(await FindReferencesInTokensAsync(
-                symbol,
-                state,
-                tokens,
-                static (state, token, name, _) =>
-                {
-                    Debug.Assert(state.SyntaxFacts.TextMatch(token.ValueText, name));
-                    return true;
-                },
-                name,
-                cancellationToken).ConfigureAwait(false));
+                symbol, state, tokens, cancellationToken).ConfigureAwait(false));
         }
 
         private static async Task AddGlobalNamespaceReferencesAsync(
@@ -128,18 +119,14 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             ArrayBuilder<FinderLocation> initialReferences,
             CancellationToken cancellationToken)
         {
-            var tokens = state.Root.DescendantTokens().Where(state.SyntaxFacts.IsGlobalNamespaceKeyword);
+            var tokens = state.Root
+                .DescendantTokens()
+                .WhereAsArray(
+                    static (token, state) => state.SyntaxFacts.IsGlobalNamespaceKeyword(token),
+                    state);
 
             initialReferences.AddRange(await FindReferencesInTokensAsync(
-                symbol,
-                state,
-                tokens,
-                static (state, token, _) =>
-                {
-                    Debug.Assert(state.SyntaxFacts.IsGlobalNamespaceKeyword(token));
-                    return true;
-                },
-                cancellationToken).ConfigureAwait(false));
+                symbol, state, tokens, cancellationToken).ConfigureAwait(false));
         }
     }
 }

@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.AddPackage
             var document = context.Document;
             var cancellationToken = context.CancellationToken;
 
-            var workspaceServices = document.Project.Solution.Workspace.Services;
+            var workspaceServices = document.Project.Solution.Services;
 
             var symbolSearchService = _symbolSearchService ?? workspaceServices.GetService<ISymbolSearchService>();
             var installerService = _packageInstallerService ?? workspaceServices.GetService<IPackageInstallerService>();
@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.AddPackage
             var codeActions = ArrayBuilder<CodeAction>.GetInstance();
             if (symbolSearchService != null &&
                 installerService != null &&
-                context.Options.GetOptions(document.Project.LanguageServices).SearchOptions.SearchNuGetPackages &&
+                context.Options.GetOptions(document.Project.Services).SearchOptions.SearchNuGetPackages &&
                 installerService.IsEnabled(document.Project.Id))
             {
                 var packageSources = PackageSourceHelper.GetPackageSources(installerService.TryGetPackageSources());

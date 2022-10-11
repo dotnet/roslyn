@@ -5,9 +5,9 @@
 #nullable disable
 
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 
-namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
+namespace Microsoft.CodeAnalysis.CSharp.LanguageService
 {
     internal class CSharpDocumentationCommentService : AbstractDocumentationCommentService<
         DocumentationCommentTriviaSyntax,

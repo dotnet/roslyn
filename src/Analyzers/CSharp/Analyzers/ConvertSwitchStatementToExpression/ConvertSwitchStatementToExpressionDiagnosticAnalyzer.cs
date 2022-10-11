@@ -24,7 +24,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertSwitchStatementToExpression
             : base(IDEDiagnosticIds.ConvertSwitchStatementToExpressionDiagnosticId,
                 EnforceOnBuildValues.ConvertSwitchStatementToExpression,
                 CSharpCodeStyleOptions.PreferSwitchExpression,
-                LanguageNames.CSharp,
                 new LocalizableResourceString(nameof(CSharpAnalyzersResources.Convert_switch_statement_to_expression), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)),
                 new LocalizableResourceString(nameof(CSharpAnalyzersResources.Use_switch_expression), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)))
         {

@@ -275,8 +275,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 Dim newSymbolInfo = GetSymbolInfoForNode(options, New BoundNodeSummary(bound, bound, Nothing), binderOpt:=Nothing)
 
-                If Not newSymbolInfo.GetAllSymbols().IsDefaultOrEmpty Then
-                    Return SymbolInfoFactory.Create(newSymbolInfo.GetAllSymbols(), LookupResultKind.NotATypeOrNamespace)
+                Dim allSymbols = newSymbolInfo.GetAllSymbols()
+                If Not allSymbols.IsDefaultOrEmpty Then
+                    Return SymbolInfoFactory.Create(allSymbols, LookupResultKind.NotATypeOrNamespace)
                 End If
             End If
 

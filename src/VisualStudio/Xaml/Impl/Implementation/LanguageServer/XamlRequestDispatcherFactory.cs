@@ -13,23 +13,25 @@ using Microsoft.CodeAnalysis.Editor.Xaml;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
+using Microsoft.CommonLanguageServerProtocol.Framework;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.LanguageServices.Xaml.Telemetry;
 
 namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer
 {
-    /// <summary>
-    /// Implements the Language Server Protocol for XAML
-    /// </summary>
-    [ExportLspServiceFactory(typeof(RequestDispatcher), StringConstants.XamlLspLanguagesContract), Shared]
-    internal sealed class XamlRequestDispatcherFactory : RequestDispatcherFactory
+    internal interface ILSPServiceRequestExecutionQueue : IRequestExecutionQueue<RequestContext>, ILspService
+    {
+    }
+
+    [ExportLspServiceFactory(typeof(ILSPServiceRequestExecutionQueue), StringConstants.XamlLspLanguagesContract), Shared]
+    internal sealed class XamlRequestExecutionQueueFactory : ILspServiceFactory
     {
         private readonly XamlProjectService _projectService;
         private readonly IXamlLanguageServerFeedbackService? _feedbackService;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public XamlRequestDispatcherFactory(
+        public XamlRequestExecutionQueueFactory(
             XamlProjectService projectService,
             [Import(AllowDefault = true)] IXamlLanguageServerFeedbackService? feedbackService)
         {
@@ -37,31 +39,43 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer
             _feedbackService = feedbackService;
         }
 
-        public override ILspService CreateILspService(LspServices lspServices, WellKnownLspServerKinds serverKind)
+        public ILspService CreateILspService(LspServices lspServices, WellKnownLspServerKinds serverKind)
         {
-            return new XamlRequestDispatcher(_projectService, lspServices, _feedbackService);
+            var handlerProvider = lspServices.GetRequiredService<IHandlerProvider>();
+            var logger = lspServices.GetRequiredService<ILspLogger>();
+            return new XamlRequestExecutionQueue(_projectService, _feedbackService, logger, handlerProvider);
         }
 
-        private class XamlRequestDispatcher : RequestDispatcher
+        private class XamlRequestExecutionQueue : RequestExecutionQueue<RequestContext>, ILspService
         {
             private readonly XamlProjectService _projectService;
             private readonly IXamlLanguageServerFeedbackService? _feedbackService;
 
-            public XamlRequestDispatcher(
+            public XamlRequestExecutionQueue(
                 XamlProjectService projectService,
-                LspServices services,
-                IXamlLanguageServerFeedbackService? feedbackService) : base(services)
+                IXamlLanguageServerFeedbackService? feedbackService,
+                ILspLogger logger,
+                IHandlerProvider handlerProvider) : base(logger, handlerProvider)
             {
                 _projectService = projectService;
                 _feedbackService = feedbackService;
             }
 
-            protected override async Task<TResponseType?> ExecuteRequestAsync<TRequestType, TResponseType>(
-                RequestExecutionQueue queue, bool mutatesSolutionState, bool requiresLSPSolution, IRequestHandler<TRequestType, TResponseType> handler, TRequestType request, ClientCapabilities clientCapabilities, string methodName, CancellationToken cancellationToken)
-                where TRequestType : class
-                where TResponseType : default
+            public new async Task<TResponseType> ExecuteAsync<TRequestType, TResponseType>(
+                TRequestType request,
+                string methodName,
+                ILspServices lspServices,
+                CancellationToken cancellationToken)
             {
-                var textDocument = handler.GetTextDocumentIdentifier(request);
+                var methodHandler = GetMethodHandler(lspServices, methodName);
+                TextDocumentIdentifier? textDocument = null;
+                if (methodHandler is ITextDocumentIdentifierHandler txtDocumentIdentifierHandler)
+                {
+                    if (txtDocumentIdentifierHandler is ITextDocumentIdentifierHandler<TRequestType, TextDocumentIdentifier> t)
+                    {
+                        textDocument = t.GetTextDocumentIdentifier(request);
+                    }
+                }
 
                 DocumentId? documentId = null;
                 if (textDocument is { Uri: { IsAbsoluteUri: true } documentUri })
@@ -73,7 +87,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer
                 {
                     try
                     {
-                        return await base.ExecuteRequestAsync(queue, mutatesSolutionState, requiresLSPSolution, handler, request, clientCapabilities, methodName, cancellationToken).ConfigureAwait(false);
+                        return await base.ExecuteAsync<TRequestType, TResponseType>(
+                            request, methodName, lspServices, cancellationToken).ConfigureAwait(false);
                     }
                     catch (Exception e) when (e is not OperationCanceledException)
                     {
@@ -82,6 +97,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer
                         requestScope?.RecordFailure(e);
                         throw;
                     }
+                }
+
+                static IMethodHandler GetMethodHandler(ILspServices lspServices, string methodName)
+                {
+                    var handlerProvider = lspServices.GetRequiredService<IHandlerProvider>();
+                    var requestType = typeof(TRequestType);
+                    var responseType = typeof(TResponseType);
+
+                    var handler = handlerProvider.GetMethodHandler(methodName, requestType, responseType);
+
+                    return handler;
                 }
             }
         }

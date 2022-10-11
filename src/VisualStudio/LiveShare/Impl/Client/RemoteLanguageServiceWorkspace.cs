@@ -85,12 +85,13 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
             SVsServiceProvider serviceProvider,
             IDiagnosticService diagnosticService,
             ITableManagerProvider tableManagerProvider,
+            IGlobalOptionService globalOptions,
             IThreadingContext threadingContext)
             : base(VisualStudioMefHostServices.Create(exportProvider), WorkspaceKind.CloudEnvironmentClientWorkspace)
         {
             _serviceProvider = serviceProvider;
 
-            _remoteDiagnosticListTable = new RemoteDiagnosticListTable(threadingContext, serviceProvider, this, diagnosticService, tableManagerProvider);
+            _remoteDiagnosticListTable = new RemoteDiagnosticListTable(globalOptions, threadingContext, serviceProvider, this, diagnosticService, tableManagerProvider);
 
             var runningDocumentTable = (IVsRunningDocumentTable)serviceProvider.GetService(typeof(SVsRunningDocumentTable));
             _runningDocumentTableEventTracker = new RunningDocumentTableEventTracker(threadingContext, editorAdaptersFactoryService, runningDocumentTable, this);

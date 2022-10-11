@@ -836,13 +836,12 @@ class AnonymousFunctions
                 Dim projectDiagnostics = Await diagnosticService.GetDiagnosticsForIdsAsync(project.Solution, project.Id)
                 Assert.Equal(2, projectDiagnostics.Count())
 
-                Dim noLocationDiagnostic = projectDiagnostics.First(Function(d) Not d.HasTextSpan)
+                Dim noLocationDiagnostic = projectDiagnostics.First(Function(d) d.DataLocation.DocumentId Is Nothing)
                 Assert.Equal(CompilationEndedAnalyzer.Descriptor.Id, noLocationDiagnostic.Id)
-                Assert.Equal(False, noLocationDiagnostic.HasTextSpan)
+                Assert.Null(noLocationDiagnostic.DataLocation.DocumentId)
 
-                Dim withDocumentLocationDiagnostic = projectDiagnostics.First(Function(d) d.HasTextSpan)
+                Dim withDocumentLocationDiagnostic = projectDiagnostics.First(Function(d) d.DataLocation.DocumentId IsNot Nothing)
                 Assert.Equal(CompilationEndedAnalyzer.Descriptor.Id, withDocumentLocationDiagnostic.Id)
-                Assert.Equal(True, withDocumentLocationDiagnostic.HasTextSpan)
                 Assert.NotNull(withDocumentLocationDiagnostic.DocumentId)
 
                 Dim diagnosticDocument = project.GetDocument(withDocumentLocationDiagnostic.DocumentId)
@@ -1210,12 +1209,13 @@ public class B
                 Assert.Equal(1, descriptorsMap.Count)
 
                 Dim document = project.Documents.Single()
+                Dim text = Await document.GetTextAsync()
                 Dim fullSpan = (Await document.GetSyntaxRootAsync()).FullSpan
 
                 Dim incrementalAnalyzer = diagnosticService.CreateIncrementalAnalyzer(workspace)
 
                 Dim diagnostics = (Await diagnosticService.GetDiagnosticsForSpanAsync(document, fullSpan)).
-                    OrderBy(Function(d) d.GetTextSpan().Start).ToArray
+                    OrderBy(Function(d) d.DataLocation.UnmappedFileSpan.getclampedTextSpan(text).Start).ToArray()
 
                 Assert.Equal(3, diagnostics.Count)
                 Assert.True(diagnostics.All(Function(d) d.Id = MethodSymbolAnalyzer.Descriptor.Id))
@@ -1329,8 +1329,9 @@ public class B
                 Dim fullSpan = (Await document.GetSyntaxRootAsync()).FullSpan
 
                 Dim incrementalAnalyzer = diagnosticService.CreateIncrementalAnalyzer(workspace)
+                Dim text = Await document.GetTextAsync()
                 Dim diagnostics = (Await diagnosticService.GetDiagnosticsForSpanAsync(document, fullSpan)).
-                    OrderBy(Function(d) d.GetTextSpan().Start).
+                    OrderBy(Function(d) d.DataLocation.UnmappedFileSpan.GetClampedTextSpan(text).Start).
                     ToArray()
                 Assert.Equal(4, diagnostics.Length)
                 Assert.Equal(4, diagnostics.Where(Function(d) d.Id = FieldDeclarationAnalyzer.Descriptor1.Id).Count)
@@ -1376,12 +1377,13 @@ public class B
                 Dim fullSpan = (Await document.GetSyntaxRootAsync()).FullSpan
 
                 Dim incrementalAnalyzer = diagnosticService.CreateIncrementalAnalyzer(workspace)
+                Dim text = Await document.GetTextAsync()
                 Dim diagnostics = (Await diagnosticService.GetDiagnosticsForSpanAsync(document, fullSpan)).
-                    OrderBy(Function(d) d.GetTextSpan().Start).
+                    OrderBy(Function(d) d.DataLocation.unmappedfilespan.getclampedTextSpan(text).Start).
                     ToArray()
 
                 For Each diagnostic In diagnostics
-                    Dim spanAtCaret = New TextSpan(diagnostic.DataLocation.SourceSpan.Value.Start, 0)
+                    Dim spanAtCaret = New TextSpan(diagnostic.DataLocation.unmappedfilespan.getclampedtextspan(text).Start, 0)
                     Dim otherDiagnostics = (Await diagnosticService.GetDiagnosticsForSpanAsync(document, spanAtCaret)).ToArray()
 
                     Assert.Equal(1, otherDiagnostics.Length)

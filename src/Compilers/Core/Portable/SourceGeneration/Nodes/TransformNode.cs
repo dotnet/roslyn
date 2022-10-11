@@ -33,9 +33,11 @@ namespace Microsoft.CodeAnalysis
             _name = name;
         }
 
-        public IIncrementalGeneratorNode<TOutput> WithComparer(IEqualityComparer<TOutput> comparer) => new TransformNode<TInput, TOutput>(_sourceNode, _func, comparer, _name);
+        public IIncrementalGeneratorNode<TOutput> WithComparer(IEqualityComparer<TOutput> comparer)
+            => new TransformNode<TInput, TOutput>(_sourceNode, _func, comparer, _name);
 
-        public IIncrementalGeneratorNode<TOutput> WithTrackingName(string name) => new TransformNode<TInput, TOutput>(_sourceNode, _func, _comparer, name);
+        public IIncrementalGeneratorNode<TOutput> WithTrackingName(string name)
+            => new TransformNode<TInput, TOutput>(_sourceNode, _func, _comparer, name);
 
         public NodeStateTable<TOutput> UpdateStateTable(DriverStateTable.Builder builder, NodeStateTable<TOutput> previousTable, CancellationToken cancellationToken)
         {
@@ -79,7 +81,8 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
-            Debug.Assert(newTable.Count == totalEntryItemCount);
+            // Can't assert anything about the count of items.  _func may have produced a different amount of items if
+            // it's not a 1:1 function.
             return newTable.ToImmutableAndFree();
         }
 

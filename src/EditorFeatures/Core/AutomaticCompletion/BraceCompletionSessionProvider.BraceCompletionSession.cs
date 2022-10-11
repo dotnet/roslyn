@@ -44,18 +44,15 @@ namespace Microsoft.CodeAnalysis.AutomaticCompletion
 
             private readonly ITextUndoHistory _undoHistory;
             private readonly IEditorOperations _editorOperations;
-            private readonly IEditorOptionsFactoryService _editorOptionsFactory;
-            private readonly IIndentationManagerService _indentationManager;
+            private readonly EditorOptionsService _editorOptionsService;
             private readonly IBraceCompletionService _service;
-            private readonly IGlobalOptionService _globalOptions;
             private readonly IThreadingContext _threadingContext;
 
             public BraceCompletionSession(
                 ITextView textView, ITextBuffer subjectBuffer,
                 SnapshotPoint openingPoint, char openingBrace, char closingBrace, ITextUndoHistory undoHistory,
                 IEditorOperationsFactoryService editorOperationsFactoryService,
-                IEditorOptionsFactoryService editorOptionsFactory, IIndentationManagerService indentationManager, IBraceCompletionService service,
-                IGlobalOptionService globalOptions, IThreadingContext threadingContext)
+                EditorOptionsService editorOptionsService, IBraceCompletionService service, IThreadingContext threadingContext)
             {
                 TextView = textView;
                 SubjectBuffer = subjectBuffer;
@@ -64,11 +61,9 @@ namespace Microsoft.CodeAnalysis.AutomaticCompletion
                 ClosingPoint = SubjectBuffer.CurrentSnapshot.CreateTrackingPoint(openingPoint.Position, PointTrackingMode.Positive);
                 _undoHistory = undoHistory;
                 _editorOperations = editorOperationsFactoryService.GetEditorOperations(textView);
-                _editorOptionsFactory = editorOptionsFactory;
+                _editorOptionsService = editorOptionsService;
                 _service = service;
                 _threadingContext = threadingContext;
-                _globalOptions = globalOptions;
-                _indentationManager = indentationManager;
             }
 
             #region IBraceCompletionSession Methods
@@ -133,7 +128,7 @@ namespace Microsoft.CodeAnalysis.AutomaticCompletion
 
                 if (TryGetBraceCompletionContext(out var contextAfterStart, cancellationToken))
                 {
-                    var indentationOptions = SubjectBuffer.GetIndentationOptions(_editorOptionsFactory, _indentationManager, _globalOptions, contextAfterStart.Document.LanguageServices, explicitFormat: false);
+                    var indentationOptions = SubjectBuffer.GetIndentationOptions(_editorOptionsService, contextAfterStart.Document.LanguageServices, explicitFormat: false);
                     var changesAfterStart = _service.GetTextChangesAfterCompletion(contextAfterStart, indentationOptions, cancellationToken);
                     if (changesAfterStart != null)
                     {
@@ -291,7 +286,7 @@ namespace Microsoft.CodeAnalysis.AutomaticCompletion
                             return;
                         }
 
-                        var indentationOptions = SubjectBuffer.GetIndentationOptions(_editorOptionsFactory, _indentationManager, _globalOptions, context.Document.LanguageServices, explicitFormat: false);
+                        var indentationOptions = SubjectBuffer.GetIndentationOptions(_editorOptionsService, context.Document.LanguageServices, explicitFormat: false);
                         var changesAfterReturn = _service.GetTextChangeAfterReturn(context, indentationOptions, CancellationToken.None);
                         if (changesAfterReturn != null)
                         {

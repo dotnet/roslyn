@@ -2087,13 +2087,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     {
         internal readonly SyntaxToken refKeyword;
         internal readonly SyntaxToken? readOnlyKeyword;
-        internal readonly SyntaxToken? scopedKeyword;
         internal readonly TypeSyntax type;
 
-        internal RefTypeSyntax(SyntaxKind kind, SyntaxToken refKeyword, SyntaxToken? readOnlyKeyword, SyntaxToken? scopedKeyword, TypeSyntax type, DiagnosticInfo[]? diagnostics, SyntaxAnnotation[]? annotations)
+        internal RefTypeSyntax(SyntaxKind kind, SyntaxToken refKeyword, SyntaxToken? readOnlyKeyword, TypeSyntax type, DiagnosticInfo[]? diagnostics, SyntaxAnnotation[]? annotations)
           : base(kind, diagnostics, annotations)
         {
-            this.SlotCount = 4;
+            this.SlotCount = 3;
             this.AdjustFlagsAndWidth(refKeyword);
             this.refKeyword = refKeyword;
             if (readOnlyKeyword != null)
@@ -2101,51 +2100,36 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 this.AdjustFlagsAndWidth(readOnlyKeyword);
                 this.readOnlyKeyword = readOnlyKeyword;
             }
-            if (scopedKeyword != null)
-            {
-                this.AdjustFlagsAndWidth(scopedKeyword);
-                this.scopedKeyword = scopedKeyword;
-            }
             this.AdjustFlagsAndWidth(type);
             this.type = type;
         }
 
-        internal RefTypeSyntax(SyntaxKind kind, SyntaxToken refKeyword, SyntaxToken? readOnlyKeyword, SyntaxToken? scopedKeyword, TypeSyntax type, SyntaxFactoryContext context)
+        internal RefTypeSyntax(SyntaxKind kind, SyntaxToken refKeyword, SyntaxToken? readOnlyKeyword, TypeSyntax type, SyntaxFactoryContext context)
           : base(kind)
         {
             this.SetFactoryContext(context);
-            this.SlotCount = 4;
+            this.SlotCount = 3;
             this.AdjustFlagsAndWidth(refKeyword);
             this.refKeyword = refKeyword;
             if (readOnlyKeyword != null)
             {
                 this.AdjustFlagsAndWidth(readOnlyKeyword);
                 this.readOnlyKeyword = readOnlyKeyword;
-            }
-            if (scopedKeyword != null)
-            {
-                this.AdjustFlagsAndWidth(scopedKeyword);
-                this.scopedKeyword = scopedKeyword;
             }
             this.AdjustFlagsAndWidth(type);
             this.type = type;
         }
 
-        internal RefTypeSyntax(SyntaxKind kind, SyntaxToken refKeyword, SyntaxToken? readOnlyKeyword, SyntaxToken? scopedKeyword, TypeSyntax type)
+        internal RefTypeSyntax(SyntaxKind kind, SyntaxToken refKeyword, SyntaxToken? readOnlyKeyword, TypeSyntax type)
           : base(kind)
         {
-            this.SlotCount = 4;
+            this.SlotCount = 3;
             this.AdjustFlagsAndWidth(refKeyword);
             this.refKeyword = refKeyword;
             if (readOnlyKeyword != null)
             {
                 this.AdjustFlagsAndWidth(readOnlyKeyword);
                 this.readOnlyKeyword = readOnlyKeyword;
-            }
-            if (scopedKeyword != null)
-            {
-                this.AdjustFlagsAndWidth(scopedKeyword);
-                this.scopedKeyword = scopedKeyword;
             }
             this.AdjustFlagsAndWidth(type);
             this.type = type;
@@ -2154,7 +2138,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         public SyntaxToken RefKeyword => this.refKeyword;
         /// <summary>Gets the optional "readonly" keyword.</summary>
         public SyntaxToken? ReadOnlyKeyword => this.readOnlyKeyword;
-        public SyntaxToken? ScopedKeyword => this.scopedKeyword;
         public TypeSyntax Type => this.type;
 
         internal override GreenNode? GetSlot(int index)
@@ -2162,8 +2145,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 0 => this.refKeyword,
                 1 => this.readOnlyKeyword,
-                2 => this.scopedKeyword,
-                3 => this.type,
+                2 => this.type,
                 _ => null,
             };
 
@@ -2172,11 +2154,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitRefType(this);
         public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitRefType(this);
 
-        public RefTypeSyntax Update(SyntaxToken refKeyword, SyntaxToken readOnlyKeyword, SyntaxToken scopedKeyword, TypeSyntax type)
+        public RefTypeSyntax Update(SyntaxToken refKeyword, SyntaxToken readOnlyKeyword, TypeSyntax type)
         {
-            if (refKeyword != this.RefKeyword || readOnlyKeyword != this.ReadOnlyKeyword || scopedKeyword != this.ScopedKeyword || type != this.Type)
+            if (refKeyword != this.RefKeyword || readOnlyKeyword != this.ReadOnlyKeyword || type != this.Type)
             {
-                var newNode = SyntaxFactory.RefType(refKeyword, readOnlyKeyword, scopedKeyword, type);
+                var newNode = SyntaxFactory.RefType(refKeyword, readOnlyKeyword, type);
                 var diags = GetDiagnostics();
                 if (diags?.Length > 0)
                     newNode = newNode.WithDiagnosticsGreen(diags);
@@ -2190,15 +2172,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
 
         internal override GreenNode SetDiagnostics(DiagnosticInfo[]? diagnostics)
-            => new RefTypeSyntax(this.Kind, this.refKeyword, this.readOnlyKeyword, this.scopedKeyword, this.type, diagnostics, GetAnnotations());
+            => new RefTypeSyntax(this.Kind, this.refKeyword, this.readOnlyKeyword, this.type, diagnostics, GetAnnotations());
 
         internal override GreenNode SetAnnotations(SyntaxAnnotation[]? annotations)
-            => new RefTypeSyntax(this.Kind, this.refKeyword, this.readOnlyKeyword, this.scopedKeyword, this.type, GetDiagnostics(), annotations);
+            => new RefTypeSyntax(this.Kind, this.refKeyword, this.readOnlyKeyword, this.type, GetDiagnostics(), annotations);
 
         internal RefTypeSyntax(ObjectReader reader)
           : base(reader)
         {
-            this.SlotCount = 4;
+            this.SlotCount = 3;
             var refKeyword = (SyntaxToken)reader.ReadValue();
             AdjustFlagsAndWidth(refKeyword);
             this.refKeyword = refKeyword;
@@ -2207,12 +2189,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 AdjustFlagsAndWidth(readOnlyKeyword);
                 this.readOnlyKeyword = readOnlyKeyword;
-            }
-            var scopedKeyword = (SyntaxToken?)reader.ReadValue();
-            if (scopedKeyword != null)
-            {
-                AdjustFlagsAndWidth(scopedKeyword);
-                this.scopedKeyword = scopedKeyword;
             }
             var type = (TypeSyntax)reader.ReadValue();
             AdjustFlagsAndWidth(type);
@@ -2224,13 +2200,113 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             base.WriteTo(writer);
             writer.WriteValue(this.refKeyword);
             writer.WriteValue(this.readOnlyKeyword);
-            writer.WriteValue(this.scopedKeyword);
             writer.WriteValue(this.type);
         }
 
         static RefTypeSyntax()
         {
             ObjectBinder.RegisterTypeReader(typeof(RefTypeSyntax), r => new RefTypeSyntax(r));
+        }
+    }
+
+    /// <summary>The 'scoped' modifier of a local.</summary>
+    internal sealed partial class ScopedTypeSyntax : TypeSyntax
+    {
+        internal readonly SyntaxToken scopedKeyword;
+        internal readonly TypeSyntax type;
+
+        internal ScopedTypeSyntax(SyntaxKind kind, SyntaxToken scopedKeyword, TypeSyntax type, DiagnosticInfo[]? diagnostics, SyntaxAnnotation[]? annotations)
+          : base(kind, diagnostics, annotations)
+        {
+            this.SlotCount = 2;
+            this.AdjustFlagsAndWidth(scopedKeyword);
+            this.scopedKeyword = scopedKeyword;
+            this.AdjustFlagsAndWidth(type);
+            this.type = type;
+        }
+
+        internal ScopedTypeSyntax(SyntaxKind kind, SyntaxToken scopedKeyword, TypeSyntax type, SyntaxFactoryContext context)
+          : base(kind)
+        {
+            this.SetFactoryContext(context);
+            this.SlotCount = 2;
+            this.AdjustFlagsAndWidth(scopedKeyword);
+            this.scopedKeyword = scopedKeyword;
+            this.AdjustFlagsAndWidth(type);
+            this.type = type;
+        }
+
+        internal ScopedTypeSyntax(SyntaxKind kind, SyntaxToken scopedKeyword, TypeSyntax type)
+          : base(kind)
+        {
+            this.SlotCount = 2;
+            this.AdjustFlagsAndWidth(scopedKeyword);
+            this.scopedKeyword = scopedKeyword;
+            this.AdjustFlagsAndWidth(type);
+            this.type = type;
+        }
+
+        public SyntaxToken ScopedKeyword => this.scopedKeyword;
+        public TypeSyntax Type => this.type;
+
+        internal override GreenNode? GetSlot(int index)
+            => index switch
+            {
+                0 => this.scopedKeyword,
+                1 => this.type,
+                _ => null,
+            };
+
+        internal override SyntaxNode CreateRed(SyntaxNode? parent, int position) => new CSharp.Syntax.ScopedTypeSyntax(this, parent, position);
+
+        public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitScopedType(this);
+        public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitScopedType(this);
+
+        public ScopedTypeSyntax Update(SyntaxToken scopedKeyword, TypeSyntax type)
+        {
+            if (scopedKeyword != this.ScopedKeyword || type != this.Type)
+            {
+                var newNode = SyntaxFactory.ScopedType(scopedKeyword, type);
+                var diags = GetDiagnostics();
+                if (diags?.Length > 0)
+                    newNode = newNode.WithDiagnosticsGreen(diags);
+                var annotations = GetAnnotations();
+                if (annotations?.Length > 0)
+                    newNode = newNode.WithAnnotationsGreen(annotations);
+                return newNode;
+            }
+
+            return this;
+        }
+
+        internal override GreenNode SetDiagnostics(DiagnosticInfo[]? diagnostics)
+            => new ScopedTypeSyntax(this.Kind, this.scopedKeyword, this.type, diagnostics, GetAnnotations());
+
+        internal override GreenNode SetAnnotations(SyntaxAnnotation[]? annotations)
+            => new ScopedTypeSyntax(this.Kind, this.scopedKeyword, this.type, GetDiagnostics(), annotations);
+
+        internal ScopedTypeSyntax(ObjectReader reader)
+          : base(reader)
+        {
+            this.SlotCount = 2;
+            var scopedKeyword = (SyntaxToken)reader.ReadValue();
+            AdjustFlagsAndWidth(scopedKeyword);
+            this.scopedKeyword = scopedKeyword;
+            var type = (TypeSyntax)reader.ReadValue();
+            AdjustFlagsAndWidth(type);
+            this.type = type;
+        }
+
+        internal override void WriteTo(ObjectWriter writer)
+        {
+            base.WriteTo(writer);
+            writer.WriteValue(this.scopedKeyword);
+            writer.WriteValue(this.type);
+        }
+
+        static ScopedTypeSyntax()
+        {
+            ObjectBinder.RegisterTypeReader(typeof(ScopedTypeSyntax), r => new ScopedTypeSyntax(r));
         }
     }
 
@@ -34291,6 +34367,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         public virtual TResult VisitTupleElement(TupleElementSyntax node) => this.DefaultVisit(node);
         public virtual TResult VisitOmittedTypeArgument(OmittedTypeArgumentSyntax node) => this.DefaultVisit(node);
         public virtual TResult VisitRefType(RefTypeSyntax node) => this.DefaultVisit(node);
+        public virtual TResult VisitScopedType(ScopedTypeSyntax node) => this.DefaultVisit(node);
         public virtual TResult VisitParenthesizedExpression(ParenthesizedExpressionSyntax node) => this.DefaultVisit(node);
         public virtual TResult VisitTupleExpression(TupleExpressionSyntax node) => this.DefaultVisit(node);
         public virtual TResult VisitPrefixUnaryExpression(PrefixUnaryExpressionSyntax node) => this.DefaultVisit(node);
@@ -34532,6 +34609,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         public virtual void VisitTupleElement(TupleElementSyntax node) => this.DefaultVisit(node);
         public virtual void VisitOmittedTypeArgument(OmittedTypeArgumentSyntax node) => this.DefaultVisit(node);
         public virtual void VisitRefType(RefTypeSyntax node) => this.DefaultVisit(node);
+        public virtual void VisitScopedType(ScopedTypeSyntax node) => this.DefaultVisit(node);
         public virtual void VisitParenthesizedExpression(ParenthesizedExpressionSyntax node) => this.DefaultVisit(node);
         public virtual void VisitTupleExpression(TupleExpressionSyntax node) => this.DefaultVisit(node);
         public virtual void VisitPrefixUnaryExpression(PrefixUnaryExpressionSyntax node) => this.DefaultVisit(node);
@@ -34809,7 +34887,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             => node.Update((SyntaxToken)Visit(node.OmittedTypeArgumentToken));
 
         public override CSharpSyntaxNode VisitRefType(RefTypeSyntax node)
-            => node.Update((SyntaxToken)Visit(node.RefKeyword), (SyntaxToken)Visit(node.ReadOnlyKeyword), (SyntaxToken)Visit(node.ScopedKeyword), (TypeSyntax)Visit(node.Type));
+            => node.Update((SyntaxToken)Visit(node.RefKeyword), (SyntaxToken)Visit(node.ReadOnlyKeyword), (TypeSyntax)Visit(node.Type));
+
+        public override CSharpSyntaxNode VisitScopedType(ScopedTypeSyntax node)
+            => node.Update((SyntaxToken)Visit(node.ScopedKeyword), (TypeSyntax)Visit(node.Type));
 
         public override CSharpSyntaxNode VisitParenthesizedExpression(ParenthesizedExpressionSyntax node)
             => node.Update((SyntaxToken)Visit(node.OpenParenToken), (ExpressionSyntax)Visit(node.Expression), (SyntaxToken)Visit(node.CloseParenToken));
@@ -35880,7 +35961,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             return result;
         }
 
-        public RefTypeSyntax RefType(SyntaxToken refKeyword, SyntaxToken? readOnlyKeyword, SyntaxToken? scopedKeyword, TypeSyntax type)
+        public RefTypeSyntax RefType(SyntaxToken refKeyword, SyntaxToken? readOnlyKeyword, TypeSyntax type)
         {
 #if DEBUG
             if (refKeyword == null) throw new ArgumentNullException(nameof(refKeyword));
@@ -35894,19 +35975,41 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     default: throw new ArgumentException(nameof(readOnlyKeyword));
                 }
             }
-            if (scopedKeyword != null)
-            {
-                switch (scopedKeyword.Kind)
-                {
-                    case SyntaxKind.ScopedKeyword:
-                    case SyntaxKind.None: break;
-                    default: throw new ArgumentException(nameof(scopedKeyword));
-                }
-            }
             if (type == null) throw new ArgumentNullException(nameof(type));
 #endif
 
-            return new RefTypeSyntax(SyntaxKind.RefType, refKeyword, readOnlyKeyword, scopedKeyword, type, this.context);
+            int hash;
+            var cached = CSharpSyntaxNodeCache.TryGetNode((int)SyntaxKind.RefType, refKeyword, readOnlyKeyword, type, this.context, out hash);
+            if (cached != null) return (RefTypeSyntax)cached;
+
+            var result = new RefTypeSyntax(SyntaxKind.RefType, refKeyword, readOnlyKeyword, type, this.context);
+            if (hash >= 0)
+            {
+                SyntaxNodeCache.AddNode(result, hash);
+            }
+
+            return result;
+        }
+
+        public ScopedTypeSyntax ScopedType(SyntaxToken scopedKeyword, TypeSyntax type)
+        {
+#if DEBUG
+            if (scopedKeyword == null) throw new ArgumentNullException(nameof(scopedKeyword));
+            if (scopedKeyword.Kind != SyntaxKind.ScopedKeyword) throw new ArgumentException(nameof(scopedKeyword));
+            if (type == null) throw new ArgumentNullException(nameof(type));
+#endif
+
+            int hash;
+            var cached = CSharpSyntaxNodeCache.TryGetNode((int)SyntaxKind.ScopedType, scopedKeyword, type, this.context, out hash);
+            if (cached != null) return (ScopedTypeSyntax)cached;
+
+            var result = new ScopedTypeSyntax(SyntaxKind.ScopedType, scopedKeyword, type, this.context);
+            if (hash >= 0)
+            {
+                SyntaxNodeCache.AddNode(result, hash);
+            }
+
+            return result;
         }
 
         public ParenthesizedExpressionSyntax ParenthesizedExpression(SyntaxToken openParenToken, ExpressionSyntax expression, SyntaxToken closeParenToken)
@@ -40929,7 +41032,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             return result;
         }
 
-        public static RefTypeSyntax RefType(SyntaxToken refKeyword, SyntaxToken? readOnlyKeyword, SyntaxToken? scopedKeyword, TypeSyntax type)
+        public static RefTypeSyntax RefType(SyntaxToken refKeyword, SyntaxToken? readOnlyKeyword, TypeSyntax type)
         {
 #if DEBUG
             if (refKeyword == null) throw new ArgumentNullException(nameof(refKeyword));
@@ -40943,19 +41046,41 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     default: throw new ArgumentException(nameof(readOnlyKeyword));
                 }
             }
-            if (scopedKeyword != null)
-            {
-                switch (scopedKeyword.Kind)
-                {
-                    case SyntaxKind.ScopedKeyword:
-                    case SyntaxKind.None: break;
-                    default: throw new ArgumentException(nameof(scopedKeyword));
-                }
-            }
             if (type == null) throw new ArgumentNullException(nameof(type));
 #endif
 
-            return new RefTypeSyntax(SyntaxKind.RefType, refKeyword, readOnlyKeyword, scopedKeyword, type);
+            int hash;
+            var cached = SyntaxNodeCache.TryGetNode((int)SyntaxKind.RefType, refKeyword, readOnlyKeyword, type, out hash);
+            if (cached != null) return (RefTypeSyntax)cached;
+
+            var result = new RefTypeSyntax(SyntaxKind.RefType, refKeyword, readOnlyKeyword, type);
+            if (hash >= 0)
+            {
+                SyntaxNodeCache.AddNode(result, hash);
+            }
+
+            return result;
+        }
+
+        public static ScopedTypeSyntax ScopedType(SyntaxToken scopedKeyword, TypeSyntax type)
+        {
+#if DEBUG
+            if (scopedKeyword == null) throw new ArgumentNullException(nameof(scopedKeyword));
+            if (scopedKeyword.Kind != SyntaxKind.ScopedKeyword) throw new ArgumentException(nameof(scopedKeyword));
+            if (type == null) throw new ArgumentNullException(nameof(type));
+#endif
+
+            int hash;
+            var cached = SyntaxNodeCache.TryGetNode((int)SyntaxKind.ScopedType, scopedKeyword, type, out hash);
+            if (cached != null) return (ScopedTypeSyntax)cached;
+
+            var result = new ScopedTypeSyntax(SyntaxKind.ScopedType, scopedKeyword, type);
+            if (hash >= 0)
+            {
+                SyntaxNodeCache.AddNode(result, hash);
+            }
+
+            return result;
         }
 
         public static ParenthesizedExpressionSyntax ParenthesizedExpression(SyntaxToken openParenToken, ExpressionSyntax expression, SyntaxToken closeParenToken)
@@ -45590,6 +45715,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 typeof(TupleElementSyntax),
                 typeof(OmittedTypeArgumentSyntax),
                 typeof(RefTypeSyntax),
+                typeof(ScopedTypeSyntax),
                 typeof(ParenthesizedExpressionSyntax),
                 typeof(TupleExpressionSyntax),
                 typeof(PrefixUnaryExpressionSyntax),

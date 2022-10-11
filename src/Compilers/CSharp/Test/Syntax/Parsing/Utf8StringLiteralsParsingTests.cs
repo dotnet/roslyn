@@ -112,7 +112,7 @@ hello
         [Fact]
         public void Utf8StringLiteral_02()
         {
-            UsingExpression(@"""hello""u8", options: TestOptions.RegularNext);
+            UsingExpression(@"""hello""u8", options: TestOptions.Regular11);
 
             N(SyntaxKind.Utf8StringLiteralExpression);
             {
@@ -148,7 +148,7 @@ hello
         [Fact]
         public void Utf8StringLiteral_05()
         {
-            UsingExpression(@"@""hello""u8", options: TestOptions.RegularNext);
+            UsingExpression(@"@""hello""u8", options: TestOptions.Regular11);
 
             N(SyntaxKind.Utf8StringLiteralExpression);
             {
@@ -184,7 +184,7 @@ hello
         [Fact]
         public void Utf8StringLiteral_08()
         {
-            UsingExpression(@"""hello""U8", options: TestOptions.RegularNext);
+            UsingExpression(@"""hello""U8", options: TestOptions.Regular11);
 
             N(SyntaxKind.Utf8StringLiteralExpression);
             {
@@ -220,7 +220,7 @@ hello
         [Fact]
         public void Utf8StringLiteral_11()
         {
-            UsingExpression(@"@""hello""U8", options: TestOptions.RegularNext);
+            UsingExpression(@"@""hello""U8", options: TestOptions.Regular11);
 
             N(SyntaxKind.Utf8StringLiteralExpression);
             {
@@ -592,7 +592,7 @@ hello
         [Fact]
         public void Utf8StringLiteral_13()
         {
-            foreach (var options in new[] { TestOptions.RegularDefault, TestOptions.RegularNext, TestOptions.Regular10 })
+            foreach (var options in new[] { TestOptions.RegularDefault, TestOptions.Regular11, TestOptions.Regular10 })
             {
                 foreach (var suffix in new[] { "u8", "U8" })
                 {
@@ -610,7 +610,7 @@ hello
         [Fact]
         public void Utf8StringLiteral_14()
         {
-            foreach (var options in new[] { TestOptions.RegularDefault, TestOptions.RegularNext, TestOptions.Regular10 })
+            foreach (var options in new[] { TestOptions.RegularDefault, TestOptions.Regular11, TestOptions.Regular10 })
             {
                 foreach (var suffix in new[] { "u8", "U8" })
                 {
@@ -746,7 +746,7 @@ hello
         [Fact]
         public void Utf8StringLiteral_15()
         {
-            foreach (var options in new[] { TestOptions.RegularDefault, TestOptions.RegularNext, TestOptions.Regular10 })
+            foreach (var options in new[] { TestOptions.RegularDefault, TestOptions.Regular11, TestOptions.Regular10 })
             {
                 foreach (var suffix in new[] { "u8", "U8" })
                 {
@@ -768,7 +768,7 @@ hello
         [Fact]
         public void Utf8StringLiteral_16()
         {
-            foreach (var options in new[] { TestOptions.RegularDefault, TestOptions.RegularNext, TestOptions.Regular10 })
+            foreach (var options in new[] { TestOptions.RegularDefault, TestOptions.Regular11, TestOptions.Regular10 })
             {
                 foreach (var suffix in new[] { "u8", "U8" })
                 {

@@ -431,6 +431,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
                 allowCancellation: true,
                 showProgress: true);
 
+            var originalSolution = workspace.CurrentSolution;
             var selectedAction = MapSelectedItemToReportDiagnostic(selectedItem);
             if (!selectedAction.HasValue)
                 return;
@@ -465,6 +466,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
                             var operations = ImmutableArray.Create<CodeActionOperation>(new ApplyChangesOperation(newSolution));
                             await editHandlerService.ApplyAsync(
                                 _workspace,
+                                originalSolution,
                                 fromDocument: null,
                                 operations: operations,
                                 title: ServicesVSResources.Updating_severity,

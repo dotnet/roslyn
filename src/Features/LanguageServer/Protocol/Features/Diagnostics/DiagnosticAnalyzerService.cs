@@ -44,9 +44,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public DiagnosticAnalyzerService(
             IDiagnosticUpdateSourceRegistrationService registrationService,
             IAsynchronousOperationListenerProvider listenerProvider,
+            DiagnosticAnalyzerInfoCache.SharedGlobalCache globalCache,
             IGlobalOptionService globalOptions)
         {
-            AnalyzerInfoCache = new DiagnosticAnalyzerInfoCache();
+            AnalyzerInfoCache = globalCache.AnalyzerInfoCache;
             Listener = listenerProvider.GetListener(FeatureAttribute.DiagnosticService);
             GlobalOptions = globalOptions;
 

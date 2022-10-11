@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
     /// </summary>
     [ExportCSharpVisualBasicStatelessLspService(typeof(CodeActionResolveHandler)), Shared]
     [Method(LSP.Methods.CodeActionResolveName)]
-    internal class CodeActionResolveHandler : IRequestHandler<LSP.CodeAction, LSP.CodeAction>
+    internal class CodeActionResolveHandler : ILspServiceDocumentRequestHandler<LSP.CodeAction, LSP.CodeAction>
     {
         private readonly ICodeFixService _codeFixService;
         private readonly ICodeRefactoringService _codeRefactoringService;
@@ -57,13 +57,12 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         public bool MutatesSolutionState => false;
         public bool RequiresLSPSolution => true;
 
-        public TextDocumentIdentifier? GetTextDocumentIdentifier(LSP.CodeAction request)
-            => ((JToken)request.Data!).ToObject<CodeActionResolveData>()?.TextDocument;
+        public TextDocumentIdentifier GetTextDocumentIdentifier(LSP.CodeAction request)
+            => ((JToken)request.Data!).ToObject<CodeActionResolveData>()!.TextDocument;
 
         public async Task<LSP.CodeAction> HandleRequestAsync(LSP.CodeAction codeAction, RequestContext context, CancellationToken cancellationToken)
         {
-            var document = context.Document;
-            Contract.ThrowIfNull(document);
+            var document = context.GetRequiredDocument();
 
             var data = ((JToken)codeAction.Data!).ToObject<CodeActionResolveData>();
             Assumes.Present(data);
@@ -108,7 +107,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             if (applyChangesOperations.Any())
             {
                 var solution = document.Project.Solution;
-                var textDiffService = solution.Workspace.Services.GetService<IDocumentTextDifferencingService>();
+                var textDiffService = solution.Services.GetService<IDocumentTextDifferencingService>();
 
                 using var _ = ArrayBuilder<TextDocumentEdit>.GetInstance(out var textDocumentEdits);
                 foreach (var applyChangesOperation in applyChangesOperations)
