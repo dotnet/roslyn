@@ -66,10 +66,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                     return;
                 }
 
-                // Do not show name suggestions for unbound "async" identifier.
-                // Most likely user is writing an async method, so name suggestion will just interfere him
-                if (context.TargetToken.IsKindOrHasMatchingText(SyntaxKind.AsyncKeyword) &&
-                    context.SemanticModel.GetSymbolInfo(context.TargetToken).GetAnySymbol() is null)
+                // Do not show name suggestions for unbound "async" or "yield" identifier.
+                // Most likely user is using it as keyword, so name suggestion will just interfere them
+                if ((context.TargetToken.IsKindOrHasMatchingText(SyntaxKind.AsyncKeyword) || context.TargetToken.IsKindOrHasMatchingText(SyntaxKind.YieldKeyword))
+                    && context.SemanticModel.GetSymbolInfo(context.TargetToken).GetAnySymbol() is null)
                 {
                     return;
                 }
