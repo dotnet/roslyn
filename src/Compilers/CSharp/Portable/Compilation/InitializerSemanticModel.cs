@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Creates a SemanticModel for a parameter default value.
         /// </summary>
-        internal static InitializerSemanticModel Create(SyntaxTreeSemanticModel containingSemanticModel, ParameterSyntax syntax, ParameterSymbol parameterSymbol, Binder rootBinder, ImmutableDictionary<Symbol, Symbol> parentRemappedSymbolsOpt)
+        internal static InitializerSemanticModel Create(PublicSemanticModel containingSemanticModel, ParameterSyntax syntax, ParameterSymbol parameterSymbol, Binder rootBinder, ImmutableDictionary<Symbol, Symbol> parentRemappedSymbolsOpt)
         {
             Debug.Assert(containingSemanticModel != null);
             return new InitializerSemanticModel(syntax, parameterSymbol, rootBinder, containingSemanticModel, parentRemappedSymbolsOpt: parentRemappedSymbolsOpt);
