@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.Remote
         /// cref="GetPinnedSolutionAsync(AssetProvider, Checksum, CancellationToken)"/> is used, great care must be
         /// followed to ensure it is properly disposed so that data is not held around indefinitely.
         /// </summary>
-        public sealed class PinnedSolution : System.IAsyncDisposable
+        public sealed class PinnedSolution : IAsyncDisposable
         {
             private readonly RemoteWorkspace _workspace;
             private readonly InFlightSolution _inFlightSolution;
