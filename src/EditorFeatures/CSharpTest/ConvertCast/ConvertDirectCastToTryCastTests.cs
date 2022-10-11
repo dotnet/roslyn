@@ -372,30 +372,60 @@ class Program
             }.RunAsync();
         }
 
-        [Theory]
-        [CombinatorialData]
-        public async Task ConvertFromExplicitToAs_NullableReferenceType(bool nullable)
+        [Fact, WorkItem(64052, "https://github.com/dotnet/roslyn/issues/64052")]
+        public async Task ConvertFromExplicitToAs_NullableReferenceType_NullableEnable()
         {
-            var initialMarkup = $@"
-#nullable {(nullable ? "enable" : "disable")}
+            var initialMarkup = @"
+#nullable enable
 
 class Program
-{{
+{
     public static void Main()
-    {{
+    {
         var x = ([||]string?)null;
-    }}
-}}";
-            var expectedMarkup = $@"
-#nullable {(nullable ? "enable" : "disable")}
+    }
+}";
+            var expectedMarkup = @"
+#nullable enable
 
 class Program
-{{
+{
     public static void Main()
-    {{
+    {
         var x = null as string;
-    }}
-}}";
+    }
+}";
+            await new VerifyCS.Test
+            {
+                TestCode = initialMarkup,
+                FixedCode = expectedMarkup,
+                CodeActionValidationMode = CodeActionValidationMode.Full,
+            }.RunAsync();
+        }
+
+        [Fact, WorkItem(64052, "https://github.com/dotnet/roslyn/issues/64052")]
+        public async Task ConvertFromExplicitToAs_NullableReferenceType_NullableDisable()
+        {
+            var initialMarkup = @"
+#nullable disable
+
+class Program
+{
+    public static void Main()
+    {
+        var x = ([||]string?)null;
+    }
+}";
+            var expectedMarkup = @"
+#nullable disable
+
+class Program
+{
+    public static void Main()
+    {
+        var x = null as string;
+    }
+}";
             await new VerifyCS.Test
             {
                 TestCode = initialMarkup,
