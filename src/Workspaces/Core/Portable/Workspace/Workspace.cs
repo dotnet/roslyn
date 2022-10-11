@@ -174,7 +174,7 @@ namespace Microsoft.CodeAnalysis
             if (solution == currentSolution)
             {
                 // No change
-                return solution;
+                return (solution, solution);
             }
 
             while (true)
@@ -183,7 +183,7 @@ namespace Microsoft.CodeAnalysis
                 var oldSolution = Interlocked.CompareExchange(ref _latestSolution, newSolution, currentSolution);
                 if (oldSolution == currentSolution)
                 {
-                    return newSolution;
+                    return (oldSolution, newSolution);
                 }
 
                 currentSolution = oldSolution;
@@ -390,15 +390,19 @@ namespace Microsoft.CodeAnalysis
         {
             using (_serializationLock.DisposableWait())
             {
-                var oldSolution = this.CurrentSolution;
                 var solutionId = solutionInfo.Id;
 
                 CheckSolutionIsEmpty();
-                this.SetCurrentSolution(this.CreateSolution(solutionInfo));
 
+                // Ignore the 'newSolution' returned here.  We're going to add a bunch of projects and generate the
+                // final 'newSolution' after that happens.
+                var (oldSolution, _) = this.SetCurrentSolution(this.CreateSolution(solutionInfo));
+
+                // Note: we do not send any notifications about adding projects.
                 solutionInfo.Projects.Do(p => OnProjectAdded_NoLock(p, silent: true));
 
                 var newSolution = this.CurrentSolution;
+
                 this.RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.SolutionAdded, oldSolution, newSolution);
             }
         }
