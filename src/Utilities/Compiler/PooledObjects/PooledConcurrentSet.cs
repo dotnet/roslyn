@@ -137,7 +137,7 @@ namespace Analyzer.Utilities.PooledObjects
         }
 
 #pragma warning disable CA1815 // Override equals and operator equals on value types
-        public struct KeyEnumerator
+        public readonly struct KeyEnumerator
 #pragma warning restore CA1815 // Override equals and operator equals on value types
         {
             private readonly IEnumerator<KeyValuePair<T, byte>> _kvpEnumerator;

@@ -611,7 +611,7 @@ namespace Analyzer.Utilities
         public KeyCollection Keys => new(this);
 
 #pragma warning disable CA1815 // Override equals and operator equals on value types
-        internal struct KeyCollection : IEnumerable<K>
+        internal readonly struct KeyCollection : IEnumerable<K>
         {
             private readonly SmallDictionary<K, V> _dict;
 
@@ -727,7 +727,7 @@ namespace Analyzer.Utilities
 
         public ValueCollection Values => new(this);
 
-        internal struct ValueCollection : IEnumerable<V>
+        internal readonly struct ValueCollection : IEnumerable<V>
         {
             private readonly SmallDictionary<K, V> _dict;
 
