@@ -863,8 +863,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             if (!_renameInfo.TryOnBeforeGlobalSymbolRenamed(_workspace, changedDocumentIDs, this.ReplacementText))
                 return (NotificationSeverity.Error, EditorFeaturesResources.Rename_operation_was_cancelled_or_is_not_valid);
 
-            using var undoTransaction = _workspace.OpenGlobalUndoTransaction(EditorFeaturesResources.Inline_Rename);
-
             await TaskScheduler.Default;
             var finalSolution = newSolution.Workspace.CurrentSolution;
             foreach (var id in changedDocumentIDs)
@@ -892,6 +890,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             }
 
             await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
+            using var undoTransaction = _workspace.OpenGlobalUndoTransaction(EditorFeaturesResources.Inline_Rename);
+
             if (!_workspace.TryApplyChanges(finalSolution))
                 return (NotificationSeverity.Error, EditorFeaturesResources.Rename_operation_could_not_complete_due_to_external_change_to_workspace);
 
