@@ -132,7 +132,7 @@ End Class"
                 Dim expectedToolTip = New ContainerElement(
                     ContainerElementStyle.Wrapped,
                     New ClassifiedTextElement(
-                        New ClassifiedTextRun(ClassificationTypeNames.Text, "IDE0005", QuickInfoHyperLink.TestAccessor.CreateNavigationAction(new Uri("https://docs.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide0005", UriKind.Absolute)), "https://docs.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide0005"),
+                        New ClassifiedTextRun(ClassificationTypeNames.Text, "IDE0005", QuickInfoHyperLink.TestAccessor.CreateNavigationAction(New Uri("https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide0005", UriKind.Absolute)), "https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide0005"),
                         New ClassifiedTextRun(ClassificationTypeNames.Punctuation, ":"),
                         New ClassifiedTextRun(ClassificationTypeNames.WhiteSpace, " "),
                         New ClassifiedTextRun(ClassificationTypeNames.Text, VisualBasicAnalyzersResources.Imports_statement_is_unnecessary)))
@@ -145,7 +145,7 @@ End Class"
                 expectedToolTip = New ContainerElement(
                     ContainerElementStyle.Wrapped,
                     New ClassifiedTextElement(
-                        New ClassifiedTextRun(ClassificationTypeNames.Text, "IDE0049", QuickInfoHyperLink.TestAccessor.CreateNavigationAction(New Uri("https://docs.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide0049", UriKind.Absolute)), "https://docs.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide0049"),
+                        New ClassifiedTextRun(ClassificationTypeNames.Text, "IDE0049", QuickInfoHyperLink.TestAccessor.CreateNavigationAction(New Uri("https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide0049", UriKind.Absolute)), "https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide0049"),
                         New ClassifiedTextRun(ClassificationTypeNames.Punctuation, ":"),
                         New ClassifiedTextRun(ClassificationTypeNames.WhiteSpace, " "),
                         New ClassifiedTextRun(ClassificationTypeNames.Text, AnalyzersResources.Name_can_be_simplified)))

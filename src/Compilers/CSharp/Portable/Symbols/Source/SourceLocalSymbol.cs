@@ -298,7 +298,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override LocalSymbol WithSynthesizedLocalKindAndSyntax(SynthesizedLocalKind kind, SyntaxNode syntax)
         {
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 
         internal override bool IsPinned
@@ -318,6 +318,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal virtual void SetValEscape(uint value)
         {
+            // either we should be setting the val escape for the first time,
+            // or not contradicting what was set before.
+            Debug.Assert(
+                _valEscapeScope == Binder.CallingMethodScope
+                || _valEscapeScope == value);
             _valEscapeScope = value;
         }
 

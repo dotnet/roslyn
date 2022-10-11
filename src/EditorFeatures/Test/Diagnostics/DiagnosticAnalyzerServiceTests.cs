@@ -687,7 +687,7 @@ dotnet_diagnostic.{NamedTypeAnalyzer.DiagnosticId}.severity = warning
                 (BackgroundAnalysisScope.OpenFiles or BackgroundAnalysisScope.FullSolution, false) => 1,
                 (BackgroundAnalysisScope.OpenFiles, true) => 2,
                 (BackgroundAnalysisScope.FullSolution, true) => 4,
-                _ => throw ExceptionUtilities.Unreachable,
+                _ => throw ExceptionUtilities.Unreachable(),
             };
 
             Assert.Equal(expectedCount, diagnostics.Count);
@@ -1021,7 +1021,7 @@ class A
                     await incrementalAnalyzer.AnalyzeDocumentAsync(document, bodyOpt: null, InvocationReasons.SemanticChanged, analyzer.CancellationToken);
                 }
 
-                throw ExceptionUtilities.Unreachable;
+                throw ExceptionUtilities.Unreachable();
             }
             catch (OperationCanceledException ex) when (ex.CancellationToken == analyzer.CancellationToken)
             {
@@ -1119,7 +1119,7 @@ class A
                 _ = await diagnosticComputer.GetDiagnosticsAsync(analyzerIds, reportSuppressedDiagnostics: false,
                     logPerformanceInfo: false, getTelemetryInfo: false, cancellationToken: analyzer.CancellationToken);
 
-                throw ExceptionUtilities.Unreachable;
+                throw ExceptionUtilities.Unreachable();
             }
             catch (OperationCanceledException ex) when (ex.CancellationToken == analyzer.CancellationToken)
             {
@@ -1253,7 +1253,7 @@ class A
                         cancellationToken.ThrowIfCancellationRequested();
                     }
 
-                    throw ExceptionUtilities.Unreachable;
+                    throw ExceptionUtilities.Unreachable();
                 }
 
                 // Report diagnostic in the second callback.

@@ -1007,7 +1007,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                     }
                                     else
                                     {
-                                        throw ExceptionUtilities.Unreachable;
+                                        throw ExceptionUtilities.Unreachable();
                                     }
                                 }
                                 else

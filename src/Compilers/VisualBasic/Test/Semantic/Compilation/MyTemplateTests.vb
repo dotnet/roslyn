@@ -3,6 +3,7 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.Test.Utilities
+Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Roslyn.Test.Utilities
@@ -48,9 +49,9 @@ End Class
 
             Assert.NotNull(MyTemplate)
 
-            Dim text = MyTemplate.GetText.ToString
-            Assert.Contains("Private ReadOnly m_Context As New Global.Microsoft.VisualBasic.MyServices.Internal.ContextValue(Of T)", text, StringComparison.Ordinal)
-
+            Dim sourceText = MyTemplate.GetText()
+            Assert.Contains("Private ReadOnly m_Context As New Global.Microsoft.VisualBasic.MyServices.Internal.ContextValue(Of T)", sourceText.ToString(), StringComparison.Ordinal)
+            Assert.Equal(SourceHashAlgorithms.Default, sourceText.ChecksumAlgorithm)
         End Sub
 
         <Fact()>

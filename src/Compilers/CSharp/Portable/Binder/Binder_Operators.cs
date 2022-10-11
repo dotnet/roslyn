@@ -4335,8 +4335,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private static void CheckNativeIntegerFeatureAvailability(BinaryOperatorKind operatorKind, SyntaxNode syntax, BindingDiagnosticBag diagnostics)
+        private void CheckNativeIntegerFeatureAvailability(BinaryOperatorKind operatorKind, SyntaxNode syntax, BindingDiagnosticBag diagnostics)
         {
+            if (Compilation.Assembly.RuntimeSupportsNumericIntPtr)
+            {
+                return;
+            }
+
             switch (operatorKind & BinaryOperatorKind.TypeMask)
             {
                 case BinaryOperatorKind.NInt:
@@ -4346,8 +4351,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private static void CheckNativeIntegerFeatureAvailability(UnaryOperatorKind operatorKind, SyntaxNode syntax, BindingDiagnosticBag diagnostics)
+        private void CheckNativeIntegerFeatureAvailability(UnaryOperatorKind operatorKind, SyntaxNode syntax, BindingDiagnosticBag diagnostics)
         {
+            if (Compilation.Assembly.RuntimeSupportsNumericIntPtr)
+            {
+                return;
+            }
+
             switch (operatorKind & UnaryOperatorKind.TypeMask)
             {
                 case UnaryOperatorKind.NInt:

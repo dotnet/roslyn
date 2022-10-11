@@ -248,7 +248,7 @@ namespace Roslyn.Utilities
                 // have a problem that needs addressing.
                 //
                 // Not this code is unreachable because ReportAndPropagateUnlessCanceled returns false along all codepaths.
-                throw ExceptionUtilities.Unreachable;
+                throw ExceptionUtilities.Unreachable();
             }
         }
 

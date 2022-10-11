@@ -373,7 +373,7 @@ public class C { }").WithArguments("ClassDeclaration").WithWarningAsError(true))
                         break;
 
                     default:
-                        throw ExceptionUtilities.Unreachable;
+                        throw ExceptionUtilities.Unreachable();
                 }
             }
 
@@ -1057,7 +1057,7 @@ SyntaxTree: ";
                     break;
 
                 default:
-                    throw ExceptionUtilities.Unreachable;
+                    throw ExceptionUtilities.Unreachable();
             }
 
             IFormattable context = $@"{string.Format(CodeAnalysisResources.ExceptionContext, contextDetail)}
@@ -3811,7 +3811,7 @@ public class C
                 Assert.Equal(analyzer.Descriptor.Id, diagnostic.Id);
                 Assert.Equal(LocationKind.ExternalFile, diagnostic.Location.Kind);
                 var location = (ExternalFileLocation)diagnostic.Location;
-                Assert.Equal(additionalFile.Path, location.FilePath);
+                Assert.Equal(additionalFile.Path, location.GetLineSpan().Path);
                 Assert.Equal(diagnosticSpan, location.SourceSpan);
             }
         }
