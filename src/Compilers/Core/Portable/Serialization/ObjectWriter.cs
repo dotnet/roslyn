@@ -802,7 +802,7 @@ namespace Roslyn.Utilities
             }
             else if (encoding.TryGetEncodingKind(out var kind))
             {
-                WriteByte((byte)((int)TypeCode.FirstWellKnownEncoding + kind - TextEncodingKind.EncodingUtf8));
+                WriteByte((byte)ToTypeCode(kind));
             }
             else
             {
@@ -1279,5 +1279,11 @@ namespace Roslyn.Utilities
 
             Last,
         }
+
+        internal static TypeCode ToTypeCode(TextEncodingKind kind)
+            => TypeCode.FirstWellKnownEncoding + (byte)(kind - TextEncodingKind.EncodingUtf8);
+
+        internal static TextEncodingKind ToEncodingKind(TypeCode code)
+            => TextEncodingKind.EncodingUtf8 + (byte)(code - TypeCode.FirstWellKnownEncoding);
     }
 }

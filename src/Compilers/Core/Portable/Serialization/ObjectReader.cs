@@ -300,7 +300,7 @@ namespace Roslyn.Utilities
                     return Encoding.GetEncoding(ReadString());
 
                 case >= TypeCode.FirstWellKnownEncoding and <= TypeCode.LastWellKnownEncoding:
-                    return ((TextEncodingKind)(code - TypeCode.FirstWellKnownEncoding + TextEncodingKind.EncodingUtf8)).GetEncoding();
+                    return ObjectWriter.ToEncodingKind(code).GetEncoding();
 
                 default:
                     throw ExceptionUtilities.UnexpectedValue(code);
