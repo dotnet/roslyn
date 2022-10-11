@@ -2128,10 +2128,7 @@ end class
 
         <Theory, CombinatorialData>
         Public Async Function UpdateAllInProject_MultiplePart_MultipleFile_WithNamespace(host As TestHost) As Task
-            Dim text = "
-<Workspace>
-    <Project Language=""Visual Basic"" AssemblyName=""Assembly1"" CommonReferences=""true"">
-        <Document>
+            Dim text1 = "
 imports System
 
 namespace N
@@ -2146,9 +2143,9 @@ namespace N
             dim t1 = (a:=1, b:=2)
         end sub
     end class
-end namespace
-        </Document>
-        <Document>
+end namespace"
+
+            Dim text2 = "
 imports System
 
 partial class Test
@@ -2161,15 +2158,9 @@ partial class Other
     sub Goo()
         dim t1 = (a:=1, b:=2)
     end sub
-end class
-        </Document>
-    </Project>
-</Workspace>"
+end class"
 
-            Dim expected = "
-<Workspace>
-    <Project Language=""Visual Basic"" AssemblyName=""Assembly1"" CommonReferences=""true"">
-        <Document>
+            Dim expected1 = "
 imports System
 
 namespace N
@@ -2205,10 +2196,7 @@ namespace N
         End Function
 
         Public Overrides Function GetHashCode() As Integer
-            Dim hashCode = 2118541809
-            hashCode = hashCode * -1521134295 + a.GetHashCode()
-            hashCode = hashCode * -1521134295 + b.GetHashCode()
-            Return hashCode
+            Return (a, b).GetHashCode()
         End Function
 
         Public Sub Deconstruct(ByRef a As Integer, ByRef b As Integer)
@@ -2224,9 +2212,9 @@ namespace N
             Return New NewStruct(value.a, value.b)
         End Operator
     End Structure
-end namespace
-        </Document>
-        <Document>
+end namespace"
+
+            Dim expected2 ="
 imports System
 
 partial class Test
@@ -2239,11 +2227,21 @@ partial class Other
     sub Goo()
         dim t1 = New N.NewStruct(a:=1, b:=2)
     end sub
-end class
-        </Document>
-    </Project>
-</Workspace>"
-            Await TestAsync(text, expected, index:=2, testHost:=host)
+end class"
+
+            Dim test = New VerifyVB.Test with {
+                .CodeActionIndex = 2,
+                .CodeActionEquivalenceKey = Scope.ContainingProject.ToString(),
+                .TestHost = host
+                }
+
+            test.TestState.Sources.Add(text1)
+            test.TestState.Sources.Add(text2)
+
+            test.FixedState.Sources.Add(expected1)
+            test.FixedState.Sources.Add(expected2)
+
+            Await test.RunAsync()
         End Function
 
 #End Region
