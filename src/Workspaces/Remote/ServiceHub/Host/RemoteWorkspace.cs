@@ -316,7 +316,7 @@ namespace Microsoft.CodeAnalysis.Remote
                     ClearSolutionData();
                 }
 
-                newSolution = SetCurrentSolution(newSolution);
+                (oldSolution, newSolution) = SetCurrentSolution(newSolution);
 
                 _ = RaiseWorkspaceChangedEventAsync(
                     addingSolution ? WorkspaceChangeKind.SolutionAdded : WorkspaceChangeKind.SolutionChanged, oldSolution, newSolution);

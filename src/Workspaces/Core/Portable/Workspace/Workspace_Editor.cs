@@ -371,7 +371,7 @@ namespace Microsoft.CodeAnalysis
                 AddToOpenDocumentMap(documentId);
 
                 var newText = textContainer.CurrentText;
-                Solution currentSolution;
+                Solution newSolution;
                 if (oldDocument.TryGetText(out var oldText) &&
                     oldDocument.TryGetTextVersion(out var version))
                 {
@@ -379,16 +379,16 @@ namespace Microsoft.CodeAnalysis
                     var newTextAndVersion = GetProperTextAndVersion(oldText, newText, version, oldDocumentState.FilePath);
 
                     // keep open document text alive by using PreserveIdentity
-                    currentSolution = oldSolution.WithDocumentText(documentId, newTextAndVersion, PreservationMode.PreserveIdentity);
+                    newSolution = oldSolution.WithDocumentText(documentId, newTextAndVersion, PreservationMode.PreserveIdentity);
                 }
                 else
                 {
                     // We don't have the old text or version.  Rather than trying to reuse a version that we still have, let's just assume the file has changed.
                     // keep open document text alive by using PreserveIdentity
-                    currentSolution = oldSolution.WithDocumentText(documentId, newText, PreservationMode.PreserveValue);
+                    newSolution = oldSolution.WithDocumentText(documentId, newText, PreservationMode.PreserveValue);
                 }
 
-                var newSolution = this.SetCurrentSolution(currentSolution);
+                (oldSolution, newSolution) = this.SetCurrentSolution(newSolution);
                 SignupForTextChanges(documentId, textContainer, isCurrentContext, (w, id, text, mode) => w.OnDocumentTextChanged(id, text, mode));
 
                 var newDoc = newSolution.GetRequiredDocument(documentId);
@@ -535,21 +535,21 @@ namespace Microsoft.CodeAnalysis
 
                 // keep open document text alive by using PreserveIdentity
                 var newText = textContainer.CurrentText;
-                Solution currentSolution;
+                Solution newSolution;
 
                 if (oldText == newText || oldText.ContentEquals(newText))
                 {
                     // if the supplied text is the same as the previous text, then also use same version
                     var version = oldDocument.GetTextVersionSynchronously(CancellationToken.None);
                     var newTextAndVersion = TextAndVersion.Create(newText, version, oldDocument.FilePath);
-                    currentSolution = withDocumentTextAndVersion(oldSolution, documentId, newTextAndVersion, PreservationMode.PreserveIdentity);
+                    newSolution = withDocumentTextAndVersion(oldSolution, documentId, newTextAndVersion, PreservationMode.PreserveIdentity);
                 }
                 else
                 {
-                    currentSolution = withDocumentText(oldSolution, documentId, newText, PreservationMode.PreserveIdentity);
+                    newSolution = withDocumentText(oldSolution, documentId, newText, PreservationMode.PreserveIdentity);
                 }
 
-                var newSolution = this.SetCurrentSolution(currentSolution);
+                (oldSolution, newSolution) = this.SetCurrentSolution(newSolution);
 
                 SignupForTextChanges(documentId, textContainer, isCurrentContext, onDocumentTextChanged);
 
@@ -588,7 +588,7 @@ namespace Microsoft.CodeAnalysis
                     this.OnDocumentClosing(documentId);
 
                     var newSolution = oldSolution.WithDocumentTextLoader(documentId, reloader, PreservationMode.PreserveValue);
-                    newSolution = this.SetCurrentSolution(newSolution);
+                    (oldSolution, newSolution) = this.SetCurrentSolution(newSolution);
 
                     var newDoc = newSolution.GetRequiredDocument(documentId);
                     this.OnDocumentTextChanged(newDoc);
@@ -649,7 +649,7 @@ namespace Microsoft.CodeAnalysis
                 Debug.Assert(oldDocument.Kind is TextDocumentKind.AdditionalDocument or TextDocumentKind.AnalyzerConfigDocument);
 
                 var newSolution = withTextDocumentTextLoader(oldSolution, documentId, reloader, PreservationMode.PreserveValue);
-                newSolution = this.SetCurrentSolution(newSolution);
+                (oldSolution, newSolution) = this.SetCurrentSolution(newSolution);
 
                 this.RaiseWorkspaceChangedEventAsync(workspaceChangeKind, oldSolution, newSolution, documentId: documentId); // don't wait for this
 
