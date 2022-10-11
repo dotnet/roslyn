@@ -36,7 +36,8 @@ jobs:
       displayName: 'Install .NET 7 Runtime'
       inputs:
         packageType: runtime
-        version: 7.0.1
+        version: 7.0.0-rc.1.22426.10
+        includePreviewVersions: true
         installationPath: '$(Build.SourcesDirectory)/.dotnet'
 
     - task: DownloadPipelineArtifact@2
