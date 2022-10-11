@@ -296,8 +296,11 @@ namespace Roslyn.Utilities
                 case TypeCode.Array_3:
                     return ReadArray(code);
 
-                case TypeCode.EncodingName: return Encoding.GetEncoding(ReadString());
-                case >= TypeCode.FirstWellKnownEncoding and <= TypeCode.LastWellKnownEncoding: return ((TextEncodingKind)code).GetEncoding();
+                case TypeCode.EncodingName:
+                    return Encoding.GetEncoding(ReadString());
+
+                case >= TypeCode.FirstWellKnownEncoding and <= TypeCode.LastWellKnownEncoding:
+                    return ((TextEncodingKind)(code - TypeCode.FirstWellKnownEncoding + TextEncodingKind.EncodingUtf8)).GetEncoding();
 
                 default:
                     throw ExceptionUtilities.UnexpectedValue(code);

@@ -12,6 +12,7 @@ using System.IO.Pipelines;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.Serialization;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using MessagePack;
@@ -140,6 +141,66 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
             types.Remove(typeof(CancellationToken));
 
             return types;
+        }
+
+        [Fact]
+        public void EncodingIsMessagePackSerializable()
+        {
+            var messagePackOptions = MessagePackSerializerOptions.Standard.WithResolver(MessagePackFormatters.DefaultResolver);
+            var encodings = new Encoding?[]
+            {
+                null,
+                new UTF8Encoding(encoderShouldEmitUTF8Identifier: false),
+                new UTF32Encoding(bigEndian: true, byteOrderMark: false),
+                new UTF32Encoding(bigEndian: true, byteOrderMark: true),
+                new UTF32Encoding(bigEndian: false, byteOrderMark: false),
+                new UnicodeEncoding(bigEndian: true, byteOrderMark: false),
+                new UnicodeEncoding(bigEndian: false, byteOrderMark: false),
+                Encoding.ASCII,
+                Encoding.GetEncoding("SJIS"),
+                Encoding.GetEncoding(1250),
+            };
+
+            foreach (var original in encodings)
+            {
+                using var stream = new MemoryStream();
+                MessagePackSerializer.Serialize(stream, original, messagePackOptions);
+                stream.Position = 0;
+
+                var deserialized = MessagePackSerializer.Deserialize(typeof(Encoding), stream, messagePackOptions);
+                Assert.Equal(original, deserialized);
+            }
+        }
+
+        private sealed class TestEncoderFallback : EncoderFallback
+        {
+            public override int MaxCharCount => throw new NotImplementedException();
+            public override EncoderFallbackBuffer CreateFallbackBuffer() => throw new NotImplementedException();
+        }
+
+        private sealed class TestDecoderFallback : DecoderFallback
+        {
+            public override int MaxCharCount => throw new NotImplementedException();
+            public override DecoderFallbackBuffer CreateFallbackBuffer() => throw new NotImplementedException();
+        }
+
+        [Fact]
+        public void EncodingIsMessagePackSerializable_WithCustomFallbacks()
+        {
+            var messagePackOptions = MessagePackSerializerOptions.Standard.WithResolver(MessagePackFormatters.DefaultResolver);
+
+            var original = Encoding.GetEncoding(Encoding.ASCII.CodePage, new TestEncoderFallback(), new TestDecoderFallback());
+
+            using var stream = new MemoryStream();
+            MessagePackSerializer.Serialize(stream, original, messagePackOptions);
+            stream.Position = 0;
+
+            var deserialized = (Encoding)MessagePackSerializer.Deserialize(typeof(Encoding), stream, messagePackOptions);
+            Assert.NotEqual(original, deserialized);
+
+            // original throws from the custom fallback, deserialized has the default fallback:
+            Assert.Throws<NotImplementedException>(() => original.GetBytes("\u1234"));
+            AssertEx.Equal(new byte[] { 0x3f }, deserialized.GetBytes("\u1234"));
         }
 
         [Fact]

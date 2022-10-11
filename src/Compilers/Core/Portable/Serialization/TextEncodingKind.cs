@@ -10,16 +10,17 @@ namespace Microsoft.CodeAnalysis;
 
 internal enum TextEncodingKind : byte
 {
-    EncodingUtf8 = 0,
-    EncodingUtf8_BOM = 1,
-    EncodingUtf32_BE = 2,
-    EncodingUtf32_BE_BOM = 3,
-    EncodingUtf32_LE = 4,
-    EncodingUtf32_LE_BOM = 5,
-    EncodingUnicode_BE = 6,
-    EncodingUnicode_BE_BOM = 7,
-    EncodingUnicode_LE = 8,
-    EncodingUnicode_LE_BOM = 9,
+    None = 0,
+    EncodingUtf8 = 1,
+    EncodingUtf8_BOM = 2,
+    EncodingUtf32_BE = 3,
+    EncodingUtf32_BE_BOM = 4,
+    EncodingUtf32_LE = 5,
+    EncodingUtf32_LE_BOM = 6,
+    EncodingUnicode_BE = 7,
+    EncodingUnicode_BE_BOM = 8,
+    EncodingUnicode_LE = 9,
+    EncodingUnicode_LE_BOM = 10,
 }
 
 internal static class EncodingExtensions

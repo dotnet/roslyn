@@ -4,7 +4,9 @@
 
 using System;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Runtime.Serialization;
+using System.Text;
 using MessagePack;
 using MessagePack.Formatters;
 using MessagePack.Resolvers;
@@ -32,7 +34,8 @@ namespace Microsoft.CodeAnalysis.Remote
             new ForceTypelessFormatter<IdeCodeStyleOptions>());
 
         private static readonly ImmutableArray<IFormatterResolver> s_resolvers = ImmutableArray.Create<IFormatterResolver>(
-            StandardResolverAllowPrivate.Instance);
+            StandardResolverAllowPrivate.Instance,
+            EncodingResolver.Instance);
 
         internal static readonly IFormatterResolver DefaultResolver = CompositeResolver.Create(Formatters, s_resolvers);
 
@@ -99,6 +102,75 @@ namespace Microsoft.CodeAnalysis.Remote
                         writer.WriteArrayHeader(2);
                         GuidFormatter.Instance.Serialize(ref writer, value.Id, options);
                         writer.Write(value.DebugName);
+                    }
+                }
+                catch (Exception e) when (e is not MessagePackSerializationException)
+                {
+                    throw new MessagePackSerializationException(e.Message, e);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Creates formatter for <see cref="Encoding"/> serialization.
+        /// </summary>
+        internal sealed class EncodingResolver : IFormatterResolver
+        {
+            public static readonly EncodingResolver Instance = new();
+
+            public IMessagePackFormatter<T>? GetFormatter<T>()
+                => typeof(T) == typeof(Encoding) ? (IMessagePackFormatter<T>)(object)EncodingFormatter.Instance : null;
+        }
+
+        /// <summary>
+        /// Supports (de)serialization of <see cref="Encoding"/> that do not customize <see cref="Encoding.EncoderFallback"/> or <see cref="Encoding.DecoderFallback"/>.
+        /// The fallback will be discarded if the <see cref="Encoding"/> has any.
+        /// </summary>
+        internal sealed class EncodingFormatter : IMessagePackFormatter<Encoding?>
+        {
+            public static readonly EncodingFormatter Instance = new();
+
+            public Encoding? Deserialize(ref MessagePackReader reader, MessagePackSerializerOptions options)
+            {
+                try
+                {
+                    if (reader.TryReadNil())
+                    {
+                        return null;
+                    }
+
+                    var kind = (TextEncodingKind)reader.ReadByte();
+                    if (kind != TextEncodingKind.None)
+                    {
+                        return kind.GetEncoding();
+                    }
+
+                    var name = reader.ReadString();
+                    return Encoding.GetEncoding(name);
+                }
+                catch (Exception e) when (e is not MessagePackSerializationException)
+                {
+                    throw new MessagePackSerializationException(e.Message, e);
+                }
+            }
+
+            public void Serialize(ref MessagePackWriter writer, Encoding? value, MessagePackSerializerOptions options)
+            {
+                try
+                {
+                    if (value is null)
+                    {
+                        writer.WriteNil();
+                    }
+                    else if (value.TryGetEncodingKind(out var kind))
+                    {
+                        Debug.Assert(kind != TextEncodingKind.None);
+                        writer.WriteUInt8((byte)kind);
+                    }
+                    else
+                    {
+                        writer.WriteUInt8((byte)TextEncodingKind.None);
+                        writer.Write(value.WebName);
                     }
                 }
                 catch (Exception e) when (e is not MessagePackSerializationException)

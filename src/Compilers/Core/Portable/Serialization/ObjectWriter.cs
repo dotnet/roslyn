@@ -1275,7 +1275,7 @@ namespace Roslyn.Utilities
             /// Encoding serialized as <see cref="TextEncodingKind"/>.
             /// </summary>
             FirstWellKnownEncoding,
-            LastWellKnownEncoding = FirstWellKnownEncoding + TextEncodingKind.EncodingUnicode_LE_BOM,
+            LastWellKnownEncoding = FirstWellKnownEncoding + TextEncodingKind.EncodingUnicode_LE_BOM - 1,
 
             Last,
         }
