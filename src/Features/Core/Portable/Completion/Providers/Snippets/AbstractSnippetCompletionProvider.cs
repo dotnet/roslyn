@@ -20,6 +20,8 @@ namespace Microsoft.CodeAnalysis.Completion.Providers.Snippets
 {
     internal abstract class AbstractSnippetCompletionProvider : CompletionProvider
     {
+        internal override bool IsSnippetProvider => true;
+
         public override async Task<CompletionChange> GetChangeAsync(Document document, CompletionItem item, char? commitKey = null, CancellationToken cancellationToken = default)
         {
             // This retrieves the document without the text used to invoke completion

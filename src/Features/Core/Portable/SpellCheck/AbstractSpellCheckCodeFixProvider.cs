@@ -12,7 +12,6 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Completion;
-using Microsoft.CodeAnalysis.Completion.Providers.Snippets;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -207,25 +206,12 @@ namespace Microsoft.CodeAnalysis.SpellCheck
         private static async Task<string> GetInsertionTextAsync(Document document, CompletionItem item, CancellationToken cancellationToken)
         {
             var service = CompletionService.GetService(document);
-            var provider = service.GetProvider(item, document.Project);
-
-            var text = await GetInsertionTextAsync().ConfigureAwait(false);
-
+            var change = await service.GetChangeAsync(document, item, commitCharacter: null, cancellationToken).ConfigureAwait(false);
+            var text = change.TextChange.NewText;
             var nonCharIndex = text.IndexOfAny(s_punctuation);
             return nonCharIndex > 0
                 ? text[0..nonCharIndex]
                 : text;
-
-            async Task<string> GetInsertionTextAsync()
-            {
-                // Snippets perform extremely complex logic to determine their text change.  We don't care about that,
-                // we only want to know what the text was that was shown the user (like `if`).
-                if (provider is AbstractSnippetCompletionProvider)
-                    return item.DisplayText;
-
-                var change = await service.GetChangeAsync(document, item, commitCharacter: null, cancellationToken).ConfigureAwait(false);
-                return change.TextChange.NewText;
-            }
         }
 
         private CodeAction CreateCodeAction(SyntaxToken nameToken, string oldName, string newName, Document document)
