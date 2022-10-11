@@ -393,14 +393,14 @@ End Structure
 class Test
     function Method() as (a as integer, b as integer)
         dim t1 as [||](a as integer, b as integer) = (a:=1, b:=2)
-        (b as integer, a as integer) t2 = (b:=1, a:=2)
+        dim t2 as (b as integer, a as integer) = (b:=1, a:=2)
     end function
 end class"
             Dim expected = "
 class Test
     function Method() as NewStruct
         dim t1 as NewStruct = New NewStruct(a:=1, b:=2)
-        (b as integer, a as integer) t2 = (b:=1, a:=2)
+        dim t2 as (b as integer, a as integer) = (b:=1, a:=2)
     end function
 end class
 
@@ -1230,16 +1230,16 @@ End Structure
 imports System.Collections.Generic
 
 class Test(of X as {structure})
-    sub Method(of Y as {class, new})(x as List(of X), y as Y())
-        dim t1 = [||](a:=x, b:=y)
+    sub Method(of Y as {class, new})(x as List(of X), y1 as Y())
+        dim t1 = [||](a:=x, b:=y1)
     end sub
 end class"
             Dim expected = "
 imports System.Collections.Generic
 
 class Test(of X as {structure})
-    sub Method(of Y as {class, new})(x as List(of X), y as Y())
-        dim t1 = New NewStruct(Of X, Y)(x, y)
+    sub Method(of Y as {class, new})(x as List(of X), y1 as Y())
+        dim t1 = New NewStruct(Of X, Y)(x, y1)
     end sub
 end class
 
@@ -1300,7 +1300,7 @@ end class"
             Dim expected = "
 class Test
     sub Method()
-        dim t1 = New {|Rename:NewStruct1|}(a:=1, b:=2)
+        dim t1 = New NewStruct1(a:=1, b:=2)
     end sub
 end class
 
@@ -1361,7 +1361,7 @@ end class"
             Dim expected = "
 class Test
     sub Method()
-        dim t1 = New {|Rename:NewStruct1|}(a:=1, b:=2)
+        dim t1 = New NewStruct1(a:=1, b:=2)
     end sub
 end class
 
@@ -1536,9 +1536,9 @@ imports System
 class Test
     sub Method()
         dim t1 = (a:=1, b:=2)
-        dim a = sub ()
+        dim a = function ()
                     dim t2 = [||](a:=3, b:=4)
-                end sub()
+                function sub()
     end sub
 end class"
             Dim expected = "
@@ -1547,9 +1547,9 @@ imports System
 class Test
     sub Method()
         dim t1 = New NewStruct(a:=1, b:=2)
-        dim a = sub ()
+        dim a = function ()
                     dim t2 = New NewStruct(a:=3, b:=4)
-                end sub()
+                function sub()
     end sub
 end class
 
