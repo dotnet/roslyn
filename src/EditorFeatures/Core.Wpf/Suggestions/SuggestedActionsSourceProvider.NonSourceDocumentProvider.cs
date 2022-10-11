@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
         /// </summary>
         [Export(typeof(ISuggestedActionsSourceProvider))]
         [Export(typeof(NonSourceDocumentProvider))]
-        // ContentType("text") requires DeferCreation(IsRoslynPackageLoadedOption.OptionName).
+        // ContentType("text") requires DeferCreationAttribute(...).
         // See https://github.com/dotnet/roslyn/issues/62877#issuecomment-1271493105 for more details.
         // TODO: Uncomment the below attribute, tracked with https://github.com/dotnet/roslyn/issues/64567
         // [ContentType("text")]
