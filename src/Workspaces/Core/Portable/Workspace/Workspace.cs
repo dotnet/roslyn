@@ -400,10 +400,8 @@ namespace Microsoft.CodeAnalysis
 
                 var (oldSolution, newSolution) = this.SetCurrentSolution(this.CreateSolution(solutionInfo));
 
-                // Pass 'silent: true' so we don't issue individual project events.  We'll just issue one event
-                // representing the entire solution-add.
                 foreach (var project in solutionInfo.Projects)
-                    (_, newSolution) = OnProjectAdded_NoLock(project, silent: true);
+                    (_, newSolution) = OnProjectAdded_NoLock(project);
 
                 this.RaiseWorkspaceChangedEventAsync(
                     WorkspaceChangeKind.SolutionAdded, oldSolution, newSolution);
@@ -419,10 +417,8 @@ namespace Microsoft.CodeAnalysis
             {
                 var (oldSolution, newSolution) = this.SetCurrentSolution(this.CreateSolution(reloadedSolutionInfo));
 
-                // Pass 'silent: true' so we don't issue individual project adds.  We'll just issue one event
-                // representing the entire solution-reload.
                 foreach (var project in reloadedSolutionInfo.Projects)
-                    (_, newSolution) = OnProjectAdded_NoLock(project, silent: true);
+                    (_, newSolution) = OnProjectAdded_NoLock(project);
 
                 (_, newSolution) = this.SetCurrentSolution(this.AdjustReloadedSolution(oldSolution, newSolution));
 
@@ -454,30 +450,22 @@ namespace Microsoft.CodeAnalysis
         /// Call this method to respond to a project being added/opened in the host environment.
         /// </summary>
         protected internal void OnProjectAdded(ProjectInfo projectInfo)
-            => this.OnProjectAdded(projectInfo, silent: false);
-
-        private void OnProjectAdded(ProjectInfo projectInfo, bool silent)
         {
             using (_serializationLock.DisposableWait())
             {
-                this.OnProjectAdded_NoLock(projectInfo, silent);
+                var (oldSolution, newSolution) = this.OnProjectAdded_NoLock(projectInfo);
+
+                this.RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.ProjectAdded, oldSolution, newSolution, projectInfo.Id);
             }
         }
 
-        private (Solution oldSolution, Solution newSolution) OnProjectAdded_NoLock(ProjectInfo projectInfo, bool silent)
+        private (Solution oldSolution, Solution newSolution) OnProjectAdded_NoLock(ProjectInfo projectInfo)
         {
             var projectId = projectInfo.Id;
 
             CheckProjectIsNotInCurrentSolution(projectId);
 
-            var (oldSolution, newSolution) = this.SetCurrentSolution(this.CurrentSolution.AddProject(projectInfo));
-
-            if (!silent)
-            {
-                this.RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.ProjectAdded, oldSolution, newSolution, projectId);
-            }
-
-            return (oldSolution, newSolution);
+            return this.SetCurrentSolution(this.CurrentSolution.AddProject(projectInfo));
         }
 
         /// <summary>
