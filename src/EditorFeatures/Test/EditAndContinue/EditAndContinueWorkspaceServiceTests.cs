@@ -792,7 +792,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             var extension = (language == LanguageNames.CSharp) ? ".cs" : ".vb";
 
             var sourceFileName = "a" + extension;
-            var sourceFilePath = dir.CreateFile(sourceFileName).WriteAllText(sourceA, Encoding.UTF8).Path;
+            var sourceFilePath = dir.CreateFile(sourceFileName).WriteAllText(source, Encoding.UTF8).Path;
 
             var designTimeOnlyFileName = "b.g.i" + extension;
             var designTimeOnlyFilePath = Path.Combine(dir.Path, designTimeOnlyFileName);
