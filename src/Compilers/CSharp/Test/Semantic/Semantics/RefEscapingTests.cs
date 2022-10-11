@@ -4162,9 +4162,9 @@ public class C
     public void M(ref S global)
     {
         S local1 = stackalloc int[10];
-        local1.M(out S local2);
-        local1 = local2; // ok
-        global = local2; // error
+        local1.M(out S local2); // we'd want this to succeed, but determine the safe-to-escape scope for local2 based on the invocation that declared it
+        local1 = local2; // then this would be allowed
+        global = local2; // and this would fail
     }
     public static void Main() => throw null;
 }
@@ -4175,10 +4175,27 @@ public ref struct S
     public void M(out S s) => throw null;
 }
 ";
-            CreateCompilationWithMscorlibAndSpan(text, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion)).VerifyDiagnostics(
-                // (11,18): error CS8352: Cannot use variable 'local2' in this context because it may expose referenced variables outside of their declaration scope
-                //         global = local2; // error
-                Diagnostic(ErrorCode.ERR_EscapeVariable, "local2").WithArguments("local2").WithLocation(11, 18));
+            // Tracking issue: https://github.com/dotnet/roslyn/issues/22361
+
+            if (languageVersion == LanguageVersion.CSharp10)
+            {
+                CreateCompilationWithMscorlibAndSpan(text, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion)).VerifyDiagnostics(
+                    // (9,9): error CS8352: Cannot use variable 'local1' in this context because it may expose referenced variables outside of their declaration scope
+                    //         local1.M(out S local2);
+                    Diagnostic(ErrorCode.ERR_EscapeVariable, "local1").WithArguments("local1").WithLocation(9, 9)
+                    );
+            }
+            else
+            {
+                CreateCompilationWithMscorlibAndSpan(text, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion)).VerifyDiagnostics(
+                    // (9,9): error CS8352: Cannot use variable 'local1' in this context because it may expose referenced variables outside of their declaration scope
+                    //         local1.M(out S local2); // we'd want this to succeed, but determine the safe-to-escape scope for local2 based on the invocation that declared it
+                    Diagnostic(ErrorCode.ERR_EscapeVariable, "local1").WithArguments("local1").WithLocation(9, 9),
+                    // (9,9): error CS8350: This combination of arguments to 'S.M(out S)' is disallowed because it may expose variables referenced by parameter 'this' outside of their declaration scope
+                    //         local1.M(out S local2); // we'd want this to succeed, but determine the safe-to-escape scope for local2 based on the invocation that declared it
+                    Diagnostic(ErrorCode.ERR_CallArgMixing, "local1.M(out S local2)").WithArguments("S.M(out S)", "this").WithLocation(9, 9)
+                    );
+            }
         }
 
         [Theory]
@@ -4765,401 +4782,6 @@ class Program
   IL_0006:  ret
 }
 ");
-        }
-
-        [Fact]
-        public void LocalScope_DeclarationExpression_01()
-        {
-            var source = """
-                ref struct RS
-                {
-                    public RS(ref RS rs) => throw null!;
-                }
-
-                class Program
-                {
-                    static void M0(ref RS rs1, out RS rs2)
-                    {
-                        // ok. RSTE of rs1 is ReturnOnly. STE of rs2 is ReturnOnly.
-                        rs2 = new RS(ref rs1);
-                    }
-
-                    static RS M1(scoped ref RS rs3)
-                    {
-                        // RSTE of rs3 is CurrentMethod
-                        // STE of rs4 (local variable) is also CurrentMethod
-                        M0(ref rs3, out var rs4);
-                        return rs4; // 1
-                    }
-
-                    static RS M2(scoped ref RS rs3)
-                    {
-                        M0(ref rs3, out RS rs4);
-                        return rs4; // 2
-                    }
-
-                    static RS M3(scoped ref RS rs3)
-                    {
-                        RS rs4;
-                        M0(ref rs3, out rs4); // 3
-                        return rs4;
-                    }
-                }
-                """;
-
-            var comp = CreateCompilation(source);
-            comp.VerifyDiagnostics(
-                // (19,16): error CS8352: Cannot use variable 'rs4' in this context because it may expose referenced variables outside of their declaration scope
-                //         return rs4; // 1
-                Diagnostic(ErrorCode.ERR_EscapeVariable, "rs4").WithArguments("rs4").WithLocation(19, 16),
-                // (25,16): error CS8352: Cannot use variable 'rs4' in this context because it may expose referenced variables outside of their declaration scope
-                //         return rs4; // 2
-                Diagnostic(ErrorCode.ERR_EscapeVariable, "rs4").WithArguments("rs4").WithLocation(25, 16),
-                // (31,9): error CS8350: This combination of arguments to 'Program.M0(ref RS, out RS)' is disallowed because it may expose variables referenced by parameter 'rs1' outside of their declaration scope
-                //         M0(ref rs3, out rs4); // 3
-                Diagnostic(ErrorCode.ERR_CallArgMixing, "M0(ref rs3, out rs4)").WithArguments("Program.M0(ref RS, out RS)", "rs1").WithLocation(31, 9),
-                // (31,16): error CS9075: Cannot return a parameter by reference 'rs3' because it is scoped to the current method
-                //         M0(ref rs3, out rs4); // 3
-                Diagnostic(ErrorCode.ERR_RefReturnScopedParameter, "rs3").WithArguments("rs3").WithLocation(31, 16));
-        }
-
-        [Fact]
-        public void LocalScope_DeclarationExpression_02()
-        {
-            var source = """
-                ref struct RS { }
-
-                class Program
-                {
-                    static void M0(RS rs1, out RS rs2)
-                    {
-                        // ok. STE of rs1 is CallingMethod. STE of rs2 is ReturnOnly.
-                        rs2 = rs1;
-                    }
-
-                    static RS M1(scoped RS rs3)
-                    {
-                        // STE of rs3 is CurrentMethod
-                        // STE of rs4 (local variable) is also CurrentMethod
-                        M0(rs3, out var rs4);
-                        return rs4; // 1
-                    }
-
-                    static RS M2(scoped RS rs3)
-                    {
-                        M0(rs3, out RS rs4);
-                        return rs4; // 2
-                    }
-
-                    static RS M3(scoped RS rs3)
-                    {
-                        RS rs4;
-                        M0(rs3, out rs4); // 3
-                        return rs4;
-                    }
-                }
-                """;
-
-            var comp = CreateCompilation(source);
-            comp.VerifyDiagnostics(
-                // (16,16): error CS8352: Cannot use variable 'rs4' in this context because it may expose referenced variables outside of their declaration scope
-                //         return rs4; // 1
-                Diagnostic(ErrorCode.ERR_EscapeVariable, "rs4").WithArguments("rs4").WithLocation(16, 16),
-                // (22,16): error CS8352: Cannot use variable 'rs4' in this context because it may expose referenced variables outside of their declaration scope
-                //         return rs4; // 2
-                Diagnostic(ErrorCode.ERR_EscapeVariable, "rs4").WithArguments("rs4").WithLocation(22, 16),
-                // (28,9): error CS8350: This combination of arguments to 'Program.M0(RS, out RS)' is disallowed because it may expose variables referenced by parameter 'rs1' outside of their declaration scope
-                //         M0(rs3, out rs4); // 3
-                Diagnostic(ErrorCode.ERR_CallArgMixing, "M0(rs3, out rs4)").WithArguments("Program.M0(RS, out RS)", "rs1").WithLocation(28, 9),
-                // (28,12): error CS8352: Cannot use variable 'scoped RS' in this context because it may expose referenced variables outside of their declaration scope
-                //         M0(rs3, out rs4); // 3
-                Diagnostic(ErrorCode.ERR_EscapeVariable, "rs3").WithArguments("scoped RS").WithLocation(28, 12));
-        }
-
-        [Fact]
-        public void LocalScope_DeclarationExpression_03()
-        {
-            var source = """
-                ref struct RS { }
-                struct S { }
-
-                class Program
-                {
-                    static void M0(RS rs1, out S s1) => throw null!;
-
-                    static S M1(scoped RS rs2)
-                    {
-                        // STE of s2 is CallingMethod because it is not ref struct
-                        M0(rs2, out var s2);
-                        return s2;
-                    }
-                }
-                """;
-
-            var comp = CreateCompilation(source);
-            comp.VerifyDiagnostics();
-        }
-
-        [Fact]
-        public void LocalScope_DeclarationExpression_04()
-        {
-            var source0 = """
-                public ref struct RS
-                {
-                    public RS(ref int i) => throw null!;
-                }
-
-                public class Util
-                {
-                    public static void M0(ref int i1, out RS rs1)
-                    {
-                        // RSTE of i1 is ReturnOnly. STE of rs1 is ReturnOnly in C# 11, but CallingMethod in C# 10.
-                        rs1 = new RS(ref i1);
-                    }
-                }
-                """;
-
-            var source1 = """
-                class Program
-                {
-                    static void M1(ref int i2, ref RS rs2)
-                    {
-                        // STE of rs3 (local variable) is ReturnOnly in C# 11, but CallingMethod in C# 10.
-                        Util.M0(ref i2, out var rs3);
-
-                        // STE of rs2 is CallingMethod. Therefore the assignment is permitted in C# 10 but not C# 11.
-                        rs2 = rs3; // 1
-                    }
-                }
-                """;
-
-            var source1DiagnosticsWhenSource0IsCSharp11 = new[]
-            {
-                // (9,15): error CS8352: Cannot use variable 'rs3' in this context because it may expose referenced variables outside of their declaration scope
-                //         rs2 = rs3; // 1
-                Diagnostic(ErrorCode.ERR_EscapeVariable, "rs3").WithArguments("rs3").WithLocation(9, 15)
-            };
-
-            var comp = CreateCompilation(new[] { source0, source1 }, parseOptions: TestOptions.Regular11);
-            comp.VerifyDiagnostics(source1DiagnosticsWhenSource0IsCSharp11);
-
-            comp = CreateCompilation(new[] { source0, source1 }, parseOptions: TestOptions.Regular10);
-            comp.VerifyDiagnostics();
-
-            // Reference C# 10, consume from 11
-            var comp0 = CreateCompilation(source0, parseOptions: TestOptions.Regular10);
-            comp0.VerifyDiagnostics();
-
-            var comp1 = CreateCompilation(source1, references: new[] { comp0.ToMetadataReference() }, parseOptions: TestOptions.Regular11);
-            comp1.VerifyDiagnostics();
-
-            comp1 = CreateCompilation(source1, references: new[] { comp0.EmitToImageReference() }, parseOptions: TestOptions.Regular11);
-            comp1.VerifyDiagnostics();
-
-            // Reference C# 11, consume from 10
-            comp0 = CreateCompilation(source0, parseOptions: TestOptions.Regular11);
-            comp0.VerifyDiagnostics();
-
-            comp1 = CreateCompilation(source1, references: new[] { comp0.ToMetadataReference() }, parseOptions: TestOptions.Regular10);
-            comp1.VerifyDiagnostics(source1DiagnosticsWhenSource0IsCSharp11);
-
-            comp1 = CreateCompilation(source1, references: new[] { comp0.EmitToImageReference() }, parseOptions: TestOptions.Regular10);
-            comp1.VerifyDiagnostics(source1DiagnosticsWhenSource0IsCSharp11);
-        }
-
-        [Fact]
-        public void LocalScope_DeclarationExpression_05()
-        {
-            var source = """
-                using System;
-
-                ref struct RS
-                {
-                    public RS(ref int i) => throw null!;
-                }
-
-                class Program
-                {
-                    static void M0(out RS rs1, __arglist)
-                    {
-                        // STE of __refvalue (i.e. values in __arglist) is CallingMethod.
-                        // RSTE of __refvalue is CurrentMethod.
-                        // STE of rs1 is ReturnOnly.
-                        var ai = new ArgIterator(__arglist);
-                        rs1 = __refvalue(ai.GetNextArg(), RS);
-                        rs1 = new RS(ref __refvalue(ai.GetNextArg(), int)); // 1
-                    }
-
-                    static RS M1(scoped RS rs2)
-                    {
-                        M0(out var rs3, __arglist(rs2));
-                        return rs3; // 2
-                    }
-
-                    static RS M2(scoped RS rs4)
-                    {
-                        M0(out var rs5, __arglist(ref rs4));
-                        return rs5; // 3
-                    }
-
-                    static RS M3(ref int i1)
-                    {
-                        M0(out var rs5, __arglist(ref i1));
-                        return rs5;
-                    }
-                }
-                """;
-
-            var comp = CreateCompilationWithMscorlibAndSpan(source);
-            comp.VerifyDiagnostics(
-                // (17,15): error CS8347: Cannot use a result of 'RS.RS(ref int)' in this context because it may expose variables referenced by parameter 'i' outside of their declaration scope
-                //         rs1 = new RS(ref __refvalue(ai.GetNextArg(), int)); // 1
-                Diagnostic(ErrorCode.ERR_EscapeCall, "new RS(ref __refvalue(ai.GetNextArg(), int))").WithArguments("RS.RS(ref int)", "i").WithLocation(17, 15),
-                // (17,26): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
-                //         rs1 = new RS(ref __refvalue(ai.GetNextArg(), int)); // 1
-                Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "__refvalue(ai.GetNextArg(), int)").WithLocation(17, 26),
-                // (23,16): error CS8352: Cannot use variable 'rs3' in this context because it may expose referenced variables outside of their declaration scope
-                //         return rs3; // 2
-                Diagnostic(ErrorCode.ERR_EscapeVariable, "rs3").WithArguments("rs3").WithLocation(23, 16),
-                // (29,16): error CS8352: Cannot use variable 'rs5' in this context because it may expose referenced variables outside of their declaration scope
-                //         return rs5; // 3
-                Diagnostic(ErrorCode.ERR_EscapeVariable, "rs5").WithArguments("rs5").WithLocation(29, 16));
-        }
-
-        [Fact]
-        public void LocalScope_DeclarationExpression_06()
-        {
-            var source = """
-                using System.Diagnostics.CodeAnalysis;
-
-                ref struct RS
-                {
-                    public RS(ref RS rs) => throw null!;
-
-                    [UnscopedRef]
-                    void M0(out RS rs2)
-                    {
-                        // ok. RSTE of `this` is ReturnOnly. STE of rs2 is ReturnOnly.
-                        rs2 = new RS(ref this);
-                    }
-
-                    RS M1()
-                    {
-                        // RSTE of `this` is CurrentMethod
-                        // STE of rs4 (local variable) is also CurrentMethod
-                        M0(out var rs4);
-                        return rs4; // 1
-                    }
-
-                    [UnscopedRef]
-                    RS M2()
-                    {
-                        M0(out var rs4);
-                        return rs4;
-                    }
-                }
-                """;
-
-            var comp = CreateCompilation(new[] { source, UnscopedRefAttributeDefinition });
-            comp.VerifyDiagnostics(
-                // (19,16): error CS8352: Cannot use variable 'rs4' in this context because it may expose referenced variables outside of their declaration scope
-                //         return rs4; // 1
-                Diagnostic(ErrorCode.ERR_EscapeVariable, "rs4").WithArguments("rs4").WithLocation(19, 16));
-        }
-
-        [Fact]
-        public void LocalScope_DeclarationExpression_07()
-        {
-            var source = """
-                using System.Diagnostics.CodeAnalysis;
-
-                class Program
-                {
-                    static ref int F1([UnscopedRef] out int i)
-                    {
-                        i = 0;
-                        return ref i;
-                    }
-                    static ref int F2()
-                    {
-                        return ref F1(out int i); // 1
-                    }
-                }
-                """;
-
-            var comp = CreateCompilation(new[] { source, UnscopedRefAttributeDefinition });
-            comp.VerifyDiagnostics(
-                // (12,20): error CS8347: Cannot use a result of 'Program.F1(out int)' in this context because it may expose variables referenced by parameter 'i' outside of their declaration scope
-                //         return ref F1(out int i); // 1
-                Diagnostic(ErrorCode.ERR_EscapeCall, "F1(out int i)").WithArguments("Program.F1(out int)", "i").WithLocation(12, 20),
-                // (12,27): error CS8168: Cannot return local 'i' by reference because it is not a ref local
-                //         return ref F1(out int i); // 1
-                Diagnostic(ErrorCode.ERR_RefReturnLocal, "int i").WithArguments("i").WithLocation(12, 27));
-        }
-
-        [Fact]
-        public void LocalScope_DeclarationExpression_08()
-        {
-            var source = """
-                ref struct RS
-                {
-                    public RS(ref RS rs) => throw null!;
-                }
-
-                class Program
-                {
-                    static void M0(ref RS rs1, out RS rs2)
-                    {
-                        // ok. RSTE of rs1 is ReturnOnly. STE of rs2 is ReturnOnly.
-                        rs2 = new RS(ref rs1);
-                    }
-
-                    static RS M1(ref RS rs3)
-                    {
-                        // RSTE of rs3 is ReturnOnly.
-                        // However, since rs4 is 'scoped', its STE should be narrowed to CurrentMethod
-                        M0(ref rs3, out scoped var rs4);
-                        return rs4; // 1
-                    }
-
-                    static RS M2(ref RS rs5)
-                    {
-                        // RSTE of rs5 is ReturnOnly.
-                        // However, since rs6 is 'scoped', its STE should be narrowed to CurrentMethod
-                        M0(ref rs5, out scoped RS rs6);
-                        return rs6; // 2
-                    }
-                }
-                """;
-
-            // Once 'out scoped var' support is added, this test baseline should be updated.
-            // https://github.com/dotnet/roslyn/issues/64556
-            var comp = CreateCompilation(source);
-            comp.VerifyDiagnostics(
-                // (18,25): error CS0246: The type or namespace name 'scoped' could not be found (are you missing a using directive or an assembly reference?)
-                //         M0(ref rs3, out scoped var rs4);
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "scoped").WithArguments("scoped").WithLocation(18, 25),
-                // (18,36): error CS1003: Syntax error, ',' expected
-                //         M0(ref rs3, out scoped var rs4);
-                Diagnostic(ErrorCode.ERR_SyntaxError, "rs4").WithArguments(",").WithLocation(18, 36),
-                // (18,36): error CS0103: The name 'rs4' does not exist in the current context
-                //         M0(ref rs3, out scoped var rs4);
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "rs4").WithArguments("rs4").WithLocation(18, 36),
-                // (19,16): error CS0103: The name 'rs4' does not exist in the current context
-                //         return rs4; // 1
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "rs4").WithArguments("rs4").WithLocation(19, 16),
-                // (26,25): error CS0246: The type or namespace name 'scoped' could not be found (are you missing a using directive or an assembly reference?)
-                //         M0(ref rs5, out scoped RS rs6);
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "scoped").WithArguments("scoped").WithLocation(26, 25),
-                // (26,35): error CS1003: Syntax error, ',' expected
-                //         M0(ref rs5, out scoped RS rs6);
-                Diagnostic(ErrorCode.ERR_SyntaxError, "rs6").WithArguments(",").WithLocation(26, 35),
-                // (26,35): error CS0103: The name 'rs6' does not exist in the current context
-                //         M0(ref rs5, out scoped RS rs6);
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "rs6").WithArguments("rs6").WithLocation(26, 35),
-                // (27,16): error CS0103: The name 'rs6' does not exist in the current context
-                //         return rs6; // 2
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "rs6").WithArguments("rs6").WithLocation(27, 16));
         }
     }
 }
