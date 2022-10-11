@@ -1627,26 +1627,22 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         {
             Contract.ThrowIfFalse(_gate.CurrentCount == 0);
 
-            var oldSolution = this.CurrentSolution;
-
             if (!solutionChanges.HasChange)
-            {
                 return;
-            }
 
+            // Clear out mutable state not associated with teh solution snapshot (for example, which documents are
+            // currently open).
             foreach (var documentId in solutionChanges.DocumentIdsRemoved)
-            {
                 this.ClearDocumentData(documentId);
-            }
 
-            SetCurrentSolution(solutionChanges.Solution);
+            var (oldSolution, newSolution) = SetCurrentSolution(solutionChanges.Solution);
 
             // This method returns the task that could be used to wait for the workspace changed event; we don't want
             // to do that.
             _ = RaiseWorkspaceChangedEventAsync(
                 solutionChanges.WorkspaceChangeKind,
                 oldSolution,
-                solutionChanges.Solution,
+                newSolution,
                 solutionChanges.WorkspaceChangeProjectId,
                 solutionChanges.WorkspaceChangeDocumentId);
         }

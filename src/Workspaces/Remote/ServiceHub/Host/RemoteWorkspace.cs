@@ -316,7 +316,9 @@ namespace Microsoft.CodeAnalysis.Remote
                     ClearSolutionData();
                 }
 
-                newSolution = SetCurrentSolution(newSolution);
+                // Ignore the 'oldSolution'.  We want the solution prior to potentially clearing solution data above. We
+                // are also serialized in a lock, so we don't need to worry about something interleaving with this.
+                (_, newSolution) = SetCurrentSolution(newSolution);
 
                 _ = RaiseWorkspaceChangedEventAsync(
                     addingSolution ? WorkspaceChangeKind.SolutionAdded : WorkspaceChangeKind.SolutionChanged, oldSolution, newSolution);
