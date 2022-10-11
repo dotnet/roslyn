@@ -755,21 +755,21 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         {
             var documentId = documentInfo.Id;
 
-            var (oldSolution, newSolution) = this.SetCurrentSolution(oldSolution.AddDocument(documentInfo));
+            var (oldSolution, newSolution) = this.SetCurrentSolution(this.CurrentSolution.AddDocument(documentInfo));
 
             return this.RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.DocumentAdded, oldSolution, newSolution, documentId: documentId);
         }
 
         public void ChangeAdditionalDocument(DocumentId documentId, SourceText text)
         {
-            var (oldSolution, newSolution) = this.SetCurrentSolution(oldSolution.WithAdditionalDocumentText(documentId, text));
+            var (oldSolution, newSolution) = this.SetCurrentSolution(this.CurrentSolution.WithAdditionalDocumentText(documentId, text));
 
             this.RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.AdditionalDocumentChanged, oldSolution, newSolution, documentId.ProjectId, documentId);
         }
 
         public void ChangeAnalyzerConfigDocument(DocumentId documentId, SourceText text)
         {
-            var (oldSolution, newSolution) = this.SetCurrentSolution(oldSolution.WithAnalyzerConfigDocumentText(documentId, text));
+            var (oldSolution, newSolution) = this.SetCurrentSolution(this.CurrentSolution.WithAnalyzerConfigDocumentText(documentId, text));
 
             this.RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.AnalyzerConfigDocumentChanged, oldSolution, newSolution, documentId.ProjectId, documentId);
         }
