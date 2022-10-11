@@ -802,7 +802,7 @@ namespace Roslyn.Utilities
             }
             else if (encoding.TryGetEncodingKind(out var kind))
             {
-                WriteByte((byte)((int)TypeCode.FirstWellKnownEncoding + kind));
+                WriteByte((byte)((int)TypeCode.FirstWellKnownEncoding + kind - TextEncodingKind.EncodingUtf8));
             }
             else
             {
@@ -1275,7 +1275,7 @@ namespace Roslyn.Utilities
             /// Encoding serialized as <see cref="TextEncodingKind"/>.
             /// </summary>
             FirstWellKnownEncoding,
-            LastWellKnownEncoding = FirstWellKnownEncoding + TextEncodingKind.EncodingUnicode_LE_BOM - 1,
+            LastWellKnownEncoding = FirstWellKnownEncoding + TextEncodingKind.EncodingUnicode_LE_BOM - TextEncodingKind.EncodingUtf8,
 
             Last,
         }

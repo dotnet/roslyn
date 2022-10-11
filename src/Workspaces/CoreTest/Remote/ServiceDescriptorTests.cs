@@ -147,7 +147,7 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
         public void EncodingIsMessagePackSerializable()
         {
             var messagePackOptions = MessagePackSerializerOptions.Standard.WithResolver(MessagePackFormatters.DefaultResolver);
-            var encodings = new Encoding?[]
+            var encodings = new Encoding[]
             {
                 null,
                 new UTF8Encoding(encoderShouldEmitUTF8Identifier: false),
