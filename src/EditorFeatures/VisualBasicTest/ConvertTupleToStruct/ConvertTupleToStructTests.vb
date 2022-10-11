@@ -24,7 +24,6 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.ConvertTupleToStru
             expected As String,
             Optional index As Integer = 0,
             Optional equivalenceKey As String = Nothing,
-            Optional LanguageVersion As LanguageVersion = LanguageVersion.VisualBasic9,
             Optional testHost As TestHost = TestHost.InProcess,
             Optional actions As String() = Nothing) As Task
 
@@ -38,7 +37,6 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.ConvertTupleToStru
                 .TestCode = text,
                 .FixedCode = expected,
                 .TestHost = testHost,
-                .LanguageVersion = LanguageVersion,
                 .CodeActionIndex = index,
                 .CodeActionEquivalenceKey = equivalenceKey,
                 .ExactActionSetOffered = actions
@@ -1188,7 +1186,7 @@ end class
 
 Friend Structure NewStruct
     Public a As Integer
-    Public b As Integer
+    Public b As Integerv
 
     Public Sub New(a As Integer, b As Integer)
         Me.a = a
