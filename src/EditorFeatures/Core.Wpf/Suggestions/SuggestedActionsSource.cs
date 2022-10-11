@@ -242,7 +242,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                             ThreadingContext, owner, nestedAction.Workspace, originalSolution, subjectBuffer,
                             nestedAction.Provider ?? this, nestedAction.OriginalCodeAction,
                             nestedAction.NestedActionSets.SelectAsArray((s, arg) => ConvertToSuggestedActionSet(s, arg.owner, arg.subjectBuffer), (owner, subjectBuffer))),
-                        _ => throw ExceptionUtilities.Unreachable
+                        _ => throw ExceptionUtilities.Unreachable()
                     };
 
                 static SuggestedActionSetPriority ConvertToSuggestedActionSetPriority(UnifiedSuggestedActionSetPriority unifiedSuggestedActionSetPriority)
@@ -252,7 +252,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                         UnifiedSuggestedActionSetPriority.Low => SuggestedActionSetPriority.Low,
                         UnifiedSuggestedActionSetPriority.Medium => SuggestedActionSetPriority.Medium,
                         UnifiedSuggestedActionSetPriority.High => SuggestedActionSetPriority.High,
-                        _ => throw ExceptionUtilities.Unreachable,
+                        _ => throw ExceptionUtilities.Unreachable(),
                     };
             }
 
@@ -292,7 +292,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                     case DiagnosticSeverity.Error:
                         return PredefinedSuggestedActionCategoryNames.ErrorFix;
                     default:
-                        throw ExceptionUtilities.Unreachable;
+                        throw ExceptionUtilities.Unreachable();
                 }
             }
 

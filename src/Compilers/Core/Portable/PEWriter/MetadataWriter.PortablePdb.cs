@@ -301,7 +301,7 @@ namespace Microsoft.Cci
                 return SignatureTypeCode.Single;
             }
 
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 
         #region ImportScope

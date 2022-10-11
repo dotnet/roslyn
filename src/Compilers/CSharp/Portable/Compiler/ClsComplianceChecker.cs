@@ -212,7 +212,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e))
                     {
-                        throw ExceptionUtilities.Unreachable;
+                        throw ExceptionUtilities.Unreachable();
                     }
                 }), _cancellationToken));
             }

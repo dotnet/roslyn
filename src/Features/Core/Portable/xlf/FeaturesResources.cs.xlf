@@ -672,7 +672,7 @@ Ujistěte se, že specifikátor tt použijete pro jazyky, pro které je nezbytn�
       </trans-unit>
       <trans-unit id="Enum_members">
         <source>Enum members</source>
-        <target state="new">Enum members</target>
+        <target state="translated">Členové výčtu</target>
         <note />
       </trans-unit>
       <trans-unit id="ErrorReadingFile">
@@ -3430,7 +3430,7 @@ Pokud se specifikátor formátu d použije bez dalších specifikátorů vlastn�
       </trans-unit>
       <trans-unit id="foreach_loop">
         <source>foreach loop</source>
-        <target state="new">foreach loop</target>
+        <target state="translated">smyčka foreach</target>
         <note />
       </trans-unit>
       <trans-unit id="from_metadata">
@@ -4282,7 +4282,7 @@ Když se tento specifikátor standardního formátu použije, operace formátov�
       </trans-unit>
       <trans-unit id="struct_">
         <source>struct</source>
-        <target state="new">struct</target>
+        <target state="translated">struktura</target>
         <note />
       </trans-unit>
       <trans-unit id="symbol_cannot_be_a_namespace">

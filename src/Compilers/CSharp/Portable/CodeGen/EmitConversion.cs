@@ -329,7 +329,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 {
                     if (receiver is not BoundTypeExpression { Type: { TypeKind: TypeKind.TypeParameter } })
                     {
-                        throw ExceptionUtilities.Unreachable;
+                        throw ExceptionUtilities.Unreachable();
                     }
 
                     _builder.EmitOpCode(ILOpCode.Constrained);

@@ -975,7 +975,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 => getAllTypeAndRequiredMembers(containingType),
 
                             (includeAllMembers: _, includeCurrentTypeRequiredMembers: false, includeBaseRequiredMembers: true)
-                                => throw ExceptionUtilities.Unreachable,
+                                => throw ExceptionUtilities.Unreachable(),
                         };
 
                         static ImmutableArray<Symbol> getAllTypeAndRequiredMembers(TypeSymbol containingType)
@@ -3051,7 +3051,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool isCall)
         {
             // Do not use this overload in NullableWalker. Use the overload below instead.
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 
         private void VisitLocalFunctionUse(LocalFunctionSymbol symbol)
@@ -3794,7 +3794,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private new void VisitCollectionElementInitializer(BoundCollectionElementInitializer node)
 #pragma warning restore IDE0051 // Remove unused private members
         {
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 
         private Action<int, TypeSymbol>? VisitCollectionElementInitializer(BoundCollectionElementInitializer node, TypeSymbol containingType, bool delayCompletionForType)
@@ -6004,7 +6004,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         protected override void VisitArguments(ImmutableArray<BoundExpression> arguments, ImmutableArray<RefKind> refKindsOpt, MethodSymbol method)
         {
             // Callers should be using VisitArguments overload below.
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 
         private (MethodSymbol? method, ImmutableArray<VisitArgumentResult> results, bool returnNotNull) VisitArguments(
@@ -9431,7 +9431,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return fields.SelectAsArray((f, e) => (BoundExpression)new BoundFieldAccess(e.Syntax, e, f, constantValueOpt: null), expr);
             }
 
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 
         public override BoundNode? VisitIncrementOperator(BoundIncrementOperator node)
@@ -10157,7 +10157,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode? VisitObjectInitializerMember(BoundObjectInitializerMember node)
         {
             // Should be handled by VisitObjectCreationExpression.
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 
         public override BoundNode? VisitDynamicObjectInitializerMember(BoundDynamicObjectInitializerMember node)
@@ -10735,7 +10735,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode? VisitAnonymousPropertyDeclaration(BoundAnonymousPropertyDeclaration node)
         {
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 
         public override BoundNode? VisitNoPiaObjectCreationExpression(BoundNoPiaObjectCreationExpression node)

@@ -598,7 +598,7 @@ namespace Microsoft.CodeAnalysis.AddImport
                 AddImportFixKind.PackageSymbol => installerService?.IsInstalled(document.Project.Id, fixData.PackageName) == false
                     ? new ParentInstallPackageCodeAction(document, fixData, installerService)
                     : null,
-                _ => throw ExceptionUtilities.Unreachable,
+                _ => throw ExceptionUtilities.Unreachable(),
             };
 
         private static ITypeSymbol? GetAwaitInfo(SemanticModel semanticModel, ISyntaxFacts syntaxFactsService, SyntaxNode node)

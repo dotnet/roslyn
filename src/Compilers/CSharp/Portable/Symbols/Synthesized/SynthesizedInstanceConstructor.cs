@@ -116,7 +116,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal sealed override IEnumerable<Cci.SecurityAttribute> GetSecurityInformation()
         {
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 
         internal sealed override ImmutableArray<string> GetAppliedConditionalSymbols()
@@ -294,7 +294,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return;
             }
 
-            var baseConstructorCall = MethodCompiler.GenerateBaseParameterlessConstructorInitializer(this, diagnostics);
+            var baseConstructorCall = Binder.GenerateBaseParameterlessConstructorInitializer(this, diagnostics);
             if (baseConstructorCall == null)
             {
                 // Attribute..ctor was not found or was inaccessible

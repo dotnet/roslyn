@@ -212,7 +212,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.Json.LanguageService
         private bool IsArgumentToSuitableParameter(
             SemanticModel semanticModel, SyntaxNode argumentNode, CancellationToken cancellationToken)
         {
-            var parameter = Info.SemanticFacts.FindParameterForArgument(semanticModel, argumentNode, allowUncertainCandidates: true, cancellationToken);
+            var parameter = Info.SemanticFacts.FindParameterForArgument(semanticModel, argumentNode, allowUncertainCandidates: true, allowParams: true, cancellationToken);
             return parameter?.Name == JsonParameterName;
         }
     }

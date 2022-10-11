@@ -7232,9 +7232,9 @@ using System.Runtime.InteropServices;
 [Guid(""00000000-0000-0000-0000-000000000000"")]
 interface IComInterface
 {
-    void MOverload() { }
-    void X() { }
-    void MOverload(int i) { }
+    void {|CS0423:MOverload|}() { }
+    void {|CS0423:X|}() { }
+    void {|CS0423:MOverload|}(int i) { }
     int Prop { get; }
 }
 
@@ -7249,9 +7249,9 @@ using System.Runtime.InteropServices;
 [Guid(""00000000-0000-0000-0000-000000000000"")]
 interface IComInterface
 {
-    void MOverload() { }
-    void X() { }
-    void MOverload(int i) { }
+    void {|CS0423:MOverload|}() { }
+    void {|CS0423:X|}() { }
+    void {|CS0423:MOverload|}(int i) { }
     int Prop { get; }
 }
 

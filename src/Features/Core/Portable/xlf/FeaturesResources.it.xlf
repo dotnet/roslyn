@@ -672,7 +672,7 @@ Assicurarsi di usare l'identificatore "tt" per le lingue per le quali è necessa
       </trans-unit>
       <trans-unit id="Enum_members">
         <source>Enum members</source>
-        <target state="new">Enum members</target>
+        <target state="translated">Membri enumerazione</target>
         <note />
       </trans-unit>
       <trans-unit id="ErrorReadingFile">
@@ -3430,7 +3430,7 @@ Se l'identificatore di formato "d" viene usato senza altri identificatori di for
       </trans-unit>
       <trans-unit id="foreach_loop">
         <source>foreach loop</source>
-        <target state="new">foreach loop</target>
+        <target state="translated">ciclo foreach</target>
         <note />
       </trans-unit>
       <trans-unit id="from_metadata">
@@ -4282,7 +4282,7 @@ Quando si usa questo identificatore di formato standard, la formattazione o l'op
       </trans-unit>
       <trans-unit id="struct_">
         <source>struct</source>
-        <target state="new">struct</target>
+        <target state="translated">struct</target>
         <note />
       </trans-unit>
       <trans-unit id="symbol_cannot_be_a_namespace">

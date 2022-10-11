@@ -128,7 +128,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
             {
                 ResultKind.Computed => CreateComputedRange(result),
                 ResultKind.Constant => CreateConstantRange(result, generator),
-                _ => throw ExceptionUtilities.Unreachable,
+                _ => throw ExceptionUtilities.Unreachable(),
             };
 
         private static RangeExpressionSyntax CreateComputedRange(Result result)

@@ -264,7 +264,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                     {
                         // All items passed in should contain a CompletionItemData object in the property bag,
                         // which is guaranteed in `ItemManager.SortCompletionListAsync`.
-                        throw ExceptionUtilities.Unreachable;
+                        throw ExceptionUtilities.Unreachable();
                     }
                 }
 

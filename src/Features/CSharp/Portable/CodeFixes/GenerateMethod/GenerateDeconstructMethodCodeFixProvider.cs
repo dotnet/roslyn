@@ -81,7 +81,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.GenerateDeconstructMethod
                     target = assignment.Left;
                     break;
                 default:
-                    throw ExceptionUtilities.Unreachable;
+                    throw ExceptionUtilities.Unreachable();
             }
 
             if (type?.Kind != SymbolKind.NamedType)
