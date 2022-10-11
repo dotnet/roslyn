@@ -14,12 +14,20 @@ using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
+using Xunit.Abstractions;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Diagnostics;
 public class AdditionalFileDiagnosticsTests : AbstractPullDiagnosticTestsBase
 {
-    [Theory, CombinatorialData]
+    private readonly TestOutputLspLogger _testOutputLogger;
+    public AdditionalFileDiagnosticsTests(ITestOutputHelper testOutputHelper)
+    {
+        _testOutputLogger = new TestOutputLspLogger(testOutputHelper);
+    }
+
+    [Theory]
+    [CombinatorialData]
     public async Task TestWorkspaceDiagnosticsReportsAdditionalFileDiagnostic([CombinatorialRange(0, 100)] int iteration)
     {
         _ = iteration;
@@ -32,7 +40,7 @@ public class AdditionalFileDiagnosticsTests : AbstractPullDiagnosticTestsBase
     </Project>
 </Workspace>";
 
-        await using var testLspServer = await CreateTestWorkspaceFromXmlAsync(workspaceXml, BackgroundAnalysisScope.FullSolution, useVSDiagnostics);
+        await using var testLspServer = await CreateXmlTestLspServerAsync(workspaceXml, initializationOptions: GetInitializationOptions(BackgroundAnalysisScope.FullSolution, useVSDiagnostics, DiagnosticMode.Pull, logger: _testOutputLogger));
 
         var results = await RunGetWorkspacePullDiagnosticsAsync(testLspServer, useVSDiagnostics);
         AssertEx.Equal(new[]

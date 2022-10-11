@@ -249,7 +249,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Diagnostics
             bool useVSDiagnostics,
             DiagnosticMode mode,
             WellKnownLspServerKinds serverKind = WellKnownLspServerKinds.AlwaysActiveVSLspServer,
-            string[]? sourceGeneratedMarkups = null)
+            string[]? sourceGeneratedMarkups = null,
+            ILspServiceLogger? logger = null)
         {
             return new InitializationOptions
             {
@@ -262,7 +263,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Diagnostics
                     globalOptions.SetGlobalOption(new OptionKey(InternalDiagnosticsOptions.NormalDiagnosticMode), mode);
                 },
                 ServerKind = serverKind,
-                SourceGeneratedMarkups = sourceGeneratedMarkups ?? Array.Empty<string>()
+                SourceGeneratedMarkups = sourceGeneratedMarkups ?? Array.Empty<string>(),
+                Logger = logger ?? NoOpLspLogger.Instance
             };
         }
 
