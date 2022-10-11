@@ -5,6 +5,7 @@
 Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis.CodeActions
 Imports Microsoft.CodeAnalysis.CodeRefactorings
+Imports Microsoft.CodeAnalysis.ConvertTupleToStruct
 Imports Microsoft.CodeAnalysis.Editor.UnitTests
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings
@@ -39,7 +40,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.ConvertTupleToStru
                 .TestHost = testHost,
                 .CodeActionIndex = index,
                 .CodeActionEquivalenceKey = equivalenceKey,
-                .ExactActionSetOffered = actions
+                .ExactActionSetOffered = actions,
+                .CodeActionValidationMode = Testing.CodeActionValidationMode.None
             }
             Await test.RunAsync()
         End Function
@@ -568,12 +570,24 @@ class Test
     sub Method()
         dim t1 = [||](a:=Goo(), b:=Bar())
     end sub
+
+    function goo() as object
+    end function
+
+    function bar() as object
+    end function
 end class"
             Dim expected = "
 class Test
     sub Method()
         dim t1 = New NewStruct(Goo(), Bar())
     end sub
+
+    function goo() as object
+    end function
+
+    function bar() as object
+    end function
 end class
 
 Friend Structure NewStruct
@@ -1050,7 +1064,7 @@ class Test
     end sub
 end class"
 
-            Await TestAsync(text, text, host)
+            Await TestAsync(text, text, testHost:=host)
         End Function
 
         <Theory, CombinatorialData>
@@ -1186,7 +1200,7 @@ end class
 
 Friend Structure NewStruct
     Public a As Integer
-    Public b As Integerv
+    Public b As Integer
 
     Public Sub New(a As Integer, b As Integer)
         Me.a = a
@@ -1538,7 +1552,7 @@ class Test
         dim t1 = (a:=1, b:=2)
         dim a = function ()
                     dim t2 = [||](a:=3, b:=4)
-                function sub()
+                end function()
     end sub
 end class"
             Dim expected = "
@@ -1549,7 +1563,7 @@ class Test
         dim t1 = New NewStruct(a:=1, b:=2)
         dim a = function ()
                     dim t2 = New NewStruct(a:=3, b:=4)
-                function sub()
+                end function()
     end sub
 end class
 
@@ -1883,7 +1897,7 @@ Friend Structure NewStruct(Of T)
 End Structure
 "
 
-            Await TestAsync(text, expected, index:=1, testHost:=host, actions:={
+            Await TestAsync(text, expected, index:=1, equivalenceKey:=Scope.ContainingType.ToString(), testHost:=host, actions:={
                 FeaturesResources.updating_usages_in_containing_member,
                 FeaturesResources.updating_usages_in_containing_type
             })
