@@ -126,6 +126,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                     Dim collectionInitializer = DirectCast(expression, CollectionInitializerSyntax)
                     Return DetermineType(collectionInitializer, semanticModel, cancellationToken)
                 End If
+
+                Dim unary = TryCast(expression, UnaryExpressionSyntax)
+                If unary IsNot Nothing AndAlso unary.Kind() = SyntaxKind.AddressOfExpression Then
+                    Return DetermineType(unary.Operand, semanticModel, cancellationToken)
+                End If
             End If
 
             Return semanticModel.Compilation.ObjectType

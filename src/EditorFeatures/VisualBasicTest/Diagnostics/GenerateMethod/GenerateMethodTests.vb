@@ -302,7 +302,7 @@ Class C
 End Class")
         End Function
 
-        <WpfFact(Skip:="528229")>
+        <Fact>
         Public Async Function TestAddressOf1() As Task
             Await TestInRegularAndScriptAsync(
 "Class C
@@ -318,9 +318,11 @@ Class C
     Sub M(i As Integer)
         Goo(AddressOf NextMethod)
     End Sub
-    Private Sub Goo(nextMethod As Global.System.Func(Of Integer, String))
+
+    Private Sub Goo(value As Func(Of Integer, String))
         Throw New NotImplementedException()
     End Sub
+
     Function NextMethod(i As Integer) As String
     End Function
 End Class")
@@ -4521,7 +4523,7 @@ Class C
         Goo(AddressOf OtherMethod)
     End Sub
 
-    Private Sub Goo(value As Object)
+    Private Sub Goo(value As Func(Of Integer))
         Throw New NotImplementedException()
     End Sub
 End Class")
