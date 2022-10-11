@@ -8149,23 +8149,32 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class OutDeconstructVarPendingInference : BoundExpression
     {
-        public OutDeconstructVarPendingInference(SyntaxNode syntax, bool hasErrors)
+        public OutDeconstructVarPendingInference(SyntaxNode syntax, uint valEscape, bool hasErrors)
             : base(BoundKind.OutDeconstructVarPendingInference, syntax, null, hasErrors)
         {
+            this.ValEscape = valEscape;
         }
 
-        public OutDeconstructVarPendingInference(SyntaxNode syntax)
+        public OutDeconstructVarPendingInference(SyntaxNode syntax, uint valEscape)
             : base(BoundKind.OutDeconstructVarPendingInference, syntax, null)
         {
+            this.ValEscape = valEscape;
         }
 
         public new TypeSymbol? Type => base.Type;
+        public uint ValEscape { get; }
 
         [DebuggerStepThrough]
         public override BoundNode? Accept(BoundTreeVisitor visitor) => visitor.VisitOutDeconstructVarPendingInference(this);
 
-        public OutDeconstructVarPendingInference Update()
+        public OutDeconstructVarPendingInference Update(uint valEscape)
         {
+            if (valEscape != this.ValEscape)
+            {
+                var result = new OutDeconstructVarPendingInference(this.Syntax, valEscape, this.HasErrors);
+                result.CopyAttributes(this);
+                return result;
+            }
             return this;
         }
     }
@@ -11484,7 +11493,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode? VisitOutDeconstructVarPendingInference(OutDeconstructVarPendingInference node)
         {
             TypeSymbol? type = this.VisitType(node.Type);
-            return node.Update();
+            return node.Update(node.ValEscape);
         }
         public override BoundNode? VisitNonConstructorMethodBody(BoundNonConstructorMethodBody node)
         {
@@ -14019,7 +14028,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return node;
             }
 
-            OutDeconstructVarPendingInference updatedNode = node.Update();
+            OutDeconstructVarPendingInference updatedNode = node.Update(node.ValEscape);
             updatedNode.TopLevelNullability = infoAndType.Info;
             return updatedNode;
         }
@@ -16067,6 +16076,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         );
         public override TreeDumperNode VisitOutDeconstructVarPendingInference(OutDeconstructVarPendingInference node, object? arg) => new TreeDumperNode("outDeconstructVarPendingInference", null, new TreeDumperNode[]
         {
+            new TreeDumperNode("valEscape", node.ValEscape, null),
             new TreeDumperNode("type", node.Type, null),
             new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
             new TreeDumperNode("hasErrors", node.HasErrors, null)

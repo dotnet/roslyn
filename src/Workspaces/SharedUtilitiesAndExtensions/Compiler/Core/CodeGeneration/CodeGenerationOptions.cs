@@ -52,13 +52,21 @@ internal abstract class CodeGenerationOptions
 }
 
 [DataContract]
-internal readonly record struct CodeAndImportGenerationOptions(
-    [property: DataMember(Order = 0)] CodeGenerationOptions GenerationOptions,
-    [property: DataMember(Order = 1)] AddImportPlacementOptions AddImportOptions)
+internal readonly record struct CodeAndImportGenerationOptions
 {
+    [DataMember]
+    public required CodeGenerationOptions GenerationOptions { get; init; }
+
+    [DataMember]
+    public required AddImportPlacementOptions AddImportOptions { get; init; }
+
 #if !CODE_STYLE
     internal static CodeAndImportGenerationOptions GetDefault(LanguageServices languageServices)
-        => new(CodeGenerationOptions.GetDefault(languageServices), AddImportPlacementOptions.Default);
+        => new()
+        {
+            GenerationOptions = CodeGenerationOptions.GetDefault(languageServices),
+            AddImportOptions = AddImportPlacementOptions.Default
+        };
 
     internal CodeAndImportGenerationOptionsProvider CreateProvider()
         => new Provider(this);
