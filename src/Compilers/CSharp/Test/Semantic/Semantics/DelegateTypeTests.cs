@@ -10234,6 +10234,17 @@ class Program
 ");
         }
 
+        [Fact, WorkItem(64436, "https://github.com/dotnet/roslyn/issues/64436")]
+        public void SynthesizedDelegateTypes_NamedParameters()
+        {
+            var source = """
+                var lam = (int x, ref int y) => { };
+                int y = 1;
+                lam(arg1: 1, arg2: ref y);
+                """;
+            CreateCompilation(source).VerifyDiagnostics();
+        }
+
         private static void VerifyLocalDelegateType(SemanticModel model, VariableDeclaratorSyntax variable, string expectedInvokeMethod)
         {
             var expectedBaseType = ((CSharpCompilation)model.Compilation).GetSpecialType(SpecialType.System_MulticastDelegate);
