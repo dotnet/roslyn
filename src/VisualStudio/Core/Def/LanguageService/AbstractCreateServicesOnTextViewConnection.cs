@@ -2,13 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host;
@@ -18,6 +14,7 @@ using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Snippets;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
+using Microsoft.VisualStudio.Threading;
 using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
@@ -28,14 +25,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
     /// </summary>
     internal abstract class AbstractCreateServicesOnTextViewConnection : IWpfTextViewConnectionListener
     {
+        private readonly IAsynchronousOperationListener _listener;
+        private readonly IThreadingContext _threadingContext;
         private readonly string _languageName;
-        private readonly AsyncBatchingWorkQueue<ProjectId?> _workQueue;
         private bool _initialized = false;
 
         protected VisualStudioWorkspace Workspace { get; }
         protected IGlobalOptionService GlobalOptions { get; }
 
-        protected virtual Task InitializeServiceForProjectWithOpenedDocumentAsync(Project project)
+        protected virtual Task InitializeServiceForOpenedDocumentAsync(Document document)
             => Task.CompletedTask;
 
         public AbstractCreateServicesOnTextViewConnection(
@@ -47,25 +45,22 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
         {
             Workspace = workspace;
             GlobalOptions = globalOptions;
+
+            _listener = listenerProvider.GetListener(FeatureAttribute.Workspace);
+            _threadingContext = threadingContext;
             _languageName = languageName;
 
-            _workQueue = new AsyncBatchingWorkQueue<ProjectId?>(
-                    TimeSpan.FromSeconds(1),
-                    BatchProcessProjectsWithOpenedDocumentAsync,
-                    EqualityComparer<ProjectId?>.Default,
-                    listenerProvider.GetListener(FeatureAttribute.CompletionSet),
-                    threadingContext.DisposalToken);
-
-            Workspace.DocumentOpened += QueueWorkOnDocumentOpened;
+            Workspace.DocumentOpened += InitializeServiceOnDocumentOpened;
         }
 
         void IWpfTextViewConnectionListener.SubjectBuffersConnected(IWpfTextView textView, ConnectionReason reason, Collection<ITextBuffer> subjectBuffers)
         {
             if (!_initialized)
             {
+                var token = _listener.BeginAsyncOperation(nameof(InitializeServicesAsync));
+                InitializeServicesAsync().CompletesAsyncOperation(token);
+
                 _initialized = true;
-                // use `null` to trigger per VS session intialization task
-                _workQueue.AddWork((ProjectId?)null);
             }
         }
 
@@ -73,31 +68,33 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
         {
         }
 
-        private async ValueTask BatchProcessProjectsWithOpenedDocumentAsync(ImmutableSegmentedList<ProjectId?> projectIds, CancellationToken cancellationToken)
+        private void InitializeServiceOnDocumentOpened(object sender, DocumentEventArgs e)
         {
-            foreach (var projectId in projectIds)
+            if (e.Document.Project.Language != _languageName)
             {
-                cancellationToken.ThrowIfCancellationRequested();
+                return;
+            }
 
-                if (projectId is null)
-                {
-                    InitializePerVSSessionServices();
-                }
-                else if (Workspace.CurrentSolution.GetProject(projectId) is Project project)
-                {
-                    await InitializeServiceForProjectWithOpenedDocumentAsync(project).ConfigureAwait(false);
-                }
+            var token = _listener.BeginAsyncOperation(nameof(InitializeServiceForOpenedDocumentOnBackgroundAsync));
+            InitializeServiceForOpenedDocumentOnBackgroundAsync(e.Document).CompletesAsyncOperation(token);
+
+            async Task InitializeServiceForOpenedDocumentOnBackgroundAsync(Document document)
+            {
+                await TaskScheduler.Default;
+
+                // Preload project completion providers on a background thread since loading extensions can be slow
+                // https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1488945
+                if (document.GetLanguageService<CompletionService>() is not null)
+                    _ = CompletionService.GetProjectCompletionProviders(document.Project);
+
+                await InitializeServiceForOpenedDocumentAsync(document).ConfigureAwait(false);
             }
         }
 
-        private void QueueWorkOnDocumentOpened(object sender, DocumentEventArgs e)
+        private async Task InitializeServicesAsync()
         {
-            if (e.Document.Project.Language == _languageName)
-                _workQueue.AddWork(e.Document.Project.Id);
-        }
+            await TaskScheduler.Default;
 
-        private void InitializePerVSSessionServices()
-        {
             var languageServices = Workspace.Services.GetExtendedLanguageServices(_languageName);
 
             _ = languageServices.GetService<ISnippetInfoService>();

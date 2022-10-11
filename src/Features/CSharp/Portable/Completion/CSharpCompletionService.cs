@@ -9,7 +9,6 @@ using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.CSharp.Completion.Providers;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion
@@ -19,24 +18,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion
         [ExportLanguageServiceFactory(typeof(CompletionService), LanguageNames.CSharp), Shared]
         internal sealed class Factory : ILanguageServiceFactory
         {
-            private readonly IAsynchronousOperationListenerProvider _listenerProvider;
-
             [ImportingConstructor]
             [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-            public Factory(IAsynchronousOperationListenerProvider listenerProvider)
+            public Factory()
             {
-                _listenerProvider = listenerProvider;
             }
 
             [Obsolete(MefConstruction.FactoryMethodMessage, error: true)]
             public ILanguageService CreateLanguageService(HostLanguageServices languageServices)
-                => new CSharpCompletionService(languageServices.LanguageServices.SolutionServices, _listenerProvider);
+                => new CSharpCompletionService(languageServices.LanguageServices.SolutionServices);
         }
 
         private CompletionRules _latestRules = CompletionRules.Default;
 
-        private CSharpCompletionService(SolutionServices services, IAsynchronousOperationListenerProvider listenerProvider)
-            : base(services, listenerProvider)
+        private CSharpCompletionService(SolutionServices services)
+            : base(services)
         {
         }
 

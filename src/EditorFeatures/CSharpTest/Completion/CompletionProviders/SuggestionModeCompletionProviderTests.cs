@@ -1413,7 +1413,7 @@ class P
             triggerInfos.Add(CompletionTrigger.CreateDeletionTrigger('z'));
 
             var service = GetCompletionService(document.Project);
-            var provider = Assert.Single(service.GetTestAccessor().GetImportedAndBuiltInProviders(ImmutableHashSet<string>.Empty));
+            var provider = Assert.Single(service.GetTestAccessor().GetAllProviders(ImmutableHashSet<string>.Empty));
 
             foreach (var triggerInfo in triggerInfos)
             {
