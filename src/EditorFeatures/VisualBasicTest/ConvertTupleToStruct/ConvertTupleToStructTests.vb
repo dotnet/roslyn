@@ -58,7 +58,7 @@ end class
             Dim expected = "
 class Test
     sub Method()
-        dim t1 = New {|Rename:NewStruct|}(a:=1, b:=2)
+        dim t1 = New NewStruct(a:=1, b:=2)
     end sub
 end class
 
@@ -115,7 +115,7 @@ end class
             Dim expected = "
 class Test
     sub Method()
-        dim t1 = New {|Rename:NewStruct|}(a:=1, b:=2)
+        dim t1 = New NewStruct(a:=1, b:=2)
     end sub
 end class
 
@@ -171,7 +171,7 @@ end class
             Dim expected = "
 class Test
     sub Method()
-        dim t1 = New {|Rename:NewStruct|}(1, 2)
+        dim t1 = New NewStruct(1, 2)
     end sub
 end class
 
@@ -227,7 +227,7 @@ end class
             Dim expected = "
 class Test
     sub Method()
-        dim t1 = New {|Rename:NewStruct|}(1, b:=2)
+        dim t1 = New NewStruct(1, b:=2)
     end sub
 end class
 
@@ -284,7 +284,7 @@ end class
             Dim expected = "
 class Test
     sub Method()
-        dim t1 as {|Rename:NewStruct|} = New NewStruct(a:=1, b:=2)
+        dim t1 as NewStruct = New NewStruct(a:=1, b:=2)
         dim t2 as NewStruct = New NewStruct(a:=1, b:=2)
     end sub
 end class
@@ -342,7 +342,7 @@ end class
             Dim expected = "
 class Test
     function Method() as NewStruct
-        dim t1 as {|Rename:NewStruct|} = New NewStruct(a:=1, b:=2)
+        dim t1 as NewStruct = New NewStruct(a:=1, b:=2)
         dim t2 as NewStruct = New NewStruct(a:=1, b:=2)
     end function
 end class
@@ -399,7 +399,7 @@ end class"
             Dim expected = "
 class Test
     function Method() as NewStruct
-        dim t1 as {|Rename:NewStruct|} = New NewStruct(a:=1, b:=2)
+        dim t1 as NewStruct = New NewStruct(a:=1, b:=2)
         (b as integer, a as integer) t2 = (b:=1, a:=2)
     end function
 end class
@@ -457,7 +457,7 @@ end class"
 class Test
     sub Method()
         dim t1 as NewStruct = New NewStruct(a:=1, b:=2)
-        dim t2 as {|Rename:NewStruct|} = New NewStruct(a:=1, b:=2)
+        dim t2 as NewStruct = New NewStruct(a:=1, b:=2)
     end sub
 end class
 
@@ -516,7 +516,7 @@ end namespace
 namespace N
     class Test
         sub Method()
-            dim t1 = New {|Rename:NewStruct|}(a:=1, b:=2)
+            dim t1 = New NewStruct(a:=1, b:=2)
         end sub
     end class
 
@@ -572,7 +572,7 @@ end class"
             Dim expected = "
 class Test
     sub Method()
-        dim t1 = New {|Rename:NewStruct|}(Goo(), Bar())
+        dim t1 = New NewStruct(Goo(), Bar())
     end sub
 end class
 
@@ -627,7 +627,7 @@ end class"
             Dim expected = "
 class Test
     sub Method(b as integer)
-        dim t1 = New {|Rename:NewStruct|}(a:=1, b)
+        dim t1 = New NewStruct(a:=1, b)
     end sub
 end class
 
@@ -683,7 +683,7 @@ end class"
             Dim expected = "
 class Test
     sub Method()
-        dim t1 = New {|Rename:NewStruct|}(a:=1, b:=2)
+        dim t1 = New NewStruct(a:=1, b:=2)
         dim t2 = New NewStruct(a:=3, b:=4)
     end sub
 end class
@@ -740,7 +740,7 @@ end class"
             Dim expected = "
 class Test
     sub Method()
-        dim t1 = New {|Rename:NewStruct|}(a:=1, b:=2)
+        dim t1 = New NewStruct(a:=1, b:=2)
         dim t2 = New NewStruct(a:=3, b:=4)
     end sub
 end class
@@ -802,7 +802,7 @@ end class"
             Dim expected = "
 class Test
     sub Method()
-        dim t1 = New {|Rename:NewStruct|}(a:=1, b:=2)
+        dim t1 = New NewStruct(a:=1, b:=2)
         dim t2 = New NewStruct(a:=3, b:=4)
     end sub
 
@@ -866,7 +866,7 @@ end class"
             Dim expected = "
 class Test
     sub Method(b as integer)
-        dim t1 = New {|Rename:NewStruct|}(a:=1, b:=2)
+        dim t1 = New NewStruct(a:=1, b:=2)
         dim t2 = New NewStruct(a:=3, b)
         dim t3 = (a:=4, b:=5, c:=6)
         dim t4 = (b:=5, a:=6)
@@ -927,7 +927,7 @@ end class"
             Dim expected = "
 class Test
     sub Method(b as integer)
-        dim t1 = New {|Rename:NewStruct|}(a:=1, b:=2)
+        dim t1 = New NewStruct(a:=1, b:=2)
         dim t2 = New NewStruct(a:=3, b)
         dim t3 = (a:=4, b:=5, c:=6)
         dim t4 = (b:=5, a:=6)
@@ -991,7 +991,7 @@ end class"
             Dim expected = "
 class Test
     sub Method()
-        dim t1 = New {|Rename:NewStruct|}(a:=1, b:=2)
+        dim t1 = New NewStruct(a:=1, b:=2)
         dim t2 = New NewStruct(a:=3, b:=4)
     end sub
 
@@ -1066,7 +1066,7 @@ Imports System.Collections.Generic
 
 class Test
     sub Method()
-        dim t1 = New {|Rename:NewStruct|}(a:=1, directcast(New NewStruct(a:=1, directcast(nothing, object)), object))
+        dim t1 = New NewStruct(a:=1, directcast(New NewStruct(a:=1, directcast(nothing, object)), object))
     end sub
 end class
 
@@ -1123,7 +1123,7 @@ Imports System.Collections.Generic
 
 class Test
     sub Method()
-        dim t1 = New NewStruct(a:=1, directcast(New {|Rename:NewStruct|}(a:=1, directcast(nothing, object)), object))
+        dim t1 = New NewStruct(a:=1, directcast(New NewStruct(a:=1, directcast(nothing, object)), object))
     end sub
 end class
 
@@ -1180,7 +1180,7 @@ end class"
 class Test
     sub Method()
         dim t1 = New NewStruct(a:=1, b:=2)
-        dim t2 = New {|Rename:NewStruct|}(a:=3, b:=4)
+        dim t2 = New NewStruct(a:=3, b:=4)
     end sub
 end class
 
@@ -1239,7 +1239,7 @@ imports System.Collections.Generic
 
 class Test(of X as {structure})
     sub Method(of Y as {class, new})(x as List(of X), y as Y())
-        dim t1 = New {|Rename:NewStruct|}(Of X, Y)(x, y)
+        dim t1 = New NewStruct(Of X, Y)(x, y)
     end sub
 end class
 
@@ -1419,7 +1419,7 @@ end class"
             Dim expected = "
 class Test
     sub Method()
-        dim t1 = New {|Rename:NewStruct|}(a:=1, a:=2)
+        dim t1 = New NewStruct(a:=1, a:=2)
     end sub
 end class
 
@@ -1471,9 +1471,9 @@ imports System
 class Test
     sub Method()
         dim t1 = [||](a:=1, b:=2)
-        dim a = sub ()
+        dim a = function ()
                     dim t2 = (a:=3, b:=4)
-                end sub()
+                end function()
     end sub
 end class"
             Dim expected = "
@@ -1481,10 +1481,10 @@ imports System
 
 class Test
     sub Method()
-        dim t1 = New {|Rename:NewStruct|}(a:=1, b:=2)
-        dim a = sub ()
+        dim t1 = New NewStruct(a:=1, b:=2)
+        dim a = function ()
                     dim t2 = New NewStruct(a:=3, b:=4)
-                end sub()
+                end function()
     end sub
 end class
 
@@ -1548,7 +1548,7 @@ class Test
     sub Method()
         dim t1 = New NewStruct(a:=1, b:=2)
         dim a = sub ()
-                    dim t2 = New {|Rename:NewStruct|}(a:=3, b:=4)
+                    dim t2 = New NewStruct(a:=3, b:=4)
                 end sub()
     end sub
 end class
@@ -1609,7 +1609,7 @@ end class
             Dim expected As String = "
 class Test
     sub Method()
-        dim t1 = New {|Rename:NewStruct|}(1, 2)
+        dim t1 = New NewStruct(1, 2)
         dim t2 = New NewStruct(1, 2)
         dim t3 = (a:=1, b:=2)
         dim t4 = New NewStruct(item1:=1, item2:=2)
@@ -1680,7 +1680,7 @@ class Test
         dim t1 = New NewStruct(1, 2)
         dim t2 = New NewStruct(1, 2)
         dim t3 = (a:=1, b:=2)
-        dim t4 = New {|Rename:NewStruct|}(item1:=1, item2:=2)
+        dim t4 = New NewStruct(item1:=1, item2:=2)
         dim t5 = New NewStruct(item1:=1, item2:=2)
     end sub
 end class
@@ -1755,7 +1755,7 @@ end class
             Dim expected = "
 class Test
     sub Method()
-        dim t1 = New {|Rename:NewStruct|}(a:=1, b:=2)
+        dim t1 = New NewStruct(a:=1, b:=2)
     end sub
 end class
 
@@ -1832,7 +1832,7 @@ Imports System.Collections.Generic
 
 class Test(of T)
     sub Method(t as T)
-        dim t1 = New {|Rename:NewStruct|}(Of T)(t, b:=2)
+        dim t1 = New NewStruct(Of T)(t, b:=2)
     end sub
 
     dim t as T
@@ -1913,7 +1913,7 @@ imports System
 
 class Test
     sub Method()
-        dim t1 = New {|Rename:NewStruct|}(a:=1, b:=2)
+        dim t1 = New NewStruct(a:=1, b:=2)
     end sub
 
     sub Goo()
@@ -1991,7 +1991,7 @@ imports System
 
 partial class Test
     sub Method()
-        dim t1 = New {|Rename:NewStruct|}(a:=1, b:=2)
+        dim t1 = New NewStruct(a:=1, b:=2)
     end sub
 end class
 partial class Test
@@ -2091,7 +2091,7 @@ imports System
 
 partial class Test
     sub Method()
-        dim t1 = New {|Rename:NewStruct|}(a:=1, b:=2)
+        dim t1 = New NewStruct(a:=1, b:=2)
     end sub
 end class
 
@@ -2214,7 +2214,7 @@ imports System
 namespace N
     partial class Test
         sub Method()
-            dim t1 = New {|Rename:NewStruct|}(a:=1, b:=2)
+            dim t1 = New NewStruct(a:=1, b:=2)
         end sub
     end class
 
@@ -2331,7 +2331,7 @@ imports System
 
 partial class Test
     sub Method()
-        dim t1 = New {|Rename:NewStruct|}(a:=1, b:=2)
+        dim t1 = New NewStruct(a:=1, b:=2)
     end sub
 end class
 
@@ -2439,7 +2439,7 @@ imports System
 
 partial class Test
     sub Method()
-        dim t1 = New {|Rename:NewStruct|}(a:=1, b:=2)
+        dim t1 = New NewStruct(a:=1, b:=2)
     end sub
 end class
 
