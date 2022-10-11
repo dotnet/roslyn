@@ -4,6 +4,7 @@
 
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
@@ -42,12 +43,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             UnboundLambda unboundLambda,
             ImmutableArray<TypeWithAnnotations> parameterTypes,
             ImmutableArray<RefKind> parameterRefKinds,
+            ImmutableArray<DeclarationScope> parameterDeclarationScopes,
             RefKind refKind,
             TypeWithAnnotations returnType) :
             base(unboundLambda.Syntax.GetReference())
         {
             Debug.Assert(syntaxReferenceOpt is not null);
             Debug.Assert(containingSymbol.DeclaringCompilation == compilation);
+            Debug.Assert(parameterDeclarationScopes.IsDefault || parameterTypes.Length == parameterDeclarationScopes.Length);
+            // We only compute declaration scopes for by-value parameters (see GetByValueParameterDeclarationScopes)
+            Debug.Assert(parameterDeclarationScopes.IsDefault || parameterDeclarationScopes.All(s => s is DeclarationScope.Unscoped or DeclarationScope.ValueScoped));
 
             _binder = binder;
             _containingSymbol = containingSymbol;
@@ -62,7 +67,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             _isAsync = unboundLambda.IsAsync;
             _isStatic = unboundLambda.IsStatic;
             // No point in making this lazy. We are always going to need these soon after creation of the symbol.
-            _parameters = MakeParameters(compilation, unboundLambda, parameterTypes, parameterRefKinds);
+            _parameters = MakeParameters(compilation, unboundLambda, parameterTypes, parameterRefKinds, parameterDeclarationScopes);
             _declarationDiagnostics = new BindingDiagnosticBag();
         }
 
@@ -304,9 +309,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             CSharpCompilation compilation,
             UnboundLambda unboundLambda,
             ImmutableArray<TypeWithAnnotations> parameterTypes,
-            ImmutableArray<RefKind> parameterRefKinds)
+            ImmutableArray<RefKind> parameterRefKinds,
+            ImmutableArray<DeclarationScope> parameterDeclarationScopes)
         {
             Debug.Assert(parameterTypes.Length == parameterRefKinds.Length);
+            Debug.Assert(parameterDeclarationScopes.IsDefault || parameterTypes.Length == parameterDeclarationScopes.Length);
 
             if (!unboundLambda.HasSignature || unboundLambda.ParameterCount == 0)
             {
@@ -317,8 +324,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                                             type,
                                                             ordinal,
                                                             arg.refKinds[ordinal],
-                                                            GeneratedNames.LambdaCopyParameterName(ordinal)), // Make sure nothing binds to this.
-                                                     (owner: this, refKinds: parameterRefKinds));
+                                                            GeneratedNames.LambdaCopyParameterName(ordinal), // Make sure nothing binds to this.
+                                                            getDeclarationScope(arg.parameterDeclarationScopes, ordinal)),
+                                                     (owner: this, refKinds: parameterRefKinds, parameterDeclarationScopes));
             }
 
             var builder = ArrayBuilder<ParameterSymbol>.GetInstance(unboundLambda.ParameterCount);
@@ -346,9 +354,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     type = parameterTypes[p];
                     refKind = parameterRefKinds[p];
-                    // https://github.com/dotnet/roslyn/issues/62080: DeclarationScope should be taken from delegate signature.
-                    // We probably should propagate effective scope from the target delegate and make sure parameter symbol doesn't adjust it in any way.
-                    scope = DeclarationScope.Unscoped;
+                    scope = getDeclarationScope(parameterDeclarationScopes, p);
                 }
                 else
                 {
@@ -367,8 +373,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             var result = builder.ToImmutableAndFree();
-
             return result;
+
+            static DeclarationScope getDeclarationScope(ImmutableArray<DeclarationScope> scopes, int ordinal)
+            {
+                return scopes.IsDefault ? DeclarationScope.Unscoped : scopes[ordinal];
+            }
         }
 
         public sealed override bool Equals(Symbol symbol, TypeCompareKind compareKind)

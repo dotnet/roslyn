@@ -225,5 +225,26 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 !method.IsConstructor() &&
                 !method.IsInitOnly;
         }
+
+#nullable enable
+        internal static ImmutableArray<DeclarationScope> GetByValueParameterDeclarationScopes(this MethodSymbol? method)
+        {
+            if (method is null)
+                return default;
+
+            if (method.Parameters.All(p => getByValueParameterDeclarationScope(p) == DeclarationScope.Unscoped))
+                return default;
+
+            return method.Parameters.SelectAsArray(p => getByValueParameterDeclarationScope(p));
+
+            static DeclarationScope getByValueParameterDeclarationScope(ParameterSymbol parameter)
+            {
+                if (parameter.RefKind != RefKind.None)
+                    return DeclarationScope.Unscoped;
+
+                Debug.Assert(parameter.EffectiveScope is DeclarationScope.Unscoped or DeclarationScope.ValueScoped);
+                return parameter.EffectiveScope;
+            }
+        }
     }
 }
