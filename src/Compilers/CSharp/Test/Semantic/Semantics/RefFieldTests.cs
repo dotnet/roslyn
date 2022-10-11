@@ -11066,6 +11066,9 @@ class Program
         M1(out scoped var r11);
         M1(out scoped ref var r21);
         M1(out scoped ref readonly var r51);
+
+        M1(out scoped _);
+        M1(out scoped scoped _);
     }
 
     static void M1(out R r) => throw null;
@@ -11131,7 +11134,16 @@ class Program
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "scoped").WithArguments("ref fields", "11.0").WithLocation(18, 16),
                 // (18,23): error CS8388: An out variable cannot be declared as a ref local
                 //         M1(out scoped ref readonly var r51);
-                Diagnostic(ErrorCode.ERR_OutVariableCannotBeByRef, "ref readonly var").WithLocation(18, 23)
+                Diagnostic(ErrorCode.ERR_OutVariableCannotBeByRef, "ref readonly var").WithLocation(18, 23),
+                // (20,16): error CS0246: The type or namespace name 'scoped' could not be found (are you missing a using directive or an assembly reference?)
+                //         M1(out scoped _);
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "scoped").WithArguments("scoped").WithLocation(20, 16),
+                // (21,16): error CS9061: The 'scoped' modifier cannot be used with discard.
+                //         M1(out scoped scoped _);
+                Diagnostic(ErrorCode.ERR_ScopedDiscard, "scoped").WithLocation(21, 16),
+                // (21,23): error CS0246: The type or namespace name 'scoped' could not be found (are you missing a using directive or an assembly reference?)
+                //         M1(out scoped scoped _);
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "scoped").WithArguments("scoped").WithLocation(21, 23)
                 );
 
             verify(comp);
@@ -11179,7 +11191,16 @@ class Program
                 Diagnostic(ErrorCode.ERR_OutVariableCannotBeByRef, "ref var").WithLocation(17, 23),
                 // (18,23): error CS8388: An out variable cannot be declared as a ref local
                 //         M1(out scoped ref readonly var r51);
-                Diagnostic(ErrorCode.ERR_OutVariableCannotBeByRef, "ref readonly var").WithLocation(18, 23)
+                Diagnostic(ErrorCode.ERR_OutVariableCannotBeByRef, "ref readonly var").WithLocation(18, 23),
+                // (20,16): error CS0246: The type or namespace name 'scoped' could not be found (are you missing a using directive or an assembly reference?)
+                //         M1(out scoped _);
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "scoped").WithArguments("scoped").WithLocation(20, 16),
+                // (21,16): error CS9061: The 'scoped' modifier cannot be used with discard.
+                //         M1(out scoped scoped _);
+                Diagnostic(ErrorCode.ERR_ScopedDiscard, "scoped").WithLocation(21, 16),
+                // (21,23): error CS0246: The type or namespace name 'scoped' could not be found (are you missing a using directive or an assembly reference?)
+                //         M1(out scoped scoped _);
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "scoped").WithArguments("scoped").WithLocation(21, 23)
                 );
             verify(comp);
 
@@ -11225,10 +11246,12 @@ class Program
                 }
 
                 var discard = tree.GetRoot().DescendantNodes().OfType<DiscardDesignationSyntax>().ToArray();
-                Assert.Equal(6, discard.Length);
+                Assert.Equal(8, discard.Length);
 
-                foreach (var decl in discard)
+                for (int i = 0; i < 6; i++)
                 {
+                    var decl = discard[i];
+
                     Assert.Null(model.GetDeclaredSymbol(decl));
                     Assert.Null(model.GetSymbolInfo(decl).Symbol);
                     Assert.Null(model.GetTypeInfo(decl).Type);
@@ -11622,6 +11645,9 @@ var r = new RR();
 (scoped scoped s4, var c) = r;
 (scoped @scoped s6, var d) = r;
 
+(scoped _, var e) = r;
+(scoped scoped _, var f) = r;
+
 ref struct @scoped { }
 
 class RR
@@ -11636,12 +11662,19 @@ class RR
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "scoped").WithArguments("ref fields", "11.0").WithLocation(5, 2),
                 // (6,2): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
                 // (scoped @scoped s6, var d) = r;
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "scoped").WithArguments("ref fields", "11.0").WithLocation(6, 2)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "scoped").WithArguments("ref fields", "11.0").WithLocation(6, 2),
+                // (9,2): error CS9061: The 'scoped' modifier cannot be used with discard.
+                // (scoped scoped _, var f) = r;
+                Diagnostic(ErrorCode.ERR_ScopedDiscard, "scoped").WithLocation(9, 2)
                 );
             verify(comp);
 
             comp = CreateCompilation(source);
-            comp.VerifyDiagnostics();
+            comp.VerifyDiagnostics(
+                // (9,2): error CS9061: The 'scoped' modifier cannot be used with discard.
+                // (scoped scoped _, var f) = r;
+                Diagnostic(ErrorCode.ERR_ScopedDiscard, "scoped").WithLocation(9, 2)
+                );
             verify(comp);
 
             static void verify(CSharpCompilation comp)
@@ -12679,6 +12712,22 @@ ref struct S
             s0.M(out s21);
             s0 = s21;
         }
+
+        {
+            int i1 = 1;
+            (new S(ref i1)).M(out scoped S s4);
+            s0 = s4;
+        }
+        {
+            int i1 = 1;
+            (new S(ref i1)).M(out var s5);
+            s0 = s5;
+        }
+        {
+            int i1 = 1;
+            (new S(ref i1)).M(out scoped var s7);
+            s0 = s7;
+        }
     }
 }
 ref struct S
@@ -12709,7 +12758,22 @@ ref struct S
                 Diagnostic(ErrorCode.ERR_CallArgMixing, "s0.M(out S s3)").WithArguments("S.M(out S)", "this").WithLocation(17, 13),
                 // (23,18): error CS8352: Cannot use variable 's21' in this context because it may expose referenced variables outside of their declaration scope
                 //             s0 = s21;
-                Diagnostic(ErrorCode.ERR_EscapeVariable, "s21").WithArguments("s21").WithLocation(23, 18)
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "s21").WithArguments("s21").WithLocation(23, 18),
+                // (29,18): error CS8352: Cannot use variable 's4' in this context because it may expose referenced variables outside of their declaration scope
+                //             s0 = s4;
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "s4").WithArguments("s4").WithLocation(29, 18),
+                // (33,13): error CS8350: This combination of arguments to 'S.M(out S)' is disallowed because it may expose variables referenced by parameter 'this' outside of their declaration scope
+                //             (new S(ref i1)).M(out var s5);
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "(new S(ref i1)).M(out var s5)").WithArguments("S.M(out S)", "this").WithLocation(33, 13),
+                // (33,14): error CS8347: Cannot use a result of 'S.S(ref int)' in this context because it may expose variables referenced by parameter 'i' outside of their declaration scope
+                //             (new S(ref i1)).M(out var s5);
+                Diagnostic(ErrorCode.ERR_EscapeCall, "new S(ref i1)").WithArguments("S.S(ref int)", "i").WithLocation(33, 14),
+                // (33,24): error CS8168: Cannot return local 'i1' by reference because it is not a ref local
+                //             (new S(ref i1)).M(out var s5);
+                Diagnostic(ErrorCode.ERR_RefReturnLocal, "i1").WithArguments("i1").WithLocation(33, 24),
+                // (39,18): error CS8352: Cannot use variable 's7' in this context because it may expose referenced variables outside of their declaration scope
+                //             s0 = s7;
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "s7").WithArguments("s7").WithLocation(39, 18)
                 );
         }
 
