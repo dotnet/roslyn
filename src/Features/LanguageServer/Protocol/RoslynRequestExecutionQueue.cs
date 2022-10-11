@@ -22,7 +22,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             {
                 return nonMutatingRequestTask;
             }
-            else{
+            else
+            {
                 return nonMutatingRequestTask.ReportNonFatalErrorAsync();
             }
         }
