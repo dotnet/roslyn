@@ -2003,6 +2003,7 @@ Friend Structure NewStruct
     End Operator
 End Structure
 "
+
             Await TestAsync(text, expected, index:=1, equivalenceKey:=Scope.ContainingType.ToString(), testHost:=host)
         End Function
 
@@ -2087,7 +2088,9 @@ Friend Structure NewStruct
     Public Shared Widening Operator CType(value As (a As Integer, b As Integer)) As NewStruct
         Return New NewStruct(value.a, value.b)
     End Operator
-End Structure"
+End Structure
+"
+
             Dim expected2 = "
 imports System
 
@@ -2246,10 +2249,7 @@ end class"
 
         <Theory, CombinatorialData>
         Public Async Function UpdateDependentProjects_DirectDependency(host As TestHost) As Task
-            Dim text = "
-<Workspace>
-    <Project Language=""Visual Basic"" AssemblyName=""Assembly1"" CommonReferences=""true"">
-        <Document>
+            Dim text1 = "
 imports System
 
 partial class Test
@@ -2262,26 +2262,16 @@ partial class Other
     sub Method()
         dim t1 = (a:=1, b:=2)
     end sub
-end class
-        </Document>
-    </Project>
-    <Project Language=""Visual Basic"" AssemblyName=""Assembly2"" CommonReferences=""true"">
-        <ProjectReference>Assembly1</ProjectReference>
-        <Document>
+end class"
+            Dim text2 ="
 imports System
 
 partial class Other
     sub Goo()
         dim t1 = (a:=1, b:=2)
     end sub
-end class
-        </Document>
-    </Project>
-</Workspace>"
-            Dim expected = "
-<Workspace>
-    <Project Language=""Visual Basic"" AssemblyName=""Assembly1"" CommonReferences=""true"">
-        <Document>
+end class"
+            Dim expected1 = "
 imports System
 
 partial class Test
@@ -2316,10 +2306,7 @@ Public Structure NewStruct
     End Function
 
     Public Overrides Function GetHashCode() As Integer
-        Dim hashCode = 2118541809
-        hashCode = hashCode * -1521134295 + a.GetHashCode()
-        hashCode = hashCode * -1521134295 + b.GetHashCode()
-        Return hashCode
+        Return (a, b).GetHashCode()
     End Function
 
     Public Sub Deconstruct(ByRef a As Integer, ByRef b As Integer)
@@ -2335,30 +2322,37 @@ Public Structure NewStruct
         Return New NewStruct(value.a, value.b)
     End Operator
 End Structure
-</Document>
-    </Project>
-    <Project Language=""Visual Basic"" AssemblyName=""Assembly2"" CommonReferences=""true"">
-        <ProjectReference>Assembly1</ProjectReference>
-        <Document>
+"
+
+            Dim expected2 = "
 imports System
 
 partial class Other
     sub Goo()
         dim t1 = New NewStruct(a:=1, b:=2)
     end sub
-end class
-        </Document>
-    </Project>
-</Workspace>"
-            Await TestAsync(text, expected, index:=3, testHost:=host)
+end class"
+
+            Dim test = New VerifyVB.Test With {
+                .CodeActionIndex = 3,
+                .CodeActionEquivalenceKey = Scope.DependentProjects.ToString(),
+                .TestHost = host
+            }
+
+            test.TestState.Sources.Add(text1)
+            test.TestState.AdditionalProjects("DependencyProject").Sources.Add(text2)
+            test.TestState.AdditionalProjects("DependencyProject").AdditionalProjectReferences.Add("TestProject")
+
+            test.FixedState.Sources.Add(expected1)
+            test.FixedState.AdditionalProjects("DependencyProject").Sources.Add(expected2)
+            test.FixedState.AdditionalProjects("DependencyProject").AdditionalProjectReferences.Add("TestProject")
+
+            Await test.RunAsync()
         End Function
 
         <Theory, CombinatorialData>
         Public Async Function UpdateDependentProjects_NoDependency(host As TestHost) As Task
-            Dim text = "
-<Workspace>
-    <Project Language=""Visual Basic"" AssemblyName=""Assembly1"" CommonReferences=""true"">
-        <Document>
+            Dim text1 = "
 imports System
 
 partial class Test
@@ -2371,25 +2365,16 @@ partial class Other
     sub Method()
         dim t1 = (a:=1, b:=2)
     end sub
-end class
-        </Document>
-    </Project>
-    <Project Language=""Visual Basic"" AssemblyName=""Assembly2"" CommonReferences=""true"">
-        <Document>
+end class"
+            Dim text2 = "
 imports System
 
 partial class Other
     sub Goo()
         dim t1 = (a:=1, b:=2)
     end sub
-end class
-        </Document>
-    </Project>
-</Workspace>"
-            Dim expected = "
-<Workspace>
-    <Project Language=""Visual Basic"" AssemblyName=""Assembly1"" CommonReferences=""true"">
-        <Document>
+end class"
+            Dim expected1 = "
 imports System
 
 partial class Test
@@ -2424,10 +2409,7 @@ Public Structure NewStruct
     End Function
 
     Public Overrides Function GetHashCode() As Integer
-        Dim hashCode = 2118541809
-        hashCode = hashCode * -1521134295 + a.GetHashCode()
-        hashCode = hashCode * -1521134295 + b.GetHashCode()
-        Return hashCode
+        Return (a, b).GetHashCode()
     End Function
 
     Public Sub Deconstruct(ByRef a As Integer, ByRef b As Integer)
@@ -2443,21 +2425,30 @@ Public Structure NewStruct
         Return New NewStruct(value.a, value.b)
     End Operator
 End Structure
-</Document>
-    </Project>
-    <Project Language=""Visual Basic"" AssemblyName=""Assembly2"" CommonReferences=""true"">
-        <Document>
+"
+
+            Dim expected2 = "
 imports System
 
 partial class Other
     sub Goo()
         dim t1 = (a:=1, b:=2)
     end sub
-end class
-        </Document>
-    </Project>
-</Workspace>"
-            Await TestAsync(text, expected, index:=3, testHost:=host)
+end class"
+
+            Dim test = New VerifyVB.Test With {
+                .CodeActionIndex = 3,
+                .CodeActionEquivalenceKey = Scope.DependentProjects.ToString(),
+                .TestHost = host
+            }
+
+            test.TestState.Sources.Add(text1)
+            test.TestState.AdditionalProjects("DependencyProject").Sources.Add(text2)
+
+            test.FixedState.Sources.Add(expected1)
+            test.FixedState.AdditionalProjects("DependencyProject").Sources.Add(expected2)
+
+            Await test.RunAsync()
         End Function
 
 #End Region
