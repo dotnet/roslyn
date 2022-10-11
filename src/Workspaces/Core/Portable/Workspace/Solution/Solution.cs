@@ -1597,12 +1597,7 @@ namespace Microsoft.CodeAnalysis
                 throw new ArgumentOutOfRangeException(nameof(mode));
             }
 
-            return UpdateDocumentTextLoader(documentId, loader, text: null, mode: mode);
-        }
-
-        internal Solution UpdateDocumentTextLoader(DocumentId documentId, TextLoader loader, SourceText? text, PreservationMode mode)
-        {
-            var newState = _state.UpdateDocumentTextLoader(documentId, loader, text, mode);
+            var newState = _state.UpdateDocumentTextLoader(documentId, loader, mode);
 
             // Note: state is currently not reused.
             // If UpdateDocumentTextLoader is changed to reuse the state replace this assert with Solution instance reusal.
