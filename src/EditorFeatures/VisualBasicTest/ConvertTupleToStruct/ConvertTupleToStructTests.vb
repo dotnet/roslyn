@@ -578,6 +578,8 @@ class Test
     end function
 end class"
             Dim expected = "
+Imports System.Collections.Generic
+
 class Test
     sub Method()
         dim t1 = New NewStruct(Goo(), Bar())
@@ -605,8 +607,8 @@ Friend Structure NewStruct
         End If
 
         Dim other = DirectCast(obj, NewStruct)
-        Return System.Collections.Generic.EqualityComparer(Of Object).Default.Equals(a, other.a) AndAlso
-               System.Collections.Generic.EqualityComparer(Of Object).Default.Equals(b, other.b)
+        Return EqualityComparer(Of Object).Default.Equals(a, other.a) AndAlso
+               EqualityComparer(Of Object).Default.Equals(b, other.b)
     End Function
 
     Public Overrides Function GetHashCode() As Integer
@@ -1423,61 +1425,6 @@ End Structure
         End Function
 
         <Theory, CombinatorialData>
-        Public Async Function TestDuplicatedName(host As TestHost) As Task
-            Dim text = "
-class Test
-    sub Method()
-        dim t1 = [||](a:=1, a:=2)
-    end sub
-end class"
-            Dim expected = "
-class Test
-    sub Method()
-        dim t1 = New NewStruct(a:=1, a:=2)
-    end sub
-end class
-
-Friend Structure NewStruct
-    Public a As Integer
-    Public a As Integer
-
-    Public Sub New(a As Integer, a As Integer)
-        Me.a = a
-        Me.a = a
-    End Sub
-
-    Public Overrides Function Equals(obj As Object) As Boolean
-        If Not (TypeOf obj Is NewStruct) Then
-            Return False
-        End If
-
-        Dim other = DirectCast(obj, NewStruct)
-        Return Me.a = other.a AndAlso
-               Me.a = other.a
-    End Function
-
-    Public Overrides Function GetHashCode() As Integer
-        Return (Me.a, Me.a).GetHashCode()
-    End Function
-
-    Public Sub Deconstruct(ByRef a As Integer, ByRef a As Integer)
-        a = Me.a
-        a = Me.a
-    End Sub
-
-    Public Shared Widening Operator CType(value As NewStruct) As (a As Integer, a As Integer)
-        Return (value.a, value.a)
-    End Operator
-
-    Public Shared Widening Operator CType(value As (a As Integer, a As Integer)) As NewStruct
-        Return New NewStruct(value.a, value.a)
-    End Operator
-End Structure
-"
-            Await TestAsync(text, expected, testHost:=host)
-        End Function
-
-        <Theory, CombinatorialData>
         Public Async Function TestInLambda1(host As TestHost) As Task
             Dim text = "
 imports System
@@ -1745,26 +1692,17 @@ End Structure
         <Theory, CombinatorialData>
         Public Async Function ConvertSingleTupleTypeWithInaccessibleSystemHashCode(host As TestHost) As Task
             Dim text = "
-<Workspace>
-    <Project Language=""Visual Basic"" AssemblyName=""Assembly1"" CommonReferences=""true"">
-        <Document>
-Namespace System
-    Friend Class HashCode
-    End Class
-End Namespace
-        </Document>
-    </Project>
-    <Project Language=""Visual Basic"" AssemblyName=""Assembly2"" CommonReferences=""true"">
-        <ProjectReference>Assembly1</ProjectReference>
-        <Document>
 class Test
     sub Method()
         dim t1 = [||](a:=1, b:=2)
     end sub
-end class
-        </Document>
-    </Project>
-</Workspace>"
+end class"
+
+            Dim hashCodeText = "
+Namespace System
+    Friend Class HashCode
+    End Class
+End Namespace"
 
             Dim expected = "
 class Test
@@ -1793,10 +1731,7 @@ Friend Structure NewStruct
     End Function
 
     Public Overrides Function GetHashCode() As Integer
-        Dim hashCode = 2118541809
-        hashCode = hashCode * -1521134295 + a.GetHashCode()
-        hashCode = hashCode * -1521134295 + b.GetHashCode()
-        Return hashCode
+        Return (a, b).GetHashCode()
     End Function
 
     Public Sub Deconstruct(ByRef a As Integer, ByRef b As Integer)
@@ -1814,7 +1749,19 @@ Friend Structure NewStruct
 End Structure
 "
 
-            Await TestAsync(text, expected, testHost:=host)
+            Dim test = New VerifyVB.Test With {
+                .TestHost = host
+            }
+
+            test.TestState.Sources.Add(text)
+            test.TestState.AdditionalProjects("Assembly1").Sources.Add(hashCodeText)
+            test.TestState.AdditionalProjectReferences.Add("Assembly1")
+
+            test.FixedState.Sources.Add(expected)
+            test.FixedState.AdditionalProjects("Assembly1").Sources.Add(hashCodeText)
+            test.FixedState.AdditionalProjectReferences.Add("Assembly1")
+
+            Await test.RunAsync()
         End Function
 
 #End Region
@@ -1827,17 +1774,17 @@ End Structure
 imports System
 
 class Test(of T)
-    sub Method(t as T)
-        dim t1 = [||](a:=t, b:=2)
+    sub Method(t2 as T)
+        dim t1 = [||](a:=t2, b:=2)
     end sub
 
-    dim t as T
+    dim t3 as T
     sub Goo()
-        dim t2 = (a:=t, b:=4)
+        dim t2 = (a:=t3, b:=4)
     end sub
 
-    sub Blah(of T)(t as T)
-        dim t2 = (a:=t, b:=4)
+    sub Blah(of T)(t1 as T)
+        dim t2 = (a:=t1, b:=4)
     end sub
 end class"
             Dim expected = "
@@ -1845,17 +1792,17 @@ imports System
 Imports System.Collections.Generic
 
 class Test(of T)
-    sub Method(t as T)
-        dim t1 = New NewStruct(Of T)(t, b:=2)
+    sub Method(t2 as T)
+        dim t1 = New NewStruct(Of T)(t2, b:=2)
     end sub
 
-    dim t as T
+    dim t3 as T
     sub Goo()
-        dim t2 = New NewStruct(Of T)(t, b:=4)
+        dim t2 = New NewStruct(Of T)(t3, b:=4)
     end sub
 
-    sub Blah(of T)(t as T)
-        dim t2 = (a:=t, b:=4)
+    sub Blah(of T)(t1 as T)
+        dim t2 = (a:=t1, b:=4)
     end sub
 end class
 

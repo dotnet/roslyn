@@ -3804,6 +3804,7 @@ partial class Other
                     {
                         ["DependencyProject"] = { Sources = { text2 } }
                     },
+                    AdditionalProjectReferences {  }
                 },
                 FixedState =
                 {
