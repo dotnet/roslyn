@@ -26,6 +26,7 @@ namespace Microsoft.CodeAnalysis.Remote
     {
         internal static readonly ImmutableArray<IMessagePackFormatter> Formatters = ImmutableArray.Create<IMessagePackFormatter>(
             ProjectIdFormatter.Instance,
+            EncodingFormatter.Instance,
             // ForceTypelessFormatter<T> needs to be listed here for each Roslyn abstract type T that is being serialized OOP.
             // TODO: add a resolver that provides these https://github.com/dotnet/roslyn/issues/60724
             new ForceTypelessFormatter<SimplifierOptions>(),
@@ -34,8 +35,7 @@ namespace Microsoft.CodeAnalysis.Remote
             new ForceTypelessFormatter<IdeCodeStyleOptions>());
 
         private static readonly ImmutableArray<IFormatterResolver> s_resolvers = ImmutableArray.Create<IFormatterResolver>(
-            StandardResolverAllowPrivate.Instance,
-            EncodingResolver.Instance);
+            StandardResolverAllowPrivate.Instance);
 
         internal static readonly IFormatterResolver DefaultResolver = CompositeResolver.Create(Formatters, s_resolvers);
 
@@ -112,20 +112,14 @@ namespace Microsoft.CodeAnalysis.Remote
         }
 
         /// <summary>
-        /// Creates formatter for <see cref="Encoding"/> serialization.
-        /// </summary>
-        internal sealed class EncodingResolver : IFormatterResolver
-        {
-            public static readonly EncodingResolver Instance = new();
-
-            public IMessagePackFormatter<T>? GetFormatter<T>()
-                => typeof(T) == typeof(Encoding) ? (IMessagePackFormatter<T>)(object)EncodingFormatter.Instance : null;
-        }
-
-        /// <summary>
         /// Supports (de)serialization of <see cref="Encoding"/> that do not customize <see cref="Encoding.EncoderFallback"/> or <see cref="Encoding.DecoderFallback"/>.
         /// The fallback will be discarded if the <see cref="Encoding"/> has any.
         /// </summary>
+        /// <remarks>
+        /// Only supports (de)serializing values that are statically typed to <see cref="Encoding"/>.
+        /// This is important as we can't assume anything about arbitrary subtypes of <see cref="Encoding"/>
+        /// and can only return general <see cref="Encoding"/> from the deserializer.
+        /// </remarks>
         internal sealed class EncodingFormatter : IMessagePackFormatter<Encoding?>
         {
             public static readonly EncodingFormatter Instance = new();
