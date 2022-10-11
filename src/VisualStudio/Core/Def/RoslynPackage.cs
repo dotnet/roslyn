@@ -37,7 +37,6 @@ using Microsoft.VisualStudio.LanguageServices.StackTraceExplorer;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.TaskStatusCenter;
-using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.TextManager.Interop;
 using Microsoft.VisualStudio.Threading;
 using Roslyn.Utilities;
@@ -150,9 +149,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
 
             cancellationToken.ThrowIfCancellationRequested();
 
-            // Set editor option to indicate RoslynPackage has been loaded.
-            SetIsRoslynPackageLoadedEditorOption(true);
-
             // Ensure the options persisters are loaded since we have to fetch options from the shell
             LoadOptionPersistersAsync(this.ComponentModel, cancellationToken).Forget();
 
@@ -174,18 +170,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
             // doc events and appropriately map files to/from it and other relevant workspaces (like the
             // metadata-as-source workspace).
             await this.ComponentModel.GetService<MiscellaneousFilesWorkspace>().InitializeAsync(this).ConfigureAwait(false);
-        }
-
-        private void SetIsRoslynPackageLoadedEditorOption(bool loaded)
-        {
-            ThreadHelper.ThrowIfNotOnUIThread();
-
-            // Set an editor option to indicate RoslynPackage has been loaded/unloaded.
-            // This is done to support DeferCreationAttribute of Editor extensions that should be
-            // defer created only after Roslyn package has been loaded.
-            // See https://github.com/dotnet/roslyn/issues/62877#issuecomment-1271493105 for details.
-            var editorOptionsFactory = this.ComponentModel.GetService<IEditorOptionsFactoryService>();
-            editorOptionsFactory.GlobalOptions.SetOptionValue(IsRoslynPackageLoadedOption.OptionName, loaded);
         }
 
         private async Task LoadOptionPersistersAsync(IComponentModel componentModel, CancellationToken cancellationToken)
@@ -323,8 +307,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
                 _solutionEventMonitor.Dispose();
                 _solutionEventMonitor = null;
             }
-
-            SetIsRoslynPackageLoadedEditorOption(false);
 
             base.Dispose(disposing);
         }

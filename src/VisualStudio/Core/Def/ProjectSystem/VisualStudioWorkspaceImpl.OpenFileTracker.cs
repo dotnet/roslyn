@@ -9,6 +9,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Editor.Implementation.Suggestions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
@@ -17,6 +18,7 @@ using Microsoft.VisualStudio.Editor;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Text;
+using Microsoft.VisualStudio.Text.Editor;
 using Roslyn.Utilities;
 using IAsyncServiceProvider = Microsoft.VisualStudio.Shell.IAsyncServiceProvider;
 using Task = System.Threading.Tasks.Task;
@@ -36,6 +38,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             private readonly IAsynchronousOperationListener _asyncOperationListener;
 
             private readonly RunningDocumentTableEventTracker _runningDocumentTableEventTracker;
+            private readonly IEditorOptionsFactoryService _editorOptionsFactoryService;
 
             #region Fields read/written to from multiple threads to track files that need to be checked
 
@@ -73,6 +76,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             private readonly MultiDictionary<string, IReferenceCountedDisposable<ICacheEntry<IVsHierarchy, HierarchyEventSink>>> _watchedHierarchiesForDocumentMoniker
                 = new();
 
+            /// <summary>
+            /// Boolean flag to indicate if any <see cref="AdditionalDocument"/> or <see cref="AnalyzerConfigDocument"/> has been opened.
+            /// </summary>
+            private bool _anyAdditionalOrAnalyzerConfigDocumentOpened;
+
             #endregion
 
             /// <summary>
@@ -94,6 +102,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 _asyncOperationListener = componentModel.GetService<IAsynchronousOperationListenerProvider>().GetListener(FeatureAttribute.Workspace);
                 _runningDocumentTableEventTracker = new RunningDocumentTableEventTracker(workspace._threadingContext,
                     componentModel.GetService<IVsEditorAdaptersFactoryService>(), runningDocumentTable, this);
+                _editorOptionsFactoryService = componentModel.GetService<IEditorOptionsFactoryService>();
             }
 
             void IRunningDocumentTableEventListener.OnOpenDocument(string moniker, ITextBuffer textBuffer, IVsHierarchy? hierarchy, IVsWindowFrame? _)
@@ -158,6 +167,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                         if (!w.IsDocumentOpen(documentId) && !_workspace._documentsNotFromFiles.Contains(documentId))
                         {
                             var isCurrentContext = documentId.ProjectId == activeContextProjectId;
+                            var isAdditionalOrAnalyzerConfigDocument = false;
                             if (w.CurrentSolution.ContainsDocument(documentId))
                             {
                                 w.OnDocumentOpened(documentId, textContainer, isCurrentContext);
@@ -165,11 +175,23 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                             else if (w.CurrentSolution.ContainsAdditionalDocument(documentId))
                             {
                                 w.OnAdditionalDocumentOpened(documentId, textContainer, isCurrentContext);
+                                isAdditionalOrAnalyzerConfigDocument = true;
                             }
                             else
                             {
                                 Debug.Assert(w.CurrentSolution.ContainsAnalyzerConfigDocument(documentId));
                                 w.OnAnalyzerConfigDocumentOpened(documentId, textContainer, isCurrentContext);
+                                isAdditionalOrAnalyzerConfigDocument = true;
+                            }
+
+                            if (isAdditionalOrAnalyzerConfigDocument && !_anyAdditionalOrAnalyzerConfigDocumentOpened)
+                            {
+                                // First additional or analyzer config document opened in the workspace.
+                                // We enable the special SuggestedActionsSourceProvider for non-source documents.
+                                // NOTE: We need to be on the UI thread to enable the editor option.
+                                _foregroundAffinitization.AssertIsForeground();
+                                SuggestedActionsSourceProvider.EnableForNonSourceDocuments(_editorOptionsFactoryService);
+                                _anyAdditionalOrAnalyzerConfigDocumentOpened = true;
                             }
                         }
                     }
