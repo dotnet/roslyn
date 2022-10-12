@@ -410,6 +410,21 @@ namespace Microsoft.CodeAnalysis.CSharp
                             var boundAttribute = boundAttributeArray[i];
                             Debug.Assert(boundAttribute is not null);
                             NullableWalker.AnalyzeIfNeeded(binders[i], boundAttribute, boundAttribute.Syntax, diagnostics.DiagnosticBag);
+
+                            // Store attribute arguments for local usage analysis.
+                            if (!boundAttribute.ConstructorArguments.IsEmpty || !boundAttribute.NamedArguments.IsEmpty)
+                            {
+                                var localsExtractor = new LocalsExtractor();
+                                foreach (var argument in boundAttribute.ConstructorArguments)
+                                {
+                                    localsExtractor.Visit(argument);
+                                }
+                                foreach (var assignment in boundAttribute.NamedArguments)
+                                {
+                                    localsExtractor.Visit(assignment.Right);
+                                }
+                                boundAttributes[i].ReferencedLocals = localsExtractor.GetLocals();
+                            }
                         }
                     }
 
@@ -515,6 +530,32 @@ namespace Microsoft.CodeAnalysis.CSharp
             static bool isObsoleteDiagnostic(DiagnosticWithInfo d)
             {
                 return d.HasLazyInfo ? d.LazyInfo is LazyObsoleteDiagnosticInfo : d.Info.IsObsoleteDiagnostic();
+            }
+        }
+
+        class LocalsExtractor : BoundTreeWalkerWithStackGuard
+        {
+            private ArrayBuilder<LocalSymbol>? _builder;
+
+            public ImmutableArray<LocalSymbol> GetLocals()
+            {
+                if (_builder is not null)
+                {
+                    var result = _builder.ToImmutableAndFree();
+                    _builder = null;
+                    return result;
+                }
+                return default;
+            }
+
+            public override BoundNode? Visit(BoundNode? node)
+            {
+                if (node is BoundExpression e && e.ExpressionSymbol is LocalSymbol s)
+                {
+                    _builder ??= ArrayBuilder<LocalSymbol>.GetInstance();
+                    _builder.Add(s);
+                }
+                return base.Visit(node);
             }
         }
 #nullable disable
