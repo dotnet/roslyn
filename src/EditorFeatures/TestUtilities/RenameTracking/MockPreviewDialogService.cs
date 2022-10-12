@@ -39,12 +39,23 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.RenameTracking
             string title,
             string helpString,
             string description,
-            string topLevelName,
+            string? topLevelName,
             Glyph topLevelGlyph,
             Solution newSolution,
             Solution oldSolution,
-            CancellationToken cancellationToken,
-            bool showCheckBoxes = true)
+            CancellationToken cancellationToken)
+            => PreviewChangesAsync(title, helpString, description, topLevelName, topLevelGlyph, newSolution, oldSolution, showCheckBoxes: true, cancellationToken);
+
+        public Task<Solution> PreviewChangesAsync(
+            string title,
+            string helpString,
+            string description,
+            string? topLevelName,
+            Glyph topLevelGlyph,
+            Solution newSolution,
+            Solution oldSolution,
+            bool showCheckBoxes,
+            CancellationToken cancellationToken)
         {
             Called = true;
             Title = title;
