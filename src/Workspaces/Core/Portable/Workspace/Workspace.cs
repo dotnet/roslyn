@@ -311,7 +311,7 @@ namespace Microsoft.CodeAnalysis
             {
                 var (oldSolution, newSolution) = this.ClearSolutionData_NoLock();
 
-                this.RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.SolutionCleared, oldSolution, this.CurrentSolution);
+                this.RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.SolutionCleared, oldSolution, newSolution);
             }
         }
 
