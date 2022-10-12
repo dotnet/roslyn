@@ -1,5 +1,32 @@
 # This document lists known breaking changes in Roslyn after .NET 6 all the way to .NET 7.
 
+## Caller of an async local function cannot expect any of the callee’s code to execute.
+
+***Introduced in Visual Studio 2022 version 17.5***
+
+See https://github.com/dotnet/roslyn/issues/43697 for the rational.
+The code below is now going to report a definite assignment error:
+```csharp
+    public async Task M()
+    {
+        bool a;
+        await M1();
+        Console.WriteLine(a); // error CS0165: Use of unassigned local variable 'a'  
+
+        async Task M1()
+        {
+            if ("" == String.Empty)
+            {
+                throw new Exception();
+            }
+            else
+            {
+                a = true;
+            }
+        }
+    }
+```
+
 ## Type tests for `ref` structs are not supported.
 
 ***Introduced in Visual Studio 2022 version 17.4***
