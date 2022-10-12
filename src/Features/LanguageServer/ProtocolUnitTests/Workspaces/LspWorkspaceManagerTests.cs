@@ -481,7 +481,7 @@ public class LspWorkspaceManagerTests : AbstractLanguageServerProtocolTests
         AssertEx.NotNull(lspDocument);
         Assert.Equal("Text", (await lspDocument.GetTextAsync(CancellationToken.None)).ToString());
 
-        Assert.Equal(testLspServer.TestWorkspace.CurrentSolution, lspDocument.Project.Solution);
+        Assert.Same(testLspServer.TestWorkspace.CurrentSolution, lspDocument.Project.Solution);
     }
 
     private static async Task<Document> OpenDocumentAndVerifyLspTextAsync(Uri documentUri, TestLspServer testLspServer, string openText = "LSP text")
