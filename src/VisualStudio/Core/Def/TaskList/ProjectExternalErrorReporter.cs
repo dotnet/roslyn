@@ -15,6 +15,7 @@ using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.ErrorReporting;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.Extensions;
@@ -324,7 +325,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
             {
                 var tree = document.GetSyntaxTreeSynchronously(CancellationToken.None);
                 var text = tree.GetText();
-                return diagnostic.WithSpan(text, tree);
+                var span = diagnostic.DataLocation.UnmappedFileSpan.GetClampedTextSpan(text);
+                var location = diagnostic.DataLocation.WithSpan(span, tree);
+                return diagnostic.WithLocations(location, additionalLocations: default);
             }
 
             return diagnostic;
