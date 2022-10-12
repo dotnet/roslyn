@@ -1943,7 +1943,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                         parameters[argsToParamsOpt.IsDefault ? argIndex : argsToParamsOpt[argIndex]] :
                         null;
 
-                    if (mixableArguments is not null && isMixableParameter(parameter))
+                    if (mixableArguments is not null
+                        && isMixableParameter(parameter)
+                        // assume any expression variable is a valid mixing destination,
+                        // since we will infer a legal val-escape for it (if it doesn't already have a narrower one).
+                        && isMixableArgument(argument))
                     {
                         mixableArguments.Add(new MixableDestination(parameter, argument));
                     }
@@ -1967,6 +1971,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 parameter is not null &&
                 parameter.Type.IsRefLikeType &&
                 parameter.RefKind.IsWritableReference();
+
+            static bool isMixableArgument(BoundExpression argument) =>
+                argument is not (BoundDeconstructValuePlaceholder { VariableSymbol: not null } or BoundLocal { DeclarationKind: not BoundLocalDeclarationKind.None });
 
             static EscapeArgument getReceiver(Symbol symbol, BoundExpression receiver)
             {
@@ -2195,6 +2202,30 @@ namespace Microsoft.CodeAnalysis.CSharp
             return method?.UseUpdatedEscapeRules == true;
         }
 
+        private static bool ShouldInferDeclarationExpressionValEscape(BoundExpression argument, [NotNullWhen(true)] out SourceLocalSymbol? localSymbol)
+        {
+            var symbol = argument switch
+            {
+                BoundDeconstructValuePlaceholder p => p.VariableSymbol,
+                BoundLocal { DeclarationKind: not BoundLocalDeclarationKind.None } l => l.LocalSymbol,
+                _ => null
+            };
+            if (symbol is SourceLocalSymbol { ValEscapeScope: CallingMethodScope } local)
+            {
+                localSymbol = local;
+                return true;
+            }
+            else
+            {
+                // No need to infer a val escape for a global variable.
+                // These are only used in top-level statements in scripting mode,
+                // and since they are class fields, their scope is always CallingMethod.
+                Debug.Assert(symbol is null or SourceLocalSymbol or GlobalExpressionVariable);
+                localSymbol = null;
+                return false;
+            }
+        }
+
         /// <summary>
         /// Validates whether the invocation is valid per no-mixing rules.
         /// Returns <see langword="false"/> when it is not valid and produces diagnostics (possibly more than one recursively) that helps to figure the reason.
@@ -2239,7 +2270,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var escapeArguments = ArrayBuilder<EscapeArgument>.GetInstance();
             GetInvocationArgumentsForEscape(
                 symbol,
-                receiver: null, // receiver handled explicitly below
+                receiverOpt,
                 parameters,
                 argsOpt,
                 argRefKindsOpt: default,
@@ -2252,43 +2283,51 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 foreach (var (_, argument, refKind) in escapeArguments)
                 {
+                    if (ShouldInferDeclarationExpressionValEscape(argument, out _))
+                    {
+                        // assume any expression variable is a valid mixing destination,
+                        // since we will infer a legal val-escape for it (if it doesn't already have a narrower one).
+                        continue;
+                    }
+
                     if (refKind.IsWritableReference() && argument.Type?.IsRefLikeType == true)
                     {
                         escapeTo = Math.Min(escapeTo, GetValEscape(argument, scopeOfTheContainingExpression));
                     }
                 }
 
-                if (escapeTo == scopeOfTheContainingExpression)
-                {
-                    // cannot fail. common case.
-                    return true;
-                }
+                var hasMixingError = false;
 
+                // track the widest scope that arguments could safely escape to.
+                // use this scope as the inferred STE of declaration expressions.
+                var inferredDestinationValEscape = CallingMethodScope;
                 foreach (var (parameter, argument, _) in escapeArguments)
                 {
-                    var valid = CheckValEscape(argument.Syntax, argument, scopeOfTheContainingExpression, escapeTo, false, diagnostics);
-
-                    if (!valid)
+                    // in the old rules, we assume that refs cannot escape into ref struct variables.
+                    // e.g. in `dest = M(ref arg)`, we assume `ref arg` will not escape into `dest`, but `arg` might.
+                    inferredDestinationValEscape = Math.Max(inferredDestinationValEscape, GetValEscape(argument, scopeOfTheContainingExpression));
+                    if (!hasMixingError && !CheckValEscape(argument.Syntax, argument, scopeOfTheContainingExpression, escapeTo, false, diagnostics))
                     {
                         string parameterName = GetInvocationParameterName(parameter);
                         Error(diagnostics, ErrorCode.ERR_CallArgMixing, syntax, symbol, parameterName);
-                        return false;
+                        hasMixingError = true;
                     }
                 }
+
+                foreach (var (_, argument, _) in escapeArguments)
+                {
+                    if (ShouldInferDeclarationExpressionValEscape(argument, out var localSymbol))
+                    {
+                        localSymbol.SetValEscape(inferredDestinationValEscape);
+                    }
+                }
+
+                return !hasMixingError;
             }
             finally
             {
                 escapeArguments.Free();
             }
-
-            // check val escape of receiver if ref-like
-            if (receiverOpt?.Type?.IsRefLikeType == true)
-            {
-                // Should we also report ErrorCode.ERR_CallArgMixing if CheckValEscape() fails?
-                return CheckValEscape(receiverOpt.Syntax, receiverOpt, scopeOfTheContainingExpression, escapeTo, false, diagnostics);
-            }
-
-            return true;
         }
 
         private bool CheckInvocationArgMixingWithUpdatedRules(
@@ -2352,9 +2391,32 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
+            inferDeclarationExpressionValEscape();
+
             mixableArguments.Free();
             escapeValues.Free();
             return valid;
+
+            void inferDeclarationExpressionValEscape()
+            {
+                // find the widest scope that arguments could safely escape to.
+                // use this scope as the inferred STE of declaration expressions.
+                var inferredDestinationValEscape = CallingMethodScope;
+                foreach (var (_, fromArg, _, isRefEscape) in escapeValues)
+                {
+                    inferredDestinationValEscape = Math.Max(inferredDestinationValEscape, isRefEscape
+                        ? GetRefEscape(fromArg, scopeOfTheContainingExpression)
+                        : GetValEscape(fromArg, scopeOfTheContainingExpression));
+                }
+
+                foreach (var (_, fromArg, _, _) in escapeValues)
+                {
+                    if (ShouldInferDeclarationExpressionValEscape(fromArg, out var localSymbol))
+                    {
+                        localSymbol.SetValEscape(inferredDestinationValEscape);
+                    }
+                }
+            }
         }
 
         private static bool IsReceiverRefReadOnly(Symbol methodOrPropertySymbol) => methodOrPropertySymbol switch
