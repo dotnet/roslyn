@@ -11,6 +11,7 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
@@ -173,20 +174,30 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
                 return false;
 
             var workspace = _workspace;
-            Debug.Assert(workspace != null, "This should only be called by outlining once outlining has already confirmed that this is a file from the MetadataAsSourceWorkspace");
 
-            if (workspace != null)
+            if (workspace == null)
             {
-                AssertIsMainThread(workspace);
-
-                foreach (var provider in _providers)
+                try
                 {
-                    if (!provider.IsValueCreated)
-                        continue;
-
-                    if (provider.Value.ShouldCollapseOnOpen(workspace, filePath, blockStructureOptions))
-                        return true;
+                    throw new InvalidOperationException(
+                        $"'{nameof(ShouldCollapseOnOpen)}' should only be called once outlining has already confirmed that '{filePath}' is from the {nameof(MetadataAsSourceWorkspace)}");
                 }
+                catch (Exception ex) when (FatalError.ReportAndCatch(ex))
+                {
+                }
+
+                return false;
+            }
+
+            AssertIsMainThread(workspace);
+
+            foreach (var provider in _providers)
+            {
+                if (!provider.IsValueCreated)
+                    continue;
+
+                if (provider.Value.ShouldCollapseOnOpen(workspace, filePath, blockStructureOptions))
+                    return true;
             }
 
             return false;
@@ -285,7 +296,7 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
         {
             try
             {
-                foreach (var fileInfo in new DirectoryInfo(directoryPath).EnumerateFiles("*", SearchOption.AllDirectories))
+                foreach (var fileInfo in new DirectoryInfo(directoryPath).EnumerateFiles(" *", SearchOption.AllDirectories))
                 {
                     fileInfo.IsReadOnly = false;
                 }
