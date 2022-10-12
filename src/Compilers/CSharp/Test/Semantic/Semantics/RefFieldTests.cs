@@ -9081,6 +9081,296 @@ public ref struct StructWithRefField
             Assert.True(comp.GetTypeByMetadataName("StructWithIndirectRefField").IsManagedTypeNoUseSiteDiagnostics);
         }
 
+        [WorkItem(62618, "https://github.com/dotnet/roslyn/issues/62618")]
+        [Theory]
+        [CombinatorialData]
+        public void RefAssignValueScopeMismatch_01A(
+            [CombinatorialValues(LanguageVersion.CSharp10, LanguageVersion.CSharp11)] LanguageVersion languageVersion,
+            bool useUnsafe)
+        {
+            string unsafeModifier = useUnsafe ? "unsafe" : "";
+            var source =
+$@"using System;
+class Program
+{{
+    static void Main()
+    {{
+        Span<int> s = new[] {{ 1 }};
+        M(ref s);
+    }}
+    {unsafeModifier} static void M(ref Span<int> s)
+    {{
+        Span<int> local = stackalloc int[] {{ 1 }};
+        ref Span<int> rL = ref local;
+        rL = ref s; // 1
+        rL = local;
+    }}
+}}";
+            var comp = CreateCompilationWithSpanAndMemoryExtensions(source,
+                parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion),
+                options: (useUnsafe ? TestOptions.UnsafeReleaseExe : null));
+            if (useUnsafe)
+            {
+                comp.VerifyEmitDiagnostics(
+                    // (13,9): warning CS9097: This ref-assigns 's' to 'rL' but 's' has a wider value escape scope than 'rL' allowing assignment through 'rL' of values with narrower escapes scopes than 's'.
+                    //         rL = ref s; // 1
+                    Diagnostic(ErrorCode.WRN_RefAssignValEscapeWider, "rL = ref s").WithArguments("rL", "s").WithLocation(13, 9));
+            }
+            else
+            {
+                comp.VerifyEmitDiagnostics(
+                    // (13,9): error CS9096: Cannot ref-assign 's' to 'rL' because 's' has a wider value escape scope than 'rL' allowing assignment through 'rL' of values with narrower escapes scopes than 's'.
+                    //         rL = ref s; // 1
+                    Diagnostic(ErrorCode.ERR_RefAssignValEscapeWider, "rL = ref s").WithArguments("rL", "s").WithLocation(13, 9));
+            }
+        }
+
+        [WorkItem(62618, "https://github.com/dotnet/roslyn/issues/62618")]
+        [Theory]
+        [CombinatorialData]
+        public void RefAssignValueScopeMismatch_01B(
+            [CombinatorialValues(LanguageVersion.CSharp10, LanguageVersion.CSharp11)] LanguageVersion languageVersion,
+            bool useUnsafe)
+        {
+            string unsafeModifier = useUnsafe ? "unsafe" : "";
+            var source =
+$@"using System;
+class Program
+{{
+    static void Main()
+    {{
+        Span<int> s = new[] {{ 1 }};
+        M(ref s);
+    }}
+    {unsafeModifier} static void M(ref Span<int> s)
+    {{
+        Span<int> local = stackalloc int[] {{ 1 }};
+        ref readonly Span<int> rL = ref local;
+        rL = ref s; // 1
+        rL = local; // 2
+    }}
+}}";
+            var comp = CreateCompilationWithSpanAndMemoryExtensions(source,
+                parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion),
+                options: (useUnsafe ? TestOptions.UnsafeReleaseExe : null));
+            if (useUnsafe)
+            {
+                comp.VerifyEmitDiagnostics(
+                    // (13,9): warning CS9097: This ref-assigns 's' to 'rL' but 's' has a wider value escape scope than 'rL' allowing assignment through 'rL' of values with narrower escapes scopes than 's'.
+                    //         rL = ref s; // 1
+                    Diagnostic(ErrorCode.WRN_RefAssignValEscapeWider, "rL = ref s").WithArguments("rL", "s").WithLocation(13, 9),
+                    // (14,9): error CS0131: The left-hand side of an assignment must be a variable, property or indexer
+                    //         rL = local; // 2
+                    Diagnostic(ErrorCode.ERR_AssgLvalueExpected, "rL").WithLocation(14, 9));
+            }
+            else
+            {
+                comp.VerifyEmitDiagnostics(
+                    // (13,9): error CS9096: Cannot ref-assign 's' to 'rL' because 's' has a wider value escape scope than 'rL' allowing assignment through 'rL' of values with narrower escapes scopes than 's'.
+                    //         rL = ref s; // 1
+                    Diagnostic(ErrorCode.ERR_RefAssignValEscapeWider, "rL = ref s").WithArguments("rL", "s").WithLocation(13, 9),
+                    // (14,9): error CS0131: The left-hand side of an assignment must be a variable, property or indexer
+                    //         rL = local; // 2
+                    Diagnostic(ErrorCode.ERR_AssgLvalueExpected, "rL").WithLocation(14, 9));
+            }
+        }
+
+        [WorkItem(62618, "https://github.com/dotnet/roslyn/issues/62618")]
+        [Theory]
+        [CombinatorialData]
+        public void RefAssignValueScopeMismatch_02(
+            [CombinatorialValues(LanguageVersion.CSharp10, LanguageVersion.CSharp11)] LanguageVersion languageVersion,
+            bool useUnsafe)
+        {
+            string unsafeModifier = useUnsafe ? "unsafe" : "";
+            var source =
+$@"ref struct R
+{{
+    public R(ref int i) {{ }}
+}}
+class Program
+{{
+    static void Main()
+    {{
+        R r = default;
+        M(ref r);
+    }}
+    {unsafeModifier} static void M(ref R r1)
+    {{
+        int i = 0;
+        R local = new R(ref i);
+        ref R r2 = ref local;
+        r2 = ref r1; // 1
+        r2 = local;
+    }}
+}}";
+            var comp = CreateCompilation(source,
+                parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion),
+                options: (useUnsafe ? TestOptions.UnsafeReleaseExe : null));
+            if (languageVersion == LanguageVersion.CSharp10)
+            {
+                comp.VerifyEmitDiagnostics();
+            }
+            else if (useUnsafe)
+            {
+                comp.VerifyEmitDiagnostics(
+                    // (17,9): warning CS9097: This ref-assigns 'r1' to 'r2' but 'r1' has a wider value escape scope than 'r2' allowing assignment through 'r2' of values with narrower escapes scopes than 'r1'.
+                    //         r2 = ref r1; // 1
+                    Diagnostic(ErrorCode.WRN_RefAssignValEscapeWider, "r2 = ref r1").WithArguments("r2", "r1").WithLocation(17, 9));
+            }
+            else
+            {
+                comp.VerifyEmitDiagnostics(
+                    // (17,9): error CS9096: Cannot ref-assign 'r1' to 'r2' because 'r1' has a wider value escape scope than 'r2' allowing assignment through 'r2' of values with narrower escapes scopes than 'r1'.
+                    //         r2 = ref r1; // 1
+                    Diagnostic(ErrorCode.ERR_RefAssignValEscapeWider, "r2 = ref r1").WithArguments("r2", "r1").WithLocation(17, 9));
+            }
+        }
+
+        [WorkItem(62618, "https://github.com/dotnet/roslyn/issues/62618")]
+        [Theory]
+        [InlineData(LanguageVersion.CSharp10)]
+        [InlineData(LanguageVersion.CSharp11)]
+        public void RefAssignValueScopeMismatch_03(LanguageVersion languageVersion)
+        {
+            var source =
+@"ref struct R1
+{
+    public R2 F;
+}
+ref struct R2
+{
+    public R2(ref int i) { }
+}
+class Program
+{
+    static void Main()
+    {
+        R1 r = default;
+        M(ref r);
+    }
+    static void M(ref R1 r1)
+    {
+        int i = 0;
+        R2 local = new R2(ref i);
+        ref R2 r2 = ref local;
+        r2 = ref r1.F; // 1
+        r2 = local;
+    }
+}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
+            if (languageVersion == LanguageVersion.CSharp10)
+            {
+                comp.VerifyEmitDiagnostics();
+            }
+            else
+            {
+                comp.VerifyEmitDiagnostics(
+                    // (21,9): error CS9096: Cannot ref-assign 'r1.F' to 'r2' because 'r1.F' has a wider value escape scope than 'r2' allowing assignment through 'r2' of values with narrower escapes scopes than 'r1.F'.
+                    //         r2 = ref r1.F; // 1
+                    Diagnostic(ErrorCode.ERR_RefAssignValEscapeWider, "r2 = ref r1.F").WithArguments("r2", "r1.F").WithLocation(21, 9));
+            }
+        }
+
+        [WorkItem(62618, "https://github.com/dotnet/roslyn/issues/62618")]
+        [Fact]
+        public void RefAssignValueScopeMismatch_04()
+        {
+            var source =
+@"using System;
+class Program
+{
+    static Span<int> F()
+    {
+        Span<int> s1 = default;
+        {
+            scoped ref Span<int> r1 = ref s1;
+            Span<int> s2 = stackalloc int[1];
+            ref Span<int> r2 = ref s2;
+            r2 = ref r1; // 1
+            r2 = s2;
+        }
+        return s1;
+    }
+}";
+            var comp = CreateCompilationWithSpanAndMemoryExtensions(source);
+            comp.VerifyEmitDiagnostics(
+                // (11,13): error CS9096: Cannot ref-assign 'r1' to 'r2' because 'r1' has a wider value escape scope than 'r2' allowing assignment through 'r2' of values with narrower escapes scopes than 'r1'.
+                //             r2 = ref r1; // 1
+                Diagnostic(ErrorCode.ERR_RefAssignValEscapeWider, "r2 = ref r1").WithArguments("r2", "r1").WithLocation(11, 13));
+        }
+
+        [WorkItem(62618, "https://github.com/dotnet/roslyn/issues/62618")]
+        [Fact]
+        public void RefAssignValueScopeMismatch_05()
+        {
+            var source =
+@"ref struct S
+{
+    public S(ref int i) { }
+}
+class Program
+{
+    static S F()
+    {
+        S s1 = default;
+        scoped ref S r1 = ref s1;
+        int i = 0;
+        S s2 = new S(ref i);
+        ref S r2 = ref s2;
+        r2 = ref r1; // 1
+        r2 = s2;
+        return s1;
+    }
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (14,9): error CS9096: Cannot ref-assign 'r1' to 'r2' because 'r1' has a wider value escape scope than 'r2' allowing assignment through 'r2' of values with narrower escapes scopes than 'r1'.
+                //         r2 = ref r1; // 1
+                Diagnostic(ErrorCode.ERR_RefAssignValEscapeWider, "r2 = ref r1").WithArguments("r2", "r1").WithLocation(14, 9));
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void RefAssignValueScopeMismatch_06(bool useUnsafe)
+        {
+            string unsafeModifier = useUnsafe ? "unsafe" : "";
+            var source =
+$@"ref struct S
+{{
+    public S(ref int i) {{ }}
+}}
+class Program
+{{
+    {unsafeModifier} static S F()
+    {{
+        S s1 = default;
+        scoped ref S r1 = ref s1;
+        scoped S s2 = default;
+        ref S r2 = ref s2;
+        r1 = ref r2; // 1
+        r2 = s2;
+        return s1;
+    }}
+}}";
+            var comp = CreateCompilation(source,
+                options: (useUnsafe ? TestOptions.UnsafeReleaseDll : null));
+            if (useUnsafe)
+            {
+                comp.VerifyEmitDiagnostics(
+                    // (13,18): warning CS9080: Use of variable 'r2' in this context may expose referenced variables outside of their declaration scope
+                    //         r1 = ref r2; // 1
+                    Diagnostic(ErrorCode.WRN_EscapeVariable, "r2").WithArguments("r2").WithLocation(13, 18));
+            }
+            else
+            {
+                comp.VerifyEmitDiagnostics(
+                    // (13,18): error CS8352: Cannot use variable 'r2' in this context because it may expose referenced variables outside of their declaration scope
+                    //         r1 = ref r2;
+                    Diagnostic(ErrorCode.ERR_EscapeVariable, "r2").WithArguments("r2").WithLocation(13, 18));
+            }
+        }
+
         // Breaking change in C#11: Cannot return an 'out' parameter by reference.
         [Fact]
         public void BreakingChange_ReturnOutByRef()

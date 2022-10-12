@@ -1542,6 +1542,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     if (isRef)
                     {
+                        // https://github.com/dotnet/csharplang/blob/main/proposals/low-level-struct-improvements.md#rules-ref-reassignment
+                        // For a ref reassignment in the form ...
+                        // 1. x.e1 = ref e2: where x is safe-to-escape at least return only then e2 must have ref-safe-to-escape at least as large as x
+                        // 2. e1 = ref e2: where e1 is a ref local or ref parameter then e2 must have a safe-to-escape equal to safe-to-escape for e1 and
+                        //    e2 must have ref-safe-to-escape at least as large as ref-safe-to-escape of the ref-safe-to-escape of e1
+
                         var leftEscape = GetRefEscape(op1, LocalScopeDepth);
                         var rightEscape = GetRefEscape(op2, LocalScopeDepth);
                         if (leftEscape < rightEscape)
@@ -1558,6 +1564,28 @@ namespace Microsoft.CodeAnalysis.CSharp
                             if (!this.InUnsafeRegion)
                             {
                                 op2 = ToBadExpression(op2);
+                            }
+                        }
+                        else if (op1.Kind is BoundKind.Local or BoundKind.Parameter)
+                        {
+                            leftEscape = GetValEscape(op1, LocalScopeDepth);
+                            rightEscape = GetValEscape(op2, LocalScopeDepth);
+
+                            Debug.Assert(leftEscape == rightEscape || op1.Type.IsRefLikeType);
+
+                            // We only check if the safe-to-escape of e2 is wider than the safe-to-escape of e1 here,
+                            // we don't check for equality. The case where the safe-to-escape of e2 is narrower than
+                            // e1 is handled in the if (op1.Type.IsRefLikeType) { ... } block later.
+                            if (leftEscape > rightEscape)
+                            {
+                                Debug.Assert(op1.Kind != BoundKind.Parameter); // If the assert fails, add a corresponding test.
+
+                                var errorCode = this.InUnsafeRegion ? ErrorCode.WRN_RefAssignValEscapeWider : ErrorCode.ERR_RefAssignValEscapeWider;
+                                Error(diagnostics, errorCode, node, getName(op1), op2.Syntax);
+                                if (!this.InUnsafeRegion)
+                                {
+                                    op2 = ToBadExpression(op2);
+                                }
                             }
                         }
                     }
