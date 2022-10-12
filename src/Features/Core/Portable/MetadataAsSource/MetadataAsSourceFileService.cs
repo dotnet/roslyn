@@ -116,7 +116,6 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
 
         private static void AssertIsMainThread(MetadataAsSourceWorkspace workspace)
         {
-            Contract.ThrowIfNull(workspace);
             var threadingService = workspace.Services.GetRequiredService<IWorkspaceThreadingServiceProvider>().Service;
             Contract.ThrowIfFalse(threadingService.IsOnMainThread);
         }
