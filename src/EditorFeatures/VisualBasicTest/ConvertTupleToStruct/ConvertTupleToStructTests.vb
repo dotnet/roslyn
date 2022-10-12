@@ -32,8 +32,6 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.ConvertTupleToStru
                 Assert.NotNull(equivalenceKey)
             End If
 
-            ' Options ??= new OptionsCollection(LanguageNames.CSharp);
-
             Dim test = New VerifyVB.Test With {
                 .TestCode = text,
                 .FixedCode = expected,
