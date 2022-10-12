@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -113,26 +114,31 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
             throw ExceptionUtilities.Unreachable();
         }
 
-        private MetadataAsSourceWorkspace GetWorkspaceOnMainThread()
+        private static void AssertIsMainThread(MetadataAsSourceWorkspace workspace)
         {
-            var workspace = _workspace;
             Contract.ThrowIfNull(workspace);
             var threadingService = workspace.Services.GetRequiredService<IWorkspaceThreadingServiceProvider>().Service;
             Contract.ThrowIfFalse(threadingService.IsOnMainThread);
-            return workspace;
         }
 
         public bool TryAddDocumentToWorkspace(string filePath, SourceTextContainer sourceTextContainer)
         {
-            var workspace = GetWorkspaceOnMainThread();
-
-            foreach (var provider in _providers)
+            // If we haven't even created a MetadataAsSource workspace yet, then this file definitely cannot be added to
+            // it. This happens when the MiscWorkspace calls in to just see if it can attach this document to the
+            // MetadataAsSource instead of itself.
+            var workspace = _workspace;
+            if (workspace != null)
             {
-                if (!provider.IsValueCreated)
-                    continue;
+                AssertIsMainThread(workspace);
 
-                if (provider.Value.TryAddDocumentToWorkspace(workspace, filePath, sourceTextContainer))
-                    return true;
+                foreach (var provider in _providers)
+                {
+                    if (!provider.IsValueCreated)
+                        continue;
+
+                    if (provider.Value.TryAddDocumentToWorkspace(workspace, filePath, sourceTextContainer))
+                        return true;
+                }
             }
 
             return false;
@@ -140,15 +146,22 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
 
         public bool TryRemoveDocumentFromWorkspace(string filePath)
         {
-            var workspace = GetWorkspaceOnMainThread();
-
-            foreach (var provider in _providers)
+            // If we haven't even created a MetadataAsSource workspace yet, then this file definitely cannot be removed
+            // from it. This happens when the MiscWorkspace is hearing about a doc closing, and calls into the
+            // MetadataAsSource system to see if it owns the file and should handle that event.
+            var workspace = _workspace;
+            if (workspace != null)
             {
-                if (!provider.IsValueCreated)
-                    continue;
+                AssertIsMainThread(workspace);
 
-                if (provider.Value.TryRemoveDocumentFromWorkspace(workspace, filePath))
-                    return true;
+                foreach (var provider in _providers)
+                {
+                    if (!provider.IsValueCreated)
+                        continue;
+
+                    if (provider.Value.TryRemoveDocumentFromWorkspace(workspace, filePath))
+                        return true;
+                }
             }
 
             return false;
@@ -159,17 +172,21 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
             if (filePath is null)
                 return false;
 
-            var workspace = GetWorkspaceOnMainThread();
+            var workspace = _workspace;
+            Debug.Assert(workspace != null, "This should only be called by outlining once outlining has already confirmed that this is a file from the MetadataAsSourceWorkspace");
 
-            foreach (var provider in _providers)
+            if (workspace != null)
             {
-                if (!provider.IsValueCreated)
-                    continue;
+                AssertIsMainThread(workspace);
 
-                Contract.ThrowIfNull(_workspace);
+                foreach (var provider in _providers)
+                {
+                    if (!provider.IsValueCreated)
+                        continue;
 
-                if (provider.Value.ShouldCollapseOnOpen(workspace, filePath, blockStructureOptions))
-                    return true;
+                    if (provider.Value.ShouldCollapseOnOpen(workspace, filePath, blockStructureOptions))
+                        return true;
+                }
             }
 
             return false;
