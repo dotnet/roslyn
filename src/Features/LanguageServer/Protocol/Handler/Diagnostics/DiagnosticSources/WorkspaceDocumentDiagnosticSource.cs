@@ -48,6 +48,10 @@ internal sealed class WorkspaceDocumentDiagnosticSource : AbstractDocumentDiagno
         }
         else
         {
+            if (Document.FilePath?.Contains("Test.txt") == true)
+            {
+                //Debugger.Launch();
+            }
             // We call GetDiagnosticsForIdsAsync as we want to ensure we get the full set of diagnostics for this document
             // including those reported as a compilation end diagnostic.  These are not included in document pull (uses GetDiagnosticsForSpan) due to cost.
             // However we can include them as a part of workspace pull when FSA is on.

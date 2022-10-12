@@ -178,6 +178,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     // is incomplete -- it only contains info on open files rather than whole project.
                     if (existingData.Version == version && !CompilationHasOpenFileOnlyAnalyzers(compilationWithAnalyzers, ideOptions.CleanupOptions?.SimplifierOptions))
                     {
+                        Console.WriteLine("open file only");
                         return existingData;
                     }
 
@@ -193,6 +194,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
                     if (!fullAnalysisEnabled)
                     {
+                        Console.WriteLine("full analysis off");
                         Logger.Log(FunctionId.Diagnostics_ProjectDiagnostic, p => $"FSA off ({p.FilePath ?? p.Name})", project);
 
                         // If we are producing document diagnostics for some other document in this project, we still want to show
@@ -230,11 +232,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     // for compiler diagnostics and analyzers.
                     if (!compilerFullAnalysisEnabled)
                     {
+                        Console.WriteLine("compiler fsa off");
                         Debug.Assert(analyzersFullAnalysisEnabled);
                         stateSets = stateSets.WhereAsArray(s => !s.Analyzer.IsCompilerAnalyzer());
                     }
                     else if (!analyzersFullAnalysisEnabled)
                     {
+                        Console.WriteLine("only compiler fsa");
                         stateSets = stateSets.WhereAsArray(s => s.Analyzer.IsCompilerAnalyzer() || s.Analyzer.IsWorkspaceDiagnosticAnalyzer());
                     }
 
@@ -317,6 +321,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 // can be null if given project doesn't support compilation.
                 if (compilationWithAnalyzers?.Analyzers.Length > 0)
                 {
+                    Console.WriteLine("has analyzers, running analyze project");
                     // calculate regular diagnostic analyzers diagnostics
                     var resultMap = await _diagnosticAnalyzerRunner.AnalyzeProjectAsync(project, compilationWithAnalyzers,
                         forcedAnalysis, logPerformanceInfo: true, getTelemetryInfo: true, cancellationToken).ConfigureAwait(false);
@@ -355,7 +360,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     // if we reduced to 0, we just pass in null for analyzer drvier. it could be reduced to 0
                     // since we might have up to date results for analyzers from compiler but not for 
                     // workspace analyzers.
-
+                    Console.WriteLine("running w/ reduced analyzers");
                     var compilationWithReducedAnalyzers = (analyzersToRun.Length == 0) ? null :
                         await DocumentAnalysisExecutor.CreateCompilationWithAnalyzersAsync(
                             project,
@@ -414,6 +419,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     analysisResult.Version == version &&
                     !analyzer.IsOpenFileOnly(ideOptions.CleanupOptions?.SimplifierOptions))
                 {
+                    Console.WriteLine("reduced analyzer " + analyzer.GetType().FullName);
                     // we already have up to date result.
                     continue;
                 }

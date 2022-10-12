@@ -590,6 +590,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 var pendingAnalyzers = _analysisResultBuilder.GetPendingAnalyzers(analysisScope.Analyzers);
                 if (pendingAnalyzers.Length > 0)
                 {
+                    Console.WriteLine("has pending analyzers");
                     var pendingAnalysisScope = pendingAnalyzers.Length < analysisScope.Analyzers.Length ? analysisScope.WithAnalyzers(pendingAnalyzers, hasAllAnalyzers: false) : analysisScope;
 
                     // Compute the analyzer diagnostics for the pending analysis scope.
@@ -1027,6 +1028,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 {
                     try
                     {
+                        Console.WriteLine("has pending syntax analysis");
                         // Perform analysis to compute new diagnostics.
                         Debug.Assert(!eventQueue.IsCompleted);
                         await driver.AttachQueueAndProcessAllEventsAsync(eventQueue, analysisScope, _analysisState, cancellationToken: cancellationToken).ConfigureAwait(false);

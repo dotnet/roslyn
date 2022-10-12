@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
+using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
@@ -180,9 +181,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
             if (_map.TryGetValue(solution.Workspace, out var analyzer))
             {
+                Console.WriteLine($"got analyzer value from map for {analyzer.GetType().Name}");
                 return analyzer.GetDiagnosticsForIdsAsync(solution, projectId, documentId, diagnosticIds, includeSuppressedDiagnostics, cancellationToken);
             }
 
+            //Debugger.Launch();
             return SpecializedTasks.EmptyImmutableArray<DiagnosticData>();
         }
 
