@@ -409,9 +409,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         case BoundKind.Local:
                             var local = (BoundLocal)variable.Single;
-                            if (local.DeclarationKind != BoundLocalDeclarationKind.None)
+                            if (local.DeclarationKind != BoundLocalDeclarationKind.None &&
+                                local.LocalSymbol is SourceLocalSymbol { ValEscapeScope: CallingMethodScope } localSymbol)
                             {
-                                ((SourceLocalSymbol)local.LocalSymbol).SetValEscape(rhsValEscape);
+                                localSymbol.SetValEscape(rhsValEscape);
                             }
                             break;
                         case BoundKind.DeconstructionVariablePendingInference:

@@ -12020,15 +12020,9 @@ ref struct RR
 ";
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (7,9): error CS8352: Cannot use variable '(scoped ref var r3, var b) = new RR(ref r0)' in this context because it may expose referenced variables outside of their declaration scope
-                //         (scoped ref var r3, var b) = new RR(ref r0);
-                Diagnostic(ErrorCode.ERR_EscapeVariable, "(scoped ref var r3, var b) = new RR(ref r0)").WithArguments("(scoped ref var r3, var b) = new RR(ref r0)").WithLocation(7, 9),
                 // (7,17): error CS9072: A deconstruction variable cannot be declared as a ref local
                 //         (scoped ref var r3, var b) = new RR(ref r0);
-                Diagnostic(ErrorCode.ERR_DeconstructVariableCannotBeByRef, "ref").WithLocation(7, 17),
-                // (7,38): error CS8350: This combination of arguments to 'RR.Deconstruct(out R<int>, out int)' is disallowed because it may expose variables referenced by parameter 'this' outside of their declaration scope
-                //         (scoped ref var r3, var b) = new RR(ref r0);
-                Diagnostic(ErrorCode.ERR_CallArgMixing, "new RR(ref r0)").WithArguments("RR.Deconstruct(out R<int>, out int)", "this").WithLocation(7, 38)
+                Diagnostic(ErrorCode.ERR_DeconstructVariableCannotBeByRef, "ref").WithLocation(7, 17)
                 );
 
             verifyModel(comp);
@@ -12687,24 +12681,12 @@ ref struct S
 ";
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (9,13): error CS8352: Cannot use variable '(S s1, var a) = new S(ref i1)' in this context because it may expose referenced variables outside of their declaration scope
-                //             (S s1, var a) = new S(ref i1);
-                Diagnostic(ErrorCode.ERR_EscapeVariable, "(S s1, var a) = new S(ref i1)").WithArguments("(S s1, var a) = new S(ref i1)").WithLocation(9, 13),
-                // (9,29): error CS8350: This combination of arguments to 'S.Deconstruct(out S, out int)' is disallowed because it may expose variables referenced by parameter 'this' outside of their declaration scope
-                //             (S s1, var a) = new S(ref i1);
-                Diagnostic(ErrorCode.ERR_CallArgMixing, "new S(ref i1)").WithArguments("S.Deconstruct(out S, out int)", "this").WithLocation(9, 29),
                 // (10,18): error CS8352: Cannot use variable 's1' in this context because it may expose referenced variables outside of their declaration scope
                 //             s0 = s1;
                 Diagnostic(ErrorCode.ERR_EscapeVariable, "s1").WithArguments("s1").WithLocation(10, 18),
                 // (14,18): error CS8352: Cannot use variable 's2' in this context because it may expose referenced variables outside of their declaration scope
                 //             s0 = s2;
                 Diagnostic(ErrorCode.ERR_EscapeVariable, "s2").WithArguments("s2").WithLocation(14, 18),
-                // (17,13): error CS8352: Cannot use variable '(S s3, var c) = s0' in this context because it may expose referenced variables outside of their declaration scope
-                //             (S s3, var c) = s0;
-                Diagnostic(ErrorCode.ERR_EscapeVariable, "(S s3, var c) = s0").WithArguments("(S s3, var c) = s0").WithLocation(17, 13),
-                // (17,29): error CS8350: This combination of arguments to 'S.Deconstruct(out S, out int)' is disallowed because it may expose variables referenced by parameter 'this' outside of their declaration scope
-                //             (S s3, var c) = s0;
-                Diagnostic(ErrorCode.ERR_CallArgMixing, "s0").WithArguments("S.Deconstruct(out S, out int)", "this").WithLocation(17, 29),
                 // (24,13): error CS8352: Cannot use variable '(s11, d) = new S(ref i1)' in this context because it may expose referenced variables outside of their declaration scope
                 //             (s11, d) = new S(ref i1);
                 Diagnostic(ErrorCode.ERR_EscapeVariable, "(s11, d) = new S(ref i1)").WithArguments("(s11, d) = new S(ref i1)").WithLocation(24, 13),
@@ -12777,39 +12759,21 @@ ref struct S
 ";
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (9,13): error CS8350: This combination of arguments to 'S.M(out S)' is disallowed because it may expose variables referenced by parameter 'this' outside of their declaration scope
-                //             (new S(ref i1)).M(out S s1);
-                Diagnostic(ErrorCode.ERR_CallArgMixing, "(new S(ref i1)).M(out S s1)").WithArguments("S.M(out S)", "this").WithLocation(9, 13),
-                // (9,14): error CS8347: Cannot use a result of 'S.S(ref int)' in this context because it may expose variables referenced by parameter 'i' outside of their declaration scope
-                //             (new S(ref i1)).M(out S s1);
-                Diagnostic(ErrorCode.ERR_EscapeCall, "new S(ref i1)").WithArguments("S.S(ref int)", "i").WithLocation(9, 14),
-                // (9,24): error CS8168: Cannot return local 'i1' by reference because it is not a ref local
-                //             (new S(ref i1)).M(out S s1);
-                Diagnostic(ErrorCode.ERR_RefReturnLocal, "i1").WithArguments("i1").WithLocation(9, 24),
+                // (10,18): error CS8352: Cannot use variable 's1' in this context because it may expose referenced variables outside of their declaration scope
+                //             s0 = s1;
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "s1").WithArguments("s1").WithLocation(10, 18),
                 // (14,18): error CS8352: Cannot use variable 's2' in this context because it may expose referenced variables outside of their declaration scope
                 //             s0 = s2;
                 Diagnostic(ErrorCode.ERR_EscapeVariable, "s2").WithArguments("s2").WithLocation(14, 18),
-                // (17,13): error CS8352: Cannot use variable 's0' in this context because it may expose referenced variables outside of their declaration scope
-                //             s0.M(out S s3);
-                Diagnostic(ErrorCode.ERR_EscapeVariable, "s0").WithArguments("s0").WithLocation(17, 13),
-                // (17,13): error CS8350: This combination of arguments to 'S.M(out S)' is disallowed because it may expose variables referenced by parameter 'this' outside of their declaration scope
-                //             s0.M(out S s3);
-                Diagnostic(ErrorCode.ERR_CallArgMixing, "s0.M(out S s3)").WithArguments("S.M(out S)", "this").WithLocation(17, 13),
                 // (23,18): error CS8352: Cannot use variable 's21' in this context because it may expose referenced variables outside of their declaration scope
                 //             s0 = s21;
                 Diagnostic(ErrorCode.ERR_EscapeVariable, "s21").WithArguments("s21").WithLocation(23, 18),
                 // (29,18): error CS8352: Cannot use variable 's4' in this context because it may expose referenced variables outside of their declaration scope
                 //             s0 = s4;
                 Diagnostic(ErrorCode.ERR_EscapeVariable, "s4").WithArguments("s4").WithLocation(29, 18),
-                // (33,13): error CS8350: This combination of arguments to 'S.M(out S)' is disallowed because it may expose variables referenced by parameter 'this' outside of their declaration scope
-                //             (new S(ref i1)).M(out var s5);
-                Diagnostic(ErrorCode.ERR_CallArgMixing, "(new S(ref i1)).M(out var s5)").WithArguments("S.M(out S)", "this").WithLocation(33, 13),
-                // (33,14): error CS8347: Cannot use a result of 'S.S(ref int)' in this context because it may expose variables referenced by parameter 'i' outside of their declaration scope
-                //             (new S(ref i1)).M(out var s5);
-                Diagnostic(ErrorCode.ERR_EscapeCall, "new S(ref i1)").WithArguments("S.S(ref int)", "i").WithLocation(33, 14),
-                // (33,24): error CS8168: Cannot return local 'i1' by reference because it is not a ref local
-                //             (new S(ref i1)).M(out var s5);
-                Diagnostic(ErrorCode.ERR_RefReturnLocal, "i1").WithArguments("i1").WithLocation(33, 24),
+                // (34,18): error CS8352: Cannot use variable 's5' in this context because it may expose referenced variables outside of their declaration scope
+                //             s0 = s5;
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "s5").WithArguments("s5").WithLocation(34, 18),
                 // (39,18): error CS8352: Cannot use variable 's7' in this context because it may expose referenced variables outside of their declaration scope
                 //             s0 = s7;
                 Diagnostic(ErrorCode.ERR_EscapeVariable, "s7").WithArguments("s7").WithLocation(39, 18)
@@ -13296,18 +13260,9 @@ class Enumerator2
                 // (9,75): error CS8350: This combination of arguments to 'R.Deconstruct(out R, out R)' is disallowed because it may expose variables referenced by parameter 'x' outside of their declaration scope
                 //         foreach ((scoped ref readonly R r5, scoped ref readonly var _) in new Enumerable2(ref r)) break;
                 Diagnostic(ErrorCode.ERR_CallArgMixing, "new Enumerable2(ref r)").WithArguments("R.Deconstruct(out R, out R)", "x").WithLocation(9, 75),
-                // (11,18): error CS8352: Cannot use variable '(scoped var r11, scoped R _)' in this context because it may expose referenced variables outside of their declaration scope
-                //         foreach ((scoped var r11, scoped R _) in new Enumerable1()) break;
-                Diagnostic(ErrorCode.ERR_EscapeVariable, "(scoped var r11, scoped R _)").WithArguments("(scoped var r11, scoped R _)").WithLocation(11, 18),
                 // (11,35): error CS9061: The 'scoped' modifier cannot be used with discard.
                 //         foreach ((scoped var r11, scoped R _) in new Enumerable1()) break;
                 Diagnostic(ErrorCode.ERR_ScopedDiscard, "scoped").WithLocation(11, 35),
-                // (11,50): error CS8350: This combination of arguments to 'R.Deconstruct(out R, out R)' is disallowed because it may expose variables referenced by parameter 'y' outside of their declaration scope
-                //         foreach ((scoped var r11, scoped R _) in new Enumerable1()) break;
-                Diagnostic(ErrorCode.ERR_CallArgMixing, "new Enumerable1()").WithArguments("R.Deconstruct(out R, out R)", "y").WithLocation(11, 50),
-                // (12,18): error CS8352: Cannot use variable '(scoped ref var r21, scoped ref R _)' in this context because it may expose referenced variables outside of their declaration scope
-                //         foreach ((scoped ref var r21, scoped ref R _) in new Enumerable2(ref r)) break;
-                Diagnostic(ErrorCode.ERR_EscapeVariable, "(scoped ref var r21, scoped ref R _)").WithArguments("(scoped ref var r21, scoped ref R _)").WithLocation(12, 18),
                 // (12,26): error CS9072: A deconstruction variable cannot be declared as a ref local
                 //         foreach ((scoped ref var r21, scoped ref R _) in new Enumerable2(ref r)) break;
                 Diagnostic(ErrorCode.ERR_DeconstructVariableCannotBeByRef, "ref").WithLocation(12, 26),
@@ -13317,12 +13272,6 @@ class Enumerator2
                 // (12,46): error CS9072: A deconstruction variable cannot be declared as a ref local
                 //         foreach ((scoped ref var r21, scoped ref R _) in new Enumerable2(ref r)) break;
                 Diagnostic(ErrorCode.ERR_DeconstructVariableCannotBeByRef, "ref").WithLocation(12, 46),
-                // (12,58): error CS8350: This combination of arguments to 'R.Deconstruct(out R, out R)' is disallowed because it may expose variables referenced by parameter 'y' outside of their declaration scope
-                //         foreach ((scoped ref var r21, scoped ref R _) in new Enumerable2(ref r)) break;
-                Diagnostic(ErrorCode.ERR_CallArgMixing, "new Enumerable2(ref r)").WithArguments("R.Deconstruct(out R, out R)", "y").WithLocation(12, 58),
-                // (13,18): error CS8352: Cannot use variable '(scoped ref readonly var r51, scoped ref readonly R _)' in this context because it may expose referenced variables outside of their declaration scope
-                //         foreach ((scoped ref readonly var r51, scoped ref readonly R _) in new Enumerable2(ref r)) break;
-                Diagnostic(ErrorCode.ERR_EscapeVariable, "(scoped ref readonly var r51, scoped ref readonly R _)").WithArguments("(scoped ref readonly var r51, scoped ref readonly R _)").WithLocation(13, 18),
                 // (13,26): error CS9072: A deconstruction variable cannot be declared as a ref local
                 //         foreach ((scoped ref readonly var r51, scoped ref readonly R _) in new Enumerable2(ref r)) break;
                 Diagnostic(ErrorCode.ERR_DeconstructVariableCannotBeByRef, "ref").WithLocation(13, 26),
@@ -13331,10 +13280,7 @@ class Enumerator2
                 Diagnostic(ErrorCode.ERR_ScopedDiscard, "scoped").WithLocation(13, 48),
                 // (13,55): error CS9072: A deconstruction variable cannot be declared as a ref local
                 //         foreach ((scoped ref readonly var r51, scoped ref readonly R _) in new Enumerable2(ref r)) break;
-                Diagnostic(ErrorCode.ERR_DeconstructVariableCannotBeByRef, "ref").WithLocation(13, 55),
-                // (13,76): error CS8350: This combination of arguments to 'R.Deconstruct(out R, out R)' is disallowed because it may expose variables referenced by parameter 'y' outside of their declaration scope
-                //         foreach ((scoped ref readonly var r51, scoped ref readonly R _) in new Enumerable2(ref r)) break;
-                Diagnostic(ErrorCode.ERR_CallArgMixing, "new Enumerable2(ref r)").WithArguments("R.Deconstruct(out R, out R)", "y").WithLocation(13, 76)
+                Diagnostic(ErrorCode.ERR_DeconstructVariableCannotBeByRef, "ref").WithLocation(13, 55)
                 );
             verify(comp);
 
