@@ -14,8 +14,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler;
 [Method(Methods.InitializedName)]
 internal class InitializedHandler : ILspServiceNotificationHandler<InitializedParams>
 {
-    [ImportingConstructor]
-    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
     public InitializedHandler()
     {
     }

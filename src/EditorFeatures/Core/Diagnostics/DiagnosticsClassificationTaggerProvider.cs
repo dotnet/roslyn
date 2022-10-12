@@ -73,13 +73,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
             if (!data.CustomTags.Contains(WellKnownDiagnosticTags.Unnecessary))
             {
-                // All unnecessary code diagnostics should have the 'Unnecessary' custom tag.
-                // Below assert ensures that we do no report unnecessary code diagnostics that
-                // want to fade out multiple locations which are encoded as
-                // additional location indices in the diagnostic's property bag
-                // without the 'Unnecessary' custom tag. 
-                Debug.Assert(!data.TryGetUnnecessaryLocationIndices(out _));
-
                 return false;
             }
 

@@ -37,6 +37,8 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
 {
     internal partial class CSharpCodeModelService : AbstractCodeModelService
     {
+        private static readonly SyntaxTree s_emptyTree = SyntaxFactory.ParseSyntaxTree(SourceText.From("", encoding: null, SourceHashAlgorithms.Default));
+
         internal CSharpCodeModelService(
             HostLanguageServices languageServiceProvider,
             EditorOptionsService editorOptionsService,
@@ -3045,7 +3047,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
                 var tree = compilation.SyntaxTrees.FirstOrDefault();
                 if (tree == null)
                 {
-                    tree = SyntaxFactory.ParseSyntaxTree("");
+                    tree = s_emptyTree;
                     compilation = compilation.AddSyntaxTrees(tree);
                 }
 

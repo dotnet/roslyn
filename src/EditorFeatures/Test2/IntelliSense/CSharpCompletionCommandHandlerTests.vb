@@ -5821,6 +5821,58 @@ class C
             End Using
         End Function
 
+        <WpfFact>
+        <Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestEnumMembersMatchTargetType() As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document><![CDATA[
+
+public enum Color
+{
+    Red,
+    Green,
+    Blue
+}
+
+class C
+{
+    void M()
+    {
+        Color x = $$
+    }
+}
+            ]]></Document>)
+
+                state.SendInvokeCompletionList()
+                Await state.WaitForUIRenderedAsync()
+
+                Await state.AssertCompletionItemsContainAll("Color.Red", "Color.Green", "Color.Blue", "Color")
+
+                Dim oldFilters = state.GetCompletionItemFilters()
+                Dim newFiltersBuilder = ArrayBuilder(Of Data.CompletionFilterWithState).GetInstance()
+
+                Dim hasTargetTypedFilter = False
+                For Each oldState In oldFilters
+
+                    If Object.ReferenceEquals(oldState.Filter, FilterSet.TargetTypedFilter) Then
+                        hasTargetTypedFilter = True
+                        newFiltersBuilder.Add(oldState.WithSelected(True))
+                        Continue For
+                    End If
+
+                    newFiltersBuilder.Add(oldState.WithSelected(False))
+                Next
+
+                Assert.True(hasTargetTypedFilter)
+
+                state.RaiseFiltersChanged(newFiltersBuilder.ToImmutableAndFree())
+
+                Await state.WaitForUIRenderedAsync()
+                Await state.AssertCompletionItemsContainAll("Color.Red", "Color.Green", "Color.Blue")
+                Await state.AssertCompletionItemsDoNotContainAny("Color")
+            End Using
+        End Function
+
         <WorkItem(16236, "https://github.com/dotnet/roslyn/issues/16236")>
         <WpfTheory, CombinatorialData>
         <Trait(Traits.Feature, Traits.Features.Completion)>
@@ -10630,6 +10682,59 @@ class MyClass
                 Await state.AssertSelectedCompletionItem(displayText:="cw", inlineDescription:=Nothing, isHardSelected:=True)
                 state.SendDownKey()
                 Await state.AssertSelectedCompletionItem(displayText:="cw", inlineDescription:="Console.WriteLine", isHardSelected:=True)
+            End Using
+        End Function
+
+        <WpfTheory, CombinatorialData>
+        <Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function HardSelectBreakAfterYieldIfNoYieldType(hasYieldType As Boolean) As Task
+            Dim yieldDeclaration = If(hasYieldType, "public class yield{}", String.Empty)
+
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document>
+namespace NS
+{
+     <%= yieldDeclaration %>
+
+    class C
+    {
+        public static void M()
+        {
+            yield bre$$
+        }
+    }
+}
+                </Document>)
+
+                state.SendInvokeCompletionList()
+                Await state.AssertSelectedCompletionItem(displayText:="break", isHardSelected:=Not hasYieldType)
+
+            End Using
+        End Function
+
+        <WpfTheory, CombinatorialData>
+        <Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function HardSelectReturnAfterYieldIfNoYieldType(hasYieldType As Boolean) As Task
+            Dim yieldDeclaration = If(hasYieldType, "public class yield{}", String.Empty)
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document>
+namespace NS
+{
+     <%= yieldDeclaration %>
+
+    class C
+    {
+        public static void M()
+        {
+            yield ret$$
+        }
+    }
+}
+                </Document>)
+
+                state.SendInvokeCompletionList()
+                Await state.AssertSelectedCompletionItem(displayText:="return", isHardSelected:=Not hasYieldType)
+
             End Using
         End Function
     End Class
