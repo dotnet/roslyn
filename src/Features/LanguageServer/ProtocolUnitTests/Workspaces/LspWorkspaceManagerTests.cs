@@ -465,6 +465,25 @@ public class LspWorkspaceManagerTests : AbstractLanguageServerProtocolTests
         Assert.Equal(newAssemblyName, documentServerTwo.Project.AssemblyName);
     }
 
+    [Fact]
+    public async Task TestDoesNotForkWhenDocumentTextBufferOpenedAsync()
+    {
+        var markup = "Text";
+        await using var testLspServer = await CreateTestLspServerAsync(markup);
+        var documentUri = testLspServer.GetCurrentSolution().Projects.First().Documents.First().GetURI();
+
+        // Calling get text buffer opens the document in the workspace.
+        testLspServer.TestWorkspace.Documents.Single().GetTextBuffer();
+
+        await testLspServer.OpenDocumentAsync(documentUri, "Text");
+
+        var (_, lspDocument) = await GetLspWorkspaceAndDocumentAsync(documentUri, testLspServer).ConfigureAwait(false);
+        AssertEx.NotNull(lspDocument);
+        Assert.Equal("Text", (await lspDocument.GetTextAsync(CancellationToken.None)).ToString());
+
+        Assert.Equal(testLspServer.TestWorkspace.CurrentSolution, lspDocument.Project.Solution);
+    }
+
     private static async Task<Document> OpenDocumentAndVerifyLspTextAsync(Uri documentUri, TestLspServer testLspServer, string openText = "LSP text")
     {
         await testLspServer.OpenDocumentAsync(documentUri, openText);
