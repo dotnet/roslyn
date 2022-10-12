@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             bool negateBinary,
             CancellationToken cancellationToken)
         {
-            return Negate(generator, generatorInternal, expressionOrPattern, semanticModel, negateBinary, allowSwappingBooleans: true, cancellationToken);
+            return Negate(generator, generatorInternal, expressionOrPattern, semanticModel, negateBinary, patternValueType: null, cancellationToken);
         }
 
         public static SyntaxNode Negate(
@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             SyntaxNode expressionOrPattern,
             SemanticModel semanticModel,
             bool negateBinary,
-            bool allowSwappingBooleans,
+            SpecialType? patternValueType,
             CancellationToken cancellationToken)
         {
             var options = semanticModel.SyntaxTree.Options;
@@ -105,7 +105,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 return GetNegationOfBinaryPattern(expressionOrPattern, generator, generatorInternal, semanticModel, cancellationToken);
 
             if (syntaxFacts.IsConstantPattern(expressionOrPattern))
-                return GetNegationOfConstantPattern(expressionOrPattern, generator, generatorInternal, allowSwappingBooleans);
+                return GetNegationOfConstantPattern(expressionOrPattern, generator, generatorInternal, patternValueType);
 
             if (syntaxFacts.IsUnaryPattern(expressionOrPattern))
                 return GetNegationOfUnaryPattern(expressionOrPattern, generator, generatorInternal, syntaxFacts);
@@ -126,9 +126,10 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 return generator.IsTypeExpression(expression, type);
             }
 
-            // TODO(cyrusn): We could support negating relational patterns in the future.  i.e.
-            //
-            //      not >= 0   ->    < 0
+            if (syntaxFacts.IsRelationalPattern(expressionOrPattern))
+            {
+                return GetNegationOfRelationalPattern(expressionOrPattern, generatorInternal, patternValueType);
+            }
 
             return syntaxFacts.IsAnyPattern(expressionOrPattern)
                 ? generatorInternal.NotPattern(expressionOrPattern)
@@ -207,7 +208,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             SemanticModel semanticModel,
             CancellationToken cancellationToken)
         {
-            // Apply demorgans's law here.
+            // Apply De Morgan's laws here.
             //
             //  not (a and b)   ->   not a or not b
             //  not (a or b)    ->   not a and not b
@@ -241,11 +242,11 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             if (syntaxFacts.SupportsNotPattern(semanticModel.SyntaxTree.Options))
             {
                 // We do support 'not' patterns.  So attempt to push a 'not' pattern into the current is-pattern RHS.
-                // If the value isn't a Boolean and the pattern `is true/false`, swapping to `is false/true` is incorrect since non-Booleans match neither.
-                // As an example, `!(new object() is true)` is equivalent to `new object() is not true` but not `new object() is false`.
+                // We include the type of the value when negating the pattern, since it allows for nicer negations of
+                // `is true/false` for Boolean values and relational patterns for numeric values.
                 var operation = semanticModel.GetOperation(isExpression, cancellationToken);
-                var isValueBoolean = operation is IIsPatternOperation isPatternOperation && isPatternOperation.Value.Type?.SpecialType == SpecialType.System_Boolean;
-                negatedPattern = generator.Negate(generatorInternal, pattern, semanticModel, negateBinary: true, allowSwappingBooleans: isValueBoolean, cancellationToken);
+                var valueType = (operation as IIsPatternOperation)?.Value.Type?.SpecialType;
+                negatedPattern = generator.Negate(generatorInternal, pattern, semanticModel, negateBinary: true, valueType, cancellationToken);
             }
             else if (syntaxFacts.IsNotPattern(pattern))
             {
@@ -270,6 +271,33 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             }
 
             return generator.LogicalNotExpression(isExpression);
+        }
+
+        private static SyntaxNode GetNegationOfRelationalPattern(
+            SyntaxNode expressionNode,
+            SyntaxGeneratorInternal generatorInternal,
+            SpecialType? patternValueType)
+        {
+            if (patternValueType is SpecialType specialType && specialType.IsNumericType())
+            {
+                // If we know the value is numeric, we can negate the relational operator.
+                // This is not valid for non-numeric value since they never match a relational pattern.
+                // Similarly, it's not valid for nullable values, since null never matches a relational pattern.
+                // As an example, `!(new object() is < 1)` is equivalent to `new object() is not < 1` but not `new object() is >= 1`.
+                var syntaxFacts = generatorInternal.SyntaxFacts;
+                syntaxFacts.GetPartsOfRelationalPattern(expressionNode, out var operatorToken, out var expression);
+                syntaxFacts.TryGetPredefinedOperator(operatorToken, out var predefinedOperator);
+                return predefinedOperator switch
+                {
+                    PredefinedOperator.LessThan => generatorInternal.GreaterThanEqualsRelationalPattern(expression),
+                    PredefinedOperator.LessThanOrEqual => generatorInternal.GreaterThanRelationalPattern(expression),
+                    PredefinedOperator.GreaterThan => generatorInternal.LessThanEqualsRelationalPattern(expression),
+                    PredefinedOperator.GreaterThanOrEqual => generatorInternal.LessThanRelationalPattern(expression),
+                    _ => generatorInternal.NotPattern(expressionNode)
+                };
+            }
+
+            return generatorInternal.NotPattern(expressionNode);
         }
 
         private static bool IsLegalPattern(ISyntaxFacts syntaxFacts, SyntaxNode pattern, bool designatorsLegal)
@@ -440,12 +468,14 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             SyntaxNode pattern,
             SyntaxGenerator generator,
             SyntaxGeneratorInternal generatorInternal,
-            bool allowSwappingBooleans)
+            SpecialType? patternValueType)
         {
             var syntaxFacts = generatorInternal.SyntaxFacts;
 
-            // If we have `is true/false` just swap that to be `is false/true` if allowed.
-            if (allowSwappingBooleans)
+            // If we have `is true/false` and a Boolean value, just swap that to be `is false/true`.
+            // If the value isn't a Boolean, swapping to `is false/true` is incorrect since non-Booleans match neither.
+            // As an example, `!(new object() is true)` is equivalent to `new object() is not true` but not `new object() is false`.
+            if (patternValueType == SpecialType.System_Boolean)
             {
                 var expression = syntaxFacts.GetExpressionOfConstantPattern(pattern);
                 if (syntaxFacts.IsTrueLiteralExpression(expression))
