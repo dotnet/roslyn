@@ -105,7 +105,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
             }
         }
 
-        private static async Task HandleResultAsync(
+        private async Task HandleResultAsync(
             ChangeSignatureResult result,
             Solution oldSolution,
             Workspace workspace,
@@ -154,6 +154,8 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
                 return;
             }
 
+            // Switch to the UI thread to apply the changes
+            await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
             using var workspaceUndoTransaction = workspace.OpenGlobalUndoTransaction(FeaturesResources.Change_signature);
             if (workspace.TryApplyChanges(finalSolution))
             {
