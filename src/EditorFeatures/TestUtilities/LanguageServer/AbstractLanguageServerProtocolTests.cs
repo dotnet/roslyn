@@ -13,11 +13,9 @@ using System.Threading.Tasks;
 using System.Xml.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Test;
 using Microsoft.CodeAnalysis.Editor.UnitTests;
-using Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageServer;
@@ -46,8 +44,7 @@ namespace Roslyn.Test.Utilities
     {
         private static readonly TestComposition s_composition = EditorTestCompositions.LanguageServerProtocol
             .AddParts(typeof(TestDocumentTrackingService))
-            .AddParts(typeof(TestWorkspaceRegistrationService))
-            .RemoveParts(typeof(MockWorkspaceEventListenerProvider));
+            .AddParts(typeof(TestWorkspaceRegistrationService));
 
         private class TestSpanMapperProvider : IDocumentServiceProvider
         {
@@ -100,7 +97,7 @@ namespace Roslyn.Test.Utilities
 
         protected virtual TestComposition Composition => s_composition;
 
-        private protected virtual TestAnalyzerReferenceByLanguage TestAnalyzerReferences
+        private protected virtual TestAnalyzerReferenceByLanguage CreateTestAnalyzersReference()
             => new(DiagnosticExtensions.GetCompilerDiagnosticAnalyzersMap());
 
         protected static LSP.ClientCapabilities CapabilitiesWithVSExtensions => new LSP.VSInternalClientCapabilities { SupportsVisualStudioExtensions = true };
@@ -302,11 +299,9 @@ namespace Roslyn.Test.Utilities
         {
             var lspOptions = initializationOptions ?? new InitializationOptions();
 
-            var workspace = new TestWorkspace(Composition, configurationOptions: new WorkspaceConfigurationOptions(EnableOpeningSourceGeneratedFiles: true));
+            var workspace = CreateWorkspace(lspOptions, workspaceKind: null);
 
             workspace.InitializeDocuments(TestWorkspace.CreateWorkspaceElement(languageName, files: markups, sourceGeneratedFiles: lspOptions.SourceGeneratedMarkups), openDocuments: false);
-
-            lspOptions.OptionUpdater?.Invoke(workspace.GetService<IGlobalOptionService>());
 
             return CreateTestLspServerAsync(workspace, lspOptions);
         }
@@ -332,7 +327,7 @@ namespace Roslyn.Test.Utilities
                 solution = solution.WithProjectFilePath(project.Id, GetDocumentFilePathFromName(project.FilePath));
             }
 
-            solution = solution.WithAnalyzerReferences(new[] { TestAnalyzerReferences });
+            solution = solution.WithAnalyzerReferences(new[] { CreateTestAnalyzersReference() });
             workspace.ChangeSolution(solution);
 
             // Important: We must wait for workspace creation operations to finish.
@@ -350,17 +345,30 @@ namespace Roslyn.Test.Utilities
         {
             var lspOptions = initializationOptions ?? new InitializationOptions();
 
-            var workspace = TestWorkspace.Create(XElement.Parse(xmlContent), openDocuments: false, composition: Composition, workspaceKind: workspaceKind);
+            var workspace = CreateWorkspace(lspOptions, workspaceKind);
 
-            lspOptions.OptionUpdater?.Invoke(workspace.GetService<IGlobalOptionService>());
-
-            workspace.TryApplyChanges(workspace.CurrentSolution.WithAnalyzerReferences(new[] { TestAnalyzerReferences }));
+            workspace.InitializeDocuments(XElement.Parse(xmlContent), openDocuments: false);
+            workspace.TryApplyChanges(workspace.CurrentSolution.WithAnalyzerReferences(new[] { CreateTestAnalyzersReference() }));
 
             // Important: We must wait for workspace creation operations to finish.
             // Otherwise we could have a race where workspace change events triggered by creation are changing the state
             // created by the initial test steps. This can interfere with the expected test state.
             await WaitForWorkspaceOperationsAsync(workspace);
+
             return await TestLspServer.CreateAsync(workspace, lspOptions);
+        }
+
+        internal TestWorkspace CreateWorkspace(InitializationOptions? options, string? workspaceKind)
+        {
+            var workspace = new TestWorkspace(Composition, workspaceKind, configurationOptions: new WorkspaceConfigurationOptions(EnableOpeningSourceGeneratedFiles: true));
+            options?.OptionUpdater?.Invoke(workspace.GetService<IGlobalOptionService>());
+
+            workspace.GetService<LspWorkspaceRegistrationService>().Register(workspace);
+
+            var solutionCrawlerRegistrationService = (SolutionCrawlerRegistrationService)workspace.Services.GetRequiredService<ISolutionCrawlerRegistrationService>();
+            solutionCrawlerRegistrationService.Register(workspace);
+
+            return workspace;
         }
 
         /// <summary>
@@ -661,6 +669,11 @@ namespace Roslyn.Test.Utilities
 
             public async ValueTask DisposeAsync()
             {
+                TestWorkspace.GetService<LspWorkspaceRegistrationService>().Deregister(TestWorkspace);
+
+                var solutionCrawlerRegistrationService = (SolutionCrawlerRegistrationService)TestWorkspace.Services.GetRequiredService<ISolutionCrawlerRegistrationService>();
+                solutionCrawlerRegistrationService.Unregister(TestWorkspace);
+
                 // Some tests manually call shutdown, so avoid calling shutdown twice if already called.
                 if (!LanguageServer.HasShutdownStarted)
                 {
@@ -668,6 +681,7 @@ namespace Roslyn.Test.Utilities
                 }
 
                 await LanguageServer.GetTestAccessor().ExitServerAsync();
+
                 TestWorkspace.Dispose();
                 _clientRpc.Dispose();
             }

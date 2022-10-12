@@ -252,7 +252,7 @@ public class LspWorkspaceManagerTests : AbstractLanguageServerProtocolTests
         using var testWorkspaceTwo = TestWorkspace.Create(
             XElement.Parse(secondWorkspaceXml),
             workspaceKind: "OtherWorkspaceKind",
-            composition: Composition);
+            composition: testLspServer.TestWorkspace.Composition);
 
         // Wait for workspace creation operations for the second workspace to complete.
         await WaitForWorkspaceOperationsAsync(testWorkspaceTwo);
@@ -314,10 +314,8 @@ public class LspWorkspaceManagerTests : AbstractLanguageServerProtocolTests
 
         await using var testLspServer = await CreateXmlTestLspServerAsync(firstWorkspaceXml);
 
-        using var testWorkspaceTwo = TestWorkspace.Create(
-            XElement.Parse(secondWorkspaceXml),
-            workspaceKind: WorkspaceKind.MSBuild,
-            composition: Composition);
+        using var testWorkspaceTwo = CreateWorkspace(options: null, WorkspaceKind.MSBuild);
+        testWorkspaceTwo.InitializeDocuments(XElement.Parse(secondWorkspaceXml));
 
         // Wait for workspace creation operations to complete for the second workspace.
         await WaitForWorkspaceOperationsAsync(testWorkspaceTwo);
@@ -375,10 +373,8 @@ public class LspWorkspaceManagerTests : AbstractLanguageServerProtocolTests
 
         await using var testLspServer = await CreateXmlTestLspServerAsync(firstWorkspaceXml);
 
-        using var testWorkspaceTwo = TestWorkspace.Create(
-            XElement.Parse(secondWorkspaceXml),
-            workspaceKind: WorkspaceKind.MSBuild,
-            composition: Composition);
+        using var testWorkspaceTwo = CreateWorkspace(options: null, workspaceKind: WorkspaceKind.MSBuild);
+        testWorkspaceTwo.InitializeDocuments(XElement.Parse(secondWorkspaceXml));
 
         // Wait for workspace operations to complete for the second workspace.
         await WaitForWorkspaceOperationsAsync(testWorkspaceTwo);
@@ -423,7 +419,8 @@ public class LspWorkspaceManagerTests : AbstractLanguageServerProtocolTests
     </Project>
 </Workspace>";
 
-        using var testWorkspace = TestWorkspace.Create(XElement.Parse(workspaceXml), composition: Composition);
+        using var testWorkspace = CreateWorkspace(options: null, workspaceKind: null);
+        testWorkspace.InitializeDocuments(XElement.Parse(workspaceXml));
 
         // Wait for workspace creation operations to complete.
         await WaitForWorkspaceOperationsAsync(testWorkspace);

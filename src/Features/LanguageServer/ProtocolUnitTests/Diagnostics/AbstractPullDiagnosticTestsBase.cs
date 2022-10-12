@@ -30,19 +30,16 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Diagnostics
 
     public abstract class AbstractPullDiagnosticTestsBase : AbstractLanguageServerProtocolTests
     {
-        private protected override TestAnalyzerReferenceByLanguage TestAnalyzerReferences
+        private protected override TestAnalyzerReferenceByLanguage CreateTestAnalyzersReference()
         {
-            get
-            {
-                var builder = ImmutableDictionary.CreateBuilder<string, ImmutableArray<DiagnosticAnalyzer>>();
-                builder.Add(LanguageNames.CSharp, ImmutableArray.Create(
-                    DiagnosticExtensions.GetCompilerDiagnosticAnalyzer(LanguageNames.CSharp),
-                    new CSharpRemoveUnnecessaryImportsDiagnosticAnalyzer(),
-                    new CSharpRemoveUnnecessaryExpressionParenthesesDiagnosticAnalyzer()));
-                builder.Add(LanguageNames.VisualBasic, ImmutableArray.Create(DiagnosticExtensions.GetCompilerDiagnosticAnalyzer(LanguageNames.VisualBasic)));
-                builder.Add(InternalLanguageNames.TypeScript, ImmutableArray.Create<DiagnosticAnalyzer>(new MockTypescriptDiagnosticAnalyzer()));
-                return new(builder.ToImmutableDictionary());
-            }
+            var builder = ImmutableDictionary.CreateBuilder<string, ImmutableArray<DiagnosticAnalyzer>>();
+            builder.Add(LanguageNames.CSharp, ImmutableArray.Create(
+                DiagnosticExtensions.GetCompilerDiagnosticAnalyzer(LanguageNames.CSharp),
+                new CSharpRemoveUnnecessaryImportsDiagnosticAnalyzer(),
+                new CSharpRemoveUnnecessaryExpressionParenthesesDiagnosticAnalyzer()));
+            builder.Add(LanguageNames.VisualBasic, ImmutableArray.Create(DiagnosticExtensions.GetCompilerDiagnosticAnalyzer(LanguageNames.VisualBasic)));
+            builder.Add(InternalLanguageNames.TypeScript, ImmutableArray.Create<DiagnosticAnalyzer>(new MockTypescriptDiagnosticAnalyzer()));
+            return new(builder.ToImmutableDictionary());
         }
 
         protected override TestComposition Composition => base.Composition.AddParts(typeof(MockTypescriptDiagnosticAnalyzer));
