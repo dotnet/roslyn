@@ -7353,14 +7353,7 @@ class Program
 }
 """;
             var comp = CreateCompilation(source);
-            comp.VerifyDiagnostics(
-                // PROTOTYPE: These usage warnings should go away
-                // (5,19): warning CS0219: The variable 'i1' is assigned but its value is never used
-                //         const int i1 = 1;
-                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "i1").WithArguments("i1").WithLocation(5, 19),
-                // (6,19): warning CS0219: The variable 'i2' is assigned but its value is never used
-                //         const int i2 = 2;
-                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "i2").WithArguments("i2").WithLocation(6, 19));
+            comp.VerifyDiagnostics();
         }
 
         [ConditionalFact(typeof(NoIOperationValidation))]
@@ -7378,13 +7371,7 @@ class Program
 }
 """;
             var comp = CreateCompilation(source);
-            comp.VerifyDiagnostics(
-                // (5,19): warning CS0219: The variable 'i1' is assigned but its value is never used
-                //         const int i1 = 1;
-                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "i1").WithArguments("i1").WithLocation(5, 19),
-                // (6,19): warning CS0219: The variable 'i2' is assigned but its value is never used
-                //         const int i2 = 2;
-                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "i2").WithArguments("i2").WithLocation(6, 19));
+            comp.VerifyDiagnostics();
         }
 
         [Fact]

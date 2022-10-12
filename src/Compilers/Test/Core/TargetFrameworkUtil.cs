@@ -183,6 +183,7 @@ namespace Roslyn.Test.Utilities
             TargetFramework.NetStandard20 => NetStandard20References,
             TargetFramework.NetCoreApp or TargetFramework.Net50 => NetCoreApp.StandardReferences,
             TargetFramework.Net60 => ImmutableArray.CreateRange<MetadataReference>(Net60.All),
+            TargetFramework.Net70 => ImmutableArray.CreateRange<MetadataReference>(Net70.All),
             TargetFramework.NetCoreAppAndCSharp => NetCoreApp.StandardReferences.Add(NetCoreApp.MicrosoftCSharp),
             TargetFramework.NetFramework => NetFramework.StandardReferences,
 

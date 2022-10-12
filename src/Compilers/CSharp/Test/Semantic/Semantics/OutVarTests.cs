@@ -34746,6 +34746,12 @@ class C
                 // (9,22): error CS0103: The name 'z2' does not exist in the current context
                 //         int x = z1 + z2;
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "z2").WithArguments("z2").WithLocation(9, 22),
+                // (6,55): error CS0165: Use of unassigned local variable 'z1'
+                //         void Local2(bool b = M(nameof(M(out int z1)), z1), int s2 = z1) { var t = z1; }
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "z1").WithArguments("z1").WithLocation(6, 55),
+                // (7,55): error CS0165: Use of unassigned local variable 'z2'
+                //         void Local5(bool b = M(nameof(M(out var z2)), z2), int s2 = z2) { var t = z2; }
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "z2").WithArguments("z2").WithLocation(7, 55),
                 // (6,14): warning CS8321: The local function 'Local2' is declared but never used
                 //         void Local2(bool b = M(nameof(M(out int z1)), z1), int s2 = z1) { var t = z1; }
                 Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "Local2").WithArguments("Local2").WithLocation(6, 14),
