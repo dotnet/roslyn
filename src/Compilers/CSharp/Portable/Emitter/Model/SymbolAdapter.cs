@@ -28,14 +28,14 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         Cci.IDefinition Cci.IReference.AsDefinition(EmitContext context)
         {
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 
         CodeAnalysis.Symbols.ISymbolInternal Cci.IReference.GetInternalSymbol() => AdaptedSymbol;
 
         void Cci.IReference.Dispatch(Cci.MetadataVisitor visitor)
         {
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 
         IEnumerable<Cci.ICustomAttribute> Cci.IReference.GetAttributes(EmitContext context)
@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
 #if DEBUG
         internal SymbolAdapter GetCciAdapter() => GetCciAdapterImpl();
-        protected virtual SymbolAdapter GetCciAdapterImpl() => throw ExceptionUtilities.Unreachable;
+        protected virtual SymbolAdapter GetCciAdapterImpl() => throw ExceptionUtilities.Unreachable();
 #else
         internal Symbol AdaptedSymbol => this;
         internal Symbol GetCciAdapter() => this;
@@ -180,13 +180,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         public sealed override bool Equals(object obj)
         {
             // It is not supported to rely on default equality of these Cci objects, an explicit way to compare and hash them should be used.
-            throw Roslyn.Utilities.ExceptionUtilities.Unreachable;
+            throw Roslyn.Utilities.ExceptionUtilities.Unreachable();
         }
 
         public sealed override int GetHashCode()
         {
             // It is not supported to rely on default equality of these Cci objects, an explicit way to compare and hash them should be used.
-            throw Roslyn.Utilities.ExceptionUtilities.Unreachable;
+            throw Roslyn.Utilities.ExceptionUtilities.Unreachable();
         }
 
         [Conditional("DEBUG")]

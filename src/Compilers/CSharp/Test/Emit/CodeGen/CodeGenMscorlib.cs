@@ -216,7 +216,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
 {
     public class Object { }
 }";
-            var compilation = CreateEmptyCompilation(source);
+            var compilation = CreateEmptyCompilation(source, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute());
             compilation.VerifyEmitDiagnostics(
                 Diagnostic(ErrorCode.WRN_NoRuntimeMetadataVersion),
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound).WithArguments("System.Void")
@@ -240,7 +240,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
     public struct Int32 { }
     public struct Decimal { }
 }";
-            var compilation1 = CreateEmptyCompilation(source1, assemblyName: GetUniqueName());
+            var compilation1 = CreateEmptyCompilation(source1, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), assemblyName: GetUniqueName());
             var reference1 = MetadataReference.CreateFromStream(compilation1.EmitToStream());
             var source2 =
 @"class C
@@ -250,7 +250,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
         return (int)d;
     }
 }";
-            var compilation2 = CreateEmptyCompilation(source2, new[] { reference1 });
+            var compilation2 = CreateEmptyCompilation(source2, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), references: new[] { reference1 });
             // Should report "CS0656: Missing compiler required member 'System.Decimal.op_Explicit_ToInt32'".
             // Instead, we report no errors and assert during emit.
 
@@ -274,7 +274,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
     public struct Int32 { }
     public struct Decimal { }
 }";
-            var compilation1 = CreateEmptyCompilation(source1, assemblyName: GetUniqueName());
+            var compilation1 = CreateEmptyCompilation(source1, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), assemblyName: GetUniqueName());
             var reference1 = MetadataReference.CreateFromStream(compilation1.EmitToStream());
             var source2 =
 @"    
@@ -291,7 +291,7 @@ public class C1
     }
 }
 ";
-            var compilation2 = CreateEmptyCompilation(source2, new[] { reference1 });
+            var compilation2 = CreateEmptyCompilation(source2, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), references: new[] { reference1 });
             compilation2.VerifyDiagnostics(
     // (7,25): error CS0518: Predefined type 'System.TypedReference' is not defined or imported
     //         var refresult = __makeref(result);
@@ -311,7 +311,7 @@ public class C1
     public struct Int32 { }
     public struct Decimal { }
 }";
-            var compilation1 = CreateEmptyCompilation(source1, assemblyName: GetUniqueName());
+            var compilation1 = CreateEmptyCompilation(source1, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), assemblyName: GetUniqueName());
             var reference1 = MetadataReference.CreateFromStream(compilation1.EmitToStream());
             var source2 =
 @"    
@@ -328,7 +328,7 @@ public class C1
     }
 }
 ";
-            var compilation2 = CreateEmptyCompilation(source2, new[] { reference1 });
+            var compilation2 = CreateEmptyCompilation(source2, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), references: new[] { reference1 });
             compilation2.VerifyDiagnostics(
     // (9,25): error CS0518: Predefined type 'System.TypedReference' is not defined or imported
     //         var refresult = __makeref(result);
@@ -349,7 +349,7 @@ public class C1
     public struct Decimal { }
     public struct TypedReference { }
 }";
-            var compilation1 = CreateEmptyCompilation(source1, assemblyName: GetUniqueName());
+            var compilation1 = CreateEmptyCompilation(source1, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), assemblyName: GetUniqueName());
             var reference1 = MetadataReference.CreateFromStream(compilation1.EmitToStream());
             var source2 =
 @"    
@@ -367,7 +367,7 @@ public class C1
     }
 }
 ";
-            var compilation2 = CreateEmptyCompilation(source2, new[] { reference1 });
+            var compilation2 = CreateEmptyCompilation(source2, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), references: new[] { reference1 });
             compilation2.VerifyDiagnostics(
     // (10,15): error CS0029: Cannot implicitly convert type 'System.TypedReference' to 'object'
     //         rrr = refresult;
@@ -470,7 +470,7 @@ namespace System.Collections
         bool MoveNext();
     }
 }";
-            var compilation1 = CreateEmptyCompilation(source1, assemblyName: GetUniqueName());
+            var compilation1 = CreateEmptyCompilation(source1, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), assemblyName: GetUniqueName());
             var reference1 = MetadataReference.CreateFromStream(compilation1.EmitToStream());
             var source2 =
 @"class C
@@ -483,7 +483,7 @@ namespace System.Collections
         }
     }
 }";
-            var compilation2 = CreateEmptyCompilation(source2, new[] { reference1 });
+            var compilation2 = CreateEmptyCompilation(source2, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), references: new[] { reference1 });
             compilation2.VerifyDiagnostics();
             compilation2.Emit(new System.IO.MemoryStream()).Diagnostics.Verify(
                 // (5,9): error CS0656: Missing compiler required member 'System.String.get_Length'
@@ -607,9 +607,9 @@ namespace System.Collections
 }";
             var comp = CreateEmptyCompilation(
                     text,
+                    parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(),
                     options: TestOptions.ReleaseDll)
                 .VerifyDiagnostics();
-
 
             //IMPORTANT: we should NOT load fields of self-containing structs like - "ldfld int int.m_value"
             CompileAndVerify(comp, verify: Verification.Skipped).
@@ -745,9 +745,9 @@ namespace System
 ";
             var comp = CreateEmptyCompilation(
                     text,
+                    parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(),
                     options: TestOptions.ReleaseDll)
                 .VerifyDiagnostics();
-
 
             //IMPORTANT: we should NOT delegate E1.GetHashCode() to int.GetHashCode()
             //           it is entirely possible that Enum.GetHashCode and int.GetHashCode 
@@ -873,7 +873,7 @@ namespace System
         }
     }
 }";
-            var comp = CreateEmptyCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
+            var comp = CreateEmptyCompilation(text, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
 
             //IMPORTANT: we should NOT load fields of clr-confusing structs off the field value.
             //           the field should be loaded off the reference like in 

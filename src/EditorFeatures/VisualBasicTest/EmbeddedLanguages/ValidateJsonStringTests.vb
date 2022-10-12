@@ -11,6 +11,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Features.EmbeddedLanguages
 Imports Xunit.Abstractions
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EmbeddedLanguages
+    <Trait(Traits.Feature, Traits.Features.ValidateJsonString)>
     Public Class ValidateJsonStringTests
         Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest
 
@@ -26,7 +27,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EmbeddedLanguages
             Return [Option](IdeAnalyzerOptionsStorage.ReportInvalidJsonPatterns, True)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.ValidateJsonString)>
+        <Fact>
         Public Async Function TestWarning1() As Task
             Await TestDiagnosticInfoAsync("
 class Program
@@ -41,7 +42,7 @@ end class",
                 diagnosticMessage:=String.Format(FeaturesResources.JSON_issue_0, FeaturesResources.Constructors_not_allowed))
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.ValidateJsonString)>
+        <Fact>
         Public Async Function TestWarning2() As Task
             Await TestDiagnosticInfoAsync("
 class Program
@@ -57,7 +58,7 @@ end class",
                     String.Format(FeaturesResources._0_unexpected, "}")))
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.ValidateJsonString)>
+        <Fact>
         Public Async Function TestJsonDocumentWithTrailingComma() As Task
             Await TestDiagnosticInfoAsync("<Workspace>
     <Project Language=""Visual Basic"" CommonReferencesNet6=""true"">
@@ -79,7 +80,7 @@ end class
                     FeaturesResources.Trailing_comma_not_allowed))
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.ValidateJsonString)>
+        <Fact>
         Public Async Function TestJsonDocumentTrailingCommaDisallowed() As Task
             Await TestDiagnosticInfoAsync("<Workspace>
     <Project Language=""Visual Basic"" CommonReferencesNet6=""true"">
@@ -101,7 +102,7 @@ end class
                     FeaturesResources.Trailing_comma_not_allowed))
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.ValidateJsonString)>
+        <Fact>
         Public Async Function TestJsonDocumentTrailingCommaAllowed() As Task
             Await TestDiagnosticMissingAsync("<Workspace>
     <Project Language=""Visual Basic"" CommonReferencesNet6=""true"">
@@ -118,7 +119,7 @@ end class
 </Workspace>")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.ValidateJsonString)>
+        <Fact>
         Public Async Function TestJsonDocumentTrailingCommaAllowedCaseChange() As Task
             Await TestDiagnosticMissingAsync("<Workspace>
     <Project Language=""Visual Basic"" CommonReferencesNet6=""true"">
@@ -135,7 +136,7 @@ end class
 </Workspace>")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.ValidateJsonString)>
+        <Fact>
         Public Async Function TestJsonDocumentWithComments() As Task
             Await TestDiagnosticInfoAsync("<Workspace>
     <Project Language=""Visual Basic"" CommonReferencesNet6=""true"">
@@ -157,7 +158,7 @@ end class
                     FeaturesResources.Comments_not_allowed))
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.ValidateJsonString)>
+        <Fact>
         Public Async Function TestJsonDocumentCommentsDisallowed() As Task
             Await TestDiagnosticInfoAsync("<Workspace>
     <Project Language=""Visual Basic"" CommonReferencesNet6=""true"">
@@ -179,7 +180,7 @@ end class
                 globalOptions:=OptionOn())
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.ValidateJsonString)>
+        <Fact>
         Public Async Function TestJsonDocumentCommentsAllowed() As Task
             Await TestDiagnosticMissingAsync("<Workspace>
     <Project Language=""Visual Basic"" CommonReferencesNet6=""true"">
@@ -196,7 +197,7 @@ end class
 </Workspace>")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.ValidateJsonString)>
+        <Fact>
         Public Async Function TestJsonDocumentCommentsAllowedCaseInsensitive() As Task
             Await TestDiagnosticMissingAsync("<Workspace>
     <Project Language=""Visual Basic"" CommonReferencesNet6=""true"">

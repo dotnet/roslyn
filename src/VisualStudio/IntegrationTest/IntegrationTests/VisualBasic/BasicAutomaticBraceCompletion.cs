@@ -15,6 +15,7 @@ using Xunit;
 namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
 {
     [Collection(nameof(SharedIntegrationHostFixture))]
+    [Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
     public class BasicAutomaticBraceCompletion : AbstractEditorTest
     {
         protected override string LanguageName => LanguageNames.VisualBasic;
@@ -24,7 +25,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
         {
         }
 
-        [WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfTheory, CombinatorialData]
         public void Braces_InsertionAndTabCompleting(bool argumentCompletion)
         {
             VisualStudio.Workspace.SetArgumentCompletionSnippetsOption(argumentCompletion);
@@ -65,7 +66,7 @@ End Class");
             }
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact]
         public void Braces_Overtyping()
         {
             SetUpEditor(@"
@@ -80,7 +81,7 @@ End Class");
             VisualStudio.Editor.Verify.CurrentLineText("Dim x = {}$$", assertCaretPosition: true);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact]
         public void ParenthesesTypeoverAfterStringLiterals()
         {
             SetUpEditor(@"
@@ -103,7 +104,7 @@ End Class");
             VisualStudio.Editor.Verify.CurrentLineText("Console.Write(\"\")$$", assertCaretPosition: true);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact]
         public void Braces_OnReturnNoFormattingOnlyIndentationBeforeCloseBrace()
         {
             SetUpEditor(@"
@@ -126,7 +127,7 @@ End Class",
 assertCaretPosition: true);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact]
         public void Paren_InsertionAndTabCompleting()
         {
             SetUpEditor(@"
@@ -143,7 +144,7 @@ End Class");
             VisualStudio.Editor.Verify.CurrentLineText("Sub Goo(x As Long)$$", assertCaretPosition: true);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact]
         public void Paren_Overtyping()
         {
             SetUpEditor(@"
@@ -159,7 +160,7 @@ End Class");
             VisualStudio.Editor.Verify.CurrentLineText("Sub Goo()$$", assertCaretPosition: true);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact]
         public void Bracket_Insertion()
         {
             SetUpEditor(@"
@@ -173,7 +174,7 @@ End Class");
             VisualStudio.Editor.Verify.CurrentLineText("Dim [Dim$$]", assertCaretPosition: true);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact]
         public void Bracket_Overtyping()
         {
             SetUpEditor(@"
@@ -190,7 +191,7 @@ End Class");
             VisualStudio.Editor.Verify.CurrentLineText("Dim [Dim] As Long$$", assertCaretPosition: true);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact]
         public void DoubleQuote_InsertionAndTabCompletion()
         {
             // Disable new rename UI for now, it's causing these tests to fail.
@@ -211,7 +212,7 @@ End Class");
             VisualStudio.Editor.Verify.CurrentLineText("Dim str = \"\"$$", assertCaretPosition: true);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact]
         public void Nested_AllKinds_1()
         {
             SetUpEditor(@"
@@ -233,7 +234,7 @@ End Class");
             Assert.Contains("Dim y = {New C([dim]:=\"hello({[\")}", actualText);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact]
         public void Nested_AllKinds_2()
         {
             SetUpEditor(@"
@@ -259,7 +260,7 @@ End Class");
             Assert.Contains("Dim y = {New C([dim]:=\"hello({[\")}", actualText);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact]
         public void Negative_NoCompletionInComments()
         {
             SetUpEditor(@"
@@ -273,7 +274,7 @@ End Class");
             VisualStudio.Editor.Verify.CurrentLineText("' {([\"$$", assertCaretPosition: true);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact]
         public void Negative_NoCompletionInStringLiterals()
         {
             SetUpEditor(@"
@@ -287,7 +288,7 @@ End Class");
             VisualStudio.Editor.Verify.CurrentLineText("Dim s = \"{([$$\"", assertCaretPosition: true);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact]
         public void Negative_NoCompletionInXmlDocComment()
         {
             SetUpEditor(@"
@@ -303,7 +304,7 @@ End Class");
             VisualStudio.Editor.Verify.CurrentLineText("''' {([\"$$", assertCaretPosition: true);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact]
         public void Negative_NoCompletionInXmlDocCommentAtEndOfTag()
         {
             SetUpEditor(@"
@@ -320,7 +321,7 @@ End Class");
         }
 
         [WorkItem(652015, "DevDiv")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact]
         public void LineCommittingIssue()
         {
             SetUpEditor(@"
@@ -335,7 +336,7 @@ End Class");
         }
 
         [WorkItem(653399, "DevDiv")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact]
         public void VirtualWhitespaceIssue()
         {
             SetUpEditor(@"
@@ -352,7 +353,7 @@ End Class");
         }
 
         [WorkItem(659684, "DevDiv")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact]
         public void CompletionWithIntelliSenseWindowUp()
         {
             SetUpEditor(@"
@@ -369,7 +370,7 @@ End Class");
         }
 
         [WorkItem(657451, "DevDiv")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact]
         public void CompletionAtTheEndOfFile()
         {
             SetUpEditor(@"

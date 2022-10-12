@@ -74,6 +74,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Watch.Api
             var newSessionId = await _encService.StartDebuggingSessionAsync(
                 solution,
                 new DebuggerService(_capabilities),
+                NullPdbMatchingSourceTextProvider.Instance,
                 captureMatchingDocuments: ImmutableArray<DocumentId>.Empty,
                 captureAllMatchingDocuments: true,
                 reportDiagnostics: false,

@@ -21,7 +21,7 @@ public class WorkspaceProjectDiagnosticsTests : AbstractPullDiagnosticTestsBase
     [Theory, CombinatorialData]
     public async Task TestWorkspaceDiagnosticsReportsProjectDiagnostic(bool useVSDiagnostics)
     {
-        using var testLspServer = await CreateTestWorkspaceWithDiagnosticsAsync(string.Empty, BackgroundAnalysisScope.FullSolution, useVSDiagnostics);
+        await using var testLspServer = await CreateTestWorkspaceWithDiagnosticsAsync(string.Empty, BackgroundAnalysisScope.FullSolution, useVSDiagnostics);
 
         var results = await RunGetWorkspacePullDiagnosticsAsync(testLspServer, useVSDiagnostics);
 
@@ -40,7 +40,7 @@ public class WorkspaceProjectDiagnosticsTests : AbstractPullDiagnosticTestsBase
     [Theory, CombinatorialData]
     public async Task TestWorkspaceDiagnosticsWithRemovedProject(bool useVSDiagnostics)
     {
-        using var testLspServer = await CreateTestWorkspaceWithDiagnosticsAsync(string.Empty, BackgroundAnalysisScope.FullSolution, useVSDiagnostics);
+        await using var testLspServer = await CreateTestWorkspaceWithDiagnosticsAsync(string.Empty, BackgroundAnalysisScope.FullSolution, useVSDiagnostics);
 
         var results = await RunGetWorkspacePullDiagnosticsAsync(testLspServer, useVSDiagnostics);
 

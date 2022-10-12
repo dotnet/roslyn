@@ -151,6 +151,7 @@ namespace Microsoft.CodeAnalysis.LanguageService
         int? OrPattern { get; }
         int? ParenthesizedPattern { get; }
         int? RecursivePattern { get; }
+        int? RelationalPattern { get; }
         int? TypePattern { get; }
         int? VarPattern { get; }
 
@@ -175,12 +176,15 @@ namespace Microsoft.CodeAnalysis.LanguageService
 
         int Attribute { get; }
         int ClassDeclaration { get; }
+        int InterfaceDeclaration { get; }
         int? RecordDeclaration { get; }
         int? RecordStructDeclaration { get; }
+        int? StructDeclaration { get; }
         int Parameter { get; }
         int TypeConstraint { get; }
         int VariableDeclarator { get; }
         int FieldDeclaration { get; }
+        int PropertyDeclaration { get; }
 
         int IncompleteMember { get; }
         int TypeArgumentList { get; }

@@ -418,7 +418,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                     customTags:=ImmutableArray(Of String).Empty,
                     properties:=ImmutableDictionary(Of String, String).Empty,
                     project.Id,
-                    location:=New DiagnosticDataLocation(documentId:=Nothing, sourceSpan:=Nothing, "Test.txt", 4, 4),
+                    location:=New DiagnosticDataLocation(New FileLinePositionSpan("Test.txt", New LinePosition(4, 4), New LinePosition(4, 4)), documentId:=Nothing),
                     language:=project.Language)
 
                     AddHandler service.DiagnosticsUpdated, Sub(o, args)
@@ -494,6 +494,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                 isEnabledByDefault:=True,
                 warningLevel:=0,
                 projectId:=projectId,
+                location:=New DiagnosticDataLocation(New FileLinePositionSpan("", Nothing)),
                 customTags:=ImmutableArray(Of String).Empty,
                 properties:=properties,
                 language:=LanguageNames.VisualBasic)

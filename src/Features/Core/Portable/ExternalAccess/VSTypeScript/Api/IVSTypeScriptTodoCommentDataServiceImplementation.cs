@@ -5,42 +5,41 @@
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.TodoComments;
+using Microsoft.CodeAnalysis.TaskList;
 
-namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript.Api
+namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript.Api;
+
+internal readonly struct VSTypeScriptTaskListItem
 {
-    internal readonly struct VSTypeScriptTodoCommentData
+    public VSTypeScriptTaskListItem(VSTypeScriptTaskListItemDescriptorWrapper descriptor, string message, int position)
     {
-        public VSTypeScriptTodoCommentData(VSTypeScriptTodoCommentDescriptorWrapper descriptor, string message, int position)
-        {
-            Descriptor = descriptor;
-            Message = message;
-            Position = position;
-        }
-
-        public VSTypeScriptTodoCommentDescriptorWrapper Descriptor { get; }
-        public string Message { get; }
-        public int Position { get; }
+        Descriptor = descriptor;
+        Message = message;
+        Position = position;
     }
 
-    internal readonly struct VSTypeScriptTodoCommentDescriptorWrapper
+    public VSTypeScriptTaskListItemDescriptorWrapper Descriptor { get; }
+    public string Message { get; }
+    public int Position { get; }
+}
+
+internal readonly struct VSTypeScriptTaskListItemDescriptorWrapper
+{
+    internal readonly TaskListItemDescriptor Descriptor;
+
+    public string Text => Descriptor.Text;
+
+    internal VSTypeScriptTaskListItemDescriptorWrapper(TaskListItemDescriptor descriptor)
     {
-        internal readonly TodoCommentDescriptor Descriptor;
-
-        public string Text => Descriptor.Text;
-
-        internal VSTypeScriptTodoCommentDescriptorWrapper(TodoCommentDescriptor descriptor)
-        {
-            Descriptor = descriptor;
-        }
-
-        public static ImmutableArray<VSTypeScriptTodoCommentDescriptorWrapper> Parse(ImmutableArray<string> items)
-            => TodoCommentDescriptor.Parse(items).SelectAsArray(d => new VSTypeScriptTodoCommentDescriptorWrapper(d));
+        Descriptor = descriptor;
     }
 
-    internal interface IVSTypeScriptTodoCommentDataServiceImplementation
-    {
-        Task<ImmutableArray<VSTypeScriptTodoCommentData>> GetTodoCommentDataAsync(
-            Document document, ImmutableArray<VSTypeScriptTodoCommentDescriptorWrapper> value, CancellationToken cancellationToken);
-    }
+    public static ImmutableArray<VSTypeScriptTaskListItemDescriptorWrapper> Parse(ImmutableArray<string> items)
+        => TaskListItemDescriptor.Parse(items).SelectAsArray(d => new VSTypeScriptTaskListItemDescriptorWrapper(d));
+}
+
+internal interface IVSTypeScriptTaskListServiceImplementation
+{
+    Task<ImmutableArray<VSTypeScriptTaskListItem>> GetTaskListItemsAsync(
+        Document document, ImmutableArray<VSTypeScriptTaskListItemDescriptorWrapper> value, CancellationToken cancellationToken);
 }

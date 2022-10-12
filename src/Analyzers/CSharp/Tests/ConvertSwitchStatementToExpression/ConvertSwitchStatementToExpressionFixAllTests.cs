@@ -15,9 +15,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertSwitchStatementT
         ConvertSwitchStatementToExpressionDiagnosticAnalyzer,
         ConvertSwitchStatementToExpressionCodeFixProvider>;
 
+    [Trait(Traits.Feature, Traits.Features.CodeActionsConvertSwitchStatementToExpression)]
     public class ConvertSwitchStatementToExpressionFixAllTests
     {
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertSwitchStatementToExpression)]
+        [Fact]
         public async Task TestNested_01()
         {
             await VerifyCS.VerifyCodeFixAsync(
@@ -163,7 +164,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertSwitchStatementT
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertSwitchStatementToExpression)]
+        [Fact]
         public async Task TestNested_02()
         {
             var input = @"class Program
@@ -214,8 +215,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertSwitchStatementT
             }.RunAsync();
         }
 
-        [WorkItem(37907, "https://github.com/dotnet/roslyn/issues/37907")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertSwitchStatementToExpression)]
+        [Fact, WorkItem(37907, "https://github.com/dotnet/roslyn/issues/37907")]
         public async Task TestNested_03()
         {
             await VerifyCS.VerifyCodeFixAsync(
@@ -273,8 +273,7 @@ class Program
     }
 }");
         }
-        [WorkItem(44572, "https://github.com/dotnet/roslyn/issues/44572")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertSwitchStatementToExpression)]
+        [Fact, WorkItem(44572, "https://github.com/dotnet/roslyn/issues/44572")]
         public async Task TestImplicitConversion()
         {
             await VerifyCS.VerifyCodeFixAsync(

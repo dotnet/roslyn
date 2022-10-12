@@ -237,7 +237,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression argument = (node.Expression == null)
                 ? BadExpression(node).MakeCompilerGenerated()
                 : BindValue(node.Expression, diagnostics, BindValueKind.RValue);
-            argument = ValidateEscape(argument, ExternalScope, isByRef: false, diagnostics: diagnostics);
+            argument = ValidateEscape(argument, ReturnOnlyScope, isByRef: false, diagnostics: diagnostics);
 
             if (!argument.HasAnyErrors)
             {
@@ -691,18 +691,18 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundStatement BindDeclarationStatementParts(LocalDeclarationStatementSyntax node, BindingDiagnosticBag diagnostics)
         {
-            var typeSyntax = node.Declaration.Type.SkipRef(out _);
+            var typeSyntax = node.Declaration.Type;
             bool isConst = node.IsConst;
 
-            foreach (var modifier in node.Modifiers)
+            if (typeSyntax is ScopedTypeSyntax scopedType)
             {
-                // Check for support for 'scoped'. Duplicate modifiers are reported
-                // as errors in parsing rather than here.
-                if (modifier.Kind() == SyntaxKind.ScopedKeyword)
-                {
-                    ModifierUtils.CheckScopedModifierAvailability(node, modifier, diagnostics);
-                }
+                // Check for support for 'scoped'.
+                ModifierUtils.CheckScopedModifierAvailability(node, scopedType.ScopedKeyword, diagnostics);
+
+                typeSyntax = scopedType.Type;
             }
+
+            typeSyntax = typeSyntax.SkipRef(out _);
 
             bool isVar;
             AliasSymbol alias;
@@ -783,7 +783,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             // or it might not; if it is not then we do not want to report an error. If it is, then
             // we want to treat the declaration as an explicitly typed declaration.
 
-            TypeWithAnnotations declType = BindTypeOrVarKeyword(typeSyntax.SkipRef(out _), diagnostics, out isVar, out alias);
+            Debug.Assert(typeSyntax is not ScopedTypeSyntax);
+            TypeWithAnnotations declType = BindTypeOrVarKeyword(typeSyntax.SkipScoped(out _).SkipRef(out _), diagnostics, out isVar, out alias);
             Debug.Assert(declType.HasType || isVar);
 
             if (isVar)
@@ -1235,11 +1236,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     ContainingMemberOrLambda,
                     this,
                     allowRefKind: false, // do not allow ref
+                    allowScoped: false,
                     typeSyntax,
                     identifier,
                     kind,
-                    equalsValue,
-                    hasScopedModifier: false);
+                    equalsValue);
             }
 
             return localSymbol;
@@ -1545,8 +1546,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var rightEscape = GetRefEscape(op2, LocalScopeDepth);
                         if (leftEscape < rightEscape)
                         {
-                            Error(diagnostics, ErrorCode.ERR_RefAssignNarrower, node, getName(op1), op2.Syntax);
-                            op2 = ToBadExpression(op2);
+                            var errorCode = (rightEscape, this.InUnsafeRegion) switch
+                            {
+                                (Binder.ReturnOnlyScope, false) => ErrorCode.ERR_RefAssignReturnOnly,
+                                (Binder.ReturnOnlyScope, true) => ErrorCode.WRN_RefAssignReturnOnly,
+                                (_, false) => ErrorCode.ERR_RefAssignNarrower,
+                                (_, true) => ErrorCode.WRN_RefAssignNarrower
+                            };
+
+                            Error(diagnostics, errorCode, node, getName(op1), op2.Syntax);
+                            if (!this.InUnsafeRegion)
+                            {
+                                op2 = ToBadExpression(op2);
+                            }
                         }
                     }
 
@@ -2685,6 +2697,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var typeSyntax = nodeOpt.Type;
+            Debug.Assert(typeSyntax is not ScopedTypeSyntax || localKind is LocalDeclarationKind.RegularVariable or LocalDeclarationKind.UsingVariable);
+
+            if (typeSyntax is ScopedTypeSyntax scopedType)
+            {
+                // Check for support for 'scoped'.
+                ModifierUtils.CheckScopedModifierAvailability(typeSyntax, scopedType.ScopedKeyword, diagnostics);
+
+                typeSyntax = scopedType.Type;
+            }
+
             // Fixed and using variables are not allowed to be ref-like, but regular variables are
             if (localKind == LocalDeclarationKind.RegularVariable)
             {
@@ -2976,7 +2998,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     else
                     {
                         arg = CreateReturnConversion(syntax, diagnostics, arg, sigRefKind, retType);
-                        arg = ValidateEscape(arg, Binder.ExternalScope, refKind != RefKind.None, diagnostics);
+                        arg = ValidateEscape(arg, Binder.ReturnOnlyScope, refKind != RefKind.None, diagnostics);
                     }
                 }
             }
@@ -3418,7 +3440,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ExpressionSyntax expressionSyntax = expressionBody.Expression.CheckAndUnwrapRefExpression(diagnostics, out refKind);
                 BindValueKind requiredValueKind = bodyBinder.GetRequiredReturnValueKind(refKind);
                 BoundExpression expression = bodyBinder.BindValue(expressionSyntax, diagnostics, requiredValueKind);
-                expression = bodyBinder.ValidateEscape(expression, Binder.ExternalScope, refKind != RefKind.None, diagnostics);
+                expression = bodyBinder.ValidateEscape(expression, Binder.ReturnOnlyScope, refKind != RefKind.None, diagnostics);
 
                 return bodyBinder.CreateBlockFromExpression(expressionBody, bodyBinder.GetDeclaredLocalsForScope(expressionBody), refKind, expression, expressionSyntax, diagnostics);
             }
@@ -3436,7 +3458,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var expressionSyntax = body.CheckAndUnwrapRefExpression(diagnostics, out refKind);
             BindValueKind requiredValueKind = GetRequiredReturnValueKind(refKind);
             BoundExpression expression = bodyBinder.BindValue(expressionSyntax, diagnostics, requiredValueKind);
-            expression = ValidateEscape(expression, Binder.ExternalScope, refKind != RefKind.None, diagnostics);
+            expression = ValidateEscape(expression, Binder.ReturnOnlyScope, refKind != RefKind.None, diagnostics);
 
             return bodyBinder.CreateBlockFromExpression(body, bodyBinder.GetDeclaredLocalsForScope(body), refKind, expression, expressionSyntax, diagnostics);
         }
@@ -3525,10 +3547,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             Binder bodyBinder = this.GetBinder(recordDecl);
             Debug.Assert(bodyBinder != null);
 
-            BoundExpressionStatement initializer = null;
+            BoundExpressionStatement initializer;
             if (recordDecl.PrimaryConstructorBaseTypeIfClass is PrimaryConstructorBaseTypeSyntax baseWithArguments)
             {
                 initializer = bodyBinder.BindConstructorInitializer(baseWithArguments, diagnostics);
+            }
+            else
+            {
+                initializer = bodyBinder.BindImplicitConstructorInitializer(recordDecl, diagnostics);
             }
 
             return new BoundConstructorMethodBody(recordDecl,
@@ -3582,7 +3608,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Using BindStatement to bind block to make sure we are reusing results of partial binding in SemanticModel
             return new BoundConstructorMethodBody(constructor,
                                                   bodyBinder.GetDeclaredLocalsForScope(constructor),
-                                                  initializer == null ? null : bodyBinder.BindConstructorInitializer(initializer, diagnostics),
+                                                  initializer == null ? bodyBinder.BindImplicitConstructorInitializer(constructor, diagnostics) : bodyBinder.BindConstructorInitializer(initializer, diagnostics),
                                                   constructor.Body == null ? null : (BoundBlock)bodyBinder.BindStatement(constructor.Body, diagnostics),
                                                   constructor.ExpressionBody == null ?
                                                       null :
@@ -3613,6 +3639,251 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(initializerInvocation.HasAnyErrors || constructorInitializer.IsConstructorInitializer(), "Please keep this bound node in sync with BoundNodeExtensions.IsConstructorInitializer.");
             return constructorInitializer;
         }
+
+#nullable enable
+        internal BoundExpressionStatement? BindImplicitConstructorInitializer(SyntaxNode ctorSyntax, BindingDiagnosticBag diagnostics)
+        {
+            BoundExpression? initializerInvocation;
+            initializerInvocation = BindImplicitConstructorInitializer((MethodSymbol)this.ContainingMember(), diagnostics, Compilation);
+
+            if (initializerInvocation is null)
+            {
+                return null;
+            }
+
+            //  Base WasCompilerGenerated state off of whether constructor is implicitly declared, this will ensure proper instrumentation.
+            var constructorInitializer = new BoundExpressionStatement(ctorSyntax, initializerInvocation) { WasCompilerGenerated = ((MethodSymbol)ContainingMember()).IsImplicitlyDeclared };
+            Debug.Assert(initializerInvocation.HasAnyErrors || constructorInitializer.IsConstructorInitializer(), "Please keep this bound node in sync with BoundNodeExtensions.IsConstructorInitializer.");
+            return constructorInitializer;
+        }
+
+        /// <summary>
+        /// Bind the implicit constructor initializer of a constructor symbol.
+        /// </summary>
+        /// <param name="constructor">Constructor method.</param>
+        /// <param name="diagnostics">Accumulates errors (e.g. access "this" in constructor initializer).</param>
+        /// <param name="compilation">Used to retrieve binder.</param>
+        /// <returns>A bound expression for the constructor initializer call.</returns>
+        internal static BoundExpression? BindImplicitConstructorInitializer(
+            MethodSymbol constructor, BindingDiagnosticBag diagnostics, CSharpCompilation compilation)
+        {
+            if (constructor.MethodKind != MethodKind.Constructor || constructor.IsExtern)
+            {
+                return null;
+            }
+
+            // Note that the base type can be null if we're compiling System.Object in source.
+            NamedTypeSymbol containingType = constructor.ContainingType;
+            NamedTypeSymbol baseType = containingType.BaseTypeNoUseSiteDiagnostics;
+
+            SourceMemberMethodSymbol? sourceConstructor = constructor as SourceMemberMethodSymbol;
+            Debug.Assert(sourceConstructor?.SyntaxNode is RecordDeclarationSyntax
+                || ((ConstructorDeclarationSyntax?)sourceConstructor?.SyntaxNode)?.Initializer == null);
+
+            // The common case is that the type inherits directly from object.
+            // Also, we might be trying to generate a constructor for an entirely compiler-generated class such
+            // as a closure class; in that case it is vexing to try to find a suitable binder for the non-existing
+            // constructor syntax so that we can do unnecessary overload resolution on the non-existing initializer!
+            // Simply take the early out: bind directly to the parameterless object ctor rather than attempting
+            // overload resolution.
+            if ((object)baseType != null)
+            {
+                if (baseType.SpecialType == SpecialType.System_Object)
+                {
+                    return GenerateBaseParameterlessConstructorInitializer(constructor, diagnostics);
+                }
+                else if (baseType.IsErrorType() || baseType.IsStatic)
+                {
+                    // If the base type is bad and there is no initializer then we can just bail.
+                    // We have no expressions we need to analyze to report errors on.
+                    return null;
+                }
+            }
+
+            if (containingType.IsStructType() || containingType.IsEnumType())
+            {
+                return null;
+            }
+            else if (constructor is SynthesizedRecordCopyCtor copyCtor)
+            {
+                return GenerateBaseCopyConstructorInitializer(copyCtor, diagnostics);
+            }
+
+            // Now, in order to do overload resolution, we're going to need a binder. There are
+            // two possible situations:
+            //
+            // class D1 : B { }
+            // class D2 : B { D2(int x) { } }
+            //
+            // In the first case the binder needs to be the binder associated with
+            // the *body* of D1 because if the base class ctor is protected, we need
+            // to be inside the body of a derived class in order for it to be in the
+            // accessibility domain of the protected base class ctor.
+            //
+            // In the second case the binder could be the binder associated with
+            // the body of D2; since the implicit call to base() will have no arguments
+            // there is no need to look up "x".
+            Binder outerBinder;
+
+            if ((object?)sourceConstructor == null)
+            {
+                // The constructor is implicit. We need to get the binder for the body
+                // of the enclosing class.
+                CSharpSyntaxNode containerNode = constructor.GetNonNullSyntaxNode();
+                BinderFactory binderFactory = compilation.GetBinderFactory(containerNode.SyntaxTree);
+
+                if (containerNode is RecordDeclarationSyntax recordDecl)
+                {
+                    outerBinder = binderFactory.GetInRecordBodyBinder(recordDecl);
+                }
+                else
+                {
+                    SyntaxToken bodyToken = GetImplicitConstructorBodyToken(containerNode);
+                    outerBinder = binderFactory.GetBinder(containerNode, bodyToken.Position);
+                }
+            }
+            else
+            {
+                BinderFactory binderFactory = compilation.GetBinderFactory(sourceConstructor.SyntaxTree);
+
+                switch (sourceConstructor.SyntaxNode)
+                {
+                    case ConstructorDeclarationSyntax ctorDecl:
+                        // We have a ctor in source but no explicit constructor initializer.  We can't just use the binder for the
+                        // type containing the ctor because the ctor might be marked unsafe.  Use the binder for the parameter list
+                        // as an approximation - the extra symbols won't matter because there are no identifiers to bind.
+
+                        outerBinder = binderFactory.GetBinder(ctorDecl.ParameterList);
+                        break;
+
+                    case RecordDeclarationSyntax recordDecl:
+                        outerBinder = binderFactory.GetInRecordBodyBinder(recordDecl);
+                        break;
+
+                    default:
+                        throw ExceptionUtilities.Unreachable();
+                }
+            }
+
+            // wrap in ConstructorInitializerBinder for appropriate errors
+            // Handle scoping for possible pattern variables declared in the initializer
+            Binder initializerBinder = outerBinder.WithAdditionalFlagsAndContainingMemberOrLambda(BinderFlags.ConstructorInitializer, constructor);
+
+            return initializerBinder.BindConstructorInitializer(null, constructor, diagnostics);
+        }
+
+        private static SyntaxToken GetImplicitConstructorBodyToken(CSharpSyntaxNode containerNode)
+        {
+            return ((BaseTypeDeclarationSyntax)containerNode).OpenBraceToken;
+        }
+
+        internal static BoundCall? GenerateBaseParameterlessConstructorInitializer(MethodSymbol constructor, BindingDiagnosticBag diagnostics)
+        {
+            NamedTypeSymbol baseType = constructor.ContainingType.BaseTypeNoUseSiteDiagnostics;
+            MethodSymbol? baseConstructor = null;
+            LookupResultKind resultKind = LookupResultKind.Viable;
+            Location diagnosticsLocation = constructor.Locations.IsEmpty ? NoLocation.Singleton : constructor.Locations[0];
+
+            foreach (MethodSymbol ctor in baseType.InstanceConstructors)
+            {
+                if (ctor.ParameterCount == 0)
+                {
+                    baseConstructor = ctor;
+                    break;
+                }
+            }
+
+            // UNDONE: If this happens then something is deeply wrong. Should we give a better error?
+            if ((object?)baseConstructor == null)
+            {
+                diagnostics.Add(ErrorCode.ERR_BadCtorArgCount, diagnosticsLocation, baseType, /*desired param count*/ 0);
+                return null;
+            }
+
+            if (Binder.ReportUseSite(baseConstructor, diagnostics, diagnosticsLocation))
+            {
+                return null;
+            }
+
+            // UNDONE: If this happens then something is deeply wrong. Should we give a better error?
+            bool hasErrors = false;
+            var useSiteInfo = new CompoundUseSiteInfo<AssemblySymbol>(diagnostics, constructor.ContainingAssembly);
+            if (!AccessCheck.IsSymbolAccessible(baseConstructor, constructor.ContainingType, ref useSiteInfo))
+            {
+                diagnostics.Add(ErrorCode.ERR_BadAccess, diagnosticsLocation, baseConstructor);
+                resultKind = LookupResultKind.Inaccessible;
+                hasErrors = true;
+            }
+
+            diagnostics.Add(diagnosticsLocation, useSiteInfo);
+
+            CSharpSyntaxNode syntax = constructor.GetNonNullSyntaxNode();
+
+            BoundExpression receiver = new BoundThisReference(syntax, constructor.ContainingType) { WasCompilerGenerated = true };
+            return new BoundCall(
+                syntax: syntax,
+                receiverOpt: receiver,
+                method: baseConstructor,
+                arguments: ImmutableArray<BoundExpression>.Empty,
+                argumentNamesOpt: ImmutableArray<string>.Empty,
+                argumentRefKindsOpt: ImmutableArray<RefKind>.Empty,
+                isDelegateCall: false,
+                expanded: false,
+                invokedAsExtensionMethod: false,
+                argsToParamsOpt: ImmutableArray<int>.Empty,
+                defaultArguments: BitVector.Empty,
+                resultKind: resultKind,
+                type: baseConstructor.ReturnType,
+                hasErrors: hasErrors)
+            { WasCompilerGenerated = true };
+        }
+
+        private static BoundCall? GenerateBaseCopyConstructorInitializer(SynthesizedRecordCopyCtor constructor, BindingDiagnosticBag diagnostics)
+        {
+            NamedTypeSymbol containingType = constructor.ContainingType;
+            NamedTypeSymbol baseType = containingType.BaseTypeNoUseSiteDiagnostics;
+            Location diagnosticsLocation = constructor.Locations.FirstOrNone();
+
+            var useSiteInfo = new CompoundUseSiteInfo<AssemblySymbol>(diagnostics, containingType.ContainingAssembly);
+            MethodSymbol? baseConstructor = SynthesizedRecordCopyCtor.FindCopyConstructor(baseType, containingType, ref useSiteInfo);
+
+            if (baseConstructor is null)
+            {
+                diagnostics.Add(ErrorCode.ERR_NoCopyConstructorInBaseType, diagnosticsLocation, baseType);
+                return null;
+            }
+
+            var constructorUseSiteInfo = new CompoundUseSiteInfo<AssemblySymbol>(diagnostics, constructor.ContainingAssembly);
+            constructorUseSiteInfo.Add(baseConstructor.GetUseSiteInfo());
+            if (Binder.ReportConstructorUseSiteDiagnostics(diagnosticsLocation, diagnostics, suppressUnsupportedRequiredMembersError: constructor.HasSetsRequiredMembers, constructorUseSiteInfo))
+            {
+                return null;
+            }
+
+            diagnostics.Add(diagnosticsLocation, useSiteInfo);
+
+            CSharpSyntaxNode syntax = constructor.GetNonNullSyntaxNode();
+            BoundExpression receiver = new BoundThisReference(syntax, constructor.ContainingType) { WasCompilerGenerated = true };
+            BoundExpression argument = new BoundParameter(syntax, constructor.Parameters[0]);
+
+            return new BoundCall(
+                syntax: syntax,
+                receiverOpt: receiver,
+                method: baseConstructor,
+                arguments: ImmutableArray.Create(argument),
+                argumentNamesOpt: default,
+                argumentRefKindsOpt: default,
+                isDelegateCall: false,
+                expanded: false,
+                invokedAsExtensionMethod: false,
+                argsToParamsOpt: default,
+                defaultArguments: default,
+                resultKind: LookupResultKind.Viable,
+                type: baseConstructor.ReturnType,
+                hasErrors: false)
+            { WasCompilerGenerated = true };
+        }
+#nullable disable
 
         private BoundNode BindMethodBody(CSharpSyntaxNode declaration, BlockSyntax blockBody, ArrowExpressionClauseSyntax expressionBody, BindingDiagnosticBag diagnostics)
         {

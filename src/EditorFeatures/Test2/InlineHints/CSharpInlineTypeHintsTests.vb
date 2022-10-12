@@ -3,10 +3,11 @@
 ' See the LICENSE file in the project root for more information.
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.InlineHints
+    <Trait(Traits.Feature, Traits.Features.InlineHints)>
     Public Class CSharpInlineTypeHintsTests
         Inherits AbstractInlineHintsTests
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.InlineHints)>
+        <WpfFact>
         Public Async Function TestNotOnLocalVariableWithType() As Task
             Dim input =
             <Workspace>
@@ -26,7 +27,7 @@ class A
             Await VerifyTypeHints(input, input)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.InlineHints)>
+        <WpfFact>
         Public Async Function TestOnLocalVariableWithVarType() As Task
             Dim input =
             <Workspace>
@@ -61,7 +62,7 @@ class A
             Await VerifyTypeHints(input, output)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.InlineHints)>
+        <WpfFact>
         Public Async Function TestOnLocalVariableWithVarType_Ephemeral() As Task
             Dim input =
             <Workspace>
@@ -96,7 +97,7 @@ class A
             Await VerifyTypeHints(input, output, ephemeral:=True)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.InlineHints)>
+        <WpfFact>
         Public Async Function TestOnDeconstruction() As Task
             Dim input =
             <Workspace>
@@ -131,7 +132,7 @@ class A
             Await VerifyTypeHints(input, output)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.InlineHints)>
+        <WpfFact>
         Public Async Function TestOutVarTuple() As Task
             Dim input =
             <Workspace>
@@ -170,7 +171,7 @@ class A
             Await VerifyTypeHints(input, output)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.InlineHints)>
+        <WpfFact>
         Public Async Function TestForEachDeconstruction() As Task
             Dim input =
             <Workspace>
@@ -213,7 +214,7 @@ class A
             Await VerifyTypeHints(input, output)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.InlineHints)>
+        <WpfFact>
         Public Async Function TestForEachDeconstruction_NestedTuples() As Task
             Dim input =
             <Workspace>
@@ -264,7 +265,7 @@ class A
             Await VerifyTypeHints(input, output)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.InlineHints)>
+        <WpfFact>
         Public Async Function TestWithForeachVar() As Task
             Dim input =
             <Workspace>
@@ -299,7 +300,7 @@ class A
             Await VerifyTypeHints(input, output)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.InlineHints)>
+        <WpfFact>
         Public Async Function TestWithForeachVar_Ephemeral() As Task
             Dim input =
             <Workspace>
@@ -334,7 +335,7 @@ class A
             Await VerifyTypeHints(input, output, ephemeral:=True)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.InlineHints)>
+        <WpfFact>
         Public Async Function TestNotWithForeachType() As Task
             Dim input =
             <Workspace>
@@ -354,7 +355,7 @@ class A
             Await VerifyTypeHints(input, input)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.InlineHints)>
+        <WpfFact>
         Public Async Function TestWithPatternVar() As Task
             Dim input =
             <Workspace>
@@ -389,7 +390,7 @@ class A
             Await VerifyTypeHints(input, output)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.InlineHints)>
+        <WpfFact>
         Public Async Function TestWithPatternVar_Ephemeral() As Task
             Dim input =
             <Workspace>
@@ -423,7 +424,7 @@ class A
             Await VerifyTypeHints(input, output, ephemeral:=True)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.InlineHints)>
+        <WpfFact>
         Public Async Function TestNotWithPatternType() As Task
             Dim input =
             <Workspace>
@@ -443,7 +444,7 @@ class A
             Await VerifyTypeHints(input, input)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.InlineHints)>
+        <WpfFact>
         Public Async Function TestWithSimpleLambda() As Task
             Dim input =
             <Workspace>
@@ -480,7 +481,7 @@ class A
             Await VerifyTypeHints(input, output)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.InlineHints)>
+        <WpfFact>
         Public Async Function TestWithParenthesizedLambda() As Task
             Dim input =
             <Workspace>
@@ -517,7 +518,7 @@ class A
             Await VerifyTypeHints(input, output)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.InlineHints)>
+        <WpfFact>
         Public Async Function TestNotWithParenthesizedLambdaWithType() As Task
             Dim input =
             <Workspace>
@@ -538,7 +539,7 @@ class A
             Await VerifyTypeHints(input, input)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.InlineHints)>
+        <WpfFact>
         Public Async Function TestWithDeclarationExpression() As Task
             Dim input =
             <Workspace>
@@ -577,7 +578,7 @@ class A
             Await VerifyTypeHints(input, output)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.InlineHints)>
+        <WpfFact>
         Public Async Function TestWithDeclarationExpression_Ephemeral() As Task
             Dim input =
             <Workspace>
@@ -616,8 +617,7 @@ class A
             Await VerifyTypeHints(input, output, ephemeral:=True)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.InlineHints)>
-        <WorkItem(48941, "https://github.com/dotnet/roslyn/issues/48941")>
+        <WpfFact, WorkItem(48941, "https://github.com/dotnet/roslyn/issues/48941")>
         Public Async Function TestNotWithStronglyTypedDeclarationExpression() As Task
             Dim input =
             <Workspace>
@@ -639,8 +639,7 @@ class A
             Await VerifyTypeHints(input, input)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.InlineHints)>
-        <WorkItem(49657, "https://github.com/dotnet/roslyn/issues/49657")>
+        <WpfFact, WorkItem(49657, "https://github.com/dotnet/roslyn/issues/49657")>
         Public Async Function TestWithImplicitObjectCreation_InMethodArgument() As Task
             Dim input =
             <Workspace>
@@ -683,8 +682,7 @@ class A
             Await VerifyTypeHints(input, output)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.InlineHints)>
-        <WorkItem(49657, "https://github.com/dotnet/roslyn/issues/49657")>
+        <WpfFact, WorkItem(49657, "https://github.com/dotnet/roslyn/issues/49657")>
         Public Async Function TestWithImplicitObjectCreation_FieldInitializer() As Task
             Dim input =
             <Workspace>
@@ -713,8 +711,7 @@ class A
             Await VerifyTypeHints(input, output)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.InlineHints)>
-        <WorkItem(49657, "https://github.com/dotnet/roslyn/issues/49657")>
+        <WpfFact, WorkItem(49657, "https://github.com/dotnet/roslyn/issues/49657")>
         Public Async Function TestWithImplicitObjectCreation_LocalInitializer() As Task
             Dim input =
             <Workspace>
@@ -749,8 +746,7 @@ class A
             Await VerifyTypeHints(input, output)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.InlineHints)>
-        <WorkItem(49657, "https://github.com/dotnet/roslyn/issues/49657")>
+        <WpfFact, WorkItem(49657, "https://github.com/dotnet/roslyn/issues/49657")>
         Public Async Function TestWithImplicitObjectCreation_ParameterInitializer() As Task
             Dim input =
             <Workspace>
@@ -779,8 +775,7 @@ class A
             Await VerifyTypeHints(input, output)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.InlineHints)>
-        <WorkItem(49657, "https://github.com/dotnet/roslyn/issues/49657")>
+        <WpfFact, WorkItem(49657, "https://github.com/dotnet/roslyn/issues/49657")>
         Public Async Function TestWithImplicitObjectCreation_Return() As Task
             Dim input =
             <Workspace>
@@ -815,8 +810,7 @@ class A
             Await VerifyTypeHints(input, output)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.InlineHints)>
-        <WorkItem(49657, "https://github.com/dotnet/roslyn/issues/49657")>
+        <WpfFact, WorkItem(49657, "https://github.com/dotnet/roslyn/issues/49657")>
         Public Async Function TestWithImplicitObjectCreation_IfExpression() As Task
             Dim input =
             <Workspace>

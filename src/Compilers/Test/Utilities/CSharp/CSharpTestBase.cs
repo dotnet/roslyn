@@ -37,12 +37,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
 {
     public abstract class CSharpTestBase : CommonTestBase
     {
-        public enum RuntimeFlag
-        {
-            None,
-            ByRefFields,
-        }
-
         protected const string NullableAttributeDefinition = @"
 namespace System.Runtime.CompilerServices
 {
@@ -650,7 +644,7 @@ namespace System.Runtime.CompilerServices
     }
 }";
 
-        protected static readonly MetadataReference RefSafetyRulesAttributeLib =
+        protected static MetadataReference RefSafetyRulesAttributeLib =>
             CreateCompilation(RefSafetyRulesAttributeDefinition).EmitToImageReference();
 
         protected const string RequiredMemberAttribute = @"
@@ -993,32 +987,14 @@ namespace System.Diagnostics.CodeAnalysis
 
         internal CompilationVerifier CompileAndVerifyFieldMarshal(CSharpTestSource source, Func<string, PEAssembly, byte[]> getExpectedBlob, bool isField = true) =>
             CompileAndVerifyFieldMarshalCommon(
-                CreateCompilationWithMscorlib40(source, parseOptions: TestOptions.RegularPreview),
+                CreateCompilationWithMscorlib40(source, parseOptions: TestOptions.RegularPreview.WithNoRefSafetyRulesAttribute()),
                 getExpectedBlob,
                 isField);
 
         #region SyntaxTree Factories
 
         public static SyntaxTree Parse(string text, string filename = "", CSharpParseOptions options = null, Encoding encoding = null, SourceHashAlgorithm checksumAlgorithm = SourceHashAlgorithm.Sha1)
-        {
-            if ((object)options == null)
-            {
-                options = TestOptions.RegularPreview;
-            }
-
-            var stringText = StringText.From(text, encoding ?? Encoding.UTF8, checksumAlgorithm);
-            return CheckSerializable(SyntaxFactory.ParseSyntaxTree(stringText, options, filename));
-        }
-
-        private static SyntaxTree CheckSerializable(SyntaxTree tree)
-        {
-            var stream = new MemoryStream();
-            var root = tree.GetRoot();
-            root.SerializeTo(stream);
-            stream.Position = 0;
-            var deserializedRoot = CSharpSyntaxNode.DeserializeFrom(stream);
-            return tree;
-        }
+            => CSharpTestSource.Parse(text, filename, options, encoding, checksumAlgorithm);
 
         public static SyntaxTree[] Parse(IEnumerable<string> sources, CSharpParseOptions options = null)
         {
@@ -1120,21 +1096,6 @@ namespace System.Diagnostics.CodeAnalysis
             string sourceFileName = "",
             bool skipUsesIsNullable = false) => CreateCompilationCore(source, TargetFrameworkUtil.GetReferences(TargetFramework.Mscorlib45, references), options, parseOptions, assemblyName, sourceFileName, skipUsesIsNullable, experimentalFeature: feature);
 
-        internal static CSharpCompilation CreateNumericIntPtrCompilation(
-              CSharpTestSource source,
-              IEnumerable<MetadataReference> references = null,
-              CSharpCompilationOptions options = null,
-              CSharpParseOptions parseOptions = null,
-              string assemblyName = "",
-              string sourceFileName = "")
-        {
-            // Note: we use skipUsesIsNullable and skipExtraValidation so that nobody pulls
-            // on the compilation or its references before we set the RuntimeSupportsNumericIntPtr flag.
-            var comp = CreateCompilationCore(source, references, options, parseOptions, assemblyName, sourceFileName, skipUsesIsNullable: true, experimentalFeature: null, skipExtraValidation: true);
-            comp.Assembly.RuntimeSupportsNumericIntPtr = true;
-            return comp;
-        }
-
         public static CSharpCompilation CreateCompilationWithWinRT(
             CSharpTestSource source,
             IEnumerable<MetadataReference> references = null,
@@ -1225,35 +1186,9 @@ namespace System.Diagnostics.CodeAnalysis
             TargetFramework targetFramework = TargetFramework.Standard,
             string assemblyName = "",
             string sourceFileName = "",
-            bool skipUsesIsNullable = false,
-            RuntimeFlag runtimeFeature = RuntimeFlag.None)
+            bool skipUsesIsNullable = false)
         {
-            Debug.Assert(targetFramework == TargetFramework.Standard || runtimeFeature == RuntimeFlag.None);
-            if (runtimeFeature == RuntimeFlag.ByRefFields)
-            {
-                // Avoid sharing mscorlib symbols with other tests since we are about to change
-                // RuntimeSupportsByRefFields property for it.
-                var mscorlibWithoutSharing = new[] { GetMscorlibRefWithoutSharingCachedSymbols() };
-
-                // Note: we use skipExtraValidation so that nobody pulls
-                // on the compilation or its references before we set the RuntimeSupportsByRefFields flag.
-                var comp = CreateCompilationCore(source, references is not null ? references.Concat(mscorlibWithoutSharing) : mscorlibWithoutSharing,
-                    options, parseOptions, assemblyName, sourceFileName, skipUsesIsNullable, experimentalFeature: null, skipExtraValidation: true);
-
-                comp.Assembly.RuntimeSupportsByRefFields = true;
-                return comp;
-            }
-
             return CreateEmptyCompilation(source, TargetFrameworkUtil.GetReferences(targetFramework, references), options, parseOptions, assemblyName, sourceFileName, skipUsesIsNullable);
-        }
-
-        public static MetadataReference GetMscorlibRefWithoutSharingCachedSymbols()
-        {
-            // Avoid sharing mscorlib symbols with other tests since we are about to change
-            // RuntimeSupportsByRefFields property for it.
-
-            return ((AssemblyMetadata)((MetadataImageReference)MscorlibRef).GetMetadata()).CopyWithoutSharingCachedSymbols().
-                GetReference(display: "mscorlib.v4_0_30319.dll");
         }
 
         public static CSharpCompilation CreateEmptyCompilation(

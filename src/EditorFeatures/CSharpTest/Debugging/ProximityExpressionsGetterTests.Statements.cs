@@ -11,9 +11,10 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Debugging
 {
+    [Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
     public partial class ProximityExpressionsGetterTests
     {
-        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
+        [Fact]
         public void TestAtStartOfStatement_0()
         {
             //// Line 11
@@ -27,7 +28,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Debugging
             AssertEx.SetEqual(new[] { "expression" }, terms);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
+        [Fact]
         public void TestAtStartOfStatement_1()
         {
             //// Line 13
@@ -41,7 +42,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Debugging
             AssertEx.SetEqual(new[] { "expression" }, terms);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
+        [Fact]
         public void TestAtStartOfStatement_2()
         {
             //// Line 17
@@ -55,7 +56,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Debugging
             AssertEx.SetEqual(new[] { "position", "expression", "terms" }, terms);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
+        [Fact]
         public void TestAtStartOfStatement_3()
         {
             //// Line 19
@@ -69,7 +70,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Debugging
             AssertEx.SetEqual(new[] { "expression", "position", "terms" }, terms);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
+        [Fact]
         public void TestAtStartOfStatement_4()
         {
             //// Line 20
@@ -83,7 +84,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Debugging
             AssertEx.SetEqual(new[] { "expression" }, terms);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
+        [Fact]
         public void TestAtStartOfStatement_5()
         {
             //// Line 21
@@ -97,7 +98,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Debugging
             AssertEx.SetEqual(new[] { "expression" }, terms);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
+        [Fact]
         public void TestAtStartOfStatement_6()
         {
             //// Line 26
@@ -111,7 +112,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Debugging
             AssertEx.SetEqual(new[] { "ExpressionType", "ExpressionType.Invalid", "expression", "expressionType" }, terms);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
+        [Fact]
         public void TestAtStartOfStatement_7()
         {
             //// Line 27
@@ -125,7 +126,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Debugging
             AssertEx.SetEqual(new[] { "position", "expression", "terms", "expressionType", "CollectExpressionTerms", "ExpressionType", "ExpressionType.Invalid" }, terms);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
+        [Fact]
         public void TestAtStartOfStatement_8()
         {
             //// Line 29
@@ -139,7 +140,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Debugging
             AssertEx.SetEqual(new[] { "ExpressionType", "ExpressionType.ValidTerm", "position", "expression", "terms", "expressionType", "CollectExpressionTerms" }, terms);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
+        [Fact]
         public void TestAtStartOfStatement_9()
         {
             //// Line 30
@@ -153,7 +154,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Debugging
             AssertEx.SetEqual(new[] { "ExpressionType", "expressionType", "ExpressionType.ValidTerm" }, terms);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
+        [Fact]
         public void TestAtStartOfStatement_10()
         {
             //// Line 33
@@ -167,7 +168,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Debugging
             AssertEx.SetEqual(new[] { "terms", "expressionType", "expression", "ConvertToString", "ExpressionType", "ExpressionType.ValidTerm" }, terms);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
+        [Fact]
         public void TestAtStartOfStatement_11()
         {
             //// Line 38
@@ -181,7 +182,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Debugging
             AssertEx.SetEqual(new[] { "position", "expression", "terms", "expressionType" }, terms);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
+        [Fact]
         public void TestAtStartOfStatement_12()
         {
             //// Line 40
@@ -195,7 +196,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Debugging
             AssertEx.SetEqual(new[] { "expression", "position", "terms", "expressionType" }, terms);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
+        [Fact]
         public void TestAtStartOfStatement_13()
         {
             //// Line 41
@@ -209,7 +210,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Debugging
             AssertEx.SetEqual(new[] { "expression" }, terms);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
+        [Fact]
         public void TestAtStartOfStatement_14()
         {
             //// Line 42
@@ -223,7 +224,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Debugging
             AssertEx.SetEqual(new[] { "expression" }, terms);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
+        [Fact]
         public void TestAtStartOfStatement_15()
         {
             //// Line 45
@@ -237,7 +238,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Debugging
             AssertEx.SetEqual(new[] { "expression", "expression.Kind" }, terms);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
+        [Fact]
         public void TestAtStartOfStatement_16()
         {
             //// Line 52
@@ -251,7 +252,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Debugging
             AssertEx.SetEqual(new[] { "ExpressionType", "expressionType", "ExpressionType.ValidExpression", "expression", "expression.Kind" }, terms);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
+        [Fact]
         public void TestAtStartOfStatement_17()
         {
             //// Line 53
@@ -265,7 +266,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Debugging
             AssertEx.SetEqual(new[] { "ExpressionType", "expressionType", "ExpressionType.ValidExpression" }, terms);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
+        [Fact]
         public void TestAtStartOfStatement_18()
         {
             //// Line 57
@@ -279,7 +280,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Debugging
             AssertEx.SetEqual(new[] { "ExpressionType", "expressionType", "ExpressionType.ValidTerm", "expression", "expression.Kind" }, terms);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
+        [Fact]
         public void TestAtStartOfStatement_19()
         {
             //// Line 58
@@ -293,7 +294,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Debugging
             AssertEx.SetEqual(new[] { "ExpressionType", "expressionType", "ExpressionType.ValidTerm" }, terms);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
+        [Fact]
         public void TestAtStartOfStatement_20()
         {
             //// Line 69
@@ -307,7 +308,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Debugging
             AssertEx.SetEqual(new[] { "ExpressionType", "expressionType", "ExpressionType.ValidExpression", "expression", "expression.Kind" }, terms);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
+        [Fact]
         public void TestAtStartOfStatement_21()
         {
             //// Line 70
@@ -321,7 +322,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Debugging
             AssertEx.SetEqual(new[] { "ExpressionType", "expressionType", "ExpressionType.ValidExpression" }, terms);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
+        [Fact]
         public void TestAtStartOfStatement_22()
         {
             //// Line 76
@@ -335,7 +336,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Debugging
             AssertEx.SetEqual(new[] { "position", "terms", "expressionType", "CollectExpressionTerms", "expression", "expression.Kind" }, terms);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
+        [Fact]
         public void TestAtStartOfStatement_23()
         {
             //// Line 77
@@ -349,7 +350,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Debugging
             AssertEx.SetEqual(new[] { "expression", "position", "terms", "expressionType", "CollectExpressionTerms" }, terms);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
+        [Fact]
         public void TestAtStartOfStatement_24()
         {
             //// Line 81
@@ -363,7 +364,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Debugging
             AssertEx.SetEqual(new[] { "position", "expression", "terms", "expressionType", "CollectMemberAccessExpressionTerms", "expression.Kind" }, terms);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
+        [Fact]
         public void TestAtStartOfStatement_25()
         {
             //// Line 82
@@ -377,7 +378,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Debugging
             AssertEx.SetEqual(new[] { "position", "expression", "terms", "expressionType", "CollectMemberAccessExpressionTerms" }, terms);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
+        [Fact]
         public void TestAtStartOfStatement_26()
         {
             //// Line 85
@@ -391,7 +392,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Debugging
             AssertEx.SetEqual(new[] { "position", "expression", "terms", "expressionType", "CollectObjectCreationExpressionTerms", "expression.Kind" }, terms);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
+        [Fact]
         public void TestAtStartOfStatement_27()
         {
             //// Line 86
@@ -405,7 +406,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Debugging
             AssertEx.SetEqual(new[] { "position", "expression", "terms", "expressionType", "CollectObjectCreationExpressionTerms" }, terms);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
+        [Fact]
         public void TestAtStartOfStatement_28()
         {
             //// Line 89
@@ -419,7 +420,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Debugging
             AssertEx.SetEqual(new[] { "position", "expression", "terms", "expressionType", "CollectArrayCreationExpressionTerms", "expression.Kind" }, terms);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
+        [Fact]
         public void TestAtStartOfStatement_29()
         {
             //// Line 90
@@ -433,7 +434,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Debugging
             AssertEx.SetEqual(new[] { "position", "expression", "terms", "expressionType", "CollectArrayCreationExpressionTerms" }, terms);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
+        [Fact]
         public void TestAtStartOfStatement_30()
         {
             //// Line 93
@@ -447,7 +448,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Debugging
             AssertEx.SetEqual(new[] { "position", "expression", "terms", "expressionType", "CollectInvocationExpressionTerms", "expression.Kind" }, terms);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
+        [Fact]
         public void TestAtStartOfStatement_31()
         {
             //// Line 94
@@ -461,7 +462,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Debugging
             AssertEx.SetEqual(new[] { "position", "expression", "terms", "expressionType", "CollectInvocationExpressionTerms" }, terms);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
+        [Fact]
         public void TestAtStartOfStatement_32()
         {
             //// Line 100
@@ -475,7 +476,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Debugging
             AssertEx.SetEqual(new[] { "expression", "PrefixUnaryExpressionSyntax", "expression.Kind" }, terms);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
+        [Fact]
         public void TestAtStartOfStatement_33()
         {
             //// Line 101
@@ -489,7 +490,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Debugging
             AssertEx.SetEqual(new[] { "expression", "PrefixUnaryExpressionSyntax" }, terms);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
+        [Fact]
         public void TestAtStartOfStatement_34()
         {
             //// Line 102
@@ -503,7 +504,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Debugging
             AssertEx.SetEqual(new[] { "position", "expression", "terms", "expressionType", "CollectPrefixUnaryExpressionTerms", "PrefixUnaryExpressionSyntax" }, terms);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
+        [Fact]
         public void TestAtStartOfStatement_35()
         {
             //// Line 103
@@ -517,7 +518,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Debugging
             AssertEx.SetEqual(new[] { "position", "expression", "terms", "expressionType", "CollectPrefixUnaryExpressionTerms" }, terms);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
+        [Fact]
         public void TestAtStartOfStatement_36()
         {
             //// Line 106
@@ -531,7 +532,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Debugging
             AssertEx.SetEqual(new[] { "expression", "PostfixUnaryExpressionSyntax", "PrefixUnaryExpressionSyntax" }, terms);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
+        [Fact]
         public void TestAtStartOfStatement_37()
         {
             //// Line 107
@@ -545,7 +546,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Debugging
             AssertEx.SetEqual(new[] { "expression", "PostfixUnaryExpressionSyntax" }, terms);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
+        [Fact]
         public void TestAtStartOfStatement_38()
         {
             //// Line 108
@@ -559,7 +560,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Debugging
             AssertEx.SetEqual(new[] { "position", "expression", "terms", "expressionType", "CollectPostfixUnaryExpressionTerms", "PostfixUnaryExpressionSyntax" }, terms);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
+        [Fact]
         public void TestAtStartOfStatement_39()
         {
             //// Line 109
@@ -573,7 +574,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Debugging
             AssertEx.SetEqual(new[] { "position", "expression", "terms", "expressionType", "CollectPostfixUnaryExpressionTerms" }, terms);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
+        [Fact]
         public void TestAtStartOfStatement_40()
         {
             //// Line 112
@@ -587,7 +588,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Debugging
             AssertEx.SetEqual(new[] { "expression", "BinaryExpressionSyntax", "PostfixUnaryExpressionSyntax" }, terms);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
+        [Fact]
         public void TestAtStartOfStatement_41()
         {
             //// Line 113
@@ -601,7 +602,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Debugging
             AssertEx.SetEqual(new[] { "expression", "BinaryExpressionSyntax" }, terms);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
+        [Fact]
         public void TestAtStartOfStatement_42()
         {
             //// Line 114
@@ -615,7 +616,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Debugging
             AssertEx.SetEqual(new[] { "position", "expression", "terms", "expressionType", "CollectBinaryExpressionTerms", "BinaryExpressionSyntax" }, terms);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
+        [Fact]
         public void TestAtStartOfStatement_43()
         {
             //// Line 115
@@ -629,7 +630,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Debugging
             AssertEx.SetEqual(new[] { "position", "expression", "terms", "expressionType", "CollectBinaryExpressionTerms" }, terms);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
+        [Fact]
         public void TestAtStartOfStatement_44()
         {
             //// Line 118
@@ -643,7 +644,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Debugging
             AssertEx.SetEqual(new[] { "ExpressionType", "expressionType", "ExpressionType.Invalid", "expression", "BinaryExpressionSyntax" }, terms);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
+        [Fact]
         public void TestAtStartOfStatement_45()
         {
             //// Line 122
@@ -657,7 +658,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Debugging
             AssertEx.SetEqual(new[] { "position", "expression", "terms", "expressionType" }, terms);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
+        [Fact]
         public void TestAtStartOfStatement_46()
         {
             //// Line 123
@@ -671,7 +672,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Debugging
             AssertEx.SetEqual(new[] { "ExpressionType", "ExpressionType.Invalid", "flags", "position", "expression", "terms", "expressionType" }, terms);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
+        [Fact]
         public void TestAtStartOfStatement_47()
         {
             //// Line 128
@@ -685,7 +686,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Debugging
             AssertEx.SetEqual(new[] { "expression", "(MemberAccessExpressionSyntax)expression", "flags", "ExpressionType", "ExpressionType.Invalid", "memberAccess" }, terms);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
+        [Fact]
         public void TestAtStartOfStatement_48()
         {
             //// Line 129
@@ -699,7 +700,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Debugging
             AssertEx.SetEqual(new[] { "position", "memberAccess", "memberAccess.Expression", "terms", "flags", "CollectExpressionTerms", "expression", "(MemberAccessExpressionSyntax)expression" }, terms);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
+        [Fact]
         public void TestAtStartOfStatement_49()
         {
             //// Line 134
@@ -713,7 +714,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Debugging
             AssertEx.SetEqual(new[] { "ExpressionType", "ExpressionType.ValidTerm", "expression", "SyntaxKind", "SyntaxKind.MemberAccessExpression", "SyntaxKind.PointerMemberAccessExpression", "position", "memberAccess", "memberAccess.Expression", "terms", "flags", "CollectExpressionTerms" }, terms);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
+        [Fact]
         public void TestAtStartOfStatement_50()
         {
             //// Line 137
@@ -727,7 +728,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Debugging
             AssertEx.SetEqual(new[] { "ExpressionType", "flags", "ExpressionType.ValidTerm", "expression", "SyntaxKind", "SyntaxKind.MemberAccessExpression", "SyntaxKind.PointerMemberAccessExpression" }, terms);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
+        [Fact]
         public void TestAtStartOfStatement_51()
         {
             //// Line 138
@@ -741,7 +742,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Debugging
             AssertEx.SetEqual(new[] { "flags", "terms", "memberAccess", "memberAccess.Expression", "ConvertToString", "ExpressionType", "ExpressionType.ValidTerm", "expression", "SyntaxKind", "SyntaxKind.MemberAccessExpression", "SyntaxKind.PointerMemberAccessExpression" }, terms);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
+        [Fact]
         public void TestAtStartOfStatement_52()
         {
             //// Line 143
@@ -755,7 +756,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Debugging
             AssertEx.SetEqual(new[] { "ExpressionType", "flags", "ExpressionType.ValidExpression", "expression", "SyntaxKind", "SyntaxKind.InvocationExpression", "ExpressionType.ValidTerm", "SyntaxKind.MemberAccessExpression", "SyntaxKind.PointerMemberAccessExpression", "terms", "memberAccess", "memberAccess.Expression", "ConvertToString" }, terms);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
+        [Fact]
         public void TestAtStartOfStatement_53()
         {
             //// Line 145
@@ -769,7 +770,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Debugging
             AssertEx.SetEqual(new[] { "ExpressionType", "flags", "ExpressionType.ValidExpression", "expression", "SyntaxKind", "SyntaxKind.InvocationExpression" }, terms);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
+        [Fact]
         public void TestAtStartOfStatement_54()
         {
             //// Line 146
@@ -783,7 +784,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Debugging
             AssertEx.SetEqual(new[] { "ExpressionType", "flags", "expressionType", "ExpressionType.ValidTerm", "ExpressionType.ValidExpression", "expression", "SyntaxKind", "SyntaxKind.InvocationExpression" }, terms);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
+        [Fact]
         public void TestAtStartOfStatement_55()
         {
             //// Line 149
@@ -797,7 +798,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Debugging
             AssertEx.SetEqual(new[] { "ExpressionType", "flags", "ExpressionType.ValidExpression", "expression", "SyntaxKind", "SyntaxKind.InvocationExpression" }, terms);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
+        [Fact]
         public void TestAtStartOfStatement_56()
         {
             //// Line 150
@@ -811,7 +812,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Debugging
             AssertEx.SetEqual(new[] { "ExpressionType", "flags", "expressionType", "ExpressionType.ValidExpression", "expression", "SyntaxKind", "SyntaxKind.InvocationExpression" }, terms);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
+        [Fact]
         public void TestAtStartOfStatement_57()
         {
             //// Line 155
@@ -825,7 +826,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Debugging
             AssertEx.SetEqual(new[] { "position", "expression", "terms", "expressionType" }, terms);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
+        [Fact]
         public void TestAtStartOfStatement_58()
         {
             //// Line 159
@@ -839,7 +840,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Debugging
             AssertEx.SetEqual(new[] { "ExpressionType", "expressionType", "ExpressionType.Invalid", "position", "expression", "terms" }, terms);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
+        [Fact]
         public void TestAtStartOfStatement_59()
         {
             //// Line 161
@@ -853,7 +854,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Debugging
             AssertEx.SetEqual(new[] { "expression", "(ObjectCreationExpressionSyntax)expression", "ExpressionType", "expressionType", "ExpressionType.Invalid", "objectionCreation" }, terms);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
+        [Fact]
         public void TestAtStartOfStatement_60()
         {
             //// Line 162
@@ -867,7 +868,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Debugging
             AssertEx.SetEqual(new[] { "objectionCreation", "objectionCreation.ArgumentListOpt", "expression", "(ObjectCreationExpressionSyntax)expression" }, terms);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
+        [Fact]
         public void TestAtStartOfStatement_61()
         {
             //// Line 163
@@ -881,7 +882,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Debugging
             AssertEx.SetEqual(new[] { "objectionCreation", "objectionCreation.ArgumentListOpt" }, terms);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
+        [Fact]
         public void TestAtStartOfStatement_62()
         {
             //// Line 164
@@ -895,7 +896,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Debugging
             AssertEx.SetEqual(new[] { "ExpressionType", "ExpressionType.Invalid", "objectionCreation", "objectionCreation.ArgumentListOpt", "flags" }, terms);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
+        [Fact]
         public void TestAtStartOfStatement_63()
         {
             //// Line 165
@@ -909,7 +910,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Debugging
             AssertEx.SetEqual(new[] { "position", "objectionCreation", "objectionCreation.ArgumentListOpt", "terms", "flags", "CollectArgumentTerms", "ExpressionType", "ExpressionType.Invalid" }, terms);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
+        [Fact]
         public void TestAtStartOfStatement_64()
         {
             //// Line 169
@@ -923,7 +924,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Debugging
             AssertEx.SetEqual(new[] { "ExpressionType", "ExpressionType.ValidTerm", "position", "objectionCreation", "objectionCreation.ArgumentListOpt", "terms", "flags", "CollectArgumentTerms" }, terms);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
+        [Fact]
         public void TestAtStartOfStatement_65()
         {
             //// Line 170
@@ -937,7 +938,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Debugging
             AssertEx.SetEqual(new[] { "ExpressionType", "flags", "ExpressionType.ValidTerm" }, terms);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
+        [Fact]
         public void TestAtStartOfStatement_66()
         {
             //// Line 171
@@ -951,7 +952,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Debugging
             AssertEx.SetEqual(new[] { "ExpressionType", "flags", "expressionType", "ExpressionType.ValidExpression", "ExpressionType.ValidTerm" }, terms);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
+        [Fact]
         public void TestAtStartOfStatement_67()
         {
             //// Line 177
@@ -965,7 +966,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Debugging
             AssertEx.SetEqual(new[] { "position", "expression", "terms", "expressionType" }, terms);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
+        [Fact]
         public void TestAtStartOfStatement_68()
         {
             //// Line 178
@@ -979,7 +980,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Debugging
             AssertEx.SetEqual(new[] { "validTerm", "position", "expression", "terms", "expressionType" }, terms);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
+        [Fact]
         public void TestAtStartOfStatement_69()
         {
             //// Line 179
@@ -993,7 +994,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Debugging
             AssertEx.SetEqual(new[] { "expression", "(ArrayCreationExpressionSyntax)expression", "validTerm", "arrayCreation" }, terms);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
+        [Fact]
         public void TestAtStartOfStatement_70()
         {
             //// Line 181
@@ -1007,7 +1008,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Debugging
             AssertEx.SetEqual(new[] { "arrayCreation", "arrayCreation.InitializerOpt", "expression", "(ArrayCreationExpressionSyntax)expression" }, terms);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
+        [Fact]
         public void TestAtStartOfStatement_71()
         {
             //// Line 182
@@ -1021,7 +1022,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Debugging
             AssertEx.SetEqual(new[] { "arrayCreation", "arrayCreation.InitializerOpt" }, terms);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
+        [Fact]
         public void TestAtStartOfStatement_72()
         {
             //// Line 183
@@ -1035,7 +1036,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Debugging
             AssertEx.SetEqual(new[] { "ExpressionType", "ExpressionType.Invalid", "arrayCreation", "arrayCreation.InitializerOpt", "flags" }, terms);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
+        [Fact]
         public void TestAtStartOfStatement_73()
         {
             //// Line 184
@@ -1049,7 +1050,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Debugging
             AssertEx.SetEqual(new[] { "arrayCreation.InitializerOpt.Expressions", "flags", "ExpressionType", "ExpressionType.Invalid" }, terms);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
+        [Fact]
         public void TestAtStartOfStatement_74()
         {
             //// Line 186
@@ -1063,7 +1064,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Debugging
             AssertEx.SetEqual(new[] { "ExpressionType", "flags", "ExpressionType.ValidTerm", "validTerm", "arrayCreation.InitializerOpt.Expressions" }, terms);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
+        [Fact]
         public void TestAtStartOfStatement_75()
         {
             //// Line 189
@@ -1077,7 +1078,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Debugging
             AssertEx.SetEqual(new[] { "flags", "validTerm", "arrayCreation", "arrayCreation.InitializerOpt", "ExpressionType", "ExpressionType.ValidTerm" }, terms);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
+        [Fact]
         public void TestAtStartOfStatement_76()
         {
             //// Line 190
@@ -1091,7 +1092,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Debugging
             AssertEx.SetEqual(new[] { "validTerm" }, terms);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
+        [Fact]
         public void TestAtStartOfStatement_77()
         {
             //// Line 191
@@ -1105,7 +1106,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Debugging
             AssertEx.SetEqual(new[] { "ExpressionType", "expressionType", "ExpressionType.ValidExpression", "validTerm" }, terms);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
+        [Fact]
         public void TestAtStartOfStatement_78()
         {
             //// Line 194
@@ -1119,7 +1120,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Debugging
             AssertEx.SetEqual(new[] { "validTerm" }, terms);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
+        [Fact]
         public void TestAtStartOfStatement_79()
         {
             //// Line 195
@@ -1133,7 +1134,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Debugging
             AssertEx.SetEqual(new[] { "ExpressionType", "expressionType", "ExpressionType.Invalid", "validTerm" }, terms);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
+        [Fact]
         public void TestAtStartOfStatement_80()
         {
             //// Line 200
@@ -1147,7 +1148,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Debugging
             AssertEx.SetEqual(new[] { "position", "expression", "terms", "expressionType" }, terms);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
+        [Fact]
         public void TestAtStartOfStatement_81()
         {
             //// Line 203
@@ -1161,7 +1162,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Debugging
             AssertEx.SetEqual(new[] { "ExpressionType", "expressionType", "ExpressionType.Invalid", "position", "expression", "terms" }, terms);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
+        [Fact]
         public void TestAtStartOfStatement_82()
         {
             //// Line 204
@@ -1175,7 +1176,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Debugging
             AssertEx.SetEqual(new[] { "ExpressionType", "ExpressionType.Invalid", "expressionType", "leftFlags", "rightFlags" }, terms);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
+        [Fact]
         public void TestAtStartOfStatement_83()
         {
             //// Line 206
@@ -1189,7 +1190,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Debugging
             AssertEx.SetEqual(new[] { "expression", "(InvocationExpressionSyntax)expression", "leftFlags", "ExpressionType", "ExpressionType.Invalid", "rightFlags", "invocation" }, terms);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
+        [Fact]
         public void TestAtStartOfStatement_84()
         {
             //// Line 207
@@ -1203,7 +1204,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Debugging
             AssertEx.SetEqual(new[] { "position", "invocation", "invocation.Expression", "terms", "leftFlags", "CollectExpressionTerms", "expression", "(InvocationExpressionSyntax)expression" }, terms);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
+        [Fact]
         public void TestAtStartOfStatement_85()
         {
             //// Line 208
@@ -1217,7 +1218,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Debugging
             AssertEx.SetEqual(new[] { "position", "invocation", "invocation.ArgumentList", "terms", "rightFlags", "CollectArgumentTerms", "invocation.Expression", "leftFlags", "CollectExpressionTerms" }, terms);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
+        [Fact]
         public void TestAtStartOfStatement_86()
         {
             //// Line 210
@@ -1231,7 +1232,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Debugging
             AssertEx.SetEqual(new[] { "ExpressionType", "leftFlags", "ExpressionType.ValidTerm", "position", "invocation", "invocation.ArgumentList", "terms", "rightFlags", "CollectArgumentTerms" }, terms);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
+        [Fact]
         public void TestAtStartOfStatement_87()
         {
             //// Line 211
@@ -1245,7 +1246,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Debugging
             AssertEx.SetEqual(new[] { "ExpressionType", "leftFlags", "ExpressionType.ValidTerm" }, terms);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
+        [Fact]
         public void TestAtStartOfStatement_88()
         {
             //// Line 212
@@ -1259,7 +1260,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Debugging
             AssertEx.SetEqual(new[] { "leftFlags", "terms", "invocation", "invocation.Expression", "ConvertToString", "ExpressionType", "ExpressionType.ValidTerm" }, terms);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
+        [Fact]
         public void TestAtStartOfStatement_89()
         {
             //// Line 216
@@ -1273,7 +1274,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Debugging
             AssertEx.SetEqual(new[] { "leftFlags", "rightFlags", "ExpressionType", "ExpressionType.ValidExpression", "expressionType", "ExpressionType.ValidTerm", "terms", "invocation", "invocation.Expression", "ConvertToString" }, terms);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
+        [Fact]
         public void TestAtStartOfStatement_90()
         {
             //// Line 220
@@ -1287,7 +1288,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Debugging
             AssertEx.SetEqual(new[] { "position", "expression", "terms", "expressionType" }, terms);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
+        [Fact]
         public void TestAtStartOfStatement_91()
         {
             //// Line 221
@@ -1301,7 +1302,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Debugging
             AssertEx.SetEqual(new[] { "ExpressionType", "expressionType", "ExpressionType.Invalid", "position", "expression", "terms" }, terms);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
+        [Fact]
         public void TestAtStartOfStatement_92()
         {
             //// Line 222
@@ -1315,7 +1316,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Debugging
             AssertEx.SetEqual(new[] { "ExpressionType", "ExpressionType.Invalid", "expressionType", "flags" }, terms);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
+        [Fact]
         public void TestAtStartOfStatement_93()
         {
             //// Line 223
@@ -1329,7 +1330,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Debugging
             AssertEx.SetEqual(new[] { "expression", "(PrefixUnaryExpressionSyntax)expression", "flags", "ExpressionType", "ExpressionType.Invalid", "prefixUnaryExpression" }, terms);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
+        [Fact]
         public void TestAtStartOfStatement_94()
         {
             //// Line 226
@@ -1343,7 +1344,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Debugging
             AssertEx.SetEqual(new[] { "position", "prefixUnaryExpression", "prefixUnaryExpression.Operand", "terms", "flags", "CollectExpressionTerms", "expression", "(PrefixUnaryExpressionSyntax)expression" }, terms);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
+        [Fact]
         public void TestAtStartOfStatement_95()
         {
             //// Line 229
@@ -1357,7 +1358,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Debugging
             AssertEx.SetEqual(new[] { "ExpressionType", "ExpressionType.ValidTerm", "position", "prefixUnaryExpression", "prefixUnaryExpression.Operand", "terms", "flags", "CollectExpressionTerms" }, terms);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
+        [Fact]
         public void TestAtStartOfStatement_96()
         {
             //// Line 230
@@ -1371,7 +1372,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Debugging
             AssertEx.SetEqual(new[] { "flags", "ExpressionType", "ExpressionType.ValidTerm" }, terms);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
+        [Fact]
         public void TestAtStartOfStatement_97()
         {
             //// Line 231
@@ -1385,7 +1386,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Debugging
             AssertEx.SetEqual(new[] { "flags", "terms", "prefixUnaryExpression", "prefixUnaryExpression.Operand", "ConvertToString", "ExpressionType", "ExpressionType.ValidTerm" }, terms);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
+        [Fact]
         public void TestAtStartOfStatement_98()
         {
             //// Line 234
@@ -1399,7 +1400,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Debugging
             AssertEx.SetEqual(new[] { "flags", "expression", "SyntaxKind", "SyntaxKind.LogicalNotExpression", "SyntaxKind.BitwiseNotExpression", "SyntaxKind.NegateExpression", "SyntaxKind.PlusExpression", "ExpressionType", "ExpressionType.ValidTerm", "terms", "prefixUnaryExpression", "prefixUnaryExpression.Operand", "ConvertToString" }, terms);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
+        [Fact]
         public void TestAtStartOfStatement_99()
         {
             //// Line 235
@@ -1413,7 +1414,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Debugging
             AssertEx.SetEqual(new[] { "expression", "SyntaxKind", "SyntaxKind.LogicalNotExpression", "SyntaxKind.BitwiseNotExpression", "SyntaxKind.NegateExpression", "SyntaxKind.PlusExpression" }, terms);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
+        [Fact]
         public void TestAtStartOfStatement_100()
         {
             //// Line 237
@@ -1427,7 +1428,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Debugging
             AssertEx.SetEqual(new[] { "flags", "ExpressionType", "ExpressionType.ValidExpression", "expressionType", "expression", "SyntaxKind", "SyntaxKind.LogicalNotExpression", "SyntaxKind.BitwiseNotExpression", "SyntaxKind.NegateExpression", "SyntaxKind.PlusExpression" }, terms);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
+        [Fact]
         public void TestAtStartOfStatement_101()
         {
             //// Line 242
@@ -1441,7 +1442,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Debugging
             AssertEx.SetEqual(new[] { "position", "expression", "terms", "expressionType" }, terms);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
+        [Fact]
         public void TestAtStartOfStatement_102()
         {
             //// Line 245
@@ -1455,7 +1456,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Debugging
             AssertEx.SetEqual(new[] { "ExpressionType", "expressionType", "ExpressionType.Invalid", "position", "expression", "terms" }, terms);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
+        [Fact]
         public void TestAtStartOfStatement_103()
         {
             //// Line 247
@@ -1469,7 +1470,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Debugging
             AssertEx.SetEqual(new[] { "ExpressionType", "ExpressionType.Invalid", "expressionType", "flags" }, terms);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
+        [Fact]
         public void TestAtStartOfStatement_104()
         {
             //// Line 248
@@ -1483,7 +1484,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Debugging
             AssertEx.SetEqual(new[] { "expression", "(PostfixUnaryExpressionSyntax)expression", "flags", "ExpressionType", "ExpressionType.Invalid", "postfixUnaryExpression" }, terms);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
+        [Fact]
         public void TestAtStartOfStatement_105()
         {
             //// Line 251
@@ -1497,7 +1498,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Debugging
             AssertEx.SetEqual(new[] { "position", "postfixUnaryExpression", "postfixUnaryExpression.Operand", "terms", "flags", "CollectExpressionTerms", "expression", "(PostfixUnaryExpressionSyntax)expression" }, terms);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
+        [Fact]
         public void TestAtStartOfStatement_106()
         {
             //// Line 254
@@ -1511,7 +1512,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Debugging
             AssertEx.SetEqual(new[] { "ExpressionType", "ExpressionType.ValidTerm", "position", "postfixUnaryExpression", "postfixUnaryExpression.Operand", "terms", "flags", "CollectExpressionTerms" }, terms);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
+        [Fact]
         public void TestAtStartOfStatement_107()
         {
             //// Line 255
@@ -1525,7 +1526,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Debugging
             AssertEx.SetEqual(new[] { "ExpressionType", "flags", "ExpressionType.ValidTerm" }, terms);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
+        [Fact]
         public void TestAtStartOfStatement_108()
         {
             //// Line 256
@@ -1539,7 +1540,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Debugging
             AssertEx.SetEqual(new[] { "flags", "terms", "postfixUnaryExpression", "postfixUnaryExpression.Operand", "ConvertToString", "ExpressionType", "ExpressionType.ValidTerm" }, terms);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
+        [Fact]
         public void TestAtStartOfStatement_109()
         {
             //// Line 261
@@ -1553,7 +1554,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Debugging
             AssertEx.SetEqual(new[] { "position", "expression", "terms", "expressionType" }, terms);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
+        [Fact]
         public void TestAtStartOfStatement_110()
         {
             //// Line 262
@@ -1567,7 +1568,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Debugging
             AssertEx.SetEqual(new[] { "ExpressionType", "ExpressionType.Invalid", "leftFlags", "rightFlags", "position", "expression", "terms", "expressionType" }, terms);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
+        [Fact]
         public void TestAtStartOfStatement_111()
         {
             //// Line 264
@@ -1581,7 +1582,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Debugging
             AssertEx.SetEqual(new[] { "expression", "(BinaryExpressionSyntax)expression", "leftFlags", "ExpressionType", "ExpressionType.Invalid", "rightFlags", "binaryExpression" }, terms);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
+        [Fact]
         public void TestAtStartOfStatement_112()
         {
             //// Line 265
@@ -1595,7 +1596,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Debugging
             AssertEx.SetEqual(new[] { "position", "binaryExpression", "binaryExpression.Left", "terms", "leftFlags", "CollectExpressionTerms", "expression", "(BinaryExpressionSyntax)expression" }, terms);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
+        [Fact]
         public void TestAtStartOfStatement_113()
         {
             //// Line 266
@@ -1609,7 +1610,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Debugging
             AssertEx.SetEqual(new[] { "position", "binaryExpression", "binaryExpression.Right", "terms", "rightFlags", "CollectExpressionTerms", "binaryExpression.Left", "leftFlags" }, terms);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
+        [Fact]
         public void TestAtStartOfStatement_114()
         {
             //// Line 268
@@ -1623,7 +1624,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Debugging
             AssertEx.SetEqual(new[] { "ExpressionType", "leftFlags", "ExpressionType.ValidTerm", "position", "binaryExpression", "binaryExpression.Right", "terms", "rightFlags", "CollectExpressionTerms" }, terms);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
+        [Fact]
         public void TestAtStartOfStatement_115()
         {
             //// Line 269
@@ -1637,7 +1638,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Debugging
             AssertEx.SetEqual(new[] { "ExpressionType", "leftFlags", "ExpressionType.ValidTerm" }, terms);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
+        [Fact]
         public void TestAtStartOfStatement_116()
         {
             //// Line 270
@@ -1651,7 +1652,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Debugging
             AssertEx.SetEqual(new[] { "leftFlags", "terms", "binaryExpression", "binaryExpression.Left", "ConvertToString", "ExpressionType", "ExpressionType.ValidTerm" }, terms);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
+        [Fact]
         public void TestAtStartOfStatement_117()
         {
             //// Line 273
@@ -1665,7 +1666,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Debugging
             AssertEx.SetEqual(new[] { "leftFlags", "rightFlags", "ExpressionType", "ExpressionType.ValidTerm", "terms", "binaryExpression", "binaryExpression.Left", "ConvertToString" }, terms);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
+        [Fact]
         public void TestAtStartOfStatement_118()
         {
             //// Line 274
@@ -1679,7 +1680,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Debugging
             AssertEx.SetEqual(new[] { "rightFlags", "ExpressionType", "ExpressionType.ValidTerm" }, terms);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
+        [Fact]
         public void TestAtStartOfStatement_119()
         {
             //// Line 275
@@ -1693,7 +1694,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Debugging
             AssertEx.SetEqual(new[] { "terms", "rightFlags", "binaryExpression", "binaryExpression.Right", "ConvertToString", "ExpressionType", "ExpressionType.ValidTerm" }, terms);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
+        [Fact]
         public void TestAtStartOfStatement_120()
         {
             //// Line 281
@@ -1707,7 +1708,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Debugging
             AssertEx.SetEqual(new[] { "rightFlags", "binaryExpression", "binaryExpression.Kind", "ExpressionType", "ExpressionType.ValidTerm", "terms", "binaryExpression.Right", "ConvertToString" }, terms);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
+        [Fact]
         public void TestAtStartOfStatement_121()
         {
             //// Line 305
@@ -1721,7 +1722,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Debugging
             AssertEx.SetEqual(new[] { "leftFlags", "rightFlags", "ExpressionType", "ExpressionType.ValidExpression", "expressionType", "binaryExpression", "binaryExpression.Kind" }, terms);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
+        [Fact]
         public void TestAtStartOfStatement_122()
         {
             //// Line 306
@@ -1735,7 +1736,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Debugging
             AssertEx.SetEqual(new[] { "leftFlags", "rightFlags", "ExpressionType", "ExpressionType.ValidExpression", "expressionType" }, terms);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
+        [Fact]
         public void TestAtStartOfStatement_123()
         {
             //// Line 309
@@ -1749,7 +1750,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Debugging
             AssertEx.SetEqual(new[] { "ExpressionType", "expressionType", "ExpressionType.Invalid", "binaryExpression", "binaryExpression.Kind" }, terms);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
+        [Fact]
         public void TestAtStartOfStatement_124()
         {
             //// Line 310
@@ -1763,7 +1764,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Debugging
             AssertEx.SetEqual(new[] { "ExpressionType", "expressionType", "ExpressionType.Invalid" }, terms);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
+        [Fact]
         public void TestAtStartOfStatement_125()
         {
             //// Line 315
@@ -1777,7 +1778,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Debugging
             AssertEx.SetEqual(new[] { "position", "argumentList", "terms", "expressionType" }, terms);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
+        [Fact]
         public void TestAtStartOfStatement_126()
         {
             //// Line 316
@@ -1791,7 +1792,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Debugging
             AssertEx.SetEqual(new[] { "validExpr", "position", "argumentList", "terms", "expressionType" }, terms);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
+        [Fact]
         public void TestAtStartOfStatement_127()
         {
             //// Line 320
@@ -1805,7 +1806,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Debugging
             AssertEx.SetEqual(new[] { "arg", "argumentList", "argumentList.Arguments", "validExpr" }, terms);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
+        [Fact]
         public void TestAtStartOfStatement_128()
         {
             //// Line 321
@@ -1819,7 +1820,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Debugging
             AssertEx.SetEqual(new[] { "arg", "argumentList", "argumentList.Arguments" }, terms);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
+        [Fact]
         public void TestAtStartOfStatement_129()
         {
             //// Line 322
@@ -1833,7 +1834,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Debugging
             AssertEx.SetEqual(new[] { "ExpressionType", "ExpressionType.Invalid", "arg", "argumentList", "argumentList.Arguments", "flags" }, terms);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
+        [Fact]
         public void TestAtStartOfStatement_130()
         {
             //// Line 324
@@ -1847,7 +1848,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Debugging
             AssertEx.SetEqual(new[] { "position", "arg", "arg.Expression", "terms", "flags", "CollectExpressionTerms", "ExpressionType", "ExpressionType.Invalid" }, terms);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
+        [Fact]
         public void TestAtStartOfStatement_131()
         {
             //// Line 325
@@ -1861,7 +1862,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Debugging
             AssertEx.SetEqual(new[] { "ExpressionType", "ExpressionType.ValidTerm", "position", "arg", "arg.Expression", "terms", "flags", "CollectExpressionTerms" }, terms);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
+        [Fact]
         public void TestAtStartOfStatement_132()
         {
             //// Line 326
@@ -1875,7 +1876,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Debugging
             AssertEx.SetEqual(new[] { "ExpressionType", "flags", "ExpressionType.ValidTerm" }, terms);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
+        [Fact]
         public void TestAtStartOfStatement_133()
         {
             //// Line 327
@@ -1889,7 +1890,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Debugging
             AssertEx.SetEqual(new[] { "flags", "terms", "arg", "arg.Expression", "ConvertToString", "ExpressionType", "ExpressionType.ValidTerm" }, terms);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
+        [Fact]
         public void TestAtStartOfStatement_134()
         {
             //// Line 330
@@ -1903,7 +1904,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Debugging
             AssertEx.SetEqual(new[] { "ExpressionType", "flags", "ExpressionType.ValidExpression", "validExpr", "ExpressionType.ValidTerm", "terms", "arg", "arg.Expression", "ConvertToString" }, terms);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
+        [Fact]
         public void TestAtStartOfStatement_135()
         {
             //// Line 335
@@ -1917,7 +1918,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Debugging
             AssertEx.SetEqual(new[] { "flags", "ExpressionType", "validExpr", "ExpressionType.ValidExpression", "expressionType", "arg", "argumentList", "argumentList.Arguments" }, terms);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
+        [Fact]
         public void TestAtStartOfStatement_136()
         {
             //// Line 339
@@ -1931,7 +1932,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Debugging
             AssertEx.SetEqual(new[] { "position", "declarators", "terms" }, terms);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
+        [Fact]
         public void TestAtStartOfStatement_137()
         {
             //// Line 340
@@ -1945,7 +1946,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Debugging
             AssertEx.SetEqual(new[] { "declarator", "declarators", "position", "terms" }, terms);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
+        [Fact]
         public void TestAtStartOfStatement_138()
         {
             //// Line 341
@@ -1959,7 +1960,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Debugging
             AssertEx.SetEqual(new[] { "declarator", "declarators" }, terms);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
+        [Fact]
         public void TestAtStartOfStatement_139()
         {
             //// Line 342
@@ -1973,7 +1974,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Debugging
             AssertEx.SetEqual(new[] { "declarator", "declarator.InitializerOpt", "declarators" }, terms);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
+        [Fact]
         public void TestAtStartOfStatement_140()
         {
             //// Line 343
@@ -1987,7 +1988,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Debugging
             AssertEx.SetEqual(new[] { "declarator", "declarator.InitializerOpt" }, terms);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
+        [Fact]
         public void TestAtStartOfStatement_141()
         {
             //// Line 344

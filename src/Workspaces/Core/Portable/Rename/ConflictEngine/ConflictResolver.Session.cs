@@ -236,14 +236,14 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
 #endif
 
                     // Step 5: Rename declaration files
-                    if (RenameOptions.RenameFile)
+                    if (_replacementTextValid && RenameOptions.RenameFile)
                     {
                         var definitionLocations = _renameLocationSet.Symbol.Locations;
                         var definitionDocuments = definitionLocations
                             .Select(l => conflictResolution.OldSolution.GetRequiredDocument(l.SourceTree!))
                             .Distinct();
 
-                        if (definitionDocuments.Count() == 1 && _replacementTextValid)
+                        if (definitionDocuments.Count() == 1)
                         {
                             // At the moment, only single document renaming is allowed
                             conflictResolution.RenameDocumentToMatchNewSymbol(definitionDocuments.Single());
@@ -254,7 +254,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                 }
                 catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, ErrorSeverity.Critical))
                 {
-                    throw ExceptionUtilities.Unreachable;
+                    throw ExceptionUtilities.Unreachable();
                 }
             }
 
@@ -460,7 +460,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                 }
                 catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, ErrorSeverity.Critical))
                 {
-                    throw ExceptionUtilities.Unreachable;
+                    throw ExceptionUtilities.Unreachable();
                 }
             }
 
@@ -638,7 +638,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                 }
                 catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, ErrorSeverity.Critical))
                 {
-                    throw ExceptionUtilities.Unreachable;
+                    throw ExceptionUtilities.Unreachable();
                 }
             }
 
@@ -680,7 +680,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                 }
                 catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, ErrorSeverity.Critical))
                 {
-                    throw ExceptionUtilities.Unreachable;
+                    throw ExceptionUtilities.Unreachable();
                 }
             }
 
@@ -711,7 +711,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                 }
                 catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, ErrorSeverity.Critical))
                 {
-                    throw ExceptionUtilities.Unreachable;
+                    throw ExceptionUtilities.Unreachable();
                 }
             }
 
@@ -752,7 +752,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                 }
                 catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, ErrorSeverity.Critical))
                 {
-                    throw ExceptionUtilities.Unreachable;
+                    throw ExceptionUtilities.Unreachable();
                 }
             }
 
@@ -833,7 +833,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                 }
                 catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e))
                 {
-                    throw ExceptionUtilities.Unreachable;
+                    throw ExceptionUtilities.Unreachable();
                 }
             }
 

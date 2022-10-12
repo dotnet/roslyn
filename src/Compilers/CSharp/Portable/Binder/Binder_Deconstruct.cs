@@ -138,10 +138,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             Conversion conversion;
+            // Among other things, MakeDeconstructionConversion() will handle
+            // value escape analysis for the Deconstruct() method group.
             bool hasErrors = !MakeDeconstructionConversion(
                                     boundRHS.Type,
                                     node,
                                     boundRHS.Syntax,
+                                    rightEscape,
                                     diagnostics,
                                     checkedVariables,
                                     out conversion);
@@ -156,9 +159,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             var lhsTuple = DeconstructionVariablesAsTuple(left, checkedVariables, diagnostics, ignoreDiagnosticsFromTuple: diagnostics.HasAnyErrors() || !resultIsUsed);
             Debug.Assert(hasErrors || lhsTuple.Type is object);
             TypeSymbol returnType = hasErrors ? CreateErrorType() : lhsTuple.Type!;
-
-            uint leftEscape = GetBroadestValEscape(lhsTuple, this.LocalScopeDepth);
-            boundRHS = ValidateEscape(boundRHS, leftEscape, isByRef: false, diagnostics: diagnostics);
 
             var boundConversion = new BoundConversion(
                 boundRHS.Syntax,
@@ -245,6 +245,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         TypeSymbol type,
                         SyntaxNode syntax,
                         SyntaxNode rightSyntax,
+                        uint rightValEscape,
                         BindingDiagnosticBag diagnostics,
                         ArrayBuilder<DeconstructionVariable> variables,
                         out Conversion conversion)
@@ -275,9 +276,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return false;
                 }
 
-                var inputPlaceholder = new BoundDeconstructValuePlaceholder(syntax, this.LocalScopeDepth, type);
+                var inputPlaceholder = new BoundDeconstructValuePlaceholder(syntax, variableSymbol: null, rightValEscape, type);
                 BoundExpression deconstructInvocation = MakeDeconstructInvocationExpression(variables.Count,
-                    inputPlaceholder, rightSyntax, diagnostics, outPlaceholders: out ImmutableArray<BoundDeconstructValuePlaceholder> outPlaceholders, out _);
+                    inputPlaceholder, rightSyntax, diagnostics, outPlaceholders: out ImmutableArray<BoundDeconstructValuePlaceholder> outPlaceholders, out _, variables);
 
                 if (deconstructInvocation.HasAnyErrors)
                 {
@@ -304,7 +305,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     var elementSyntax = syntax.Kind() == SyntaxKind.TupleExpression ? ((TupleExpressionSyntax)syntax).Arguments[i] : syntax;
 
-                    hasErrors |= !MakeDeconstructionConversion(tupleOrDeconstructedTypes[i], elementSyntax, rightSyntax, diagnostics,
+                    hasErrors |= !MakeDeconstructionConversion(tupleOrDeconstructedTypes[i], elementSyntax, rightSyntax, rightValEscape, diagnostics,
                         variable.NestedVariables, out nestedConversion);
 
                     Debug.Assert(nestedConversion.Kind == ConversionKind.Deconstruction);
@@ -624,7 +625,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             SyntaxNode rightSyntax,
             BindingDiagnosticBag diagnostics,
             out ImmutableArray<BoundDeconstructValuePlaceholder> outPlaceholders,
-            out bool anyApplicableCandidates)
+            out bool anyApplicableCandidates,
+            ArrayBuilder<DeconstructionVariable>? variablesOpt = null)
         {
             anyApplicableCandidates = false;
             var receiverSyntax = (CSharpSyntaxNode)receiver.Syntax;
@@ -644,7 +646,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 for (int i = 0; i < numCheckedVariables; i++)
                 {
-                    var variable = new OutDeconstructVarPendingInference(receiverSyntax);
+                    var variableOpt = variablesOpt?[i].Single;
+                    uint valEscape = variableOpt is null ? LocalScopeDepth : GetValEscape(variableOpt, LocalScopeDepth);
+                    var variableSymbol = variableOpt switch
+                    {
+                        DeconstructionVariablePendingInference { VariableSymbol: var symbol } => symbol,
+                        BoundLocal { DeclarationKind: BoundLocalDeclarationKind.WithExplicitType or BoundLocalDeclarationKind.WithInferredType, LocalSymbol: var symbol } => symbol,
+                        _ => null,
+                    };
+                    var variable = new OutDeconstructVarPendingInference(receiverSyntax, variableSymbol: variableSymbol, valEscape);
                     analyzedArguments.Arguments.Add(variable);
                     analyzedArguments.RefKinds.Add(RefKind.Out);
                     outVars.Add(variable);
@@ -754,7 +764,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         Debug.Assert(isVar == !declType.HasType);
                         if (component.Designation.Kind() == SyntaxKind.ParenthesizedVariableDesignation && !isVar)
                         {
-                            // An explicit is not allowed with a parenthesized designation
+                            // An explicit type is not allowed with a parenthesized designation
                             Error(diagnostics, ErrorCode.ERR_DeconstructionVarFormDisallowsSpecificType, component.Designation);
                         }
 
@@ -864,7 +874,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if ((object)field == null)
             {
                 // We should have the right binder in the chain, cannot continue otherwise.
-                throw ExceptionUtilities.Unreachable;
+                throw ExceptionUtilities.Unreachable();
             }
 
             BoundThisReference receiver = ThisReference(designation, this.ContainingType, hasErrors: false,

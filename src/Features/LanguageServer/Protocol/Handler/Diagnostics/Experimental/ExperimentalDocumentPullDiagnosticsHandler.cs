@@ -4,13 +4,11 @@
 
 using System;
 using System.Collections.Immutable;
-using System.Composition;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.EditAndContinue;
-using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Roslyn.Utilities;
@@ -25,7 +23,7 @@ using DocumentDiagnosticReport = SumType<FullDocumentDiagnosticReport, Unchanged
 using DocumentDiagnosticPartialReport = SumType<FullDocumentDiagnosticReport, UnchangedDocumentDiagnosticReport, DocumentDiagnosticPartialResult>;
 
 [Method(ExperimentalMethods.TextDocumentDiagnostic)]
-internal class ExperimentalDocumentPullDiagnosticsHandler : AbstractPullDiagnosticHandler<DocumentDiagnosticParams, DocumentDiagnosticPartialReport, DocumentDiagnosticReport?>
+internal class ExperimentalDocumentPullDiagnosticsHandler : AbstractDocumentPullDiagnosticHandler<DocumentDiagnosticParams, DocumentDiagnosticPartialReport, DocumentDiagnosticReport?>
 {
     public ExperimentalDocumentPullDiagnosticsHandler(
         IDiagnosticAnalyzerService analyzerService,
@@ -35,7 +33,7 @@ internal class ExperimentalDocumentPullDiagnosticsHandler : AbstractPullDiagnost
     {
     }
 
-    public override TextDocumentIdentifier? GetTextDocumentIdentifier(DocumentDiagnosticParams diagnosticsParams) => diagnosticsParams.TextDocument;
+    public override TextDocumentIdentifier GetTextDocumentIdentifier(DocumentDiagnosticParams diagnosticsParams) => diagnosticsParams.TextDocument;
 
     protected override DiagnosticTag[] ConvertTags(DiagnosticData diagnosticData)
     {
@@ -69,9 +67,7 @@ internal class ExperimentalDocumentPullDiagnosticsHandler : AbstractPullDiagnost
     }
 
     protected override ValueTask<ImmutableArray<IDiagnosticSource>> GetOrderedDiagnosticSourcesAsync(RequestContext context, CancellationToken cancellationToken)
-    {
-        return ValueTaskFactory.FromResult(DocumentPullDiagnosticHandler.GetRequestedDocument(context));
-    }
+        => ValueTaskFactory.FromResult(DocumentPullDiagnosticHandler.GetDiagnosticSources(context));
 
     protected override ImmutableArray<PreviousPullResult>? GetPreviousResults(DocumentDiagnosticParams diagnosticsParams)
     {

@@ -44,8 +44,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting
             };
         }
 
-        [WpfFact]
-        [WorkItem(539682, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539682")]
+        [WpfFact, WorkItem(539682, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539682")]
         public void FormatDocumentCommandHandler()
         {
             var code = @"class Program
@@ -71,8 +70,7 @@ int y;
             AssertFormatWithView(expected, code);
         }
 
-        [WpfFact]
-        [WorkItem(539682, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539682")]
+        [WpfFact, WorkItem(539682, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539682")]
         public void FormatDocumentPasteCommandHandler()
         {
             var code = @"class Program
@@ -98,8 +96,7 @@ int y;
             AssertFormatWithPasteOrReturn(expected, code, allowDocumentChanges: true);
         }
 
-        [WpfFact]
-        [WorkItem(547261, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547261")]
+        [WpfFact, WorkItem(547261, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547261")]
         public void FormatDocumentReadOnlyWorkspacePasteCommandHandler()
         {
             var code = @"class Program
@@ -125,8 +122,7 @@ int y;
             AssertFormatWithPasteOrReturn(expected, code, allowDocumentChanges: false);
         }
 
-        [WpfFact]
-        [WorkItem(912965, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/912965")]
+        [WpfFact, WorkItem(912965, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/912965")]
         public void DoNotFormatUsingStatementOnReturn()
         {
             var code = @"class Program
@@ -152,8 +148,7 @@ int y;
             AssertFormatWithPasteOrReturn(expected, code, allowDocumentChanges: true, isPaste: false);
         }
 
-        [WpfFact]
-        [WorkItem(912965, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/912965")]
+        [WpfFact, WorkItem(912965, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/912965")]
         public void FormatUsingStatementWhenTypingCloseParen()
         {
             var code = @"class Program
@@ -179,8 +174,7 @@ int y;
             AssertFormatAfterTypeChar(code, expected);
         }
 
-        [WpfFact]
-        [WorkItem(912965, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/912965")]
+        [WpfFact, WorkItem(912965, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/912965")]
         public void FormatNotUsingStatementOnReturn()
         {
             var code = @"class Program
@@ -1587,8 +1581,7 @@ class C
             AssertFormatOnArbitraryNode(node, expected);
         }
 
-        [WpfFact]
-        [WorkItem(57465, "https://github.com/dotnet/roslyn/issues/57465")]
+        [WpfFact, WorkItem(57465, "https://github.com/dotnet/roslyn/issues/57465")]
         public async Task FormatLambdaWithDirective()
         {
             var code = @"namespace N
@@ -1637,8 +1630,7 @@ class C
             await AssertFormatAsync(expected, code, spans: null);
         }
 
-        [WpfFact]
-        [WorkItem(57465, "https://github.com/dotnet/roslyn/issues/57465")]
+        [WpfFact, WorkItem(57465, "https://github.com/dotnet/roslyn/issues/57465")]
         public async Task FormatLambdaWithComment()
         {
             var code = @"namespace N
@@ -1985,8 +1977,7 @@ if (true)
             AssertFormatAfterTypeChar(code, expected, SmartIndentButDoNotFormatWhileTyping());
         }
 
-        [WpfFact]
-        [WorkItem(31907, "https://github.com/dotnet/roslyn/issues/31907")]
+        [WpfFact, WorkItem(31907, "https://github.com/dotnet/roslyn/issues/31907")]
         public async Task NullableReferenceTypes()
         {
             var code = @"[|
@@ -2033,8 +2024,7 @@ true == false, true
             AssertFormatOnArbitraryNode(newRoot, expected);
         }
 
-        [WpfFact]
-        [WorkItem(27268, "https://github.com/dotnet/roslyn/issues/27268")]
+        [WpfFact, WorkItem(27268, "https://github.com/dotnet/roslyn/issues/27268")]
         public async Task PositionalPattern()
         {
             var code = @"[|
@@ -2277,8 +2267,7 @@ using System.B;
             AssertFormatWithView(expected, code, new OptionsCollection(LanguageNames.CSharp) { { GenerationOptions.SeparateImportDirectiveGroups, true } });
         }
 
-        [WpfFact]
-        [WorkItem(58157, "https://github.com/dotnet/roslyn/issues/58157")]
+        [WpfFact, WorkItem(58157, "https://github.com/dotnet/roslyn/issues/58157")]
         [Trait(Traits.Feature, Traits.Features.Formatting)]
         public void FormatImplicitObjectCollection()
         {

@@ -251,6 +251,11 @@ namespace Microsoft.CodeAnalysis
 
             public string RemoveAssemblySymbolKeys()
             {
+                this.ReadFormatVersion();
+
+                // read out the language as well, it's not part of any symbol key comparison
+                this.SkipString();
+
                 while (Position < Data.Length)
                 {
                     var ch = Data[Position];
@@ -260,15 +265,9 @@ namespace Microsoft.CodeAnalysis
 
                         var type = (SymbolKeyType)Data[Position];
                         _builder.Append(Eat(type));
-                        if (type == SymbolKeyType.Assembly)
-                        {
-                            Debug.Assert(_skipString == false);
-                            _skipString = true;
-                            ReadString();
 
-                            Debug.Assert(_skipString == true);
-                            _skipString = false;
-                        }
+                        if (type == SymbolKeyType.Assembly)
+                            SkipString();
                     }
                     else if (Data[Position] == DoubleQuoteChar)
                     {
@@ -282,6 +281,17 @@ namespace Microsoft.CodeAnalysis
                 }
 
                 return _builder.ToString();
+            }
+
+            private void SkipString()
+            {
+                Debug.Assert(_skipString == false);
+                _skipString = true;
+
+                ReadString();
+
+                Debug.Assert(_skipString == true);
+                _skipString = false;
             }
 
             protected override object? CreateResultForString(int start, int end, bool hasEmbeddedQuote)

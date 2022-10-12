@@ -8,9 +8,10 @@ Imports Microsoft.CodeAnalysis.Options
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
     <[UseExportProvider]>
+    <Trait(Traits.Feature, Traits.Features.SignatureHelp)>
     Public Class CSharpSignatureHelpCommandHandlerTests
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestCreateAndDismiss(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
                               <Document>
@@ -30,7 +31,7 @@ class C
             End Using
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TypingUpdatesParameters(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
                               <Document>
@@ -50,7 +51,7 @@ class C
             End Using
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TypingChangeParameterByNavigating(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
                               <Document>
@@ -72,7 +73,7 @@ class C
             End Using
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        <WpfTheory, CombinatorialData>
         Public Async Function NavigatingOutOfSpanDismissesSignatureHelp(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
                               <Document>
@@ -92,7 +93,7 @@ class C
             End Using
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestNestedCalls(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
                               <Document>
@@ -116,7 +117,7 @@ class C
         End Function
 
         <WorkItem(544547, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544547")>
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestNoSigHelpOnGenericNamespace(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
                               <Document>
@@ -129,7 +130,7 @@ namespace global::F$$
         End Function
 
         <WorkItem(544547, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544547")>
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestSigHelpOnExtraSpace(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
                               <Document>
@@ -150,7 +151,7 @@ class C
         End Function
 
         <WorkItem(6713, "https://github.com/dotnet/roslyn/issues/6713")>
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestOnIncompleteInvocation(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
                               <Document><![CDATA[
@@ -195,7 +196,7 @@ class Program
         End Function
 
         <WorkItem(6713, "https://github.com/dotnet/roslyn/issues/6713")>
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestOnIncompleteInvocation_CommaMatters(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
                               <Document><![CDATA[
@@ -235,7 +236,7 @@ class Program
         End Function
 
         <WorkItem(6713, "https://github.com/dotnet/roslyn/issues/6713")>
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestOnIncompleteInvocation_WithRef(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
                               <Document><![CDATA[
@@ -271,7 +272,7 @@ class Program
         End Function
 
         <WorkItem(6713, "https://github.com/dotnet/roslyn/issues/6713")>
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestOnIncompleteInvocation_WithArgumentName(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
                               <Document><![CDATA[
@@ -295,7 +296,7 @@ class Program
         End Function
 
         <WorkItem(6713, "https://github.com/dotnet/roslyn/issues/6713")>
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestOnIncompleteInvocation_WithExtension(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
                               <Document><![CDATA[
@@ -326,7 +327,7 @@ public static class ProgramExtension
         End Function
 
         <WorkItem(6713, "https://github.com/dotnet/roslyn/issues/6713")>
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestOnIncompleteObjectConstruction(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
                               <Document><![CDATA[
@@ -354,7 +355,7 @@ class Program
         End Function
 
         <WorkItem(6713, "https://github.com/dotnet/roslyn/issues/6713")>
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestOnIncompleteConstructorInitializer(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
                               <Document><![CDATA[
@@ -389,7 +390,7 @@ class Program
         End Function
 
         <WorkItem(545488, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545488")>
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestUseBestOverload(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
                               <Document><![CDATA[
@@ -434,7 +435,7 @@ class Program
         End Function
 
         <WorkItem(545488, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545488")>
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestForgetSelectedItemWhenNoneAreViable(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
                               <Document><![CDATA[
@@ -472,7 +473,7 @@ class Program
         End Function
 
         <WorkItem(691648, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/691648")>
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestKeepUserSelectedItem(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
                               <Document><![CDATA[
@@ -515,7 +516,6 @@ class C
 
         <WorkItem(691648, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/691648")>
         <WpfTheory, CombinatorialData>
-        <Trait(Traits.Feature, Traits.Features.SignatureHelp)>
         Public Async Function TestKeepUserSelectedItem2(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
                               <Document><![CDATA[
@@ -555,7 +555,7 @@ class C
         End Function
 
         <WorkItem(691648, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/691648")>
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestKeepUserSelectedItem3(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
                               <Document><![CDATA[
@@ -593,7 +593,7 @@ class C
         End Function
 
         <WorkItem(25830, "https://github.com/dotnet/roslyn/issues/25830")>
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestPathIndependent(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
                               <Document><![CDATA[
@@ -630,7 +630,7 @@ class C
         End Function
 
         <WorkItem(25830, "https://github.com/dotnet/roslyn/issues/25830")>
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestPathIndependent2(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
                               <Document><![CDATA[
@@ -663,7 +663,7 @@ class C
         <WorkItem(819063, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/819063")>
         <WorkItem(843508, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/843508")>
         <WorkItem(636117, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/636117")>
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestSessionMaintainedDuringIndexerErrorToleranceTransition(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
                               <Document><![CDATA[
@@ -687,7 +687,7 @@ class Program
             End Using
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestSigHelpInLinkedFiles(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateTestStateFromWorkspace(
                 <Workspace>
@@ -727,7 +727,7 @@ class C
         End Function
 
         <WorkItem(1060850, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1060850")>
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestSigHelpNotDismissedAfterQuote(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
                               <Document><![CDATA[
@@ -753,7 +753,7 @@ class C
         End Function
 
         <WorkItem(1060850, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1060850")>
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestSigHelpDismissedAfterComment(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
                               <Document><![CDATA[
@@ -778,7 +778,7 @@ class C
         End Function
 
         <WorkItem(1598, "https://github.com/dotnet/roslyn/issues/1598")>
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestGenericNameSigHelpInTypeParameterListAfterConditionalAccess(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
                               <Document><![CDATA[
@@ -801,7 +801,7 @@ class C
         End Function
 
         <WorkItem(1598, "https://github.com/dotnet/roslyn/issues/1598")>
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestGenericNameSigHelpInTypeParameterListAfterMultipleConditionalAccess(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
                               <Document><![CDATA[
@@ -824,7 +824,7 @@ class C
         End Function
 
         <WorkItem(1598, "https://github.com/dotnet/roslyn/issues/1598")>
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestGenericNameSigHelpInTypeParameterListMuchAfterConditionalAccess(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
                               <Document><![CDATA[
@@ -847,7 +847,7 @@ class C
         End Function
 
         <WorkItem(1598, "https://github.com/dotnet/roslyn/issues/1598")>
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestGenericNameSigHelpInTypeParameterListAfterConditionalAccessAndNullCoalesce(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
                               <Document><![CDATA[
@@ -870,7 +870,7 @@ class C
         End Function
 
         <WorkItem(5174, "https://github.com/dotnet/roslyn/issues/5174")>
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        <WpfTheory, CombinatorialData>
         Public Async Function DontShowSignatureHelpIfOptionIsTurnedOffUnlessExplicitlyInvoked(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
                               <Document>
@@ -895,7 +895,7 @@ class C
             End Using
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        <WpfTheory, CombinatorialData>
         Public Async Function MixedTupleNaming(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
                               <Document>
@@ -913,7 +913,7 @@ class C
             End Using
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        <WpfTheory, CombinatorialData>
         Public Async Function ParameterSelectionWhileParsedAsParenthesizedExpression(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
                               <Document>

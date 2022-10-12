@@ -19,22 +19,6 @@ namespace Microsoft.CodeAnalysis
 {
     internal static class AnalyzerConfigOptionsExtensions
     {
-#if CODE_STYLE
-        public static T GetOption<T>(this AnalyzerConfigOptions analyzerConfigOptions, PerLanguageOption2<T> option, string language)
-        {
-            // Language is not used for .editorconfig lookups
-            _ = language;
-
-            return GetOption(analyzerConfigOptions, option);
-        }
-#else
-        public static T GetOption<T>(this AnalyzerConfigOptions analyzerConfigOptions, Options.Option<T> option)
-            => GetOptionWithAssertOnFailure<T>(analyzerConfigOptions, option);
-
-        public static T GetOption<T>(this AnalyzerConfigOptions analyzerConfigOptions, Options.PerLanguageOption<T> option)
-            => GetOptionWithAssertOnFailure<T>(analyzerConfigOptions, option);
-#endif
-
         public static T GetOption<T>(this AnalyzerConfigOptions analyzerConfigOptions, Option2<T> option)
             => GetOptionWithAssertOnFailure<T>(analyzerConfigOptions, option);
 
@@ -55,17 +39,17 @@ namespace Microsoft.CodeAnalysis
             return value;
         }
 
-        public static bool TryGetEditorConfigOptionOrDefault<T>(this AnalyzerConfigOptions analyzerConfigOptions, TOption option, out T value)
+        private static bool TryGetEditorConfigOptionOrDefault<T>(this AnalyzerConfigOptions analyzerConfigOptions, TOption option, out T value)
             => TryGetEditorConfigOption(analyzerConfigOptions, option, (T?)option.DefaultValue, out value!);
 
         public static bool TryGetEditorConfigOption<T>(this AnalyzerConfigOptions analyzerConfigOptions, TOption option, [MaybeNullWhen(false)] out T value)
             => TryGetEditorConfigOption(analyzerConfigOptions, option, defaultValue: default, out value);
 
         public static T GetEditorConfigOption<T>(this AnalyzerConfigOptions analyzerConfigOptions, TOption option, T defaultValue)
-            => TryGetEditorConfigOption(analyzerConfigOptions, option, new Optional<T?>(defaultValue), out var value) ? value! : throw ExceptionUtilities.Unreachable;
+            => TryGetEditorConfigOption(analyzerConfigOptions, option, new Optional<T?>(defaultValue), out var value) ? value! : throw ExceptionUtilities.Unreachable();
 
         public static T GetEditorConfigOptionValue<T>(this AnalyzerConfigOptions analyzerConfigOptions, TOption option, T defaultValue)
-            => TryGetEditorConfigOption(analyzerConfigOptions, option, new Optional<CodeStyleOption2<T>?>(new CodeStyleOption2<T>(defaultValue, NotificationOption2.None)), out var style) ? style!.Value : throw ExceptionUtilities.Unreachable;
+            => TryGetEditorConfigOption(analyzerConfigOptions, option, new Optional<CodeStyleOption2<T>?>(new CodeStyleOption2<T>(defaultValue, NotificationOption2.None)), out var style) ? style!.Value : throw ExceptionUtilities.Unreachable();
 
         private static bool TryGetEditorConfigOption<T>(this AnalyzerConfigOptions analyzerConfigOptions, TOption option, Optional<T?> defaultValue, out T? value)
         {

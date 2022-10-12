@@ -66,8 +66,7 @@ End Interface", HangMitigatingCancellationToken);
                 identifierWithCaret = "$$Implementation";
             }
 
-            var dirtyModifier = await TestServices.Editor.GetDirtyIndicatorAsync(HangMitigatingCancellationToken);
-            Assert.Equal($"FileImplementation.vb{dirtyModifier}", await TestServices.Shell.GetActiveWindowCaptionAsync(HangMitigatingCancellationToken));
+            Assert.Equal($"FileImplementation.vb", await TestServices.Shell.GetActiveDocumentFileNameAsync(HangMitigatingCancellationToken));
             await TestServices.EditorVerifier.TextContainsAsync($@"Class {identifierWithCaret}", assertCaretPosition: true);
             Assert.False(await TestServices.Shell.IsActiveTabProvisionalAsync(HangMitigatingCancellationToken));
         }

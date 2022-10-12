@@ -14,6 +14,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.TypeInferrer
 {
+    [Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
     public partial class TypeInferrerTests
     {
         private async Task TestDelegateAsync(string text, string expectedType)
@@ -34,7 +35,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.TypeInferrer
             Assert.Equal(expectedType, delegateType.ToNameDisplayString());
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
+        [Fact]
         public async Task TestDeclaration1()
         {
             var text =
@@ -50,7 +51,7 @@ class C
             await TestDelegateAsync(text, "System.Func<int>");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
+        [Fact]
         public async Task TestAssignment1()
         {
             var text =
@@ -67,7 +68,7 @@ class C
             await TestDelegateAsync(text, "System.Func<int>");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
+        [Fact]
         public async Task TestArgument1()
         {
             var text =
@@ -85,7 +86,7 @@ class C
             await TestDelegateAsync(text, "System.Func<int>");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
+        [Fact]
         public async Task TestConstructor1()
         {
             var text =
@@ -103,7 +104,7 @@ class C
             await TestDelegateAsync(text, "System.Func<int>");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
+        [Fact]
         public async Task TestDelegateConstructor1()
         {
             var text =
@@ -119,7 +120,7 @@ class C
             await TestDelegateAsync(text, "System.Func<int>");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
+        [Fact]
         public async Task TestCastExpression1()
         {
             var text =
@@ -135,7 +136,7 @@ class C
             await TestDelegateAsync(text, "System.Func<int>");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
+        [Fact]
         public async Task TestCastExpression2()
         {
             var text =
@@ -151,7 +152,7 @@ class C
             await TestDelegateAsync(text, "System.Func<int>");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
+        [Fact]
         public async Task TestReturnFromMethod()
         {
             var text =
@@ -167,7 +168,7 @@ class C
             await TestDelegateAsync(text, "System.Func<int>");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
+        [Fact]
         public async Task TestInsideLambda1()
         {
             var text =

@@ -680,8 +680,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.False(generatorRan);
         }
 
-        [Fact]
-        [WorkItem(56702, "https://github.com/dotnet/roslyn/issues/56702")]
+        [Fact, WorkItem(56702, "https://github.com/dotnet/roslyn/issues/56702")]
         public async Task ForkAfterFreezeNoLongerRunsGenerators()
         {
             using var workspace = CreateWorkspaceWithPartialSemantics();
@@ -709,8 +708,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Equal("// Something else", (await document.GetRequiredSyntaxRootAsync(CancellationToken.None)).ToFullString());
         }
 
-        [Fact]
-        [WorkItem(56702, "https://github.com/dotnet/roslyn/issues/56702")]
+        [Fact, WorkItem(56702, "https://github.com/dotnet/roslyn/issues/56702")]
         public async Task ForkAfterFreezeNoLongerRunsGeneratorsEvenIfCompilationFallsAwayBeforeFreeze()
         {
             using var workspace = CreateWorkspaceWithPartialSemanticsAndWeakCompilations();
@@ -772,13 +770,8 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var documentInfo = DocumentInfo.Create(
                 DocumentId.CreateNewId(project.Id),
                 name: "Test.cs",
-                folders: new string[] { },
-                sourceCodeKind: SourceCodeKind.Regular,
-                loader: null,
-                filePath: null,
-                isGenerated: true,
-                designTimeOnly: true,
-                documentServiceProvider: null);
+                isGenerated: true).WithDesignTimeOnly(true);
+
             project = project.Solution.AddDocument(documentInfo).Projects.Single()
                 .AddAnalyzerReference(analyzerReference);
 
