@@ -13232,10 +13232,7 @@ var lam = (short s = 32768) => { };
 """
 const float floatConst = 1f;
 var lam = (double d = floatConst) => { };
-""", expectedDiagnostics:
-            // (6,21): warning CS0219: The variable 'floatConst' is assigned but its value is never used
-            //         const float floatConst = 1f;
-            Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "floatConst").WithArguments("floatConst").WithLocation(6, 21));
+""");
         }
 
         [ConditionalFact(typeof(NoIOperationValidation))]
@@ -13271,9 +13268,6 @@ public class Program
 }
 """;
             CreateCompilation(source, targetFramework: TargetFramework.Net60).VerifyDiagnostics(
-                // (20,13): warning CS0219: The variable 'i' is assigned but its value is never used
-                //         int i = 0;
-                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "i").WithArguments("i").WithLocation(20, 13),
                 // (21,56): error CS1736: Default parameter value for 'h' must be a compile-time constant
                 //         var lam = (CustomInterpolatedStringHandler h = $"i: {i}") =>
                 Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, @"$""i: {i}""").WithArguments("h").WithLocation(21, 56));
@@ -13327,9 +13321,6 @@ class Program
 }
 """;
             CreateCompilation(source).VerifyDiagnostics(
-                // (7,13): warning CS0219: The variable 'n' is assigned but its value is never used
-                //         int n = 42;
-                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "n").WithArguments("n").WithLocation(7, 13),
                 // (9,31): error CS1736: Default parameter value for 's' must be a compile-time constant
                 //         var lam = (string s = $"n: {n}") => { };
                 Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, @"$""n: {n}""").WithArguments("s").WithLocation(9, 31));

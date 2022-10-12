@@ -7618,10 +7618,7 @@ class Program
                 Diagnostic(ErrorCode.ERR_NoConversionForDefaultParam, "str").WithArguments("var", "string").WithLocation(5, 27),
                 // (5,33): error CS0841: Cannot use local variable 's' before it is declared
                 //         var lam = (string str = s) => { };
-                Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "s").WithArguments("s").WithLocation(5, 33),
-                // (6,22): warning CS0219: The variable 's' is assigned but its value is never used
-                //         const string s = "abcdef";
-                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "s").WithArguments("s").WithLocation(6, 22));
+                Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "s").WithArguments("s").WithLocation(5, 33));
         }
 
         [Fact(Skip = "PROTOTYPE: Nullable walker code needs to be updated so that this doesn't cause a cycle")]
