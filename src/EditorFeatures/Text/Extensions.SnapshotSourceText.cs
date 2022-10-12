@@ -84,7 +84,7 @@ namespace Microsoft.CodeAnalysis.Text
 
                     // Avoid capturing `textBufferCloneServiceOpt` on the fast path
                     var tempTextBufferCloneService = textBufferCloneService;
-                    snapshot = s_textSnapshotMap.GetValue(editorSnapshot, s => new SnapshotSourceText(tempTextBufferCloneService, s, SourceHashAlgorithms.Default, container));
+                    snapshot = s_textSnapshotMap.GetValue(editorSnapshot, s => new SnapshotSourceText(tempTextBufferCloneService, s, SourceHashAlgorithms.OpenDocumentChecksumAlgorithm, container));
                 }
 
                 return snapshot;
@@ -101,7 +101,7 @@ namespace Microsoft.CodeAnalysis.Text
                 }
 
                 Contract.ThrowIfFalse(editorSnapshot.TextBuffer == container.GetTextBuffer());
-                return s_textSnapshotMap.GetValue(editorSnapshot, s => new SnapshotSourceText(textBufferCloneService, s, SourceHashAlgorithms.Default, container));
+                return s_textSnapshotMap.GetValue(editorSnapshot, s => new SnapshotSourceText(textBufferCloneService, s, SourceHashAlgorithms.OpenDocumentChecksumAlgorithm, container));
             }
 
             public override Encoding? Encoding
