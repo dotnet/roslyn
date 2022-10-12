@@ -294,7 +294,7 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
         {
             try
             {
-                foreach (var fileInfo in new DirectoryInfo(directoryPath).EnumerateFiles(" *", SearchOption.AllDirectories))
+                foreach (var fileInfo in new DirectoryInfo(directoryPath).EnumerateFiles("*", SearchOption.AllDirectories))
                 {
                     fileInfo.IsReadOnly = false;
                 }
