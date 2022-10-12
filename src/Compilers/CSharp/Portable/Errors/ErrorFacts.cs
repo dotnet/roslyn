@@ -521,6 +521,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.WRN_RefAssignReturnOnly:
                 case ErrorCode.WRN_RefReturnOnlyParameter:
                 case ErrorCode.WRN_RefReturnOnlyParameter2:
+                case ErrorCode.WRN_RefAssignValEscapeWider:
                     return 1;
                 default:
                     return 0;
@@ -2263,6 +2264,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.WRN_RefAssignReturnOnly:
                 case ErrorCode.WRN_RefReturnOnlyParameter:
                 case ErrorCode.WRN_RefReturnOnlyParameter2:
+                case ErrorCode.ERR_RefAssignValEscapeWider:
+                case ErrorCode.WRN_RefAssignValEscapeWider:
                     return false;
                 default:
                     // NOTE: All error codes must be explicitly handled in this switch statement
