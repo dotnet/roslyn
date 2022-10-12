@@ -754,8 +754,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                var parameterDeclarationScopes = invokeMethod.GetByValueParameterDeclarationScopes();
-                lambdaSymbol = CreateLambdaSymbol(Binder.ContainingMemberOrLambda, returnType, cacheKey.ParameterTypes, cacheKey.ParameterRefKinds, parameterDeclarationScopes, refKind);
+                lambdaSymbol = CreateLambdaSymbol(Binder.ContainingMemberOrLambda, returnType, cacheKey.ParameterTypes, cacheKey.ParameterRefKinds, cacheKey.ParameterDeclarationScopes, refKind);
                 lambdaBodyBinder = new ExecutableCodeBinder(_unboundLambda.Syntax, lambdaSymbol, GetWithParametersBinder(lambdaSymbol, Binder), inExpressionTree ? BinderFlags.InExpressionTree : BinderFlags.None);
                 block = BindLambdaBody(lambdaSymbol, lambdaBodyBinder, diagnostics);
             }
@@ -846,8 +845,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var invokeMethod = DelegateInvokeMethod(delegateType);
             var returnType = DelegateReturnTypeWithAnnotations(invokeMethod, out RefKind refKind);
-            ReturnInferenceCacheKey.GetFields(delegateType, IsAsync, out var parameterTypes, out var parameterRefKinds, out _);
-            return CreateLambdaSymbol(containingSymbol, returnType, parameterTypes, parameterRefKinds, invokeMethod.GetByValueParameterDeclarationScopes(), refKind);
+            ReturnInferenceCacheKey.GetFields(delegateType, IsAsync, out var parameterTypes, out var parameterRefKinds,
+                out var parameterDeclarationScopes, out _);
+
+            return CreateLambdaSymbol(containingSymbol, returnType, parameterTypes, parameterRefKinds, parameterDeclarationScopes, refKind);
         }
 
         private void ValidateUnsafeParameters(BindingDiagnosticBag diagnostics, ImmutableArray<TypeWithAnnotations> targetParameterTypes)
@@ -961,9 +962,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundLambda? result;
             if (!_returnInferenceCache!.TryGetValue(cacheKey, out result))
             {
-                // TODO2 do we need to include the parameter scopes in the bound lambda cache?
-                var invokeMethod = DelegateInvokeMethod(delegateType);
-                result = ReallyInferReturnType(delegateType, cacheKey.ParameterTypes, cacheKey.ParameterRefKinds, invokeMethod.GetByValueParameterDeclarationScopes());
+                result = ReallyInferReturnType(delegateType, cacheKey.ParameterTypes, cacheKey.ParameterRefKinds, cacheKey.ParameterDeclarationScopes);
                 result = ImmutableInterlocked.GetOrAdd(ref _returnInferenceCache, cacheKey, result);
             }
 
@@ -977,16 +976,22 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             public readonly ImmutableArray<TypeWithAnnotations> ParameterTypes;
             public readonly ImmutableArray<RefKind> ParameterRefKinds;
+            public readonly ImmutableArray<DeclarationScope> ParameterDeclarationScopes;
             public readonly NamedTypeSymbol? TaskLikeReturnTypeOpt;
 
-            public static readonly ReturnInferenceCacheKey Empty = new ReturnInferenceCacheKey(ImmutableArray<TypeWithAnnotations>.Empty, ImmutableArray<RefKind>.Empty, null);
+            public static readonly ReturnInferenceCacheKey Empty = new ReturnInferenceCacheKey(ImmutableArray<TypeWithAnnotations>.Empty, ImmutableArray<RefKind>.Empty,
+                parameterDeclarationScopes: default, taskLikeReturnTypeOpt: null);
 
-            private ReturnInferenceCacheKey(ImmutableArray<TypeWithAnnotations> parameterTypes, ImmutableArray<RefKind> parameterRefKinds, NamedTypeSymbol? taskLikeReturnTypeOpt)
+            private ReturnInferenceCacheKey(ImmutableArray<TypeWithAnnotations> parameterTypes, ImmutableArray<RefKind> parameterRefKinds,
+                ImmutableArray<DeclarationScope> parameterDeclarationScopes, NamedTypeSymbol? taskLikeReturnTypeOpt)
             {
                 Debug.Assert(parameterTypes.Length == parameterRefKinds.Length);
+                Debug.Assert(parameterDeclarationScopes.IsDefault || parameterTypes.Length == parameterDeclarationScopes.Length);
                 Debug.Assert(taskLikeReturnTypeOpt is null || ((object)taskLikeReturnTypeOpt == taskLikeReturnTypeOpt.ConstructedFrom && taskLikeReturnTypeOpt.IsCustomTaskType(out var builderArgument)));
+
                 this.ParameterTypes = parameterTypes;
                 this.ParameterRefKinds = parameterRefKinds;
+                this.ParameterDeclarationScopes = parameterDeclarationScopes;
                 this.TaskLikeReturnTypeOpt = taskLikeReturnTypeOpt;
             }
 
@@ -1015,6 +1020,24 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 }
 
+                if (this.ParameterDeclarationScopes.IsDefault || other.ParameterDeclarationScopes.IsDefault)
+                {
+                    return this.ParameterDeclarationScopes.IsDefault == other.ParameterDeclarationScopes.IsDefault;
+                }
+
+                if (this.ParameterDeclarationScopes.Length != other.ParameterDeclarationScopes.Length)
+                {
+                    return false;
+                }
+
+                for (int i = 0; i < this.ParameterDeclarationScopes.Length; i++)
+                {
+                    if (this.ParameterDeclarationScopes[i] != other.ParameterDeclarationScopes[i])
+                    {
+                        return false;
+                    }
+                }
+
                 return true;
             }
 
@@ -1028,15 +1051,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return value;
             }
 
-            // TODO2 should ReturnInferenceCacheKey includes scopes?
             public static ReturnInferenceCacheKey Create(NamedTypeSymbol? delegateType, bool isAsync)
             {
-                GetFields(delegateType, isAsync, out var parameterTypes, out var parameterRefKinds, out var taskLikeReturnTypeOpt);
+                GetFields(delegateType, isAsync, out var parameterTypes, out var parameterRefKinds,
+                    out var parameterDeclarationScopes, out var taskLikeReturnTypeOpt);
+
                 if (parameterTypes.IsEmpty && parameterRefKinds.IsEmpty && taskLikeReturnTypeOpt is null)
                 {
                     return Empty;
                 }
-                return new ReturnInferenceCacheKey(parameterTypes, parameterRefKinds, taskLikeReturnTypeOpt);
+                return new ReturnInferenceCacheKey(parameterTypes, parameterRefKinds, parameterDeclarationScopes, taskLikeReturnTypeOpt);
             }
 
             public static void GetFields(
@@ -1044,12 +1068,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 bool isAsync,
                 out ImmutableArray<TypeWithAnnotations> parameterTypes,
                 out ImmutableArray<RefKind> parameterRefKinds,
+                out ImmutableArray<DeclarationScope> parameterDeclarationScopes,
                 out NamedTypeSymbol? taskLikeReturnTypeOpt)
             {
                 // delegateType or DelegateInvokeMethod can be null in cases of malformed delegates
                 // in such case we would want something trivial with no parameters
                 parameterTypes = ImmutableArray<TypeWithAnnotations>.Empty;
                 parameterRefKinds = ImmutableArray<RefKind>.Empty;
+                parameterDeclarationScopes = default;
                 taskLikeReturnTypeOpt = null;
                 MethodSymbol? invoke = DelegateInvokeMethod(delegateType);
                 if (invoke is not null)
@@ -1068,6 +1094,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         parameterTypes = typesBuilder.ToImmutableAndFree();
                         parameterRefKinds = refKindsBuilder.ToImmutableAndFree();
+                        parameterDeclarationScopes = MethodSymbolExtensions.GetByValueParameterDeclarationScopes(invoke);
                     }
 
                     if (isAsync)
@@ -1141,9 +1168,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (lambda is null)
                     return null;
+
                 var delegateType = (NamedTypeSymbol?)lambda.Type;
-                ReturnInferenceCacheKey.GetFields(delegateType, IsAsync, out var parameterTypes, out var parameterRefKinds, taskLikeReturnTypeOpt: out _);
-                return ReallyBindForErrorRecovery(delegateType, lambda.InferredReturnType, parameterTypes, parameterRefKinds, parameterDeclarationScopes: default); // TODO2 not sure what to do here
+                ReturnInferenceCacheKey.GetFields(delegateType, IsAsync, out var parameterTypes, out var parameterRefKinds,
+                    out var parameterDeclarationScopes, taskLikeReturnTypeOpt: out _);
+
+                return ReallyBindForErrorRecovery(delegateType, lambda.InferredReturnType, parameterTypes, parameterRefKinds, parameterDeclarationScopes);
             }
         }
 

@@ -51,8 +51,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert(syntaxReferenceOpt is not null);
             Debug.Assert(containingSymbol.DeclaringCompilation == compilation);
             Debug.Assert(parameterDeclarationScopes.IsDefault || parameterTypes.Length == parameterDeclarationScopes.Length);
-            // We only compute declaration scopes for by-value parameters (see GetByValueParameterDeclarationScopes)
-            Debug.Assert(parameterDeclarationScopes.IsDefault || parameterDeclarationScopes.All(s => s is DeclarationScope.Unscoped or DeclarationScope.ValueScoped));
 
             _binder = binder;
             _containingSymbol = containingSymbol;

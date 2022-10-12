@@ -239,6 +239,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             static DeclarationScope getByValueParameterDeclarationScope(ParameterSymbol parameter)
             {
+                // For implicitly-typed lambda parameters, we only care about declaration scopes on by-value parameters.
+                // For by-value parameters, the declaration scope is the effective scope.
                 if (parameter.RefKind != RefKind.None)
                     return DeclarationScope.Unscoped;
 
