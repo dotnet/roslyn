@@ -859,10 +859,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             var changes = _baseSolution.GetChanges(newSolution);
             var changedDocumentIDs = changes.GetProjectChanges().SelectMany(c => c.GetChangedDocuments()).ToList();
 
-            await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
-            if (!_renameInfo.TryOnBeforeGlobalSymbolRenamed(_workspace, changedDocumentIDs, this.ReplacementText))
-                return (NotificationSeverity.Error, EditorFeaturesResources.Rename_operation_was_cancelled_or_is_not_valid);
-
             await TaskScheduler.Default;
             var finalSolution = newSolution.Workspace.CurrentSolution;
             foreach (var id in changedDocumentIDs)
@@ -892,6 +888,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
             using var undoTransaction = _workspace.OpenGlobalUndoTransaction(EditorFeaturesResources.Inline_Rename);
+
+            if (!_renameInfo.TryOnBeforeGlobalSymbolRenamed(_workspace, changedDocumentIDs, this.ReplacementText))
+                return (NotificationSeverity.Error, EditorFeaturesResources.Rename_operation_was_cancelled_or_is_not_valid);
 
             if (!_workspace.TryApplyChanges(finalSolution))
                 return (NotificationSeverity.Error, EditorFeaturesResources.Rename_operation_could_not_complete_due_to_external_change_to_workspace);
