@@ -260,7 +260,11 @@ namespace Microsoft.CodeAnalysis
 
         internal void UpdateCurrentSolutionOnOptionsChanged()
         {
-            using (_serializationLock.DisposableWait())
+            // TODO: this should be locked as it is updating CurrentSolution.  However, that triggers a deadlock in options due to:
+            // https://github.com/dotnet/roslyn/issues/64681
+            //
+            // This should be fixable once SolutionCrawler is entirely removed.
+            // using (_serializationLock.DisposableWait())
             {
                 SetCurrentSolution(CurrentSolution.WithOptions(new SolutionOptionSet(_legacyOptions)));
 
