@@ -2211,7 +2211,7 @@ namespace N
     End Structure
 end namespace"
 
-            Dim expected2 ="
+            Dim expected2 = "
 imports System
 
 partial class Test
@@ -2261,7 +2261,7 @@ partial class Other
         dim t1 = (a:=1, b:=2)
     end sub
 end class"
-            Dim text2 ="
+            Dim text2 = "
 imports System
 
 partial class Other
