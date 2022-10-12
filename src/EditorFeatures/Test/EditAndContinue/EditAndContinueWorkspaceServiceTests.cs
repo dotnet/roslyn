@@ -848,7 +848,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             EnterBreakState(debuggingSession, activeStatements);
 
             // change the source (rude edit):
-            solution = solution.WithDocumentText(designTimeOnlyDocumentId, CreateText(sourceB2));
+            solution = solution.WithDocumentText(designTimeOnlyDocumentId, CreateText(sourceDesignTimeOnly2));
 
             var designTimeOnlyDocument2 = solution.GetDocument(designTimeOnlyDocumentId);
 
