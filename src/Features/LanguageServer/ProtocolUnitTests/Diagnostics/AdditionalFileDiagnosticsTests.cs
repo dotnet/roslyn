@@ -57,6 +57,8 @@ public class AdditionalFileDiagnosticsTests : AbstractPullDiagnosticTestsBase
         Assert.Null(results2[1].Diagnostics);
         Assert.Equal(results[1].ResultId, results2[1].ResultId);
         Assert.Null(results2[2].Diagnostics);
+
+        //Assert.True(false);
     }
 
     [Theory, CombinatorialData]
@@ -150,6 +152,7 @@ public class AdditionalFileDiagnosticsTests : AbstractPullDiagnosticTestsBase
         public override void Initialize(AnalysisContext context)
         {
             Console.WriteLine("Initializing mockdiagnosticanalyzer");
+            Console.WriteLine(Environment.StackTrace);
             context.RegisterCompilationStartAction(CreateAnalyzerWithinCompilation);
         }
 
@@ -159,6 +162,7 @@ public class AdditionalFileDiagnosticsTests : AbstractPullDiagnosticTestsBase
         public void AnalyzeCompilation(AdditionalFileAnalysisContext context)
         {
             Console.WriteLine($"analyze compilation");
+            Console.WriteLine(Environment.StackTrace);
             Console.WriteLine($"analyzing additional file: {context.AdditionalFile.Path}");
             context.ReportDiagnostic(Diagnostic.Create(_descriptor,
                         location: Location.Create(context.AdditionalFile.Path, Text.TextSpan.FromBounds(0, 0), new Text.LinePositionSpan(new Text.LinePosition(0, 0), new Text.LinePosition(0, 0))), "args"));

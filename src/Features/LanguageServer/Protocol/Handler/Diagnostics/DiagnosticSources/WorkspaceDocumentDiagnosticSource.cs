@@ -9,24 +9,30 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.SolutionCrawler;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics;
 
 internal sealed class WorkspaceDocumentDiagnosticSource : AbstractDocumentDiagnosticSource<TextDocument>
 {
+    private readonly IGlobalOptionService _globalOptionService;
+
     protected override bool IncludeTaskListItems { get; }
     protected override bool IncludeStandardDiagnostics { get; }
 
     public WorkspaceDocumentDiagnosticSource(
         TextDocument document,
         bool includeTaskListItems,
-        bool includeStandardDiagnostics) : base(document)
+        bool includeStandardDiagnostics,
+        IGlobalOptionService globalOptionService) : base(document)
     {
         Contract.ThrowIfFalse(includeTaskListItems || includeStandardDiagnostics,
             $"At least one of includeTaskListItems={includeTaskListItems} or includeStandardDiagnostics={includeStandardDiagnostics} must be true.");
         IncludeTaskListItems = includeTaskListItems;
         IncludeStandardDiagnostics = includeStandardDiagnostics;
+        _globalOptionService = globalOptionService;
     }
 
     protected override async Task<ImmutableArray<DiagnosticData>> GetDiagnosticsWorkerAsync(
@@ -49,6 +55,10 @@ internal sealed class WorkspaceDocumentDiagnosticSource : AbstractDocumentDiagno
             if (Document.FilePath?.Contains("Test.txt") == true && documentDiagnostics.IsEmpty)
             {
                 context.TraceInformation("What analyzers? " + string.Join(",", Document.Project.Solution.AnalyzerReferences.SelectMany(s => s.GetAnalyzersForAllLanguages()).Select(a => a.GetType().Name)));
+                context.TraceInformation("diagnostic mode: " + _globalOptionService.GetDiagnosticMode(InternalDiagnosticsOptions.NormalDiagnosticMode));
+                context.TraceInformation("c# background: " + _globalOptionService.GetOption(new OptionKey(SolutionCrawlerOptionsStorage.BackgroundAnalysisScopeOption, LanguageNames.CSharp)));
+                context.TraceInformation("vb background: " + _globalOptionService.GetOption(new OptionKey(SolutionCrawlerOptionsStorage.BackgroundAnalysisScopeOption, LanguageNames.VisualBasic)));
+                context.TraceInformation("ts background: " + _globalOptionService.GetOption(new OptionKey(SolutionCrawlerOptionsStorage.BackgroundAnalysisScopeOption, InternalLanguageNames.TypeScript)));
                 //Debugger.Launch();
             }
 
