@@ -6,17 +6,18 @@ using System.Collections.Immutable;
 using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeRefactorings;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Testing.Verifiers;
 using Microsoft.CodeAnalysis.VisualBasic;
 using Microsoft.CodeAnalysis.VisualBasic.Testing;
-using Microsoft.CodeAnalysis.Remote.Testing;
-using Microsoft.CodeAnalysis.Test.Utilities;
 
 #if !CODE_STYLE
 using System;
-using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Remote.Testing;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 #endif
