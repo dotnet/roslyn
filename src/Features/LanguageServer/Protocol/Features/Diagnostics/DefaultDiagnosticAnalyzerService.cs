@@ -41,11 +41,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
             if (_globalOptions.IsPullDiagnostics(InternalDiagnosticsOptions.NormalDiagnosticMode))
             {
+                Console.WriteLine("enabling pull diagnostics (default)");
                 // We rely on LSP to query us for diagnostics when things have changed and poll us for changes that might
                 // have happened to the project or closed files outside of VS.
                 return NoOpIncrementalAnalyzer.Instance;
             }
 
+            Console.WriteLine("enabling incremental diagnostics (default)");
             return new DefaultDiagnosticIncrementalAnalyzer(this, workspace);
         }
 
