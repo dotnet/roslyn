@@ -982,17 +982,15 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         protected internal void OnAdditionalDocumentAdded(DocumentInfo documentInfo)
         {
-            using (_serializationLock.DisposableWait())
-            {
-                var documentId = documentInfo.Id;
-
-                CheckProjectIsInCurrentSolution(documentId.ProjectId);
-                CheckAdditionalDocumentIsNotInCurrentSolution(documentId);
-
-                var (oldSolution, newSolution) = this.SetCurrentSolution(this.CurrentSolution.AddAdditionalDocument(documentInfo));
-
-                this.RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.AdditionalDocumentAdded, oldSolution, newSolution, documentId: documentId);
-            }
+            var documentId = documentInfo.Id;
+            SetCurrentSolution(
+                oldSolution =>
+                {
+                    CheckProjectIsInSolution(oldSolution, documentId.ProjectId);
+                    CheckAdditionalDocumentIsNotInSolution(oldSolution, documentId);
+                    return oldSolution.AddAdditionalDocument(documentInfo);
+                },
+                WorkspaceChangeKind.AdditionalDocumentAdded, documentId: documentId);
         }
 
         /// <summary>
@@ -2137,12 +2135,15 @@ namespace Microsoft.CodeAnalysis
         /// Throws an exception if an additional document is already part of the current solution.
         /// </summary>
         protected void CheckAdditionalDocumentIsNotInCurrentSolution(DocumentId documentId)
+            => CheckAdditionalDocumentIsNotInSolution(this.CurrentSolution, documentId);
+
+        private static void CheckAdditionalDocumentIsNotInSolution(Solution solution, DocumentId documentId)
         {
-            if (this.CurrentSolution.ContainsAdditionalDocument(documentId))
+            if (solution.ContainsAdditionalDocument(documentId))
             {
                 throw new ArgumentException(string.Format(
                     WorkspacesResources._0_is_already_part_of_the_workspace,
-                    this.GetAdditionalDocumentName(documentId)));
+                    solution.Workspace.GetAdditionalDocumentName(documentId)));
             }
         }
 
