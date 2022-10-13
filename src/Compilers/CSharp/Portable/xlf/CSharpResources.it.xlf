@@ -362,6 +362,11 @@
         <target state="translated">Il nome '{0}' non corrisponde al parametro '{1}' di 'Deconstruct' corrispondente.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_DeconstructVariableCannotBeByRef">
+        <source>A deconstruction variable cannot be declared as a ref local</source>
+        <target state="new">A deconstruction variable cannot be declared as a ref local</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_DefaultConstraintOverrideOnly">
         <source>The 'default' constraint is valid on override and explicit interface implementation methods only.</source>
         <target state="translated">Il vincolo 'default' è valido solo in metodi di override e di implementazione esplicita dell'interfaccia.</target>
@@ -1415,6 +1420,11 @@
       <trans-unit id="ERR_RuntimeDoesNotSupportUnmanagedDefaultCallConv">
         <source>The target runtime doesn't support extensible or runtime-environment default calling conventions.</source>
         <target state="translated">Il runtime di destinazione non supporta convenzioni di chiamata predefinite estendibili o dell'ambiente di runtime.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ScopedDiscard">
+        <source>The 'scoped' modifier cannot be used with discard.</source>
+        <target state="new">The 'scoped' modifier cannot be used with discard.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ScopedMismatchInParameterOfOverrideOrImplementation">
