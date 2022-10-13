@@ -14,6 +14,13 @@ namespace Microsoft.CodeAnalysis.Text
     {
         public const SourceHashAlgorithm Default = SourceHashAlgorithm.Sha256;
 
+        /// <summary>
+        /// Defines a source hash algorithm constant we can re-use when creating source texts for open documents.
+        /// This ensures that both LSP and documents opened as a text buffer are created with the same checksum algorithm
+        /// so that we can compare their contents using checksums later on.
+        /// </summary>
+        public const SourceHashAlgorithm OpenDocumentChecksumAlgorithm = Default;
+
         private static readonly Guid s_guidSha1 = unchecked(new Guid((int)0xff1816ec, (short)0xaa5e, 0x4d10, 0x87, 0xf7, 0x6f, 0x49, 0x63, 0x83, 0x34, 0x60));
         private static readonly Guid s_guidSha256 = unchecked(new Guid((int)0x8829d00f, 0x11b8, 0x4213, 0x87, 0x8b, 0x77, 0x0e, 0x85, 0x97, 0xac, 0x16));
 
