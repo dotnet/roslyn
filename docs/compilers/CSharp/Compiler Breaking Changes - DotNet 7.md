@@ -1,10 +1,13 @@
 # This document lists known breaking changes in Roslyn after .NET 6 all the way to .NET 7.
 
-## Caller of an async local function cannot expect any of the callee’s code to execute.
+## For the purpose of definite assignment analysis, invocations of async local functions are no longer treated as being awaited
 
 ***Introduced in Visual Studio 2022 version 17.5***
 
-See https://github.com/dotnet/roslyn/issues/43697 for the rational.
+For the purpose of definite assignment analysis, invocations of an async local function is
+no longer treated as being awaited and, therefore, the local function is not considered to
+be fully executed. See https://github.com/dotnet/roslyn/issues/43697 for the rationale.
+
 The code below is now going to report a definite assignment error:
 ```csharp
     public async Task M()
