@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings
             RefactoringSetup(workspace, provider, codeActions, out var extensionManager, out var textBuffer);
             var suggestedAction = new CodeRefactoringSuggestedAction(
                 workspace.ExportProvider.GetExportedValue<IThreadingContext>(),
-                workspace.ExportProvider.GetExportedValue<SuggestedActionsSourceProvider.SourceDocumentProvider>(),
+                workspace.ExportProvider.GetExportedValue<SuggestedActionsSourceProvider>(),
                 workspace, workspace.CurrentSolution, textBuffer, provider, codeActions.First(), fixAllFlavors: null);
             await suggestedAction.GetPreviewAsync(CancellationToken.None);
             Assert.True(extensionManager.IsDisabled(provider));
@@ -84,7 +84,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings
             RefactoringSetup(workspace, provider, codeActions, out var extensionManager, out var textBuffer);
             var suggestedAction = new CodeRefactoringSuggestedAction(
                 workspace.ExportProvider.GetExportedValue<IThreadingContext>(),
-                workspace.ExportProvider.GetExportedValue<SuggestedActionsSourceProvider.SourceDocumentProvider>(),
+                workspace.ExportProvider.GetExportedValue<SuggestedActionsSourceProvider>(),
                 workspace, workspace.CurrentSolution, textBuffer, provider, codeActions.First(), fixAllFlavors: null);
             _ = suggestedAction.DisplayText;
             Assert.True(extensionManager.IsDisabled(provider));
@@ -97,7 +97,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings
             RefactoringSetup(workspace, provider, codeActions, out var extensionManager, out var textBuffer);
             var suggestedAction = new CodeRefactoringSuggestedAction(
                 workspace.ExportProvider.GetExportedValue<IThreadingContext>(),
-                workspace.ExportProvider.GetExportedValue<SuggestedActionsSourceProvider.SourceDocumentProvider>(),
+                workspace.ExportProvider.GetExportedValue<SuggestedActionsSourceProvider>(),
                 workspace, workspace.CurrentSolution, textBuffer, provider, codeActions.First(), fixAllFlavors: null);
             _ = await suggestedAction.GetActionSetsAsync(CancellationToken.None);
             Assert.True(extensionManager.IsDisabled(provider));

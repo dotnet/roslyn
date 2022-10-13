@@ -194,8 +194,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeRefactoringService
             // Verify available refactorings for .log additional document
             var logAdditionalDocument = project.AdditionalDocuments.Single(t => t.Name == "test.log");
             var logRefactorings = await refactoringService.GetRefactoringsAsync(logAdditionalDocument, TextSpan.FromBounds(0, 0), CodeActionOptions.DefaultProvider, isBlocking: false, CancellationToken.None);
-            Assert.Equal(1, logRefactorings.Length);
-            var logRefactoringTitle = logRefactorings.Single().CodeActions.Single().action.Title;
+            var logRefactoring = Assert.Single(logRefactorings);
+            var logRefactoringTitle = logRefactoring.CodeActions.Single().action.Title;
             Assert.Equal(refactoring2.Title, logRefactoringTitle);
         }
 
@@ -233,8 +233,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeRefactoringService
             // Verify available refactorings for .globalconfig document
             var globalConfig = project.AnalyzerConfigDocuments.Single(t => t.Name == ".globalconfig");
             var globalConfigRefactorings = await refactoringService.GetRefactoringsAsync(globalConfig, TextSpan.FromBounds(0, 0), CodeActionOptions.DefaultProvider, isBlocking: false, CancellationToken.None);
-            Assert.Equal(1, globalConfigRefactorings.Length);
-            var globalConfigRefactoringTitle = globalConfigRefactorings.Single().CodeActions.Single().action.Title;
+            var globalConfigRefactoring = Assert.Single(globalConfigRefactorings);
+            var globalConfigRefactoringTitle = globalConfigRefactoring.CodeActions.Single().action.Title;
             Assert.Equal(refactoring2.Title, globalConfigRefactoringTitle);
         }
 

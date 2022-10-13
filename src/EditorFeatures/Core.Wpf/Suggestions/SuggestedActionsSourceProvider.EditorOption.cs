@@ -14,29 +14,28 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
     internal partial class SuggestedActionsSourceProvider
     {
         /// <summary>
-        /// Method to enable quick actions inside non-source documents, i.e. <see cref="AdditionalDocument"/> and
-        /// <see cref="AnalyzerConfigDocument"/>.
+        /// Method to enable quick actions from <see cref="SuggestedActionsSourceProvider"/>.
         /// </summary>
         /// <remarks>This method must be invoked on the UI thread.</remarks>
-        public static void EnableForNonSourceDocuments(IEditorOptionsFactoryService editorOptionsFactory)
-            => editorOptionsFactory.GlobalOptions.SetOptionValue(NonSourceDocumentProviderEditorOption.OptionName, true);
+        public static void Enable(IEditorOptionsFactoryService editorOptionsFactory)
+            => editorOptionsFactory.GlobalOptions.SetOptionValue(EditorOption.OptionName, true);
 
         /// <summary>
-        /// Editor option to support lazy creation of <see cref="NonSourceDocumentProvider"/>
-        /// for enabling quick actions for non-source documents.
+        /// Editor option to support lazy creation of <see cref="SuggestedActionsSourceProvider"/>
+        /// for enabling quick actions for documents.
         /// See https://github.com/dotnet/roslyn/issues/62877#issuecomment-1271493105 for more details.
         /// </summary>
         [Export(typeof(EditorOptionDefinition))]
         [Name(OptionName)]
         [DefaultEditorOptionValue(false)]
-        private sealed class NonSourceDocumentProviderEditorOption : EditorOptionDefinition<bool>
+        private sealed class EditorOption : EditorOptionDefinition<bool>
         {
             private static readonly EditorOptionKey<bool> s_optionKey = new(OptionName);
-            public const string OptionName = nameof(NonSourceDocumentProviderEditorOption);
+            public const string OptionName = $"{nameof(SuggestedActionsSourceProvider)}.{nameof(EditorOption)}";
 
             [ImportingConstructor]
             [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-            public NonSourceDocumentProviderEditorOption()
+            public EditorOption()
             {
             }
 

@@ -5,12 +5,15 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.ComponentModel.Composition;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeRefactorings;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.Tags;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Shared.Utilities;
@@ -22,7 +25,21 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 {
-    internal abstract partial class SuggestedActionsSourceProvider : ISuggestedActionsSourceProvider
+    [Export(typeof(ISuggestedActionsSourceProvider))]
+    [Export(typeof(SuggestedActionsSourceProvider))]
+    [ContentType(ContentTypeNames.RoslynContentType)]
+    [ContentType(ContentTypeNames.XamlContentType)]
+    // ContentType("text") requires DeferCreationAttribute(...).
+    // See https://github.com/dotnet/roslyn/issues/62877#issuecomment-1271493105 for more details.
+    // TODO: Uncomment the below attribute, tracked with https://github.com/dotnet/roslyn/issues/64567
+    // [ContentType("text")]
+    [DeferCreation(OptionName = EditorOption.OptionName)]
+    [Name("Roslyn Code Fix")]
+    [Order]
+    [SuggestedActionPriority(DefaultOrderings.Highest)]
+    [SuggestedActionPriority(DefaultOrderings.Default)]
+    [SuggestedActionPriority(DefaultOrderings.Lowest)]
+    internal partial class SuggestedActionsSourceProvider : ISuggestedActionsSourceProvider
     {
         public static readonly ImmutableArray<string> Orderings = ImmutableArray.Create(
             DefaultOrderings.Highest,
@@ -44,7 +61,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 
         public readonly ImmutableArray<Lazy<IImageIdService, OrderableMetadata>> ImageIdServices;
 
-        protected SuggestedActionsSourceProvider(
+        [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+        public SuggestedActionsSourceProvider(
             IThreadingContext threadingContext,
             ICodeRefactoringService codeRefactoringService,
             ICodeFixService codeFixService,
@@ -53,7 +72,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             ISuggestedActionCategoryRegistryService suggestedActionCategoryRegistry,
             IAsynchronousOperationListenerProvider listenerProvider,
             IGlobalOptionService globalOptions,
-            IEnumerable<Lazy<IImageIdService, OrderableMetadata>> imageIdServices)
+            [ImportMany] IEnumerable<Lazy<IImageIdService, OrderableMetadata>> imageIdServices)
         {
             _threadingContext = threadingContext;
             _codeRefactoringService = codeRefactoringService;

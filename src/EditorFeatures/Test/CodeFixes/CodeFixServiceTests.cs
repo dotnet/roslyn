@@ -831,8 +831,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeFixes
             using var workspace2 = tuple.workspace;
             GetDocumentAndExtensionManager(tuple.analyzerService, workspace2, out var logDocument, out extensionManager, analyzerReference, documentKind: TextDocumentKind.AdditionalDocument);
             var logDocumentCodeFixes = await tuple.codeFixService.GetFixesAsync(logDocument, TextSpan.FromBounds(0, 1), CodeActionOptions.DefaultProvider, isBlocking: false, CancellationToken.None);
-            Assert.Equal(1, logDocumentCodeFixes.Length);
-            var logDocumentCodeFixTitle = logDocumentCodeFixes.Single().Fixes.Single().Action.Title;
+            var logDocumentCodeFix = Assert.Single(logDocumentCodeFixes);
+            var logDocumentCodeFixTitle = logDocumentCodeFix.Fixes.Single().Action.Title;
             Assert.Equal(fixer2.Title, logDocumentCodeFixTitle);
         }
 

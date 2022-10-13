@@ -77,9 +77,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 = new();
 
             /// <summary>
-            /// Boolean flag to indicate if any <see cref="AdditionalDocument"/> or <see cref="AnalyzerConfigDocument"/> has been opened.
+            /// Boolean flag to indicate if any <see cref="TextDocument"/> has been opened in the workspace.
             /// </summary>
-            private bool _anyAdditionalOrAnalyzerConfigDocumentOpened;
+            private bool _anyDocumentOpened;
 
             #endregion
 
@@ -167,7 +167,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                         if (!w.IsDocumentOpen(documentId) && !_workspace._documentsNotFromFiles.Contains(documentId))
                         {
                             var isCurrentContext = documentId.ProjectId == activeContextProjectId;
-                            var isAdditionalOrAnalyzerConfigDocument = false;
                             if (w.CurrentSolution.ContainsDocument(documentId))
                             {
                                 w.OnDocumentOpened(documentId, textContainer, isCurrentContext);
@@ -175,23 +174,21 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                             else if (w.CurrentSolution.ContainsAdditionalDocument(documentId))
                             {
                                 w.OnAdditionalDocumentOpened(documentId, textContainer, isCurrentContext);
-                                isAdditionalOrAnalyzerConfigDocument = true;
                             }
                             else
                             {
                                 Debug.Assert(w.CurrentSolution.ContainsAnalyzerConfigDocument(documentId));
                                 w.OnAnalyzerConfigDocumentOpened(documentId, textContainer, isCurrentContext);
-                                isAdditionalOrAnalyzerConfigDocument = true;
                             }
 
-                            if (isAdditionalOrAnalyzerConfigDocument && !_anyAdditionalOrAnalyzerConfigDocumentOpened)
+                            if (!_anyDocumentOpened)
                             {
-                                // First additional or analyzer config document opened in the workspace.
-                                // We enable the special SuggestedActionsSourceProvider for non-source documents.
+                                // First document opened in the workspace.
+                                // We enable quick actions from SuggestedActionsSourceProvider via an editor option.
                                 // NOTE: We need to be on the UI thread to enable the editor option.
                                 _foregroundAffinitization.AssertIsForeground();
-                                SuggestedActionsSourceProvider.EnableForNonSourceDocuments(_editorOptionsFactoryService);
-                                _anyAdditionalOrAnalyzerConfigDocumentOpened = true;
+                                SuggestedActionsSourceProvider.Enable(_editorOptionsFactoryService);
+                                _anyDocumentOpened = true;
                             }
                         }
                     }

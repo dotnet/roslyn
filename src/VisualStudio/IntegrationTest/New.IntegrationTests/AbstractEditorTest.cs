@@ -61,7 +61,7 @@ namespace Roslyn.VisualStudio.IntegrationTests
         protected async Task ClearEditorAsync(CancellationToken cancellationToken)
             => await SetUpEditorAsync("$$", cancellationToken);
 
-        protected async Task SetUpEditorAsync(string markupCode, CancellationToken cancellationToken, string contentType = ContentTypeNames.RoslynContentType)
+        protected async Task SetUpEditorAsync(string markupCode, CancellationToken cancellationToken)
         {
             MarkupTestFile.GetPositionAndSpans(markupCode, out var code, out int? caretPosition, out var spans);
 
@@ -79,7 +79,7 @@ namespace Roslyn.VisualStudio.IntegrationTests
 
                 if (caretPosition.HasValue)
                 {
-                    await TestServices.Editor.MoveCaretAsync(caretPosition.Value, cancellationToken, contentType);
+                    await TestServices.Editor.MoveCaretAsync(caretPosition.Value, cancellationToken);
                 }
                 else
                 {

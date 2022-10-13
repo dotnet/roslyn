@@ -17,18 +17,11 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SuggestedActions
         [Fact]
         public void EnsureAttributesMatchData()
         {
-            // Test attributes for nested sub-types of SuggestedActionsSourceProvider.
-            foreach (var type in typeof(SuggestedActionsSourceProvider).GetNestedTypes())
-            {
-                if (type.BaseType.Name != nameof(SuggestedActionsSourceProvider))
-                    continue;
-
-                // Ensure that the list of orderings on this type matches the set we expose in SuggestedActionsSourceProvider.Orderings
-                var attributes = type.GetCustomAttributes(inherit: false)
-                    .OfType<SuggestedActionPriorityAttribute>()
-                    .ToImmutableArray();
-                AssertEx.SetEqual(attributes.Select(a => a.Priority), SuggestedActionsSourceProvider.Orderings);
-            }
+            // Ensure that the list of orderings on this type matches the set we expose in SuggestedActionsSourceProvider.Orderings
+            var attributes = typeof(SuggestedActionsSourceProvider).GetCustomAttributes(inherit: false)
+                .OfType<SuggestedActionPriorityAttribute>()
+                .ToImmutableArray();
+            AssertEx.SetEqual(attributes.Select(a => a.Priority), SuggestedActionsSourceProvider.Orderings);
         }
     }
 }

@@ -173,16 +173,12 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
             return lineTextAfterCaret;
         }
 
-        public async Task MoveCaretAsync(int position, CancellationToken cancellationToken, string contentType = ContentTypeNames.RoslynContentType)
+        public async Task MoveCaretAsync(int position, CancellationToken cancellationToken)
         {
             await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
             var view = await GetActiveTextViewAsync(cancellationToken);
-
-            var subjectBuffer = view.GetBufferContainingCaret(contentType);
-            Assumes.Present(subjectBuffer);
-
-            var point = new SnapshotPoint(subjectBuffer.CurrentSnapshot, position);
+            var point = new SnapshotPoint(view.TextSnapshot, position);
 
             view.Caret.MoveTo(point);
         }

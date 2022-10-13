@@ -1435,7 +1435,7 @@ public class Program
             await TestServices.SolutionExplorer.AddFileAsync(ProjectName, ".editorconfig", contents: "", open: true, HangMitigatingCancellationToken);
 
             MarkupTestFile.GetSpans(markup, out _, out ImmutableArray<TextSpan> _);
-            await SetUpEditorAsync(markup, HangMitigatingCancellationToken, contentType: "text");
+            await SetUpEditorAsync(markup, HangMitigatingCancellationToken);
             await TestServices.Workspace.WaitForAllAsyncOperationsAsync(
                 new[]
                 {
