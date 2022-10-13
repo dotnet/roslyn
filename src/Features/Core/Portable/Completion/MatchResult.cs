@@ -10,32 +10,43 @@ namespace Microsoft.CodeAnalysis.Completion
     internal readonly struct MatchResult
     {
         /// <summary>
-        /// The CompletinoItem used to create this MatchResult.
+        /// The <see cref="Completion.CompletionItem"/> associated with this MatchResult.
         /// </summary>
         public readonly CompletionItem CompletionItem;
 
         public readonly PatternMatch? PatternMatch;
 
-        // The value of `ShouldBeConsideredMatchingFilterText` doesn't 100% refect the actual PatternMatch result.
-        // In certain cases, there'd be no match but we'd still want to consider it a match (e.g. when the item is in MRU list,)
-        // and this is why PatternMatch can be null. There's also cases it's a match but we want to consider it a non-match
-        // (e.g. when not a prefix match in deleteion sceanrio).
+        /// <summary>
+        /// Returns false to indicate this item should not be considered for selection.
+        /// The value of <see cref="ShouldBeConsideredMatchingFilterText"/> doesn't 100% refect the actual PatternMatch result.
+        /// In certain cases, there'd be no match but we'd still want to consider it a match (e.g. when the item is in MRU list,)
+        /// and this is why  <see cref="PatternMatch"/> can be null. There's also cases it's a match but we want to consider it a
+        /// non-match (e.g. when not a prefix match in deleteion sceanrio).
+        /// </summary>
         public readonly bool ShouldBeConsideredMatchingFilterText;
 
         public string FilterTextUsed => _matchedAddtionalFilterText ?? CompletionItem.FilterText;
 
-        // We want to preserve the original alphabetical order for items with same pattern match score,
-        // but `ArrayBuilder.Sort` we currently use isn't stable. So we have to add a monotonically increasing 
-        // integer to archieve this.
+        /// <summary>
+        /// An index that could be used for different purposes. For example, we use this to find the corresponding editor CompletionItem. 
+        /// We also use the index to keep the order for items with same pattern match score, since `ArrayBuilder.Sort` we currently use isn't stable.
+        /// </summary>
         public readonly int IndexInOriginalSortedOrder;
+
+        /// <summary>
+        /// The index of this item if it's in MRU (higher means more recent usage), -1 if not in MRU.
+        /// </summary>
         public readonly int RecentItemIndex;
 
         /// <summary>
-        /// If `CompletionItem.AdditionalFilterTexts` was used to create this MatchResult, then this is set to the one that was used.
+        /// If <see cref="CompletionItem.AdditionalFilterTexts"/> was used for this MatchResult, then this is set to the one that was used.
         /// Otherwise this is set to null.
         /// </summary>
         private readonly string? _matchedAddtionalFilterText;
 
+        /// <summary>
+        /// Returns true If <see cref="CompletionItem.AdditionalFilterTexts"/> was used to create this MatchResult, false otherwise.
+        /// </summary>
         public bool MatchedWithAdditionalFilterTexts => _matchedAddtionalFilterText is not null;
 
         public MatchResult(
