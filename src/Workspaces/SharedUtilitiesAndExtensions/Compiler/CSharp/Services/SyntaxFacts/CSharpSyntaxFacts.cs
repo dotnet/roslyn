@@ -1497,6 +1497,13 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageService
             pattern = unaryPattern.Pattern;
         }
 
+        public void GetPartsOfRelationalPattern(SyntaxNode node, out SyntaxToken operatorToken, out SyntaxNode expression)
+        {
+            var relationalPattern = (RelationalPatternSyntax)node;
+            operatorToken = relationalPattern.OperatorToken;
+            expression = relationalPattern.Expression;
+        }
+
         public SyntaxNode GetTypeOfTypePattern(SyntaxNode node)
             => ((TypePatternSyntax)node).Type;
 

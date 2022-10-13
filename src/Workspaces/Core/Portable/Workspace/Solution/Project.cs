@@ -106,7 +106,9 @@ namespace Microsoft.CodeAnalysis
         /// Immutable snapshot of language services from the host environment associated with this project's language.
         /// Use this over <see cref="LanguageServices"/> when possible.
         /// </summary>
+#pragma warning disable CS0618 // Type or member is obsolete. Use Services instead. - This is the implementation of Services.
         public LanguageServices Services => LanguageServices.LanguageServices;
+#pragma warning restore CS0618 // Type or member is obsolete. Use Services instead. - This is the implementation of Services.
 
         /// <summary>
         /// The language associated with the project.

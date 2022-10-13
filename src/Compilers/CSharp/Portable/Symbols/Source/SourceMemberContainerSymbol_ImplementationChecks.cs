@@ -1383,7 +1383,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             var parameters = method.Parameters;
 
-            // https://github.com/dotnet/csharplang/blob/main/proposals/low-level-struct-improvements.md#scoped-mismatch
+            // https://github.com/dotnet/csharplang/blob/main/proposals/csharp-11.0/low-level-struct-improvements.md#scoped-mismatch
             // The compiler will report a diagnostic for _unsafe scoped mismatches_ across overrides, interface implementations, and delegate conversions when:
             // - The method returns a `ref struct` or returns a `ref` or `ref readonly`, or the method has a `ref` or `out` parameter of `ref struct` type, and
             // ...
@@ -1422,7 +1422,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         internal static bool ReportInvalidScopedOverrideAsError(MethodSymbol baseMethod, MethodSymbol overrideMethod)
         {
-            // https://github.com/dotnet/csharplang/blob/main/proposals/low-level-struct-improvements.md#scoped-mismatch
+            // https://github.com/dotnet/csharplang/blob/main/proposals/csharp-11.0/low-level-struct-improvements.md#scoped-mismatch
             // The diagnostic is reported as an error if the mismatched signatures are both using C#11 ref safety rules; otherwise, the diagnostic is a warning.
             return baseMethod.UseUpdatedEscapeRules && overrideMethod.UseUpdatedEscapeRules;
         }

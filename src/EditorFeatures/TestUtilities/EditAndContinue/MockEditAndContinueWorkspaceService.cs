@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
         public Func<Solution, ActiveStatementSpanProvider, ManagedInstructionId, LinePositionSpan?>? GetCurrentActiveStatementPositionImpl;
 
         public Func<TextDocument, ActiveStatementSpanProvider, ImmutableArray<ActiveStatementSpan>>? GetAdjustedActiveStatementSpansImpl;
-        public Func<Solution, IManagedHotReloadService, ImmutableArray<DocumentId>, bool, bool, DebuggingSessionId>? StartDebuggingSessionImpl;
+        public Func<Solution, IManagedHotReloadService, IPdbMatchingSourceTextProvider, ImmutableArray<DocumentId>, bool, bool, DebuggingSessionId>? StartDebuggingSessionImpl;
 
         public ActionOut<ImmutableArray<DocumentId>>? EndDebuggingSessionImpl;
         public Func<Solution, ActiveStatementSpanProvider, EmitSolutionUpdateResults>? EmitSolutionUpdateImpl;
@@ -82,7 +82,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
         public void OnSourceFileUpdated(Document document)
             => OnSourceFileUpdatedImpl?.Invoke(document);
 
-        public ValueTask<DebuggingSessionId> StartDebuggingSessionAsync(Solution solution, IManagedHotReloadService debuggerService, ImmutableArray<DocumentId> captureMatchingDocuments, bool captureAllMatchingDocuments, bool reportDiagnostics, CancellationToken cancellationToken)
-            => new((StartDebuggingSessionImpl ?? throw new NotImplementedException()).Invoke(solution, debuggerService, captureMatchingDocuments, captureAllMatchingDocuments, reportDiagnostics));
+        public ValueTask<DebuggingSessionId> StartDebuggingSessionAsync(Solution solution, IManagedHotReloadService debuggerService, IPdbMatchingSourceTextProvider sourceTextProvider, ImmutableArray<DocumentId> captureMatchingDocuments, bool captureAllMatchingDocuments, bool reportDiagnostics, CancellationToken cancellationToken)
+            => new((StartDebuggingSessionImpl ?? throw new NotImplementedException()).Invoke(solution, debuggerService, sourceTextProvider, captureMatchingDocuments, captureAllMatchingDocuments, reportDiagnostics));
     }
 }

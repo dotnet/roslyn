@@ -983,13 +983,15 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 
         private static SyntaxTree CreateSyntaxTree(ParseOptions options, string referencedCode)
         {
+            var sourceText = SourceText.From(referencedCode, encoding: null, SourceHashAlgorithms.Default);
+
             if (LanguageNames.CSharp == options.Language)
             {
-                return Microsoft.CodeAnalysis.CSharp.SyntaxFactory.ParseSyntaxTree(referencedCode, options);
+                return Microsoft.CodeAnalysis.CSharp.SyntaxFactory.ParseSyntaxTree(sourceText, options);
             }
             else
             {
-                return Microsoft.CodeAnalysis.VisualBasic.SyntaxFactory.ParseSyntaxTree(referencedCode, options);
+                return Microsoft.CodeAnalysis.VisualBasic.SyntaxFactory.ParseSyntaxTree(sourceText, options);
             }
         }
 
