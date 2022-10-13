@@ -690,7 +690,7 @@ public class C
         {
             using var workspaceFixture = GetOrCreateWorkspaceFixture();
 
-            var workspace = workspaceFixture.Target.GetWorkspace(ExportProvider);
+            var workspace = workspaceFixture.Target.GetWorkspace(GetComposition());
 
             var options = new CompletionOptions()
             {
@@ -2340,7 +2340,7 @@ public class Class1
         {
             using var workspaceFixture = GetOrCreateWorkspaceFixture();
 
-            var workspace = workspaceFixture.Target.GetWorkspace(ExportProvider);
+            var workspace = workspaceFixture.Target.GetWorkspace(GetComposition());
 
             var options = new CompletionOptions()
             {
@@ -2368,7 +2368,7 @@ class Configuration
         {
             using var workspaceFixture = GetOrCreateWorkspaceFixture();
 
-            var workspace = workspaceFixture.Target.GetWorkspace(ExportProvider);
+            var workspace = workspaceFixture.Target.GetWorkspace(GetComposition());
 
             var options = new CompletionOptions()
             {
@@ -2784,7 +2784,7 @@ class C
         {
             using var workspaceFixture = GetOrCreateWorkspaceFixture();
 
-            var workspace = workspaceFixture.Target.GetWorkspace(ExportProvider);
+            var workspace = workspaceFixture.Target.GetWorkspace(GetComposition());
 
             var options = new CompletionOptions()
             {
