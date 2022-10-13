@@ -4,23 +4,15 @@
 
 using System;
 using System.Collections.Generic;
-using System.Composition;
-using System.Linq;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
-using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ErrorReporting;
-using Microsoft.CodeAnalysis.InlineHints;
-using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Classification;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Formatting;
 using Microsoft.VisualStudio.Text.Tagging;
 using Roslyn.Utilities;
-using static System.Windows.Forms.VisualStyles.VisualStyleElement;
 
 namespace Microsoft.CodeAnalysis.Editor.InlineHints
 {
@@ -76,17 +68,27 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
             _tagAggregator.BatchedTagsChanged += TagAggregator_BatchedTagsChanged;
         }
 
+        /// <summary>
+        /// Goes through all the spans in which tags have changed and
+        /// invokes a TagsChanged event. Using the BatchedTagsChangedEvent since it is raised
+        /// on the same thread that created the tag aggregator, unlike TagsChanged.
+        /// </summary>
         private void TagAggregator_BatchedTagsChanged(object sender, BatchedTagsChangedEventArgs e)
         {
-            _cacheSnapshot = null;
-            _cache.Clear();
+            _taggerProvider.ThreadingContext.ThrowIfNotOnUIThread();
+            InvalidateCache();
+
             var mappingSpans = e.Spans;
             foreach (var item in mappingSpans)
             {
                 var spans = item.GetSpans(_buffer);
                 foreach (var span in spans)
                 {
-                    TagsChanged?.Invoke(this, new SnapshotSpanEventArgs(span));
+                    var tagsChanged = TagsChanged;
+                    if (tagsChanged != null)
+                    {
+                        tagsChanged.Invoke(this, new SnapshotSpanEventArgs(span));
+                    }
                 }
             }
         }
@@ -97,8 +99,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
             if (_format != null)
             {
                 _format = null;
-                _cacheSnapshot = null;
-                _cache.Clear();
+                InvalidateCache();
 
                 // When classifications change we need to rebuild the inline tags with updated Font and Color information.
                 var tags = GetTags(new NormalizedSnapshotSpanCollection(_textView.TextViewLines.FormattedSpan));
@@ -118,6 +119,12 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
                 _format ??= _formatMap.GetTextProperties(_hintClassification);
                 return _format;
             }
+        }
+
+        private void InvalidateCache()
+        {
+            _cacheSnapshot = null;
+            _cache.Clear();
         }
 
         public IEnumerable<ITagSpan<IntraTextAdornmentTag>> GetTags(NormalizedSnapshotSpanCollection spans)
