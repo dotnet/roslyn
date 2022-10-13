@@ -984,16 +984,14 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         protected internal void OnDocumentSourceCodeKindChanged(DocumentId documentId, SourceCodeKind sourceCodeKind)
         {
-            using (_serializationLock.DisposableWait())
-            {
-                CheckDocumentIsInCurrentSolution(documentId);
-
-                var (oldSolution, newSolution) = this.SetCurrentSolution(this.CurrentSolution.WithDocumentSourceCodeKind(documentId, sourceCodeKind));
-
-                this.OnDocumentTextChanged(newSolution.GetRequiredDocument(documentId));
-
-                this.RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.DocumentChanged, oldSolution, newSolution, documentId: documentId);
-            }
+            SetCurrentSolution(
+                oldSolution =>
+                {
+                    CheckDocumentIsInSolution(oldSolution, documentId);
+                    return oldSolution.WithDocumentSourceCodeKind(documentId, sourceCodeKind);
+                },
+                onAfterUpdate: newSolution => this.OnDocumentTextChanged(newSolution.GetRequiredDocument(documentId)),
+                WorkspaceChangeKind.DocumentChanged, documentId: documentId);
         }
 
         /// <summary>
