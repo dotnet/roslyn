@@ -998,6 +998,9 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         protected internal void OnAdditionalDocumentRemoved(DocumentId documentId)
         {
+            // This currently doesn't use the SetCurrentSolution(transform) pattern as it changes mutable state (open
+            // docs), and as such needs to atomically change both that and the solution-snapshot.
+
             using (_serializationLock.DisposableWait())
             {
                 CheckAdditionalDocumentIsInCurrentSolution(documentId);
@@ -1008,7 +1011,7 @@ namespace Microsoft.CodeAnalysis
                 // currently open).
                 this.ClearDocumentData(documentId);
 
-                var (oldSolution, newSolution) = this.SetCurrentSolution(this.CurrentSolution.RemoveAdditionalDocument(documentId));
+                var (oldSolution, newSolution) = this.SetCurrentSolutionEx(this.CurrentSolution.RemoveAdditionalDocument(documentId));
 
                 this.RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.AdditionalDocumentRemoved, oldSolution, newSolution, documentId: documentId);
             }
@@ -1037,6 +1040,9 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         protected internal void OnAnalyzerConfigDocumentRemoved(DocumentId documentId)
         {
+            // This currently doesn't use the SetCurrentSolution(transform) pattern as it changes mutable state (open
+            // docs), and as such needs to atomically change both that and the solution-snapshot.
+
             using (_serializationLock.DisposableWait())
             {
                 CheckAnalyzerConfigDocumentIsInCurrentSolution(documentId);
@@ -1047,7 +1053,7 @@ namespace Microsoft.CodeAnalysis
                 // currently open).
                 this.ClearDocumentData(documentId);
 
-                var (oldSolution, newSolution) = this.SetCurrentSolution(this.CurrentSolution.RemoveAnalyzerConfigDocument(documentId));
+                var (oldSolution, newSolution) = this.SetCurrentSolutionEx(this.CurrentSolution.RemoveAnalyzerConfigDocument(documentId));
 
                 this.RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.AnalyzerConfigDocumentRemoved, oldSolution, newSolution, documentId: documentId);
             }
@@ -1058,69 +1064,61 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         protected void UpdateReferencesAfterAdd()
         {
-            using (_serializationLock.DisposableWait())
+            SetCurrentSolution(
+                oldSolution => UpdateReferencesAfterAdd(oldSolution),
+                WorkspaceChangeKind.SolutionChanged);
+
+            [System.Diagnostics.Contracts.Pure]
+            static Solution UpdateReferencesAfterAdd(Solution solution)
             {
-                var oldSolution = this.CurrentSolution;
-                var newSolution = UpdateReferencesAfterAdd(oldSolution);
-
-                if (newSolution != oldSolution)
+                // Build map from output assembly path to ProjectId
+                // Use explicit loop instead of ToDictionary so we don't throw if multiple projects have same output assembly path.
+                var outputAssemblyToProjectIdMap = new Dictionary<string, ProjectId>();
+                foreach (var p in solution.Projects)
                 {
-                    (oldSolution, newSolution) = this.SetCurrentSolution(newSolution);
-                    _ = this.RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.SolutionChanged, oldSolution, newSolution);
-                }
-            }
-        }
-
-        [System.Diagnostics.Contracts.Pure]
-        private static Solution UpdateReferencesAfterAdd(Solution solution)
-        {
-            // Build map from output assembly path to ProjectId
-            // Use explicit loop instead of ToDictionary so we don't throw if multiple projects have same output assembly path.
-            var outputAssemblyToProjectIdMap = new Dictionary<string, ProjectId>();
-            foreach (var p in solution.Projects)
-            {
-                if (!string.IsNullOrEmpty(p.OutputFilePath))
-                {
-                    outputAssemblyToProjectIdMap[p.OutputFilePath!] = p.Id;
-                }
-
-                if (!string.IsNullOrEmpty(p.OutputRefFilePath))
-                {
-                    outputAssemblyToProjectIdMap[p.OutputRefFilePath!] = p.Id;
-                }
-            }
-
-            // now fix each project if necessary
-            foreach (var pid in solution.ProjectIds)
-            {
-                var project = solution.GetProject(pid)!;
-
-                // convert metadata references to project references if the metadata reference matches some project's output assembly.
-                foreach (var meta in project.MetadataReferences)
-                {
-                    if (meta is PortableExecutableReference pemeta)
+                    if (!string.IsNullOrEmpty(p.OutputFilePath))
                     {
-                        // check both Display and FilePath. FilePath points to the actually bits, but Display should match output path if
-                        // the metadata reference is shadow copied.
-                        if ((!RoslynString.IsNullOrEmpty(pemeta.Display) && outputAssemblyToProjectIdMap.TryGetValue(pemeta.Display, out var matchingProjectId)) ||
-                            (!RoslynString.IsNullOrEmpty(pemeta.FilePath) && outputAssemblyToProjectIdMap.TryGetValue(pemeta.FilePath, out matchingProjectId)))
-                        {
-                            var newProjRef = new ProjectReference(matchingProjectId, pemeta.Properties.Aliases, pemeta.Properties.EmbedInteropTypes);
+                        outputAssemblyToProjectIdMap[p.OutputFilePath!] = p.Id;
+                    }
 
-                            if (!project.ProjectReferences.Contains(newProjRef))
-                            {
-                                project = project.AddProjectReference(newProjRef);
-                            }
-
-                            project = project.RemoveMetadataReference(meta);
-                        }
+                    if (!string.IsNullOrEmpty(p.OutputRefFilePath))
+                    {
+                        outputAssemblyToProjectIdMap[p.OutputRefFilePath!] = p.Id;
                     }
                 }
 
-                solution = project.Solution;
-            }
+                // now fix each project if necessary
+                foreach (var pid in solution.ProjectIds)
+                {
+                    var project = solution.GetProject(pid)!;
 
-            return solution;
+                    // convert metadata references to project references if the metadata reference matches some project's output assembly.
+                    foreach (var meta in project.MetadataReferences)
+                    {
+                        if (meta is PortableExecutableReference pemeta)
+                        {
+                            // check both Display and FilePath. FilePath points to the actually bits, but Display should match output path if
+                            // the metadata reference is shadow copied.
+                            if ((!RoslynString.IsNullOrEmpty(pemeta.Display) && outputAssemblyToProjectIdMap.TryGetValue(pemeta.Display, out var matchingProjectId)) ||
+                                (!RoslynString.IsNullOrEmpty(pemeta.FilePath) && outputAssemblyToProjectIdMap.TryGetValue(pemeta.FilePath, out matchingProjectId)))
+                            {
+                                var newProjRef = new ProjectReference(matchingProjectId, pemeta.Properties.Aliases, pemeta.Properties.EmbedInteropTypes);
+
+                                if (!project.ProjectReferences.Contains(newProjRef))
+                                {
+                                    project = project.AddProjectReference(newProjRef);
+                                }
+
+                                project = project.RemoveMetadataReference(meta);
+                            }
+                        }
+                    }
+
+                    solution = project.Solution;
+                }
+
+                return solution;
+            }
         }
 
         #endregion
