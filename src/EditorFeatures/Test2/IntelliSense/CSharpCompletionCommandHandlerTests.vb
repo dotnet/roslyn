@@ -2958,6 +2958,115 @@ class Program
             End Using
         End Function
 
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function SelectEnumMemberAdditionalFilterTextMatchOverInferiorFilterTextMatch() As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                              <Document>
+public enum Colors
+{
+    Red,
+    Green
+}
+
+class Program
+{
+    Colors GreenNode { get; }                           
+    void M()
+    {
+        Colors c = Green$$
+    }
+}                               </Document>)
+                state.SendInvokeCompletionList()
+                Await state.AssertCompletionItemsContainAll("Colors.Green", "GreenNode")
+                ' select full match "Colors.Green" over prefix match "GreenNode"
+                Await state.AssertSelectedCompletionItem("Colors.Green", isHardSelected:=True)
+            End Using
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function DoNotSelectEnumMemberAdditionalFilterTextMatchOverEqualFilterTextMatch() As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                              <Document>
+public enum Colors
+{
+    Red,
+    Green
+}
+
+class Program
+{            
+    Colors Green { get; }               
+    void M()
+    {
+        Colors c = gree$$
+    }
+}                               </Document>)
+                state.SendInvokeCompletionList()
+                Await state.AssertCompletionItemsContainAll("Colors.Green", "Green")
+                ' Select FilterText match "Green" over AdditionalFilterText match "Colors.Green"
+                Await state.AssertSelectedCompletionItem("Green", isHardSelected:=True)
+            End Using
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function SelectStaticMemberAdditionalFilterTextMatchOverInferiorFilterTextMatch() As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                              <Document>
+public class MyArray
+{
+    public static MyArray Empty { get; }
+}
+
+class Program
+{         
+    string EmptyString = "";                 
+    void M()
+    {                       
+        MyArray c = Empty$$
+    }
+}                               </Document>)
+                state.SendInvokeCompletionList()
+                Await state.AssertCompletionItemsContainAll("MyArray.Empty", "EmptyString")
+                ' select full match "MyArray.Empty" over prefix match "EmptyString"
+                Await state.AssertSelectedCompletionItem("MyArray.Empty", isHardSelected:=True)
+            End Using
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function SelectCompletionListStaticMemberAdditionalFilterTextMatchOverInferiorFilterTextMatch() As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                              <Document><![CDATA[
+namespace NS
+{
+
+    /// <completionlist cref="TypeContainer"/>
+    public class SomeType
+    { }
+
+    public static class TypeContainer
+    {
+        public static SomeType Foo1 = new SomeType();
+        public static Program Foo2 = new Program();
+    }
+
+    public class Program
+    {
+        void Goo()
+        {
+            var myFoo = true;
+            SomeType c = $$
+        }
+    }
+}                             ]]></Document>)
+
+                state.SendInvokeCompletionList()
+                Await state.AssertCompletionItemsContainAll("myFoo", "TypeContainer", "TypeContainer.Foo1", "TypeContainer.Foo2")
+
+                state.SendTypeChars("foo")
+                Await state.AssertSelectedCompletionItem("TypeContainer.Foo1", isHardSelected:=True)
+            End Using
+        End Function
+
         <WorkItem(49632, "https://github.com/dotnet/roslyn/pull/49632")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function CompletionEnumTypeAndValuesWithAlias() As Task
@@ -4135,7 +4244,7 @@ class C
                 state.SendBackspace()
 
                 Dim completionService = state.Workspace.Services.GetLanguageServices(LanguageNames.CSharp).GetRequiredService(Of CompletionService)()
-                Dim slowProvider = completionService.GetTestAccessor().GetAllProviders(ImmutableHashSet(Of String).Empty).OfType(Of SlowProvider)().Single()
+                Dim slowProvider = completionService.GetTestAccessor().GetImportedAndBuiltInProviders(ImmutableHashSet(Of String).Empty).OfType(Of SlowProvider)().Single()
                 slowProvider.checkpoint.Release()
                 Await state.AssertNoCompletionSession()
             End Using
@@ -5066,7 +5175,7 @@ class C
                               showCompletionInArgumentLists:=showCompletionInArgumentLists)
 
                 Dim completionService = state.Workspace.Services.GetLanguageServices(LanguageNames.CSharp).GetRequiredService(Of CompletionService)()
-                Dim provider = completionService.GetTestAccessor().GetAllProviders(ImmutableHashSet(Of String).Empty).OfType(Of BooleanTaskControlledCompletionProvider)().Single()
+                Dim provider = completionService.GetTestAccessor().GetImportedAndBuiltInProviders(ImmutableHashSet(Of String).Empty).OfType(Of BooleanTaskControlledCompletionProvider)().Single()
 
                 state.Workspace.GlobalOptions.SetGlobalOption(
                     New OptionKey(CompletionViewOptions.BlockForCompletionItems, LanguageNames.CSharp), False)
@@ -5121,7 +5230,7 @@ class C
                               showCompletionInArgumentLists:=showCompletionInArgumentLists)
 
                 Dim completionService = state.Workspace.Services.GetLanguageServices(LanguageNames.CSharp).GetRequiredService(Of CompletionService)()
-                Dim provider = completionService.GetTestAccessor().GetAllProviders(ImmutableHashSet(Of String).Empty).OfType(Of BooleanTaskControlledCompletionProvider)().Single()
+                Dim provider = completionService.GetTestAccessor().GetImportedAndBuiltInProviders(ImmutableHashSet(Of String).Empty).OfType(Of BooleanTaskControlledCompletionProvider)().Single()
 
                 state.Workspace.GlobalOptions.SetGlobalOption(
                     New OptionKey(CompletionViewOptions.BlockForCompletionItems, LanguageNames.CSharp), False)
@@ -5199,7 +5308,7 @@ class C
                               showCompletionInArgumentLists:=showCompletionInArgumentLists)
 
                 Dim completionService = state.Workspace.Services.GetLanguageServices(LanguageNames.CSharp).GetRequiredService(Of CompletionService)()
-                Dim provider = completionService.GetTestAccessor().GetAllProviders(ImmutableHashSet(Of String).Empty).OfType(Of BooleanTaskControlledCompletionProvider)().Single()
+                Dim provider = completionService.GetTestAccessor().GetImportedAndBuiltInProviders(ImmutableHashSet(Of String).Empty).OfType(Of BooleanTaskControlledCompletionProvider)().Single()
 
                 Dim globalOptions = state.Workspace.GetService(Of IGlobalOptionService)
                 globalOptions.SetGlobalOption(New OptionKey(CompletionViewOptions.BlockForCompletionItems, LanguageNames.CSharp), False)
@@ -5268,7 +5377,7 @@ class C
 
                 Dim globalOptions = state.Workspace.GetService(Of IGlobalOptionService)
                 Dim completionService = state.Workspace.Services.GetLanguageServices(LanguageNames.CSharp).GetRequiredService(Of CompletionService)()
-                Dim provider = completionService.GetTestAccessor().GetAllProviders(ImmutableHashSet(Of String).Empty).OfType(Of BooleanTaskControlledCompletionProvider)().Single()
+                Dim provider = completionService.GetTestAccessor().GetImportedAndBuiltInProviders(ImmutableHashSet(Of String).Empty).OfType(Of BooleanTaskControlledCompletionProvider)().Single()
 
 #Disable Warning BC42358 ' Because this call is not awaited, execution of the current method continues before the call is completed
                 Task.Run(Function()
@@ -5712,6 +5821,58 @@ class C
             End Using
         End Function
 
+        <WpfFact>
+        <Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestEnumMembersMatchTargetType() As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document><![CDATA[
+
+public enum Color
+{
+    Red,
+    Green,
+    Blue
+}
+
+class C
+{
+    void M()
+    {
+        Color x = $$
+    }
+}
+            ]]></Document>)
+
+                state.SendInvokeCompletionList()
+                Await state.WaitForUIRenderedAsync()
+
+                Await state.AssertCompletionItemsContainAll("Color.Red", "Color.Green", "Color.Blue", "Color")
+
+                Dim oldFilters = state.GetCompletionItemFilters()
+                Dim newFiltersBuilder = ArrayBuilder(Of Data.CompletionFilterWithState).GetInstance()
+
+                Dim hasTargetTypedFilter = False
+                For Each oldState In oldFilters
+
+                    If Object.ReferenceEquals(oldState.Filter, FilterSet.TargetTypedFilter) Then
+                        hasTargetTypedFilter = True
+                        newFiltersBuilder.Add(oldState.WithSelected(True))
+                        Continue For
+                    End If
+
+                    newFiltersBuilder.Add(oldState.WithSelected(False))
+                Next
+
+                Assert.True(hasTargetTypedFilter)
+
+                state.RaiseFiltersChanged(newFiltersBuilder.ToImmutableAndFree())
+
+                Await state.WaitForUIRenderedAsync()
+                Await state.AssertCompletionItemsContainAll("Color.Red", "Color.Green", "Color.Blue")
+                Await state.AssertCompletionItemsDoNotContainAny("Color")
+            End Using
+        End Function
+
         <WorkItem(16236, "https://github.com/dotnet/roslyn/issues/16236")>
         <WpfTheory, CombinatorialData>
         <Trait(Traits.Feature, Traits.Features.Completion)>
@@ -5759,7 +5920,7 @@ class C
                 showCompletionInArgumentLists:=showCompletionInArgumentLists)
 
                 Dim completionService = state.Workspace.Services.GetLanguageServices(LanguageNames.CSharp).GetRequiredService(Of CompletionService)()
-                Dim provider = completionService.GetTestAccessor().GetAllProviders(ImmutableHashSet(Of String).Empty).OfType(Of MultipleChangeCompletionProvider)().Single()
+                Dim provider = completionService.GetTestAccessor().GetImportedAndBuiltInProviders(ImmutableHashSet(Of String).Empty).OfType(Of MultipleChangeCompletionProvider)().Single()
 
                 Dim testDocument = state.Workspace.Documents(0)
                 Dim textBuffer = testDocument.GetTextBuffer()
@@ -5828,7 +5989,7 @@ class C
                 showCompletionInArgumentLists:=showCompletionInArgumentLists)
 
                 Dim completionService = state.Workspace.Services.GetLanguageServices(LanguageNames.CSharp).GetRequiredService(Of CompletionService)()
-                Dim provider = completionService.GetTestAccessor().GetAllProviders(ImmutableHashSet(Of String).Empty).OfType(Of MultipleChangeCompletionProvider)().Single()
+                Dim provider = completionService.GetTestAccessor().GetImportedAndBuiltInProviders(ImmutableHashSet(Of String).Empty).OfType(Of MultipleChangeCompletionProvider)().Single()
 
                 Dim testDocument = state.Workspace.Documents(0)
                 Dim textBuffer = testDocument.GetTextBuffer()
@@ -6575,7 +6736,7 @@ class C
                               showCompletionInArgumentLists:=showCompletionInArgumentLists)
 
                 Dim completionService = state.Workspace.Services.GetLanguageServices(LanguageNames.CSharp).GetRequiredService(Of CompletionService)()
-                Dim provider = completionService.GetTestAccessor().GetAllProviders(ImmutableHashSet(Of String).Empty).OfType(Of IntelliCodeMockProvider)().Single()
+                Dim provider = completionService.GetTestAccessor().GetImportedAndBuiltInProviders(ImmutableHashSet(Of String).Empty).OfType(Of IntelliCodeMockProvider)().Single()
 
                 Await state.SendCommitUniqueCompletionListItemAsync()
                 Await state.AssertNoCompletionSession()
@@ -6601,7 +6762,7 @@ class C
                               showCompletionInArgumentLists:=showCompletionInArgumentLists)
 
                 Dim completionService = state.Workspace.Services.GetLanguageServices(LanguageNames.CSharp).GetRequiredService(Of CompletionService)()
-                Dim provider = completionService.GetTestAccessor().GetAllProviders(ImmutableHashSet(Of String).Empty).OfType(Of IntelliCodeMockProvider)().Single()
+                Dim provider = completionService.GetTestAccessor().GetImportedAndBuiltInProviders(ImmutableHashSet(Of String).Empty).OfType(Of IntelliCodeMockProvider)().Single()
 
                 state.SendTypeChars(".len")
                 Await state.AssertCompletionItemsContainAll("Length", "★ Length")
@@ -6632,7 +6793,7 @@ class C
                               showCompletionInArgumentLists:=showCompletionInArgumentLists)
 
                 Dim completionService = state.Workspace.Services.GetLanguageServices(LanguageNames.CSharp).GetRequiredService(Of CompletionService)()
-                Dim provider = completionService.GetTestAccessor().GetAllProviders(ImmutableHashSet(Of String).Empty).OfType(Of IntelliCodeMockProvider)().Single()
+                Dim provider = completionService.GetTestAccessor().GetImportedAndBuiltInProviders(ImmutableHashSet(Of String).Empty).OfType(Of IntelliCodeMockProvider)().Single()
 
                 state.Workspace.GlobalOptions.SetGlobalOption(
                     New OptionKey(CompletionOptionsStorage.TriggerOnDeletion, LanguageNames.CSharp), True)
@@ -6663,7 +6824,7 @@ class C
                               showCompletionInArgumentLists:=showCompletionInArgumentLists)
 
                 Dim completionService = state.Workspace.Services.GetLanguageServices(LanguageNames.CSharp).GetRequiredService(Of CompletionService)()
-                Dim provider = completionService.GetTestAccessor().GetAllProviders(ImmutableHashSet(Of String).Empty).OfType(Of IntelliCodeMockProvider)().Single()
+                Dim provider = completionService.GetTestAccessor().GetImportedAndBuiltInProviders(ImmutableHashSet(Of String).Empty).OfType(Of IntelliCodeMockProvider)().Single()
 
                 state.SendInvokeCompletionList()
                 state.SendSelectCompletionItem("★ Length")
@@ -6689,7 +6850,7 @@ class C
                               showCompletionInArgumentLists:=showCompletionInArgumentLists)
 
                 Dim completionService = state.Workspace.Services.GetLanguageServices(LanguageNames.CSharp).GetRequiredService(Of CompletionService)()
-                Dim provider = completionService.GetTestAccessor().GetAllProviders(ImmutableHashSet(Of String).Empty).OfType(Of IntelliCodeMockWeirdProvider)().Single()
+                Dim provider = completionService.GetTestAccessor().GetImportedAndBuiltInProviders(ImmutableHashSet(Of String).Empty).OfType(Of IntelliCodeMockWeirdProvider)().Single()
 
                 Await state.SendCommitUniqueCompletionListItemAsync()
                 Await state.AssertNoCompletionSession()
@@ -6715,7 +6876,7 @@ class C
                               showCompletionInArgumentLists:=showCompletionInArgumentLists)
 
                 Dim completionService = state.Workspace.Services.GetLanguageServices(LanguageNames.CSharp).GetRequiredService(Of CompletionService)()
-                Dim provider = completionService.GetTestAccessor().GetAllProviders(ImmutableHashSet(Of String).Empty).OfType(Of IntelliCodeMockWeirdProvider)().Single()
+                Dim provider = completionService.GetTestAccessor().GetImportedAndBuiltInProviders(ImmutableHashSet(Of String).Empty).OfType(Of IntelliCodeMockWeirdProvider)().Single()
 
                 state.SendTypeChars(".len")
                 Await state.AssertCompletionItemsContainAll("Length", "★ Length", "★ Length2")
@@ -6743,7 +6904,7 @@ class C
                               showCompletionInArgumentLists:=showCompletionInArgumentLists)
 
                 Dim completionService = state.Workspace.Services.GetLanguageServices(LanguageNames.CSharp).GetRequiredService(Of CompletionService)()
-                Dim provider = completionService.GetTestAccessor().GetAllProviders(ImmutableHashSet(Of String).Empty).OfType(Of IntelliCodeMockProvider)().Single()
+                Dim provider = completionService.GetTestAccessor().GetImportedAndBuiltInProviders(ImmutableHashSet(Of String).Empty).OfType(Of IntelliCodeMockProvider)().Single()
 
                 state.Workspace.GlobalOptions.SetGlobalOption(
                     New OptionKey(CompletionOptionsStorage.TriggerOnDeletion, LanguageNames.CSharp), True)
@@ -6795,7 +6956,7 @@ class C
                               showCompletionInArgumentLists:=showCompletionInArgumentLists)
 
                 Dim completionService = state.Workspace.Services.GetLanguageServices(LanguageNames.CSharp).GetRequiredService(Of CompletionService)()
-                Dim provider = completionService.GetTestAccessor().GetAllProviders(ImmutableHashSet(Of String).Empty).OfType(Of IntelliCodeMockProvider)().Single()
+                Dim provider = completionService.GetTestAccessor().GetImportedAndBuiltInProviders(ImmutableHashSet(Of String).Empty).OfType(Of IntelliCodeMockProvider)().Single()
 
                 state.Workspace.GlobalOptions.SetGlobalOption(
                     New OptionKey(CompletionOptionsStorage.TriggerOnDeletion, LanguageNames.CSharp), True)
@@ -9468,7 +9629,7 @@ public class AA
                 extraExportedTypes:={GetType(TestMatchPriorityCompletionProvider)}.ToList())
 
                 Dim completionService = state.Workspace.Services.GetLanguageServices(LanguageNames.CSharp).GetRequiredService(Of CompletionService)()
-                Dim provider = completionService.GetTestAccessor().GetAllProviders(ImmutableHashSet(Of String).Empty).OfType(Of TestMatchPriorityCompletionProvider)().Single()
+                Dim provider = completionService.GetTestAccessor().GetImportedAndBuiltInProviders(ImmutableHashSet(Of String).Empty).OfType(Of TestMatchPriorityCompletionProvider)().Single()
 
                 provider.AddItems(New(displayText As String, matchPriority As Integer)() {
                                   ("item1", MatchPriority.Default - 1),
@@ -9506,7 +9667,7 @@ public class AA
                 extraExportedTypes:={GetType(TestMatchPriorityCompletionProvider)}.ToList())
 
                 Dim completionService = state.Workspace.Services.GetLanguageServices(LanguageNames.CSharp).GetRequiredService(Of CompletionService)()
-                Dim provider = completionService.GetTestAccessor().GetAllProviders(ImmutableHashSet(Of String).Empty).OfType(Of TestMatchPriorityCompletionProvider)().Single()
+                Dim provider = completionService.GetTestAccessor().GetImportedAndBuiltInProviders(ImmutableHashSet(Of String).Empty).OfType(Of TestMatchPriorityCompletionProvider)().Single()
 
                 provider.AddItems(New(displayText As String, matchPriority As Integer)() {
                                   ("item1", MatchPriority.Preselect),
@@ -9997,7 +10158,7 @@ class C
                               showCompletionInArgumentLists:=showCompletionInArgumentLists)
 
                 Dim completionService = state.Workspace.Services.GetLanguageServices(LanguageNames.CSharp).GetRequiredService(Of CompletionService)()
-                Dim notifyProvider As NotifyCommittingItemCompletionProvider = completionService.GetTestAccessor().GetAllProviders(ImmutableHashSet(Of String).Empty).OfType(Of NotifyCommittingItemCompletionProvider)().Single()
+                Dim notifyProvider As NotifyCommittingItemCompletionProvider = completionService.GetTestAccessor().GetImportedAndBuiltInProviders(ImmutableHashSet(Of String).Empty).OfType(Of NotifyCommittingItemCompletionProvider)().Single()
                 notifyProvider.Reset()
 
                 state.SendInvokeCompletionList()
@@ -10080,7 +10241,7 @@ class C
                 state.TextView.Options.SetOptionValue(DefaultOptions.ResponsiveCompletionOptionId, True)
 
                 Dim completionService = workspace.Services.GetLanguageServices(LanguageNames.CSharp).GetRequiredService(Of CompletionService)()
-                Dim provider = completionService.GetTestAccessor().GetAllProviders(ImmutableHashSet(Of String).Empty).OfType(Of TestProvider)().Single()
+                Dim provider = completionService.GetTestAccessor().GetImportedAndBuiltInProviders(ImmutableHashSet(Of String).Empty).OfType(Of TestProvider)().Single()
 
                 ' completion list shouldn't have expand item until we release the checkpoint
                 state.SendTypeChars("TestUnimp")
@@ -10139,7 +10300,7 @@ class C
                 state.TextView.Options.SetOptionValue(DefaultOptions.ResponsiveCompletionOptionId, True)
 
                 Dim completionService = workspace.Services.GetLanguageServices(LanguageNames.CSharp).GetRequiredService(Of CompletionService)()
-                Dim provider = completionService.GetTestAccessor().GetAllProviders(ImmutableHashSet(Of String).Empty).OfType(Of TestProvider)().Single()
+                Dim provider = completionService.GetTestAccessor().GetImportedAndBuiltInProviders(ImmutableHashSet(Of String).Empty).OfType(Of TestProvider)().Single()
 
                 ' completion list shouldn't have expand item until we release the checkpoint
                 state.SendTypeChars("TestUnimp")
@@ -10198,7 +10359,7 @@ class C
                 state.TextView.Options.SetOptionValue(DefaultOptions.ResponsiveCompletionOptionId, True)
 
                 Dim completionService = workspace.Services.GetLanguageServices(LanguageNames.CSharp).GetRequiredService(Of CompletionService)()
-                Dim provider = completionService.GetTestAccessor().GetAllProviders(ImmutableHashSet(Of String).Empty).OfType(Of TestProvider)().Single()
+                Dim provider = completionService.GetTestAccessor().GetImportedAndBuiltInProviders(ImmutableHashSet(Of String).Empty).OfType(Of TestProvider)().Single()
 
                 ' First we enable delay for expand item, and trigger completion with test provider blocked
                 ' this would ensure completion list don't have expand item until we release the checkpoint
@@ -10521,6 +10682,59 @@ class MyClass
                 Await state.AssertSelectedCompletionItem(displayText:="cw", inlineDescription:=Nothing, isHardSelected:=True)
                 state.SendDownKey()
                 Await state.AssertSelectedCompletionItem(displayText:="cw", inlineDescription:="Console.WriteLine", isHardSelected:=True)
+            End Using
+        End Function
+
+        <WpfTheory, CombinatorialData>
+        <Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function HardSelectBreakAfterYieldIfNoYieldType(hasYieldType As Boolean) As Task
+            Dim yieldDeclaration = If(hasYieldType, "public class yield{}", String.Empty)
+
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document>
+namespace NS
+{
+     <%= yieldDeclaration %>
+
+    class C
+    {
+        public static void M()
+        {
+            yield bre$$
+        }
+    }
+}
+                </Document>)
+
+                state.SendInvokeCompletionList()
+                Await state.AssertSelectedCompletionItem(displayText:="break", isHardSelected:=Not hasYieldType)
+
+            End Using
+        End Function
+
+        <WpfTheory, CombinatorialData>
+        <Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function HardSelectReturnAfterYieldIfNoYieldType(hasYieldType As Boolean) As Task
+            Dim yieldDeclaration = If(hasYieldType, "public class yield{}", String.Empty)
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document>
+namespace NS
+{
+     <%= yieldDeclaration %>
+
+    class C
+    {
+        public static void M()
+        {
+            yield ret$$
+        }
+    }
+}
+                </Document>)
+
+                state.SendInvokeCompletionList()
+                Await state.AssertSelectedCompletionItem(displayText:="return", isHardSelected:=Not hasYieldType)
+
             End Using
         End Function
     End Class

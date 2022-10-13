@@ -770,13 +770,8 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var documentInfo = DocumentInfo.Create(
                 DocumentId.CreateNewId(project.Id),
                 name: "Test.cs",
-                folders: new string[] { },
-                sourceCodeKind: SourceCodeKind.Regular,
-                loader: null,
-                filePath: null,
-                isGenerated: true,
-                designTimeOnly: true,
-                documentServiceProvider: null);
+                isGenerated: true).WithDesignTimeOnly(true);
+
             project = project.Solution.AddDocument(documentInfo).Projects.Single()
                 .AddAnalyzerReference(analyzerReference);
 

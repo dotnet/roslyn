@@ -18,7 +18,19 @@ namespace RunTests
 {
     internal record struct WorkItemInfo(ImmutableSortedDictionary<AssemblyInfo, ImmutableArray<TestMethodInfo>> Filters, int PartitionIndex)
     {
-        internal string DisplayName => $"{string.Join("_", Filters.Keys.Select(a => Path.GetFileNameWithoutExtension(a.AssemblyName)))}_{PartitionIndex}";
+        internal string DisplayName
+        {
+            get
+            {
+                var assembliesString = string.Join("_", Filters.Keys.Select(a => Path.GetFileNameWithoutExtension(a.AssemblyName)));
+
+                // Currently some helix APIs don't work when the work item friendly name is more than 200 characters.
+                // Until that is fixed we manually truncate the name ourselves to a reasonable limit.
+                // https://github.com/dotnet/arcade/issues/11079
+                assembliesString = assembliesString.Length > 150 ? $"{assembliesString[..150]}..." : assembliesString;
+                return $"{assembliesString}_{PartitionIndex}";
+            }
+        }
     }
 
     internal sealed class AssemblyScheduler

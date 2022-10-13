@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests
             var server = await CreateTestLspServerAsync("");
             AssertServerAlive(server);
 
-            server.GetServerAccessor().ShutdownServer();
+            await server.GetServerAccessor().ShutdownServerAsync();
             await AssertServerQueueClosed(server).ConfigureAwait(false);
             Assert.False(server.GetServerAccessor().GetServerRpc().IsDisposed);
         }
@@ -36,8 +36,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests
             var server = await CreateTestLspServerAsync("");
             AssertServerAlive(server);
 
-            server.GetServerAccessor().ShutdownServer();
-            server.GetServerAccessor().ExitServer();
+            await server.GetServerAccessor().ShutdownServerAsync();
+            await server.GetServerAccessor().ExitServerAsync();
             await AssertServerQueueClosed(server).ConfigureAwait(false);
             Assert.True(server.GetServerAccessor().GetServerRpc().IsDisposed);
         }
@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests
         [Fact]
         public async Task LanguageServerCleansUpOnUnexpectedJsonRpcDisconnectAsync()
         {
-            using var server = await CreateTestLspServerAsync("");
+            await using var server = await CreateTestLspServerAsync("");
             AssertServerAlive(server);
 
             server.GetServerAccessor().GetServerRpc().Dispose();
@@ -56,8 +56,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests
         [Fact]
         public async Task LanguageServerHasSeparateServiceInstances()
         {
-            using var serverOne = await CreateTestLspServerAsync("");
-            using var serverTwo = await CreateTestLspServerAsync("");
+            await using var serverOne = await CreateTestLspServerAsync("");
+            await using var serverTwo = await CreateTestLspServerAsync("");
 
             // Get an LSP service and verify each server has its own instance per server.
             Assert.NotSame(serverOne.GetRequiredLspService<LspWorkspaceManager>(), serverTwo.GetRequiredLspService<LspWorkspaceManager>());
@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests
         [Fact]
         public async Task LanguageServerDisposesOfServicesOnShutdown()
         {
-            using var server = await CreateTestLspServerAsync("");
+            await using var server = await CreateTestLspServerAsync("");
 
             var statefulService = server.GetRequiredLspService<StatefulLspService>();
             var statelessService = server.GetRequiredLspService<StatelessLspService>();
@@ -79,8 +79,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests
             Assert.False(statefulService.IsDisposed);
             Assert.False(statelessService.IsDisposed);
 
-            server.GetServerAccessor().ShutdownServer();
-            server.GetServerAccessor().ExitServer();
+            await server.GetServerAccessor().ShutdownServerAsync();
+            await server.GetServerAccessor().ExitServerAsync();
 
             // Only the stateful service should be disposed of on server shutdown.
             Assert.True(statefulService.IsDisposed);
@@ -90,14 +90,15 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests
         private static void AssertServerAlive(TestLspServer server)
         {
             Assert.False(server.GetServerAccessor().HasShutdownStarted());
-            Assert.False(server.GetQueueAccessor().IsComplete());
+            Assert.False(server.GetQueueAccessor()!.Value.IsComplete());
         }
 
         private static async Task AssertServerQueueClosed(TestLspServer server)
         {
-            await server.GetQueueAccessor().WaitForProcessingToStopAsync().ConfigureAwait(false);
+            var queueAccessor = server.GetQueueAccessor()!.Value;
+            await queueAccessor.WaitForProcessingToStopAsync().ConfigureAwait(false);
             Assert.True(server.GetServerAccessor().HasShutdownStarted());
-            Assert.True(server.GetQueueAccessor().IsComplete());
+            Assert.True(queueAccessor.IsComplete());
         }
 
         [ExportCSharpVisualBasicLspServiceFactory(typeof(StatefulLspService)), Shared]

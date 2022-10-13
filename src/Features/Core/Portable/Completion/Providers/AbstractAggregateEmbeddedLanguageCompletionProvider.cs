@@ -114,7 +114,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         private IEmbeddedLanguage GetLanguage(CompletionItem item)
         {
             if (_languageProviders.IsDefault)
-                throw ExceptionUtilities.Unreachable;
+                throw ExceptionUtilities.Unreachable();
 
             return _languageProviders.Single(lang => lang.CompletionProvider?.Name == item.Properties[EmbeddedProviderName]);
         }

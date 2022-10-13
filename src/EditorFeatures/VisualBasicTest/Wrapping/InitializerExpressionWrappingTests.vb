@@ -428,5 +428,45 @@ End Sub", "Public Sub F
     })
 End Sub")
         End Function
+
+        <Fact, WorkItem(63732, "https://github.com/dotnet/roslyn/issues/63732")>
+        Public Async Function TestMissingStartToken1() As Task
+            Await TestMissingAsync(
+"Class C
+    Public Sub Bar()
+        Dim test() As Integer = New Integer() [||] }
+    End Sub
+End Class")
+        End Function
+
+        <Fact, WorkItem(63732, "https://github.com/dotnet/roslyn/issues/63732")>
+        Public Async Function TestMissingStartToken2() As Task
+            Await TestMissingAsync(
+"Class C
+    Public Sub Bar()
+        Dim test() As Integer = New Integer() [||]1, 2 }
+    End Sub
+End Class")
+        End Function
+
+        <Fact, WorkItem(63732, "https://github.com/dotnet/roslyn/issues/63732")>
+        Public Async Function TestMissingEndToken1() As Task
+            Await TestMissingAsync(
+"Class C
+    Public Sub Bar()
+        Dim test() As Integer = New Integer() {[||]
+    End Sub
+End Class")
+        End Function
+
+        <Fact, WorkItem(63732, "https://github.com/dotnet/roslyn/issues/63732")>
+        Public Async Function TestMissingEndToken2() As Task
+            Await TestMissingAsync(
+"Class C
+    Public Sub Bar()
+        Dim test() As Integer = New Integer() {[||]1, 2
+    End Sub
+End Class")
+        End Function
     End Class
 End Namespace

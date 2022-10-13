@@ -6,6 +6,7 @@ using System;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using Roslyn.Utilities;
 
@@ -224,6 +225,10 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
 
         private static readonly object s_reportedMarker = new();
 
+        // Do not allow this method to be inlined.  That way when we have a dump we can see this frame in the stack and
+        // can examine things like s_reportedExceptionMessage.  Without this, it's a lot tricker as FatalError is linked
+        // into many assemblies and finding the right type can be much harder.
+        [MethodImpl(MethodImplOptions.NoInlining)]
         private static void Report(Exception exception, ErrorSeverity severity = ErrorSeverity.Uncategorized, bool forceDump = false)
         {
             // hold onto last exception to make investigation easier

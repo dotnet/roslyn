@@ -178,7 +178,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
                 }
             }
 
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 
         public SourceTextContainer GetOpenTextContainer()
@@ -587,7 +587,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
             }
 
             // if it got hit, then it means there is a missing case
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 
         private IHierarchicalDifferenceCollection DiffStrings(string leftTextWithReplacement, string rightTextWithReplacement)

@@ -11,20 +11,21 @@ namespace Roslyn.Utilities
     /// <summary>
     /// This value source keeps a strong reference to a value.
     /// </summary>
-    internal sealed class ConstantValueSource<T> : ValueSource<T>
+    internal class ConstantValueSource<T> : ValueSource<T>
     {
-        private readonly T _value;
+        public T Value { get; }
+
         private Task<T>? _task;
 
         public ConstantValueSource(T value)
-            => _value = value;
+            => Value = value;
 
         public override T GetValue(CancellationToken cancellationToken = default)
-            => _value;
+            => Value;
 
         public override bool TryGetValue([MaybeNullWhen(false)] out T value)
         {
-            value = _value;
+            value = Value;
             return true;
         }
 
@@ -32,7 +33,7 @@ namespace Roslyn.Utilities
         {
             if (_task == null)
             {
-                Interlocked.CompareExchange(ref _task, Task.FromResult(_value), null);
+                Interlocked.CompareExchange(ref _task, Task.FromResult(Value), null);
             }
 
             return _task;

@@ -81,19 +81,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.InProcess
             });
         }
 
-        internal Task SendToNavigateToAsync(params InputKey[] keys)
-        {
-            return SendToNavigateToAsync(
-                simulator =>
-                {
-                    foreach (var key in keys)
-                    {
-                        key.Apply(simulator);
-                    }
-                });
-        }
-
-        internal async Task SendToNavigateToAsync(Action<IInputSimulator> callback)
+        internal async Task SendToNavigateToAsync(params InputKey[] keys)
         {
             // AbstractSendKeys runs synchronously, so switch to a background thread before the call
             await TaskScheduler.Default;
@@ -102,11 +90,22 @@ namespace Roslyn.VisualStudio.IntegrationTests.InProcess
             TestServices.JoinableTaskFactory.Run(async () =>
             {
                 await TestServices.JoinableTaskFactory.SwitchToMainThreadAsync();
-                var searchBox = Assert.IsAssignableFrom<TextBox>(Keyboard.FocusedElement);
-                Assert.Equal("PART_SearchBox", searchBox.Name);
+                var searchBox = Assert.IsAssignableFrom<Control>(Keyboard.FocusedElement);
+                // Validate the focused control against the "old" search experience as well as the 
+                // all-in-one search experience.
+                Assert.Contains(searchBox.Name, new[] { "PART_SearchBox", "SearchBoxControl" });
             });
 
-            callback(new InputSimulator());
+            var inputSimulator = new InputSimulator();
+            foreach (var key in keys)
+            {
+                key.Apply(inputSimulator);
+
+                // Since the all-in-one search experience populates its results asychronously we need
+                // to give it time to update prior to applying the next InputKey otherwise we may apply
+                // a Return key meant to select an item before it is in the result set.
+                await Task.Delay(1000);
+            }
 
             TestServices.JoinableTaskFactory.Run(async () =>
             {
