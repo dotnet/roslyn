@@ -460,12 +460,12 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         protected internal void OnProjectAdded(ProjectInfo projectInfo)
         {
-            using (_serializationLock.DisposableWait())
-            {
-                var (oldSolution, newSolution) = this.OnProjectAdded_NoLock(projectInfo);
-
-                this.RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.ProjectAdded, oldSolution, newSolution, projectInfo.Id);
-            }
+            this.SetCurrentSolution(
+                oldSolution =>
+                {
+                    CheckProjectIsNotInSolution(oldSolution, projectInfo.Id);
+                    return oldSolution.AddProject(projectInfo);
+                }, WorkspaceChangeKind.ProjectAdded, projectId: projectInfo.Id);
         }
 
         private (Solution oldSolution, Solution newSolution) OnProjectAdded_NoLock(ProjectInfo projectInfo)
