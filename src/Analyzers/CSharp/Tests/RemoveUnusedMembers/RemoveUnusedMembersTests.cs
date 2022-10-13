@@ -2722,5 +2722,29 @@ public class MyClass
 
             await VerifyCS.VerifyCodeFixAsync(code, code);
         }
+
+        [Fact, WorkItem(62856, "https://github.com/dotnet/roslyn/issues/62856")]
+        public async Task DontWarnForAwaiterMethods()
+        {
+            const string code = @"using System;
+using System.Runtime.CompilerServices;
+using System.Threading.Tasks;
+
+class C : ICriticalNotifyCompletion
+{
+    public async Task M()
+    {
+        await this;
+    }
+
+    private C GetAwaiter() => this;
+    private bool IsCompleted => false;
+    private void GetResult() { }
+    public void OnCompleted(Action continuation) => Task.Run(continuation);
+    public void UnsafeOnCompleted(Action continuation) => Task.Run(continuation);
+}";
+
+            await VerifyCS.VerifyAnalyzerAsync(code);
+        }
     }
 }

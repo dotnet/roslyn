@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeQuality;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -86,6 +87,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
             private readonly HashSet<IPropertySymbol> _propertiesWithShadowGetAccessorUsages = new();
             private readonly INamedTypeSymbol _taskType, _genericTaskType, _debuggerDisplayAttributeType, _structLayoutAttributeType;
             private readonly INamedTypeSymbol _eventArgsType;
+            private readonly INamedTypeSymbol _iNotifyCompletionType;
             private readonly DeserializationConstructorCheck _deserializationConstructorCheck;
             private readonly ImmutableHashSet<INamedTypeSymbol> _attributeSetForMethodsToIgnore;
             private readonly AbstractRemoveUnusedMembersDiagnosticAnalyzer<TDocumentationCommentTriviaSyntax, TIdentifierNameSyntax> _analyzer;
@@ -102,6 +104,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
                 _debuggerDisplayAttributeType = compilation.DebuggerDisplayAttributeType();
                 _structLayoutAttributeType = compilation.StructLayoutAttributeType();
                 _eventArgsType = compilation.EventArgsType();
+                _iNotifyCompletionType = compilation.GetBestTypeByMetadataName(typeof(INotifyCompletion).FullName!);
                 _deserializationConstructorCheck = new DeserializationConstructorCheck(compilation);
                 _attributeSetForMethodsToIgnore = ImmutableHashSet.CreateRange(GetAttributesForMethodsToIgnore(compilation));
             }
@@ -603,7 +606,8 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
             ///        such that is meets a few criteria (see implementation details below).
             ///     5. If field, then it must not be a backing field for an auto property.
             ///        Backing fields have a non-null <see cref="IFieldSymbol.AssociatedSymbol"/>.
-            ///     6. If property, then it must not be an explicit interface property implementation.
+            ///     6. If property, then it must not be an explicit interface property implementation
+            ///        or the 'IsCompleted' property which is needed to make a type awaitable.
             ///     7. If event, then it must not be an explicit interface event implementation.
             /// </summary>
             private bool IsCandidateSymbol(ISymbol memberSymbol)
@@ -693,6 +697,13 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
                                         return false;
                                     }
 
+                                    // Ignore methods which make a type awaitable.
+                                    if (methodSymbol.ContainingType.AllInterfaces.Contains(_iNotifyCompletionType, SymbolEqualityComparer.Default)
+                                        && methodSymbol.Name is "GetAwaiter" or "GetResult")
+                                    {
+                                        return false;
+                                    }
+
                                     return true;
 
                                 default:
@@ -703,6 +714,11 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
                             return ((IFieldSymbol)memberSymbol).AssociatedSymbol == null;
 
                         case SymbolKind.Property:
+                            if (memberSymbol.ContainingType.AllInterfaces.Contains(_iNotifyCompletionType) && memberSymbol.Name == "IsCompleted")
+                            {
+                                return false;
+                            }
+
                             return ((IPropertySymbol)memberSymbol).ExplicitInterfaceImplementations.IsEmpty;
 
                         case SymbolKind.Event:
