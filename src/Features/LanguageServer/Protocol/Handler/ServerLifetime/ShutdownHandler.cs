@@ -15,8 +15,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler;
 [Method(Methods.ShutdownName)]
 internal class ShutdownHandler : ILspServiceNotificationHandler
 {
-    [ImportingConstructor]
-    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
     public ShutdownHandler()
     {
     }

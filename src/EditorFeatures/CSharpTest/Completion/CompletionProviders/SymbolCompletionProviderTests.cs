@@ -11883,6 +11883,17 @@ delegate void MyDelegate([Some(nameof(p$$))] int parameter);
             await VerifyItemExistsAsync(MakeMarkup(source, languageVersion: "10"), "parameter");
         }
 
+        [Fact, WorkItem(64585, "https://github.com/dotnet/roslyn/issues/64585")]
+        public async Task AfterRequired()
+        {
+            var source = @"
+class C
+{
+    required $$
+}";
+            await VerifyAnyItemExistsAsync(source);
+        }
+
         private static string MakeMarkup(string source, string languageVersion = "Preview")
         {
             return $$"""

@@ -1690,6 +1690,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageService
             Throw New InvalidOperationException(DoesNotExistInVBErrorMessage)
         End Sub
 
+        Public Sub GetPartsOfRelationalPattern(node As SyntaxNode, ByRef operatorToken As SyntaxToken, ByRef expression As SyntaxNode) Implements ISyntaxFacts.GetPartsOfRelationalPattern
+            Throw New InvalidOperationException(DoesNotExistInVBErrorMessage)
+        End Sub
+
         Public Sub GetPartsOfDeclarationPattern(node As SyntaxNode, ByRef type As SyntaxNode, ByRef designation As SyntaxNode) Implements ISyntaxFacts.GetPartsOfDeclarationPattern
             Throw New InvalidOperationException(DoesNotExistInVBErrorMessage)
         End Sub

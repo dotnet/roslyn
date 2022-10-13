@@ -21,6 +21,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
     [Trait(Traits.Feature, Traits.Features.Completion)]
     public class SnippetCompletionProviderTests : AbstractCSharpCompletionProviderTests
     {
+        public SnippetCompletionProviderTests()
+        {
+            ShowNewSnippetExperience = false;
+        }
+
         internal override Type GetCompletionProviderType()
             => typeof(SnippetCompletionProvider);
 

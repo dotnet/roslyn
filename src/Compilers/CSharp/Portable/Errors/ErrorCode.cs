@@ -2148,6 +2148,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         WRN_RefAssignReturnOnly = 9093,
         WRN_RefReturnOnlyParameter = 9094,
         WRN_RefReturnOnlyParameter2 = 9095,
+        ERR_RefAssignValEscapeWider = 9096,
+        WRN_RefAssignValEscapeWider = 9097,
 
         #endregion
 

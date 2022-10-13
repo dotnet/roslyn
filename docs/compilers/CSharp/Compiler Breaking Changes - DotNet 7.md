@@ -102,6 +102,12 @@ Possible workarounds are:
 Also, implicit conversions between `IntPtr`/`UIntPtr` and other numeric types are treated as standard
 conversions on such platforms. This can affect overload resolution in some cases.
 
+These changes could cause a behavioral change if the user code was depending on overflow exceptions in an
+unchecked context, or if it was not expecting overflow exceptions in a checked context. An analyzer was 
+[added in 7.0](https://github.com/dotnet/runtime/issues/74022) to help detect such behavioral changes
+and take appropriate action. The analyzer will produce diagnostics on potential behavioral changes, which default
+to info severity but can be upgraded to warnings via [editorconfig](https://learn.microsoft.com/dotnet/fundamentals/code-analysis/configuration-options#severity-level).
+
 ## Addition of System.UIntPtr and System.Int32
 
 ***Introduced in .NET SDK 7.0.100, Visual Studio 2022 version 17.3.***

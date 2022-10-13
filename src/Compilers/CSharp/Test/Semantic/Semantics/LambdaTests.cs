@@ -6892,5 +6892,63 @@ class Program
             var model = comp.GetSemanticModel(syntaxTree);
             AssertEx.Equal("System.Action", model.GetTypeInfo(action).Type.ToTestDisplayString());
         }
+
+        [Fact]
+        [WorkItem(64392, "https://github.com/dotnet/roslyn/issues/64392")]
+        public void ReferToFieldWithinLambdaInTypeAttribute_01()
+        {
+            var source = @"
+[Display(x => $""{Name}"")]
+public class Test
+{
+    [Display(Name = ""Name"")]
+    public string Name { get; }
+}
+
+public class DisplayAttribute : System.Attribute
+{
+    public DisplayAttribute() { }
+}
+";
+
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (2,2): error CS1729: 'DisplayAttribute' does not contain a constructor that takes 1 arguments
+                // [Display(x => $"{Name}")]
+                Diagnostic(ErrorCode.ERR_BadCtorArgCount, @"Display(x => $""{Name}"")").WithArguments("DisplayAttribute", "1").WithLocation(2, 2),
+                // (5,14): error CS0246: The type or namespace name 'Name' could not be found (are you missing a using directive or an assembly reference?)
+                //     [Display(Name = "Name")]
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Name").WithArguments("Name").WithLocation(5, 14)
+                );
+        }
+
+        [Fact]
+        [WorkItem(64392, "https://github.com/dotnet/roslyn/issues/64392")]
+        public void ReferToFieldWithinLambdaInTypeAttribute_02()
+        {
+            var source = @"
+[Display(x => Name)]
+public class Test
+{
+    [Display(Name = ""Name"")]
+    public string Name { get; }
+}
+
+public class DisplayAttribute : System.Attribute
+{
+    public DisplayAttribute() { }
+}
+";
+
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (2,2): error CS1729: 'DisplayAttribute' does not contain a constructor that takes 1 arguments
+                // [Display(x => Name)]
+                Diagnostic(ErrorCode.ERR_BadCtorArgCount, "Display(x => Name)").WithArguments("DisplayAttribute", "1").WithLocation(2, 2),
+                // (5,14): error CS0246: The type or namespace name 'Name' could not be found (are you missing a using directive or an assembly reference?)
+                //     [Display(Name = "Name")]
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Name").WithArguments("Name").WithLocation(5, 14)
+                );
+        }
     }
 }

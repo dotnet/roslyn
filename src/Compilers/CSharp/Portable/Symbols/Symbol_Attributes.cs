@@ -389,17 +389,17 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             Debug.Assert(!earlyDecodingOnly);
 
-            this.PostDecodeWellKnownAttributes(boundAttributes, attributesToBind, diagnostics, symbolPart, wellKnownAttributeData);
-
-            removeObsoleteDiagnosticsForForwardedTypes(boundAttributes, attributesToBind, ref diagnostics);
-            Debug.Assert(diagnostics.DiagnosticBag is not null);
-
             // Store attributes into the bag.
             bool lazyAttributesStoredOnThisThread = false;
             if (lazyCustomAttributesBag.SetAttributes(boundAttributes))
             {
                 if (attributeMatchesOpt is null)
                 {
+                    this.PostDecodeWellKnownAttributes(boundAttributes, attributesToBind, diagnostics, symbolPart, wellKnownAttributeData);
+
+                    removeObsoleteDiagnosticsForForwardedTypes(boundAttributes, attributesToBind, ref diagnostics);
+                    Debug.Assert(diagnostics.DiagnosticBag is not null);
+
                     this.RecordPresenceOfBadAttributes(boundAttributes);
 
                     if (totalAttributesCount != 0)

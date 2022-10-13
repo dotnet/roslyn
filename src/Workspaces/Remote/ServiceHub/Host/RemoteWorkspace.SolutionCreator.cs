@@ -347,6 +347,11 @@ namespace Microsoft.CodeAnalysis.Remote
                     project = project.Solution.WithRunAnalyzers(projectId, newProjectAttributes.RunAnalyzers).GetProject(projectId)!;
                 }
 
+                if (project.State.ProjectInfo.Attributes.ChecksumAlgorithm != newProjectAttributes.ChecksumAlgorithm)
+                {
+                    project = project.Solution.WithProjectChecksumAlgorithm(projectId, newProjectAttributes.ChecksumAlgorithm).GetProject(projectId)!;
+                }
+
                 return project;
             }
 

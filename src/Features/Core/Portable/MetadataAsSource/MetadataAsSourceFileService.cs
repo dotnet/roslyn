@@ -24,13 +24,21 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
     internal class MetadataAsSourceFileService : IMetadataAsSourceFileService
     {
         /// <summary>
-        /// A lock to guard parallel accesses to this type. In practice, we presume that it's not 
-        /// an important scenario that we can be generating multiple documents in parallel, and so 
-        /// we simply take this lock around all public entrypoints to enforce sequential access.
+        /// Set of providers that can be used to generate source for a symbol (for example, by decompiling, or by
+        /// extracting it from a pdb).
+        /// </summary>
+        private readonly ImmutableArray<Lazy<IMetadataAsSourceFileProvider, MetadataAsSourceFileProviderMetadata>> _providers;
+
+        /// <summary>
+        /// Workspace created the first time we generate any metadata for any symbol.
+        /// </summary>
+        private MetadataAsSourceWorkspace? _workspace;
+
+        /// <summary>
+        /// A lock to guard the mutex and filesystem data below.  We want to ensure we generate into that and clean that
+        /// up safely.  
         /// </summary>
         private readonly SemaphoreSlim _gate = new(initialCount: 1);
-
-        private MetadataAsSourceWorkspace? _workspace;
 
         /// <summary>
         /// We create a mutex so other processes can see if our directory is still alive. We destroy the mutex when
@@ -39,7 +47,6 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
         private Mutex? _mutex;
         private string? _rootTemporaryPathWithGuid;
         private readonly string _rootTemporaryPath;
-        private readonly ImmutableArray<Lazy<IMetadataAsSourceFileProvider, MetadataAsSourceFileProviderMetadata>> _providers;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -106,20 +113,26 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
             throw ExceptionUtilities.Unreachable();
         }
 
+        private MetadataAsSourceWorkspace GetWorkspaceOnMainThread()
+        {
+            var workspace = _workspace;
+            Contract.ThrowIfNull(workspace);
+            var threadingService = workspace.Services.GetRequiredService<IWorkspaceThreadingServiceProvider>().Service;
+            Contract.ThrowIfFalse(threadingService.IsOnMainThread);
+            return workspace;
+        }
+
         public bool TryAddDocumentToWorkspace(string filePath, SourceTextContainer sourceTextContainer)
         {
-            using (_gate.DisposableWait())
+            var workspace = GetWorkspaceOnMainThread();
+
+            foreach (var provider in _providers)
             {
-                foreach (var provider in _providers)
-                {
-                    if (!provider.IsValueCreated)
-                        continue;
+                if (!provider.IsValueCreated)
+                    continue;
 
-                    Contract.ThrowIfNull(_workspace);
-
-                    if (provider.Value.TryAddDocumentToWorkspace(_workspace, filePath, sourceTextContainer))
-                        return true;
-                }
+                if (provider.Value.TryAddDocumentToWorkspace(workspace, filePath, sourceTextContainer))
+                    return true;
             }
 
             return false;
@@ -127,18 +140,15 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
 
         public bool TryRemoveDocumentFromWorkspace(string filePath)
         {
-            using (_gate.DisposableWait())
+            var workspace = GetWorkspaceOnMainThread();
+
+            foreach (var provider in _providers)
             {
-                foreach (var provider in _providers)
-                {
-                    if (!provider.IsValueCreated)
-                        continue;
+                if (!provider.IsValueCreated)
+                    continue;
 
-                    Contract.ThrowIfNull(_workspace);
-
-                    if (provider.Value.TryRemoveDocumentFromWorkspace(_workspace, filePath))
-                        return true;
-                }
+                if (provider.Value.TryRemoveDocumentFromWorkspace(workspace, filePath))
+                    return true;
             }
 
             return false;
@@ -149,18 +159,17 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
             if (filePath is null)
                 return false;
 
-            using (_gate.DisposableWait())
+            var workspace = GetWorkspaceOnMainThread();
+
+            foreach (var provider in _providers)
             {
-                foreach (var provider in _providers)
-                {
-                    if (!provider.IsValueCreated)
-                        continue;
+                if (!provider.IsValueCreated)
+                    continue;
 
-                    Contract.ThrowIfNull(_workspace);
+                Contract.ThrowIfNull(_workspace);
 
-                    if (provider.Value.ShouldCollapseOnOpen(filePath, blockStructureOptions))
-                        return true;
-                }
+                if (provider.Value.ShouldCollapseOnOpen(workspace, filePath, blockStructureOptions))
+                    return true;
             }
 
             return false;
@@ -209,14 +218,18 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
                     _rootTemporaryPathWithGuid = null;
                 }
 
-                // Only cleanup for providers that have actually generated a file. This keeps us from
-                // accidentally loading lazy providers on cleanup that weren't used
-                foreach (var provider in _providers)
+                // Only cleanup for providers that have actually generated a file. This keeps us from accidentally loading
+                // lazy providers on cleanup that weren't used
+                var workspace = _workspace;
+                if (workspace != null)
                 {
-                    if (!provider.IsValueCreated)
-                        continue;
+                    foreach (var provider in _providers)
+                    {
+                        if (!provider.IsValueCreated)
+                            continue;
 
-                    provider.Value.CleanupGeneratedFiles(_workspace);
+                        provider.Value.CleanupGeneratedFiles(workspace);
+                    }
                 }
 
                 try
@@ -228,7 +241,6 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
                         // Let's look through directories to delete.
                         foreach (var directoryInfo in new DirectoryInfo(_rootTemporaryPath).EnumerateDirectories())
                         {
-
                             // Is there a mutex for this one?
                             if (Mutex.TryOpenExisting(CreateMutexName(directoryInfo.Name), out var acquiredMutex))
                             {
