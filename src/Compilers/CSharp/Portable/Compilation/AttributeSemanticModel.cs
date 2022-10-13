@@ -47,29 +47,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         public static SpeculativeSemanticModelWithMemberModel CreateSpeculative(SyntaxTreeSemanticModel parentSemanticModel, AttributeSyntax syntax, NamedTypeSymbol attributeType, AliasSymbol aliasOpt, Binder rootBinder, ImmutableDictionary<Symbol, Symbol> parentRemappedSymbolsOpt, int position)
         {
-<<<<<<< HEAD
             return new SpeculativeSemanticModelWithMemberModel(parentSemanticModel, position, syntax, attributeType, aliasOpt, rootBinder, parentRemappedSymbolsOpt);
-=======
-            Debug.Assert(parentSemanticModel != null);
-            Debug.Assert(rootBinder != null);
-            Debug.Assert(rootBinder.IsSemanticModelBinder);
-
-            var attributeTarget = GetAttributeTargetFromPosition(position, parentSemanticModel);
-            return new AttributeSemanticModel(syntax, attributeType, attributeTarget, aliasOpt, rootBinder, parentSemanticModelOpt: parentSemanticModel, parentRemappedSymbolsOpt: parentRemappedSymbolsOpt, speculatedPosition: position);
-        }
-
-        private static Symbol? GetAttributeTargetFromPosition(int position, SemanticModel model)
-        {
-            var attributedNode = model.SyntaxTree.GetRoot().FindToken(position).Parent;
-            attributedNode = attributedNode?.FirstAncestorOrSelf<AttributeListSyntax>()?.Parent;
-
-            if (attributedNode is not null)
-            {
-                return model.GetDeclaredSymbolForNode(attributedNode).GetSymbol();
-            }
-
-            return null;
->>>>>>> dotnet/main
         }
 
         private NamedTypeSymbol AttributeType

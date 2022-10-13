@@ -48,7 +48,20 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(rootBinder != null);
             Debug.Assert(rootBinder.IsSemanticModelBinder);
 
-            _memberModel = new AttributeSemanticModel(syntax, attributeType, aliasOpt, rootBinder, containingPublicSemanticModel: this, parentRemappedSymbolsOpt: parentRemappedSymbolsOpt);
+            _memberModel = new AttributeSemanticModel(syntax, attributeType, getAttributeTargetFromPosition(position, parentSemanticModel), aliasOpt, rootBinder, containingPublicSemanticModel: this, parentRemappedSymbolsOpt: parentRemappedSymbolsOpt);
+
+            static Symbol? getAttributeTargetFromPosition(int position, SyntaxTreeSemanticModel model)
+            {
+                var attributedNode = model.SyntaxTree.GetRoot().FindToken(position).Parent;
+                attributedNode = attributedNode?.FirstAncestorOrSelf<AttributeListSyntax>()?.Parent;
+
+                if (attributedNode is not null)
+                {
+                    return model.GetDeclaredSymbolForNode(attributedNode).GetSymbol();
+                }
+
+                return null;
+            }
         }
 
         public SpeculativeSemanticModelWithMemberModel(
