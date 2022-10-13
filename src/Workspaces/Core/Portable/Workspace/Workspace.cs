@@ -471,19 +471,15 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         protected internal virtual void OnProjectReloaded(ProjectInfo reloadedProjectInfo)
         {
-            using (_serializationLock.DisposableWait())
-            {
-                var projectId = reloadedProjectInfo.Id;
-
-                CheckProjectIsInCurrentSolution(projectId);
-
-                var (oldSolution, newSolution) = this.SetCurrentSolution(
-                    this.AdjustReloadedProject(
-                        this.CurrentSolution.GetRequiredProject(projectId),
-                        this.CurrentSolution.RemoveProject(projectId).AddProject(reloadedProjectInfo).GetRequiredProject(projectId)).Solution);
-
-                this.RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.ProjectReloaded, oldSolution, newSolution, projectId);
-            }
+            var projectId = reloadedProjectInfo.Id;
+            this.SetCurrentSolution(
+                oldSolution =>
+                {
+                    CheckProjectIsInSolution(oldSolution, projectId);
+                    return this.AdjustReloadedProject(
+                        oldSolution.GetRequiredProject(projectId),
+                        oldSolution.RemoveProject(projectId).AddProject(reloadedProjectInfo).GetRequiredProject(projectId)).Solution;
+                }, WorkspaceChangeKind.ProjectReloaded, projectId);
         }
 
         /// <summary>
@@ -1936,12 +1932,15 @@ namespace Microsoft.CodeAnalysis
         /// Throws an exception if the project is not part of the current solution.
         /// </summary>
         protected void CheckProjectIsInCurrentSolution(ProjectId projectId)
+            => CheckProjectIsInSolution(this.CurrentSolution, projectId);
+
+        private static void CheckProjectIsInSolution(Solution solution, ProjectId projectId)
         {
-            if (!this.CurrentSolution.ContainsProject(projectId))
+            if (!solution.ContainsProject(projectId))
             {
                 throw new ArgumentException(string.Format(
                     WorkspacesResources._0_is_not_part_of_the_workspace,
-                    this.GetProjectName(projectId)));
+                    solution.Workspace.GetProjectName(projectId)));
             }
         }
 
