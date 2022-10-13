@@ -4754,5 +4754,159 @@ struct R : System.IDisposable
                 Diagnostic(ErrorCode.ERR_UnexpectedToken, "ref").WithArguments("ref").WithLocation(4, 7)
                 );
         }
+
+        [Fact]
+        [WorkItem(64259, "https://github.com/dotnet/roslyn/issues/64259")]
+        public void RefLocalInDeconstruct_01()
+        {
+            var code = @"
+class C
+{
+    static void Main()
+    {
+        int x = 0, y = 0;
+        (ref int a, ref readonly int b) = (x, y);
+    }
+}
+";
+
+            CreateCompilation(code).VerifyEmitDiagnostics(
+                // (7,10): error CS9072: A deconstruction variable cannot be declared as a ref local
+                //         (ref int a, ref readonly int b) = (x, y);
+                Diagnostic(ErrorCode.ERR_DeconstructVariableCannotBeByRef, "ref").WithLocation(7, 10),
+                // (7,21): error CS9072: A deconstruction variable cannot be declared as a ref local
+                //         (ref int a, ref readonly int b) = (x, y);
+                Diagnostic(ErrorCode.ERR_DeconstructVariableCannotBeByRef, "ref").WithLocation(7, 21)
+                );
+        }
+
+        [Fact]
+        [WorkItem(64259, "https://github.com/dotnet/roslyn/issues/64259")]
+        public void RefLocalInDeconstruct_02()
+        {
+            var code = @"
+class C
+{
+    static void Main()
+    {
+        int x = 0, y = 0, z = 0;
+        (ref var a, ref var (b, c)) = (x, (y, z));
+        (ref int d, var e) = (x, y);
+    }
+}
+";
+
+            var comp = CreateCompilation(code).VerifyEmitDiagnostics(
+                // (7,10): error CS9072: A deconstruction variable cannot be declared as a ref local
+                //         (ref var a, ref var (b, c)) = (x, (y, z));
+                Diagnostic(ErrorCode.ERR_DeconstructVariableCannotBeByRef, "ref").WithLocation(7, 10),
+                // (7,21): error CS1525: Invalid expression term 'ref'
+                //         (ref var a, ref var (b, c)) = (x, (y, z));
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "ref var (b, c)").WithArguments("ref").WithLocation(7, 21),
+                // (7,21): error CS1073: Unexpected token 'ref'
+                //         (ref var a, ref var (b, c)) = (x, (y, z));
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, "ref").WithArguments("ref").WithLocation(7, 21),
+                // (8,10): error CS9072: A deconstruction variable cannot be declared as a ref local
+                //         (ref int d, var e) = (x, y);
+                Diagnostic(ErrorCode.ERR_DeconstructVariableCannotBeByRef, "ref").WithLocation(8, 10)
+            );
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var decls = tree.GetRoot().DescendantNodes().OfType<DeclarationExpressionSyntax>().ToArray();
+
+            foreach (var decl in decls)
+            {
+                var type = decl.Type;
+
+                if (type is RefTypeSyntax refType)
+                {
+                    Assert.Null(model.GetSymbolInfo(type).Symbol);
+                    Assert.Null(model.GetTypeInfo(type).Type);
+
+                    type = refType.Type;
+                }
+
+                Assert.Equal("System.Int32", model.GetSymbolInfo(type).Symbol.ToTestDisplayString());
+                Assert.Equal("System.Int32", model.GetTypeInfo(type).Type.ToTestDisplayString());
+            }
+        }
+
+        [Fact]
+        [WorkItem(64259, "https://github.com/dotnet/roslyn/issues/64259")]
+        public void RefLocalInDeconstruct_03()
+        {
+            var code = @"
+int x = 0, y = 0, z = 0;
+(ref var d, var e) = (x, y);
+(ref int f, ref var _) = (x, y);
+";
+
+            var comp = CreateCompilation(code, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
+            comp.VerifyEmitDiagnostics(
+                // (3,2): error CS1073: Unexpected token 'ref'
+                // (ref var d, var e) = (x, y);
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, "ref").WithArguments("ref").WithLocation(3, 2),
+                // (4,2): error CS1073: Unexpected token 'ref'
+                // (ref int f, ref var _) = (x, y);
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, "ref").WithArguments("ref").WithLocation(4, 2),
+                // (4,13): error CS9072: A deconstruction variable cannot be declared as a ref local
+                // (ref int f, ref var _) = (x, y);
+                Diagnostic(ErrorCode.ERR_DeconstructVariableCannotBeByRef, "ref").WithLocation(4, 13)
+                );
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var decls = tree.GetRoot().DescendantNodes().OfType<SingleVariableDesignationSyntax>().ToArray();
+
+            Assert.Equal(3, decls.Length);
+
+            foreach (var decl in decls)
+            {
+                var f = model.GetDeclaredSymbol(decl).GetSymbol<FieldSymbol>();
+
+                Assert.Equal(RefKind.None, f.RefKind);
+                Assert.Equal("System.Int32", f.Type.ToTestDisplayString());
+            }
+        }
+
+        [Fact]
+        public void RefLocalInOutVar_01()
+        {
+            var code = @"
+M(out ref var a);
+M(out ref int b);
+M(out ref var _);
+
+void M(out int x) => throw null;
+";
+
+            var comp = CreateCompilation(code, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
+            comp.VerifyEmitDiagnostics(
+                // (2,7): error CS1073: Unexpected token 'ref'
+                // M(out ref var a);
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, "ref").WithArguments("ref").WithLocation(2, 7),
+                // (3,7): error CS1073: Unexpected token 'ref'
+                // M(out ref int b);
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, "ref").WithArguments("ref").WithLocation(3, 7),
+                // (4,7): error CS8388: An out variable cannot be declared as a ref local
+                // M(out ref var _);
+                Diagnostic(ErrorCode.ERR_OutVariableCannotBeByRef, "ref var").WithLocation(4, 7)
+                );
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var decls = tree.GetRoot().DescendantNodes().OfType<SingleVariableDesignationSyntax>().ToArray();
+
+            Assert.Equal(2, decls.Length);
+
+            foreach (var decl in decls)
+            {
+                var f = model.GetDeclaredSymbol(decl).GetSymbol<FieldSymbol>();
+
+                Assert.Equal(RefKind.None, f.RefKind);
+                Assert.Equal("System.Int32", f.Type.ToTestDisplayString());
+            }
+        }
     }
 }

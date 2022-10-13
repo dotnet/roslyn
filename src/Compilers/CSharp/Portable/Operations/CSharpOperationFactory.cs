@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
@@ -280,8 +279,9 @@ namespace Microsoft.CodeAnalysis.Operations
                     return CreateBoundInterpolatedStringArgumentPlaceholder((BoundInterpolatedStringArgumentPlaceholder)boundNode);
                 case BoundKind.InterpolatedStringHandlerPlaceholder:
                     return CreateBoundInterpolatedStringHandlerPlaceholder((BoundInterpolatedStringHandlerPlaceholder)boundNode);
-
                 case BoundKind.Attribute:
+                    return CreateBoundAttributeOperation((BoundAttribute)boundNode);
+
                 case BoundKind.ArgList:
                 case BoundKind.ArgListOperator:
                 case BoundKind.ConvertedStackAllocExpression:
@@ -491,6 +491,27 @@ namespace Microsoft.CodeAnalysis.Operations
                 boundUnconvertedAddressOf.Syntax,
                 boundUnconvertedAddressOf.GetPublicTypeSymbol(),
                 boundUnconvertedAddressOf.WasCompilerGenerated);
+        }
+
+        private IOperation CreateBoundAttributeOperation(BoundAttribute boundAttribute)
+        {
+            var isAttributeImplicit = boundAttribute.WasCompilerGenerated;
+            if (boundAttribute.Constructor is null)
+            {
+                var invalidOperation = OperationFactory.CreateInvalidOperation(_semanticModel, boundAttribute.Syntax, GetIOperationChildren(boundAttribute), isImplicit: true);
+                return new AttributeOperation(invalidOperation, _semanticModel, boundAttribute.Syntax, isAttributeImplicit);
+            }
+
+            ObjectOrCollectionInitializerOperation? initializer = null;
+            if (!boundAttribute.NamedArguments.IsEmpty)
+            {
+                var namedArguments = CreateFromArray<BoundAssignmentOperator, IOperation>(boundAttribute.NamedArguments);
+                initializer = new ObjectOrCollectionInitializerOperation(namedArguments, _semanticModel, boundAttribute.Syntax, boundAttribute.GetPublicTypeSymbol(), isImplicit: true);
+                Debug.Assert(initializer.Initializers.All(i => i is ISimpleAssignmentOperation));
+            }
+
+            var objectCreationOperation = new ObjectCreationOperation(boundAttribute.Constructor.GetPublicSymbol(), initializer, DeriveArguments(boundAttribute), _semanticModel, boundAttribute.Syntax, boundAttribute.GetPublicTypeSymbol(), boundAttribute.ConstantValue, isImplicit: true);
+            return new AttributeOperation(objectCreationOperation, _semanticModel, boundAttribute.Syntax, isAttributeImplicit);
         }
 
         internal ImmutableArray<IOperation> CreateIgnoredDimensions(BoundNode declaration, SyntaxNode declarationSyntax)

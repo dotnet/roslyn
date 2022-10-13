@@ -390,12 +390,13 @@ dotnet_diagnostic.{DisabledByDefaultAnalyzer.s_compilationRule.Id}.severity = wa
 
             // cause analysis
             var location = Location.Create(document.FilePath, textSpan: default, lineSpan: default);
+            var properties = ImmutableDictionary<string, string>.Empty.Add(WellKnownDiagnosticPropertyNames.Origin, WellKnownDiagnosticTags.Build);
 
             await service.SynchronizeWithBuildAsync(
                 workspace,
                 ImmutableDictionary<ProjectId, ImmutableArray<DiagnosticData>>.Empty.Add(
                     document.Project.Id,
-                    ImmutableArray.Create(DiagnosticData.Create(document.Project.Solution, Diagnostic.Create(NoNameAnalyzer.s_syntaxRule, location), document.Project))),
+                    ImmutableArray.Create(DiagnosticData.Create(document.Project.Solution, Diagnostic.Create(NoNameAnalyzer.s_syntaxRule, location, properties), document.Project))),
                 new TaskQueue(service.Listener, TaskScheduler.Default),
                 onBuildCompleted: true,
                 CancellationToken.None);

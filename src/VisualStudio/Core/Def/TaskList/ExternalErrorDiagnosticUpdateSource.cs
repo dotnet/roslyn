@@ -10,6 +10,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Internal.Log;
@@ -40,6 +41,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
     {
         private readonly Workspace _workspace;
         private readonly IDiagnosticAnalyzerService _diagnosticService;
+        private readonly IBuildOnlyDiagnosticsService _buildOnlyDiagnosticsService;
         private readonly IGlobalOperationNotificationService _notificationService;
         private readonly CancellationToken _disposalToken;
 
@@ -101,6 +103,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
             _workspace.WorkspaceChanged += OnWorkspaceChanged;
 
             _diagnosticService = diagnosticService;
+            _buildOnlyDiagnosticsService = _workspace.Services.GetRequiredService<IBuildOnlyDiagnosticsService>();
 
             _notificationService = _workspace.Services.GetRequiredService<IGlobalOperationNotificationService>();
         }
@@ -518,12 +521,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
 
         private void RaiseDiagnosticsCreated(object? id, Solution solution, ProjectId? projectId, DocumentId? documentId, ImmutableArray<DiagnosticData> items)
         {
+            _buildOnlyDiagnosticsService.AddBuildOnlyDiagnostics(solution, projectId, documentId, items);
             DiagnosticsUpdated?.Invoke(this, DiagnosticsUpdatedArgs.DiagnosticsCreated(
                    CreateArgumentKey(id), _workspace, solution, projectId, documentId, items));
         }
 
         private void RaiseDiagnosticsRemoved(object? id, Solution solution, ProjectId? projectId, DocumentId? documentId)
         {
+            _buildOnlyDiagnosticsService.ClearBuildOnlyDiagnostics(solution, projectId, documentId);
             DiagnosticsUpdated?.Invoke(this, DiagnosticsUpdatedArgs.DiagnosticsRemoved(
                    CreateArgumentKey(id), _workspace, solution, projectId, documentId));
         }
