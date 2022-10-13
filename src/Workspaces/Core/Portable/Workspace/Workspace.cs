@@ -163,7 +163,21 @@ namespace Microsoft.CodeAnalysis
         /// This method does not guarantee that linked files will have the same contents. Callers
         /// should enforce that policy before passing in the new solution.
         /// </remarks>
-        protected (Solution oldSolution, Solution newSolution) SetCurrentSolution(Solution solution)
+        [Obsolete($"use {nameof(SetCurrentSolutionEx)} instead, and ensure {nameof(RaiseWorkspaceChangedEventAsync)} are raised for the solutions returned.")]
+        protected Solution SetCurrentSolution(Solution solution)
+        {
+            var (_, newSolution) = SetCurrentSolutionEx(solution);
+            return newSolution;
+        }
+
+        /// <summary>
+        /// Sets the <see cref="CurrentSolution"/> of this workspace. This method does not raise a <see cref="WorkspaceChanged"/> event.
+        /// </summary>
+        /// <remarks>
+        /// This method does not guarantee that linked files will have the same contents. Callers
+        /// should enforce that policy before passing in the new solution.
+        /// </remarks>
+        protected (Solution oldSolution, Solution newSolution) SetCurrentSolutionEx(Solution solution)
         {
             if (solution is null)
             {
@@ -266,7 +280,7 @@ namespace Microsoft.CodeAnalysis
             // This should be fixable once SolutionCrawler is entirely removed.
             // using (_serializationLock.DisposableWait())
             {
-                var (oldSolution, newSolution) = SetCurrentSolution(CurrentSolution.WithOptions(new SolutionOptionSet(_legacyOptions)));
+                var (oldSolution, newSolution) = SetCurrentSolutionEx(CurrentSolution.WithOptions(new SolutionOptionSet(_legacyOptions)));
 
                 RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.SolutionChanged, oldSolution, newSolution);
             }
@@ -334,7 +348,7 @@ namespace Microsoft.CodeAnalysis
             // clear any open documents
             this.ClearOpenDocuments();
 
-            return this.SetCurrentSolution(this.CreateSolution(this.CurrentSolution.Id));
+            return this.SetCurrentSolutionEx(this.CreateSolution(this.CurrentSolution.Id));
 
             // TODO: Are we missing a call to RaiseWorkspaceChangedEventAsync here?
         }
@@ -453,7 +467,7 @@ namespace Microsoft.CodeAnalysis
                 var (oldSolution, _) = this.ClearSolutionData_NoLock();
 
                 // reset to new empty solution
-                var (_, newSolution) = this.SetCurrentSolution(this.CreateSolution(SolutionId.CreateNewId()));
+                var (_, newSolution) = this.SetCurrentSolutionEx(this.CreateSolution(SolutionId.CreateNewId()));
 
                 this.RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.SolutionRemoved, oldSolution, newSolution);
             }
@@ -502,7 +516,7 @@ namespace Microsoft.CodeAnalysis
                 // Clear out mutable state not associated with teh solution snapshot (for example, which documents are
                 // currently open).
                 this.ClearProjectData(projectId);
-                var (oldSolution, newSolution) = this.SetCurrentSolution(this.CurrentSolution.RemoveProject(projectId));
+                var (oldSolution, newSolution) = this.SetCurrentSolutionEx(this.CurrentSolution.RemoveProject(projectId));
 
                 this.RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.ProjectRemoved, oldSolution, newSolution, projectId);
             }
@@ -684,14 +698,10 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         protected internal void OnDocumentAdded(DocumentInfo documentInfo)
         {
-            using (_serializationLock.DisposableWait())
-            {
-                var documentId = documentInfo.Id;
-
-                var (oldSolution, newSolution) = this.SetCurrentSolution(this.CurrentSolution.AddDocument(documentInfo));
-
-                this.RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.DocumentAdded, oldSolution, newSolution, documentId: documentId);
-            }
+            var documentId = documentInfo.Id;
+            SetCurrentSolution(
+                oldSolution => oldSolution.AddDocument(documentInfo),
+                WorkspaceChangeKind.DocumentAdded, documentId: documentId);
         }
 
         /// <summary>
@@ -714,15 +724,10 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         protected internal void OnDocumentReloaded(DocumentInfo newDocumentInfo)
         {
-            using (_serializationLock.DisposableWait())
-            {
-                var documentId = newDocumentInfo.Id;
-
-                var (oldSolution, newSolution) = this.SetCurrentSolution(
-                    this.CurrentSolution.RemoveDocument(documentId).AddDocument(newDocumentInfo));
-
-                this.RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.DocumentReloaded, oldSolution, newSolution, documentId: documentId);
-            }
+            var documentId = newDocumentInfo.Id;
+            SetCurrentSolution(
+                oldSolution => oldSolution.RemoveDocument(documentId).AddDocument(newDocumentInfo),
+                WorkspaceChangeKind.DocumentReloaded, documentId: documentId);
         }
 
         /// <summary>
