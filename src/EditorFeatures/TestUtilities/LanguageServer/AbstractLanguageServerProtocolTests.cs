@@ -23,6 +23,7 @@ using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions;
+using Microsoft.CodeAnalysis.LanguageServer.UnitTests;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
@@ -36,6 +37,7 @@ using Newtonsoft.Json.Linq;
 using Roslyn.Utilities;
 using StreamJsonRpc;
 using Xunit;
+using Xunit.Abstractions;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Roslyn.Test.Utilities
@@ -43,6 +45,12 @@ namespace Roslyn.Test.Utilities
     [UseExportProvider]
     public abstract partial class AbstractLanguageServerProtocolTests
     {
+        private protected readonly ILspServiceLogger TestOutputLspLogger;
+        protected AbstractLanguageServerProtocolTests(ITestOutputHelper? testOutputHelper)
+        {
+            TestOutputLspLogger = testOutputHelper != null ? new TestOutputLspLogger(testOutputHelper) : NoOpLspLogger.Instance;
+        }
+
         private static readonly TestComposition s_composition = EditorTestCompositions.LanguageServerProtocol
             .AddParts(typeof(TestDocumentTrackingService))
             .AddParts(typeof(TestWorkspaceRegistrationService))
@@ -350,7 +358,7 @@ namespace Roslyn.Test.Utilities
             // created by the initial test steps. This can interfere with the expected test state.
             await WaitForWorkspaceOperationsAsync(workspace);
 
-            return await TestLspServer.CreateAsync(workspace, initializationOptions);
+            return await TestLspServer.CreateAsync(workspace, initializationOptions, TestOutputLspLogger);
         }
 
         private protected async Task<TestLspServer> CreateXmlTestLspServerAsync(
@@ -373,7 +381,7 @@ namespace Roslyn.Test.Utilities
             // Otherwise we could have a race where workspace change events triggered by creation are changing the state
             // created by the initial test steps. This can interfere with the expected test state.
             await WaitForWorkspaceOperationsAsync(workspace);
-            return await TestLspServer.CreateAsync(workspace, lspOptions);
+            return await TestLspServer.CreateAsync(workspace, lspOptions, TestOutputLspLogger);
         }
 
         /// <summary>
@@ -493,14 +501,14 @@ namespace Roslyn.Test.Utilities
 
             public LSP.ClientCapabilities ClientCapabilities { get; }
 
-            private TestLspServer(TestWorkspace testWorkspace, Dictionary<string, IList<LSP.Location>> locations, LSP.ClientCapabilities clientCapabilities, WellKnownLspServerKinds serverKind)
+            private TestLspServer(TestWorkspace testWorkspace, Dictionary<string, IList<LSP.Location>> locations, LSP.ClientCapabilities clientCapabilities, WellKnownLspServerKinds serverKind, ILspServiceLogger logger)
             {
                 TestWorkspace = testWorkspace;
                 ClientCapabilities = clientCapabilities;
                 _locations = locations;
 
                 var (clientStream, serverStream) = FullDuplexStream.CreatePair();
-                LanguageServer = CreateLanguageServer(serverStream, serverStream, TestWorkspace, serverKind);
+                LanguageServer = CreateLanguageServer(serverStream, serverStream, TestWorkspace, serverKind, logger);
 
                 _clientRpc = new JsonRpc(new HeaderDelimitedMessageHandler(clientStream, clientStream, CreateJsonMessageFormatter()))
                 {
@@ -546,10 +554,10 @@ namespace Roslyn.Test.Utilities
                 return messageFormatter;
             }
 
-            internal static async Task<TestLspServer> CreateAsync(TestWorkspace testWorkspace, InitializationOptions initializationOptions)
+            internal static async Task<TestLspServer> CreateAsync(TestWorkspace testWorkspace, InitializationOptions initializationOptions, ILspServiceLogger logger)
             {
                 var locations = await GetAnnotatedLocationsAsync(testWorkspace, testWorkspace.CurrentSolution);
-                var server = new TestLspServer(testWorkspace, locations, initializationOptions.ClientCapabilities, initializationOptions.ServerKind);
+                var server = new TestLspServer(testWorkspace, locations, initializationOptions.ClientCapabilities, initializationOptions.ServerKind, logger);
 
                 await server.ExecuteRequestAsync<LSP.InitializeParams, LSP.InitializeResult>(LSP.Methods.InitializeName, new LSP.InitializeParams
                 {
@@ -572,7 +580,7 @@ namespace Roslyn.Test.Utilities
                 return server;
             }
 
-            private static RoslynLanguageServer CreateLanguageServer(Stream inputStream, Stream outputStream, TestWorkspace workspace, WellKnownLspServerKinds serverKind)
+            private static RoslynLanguageServer CreateLanguageServer(Stream inputStream, Stream outputStream, TestWorkspace workspace, WellKnownLspServerKinds serverKind, ILspServiceLogger logger)
             {
                 var capabilitiesProvider = workspace.ExportProvider.GetExportedValue<ExperimentalCapabilitiesProvider>();
                 var servicesProvider = workspace.ExportProvider.GetExportedValue<CSharpVisualBasicLspServiceProvider>();
@@ -582,7 +590,6 @@ namespace Roslyn.Test.Utilities
                     ExceptionStrategy = ExceptionProcessing.ISerializable,
                 };
 
-                var logger = NoOpLspLogger.Instance;
                 var languageServer = new RoslynLanguageServer(
                     servicesProvider, jsonRpc,
                     capabilitiesProvider,

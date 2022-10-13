@@ -13,11 +13,16 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
+using Xunit.Abstractions;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Diagnostics;
 public class WorkspaceProjectDiagnosticsTests : AbstractPullDiagnosticTestsBase
 {
+    public WorkspaceProjectDiagnosticsTests(ITestOutputHelper testOutputHelper) : base(testOutputHelper)
+    {
+    }
+
     [Theory, CombinatorialData]
     public async Task TestWorkspaceDiagnosticsReportsProjectDiagnostic(bool useVSDiagnostics)
     {

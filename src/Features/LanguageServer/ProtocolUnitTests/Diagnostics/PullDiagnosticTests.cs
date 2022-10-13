@@ -27,12 +27,16 @@ using Roslyn.Test.Utilities;
 using Roslyn.Test.Utilities.TestGenerators;
 using Roslyn.Utilities;
 using Xunit;
+using Xunit.Abstractions;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Diagnostics
 {
     public class PullDiagnosticTests : AbstractPullDiagnosticTestsBase
     {
+        public PullDiagnosticTests(ITestOutputHelper testOutputHelper) : base(testOutputHelper)
+        {
+        }
         #region Document Diagnostics
 
         [Theory, CombinatorialData]

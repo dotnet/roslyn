@@ -25,12 +25,17 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Roslyn.Test.Utilities;
 using Xunit;
+using Xunit.Abstractions;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.CodeActions
 {
     public class CodeActionsTests : AbstractLanguageServerProtocolTests
     {
+        public CodeActionsTests(ITestOutputHelper testOutputHelper) : base(testOutputHelper)
+        {
+        }
+
         [WpfFact]
         public async Task TestCodeActionHandlerAsync()
         {
