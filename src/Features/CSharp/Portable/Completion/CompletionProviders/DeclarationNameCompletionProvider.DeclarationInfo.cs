@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                     || IsPropertyDeclaration(token, semanticModel, cancellationToken, out result)
                     || IsPossibleOutVariableDeclaration(token, semanticModel, typeInferenceService, cancellationToken, out result)
                     || IsTupleLiteralElement(token, semanticModel, cancellationToken, out result)
-                    || IsPossibleVariableOrLocalMethodDeclaration(token, semanticModel, cancellationToken, out result)
+                    || IsPossibleLocalVariableOrFunctionDeclaration(token, semanticModel, cancellationToken, out result)
                     || IsPatternMatching(token, semanticModel, cancellationToken, out result))
                 {
                     return result;
@@ -154,7 +154,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 return false;
             }
 
-            private static bool IsPossibleVariableOrLocalMethodDeclaration(
+            private static bool IsPossibleLocalVariableOrFunctionDeclaration(
                 SyntaxToken token, SemanticModel semanticModel,
                 CancellationToken cancellationToken, out NameDeclarationInfo result)
             {
@@ -165,8 +165,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                     _ => ImmutableArray.Create(
                         new SymbolKindOrTypeKind(SymbolKind.Local),
                         new SymbolKindOrTypeKind(MethodKind.LocalFunction)),
-                    cancellationToken);
-                return result.Type != null;
+                    cancellationToken,
+                    out var expression);
+
+                if (result.Type is null || expression is null)
+                    return false;
+
+                // we have something like `x.y $$`.
+                //
+                // For this to actually be the start of a local declaration or function x.y needs to bind to an actual
+                // type symbol, not just any arbitrary expression that might have a type (e.g. `Console.BackgroundColor $$).
+                var symbol = semanticModel.GetSymbolInfo(expression, cancellationToken).GetAnySymbol();
+                return symbol is ITypeSymbol;
             }
 
             private static bool IsPropertyDeclaration(SyntaxToken token, SemanticModel semanticModel,
@@ -254,22 +264,29 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 Func<DeclarationModifiers, ImmutableArray<SymbolKindOrTypeKind>> possibleDeclarationComputer,
                 CancellationToken cancellationToken) where TSyntaxNode : SyntaxNode
             {
+                return IsLastTokenOfType(token, semanticModel, typeSyntaxGetter, modifierGetter, possibleDeclarationComputer, cancellationToken, out _);
+            }
+
+            private static NameDeclarationInfo IsLastTokenOfType<TSyntaxNode>(
+                SyntaxToken token,
+                SemanticModel semanticModel,
+                Func<TSyntaxNode, SyntaxNode?> typeSyntaxGetter,
+                Func<TSyntaxNode, SyntaxTokenList> modifierGetter,
+                Func<DeclarationModifiers, ImmutableArray<SymbolKindOrTypeKind>> possibleDeclarationComputer,
+                CancellationToken cancellationToken,
+                out SyntaxNode? typeSyntax) where TSyntaxNode : SyntaxNode
+            {
+                typeSyntax = null;
                 if (!IsPossibleTypeToken(token))
-                {
                     return default;
-                }
 
                 var target = token.GetAncestor<TSyntaxNode>();
                 if (target == null)
-                {
                     return default;
-                }
 
-                var typeSyntax = typeSyntaxGetter(target);
+                typeSyntax = typeSyntaxGetter(target);
                 if (typeSyntax == null || token != typeSyntax.GetLastToken())
-                {
                     return default;
-                }
 
                 var modifiers = modifierGetter(target);
 

@@ -2804,6 +2804,19 @@ public class MyClass
             await VerifyItemExistsAsync(markup, "myClass1", glyph: (int)Glyph.Local, options: options);
         }
 
+        [Fact]
+        public async Task TestNotForNonTypeSymbol()
+        {
+            var markup = @"
+using System;
+class C
+{
+    Console.BackgroundColor $$
+}
+";
+            await VerifyItemIsAbsentAsync(markup, "consoleColor");
+        }
+
         private static NamingStylePreferences MultipleCamelCaseLocalRules()
         {
             var styles = new[]
