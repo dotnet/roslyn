@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.Remote
         /// <summary>
         /// Navigate to is implemented using <see cref="IAsyncEnumerable{T}"/>.  This API works by having the client
         /// "pull" for results from the server.  That means that the computation to produce the next result happens only
-        /// when the client is actually asking for that.  We would like to utilize resources more thuroughly when
+        /// when the client is actually asking for that.  We would like to utilize resources more thoroughly when
         /// searching, allowing for searching for results on multiple cores.  As such, we set a "max read ahead" amount
         /// that allows the server to keep processing and producing results, even as the client is processing the batch
         /// of results.
