@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.DisposeAnalysis
             ControlFlowGraph? parentControlFlowGraph,
             InterproceduralDisposeAnalysisData? interproceduralAnalysisData,
             InterproceduralAnalysisPredicate? interproceduralAnalysisPredicate,
-            Func<ISymbol, bool> isConfiguredToSkipAnalysis)
+            Func<ITypeSymbol, bool> isDisposableTypeNotRequiringToBeDisposed)
             : base(valueDomain, wellKnownTypeProvider, controlFlowGraph,
                   owningSymbol, analyzerOptions, interproceduralAnalysisConfig, pessimisticAnalysis,
                   predicateAnalysis: false,
@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.DisposeAnalysis
             DisposeOwnershipTransferAtConstructor = disposeOwnershipTransferAtConstructor;
             DisposeOwnershipTransferAtMethodCall = disposeOwnershipTransferAtMethodCall;
             TrackInstanceFields = trackInstanceFields;
-            IsConfiguredToSkipAnalysis = isConfiguredToSkipAnalysis;
+            IsDisposableTypeNotRequiringToBeDisposed = isDisposableTypeNotRequiringToBeDisposed;
         }
 
         internal static DisposeAnalysisContext Create(
@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.DisposeAnalysis
             bool disposeOwnershipTransferAtConstructor,
             bool disposeOwnershipTransferAtMethodCall,
             bool trackInstanceFields,
-            Func<ISymbol, bool> isConfiguredToSkipAnalysis)
+            Func<ITypeSymbol, bool> isDisposableTypeNotRequiringToBeDisposed)
         {
             return new DisposeAnalysisContext(
                 valueDomain, wellKnownTypeProvider, controlFlowGraph,
@@ -83,7 +83,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.DisposeAnalysis
                 exceptionPathsAnalysis, pointsToAnalysisResult, tryGetOrComputeAnalysisResult,
                 disposeOwnershipTransferLikelyTypes, disposeOwnershipTransferAtConstructor, disposeOwnershipTransferAtMethodCall,
                 trackInstanceFields, parentControlFlowGraph: null, interproceduralAnalysisData: null,
-                interproceduralAnalysisPredicate, isConfiguredToSkipAnalysis);
+                interproceduralAnalysisPredicate, isDisposableTypeNotRequiringToBeDisposed);
         }
 
         public override DisposeAnalysisContext ForkForInterproceduralAnalysis(
@@ -100,14 +100,14 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.DisposeAnalysis
 
             return new DisposeAnalysisContext(ValueDomain, WellKnownTypeProvider, invokedCfg, invokedMethod, AnalyzerOptions, InterproceduralAnalysisConfiguration, PessimisticAnalysis,
                 ExceptionPathsAnalysis, pointsToAnalysisResult, TryGetOrComputeAnalysisResult, DisposeOwnershipTransferLikelyTypes, DisposeOwnershipTransferAtConstructor,
-                DisposeOwnershipTransferAtMethodCall, TrackInstanceFields, ControlFlowGraph, interproceduralAnalysisData, InterproceduralAnalysisPredicate, IsConfiguredToSkipAnalysis);
+                DisposeOwnershipTransferAtMethodCall, TrackInstanceFields, ControlFlowGraph, interproceduralAnalysisData, InterproceduralAnalysisPredicate, IsDisposableTypeNotRequiringToBeDisposed);
         }
 
         internal ImmutableHashSet<INamedTypeSymbol> DisposeOwnershipTransferLikelyTypes { get; }
         internal bool DisposeOwnershipTransferAtConstructor { get; }
         internal bool DisposeOwnershipTransferAtMethodCall { get; }
         internal bool TrackInstanceFields { get; }
-        internal Func<ISymbol, bool> IsConfiguredToSkipAnalysis { get; }
+        internal Func<ITypeSymbol, bool> IsDisposableTypeNotRequiringToBeDisposed { get; }
 
         protected override void ComputeHashCodePartsSpecific(ref RoslynHashCode hashCode)
         {

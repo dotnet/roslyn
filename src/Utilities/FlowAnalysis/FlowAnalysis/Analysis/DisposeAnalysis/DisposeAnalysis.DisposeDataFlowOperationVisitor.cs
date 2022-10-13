@@ -90,29 +90,9 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.DisposeAnalysis
                     return defaultValue;
                 }
 
-                // Special case: Do not track System.Threading.Tasks.Task as you are not required to dispose them.
-                if (TaskNamedType != null &&
-                    instanceType.DerivesFrom(TaskNamedType, baseTypesOnly: true))
-                {
-                    return defaultValue;
-                }
-
-                // StringReader doesn't need to be disposed: https://learn.microsoft.com/en-us/dotnet/api/system.io.stringreader?view=netframework-4.8
-                if (StringReaderType != null &&
-                    instanceType.Equals(StringReaderType))
-                {
-                    return defaultValue;
-                }
-
-                // Special case: MemoryStream doesn't need to be disposed. Subclasses *might* need to be disposed, but that is the less common case, and the common case is a huge source of noisy warnings.
-                if (MemoryStreamNamedType != null &&
-                    instanceType.Equals(MemoryStreamNamedType))
-                {
-                    return defaultValue;
-                }
-
-                // Handle user option for additional excluded types
-                if (DataFlowAnalysisContext.IsConfiguredToSkipAnalysis(instanceType))
+                // Handle special cases where we don't want to track the type although we know
+                // it is disposable (user option, special types...)
+                if (DataFlowAnalysisContext.IsDisposableTypeNotRequiringToBeDisposed(instanceType))
                 {
                     return defaultValue;
                 }
