@@ -6952,18 +6952,5 @@ public class DisplayAttribute : System.Attribute
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Name").WithArguments("Name").WithLocation(5, 14)
                 );
         }
-
-        [Fact, WorkItem(64436, "https://github.com/dotnet/roslyn/issues/64436")]
-        public void AnonymousDelegate_MissingRequiredParameter()
-        {
-            var source = """
-                var lam = (int x, ref int y) => { };
-                lam(1);
-                """;
-            CreateCompilation(source).VerifyDiagnostics(
-                // (2,1): error CS7036: There is no argument given that corresponds to the required parameter 'arg2' of '<anonymous delegate>'
-                // lam(1);
-                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "lam").WithArguments("arg2", "<anonymous delegate>").WithLocation(2, 1));
-        }
     }
 }
