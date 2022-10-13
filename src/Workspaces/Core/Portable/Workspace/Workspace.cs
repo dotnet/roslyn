@@ -391,6 +391,13 @@ namespace Microsoft.CodeAnalysis
 
         #region Host API
 
+        private static Solution CheckAndAddProject(Solution newSolution, ProjectInfo project)
+        {
+            CheckProjectIsNotInSolution(newSolution, project.Id);
+            newSolution = newSolution.AddProject(project);
+            return newSolution;
+        }
+
         /// <summary>
         /// Call this method to respond to a solution being opened in the host environment.
         /// </summary>
@@ -408,13 +415,6 @@ namespace Microsoft.CodeAnalysis
 
                     return newSolution;
                 }, WorkspaceChangeKind.SolutionAdded);
-        }
-
-        private static Solution CheckAndAddProject(Solution newSolution, ProjectInfo project)
-        {
-            CheckProjectIsNotInSolution(newSolution, project.Id);
-            newSolution = newSolution.AddProject(project);
-            return newSolution;
         }
 
         /// <summary>
@@ -445,6 +445,9 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         protected internal void OnSolutionRemoved()
         {
+            // This currently doesn't use the SetCurrentSolution(transform) pattern as it changes mutable state (open
+            // docs), and as such needs to atomically change both that and the solution-snapshot.
+
             using (_serializationLock.DisposableWait())
             {
                 var (oldSolution, _) = this.ClearSolutionData_NoLock();
@@ -476,6 +479,7 @@ namespace Microsoft.CodeAnalysis
                 oldSolution =>
                 {
                     CheckProjectIsInSolution(oldSolution, projectId);
+
                     return this.AdjustReloadedProject(
                         oldSolution.GetRequiredProject(projectId),
                         oldSolution.RemoveProject(projectId).AddProject(reloadedProjectInfo).GetRequiredProject(projectId)).Solution;
@@ -487,6 +491,9 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         protected internal virtual void OnProjectRemoved(ProjectId projectId)
         {
+            // This currently doesn't use the SetCurrentSolution(transform) pattern as it changes mutable state (open
+            // docs), and as such needs to atomically change both that and the solution-snapshot.
+
             using (_serializationLock.DisposableWait())
             {
                 CheckProjectIsInCurrentSolution(projectId);
