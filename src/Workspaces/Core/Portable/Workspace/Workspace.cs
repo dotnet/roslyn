@@ -734,11 +734,11 @@ namespace Microsoft.CodeAnalysis
             using (_serializationLock.DisposableWait())
             {
                 var (oldSolution, newSolution) = this.SetCurrentSolutionEx(this.CurrentSolution.AddDocuments(documentInfos));
-                var projectIds = documentInfos.Select(i => i.Id.ProjectId).Distinct();
 
                 // Raise ProjectChanged as the event type here. DocumentAdded is presumed by many callers to have a
                 // DocumentId associated with it, and we don't want to be raising multiple events.
-                foreach (var projectId in projectIds)
+
+                foreach (var projectId in documentInfos.Select(i => i.Id.ProjectId).Distinct())
                     this.RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.ProjectChanged, oldSolution, newSolution, projectId);
             }
         }
