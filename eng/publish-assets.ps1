@@ -80,6 +80,12 @@ function Publish-Nuget($publishData, [string]$packageDir) {
 
       $feedName = $packagesData.$nupkgWithoutVersion
 
+      # If the configured feed is none, then skip publishing.
+      if ($feedName.equals("none")) {
+        Write-Host "    Skipping publishing for $nupkg"
+        continue
+      }
+
       # If the configured feed is arcade, then skip publishing here.  Arcade will handle publishing to their feeds.
       if ($feedName.equals("arcade")) {
         Write-Host "    Skipping publishing for $nupkg as it is published by arcade"

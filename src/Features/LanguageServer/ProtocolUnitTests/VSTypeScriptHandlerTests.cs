@@ -7,8 +7,10 @@ using System.Collections.Immutable;
 using System.Composition;
 using System.IO;
 using System.Linq;
+using System.ServiceModel.Syndication;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Xml.Linq;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript;
@@ -56,8 +58,12 @@ public class VSTypeScriptHandlerTests : AbstractLanguageServerProtocolTests
     </Project>
 </Workspace>";
 
-        await using var testLspServer = await CreateTsTestLspServerAsync(workspaceXml);
-        testLspServer.TestWorkspace.GlobalOptions.SetGlobalOption(new OptionKey(InternalDiagnosticsOptions.NormalDiagnosticMode), DiagnosticMode.Pull);
+        var options = new InitializationOptions()
+        {
+            OptionUpdater = globalOptions => globalOptions.SetGlobalOption(new OptionKey(InternalDiagnosticsOptions.NormalDiagnosticMode), DiagnosticMode.Pull)
+        };
+
+        await using var testLspServer = await CreateTsTestLspServerAsync(workspaceXml, options);
 
         var document = testLspServer.GetCurrentSolution().Projects.Single().Documents.Single();
         var documentPullRequest = new VSInternalDocumentDiagnosticsParams
@@ -69,10 +75,12 @@ public class VSTypeScriptHandlerTests : AbstractLanguageServerProtocolTests
         Assert.Empty(response);
     }
 
-    private async Task<TestLspServer> CreateTsTestLspServerAsync(string workspaceXml)
+    private async Task<TestLspServer> CreateTsTestLspServerAsync(string workspaceXml, InitializationOptions? options = null)
     {
         var (clientStream, serverStream) = FullDuplexStream.CreatePair();
-        var testWorkspace = TestWorkspace.Create(workspaceXml, composition: Composition);
+
+        var testWorkspace = CreateWorkspace(options, workspaceKind: null);
+        testWorkspace.InitializeDocuments(XElement.Parse(workspaceXml), openDocuments: false);
 
         // Ensure workspace operations are completed so we don't get unexpected workspace changes while running.
         await WaitForWorkspaceOperationsAsync(testWorkspace);

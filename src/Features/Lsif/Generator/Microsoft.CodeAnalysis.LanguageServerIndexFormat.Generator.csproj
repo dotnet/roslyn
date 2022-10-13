@@ -16,6 +16,7 @@
     <IncludeBuildOutput>false</IncludeBuildOutput>
     <ContentTargetFolders>tools</ContentTargetFolders>
     <TargetsForTfmSpecificContentInPackage>$(TargetsForTfmSpecificContentInPackage);_GetFilesToPackage</TargetsForTfmSpecificContentInPackage>
+    <SuppressDependenciesWhenPacking>true</SuppressDependenciesWhenPacking>
 
     <!-- Suppress warning that we don't have anything in lib/ref folders, because since this is a tool there won't be anything there -->
     <NoWarn>$(NoWarn);NU5128</NoWarn>

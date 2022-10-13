@@ -781,31 +781,44 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 
         [Theory]
         [CombinatorialData]
-        public async Task DesignTimeOnlyDocument_Wpf([CombinatorialValues(LanguageNames.CSharp, LanguageNames.VisualBasic)] string language, bool delayLoad, bool open)
+        public async Task DesignTimeOnlyDocument_Wpf([CombinatorialValues(LanguageNames.CSharp, LanguageNames.VisualBasic)] string language, bool delayLoad, bool open, bool designTimeOnlyAddedAfterSessionStarts)
         {
-            var sourceA = "class A { }";
-            var sourceB = (language == LanguageNames.CSharp) ? "class B { }" : "Class C : End Class";
-            var sourceB2 = (language == LanguageNames.CSharp) ? "class B2 { }" : "Class C2 : End Class";
+            var source = "class A { }";
+            var sourceDesignTimeOnly = (language == LanguageNames.CSharp) ? "class B { }" : "Class C : End Class";
+            var sourceDesignTimeOnly2 = (language == LanguageNames.CSharp) ? "class B2 { }" : "Class C2 : End Class";
 
             var dir = Temp.CreateDirectory();
-            var sourceFileA = dir.CreateFile("a.cs").WriteAllText(sourceA, Encoding.UTF8);
+
+            var extension = (language == LanguageNames.CSharp) ? ".cs" : ".vb";
+
+            var sourceFileName = "a" + extension;
+            var sourceFilePath = dir.CreateFile(sourceFileName).WriteAllText(source, Encoding.UTF8).Path;
+
+            var designTimeOnlyFileName = "b.g.i" + extension;
+            var designTimeOnlyFilePath = Path.Combine(dir.Path, designTimeOnlyFileName);
 
             using var _ = CreateWorkspace(out var solution, out var service);
 
-            // the workspace starts with a version of the source that's not updated with the output of single file generator (or design-time build):
+            // The workspace starts with 
+            // [added == false] a version of the source that's not updated with the output of single file generator (or design-time build):
+            // [added == true] without the output of single file generator (design-time build has not completed)
 
             var projectId = ProjectId.CreateNewId();
-            var documentAId = DocumentId.CreateNewId(projectId);
-            var documentBId = DocumentId.CreateNewId(projectId);
+            var documentId = DocumentId.CreateNewId(projectId);
+            var designTimeOnlyDocumentId = DocumentId.CreateNewId(projectId);
 
             solution = solution.
                 AddProject(projectId, "test", "test", language).
-                AddDocument(documentAId, "a.xx", CreateText(sourceA), filePath: sourceFileA.Path).
-                AddDocument(documentBId, "b.g.i.xx", CreateText(sourceB), filePath: Path.Combine(dir.Path, "b.g.i.xx")).
-                AddMetadataReferences(projectId, TargetFrameworkUtil.GetReferences(TargetFramework.Mscorlib40));
+                AddMetadataReferences(projectId, TargetFrameworkUtil.GetReferences(TargetFramework.Mscorlib40)).
+                AddDocument(documentId, sourceFileName, CreateText(source), filePath: sourceFilePath);
 
-            // only compile A; B is design-time-only:
-            var moduleId = EmitLibrary(sourceA, sourceFilePath: sourceFileA.Path);
+            if (!designTimeOnlyAddedAfterSessionStarts)
+            {
+                solution = solution.AddDocument(designTimeOnlyDocumentId, designTimeOnlyFileName, SourceText.From(sourceDesignTimeOnly, Encoding.UTF8), filePath: designTimeOnlyFilePath);
+            }
+
+            // only compile actual source document, not design-time-only document:
+            var moduleId = EmitLibrary(source, sourceFilePath: sourceFilePath);
 
             if (!delayLoad)
             {
@@ -815,39 +828,42 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             // make sure renames are not supported:
             _debuggerService.GetCapabilitiesImpl = () => ImmutableArray.Create("Baseline");
 
-            var openDocumentIds = open ? ImmutableArray.Create(documentBId) : ImmutableArray<DocumentId>.Empty;
+            var openDocumentIds = open ? ImmutableArray.Create(designTimeOnlyDocumentId) : ImmutableArray<DocumentId>.Empty;
             var sessionId = await service.StartDebuggingSessionAsync(solution, _debuggerService, NullPdbMatchingSourceTextProvider.Instance, captureMatchingDocuments: openDocumentIds, captureAllMatchingDocuments: false, reportDiagnostics: true, CancellationToken.None);
             var debuggingSession = service.GetTestAccessor().GetDebuggingSession(sessionId);
 
-            var documentB = solution.GetDocument(documentBId);
+            if (designTimeOnlyAddedAfterSessionStarts)
+            {
+                solution = solution.AddDocument(designTimeOnlyDocumentId, designTimeOnlyFileName, SourceText.From(sourceDesignTimeOnly, Encoding.UTF8), filePath: designTimeOnlyFilePath);
+            }
 
             var activeLineSpan = new LinePositionSpan(new(0, 0), new(0, 1));
             var activeStatements = ImmutableArray.Create(
                 new ManagedActiveStatementDebugInfo(
                     new ManagedInstructionId(new ManagedMethodId(moduleId, token: 0x06000001, version: 1), ilOffset: 1),
-                    documentB.FilePath,
+                    designTimeOnlyFilePath,
                     activeLineSpan.ToSourceSpan(),
                     ActiveStatementFlags.NonLeafFrame | ActiveStatementFlags.MethodUpToDate));
 
             EnterBreakState(debuggingSession, activeStatements);
 
             // change the source (rude edit):
-            solution = solution.WithDocumentText(documentBId, CreateText(sourceB2));
+            solution = solution.WithDocumentText(designTimeOnlyDocumentId, CreateText(sourceDesignTimeOnly2));
 
-            var documentB2 = solution.GetDocument(documentBId);
+            var designTimeOnlyDocument2 = solution.GetDocument(designTimeOnlyDocumentId);
 
-            Assert.True(documentB2.State.SupportsEditAndContinue());
-            Assert.True(documentB2.Project.SupportsEditAndContinue());
+            Assert.False(designTimeOnlyDocument2.State.SupportsEditAndContinue());
+            Assert.True(designTimeOnlyDocument2.Project.SupportsEditAndContinue());
 
             var activeStatementMap = await debuggingSession.EditSession.BaseActiveStatements.GetValueAsync(CancellationToken.None);
             Assert.NotEmpty(activeStatementMap.DocumentPathMap);
 
             // Active statements in design-time documents should be left unchanged.
-            var asSpans = await debuggingSession.GetBaseActiveStatementSpansAsync(solution, ImmutableArray.Create(documentBId), CancellationToken.None);
-            Assert.Equal(activeLineSpan, asSpans.Single().Single().LineSpan);
+            var asSpans = await debuggingSession.GetBaseActiveStatementSpansAsync(solution, ImmutableArray.Create(designTimeOnlyDocumentId), CancellationToken.None);
+            Assert.Empty(asSpans.Single());
 
             // no Rude Edits reported:
-            Assert.Empty(await service.GetDocumentDiagnosticsAsync(documentB2, s_noActiveSpans, CancellationToken.None));
+            Assert.Empty(await service.GetDocumentDiagnosticsAsync(designTimeOnlyDocument2, s_noActiveSpans, CancellationToken.None));
 
             // validate solution update status and emit:
             var (updates, emitDiagnostics) = await EmitSolutionUpdateAsync(debuggingSession, solution);

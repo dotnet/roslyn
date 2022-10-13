@@ -63,8 +63,10 @@ public class WorkspaceProjectDiagnosticsTests : AbstractPullDiagnosticTestsBase
 
     protected override TestComposition Composition => base.Composition.AddParts(typeof(MockProjectDiagnosticAnalyzer));
 
-    private protected override TestAnalyzerReferenceByLanguage TestAnalyzerReferences => new(ImmutableDictionary.Create<string, ImmutableArray<DiagnosticAnalyzer>>()
-        .Add(LanguageNames.CSharp, ImmutableArray.Create(DiagnosticExtensions.GetCompilerDiagnosticAnalyzer(LanguageNames.CSharp), new MockProjectDiagnosticAnalyzer())));
+    private protected override TestAnalyzerReferenceByLanguage CreateTestAnalyzersReference()
+        => new(ImmutableDictionary<string, ImmutableArray<DiagnosticAnalyzer>>.Empty.Add(LanguageNames.CSharp, ImmutableArray.Create(
+            DiagnosticExtensions.GetCompilerDiagnosticAnalyzer(LanguageNames.CSharp),
+            new MockProjectDiagnosticAnalyzer())));
 
     [DiagnosticAnalyzer(LanguageNames.CSharp), PartNotDiscoverable]
     private class MockProjectDiagnosticAnalyzer : DiagnosticAnalyzer

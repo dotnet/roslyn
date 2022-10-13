@@ -13803,5 +13803,67 @@ public struct S2 { }
                 Diagnostic(ErrorCode.ERR_InvalidNamedArgument, "CharSet=0").WithArguments("CharSet").WithLocation(7, 38)
                 );
         }
+
+        [Fact, WorkItem(64605, "https://github.com/dotnet/roslyn/issues/64605")]
+        public void ObsoleteWithInterpolation()
+        {
+            var source = """
+using System;
+
+internal class Program
+{
+    static void Main(string[] args)
+    {
+        var object1 = new LegacyObject1();
+        var object2 = new LegacyObject2();
+    }
+}
+
+[Obsolete($"Do not use {nameof(LegacyObject1)}")]
+public class LegacyObject1
+{
+}
+
+[Obsolete("Do not use" + nameof(LegacyObject2))]
+public class LegacyObject2
+{
+}
+""";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (7,27): warning CS0618: 'LegacyObject1' is obsolete: 'Do not use LegacyObject1'
+                //         var object1 = new LegacyObject1();
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbolStr, "LegacyObject1").WithArguments("LegacyObject1", "Do not use LegacyObject1").WithLocation(7, 27),
+                // (8,27): warning CS0618: 'LegacyObject2' is obsolete: 'Do not useLegacyObject2'
+                //         var object2 = new LegacyObject2();
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbolStr, "LegacyObject2").WithArguments("LegacyObject2", "Do not useLegacyObject2").WithLocation(8, 27)
+                );
+        }
+
+        [Fact, WorkItem(64605, "https://github.com/dotnet/roslyn/issues/64605")]
+        public void ObsoleteWithInterpolationWithNonConstant()
+        {
+            var source = """
+using System;
+
+internal class Program
+{
+    static void Main(string[] args)
+    {
+        var object1 = new LegacyObject();
+    }
+}
+
+[Obsolete($"Do not use {nameof(LegacyObject)}{string.Empty}")]
+public class LegacyObject
+{
+}
+""";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (11,11): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
+                // [Obsolete($"Do not use {nameof(LegacyObject)}{string.Empty}")]
+                Diagnostic(ErrorCode.ERR_BadAttributeArgument, @"$""Do not use {nameof(LegacyObject)}{string.Empty}""").WithLocation(11, 11));
+        }
     }
 }

@@ -662,6 +662,7 @@
         
         <Field Name="Constructor" Type="MethodSymbol" Null="allow"/>
         <Field Name="ConstructorArguments" Type="ImmutableArray(Of BoundExpression)"/>
+        <Field Name="ConstructorDefaultArguments" Type="BitVector" Null="NotApplicable"/>
         <Field Name="NamedArguments" Type ="ImmutableArray(Of BoundExpression)"/>
         <Field Name="ResultKind" PropertyOverrides="true" Type="LookupResultKind"/>
     </Node>
