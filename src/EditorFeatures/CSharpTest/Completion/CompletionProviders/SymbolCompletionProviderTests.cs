@@ -11404,6 +11404,7 @@ interface I1
 interface I2
 {
     static abstract void M2();
+    static virtual void M3() { }
 }
 
 class Test
@@ -11414,9 +11415,10 @@ class Test
     }
 }
 ";
-            await VerifyItemIsAbsentAsync(source, "M0");
+            await VerifyItemExistsAsync(source, "M0");
             await VerifyItemExistsAsync(source, "M1");
             await VerifyItemExistsAsync(source, "M2");
+            await VerifyItemExistsAsync(source, "M3");
             await VerifyItemExistsAsync(source, "P1");
             await VerifyItemExistsAsync(source, "E1");
         }
