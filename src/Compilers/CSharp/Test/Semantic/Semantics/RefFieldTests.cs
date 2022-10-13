@@ -8350,12 +8350,12 @@ class Program
             else
             {
                 comp.VerifyEmitDiagnostics(
-                // (16,16): error CS8352: Cannot use variable 'y1' in this context because it may expose referenced variables outside of their declaration scope
-                //         return y1; // 1
-                Diagnostic(ErrorCode.ERR_EscapeVariable, "y1").WithArguments("y1").WithLocation(16, 16),
-                // (23,16): error CS8352: Cannot use variable 'y2' in this context because it may expose referenced variables outside of their declaration scope
-                //         return y2; // 2
-                Diagnostic(ErrorCode.ERR_EscapeVariable, "y2").WithArguments("y2").WithLocation(23, 16));
+                    // (16,16): error CS8352: Cannot use variable 'y1' in this context because it may expose referenced variables outside of their declaration scope
+                    //         return y1; // 1
+                    Diagnostic(ErrorCode.ERR_EscapeVariable, "y1").WithArguments("y1").WithLocation(16, 16),
+                    // (23,16): error CS8352: Cannot use variable 'y2' in this context because it may expose referenced variables outside of their declaration scope
+                    //         return y2; // 2
+                    Diagnostic(ErrorCode.ERR_EscapeVariable, "y2").WithArguments("y2").WithLocation(23, 16));
             }
         }
 
