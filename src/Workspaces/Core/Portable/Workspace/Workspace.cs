@@ -418,17 +418,21 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         protected internal void OnSolutionReloaded(SolutionInfo reloadedSolutionInfo)
         {
-            using (_serializationLock.DisposableWait())
-            {
-                var (oldSolution, newSolution) = this.SetCurrentSolution(this.CreateSolution(reloadedSolutionInfo));
+            this.SetCurrentSolution(
+                oldSolution =>
+                {
+                    CheckSolutionIsEmpty(oldSolution);
 
-                foreach (var project in reloadedSolutionInfo.Projects)
-                    (_, newSolution) = OnProjectAdded_NoLock(project);
+                    var newSolution = this.CreateSolution(reloadedSolutionInfo);
 
-                (_, newSolution) = this.SetCurrentSolution(this.AdjustReloadedSolution(oldSolution, newSolution));
+                    foreach (var project in reloadedSolutionInfo.Projects)
+                    {
+                        CheckProjectIsNotInSolution(newSolution, project.Id);
+                        newSolution = newSolution.AddProject(project);
+                    }
 
-                this.RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.SolutionReloaded, oldSolution, newSolution);
-            }
+                    return this.AdjustReloadedSolution(oldSolution, newSolution);
+                }, WorkspaceChangeKind.SolutionReloaded);
         }
 
         /// <summary>
