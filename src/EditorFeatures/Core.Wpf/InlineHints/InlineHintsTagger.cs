@@ -80,7 +80,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
             if (_format != null)
             {
                 _format = null;
-                _cache.Clear();
+                _cacheSnapshot = null;
 
                 // When classifications change we need to rebuild the inline tags with updated Font and Color information.
                 var tags = GetTags(new NormalizedSnapshotSpanCollection(_textView.TextViewLines.FormattedSpan));
@@ -94,7 +94,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
 
         private void OnTagAggregatorTagsChanged(object sender, TagsChangedEventArgs e)
         {
-            _cache.Clear();
+            _cacheSnapshot = null;
             var spans = e.Span.GetSpans(_buffer);
             foreach (var span in spans)
             {
