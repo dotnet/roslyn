@@ -212,7 +212,25 @@ namespace Microsoft.CodeAnalysis
         /// <param name="projectId">The id of the project updated by <paramref name="transformation"/> to be passed to the workspace change event.</param>
         /// <param name="documentId">The id of the document updated by <paramref name="transformation"/> to be passed to the workspace change event.</param>
         /// <returns>True if <see cref="CurrentSolution"/> was set to the transformed solution, false if the transformation did not change the solution.</returns>
-        internal bool SetCurrentSolution(Func<Solution, Solution> transformation, WorkspaceChangeKind kind, ProjectId? projectId = null, DocumentId? documentId = null)
+        internal bool SetCurrentSolution(
+            Func<Solution, Solution> transformation,
+            WorkspaceChangeKind kind,
+            ProjectId? projectId = null,
+            DocumentId? documentId = null)
+        {
+            return SetCurrentSolution(transformation, static _ => { }, kind, projectId, documentId);
+        }
+
+        /// <inheritdoc cref="SetCurrentSolution(Func{Solution, Solution}, WorkspaceChangeKind, ProjectId?, DocumentId?)"/>
+        /// <param name="onAfterUpdate">Callback to run only once the solution returned by <paramref
+        /// name="transformation"/> has been assigned as the <see cref="CurrentSolution"/> of this <see
+        /// cref="Workspace"/>.</param>
+        internal bool SetCurrentSolution(
+            Func<Solution, Solution> transformation,
+            Action<Solution> onAfterUpdate,
+            WorkspaceChangeKind kind,
+            ProjectId? projectId = null,
+            DocumentId? documentId = null)
         {
             Contract.ThrowIfNull(transformation);
 
@@ -234,6 +252,8 @@ namespace Microsoft.CodeAnalysis
                     oldSolution = Interlocked.CompareExchange(ref _latestSolution, newSolution, currentSolution);
                     if (oldSolution == currentSolution)
                     {
+                        onAfterUpdate(newSolution);
+
                         // Queue the event but don't execute its handlers on this thread.
                         // Doing so under the serialization lock guarantees the same ordering of the events
                         // as the order of the changes made to the solution.
@@ -765,17 +785,14 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         protected internal void OnDocumentTextLoaderChanged(DocumentId documentId, TextLoader loader)
         {
-            using (_serializationLock.DisposableWait())
-            {
-                CheckDocumentIsInCurrentSolution(documentId);
-
-                var (oldSolution, newSolution) = this.SetCurrentSolution(
-                    this.CurrentSolution.WithDocumentTextLoader(documentId, loader, PreservationMode.PreserveValue));
-
-                this.OnDocumentTextChanged(newSolution.GetRequiredDocument(documentId));
-
-                this.RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.DocumentChanged, oldSolution, newSolution, documentId: documentId);
-            }
+            SetCurrentSolution(
+                oldSolution =>
+                {
+                    CheckDocumentIsInSolution(oldSolution, documentId);
+                    return oldSolution.WithDocumentTextLoader(documentId, loader, PreservationMode.PreserveValue);
+                },
+                onAfterUpdate: newSolution => this.OnDocumentTextChanged(newSolution.GetRequiredDocument(documentId)),
+                WorkspaceChangeKind.DocumentChanged, documentId: documentId);
         }
 
         /// <summary>
