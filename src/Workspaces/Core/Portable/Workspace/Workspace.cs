@@ -735,6 +735,9 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         protected internal void OnDocumentRemoved(DocumentId documentId)
         {
+            // This currently doesn't use the SetCurrentSolution(transform) pattern as it changes mutable state (open
+            // docs), and as such needs to atomically change both that and the solution-snapshot.
+
             using (_serializationLock.DisposableWait())
             {
                 CheckDocumentIsInCurrentSolution(documentId);
@@ -745,7 +748,7 @@ namespace Microsoft.CodeAnalysis
                 // currently open).
                 this.ClearDocumentData(documentId);
 
-                var (oldSolution, newSolution) = this.SetCurrentSolution(this.CurrentSolution.RemoveDocument(documentId));
+                var (oldSolution, newSolution) = this.SetCurrentSolutionEx(this.CurrentSolution.RemoveDocument(documentId));
 
                 this.RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.DocumentRemoved, oldSolution, newSolution, documentId: documentId);
             }
@@ -778,15 +781,13 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         protected internal void OnAdditionalDocumentTextLoaderChanged(DocumentId documentId, TextLoader loader)
         {
-            using (_serializationLock.DisposableWait())
-            {
-                CheckAdditionalDocumentIsInCurrentSolution(documentId);
-
-                var (oldSolution, newSolution) = this.SetCurrentSolution(
-                    this.CurrentSolution.WithAdditionalDocumentTextLoader(documentId, loader, PreservationMode.PreserveValue));
-
-                this.RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.AdditionalDocumentChanged, oldSolution, newSolution, documentId: documentId);
-            }
+            SetCurrentSolution(
+                oldSolution =>
+                {
+                    CheckAdditionalDocumentIsInSolution(oldSolution, documentId);
+                    return oldSolution.WithAdditionalDocumentTextLoader(documentId, loader, PreservationMode.PreserveValue);
+                },
+                WorkspaceChangeKind.AdditionalDocumentChanged, documentId: documentId);
         }
 
         /// <summary>
@@ -2095,12 +2096,15 @@ namespace Microsoft.CodeAnalysis
         /// Throws an exception if an additional document is not part of the current solution.
         /// </summary>
         protected void CheckAdditionalDocumentIsInCurrentSolution(DocumentId documentId)
+            => CheckAdditionalDocumentIsInSolution(this.CurrentSolution, documentId);
+
+        private static void CheckAdditionalDocumentIsInSolution(Solution solution, DocumentId documentId)
         {
-            if (this.CurrentSolution.GetAdditionalDocument(documentId) == null)
+            if (solution.GetAdditionalDocument(documentId) == null)
             {
                 throw new ArgumentException(string.Format(
                     WorkspacesResources._0_is_not_part_of_the_workspace,
-                    this.GetDocumentName(documentId)));
+                    solution.Workspace.GetDocumentName(documentId)));
             }
         }
 
