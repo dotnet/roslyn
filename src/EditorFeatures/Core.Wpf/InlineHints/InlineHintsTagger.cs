@@ -78,13 +78,18 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
             _taggerProvider.ThreadingContext.ThrowIfNotOnUIThread();
             InvalidateCache();
 
+            var tagsChanged = TagsChanged;
+            if (tagsChanged is null)
+            {
+                return;
+            }
+
             var mappingSpans = e.Spans;
             foreach (var item in mappingSpans)
             {
                 var spans = item.GetSpans(_buffer);
                 foreach (var span in spans)
                 {
-                    var tagsChanged = TagsChanged;
                     if (tagsChanged != null)
                     {
                         tagsChanged.Invoke(this, new SnapshotSpanEventArgs(span));
@@ -123,6 +128,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
 
         private void InvalidateCache()
         {
+            _taggerProvider.ThreadingContext.ThrowIfNotOnUIThread();
             _cacheSnapshot = null;
             _cache.Clear();
         }
