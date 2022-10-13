@@ -8,6 +8,7 @@
     <RootNamespace>Microsoft.VisualStudio.LanguageServices.CSharp</RootNamespace>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <ApplyNgenOptimization>full</ApplyNgenOptimization>
+    <IsPackable>true</IsPackable>
 
     <!-- VSIX -->
     <CreateVsixContainer>false</CreateVsixContainer>

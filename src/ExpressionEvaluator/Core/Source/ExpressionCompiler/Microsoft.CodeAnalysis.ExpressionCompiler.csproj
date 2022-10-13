@@ -9,6 +9,7 @@
     <TargetFramework>netstandard2.0</TargetFramework>
     <DefineConstants>$(DefineConstants);EXPRESSIONCOMPILER</DefineConstants>
     <ApplyNgenOptimization>full</ApplyNgenOptimization>
+    <IsPackable>true</IsPackable>
   </PropertyGroup>
   <ItemGroup Label="Linked Files">
     <Compile Include="..\..\..\..\Test\PdbUtilities\Shared\DateTimeUtilities.cs">

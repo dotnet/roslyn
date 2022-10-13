@@ -7,6 +7,7 @@
     <UseWpf>true</UseWpf>
     <RootNamespace></RootNamespace>
     <ApplyNgenOptimization>full</ApplyNgenOptimization>
+    <IsPackable>true</IsPackable>
 
     <!-- VSIX -->
     <CreateVsixContainer>false</CreateVsixContainer>
