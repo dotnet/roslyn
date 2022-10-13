@@ -1393,7 +1393,7 @@ class P
 
             using (var workspaceFixture = new CSharpTestWorkspaceFixture())
             {
-                workspaceFixture.GetWorkspace(ExportProvider);
+                workspaceFixture.GetWorkspace(GetComposition());
                 var document1 = workspaceFixture.UpdateDocument(code, SourceCodeKind.Regular);
                 await CheckResultsAsync(document1, position, isBuilder);
 

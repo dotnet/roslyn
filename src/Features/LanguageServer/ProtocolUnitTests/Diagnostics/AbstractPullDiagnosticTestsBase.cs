@@ -35,19 +35,16 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Diagnostics
         {
         }
 
-        private protected override TestAnalyzerReferenceByLanguage TestAnalyzerReferences
+        private protected override TestAnalyzerReferenceByLanguage CreateTestAnalyzersReference()
         {
-            get
-            {
-                var builder = ImmutableDictionary.CreateBuilder<string, ImmutableArray<DiagnosticAnalyzer>>();
-                builder.Add(LanguageNames.CSharp, ImmutableArray.Create(
-                    DiagnosticExtensions.GetCompilerDiagnosticAnalyzer(LanguageNames.CSharp),
-                    new CSharpRemoveUnnecessaryImportsDiagnosticAnalyzer(),
-                    new CSharpRemoveUnnecessaryExpressionParenthesesDiagnosticAnalyzer()));
-                builder.Add(LanguageNames.VisualBasic, ImmutableArray.Create(DiagnosticExtensions.GetCompilerDiagnosticAnalyzer(LanguageNames.VisualBasic)));
-                builder.Add(InternalLanguageNames.TypeScript, ImmutableArray.Create<DiagnosticAnalyzer>(new MockTypescriptDiagnosticAnalyzer()));
-                return new(builder.ToImmutableDictionary());
-            }
+            var builder = ImmutableDictionary.CreateBuilder<string, ImmutableArray<DiagnosticAnalyzer>>();
+            builder.Add(LanguageNames.CSharp, ImmutableArray.Create(
+                DiagnosticExtensions.GetCompilerDiagnosticAnalyzer(LanguageNames.CSharp),
+                new CSharpRemoveUnnecessaryImportsDiagnosticAnalyzer(),
+                new CSharpRemoveUnnecessaryExpressionParenthesesDiagnosticAnalyzer()));
+            builder.Add(LanguageNames.VisualBasic, ImmutableArray.Create(DiagnosticExtensions.GetCompilerDiagnosticAnalyzer(LanguageNames.VisualBasic)));
+            builder.Add(InternalLanguageNames.TypeScript, ImmutableArray.Create<DiagnosticAnalyzer>(new MockTypescriptDiagnosticAnalyzer()));
+            return new(builder.ToImmutableDictionary());
         }
 
         protected override TestComposition Composition => base.Composition.AddParts(typeof(MockTypescriptDiagnosticAnalyzer));
@@ -59,7 +56,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Diagnostics
             bool useProgress = false,
             bool includeTaskListItems = false)
         {
-            var optionService = testLspServer.TestWorkspace.ExportProvider.GetExportedValue<IGlobalOptionService>();
+            var optionService = testLspServer.TestWorkspace.GetService<IGlobalOptionService>();
             optionService.SetGlobalOption(new OptionKey(TaskListOptionsStorage.ComputeTaskListItemsForClosedFiles), includeTaskListItems);
             await testLspServer.WaitForDiagnosticsAsync();
 

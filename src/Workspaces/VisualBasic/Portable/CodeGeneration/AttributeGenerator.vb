@@ -12,11 +12,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
     Friend Module AttributeGenerator
 
         Public Function GenerateAttributeBlocks(attributes As ImmutableArray(Of AttributeData), options As CodeGenerationContextInfo, Optional target As SyntaxToken? = Nothing) As SyntaxList(Of AttributeListSyntax)
+            attributes = attributes.WhereAsArray(Function(a) Not IsCompilerInternalAttribute(a))
+
             If Not attributes.Any() Then
                 Return Nothing
             End If
 
-            Return SyntaxFactory.List(Of AttributeListSyntax)(attributes.OrderBy(Function(a) a.AttributeClass.Name).Select(Function(a) GenerateAttributeBlock(a, options, target)))
+            Return SyntaxFactory.List(attributes.OrderBy(Function(a) a.AttributeClass.Name).Select(Function(a) GenerateAttributeBlock(a, options, target)))
         End Function
 
         Private Function GenerateAttributeBlock(attribute As AttributeData, options As CodeGenerationContextInfo, target As SyntaxToken?) As AttributeListSyntax
