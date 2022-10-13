@@ -388,7 +388,7 @@ namespace Microsoft.CodeAnalysis
                     newSolution = oldSolution.WithDocumentText(documentId, newText, PreservationMode.PreserveValue);
                 }
 
-                (oldSolution, newSolution) = this.SetCurrentSolution(newSolution);
+                (oldSolution, newSolution) = this.SetCurrentSolutionEx(newSolution);
                 SignupForTextChanges(documentId, textContainer, isCurrentContext, (w, id, text, mode) => w.OnDocumentTextChanged(id, text, mode));
 
                 var newDoc = newSolution.GetRequiredDocument(documentId);
@@ -549,7 +549,7 @@ namespace Microsoft.CodeAnalysis
                     newSolution = withDocumentText(oldSolution, documentId, newText, PreservationMode.PreserveIdentity);
                 }
 
-                (oldSolution, newSolution) = this.SetCurrentSolution(newSolution);
+                (oldSolution, newSolution) = this.SetCurrentSolutionEx(newSolution);
 
                 SignupForTextChanges(documentId, textContainer, isCurrentContext, onDocumentTextChanged);
 
@@ -584,7 +584,7 @@ namespace Microsoft.CodeAnalysis
 
                     this.OnDocumentClosing(documentId);
 
-                    var (oldSolution, newSolution) = this.SetCurrentSolution(
+                    var (oldSolution, newSolution) = this.SetCurrentSolutionEx(
                         this.CurrentSolution.WithDocumentTextLoader(documentId, reloader, PreservationMode.PreserveValue));
 
                     var newDoc = newSolution.GetRequiredDocument(documentId);
@@ -643,7 +643,7 @@ namespace Microsoft.CodeAnalysis
 
                 Debug.Assert(this.CurrentSolution.GetRequiredTextDocument(documentId).Kind is TextDocumentKind.AdditionalDocument or TextDocumentKind.AnalyzerConfigDocument);
 
-                var (oldSolution, newSolution) = this.SetCurrentSolution(
+                var (oldSolution, newSolution) = this.SetCurrentSolutionEx(
                     withTextDocumentTextLoader(this.CurrentSolution, documentId, reloader, PreservationMode.PreserveValue));
 
                 this.RaiseWorkspaceChangedEventAsync(workspaceChangeKind, oldSolution, newSolution, documentId: documentId); // don't wait for this

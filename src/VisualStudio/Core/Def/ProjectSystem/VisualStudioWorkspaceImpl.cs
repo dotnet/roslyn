@@ -1635,7 +1635,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             foreach (var documentId in solutionChanges.DocumentIdsRemoved)
                 this.ClearDocumentData(documentId);
 
-            var (oldSolution, newSolution) = SetCurrentSolution(solutionChanges.Solution);
+            var (oldSolution, newSolution) = SetCurrentSolutionEx(solutionChanges.Solution);
 
             // This method returns the task that could be used to wait for the workspace changed event; we don't want
             // to do that.

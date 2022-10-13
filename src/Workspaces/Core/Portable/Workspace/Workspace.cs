@@ -365,6 +365,8 @@ namespace Microsoft.CodeAnalysis
 
         private (Solution oldSolution, Solution newSolution) ClearSolutionData_NoLock()
         {
+            Contract.ThrowIfTrue(_serializationLock.CurrentCount > 0);
+
             // clear any open documents
             this.ClearOpenDocuments();
 
@@ -952,7 +954,7 @@ namespace Microsoft.CodeAnalysis
                 // documents during an earlier call to this method. We may have no work to do here.
                 if (updatedDocumentIds.Count > 0)
                 {
-                    (oldSolution, newSolution) = SetCurrentSolution(newSolution);
+                    (oldSolution, newSolution) = SetCurrentSolutionEx(newSolution);
 
                     // Prior to the unification of the callers of this method, the
                     // OnAdditionalDocumentTextChanged method did not fire any sort of synchronous
@@ -1039,17 +1041,16 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         protected internal void OnAnalyzerConfigDocumentAdded(DocumentInfo documentInfo)
         {
-            using (_serializationLock.DisposableWait())
+            var documentId = documentInfo.Id;
+            SetCurrentSolution(
+                oldSolution =>
             {
-                var documentId = documentInfo.Id;
+                CheckProjectIsInSolution(oldSolution, documentId.ProjectId);
+                CheckAnalyzerConfigDocumentIsNotInSolution(oldSolution, documentId);
 
-                CheckProjectIsInCurrentSolution(documentId.ProjectId);
-                CheckAnalyzerConfigDocumentIsNotInCurrentSolution(documentId);
-
-                var (oldSolution, newSolution) = this.SetCurrentSolution(this.CurrentSolution.AddAnalyzerConfigDocuments(ImmutableArray.Create(documentInfo)));
-
-                this.RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.AnalyzerConfigDocumentAdded, oldSolution, newSolution, documentId: documentId);
-            }
+                return oldSolution.AddAnalyzerConfigDocuments(ImmutableArray.Create(documentInfo));
+            },
+            WorkspaceChangeKind.AnalyzerConfigDocumentAdded, documentId: documentId);
         }
 
         /// <summary>
@@ -2166,12 +2167,15 @@ namespace Microsoft.CodeAnalysis
         /// Throws an exception if the analyzer config document is already part of the current solution.
         /// </summary>
         protected void CheckAnalyzerConfigDocumentIsNotInCurrentSolution(DocumentId documentId)
+            => CheckAnalyzerConfigDocumentIsNotInSolution(this.CurrentSolution, documentId);
+
+        private static void CheckAnalyzerConfigDocumentIsNotInSolution(Solution solution, DocumentId documentId)
         {
-            if (this.CurrentSolution.ContainsAnalyzerConfigDocument(documentId))
+            if (solution.ContainsAnalyzerConfigDocument(documentId))
             {
                 throw new ArgumentException(string.Format(
                     WorkspacesResources._0_is_already_part_of_the_workspace,
-                    this.GetAnalyzerConfigDocumentName(documentId)));
+                    solution.Workspace.GetAnalyzerConfigDocumentName(documentId)));
             }
         }
 

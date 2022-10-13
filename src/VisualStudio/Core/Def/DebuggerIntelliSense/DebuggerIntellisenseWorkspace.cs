@@ -19,7 +19,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DebuggerIntelli
             // deterministically if we're in unit tests
             TestHookPartialSolutionsDisabled = solution.Workspace.TestHookPartialSolutionsDisabled;
 
-            SetCurrentSolution(solution);
+            SetCurrentSolutionEx(solution);
         }
 
         public void OpenDocument(DocumentId documentId, SourceTextContainer textContainer)
