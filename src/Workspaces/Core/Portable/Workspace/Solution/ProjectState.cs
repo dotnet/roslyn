@@ -61,9 +61,9 @@ namespace Microsoft.CodeAnalysis
         private AnalyzerOptions? _lazyAnalyzerOptions;
 
         /// <summary>
-        /// Backing field for <see cref="SourceGenerators"/>; this is a default ImmutableArray if it hasn't been computed yet.
+        /// The list of source generators and the analyzer reference they came from.
         /// </summary>
-        private ImmutableArray<ISourceGenerator> _lazySourceGenerators;
+        private ImmutableDictionary<ISourceGenerator, AnalyzerReference>? _lazySourceGenerators;
 
         private ProjectState(
             ProjectInfo projectInfo,
@@ -796,18 +796,36 @@ namespace Microsoft.CodeAnalysis
             return With(projectInfo: ProjectInfo.WithAnalyzerReferences(analyzerReferences).WithVersion(Version.GetNewerVersion()));
         }
 
-        public ImmutableArray<ISourceGenerator> SourceGenerators
+        [MemberNotNull(nameof(_lazySourceGenerators))]
+        private void EnsureSourceGeneratorsInitialized()
+        {
+            if (_lazySourceGenerators == null)
+            {
+                var builder = ImmutableDictionary.CreateBuilder<ISourceGenerator, AnalyzerReference>();
+
+                foreach (var analyzerReference in AnalyzerReferences)
+                {
+                    foreach (var generator in analyzerReference.GetGenerators(Language))
+                        builder.Add(generator, analyzerReference);
+                }
+
+                Interlocked.CompareExchange(ref _lazySourceGenerators, builder.ToImmutable(), comparand: null);
+            }
+        }
+
+        public IEnumerable<ISourceGenerator> SourceGenerators
         {
             get
             {
-                if (_lazySourceGenerators.IsDefault)
-                {
-                    var generators = AnalyzerReferences.SelectMany(a => a.GetGenerators(this.Language)).ToImmutableArray();
-                    ImmutableInterlocked.InterlockedInitialize(ref _lazySourceGenerators, generators);
-                }
-
-                return _lazySourceGenerators;
+                EnsureSourceGeneratorsInitialized();
+                return _lazySourceGenerators.Keys;
             }
+        }
+
+        public AnalyzerReference GetAnalyzerReferenceForGenerator(ISourceGenerator generator)
+        {
+            EnsureSourceGeneratorsInitialized();
+            return _lazySourceGenerators[generator];
         }
 
         public ProjectState AddDocuments(ImmutableArray<DocumentState> documents)
