@@ -795,15 +795,13 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         protected internal void OnAnalyzerConfigDocumentTextLoaderChanged(DocumentId documentId, TextLoader loader)
         {
-            using (_serializationLock.DisposableWait())
-            {
-                CheckAnalyzerConfigDocumentIsInCurrentSolution(documentId);
-
-                var (oldSolution, newSolution) = this.SetCurrentSolution(
-                    this.CurrentSolution.WithAnalyzerConfigDocumentTextLoader(documentId, loader, PreservationMode.PreserveValue));
-
-                this.RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.AnalyzerConfigDocumentChanged, oldSolution, newSolution, documentId: documentId);
-            }
+            SetCurrentSolution(
+                oldSolution =>
+                {
+                    CheckAnalyzerConfigDocumentIsInSolution(oldSolution, documentId);
+                    return oldSolution.WithAnalyzerConfigDocumentTextLoader(documentId, loader, PreservationMode.PreserveValue);
+                },
+                WorkspaceChangeKind.AnalyzerConfigDocumentChanged, documentId: documentId);
         }
 
         /// <summary>
@@ -811,45 +809,40 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         protected internal void OnDocumentInfoChanged(DocumentId documentId, DocumentInfo newInfo)
         {
-            using (_serializationLock.DisposableWait())
-            {
-                CheckDocumentIsInCurrentSolution(documentId);
-
-                var oldSolution = this.CurrentSolution;
-
-                var newSolution = oldSolution;
-                var oldAttributes = oldSolution.GetDocument(documentId)!.State.Attributes;
-
-                if (oldAttributes.Name != newInfo.Name)
+            SetCurrentSolution(
+                oldSolution =>
                 {
-                    newSolution = newSolution.WithDocumentName(documentId, newInfo.Name);
-                }
+                    CheckDocumentIsInSolution(oldSolution, documentId);
 
-                if (oldAttributes.Folders != newInfo.Folders)
-                {
-                    newSolution = newSolution.WithDocumentFolders(documentId, newInfo.Folders);
-                }
+                    var newSolution = oldSolution;
+                    var oldAttributes = oldSolution.GetDocument(documentId)!.State.Attributes;
 
-                if (oldAttributes.FilePath != newInfo.FilePath)
-                {
-                    // TODO (https://github.com/dotnet/roslyn/issues/37125): Solution.WithDocumentFilePath will throw if
-                    // filePath is null, but it's odd because we *do* support null file paths. The suppression here is to silence it
-                    // but should be removed when the bug is fixed.
-                    newSolution = newSolution.WithDocumentFilePath(documentId, newInfo.FilePath!);
-                }
+                    if (oldAttributes.Name != newInfo.Name)
+                    {
+                        newSolution = newSolution.WithDocumentName(documentId, newInfo.Name);
+                    }
 
-                if (oldAttributes.SourceCodeKind != newInfo.SourceCodeKind)
-                {
-                    newSolution = newSolution.WithDocumentSourceCodeKind(documentId, newInfo.SourceCodeKind);
-                }
+                    if (oldAttributes.Folders != newInfo.Folders)
+                    {
+                        newSolution = newSolution.WithDocumentFolders(documentId, newInfo.Folders);
+                    }
 
-                if (newSolution != oldSolution)
-                {
-                    (oldSolution, newSolution) = SetCurrentSolution(newSolution);
+                    if (oldAttributes.FilePath != newInfo.FilePath)
+                    {
+                        // TODO (https://github.com/dotnet/roslyn/issues/37125): Solution.WithDocumentFilePath will throw if
+                        // filePath is null, but it's odd because we *do* support null file paths. The suppression here is to silence it
+                        // but should be removed when the bug is fixed.
+                        newSolution = newSolution.WithDocumentFilePath(documentId, newInfo.FilePath!);
+                    }
 
-                    this.RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.DocumentInfoChanged, oldSolution, newSolution, documentId: documentId);
-                }
-            }
+                    if (oldAttributes.SourceCodeKind != newInfo.SourceCodeKind)
+                    {
+                        newSolution = newSolution.WithDocumentSourceCodeKind(documentId, newInfo.SourceCodeKind);
+                    }
+
+                    return newSolution;
+                },
+                WorkspaceChangeKind.DocumentInfoChanged, documentId: documentId);
         }
 
         /// <summary>
@@ -2083,12 +2076,15 @@ namespace Microsoft.CodeAnalysis
         /// Throws an exception if a document is not part of the current solution.
         /// </summary>
         protected void CheckDocumentIsInCurrentSolution(DocumentId documentId)
+            => CheckDocumentIsInSolution(this.CurrentSolution, documentId);
+
+        private static void CheckDocumentIsInSolution(Solution solution, DocumentId documentId)
         {
-            if (this.CurrentSolution.GetDocument(documentId) == null)
+            if (solution.GetDocument(documentId) == null)
             {
                 throw new ArgumentException(string.Format(
                     WorkspacesResources._0_is_not_part_of_the_workspace,
-                    this.GetDocumentName(documentId)));
+                    solution.Workspace.GetDocumentName(documentId)));
             }
         }
 
@@ -2112,12 +2108,15 @@ namespace Microsoft.CodeAnalysis
         /// Throws an exception if an analyzer config is not part of the current solution.
         /// </summary>
         protected void CheckAnalyzerConfigDocumentIsInCurrentSolution(DocumentId documentId)
+            => CheckAdditionalDocumentIsInSolution(this.CurrentSolution, documentId);
+
+        private static void CheckAnalyzerConfigDocumentIsInSolution(Solution solution, DocumentId documentId)
         {
-            if (!this.CurrentSolution.ContainsAnalyzerConfigDocument(documentId))
+            if (!solution.ContainsAnalyzerConfigDocument(documentId))
             {
                 throw new ArgumentException(string.Format(
                     WorkspacesResources._0_is_not_part_of_the_workspace,
-                    this.GetDocumentName(documentId)));
+                    solution.Workspace.GetDocumentName(documentId)));
             }
         }
 
