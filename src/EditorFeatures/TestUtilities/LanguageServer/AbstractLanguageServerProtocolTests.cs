@@ -365,6 +365,7 @@ namespace Roslyn.Test.Utilities
 
             workspace.GetService<LspWorkspaceRegistrationService>().Register(workspace);
 
+            // solution crawler is currently required in order to create incremental analyzer that provides diagnostics
             var solutionCrawlerRegistrationService = (SolutionCrawlerRegistrationService)workspace.Services.GetRequiredService<ISolutionCrawlerRegistrationService>();
             solutionCrawlerRegistrationService.Register(workspace);
 
