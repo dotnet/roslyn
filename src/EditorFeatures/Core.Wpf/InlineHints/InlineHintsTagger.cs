@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Composition;
+using System.Linq;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ErrorReporting;
@@ -71,7 +72,18 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
             _formatMap = taggerProvider.ClassificationFormatMapService.GetClassificationFormatMap(textView);
             _hintClassification = taggerProvider.ClassificationTypeRegistryService.GetClassificationType(InlineHintsTag.TagId);
             _formatMap.ClassificationFormatMappingChanged += this.OnClassificationFormatMappingChanged;
-            _tagAggregator.TagsChanged += OnTagAggregatorTagsChanged;
+            //_tagAggregator.TagsChanged += OnTagAggregatorTagsChanged;
+            _tagAggregator.BatchedTagsChanged += TagAggregator_BatchedTagsChanged;
+        }
+
+        private void TagAggregator_BatchedTagsChanged(object sender, BatchedTagsChangedEventArgs e)
+        {
+            var allSpans = e.Spans.SelectMany(span => span.GetSpans(_textView.TextBuffer));
+            var tags = GetTags(new NormalizedSnapshotSpanCollection(allSpans));
+            foreach (var tag in tags)
+            {
+                TagsChanged?.Invoke(this, new SnapshotSpanEventArgs(tag.Span));
+            }
         }
 
         private void OnClassificationFormatMappingChanged(object sender, EventArgs e)
@@ -92,7 +104,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
             }
         }
 
-        private void OnTagAggregatorTagsChanged(object sender, TagsChangedEventArgs e)
+        /*private void OnTagAggregatorTagsChanged(object sender, TagsChangedEventArgs e)
         {
             _cacheSnapshot = null;
             var spans = e.Span.GetSpans(_buffer);
@@ -100,7 +112,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
             {
                 TagsChanged?.Invoke(this, new SnapshotSpanEventArgs(span));
             }
-        }
+        }*/
 
         private TextFormattingRunProperties Format
         {
@@ -122,7 +134,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
                 }
 
                 var snapshot = spans[0].Snapshot;
-                if (_cache.Count == 0 || snapshot != _cacheSnapshot)
+                if (snapshot != _cacheSnapshot)
                 {
                     // Calculate UI elements
                     _cache.Clear();
@@ -181,7 +193,8 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
 
         public void Dispose()
         {
-            _tagAggregator.TagsChanged -= OnTagAggregatorTagsChanged;
+            //_tagAggregator.TagsChanged -= OnTagAggregatorTagsChanged;
+            _tagAggregator.BatchedTagsChanged -= TagAggregator_BatchedTagsChanged;
             _tagAggregator.Dispose();
             _formatMap.ClassificationFormatMappingChanged -= OnClassificationFormatMappingChanged;
         }
