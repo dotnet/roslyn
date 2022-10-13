@@ -404,13 +404,17 @@ namespace Microsoft.CodeAnalysis
                     var newSolution = this.CreateSolution(solutionInfo);
 
                     foreach (var project in solutionInfo.Projects)
-                    {
-                        CheckProjectIsNotInSolution(newSolution, project.Id);
-                        newSolution = newSolution.AddProject(project);
-                    }
+                        newSolution = CheckAndAddProject(newSolution, project);
 
                     return newSolution;
                 }, WorkspaceChangeKind.SolutionAdded);
+        }
+
+        private static Solution CheckAndAddProject(Solution newSolution, ProjectInfo project)
+        {
+            CheckProjectIsNotInSolution(newSolution, project.Id);
+            newSolution = newSolution.AddProject(project);
+            return newSolution;
         }
 
         /// <summary>
@@ -426,10 +430,7 @@ namespace Microsoft.CodeAnalysis
                     var newSolution = this.CreateSolution(reloadedSolutionInfo);
 
                     foreach (var project in reloadedSolutionInfo.Projects)
-                    {
-                        CheckProjectIsNotInSolution(newSolution, project.Id);
-                        newSolution = newSolution.AddProject(project);
-                    }
+                        newSolution = CheckAndAddProject(newSolution, project);
 
                     return this.AdjustReloadedSolution(oldSolution, newSolution);
                 }, WorkspaceChangeKind.SolutionReloaded);
@@ -461,11 +462,8 @@ namespace Microsoft.CodeAnalysis
         protected internal void OnProjectAdded(ProjectInfo projectInfo)
         {
             this.SetCurrentSolution(
-                oldSolution =>
-                {
-                    CheckProjectIsNotInSolution(oldSolution, projectInfo.Id);
-                    return oldSolution.AddProject(projectInfo);
-                }, WorkspaceChangeKind.ProjectAdded, projectId: projectInfo.Id);
+                oldSolution => CheckAndAddProject(oldSolution, projectInfo),
+                WorkspaceChangeKind.ProjectAdded, projectId: projectInfo.Id);
         }
 
         /// <summary>
