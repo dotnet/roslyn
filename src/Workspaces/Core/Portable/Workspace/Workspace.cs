@@ -701,7 +701,9 @@ namespace Microsoft.CodeAnalysis
 
                 // Raise ProjectChanged as the event type here. DocumentAdded is presumed by many callers to have a
                 // DocumentId associated with it, and we don't want to be raising multiple events.
-                this.RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.ProjectChanged, oldSolution, newSolution);
+
+                foreach (var projectId in documentInfos.Select(i => i.Id.ProjectId).Distinct())
+                    this.RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.ProjectChanged, oldSolution, newSolution, projectId);
             }
         }
 
