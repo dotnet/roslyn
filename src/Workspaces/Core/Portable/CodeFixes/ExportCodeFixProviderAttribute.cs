@@ -36,6 +36,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 
         /// <summary>
         /// The document extensions for which this provider can provide code fixes.
+        /// Each extension string must include the leading period, for example, ".txt", ".xaml", ".editorconfig", etc.
         /// By default, this value is null and the document extension is not considered to determine applicability of code fixes.
         /// </summary>
         public string[]? DocumentExtensions { get; set; }

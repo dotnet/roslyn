@@ -1,4 +1,5 @@
 Microsoft.CodeAnalysis.CodeFixes.CodeFixContext.CodeFixContext(Microsoft.CodeAnalysis.TextDocument document, Microsoft.CodeAnalysis.Diagnostic diagnostic, System.Action<Microsoft.CodeAnalysis.CodeActions.CodeAction, System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Diagnostic>> registerCodeFix, System.Threading.CancellationToken cancellationToken) -> void
+Microsoft.CodeAnalysis.CodeFixes.CodeFixContext.CodeFixContext(Microsoft.CodeAnalysis.TextDocument document, Microsoft.CodeAnalysis.Text.TextSpan span, System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Diagnostic> diagnostics, System.Action<Microsoft.CodeAnalysis.CodeActions.CodeAction, System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Diagnostic>> registerCodeFix, System.Threading.CancellationToken cancellationToken) -> void
 Microsoft.CodeAnalysis.CodeFixes.CodeFixContext.TextDocument.get -> Microsoft.CodeAnalysis.TextDocument
 Microsoft.CodeAnalysis.CodeFixes.ExportCodeFixProviderAttribute.DocumentExtensions.get -> string[]
 Microsoft.CodeAnalysis.CodeFixes.ExportCodeFixProviderAttribute.DocumentExtensions.set -> void

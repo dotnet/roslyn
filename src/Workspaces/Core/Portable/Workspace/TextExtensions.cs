@@ -5,6 +5,7 @@
 using System.Collections.Immutable;
 using System.Threading;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Text
 {
@@ -48,6 +49,16 @@ namespace Microsoft.CodeAnalysis.Text
         /// in its current project context, updated to contain the same text as the source if necessary.
         /// </summary>
         public static Document? GetOpenDocumentInCurrentContextWithChanges(this SourceText text)
+            => (Document?)text.GetOpenTextDocumentInCurrentContextWithChanges(sourceDocumentOnly: true);
+
+        /// <summary>
+        /// Gets the <see cref="TextDocument"/> from the corresponding workspace's current solution that is associated with the source text's container 
+        /// in its current project context, updated to contain the same text as the source if necessary.
+        /// </summary>
+        public static TextDocument? GetOpenTextDocumentInCurrentContextWithChanges(this SourceText text)
+            => text.GetOpenTextDocumentInCurrentContextWithChanges(sourceDocumentOnly: false);
+
+        private static TextDocument? GetOpenTextDocumentInCurrentContextWithChanges(this SourceText text, bool sourceDocumentOnly)
         {
             if (Workspace.TryGetWorkspace(text.Container, out var workspace))
             {
@@ -58,38 +69,38 @@ namespace Microsoft.CodeAnalysis.Text
                     return null;
                 }
 
-                if (workspace.TryGetOpenSourceGeneratedDocumentIdentity(id, out var documentIdentity))
+                if (solution.ContainsDocument(id))
                 {
-                    return solution.WithFrozenSourceGeneratedDocument(documentIdentity, text);
+                    if (workspace.TryGetOpenSourceGeneratedDocumentIdentity(id, out var documentIdentity))
+                    {
+                        return solution.WithFrozenSourceGeneratedDocument(documentIdentity, text);
+                    }
+
+                    // We update all linked files to ensure they are all in sync. Otherwise code might try to jump from
+                    // one linked file to another and be surprised if the text is entirely different.
+                    var allIds = solution.GetRelatedDocumentIds(id);
+                    return solution.WithDocumentText(allIds, text, PreservationMode.PreserveIdentity)
+                                   .GetDocument(id);
                 }
-
-                // We update all linked files to ensure they are all in sync. Otherwise code might try to jump from
-                // one linked file to another and be surprised if the text is entirely different.
-                var allIds = solution.GetRelatedDocumentIds(id);
-                return solution.WithDocumentText(allIds, text, PreservationMode.PreserveIdentity)
-                               .GetDocument(id);
-            }
-
-            return null;
-        }
-
-        /// <summary>
-        /// Gets the <see cref="AdditionalDocument"/> from the corresponding workspace's current solution that is associated with the source text's container 
-        /// in its current project context, updated to contain the same text as the source if necessary.
-        /// </summary>
-        public static TextDocument? GetOpenAdditionalDocumentInCurrentContextWithChanges(this SourceText text)
-        {
-            if (Workspace.TryGetWorkspace(text.Container, out var workspace))
-            {
-                var solution = workspace.CurrentSolution;
-                var id = workspace.GetDocumentIdInCurrentContext(text.Container);
-                if (id == null || !solution.ContainsAdditionalDocument(id))
+                else if (!sourceDocumentOnly)
                 {
-                    return null;
-                }
+                    if (solution.ContainsAdditionalDocument(id))
+                    {
+                        // TODO: Update all linked files using GetRelatedDocumentIds instead of single document ID.
+                        // Tracked with https://github.com/dotnet/roslyn/issues/64701.
+                        return solution.WithAdditionalDocumentText(id, text, PreservationMode.PreserveIdentity)
+                            .GetRequiredAdditionalDocument(id);
+                    }
+                    else
+                    {
+                        Contract.ThrowIfFalse(solution.ContainsAnalyzerConfigDocument(id));
 
-                return solution.WithAdditionalDocumentText(id, text, PreservationMode.PreserveIdentity)
-                               .GetRequiredAdditionalDocument(id);
+                        // TODO: Update all linked files using GetRelatedDocumentIds instead of single document ID.
+                        // Tracked with https://github.com/dotnet/roslyn/issues/64701.
+                        return solution.WithAnalyzerConfigDocumentText(id, text, PreservationMode.PreserveIdentity)
+                            .GetRequiredAnalyzerConfigDocument(id);
+                    }
+                }
             }
 
             return null;
@@ -110,8 +121,7 @@ namespace Microsoft.CodeAnalysis.Text
                     return null;
                 }
 
-                return solution.WithAnalyzerConfigDocumentText(id, text, PreservationMode.PreserveIdentity)
-                               .GetRequiredAnalyzerConfigDocument(id);
+                
             }
 
             return null;

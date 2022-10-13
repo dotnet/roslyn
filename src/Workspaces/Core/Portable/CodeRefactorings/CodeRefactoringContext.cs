@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
             {
                 if (TextDocument is not Document document)
                 {
-                    throw new InvalidOperationException();
+                    throw new InvalidOperationException(WorkspacesResources.Use_TextDocument_property_instead_of_Document_property_as_the_provider_supports_non_source_text_documents);
                 }
 
                 return document;

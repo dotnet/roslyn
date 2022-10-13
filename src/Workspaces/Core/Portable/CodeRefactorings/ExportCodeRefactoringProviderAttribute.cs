@@ -36,6 +36,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
 
         /// <summary>
         /// The document extensions for which this provider can provide refactorings.
+        /// Each extension string must include the leading period, for example, ".txt", ".xaml", ".editorconfig", etc.
         /// By default, this value is null and the document extension is not considered to determine applicability of refactorings.
         /// </summary>
         public string[]? DocumentExtensions { get; set; }
