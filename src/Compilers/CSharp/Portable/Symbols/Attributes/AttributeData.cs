@@ -75,8 +75,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return this.CommonNamedArguments; }
         }
 
-        public ImmutableArray<LocalSymbol> ReferencedLocals { get; set; }
-
         /// <summary>
         /// Compares the namespace and type name with the attribute's namespace and type name.
         /// Returns true if they are the same.

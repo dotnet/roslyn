@@ -1685,15 +1685,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (slot > 0) SetSlotState(slot, true);
                 NoteWrite(parameter, value: null, read: true);
             }
-
-            // Mark attribute arguments as used.
-            foreach (var attrData in parameter.GetAttributes())
-            {
-                if (!attrData.ReferencedLocals.IsDefault)
-                {
-                    _usedVariables.AddAll(attrData.ReferencedLocals);
-                }
-            }
         }
 
         protected override void LeaveParameters(ImmutableArray<ParameterSymbol> parameters, SyntaxNode syntax, Location location)
