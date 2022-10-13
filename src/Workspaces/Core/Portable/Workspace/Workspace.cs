@@ -396,20 +396,21 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         protected internal void OnSolutionAdded(SolutionInfo solutionInfo)
         {
-            using (_serializationLock.DisposableWait())
-            {
-                var solutionId = solutionInfo.Id;
+            this.SetCurrentSolution(
+                oldSolution =>
+                {
+                    CheckSolutionIsEmpty(oldSolution);
 
-                CheckSolutionIsEmpty();
+                    var newSolution = this.CreateSolution(solutionInfo);
 
-                var (oldSolution, newSolution) = this.SetCurrentSolution(this.CreateSolution(solutionInfo));
+                    foreach (var project in solutionInfo.Projects)
+                    {
+                        CheckProjectIsNotInSolution(newSolution, project.Id);
+                        newSolution = newSolution.AddProject(project);
+                    }
 
-                foreach (var project in solutionInfo.Projects)
-                    (_, newSolution) = OnProjectAdded_NoLock(project);
-
-                this.RaiseWorkspaceChangedEventAsync(
-                    WorkspaceChangeKind.SolutionAdded, oldSolution, newSolution);
-            }
+                    return newSolution;
+                }, WorkspaceChangeKind.SolutionAdded);
         }
 
         /// <summary>
@@ -1928,8 +1929,11 @@ namespace Microsoft.CodeAnalysis
         /// Throws an exception is the solution is not empty.
         /// </summary>
         protected void CheckSolutionIsEmpty()
+            => CheckSolutionIsEmpty(this.CurrentSolution);
+
+        private static void CheckSolutionIsEmpty(Solution solution)
         {
-            if (this.CurrentSolution.ProjectIds.Any())
+            if (solution.ProjectIds.Any())
             {
                 throw new ArgumentException(WorkspacesResources.Workspace_is_not_empty);
             }
@@ -1952,12 +1956,15 @@ namespace Microsoft.CodeAnalysis
         /// Throws an exception is the project is part of the current solution.
         /// </summary>
         protected void CheckProjectIsNotInCurrentSolution(ProjectId projectId)
+            => CheckProjectIsNotInSolution(this.CurrentSolution, projectId);
+
+        private static void CheckProjectIsNotInSolution(Solution solution, ProjectId projectId)
         {
-            if (this.CurrentSolution.ContainsProject(projectId))
+            if (solution.ContainsProject(projectId))
             {
                 throw new ArgumentException(string.Format(
                     WorkspacesResources._0_is_already_part_of_the_workspace,
-                    this.GetProjectName(projectId)));
+                    solution.Workspace.GetProjectName(projectId)));
             }
         }
 
