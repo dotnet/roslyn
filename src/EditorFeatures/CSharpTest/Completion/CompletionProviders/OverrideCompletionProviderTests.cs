@@ -2363,7 +2363,7 @@ End Class
     
 </Workspace>", LanguageNames.CSharp, csharpFile, LanguageNames.VisualBasic, vbFile);
 
-            using var testWorkspace = TestWorkspace.Create(xmlString, exportProvider: ExportProvider);
+            using var testWorkspace = TestWorkspace.Create(xmlString, composition: GetComposition());
             var testDocument = testWorkspace.Documents.Single(d => d.Name == "CSharpDocument");
 
             Contract.ThrowIfNull(testDocument.CursorPosition);
@@ -2620,7 +2620,7 @@ int bar;
     </Project>
 </Workspace>", LanguageNames.CSharp, file1, file2);
 
-            using var testWorkspace = TestWorkspace.Create(xmlString, exportProvider: ExportProvider);
+            using var testWorkspace = TestWorkspace.Create(xmlString, composition: GetComposition());
             var testDocument = testWorkspace.Documents.Single(d => d.Name == "CSharpDocument2");
 
             Contract.ThrowIfNull(testDocument.CursorPosition);
@@ -2676,7 +2676,7 @@ int bar;
     </Project>
 </Workspace>", LanguageNames.CSharp, file2, file1);
 
-            using var testWorkspace = TestWorkspace.Create(xmlString, exportProvider: ExportProvider);
+            using var testWorkspace = TestWorkspace.Create(xmlString, composition: GetComposition());
             var testDocument = testWorkspace.Documents.Single(d => d.Name == "CSharpDocument");
 
             Contract.ThrowIfNull(testDocument.CursorPosition);
@@ -2963,7 +2963,7 @@ namespace ConsoleApplication46
         override $$
     }
 }";
-            using var workspace = TestWorkspace.Create(LanguageNames.CSharp, new CSharpCompilationOptions(OutputKind.ConsoleApplication), new CSharpParseOptions(), new[] { text }, exportProvider: ExportProvider);
+            using var workspace = TestWorkspace.Create(LanguageNames.CSharp, new CSharpCompilationOptions(OutputKind.ConsoleApplication), new CSharpParseOptions(), new[] { text }, composition: GetComposition());
             var provider = new OverrideCompletionProvider();
             var testDocument = workspace.Documents.Single();
             var document = workspace.CurrentSolution.GetRequiredDocument(testDocument.Id);
@@ -3091,7 +3091,7 @@ namespace ClassLibrary7
             // P1 has a metadata reference to P3 and therefore doesn't get the transitive
             // reference to P2. If we try to override Goo, the missing "Missing" type will
             // prevent round tripping the symbolkey.
-            using var workspace = TestWorkspace.Create(text, exportProvider: ExportProvider);
+            using var workspace = TestWorkspace.Create(text, composition: GetComposition());
             var compilation = await workspace.CurrentSolution.Projects.First(p => p.Name == "P3").GetCompilationAsync();
 
             // CompilationExtensions is in the Microsoft.CodeAnalysis.Test.Utilities namespace 
@@ -3129,7 +3129,7 @@ public class SomeClass : Base
     </Project>
 </Workspace>");
 
-            using var workspace = TestWorkspace.Create(source, exportProvider: ExportProvider);
+            using var workspace = TestWorkspace.Create(source, composition: GetComposition());
             var before = @"
 public abstract class Base
 {

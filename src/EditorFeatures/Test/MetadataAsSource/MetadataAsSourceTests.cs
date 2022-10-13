@@ -1481,8 +1481,6 @@ public interface [|C|]<T>
 ' {CodeAnalysisResources.InMemoryAssembly}
 #End Region
 
-
-<NullableContextAttribute(1)>
 Public Interface [|C|](Of T)
     Function Equals(<AllowNullAttribute> other As T) As Boolean
 End Interface",
