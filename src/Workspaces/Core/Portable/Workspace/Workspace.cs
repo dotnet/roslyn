@@ -372,6 +372,7 @@ namespace Microsoft.CodeAnalysis
         }
 
         #region Host API
+
         /// <summary>
         /// Call this method to respond to a solution being opened in the host environment.
         /// </summary>
@@ -1644,44 +1645,32 @@ namespace Microsoft.CodeAnalysis
         private static ProjectInfo CreateProjectInfo(Project project)
         {
             return ProjectInfo.Create(
-                project.Id,
-                VersionStamp.Create(),
-                project.Name,
-                project.AssemblyName,
-                project.Language,
-                project.FilePath,
-                project.OutputFilePath,
+                project.State.Attributes.With(version: VersionStamp.Create()),
                 project.CompilationOptions,
                 project.ParseOptions,
                 project.Documents.Select(CreateDocumentInfoWithText),
                 project.ProjectReferences,
                 project.MetadataReferences,
                 project.AnalyzerReferences,
-                project.AdditionalDocuments.Select(CreateDocumentInfoWithText),
-                project.IsSubmission,
-                project.State.HostObjectType,
-                project.OutputRefFilePath)
-                .WithDefaultNamespace(project.DefaultNamespace)
-                .WithAnalyzerConfigDocuments(project.AnalyzerConfigDocuments.Select(CreateDocumentInfoWithText));
+                additionalDocuments: project.AdditionalDocuments.Select(CreateDocumentInfoWithText),
+                analyzerConfigDocuments: project.AnalyzerConfigDocuments.Select(CreateDocumentInfoWithText),
+                hostObjectType: project.State.HostObjectType);
         }
 
         private static DocumentInfo CreateDocumentInfoWithText(TextDocument doc)
             => CreateDocumentInfoWithoutText(doc).WithTextLoader(TextLoader.From(TextAndVersion.Create(doc.GetTextSynchronously(CancellationToken.None), VersionStamp.Create(), doc.FilePath)));
 
         internal static DocumentInfo CreateDocumentInfoWithoutText(TextDocument doc)
-        {
-            var sourceDoc = doc as Document;
-            return DocumentInfo.Create(
+            => DocumentInfo.Create(
                 doc.Id,
                 doc.Name,
                 doc.Folders,
-                sourceDoc != null ? sourceDoc.SourceCodeKind : SourceCodeKind.Regular,
+                doc is Document sourceDoc ? sourceDoc.SourceCodeKind : SourceCodeKind.Regular,
                 loader: null,
                 filePath: doc.FilePath,
-                isGenerated: false,
-                designTimeOnly: false,
-                doc.Services);
-        }
+                isGenerated: doc.State.Attributes.IsGenerated)
+                .WithDesignTimeOnly(doc.State.Attributes.DesignTimeOnly)
+                .WithDocumentServiceProvider(doc.Services);
 
         /// <summary>
         /// This method is called during <see cref="TryApplyChanges(Solution)"/> to add a project to the current solution.

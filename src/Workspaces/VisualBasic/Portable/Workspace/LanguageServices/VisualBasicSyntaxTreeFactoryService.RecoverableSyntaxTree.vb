@@ -2,6 +2,7 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
+Imports System.Runtime.InteropServices
 Imports System.Text
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Host
@@ -52,7 +53,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                              cacheKey As ProjectId,
                                                              filePath As String,
                                                              options As ParseOptions,
-                                                             text As ValueSource(Of TextAndVersion),
+                                                             text As ITextAndVersionSource,
+                                                             loadTextOptions As LoadTextOptions,
                                                              encoding As Encoding,
                                                              root As VisualBasicSyntaxNode) As SyntaxTree
                     Return New RecoverableSyntaxTree(
@@ -63,6 +65,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             filePath,
                             options,
                             text,
+                            loadTextOptions,
                             encoding,
                             root.FullSpan.Length,
                             root.ContainsDirectives))
@@ -86,12 +89,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     End Get
                 End Property
 
-                Public Overrides Function TryGetText(ByRef text As SourceText) As Boolean
+                Public Overrides Function TryGetText(<Out> ByRef text As SourceText) As Boolean
                     Return _info.TryGetText(text)
                 End Function
 
                 Public Overrides Function GetText(Optional cancellationToken As CancellationToken = Nothing) As SourceText
-                    Return _info.TextSource.GetValue(cancellationToken).Text
+                    Return _info.GetText(cancellationToken)
                 End Function
 
                 Public Overrides Function GetTextAsync(Optional cancellationToken As CancellationToken = Nothing) As Task(Of SourceText)

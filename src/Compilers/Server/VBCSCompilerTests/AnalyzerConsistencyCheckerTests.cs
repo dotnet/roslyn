@@ -14,6 +14,8 @@ using System.Text;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CommandLine;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
 using Xunit.Abstractions;
@@ -113,7 +115,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
             const string name = "netstandardRef";
             var comp = CSharpCompilation.Create(
                 name,
-                new[] { SyntaxFactory.ParseSyntaxTree(@"class C {}") },
+                new[] { CSharpTestSource.Parse("class C {}") },
                 references: new MetadataReference[] { NetStandard20.netstandard },
                 options: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, warningLevel: Diagnostic.MaxWarningLevel));
             var compFile = directory.CreateFile(name);

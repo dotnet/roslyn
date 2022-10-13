@@ -262,7 +262,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             ' taken to ensure these are compatible with 2.0 runtimes so there is no danger
                             ' with allowing the newer syntax here.
                             Dim options = parseOptions.WithLanguageVersion(LanguageVersion.Default)
-                            tree = VisualBasicSyntaxTree.ParseText(text, options:=options, isMyTemplate:=True)
+                            tree = VisualBasicSyntaxTree.ParseText(
+                                SourceText.From(text, encoding:=Nothing, SourceHashAlgorithms.Default),
+                                isMyTemplate:=True,
+                                options,
+                                path:=Nothing)
 
                             If tree.GetDiagnostics().Any() Then
                                 Throw ExceptionUtilities.Unreachable

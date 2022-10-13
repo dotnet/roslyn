@@ -18,6 +18,7 @@ using System.Xml.Linq;
 using Microsoft.CodeAnalysis.AddImport;
 using Microsoft.CodeAnalysis.Elfie.Model;
 using Microsoft.CodeAnalysis.Shared.Utilities;
+using Roslyn.Utilities;
 using static System.FormattableString;
 
 namespace Microsoft.CodeAnalysis.SymbolSearch
@@ -551,11 +552,31 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
                     XmlResolver = null
                 };
 
-                using var reader = XmlReader.Create(stream, settings);
+                // This code must always succeed.  If it does not, that means that either the server reported bogus data
+                // to the file-downloader, or the file-downloader is serving us bogus data.  In other event, there is
+                // something wrong with those components, and we should both report the issue to watson, and stop doing
+                // the update.
+                try
+                {
+                    using var reader = XmlReader.Create(stream, settings);
 
-                var result = XElement.Load(reader);
-                await LogInfoAsync("Converting data to XElement completed", cancellationToken).ConfigureAwait(false);
-                return result;
+                    var result = XElement.Load(reader);
+                    await LogInfoAsync("Converting data to XElement completed", cancellationToken).ConfigureAwait(false);
+                    return result;
+                }
+                catch (Exception e) when (ReportAndDoNotCatch(e))
+                {
+                    throw ExceptionUtilities.Unreachable();
+                }
+
+                bool ReportAndDoNotCatch(Exception exception)
+                {
+                    // Directly report issue here so we can collect a dump that indicates precisely what is in the
+                    // stream. Then return 'false' explicitly so that the catch handler doesn't run and the exception
+                    // properly tears down the update.
+                    _service._reportAndSwallowExceptionUnlessCanceled(exception, cancellationToken);
+                    return false;
+                }
             }
 
             private async Task RepeatIOAsync(Func<CancellationToken, Task> action, CancellationToken cancellationToken)
