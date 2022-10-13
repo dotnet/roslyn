@@ -468,15 +468,6 @@ namespace Microsoft.CodeAnalysis
                 }, WorkspaceChangeKind.ProjectAdded, projectId: projectInfo.Id);
         }
 
-        private (Solution oldSolution, Solution newSolution) OnProjectAdded_NoLock(ProjectInfo projectInfo)
-        {
-            var projectId = projectInfo.Id;
-
-            CheckProjectIsNotInCurrentSolution(projectId);
-
-            return this.SetCurrentSolution(this.CurrentSolution.AddProject(projectInfo));
-        }
-
         /// <summary>
         /// Call this method to respond to a project being reloaded in the host environment.
         /// </summary>
