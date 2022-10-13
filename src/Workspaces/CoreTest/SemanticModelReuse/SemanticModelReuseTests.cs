@@ -252,7 +252,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.SemanticModelReuse
 
             // Because the change in trivia shifted the method definition, we are not able to get a speculative model based on previous model
             var model2 = await document2.ReuseExistingSpeculativeModelAsync(source2.IndexOf("{ return"), CancellationToken.None);
-            Assert.True(model2.IsSpeculativeSemanticModel);
+            Assert.False(model2.IsSpeculativeSemanticModel);
 
             // ensure this doesn't crash.
             CSharpSyntaxContext.CreateContext(document2, model2, source2.IndexOf("{ return"), CancellationToken.None);
@@ -386,7 +386,8 @@ end class"));
         [Fact]
         public async Task MultipleBodyEditsShouldProduceFreshModel_VisualBasic()
         {
-            var source = @"class C
+            var source = @"
+class C
     sub M()
         return
     end sub
