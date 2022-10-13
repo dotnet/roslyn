@@ -111,7 +111,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return _scopeBinder.ScopeDesignator; }
         }
 
-        // From https://github.com/dotnet/csharplang/blob/main/proposals/low-level-struct-improvements.md:
+        // From https://github.com/dotnet/csharplang/blob/main/csharp-11.0/proposals/low-level-struct-improvements.md:
         //
         // | Parameter or Local     | ref-safe-to-escape | safe-to-escape |
         // |------------------------|--------------------|----------------|
