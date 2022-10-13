@@ -261,6 +261,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             // Case (2)(a)(1)
                             isKeyword = false;
+                            ReportDiagnosticsIfObsolete(diagnostics, symbol, syntax, hasBaseReceiver: false);
                         }
                         else
                         {
