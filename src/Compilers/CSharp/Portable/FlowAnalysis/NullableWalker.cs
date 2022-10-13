@@ -2847,7 +2847,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var local = node.LocalSymbol;
 
-            // Avoid cycles in nullable analysis.
+            // Ignore var self-references (e.g., the RHS of `var x = x;`) to avoid cycles.
+            // While inferring the type of a more complex construct (like lambda),
+            // nullability analysis could be triggered against a reference of the local being inferred,
+            // querying its type and hence starting the same type inferrence recursively.
             if (local is SourceLocalSymbol { IsVar: true } && local.ForbiddenZone?.Contains(node.Syntax) == true)
             {
                 SetResultType(node, TypeWithState.ForType(node.Type));
