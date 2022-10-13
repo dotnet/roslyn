@@ -360,6 +360,8 @@ namespace Microsoft.CodeAnalysis
             using (_serializationLock.DisposableWait())
             {
                 ClearSolutionData_NoLock();
+
+                // TODO: Are we missing a call to RaiseWorkspaceChangedEventAsync here?
             }
         }
 
@@ -371,8 +373,6 @@ namespace Microsoft.CodeAnalysis
             this.ClearOpenDocuments();
 
             return this.SetCurrentSolutionEx(this.CreateSolution(this.CurrentSolution.Id));
-
-            // TODO: Are we missing a call to RaiseWorkspaceChangedEventAsync here?
         }
 
         /// <summary>
