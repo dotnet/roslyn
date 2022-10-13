@@ -73,36 +73,23 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
             _formatMap = taggerProvider.ClassificationFormatMapService.GetClassificationFormatMap(textView);
             _hintClassification = taggerProvider.ClassificationTypeRegistryService.GetClassificationType(InlineHintsTag.TagId);
             _formatMap.ClassificationFormatMappingChanged += this.OnClassificationFormatMappingChanged;
-            _tagAggregator.TagsChanged += OnTagAggregatorTagsChanged;
-            //_tagAggregator.BatchedTagsChanged += TagAggregator_BatchedTagsChanged;
+            _tagAggregator.BatchedTagsChanged += TagAggregator_BatchedTagsChanged;
         }
 
-        /*private void TagAggregator_BatchedTagsChanged(object sender, BatchedTagsChangedEventArgs e)
+        private void TagAggregator_BatchedTagsChanged(object sender, BatchedTagsChangedEventArgs e)
         {
-            using var _ = ArrayBuilder<SnapshotSpan>.GetInstance(out var builder);
-            foreach (var mappingSpan in e.Spans)
+            _cacheSnapshot = null;
+            _cache.Clear();
+            var mappingSpans = e.Spans;
+            foreach (var item in mappingSpans)
             {
-                var normalizedSpan = mappingSpan.GetSpans(_textView.TextSnapshot);
-                builder.AddRange(normalizedSpan);
+                var spans = item.GetSpans(_buffer);
+                foreach (var span in spans)
+                {
+                    TagsChanged?.Invoke(this, new SnapshotSpanEventArgs(span));
+                }
             }
-
-            var changedSnapshotSpans = builder.ToImmutable();
-            if (changedSnapshotSpans.Length == 0)
-            {
-                return;
-            }
-
-            var startOfChangedSpan = changedSnapshotSpans.Min(span => span.Start);
-            var endOfChangedSpan = changedSnapshotSpans.Max(span => span.End);
-            var changedSpan = new SnapshotSpan(startOfChangedSpan, endOfChangedSpan);
-
-            //var allSpans = e.Spans.SelectMany(span => span.GetSpans(_textView.TextBuffer));
-            var tags = GetTags(new NormalizedSnapshotSpanCollection(changedSpan));
-            foreach (var tag in tags)
-            {
-                TagsChanged?.Invoke(this, new SnapshotSpanEventArgs(tag.Span));
-            }
-        }*/
+        }
 
         private void OnClassificationFormatMappingChanged(object sender, EventArgs e)
         {
@@ -111,6 +98,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
             {
                 _format = null;
                 _cacheSnapshot = null;
+                _cache.Clear();
 
                 // When classifications change we need to rebuild the inline tags with updated Font and Color information.
                 var tags = GetTags(new NormalizedSnapshotSpanCollection(_textView.TextViewLines.FormattedSpan));
@@ -119,16 +107,6 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
                 {
                     TagsChanged?.Invoke(this, new SnapshotSpanEventArgs(tag.Span));
                 }
-            }
-        }
-
-        private void OnTagAggregatorTagsChanged(object sender, TagsChangedEventArgs e)
-        {
-            _cacheSnapshot = null;
-            var spans = e.Span.GetSpans(_buffer);
-            foreach (var span in spans)
-            {
-                TagsChanged?.Invoke(this, new SnapshotSpanEventArgs(span));
             }
         }
 
@@ -211,8 +189,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
 
         public void Dispose()
         {
-            _tagAggregator.TagsChanged -= OnTagAggregatorTagsChanged;
-           // _tagAggregator.BatchedTagsChanged -= TagAggregator_BatchedTagsChanged;
+            _tagAggregator.BatchedTagsChanged -= TagAggregator_BatchedTagsChanged;
             _tagAggregator.Dispose();
             _formatMap.ClassificationFormatMappingChanged -= OnClassificationFormatMappingChanged;
         }
