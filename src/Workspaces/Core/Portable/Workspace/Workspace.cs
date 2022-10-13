@@ -266,9 +266,9 @@ namespace Microsoft.CodeAnalysis
             // This should be fixable once SolutionCrawler is entirely removed.
             // using (_serializationLock.DisposableWait())
             {
-                SetCurrentSolution(CurrentSolution.WithOptions(new SolutionOptionSet(_legacyOptions)));
+                var (oldSolution, newSolution) = SetCurrentSolution(CurrentSolution.WithOptions(new SolutionOptionSet(_legacyOptions)));
 
-                // TODO: Are we missing a call to RaiseWorkspaceChangedEventAsync here?
+                RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.SolutionChanged, oldSolution, newSolution);
             }
         }
 
