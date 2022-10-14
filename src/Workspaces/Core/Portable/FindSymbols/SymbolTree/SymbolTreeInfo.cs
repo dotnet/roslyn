@@ -132,6 +132,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
         public SymbolTreeInfo WithChecksum(Checksum checksum)
         {
+            if (checksum == this.Checksum)
+                return this;
+
             return new SymbolTreeInfo(
                 checksum, _nodes, _spellChecker, _inheritanceMap, _receiverTypeNameToExtensionMethodMap);
         }
@@ -317,18 +320,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         }
 
         #region Construction
-
-        /// <summary>
-        /// Cache the symbol tree infos for assembly symbols produced from a particular <see
-        /// cref="PortableExecutableReference"/>. Generating symbol trees for metadata can be expensive (in large
-        /// metadata cases).  And it's common for us to have many threads to want to search the same metadata
-        /// simultaneously. As such, we use an AsyncLazy to compute the value that can be shared among all callers.
-        /// <para>
-        /// We store this keyed off of the <see cref="Checksum"/> produced by <see cref="GetMetadataChecksum"/>.  This
-        /// ensures that 
-        /// </para>
-        /// </summary>
-        private static readonly ConditionalWeakTable<PortableExecutableReference, AsyncLazy<SymbolTreeInfo>> s_peReferenceToInfo = new();
 
         private static SpellChecker CreateSpellChecker(Checksum checksum, ImmutableArray<Node> sortedNodes)
             => new(checksum, sortedNodes.Select(n => n.Name.AsMemory()));
