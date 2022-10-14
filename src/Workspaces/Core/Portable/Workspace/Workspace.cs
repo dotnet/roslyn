@@ -2144,7 +2144,7 @@ namespace Microsoft.CodeAnalysis
         /// Throws an exception if an analyzer config is not part of the current solution.
         /// </summary>
         protected void CheckAnalyzerConfigDocumentIsInCurrentSolution(DocumentId documentId)
-            => CheckAdditionalDocumentIsInSolution(this.CurrentSolution, documentId);
+            => CheckAnalyzerConfigDocumentIsInSolution(this.CurrentSolution, documentId);
 
         private static void CheckAnalyzerConfigDocumentIsInSolution(Solution solution, DocumentId documentId)
         {
