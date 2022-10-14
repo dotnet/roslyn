@@ -75,7 +75,6 @@ namespace Microsoft.CodeAnalysis
                 _treeSource = CreateLazyFullyParsedTree(
                     TextAndVersionSource,
                     LoadTextOptions,
-                    info.Id.ProjectId,
                     info.Attributes.SyntaxTreeFilePath,
                     options,
                     languageServices);
@@ -102,22 +101,20 @@ namespace Microsoft.CodeAnalysis
         protected static ValueSource<TreeAndVersion> CreateLazyFullyParsedTree(
             ITextAndVersionSource newTextSource,
             LoadTextOptions loadTextOptions,
-            ProjectId cacheKey,
             string? filePath,
             ParseOptions options,
             HostLanguageServices languageServices,
             PreservationMode mode = PreservationMode.PreserveValue)
         {
             return new AsyncLazy<TreeAndVersion>(
-                c => FullyParseTreeAsync(newTextSource, loadTextOptions, cacheKey, filePath, options, languageServices, mode, c),
-                c => FullyParseTree(newTextSource, loadTextOptions, cacheKey, filePath, options, languageServices, mode, c),
+                c => FullyParseTreeAsync(newTextSource, loadTextOptions, filePath, options, languageServices, mode, c),
+                c => FullyParseTree(newTextSource, loadTextOptions, filePath, options, languageServices, mode, c),
                 cacheResult: true);
         }
 
         private static async Task<TreeAndVersion> FullyParseTreeAsync(
             ITextAndVersionSource newTextSource,
             LoadTextOptions loadTextOptions,
-            ProjectId cacheKey,
             string? filePath,
             ParseOptions options,
             HostLanguageServices languageServices,
@@ -127,7 +124,7 @@ namespace Microsoft.CodeAnalysis
             using (Logger.LogBlock(FunctionId.Workspace_Document_State_FullyParseSyntaxTree, s_fullParseLog, filePath, mode, cancellationToken))
             {
                 var textAndVersion = await newTextSource.GetValueAsync(loadTextOptions, cancellationToken).ConfigureAwait(false);
-                var treeAndVersion = CreateTreeAndVersion(newTextSource, cacheKey, filePath, options, languageServices, mode, textAndVersion, cancellationToken);
+                var treeAndVersion = CreateTreeAndVersion(filePath, options, languageServices, textAndVersion, cancellationToken);
 
                 // The tree may be a RecoverableSyntaxTree. In its initial state, the RecoverableSyntaxTree keeps a
                 // strong reference to the root SyntaxNode, and only transitions to a weak reference backed by temporary
@@ -144,7 +141,6 @@ namespace Microsoft.CodeAnalysis
         private static TreeAndVersion FullyParseTree(
             ITextAndVersionSource newTextSource,
             LoadTextOptions loadTextOptions,
-            ProjectId cacheKey,
             string? filePath,
             ParseOptions options,
             HostLanguageServices languageServices,
@@ -154,7 +150,7 @@ namespace Microsoft.CodeAnalysis
             using (Logger.LogBlock(FunctionId.Workspace_Document_State_FullyParseSyntaxTree, s_fullParseLog, filePath, mode, cancellationToken))
             {
                 var textAndVersion = newTextSource.GetValue(loadTextOptions, cancellationToken);
-                var treeAndVersion = CreateTreeAndVersion(newTextSource, cacheKey, filePath, options, languageServices, mode, textAndVersion, cancellationToken);
+                var treeAndVersion = CreateTreeAndVersion(filePath, options, languageServices, textAndVersion, cancellationToken);
 
                 // The tree may be a RecoverableSyntaxTree. In its initial state, the RecoverableSyntaxTree keeps a
                 // strong reference to the root SyntaxNode, and only transitions to a weak reference backed by temporary
@@ -169,12 +165,9 @@ namespace Microsoft.CodeAnalysis
         }
 
         private static TreeAndVersion CreateTreeAndVersion(
-            ITextAndVersionSource newTextSource,
-            ProjectId cacheKey,
             string? filePath,
             ParseOptions options,
             HostLanguageServices languageServices,
-            PreservationMode mode,
             TextAndVersion textAndVersion,
             CancellationToken cancellationToken)
         {
@@ -183,12 +176,6 @@ namespace Microsoft.CodeAnalysis
             var treeFactory = languageServices.GetRequiredService<ISyntaxTreeFactoryService>();
 
             var tree = treeFactory.ParseSyntaxTree(filePath, options, text, cancellationToken);
-
-            var root = tree.GetRoot(cancellationToken);
-            if (mode == PreservationMode.PreserveValue && false)
-            {
-                tree = treeFactory.CreateRecoverableTree(cacheKey, tree.FilePath, tree.Options, newTextSource, new LoadTextOptions(text.ChecksumAlgorithm), text.Encoding, root);
-            }
 
             Contract.ThrowIfNull(tree);
             CheckTree(tree, text);
@@ -341,7 +328,6 @@ namespace Microsoft.CodeAnalysis
             var newTreeSource = SupportsSyntaxTree ? CreateLazyFullyParsedTree(
                 TextAndVersionSource,
                 newLoadTextOptions,
-                Id.ProjectId,
                 Attributes.SyntaxTreeFilePath,
                 _options,
                 _languageServices) : null;
@@ -413,7 +399,6 @@ namespace Microsoft.CodeAnalysis
             newTreeSource ??= CreateLazyFullyParsedTree(
                 TextAndVersionSource,
                 LoadTextOptions,
-                Id.ProjectId,
                 Attributes.SyntaxTreeFilePath,
                 options,
                 _languageServices);
@@ -473,7 +458,6 @@ namespace Microsoft.CodeAnalysis
                 CreateLazyFullyParsedTree(
                     TextAndVersionSource,
                     LoadTextOptions,
-                    Id.ProjectId,
                     newAttributes.SyntaxTreeFilePath,
                     _options,
                     _languageServices) : null;
@@ -515,7 +499,6 @@ namespace Microsoft.CodeAnalysis
                 newTreeSource = CreateLazyFullyParsedTree(
                     newTextSource,
                     LoadTextOptions,
-                    Id.ProjectId,
                     Attributes.SyntaxTreeFilePath,
                     _options,
                     _languageServices,
