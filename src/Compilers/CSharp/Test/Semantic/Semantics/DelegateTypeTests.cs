@@ -13180,24 +13180,24 @@ class Program
         [InlineData("C", "null", "")]
         public void LambdaDefaultParameter_AllConstantValueTypes(string parameterType, string defaultValue = "0", string expectedOutput = "0")
         {
-            var source = $@"
+            var source = $$"""
 using System;
 public class Program
-{{
+{
     public enum E 
-    {{
+    {
         FIELD
-    }}
+    }
     
-    class C {{}}
+    class C {}
 
     public static void Main()
-    {{
-        var lam = ({parameterType} p = {defaultValue}) => p;
+    {
+        var lam = ({{parameterType}} p = {{defaultValue}}) => p;
         Console.WriteLine(lam());
-    }}
-}}
-";
+    }
+}
+""";
             CompileAndVerify(source, expectedOutput: expectedOutput);
         }
 
@@ -13402,11 +13402,11 @@ class Program
 """;
             var verifier = CompileAndVerify(source, expectedOutput: "");
             verifier.VerifyTypeIL("<>f__AnonymousDelegate0",
-$@"
+$$"""
 .class private auto ansi sealed '<>f__AnonymousDelegate0'
-	extends [{s_libPrefix}]System.MulticastDelegate
-{{
-	.custom instance void [{s_libPrefix}]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+	extends [{{s_libPrefix}}]System.MulticastDelegate
+{
+	.custom instance void [{{s_libPrefix}}]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
 		01 00 00 00
 	)
 	// Methods
@@ -13415,20 +13415,20 @@ $@"
 			object 'object',
 			native int 'method'
 		) runtime managed 
-	{{
-	}} // end of method '<>f__AnonymousDelegate0'::.ctor
+	{
+	} // end of method '<>f__AnonymousDelegate0'::.ctor
 	.method public hidebysig newslot virtual 
 		instance void Invoke (
 			[opt] object ''
 		) runtime managed 
-	{{
+	{
 		.param [1] = nullref
-			.custom instance void [{s_corePrefix}]System.Runtime.CompilerServices.DynamicAttribute::.ctor() = (
+			.custom instance void [{{s_corePrefix}}]System.Runtime.CompilerServices.DynamicAttribute::.ctor() = (
 				01 00 00 00
 			)
-	}} // end of method '<>f__AnonymousDelegate0'::Invoke
-}} // end of class <>f__AnonymousDelegate0
-");
+	} // end of method '<>f__AnonymousDelegate0'::Invoke
+} // end of class <>f__AnonymousDelegate0
+""");
         }
 
         [Fact]
@@ -13449,11 +13449,11 @@ class Program
             var verifier = CompileAndVerify(source);
             verifier.VerifyTypeIL(
                 "<>F{00000001}`3",
-@$"
-.class private auto ansi sealed '<>F{{00000001}}`3'<T1, T2, TResult>
-	extends [{s_libPrefix}]System.MulticastDelegate
-{{
-	.custom instance void [{s_libPrefix}]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+$$"""
+.class private auto ansi sealed '<>F{00000001}`3'<T1, T2, TResult>
+	extends [{{s_libPrefix}}]System.MulticastDelegate
+{
+	.custom instance void [{{s_libPrefix}}]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
 		01 00 00 00
 	)
 	// Methods
@@ -13462,59 +13462,59 @@ class Program
 			object 'object',
 			native int 'method'
 		) runtime managed 
-	{{
+	{
 
-	}} // end of method '<>F{{00000001}}`3'::.ctor
+	} // end of method '<>F{00000001}`3'::.ctor
 	.method public hidebysig newslot virtual 
 		instance !TResult Invoke (
 			!T1& '',
 
 			!T2 ''
 		) runtime managed 
-	{{
-	}} // end of method '<>F{{00000001}}`3'::Invoke
-}} // end of class <>F{{00000001}}`3
-");
+	{
+	} // end of method '<>F{00000001}`3'::Invoke
+} // end of class <>F{00000001}`3
+""");
             verifier.VerifyTypeIL("<>c",
-@$"
+$$"""
 .class nested private auto ansi sealed serializable beforefieldinit '<>c'
-	extends [{s_libPrefix}]System.Object
-{{
-	.custom instance void [{s_libPrefix}]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+	extends [{{s_libPrefix}}]System.Object
+{
+	.custom instance void [{{s_libPrefix}}]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
 		01 00 00 00
 	)
 	// Fields
 	.field public static initonly class Program/'<>c' '<>9'
-	.field public static class '<>F{{00000001}}`3'<int32, object, int32> '<>9__1_0'
+	.field public static class '<>F{00000001}`3'<int32, object, int32> '<>9__1_0'
 	// Methods
 	.method private hidebysig specialname rtspecialname static 
 		void .cctor () cil managed 
-	{{
+	{
 		// Method begins at RVA 0x20a2
 		// Code size 11 (0xb)
 		.maxstack 8
 		IL_0000: newobj instance void Program/'<>c'::.ctor()
 		IL_0005: stsfld class Program/'<>c' Program/'<>c'::'<>9'
 		IL_000a: ret
-	}} // end of method '<>c'::.cctor
+	} // end of method '<>c'::.cctor
 	.method public hidebysig specialname rtspecialname 
 		instance void .ctor () cil managed 
-	{{
+	{
 		// Method begins at RVA 0x209a
 		// Code size 7 (0x7)
 		.maxstack 8
 		IL_0000: ldarg.0
-		IL_0001: call instance void [{s_libPrefix}]System.Object::.ctor()
+		IL_0001: call instance void [{{s_libPrefix}}]System.Object::.ctor()
 		IL_0006: ret
-	}} // end of method '<>c'::.ctor
+	} // end of method '<>c'::.ctor
 	.method assembly hidebysig 
 		instance int32 '<Main>b__1_0' (
 			int32& i,
 			object d
 		) cil managed 
-	{{
+	{
 		.param [2]
-			.custom instance void [{s_corePrefix}]System.Runtime.CompilerServices.DynamicAttribute::.ctor() = (
+			.custom instance void [{{s_corePrefix}}]System.Runtime.CompilerServices.DynamicAttribute::.ctor() = (
 				01 00 00 00
 			)
 		// Method begins at RVA 0x20ae
@@ -13523,9 +13523,9 @@ class Program
 		IL_0000: ldarg.1
 		IL_0001: ldind.i4
 		IL_0002: ret
-	}} // end of method '<>c'::'<Main>b__1_0'
-}} // end of class <>c
-");
+	} // end of method '<>c'::'<Main>b__1_0'
+} // end of class <>c
+""");
         }
 
         [Fact]
