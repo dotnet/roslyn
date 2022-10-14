@@ -218,19 +218,46 @@ namespace Microsoft.CodeAnalysis
             ProjectId? projectId = null,
             DocumentId? documentId = null)
         {
-            return SetCurrentSolution(transformation, static _ => { }, kind, projectId, documentId);
+            return SetCurrentSolution(
+                transformation,
+                onAfterUpdate: static (_, _) => { },
+                kind, projectId, documentId);
         }
 
         /// <inheritdoc cref="SetCurrentSolution(Func{Solution, Solution}, WorkspaceChangeKind, ProjectId?, DocumentId?)"/>
-        /// <param name="onAfterUpdate">Callback to run only once the solution returned by <paramref
-        /// name="transformation"/> has been assigned as the <see cref="CurrentSolution"/> of this <see
-        /// cref="Workspace"/>.</param>
         internal bool SetCurrentSolution(
             Func<Solution, Solution> transformation,
-            Action<Solution> onAfterUpdate,
+            Action<Solution, Solution> onAfterUpdate,
             WorkspaceChangeKind kind,
             ProjectId? projectId = null,
             DocumentId? documentId = null)
+        {
+            return SetCurrentSolution(
+                transformation,
+                onAfterUpdate: (oldSolution, newSolution) =>
+                {
+                    onAfterUpdate(oldSolution, newSolution);
+
+                    // Queue the event but don't execute its handlers on this thread.
+                    // Doing so under the serialization lock guarantees the same ordering of the events
+                    // as the order of the changes made to the solution.
+                    RaiseWorkspaceChangedEventAsync(kind, oldSolution, newSolution, projectId, documentId);
+                });
+        }
+
+        /// <summary>
+        /// Applies specified transformation to <see cref="CurrentSolution"/>, updates <see cref="CurrentSolution"/> to the new value and raises a workspace change event of the specified kind.
+        /// </summary>
+        /// <param name="transformation">Solution transformation.</param>
+        /// <param name="onAfterUpdate">Action to perform once <see cref="CurrentSolution"/> has been updated.  The
+        /// action will be passed the old <see cref="CurrentSolution"/> that was just replaced and the exact solution it
+        /// was replaced with. The latter may be different than the solution returned by <paramref
+        /// name="transformation"/> as it will have its <see cref="Solution.WorkspaceVersion"/> updated accordingly.
+        /// Updating the solution and invoking <paramref name="onAfterUpdate"/> will happen atomically while <see
+        /// cref="_serializationLock"/> is being held.</param>
+        internal bool SetCurrentSolution(
+            Func<Solution, Solution> transformation,
+            Action<Solution, Solution> onAfterUpdate)
         {
             Contract.ThrowIfNull(transformation);
 
@@ -252,13 +279,7 @@ namespace Microsoft.CodeAnalysis
                     oldSolution = Interlocked.CompareExchange(ref _latestSolution, newSolution, currentSolution);
                     if (oldSolution == currentSolution)
                     {
-                        onAfterUpdate(newSolution);
-
-                        // Queue the event but don't execute its handlers on this thread.
-                        // Doing so under the serialization lock guarantees the same ordering of the events
-                        // as the order of the changes made to the solution.
-                        RaiseWorkspaceChangedEventAsync(kind, oldSolution, newSolution, projectId, documentId);
-
+                        onAfterUpdate(oldSolution, newSolution);
                         return true;
                     }
                 }
@@ -730,16 +751,16 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         protected internal void OnDocumentsAdded(ImmutableArray<DocumentInfo> documentInfos)
         {
-            using (_serializationLock.DisposableWait())
-            {
-                var (oldSolution, newSolution) = this.SetCurrentSolutionEx(this.CurrentSolution.AddDocuments(documentInfos));
+            this.SetCurrentSolution(
+                oldSolution => oldSolution.AddDocuments(documentInfos),
+                onAfterUpdate: (oldSolution, newSolution) =>
+                {
+                    // Raise ProjectChanged as the event type here. DocumentAdded is presumed by many callers to have a
+                    // DocumentId associated with it, and we don't want to be raising multiple events.
 
-                // Raise ProjectChanged as the event type here. DocumentAdded is presumed by many callers to have a
-                // DocumentId associated with it, and we don't want to be raising multiple events.
-
-                foreach (var projectId in documentInfos.Select(i => i.Id.ProjectId).Distinct())
-                    this.RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.ProjectChanged, oldSolution, newSolution, projectId);
-            }
+                    foreach (var projectId in documentInfos.Select(i => i.Id.ProjectId).Distinct())
+                        this.RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.ProjectChanged, oldSolution, newSolution, projectId);
+                });
         }
 
         /// <summary>
@@ -792,7 +813,7 @@ namespace Microsoft.CodeAnalysis
                     CheckDocumentIsInSolution(oldSolution, documentId);
                     return oldSolution.WithDocumentTextLoader(documentId, loader, PreservationMode.PreserveValue);
                 },
-                onAfterUpdate: newSolution => this.OnDocumentTextChanged(newSolution.GetRequiredDocument(documentId)),
+                onAfterUpdate: (_, newSolution) => this.OnDocumentTextChanged(newSolution.GetRequiredDocument(documentId)),
                 WorkspaceChangeKind.DocumentChanged, documentId: documentId);
         }
 
@@ -991,7 +1012,7 @@ namespace Microsoft.CodeAnalysis
                     CheckDocumentIsInSolution(oldSolution, documentId);
                     return oldSolution.WithDocumentSourceCodeKind(documentId, sourceCodeKind);
                 },
-                onAfterUpdate: newSolution => this.OnDocumentTextChanged(newSolution.GetRequiredDocument(documentId)),
+                onAfterUpdate: (_, newSolution) => this.OnDocumentTextChanged(newSolution.GetRequiredDocument(documentId)),
                 WorkspaceChangeKind.DocumentChanged, documentId: documentId);
         }
 
