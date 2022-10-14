@@ -144,6 +144,10 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         await ExecuteAsync().ConfigureAwait(false);
                     }
                 }
+                catch (OperationCanceledException)
+                {
+                    // ignore cancellation exception
+                }
                 catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e))
                 {
                     // In case any error happen during the execution, don't exit the loop and continue to work on the next item.
