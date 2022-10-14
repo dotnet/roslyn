@@ -81,8 +81,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 
             SetCurrentSolution(CreateSolution(SolutionInfo.Create(SolutionId.CreateNewId(), VersionStamp.Create()).WithTelemetryId(solutionTelemetryId)));
 
-            this.TestHookPartialSolutionsDisabled = disablePartialSolutions;
-
             _workspaceKind = workspaceKind ?? WorkspaceKind.Host;
             this.Projects = new List<TestHostProject>();
             this.Documents = new List<TestHostDocument>();
