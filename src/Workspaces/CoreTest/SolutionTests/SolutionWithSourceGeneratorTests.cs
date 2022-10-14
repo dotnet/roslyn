@@ -91,6 +91,28 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Single((await project.GetRequiredCompilationAsync(CancellationToken.None)).SyntaxTrees);
         }
 
+        // We only run this test on Release, as the compiler has asserts that trigger in Debug that the type names probably shouldn't be the same.
+        [ConditionalFact(typeof(IsRelease))]
+        public async Task GeneratorAddedWithDifferentFilePathsProducesDistinctDocumentIds()
+        {
+            using var workspace = CreateWorkspace();
+
+            // Produce two generator references with different paths, but the same generator by assembly/type. We will still give them separate
+            // generator instances, because in the "real" analyzer reference case each analyzer reference produces it's own generator objects.
+            var generatorReference1 = new TestGeneratorReference(new SingleFileTestGenerator("", hintName: "DuplicateFile"), analyzerFilePath: "Z:\\A.dll");
+            var generatorReference2 = new TestGeneratorReference(new SingleFileTestGenerator("", hintName: "DuplicateFile"), analyzerFilePath: "Z:\\B.dll");
+
+            var project = AddEmptyProject(workspace.CurrentSolution)
+                .AddAnalyzerReferences(new[] { generatorReference1, generatorReference2 });
+
+            Assert.Equal(2, (await project.GetRequiredCompilationAsync(CancellationToken.None)).SyntaxTrees.Count());
+
+            var generatedDocuments = (await project.GetSourceGeneratedDocumentsAsync()).ToList();
+            Assert.Equal(2, generatedDocuments.Count);
+
+            Assert.NotEqual(generatedDocuments[0].Id, generatedDocuments[1].Id);
+        }
+
         [Fact]
         public async Task IncrementalSourceGeneratorInvokedCorrectNumberOfTimes()
         {

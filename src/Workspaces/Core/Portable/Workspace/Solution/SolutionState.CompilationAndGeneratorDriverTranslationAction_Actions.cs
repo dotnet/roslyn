@@ -330,7 +330,7 @@ namespace Microsoft.CodeAnalysis
                     var generatorDriver = _oldGeneratorDriver.ReplaceAdditionalTexts(_newProjectState.AdditionalDocumentStates.SelectAsArray(static documentState => documentState.AdditionalText))
                                                      .WithUpdatedParseOptions(_newProjectState.ParseOptions!)
                                                      .WithUpdatedAnalyzerConfigOptions(_newProjectState.AnalyzerOptions.AnalyzerConfigOptionsProvider)
-                                                     .ReplaceGenerators(_newProjectState.SourceGenerators);
+                                                     .ReplaceGenerators(_newProjectState.SourceGenerators.ToImmutableArray());
 
                     return generatorDriver;
                 }
