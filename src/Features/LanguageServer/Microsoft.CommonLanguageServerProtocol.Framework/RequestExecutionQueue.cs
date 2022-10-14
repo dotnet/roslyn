@@ -49,6 +49,7 @@ public class RequestExecutionQueue<TRequestContext> : IRequestExecutionQueue<TRe
 {
     protected readonly ILspLogger _logger;
     private readonly IHandlerProvider _handlerProvider;
+    private readonly AbstractLanguageServer<TRequestContext> _languageServer;
 
     /// <summary>
     /// The queue containing the ordered LSP requests along with the trace activityId (to associate logs with a request) and
@@ -65,8 +66,9 @@ public class RequestExecutionQueue<TRequestContext> : IRequestExecutionQueue<TRe
 
     public CancellationToken CancellationToken => _cancelSource.Token;
 
-    public RequestExecutionQueue(ILspLogger logger, IHandlerProvider handlerProvider)
+    public RequestExecutionQueue(AbstractLanguageServer<TRequestContext> languageServer, ILspLogger logger, IHandlerProvider handlerProvider)
     {
+        _languageServer = languageServer;
         _logger = logger;
         _handlerProvider = handlerProvider;
     }
@@ -226,9 +228,8 @@ public class RequestExecutionQueue<TRequestContext> : IRequestExecutionQueue<TRe
             var message = $"Error occurred processing queue: {ex.Message}.";
             if (lspServices is not null)
             {
-                var lifecycleManager = lspServices.GetRequiredService<ILifeCycleManager>();
-                await lifecycleManager.ShutdownAsync(message).ConfigureAwait(false);
-                await lifecycleManager.ExitAsync().ConfigureAwait(false);
+                await _languageServer.ShutdownAsync("Error processing queue, shutting down").ConfigureAwait(false);
+                await _languageServer.ExitAsync().ConfigureAwait(false);
             }
 
             await DisposeAsync().ConfigureAwait(false);

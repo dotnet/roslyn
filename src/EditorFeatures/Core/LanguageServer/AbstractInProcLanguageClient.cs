@@ -148,9 +148,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
 
             if (_languageServer is not null)
             {
-                Contract.ThrowIfFalse(_languageServer.HasShutdownStarted, "The language server has not yet been asked to shutdown.");
-
-                await _languageServer.DisposeAsync().ConfigureAwait(false);
+                await _languageServer.WaitForExitAsync().ConfigureAwait(false);
             }
 
             var (clientStream, serverStream) = FullDuplexStream.CreatePair();

@@ -8,13 +8,26 @@ using System.Threading.Tasks;
 namespace Microsoft.CommonLanguageServerProtocol.Framework;
 
 /// <summary>
-/// Enables the managment of the server lifecycle from outside of the AbstractlanguageServer object.
-/// This allows implementors an entry-point to do things like log error messages and
-/// clean up things related to server exit and shutdown.
+/// An optional component to run additional logic when LSP shutdown and exit are called,
+/// for example logging messages, cleaning up custom resources, etc.
 /// </summary>
 public interface ILifeCycleManager
 {
+    /// <summary>
+    /// Called when the server recieves the LSP exit notification.
+    /// </summary>
+    /// <remarks>
+    /// This is called before LSP services and the JsonRpc connection is disposed of.
+    /// Implementations are not expected to be threadsafe.
+    /// </remarks>
     Task ExitAsync();
 
+    /// <summary>
+    /// Called when the server recieves the LSP shutdown request.
+    /// </summary>
+    /// <remarks>
+    /// This is called before the request execution is closed.
+    /// Implementations are not expected to be threadsafe.
+    /// </remarks>
     Task ShutdownAsync(string message = "Shutting down");
 }

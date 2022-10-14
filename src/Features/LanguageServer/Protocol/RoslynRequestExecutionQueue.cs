@@ -11,8 +11,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer
 {
     internal class RoslynRequestExecutionQueue : RequestExecutionQueue<RequestContext>
     {
-        public RoslynRequestExecutionQueue(ILspLogger logger, IHandlerProvider handlerProvider)
-            : base(logger, handlerProvider)
+        public RoslynRequestExecutionQueue(AbstractLanguageServer<RequestContext> languageServer, ILspLogger logger, IHandlerProvider handlerProvider)
+            : base(languageServer, logger, handlerProvider)
         {
         }
 
