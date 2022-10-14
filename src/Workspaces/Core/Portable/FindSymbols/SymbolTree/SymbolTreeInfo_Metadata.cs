@@ -110,7 +110,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             if (s_peReferenceToInfo.TryGetValue(reference, out var infoTask))
             {
                 var info = await infoTask.GetValueAsync(cancellationToken).ConfigureAwait(false);
-                Contract.ThrowIfFalse(info.Checksum != checksum, "How could the info stored for a particular PEReference now have a different checksum?");
+                Contract.ThrowIfTrue(info.Checksum != checksum, "How could the info stored for a particular PEReference now have a different checksum?");
                 return info;
             }
 
