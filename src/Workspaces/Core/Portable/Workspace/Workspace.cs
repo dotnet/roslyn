@@ -205,14 +205,15 @@ namespace Microsoft.CodeAnalysis
             DocumentId? documentId = null)
         {
             return SetCurrentSolution(
-                transformation,
-                onAfterUpdate: (oldSolution, newSolution) =>
+                static (oldSolution, data) => data.transformation(oldSolution),
+                onAfterUpdate: static (oldSolution, newSolution, data) =>
                 {
                     // Queue the event but don't execute its handlers on this thread.
                     // Doing so under the serialization lock guarantees the same ordering of the events
                     // as the order of the changes made to the solution.
-                    RaiseWorkspaceChangedEventAsync(kind, oldSolution, newSolution, projectId, documentId);
-                });
+                    data.@this.RaiseWorkspaceChangedEventAsync(data.kind, oldSolution, newSolution, data.projectId, data.documentId);
+                },
+                (@this: this, transformation, kind, projectId, documentId));
         }
 
         /// <summary>
@@ -225,9 +226,10 @@ namespace Microsoft.CodeAnalysis
         /// name="transformation"/> as it will have its <see cref="Solution.WorkspaceVersion"/> updated accordingly.
         /// Updating the solution and invoking <paramref name="onAfterUpdate"/> will happen atomically while <see
         /// cref="_serializationLock"/> is being held.</param>
-        internal bool SetCurrentSolution(
-            Func<Solution, Solution> transformation,
-            Action<Solution, Solution> onAfterUpdate)
+        internal bool SetCurrentSolution<TData>(
+            Func<Solution, TData, Solution> transformation,
+            Action<Solution, Solution, TData> onAfterUpdate,
+            TData data)
         {
             Contract.ThrowIfNull(transformation);
 
@@ -235,7 +237,7 @@ namespace Microsoft.CodeAnalysis
 
             while (true)
             {
-                var transformedSolution = transformation(currentSolution);
+                var transformedSolution = transformation(currentSolution, data);
                 if (transformedSolution == currentSolution)
                 {
                     return false;
@@ -249,7 +251,7 @@ namespace Microsoft.CodeAnalysis
                     oldSolution = Interlocked.CompareExchange(ref _latestSolution, newSolution, currentSolution);
                     if (oldSolution == currentSolution)
                     {
-                        onAfterUpdate(oldSolution, newSolution);
+                        onAfterUpdate(oldSolution, newSolution, data);
                         return true;
                     }
                 }
@@ -715,15 +717,15 @@ namespace Microsoft.CodeAnalysis
         protected internal void OnDocumentsAdded(ImmutableArray<DocumentInfo> documentInfos)
         {
             this.SetCurrentSolution(
-                oldSolution => oldSolution.AddDocuments(documentInfos),
-                onAfterUpdate: (oldSolution, newSolution) =>
+                static (oldSolution, data) => oldSolution.AddDocuments(data.documentInfos),
+                onAfterUpdate: static (oldSolution, newSolution, data) =>
                 {
                     // Raise ProjectChanged as the event type here. DocumentAdded is presumed by many callers to have a
                     // DocumentId associated with it, and we don't want to be raising multiple events.
 
-                    foreach (var projectId in documentInfos.Select(i => i.Id.ProjectId).Distinct())
-                        this.RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.ProjectChanged, oldSolution, newSolution, projectId);
-                });
+                    foreach (var projectId in data.documentInfos.Select(i => i.Id.ProjectId).Distinct())
+                        data.@this.RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.ProjectChanged, oldSolution, newSolution, projectId);
+                }, (@this: this, documentInfos));
         }
 
         /// <summary>
