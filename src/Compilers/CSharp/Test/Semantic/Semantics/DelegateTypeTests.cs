@@ -13308,8 +13308,6 @@ class Program
             var source = """
 class Program
 {
-    // Named delegate has required parameter x
-    public static int f(int x) => 2 * x;
     public static void Main()
     {
         int n = 42;
@@ -13319,9 +13317,9 @@ class Program
 }
 """;
             CreateCompilation(source).VerifyDiagnostics(
-                // (9,31): error CS1736: Default parameter value for 's' must be a compile-time constant
+                // (7,31): error CS1736: Default parameter value for 's' must be a compile-time constant
                 //         var lam = (string s = $"n: {n}") => { };
-                Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, @"$""n: {n}""").WithArguments("s").WithLocation(9, 31));
+                Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, @"$""n: {n}""").WithArguments("s").WithLocation(7, 31));
         }
 
         [Fact]
