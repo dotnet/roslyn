@@ -66,61 +66,6 @@ static class Utils
         private static readonly string s_libPrefix = ExecutionConditionUtil.IsDesktop ? "mscorlib" : "netstandard";
         private static readonly string s_corePrefix = ExecutionConditionUtil.IsDesktop ? "System.Core" : "netstandard";
 
-        private void TestDiagnosticsInMain(string mainBody, string[]? usings = null, TargetFramework targetFramework = TargetFramework.Standard, params DiagnosticDescription[] expectedDiagnostics)
-        {
-            if (usings is null)
-            {
-                usings = Array.Empty<string>();
-            }
-
-            var source = "";
-            foreach (var use in usings)
-            {
-                source += $"using {use};";
-            }
-
-            source += $@"
-class Program
-{{
-    public static void Main()
-    {{
-        {mainBody}
-    }}
-
-}}
-";
-            CreateCompilation(source, targetFramework: targetFramework).VerifyDiagnostics(expectedDiagnostics);
-        }
-
-        private void TestInMain(string mainBody, string[]? usings = null, TargetFramework targetFramework = TargetFramework.Standard, string? expectedOutput = null, CSharpCompilationOptions? compilationOptions = null,
-            params DiagnosticDescription[] diagnosticDescriptions)
-        {
-            if (usings is null)
-            {
-                usings = Array.Empty<string>();
-            }
-
-            var source = "";
-            foreach (var use in usings)
-            {
-                source += $"using {use};";
-            }
-
-            source += $@"
-class Program
-{{
-    public static void Main()
-    {{
-        {mainBody}
-    }}
-
-}}
-";
-            // create compilation with main body
-            CompileAndVerify(source, targetFramework: targetFramework, expectedOutput: expectedOutput, options: compilationOptions)
-                .VerifyDiagnostics(diagnosticDescriptions);
-        }
-
         [Fact]
         public void LanguageVersion()
         {
@@ -13204,32 +13149,32 @@ public class Program
         [Fact]
         public void LambdaDefaultParameter_TargetTypedValidLiteralConversion()
         {
-            TestDiagnosticsInMain(
-"""
-var lam = (short s = 1) => { };
-""");
+            var source = """
+                var lam = (short s = 1) => { };
+                """;
+            CreateCompilation(source).VerifyDiagnostics();
         }
 
         [Fact]
         public void LambdaDefaultParameter_TargetTypeInvalidLiteralConversion()
         {
-            TestDiagnosticsInMain(
-"""
-var lam = (short s = 32768) => { };
-""", expectedDiagnostics:
-                 // (6,26): error CS1750: A value of type 'int' cannot be used as a default parameter because there are no standard conversions to type 'short'
-                 //         var lam = (short s = 32768) => { };
-                 Diagnostic(ErrorCode.ERR_NoConversionForDefaultParam, "s").WithArguments("int", "short").WithLocation(6, 26));
+            var source = """
+                var lam = (short s = 32768) => { };
+                """;
+            CreateCompilation(source).VerifyDiagnostics(
+                // (1,18): error CS1750: A value of type 'int' cannot be used as a default parameter because there are no standard conversions to type 'short'
+                // var lam = (short s = 32768) => { };
+                Diagnostic(ErrorCode.ERR_NoConversionForDefaultParam, "s").WithArguments("int", "short").WithLocation(1, 18));
         }
 
         [ConditionalFact(typeof(NoIOperationValidation))]
         public void LambdaDefaultParameter_TargetTypedValidNonLiteralConversion()
         {
-            TestDiagnosticsInMain(
-"""
-const float floatConst = 1f;
-var lam = (double d = floatConst) => { };
-""");
+            var source = """
+                const float floatConst = 1f;
+                var lam = (double d = floatConst) => { };
+                """;
+            CreateCompilation(source).VerifyDiagnostics();
         }
 
         [ConditionalFact(typeof(NoIOperationValidation))]
@@ -13273,11 +13218,13 @@ public class Program
         [Fact]
         public void LambdaWithDefault_InvalidConstantConversion()
         {
-            TestDiagnosticsInMain(
-@"var lam = (string s = 1) => { };", expectedDiagnostics:
-                // (6,27): error CS1750: A value of type 'int' cannot be used as a default parameter because there are no standard conversions to type 'string'
-                //         var lam = (string s = 1) => { };
-                Diagnostic(ErrorCode.ERR_NoConversionForDefaultParam, "s").WithArguments("int", "string").WithLocation(6, 27));
+            var source = """
+                var lam = (string s = 1) => { };
+                """;
+            CreateCompilation(source).VerifyDiagnostics(
+                // (1,19): error CS1750: A value of type 'int' cannot be used as a default parameter because there are no standard conversions to type 'string'
+                // var lam = (string s = 1) => { };
+                Diagnostic(ErrorCode.ERR_NoConversionForDefaultParam, "s").WithArguments("int", "string").WithLocation(1, 19));
         }
 
         [Fact]
@@ -13324,14 +13271,13 @@ class Program
         [Fact]
         public void LambdaWithDefault_NonConstantLiteral_U8String()
         {
-            TestDiagnosticsInMain(
-"""
-var lam = (ReadOnlySpan<byte> s = "u8 string"u8) => { };
-""", usings: new[] { "System" }, targetFramework: TargetFramework.Net60,
-                // (6,43): error CS1736: Default parameter value for 's' must be a compile-time constant
-                //         var lam = (ReadOnlySpan<byte> s = "u8 string"u8) => { };
-                Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, @"""u8 string""u8").WithArguments("s").WithLocation(6, 43));
-
+            var source = """
+                var lam = (ReadOnlySpan<byte> s = "u8 string"u8) => { };
+                """;
+            CreateCompilation(source).VerifyDiagnostics(
+                // (1,12): error CS0246: The type or namespace name 'ReadOnlySpan<>' could not be found (are you missing a using directive or an assembly reference?)
+                // var lam = (ReadOnlySpan<byte> s = "u8 string"u8) => { };
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "ReadOnlySpan<byte>").WithArguments("ReadOnlySpan<>").WithLocation(1, 12));
         }
 
         [Fact]
@@ -13378,13 +13324,15 @@ class Program
         [Fact]
         public void LambdaDefaultParameter_UnsafeSizeof()
         {
-            TestInMain("""
-unsafe
-{
-    var lam = (int sz = sizeof(int)) => sz;
-    Console.WriteLine(lam());
-}
-""", usings: new[] { "System" }, expectedOutput: "4", compilationOptions: TestOptions.UnsafeReleaseExe);
+            var source = """
+                using System;
+                unsafe
+                {
+                    var lam = (int sz = sizeof(int)) => sz;
+                    Console.WriteLine(lam());
+                }
+                """;
+            CompileAndVerify(source, options: TestOptions.UnsafeReleaseExe, expectedOutput: "4").VerifyDiagnostics();
         }
 
         [Fact]
@@ -13609,13 +13557,13 @@ class Program
         [Fact]
         public void LambdaDefaultParameter_ArrayCommonType_DefaultValueMismatch()
         {
-            TestDiagnosticsInMain(
-"""
-var arr = new[] { (int i = 1) => { }, (int i = 2) => { } };
-""", expectedDiagnostics:
-                // (6,19): error CS0826: No best type found for implicitly-typed array
-                //         var arr = new[] { (int i = 1) => { }, (int i = 2) => { } };
-                Diagnostic(ErrorCode.ERR_ImplicitlyTypedArrayNoBestType, "new[] { (int i = 1) => { }, (int i = 2) => { } }").WithLocation(6, 19));
+            var source = """
+                var arr = new[] { (int i = 1) => { }, (int i = 2) => { } };
+                """;
+            CreateCompilation(source).VerifyDiagnostics(
+                // (1,11): error CS0826: No best type found for implicitly-typed array
+                // var arr = new[] { (int i = 1) => { }, (int i = 2) => { } };
+                Diagnostic(ErrorCode.ERR_ImplicitlyTypedArrayNoBestType, "new[] { (int i = 1) => { }, (int i = 2) => { } }").WithLocation(1, 11));
         }
 
         [Fact]
