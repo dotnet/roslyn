@@ -16,7 +16,9 @@ using Microsoft.CodeAnalysis.Diagnostics.CSharp;
 using Microsoft.CodeAnalysis.Diagnostics.EngineV2;
 using Microsoft.CodeAnalysis.Editor.Test;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Remote.Diagnostics;
@@ -869,19 +871,17 @@ class A
                 sourceGeneratedFiles = Array.Empty<string>();
             }
 
-            using var workspace = TestWorkspace.CreateCSharp(files, sourceGeneratedFiles,
-                composition: s_editorFeaturesCompositionWithMockDiagnosticUpdateSourceRegistrationService.AddParts(
-                    typeof(TestDocumentTrackingService),
-                    typeof(TestWorkspaceConfigurationService)));
+            var composition = s_editorFeaturesCompositionWithMockDiagnosticUpdateSourceRegistrationService.AddParts(
+                typeof(TestDocumentTrackingService));
 
-            var workspaceConfigurationService = workspace.GetService<TestWorkspaceConfigurationService>();
-            workspaceConfigurationService.Options = new(EnableOpeningSourceGeneratedFiles: true);
+            using var workspace = new TestWorkspace(composition, configurationOptions: new WorkspaceConfigurationOptions(EnableOpeningSourceGeneratedFiles: true));
 
             workspace.GlobalOptions.SetGlobalOption(new OptionKey(SolutionCrawlerOptionsStorage.BackgroundAnalysisScopeOption, LanguageNames.CSharp), analysisScope);
 
             var compilerDiagnosticsScope = analysisScope.ToEquivalentCompilerDiagnosticsScope();
             workspace.GlobalOptions.SetGlobalOption(new OptionKey(SolutionCrawlerOptionsStorage.CompilerDiagnosticsScopeOption, LanguageNames.CSharp), compilerDiagnosticsScope);
 
+            workspace.InitializeDocuments(TestWorkspace.CreateWorkspaceElement(LanguageNames.CSharp, files: files, sourceGeneratedFiles: sourceGeneratedFiles), openDocuments: false);
             workspace.TryApplyChanges(workspace.CurrentSolution.WithAnalyzerReferences(new[] { analyzerReference }));
 
             var project = workspace.CurrentSolution.Projects.Single();

@@ -720,10 +720,9 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         protected internal void OnDocumentAdded(DocumentInfo documentInfo)
         {
-            var documentId = documentInfo.Id;
-            SetCurrentSolution(
+            this.SetCurrentSolution(
                 oldSolution => oldSolution.AddDocument(documentInfo),
-                WorkspaceChangeKind.DocumentAdded, documentId: documentId);
+                WorkspaceChangeKind.DocumentAdded, documentId: documentInfo.Id);
         }
 
         /// <summary>
@@ -749,7 +748,7 @@ namespace Microsoft.CodeAnalysis
         protected internal void OnDocumentReloaded(DocumentInfo newDocumentInfo)
         {
             var documentId = newDocumentInfo.Id;
-            SetCurrentSolution(
+            this.SetCurrentSolution(
                 oldSolution => oldSolution.RemoveDocument(documentId).AddDocument(newDocumentInfo),
                 WorkspaceChangeKind.DocumentReloaded, documentId: documentId);
         }
