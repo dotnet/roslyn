@@ -3204,23 +3204,7 @@ public class C : A {
             var text = SourceText.From("// empty", encoding: null, SourceHashAlgorithms.Default);
             var strongTree = factory.ParseSyntaxTree("dummy", dummyProject.ParseOptions, text, CancellationToken.None);
 
-            // create recoverable tree off the original tree
             var sourceText = strongTree.GetText();
-            var recoverableTree = factory.CreateRecoverableTree(
-                dummyProject.Id,
-                strongTree.FilePath,
-                strongTree.Options,
-                new ConstantTextAndVersionSource(TextAndVersion.Create(sourceText, VersionStamp.Create(), strongTree.FilePath)),
-                new LoadTextOptions(text.ChecksumAlgorithm),
-                sourceText.Encoding, strongTree.GetRoot());
-
-            // create new tree before it ever getting root node
-            var newTree = recoverableTree.WithFilePath("different/dummy");
-
-            Assert.Equal(SourceHashAlgorithms.Default, recoverableTree.GetText().ChecksumAlgorithm);
-
-            // this shouldn't throw
-            _ = newTree.GetRoot();
         }
 
         [Fact]
