@@ -17,6 +17,7 @@ namespace Roslyn.Diagnostics.Analyzers
     using static RoslynDiagnosticsAnalyzersResources;
 
     /// <summary>
+    /// RS0034: <inheritdoc cref="ExportedPartsShouldHaveImportingConstructorTitle"/>
     /// MEF-exported types should have exactly one constructor, which should be explicitly defined and marked with
     /// <see cref="ImportingConstructorAttribute"/>.
     /// </summary>

@@ -16,6 +16,10 @@ namespace Roslyn.Diagnostics.Analyzers
 {
     using static RoslynDiagnosticsAnalyzersResources;
 
+    /// <summary>
+    /// RS0019: <inheritdoc cref="SymbolDeclaredEventMustBeGeneratedForSourceSymbolsTitle"/>
+    /// </summary>
+    /// <typeparam name="TSyntaxKind"></typeparam>
     public abstract class SymbolDeclaredEventAnalyzer<TSyntaxKind> : DiagnosticAnalyzer
         where TSyntaxKind : struct
     {

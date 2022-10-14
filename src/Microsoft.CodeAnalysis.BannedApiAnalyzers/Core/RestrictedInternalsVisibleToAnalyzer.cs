@@ -16,6 +16,9 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers
 {
     using static BannedApiAnalyzerResources;
 
+    /// <summary>
+    /// RS0035: <inheritdoc cref="RestrictedInternalsVisibleToTitle"/>
+    /// </summary>
     public abstract class RestrictedInternalsVisibleToAnalyzer<TNameSyntax, TSyntaxKind> : DiagnosticAnalyzer
         where TNameSyntax : SyntaxNode
         where TSyntaxKind : struct

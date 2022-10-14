@@ -12,6 +12,9 @@ namespace Roslyn.Diagnostics.Analyzers
 {
     using static RoslynDiagnosticsAnalyzersResources;
 
+    /// <summary>
+    /// RS0043: <inheritdoc cref="DoNotCallGetTestAccessorTitle"/>
+    /// </summary>
     [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
     public sealed class DoNotCallGetTestAccessor : DiagnosticAnalyzer
     {

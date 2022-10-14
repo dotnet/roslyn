@@ -11,6 +11,9 @@ namespace Microsoft.CodeAnalysis.Analyzers
 {
     using static CodeAnalysisDiagnosticsResources;
 
+    /// <summary>
+    /// RS1009: <inheritdoc cref="InternalImplementationOnlyTitle"/>
+    /// </summary>
     [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
     public class InternalImplementationOnlyAnalyzer : DiagnosticAnalyzer
     {

@@ -14,7 +14,7 @@ namespace Roslyn.Diagnostics.Analyzers
     using static RoslynDiagnosticsAnalyzersResources;
 
     /// <summary>
-    /// RS0023: Parts exported with MEFv2 must be marked as Shared
+    /// RS0023: <inheritdoc cref="PartsExportedWithMEFv2MustBeMarkedAsSharedTitle"/>
     /// </summary>
     [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
     public sealed class PartsExportedWithMEFv2MustBeMarkedAsSharedAnalyzer : DiagnosticAnalyzer

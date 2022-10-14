@@ -13,6 +13,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Analyzers
 {
     using static CodeAnalysisDiagnosticsResources;
 
+    /// <summary>
+    /// RS1014: <inheritdoc cref="DoNotIgnoreReturnValueOnImmutableObjectMethodInvocationTitle"/>
+    /// </summary>
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
     public class CSharpImmutableObjectMethodAnalyzer : DiagnosticAnalyzer
     {

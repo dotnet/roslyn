@@ -17,6 +17,9 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
 {
     using static CodeAnalysisDiagnosticsResources;
 
+    /// <summary>
+    /// RS1022: <inheritdoc cref="DoNotUseTypesFromAssemblyRuleTitle"/>
+    /// </summary>
     public abstract class DiagnosticAnalyzerApiUsageAnalyzer<TTypeSyntax> : DiagnosticAnalyzer
         where TTypeSyntax : SyntaxNode
     {

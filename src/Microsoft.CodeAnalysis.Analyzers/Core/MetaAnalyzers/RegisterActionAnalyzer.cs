@@ -16,6 +16,13 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
 {
     using static CodeAnalysisDiagnosticsResources;
 
+    /// <summary>
+    /// RS1002: <inheritdoc cref="MissingKindArgumentToRegisterActionTitle"/>
+    /// RS1003: <inheritdoc cref="UnsupportedSymbolKindArgumentToRegisterActionTitle"/>
+    /// RS1006: <inheritdoc cref="InvalidSyntaxKindTypeArgumentTitle"/>
+    /// RS1012: <inheritdoc cref="StartActionWithNoRegisteredActionsTitle"/>
+    /// RS1013: <inheritdoc cref="StartActionWithOnlyEndActionTitle"/>
+    /// </summary>
     public abstract class RegisterActionAnalyzer<TInvocationExpressionSyntax, TArgumentSyntax, TLanguageKindEnum> : DiagnosticAnalyzerCorrectnessAnalyzer
         where TInvocationExpressionSyntax : SyntaxNode
         where TArgumentSyntax : SyntaxNode

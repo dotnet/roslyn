@@ -19,7 +19,7 @@ namespace Roslyn.Diagnostics.CSharp.Analyzers
     using static RoslynDiagnosticsAnalyzersResources;
 
     /// <summary>
-    /// RS0046: Avoid 'Opt' suffix for nullable enable code
+    /// RS0046: <inheritdoc cref="AvoidOptSuffixForNullableEnableCodeTitle"/>
     /// </summary>
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
     public sealed class CSharpAvoidOptSuffixForNullableEnableCode : DiagnosticAnalyzer

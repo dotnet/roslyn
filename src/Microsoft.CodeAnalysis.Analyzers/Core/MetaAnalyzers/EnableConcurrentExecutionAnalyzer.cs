@@ -11,6 +11,9 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
 {
     using static CodeAnalysisDiagnosticsResources;
 
+    /// <summary>
+    /// RS1026: <inheritdoc cref="EnableConcurrentExecutionTitle"/>
+    /// </summary>
     [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
     public sealed class EnableConcurrentExecutionAnalyzer : DiagnosticAnalyzerCorrectnessAnalyzer
     {

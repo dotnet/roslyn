@@ -11,6 +11,9 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
 {
     using static CodeAnalysisDiagnosticsResources;
 
+    /// <summary>
+    /// RS1030: <inheritdoc cref="DoNotUseCompilationGetSemanticModelTitle"/>
+    /// </summary>
     [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
     public sealed class DoNotUseCompilationGetSemanticModelAnalyzer : DiagnosticAnalyzer
     {

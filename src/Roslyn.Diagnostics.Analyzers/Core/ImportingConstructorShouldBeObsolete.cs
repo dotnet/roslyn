@@ -15,6 +15,8 @@ namespace Roslyn.Diagnostics.Analyzers
     using static RoslynDiagnosticsAnalyzersResources;
 
     /// <summary>
+    /// RS0033: <inheritdoc cref="ImportingConstructorShouldBeObsoleteTitle"/>
+    /// 
     /// The importing constructor for a MEF-exported type should be marked obsolete.
     ///
     /// <code>
