@@ -227,7 +227,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
 #nullable enable
-        internal static ImmutableArray<DeclarationScope> GetByValueParameterDeclarationScopes(this MethodSymbol? method)
+        internal static ImmutableArray<DeclarationScope> GetByValueParameterDeclaredScopes(this MethodSymbol? method)
         {
             if (method is null)
                 return default;

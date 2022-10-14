@@ -121,8 +121,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (updatedDelegateType is null)
                 {
                     Debug.Assert(updatedContaining is object);
-                    var parameterDeclarationScopes = lambda.GetByValueParameterDeclarationScopes();
-                    updatedLambda = boundLambda.CreateLambdaSymbol(updatedContaining, lambda.ReturnTypeWithAnnotations, lambda.ParameterTypesWithAnnotations, lambda.ParameterRefKinds, parameterDeclarationScopes, lambda.RefKind);
+                    var parameterDeclaredScopes = lambda.GetByValueParameterDeclaredScopes();
+                    updatedLambda = boundLambda.CreateLambdaSymbol(updatedContaining, lambda.ReturnTypeWithAnnotations, lambda.ParameterTypesWithAnnotations, lambda.ParameterRefKinds, parameterDeclaredScopes, lambda.RefKind);
                 }
                 else
                 {

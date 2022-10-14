@@ -12506,6 +12506,7 @@ class Program
                     {
                         M2(r => r);
                         M2((scoped R r) => r); // 1
+                        M2(r => default); // 2
                     }
 
                     void M2(D1 d1) { }
@@ -12517,7 +12518,10 @@ class Program
             comp.VerifyDiagnostics(
                 // (14,28): error CS8352: Cannot use variable 'scoped R' in this context because it may expose referenced variables outside of their declaration scope
                 //         M2((scoped R r) => r); // 1
-                Diagnostic(ErrorCode.ERR_EscapeVariable, "r").WithArguments("scoped R").WithLocation(14, 28)
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "r").WithArguments("scoped R").WithLocation(14, 28),
+                // (15,9): error CS0121: The call is ambiguous between the following methods or properties: 'C.M2(D1)' and 'C.M2(D2)'
+                //         M2(r => default); // 2
+                Diagnostic(ErrorCode.ERR_AmbigCall, "M2").WithArguments("C.M2(D1)", "C.M2(D2)").WithLocation(15, 9)
                 );
 
             var tree = comp.SyntaxTrees.Single();
@@ -12546,15 +12550,15 @@ class Program
                 {
                     void M()
                     {
-                        D1 d1 = () => r;
+                        D1 d1 = () => new R();
                     }
                 }
                 """;
             var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
             comp.VerifyDiagnostics(
                 // (12,17): error CS1593: Delegate 'D1' does not take 0 arguments
-                //         D1 d1 = () => r;
-                Diagnostic(ErrorCode.ERR_BadDelArgCount, "() => r").WithArguments("D1", "0").WithLocation(12, 17)
+                //         D1 d1 = () => new R();
+                Diagnostic(ErrorCode.ERR_BadDelArgCount, "() => new R()").WithArguments("D1", "0").WithLocation(12, 17)
                 );
         }
 
@@ -12573,15 +12577,19 @@ class Program
                 {
                     void M()
                     {
-                        D1 d1 = (scoped R r) => r;
+                        D1 d1 = r => r;
+                        D1 d2 = (scoped R r) => r;
                     }
                 }
                 """;
             var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
             comp.VerifyDiagnostics(
                 // (12,17): error CS1593: Delegate 'D1' does not take 1 arguments
-                //         D1 d1 = (scoped R r) => r;
-                Diagnostic(ErrorCode.ERR_BadDelArgCount, "(scoped R r) => r").WithArguments("D1", "1").WithLocation(12, 17)
+                //         D1 d1 = r => r;
+                Diagnostic(ErrorCode.ERR_BadDelArgCount, "r => r").WithArguments("D1", "1").WithLocation(12, 17),
+                // (13,17): error CS1593: Delegate 'D1' does not take 1 arguments
+                //         D1 d2 = (scoped R r) => r;
+                Diagnostic(ErrorCode.ERR_BadDelArgCount, "(scoped R r) => r").WithArguments("D1", "1").WithLocation(13, 17)
                 );
         }
 
