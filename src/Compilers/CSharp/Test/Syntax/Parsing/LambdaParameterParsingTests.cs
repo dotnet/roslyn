@@ -2771,7 +2771,6 @@ class C {
                     N(SyntaxKind.Parameter);
                     {
                         N(SyntaxKind.PredefinedType);
-
                         {
                             N(SyntaxKind.IntKeyword);
                         }
@@ -2813,7 +2812,6 @@ class C {
                     {
                         N(SyntaxKind.PredefinedType);
                         {
-
                             N(SyntaxKind.IntKeyword);
                         }
                         N(SyntaxKind.IdentifierToken, "x");
