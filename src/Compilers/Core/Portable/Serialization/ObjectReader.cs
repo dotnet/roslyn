@@ -299,7 +299,7 @@ namespace Roslyn.Utilities
                 case TypeCode.EncodingName:
                     return Encoding.GetEncoding(ReadString());
 
-                case >= TypeCode.FirstWellKnownEncoding and <= TypeCode.LastWellKnownEncoding:
+                case >= TypeCode.FirstWellKnownTextEncoding and <= TypeCode.LastWellKnownTextEncoding:
                     return ObjectWriter.ToEncodingKind(code).GetEncoding();
 
                 default:

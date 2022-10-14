@@ -23,8 +23,11 @@ internal enum TextEncodingKind : byte
     EncodingUnicode_LE_BOM = 10,
 }
 
-internal static class EncodingExtensions
+internal static partial class EncodingExtensions
 {
+    internal const TextEncodingKind FirstTextEncodingKind = TextEncodingKind.EncodingUtf8;
+    internal const TextEncodingKind LastTextEncodingKind = TextEncodingKind.EncodingUnicode_LE_BOM;
+
     private static readonly Encoding s_encodingUtf8 = new UTF8Encoding(encoderShouldEmitUTF8Identifier: false);
     private static readonly Encoding s_encodingUtf32_BE = new UTF32Encoding(bigEndian: true, byteOrderMark: false);
     private static readonly Encoding s_encodingUtf32_BE_BOM = new UTF32Encoding(bigEndian: true, byteOrderMark: true);

@@ -1274,16 +1274,22 @@ namespace Roslyn.Utilities
             /// <summary>
             /// Encoding serialized as <see cref="TextEncodingKind"/>.
             /// </summary>
-            FirstWellKnownEncoding,
-            LastWellKnownEncoding = FirstWellKnownEncoding + TextEncodingKind.EncodingUnicode_LE_BOM - TextEncodingKind.EncodingUtf8,
+            FirstWellKnownTextEncoding,
+            LastWellKnownTextEncoding = FirstWellKnownTextEncoding + EncodingExtensions.LastTextEncodingKind - EncodingExtensions.FirstTextEncodingKind,
 
             Last,
         }
 
         internal static TypeCode ToTypeCode(TextEncodingKind kind)
-            => TypeCode.FirstWellKnownEncoding + (byte)(kind - TextEncodingKind.EncodingUtf8);
+        {
+            Debug.Assert(kind is >= EncodingExtensions.FirstTextEncodingKind and <= EncodingExtensions.LastTextEncodingKind);
+            return TypeCode.FirstWellKnownTextEncoding + (byte)(kind - EncodingExtensions.LastTextEncodingKind);
+        }
 
         internal static TextEncodingKind ToEncodingKind(TypeCode code)
-            => TextEncodingKind.EncodingUtf8 + (byte)(code - TypeCode.FirstWellKnownEncoding);
+        {
+            Debug.Assert(code is >= TypeCode.FirstWellKnownTextEncoding and <= TypeCode.LastWellKnownTextEncoding);
+            return EncodingExtensions.FirstTextEncodingKind + (byte)(code - TypeCode.FirstWellKnownTextEncoding);
+        }
     }
 }
