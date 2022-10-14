@@ -830,7 +830,7 @@ namespace Microsoft.CodeAnalysis
 
                                 generatorInfo = generatorInfo.WithDriver(compilationFactory.CreateGeneratorDriver(
                                         this.ProjectState.ParseOptions!,
-                                        ProjectState.SourceGenerators,
+                                        ProjectState.SourceGenerators.ToImmutableArray(),
                                         this.ProjectState.AnalyzerOptions.AnalyzerConfigOptionsProvider,
                                         additionalTexts));
                             }
@@ -876,7 +876,7 @@ namespace Microsoft.CodeAnalysis
 
                             generatorInfo = generatorInfo.WithDriver(generatorInfo.Driver!.RunGenerators(compilationToRunGeneratorsOn, cancellationToken));
 
-                            solution.Services.GetService<ISourceGeneratorTelemetryCollectorWorkspaceService>()?.CollectRunResult(generatorInfo.Driver!.GetRunResult(), generatorInfo.Driver!.GetTimingInfo());
+                            solution.Services.GetService<ISourceGeneratorTelemetryCollectorWorkspaceService>()?.CollectRunResult(generatorInfo.Driver!.GetRunResult(), generatorInfo.Driver!.GetTimingInfo(), ProjectState);
 
                             var runResult = generatorInfo.Driver!.GetRunResult();
 
@@ -903,11 +903,14 @@ namespace Microsoft.CodeAnalysis
                                     continue;
                                 }
 
+                                var generatorAnalyzerReference = this.ProjectState.GetAnalyzerReferenceForGenerator(generatorResult.Generator);
+
                                 foreach (var generatedSource in generatorResult.GeneratedSources)
                                 {
                                     var existing = FindExistingGeneratedDocumentState(
                                         generatorInfo.Documents,
                                         generatorResult.Generator,
+                                        generatorAnalyzerReference,
                                         generatedSource.HintName);
 
                                     if (existing != null)
@@ -929,7 +932,8 @@ namespace Microsoft.CodeAnalysis
                                             ProjectState.Id,
                                             generatedSource.HintName,
                                             generatorResult.Generator,
-                                            generatedSource.SyntaxTree.FilePath);
+                                            generatedSource.SyntaxTree.FilePath,
+                                            generatorAnalyzerReference);
 
                                         generatedDocumentsBuilder.Add(
                                             SourceGeneratedDocumentState.Create(
@@ -998,9 +1002,10 @@ namespace Microsoft.CodeAnalysis
                 static SourceGeneratedDocumentState? FindExistingGeneratedDocumentState(
                     TextDocumentStates<SourceGeneratedDocumentState> states,
                     ISourceGenerator generator,
+                    AnalyzerReference analyzerReference,
                     string hintName)
                 {
-                    var generatorIdentity = new SourceGeneratorIdentity(generator);
+                    var generatorIdentity = new SourceGeneratorIdentity(generator, analyzerReference);
 
                     foreach (var (_, state) in states.States)
                     {
