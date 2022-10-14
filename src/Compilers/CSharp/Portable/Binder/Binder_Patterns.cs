@@ -542,7 +542,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (!convertedExpression.HasErrors && !hasErrors)
             {
-                if (constantValueOpt == null)
+                var conversion = convertedExpression as BoundConversion;
+                if (conversion != null && conversion.ConversionKind == ConversionKind.ImplicitUserDefined)
+                {
+                    diagnostics.Add(ErrorCode.ERR_NonConstantConversionInConstantPattern, convertedExpression.Syntax.Location, conversion.Operand.Type, conversion.Type);
+                } 
+                else if (constantValueOpt == null)
                 {
                     diagnostics.Add(ErrorCode.ERR_ConstantExpected, patternExpression.Location);
                     hasErrors = true;
@@ -685,10 +690,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                         (conversion.ConversionKind == ConversionKind.NoConversion && convertedExpression.Type?.IsErrorType() == true))
                     {
                         convertedExpression = operand;
-                    }
-                    else if (conversion.ConversionKind == ConversionKind.ImplicitUserDefined)
-                    {
-                        diagnostics.Add(ErrorCode.ERR_NonConstantConversionInConstantPattern, convertedExpression.Syntax.Location, conversion.Operand.Type, conversion.Type);
                     }
                 }
             }
