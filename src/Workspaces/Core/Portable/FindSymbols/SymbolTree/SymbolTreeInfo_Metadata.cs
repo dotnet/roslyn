@@ -42,18 +42,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             }
         }
 
-        public static MetadataId? GetMetadataIdNoThrow(PortableExecutableReference reference)
-        {
-            try
-            {
-                return reference.GetMetadataId();
-            }
-            catch (Exception e) when (e is BadImageFormatException or IOException)
-            {
-                return null;
-            }
-        }
-
         private static Metadata? GetMetadataNoThrow(PortableExecutableReference reference)
         {
             try
@@ -66,71 +54,60 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             }
         }
 
-        public static ValueTask<SymbolTreeInfo> GetInfoForMetadataReferenceAsync(
-            Solution solution, PortableExecutableReference reference, CancellationToken cancellationToken)
-        {
-            var checksum = GetMetadataChecksum(solution.Services, reference, cancellationToken);
-            return GetInfoForMetadataReferenceAsync(solution, reference, checksum, cancellationToken);
-        }
-
         /// <summary>
         /// Produces a <see cref="SymbolTreeInfo"/> for a given <see cref="PortableExecutableReference"/>.
         /// Note:  will never return null;
         /// </summary>
+        /// <param name="checksum">Optional checksum for the <paramref name="reference"/> (produced by <see
+        /// cref="GetMetadataChecksum"/>).  Can be provided if already computed.  If not provided it will be computed
+        /// and used for the <see cref="SymbolTreeInfo"/>.</param>
         [PerformanceSensitive("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1224834", OftenCompletesSynchronously = true)]
-        private static async ValueTask<SymbolTreeInfo> GetInfoForMetadataReferenceAsync(
+        public static async ValueTask<SymbolTreeInfo> GetInfoForMetadataReferenceAsync(
             Solution solution,
             PortableExecutableReference reference,
-            Checksum checksum,
+            Checksum? checksum,
             CancellationToken cancellationToken)
         {
-            var metadataId = GetMetadataIdNoThrow(reference);
-            if (metadataId == null)
-                return CreateEmpty(checksum);
+            checksum ??= GetMetadataChecksum(solution.Services, reference, cancellationToken);
 
-            if (s_metadataIdToInfo.TryGetValue(metadataId, out var infoTask))
+            if (s_peReferenceToInfo.TryGetValue(reference, out var infoTask))
             {
                 var info = await infoTask.GetValueAsync(cancellationToken).ConfigureAwait(false);
-                if (info.Checksum == checksum)
-                    return info;
+                Contract.ThrowIfFalse(info.Checksum != checksum, "How could the info stored for a particular PEReference now have a different checksum?");
+                return info;
             }
 
-            var metadata = GetMetadataNoThrow(reference);
-            if (metadata == null)
-                return CreateEmpty(checksum);
-
             return await GetInfoForMetadataReferenceSlowAsync(
-                solution.Services, SolutionKey.ToSolutionKey(solution), reference, metadata, cancellationToken).ConfigureAwait(false);
+                solution.Services, SolutionKey.ToSolutionKey(solution), reference, checksum, cancellationToken).ConfigureAwait(false);
+
+            static async Task<SymbolTreeInfo> GetInfoForMetadataReferenceSlowAsync(
+                SolutionServices services,
+                SolutionKey solutionKey,
+                PortableExecutableReference reference,
+                Checksum checksum,
+                CancellationToken cancellationToken)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+
+                // Important: this captured async lazy may live a long time *without* computing the final results. As such,
+                // it is important that it note capture any large state.  For example, it should not hold onto a Solution
+                // instance.
+                var asyncLazy = s_peReferenceToInfo.GetValue(
+                    reference,
+                    id => new AsyncLazy<SymbolTreeInfo>(
+                        c => CreateMetadataSymbolTreeInfoAsync(services, solutionKey, reference, checksum, c),
+                        cacheResult: true));
+
+                return await asyncLazy.GetValueAsync(cancellationToken).ConfigureAwait(false);
+            }
         }
 
         public static async Task<SymbolTreeInfo?> TryGetCachedInfoForMetadataReferenceIgnoreChecksumAsync(PortableExecutableReference reference, CancellationToken cancellationToken)
         {
-            var metadataId = GetMetadataIdNoThrow(reference);
-            if (metadataId == null || !s_metadataIdToInfo.TryGetValue(metadataId, out var infoTask))
+            if (!s_peReferenceToInfo.TryGetValue(reference, out var infoTask))
                 return null;
 
             return await infoTask.GetValueAsync(cancellationToken).ConfigureAwait(false);
-        }
-
-        private static async Task<SymbolTreeInfo> GetInfoForMetadataReferenceSlowAsync(
-            SolutionServices services,
-            SolutionKey solutionKey,
-            PortableExecutableReference reference,
-            Metadata metadata,
-            CancellationToken cancellationToken)
-        {
-            cancellationToken.ThrowIfCancellationRequested();
-
-            // Important: this captured async lazy may live a long time *without* computing the final results. As such,
-            // it is important that it note capture any large state.  For example, it should not hold onto a Solution
-            // instance.
-            var asyncLazy = s_metadataIdToInfo.GetValue(
-                metadata.Id,
-                id => new AsyncLazy<SymbolTreeInfo>(
-                    c => CreateMetadataSymbolTreeInfoAsync(services, solutionKey, reference, c),
-                    cacheResult: true));
-
-            return await asyncLazy.GetValueAsync(cancellationToken).ConfigureAwait(false);
         }
 
         [PerformanceSensitive("https://github.com/dotnet/roslyn/issues/33131", AllowCaptures = false)]
@@ -147,20 +124,20 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
             // Break things up to the fast path above and this slow path where we allocate a closure.
             return GetMetadataChecksumSlow(services, reference, cancellationToken);
-        }
 
-        private static Checksum GetMetadataChecksumSlow(SolutionServices services, PortableExecutableReference reference, CancellationToken cancellationToken)
-        {
-            return ChecksumCache.GetOrCreate(reference, _ =>
+            static Checksum GetMetadataChecksumSlow(SolutionServices services, PortableExecutableReference reference, CancellationToken cancellationToken)
             {
-                var serializer = services.GetRequiredService<ISerializerService>();
-                var checksum = serializer.CreateChecksum(reference, cancellationToken);
+                return ChecksumCache.GetOrCreate(reference, _ =>
+                {
+                    var serializer = services.GetRequiredService<ISerializerService>();
+                    var checksum = serializer.CreateChecksum(reference, cancellationToken);
 
-                // Include serialization format version in our checksum.  That way if the 
-                // version ever changes, all persisted data won't match the current checksum
-                // we expect, and we'll recompute things.
-                return Checksum.Create(checksum, SerializationFormatChecksum);
-            });
+                    // Include serialization format version in our checksum.  That way if the 
+                    // version ever changes, all persisted data won't match the current checksum
+                    // we expect, and we'll recompute things.
+                    return Checksum.Create(checksum, SerializationFormatChecksum);
+                });
+            }
         }
 
         private static string GetMetadataKeySuffix(PortableExecutableReference reference)
@@ -170,12 +147,13 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             SolutionServices services,
             SolutionKey solutionKey,
             PortableExecutableReference reference,
+            Checksum checksum,
             CancellationToken cancellationToken)
         {
             return LoadOrCreateAsync(
                 services,
                 solutionKey,
-                getChecksumAsync: () => new ValueTask<Checksum>(GetMetadataChecksum(services, reference, cancellationToken)),
+                checksum,
                 createAsync: checksum => new ValueTask<SymbolTreeInfo>(new MetadataInfoCreator(checksum, reference).Create()),
                 keySuffix: GetMetadataKeySuffix(reference),
                 cancellationToken);
@@ -186,7 +164,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         /// checksum of the <paramref name="reference"/>.  Should only be used by clients that are ok with potentially
         /// stale data.
         /// </summary>
-        public static Task<SymbolTreeInfo> LoadAnyInfoForMetadataReferenceAsync(
+        public static Task<SymbolTreeInfo?> LoadAnyInfoForMetadataReferenceAsync(
             Solution solution,
             PortableExecutableReference reference,
             CancellationToken cancellationToken)
