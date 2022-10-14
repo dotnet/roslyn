@@ -11,12 +11,17 @@ using System.Threading.Tasks;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
+using Xunit.Abstractions;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Miscellaneous;
 
 public class LspMiscellaneousFilesWorkspaceTests : AbstractLanguageServerProtocolTests
 {
+    public LspMiscellaneousFilesWorkspaceTests(ITestOutputHelper testOutputHelper) : base(testOutputHelper)
+    {
+    }
+
     [Fact]
     public async Task TestLooseFile_Opened()
     {

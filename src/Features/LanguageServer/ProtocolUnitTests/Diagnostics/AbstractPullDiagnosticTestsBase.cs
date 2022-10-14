@@ -22,6 +22,7 @@ using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
+using Xunit.Abstractions;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Diagnostics
@@ -30,6 +31,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Diagnostics
 
     public abstract class AbstractPullDiagnosticTestsBase : AbstractLanguageServerProtocolTests
     {
+        protected AbstractPullDiagnosticTestsBase(ITestOutputHelper testOutputHelper) : base(testOutputHelper)
+        {
+        }
+
         private protected override TestAnalyzerReferenceByLanguage CreateTestAnalyzersReference()
         {
             var builder = ImmutableDictionary.CreateBuilder<string, ImmutableArray<DiagnosticAnalyzer>>();

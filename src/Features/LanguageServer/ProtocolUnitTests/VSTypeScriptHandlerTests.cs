@@ -23,10 +23,15 @@ using Nerdbank.Streams;
 using Roslyn.Test.Utilities;
 using StreamJsonRpc;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests;
 public class VSTypeScriptHandlerTests : AbstractLanguageServerProtocolTests
 {
+    public VSTypeScriptHandlerTests(ITestOutputHelper testOutputHelper) : base(testOutputHelper)
+    {
+    }
+
     protected override TestComposition Composition => base.Composition.AddParts(typeof(TypeScriptHandlerFactory));
 
     [Fact]
