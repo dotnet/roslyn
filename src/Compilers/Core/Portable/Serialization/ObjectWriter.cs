@@ -1283,7 +1283,7 @@ namespace Roslyn.Utilities
         internal static TypeCode ToTypeCode(TextEncodingKind kind)
         {
             Debug.Assert(kind is >= EncodingExtensions.FirstTextEncodingKind and <= EncodingExtensions.LastTextEncodingKind);
-            return TypeCode.FirstWellKnownTextEncoding + (byte)(kind - EncodingExtensions.LastTextEncodingKind);
+            return TypeCode.FirstWellKnownTextEncoding + (byte)(kind - EncodingExtensions.FirstTextEncodingKind);
         }
 
         internal static TextEncodingKind ToEncodingKind(TypeCode code)
