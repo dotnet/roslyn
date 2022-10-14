@@ -52,16 +52,12 @@ namespace Microsoft.CodeAnalysis
         // test hooks.
         internal static bool TestHookStandaloneProjectsDoNotHoldReferences = false;
 
-        internal bool TestHookPartialSolutionsDisabled { get; set; }
-
         /// <summary>
         /// Determines whether changes made to unchangeable documents will be silently ignored or cause exceptions to be thrown
         /// when they are applied to workspace via <see cref="TryApplyChanges(Solution, IProgressTracker)"/>. 
         /// A document is unchangeable if <see cref="IDocumentOperationService.CanApplyChange"/> is false.
         /// </summary>
         internal virtual bool IgnoreUnchangeableDocumentsWhenApplyingChanges { get; } = false;
-
-        private Action<string>? _testMessageLogger;
 
         /// <summary>
         /// Constructs a new workspace instance.
@@ -91,14 +87,7 @@ namespace Microsoft.CodeAnalysis
         }
 
         internal void LogTestMessage<TArg>(Func<TArg, string> messageFactory, TArg state)
-            => _testMessageLogger?.Invoke(messageFactory(state));
-
-        /// <summary>
-        /// Sets an internal logger that will receive some messages.
-        /// </summary>
-        /// <param name="writeLineMessageLogger">An action called to write a single line to the log.</param>
-        internal void SetTestLogger(Action<string>? writeLineMessageLogger)
-            => _testMessageLogger = writeLineMessageLogger;
+            => Services.GetService<IWorkspaceTestLogger>()?.Log(messageFactory(state));
 
         /// <summary>
         /// Services provider by the host for implementing workspace features.
