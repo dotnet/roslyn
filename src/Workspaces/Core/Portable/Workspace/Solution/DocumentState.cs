@@ -547,7 +547,7 @@ namespace Microsoft.CodeAnalysis
             var syntaxTreeFactory = _languageServices.GetRequiredService<ISyntaxTreeFactoryService>();
 
             Contract.ThrowIfNull(_options);
-            var (text, treeAndVersion) = CreateRecoverableTextAndTree(newRoot, newTextVersion, newTreeVersion, encoding, LoadTextOptions.ChecksumAlgorithm, Attributes, _options, syntaxTreeFactory, mode);
+            var (text, treeAndVersion) = CreateRecoverableTextAndTree(newRoot, newTextVersion, newTreeVersion, encoding, LoadTextOptions.ChecksumAlgorithm, Attributes, _options, syntaxTreeFactory);
 
             return new DocumentState(
                 LanguageServices,
@@ -586,44 +586,18 @@ namespace Microsoft.CodeAnalysis
             SourceHashAlgorithm checksumAlgorithm,
             DocumentInfo.DocumentAttributes attributes,
             ParseOptions options,
-            ISyntaxTreeFactoryService factory,
-            PreservationMode mode)
+            ISyntaxTreeFactoryService factory)
         {
-            SyntaxTree tree;
-            ITextAndVersionSource lazyTextAndVersion;
 
-            if (mode == PreservationMode.PreserveIdentity || !false)
-            {
-                tree = factory.CreateSyntaxTree(attributes.SyntaxTreeFilePath, options, encoding, checksumAlgorithm, newRoot);
+            var tree = factory.CreateSyntaxTree(attributes.SyntaxTreeFilePath, options, encoding, checksumAlgorithm, newRoot);
 
-                // its okay to use a strong cached AsyncLazy here because the compiler layer SyntaxTree will also keep the text alive once its built.
-                lazyTextAndVersion = new TreeTextSource(
-                    new AsyncLazy<SourceText>(
-                        tree.GetTextAsync,
-                        tree.GetText,
-                        cacheResult: true),
-                    textVersion);
-            }
-            else
-            {
-                // There is a strange circularity here: the creation of lazyTextAndVersion reads this local, but will see it as non-null since it
-                // only uses it through a lambda that won't have ran. The assignment exists to placate the definite-assignment analysis (which is
-                // right to be suspicious of this).
-                tree = null!;
-
-                // Uses CachedWeakValueSource so the document and tree will return the same SourceText instance across multiple accesses as long
-                // as the text is referenced elsewhere.
-                lazyTextAndVersion = new TreeTextSource(
-                    new WeaklyCachedValueSource<SourceText>(
-                        new AsyncLazy<SourceText>(
-                            // Build text from root, so recoverable tree won't cycle.
-                            async cancellationToken => (await tree.GetRootAsync(cancellationToken).ConfigureAwait(false)).GetText(encoding, checksumAlgorithm),
-                            cancellationToken => tree.GetRoot(cancellationToken).GetText(encoding, checksumAlgorithm),
-                            cacheResult: false)),
-                    textVersion);
-
-                tree = factory.CreateRecoverableTree(attributes.Id.ProjectId, attributes.SyntaxTreeFilePath, options, lazyTextAndVersion, new LoadTextOptions(checksumAlgorithm), encoding, newRoot);
-            }
+            // its okay to use a strong cached AsyncLazy here because the compiler layer SyntaxTree will also keep the text alive once its built.
+            var lazyTextAndVersion = new TreeTextSource(
+                new AsyncLazy<SourceText>(
+                    tree.GetTextAsync,
+                    tree.GetText,
+                    cacheResult: true),
+                textVersion);
 
             return (lazyTextAndVersion, new TreeAndVersion(tree, treeVersion));
         }
