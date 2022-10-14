@@ -1067,6 +1067,11 @@
         <target state="translated">无法确定输出目录</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_NonConstantConversionInConstantPattern">
+        <source>Cannot implicitly convert type '{0}' to input type '{1}' in constant pattern using non-constant conversion</source>
+        <target state="new">Cannot implicitly convert type '{0}' to input type '{1}' in constant pattern using non-constant conversion</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_NonPrivateAPIInRecord">
         <source>Record member '{0}' must be private.</source>
         <target state="translated">记录成员“{0}”必须是非公开的。</target>

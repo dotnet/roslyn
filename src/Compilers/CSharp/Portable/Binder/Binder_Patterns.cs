@@ -686,6 +686,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         convertedExpression = operand;
                     }
+                    else if (conversion.ConversionKind == ConversionKind.ImplicitUserDefined)
+                    {
+                        diagnostics.Add(ErrorCode.ERR_NonConstantConversionInConstantPattern, convertedExpression.Syntax.Location, conversion.Operand.Type, conversion.Type);
+                    }
                 }
             }
 

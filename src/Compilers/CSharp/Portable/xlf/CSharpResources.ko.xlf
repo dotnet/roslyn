@@ -1067,6 +1067,11 @@
         <target state="translated">출력 디렉터리를 확인할 수 없습니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_NonConstantConversionInConstantPattern">
+        <source>Cannot implicitly convert type '{0}' to input type '{1}' in constant pattern using non-constant conversion</source>
+        <target state="new">Cannot implicitly convert type '{0}' to input type '{1}' in constant pattern using non-constant conversion</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_NonPrivateAPIInRecord">
         <source>Record member '{0}' must be private.</source>
         <target state="translated">레코드 멤버 '{0}'은(는) 프라이빗이어야 합니다.</target>
