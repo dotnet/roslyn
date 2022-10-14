@@ -19,10 +19,6 @@ namespace Microsoft.CodeAnalysis.Host
     /// Caches recoverable objects
     /// 
     /// Compilations are put into a conditional weak table.
-    /// 
-    /// Recoverable SyntaxTrees implement <see cref="ICachedObjectOwner"/> since they are numerous
-    /// and putting them into a conditional weak table greatly increases GC costs in
-    /// clr.dll!PromoteDependentHandle.
     /// </summary>
     internal interface IProjectCacheHostService : IProjectCacheService
     {
@@ -39,13 +35,5 @@ namespace Microsoft.CodeAnalysis.Host
         /// <returns>The instance passed in is always returned</returns>
         [return: NotNullIfNotNull("instance")]
         T? CacheObjectIfCachingEnabledForKey<T>(ProjectId key, object owner, T? instance) where T : class;
-
-        /// <summary>
-        /// If caching is enabled for <see cref="ProjectId"/> key, <see cref="ICachedObjectOwner.CachedObject"/>
-        /// will be set to instance.
-        /// </summary>
-        /// <returns>The instance passed in is always returned</returns>
-        [return: NotNullIfNotNull("instance")]
-        T? CacheObjectIfCachingEnabledForKey<T>(ProjectId key, ICachedObjectOwner owner, T? instance) where T : class;
     }
 }
