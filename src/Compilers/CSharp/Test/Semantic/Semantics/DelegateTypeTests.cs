@@ -13181,38 +13181,27 @@ public class Program
         public void LambdaDefaultParameter_InterpolatedStringHandler()
         {
             var source = """
-using System.Runtime.CompilerServices;
 using System;
-using System.Text;
-
-[InterpolatedStringHandler]
-public ref struct CustomInterpolatedStringHandler
-{
-    StringBuilder builder;
-
-    public CustomInterpolatedStringHandler(int literalLength, int formattedCount) { builder = new StringBuilder(literalLength); }
-    public void AppendLiteral(string s) { builder.Append(s + "<<CustomInterpolatedStringHandler>>"); }
-    public void AppendFormatted<T>(T t) { builder.Append(t?.ToString()); }
-    internal string GetFormattedText() => builder.ToString();
-}
 
 public class Program
 {
      public static void Main()
      {
         int i = 0;
-        var lam = (CustomInterpolatedStringHandler h = $"i: {i}") =>
+        var lam = (CustomHandler h = $"i: {i}") =>
         {
-            Console.WriteLine(h.GetFormattedText());
+            Console.WriteLine(h.ToString());
         };
         lam();
      }
 }
 """;
-            CreateCompilation(source, targetFramework: TargetFramework.Net60).VerifyDiagnostics(
-                // (21,56): error CS1736: Default parameter value for 'h' must be a compile-time constant
-                //         var lam = (CustomInterpolatedStringHandler h = $"i: {i}") =>
-                Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, @"$""i: {i}""").WithArguments("h").WithLocation(21, 56));
+            var handler = GetInterpolatedStringCustomHandlerType("CustomHandler", "struct", useBoolReturns: false);
+
+            CreateCompilation(new[] { source, handler }).VerifyDiagnostics(
+                // (8,38): error CS1736: Default parameter value for 'h' must be a compile-time constant
+                //         var lam = (CustomHandler h = $"i: {i}") =>
+                Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, @"$""i: {i}""").WithArguments("h").WithLocation(8, 38));
         }
 
         [Fact]
