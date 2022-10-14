@@ -624,21 +624,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        /// <summary>Binds attributes without decoding known attributes (assumes this has already been done).</summary>
-        /// <param name="binderOpt">Binder to use. If null, <see cref="DeclaringCompilation"/> GetBinderFactory will be used.</param>
-        protected BoundAttribute[] BindAttributes(OneOrMany<SyntaxList<AttributeListSyntax>> attributeDeclarationSyntaxLists, Binder binderOpt)
-        {
-            var attributesToBind = GetAttributesToBind(attributeDeclarationSyntaxLists, AttributeLocation.None, BindingDiagnosticBag.Discarded, DeclaringCompilation, attributeMatchesOpt: null, binderOpt, out var binders);
-            var totalAttributesCount = attributesToBind.Length;
-            var attributeTypesBuilder = new NamedTypeSymbol[totalAttributesCount];
-            Binder.BindAttributeTypes(binders, attributesToBind, this, attributeTypesBuilder, beforeAttributePartBound: null, afterAttributePartBound: null, BindingDiagnosticBag.Discarded);
-            var boundAttributeTypes = attributeTypesBuilder.AsImmutableOrNull();
-            var attributeDataArray = new CSharpAttributeData[totalAttributesCount];
-            var boundAttributeArray = new BoundAttribute[totalAttributesCount];
-            Binder.GetAttributes(binders, attributesToBind, boundAttributeTypes, attributeDataArray, boundAttributeArray, beforeAttributePartBound: null, afterAttributePartBound: null, BindingDiagnosticBag.Discarded);
-            return boundAttributeArray;
-        }
-
         private static bool MatchAttributeTarget(IAttributeTargetSymbol attributeTarget, AttributeLocation symbolPart, AttributeTargetSpecifierSyntax targetOpt, BindingDiagnosticBag diagnostics)
         {
             IAttributeTargetSymbol attributesOwner = attributeTarget.AttributesOwner;
