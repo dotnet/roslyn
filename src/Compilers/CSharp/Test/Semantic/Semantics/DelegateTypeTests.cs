@@ -13392,8 +13392,6 @@ unsafe
 """, usings: new[] { "System" }, expectedOutput: "4", compilationOptions: TestOptions.UnsafeReleaseExe);
         }
 
-        // PROTOTYPE: The emitted lambda method uses object as the parameter type, even though
-        // it was specified as "dynamic" in source
         [Fact]
         public void LambdaDefaultParameter_Dynamic()
         {
@@ -13438,8 +13436,6 @@ $@"
 ");
         }
 
-        // PROTOTYPE: The emitted lambda method uses object as the parameter type, even though
-        // it was specified as "dynamic" in source
         [Fact]
         public void LambdaRefParameterWithDynamicParameter()
         {
