@@ -48,12 +48,6 @@ namespace Microsoft.CodeAnalysis.Host
             }
         }
 
-        /// <summary>
-        /// Recoverable trees only save significant memory for larger trees.
-        /// </summary>
-        public int MinimumLengthForRecoverableTree
-            => (_configurationService?.Options.DisableRecoverableTrees != true) ? 4 * 1024 : int.MaxValue;
-
         public bool IsImplicitCacheEmpty
         {
             get

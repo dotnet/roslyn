@@ -34,8 +34,6 @@ namespace Microsoft.CodeAnalysis.Host
         // new tree from text
         SyntaxTree ParseSyntaxTree(string? filePath, ParseOptions options, SourceText text, CancellationToken cancellationToken);
 
-        bool CanCreateRecoverableTree(SyntaxNode root);
-
         // new recoverable tree from root node
         SyntaxTree CreateRecoverableTree(ProjectId cacheKey, string? filePath, ParseOptions options, ITextAndVersionSource text, LoadTextOptions loadTextOptions, Encoding? encoding, SyntaxNode root);
 

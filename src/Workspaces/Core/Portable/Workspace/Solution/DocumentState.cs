@@ -185,7 +185,7 @@ namespace Microsoft.CodeAnalysis
             var tree = treeFactory.ParseSyntaxTree(filePath, options, text, cancellationToken);
 
             var root = tree.GetRoot(cancellationToken);
-            if (mode == PreservationMode.PreserveValue && treeFactory.CanCreateRecoverableTree(root))
+            if (mode == PreservationMode.PreserveValue && false)
             {
                 tree = treeFactory.CreateRecoverableTree(cacheKey, tree.FilePath, tree.Options, newTextSource, new LoadTextOptions(text.ChecksumAlgorithm), text.Encoding, root);
             }
@@ -609,7 +609,7 @@ namespace Microsoft.CodeAnalysis
             SyntaxTree tree;
             ITextAndVersionSource lazyTextAndVersion;
 
-            if (mode == PreservationMode.PreserveIdentity || !factory.CanCreateRecoverableTree(newRoot))
+            if (mode == PreservationMode.PreserveIdentity || !false)
             {
                 tree = factory.CreateSyntaxTree(attributes.SyntaxTreeFilePath, options, encoding, checksumAlgorithm, newRoot);
 
