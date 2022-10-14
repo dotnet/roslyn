@@ -12967,8 +12967,6 @@ public class Program
 10 b 1");
         }
 
-        // PROTOTYPE: Add this change to type inference for method groups to the breaking
-        // changes doc.
         [Fact]
         public void MethodGroupInferenceCompatBreak()
         {
