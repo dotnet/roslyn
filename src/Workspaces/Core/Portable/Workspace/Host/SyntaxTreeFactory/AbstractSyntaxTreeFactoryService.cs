@@ -30,30 +30,5 @@ namespace Microsoft.CodeAnalysis.Host
         public abstract SyntaxTree CreateSyntaxTree(string filePath, ParseOptions options, Encoding encoding, SourceHashAlgorithm checksumAlgorithm, SyntaxNode root);
         public abstract SyntaxTree ParseSyntaxTree(string filePath, ParseOptions options, SourceText text, CancellationToken cancellationToken);
         public abstract SyntaxNode DeserializeNodeFrom(Stream stream, CancellationToken cancellationToken);
-
-        protected static SyntaxNode RecoverNode(SyntaxTree tree, TextSpan textSpan, int kind)
-        {
-            var token = tree.GetRoot().FindToken(textSpan.Start, findInsideTrivia: true);
-            var node = token.Parent;
-
-            while (node != null)
-            {
-                if (node.Span == textSpan && node.RawKind == kind)
-                {
-                    return node;
-                }
-
-                if (node is IStructuredTriviaSyntax structuredTrivia)
-                {
-                    node = structuredTrivia.ParentTrivia.Token.Parent;
-                }
-                else
-                {
-                    node = node.Parent;
-                }
-            }
-
-            throw ExceptionUtilities.Unreachable();
-        }
     }
 }
