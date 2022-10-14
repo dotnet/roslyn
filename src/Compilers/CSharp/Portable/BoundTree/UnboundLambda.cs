@@ -1025,11 +1025,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return this.ParameterDeclarationScopes.IsDefault == other.ParameterDeclarationScopes.IsDefault;
                 }
 
-                if (this.ParameterDeclarationScopes.Length != other.ParameterDeclarationScopes.Length)
-                {
-                    return false;
-                }
-
                 return this.ParameterDeclarationScopes.SequenceEqual(other.ParameterDeclarationScopes);
             }
 
