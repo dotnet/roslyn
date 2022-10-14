@@ -1686,10 +1686,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 NoteWrite(parameter, value: null, read: true);
             }
 
-            if (parameter is SourceComplexParameterSymbol { ContainingSymbol: LocalFunctionSymbol or LambdaSymbol, AttributeDeclarationList.Count: > 0 } sourceComplexParam)
+            if (parameter is SourceComplexParameterSymbolBase { ContainingSymbol: LocalFunctionSymbol or LambdaSymbol } sourceComplexParam &&
+                sourceComplexParam.BindParameterAttributes() is { IsDefaultOrEmpty: false } boundAttributes)
             {
                 // Mark attribute arguments as used.
-                foreach (var boundAttribute in sourceComplexParam.BindParameterAttributes())
+                foreach (var boundAttribute in boundAttributes)
                 {
                     foreach (var attributeArgument in boundAttribute.ConstructorArguments)
                     {
