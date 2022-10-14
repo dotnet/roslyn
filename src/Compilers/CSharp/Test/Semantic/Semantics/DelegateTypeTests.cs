@@ -12157,7 +12157,6 @@ class Program
                 Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, "f(1000)").WithArguments("x").WithLocation(9, 24));
         }
 
-
         [Fact]
         public void LambdaOptionalBeforeRequiredBadConversion()
         {
