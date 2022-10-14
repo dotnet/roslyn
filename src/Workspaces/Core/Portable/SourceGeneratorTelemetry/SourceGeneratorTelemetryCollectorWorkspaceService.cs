@@ -17,8 +17,7 @@ namespace Microsoft.CodeAnalysis.SourceGeneratorTelemetry
     {
         private sealed record GeneratorTelemetryKey
         {
-            // TODO: mark with SetsRequiredMembers when we have the attributes in place
-            // [SetsRequiredMembers]
+            [SetsRequiredMembers]
             public GeneratorTelemetryKey(ISourceGenerator generator, AnalyzerReference analyzerReference)
             {
                 Identity = new SourceGeneratorIdentity(generator, analyzerReference);
@@ -30,9 +29,8 @@ namespace Microsoft.CodeAnalysis.SourceGeneratorTelemetry
                 }
             }
 
-            // TODO: mark these 'required' when we have the attributes in place
-            public SourceGeneratorIdentity Identity { get; init; }
-            public string FileVersion { get; init; }
+            public required SourceGeneratorIdentity Identity { get; init; }
+            public required string FileVersion { get; init; }
         }
 
         /// <summary>
