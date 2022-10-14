@@ -107,27 +107,6 @@ namespace Microsoft.CodeAnalysis.Text
         }
 
         /// <summary>
-        /// Gets the <see cref="AnalyzerConfigDocument"/> from the corresponding workspace's current solution that is associated with the source text's container 
-        /// in its current project context, updated to contain the same text as the source if necessary.
-        /// </summary>
-        public static TextDocument? GetOpenAnalyzerConfigDocumentInCurrentContextWithChanges(this SourceText text)
-        {
-            if (Workspace.TryGetWorkspace(text.Container, out var workspace))
-            {
-                var solution = workspace.CurrentSolution;
-                var id = workspace.GetDocumentIdInCurrentContext(text.Container);
-                if (id == null || !solution.ContainsAnalyzerConfigDocument(id))
-                {
-                    return null;
-                }
-
-                
-            }
-
-            return null;
-        }
-
-        /// <summary>
         /// Gets the documents from the corresponding workspace's current solution that are associated with the text container. 
         /// </summary>
         public static ImmutableArray<Document> GetRelatedDocuments(this SourceTextContainer container)
