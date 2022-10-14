@@ -1068,8 +1068,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_NonConstantConversionInConstantPattern">
-        <source>Cannot implicitly convert type '{0}' to input type '{1}' in constant pattern using non-constant conversion</source>
-        <target state="new">Cannot implicitly convert type '{0}' to input type '{1}' in constant pattern using non-constant conversion</target>
+        <source>Cannot implicitly convert type '{0}' to type '{1}' in constant pattern using non-constant conversion</source>
+        <target state="new">Cannot implicitly convert type '{0}' to type '{1}' in constant pattern using non-constant conversion</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NonPrivateAPIInRecord">
