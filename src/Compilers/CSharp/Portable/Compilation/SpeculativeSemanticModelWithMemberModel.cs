@@ -12,7 +12,10 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
-
+    /// <summary>
+    /// Instances of this type represent user-facing speculative semantic models that are backed by 
+    /// internal <see cref="MemberSemanticModel"/>.
+    /// </summary>
     internal sealed class SpeculativeSemanticModelWithMemberModel : PublicSemanticModel
     {
         private readonly SyntaxTreeSemanticModel _parentSemanticModel;
