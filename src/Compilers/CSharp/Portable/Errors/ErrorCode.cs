@@ -2151,7 +2151,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_RefAssignValEscapeWider = 9096,
         WRN_RefAssignValEscapeWider = 9097,
 
-        ERR_NonConstantConversionInConstantPattern = 9096
+        ERR_NonConstantConversionInConstantPattern = 9098
         #endregion
 
         // Note: you will need to do the following after adding any code:
