@@ -5579,6 +5579,25 @@ class C
         }
 
         [Fact, WorkItem(63911, "https://github.com/dotnet/roslyn/issues/63911")]
+        public void Lambda_ParameterAttribute()
+        {
+            var source = """
+                using System;
+                using System.Runtime.InteropServices;
+                class Program
+                {
+                    static void Main()
+                    {
+                        const int N = 10;
+                        var lam = ([Optional, DefaultParameterValue(N)] int x) => Console.WriteLine(x);
+                        lam(100);
+                    }
+                }
+                """;
+            CreateCompilation(source).VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem(63911, "https://github.com/dotnet/roslyn/issues/63911")]
         public void LocalMethod_ParameterAttribute_NamedArguments()
         {
             var source = """
@@ -5595,6 +5614,29 @@ class C
                         const int N = 10;
                         void F([A(Prop = N)] int x) { }
                         F(100);
+                    }
+                }
+                """;
+            CreateCompilation(source).VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem(63911, "https://github.com/dotnet/roslyn/issues/63911")]
+        public void Lambda_ParameterAttribute_NamedArguments()
+        {
+            var source = """
+                using System;
+                [AttributeUsage(AttributeTargets.Parameter)]
+                class A : Attribute
+                {
+                    public int Prop { get; set; }
+                }
+                class Program
+                {
+                    static void Main()
+                    {
+                        const int N = 10;
+                        var lam = ([A(Prop = N)] int x) => { };
+                        lam(100);
                     }
                 }
                 """;
