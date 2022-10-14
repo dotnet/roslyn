@@ -65,6 +65,9 @@
     <PackageReference Include="System.Memory" Version="$(SystemMemoryVersion)" />
   </ItemGroup>
 
+  <!-- Since we may be loading analyzers in-process, we need to have the appropriate binding redirects in place -->
+  <Import Project="$(RepositoryEngineeringDir)targets\GenerateCompilerExecutableBindingRedirects.targets" />
+
   <ItemGroup>
     <None Include=".editorconfig" />
     <None Include="App.config" />
