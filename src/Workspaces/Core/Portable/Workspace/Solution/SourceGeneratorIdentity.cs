@@ -18,14 +18,12 @@ namespace Microsoft.CodeAnalysis
     /// </remarks>
     internal record struct SourceGeneratorIdentity
     {
-        // TODO: mark these 'required' when we have the attributes in place
-        public string AssemblyName { get; init; }
-        public string? AssemblyPath { get; init; }
-        public Version AssemblyVersion { get; init; }
-        public string TypeName { get; init; }
+        public required string AssemblyName { get; init; }
+        public required string? AssemblyPath { get; init; }
+        public required Version AssemblyVersion { get; init; }
+        public required string TypeName { get; init; }
 
-        // TODO: mark with SetsRequiredMembers when we have the attributes in place
-        // [SetsRequiredMembers]
+        [SetsRequiredMembers]
         public SourceGeneratorIdentity(ISourceGenerator generator, AnalyzerReference analyzerReference)
         {
             var generatorType = generator.GetGeneratorType();
