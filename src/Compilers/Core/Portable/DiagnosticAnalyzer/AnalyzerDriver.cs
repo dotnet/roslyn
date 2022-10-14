@@ -908,12 +908,21 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return allDiagnostics.ToReadOnlyAndFree();
         }
 
-        public ImmutableDictionary<DiagnosticDescriptor, bool /*isEverSuppressed*/> GetAllDescriptors()
+        /// <summary>
+        /// Returns an array of all <see cref="DiagnosticDescriptor"/>s for all <see cref="Analyzers"/> along
+        /// with a boolean value "HasAnyExternalSuppression" indicating if the diagnostic ID has any
+        /// external non-source suppression from editorconfig, ruleset, command line options, etc.,
+        /// which disables the descriptor for either part of the compilation or the entire compilation.
+        /// Note that this flag doesn't account for source suppressions from pragma directives,
+        /// SuppressMessageAttributes, DiagnosticSuppressors, etc. which suppresses individual instances
+        /// of reported diagnostics.
+        /// </summary>
+        public ImmutableArray<(DiagnosticDescriptor Descriptor, bool HasAnyExternalSuppression)> GetAllDescriptors()
         {
             var uniqueDiagnosticIds = PooledHashSet<string>.GetInstance();
             var analyzersSuppressedForSomeTree = SuppressedAnalyzersForTreeMap.SelectMany(kvp => kvp.Value).ToImmutableHashSet();
 
-            var builder = PooledDictionary<DiagnosticDescriptor, bool>.GetInstance();
+            var builder = ArrayBuilder<(DiagnosticDescriptor Descriptor, bool HasAnyExternalSuppression)>.GetInstance();
             foreach (var analyzer in Analyzers)
             {
                 var descriptors = AnalyzerManager.GetSupportedDiagnosticDescriptors(analyzer, AnalyzerExecutor);
@@ -934,12 +943,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     var isDiagnosticIdEverSuppressed = isAnalyzerEverSuppressed ||
                         SuppressedDiagnosticIdsForUnsuppressedAnalyzers.Contains(descriptor.Id);
 
-                    builder.Add(descriptor, isDiagnosticIdEverSuppressed);
+                    builder.Add((descriptor, isDiagnosticIdEverSuppressed));
                 }
             }
 
             uniqueDiagnosticIds.Free();
-            return builder.ToImmutableDictionaryAndFree();
+            return builder.ToImmutableAndFree();
         }
 
         private SemanticModel GetOrCreateSemanticModel(SyntaxTree tree)

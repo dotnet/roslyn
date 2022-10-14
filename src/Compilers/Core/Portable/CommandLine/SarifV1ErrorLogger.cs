@@ -124,7 +124,7 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        public override void AddAnalyzerDescriptors(ImmutableDictionary<DiagnosticDescriptor, bool> descriptors)
+        public override void AddAnalyzerDescriptors(ImmutableArray<(DiagnosticDescriptor Descriptor, bool HasAnyExternalSuppression)> descriptors)
         {
             // We log all analyzer descriptors only in SARIF v2+ format.
         }
