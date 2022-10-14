@@ -232,12 +232,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (method is null)
                 return default;
 
-            if (method.Parameters.All(p => getByValueParameterDeclarationScope(p) == DeclarationScope.Unscoped))
+            if (method.Parameters.All(p => getByValueParameterDeclaredScope(p) == DeclarationScope.Unscoped))
                 return default;
 
-            return method.Parameters.SelectAsArray(p => getByValueParameterDeclarationScope(p));
+            return method.Parameters.SelectAsArray(p => getByValueParameterDeclaredScope(p));
 
-            static DeclarationScope getByValueParameterDeclarationScope(ParameterSymbol parameter)
+            static DeclarationScope getByValueParameterDeclaredScope(ParameterSymbol parameter)
             {
                 // For implicitly-typed lambda parameters, we only care about declaration scopes on by-value parameters.
                 // For by-value parameters, the declaration scope is the effective scope.
