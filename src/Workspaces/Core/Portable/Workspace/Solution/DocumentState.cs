@@ -379,13 +379,7 @@ namespace Microsoft.CodeAnalysis
 
                 SyntaxTree? newTree = null;
 
-                if (existingTree is IRecoverableSyntaxTree recoverableTree &&
-                    !recoverableTree.ContainsDirectives)
-                {
-                    // It's a recoverable tree, so we can try to reuse without even having to need the root
-                    newTree = recoverableTree.WithOptions(options);
-                }
-                else if (existingTree.TryGetRoot(out var existingRoot) && !existingRoot.ContainsDirectives)
+                if (existingTree.TryGetRoot(out var existingRoot) && !existingRoot.ContainsDirectives)
                 {
                     var treeFactory = _languageServices.GetRequiredService<ISyntaxTreeFactoryService>();
                     newTree = treeFactory.CreateSyntaxTree(Attributes.SyntaxTreeFilePath, options, existingTree.Encoding, LoadTextOptions.ChecksumAlgorithm, existingRoot);

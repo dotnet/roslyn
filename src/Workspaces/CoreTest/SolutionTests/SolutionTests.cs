@@ -2742,17 +2742,17 @@ End Class";
 
             var document = sol.GetDocument(did);
             var tree = document.GetSyntaxTreeSynchronously(default);
-            var recoverableTree = Assert.IsAssignableFrom<IRecoverableSyntaxTree>(tree);
+            //var recoverableTree = Assert.IsAssignableFrom<IRecoverableSyntaxTree>(tree);
 
             var tree2 = tree.WithFilePath("new path");
-            var recoverableTree2 = Assert.IsAssignableFrom<IRecoverableSyntaxTree>(tree2);
+            //var recoverableTree2 = Assert.IsAssignableFrom<IRecoverableSyntaxTree>(tree2);
 
             Assert.Equal("new path", tree2.FilePath);
             Assert.Same(tree2, tree2.GetRoot().SyntaxTree);
             Assert.Same(tree.Options, tree2.Options);
             Assert.Same(tree.Encoding, tree2.Encoding);
             Assert.Equal(tree.Length, tree2.Length);
-            Assert.Equal(recoverableTree.ContainsDirectives, recoverableTree2.ContainsDirectives);
+            //Assert.Equal(recoverableTree.ContainsDirectives, recoverableTree2.ContainsDirectives);
 
             // unchanged:
             Assert.Same(tree, tree.WithFilePath("old path"));
@@ -2773,25 +2773,25 @@ End Class";
             Assert.True(newRoot.ContainsDirectives);
 
             var tree3 = tree.WithRootAndOptions(newRoot, tree.Options);
-            var recoverableTree3 = Assert.IsAssignableFrom<IRecoverableSyntaxTree>(tree3);
+            //var recoverableTree3 = Assert.IsAssignableFrom<IRecoverableSyntaxTree>(tree3);
 
             Assert.Equal("old path", tree3.FilePath);
             Assert.Same(tree3, tree3.GetRoot().SyntaxTree);
             Assert.Same(tree.Options, tree3.Options);
             Assert.Same(tree.Encoding, tree3.Encoding);
             Assert.Equal(newRoot.FullSpan.Length, tree3.Length);
-            Assert.True(recoverableTree3.ContainsDirectives);
+            //Assert.True(recoverableTree3.ContainsDirectives);
 
             var newOptions = tree.Options.WithKind(SourceCodeKind.Script);
             var tree4 = tree.WithRootAndOptions(tree.GetRoot(), newOptions);
-            var recoverableTree4 = Assert.IsAssignableFrom<IRecoverableSyntaxTree>(tree4);
+            //var recoverableTree4 = Assert.IsAssignableFrom<IRecoverableSyntaxTree>(tree4);
 
             Assert.Equal("old path", tree4.FilePath);
             Assert.Same(tree4, tree4.GetRoot().SyntaxTree);
             Assert.Same(newOptions, tree4.Options);
             Assert.Same(tree.Encoding, tree4.Encoding);
             Assert.Equal(tree.Length, tree4.Length);
-            Assert.Equal(recoverableTree.ContainsDirectives, recoverableTree4.ContainsDirectives);
+            //Assert.Equal(recoverableTree.ContainsDirectives, recoverableTree4.ContainsDirectives);
 
             // unchanged:
             Assert.Same(tree, tree.WithRootAndOptions(tree.GetRoot(), tree.Options));
