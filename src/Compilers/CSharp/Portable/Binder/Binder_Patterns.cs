@@ -545,7 +545,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var conversion = convertedExpression as BoundConversion;
                 if (conversion != null && conversion.ConversionKind == ConversionKind.ImplicitUserDefined)
                 {
-                    diagnostics.Add(ErrorCode.ERR_NonConstantConversionInConstantPattern, conversion.Syntax.Location, conversion.Operand.Type!, conversion.Type);
+                    diagnostics.Add(ErrorCode.ERR_NonConstantConversionInConstantPattern, patternExpression.Location, conversion.Operand.Type!, conversion.Type);
                 }
                 else if (constantValueOpt == null)
                 {
