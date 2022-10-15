@@ -1469,9 +1469,9 @@ public sealed class MyClass
 }
 ";
             var expectedDiagnostics = new[] {
-                // file.cs(8,18): error CS0150: A constant value is expected
+                // (8,18): error CS9098: Cannot implicitly convert type 'int' to type 'MyClass' using user-defined conversion in pattern expression
                 //             case 1:
-                Diagnostic(ErrorCode.ERR_ConstantExpected, "1").WithLocation(8, 18)
+                Diagnostic(ErrorCode.ERR_NonConstantConversionInConstantPattern, "1").WithArguments("int", "MyClass").WithLocation(8, 18)
             };
 
             string expectedFlowGraph = @"
