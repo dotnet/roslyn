@@ -11807,10 +11807,8 @@ class C
         }
 
         [Fact]
-        [WorkItem(63476, "https://github.com/dotnet/roslyn/issues/63476")]
-        public void PatternReadOnlySpanConvertionToString()
+        public void PatternReadOnlySpan_ImplicitBuiltInConvertion_ToString()
         {
-            //cannot implicitly cast long to byte..
             var source =
 @"
 using System;
@@ -11819,7 +11817,7 @@ class C
     static bool M(ReadOnlySpan<char> chars) => chars switch { """" => true, _ => false };
 }";
             CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.RegularPreview)
-                .VerifyDiagnostics(); //this used to not work before work item related code changes
+                .VerifyDiagnostics(); //allowed due to built in conversion
         }
 
         [Fact]
