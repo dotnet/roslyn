@@ -54,11 +54,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             _root = root;
             _memberSymbol = memberSymbol;
-
-            this.RootBinder = rootBinder.WithAdditionalFlags(GetSemanticModelBinderFlags());
             _containingPublicSemanticModel = containingPublicSemanticModel;
             _parentRemappedSymbolsOpt = parentRemappedSymbolsOpt;
 
+            this.RootBinder = rootBinder.WithAdditionalFlags(GetSemanticModelBinderFlags());
             _operationFactory = new Lazy<CSharpOperationFactory>(() => new CSharpOperationFactory(this));
         }
 
