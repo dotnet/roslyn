@@ -41,7 +41,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer
             ILspServices lspServices,
             CancellationToken cancellationToken)
         {
-            var methodHandler =  GetMethodHandler<TRequestType, TResponseType>(methodName);
+            var methodHandler = GetMethodHandler<TRequestType, TResponseType>(methodName);
             TextDocumentIdentifier? textDocument = null;
             if (methodHandler is ITextDocumentIdentifierHandler txtDocumentIdentifierHandler)
             {
