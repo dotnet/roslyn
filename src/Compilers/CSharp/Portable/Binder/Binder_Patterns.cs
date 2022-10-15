@@ -543,10 +543,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (!convertedExpression.HasErrors && !hasErrors)
             {
                 if (constantValueOpt == null)
-                {
-                    if (!expression.IsLiteralNull() && convertedExpression is BoundConversion conversion && conversion.ConversionKind == ConversionKind.ImplicitUserDefined)
+                { 
+                    if (convertedExpression is BoundConversion conversion && conversion.ConversionKind == ConversionKind.ImplicitUserDefined)
                     {
-                        diagnostics.Add(ErrorCode.ERR_NonConstantConversionInConstantPattern, patternExpression.Location, expression.Type!, inputType);
+                        if(expression.IsLiteralNull() && !inputType.IsNullableType())
+                        {
+                            diagnostics.Add(ErrorCode.ERR_ValueCantBeNull, patternExpression.Location, inputType);
+                        } 
+                        else
+                        {
+                            diagnostics.Add(ErrorCode.ERR_NonConstantConversionInConstantPattern, patternExpression.Location, expression.Type!, inputType);
+                        }
                     }
                     else
                     {
