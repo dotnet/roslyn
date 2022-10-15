@@ -587,7 +587,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             get { return null; }
         }
 
-        internal override SemanticModel ContainingModelOrSelf
+        internal override SemanticModel ContainingPublicModelOrSelf
         {
             get { return this; }
         }

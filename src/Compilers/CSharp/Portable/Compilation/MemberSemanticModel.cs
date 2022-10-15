@@ -97,6 +97,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        public sealed override bool IgnoresAccessibility
+        {
+            get
+            {
+                return _containingPublicSemanticModel.IgnoresAccessibility;
+            }
+        }
+
         public sealed override int OriginalPositionForSpeculation
         {
             get
@@ -117,7 +125,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        internal sealed override SemanticModel ContainingModelOrSelf
+        internal sealed override SemanticModel ContainingPublicModelOrSelf
         {
             get
             {
