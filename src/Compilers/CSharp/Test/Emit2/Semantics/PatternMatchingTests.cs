@@ -11801,7 +11801,7 @@ class C
 }";
             CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.RegularPreview)
                 .VerifyDiagnostics(
-                    // (8,38): error CS9098: Cannot implicitly convert type 'string' to type 'A' in constant pattern using non-constant conversion
+                    // (8,38): error CS9098: Cannot implicitly convert type 'string' to type 'A' using user-defined conversion in pattern expression
                     //     static bool M(A a) => a switch { "convertme" => true, _ => false };
                     Diagnostic(ErrorCode.ERR_NonConstantConversionInConstantPattern, @"""implicitA""").WithArguments("string", "A").WithLocation(8, 38));
         }
