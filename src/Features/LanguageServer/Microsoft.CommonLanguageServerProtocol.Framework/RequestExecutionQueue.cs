@@ -79,18 +79,7 @@ public class RequestExecutionQueue<TRequestContext> : IRequestExecutionQueue<TRe
         _queueProcessingTask = ProcessQueueAsync();
     }
 
-    protected ITextDocumentIdentifierHandler? GetTextDocumentIdentifierHandler<TRequest, TResponse>(string methodName)
-    {
-        var handler = GetMethodHandler<TRequest, TResponse>(methodName);
-
-        ITextDocumentIdentifierHandler? textDocument = null;
-        if (handler is ITextDocumentIdentifierHandler textDocumentIdentifierHandler)
-            textDocument = textDocumentIdentifierHandler;
-
-        return textDocument;
-    }
-
-    private IMethodHandler GetMethodHandler<TRequest, TResponse>(string methodName)
+    protected IMethodHandler GetMethodHandler<TRequest, TResponse>(string methodName)
     {
         var requestType = typeof(TRequest) == typeof(VoidReturn) ? null : typeof(TRequest);
         var responseType = typeof(TResponse) == typeof(VoidReturn) ? null : typeof(TResponse);
@@ -109,7 +98,7 @@ public class RequestExecutionQueue<TRequestContext> : IRequestExecutionQueue<TRe
     /// <param name="requestCancellationToken">A cancellation token that will cancel the handing of this request.
     /// The request could also be cancelled by the queue shutting down.</param>
     /// <returns>A task that can be awaited to observe the results of the handing of this request.</returns>
-    public Task<TResponse> ExecuteAsync<TRequest, TResponse>(
+    public virtual Task<TResponse> ExecuteAsync<TRequest, TResponse>(
         TRequest request,
         string methodName,
         ILspServices lspServices,
