@@ -11784,5 +11784,59 @@ ref struct G<T> where T : class
                 Diagnostic(ErrorCode.ERR_BadBinaryOps, "x2 as T").WithArguments("as", "G<object>", "T").WithLocation(11, 18)
                 );
         }
+
+        [Fact]
+        [WorkItem(63476, "https://github.com/dotnet/roslyn/issues/63476")]
+        public void PatternNonConstant_UserDefined_ConvertionToInputType()
+        {
+            var source =
+@"
+class A {
+    public string S { get; set; }
+    public static implicit operator A(string s) { return new A { S = s }; }
+}
+class C
+{
+    static bool M(A a) => a switch { ""implicitA"" => true, _ => false };
+}";
+            CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.RegularPreview)
+                .VerifyDiagnostics(
+                    // (8,38): error CS9098: Cannot implicitly convert type 'string' to type 'A' in constant pattern using non-constant conversion
+                    //     static bool M(A a) => a switch { "convertme" => true, _ => false };
+                    Diagnostic(ErrorCode.ERR_NonConstantConversionInConstantPattern, @"""implicitA""").WithArguments("string", "A").WithLocation(8, 38));
+        }
+
+        [Fact]
+        [WorkItem(63476, "https://github.com/dotnet/roslyn/issues/63476")]
+        public void PatternReadOnlySpanConvertionToString()
+        {
+            //cannot implicitly cast long to byte..
+            var source =
+@"
+using System;
+class C
+{
+    static bool M(ReadOnlySpan<char> chars) => chars switch { """" => true, _ => false };
+}";
+            CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.RegularPreview)
+                .VerifyDiagnostics(); //this used to not work before work item related code changes
+        }
+
+        [Fact]
+        public void PatternNoImplicitConvertionToInputType()
+        {
+            //cannot implicitly cast long to byte..
+            var source =
+@"
+class C
+{
+    static bool M(byte b) => b switch { 1L => true, _ => false };
+}";
+            CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.RegularPreview)
+                .VerifyDiagnostics(
+                    // (4,41): error CS0266: Cannot implicitly convert type 'long' to 'byte'. An explicit conversion exists (are you missing a cast?)
+                    //     static bool M(byte b) => b switch { 1l => true, _ => false };
+                    Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "1L").WithArguments("long", "byte").WithLocation(4, 41));
+        }
     }
 }
