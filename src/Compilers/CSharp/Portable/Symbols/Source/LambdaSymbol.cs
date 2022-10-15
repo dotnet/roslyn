@@ -323,7 +323,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                                             ordinal,
                                                             arg.refKinds[ordinal],
                                                             GeneratedNames.LambdaCopyParameterName(ordinal), // Make sure nothing binds to this.
-                                                            getDeclarationScope(arg.parameterEffectiveScopes, ordinal)),
+                                                            getScope(arg.parameterEffectiveScopes, ordinal)),
                                                      (owner: this, refKinds: parameterRefKinds, parameterEffectiveScopes));
             }
 
@@ -355,7 +355,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     type = parameterTypes[p];
                     refKind = parameterRefKinds[p];
                     declaredScope = null;
-                    effectiveScope = getDeclarationScope(parameterEffectiveScopes, p);
+                    effectiveScope = getScope(parameterEffectiveScopes, p);
                 }
                 else
                 {
@@ -377,7 +377,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var result = builder.ToImmutableAndFree();
             return result;
 
-            static DeclarationScope getDeclarationScope(ImmutableArray<DeclarationScope> scopes, int ordinal)
+            static DeclarationScope getScope(ImmutableArray<DeclarationScope> scopes, int ordinal)
             {
                 return scopes.IsDefault ? DeclarationScope.Unscoped : scopes[ordinal];
             }

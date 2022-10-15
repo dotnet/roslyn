@@ -20,14 +20,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
            TypeWithAnnotations parameterType,
            int ordinal,
            RefKind refKind,
-           DeclarationScope? declarationScope,
+           DeclarationScope? declaredScope,
            DeclarationScope? effectiveScope,
            string name,
            bool isDiscard,
            ImmutableArray<Location> locations)
-           : base(owner, ordinal, parameterType, refKind, name, locations, syntaxRef: null, isParams: false, isExtensionMethodThis: false, scope: declarationScope)
+           : base(owner, ordinal, parameterType, refKind, name, locations, syntaxRef: null, isParams: false, isExtensionMethodThis: false, scope: declaredScope)
         {
-            Debug.Assert(declarationScope.HasValue != effectiveScope.HasValue);
+            Debug.Assert(declaredScope.HasValue != effectiveScope.HasValue);
             _attributeLists = attributeLists;
             _effectiveScope = effectiveScope;
             IsDiscard = isDiscard;

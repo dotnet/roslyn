@@ -751,7 +751,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                lambdaSymbol = CreateLambdaSymbol(Binder.ContainingMemberOrLambda, returnType, cacheKey.ParameterTypes, cacheKey.ParameterRefKinds, cacheKey.ParameterDeclarationScopes, refKind);
+                lambdaSymbol = CreateLambdaSymbol(Binder.ContainingMemberOrLambda, returnType, cacheKey.ParameterTypes, cacheKey.ParameterRefKinds, cacheKey.ParameterEffectiveScopes, refKind);
                 lambdaBodyBinder = new ExecutableCodeBinder(_unboundLambda.Syntax, lambdaSymbol, GetWithParametersBinder(lambdaSymbol, Binder), inExpressionTree ? BinderFlags.InExpressionTree : BinderFlags.None);
                 block = BindLambdaBody(lambdaSymbol, lambdaBodyBinder, diagnostics);
             }
@@ -959,7 +959,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundLambda? result;
             if (!_returnInferenceCache!.TryGetValue(cacheKey, out result))
             {
-                result = ReallyInferReturnType(delegateType, cacheKey.ParameterTypes, cacheKey.ParameterRefKinds, cacheKey.ParameterDeclarationScopes);
+                result = ReallyInferReturnType(delegateType, cacheKey.ParameterTypes, cacheKey.ParameterRefKinds, cacheKey.ParameterEffectiveScopes);
                 result = ImmutableInterlocked.GetOrAdd(ref _returnInferenceCache, cacheKey, result);
             }
 
@@ -973,7 +973,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             public readonly ImmutableArray<TypeWithAnnotations> ParameterTypes;
             public readonly ImmutableArray<RefKind> ParameterRefKinds;
-            public readonly ImmutableArray<DeclarationScope> ParameterDeclarationScopes;
+            public readonly ImmutableArray<DeclarationScope> ParameterEffectiveScopes;
             public readonly NamedTypeSymbol? TaskLikeReturnTypeOpt;
 
             public static readonly ReturnInferenceCacheKey Empty = new ReturnInferenceCacheKey(ImmutableArray<TypeWithAnnotations>.Empty, ImmutableArray<RefKind>.Empty,
@@ -988,7 +988,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 this.ParameterTypes = parameterTypes;
                 this.ParameterRefKinds = parameterRefKinds;
-                this.ParameterDeclarationScopes = parameterEffectiveScopes;
+                this.ParameterEffectiveScopes = parameterEffectiveScopes;
                 this.TaskLikeReturnTypeOpt = taskLikeReturnTypeOpt;
             }
 
@@ -1017,12 +1017,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 }
 
-                if (this.ParameterDeclarationScopes.IsDefault || other.ParameterDeclarationScopes.IsDefault)
+                if (this.ParameterEffectiveScopes.IsDefault || other.ParameterEffectiveScopes.IsDefault)
                 {
-                    return this.ParameterDeclarationScopes.IsDefault == other.ParameterDeclarationScopes.IsDefault;
+                    return this.ParameterEffectiveScopes.IsDefault == other.ParameterEffectiveScopes.IsDefault;
                 }
 
-                return this.ParameterDeclarationScopes.SequenceEqual(other.ParameterDeclarationScopes);
+                return this.ParameterEffectiveScopes.SequenceEqual(other.ParameterEffectiveScopes);
             }
 
             public override int GetHashCode()

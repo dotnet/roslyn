@@ -231,7 +231,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         protected DeclarationScope CalculateEffectiveScopeIgnoringAttributes()
         {
-            // null DeclaredScope is only used in LambdaParameterSymbol where EffectiveScope is provided rather than computed
+            // DeclaredScope is only null in LambdaParameterSymbol where EffectiveScope can be provided rather than computed
             Debug.Assert(this.DeclaredScope is not null);
             var declaredScope = this.DeclaredScope.Value;
 
