@@ -8444,9 +8444,9 @@ class C
 }";
             var comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.RegularPreview);
             comp.VerifyDiagnostics(
-                // (5,58): error CS0150: A constant value is expected
+                // (5,50): error CS0037: Cannot convert null to 'ReadOnlySpan<char>' because it is a non-nullable value type
                 //     static bool M1(ReadOnlySpan<char> chars) => chars is null;
-                Diagnostic(ErrorCode.ERR_ConstantExpected, "null").WithLocation(5, 58),
+                Diagnostic(ErrorCode.ERR_ValueCantBeNull, "null").WithArguments("System.ReadOnlySpan<char>").WithLocation(5, 58),
                 // (6,58): error CS8505: A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern '_'.
                 //     static bool M2(ReadOnlySpan<char> chars) => chars is default;
                 Diagnostic(ErrorCode.ERR_DefaultPattern, "default").WithLocation(6, 58));
@@ -8517,9 +8517,9 @@ class C
 }";
             CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.RegularPreview)
                 .VerifyDiagnostics(
-                    // (5,63): error CS0150: A constant value is expected
+                    // (5,63): error CS0037: Cannot convert null to 'ReadOnlySpan<char>' because it is a non-nullable value type
                     //     static bool M(ReadOnlySpan<char> chars) => chars switch { null => true, _ => false };
-                    Diagnostic(ErrorCode.ERR_ConstantExpected, "null").WithLocation(5, 63));
+                    Diagnostic(ErrorCode.ERR_ValueCantBeNull, "null").WithArguments("System.ReadOnlySpan<char>").WithLocation(5, 63));
         }
 
         [Fact]
@@ -9796,9 +9796,9 @@ class C
 }";
             var comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.RegularPreview);
             comp.VerifyDiagnostics(
-                // (5,50): error CS0150: A constant value is expected
+                // (5,50): error CS0037: Cannot convert null to 'Span<char>' because it is a non-nullable value type
                 //     static bool M1(Span<char> chars) => chars is null;
-                Diagnostic(ErrorCode.ERR_ConstantExpected, "null").WithLocation(5, 50),
+                Diagnostic(ErrorCode.ERR_ValueCantBeNull, "null").WithArguments("System.Span<char>").WithLocation(5, 50),
                 // (6,50): error CS8505: A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern '_'.
                 //     static bool M2(Span<char> chars) => chars is default;
                 Diagnostic(ErrorCode.ERR_DefaultPattern, "default").WithLocation(6, 50));
@@ -9869,9 +9869,9 @@ class C
 }";
             CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.RegularPreview)
                 .VerifyDiagnostics(
-                    // (5,55): error CS0150: A constant value is expected
+                    // (5,55): error CS0037: Cannot convert null to 'Span<char>' because it is a non-nullable value type
                     //     static bool M(Span<char> chars) => chars switch { null => true, _ => false };
-                    Diagnostic(ErrorCode.ERR_ConstantExpected, "null").WithLocation(5, 55));
+                    Diagnostic(ErrorCode.ERR_ValueCantBeNull, "null").WithArguments("System.Span<char>").WithLocation(5, 55));
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
