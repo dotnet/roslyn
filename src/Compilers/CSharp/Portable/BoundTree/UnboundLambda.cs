@@ -1401,7 +1401,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private readonly ImmutableArray<bool> _parameterIsDiscardOpt;
         private readonly ImmutableArray<TypeWithAnnotations> _parameterTypesWithAnnotations;
         private readonly ImmutableArray<RefKind> _parameterRefKinds;
-        private readonly ImmutableArray<DeclarationScope> _parameterEffectiveScopes;
+        private readonly ImmutableArray<DeclarationScope> _parameterDeclaredScopes;
         private readonly bool _isAsync;
         private readonly bool _isStatic;
 
@@ -1414,7 +1414,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<bool> parameterIsDiscardOpt,
             ImmutableArray<TypeWithAnnotations> parameterTypesWithAnnotations,
             ImmutableArray<RefKind> parameterRefKinds,
-            ImmutableArray<DeclarationScope> parameterEffectiveScopes,
+            ImmutableArray<DeclarationScope> parameterDeclaredScopes,
             bool isAsync,
             bool isStatic,
             bool includeCache)
@@ -1427,7 +1427,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             _parameterIsDiscardOpt = parameterIsDiscardOpt;
             _parameterTypesWithAnnotations = parameterTypesWithAnnotations;
             _parameterRefKinds = parameterRefKinds;
-            _parameterEffectiveScopes = parameterEffectiveScopes;
+            _parameterDeclaredScopes = parameterDeclaredScopes;
             _isAsync = isAsync;
             _isStatic = isStatic;
         }
@@ -1501,9 +1501,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override DeclarationScope DeclaredScope(int index)
         {
-            // TODO2 !!!!
             Debug.Assert(0 <= index && index < _parameterTypesWithAnnotations.Length);
-            return _parameterEffectiveScopes.IsDefault ? DeclarationScope.Unscoped : _parameterEffectiveScopes[index];
+            return _parameterDeclaredScopes.IsDefault ? DeclarationScope.Unscoped : _parameterDeclaredScopes[index];
         }
 
         public override TypeWithAnnotations ParameterTypeWithAnnotations(int index)
@@ -1515,7 +1514,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected override UnboundLambdaState WithCachingCore(bool includeCache)
         {
-            return new PlainUnboundLambdaState(Binder, _returnRefKind, _returnType, _parameterAttributes, _parameterNames, _parameterIsDiscardOpt, _parameterTypesWithAnnotations, _parameterRefKinds, _parameterEffectiveScopes, _isAsync, _isStatic, includeCache);
+            return new PlainUnboundLambdaState(Binder, _returnRefKind, _returnType, _parameterAttributes, _parameterNames, _parameterIsDiscardOpt, _parameterTypesWithAnnotations, _parameterRefKinds, _parameterDeclaredScopes, _isAsync, _isStatic, includeCache);
         }
 
         protected override BoundExpression? GetLambdaExpressionBody(BoundBlock body)
