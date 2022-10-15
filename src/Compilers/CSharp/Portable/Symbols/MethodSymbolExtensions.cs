@@ -227,26 +227,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
 #nullable enable
-        internal static ImmutableArray<DeclarationScope> GetByValueParameterDeclaredScopes(this MethodSymbol? method)
+        internal static ImmutableArray<DeclarationScope> GetParameterEffectiveScopes(this MethodSymbol? method)
         {
             if (method is null)
                 return default;
 
-            if (method.Parameters.All(p => getByValueParameterDeclaredScope(p) == DeclarationScope.Unscoped))
+            if (method.Parameters.All(p => p.EffectiveScope == DeclarationScope.Unscoped))
                 return default;
 
-            return method.Parameters.SelectAsArray(p => getByValueParameterDeclaredScope(p));
-
-            static DeclarationScope getByValueParameterDeclaredScope(ParameterSymbol parameter)
-            {
-                // For implicitly-typed lambda parameters, we only care about declaration scopes on by-value parameters.
-                // For by-value parameters, the declaration scope is the effective scope.
-                if (parameter.RefKind != RefKind.None)
-                    return DeclarationScope.Unscoped;
-
-                Debug.Assert(parameter.EffectiveScope is DeclarationScope.Unscoped or DeclarationScope.ValueScoped);
-                return parameter.EffectiveScope;
-            }
+            return method.Parameters.SelectAsArray(p => p.EffectiveScope);
         }
     }
 }

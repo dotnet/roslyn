@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             SyntaxReference syntaxRef,
             bool isParams,
             bool isExtensionMethodThis,
-            DeclarationScope scope)
+            DeclarationScope? scope)
             : base(owner, parameterType, ordinal, refKind, scope, name, locations)
         {
             Debug.Assert((syntaxRef == null) || (syntaxRef.GetSyntax().IsKind(SyntaxKind.Parameter)));
@@ -198,7 +198,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
 #nullable enable
 
-        internal sealed override DeclarationScope EffectiveScope
+        internal override DeclarationScope EffectiveScope
         {
             get
             {
@@ -1479,7 +1479,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             SyntaxReference syntaxRef,
             bool isParams,
             bool isExtensionMethodThis,
-            DeclarationScope scope)
+            DeclarationScope? scope)
             : base(owner, ordinal, parameterType, refKind, name, locations, syntaxRef, isParams, isExtensionMethodThis, scope)
         {
         }
@@ -1502,7 +1502,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             SyntaxReference syntaxRef,
             bool isParams,
             bool isExtensionMethodThis,
-            DeclarationScope scope)
+            DeclarationScope? scope)
             : base(owner, ordinal, parameterType, refKind, name, locations, syntaxRef, isParams, isExtensionMethodThis, scope)
         {
             Debug.Assert(!refCustomModifiers.IsEmpty);

@@ -43,14 +43,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             UnboundLambda unboundLambda,
             ImmutableArray<TypeWithAnnotations> parameterTypes,
             ImmutableArray<RefKind> parameterRefKinds,
-            ImmutableArray<DeclarationScope> parameterDeclaredScopes,
+            ImmutableArray<DeclarationScope> parameterEffectiveScopes,
             RefKind refKind,
             TypeWithAnnotations returnType) :
             base(unboundLambda.Syntax.GetReference())
         {
             Debug.Assert(syntaxReferenceOpt is not null);
             Debug.Assert(containingSymbol.DeclaringCompilation == compilation);
-            Debug.Assert(parameterDeclaredScopes.IsDefault || parameterTypes.Length == parameterDeclaredScopes.Length);
+            Debug.Assert(parameterEffectiveScopes.IsDefault || parameterTypes.Length == parameterEffectiveScopes.Length);
 
             _binder = binder;
             _containingSymbol = containingSymbol;
@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             _isAsync = unboundLambda.IsAsync;
             _isStatic = unboundLambda.IsStatic;
             // No point in making this lazy. We are always going to need these soon after creation of the symbol.
-            _parameters = MakeParameters(compilation, unboundLambda, parameterTypes, parameterRefKinds, parameterDeclaredScopes);
+            _parameters = MakeParameters(compilation, unboundLambda, parameterTypes, parameterRefKinds, parameterEffectiveScopes);
             _declarationDiagnostics = new BindingDiagnosticBag();
         }
 
@@ -308,10 +308,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             UnboundLambda unboundLambda,
             ImmutableArray<TypeWithAnnotations> parameterTypes,
             ImmutableArray<RefKind> parameterRefKinds,
-            ImmutableArray<DeclarationScope> parameterDeclaredScopes)
+            ImmutableArray<DeclarationScope> parameterEffectiveScopes)
         {
             Debug.Assert(parameterTypes.Length == parameterRefKinds.Length);
-            Debug.Assert(parameterDeclaredScopes.IsDefault || parameterTypes.Length == parameterDeclaredScopes.Length);
+            Debug.Assert(parameterEffectiveScopes.IsDefault || parameterTypes.Length == parameterEffectiveScopes.Length);
 
             if (!unboundLambda.HasSignature || unboundLambda.ParameterCount == 0)
             {
@@ -323,8 +323,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                                             ordinal,
                                                             arg.refKinds[ordinal],
                                                             GeneratedNames.LambdaCopyParameterName(ordinal), // Make sure nothing binds to this.
-                                                            getDeclarationScope(arg.parameterDeclaredScopes, ordinal)),
-                                                     (owner: this, refKinds: parameterRefKinds, parameterDeclaredScopes));
+                                                            getDeclarationScope(arg.parameterEffectiveScopes, ordinal)),
+                                                     (owner: this, refKinds: parameterRefKinds, parameterEffectiveScopes));
             }
 
             var builder = ArrayBuilder<ParameterSymbol>.GetInstance(unboundLambda.ParameterCount);
@@ -341,24 +341,28 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 TypeWithAnnotations type;
                 RefKind refKind;
-                DeclarationScope scope;
+                DeclarationScope? declaredScope;
+                DeclarationScope? effectiveScope;
                 if (hasExplicitlyTypedParameterList)
                 {
                     type = unboundLambda.ParameterTypeWithAnnotations(p);
                     refKind = unboundLambda.RefKind(p);
-                    scope = unboundLambda.DeclaredScope(p);
+                    declaredScope = unboundLambda.DeclaredScope(p);
+                    effectiveScope = null;
                 }
                 else if (p < numDelegateParameters)
                 {
                     type = parameterTypes[p];
                     refKind = parameterRefKinds[p];
-                    scope = getDeclarationScope(parameterDeclaredScopes, p);
+                    declaredScope = null;
+                    effectiveScope = getDeclarationScope(parameterEffectiveScopes, p);
                 }
                 else
                 {
                     type = TypeWithAnnotations.Create(new ExtendedErrorTypeSymbol(compilation, name: string.Empty, arity: 0, errorInfo: null));
                     refKind = RefKind.None;
-                    scope = DeclarationScope.Unscoped;
+                    declaredScope = DeclarationScope.Unscoped;
+                    effectiveScope = null;
                 }
 
                 var attributeLists = unboundLambda.ParameterAttributes(p);
@@ -366,7 +370,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 var location = unboundLambda.ParameterLocation(p);
                 var locations = location == null ? ImmutableArray<Location>.Empty : ImmutableArray.Create<Location>(location);
 
-                var parameter = new LambdaParameterSymbol(owner: this, attributeLists, type, ordinal: p, refKind, scope, name, unboundLambda.ParameterIsDiscard(p), locations);
+                var parameter = new LambdaParameterSymbol(owner: this, attributeLists, type, ordinal: p, refKind, declaredScope, effectiveScope, name, unboundLambda.ParameterIsDiscard(p), locations);
                 builder.Add(parameter);
             }
 

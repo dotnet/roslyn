@@ -154,14 +154,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeWithAnnotations returnType,
             ImmutableArray<TypeWithAnnotations> parameterTypes,
             ImmutableArray<RefKind> parameterRefKinds,
-            ImmutableArray<DeclarationScope> parameterDeclaredScopes,
+            ImmutableArray<DeclarationScope> parameterEffectiveScopes,
             RefKind refKind)
             => UnboundLambda.Data.CreateLambdaSymbol(
                 containingSymbol,
                 returnType,
                 parameterTypes,
                 parameterRefKinds.IsDefault ? Enumerable.Repeat(RefKind.None, parameterTypes.Length).ToImmutableArray() : parameterRefKinds,
-                parameterDeclaredScopes,
+                parameterEffectiveScopes,
                 refKind);
 
         /// <summary>
@@ -613,7 +613,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var parameterRefKindsBuilder = ArrayBuilder<RefKind>.GetInstance(ParameterCount);
-            var parameterDeclaredScopesBuilder = ArrayBuilder<DeclarationScope>.GetInstance(ParameterCount);
             var parameterEffectiveScopesBuilder = ArrayBuilder<DeclarationScope>.GetInstance(ParameterCount);
             var parameterTypesBuilder = ArrayBuilder<TypeWithAnnotations>.GetInstance(ParameterCount);
             bool getEffectiveScopeFromSymbol = false;
@@ -623,7 +622,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var refKind = RefKind(i);
                 var scope = DeclaredScope(i);
                 var type = ParameterTypeWithAnnotations(i);
-                parameterDeclaredScopesBuilder.Add(scope);
 
                 if (scope == DeclarationScope.Unscoped &&
                     ParameterHelpers.IsRefScopedByDefault(Binder.UseUpdatedEscapeRules, refKind))
@@ -640,7 +638,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             var parameterRefKinds = parameterRefKindsBuilder.ToImmutableAndFree();
             var parameterTypes = parameterTypesBuilder.ToImmutableAndFree();
-            var parameterDeclaredScopes = parameterDeclaredScopesBuilder.ToImmutableAndFree();
 
             LambdaSymbol? lambdaSymbol = null;
 
@@ -711,7 +708,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                     _unboundLambda,
                                     parameterTypes,
                                     parameterRefKinds,
-                                    parameterDeclaredScopes,
+                                    parameterEffectiveScopesBuilder.ToImmutable(),
                                     refKind: default,
                                     returnType: default);
             }
@@ -828,7 +825,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeWithAnnotations returnType,
             ImmutableArray<TypeWithAnnotations> parameterTypes,
             ImmutableArray<RefKind> parameterRefKinds,
-            ImmutableArray<DeclarationScope> parameterDeclaredScopes,
+            ImmutableArray<DeclarationScope> parameterEffectiveScopes,
             RefKind refKind)
             => new LambdaSymbol(
                 Binder,
@@ -837,7 +834,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 _unboundLambda,
                 parameterTypes,
                 parameterRefKinds,
-                parameterDeclaredScopes,
+                parameterEffectiveScopes,
                 refKind,
                 returnType);
 
@@ -846,9 +843,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             var invokeMethod = DelegateInvokeMethod(delegateType);
             var returnType = DelegateReturnTypeWithAnnotations(invokeMethod, out RefKind refKind);
             ReturnInferenceCacheKey.GetFields(delegateType, IsAsync, out var parameterTypes, out var parameterRefKinds,
-                out var parameterDeclaredScopes, out _);
+                out var parameterEffectiveScopes, out _);
 
-            return CreateLambdaSymbol(containingSymbol, returnType, parameterTypes, parameterRefKinds, parameterDeclaredScopes, refKind);
+            return CreateLambdaSymbol(containingSymbol, returnType, parameterTypes, parameterRefKinds, parameterEffectiveScopes, refKind);
         }
 
         private void ValidateUnsafeParameters(BindingDiagnosticBag diagnostics, ImmutableArray<TypeWithAnnotations> targetParameterTypes)
@@ -880,10 +877,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             NamedTypeSymbol? delegateType,
             ImmutableArray<TypeWithAnnotations> parameterTypes,
             ImmutableArray<RefKind> parameterRefKinds,
-            ImmutableArray<DeclarationScope> parameterDeclaredScopes)
+            ImmutableArray<DeclarationScope> parameterEffectiveScopes)
         {
             bool hasExplicitReturnType = HasExplicitReturnType(out var refKind, out var returnType);
-            (var lambdaSymbol, var block, var lambdaBodyBinder, var diagnostics) = BindWithParameterAndReturnType(parameterTypes, parameterRefKinds, parameterDeclaredScopes, returnType, refKind);
+            (var lambdaSymbol, var block, var lambdaBodyBinder, var diagnostics) = BindWithParameterAndReturnType(parameterTypes, parameterRefKinds, parameterEffectiveScopes, returnType, refKind);
             InferredLambdaReturnType inferredReturnType;
             if (hasExplicitReturnType)
             {
@@ -938,7 +935,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private (LambdaSymbol lambdaSymbol, BoundBlock block, ExecutableCodeBinder lambdaBodyBinder, BindingDiagnosticBag diagnostics) BindWithParameterAndReturnType(
             ImmutableArray<TypeWithAnnotations> parameterTypes,
             ImmutableArray<RefKind> parameterRefKinds,
-            ImmutableArray<DeclarationScope> parameterDeclaredScopes,
+            ImmutableArray<DeclarationScope> parameterEffectiveScopes,
             TypeWithAnnotations returnType,
             RefKind refKind)
         {
@@ -947,7 +944,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                                   returnType,
                                                   parameterTypes,
                                                   parameterRefKinds,
-                                                  parameterDeclaredScopes,
+                                                  parameterEffectiveScopes,
                                                   refKind);
             var lambdaBodyBinder = new ExecutableCodeBinder(_unboundLambda.Syntax, lambdaSymbol, GetWithParametersBinder(lambdaSymbol, Binder));
             var block = BindLambdaBody(lambdaSymbol, lambdaBodyBinder, diagnostics);
@@ -980,18 +977,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             public readonly NamedTypeSymbol? TaskLikeReturnTypeOpt;
 
             public static readonly ReturnInferenceCacheKey Empty = new ReturnInferenceCacheKey(ImmutableArray<TypeWithAnnotations>.Empty, ImmutableArray<RefKind>.Empty,
-                parameterDeclaredScopes: default, taskLikeReturnTypeOpt: null);
+                parameterEffectiveScopes: default, taskLikeReturnTypeOpt: null);
 
             private ReturnInferenceCacheKey(ImmutableArray<TypeWithAnnotations> parameterTypes, ImmutableArray<RefKind> parameterRefKinds,
-                ImmutableArray<DeclarationScope> parameterDeclaredScopes, NamedTypeSymbol? taskLikeReturnTypeOpt)
+                ImmutableArray<DeclarationScope> parameterEffectiveScopes, NamedTypeSymbol? taskLikeReturnTypeOpt)
             {
                 Debug.Assert(parameterTypes.Length == parameterRefKinds.Length);
-                Debug.Assert(parameterDeclaredScopes.IsDefault || parameterTypes.Length == parameterDeclaredScopes.Length);
+                Debug.Assert(parameterEffectiveScopes.IsDefault || parameterTypes.Length == parameterEffectiveScopes.Length);
                 Debug.Assert(taskLikeReturnTypeOpt is null || ((object)taskLikeReturnTypeOpt == taskLikeReturnTypeOpt.ConstructedFrom && taskLikeReturnTypeOpt.IsCustomTaskType(out var builderArgument)));
 
                 this.ParameterTypes = parameterTypes;
                 this.ParameterRefKinds = parameterRefKinds;
-                this.ParameterDeclarationScopes = parameterDeclaredScopes;
+                this.ParameterDeclarationScopes = parameterEffectiveScopes;
                 this.TaskLikeReturnTypeOpt = taskLikeReturnTypeOpt;
             }
 
@@ -1041,13 +1038,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             public static ReturnInferenceCacheKey Create(NamedTypeSymbol? delegateType, bool isAsync)
             {
                 GetFields(delegateType, isAsync, out var parameterTypes, out var parameterRefKinds,
-                    out var parameterDeclaredScopes, out var taskLikeReturnTypeOpt);
+                    out var parameterEffectiveScopes, out var taskLikeReturnTypeOpt);
 
                 if (parameterTypes.IsEmpty && parameterRefKinds.IsEmpty && taskLikeReturnTypeOpt is null)
                 {
                     return Empty;
                 }
-                return new ReturnInferenceCacheKey(parameterTypes, parameterRefKinds, parameterDeclaredScopes, taskLikeReturnTypeOpt);
+                return new ReturnInferenceCacheKey(parameterTypes, parameterRefKinds, parameterEffectiveScopes, taskLikeReturnTypeOpt);
             }
 
             public static void GetFields(
@@ -1055,14 +1052,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 bool isAsync,
                 out ImmutableArray<TypeWithAnnotations> parameterTypes,
                 out ImmutableArray<RefKind> parameterRefKinds,
-                out ImmutableArray<DeclarationScope> parameterDeclaredScopes,
+                out ImmutableArray<DeclarationScope> parameterEffectiveScopes,
                 out NamedTypeSymbol? taskLikeReturnTypeOpt)
             {
                 // delegateType or DelegateInvokeMethod can be null in cases of malformed delegates
                 // in such case we would want something trivial with no parameters
                 parameterTypes = ImmutableArray<TypeWithAnnotations>.Empty;
                 parameterRefKinds = ImmutableArray<RefKind>.Empty;
-                parameterDeclaredScopes = default;
+                parameterEffectiveScopes = default;
                 taskLikeReturnTypeOpt = null;
                 MethodSymbol? invoke = DelegateInvokeMethod(delegateType);
                 if (invoke is not null)
@@ -1081,7 +1078,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         parameterTypes = typesBuilder.ToImmutableAndFree();
                         parameterRefKinds = refKindsBuilder.ToImmutableAndFree();
-                        parameterDeclaredScopes = invoke.GetByValueParameterDeclaredScopes();
+                        parameterEffectiveScopes = invoke.GetParameterEffectiveScopes();
                     }
 
                     if (isAsync)
@@ -1148,7 +1145,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return
                 GuessBestBoundLambda(_bindingCache!)
                 ?? rebind(GuessBestBoundLambda(_returnInferenceCache!))
-                ?? rebind(ReallyInferReturnType(delegateType: null, ImmutableArray<TypeWithAnnotations>.Empty, ImmutableArray<RefKind>.Empty, parameterDeclaredScopes: default));
+                ?? rebind(ReallyInferReturnType(delegateType: null, ImmutableArray<TypeWithAnnotations>.Empty, ImmutableArray<RefKind>.Empty, parameterEffectiveScopes: default));
 
             // Rebind a lambda to push target conversions through the return/result expressions
             [return: NotNullIfNotNull("lambda")] BoundLambda? rebind(BoundLambda? lambda)
@@ -1158,9 +1155,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 var delegateType = (NamedTypeSymbol?)lambda.Type;
                 ReturnInferenceCacheKey.GetFields(delegateType, IsAsync, out var parameterTypes, out var parameterRefKinds,
-                    out var parameterDeclaredScopes, taskLikeReturnTypeOpt: out _);
+                    out var parameterEffectiveScopes, taskLikeReturnTypeOpt: out _);
 
-                return ReallyBindForErrorRecovery(delegateType, lambda.InferredReturnType, parameterTypes, parameterRefKinds, parameterDeclaredScopes);
+                return ReallyBindForErrorRecovery(delegateType, lambda.InferredReturnType, parameterTypes, parameterRefKinds, parameterEffectiveScopes);
             }
         }
 
@@ -1169,7 +1166,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             InferredLambdaReturnType inferredReturnType,
             ImmutableArray<TypeWithAnnotations> parameterTypes,
             ImmutableArray<RefKind> parameterRefKinds,
-            ImmutableArray<DeclarationScope> parameterDeclaredScopes)
+            ImmutableArray<DeclarationScope> parameterEffectiveScopes)
         {
             var returnType = inferredReturnType.TypeWithAnnotations;
             var refKind = inferredReturnType.RefKind;
@@ -1188,7 +1185,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            (_, var block, var lambdaBodyBinder, var diagnostics) = BindWithParameterAndReturnType(parameterTypes, parameterRefKinds, parameterDeclaredScopes, returnType, refKind);
+            (_, var block, var lambdaBodyBinder, var diagnostics) = BindWithParameterAndReturnType(parameterTypes, parameterRefKinds, parameterEffectiveScopes, returnType, refKind);
             return new BoundLambda(
                 _unboundLambda.Syntax,
                 _unboundLambda,
@@ -1404,7 +1401,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private readonly ImmutableArray<bool> _parameterIsDiscardOpt;
         private readonly ImmutableArray<TypeWithAnnotations> _parameterTypesWithAnnotations;
         private readonly ImmutableArray<RefKind> _parameterRefKinds;
-        private readonly ImmutableArray<DeclarationScope> _parameterDeclaredScopes;
+        private readonly ImmutableArray<DeclarationScope> _parameterEffectiveScopes;
         private readonly bool _isAsync;
         private readonly bool _isStatic;
 
@@ -1417,7 +1414,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<bool> parameterIsDiscardOpt,
             ImmutableArray<TypeWithAnnotations> parameterTypesWithAnnotations,
             ImmutableArray<RefKind> parameterRefKinds,
-            ImmutableArray<DeclarationScope> parameterDeclaredScopes,
+            ImmutableArray<DeclarationScope> parameterEffectiveScopes,
             bool isAsync,
             bool isStatic,
             bool includeCache)
@@ -1430,7 +1427,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             _parameterIsDiscardOpt = parameterIsDiscardOpt;
             _parameterTypesWithAnnotations = parameterTypesWithAnnotations;
             _parameterRefKinds = parameterRefKinds;
-            _parameterDeclaredScopes = parameterDeclaredScopes;
+            _parameterEffectiveScopes = parameterEffectiveScopes;
             _isAsync = isAsync;
             _isStatic = isStatic;
         }
@@ -1504,8 +1501,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override DeclarationScope DeclaredScope(int index)
         {
+            // TODO2 !!!!
             Debug.Assert(0 <= index && index < _parameterTypesWithAnnotations.Length);
-            return _parameterDeclaredScopes.IsDefault ? DeclarationScope.Unscoped : _parameterDeclaredScopes[index];
+            return _parameterEffectiveScopes.IsDefault ? DeclarationScope.Unscoped : _parameterEffectiveScopes[index];
         }
 
         public override TypeWithAnnotations ParameterTypeWithAnnotations(int index)
@@ -1517,7 +1515,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected override UnboundLambdaState WithCachingCore(bool includeCache)
         {
-            return new PlainUnboundLambdaState(Binder, _returnRefKind, _returnType, _parameterAttributes, _parameterNames, _parameterIsDiscardOpt, _parameterTypesWithAnnotations, _parameterRefKinds, _parameterDeclaredScopes, _isAsync, _isStatic, includeCache);
+            return new PlainUnboundLambdaState(Binder, _returnRefKind, _returnType, _parameterAttributes, _parameterNames, _parameterIsDiscardOpt, _parameterTypesWithAnnotations, _parameterRefKinds, _parameterEffectiveScopes, _isAsync, _isStatic, includeCache);
         }
 
         protected override BoundExpression? GetLambdaExpressionBody(BoundBlock body)
