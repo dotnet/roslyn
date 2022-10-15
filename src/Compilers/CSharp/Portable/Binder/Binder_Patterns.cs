@@ -542,14 +542,16 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (!convertedExpression.HasErrors && !hasErrors)
             {
-                var conversion = convertedExpression as BoundConversion;
-                if (conversion != null && conversion.ConversionKind == ConversionKind.ImplicitUserDefined)
+                if (constantValueOpt == null)
                 {
-                    diagnostics.Add(ErrorCode.ERR_NonConstantConversionInConstantPattern, patternExpression.Location, conversion.Operand.Type!, conversion.Type);
-                }
-                else if (constantValueOpt == null)
-                {
-                    diagnostics.Add(ErrorCode.ERR_ConstantExpected, patternExpression.Location);
+                    if (!expression.IsLiteralNull() && convertedExpression is BoundConversion conversion && conversion.ConversionKind == ConversionKind.ImplicitUserDefined)
+                    {
+                        diagnostics.Add(ErrorCode.ERR_NonConstantConversionInConstantPattern, patternExpression.Location, expression.Type!, inputType);
+                    }
+                    else
+                    {
+                        diagnostics.Add(ErrorCode.ERR_ConstantExpected, patternExpression.Location);
+                    }
                     hasErrors = true;
                 }
                 else if (inputType.IsPointerType())
