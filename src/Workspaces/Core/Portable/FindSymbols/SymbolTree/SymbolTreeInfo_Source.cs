@@ -157,18 +157,18 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             var nodeIndex = list.Count;
             list.Add(node);
 
-            var childSymbolsByName = AllocateSymbolMap();
+            var symbolMap = AllocateSymbolMap();
             using var _ = PooledHashSet<string>.GetInstance(out var seenNames);
             try
             {
                 // Walk the symbols with this name, and add all their child namespaces and types, grouping them together
                 // based on their name.  There may be multiple (for example, Action<T1>, Action<T1, T2>, etc.)
                 foreach (var symbol in symbolsWithSameName)
-                    AddChildNamespacesAndTypes(symbol, childSymbolsByName);
+                    AddChildNamespacesAndTypes(symbol, symbolMap);
 
                 // Now, go through all those groups and make the single mapping from their name to the builder-node we
                 // just created above, and recurse into their children as well.
-                foreach (var (childName, childSymbols) in childSymbolsByName)
+                foreach (var (childName, childSymbols) in symbolMap)
                 {
                     seenNames.Add(childName);
                     GenerateSourceNodes(childName, nodeIndex, childSymbols, list);
@@ -195,7 +195,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             }
             finally
             {
-                FreeSymbolMap(childSymbolsByName);
+                FreeSymbolMap(symbolMap);
             }
         }
 
