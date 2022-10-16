@@ -122,7 +122,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         public static SymbolTreeInfo CreateEmpty(Checksum checksum)
         {
             var unsortedNodes = ImmutableArray.Create(BuilderNode.RootNode);
-            SortNodes(unsortedNodes, out var sortedNodes);
+            var sortedNodes = SortNodes(unsortedNodes);
 
             return new SymbolTreeInfo(checksum, sortedNodes,
                 CreateSpellChecker(checksum, sortedNodes),
@@ -324,9 +324,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         private static SpellChecker CreateSpellChecker(Checksum checksum, ImmutableArray<Node> sortedNodes)
             => new(checksum, sortedNodes.Select(n => n.Name.AsMemory()));
 
-        private static void SortNodes(
-            ImmutableArray<BuilderNode> unsortedNodes,
-            out ImmutableArray<Node> sortedNodes)
+        private static ImmutableArray<Node> SortNodes(ImmutableArray<BuilderNode> unsortedNodes)
         {
             // Generate index numbers from 0 to Count-1
             var tmp = new int[unsortedNodes.Length];
@@ -375,7 +373,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 lastName = currentName;
             }
 
-            sortedNodes = result.ToImmutableAndFree();
+            return result.ToImmutableAndFree();
         }
 
         private static int CompareNodes(
@@ -476,7 +474,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             OrderPreservingMultiDictionary<string, string> inheritanceMap,
             MultiDictionary<string, ExtensionMethodInfo>? receiverTypeNameToExtensionMethodMap)
         {
-            SortNodes(unsortedNodes, out var sortedNodes);
+            var sortedNodes = SortNodes(unsortedNodes);
             var spellChecker = CreateSpellChecker(checksum, sortedNodes);
 
             return new SymbolTreeInfo(
