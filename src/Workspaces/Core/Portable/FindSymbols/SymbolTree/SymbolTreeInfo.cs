@@ -191,27 +191,23 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             bool ignoreCase,
             CancellationToken cancellationToken)
         {
-
             using var results = TemporaryArray<ISymbol>.Empty;
-            var indices = FindCaseInsensitiveNodeIndices(_nodes, name);
-            if (indices != null)
+
+            var nameSlice = name.AsMemory();
+            var (startIndexInclusive, endIndexExclusive) = FindCaseInsensitiveNodeIndices(_nodes, name);
+
+            IAssemblySymbol? assemblySymbol = null;
+            for (var index = startIndexInclusive; index < endIndexExclusive; index++)
             {
-                var nameSlice = name.AsMemory();
-                var (startIndexInclusive, endIndexInclusive) = indices.Value;
+                var node = _nodes[index];
 
-                IAssemblySymbol? assemblySymbol = null;
-                for (var index = startIndexInclusive; index <= endIndexInclusive; index++)
+                // The find-operation found the case-insensitive range of results.  So if the caller wants
+                // case-insensitive, then just check all of them.  If they caller wants case-sensitive, then
+                // actually check that the node matches case-sensitively
+                if (ignoreCase || StringSliceComparer.Ordinal.Equals(nameSlice, node.Name.AsMemory()))
                 {
-                    var node = _nodes[index];
-
-                    // The find-operation found the case-insensitive range of results.  So if the caller wants
-                    // case-insensitive, then just check all of them.  If they caller wants case-sensitive, then
-                    // actually check that the node matches case-sensitively
-                    if (ignoreCase || StringSliceComparer.Ordinal.Equals(nameSlice, node.Name.AsMemory()))
-                    {
-                        assemblySymbol ??= await lazyAssembly.GetValueAsync(cancellationToken).ConfigureAwait(false);
-                        Bind(index, assemblySymbol.GlobalNamespace, ref results.AsRef(), cancellationToken);
-                    }
+                    assemblySymbol ??= await lazyAssembly.GetValueAsync(cancellationToken).ConfigureAwait(false);
+                    Bind(index, assemblySymbol.GlobalNamespace, ref results.AsRef(), cancellationToken);
                 }
             }
 
@@ -225,14 +221,14 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 : StringSliceComparer.Ordinal;
         }
 
-        private static (int startIndexInclusive, int endIndexInclusive)? FindCaseInsensitiveNodeIndices(
+        private static (int startIndexInclusive, int endIndexExclusive) FindCaseInsensitiveNodeIndices(
             ImmutableArray<Node> nodes, string name)
         {
             // find any node that matches case-insensitively
             var startingPosition = BinarySearch(nodes, name);
 
             if (startingPosition == -1)
-                return null;
+                return default;
 
             var nameSlice = name.AsMemory();
 
@@ -244,7 +240,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             while (endIndex + 1 < nodes.Length && s_caseInsensitiveComparer.Equals(GetNameSlice(nodes, endIndex + 1), nameSlice))
                 endIndex++;
 
-            return (startIndex, endIndex);
+            return (startIndex, endIndex + 1);
         }
 
         private static ReadOnlyMemory<char> GetNameSlice(
@@ -474,13 +470,10 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
                 foreach (var derivedName in derivedNames)
                 {
-                    var indices = FindCaseInsensitiveNodeIndices(nodes, derivedName);
-                    if (indices is null)
-                        continue;
-
                     var derivedNameSlice = derivedName.AsMemory();
-                    var (startIndexInclusive, endIndexInclusive) = indices.Value;
-                    for (var derivedNameIndex = startIndexInclusive; derivedNameIndex <= endIndexInclusive; derivedNameIndex++)
+                    var (startIndexInclusive, endIndexExclusive) = FindCaseInsensitiveNodeIndices(nodes, derivedName);
+
+                    for (var derivedNameIndex = startIndexInclusive; derivedNameIndex < endIndexExclusive; derivedNameIndex++)
                     {
                         var node = nodes[derivedNameIndex];
                         // All names in metadata will be case sensitive.
