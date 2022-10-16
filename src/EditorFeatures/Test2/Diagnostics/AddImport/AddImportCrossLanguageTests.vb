@@ -266,7 +266,7 @@ namespace CSAssembly2
 
             Await TestAsync(
                 input, expected, codeActionIndex:=0, addedReference:="CSAssembly1",
-                glyphTags:=WellKnownTagArrays.CSharpProject, onAfterWorkspaceCreated:=AddressOf WaitForSolutionCrawler)
+                glyphTags:=WellKnownTagArrays.CSharpProject, onAfterWorkspaceCreated:=AddressOf WaitForSymbolTreeInfoCache)
         End Function
 
         <Fact, WorkItem(12169, "https://github.com/dotnet/roslyn/issues/12169")>
@@ -350,7 +350,7 @@ namespace CSAssembly2
                             Async Function(workspace As TestWorkspace)
                                 Dim project = workspace.CurrentSolution.Projects.Single(Function(p) p.AssemblyName = "CSAssembly1")
                                 workspace.OnProjectNameChanged(project.Id, "NewName", "NewFilePath")
-                                Await WaitForSolutionCrawler(workspace)
+                                Await WaitForSymbolTreeInfoCache(workspace)
                             End Function)
         End Function
 
@@ -391,22 +391,15 @@ End Namespace
 
             Await TestAsync(
                 input, expected, codeActionIndex:=0, addedReference:="VBAssembly1",
-                glyphTags:=WellKnownTagArrays.VisualBasicProject, onAfterWorkspaceCreated:=AddressOf WaitForSolutionCrawler)
+                glyphTags:=WellKnownTagArrays.VisualBasicProject, onAfterWorkspaceCreated:=AddressOf WaitForSymbolTreeInfoCache)
         End Function
 
-        Private Async Function WaitForSolutionCrawler(workspace As TestWorkspace) As Task
+        Private Async Function WaitForSymbolTreeInfoCache(workspace As TestWorkspace) As Task
             Dim service = DirectCast(
                 workspace.Services.GetRequiredService(Of ISymbolTreeInfoCacheService),
                 SymbolTreeInfoCacheServiceFactory.SymbolTreeInfoCacheService)
 
             Await service.GetTestAccessor().AnalyzeSolutionAsync()
-
-            'Dim solutionCrawler = DirectCast(workspace.Services.GetService(Of ISolutionCrawlerRegistrationService), SolutionCrawlerRegistrationService)
-            'solutionCrawler.Register(workspace)
-            'Dim provider = DirectCast(workspace.ExportProvider.GetExports(Of IIncrementalAnalyzerProvider).First(
-            '            Function(f) TypeOf f.Value Is SymbolTreeInfoIncrementalAnalyzerProvider).Value, SymbolTreeInfoIncrementalAnalyzerProvider)
-            'Dim analyzer = provider.CreateIncrementalAnalyzer(workspace)
-            'solutionCrawler.GetTestAccessor().WaitUntilCompletion(workspace, ImmutableArray.Create(analyzer))
         End Function
 
         <Fact, WorkItem(8036, "https://github.com/dotnet/Roslyn/issues/8036")>
@@ -476,7 +469,7 @@ namespace A
                 </Workspace>
 
             Await TestAsync(input, addedReference:="CSAssembly2", glyphTags:=WellKnownTagArrays.CSharpProject,
-                            onAfterWorkspaceCreated:=AddressOf WaitForSolutionCrawler)
+                            onAfterWorkspaceCreated:=AddressOf WaitForSymbolTreeInfoCache)
         End Function
 
         <Fact>
