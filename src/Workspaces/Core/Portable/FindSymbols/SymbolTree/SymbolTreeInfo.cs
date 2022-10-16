@@ -35,11 +35,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         public Checksum Checksum { get; }
 
         /// <summary>
-        /// The list of nodes that represent symbols. The primary key into the sorting of this 
-        /// list is the name. They are sorted case-insensitively with the <see cref="s_totalComparer" />.
-        /// Finding case-sensitive matches can be found by binary searching for something that 
-        /// matches insensitively, and then searching around that equivalence class for one that 
-        /// matches.
+        /// The list of nodes that represent symbols. The primary key into the sorting of this list is the name. They
+        /// are sorted case-insensitively . Finding case-sensitive matches can be found by binary searching for
+        /// something that matches insensitively, and then searching around that equivalence class for one that matches.
         /// </summary>
         private readonly ImmutableArray<Node> _nodes;
 
@@ -193,16 +191,28 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             bool ignoreCase,
             CancellationToken cancellationToken)
         {
-            var comparer = GetComparer(ignoreCase);
-            IAssemblySymbol? assemblySymbol = null;
 
             using var results = TemporaryArray<ISymbol>.Empty;
-            foreach (var node in FindNodeIndices(name, comparer))
+            var indices = FindCaseInsensitiveNodeIndices(_nodes, name);
+            if (indices != null)
             {
-                cancellationToken.ThrowIfCancellationRequested();
-                assemblySymbol ??= await lazyAssembly.GetValueAsync(cancellationToken).ConfigureAwait(false);
+                var nameSlice = name.AsMemory();
+                var (startIndexInclusive, endIndexInclusive) = indices.Value;
 
-                Bind(node, assemblySymbol.GlobalNamespace, ref results.AsRef(), cancellationToken);
+                IAssemblySymbol? assemblySymbol = null;
+                for (var index = startIndexInclusive; index <= endIndexInclusive; index++)
+                {
+                    var node = _nodes[index];
+
+                    // The find-operation found the case-insensitive range of results.  So if the caller wants
+                    // case-insensitive, then just check all of them.  If they caller wants case-sensitive, then
+                    // actually check that the node matches case-sensitively
+                    if (ignoreCase || StringSliceComparer.Ordinal.Equals(nameSlice, node.Name.AsMemory()))
+                    {
+                        assemblySymbol ??= await lazyAssembly.GetValueAsync(cancellationToken).ConfigureAwait(false);
+                        Bind(index, assemblySymbol.GlobalNamespace, ref results.AsRef(), cancellationToken);
+                    }
+                }
             }
 
             return results.ToImmutableAndClear();
@@ -215,48 +225,26 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 : StringSliceComparer.Ordinal;
         }
 
-        private IEnumerable<int> FindNodeIndices(string name, StringSliceComparer comparer)
-            => FindNodeIndices(_nodes, name, comparer);
-
-        /// <summary>
-        /// Gets all the node indices with matching names per the <paramref name="comparer" />.
-        /// </summary>
-        private static IEnumerable<int> FindNodeIndices(
-            ImmutableArray<Node> nodes,
-            string name, StringSliceComparer comparer)
+        private static (int startIndexInclusive, int endIndexInclusive)? FindCaseInsensitiveNodeIndices(
+            ImmutableArray<Node> nodes, string name)
         {
             // find any node that matches case-insensitively
             var startingPosition = BinarySearch(nodes, name);
+
+            if (startingPosition == -1)
+                return null;
+
             var nameSlice = name.AsMemory();
 
-            if (startingPosition != -1)
-            {
-                // yield if this matches by the actual given comparer
-                if (comparer.Equals(nameSlice, GetNameSlice(nodes, startingPosition)))
-                {
-                    yield return startingPosition;
-                }
+            var startIndex = startingPosition;
+            while (startIndex > 0 && s_caseInsensitiveComparer.Equals(GetNameSlice(nodes, startIndex - 1), nameSlice))
+                startIndex--;
 
-                var position = startingPosition;
-                while (position > 0 && s_caseInsensitiveComparer.Equals(GetNameSlice(nodes, position - 1), nameSlice))
-                {
-                    position--;
-                    if (comparer.Equals(GetNameSlice(nodes, position), nameSlice))
-                    {
-                        yield return position;
-                    }
-                }
+            var endIndex = startingPosition;
+            while (endIndex + 1 < nodes.Length && s_caseInsensitiveComparer.Equals(GetNameSlice(nodes, endIndex + 1), nameSlice))
+                endIndex++;
 
-                position = startingPosition;
-                while (position + 1 < nodes.Length && s_caseInsensitiveComparer.Equals(GetNameSlice(nodes, position + 1), nameSlice))
-                {
-                    position++;
-                    if (comparer.Equals(GetNameSlice(nodes, position), nameSlice))
-                    {
-                        yield return position;
-                    }
-                }
-            }
+            return (startIndex, endIndex);
         }
 
         private static ReadOnlyMemory<char> GetNameSlice(
@@ -477,8 +465,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             ImmutableArray<Node> nodes,
             OrderPreservingMultiDictionary<string, string> inheritanceMap)
         {
-            // All names in metadata will be case sensitive.  
-            var comparer = GetComparer(ignoreCase: false);
             var result = new OrderPreservingMultiDictionary<int, int>();
 
             foreach (var (baseName, derivedNames) in inheritanceMap)
@@ -488,9 +474,18 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
                 foreach (var derivedName in derivedNames)
                 {
-                    foreach (var derivedNameIndex in FindNodeIndices(nodes, derivedName, comparer))
+                    var indices = FindCaseInsensitiveNodeIndices(nodes, derivedName);
+                    if (indices is null)
+                        continue;
+
+                    var derivedNameSlice = derivedName.AsMemory();
+                    var (startIndexInclusive, endIndexInclusive) = indices.Value;
+                    for (var derivedNameIndex = startIndexInclusive; derivedNameIndex <= endIndexInclusive; derivedNameIndex++)
                     {
-                        result.Add(baseNameIndex, derivedNameIndex);
+                        var node = nodes[derivedNameIndex];
+                        // All names in metadata will be case sensitive.
+                        if (StringSliceComparer.Ordinal.Equals(derivedNameSlice, node.Name.AsMemory()))
+                            result.Add(baseNameIndex, derivedNameIndex);
                     }
                 }
             }
