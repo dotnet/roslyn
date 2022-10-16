@@ -83,6 +83,9 @@ internal sealed partial class SymbolTreeInfoCacheServiceFactory : IWorkspaceServ
             PortableExecutableReference reference,
             CancellationToken cancellationToken)
         {
+            if (!project.SupportsCompilation)
+                return null;
+
             // Kick off the work to update the data we have for this project.
             _workQueue.AddWork(project.Id);
 
@@ -105,6 +108,9 @@ internal sealed partial class SymbolTreeInfoCacheServiceFactory : IWorkspaceServ
         public async ValueTask<SymbolTreeInfo?> TryGetPotentiallyStaleSourceSymbolTreeInfoAsync(
             Project project, CancellationToken cancellationToken)
         {
+            if (!project.SupportsCompilation)
+                return null;
+
             // Kick off the work to update the data we have for this project.
             _workQueue.AddWork(project.Id);
 
@@ -138,6 +144,7 @@ internal sealed partial class SymbolTreeInfoCacheServiceFactory : IWorkspaceServ
                 if (project is not { SupportsCompilation: true })
                     continue;
 
+                // Add a task to update the symboltree for the source symbols.
                 tasks.Add(CreateWorkAsync(() => this.UpdateSourceSymbolTreeInfoAsync(project, cancellationToken), cancellationToken));
 
                 foreach (var reference in project.MetadataReferences)
@@ -145,10 +152,12 @@ internal sealed partial class SymbolTreeInfoCacheServiceFactory : IWorkspaceServ
                     if (reference is not PortableExecutableReference portableExecutableReference)
                         continue;
 
+                    // And tasks to update the symboltree for all metadata references.
                     tasks.Add(CreateWorkAsync(() => UpdateReferenceAsync(_peReferenceToInfo, project, portableExecutableReference, cancellationToken), cancellationToken));
                 }
             }
 
+            // Wait for all the work to finish.
             await Task.WhenAll(tasks).ConfigureAwait(false);
 
             // Now that we've produced all the indices for the projects asked for, also remove any indices for projects
