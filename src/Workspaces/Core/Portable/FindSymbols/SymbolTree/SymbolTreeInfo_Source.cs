@@ -18,8 +18,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 {
     internal partial class SymbolTreeInfo
     {
-        private static readonly SimplePool<MultiDictionary<string, INamespaceOrTypeSymbol>> s_symbolMapPool =
-            new(() => new MultiDictionary<string, INamespaceOrTypeSymbol>());
+        private static readonly SimplePool<MultiDictionary<string, INamespaceOrTypeSymbol>> s_symbolMapPool = new(() => new());
 
         private static MultiDictionary<string, INamespaceOrTypeSymbol> AllocateSymbolMap()
             => s_symbolMapPool.Allocate();
