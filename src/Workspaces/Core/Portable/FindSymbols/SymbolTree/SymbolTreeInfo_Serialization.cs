@@ -111,6 +111,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
         public void WriteTo(ObjectWriter writer)
         {
+            this.SourceSemanticVersion.WriteTo(writer);
+
             writer.WriteInt32(_nodes.Length);
             foreach (var group in GroupByName(_nodes.AsMemory()))
             {
