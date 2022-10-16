@@ -114,8 +114,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                         }
                         else if (previous.IsKind(SyntaxKind.EndIfDirectiveTrivia))
                         {
-                            // We cannot go back further to determine if we are in a disabled region or not.
-                            // We assume we are in active region, but that might not be correct.
+                            // To correctly determine if we are in a disabled region or not, we'll have to ignore
+                            // everything until the corresponding #if (keeping in mind nested `#if` conditionals).
+                            // Then, continue from there.
+                            // For now, we don't do that and assume we are in active region.
                             break;
                         }
                         else if (previous.HasStructure && previous.GetStructure() is BranchingDirectiveTriviaSyntax branchingDirectiveTrivia)
