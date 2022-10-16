@@ -147,13 +147,10 @@ internal sealed partial class SymbolTreeInfoCacheServiceFactory
             // We can compute source-symbols in parallel with the metadata symbols.
             tasks.Add(CreateWorkAsync(() => this.UpdateSourceSymbolTreeInfoAsync(project, cancellationToken), cancellationToken));
 
+            // Add tasks to update the symboltree for all metadata references.  As these are all distinct, they can run
+            // in parallel as we won't be trying to update the associated data for the same reference at the same time.
             foreach (var reference in project.MetadataReferences.OfType<PortableExecutableReference>().Distinct())
-            {
-                // And tasks to update the symboltree for all metadata references.  As these are all distinct, they can
-                // run in parallel as we won't be trying to update the associated data for the same reference at the
-                // same time.
                 tasks.Add(CreateWorkAsync(() => UpdateReferenceAsync(project, reference, cancellationToken), cancellationToken));
-            }
 
             await Task.WhenAll(tasks).ConfigureAwait(false);
         }
