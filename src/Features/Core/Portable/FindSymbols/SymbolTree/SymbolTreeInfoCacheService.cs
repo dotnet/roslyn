@@ -151,13 +151,13 @@ internal sealed partial class SymbolTreeInfoCacheServiceFactory : IWorkspaceServ
             // types in this project, this cannot change based on what happens in other projects.
             var semanticVersion = await project.GetSemanticVersionAsync(cancellationToken).ConfigureAwait(false);
 
-            if (!_projectIdToInfo.TryGetValue(project.Id, out var versionAndProjectInfo) ||
-                versionAndProjectInfo.semanticVersion != semanticVersion)
+            if (!_projectIdToInfo.TryGetValue(project.Id, out var projectInfo) ||
+                projectInfo.semanticVersion != semanticVersion)
             {
                 // If the checksum is the same (which can happen if we loaded the previous index from disk), then no
                 // need to recompute.
                 var checksum = await SymbolTreeInfo.GetSourceSymbolsChecksumAsync(project, cancellationToken).ConfigureAwait(false);
-                if (versionAndProjectInfo.info.Checksum != checksum)
+                if (projectInfo.info.Checksum != checksum)
                 {
                     // Otherwise, looks like things changed.  Compute and persist the latest index.
                     var info = await SymbolTreeInfo.GetInfoForSourceAssemblyAsync(
