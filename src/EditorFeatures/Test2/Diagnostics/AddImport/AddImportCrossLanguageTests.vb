@@ -394,13 +394,19 @@ End Namespace
                 glyphTags:=WellKnownTagArrays.VisualBasicProject, onAfterWorkspaceCreated:=AddressOf WaitForSolutionCrawler)
         End Function
 
-        Private Sub WaitForSolutionCrawler(workspace As TestWorkspace)
-            Dim solutionCrawler = DirectCast(workspace.Services.GetService(Of ISolutionCrawlerRegistrationService), SolutionCrawlerRegistrationService)
-            solutionCrawler.Register(workspace)
-            Dim provider = DirectCast(workspace.ExportProvider.GetExports(Of IIncrementalAnalyzerProvider).First(
-                        Function(f) TypeOf f.Value Is SymbolTreeInfoIncrementalAnalyzerProvider).Value, SymbolTreeInfoIncrementalAnalyzerProvider)
-            Dim analyzer = provider.CreateIncrementalAnalyzer(workspace)
-            solutionCrawler.GetTestAccessor().WaitUntilCompletion(workspace, ImmutableArray.Create(analyzer))
+        Private Async Sub WaitForSolutionCrawler(workspace As TestWorkspace)
+            Dim service = DirectCast(
+                workspace.Services.GetRequiredService(Of ISymbolTreeInfoCacheService),
+                SymbolTreeInfoCacheServiceFactory.SymbolTreeInfoCacheService)
+
+            Await service.GetTestAccessor().AnalyzeSolutionAsync()
+
+            'Dim solutionCrawler = DirectCast(workspace.Services.GetService(Of ISolutionCrawlerRegistrationService), SolutionCrawlerRegistrationService)
+            'solutionCrawler.Register(workspace)
+            'Dim provider = DirectCast(workspace.ExportProvider.GetExports(Of IIncrementalAnalyzerProvider).First(
+            '            Function(f) TypeOf f.Value Is SymbolTreeInfoIncrementalAnalyzerProvider).Value, SymbolTreeInfoIncrementalAnalyzerProvider)
+            'Dim analyzer = provider.CreateIncrementalAnalyzer(workspace)
+            'solutionCrawler.GetTestAccessor().WaitUntilCompletion(workspace, ImmutableArray.Create(analyzer))
         End Sub
 
         <Fact, WorkItem(8036, "https://github.com/dotnet/Roslyn/issues/8036")>

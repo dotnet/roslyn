@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.SymbolTree
         public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
             => new SymbolTreeInfoCacheService(workspaceServices.Workspace);
 
-        private sealed partial class SymbolTreeInfoCacheService : ISymbolTreeInfoCacheService
+        internal sealed partial class SymbolTreeInfoCacheService : ISymbolTreeInfoCacheService
         {
             private readonly ConcurrentDictionary<ProjectId, SymbolTreeInfo> _projectIdToInfo = new();
             private readonly ConcurrentDictionary<PortableExecutableReference, MetadataInfo> _peReferenceToInfo = new();
@@ -231,6 +231,22 @@ namespace Microsoft.CodeAnalysis.FindSymbols.SymbolTree
                             _peReferenceToInfo.TryRemove(reference, out _);
                     }
                 }
+            }
+
+            public TestAccessor GetTestAccessor()
+                => new TestAccessor(this);
+
+            public struct TestAccessor
+            {
+                private readonly SymbolTreeInfoCacheService _services;
+
+                public TestAccessor(SymbolTreeInfoCacheService service)
+                {
+                    _services = service;
+                }
+
+                public Task AnalyzeSolutionAsync()
+                    => Task.CompletedTask;
             }
         }
     }
