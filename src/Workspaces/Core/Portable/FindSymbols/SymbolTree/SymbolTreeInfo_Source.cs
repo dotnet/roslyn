@@ -149,13 +149,13 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             string name,
             int parentIndex,
             MultiDictionary<string, INamespaceOrTypeSymbol>.ValueSet symbolsWithSameName,
-            ArrayBuilder<BuilderNode> unsortedBuilderNodes)
+            ArrayBuilder<BuilderNode> list)
         {
             // Add the node for this name, and record which parent it points at.
-            unsortedBuilderNodes.Add(new BuilderNode(name, parentIndex));
+            list.Add(new BuilderNode(name, parentIndex));
 
             // Keep track of the index of the node we just added.
-            var thisSymbolIndex = unsortedBuilderNodes.Count - 1;
+            var thisSymbolIndex = list.Count - 1;
 
             var childSymbolsByName = AllocateSymbolMap();
             using var _ = PooledHashSet<string>.GetInstance(out var seenNames);
@@ -171,7 +171,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 foreach (var (childName, childSymbols) in childSymbolsByName)
                 {
                     seenNames.Add(childName);
-                    GenerateSourceNodes(childName, thisSymbolIndex, childSymbols, unsortedBuilderNodes);
+                    GenerateSourceNodes(childName, thisSymbolIndex, childSymbols, list);
                 }
 
                 // The above loops only create nodes for namespaces and types.  we also want nodes for members as well.
@@ -188,7 +188,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                         foreach (var childMemberName in namedType.MemberNames)
                         {
                             if (seenNames.Add(childMemberName))
-                                unsortedBuilderNodes.Add(new BuilderNode(childMemberName, thisSymbolIndex));
+                                list.Add(new BuilderNode(childMemberName, thisSymbolIndex));
                         }
                     }
                 }
