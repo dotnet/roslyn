@@ -73,7 +73,7 @@ internal sealed partial class SymbolTreeInfoCacheServiceFactory : IWorkspaceServ
             _workQueue.AddWork(project.Id);
 
             // See if the last value produced exactly matches what the caller is asking for.  If so, return that.
-            if (!_peReferenceToInfo.TryGetValue(reference, out var metadataInfo))
+            if (_peReferenceToInfo.TryGetValue(reference, out var metadataInfo))
                 return metadataInfo.SymbolTreeInfo;
 
             // If we didn't have it in our cache, see if we can load it from disk.
