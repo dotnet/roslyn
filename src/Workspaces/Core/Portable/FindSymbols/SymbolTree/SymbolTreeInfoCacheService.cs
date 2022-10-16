@@ -26,7 +26,7 @@ internal sealed partial class SymbolTreeInfoCacheServiceFactory
 
         private static readonly TaskScheduler s_exclusiveScheduler = new ConcurrentExclusiveSchedulerPair().ExclusiveScheduler;
 
-        private readonly ConcurrentDictionary<ProjectId, (VersionStamp semanticVersion, SymbolTreeInfo info)> _projectIdToInfo = new();
+        private readonly ConcurrentDictionary<ProjectId, SymbolTreeInfo> _projectIdToInfo = new();
         private readonly ConcurrentDictionary<PortableExecutableReference, MetadataInfo> _peReferenceToInfo = new();
 
         private readonly CancellationTokenSource _tokenSource = new();
@@ -102,7 +102,7 @@ internal sealed partial class SymbolTreeInfoCacheServiceFactory
 
             // See if the last value produced exactly matches what the caller is asking for.  If so, return that.
             if (_projectIdToInfo.TryGetValue(project.Id, out var projectInfo))
-                return projectInfo.info;
+                return projectInfo;
 
             // If we didn't have it in our cache, see if we can load some version of it from disk.
             var info = await SymbolTreeInfo.LoadAnyInfoForSourceAssemblyAsync(project, cancellationToken).ConfigureAwait(false);
@@ -112,7 +112,7 @@ internal sealed partial class SymbolTreeInfoCacheServiceFactory
             // attempt to add this item to the map.  But defer to whatever is in the map now if something else beat
             // us to this.  Don't provide a version here so that the next time we update this data it will get
             // overwritten with the latest computed data.
-            return _projectIdToInfo.GetOrAdd(project.Id, (semanticVersion: default, info)).info;
+            return _projectIdToInfo.GetOrAdd(project.Id, info);
         }
 
         private async ValueTask ProcessProjectsAsync(
@@ -168,23 +168,23 @@ internal sealed partial class SymbolTreeInfoCacheServiceFactory
             var semanticVersion = await project.GetSemanticVersionAsync(cancellationToken).ConfigureAwait(false);
 
             if (!_projectIdToInfo.TryGetValue(project.Id, out var projectInfo) ||
-                projectInfo.semanticVersion != semanticVersion)
+                projectInfo.SourceSemanticVersion != semanticVersion)
             {
                 // If the checksum is the same (which can happen if we loaded the previous index from disk), then no
                 // need to recompute.
                 var checksum = await SymbolTreeInfo.GetSourceSymbolsChecksumAsync(project, cancellationToken).ConfigureAwait(false);
-                if (projectInfo.info.Checksum != checksum)
+                if (projectInfo.Checksum != checksum)
                 {
                     // Otherwise, looks like things changed.  Compute and persist the latest index.
-                    var info = await SymbolTreeInfo.GetInfoForSourceAssemblyAsync(
-                        project, checksum, cancellationToken).ConfigureAwait(false);
+                    projectInfo = await SymbolTreeInfo.GetInfoForSourceAssemblyAsync(
+                        project, semanticVersion, checksum, cancellationToken).ConfigureAwait(false);
 
-                    Contract.ThrowIfNull(info);
-                    Contract.ThrowIfTrue(info.Checksum != checksum, "If we computed a SymbolTreeInfo, then its checksum much match our checksum.");
+                    Contract.ThrowIfNull(projectInfo);
+                    Contract.ThrowIfTrue(projectInfo.Checksum != checksum, "If we computed a SymbolTreeInfo, then its checksum much match our checksum.");
 
                     // Mark that we're up to date with this project.  Future calls with the same semantic-version or
                     // checksum can bail out immediately.
-                    _projectIdToInfo[project.Id] = (semanticVersion, info);
+                    _projectIdToInfo[project.Id] = projectInfo;
                 }
             }
         }

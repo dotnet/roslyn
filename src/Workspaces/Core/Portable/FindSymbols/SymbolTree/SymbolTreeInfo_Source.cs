@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             => "_Source_" + project.FilePath;
 
         public static Task<SymbolTreeInfo> GetInfoForSourceAssemblyAsync(
-            Project project, Checksum checksum, CancellationToken cancellationToken)
+            Project project, VersionStamp sourceSemanticVersion, Checksum checksum, CancellationToken cancellationToken)
         {
             var solution = project.Solution;
 
@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 solution.Services,
                 SolutionKey.ToSolutionKey(solution),
                 checksum,
-                createAsync: checksum => CreateSourceSymbolTreeInfoAsync(project, checksum, cancellationToken),
+                createAsync: checksum => CreateSourceSymbolTreeInfoAsync(project, sourceSemanticVersion, checksum, cancellationToken),
                 keySuffix: GetSourceKeySuffix(project),
                 cancellationToken);
         }
@@ -115,7 +115,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         }
 
         internal static async ValueTask<SymbolTreeInfo> CreateSourceSymbolTreeInfoAsync(
-            Project project, Checksum checksum, CancellationToken cancellationToken)
+            Project project, VersionStamp sourceSemanticVersion, Checksum checksum, CancellationToken cancellationToken)
         {
             var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
             var assembly = compilation?.Assembly;
@@ -128,6 +128,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             GenerateSourceNodes(assembly.GlobalNamespace, unsortedNodes, s_getMembersNoPrivate);
 
             return CreateSymbolTreeInfo(
+                sourceSemanticVersion,
                 checksum,
                 unsortedNodes.ToImmutableAndFree(),
                 inheritanceMap: new OrderPreservingMultiDictionary<string, string>(),

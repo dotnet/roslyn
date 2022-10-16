@@ -192,6 +192,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
             try
             {
+                var version = VersionStamp.ReadFrom(reader);
+
                 var nodeCount = reader.ReadInt32();
                 var nodes = ArrayBuilder<Node>.GetInstance(nodeCount);
                 while (nodes.Count < nodeCount)
@@ -251,7 +253,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     return null;
 
                 return new SymbolTreeInfo(
-                    checksum, nodeArray, spellChecker, inheritanceMap,
+                    version, checksum, nodeArray, spellChecker, inheritanceMap,
                     receiverTypeNameToExtensionMethodMap);
             }
             catch
