@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Diagnostics;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
@@ -17,13 +18,13 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 {
     internal partial class SymbolTreeInfo
     {
-        private static readonly SimplePool<MultiDictionary<string, ISymbol>> s_symbolMapPool =
-            new(() => new MultiDictionary<string, ISymbol>());
+        private static readonly SimplePool<MultiDictionary<string, INamespaceOrTypeSymbol>> s_symbolMapPool =
+            new(() => new MultiDictionary<string, INamespaceOrTypeSymbol>());
 
-        private static MultiDictionary<string, ISymbol> AllocateSymbolMap()
+        private static MultiDictionary<string, INamespaceOrTypeSymbol> AllocateSymbolMap()
             => s_symbolMapPool.Allocate();
 
-        private static void FreeSymbolMap(MultiDictionary<string, ISymbol> symbolMap)
+        private static void FreeSymbolMap(MultiDictionary<string, INamespaceOrTypeSymbol> symbolMap)
         {
             symbolMap.Clear();
             s_symbolMapPool.Free(symbolMap);
@@ -122,89 +123,103 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             if (assembly == null)
                 return CreateEmpty(checksum);
 
-            var unsortedNodes = ArrayBuilder<BuilderNode>.GetInstance();
-            unsortedNodes.Add(new BuilderNode(assembly.GlobalNamespace.Name, RootNodeParentIndex));
-
-            GenerateSourceNodes(assembly.GlobalNamespace, unsortedNodes);
-
-            return CreateSymbolTreeInfo(
-                sourceSemanticVersion,
-                checksum,
-                unsortedNodes.ToImmutableAndFree(),
-                inheritanceMap: new OrderPreservingMultiDictionary<string, string>(),
-                receiverTypeNameToExtensionMethodMap: null);
-        }
-
-        // generate nodes for the global namespace an all descendants
-        private static void GenerateSourceNodes(
-            INamespaceSymbol globalNamespace,
-            ArrayBuilder<BuilderNode> list)
-        {
-            // Add all child members
-            var symbolMap = AllocateSymbolMap();
+            var symbolsByName = AllocateSymbolMap();
             try
             {
-                AddChildSymbols(globalNamespace, symbolMap);
+                // generate nodes for the global namespace and all descendants
+                using var _ = ArrayBuilder<BuilderNode>.GetInstance(out var unsortedBuilderNodes);
 
-                foreach (var (name, symbols) in symbolMap)
-                    GenerateSourceNodes(name, 0 /*index of root node*/, symbols, list);
+                var globalNamespaceName = assembly.GlobalNamespace.Name;
+                symbolsByName.Add(globalNamespaceName, assembly.GlobalNamespace);
+                GenerateSourceNodes(globalNamespaceName, RootNodeParentIndex, symbolsByName[globalNamespaceName], unsortedBuilderNodes);
+
+                return CreateSymbolTreeInfo(
+                    sourceSemanticVersion,
+                    checksum,
+                    unsortedBuilderNodes.ToImmutable(),
+                    inheritanceMap: new OrderPreservingMultiDictionary<string, string>(),
+                    receiverTypeNameToExtensionMethodMap: null);
             }
             finally
             {
-                FreeSymbolMap(symbolMap);
+                FreeSymbolMap(symbolsByName);
             }
         }
 
-        // generate nodes for symbols that share the same name, and all their descendants
         private static void GenerateSourceNodes(
             string name,
             int parentIndex,
-            MultiDictionary<string, ISymbol>.ValueSet symbolsWithSameName,
-            ArrayBuilder<BuilderNode> list)
+            MultiDictionary<string, INamespaceOrTypeSymbol>.ValueSet symbolsWithName,
+            ArrayBuilder<BuilderNode> unsortedBuilderNodes)
         {
-            var node = new BuilderNode(name, parentIndex);
-            var nodeIndex = list.Count;
-            list.Add(node);
+            // Add the node for this name, and record which parent it points at.
+            unsortedBuilderNodes.Add(new BuilderNode(name, parentIndex));
 
-            var symbolMap = AllocateSymbolMap();
+            // Keep track of the index of the node we just added.
+            var thisSymbolIndex = unsortedBuilderNodes.Count - 1;
+
+            var childSymbolsByName = AllocateSymbolMap();
+            using var _ = PooledHashSet<string>.GetInstance(out var seenNames);
             try
             {
-                // Add all child members
-                foreach (var symbol in symbolsWithSameName)
-                    AddChildSymbols(symbol, symbolMap);
+                // Walk the symbols with this name, and add all their child namespaces and types, grouping them together
+                // based on their name.  There may be multiple (for example, Action<T1>, Action<T1, T2>, etc.)
+                foreach (var symbol in symbolsWithName)
+                    AddChildNamespacesAndTypes(symbol, childSymbolsByName);
 
-                foreach (var (symbolName, symbols) in symbolMap)
-                    GenerateSourceNodes(symbolName, nodeIndex, symbols, list);
+                // Now, go through all those groups and make the single mapping from their name to the builder-node we
+                // just created above, and recurse into their children as well.
+                foreach (var (childName, childSymbols) in childSymbolsByName)
+                {
+                    seenNames.Add(childName);
+                    GenerateSourceNodes(childName, thisSymbolIndex, childSymbols, unsortedBuilderNodes);
+                }
+
+                // The above loops only create nodes for namespaces and types.  we also want nodes for members as well.
+                // However, we do not want to force the symbols for those members to be created just to get the names.
+                //
+                // So walk through the symbols again, and for the named-types grab all the member-names contained
+                // therein.  If we didn't already see that child name when recursing above, then make a builder-node for
+                // it that points to the builder-node we just created above.
+
+                foreach (var symbol in symbolsWithName)
+                {
+                    if (symbol is INamedTypeSymbol namedType)
+                    {
+                        foreach (var childMemberName in namedType.MemberNames)
+                        {
+                            if (seenNames.Add(childMemberName))
+                                unsortedBuilderNodes.Add(new BuilderNode(childMemberName, thisSymbolIndex));
+                        }
+                    }
+                }
             }
             finally
             {
-                FreeSymbolMap(symbolMap);
+                FreeSymbolMap(childSymbolsByName);
             }
         }
 
-        private static void AddChildSymbols(ISymbol symbol, MultiDictionary<string, ISymbol> symbolMap)
+        private static void AddChildNamespacesAndTypes(INamespaceOrTypeSymbol symbol, MultiDictionary<string, INamespaceOrTypeSymbol> symbolMap)
         {
-            if (symbol is INamespaceSymbol @namespace)
+            if (symbol is INamespaceSymbol namespaceSymbol)
             {
-                foreach (var member in @namespace.GetMembers())
+                // grab all children of the namespace (should only be namespaces or types only).
+                foreach (var child in namespaceSymbol.GetMembers())
                 {
-                    if (UseSymbol(member))
-                        symbolMap.Add(member.Name, member);
+                    // Only assert here in case the language ever allows other types of symbols within a namespace.
+                    Debug.Assert(child is INamespaceOrTypeSymbol);
+                    if (child is INamespaceOrTypeSymbol childNamespaceOrType)
+                        symbolMap.Add(childNamespaceOrType.Name, childNamespaceOrType);
                 }
             }
-            else if (symbol is INamedTypeSymbol namedType)
+            else if (symbol is INamedTypeSymbol namedTypeSymbol)
             {
-                foreach (var member in namedType.GetTypeMembers())
-                {
-                    if (UseSymbol(member))
-                        symbolMap.Add(member.Name, member);
-                }
+                // for named-types, we only need to recurse into child types.  Call GetTypeMembers instead of GetMembers
+                // so we do not cause all child symbols to be created.
+                foreach (var childType in namedTypeSymbol.GetTypeMembers())
+                    symbolMap.Add(childType.Name, childType);
             }
-
-            return;
-
-            static bool UseSymbol(ISymbol s)
-                => s.CanBeReferencedByName && s.DeclaredAccessibility != Accessibility.Private;
         }
     }
 }
