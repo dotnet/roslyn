@@ -9,6 +9,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.FindSymbols.SymbolTree;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.AddImport
 {
@@ -50,7 +51,8 @@ namespace Microsoft.CodeAnalysis.AddImport
                 SymbolFilter filter, SearchQuery searchQuery)
             {
                 var service = _solution.Services.GetService<ISymbolTreeInfoCacheService>();
-                var info = await service.TryGetPotentiallyStaleMetadataSymbolTreeInfoAsync(_solution, _metadataReference, CancellationToken).ConfigureAwait(false);
+                var info = await service.TryGetPotentiallyStaleMetadataSymbolTreeInfoAsync(
+                    _solution.GetRequiredProject(_assemblyProjectId), _metadataReference, CancellationToken).ConfigureAwait(false);
                 if (info == null)
                     return ImmutableArray<ISymbol>.Empty;
 
