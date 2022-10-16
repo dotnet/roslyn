@@ -123,15 +123,15 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             if (assembly == null)
                 return CreateEmpty(checksum);
 
-            var symbolsByName = AllocateSymbolMap();
+            var symbolMap = AllocateSymbolMap();
             try
             {
                 // generate nodes for the global namespace and all descendants
                 using var _ = ArrayBuilder<BuilderNode>.GetInstance(out var unsortedBuilderNodes);
 
                 var globalNamespaceName = assembly.GlobalNamespace.Name;
-                symbolsByName.Add(globalNamespaceName, assembly.GlobalNamespace);
-                GenerateSourceNodes(globalNamespaceName, RootNodeParentIndex, symbolsByName[globalNamespaceName], unsortedBuilderNodes);
+                symbolMap.Add(globalNamespaceName, assembly.GlobalNamespace);
+                GenerateSourceNodes(globalNamespaceName, RootNodeParentIndex, symbolMap[globalNamespaceName], unsortedBuilderNodes);
 
                 return CreateSymbolTreeInfo(
                     checksum,
@@ -141,7 +141,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             }
             finally
             {
-                FreeSymbolMap(symbolsByName);
+                FreeSymbolMap(symbolMap);
             }
         }
 
