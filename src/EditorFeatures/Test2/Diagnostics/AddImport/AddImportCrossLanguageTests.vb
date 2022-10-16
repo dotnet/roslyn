@@ -348,7 +348,6 @@ namespace CSAssembly2
                             glyphTags:=WellKnownTagArrays.CSharpProject,
                             onAfterWorkspaceCreated:=
                             Sub(workspace As TestWorkspace)
-                                WaitForSolutionCrawler(workspace)
                                 Dim project = workspace.CurrentSolution.Projects.Single(Function(p) p.AssemblyName = "CSAssembly1")
                                 workspace.OnProjectNameChanged(project.Id, "NewName", "NewFilePath")
                                 WaitForSolutionCrawler(workspace)
