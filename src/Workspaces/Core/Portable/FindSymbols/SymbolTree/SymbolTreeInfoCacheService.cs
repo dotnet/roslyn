@@ -170,7 +170,7 @@ internal sealed partial class SymbolTreeInfoCacheServiceFactory
                 // If the checksum is the same (which can happen if we loaded the previous index from disk), then no
                 // need to recompute.
                 var checksum = await SymbolTreeInfo.GetSourceSymbolsChecksumAsync(project, cancellationToken).ConfigureAwait(false);
-                if (projectInfo.Checksum != checksum)
+                if (projectInfo?.Checksum != checksum)
                 {
                     // Otherwise, looks like things changed.  Compute and persist the latest index.
                     projectInfo = await SymbolTreeInfo.GetInfoForSourceAssemblyAsync(
