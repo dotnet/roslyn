@@ -8828,10 +8828,8 @@ class Program
                 Diagnostic(ErrorCode.ERR_RefLocalOrParamExpected, "s.P2").WithLocation(22, 9));
         }
 
-        /// <summary>
-        /// Ref auto-properties are not supported.
-        /// </summary>
         [Fact]
+        [WorkItem(60807, "https://github.com/dotnet/roslyn/issues/60807")]
         public void RefAndOutProperties()
         {
             var source =
