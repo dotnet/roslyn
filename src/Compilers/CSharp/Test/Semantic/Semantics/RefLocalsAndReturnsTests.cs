@@ -3178,7 +3178,7 @@ class Program
 ";
 
             CreateCompilationWithMscorlib46(text).VerifyDiagnostics(
-                // (8,26): error CS0206: A property or indexer may not be passed as an out or ref parameter
+                // (8,26): error CS0206: An indexer or auto-implemented property may not be used as an out or ref value
                 //         ref int rl = ref P;
                 Diagnostic(ErrorCode.ERR_RefProperty, "P").WithLocation(8, 26));
         }
@@ -3199,7 +3199,7 @@ class Program
 ";
 
             CreateCompilationWithMscorlib46(text).VerifyDiagnostics(
-                // (8,26): error CS0206: A property or indexer may not be passed as an out or ref parameter
+                // (8,26): error CS0206: An indexer or auto-implemented property may not be used as an out or ref value
                 //         ref int rl = ref this[0];
                 Diagnostic(ErrorCode.ERR_RefProperty, "this[0]").WithLocation(8, 26));
         }
