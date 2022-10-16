@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
 
@@ -395,7 +396,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         }
 
         [Fact]
-        public void TestInt32EncodingKinds()
+        public void TestInt32TypeCodes()
         {
             Assert.Equal(ObjectWriter.TypeCode.Int32_1, ObjectWriter.TypeCode.Int32_0 + 1);
             Assert.Equal(ObjectWriter.TypeCode.Int32_2, ObjectWriter.TypeCode.Int32_0 + 2);
@@ -410,7 +411,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         }
 
         [Fact]
-        public void TestUInt32EncodingKinds()
+        public void TestUInt32TypeCodes()
         {
             Assert.Equal(ObjectWriter.TypeCode.UInt32_1, ObjectWriter.TypeCode.UInt32_0 + 1);
             Assert.Equal(ObjectWriter.TypeCode.UInt32_2, ObjectWriter.TypeCode.UInt32_0 + 2);
@@ -1138,62 +1139,26 @@ namespace Microsoft.CodeAnalysis.UnitTests
             TestRoundTripValue(values);
         }
 
-        [Theory]
-        [CombinatorialData]
-        public void Encoding_Utf8(bool byteOrderMark)
-        {
-            TestRoundtripEncoding(new UTF8Encoding(byteOrderMark));
-        }
+        public static IEnumerable<Encoding[]> GetEncodingTestCases()
+            => EncodingTestHelpers.GetEncodingTestCases();
 
         [Theory]
-        [CombinatorialData]
-        public void Encoding_UTF32(bool bigEndian, bool byteOrderMark)
-        {
-            TestRoundtripEncoding(new UTF32Encoding(bigEndian, byteOrderMark));
-        }
-
-        [Theory]
-        [CombinatorialData]
-        public void Encoding_Unicode(bool bigEndian, bool byteOrderMark)
-        {
-            TestRoundtripEncoding(new UnicodeEncoding(bigEndian, byteOrderMark));
-        }
-
-        [Fact]
-        public void Encoding_AllAvailable()
-        {
-            foreach (var info in Encoding.GetEncodings())
-            {
-                TestRoundtripEncoding(Encoding.GetEncoding(info.Name));
-            }
-        }
-
-        private static void TestRoundtripEncoding(Encoding encoding)
+        [MemberData(nameof(GetEncodingTestCases))]
+        public void Encodings(Encoding original)
         {
             using var stream = new MemoryStream();
 
             using (var writer = new ObjectWriter(stream, leaveOpen: true))
             {
-                writer.WriteEncoding(encoding);
+                writer.WriteEncoding(original);
             }
 
             stream.Position = 0;
 
             using var reader = ObjectReader.TryGetReader(stream);
             Assert.NotNull(reader);
-            var actualEncoding = (Encoding)((Encoding)reader.ReadValue()).Clone();
-            var expectedEncoding = (Encoding)encoding.Clone();
-
-            // set the fallbacks to the same instance so that equality comparison does not take them into account:
-            actualEncoding.EncoderFallback = EncoderFallback.ExceptionFallback;
-            actualEncoding.DecoderFallback = DecoderFallback.ExceptionFallback;
-            expectedEncoding.EncoderFallback = EncoderFallback.ExceptionFallback;
-            expectedEncoding.DecoderFallback = DecoderFallback.ExceptionFallback;
-
-            Assert.Equal(expectedEncoding.GetPreamble(), actualEncoding.GetPreamble());
-            Assert.Equal(expectedEncoding.CodePage, actualEncoding.CodePage);
-            Assert.Equal(expectedEncoding.WebName, actualEncoding.WebName);
-            Assert.Equal(expectedEncoding, actualEncoding);
+            var deserialized = (Encoding)reader.ReadValue();
+            EncodingTestHelpers.AssertEncodingsEqual(original, deserialized);
         }
 
         [Fact]

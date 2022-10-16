@@ -139,6 +139,12 @@ namespace Microsoft.CodeAnalysis.Remote
                         return kind.GetEncoding();
                     }
 
+                    var codePage = reader.ReadInt32();
+                    if (codePage > 0)
+                    {
+                        return Encoding.GetEncoding(codePage);
+                    }
+
                     var name = reader.ReadString();
                     return Encoding.GetEncoding(name);
                 }
@@ -164,7 +170,12 @@ namespace Microsoft.CodeAnalysis.Remote
                     else
                     {
                         writer.WriteUInt8((byte)TextEncodingKind.None);
-                        writer.Write(value.WebName);
+                        var codePage = value.CodePage;
+                        writer.Write(codePage);
+                        if (codePage <= 0)
+                        {
+                            writer.Write(value.WebName);
+                        }
                     }
                 }
                 catch (Exception e) when (e is not MessagePackSerializationException)

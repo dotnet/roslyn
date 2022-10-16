@@ -39,7 +39,7 @@ namespace Roslyn.Utilities
         /// this version, just change VersionByte2.
         /// </summary>
         internal const byte VersionByte1 = 0b10101010;
-        internal const byte VersionByte2 = 0b00001011;
+        internal const byte VersionByte2 = 0b00001100;
 
         private readonly BinaryReader _reader;
         private readonly CancellationToken _cancellationToken;
@@ -301,6 +301,9 @@ namespace Roslyn.Utilities
 
                 case >= TypeCode.FirstWellKnownTextEncoding and <= TypeCode.LastWellKnownTextEncoding:
                     return ObjectWriter.ToEncodingKind(code).GetEncoding();
+
+                case TypeCode.EncodingCodePage:
+                    return Encoding.GetEncoding(ReadInt32());
 
                 default:
                     throw ExceptionUtilities.UnexpectedValue(code);

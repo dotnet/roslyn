@@ -32,6 +32,7 @@ using Microsoft.CodeAnalysis.ExtractMethod;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Indentation;
+using Microsoft.CodeAnalysis.Serialization;
 using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.VisualBasic.CodeStyle;
@@ -143,33 +144,21 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
             return types;
         }
 
-        [Fact]
-        public void EncodingIsMessagePackSerializable()
+        public static IEnumerable<Encoding[]> GetEncodingTestCases()
+            => EncodingTestHelpers.GetEncodingTestCases();
+
+        [Theory]
+        [MemberData(nameof(GetEncodingTestCases))]
+        public void EncodingIsMessagePackSerializable(Encoding original)
         {
             var messagePackOptions = MessagePackSerializerOptions.Standard.WithResolver(MessagePackFormatters.DefaultResolver);
-            var encodings = new Encoding[]
-            {
-                null,
-                new UTF8Encoding(encoderShouldEmitUTF8Identifier: false),
-                new UTF32Encoding(bigEndian: true, byteOrderMark: false),
-                new UTF32Encoding(bigEndian: true, byteOrderMark: true),
-                new UTF32Encoding(bigEndian: false, byteOrderMark: false),
-                new UnicodeEncoding(bigEndian: true, byteOrderMark: false),
-                new UnicodeEncoding(bigEndian: false, byteOrderMark: false),
-                Encoding.ASCII,
-                Encoding.GetEncoding("SJIS"),
-                Encoding.GetEncoding(1250),
-            };
 
-            foreach (var original in encodings)
-            {
-                using var stream = new MemoryStream();
-                MessagePackSerializer.Serialize(stream, original, messagePackOptions);
-                stream.Position = 0;
+            using var stream = new MemoryStream();
+            MessagePackSerializer.Serialize(stream, original, messagePackOptions);
+            stream.Position = 0;
 
-                var deserialized = MessagePackSerializer.Deserialize(typeof(Encoding), stream, messagePackOptions);
-                Assert.Equal(original, deserialized);
-            }
+            var deserialized = (Encoding)MessagePackSerializer.Deserialize(typeof(Encoding), stream, messagePackOptions);
+            EncodingTestHelpers.AssertEncodingsEqual(original, deserialized);
         }
 
         private sealed class TestEncoderFallback : EncoderFallback

@@ -804,6 +804,11 @@ namespace Roslyn.Utilities
             {
                 WriteByte((byte)ToTypeCode(kind));
             }
+            else if (encoding.CodePage > 0)
+            {
+                WriteByte((byte)TypeCode.EncodingCodePage);
+                WriteInt32(encoding.CodePage);
+            }
             else
             {
                 WriteByte((byte)TypeCode.EncodingName);
@@ -1276,6 +1281,11 @@ namespace Roslyn.Utilities
             /// </summary>
             FirstWellKnownTextEncoding,
             LastWellKnownTextEncoding = FirstWellKnownTextEncoding + EncodingExtensions.LastTextEncodingKind - EncodingExtensions.FirstTextEncodingKind,
+
+            /// <summary>
+            /// Encoding serialized as <see cref="Encoding.CodePage"/>.
+            /// </summary>
+            EncodingCodePage,
 
             Last,
         }
