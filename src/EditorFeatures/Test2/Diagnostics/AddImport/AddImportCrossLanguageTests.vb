@@ -347,11 +347,11 @@ namespace CSAssembly2
             Await TestAsync(input, expected, codeActionIndex:=0, addedReference:="NewName",
                             glyphTags:=WellKnownTagArrays.CSharpProject,
                             onAfterWorkspaceCreated:=
-                            Sub(workspace As TestWorkspace)
+                            Async Function(workspace As TestWorkspace)
                                 Dim project = workspace.CurrentSolution.Projects.Single(Function(p) p.AssemblyName = "CSAssembly1")
                                 workspace.OnProjectNameChanged(project.Id, "NewName", "NewFilePath")
-                                WaitForSolutionCrawler(workspace)
-                            End Sub)
+                                Await WaitForSolutionCrawler(workspace)
+                            End Function)
         End Function
 
         <WpfFact>
@@ -394,7 +394,7 @@ End Namespace
                 glyphTags:=WellKnownTagArrays.VisualBasicProject, onAfterWorkspaceCreated:=AddressOf WaitForSolutionCrawler)
         End Function
 
-        Private Async Sub WaitForSolutionCrawler(workspace As TestWorkspace)
+        Private Async Function WaitForSolutionCrawler(workspace As TestWorkspace) As Task
             Dim service = DirectCast(
                 workspace.Services.GetRequiredService(Of ISymbolTreeInfoCacheService),
                 SymbolTreeInfoCacheServiceFactory.SymbolTreeInfoCacheService)
@@ -407,7 +407,7 @@ End Namespace
             '            Function(f) TypeOf f.Value Is SymbolTreeInfoIncrementalAnalyzerProvider).Value, SymbolTreeInfoIncrementalAnalyzerProvider)
             'Dim analyzer = provider.CreateIncrementalAnalyzer(workspace)
             'solutionCrawler.GetTestAccessor().WaitUntilCompletion(workspace, ImmutableArray.Create(analyzer))
-        End Sub
+        End Function
 
         <Fact, WorkItem(8036, "https://github.com/dotnet/Roslyn/issues/8036")>
         Public Async Function TestAddProjectReference_CSharpToVB_ExtensionMethod() As Task
@@ -516,7 +516,7 @@ namespace CSAssembly2
                                                   Optional expected As String = Nothing,
                                                   Optional codeActionIndex As Integer = 0,
                                                   Optional addedReference As String = Nothing,
-                                                  Optional onAfterWorkspaceCreated As Action(Of TestWorkspace) = Nothing,
+                                                  Optional onAfterWorkspaceCreated As Func(Of TestWorkspace, Task) = Nothing,
                                                   Optional glyphTags As ImmutableArray(Of String) = Nothing) As Task
             Dim verifySolutions As Func(Of Solution, Solution, Task) = Nothing
             Dim workspace As TestWorkspace = Nothing
@@ -545,10 +545,12 @@ namespace CSAssembly2
             Await TestAsync(definition, expected, codeActionIndex,
                             verifySolutions:=verifySolutions,
                             glyphTags:=glyphTags,
-                            onAfterWorkspaceCreated:=Sub(ws As TestWorkspace)
+                            onAfterWorkspaceCreated:=Async Function(ws As TestWorkspace)
                                                          workspace = ws
-                                                         onAfterWorkspaceCreated?.Invoke(ws)
-                                                     End Sub)
+                                                         If onAfterWorkspaceCreated IsNot Nothing Then
+                                                             Await onAfterWorkspaceCreated(ws)
+                                                         End If
+                                                     End Function)
         End Function
     End Class
 End Namespace

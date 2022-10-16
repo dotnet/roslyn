@@ -40,9 +40,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols.SymbolTree
             private readonly ConcurrentDictionary<ProjectId, (VersionStamp semanticVersion, SymbolTreeInfo info)> _projectIdToInfo = new();
             private readonly ConcurrentDictionary<PortableExecutableReference, MetadataInfo> _peReferenceToInfo = new();
 
-            private readonly Workspace _workspace;
             private readonly CancellationTokenSource _tokenSource = new();
 
+            private readonly Workspace _workspace;
             private readonly AsyncBatchingWorkQueue<ProjectId> _workQueue;
 
             public SymbolTreeInfoCacheService(Workspace workspace, IAsynchronousOperationListener listener)
@@ -60,9 +60,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols.SymbolTree
                 => _tokenSource.Cancel();
 
             /// <summary>
-            /// Gets the latest computed <see cref="SymbolTreeInfo"/> for the requested <paramref name="reference"/>.  This
-            /// may return an index corresponding to a prior version of the refernce if it has since changed.  Another
-            /// system is responsible for bringing these indices up to date in the background.
+            /// Gets the latest computed <see cref="SymbolTreeInfo"/> for the requested <paramref name="reference"/>.
+            /// This may return an index corresponding to a prior version of the reference if it has since changed.
+            /// Another system is responsible for bringing these indices up to date in the background.
             /// </summary>
             public async ValueTask<SymbolTreeInfo?> TryGetPotentiallyStaleMetadataSymbolTreeInfoAsync(
                 Project project,
@@ -146,7 +146,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols.SymbolTree
             {
                 // Find the top-level-version of this project.  We only want to recompute if it has changed. This is
                 // because the symboltree contains the names of the types/namespaces in the project and would not change
-                // if the semantic-version of the project hasn't changed.  We also do not need 
+                // if the semantic-version of the project hasn't changed.  We also do not need to check the 'dependent
+                // version'.  As this is just tracking parent/child relationships of namespace/type names for the source
+                // types in this project, this cannot change based on what happens in other projects.
                 var semanticVersion = await project.GetSemanticVersionAsync(cancellationToken).ConfigureAwait(false);
 
                 if (!_projectIdToInfo.TryGetValue(project.Id, out var versionAndProjectInfo) ||
