@@ -154,12 +154,19 @@ namespace Microsoft.CodeAnalysis.FindSymbols.SymbolTree
                 if (!_projectIdToInfo.TryGetValue(project.Id, out var versionAndProjectInfo) ||
                     versionAndProjectInfo.semanticVersion != semanticVersion)
                 {
-                    var info = await SymbolTreeInfo.GetInfoForSourceAssemblyAsync(
-                        project, cancellationToken).ConfigureAwait(false);
+                    // If the checksum is the same (which can happen if we loaded the previous index from disk), then no
+                    // need to recompute.
+                    var checksum = await SymbolTreeInfo.GetSourceSymbolsChecksumAsync(project, cancellationToken).ConfigureAwait(false);
+                    if (versionAndProjectInfo.info.Checksum != checksum)
+                    {
+                        // Otherwise, looks like things changed.  Compute and persist the latest index.
+                        var info = await SymbolTreeInfo.GetInfoForSourceAssemblyAsync(
+                            project, checksum, cancellationToken).ConfigureAwait(false);
 
-                    // Mark that we're up to date with this project.  Future calls with the same semantic version can
-                    // bail out immediately.
-                    _projectIdToInfo[project.Id] = (semanticVersion, info);
+                        // Mark that we're up to date with this project.  Future calls with the same semantic-version or
+                        // checksum can bail out immediately.
+                        _projectIdToInfo[project.Id] = (semanticVersion, info);
+                    }
                 }
             }
 
