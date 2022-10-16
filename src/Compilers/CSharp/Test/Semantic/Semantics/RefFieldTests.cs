@@ -8830,44 +8830,65 @@ class Program
 
         [Fact]
         [WorkItem(60807, "https://github.com/dotnet/roslyn/issues/60807")]
-        public void RefAndOutProperties()
+        public void RefAndOut_PropertiesAndIndexers_As_ValuesAndParameters()
         {
             var source =
 @"
-ref string S = ref C.S;    //CS0206
 var c = new C();
-var str = C.M(ref c.N);    //ref prop
-var str2 = C.M(ref c.N2);  //CS0206
-var str3 = C.M2(out c.N);  //ref prop
-var str4 = C.M2(out c.N2); //CS0206
-ref struct C
+var r = new R();
+//expressions
+ref int n = ref c.N;  //CS0206
+ref var l = ref c[0]; //CS0206
+ref var l2 = ref r[0];//OK
+_ = M(ref c.N);       //CS0206
+_ = M(ref r.N);       //OK
+_ = M(ref c[0]);      //CS0206
+_ = M(ref r[0]);      //OK
+_ = M2(out c.N);      //CS0206
+_ = M2(out r.N);      //OK
+_ = M2(out c[0]);     //CS0206
+_ = M2(out r[0]);     //OK
+//defenitions
+static string M(ref int number) { return """"; }
+static string M2(out int number) { number = 42; return """"; }
+class C
 {
-    public static string S { get; set; }
+    public int N { get; set; }    
+    private int[] arr = new int[100];
+    public int this[int i] => arr[i];
+}
+ref struct R
+{
+    public I2() { arr = new int[1]; n = 1; }
     private ref int n;
     public ref int N => ref n;
-    public int N2 { get; set; }
-    public static string M(ref int number)
-    {
-        return number.ToString();
-    }
-    public static string M2(out int number)
-    {
-        number = 42;
-        return number.ToString();
-    }
+    private ref int[] arr;
+    public ref int this[int i] => ref arr[i];
 }
 ";
             var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
             comp.VerifyEmitDiagnostics(
-                // (2,20): error CS0206: An indexer or auto-implemented property may not be used as an out or ref value
-                // ref string S = ref C.S; //CS0206
-                Diagnostic(ErrorCode.ERR_RefProperty, "C.S").WithLocation(2, 20),
-                // (5,20): error CS0206: An indexer or auto-implemented property may not be used as an out or ref value
-                // var str2 = C.M(ref c.N2);
-                Diagnostic(ErrorCode.ERR_RefProperty, "c.N2").WithLocation(5, 20),
-                // (7,21): error CS0206: An indexer or auto-implemented property may not be used as an out or ref value
-                // var str4 = C.M2(out c.N2);
-                Diagnostic(ErrorCode.ERR_RefProperty, "c.N2").WithLocation(7, 21)
+                // (5,17): error CS0206: An indexer or auto-implemented property may not be used as an out or ref value
+                // ref int n = ref c.N;  //CS0206
+                Diagnostic(ErrorCode.ERR_RefProperty, "c.N").WithLocation(5, 17),
+                // (6,17): error CS0206: An indexer or auto-implemented property may not be used as an out or ref value
+                // ref var l = ref c[0]; //CS0206
+                Diagnostic(ErrorCode.ERR_RefProperty, "c[0]").WithLocation(6, 17),
+                // (8,11): error CS0206: An indexer or auto-implemented property may not be used as an out or ref value
+                // _ = M(ref c.N);       //CS0206
+                Diagnostic(ErrorCode.ERR_RefProperty, "c.N").WithLocation(8, 11),
+                // (10,11): error CS0206: An indexer or auto-implemented property may not be used as an out or ref value
+                // _ = M(ref c[0]);      //CS0206
+                Diagnostic(ErrorCode.ERR_RefProperty, "c[0]").WithLocation(10, 11),
+                // (12,12): error CS0206: An indexer or auto-implemented property may not be used as an out or ref value
+                // _ = M2(out c.N);      //CS0206
+                Diagnostic(ErrorCode.ERR_RefProperty, "c.N").WithLocation(12, 12),
+                // (14,12): error CS0206: An indexer or auto-implemented property may not be used as an out or ref value
+                // _ = M2(out c[0]);     //CS0206
+                Diagnostic(ErrorCode.ERR_RefProperty, "c[0]").WithLocation(14, 12),
+                // (27,12): error CS1520: Method must have a return type
+                //     public I2() { arr = new int[1]; n = 1; }
+                Diagnostic(ErrorCode.ERR_MemberNeedsType, "I2").WithLocation(27, 12)
             );
         }
 
