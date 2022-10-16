@@ -7,14 +7,11 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
-using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Collections;
-using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Collections;
-using Microsoft.CodeAnalysis.Storage;
 using Microsoft.CodeAnalysis.Utilities;
 using Roslyn.Utilities;
 
@@ -32,6 +29,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols
     /// </summary>
     internal partial class SymbolTreeInfo : IChecksummedObject
     {
+        private static readonly StringSliceComparer s_caseInsensitiveComparer =
+            StringSliceComparer.OrdinalIgnoreCase;
+
         public Checksum Checksum { get; }
 
         /// <summary>
@@ -73,25 +73,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         public bool ContainsExtensionMethod => _receiverTypeNameToExtensionMethodMap?.Count > 0;
 
         private readonly SpellChecker _spellChecker;
-
-        private static readonly StringSliceComparer s_caseInsensitiveComparer =
-            StringSliceComparer.OrdinalIgnoreCase;
-
-        // We first sort in a case insensitive manner.  But, within items that match insensitively, 
-        // we then sort in a case sensitive manner.  This helps for searching as we'll walk all 
-        // the items of a specific casing at once.  This way features can cache values for that
-        // casing and reuse them.  i.e. if we didn't do this we might get "Prop, prop, Prop, prop"
-        // which might cause other features to continually recalculate if that string matches what
-        // they're searching for.  However, with this sort of comparison we now get 
-        // "prop, prop, Prop, Prop".  Features can take advantage of that by caching their previous
-        // result and reusing it when they see they're getting the same string again.
-        private static readonly Comparison<string> s_totalComparer = (s1, s2) =>
-        {
-            var diff = CaseInsensitiveComparison.Comparer.Compare(s1, s2);
-            return diff != 0
-                ? diff
-                : StringComparer.Ordinal.Compare(s1, s2);
-        };
 
         private SymbolTreeInfo(
             Checksum checksum,
@@ -374,7 +355,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         private static int CompareNodes(
             BuilderNode x, BuilderNode y, ImmutableArray<BuilderNode> nodeList)
         {
-            var comp = s_totalComparer(x.Name, y.Name);
+            var comp = TotalComparer(x.Name, y.Name);
             if (comp == 0)
             {
                 if (x.ParentIndex != y.ParentIndex)
@@ -395,6 +376,22 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             }
 
             return comp;
+
+            // We first sort in a case insensitive manner.  But, within items that match insensitively, 
+            // we then sort in a case sensitive manner.  This helps for searching as we'll walk all 
+            // the items of a specific casing at once.  This way features can cache values for that
+            // casing and reuse them.  i.e. if we didn't do this we might get "Prop, prop, Prop, prop"
+            // which might cause other features to continually recalculate if that string matches what
+            // they're searching for.  However, with this sort of comparison we now get 
+            // "prop, prop, Prop, Prop".  Features can take advantage of that by caching their previous
+            // result and reusing it when they see they're getting the same string again.
+            static int TotalComparer(string s1, string s2)
+            {
+                var diff = CaseInsensitiveComparison.Comparer.Compare(s1, s2);
+                return diff != 0
+                    ? diff
+                    : StringComparer.Ordinal.Compare(s1, s2);
+            };
         }
 
         #endregion
