@@ -8828,6 +8828,51 @@ class Program
                 Diagnostic(ErrorCode.ERR_RefLocalOrParamExpected, "s.P2").WithLocation(22, 9));
         }
 
+        /// <summary>
+        /// Ref auto-properties are not supported.
+        /// </summary>
+        [Fact]
+        public void RefAndOutProperties()
+        {
+            var source =
+@"
+ref string S = ref C.S;    //CS0206
+var c = new C();
+var str = C.M(ref c.N);    //ref prop
+var str2 = C.M(ref c.N2);  //CS0206
+var str3 = C.M2(out c.N);  //ref prop
+var str4 = C.M2(out c.N2); //CS0206
+ref struct C
+{
+    public static string S { get; set; }
+    private ref int n;
+    public ref int N => ref n;
+    public int N2 { get; set; }
+    public static string M(ref int number)
+    {
+        return number.ToString();
+    }
+    public static string M2(out int number)
+    {
+        number = 42;
+        return number.ToString();
+    }
+}
+";
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+            comp.VerifyEmitDiagnostics(
+                // (2,20): error CS0206: An indexer or auto-implemented property may not be used as an out or ref value
+                // ref string S = ref C.S; //CS0206
+                Diagnostic(ErrorCode.ERR_RefProperty, "C.S").WithLocation(2, 20),
+                // (5,20): error CS0206: An indexer or auto-implemented property may not be used as an out or ref value
+                // var str2 = C.M(ref c.N2);
+                Diagnostic(ErrorCode.ERR_RefProperty, "c.N2").WithLocation(5, 20),
+                // (7,21): error CS0206: An indexer or auto-implemented property may not be used as an out or ref value
+                // var str4 = C.M2(out c.N2);
+                Diagnostic(ErrorCode.ERR_RefProperty, "c.N2").WithLocation(7, 21)
+            );
+        }
+
         [Fact]
         public void RefAccessor_Value()
         {
