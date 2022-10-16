@@ -109,7 +109,7 @@ namespace Microsoft.CodeAnalysis.AddImport
                 bool exact, CancellationToken cancellationToken)
             {
                 var searchScope = new MetadataSymbolsSearchScope(
-                    _owner, _document.Project.Solution, assembly, assemblyProjectId,
+                    _owner, _document.Project.Solution.GetRequiredProject(assemblyProjectId), assembly,
                     metadataReference, exact, cancellationToken);
                 return DoAsync(searchScope);
             }
