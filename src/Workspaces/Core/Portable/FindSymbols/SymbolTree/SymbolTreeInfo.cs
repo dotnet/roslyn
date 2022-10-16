@@ -348,7 +348,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             // No longer need the tmp array
             tmp = null;
 
-            var result = ArrayBuilder<Node>.GetInstance(unsortedNodes.Length);
+            using var _3 = ArrayBuilder<Node>.GetInstance(unsortedNodes.Length, out var result);
             result.Count = unsortedNodes.Length;
 
             string? lastName = null;
@@ -373,7 +373,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 lastName = currentName;
             }
 
-            return result.ToImmutableAndFree();
+            return result.ToImmutableAndClear();
         }
 
         private static int CompareNodes(
