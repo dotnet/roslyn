@@ -8859,10 +8859,10 @@ class C
 }
 ref struct R
 {
-    public I2() { arr = new int[1]; n = 1; }
+    public R(){}
     private ref int n;
     public ref int N => ref n;
-    private ref int[] arr;
+    private ref int[] arr = new int[1];
     public ref int this[int i] => ref arr[i];
 }
 ";
@@ -8885,10 +8885,7 @@ ref struct R
                 Diagnostic(ErrorCode.ERR_RefProperty, "c.N").WithLocation(12, 12),
                 // (14,12): error CS0206: An indexer or auto-implemented property may not be used as an out or ref value
                 // _ = M2(out c[0]);     //CS0206
-                Diagnostic(ErrorCode.ERR_RefProperty, "c[0]").WithLocation(14, 12),
-                // (27,12): error CS1520: Method must have a return type
-                //     public I2() { arr = new int[1]; n = 1; }
-                Diagnostic(ErrorCode.ERR_MemberNeedsType, "I2").WithLocation(27, 12)
+                Diagnostic(ErrorCode.ERR_RefProperty, "c[0]").WithLocation(14, 12)
             );
         }
 
