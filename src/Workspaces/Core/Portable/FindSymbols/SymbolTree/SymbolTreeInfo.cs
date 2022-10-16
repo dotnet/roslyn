@@ -327,21 +327,20 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         private static ImmutableArray<Node> SortNodes(ImmutableArray<BuilderNode> unsortedNodes)
         {
             // Generate index numbers from 0 to Count-1
-            var tmp = new int[unsortedNodes.Length];
-            for (var i = 0; i < tmp.Length; i++)
-            {
+            using var _1 = ArrayBuilder<int>.GetInstance(unsortedNodes.Length, out var tmp);
+            tmp.Count = unsortedNodes.Length;
+            for (var i = 0; i < tmp.Count; i++)
                 tmp[i] = i;
-            }
 
             // Sort the index according to node elements
-            Array.Sort<int>(tmp, (a, b) => CompareNodes(unsortedNodes[a], unsortedNodes[b], unsortedNodes));
+            tmp.Sort((a, b) => CompareNodes(unsortedNodes[a], unsortedNodes[b], unsortedNodes));
 
             // Use the sort order to build the ranking table which will
             // be used as the map from original (unsorted) location to the
             // sorted location.
             using var _2 = ArrayBuilder<int>.GetInstance(unsortedNodes.Length, out var ranking);
             ranking.Count = unsortedNodes.Length;
-            for (var i = 0; i < tmp.Length; i++)
+            for (var i = 0; i < tmp.Count; i++)
                 ranking[tmp[i]] = i;
 
             using var _3 = ArrayBuilder<Node>.GetInstance(unsortedNodes.Length, out var result);
