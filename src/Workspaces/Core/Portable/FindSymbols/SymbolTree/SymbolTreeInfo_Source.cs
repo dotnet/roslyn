@@ -125,7 +125,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             var unsortedNodes = ArrayBuilder<BuilderNode>.GetInstance();
             unsortedNodes.Add(new BuilderNode(assembly.GlobalNamespace.Name, RootNodeParentIndex));
 
-            GenerateSourceNodes(assembly.GlobalNamespace, unsortedNodes, s_getMembersNoPrivate);
+            GenerateSourceNodes(assembly.GlobalNamespace, unsortedNodes);
 
             return CreateSymbolTreeInfo(
                 sourceSemanticVersion,
@@ -138,17 +138,16 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         // generate nodes for the global namespace an all descendants
         private static void GenerateSourceNodes(
             INamespaceSymbol globalNamespace,
-            ArrayBuilder<BuilderNode> list,
-            Action<ISymbol, MultiDictionary<string, ISymbol>> lookup)
+            ArrayBuilder<BuilderNode> list)
         {
             // Add all child members
             var symbolMap = AllocateSymbolMap();
             try
             {
-                lookup(globalNamespace, symbolMap);
+                AddChildSymbols(globalNamespace, symbolMap);
 
                 foreach (var (name, symbols) in symbolMap)
-                    GenerateSourceNodes(name, 0 /*index of root node*/, symbols, list, lookup);
+                    GenerateSourceNodes(name, 0 /*index of root node*/, symbols, list);
             }
             finally
             {
@@ -156,16 +155,12 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             }
         }
 
-        private static readonly Func<ISymbol, bool> s_useSymbolNoPrivate =
-            s => s.CanBeReferencedByName && s.DeclaredAccessibility != Accessibility.Private;
-
         // generate nodes for symbols that share the same name, and all their descendants
         private static void GenerateSourceNodes(
             string name,
             int parentIndex,
             MultiDictionary<string, ISymbol>.ValueSet symbolsWithSameName,
-            ArrayBuilder<BuilderNode> list,
-            Action<ISymbol, MultiDictionary<string, ISymbol>> lookup)
+            ArrayBuilder<BuilderNode> list)
         {
             var node = new BuilderNode(name, parentIndex);
             var nodeIndex = list.Count;
@@ -176,12 +171,10 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             {
                 // Add all child members
                 foreach (var symbol in symbolsWithSameName)
-                {
-                    lookup(symbol, symbolMap);
-                }
+                    AddChildSymbols(symbol, symbolMap);
 
                 foreach (var (symbolName, symbols) in symbolMap)
-                    GenerateSourceNodes(symbolName, nodeIndex, symbols, list, lookup);
+                    GenerateSourceNodes(symbolName, nodeIndex, symbols, list);
             }
             finally
             {
@@ -189,21 +182,29 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             }
         }
 
-        private static readonly Action<ISymbol, MultiDictionary<string, ISymbol>> s_getMembersNoPrivate =
-            (symbol, symbolMap) => AddSymbol(symbol, symbolMap, s_useSymbolNoPrivate);
-
-        private static void AddSymbol(ISymbol symbol, MultiDictionary<string, ISymbol> symbolMap, Func<ISymbol, bool> useSymbol)
+        private static void AddChildSymbols(ISymbol symbol, MultiDictionary<string, ISymbol> symbolMap)
         {
-            if (symbol is INamespaceOrTypeSymbol nt)
+            if (symbol is INamespaceSymbol @namespace)
             {
-                foreach (var member in nt.GetMembers())
+                foreach (var member in @namespace.GetMembers())
                 {
-                    if (useSymbol(member))
-                    {
+                    if (UseSymbol(member))
                         symbolMap.Add(member.Name, member);
-                    }
                 }
             }
+            else if (symbol is INamedTypeSymbol namedType)
+            {
+                foreach (var member in namedType.GetTypeMembers())
+                {
+                    if (UseSymbol(member))
+                        symbolMap.Add(member.Name, member);
+                }
+            }
+
+            return;
+
+            static bool UseSymbol(ISymbol s)
+                => s.CanBeReferencedByName && s.DeclaredAccessibility != Accessibility.Private;
         }
     }
 }
