@@ -148,7 +148,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         private static void GenerateSourceNodes(
             string name,
             int parentIndex,
-            MultiDictionary<string, INamespaceOrTypeSymbol>.ValueSet symbolsWithName,
+            MultiDictionary<string, INamespaceOrTypeSymbol>.ValueSet symbolsWithSameName,
             ArrayBuilder<BuilderNode> unsortedBuilderNodes)
         {
             // Add the node for this name, and record which parent it points at.
@@ -163,7 +163,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             {
                 // Walk the symbols with this name, and add all their child namespaces and types, grouping them together
                 // based on their name.  There may be multiple (for example, Action<T1>, Action<T1, T2>, etc.)
-                foreach (var symbol in symbolsWithName)
+                foreach (var symbol in symbolsWithSameName)
                     AddChildNamespacesAndTypes(symbol, childSymbolsByName);
 
                 // Now, go through all those groups and make the single mapping from their name to the builder-node we
@@ -181,7 +181,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 // therein.  If we didn't already see that child name when recursing above, then make a builder-node for
                 // it that points to the builder-node we just created above.
 
-                foreach (var symbol in symbolsWithName)
+                foreach (var symbol in symbolsWithSameName)
                 {
                     if (symbol is INamedTypeSymbol namedType)
                     {
