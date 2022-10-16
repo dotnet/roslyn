@@ -163,7 +163,7 @@ internal sealed partial class SymbolTreeInfoCacheServiceFactory
 
         private async Task UpdateSourceSymbolTreeInfoAsync(Project project, CancellationToken cancellationToken)
         {
-            // Find the top-level-version of this project.  We only want to recompute if it has changed. This is
+            // Find the top-level-semantic-version of this project.  We only want to recompute if it has changed. This is
             // because the symboltree contains the names of the types/namespaces in the project and would not change
             // if the semantic-version of the project hasn't changed.  We also do not need to check the 'dependent
             // version'.  As this is just tracking parent/child relationships of namespace/type names for the source
@@ -207,8 +207,6 @@ internal sealed partial class SymbolTreeInfoCacheServiceFactory
                 Contract.ThrowIfNull(info);
                 Contract.ThrowIfTrue(info.Checksum != checksum, "If we computed a SymbolTreeInfo, then its checksum much match our checksum.");
 
-                // Note, getting the info may fail (for example, bogus metadata).  That's ok. We still want to cache
-                // that result so that don't try to continuously produce this info over and over again.
                 metadataInfo = new MetadataInfo(info, metadataInfo.ReferencingProjects ?? new HashSet<ProjectId>());
                 _peReferenceToInfo[reference] = metadataInfo;
             }
