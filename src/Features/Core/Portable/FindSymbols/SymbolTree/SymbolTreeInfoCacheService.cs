@@ -135,7 +135,7 @@ internal sealed partial class SymbolTreeInfoCacheServiceFactory : IWorkspaceServ
                 cancellationToken.ThrowIfCancellationRequested();
 
                 var project = solution.GetProject(projectId);
-                if (project == null || !project.SupportsCompilation)
+                if (project is not { SupportsCompilation: true })
                     continue;
 
                 tasks.Add(CreateWorkAsync(() => this.UpdateSourceSymbolTreeInfoAsync(project, cancellationToken), cancellationToken));
