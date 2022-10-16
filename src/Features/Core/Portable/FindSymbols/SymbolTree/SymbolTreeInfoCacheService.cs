@@ -123,7 +123,9 @@ internal sealed partial class SymbolTreeInfoCacheServiceFactory : IWorkspaceServ
                     await AnalyzeProjectAsync(project, cancellationToken).ConfigureAwait(false);
             }
 
-            var removedProjectIds = solution.ProjectIds.Except(_projectIdToInfo.Keys).ToArray();
+            // Now that we've produced all the indices for the projects asked for, also remove any indices for projects
+            // no longer in the solution.
+            var removedProjectIds = _projectIdToInfo.Keys.Except(solution.ProjectIds).ToArray();
             foreach (var projectId in removedProjectIds)
                 this.RemoveProject(projectId);
         }
