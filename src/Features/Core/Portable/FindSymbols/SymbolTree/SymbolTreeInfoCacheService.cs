@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Microsoft.CodeAnalysis.SolutionCrawler;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FindSymbols.SymbolTree;
@@ -49,7 +50,7 @@ internal sealed partial class SymbolTreeInfoCacheServiceFactory : IWorkspaceServ
         {
             _workspace = workspace;
             _workQueue = new AsyncBatchingWorkQueue<ProjectId>(
-                DelayTimeSpan.NonFocus,
+                SolutionCrawlerTimeSpan.EntireProjectWorkerBackOff,
                 ProcessProjectsAsync,
                 EqualityComparer<ProjectId>.Default,
                 listener,
