@@ -5,37 +5,19 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Composition;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Collections;
-using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FindSymbols.SymbolTree;
 
-[ExportWorkspaceServiceFactory(typeof(ISymbolTreeInfoCacheService)), Shared]
-internal sealed partial class SymbolTreeInfoCacheServiceFactory : IWorkspaceServiceFactory
+internal sealed partial class SymbolTreeInfoCacheServiceFactory
 {
-    private readonly IAsynchronousOperationListener _listener;
-
-    [ImportingConstructor]
-    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public SymbolTreeInfoCacheServiceFactory(
-        IAsynchronousOperationListenerProvider listenerProvider)
-    {
-        _listener = listenerProvider.GetListener(FeatureAttribute.SolutionCrawlerLegacy);
-    }
-
-    public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
-        => new SymbolTreeInfoCacheService(workspaceServices.Workspace, _listener);
-
     internal sealed partial class SymbolTreeInfoCacheService : ISymbolTreeInfoCacheService, IDisposable
     {
         private static readonly TaskScheduler s_exclusiveScheduler = new ConcurrentExclusiveSchedulerPair().ExclusiveScheduler;
