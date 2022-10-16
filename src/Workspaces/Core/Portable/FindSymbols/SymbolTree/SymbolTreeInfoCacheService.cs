@@ -20,6 +20,11 @@ internal sealed partial class SymbolTreeInfoCacheServiceFactory
 {
     internal sealed partial class SymbolTreeInfoCacheService : ISymbolTreeInfoCacheService, IDisposable
     {
+        /// <summary>
+        /// Same value as SolutionCrawlerTimeSpan.EntireProjectWorkerBackOff
+        /// </summary>
+        private static readonly TimeSpan EntireProjectWorkerBackOff = TimeSpan.FromMilliseconds(5000);
+
         private static readonly TaskScheduler s_exclusiveScheduler = new ConcurrentExclusiveSchedulerPair().ExclusiveScheduler;
 
         private readonly ConcurrentDictionary<ProjectId, (VersionStamp semanticVersion, SymbolTreeInfo info)> _projectIdToInfo = new();
@@ -40,7 +45,7 @@ internal sealed partial class SymbolTreeInfoCacheServiceFactory
         {
             _workspace = workspace;
             _workQueue = new AsyncBatchingWorkQueue<ProjectId>(
-                SolutionCrawlerTimeSpan.EntireProjectWorkerBackOff,
+                EntireProjectWorkerBackOff,
                 ProcessProjectsAsync,
                 EqualityComparer<ProjectId>.Default,
                 listener,
