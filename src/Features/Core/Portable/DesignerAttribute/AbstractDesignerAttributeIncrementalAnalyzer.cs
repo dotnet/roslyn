@@ -20,17 +20,6 @@ namespace Microsoft.CodeAnalysis.DesignerAttribute
     [ExportWorkspaceService(typeof(IDesignerAttributeDiscoveryService)), Shared]
     internal sealed partial class DesignerAttributeDiscoveryService : IDesignerAttributeDiscoveryService
     {
-        /// <summary>
-        /// Protects mutable state in this type.
-        /// </summary>
-        private readonly SemaphoreSlim _gate = new SemaphoreSlim(initialCount: 1);
-
-        /// <summary>
-        /// Keep track of the last information we reported.  We will avoid notifying the host if we recompute and these
-        /// don't change.
-        /// </summary>
-        private readonly ConcurrentDictionary<DocumentId, (string? category, VersionStamp projectVersion)> _documentToLastReportedInformation = new();
-
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public DesignerAttributeDiscoveryService()
@@ -42,33 +31,23 @@ namespace Microsoft.CodeAnalysis.DesignerAttribute
             DocumentId? priorityDocumentId,
             [EnumeratorCancellation] CancellationToken cancellationToken)
         {
-            using (await _gate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
+            // Handle the priority doc first.
+            var priorityDocument = solution.GetDocument(priorityDocumentId);
+            if (priorityDocument != null)
             {
-                // Remove any documents that are now gone.
-                foreach (var docId in _documentToLastReportedInformation.Keys)
-                {
-                    if (!solution.ContainsDocument(docId))
-                        _documentToLastReportedInformation.TryRemove(docId, out _);
-                }
+                await foreach (var item in ProcessProjectAsync(priorityDocument.Project, priorityDocument, cancellationToken).ConfigureAwait(false))
+                    yield return item;
+            }
 
-                // Handle the priority doc first.
-                var priorityDocument = solution.GetDocument(priorityDocumentId);
-                if (priorityDocument != null)
+            // Process the rest of the projects in dependency order so that their data is ready when we hit the 
+            // projects that depend on them.
+            var dependencyGraph = solution.GetProjectDependencyGraph();
+            foreach (var projectId in dependencyGraph.GetTopologicallySortedProjects(cancellationToken))
+            {
+                if (projectId != priorityDocumentId?.ProjectId)
                 {
-                    await foreach (var item in ProcessProjectAsync(priorityDocument.Project, priorityDocument, cancellationToken).ConfigureAwait(false))
+                    await foreach (var item in ProcessProjectAsync(solution.GetRequiredProject(projectId), specificDocument: null, cancellationToken).ConfigureAwait(false))
                         yield return item;
-                }
-
-                // Process the rest of the projects in dependency order so that their data is ready when we hit the 
-                // projects that depend on them.
-                var dependencyGraph = solution.GetProjectDependencyGraph();
-                foreach (var projectId in dependencyGraph.GetTopologicallySortedProjects(cancellationToken))
-                {
-                    if (projectId != priorityDocumentId?.ProjectId)
-                    {
-                        await foreach (var item in ProcessProjectAsync(solution.GetRequiredProject(projectId), specificDocument: null, cancellationToken).ConfigureAwait(false))
-                            yield return item;
-                    }
                 }
             }
         }
@@ -86,8 +65,13 @@ namespace Microsoft.CodeAnalysis.DesignerAttribute
             if (designerCategoryType == null)
                 yield break;
 
+            // We need to reanalyze the project whenever it (or any of its dependencies) have changed.  We need to know
+            // about dependencies since if a downstream project adds the DesignerCategory attribute to a class, that can
+            // affect us when we examine the classes in this project.
+            var projectVersion = await project.GetDependentSemanticVersionAsync(cancellationToken).ConfigureAwait(false);
+
             await foreach (var item in ScanForDesignerCategoryUsageAsync(
-                project, specificDocument, designerCategoryType, cancellationToken).ConfigureAwait(false))
+                project, specificDocument, projectVersion, designerCategoryType, cancellationToken).ConfigureAwait(false))
             {
                 yield return item;
             }
@@ -96,7 +80,7 @@ namespace Microsoft.CodeAnalysis.DesignerAttribute
             if (specificDocument != null)
             {
                 await foreach (var item in ScanForDesignerCategoryUsageAsync(
-                    project, specificDocument: null, designerCategoryType, cancellationToken).ConfigureAwait(false))
+                    project, specificDocument: null, projectVersion, designerCategoryType, cancellationToken).ConfigureAwait(false))
                 {
                     yield return item;
                 }
@@ -104,34 +88,6 @@ namespace Microsoft.CodeAnalysis.DesignerAttribute
         }
 
         private async IAsyncEnumerable<DesignerAttributeData> ScanForDesignerCategoryUsageAsync(
-            Project project,
-            Document? specificDocument,
-            INamedTypeSymbol designerCategoryType,
-            [EnumeratorCancellation] CancellationToken cancellationToken)
-        {
-            // We need to reanalyze the project whenever it (or any of its dependencies) have
-            // changed.  We need to know about dependencies since if a downstream project adds the
-            // DesignerCategory attribute to a class, that can affect us when we examine the classes
-            // in this project.
-            var projectVersion = await project.GetDependentSemanticVersionAsync(cancellationToken).ConfigureAwait(false);
-
-            // Now get all the values that actually changed and notify VS about them. We don't need
-            // to tell it about the ones that didn't change since that will have no effect on the
-            // user experience.
-
-            await foreach (var data in ComputeChangedDataAsync(
-                project, specificDocument, projectVersion, designerCategoryType, cancellationToken).ConfigureAwait(false))
-            {
-                yield return data;
-
-                // Now, keep track of what we've reported to the host so we won't report unchanged files in the future. We
-                // do this after the report has gone through as we want to make sure that if it cancels for any reason we
-                // don't hold onto values that may not have made it all the way to the project system.
-                _documentToLastReportedInformation[data.DocumentId] = (data.Category, projectVersion);
-            }
-       }
-
-        private async IAsyncEnumerable<DesignerAttributeData> ComputeChangedDataAsync(
             Project project,
             Document? specificDocument,
             VersionStamp projectVersion,
