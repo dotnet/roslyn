@@ -559,8 +559,8 @@ class C
                 expectedOutputMarkup,
                 cmd,
                 AnalyzerForErrorLogTest.GetExpectedV2ErrorLogWithSuppressionResultsText(cmd.Compilation,
-                null,
-                suppressionType: $"DiagnosticSuppressor {{ Suppression Id: {SuppressorForErrorLogTest.Descriptor1.Id}, Suppression Justification: {SuppressorForErrorLogTest.Descriptor1.Justification} }}"),
+                    null,
+                    suppressionType: $"DiagnosticSuppressor {{ Suppression Id: {SuppressorForErrorLogTest.Descriptor1.Id}, Suppression Justification: {SuppressorForErrorLogTest.Descriptor1.Justification} }}"),
                 AnalyzerForErrorLogTest.GetExpectedV2ErrorLogRulesText(suppressionKinds1: new[] { "inSource" }));
 
             Assert.Equal(expectedOutput, actualOutput);
