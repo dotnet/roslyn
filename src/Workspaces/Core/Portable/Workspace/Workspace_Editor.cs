@@ -356,52 +356,56 @@ namespace Microsoft.CodeAnalysis
         }
 
         protected internal void OnDocumentOpened(
-            DocumentId documentId, SourceTextContainer textContainer,
-            bool isCurrentContext = true)
+            DocumentId documentId, SourceTextContainer textContainer, bool isCurrentContext = true)
         {
-            using (_serializationLock.DisposableWait())
-            {
-                CheckDocumentIsInCurrentSolution(documentId);
-                CheckDocumentIsClosed(documentId);
-
-                var oldSolution = this.CurrentSolution;
-                var oldDocument = oldSolution.GetRequiredDocument(documentId);
-                var oldDocumentState = oldDocument.State;
-
-                AddToOpenDocumentMap(documentId);
-
-                var newText = textContainer.CurrentText;
-                Solution newSolution;
-                if (oldDocument.TryGetText(out var oldText) &&
-                    oldDocument.TryGetTextVersion(out var version))
+            SetCurrentSolution(
+                static (oldSolution, data) =>
                 {
-                    // Optimize the case where we've already got the previous text and version.
-                    var newTextAndVersion = GetProperTextAndVersion(oldText, newText, version, oldDocumentState.FilePath);
+                    var (@this, documentId, _, _) = data;
 
-                    // keep open document text alive by using PreserveIdentity
-                    newSolution = oldSolution.WithDocumentText(documentId, newTextAndVersion, PreservationMode.PreserveIdentity);
-                }
-                else
+                    CheckDocumentIsInSolution(oldSolution, documentId);
+                    @this.CheckDocumentIsClosed(documentId);
+
+                    var oldDocument = oldSolution.GetRequiredDocument(documentId);
+                    var oldDocumentState = oldDocument.State;
+
+                    var newText = data.textContainer.CurrentText;
+                    if (oldDocument.TryGetText(out var oldText) &&
+                        oldDocument.TryGetTextVersion(out var version))
+                    {
+                        // Optimize the case where we've already got the previous text and version.
+                        var newTextAndVersion = GetProperTextAndVersion(oldText, newText, version, oldDocumentState.FilePath);
+
+                        // keep open document text alive by using PreserveIdentity
+                        return oldSolution.WithDocumentText(documentId, newTextAndVersion, PreservationMode.PreserveIdentity);
+                    }
+                    else
+                    {
+                        // We don't have the old text or version.  Rather than trying to reuse a version that we still have, let's just assume the file has changed.
+                        // keep open document text alive by using PreserveIdentity
+                        return oldSolution.WithDocumentText(documentId, newText, PreservationMode.PreserveValue);
+                    }
+                },
+                data: (@this: this, documentId, textContainer, isCurrentContext),
+                onAfterUpdate: static (oldSolution, newSolution, data) =>
                 {
-                    // We don't have the old text or version.  Rather than trying to reuse a version that we still have, let's just assume the file has changed.
-                    // keep open document text alive by using PreserveIdentity
-                    newSolution = oldSolution.WithDocumentText(documentId, newText, PreservationMode.PreserveValue);
-                }
+                    var (@this, documentId, textContainer, isCurrentContext) = data;
 
-                (oldSolution, newSolution) = this.SetCurrentSolutionEx(newSolution);
-                SignupForTextChanges(documentId, textContainer, isCurrentContext, (w, id, text, mode) => w.OnDocumentTextChanged(id, text, mode));
+                    @this.AddToOpenDocumentMap(documentId);
+                    @this.SignupForTextChanges(documentId, textContainer, isCurrentContext, (w, id, text, mode) => w.OnDocumentTextChanged(id, text, mode));
 
-                var newDoc = newSolution.GetRequiredDocument(documentId);
-                this.OnDocumentTextChanged(newDoc);
+                    var newDoc = newSolution.GetRequiredDocument(documentId);
+                    @this.OnDocumentTextChanged(newDoc);
 
-                // Fire and forget that the workspace is changing.
-                RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.DocumentChanged, oldSolution, newSolution, documentId: documentId);
+                    // Fire and forget that the workspace is changing.
+                    @this.RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.DocumentChanged, oldSolution, newSolution, documentId: documentId);
 
-                // We fire 2 events on source document opened.
-                this.RaiseDocumentOpenedEventAsync(newDoc);
-                this.RaiseTextDocumentOpenedEventAsync(newDoc);
-            }
+                    // We fire 2 events on source document opened.
+                    @this.RaiseDocumentOpenedEventAsync(newDoc);
+                    @this.RaiseTextDocumentOpenedEventAsync(newDoc);
+                });
 
+            // TODO: why is this here, and not in onAfterUpdate?
             this.RegisterText(textContainer);
         }
 
