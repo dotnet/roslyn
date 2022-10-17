@@ -581,28 +581,39 @@ namespace Microsoft.CodeAnalysis
             // we don't want to be crashing underneath them if they were already handling exceptions or (worse) was using those exceptions for expected code flow.
             try
             {
-                using (_serializationLock.DisposableWait())
-                {
-                    this.CheckDocumentIsInCurrentSolution(documentId);
-                    this.CheckDocumentIsOpen(documentId);
+                this.SetCurrentSolution(
+                    static (oldSolution, data) =>
+                    {
+                        var documentId = data.documentId;
 
-                    // forget any open document info
-                    ClearOpenDocument(documentId);
+                        CheckDocumentIsInSolution(oldSolution, documentId);
+                        data.@this.CheckDocumentIsOpen(documentId);
 
-                    this.OnDocumentClosing(documentId);
+                        return oldSolution.WithDocumentTextLoader(documentId, data.reloader, PreservationMode.PreserveValue);
+                    },
+                    data: (@this: this, documentId, reloader, updateActiveContext),
+                    onBeforeUpdate: static (oldSolution, newSolution, data) =>
+                    {
+                        var documentId = data.documentId;
 
-                    var (oldSolution, newSolution) = this.SetCurrentSolutionEx(
-                        this.CurrentSolution.WithDocumentTextLoader(documentId, reloader, PreservationMode.PreserveValue));
+                        // forget any open document info
+                        data.@this.ClearOpenDocument(documentId);
 
-                    var newDoc = newSolution.GetRequiredDocument(documentId);
-                    this.OnDocumentTextChanged(newDoc);
+                        data.@this.OnDocumentClosing(documentId);
+                    },
+                    onAfterUpdate: static (oldSolution, newSolution, data) =>
+                    {
+                        var documentId = data.documentId;
 
-                    this.RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.DocumentChanged, oldSolution, newSolution, documentId: documentId); // don't wait for this
+                        var newDoc = newSolution.GetRequiredDocument(documentId);
+                        data.@this.OnDocumentTextChanged(newDoc);
 
-                    // We fire and forget 2 events on source document closed.
-                    this.RaiseDocumentClosedEventAsync(newDoc);
-                    this.RaiseTextDocumentClosedEventAsync(newDoc);
-                }
+                        data.@this.RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.DocumentChanged, oldSolution, newSolution, documentId: documentId); // don't wait for this
+
+                        // We fire and forget 2 events on source document closed.
+                        data.@this.RaiseDocumentClosedEventAsync(newDoc);
+                        data.@this.RaiseTextDocumentClosedEventAsync(newDoc);
+                    });
             }
             catch (Exception e) when (FatalError.ReportAndPropagate(e, ErrorSeverity.General))
             {
