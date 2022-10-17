@@ -192,35 +192,22 @@ namespace Microsoft.CodeAnalysis
         /// <param name="projectId">The id of the project updated by <paramref name="transformation"/> to be passed to the workspace change event.</param>
         /// <param name="documentId">The id of the document updated by <paramref name="transformation"/> to be passed to the workspace change event.</param>
         /// <returns>True if <see cref="CurrentSolution"/> was set to the transformed solution, false if the transformation did not change the solution.</returns>
-        internal bool SetCurrentSolution(
-            Func<Solution, Solution> transformation,
-            WorkspaceChangeKind kind,
-            ProjectId? projectId = null,
-            DocumentId? documentId = null)
-        {
-            return SetCurrentSolution(
-                transformation,
-                onBeforeUpdate: null,
-                onAfterUpdate: null,
-                kind, projectId, documentId);
-        }
-
-        /// <inheritdoc cref="SetCurrentSolution(Func{Solution, Solution}, WorkspaceChangeKind, ProjectId?, DocumentId?)"/>
         private bool SetCurrentSolution(
             Func<Solution, Solution> transformation,
-            Action<Solution, Solution>? onBeforeUpdate,
-            Action<Solution, Solution>? onAfterUpdate,
             WorkspaceChangeKind kind,
             ProjectId? projectId = null,
-            DocumentId? documentId = null)
+            DocumentId? documentId = null,
+            Action<Solution, Solution>? onBeforeUpdate = null,
+            Action<Solution, Solution>? onAfterUpdate = null)
         {
             return SetCurrentSolution(
-                static (oldSolution, data) => data.transformation(oldSolution),
-                static (oldSolution, newSolution, data) =>
+                transformation: static (oldSolution, data) => data.transformation(oldSolution),
+                data: (@this: this, transformation, onBeforeUpdate, onAfterUpdate, kind, projectId, documentId),
+                onBeforeUpdate: static (oldSolution, newSolution, data) =>
                 {
                     data.onBeforeUpdate?.Invoke(oldSolution, newSolution);
                 },
-                static (oldSolution, newSolution, data) =>
+                onAfterUpdate: static (oldSolution, newSolution, data) =>
                 {
                     data.onAfterUpdate?.Invoke(oldSolution, newSolution);
 
@@ -228,8 +215,7 @@ namespace Microsoft.CodeAnalysis
                     // Doing so under the serialization lock guarantees the same ordering of the events
                     // as the order of the changes made to the solution.
                     data.@this.RaiseWorkspaceChangedEventAsync(data.kind, oldSolution, newSolution, data.projectId, data.documentId);
-                },
-                (@this: this, transformation, onBeforeUpdate, onAfterUpdate, kind, projectId, documentId));
+                });
         }
 
         /// <summary>
@@ -250,9 +236,9 @@ namespace Microsoft.CodeAnalysis
         /// accordingly.</param>
         private bool SetCurrentSolution<TData>(
             Func<Solution, TData, Solution> transformation,
-            Action<Solution, Solution, TData>? onBeforeUpdate,
-            Action<Solution, Solution, TData>? onAfterUpdate,
-            TData data)
+            TData data,
+            Action<Solution, Solution, TData>? onBeforeUpdate = null,
+            Action<Solution, Solution, TData>? onAfterUpdate = null)
         {
             Contract.ThrowIfNull(transformation);
 
@@ -756,7 +742,7 @@ namespace Microsoft.CodeAnalysis
         {
             this.SetCurrentSolution(
                 static (oldSolution, data) => oldSolution.AddDocuments(data.documentInfos),
-                onBeforeUpdate: null,
+                data: (@this: this, documentInfos),
                 onAfterUpdate: static (oldSolution, newSolution, data) =>
                 {
                     // Raise ProjectChanged as the event type here. DocumentAdded is presumed by many callers to have a
@@ -764,7 +750,7 @@ namespace Microsoft.CodeAnalysis
 
                     foreach (var projectId in data.documentInfos.Select(i => i.Id.ProjectId).Distinct())
                         data.@this.RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.ProjectChanged, oldSolution, newSolution, projectId);
-                }, (@this: this, documentInfos));
+                });
         }
 
         /// <summary>
@@ -817,9 +803,9 @@ namespace Microsoft.CodeAnalysis
                     CheckDocumentIsInSolution(oldSolution, documentId);
                     return oldSolution.WithDocumentTextLoader(documentId, loader, PreservationMode.PreserveValue);
                 },
-                onBeforeUpdate: null,
+                WorkspaceChangeKind.DocumentChanged,
                 onAfterUpdate: (_, newSolution) => this.OnDocumentTextChanged(newSolution.GetRequiredDocument(documentId)),
-                WorkspaceChangeKind.DocumentChanged, documentId: documentId);
+                documentId: documentId);
         }
 
         /// <summary>
@@ -1017,9 +1003,8 @@ namespace Microsoft.CodeAnalysis
                     CheckDocumentIsInSolution(oldSolution, documentId);
                     return oldSolution.WithDocumentSourceCodeKind(documentId, sourceCodeKind);
                 },
-                onBeforeUpdate: null,
-                onAfterUpdate: (_, newSolution) => this.OnDocumentTextChanged(newSolution.GetRequiredDocument(documentId)),
-                WorkspaceChangeKind.DocumentChanged, documentId: documentId);
+                WorkspaceChangeKind.DocumentChanged, documentId: documentId,
+                onAfterUpdate: (_, newSolution) => this.OnDocumentTextChanged(newSolution.GetRequiredDocument(documentId)));
         }
 
         /// <summary>
