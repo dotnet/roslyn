@@ -155,10 +155,7 @@ namespace Microsoft.CodeAnalysis
         /// should enforce that policy before passing in the new solution.
         /// </remarks>
         protected Solution SetCurrentSolution(Solution solution)
-        {
-            var (_, newSolution) = SetCurrentSolutionEx(solution);
-            return newSolution;
-        }
+            => SetCurrentSolutionEx(solution).newSolution;
 
         /// <summary>
         /// Sets the <see cref="CurrentSolution"/> of this workspace. This method does not raise a <see cref="WorkspaceChanged"/> event.
