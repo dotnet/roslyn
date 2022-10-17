@@ -154,7 +154,6 @@ namespace Microsoft.CodeAnalysis
         /// This method does not guarantee that linked files will have the same contents. Callers
         /// should enforce that policy before passing in the new solution.
         /// </remarks>
-        [Obsolete($"use {nameof(SetCurrentSolutionEx)} instead, and ensure {nameof(RaiseWorkspaceChangedEventAsync)} are raised for the solutions returned.")]
         protected Solution SetCurrentSolution(Solution solution)
         {
             var (_, newSolution) = SetCurrentSolutionEx(solution);
