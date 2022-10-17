@@ -307,7 +307,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 // update the current solution in place.
 
                 this.SetCurrentSolution(
-                    oldSolution => newSolution,
+                    (oldSolution, data) => newSolution,
                     data: /*unused*/0,
                     onBeforeUpdate: (oldSolution, newSolution, data) =>
                     {
@@ -321,7 +321,6 @@ namespace Microsoft.CodeAnalysis.Remote
                     },
                     onAfterUpdate: (oldSolution, newSolution, data) =>
                     {
-                        var addingSolution =
                         RaiseWorkspaceChangedEventAsync(
                             IsAddingSolution(oldSolution, newSolution) ? WorkspaceChangeKind.SolutionAdded : WorkspaceChangeKind.SolutionChanged,
                             oldSolution, newSolution);
