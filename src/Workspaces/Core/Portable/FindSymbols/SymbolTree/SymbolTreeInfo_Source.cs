@@ -202,14 +202,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         {
             if (symbol is INamespaceSymbol namespaceSymbol)
             {
-                // grab all children of the namespace (should only be namespaces or types only).
-                foreach (var child in namespaceSymbol.GetMembers())
-                {
-                    // Only assert here in case the language ever allows other types of symbols within a namespace.
-                    Debug.Assert(child is INamespaceOrTypeSymbol);
-                    if (child is INamespaceOrTypeSymbol childNamespaceOrType)
-                        symbolMap.Add(childNamespaceOrType.Name, childNamespaceOrType);
-                }
+                foreach (var childNamespaceOrType in namespaceSymbol.GetMembers())
+                    symbolMap.Add(childNamespaceOrType.Name, childNamespaceOrType);
             }
             else if (symbol is INamedTypeSymbol namedTypeSymbol)
             {
