@@ -139,7 +139,7 @@ namespace Microsoft.CodeAnalysis.DesignerAttribute
             Document? specificDocument,
             VersionStamp projectVersion,
             INamedTypeSymbol designerCategoryType,
-            CancellationToken cancellationToken)
+            [EnumeratorCancellation] CancellationToken cancellationToken)
         {
             // Kick off the work in parallel across the documents of interest.
             using var _1 = ArrayBuilder<Task<DesignerAttributeData?>>.GetInstance(out var tasks);
