@@ -1690,16 +1690,24 @@ namespace Microsoft.CodeAnalysis.CSharp
                 sourceComplexParam.BindParameterAttributes() is { IsDefaultOrEmpty: false } boundAttributes)
             {
                 // Mark attribute arguments as used.
-                foreach (var boundAttribute in boundAttributes)
+                VisitAttributes(boundAttributes);
+            }
+        }
+
+        /// <summary>
+        /// Marks attribute arguments as used.
+        /// </summary>
+        private void VisitAttributes(ImmutableArray<BoundAttribute> boundAttributes)
+        {
+            foreach (var boundAttribute in boundAttributes)
+            {
+                foreach (var attributeArgument in boundAttribute.ConstructorArguments)
                 {
-                    foreach (var attributeArgument in boundAttribute.ConstructorArguments)
-                    {
-                        VisitRvalue(attributeArgument);
-                    }
-                    foreach (var attributeNamedArgumentAssignment in boundAttribute.NamedArguments)
-                    {
-                        VisitRvalue(attributeNamedArgumentAssignment.Right);
-                    }
+                    VisitRvalue(attributeArgument);
+                }
+                foreach (var attributeNamedArgumentAssignment in boundAttribute.NamedArguments)
+                {
+                    VisitRvalue(attributeNamedArgumentAssignment.Right);
                 }
             }
         }
@@ -1900,8 +1908,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // First phase
                 foreach (var stmt in block.Statements)
                 {
-                    if (stmt.Kind == BoundKind.LocalFunctionStatement)
+                    if (stmt is BoundLocalFunctionStatement localFunctionStatement)
                     {
+                        // Mark attribute arguments as used.
+                        if (localFunctionStatement.Symbol.BindMethodAttributes() is { IsDefaultOrEmpty: false } boundAttributes)
+                        {
+                            VisitAttributes(boundAttributes);
+                        }
+
                         VisitAlways(stmt);
                     }
                 }
@@ -2125,6 +2139,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var oldSymbol = this.CurrentSymbol;
             this.CurrentSymbol = node.Symbol;
+
+            // Mark attribute arguments as used.
+            if (node.Symbol.BindMethodAttributes() is { IsDefaultOrEmpty: false } boundAttributes)
+            {
+                VisitAttributes(boundAttributes);
+            }
 
             var oldPending = SavePending(); // we do not support branches into a lambda
 

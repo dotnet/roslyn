@@ -362,6 +362,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             return base.EarlyDecodeWellKnownAttribute(ref arguments);
         }
+
+        /// <summary>
+        /// Binds attributes applied to this method.
+        /// </summary>
+        public ImmutableArray<BoundAttribute> BindMethodAttributes()
+        {
+            Debug.Assert(OuterBinder is not null);
+            return BindAttributes(GetAttributeDeclarations(), OuterBinder);
+        }
 #nullable disable
 
         public override bool AreLocalsZeroed
