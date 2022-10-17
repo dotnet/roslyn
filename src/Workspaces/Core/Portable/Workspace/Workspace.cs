@@ -200,6 +200,7 @@ namespace Microsoft.CodeAnalysis
         {
             return SetCurrentSolution(
                 transformation,
+                onBeforeUpdate: static (_, _) => { },
                 onAfterUpdate: static (_, _) => { },
                 kind, projectId, documentId);
         }
@@ -207,6 +208,7 @@ namespace Microsoft.CodeAnalysis
         /// <inheritdoc cref="SetCurrentSolution(Func{Solution, Solution}, WorkspaceChangeKind, ProjectId?, DocumentId?)"/>
         private bool SetCurrentSolution(
             Func<Solution, Solution> transformation,
+            Action<Solution, Solution> onBeforeUpdate,
             Action<Solution, Solution> onAfterUpdate,
             WorkspaceChangeKind kind,
             ProjectId? projectId = null,
@@ -216,6 +218,10 @@ namespace Microsoft.CodeAnalysis
                 static (oldSolution, data) => data.transformation(oldSolution),
                 static (oldSolution, newSolution, data) =>
                 {
+                    data.onBeforeUpdate(oldSolution, newSolution);
+                },
+                static (oldSolution, newSolution, data) =>
+                {
                     data.onAfterUpdate(oldSolution, newSolution);
 
                     // Queue the event but don't execute its handlers on this thread.
@@ -223,22 +229,28 @@ namespace Microsoft.CodeAnalysis
                     // as the order of the changes made to the solution.
                     data.@this.RaiseWorkspaceChangedEventAsync(data.kind, oldSolution, newSolution, data.projectId, data.documentId);
                 },
-                (@this: this, transformation, onAfterUpdate, kind, projectId, documentId));
+                (@this: this, transformation, onBeforeUpdate, onAfterUpdate, kind, projectId, documentId));
         }
 
         /// <summary>
         /// Applies specified transformation to <see cref="CurrentSolution"/>, updates <see cref="CurrentSolution"/> to
-        /// the new value and performs a requested callback immediately after that update.
+        /// the new value and performs a requested callback immediately before and after that update.  The callbacks
+        /// will be invoked atomically while while <see cref="_serializationLock"/> is being held.
         /// </summary>
         /// <param name="transformation">Solution transformation.</param>
+        /// <param name="onBeforeUpdate">Action to perform immediately prior to updating <see cref="CurrentSolution"/>.
+        /// The action will be passed the old <see cref="CurrentSolution"/> that will be replaced and the exact solution
+        /// it will be replaced with. The latter may be different than the solution returned by <paramref
+        /// name="transformation"/> as it will have its <see cref="Solution.WorkspaceVersion"/> updated
+        /// accordingly.</param>
         /// <param name="onAfterUpdate">Action to perform once <see cref="CurrentSolution"/> has been updated.  The
         /// action will be passed the old <see cref="CurrentSolution"/> that was just replaced and the exact solution it
         /// was replaced with. The latter may be different than the solution returned by <paramref
-        /// name="transformation"/> as it will have its <see cref="Solution.WorkspaceVersion"/> updated accordingly.
-        /// Updating the solution and invoking <paramref name="onAfterUpdate"/> will happen atomically while <see
-        /// cref="_serializationLock"/> is being held.</param>
+        /// name="transformation"/> as it will have its <see cref="Solution.WorkspaceVersion"/> updated
+        /// accordingly.</param>
         private bool SetCurrentSolution<TData>(
             Func<Solution, TData, Solution> transformation,
+            Action<Solution, Solution, TData> onBeforeUpdate,
             Action<Solution, Solution, TData> onAfterUpdate,
             TData data)
         {
@@ -266,6 +278,10 @@ namespace Microsoft.CodeAnalysis
                     }
 
                     newSolution = newSolution.WithNewWorkspace(this, oldSolution.WorkspaceVersion + 1);
+
+                    // Prior to updating the latest solution, let the caller do any other state updates they want.
+                    onBeforeUpdate(oldSolution, newSolution, data);
+
                     _latestSolution = newSolution;
 
                     // Once we've updated _latesSolution, perform any requested callbacks.
