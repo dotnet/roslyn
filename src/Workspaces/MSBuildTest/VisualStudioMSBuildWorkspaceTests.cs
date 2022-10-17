@@ -254,7 +254,7 @@ namespace Microsoft.CodeAnalysis.MSBuild.UnitTests
         {
             var files = language == LanguageNames.CSharp ?
                 GetSimpleCSharpSolutionFiles().WithFile(@"CSharpProject\CSharpProject.csproj", Resources.ProjectFiles.CSharp.WithChecksumAlgorithm) :
-                GetSimpleVisualBasicSolutionFiles().WithFile(@"VisualBasicProject\VisualBasicProject.csproj", Resources.ProjectFiles.VisualBasic.WithChecksumAlgorithm);
+                GetSimpleVisualBasicSolutionFiles().WithFile(@"VisualBasicProject\VisualBasicProject.vbproj", Resources.ProjectFiles.VisualBasic.WithChecksumAlgorithm);
 
             CreateFiles(files);
             var solutionFilePath = GetSolutionFileName("TestSolution.sln");
