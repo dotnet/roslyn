@@ -1069,23 +1069,17 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         protected internal void OnAnalyzerConfigDocumentRemoved(DocumentId documentId)
         {
-            // This currently doesn't use the SetCurrentSolution(transform) pattern as it changes mutable state (open
-            // docs), and as such needs to atomically change both that and the solution-snapshot.
+            this.SetCurrentSolution(
+                oldSolution => oldSolution.RemoveAnalyzerConfigDocument(documentId),
+                WorkspaceChangeKind.AnalyzerConfigDocumentRemoved, documentId: documentId,
+                onBeforeUpdate: (oldSolution, _) =>
+                {
+                    CheckAnalyzerConfigDocumentIsInSolution(oldSolution, documentId);
 
-            using (_serializationLock.DisposableWait())
-            {
-                CheckAnalyzerConfigDocumentIsInCurrentSolution(documentId);
-
-                this.CheckDocumentCanBeRemoved(documentId);
-
-                // Clear out mutable state not associated with teh solution snapshot (for example, which documents are
-                // currently open).
-                this.ClearDocumentData(documentId);
-
-                var (oldSolution, newSolution) = this.SetCurrentSolutionEx(this.CurrentSolution.RemoveAnalyzerConfigDocument(documentId));
-
-                this.RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.AnalyzerConfigDocumentRemoved, oldSolution, newSolution, documentId: documentId);
-            }
+                    // Clear out mutable state not associated with teh solution snapshot (for example, which documents are
+                    // currently open).
+                    this.ClearDocumentData(documentId);
+                });
         }
 
         /// <summary>
