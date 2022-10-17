@@ -269,7 +269,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         #region Construction
 
         private static SpellChecker CreateSpellChecker(Checksum checksum, ImmutableArray<Node> sortedNodes)
-            => new(checksum, sortedNodes.Select(n => n.Name.AsMemory()));
+            => new(checksum, sortedNodes.Select(n => n.Name));
 
         private static ImmutableArray<Node> SortNodes(ImmutableArray<BuilderNode> unsortedNodes)
         {
