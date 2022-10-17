@@ -537,21 +537,18 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         protected internal virtual void OnProjectRemoved(ProjectId projectId)
         {
-            // This currently doesn't use the SetCurrentSolution(transform) pattern as it changes mutable state (open
-            // docs), and as such needs to atomically change both that and the solution-snapshot.
+            this.SetCurrentSolution(
+                oldSolution => oldSolution.RemoveProject(projectId),
+                WorkspaceChangeKind.ProjectRemoved, projectId,
+                onBeforeUpdate: (oldSolution, _) =>
+                {
+                    CheckProjectIsInSolution(oldSolution, projectId);
+                    this.CheckProjectCanBeRemoved(projectId);
 
-            using (_serializationLock.DisposableWait())
-            {
-                CheckProjectIsInCurrentSolution(projectId);
-                this.CheckProjectCanBeRemoved(projectId);
-
-                // Clear out mutable state not associated with teh solution snapshot (for example, which documents are
-                // currently open).
-                this.ClearProjectData(projectId);
-                var (oldSolution, newSolution) = this.SetCurrentSolutionEx(this.CurrentSolution.RemoveProject(projectId));
-
-                this.RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.ProjectRemoved, oldSolution, newSolution, projectId);
-            }
+                    // Clear out mutable state not associated with teh solution snapshot (for example, which documents are
+                    // currently open).
+                    this.ClearProjectData(projectId);
+                });
         }
 
         /// <summary>
