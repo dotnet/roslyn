@@ -12536,11 +12536,46 @@ class Program
         }
 
         [Fact]
-        public void DelegateConversions_ImplicitlyTypedParameter_ParameterlessAnonymousMethod()
+        public void DelegateConversions_ImplicitlyTypedParameter_ParameterlessAnonymousMethod_Ref()
+        {
+            var source = """
+                delegate void D1(scoped R r1, scoped ref R r2);
+
+                public ref struct R
+                {
+                    public ref int field;
+                }
+
+                class C
+                {
+                    void M()
+                    {
+                        D1 d1 = delegate { };
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+            comp.VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+            var anonymousMethod = tree.GetRoot().DescendantNodes().OfType<AnonymousMethodExpressionSyntax>().Single();
+
+            Assert.Equal("delegate { }", anonymousMethod.ToString());
+            var method = model.GetSymbolInfo(anonymousMethod).Symbol;
+            Assert.Equal("lambda expression", method.ToTestDisplayString());
+            var parameters = method.GetParameters();
+            Assert.Equal("scoped R <p0>", parameters[0].ToTestDisplayString());
+            Assert.Equal("scoped ref R <p1>", parameters[1].ToTestDisplayString());
+        }
+
+        [Fact]
+        public void DelegateConversions_ImplicitlyTypedParameter_ParameterlessAnonymousMethod_Out()
         {
             var source = """
                 using System.Diagnostics.CodeAnalysis;
-                delegate void D1(scoped R r1, scoped ref R r2, [UnscopedRef] out R r3);
+                delegate void D1([UnscopedRef] out R r3);
 
                 public ref struct R
                 {
