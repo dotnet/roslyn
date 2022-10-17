@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
         protected override IRequestExecutionQueue<RequestContext> ConstructRequestExecutionQueue()
         {
             var handlerProvider = GetHandlerProvider();
-            var queue = new RoslynRequestExecutionQueue(_logger, handlerProvider);
+            var queue = new RoslynRequestExecutionQueue(this, _logger, handlerProvider);
 
             queue.Start();
             return queue;
@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
         {
             var baseServices = new Dictionary<Type, ImmutableArray<Func<ILspServices, object>>>();
             var clientLanguageServerManager = new ClientLanguageServerManager(jsonRpc);
-            var lifeCycleManager = new LspServiceLifeCycleManager(this, logger, clientLanguageServerManager);
+            var lifeCycleManager = new LspServiceLifeCycleManager(clientLanguageServerManager);
 
             AddBaseService<IClientLanguageServerManager>(clientLanguageServerManager);
             AddBaseService<ILspLogger>(logger);
@@ -78,7 +78,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             AddBaseService<IClientCapabilitiesManager>(new ClientCapabilitiesManager());
             AddBaseService<IMethodHandler>(new InitializeHandler());
             AddBaseService<IMethodHandler>(new InitializedHandler());
-            AddBaseService<IMethodHandler>(new ShutdownHandler());
 
             return baseServices.ToImmutableDictionary();
 
