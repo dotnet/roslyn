@@ -85,6 +85,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
                 }
                 else if (Workspace.CurrentSolution.GetProject(projectId) is Project project)
                 {
+                    if (project.GetLanguageService<CompletionService>() is CompletionService completionService)
+                        completionService.TriggerLoadProjectProviders(project);
+
                     await InitializeServiceForProjectWithOpenedDocumentAsync(project).ConfigureAwait(false);
                 }
             }
