@@ -353,7 +353,11 @@ namespace Microsoft.CodeAnalysis
             this.SetCurrentSolution(
                 oldSolution => this.CreateSolution(oldSolution.Id),
                 WorkspaceChangeKind.SolutionCleared,
-                onBeforeUpdate: (_, _) => this.ClearSolutionData());
+                onBeforeUpdate: (_, _) =>
+                {
+                    this.ClearOpenDocuments();
+                    this.ClearSolutionData();
+                });
         }
 
         /// <summary>
@@ -361,13 +365,9 @@ namespace Microsoft.CodeAnalysis
         /// <para>
         /// Override this method if you want to do additional work when a solution is cleared. Call the base method at
         /// the end of your method.</para>
-        /// <para>
-        /// This method is called while a lock is held.  Be very careful when overriding as innapropriate work can cause deadlocks.
-        /// </para>
         /// </summary>
         protected virtual void ClearSolutionData()
         {
-            this.ClearOpenDocuments();
         }
 
         /// <summary>
@@ -404,8 +404,7 @@ namespace Microsoft.CodeAnalysis
         {
             if (!finalize)
             {
-                this.ClearSolutionData();
-
+                this.ClearSolution();
                 this.Services.GetService<IWorkspaceEventListenerService>()?.Stop();
             }
 
