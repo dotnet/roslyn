@@ -44,7 +44,9 @@ namespace Microsoft.CodeAnalysis
         // this lock guards all the mutable fields (do not share lock with derived classes)
         private readonly NonReentrantLock _stateLock = new(useThisInstanceForSynchronization: true);
 
-        // Current solution.
+        /// <summary>
+        /// Current solution.  Must be locked with <see cref="_serializationLock"/> when writing to it.
+        /// </summary>
         private Solution _latestSolution;
 
         private readonly TaskQueue _taskQueue;
@@ -180,16 +182,11 @@ namespace Microsoft.CodeAnalysis
                 return (solution, solution);
             }
 
-            while (true)
+            using (_serializationLock.DisposableWait())
             {
-                var newSolution = solution.WithNewWorkspace(this, currentSolution.WorkspaceVersion + 1);
-                var oldSolution = Interlocked.CompareExchange(ref _latestSolution, newSolution, currentSolution);
-                if (oldSolution == currentSolution)
-                {
-                    return (oldSolution, newSolution);
-                }
-
-                currentSolution = oldSolution;
+                var oldSolution = this.CurrentSolution;
+                _latestSolution = solution.WithNewWorkspace(this, oldSolution.WorkspaceVersion + 1);
+                return (oldSolution, _latestSolution);
             }
         }
 
