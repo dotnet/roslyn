@@ -131,7 +131,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
             // Intentionally do not call GetSolutionAsync here.  We do not want the cost of
             // synchronizing the solution over to the remote side.  Instead, we just directly
-            // check whatever cached data we have from the previous vs session.
+            // check whatever cached data we have from the previous VS session.
             var storageService = GetWorkspaceServices().GetPersistentStorageService();
             return AbstractNavigateToSearchService.SearchCachedDocumentsInCurrentProcessAsync(
                 storageService, documentKeys, priorityDocumentKeys, searchPattern, kinds.ToImmutableHashSet(), cancellationToken);
