@@ -214,13 +214,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             return results.ToImmutableAndClear();
         }
 
-        private static StringSliceComparer GetComparer(bool ignoreCase)
-        {
-            return ignoreCase
-                ? StringSliceComparer.OrdinalIgnoreCase
-                : StringSliceComparer.Ordinal;
-        }
-
         private static (int startIndexInclusive, int endIndexExclusive) FindCaseInsensitiveNodeIndices(
             ImmutableArray<Node> nodes, string name)
         {
@@ -375,7 +368,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 return diff != 0
                     ? diff
                     : StringComparer.Ordinal.Compare(s1, s2);
-            };
+            }
         }
 
         #endregion
