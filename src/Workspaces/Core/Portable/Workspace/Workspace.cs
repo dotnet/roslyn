@@ -995,14 +995,16 @@ namespace Microsoft.CodeAnalysis
         protected internal void OnAdditionalDocumentRemoved(DocumentId documentId)
         {
             this.SetCurrentSolution(
-                oldSolution => oldSolution.RemoveAdditionalDocument(documentId),
+                oldSolution =>
+                {
+                    CheckAdditionalDocumentIsInSolution(oldSolution, documentId);
+                    this.CheckDocumentCanBeRemoved(documentId);
+
+                    return oldSolution.RemoveAdditionalDocument(documentId);
+                },
                 WorkspaceChangeKind.AdditionalDocumentRemoved, documentId: documentId,
                 onBeforeUpdate: (oldSolution, _) =>
                 {
-                    CheckAdditionalDocumentIsInSolution(oldSolution, documentId);
-
-                    this.CheckDocumentCanBeRemoved(documentId);
-
                     // Clear out mutable state not associated with teh solution snapshot (for example, which documents are
                     // currently open).
                     this.ClearDocumentData(documentId);
