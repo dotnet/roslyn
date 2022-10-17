@@ -361,6 +361,7 @@ namespace Microsoft.CodeAnalysis
         /// <para>
         /// Override this method if you want to do additional work when a solution is cleared. Call the base method at
         /// the end of your method.</para>
+        /// <para>
         /// This method is called while a lock is held.  Be very careful when overriding as innapropriate work can cause deadlocks.
         /// </para>
         /// </summary>
