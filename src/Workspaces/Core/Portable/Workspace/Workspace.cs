@@ -351,12 +351,10 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         protected void ClearSolution()
         {
-            using (_serializationLock.DisposableWait())
-            {
-                var (oldSolution, newSolution) = this.ClearSolutionData_NoLock();
-
-                this.RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.SolutionCleared, oldSolution, newSolution);
-            }
+            this.SetCurrentSolution(
+                oldSolution => this.CreateSolution(oldSolution.Id),
+                WorkspaceChangeKind.SolutionCleared,
+                onBeforeUpdate: (_, _) => this.ClearOpenDocuments());
         }
 
         /// <summary>
