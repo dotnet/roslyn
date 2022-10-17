@@ -314,7 +314,9 @@ namespace Microsoft.CodeAnalysis
             {
                 var (oldSolution, newSolution) = SetCurrentSolutionEx(CurrentSolution.WithOptions(new SolutionOptionSet(_legacyOptions)));
 
-                RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.SolutionChanged, oldSolution, newSolution);
+                // Once we can actually make the change under a lock safely, we should ensure the below event gets issued.
+                //
+                // RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.SolutionChanged, oldSolution, newSolution);
             }
         }
 
