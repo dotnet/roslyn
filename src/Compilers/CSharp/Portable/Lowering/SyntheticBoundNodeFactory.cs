@@ -466,7 +466,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundBlock Block(ImmutableArray<LocalSymbol> locals, ImmutableArray<LocalFunctionSymbol> localFunctions, ImmutableArray<BoundStatement> statements)
         {
-            return new BoundBlock(Syntax, locals, localFunctions, statements) { WasCompilerGenerated = true };
+            return new BoundBlock(Syntax, locals, localFunctions, localScopeDepth: 0, statements) { WasCompilerGenerated = true };
         }
 
         public BoundExtractedFinallyBlock ExtractedFinallyBlock(BoundBlock finallyBlock)

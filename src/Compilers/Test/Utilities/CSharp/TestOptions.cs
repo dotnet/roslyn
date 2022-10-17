@@ -127,6 +127,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             return options.WithFeature("noRefSafetyRulesAttribute");
         }
 
+        // PROTOTYPE: Remove feature.
+        public static CSharpParseOptions WithUseRefSafetyVisitor(this CSharpParseOptions options, bool useRefSafetyRulesVisitor = true)
+        {
+            return options.WithFeature("UseRefSafetyVisitor", useRefSafetyRulesVisitor ? "true" : "false");
+        }
+
         public static CSharpParseOptions WithFeature(this CSharpParseOptions options, string feature, string value = "true")
         {
             return options.WithFeatures(options.Features.Concat(new[] { new KeyValuePair<string, string>(feature, value) }));

@@ -142,6 +142,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 if (!_scopeBinder.UseUpdatedEscapeRules ||
                     _scope == DeclarationScope.Unscoped)
                 {
+                    if (_valEscapeScope == Binder.InferredScope)
+                    {
+                        throw ExceptionUtilities.UnexpectedValue(_valEscapeScope);
+                    }
                     return _valEscapeScope;
                 }
                 return _scope == DeclarationScope.ValueScoped ?
@@ -149,6 +153,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     Binder.CallingMethodScope;
             }
         }
+
+        internal bool ShouldInferValEscapeScope => _valEscapeScope == Binder.InferredScope;
 
         internal sealed override DeclarationScope Scope => _scope;
 
@@ -319,6 +325,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // or not contradicting what was set before.
             Debug.Assert(
                 _valEscapeScope == Binder.CallingMethodScope
+                || _valEscapeScope == Binder.InferredScope
                 || _valEscapeScope == value);
             _valEscapeScope = value;
         }
@@ -725,7 +732,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// Symbol for a deconstruction local that might require type inference.
         /// For instance, local <c>x</c> in <c>var (x, y) = ...</c> or <c>(var x, int y) = ...</c>.
         /// </summary>
-        private class DeconstructionLocalSymbol : SourceLocalSymbol
+        private sealed class DeconstructionLocalSymbol : SourceLocalSymbol
         {
             private readonly SyntaxNode _deconstruction;
             private readonly Binder _nodeBinder;
@@ -788,7 +795,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        private class LocalSymbolWithEnclosingContext : SourceLocalSymbol
+        private sealed class LocalSymbolWithEnclosingContext : SourceLocalSymbol
         {
             private readonly SyntaxNode _forbiddenZone;
             private readonly Binder _nodeBinder;

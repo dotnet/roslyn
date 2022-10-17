@@ -977,6 +977,7 @@
   <Node Name="BoundBlock" Base="BoundStatementList">
     <Field Name="Locals" Type="ImmutableArray&lt;LocalSymbol&gt;"/>
     <Field Name="LocalFunctions" Type="ImmutableArray&lt;LocalFunctionSymbol&gt;"/>
+    <Field Name="LocalScopeDepth" Type="uint"/>
   </Node>
 
   <!--
@@ -1158,6 +1159,7 @@
   </AbstractNode>
 
   <AbstractNode Name="BoundConditionalLoopStatement" Base="BoundLoopStatement">
+    <!-- PROTOTYPE: Review types that have ImmutableArray<LocalSymbol> fields but no LocalScopeDepth field. All of these should be broken. -->
     <Field Name="Locals" Type="ImmutableArray&lt;LocalSymbol&gt;"/>
     <Field Name="Condition" Type="BoundExpression"/>
     <Field Name="Body" Type="BoundStatement"/>
@@ -1180,6 +1182,7 @@
     <Field Name="Condition" Type="BoundExpression?"/>
     <Field Name="Increment" Type="BoundStatement?"/>
     <Field Name="Body" Type="BoundStatement"/>
+    <Field Name="LocalScopeDepth" Type="uint"/>
   </Node>
 
   <Node Name="BoundForEachStatement" Base="BoundLoopStatement">
@@ -1224,12 +1227,14 @@
     <Field Name="Body" Type="BoundStatement"/>
     <Field Name="AwaitOpt" Type="BoundAwaitableInfo?"/>
     <Field Name="PatternDisposeInfoOpt" Type="MethodArgumentInfo?"/>
+    <Field Name="LocalScopeDepth" Type="uint"/>
   </Node>
 
   <Node Name="BoundFixedStatement" Base="BoundStatement">
     <Field Name="Locals" Type="ImmutableArray&lt;LocalSymbol&gt;"/>
     <Field Name="Declarations" Type="BoundMultipleLocalDeclarations"/>
     <Field Name="Body" Type="BoundStatement"/>
+    <Field Name="LocalScopeDepth" Type="uint"/>
   </Node>
 
   <Node Name="BoundLockStatement" Base="BoundStatement">

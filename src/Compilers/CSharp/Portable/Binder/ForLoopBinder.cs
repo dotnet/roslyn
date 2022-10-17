@@ -125,6 +125,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                          condition,
                                          increment,
                                          body,
+                                         LocalScopeDepth,
                                          this.BreakLabel,
                                          this.ContinueLabel);
         }

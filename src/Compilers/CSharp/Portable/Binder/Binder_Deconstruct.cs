@@ -123,7 +123,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if ((object?)boundRHS.Type == null || boundRHS.Type.IsErrorType())
             {
                 // we could still not infer a type for the RHS
-                FailRemainingInferencesAndSetValEscape(checkedVariables, diagnostics, rightEscape);
+                FailRemainingInferencesAndSetValEscape(checkedVariables, diagnostics);
                 var voidType = GetSpecialType(SpecialType.System_Void, diagnostics, node);
 
                 var type = boundRHS.Type ?? voidType;
@@ -154,7 +154,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 CheckImplicitThisCopyInReadOnlyMember(boundRHS, conversion.Method, diagnostics);
             }
 
-            FailRemainingInferencesAndSetValEscape(checkedVariables, diagnostics, rightEscape);
+            FailRemainingInferencesAndSetValEscape(checkedVariables, diagnostics);
 
             var lhsTuple = DeconstructionVariablesAsTuple(left, checkedVariables, diagnostics, ignoreDiagnosticsFromTuple: diagnostics.HasAnyErrors() || !resultIsUsed);
             Debug.Assert(hasErrors || lhsTuple.Type is object);
@@ -391,8 +391,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Find any deconstruction locals that are still pending inference and fail their inference.
         /// Set the safe-to-escape scope for all deconstruction locals.
         /// </summary>
-        private void FailRemainingInferencesAndSetValEscape(ArrayBuilder<DeconstructionVariable> variables, BindingDiagnosticBag diagnostics,
-            uint rhsValEscape)
+        private void FailRemainingInferencesAndSetValEscape(ArrayBuilder<DeconstructionVariable> variables, BindingDiagnosticBag diagnostics)
         {
             int count = variables.Count;
             for (int i = 0; i < count; i++)
@@ -400,7 +399,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var variable = variables[i];
                 if (variable.NestedVariables is object)
                 {
-                    FailRemainingInferencesAndSetValEscape(variable.NestedVariables, diagnostics, rhsValEscape);
+                    FailRemainingInferencesAndSetValEscape(variable.NestedVariables, diagnostics);
                 }
                 else
                 {
@@ -410,9 +409,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                         case BoundKind.Local:
                             var local = (BoundLocal)variable.Single;
                             if (local.DeclarationKind != BoundLocalDeclarationKind.None &&
-                                local.LocalSymbol is SourceLocalSymbol { ValEscapeScope: CallingMethodScope } localSymbol)
+                                local.LocalSymbol is SourceLocalSymbol localSymbol &&
+                                (localSymbol.ShouldInferValEscapeScope || localSymbol.ValEscapeScope == CallingMethodScope)) // PROTOTYPE: What are the cases where ValEscapeScope == CallingMethodScope?
                             {
-                                localSymbol.SetValEscape(rhsValEscape);
+                                localSymbol.SetValEscape(Binder.InferredScope);
                             }
                             break;
                         case BoundKind.DeconstructionVariablePendingInference:
@@ -648,7 +648,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 for (int i = 0; i < numCheckedVariables; i++)
                 {
                     var variableOpt = variablesOpt?[i].Single;
-                    uint valEscape = variableOpt is null ? LocalScopeDepth : GetValEscape(variableOpt, LocalScopeDepth);
+                    uint valEscape = variableOpt switch
+                    {
+                        null => LocalScopeDepth,
+                        BoundLocal { LocalSymbol: SourceLocalSymbol { ShouldInferValEscapeScope: true } } => Binder.InferredScope,
+                        _ => GetValEscape(variableOpt, LocalScopeDepth),
+                    };
                     var variableSymbol = variableOpt switch
                     {
                         DeconstructionVariablePendingInference { VariableSymbol: var symbol } => symbol,

@@ -176,17 +176,25 @@ using System;
 using System.Collections;
 class C
 {
-    IEnumerable Gen()
+    IEnumerable F1()
     {
-        Span<int> s = stackalloc int[10];
-        yield return s;
+        Span<int> s1 = stackalloc int[10];
+        yield return s1;
+    }
+    IEnumerable F2()
+    {
+        Span<int> s2 = default;
+        yield return s2;
     }
 }", parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
             // Note: an escape analysis error is not given here because we already gave a conversion error.
             comp.VerifyDiagnostics(
                 // (9,22): error CS0029: Cannot implicitly convert type 'System.Span<int>' to 'object'
-                //         yield return s;
-                Diagnostic(ErrorCode.ERR_NoImplicitConv, "s").WithArguments("System.Span<int>", "object").WithLocation(9, 22));
+                //         yield return s1;
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "s1").WithArguments("System.Span<int>", "object").WithLocation(9, 22),
+                // (14,22): error CS0029: Cannot implicitly convert type 'System.Span<int>' to 'object'
+                //         yield return s2;
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "s2").WithArguments("System.Span<int>", "object").WithLocation(14, 22));
         }
 
         [Theory]

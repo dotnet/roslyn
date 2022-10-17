@@ -173,6 +173,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     boundBody,
                     awaitOpt,
                     patternDisposeInfo,
+                    usingBinderOpt.LocalScopeDepth,
                     hasErrors);
             }
 

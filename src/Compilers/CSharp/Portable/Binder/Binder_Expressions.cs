@@ -4175,19 +4175,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     var arguments = analyzedArguments.Arguments.ToImmutable();
                     var refKinds = analyzedArguments.RefKinds.ToImmutableOrNull();
-                    if (!hasErrors)
-                    {
-                        hasErrors = !CheckInvocationArgMixing(
-                            nonNullSyntax,
-                            resultMember,
-                            receiver,
-                            resultMember.Parameters,
-                            arguments,
-                            refKinds,
-                            argsToParamsOpt,
-                            this.LocalScopeDepth,
-                            diagnostics);
-                    }
 
                     if (resultMember.HasSetsRequiredMembers && !constructor.HasSetsRequiredMembers)
                     {
@@ -4758,10 +4745,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         diagnostics: diagnostics);
 
                     // Bind member initializer assignment expression
-                    // We don't verify escape safety of initializers against the instance because the initializers
-                    // get factored in when determining the safe-to-escape of the instance (the initializers contribute
-                    // like constructor arguments).
-                    return BindAssignment(initializer, boundLeft, boundRight, isRef, verifyEscapeSafety: false, diagnostics);
+                    return BindAssignment(initializer, boundLeft, boundRight, isRef, diagnostics);
                 }
             }
 
@@ -5591,20 +5575,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 var arguments = analyzedArguments.Arguments.ToImmutable();
                 var refKinds = analyzedArguments.RefKinds.ToImmutableOrNull();
-
-                if (!hasError)
-                {
-                    hasError = !CheckInvocationArgMixing(
-                        node,
-                        method,
-                        null,
-                        method.Parameters,
-                        arguments,
-                        refKinds,
-                        argToParams,
-                        this.LocalScopeDepth,
-                        diagnostics);
-                }
 
                 boundInitializerOpt = makeBoundInitializerOpt();
                 var creation = new BoundObjectCreationExpression(
@@ -8297,20 +8267,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 var arguments = analyzedArguments.Arguments.ToImmutable();
-
-                if (!gotError)
-                {
-                    gotError = !CheckInvocationArgMixing(
-                        syntax,
-                        property,
-                        receiver,
-                        property.Parameters,
-                        arguments,
-                        argumentRefKinds,
-                        argsToParams,
-                        this.LocalScopeDepth,
-                        diagnostics);
-                }
 
                 // Note that we do not bind default arguments here, because at this point we do not know whether
                 // the indexer is being used in a 'get', or 'set', or 'get+set' (compound assignment) context.

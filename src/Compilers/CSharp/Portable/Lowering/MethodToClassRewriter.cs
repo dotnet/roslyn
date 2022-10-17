@@ -150,7 +150,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var newLocals = RewriteLocals(node.Locals);
             var newLocalFunctions = node.LocalFunctions;
             var newStatements = VisitList(node.Statements);
-            return node.Update(newLocals, newLocalFunctions, newStatements);
+            return node.Update(newLocals, newLocalFunctions, node.LocalScopeDepth, newStatements);
         }
 
         public abstract override BoundNode VisitScope(BoundScope node);
@@ -172,7 +172,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var condition = (BoundExpression?)this.Visit(node.Condition);
             var increment = (BoundStatement?)this.Visit(node.Increment);
             var body = (BoundStatement)this.Visit(node.Body);
-            return node.Update(newOuterLocals, initializer, newInnerLocals, condition, increment, body, node.BreakLabel, node.ContinueLabel);
+            return node.Update(newOuterLocals, initializer, newInnerLocals, condition, increment, body, node.LocalScopeDepth, node.BreakLabel, node.ContinueLabel);
         }
 
         public override BoundNode VisitDoStatement(BoundDoStatement node)
@@ -197,7 +197,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var declarations = (BoundMultipleLocalDeclarations?)this.Visit(node.DeclarationsOpt);
             var expression = (BoundExpression?)this.Visit(node.ExpressionOpt);
             var body = (BoundStatement)this.Visit(node.Body);
-            return node.Update(newLocals, declarations, expression, body, node.AwaitOpt, node.PatternDisposeInfoOpt);
+            return node.Update(newLocals, declarations, expression, body, node.AwaitOpt, node.PatternDisposeInfoOpt, node.LocalScopeDepth);
         }
 
         [return: NotNullIfNotNull("type")]

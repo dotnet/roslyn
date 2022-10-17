@@ -1082,7 +1082,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             {
                                 insertAt = 1;
                             }
-                            body = body.Update(body.Locals, body.LocalFunctions, body.Statements.Insert(insertAt, analyzedInitializers));
+                            body = body.Update(body.Locals, body.LocalFunctions, body.LocalScopeDepth, body.Statements.Insert(insertAt, analyzedInitializers));
                             includeNonEmptyInitializersInBody = false;
                             analyzedInitializers = null;
                         }
@@ -1827,6 +1827,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                     }
                     forSemanticModel = new MethodBodySemanticModel.InitialState(syntaxNode, methodBodyForSemanticModel, bodyBinder, snapshotManager, remappedSymbols);
+
+                    RefSafetyAnalysis.Analyze(compilation, method, methodBody, diagnostics);
 
                     switch (methodBody.Kind)
                     {
