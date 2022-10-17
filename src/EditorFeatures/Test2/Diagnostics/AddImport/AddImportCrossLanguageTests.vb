@@ -303,6 +303,60 @@ namespace CSAssembly2
         End Function
 
         <WpfFact>
+        Public Async Function AddProjectReference_CSharpToCSharp_ExtensionMethod() As Task
+            Dim input =
+                <Workspace>
+                    <Project Language='C#' AssemblyName='CSAssembly1' CommonReferences='true'>
+                        <Document FilePath='Test1.cs'>
+using System.Collections.Generic;
+namespace CSAssembly1
+{
+    public static class Class1
+    {
+        public static void Goo(this int x) { }
+    }
+}
+                        </Document>
+                    </Project>
+                    <Project Language='C#' AssemblyName='CSAssembly2' CommonReferences='true'>
+                        <CompilationOptions></CompilationOptions>
+                        <Document FilePath="Test2.cs">
+namespace CSAssembly2
+{
+    public class Class2
+    {
+        void Bar(int i)
+        {
+            i.$$Goo();
+        }
+    }
+}
+                        </Document>
+                    </Project>
+                </Workspace>
+
+            Dim expected =
+                <text>
+using CSAssembly1;
+
+namespace CSAssembly2
+{
+    public class Class2
+    {
+        void Bar(int i)
+        {
+            i.Goo();
+        }
+    }
+}
+                </text>.Value.Trim()
+
+            Await TestAsync(
+                input, expected, codeActionIndex:=0, addedReference:="CSAssembly1",
+                glyphTags:=WellKnownTagArrays.CSharpProject, onAfterWorkspaceCreated:=AddressOf WaitForSolutionCrawler)
+        End Function
+
+        <WpfFact>
         Public Async Function TestAddProjectReference_CSharpToCSharp_WithProjectRenamed() As Task
             Dim input =
                 <Workspace>

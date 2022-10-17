@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.SymbolTree
     internal sealed partial class SymbolTreeInfoCacheService : IWorkspaceService
     {
         private readonly ConcurrentDictionary<ProjectId, SymbolTreeInfo> _projectIdToInfo = new();
-        private readonly ConcurrentDictionary<MetadataId, MetadataInfo> _metadataIdToInfo = new();
+        private readonly ConcurrentDictionary<PortableExecutableReference, MetadataInfo> _peReferenceToInfo = new();
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -44,12 +44,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols.SymbolTree
             PortableExecutableReference reference,
             CancellationToken cancellationToken)
         {
-            var metadataId = SymbolTreeInfo.GetMetadataIdNoThrow(reference);
-            if (metadataId == null)
-                return null;
-
             // See if the last value produced exactly matches what the caller is asking for.  If so, return that.
-            if (_metadataIdToInfo.TryGetValue(metadataId, out var metadataInfo))
+            if (_peReferenceToInfo.TryGetValue(reference, out var metadataInfo))
                 return metadataInfo.SymbolTreeInfo;
 
             // If we didn't have it in our cache, see if we can load it from disk.
@@ -60,7 +56,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.SymbolTree
             var referencingProjects = new HashSet<ProjectId>(solution.Projects.Where(p => p.MetadataReferences.Contains(reference)).Select(p => p.Id));
 
             // attempt to add this item to the map.  But defer to whatever is in the map now if something else beat us to this.
-            return _metadataIdToInfo.GetOrAdd(metadataId, new MetadataInfo(info, referencingProjects)).SymbolTreeInfo;
+            return _peReferenceToInfo.GetOrAdd(reference, new MetadataInfo(info, referencingProjects)).SymbolTreeInfo;
         }
 
         public async Task<SymbolTreeInfo?> TryGetPotentiallyStaleSourceSymbolTreeInfoAsync(
@@ -122,7 +118,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.SymbolTree
                 projectInfo.Checksum != checksum)
             {
                 projectInfo = await SymbolTreeInfo.GetInfoForSourceAssemblyAsync(
-                    project, cancellationToken).ConfigureAwait(false);
+                    project, checksum, cancellationToken).ConfigureAwait(false);
 
                 Contract.ThrowIfNull(projectInfo);
                 Contract.ThrowIfTrue(projectInfo.Checksum != checksum, "If we computed a SymbolTreeInfo, then its checksum much match our checksum.");
@@ -150,7 +146,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.SymbolTree
                     break;
                 }
 
-                var updateTask = UpdateReferenceAsync(_metadataIdToInfo, project, portableExecutableReference, cancellationToken);
+                var updateTask = UpdateReferenceAsync(_peReferenceToInfo, project, portableExecutableReference, cancellationToken);
                 if (updateTask.Status != TaskStatus.RanToCompletion)
                     pendingTasks.Add(updateTask);
             }
@@ -165,24 +161,20 @@ namespace Microsoft.CodeAnalysis.FindSymbols.SymbolTree
             // ⚠ This local function must be 'async' to ensure exceptions are captured in the resulting task and
             // not thrown directly to the caller.
             static async Task UpdateReferenceAsync(
-                ConcurrentDictionary<MetadataId, MetadataInfo> metadataIdToInfo,
+                ConcurrentDictionary<PortableExecutableReference, MetadataInfo> peReferenceToInfo,
                 Project project,
                 PortableExecutableReference reference,
                 CancellationToken cancellationToken)
             {
-                var metadataId = SymbolTreeInfo.GetMetadataIdNoThrow(reference);
-                if (metadataId == null)
-                    return;
-
                 // 🐉 PERF: GetMetadataChecksum indirectly uses a ConditionalWeakTable. This call is intentionally
                 // placed before the first 'await' of this asynchronous method to ensure it executes in the
                 // synchronous portion of the caller. https://dev.azure.com/devdiv/DevDiv/_workitems/edit/1270250
                 var checksum = SymbolTreeInfo.GetMetadataChecksum(project.Solution.Services, reference, cancellationToken);
-                if (!metadataIdToInfo.TryGetValue(metadataId, out var metadataInfo) ||
+                if (!peReferenceToInfo.TryGetValue(reference, out var metadataInfo) ||
                     metadataInfo.SymbolTreeInfo.Checksum != checksum)
                 {
                     var info = await SymbolTreeInfo.GetInfoForMetadataReferenceAsync(
-                        project.Solution, reference, cancellationToken: cancellationToken).ConfigureAwait(false);
+                        project.Solution, reference, checksum, cancellationToken).ConfigureAwait(false);
 
                     Contract.ThrowIfNull(info);
                     Contract.ThrowIfTrue(info.Checksum != checksum, "If we computed a SymbolTreeInfo, then its checksum much match our checksum.");
@@ -191,7 +183,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.SymbolTree
                     // We still want to cache that result so that don't try to continuously produce
                     // this info over and over again.
                     metadataInfo = new MetadataInfo(info, metadataInfo.ReferencingProjects ?? new HashSet<ProjectId>());
-                    metadataIdToInfo[metadataId] = metadataInfo;
+                    peReferenceToInfo[reference] = metadataInfo;
                 }
 
                 // Keep track that this dll is referenced by this project.
@@ -210,7 +202,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.SymbolTree
 
         private void RemoveMetadataReferences(ProjectId projectId)
         {
-            foreach (var (id, info) in _metadataIdToInfo.ToArray())
+            foreach (var (reference, info) in _peReferenceToInfo.ToArray())
             {
                 lock (info.ReferencingProjects)
                 {
@@ -218,7 +210,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.SymbolTree
 
                     // If this metadata dll isn't referenced by any project.  We can just dump it.
                     if (info.ReferencingProjects.Count == 0)
-                        _metadataIdToInfo.TryRemove(id, out _);
+                        _peReferenceToInfo.TryRemove(reference, out _);
                 }
             }
         }
