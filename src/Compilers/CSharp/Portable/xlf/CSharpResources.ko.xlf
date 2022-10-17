@@ -5261,7 +5261,7 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_RefProperty">
-        <source>An indexer or auto-implemented property may not be used as an out or ref value</source>
+        <source>A non ref-returning property or indexer may not be used as an out or ref value</source>
         <target state="needs-review-translation">속성 또는 인덱서는 out 또는 ref 매개 변수로 전달할 수 없습니다.</target>
         <note />
       </trans-unit>

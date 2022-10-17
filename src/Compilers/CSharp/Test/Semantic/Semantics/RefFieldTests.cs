@@ -8868,22 +8868,22 @@ ref struct R
 ";
             var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
             comp.VerifyEmitDiagnostics(
-                // (5,17): error CS0206: An indexer or auto-implemented property may not be used as an out or ref value
+                // (5,17): error CS0206: A non ref-returning property or indexer may not be used as an out or ref value
                 // ref int n = ref c.N;  //CS0206
                 Diagnostic(ErrorCode.ERR_RefProperty, "c.N").WithLocation(5, 17),
-                // (6,17): error CS0206: An indexer or auto-implemented property may not be used as an out or ref value
+                // (6,17): error CS0206: A non ref-returning property or indexer may not be used as an out or ref value
                 // ref var l = ref c[0]; //CS0206
                 Diagnostic(ErrorCode.ERR_RefProperty, "c[0]").WithLocation(6, 17),
-                // (8,11): error CS0206: An indexer or auto-implemented property may not be used as an out or ref value
+                // (8,11): error CS0206: A non ref-returning property or indexer may not be used as an out or ref value
                 // _ = M(ref c.N);       //CS0206
                 Diagnostic(ErrorCode.ERR_RefProperty, "c.N").WithLocation(8, 11),
-                // (10,11): error CS0206: An indexer or auto-implemented property may not be used as an out or ref value
+                // (10,11): error CS0206: A non ref-returning property or indexer may not be used as an out or ref value
                 // _ = M(ref c[0]);      //CS0206
                 Diagnostic(ErrorCode.ERR_RefProperty, "c[0]").WithLocation(10, 11),
-                // (12,12): error CS0206: An indexer or auto-implemented property may not be used as an out or ref value
+                // (12,12): error CS0206: A non ref-returning property or indexer may not be used as an out or ref value
                 // _ = M2(out c.N);      //CS0206
                 Diagnostic(ErrorCode.ERR_RefProperty, "c.N").WithLocation(12, 12),
-                // (14,12): error CS0206: An indexer or auto-implemented property may not be used as an out or ref value
+                // (14,12): error CS0206: A non ref-returning property or indexer may not be used as an out or ref value
                 // _ = M2(out c[0]);     //CS0206
                 Diagnostic(ErrorCode.ERR_RefProperty, "c[0]").WithLocation(14, 12)
             );

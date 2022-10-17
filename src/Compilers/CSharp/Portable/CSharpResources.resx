@@ -985,7 +985,7 @@
     <value>Cannot call an abstract base member: '{0}'</value>
   </data>
   <data name="ERR_RefProperty" xml:space="preserve">
-    <value>An indexer or auto-implemented property may not be used as an out or ref value</value>
+    <value>A non ref-returning property or indexer may not be used as an out or ref value</value>
   </data>
   <data name="ERR_ManagedAddr" xml:space="preserve">
     <value>Cannot take the address of, get the size of, or declare a pointer to a managed type ('{0}')</value>

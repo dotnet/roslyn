@@ -5262,7 +5262,7 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_RefProperty">
-        <source>An indexer or auto-implemented property may not be used as an out or ref value</source>
+        <source>A non ref-returning property or indexer may not be used as an out or ref value</source>
         <target state="needs-review-translation">Una proprietà o un indicizzatore non può essere passato come parametro out o ref</target>
         <note />
       </trans-unit>
