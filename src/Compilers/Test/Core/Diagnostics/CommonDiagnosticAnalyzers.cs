@@ -423,6 +423,25 @@ namespace Microsoft.CodeAnalysis
         }
 
         [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
+        public class SuppressorForErrorLogTest : DiagnosticSuppressor
+        {
+            public static readonly SuppressionDescriptor Descriptor1 = new("SPR0001", AnalyzerForErrorLogTest.Descriptor1.Id, "SuppressorJustification1");
+            public static readonly SuppressionDescriptor Descriptor2 = new("SPR0002", AnalyzerForErrorLogTest.Descriptor2.Id, "SuppressorJustification2");
+
+            public override ImmutableArray<SuppressionDescriptor> SupportedSuppressions
+                => ImmutableArray.Create(Descriptor1, Descriptor2);
+
+            public override void ReportSuppressions(SuppressionAnalysisContext context)
+            {
+                foreach (var diagnostic in context.ReportedDiagnostics)
+                {
+                    var descriptor = diagnostic.Id == Descriptor1.SuppressedDiagnosticId ? Descriptor1 : Descriptor2;
+                    context.ReportSuppression(Suppression.Create(descriptor, diagnostic));
+                }
+            }
+        }
+
+        [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
         public class NotConfigurableDiagnosticAnalyzer : DiagnosticAnalyzer
         {
             public static readonly DiagnosticDescriptor EnabledRule = new DiagnosticDescriptor(
