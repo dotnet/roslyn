@@ -39,6 +39,7 @@ internal class LspServiceLifeCycleManager : ILifeCycleManager, ILspService
 
     public Task ExitAsync()
     {
+        // We don't need any custom logic to run on exit.
         return Task.CompletedTask;
     }
 }

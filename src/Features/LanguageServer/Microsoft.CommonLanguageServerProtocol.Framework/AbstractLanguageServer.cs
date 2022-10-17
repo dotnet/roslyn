@@ -49,7 +49,7 @@ public abstract class AbstractLanguageServer<TRequestContext>
     /// Task completion source that is started when the server starts and completes when the server exits.
     /// Used when callers need to wait for the server to cleanup.
     /// </summary>
-    private readonly TaskCompletionSource<bool> _serverExitedSource = new(false);
+    private readonly TaskCompletionSource<object?> _serverExitedSource = new();
 
     protected AbstractLanguageServer(
         JsonRpc jsonRpc,
@@ -218,7 +218,7 @@ public abstract class AbstractLanguageServer<TRequestContext>
         }
     }
 
-    public async Task WaitForExitAsync()
+    public Task WaitForExitAsync()
     {
         lock (_lifeCycleLock)
         {
@@ -229,10 +229,10 @@ public abstract class AbstractLanguageServer<TRequestContext>
             }
         }
 
-        // Note - we wait for the _serverExitedSource task here instead of the _exitNotification task as we may not have
+        // Note - we return the _serverExitedSource task here instead of the _exitNotification task as we may not have
         // finished processing the exit notification before a client calls into us asking to restart.
         // This is because unlike shutdown, exit is a notification where clients do not need to wait for a response.
-        await _serverExitedSource.Task.ConfigureAwait(false);
+        return _serverExitedSource.Task;
     }
 
     /// <summary>
@@ -247,78 +247,76 @@ public abstract class AbstractLanguageServer<TRequestContext>
             // Run shutdown or return the already running shutdown request.
             _shutdownRequestTask ??= Shutdown_NoLockAsync(message);
             shutdownTask = _shutdownRequestTask;
+            return shutdownTask;
         }
 
-        return shutdownTask;
+        // Runs the actual shutdown outside of the lock - guaranteed to be only called once by the above code.
+        async Task Shutdown_NoLockAsync(string message)
+        {
+            // Immediately yield so that this does not run under the lock.
+            await Task.Yield();
+
+            _logger.LogInformation(message);
+
+            // Allow implementations to do any additional cleanup on shutdown.
+            var lifeCycleManager = GetLspServices().GetRequiredService<ILifeCycleManager>();
+            await lifeCycleManager.ShutdownAsync(message).ConfigureAwait(false);
+
+            await ShutdownRequestExecutionQueueAsync().ConfigureAwait(false);
+        }
     }
 
     /// <summary>
     /// Tells the LSP server to exit.  Requires that <see cref="ShutdownAsync(string)"/> was called first.
     /// Typically called from an LSP exit notification.
     /// </summary>
-    public async Task ExitAsync()
+    public Task ExitAsync()
     {
         Task exitTask;
         lock (_lifeCycleLock)
         {
             if (_shutdownRequestTask?.IsCompleted != true)
             {
-                throw new InvalidOperationException("The language server has not yet been asked to shutdown.");
+                throw new InvalidOperationException("The language server has not yet been asked to shutdown or has not finished shutting down.");
             }
 
             // Run exit or return the already running exit request.
             _exitNotificationTask ??= Exit_NoLockAsync();
             exitTask = _exitNotificationTask;
+            return exitTask;
         }
 
-        await exitTask.ConfigureAwait(false);
-    }
-
-    /// <summary>
-    /// Performs the actual shutdown work outside of the lock.
-    /// Guaranteed to only be called once by <see cref="ShutdownAsync(string)"/>
-    /// </summary>
-    private async Task Shutdown_NoLockAsync(string message = "Shutting down")
-    {
-        _logger.LogInformation(message);
-
-        // Allow implementations to do any additional cleanup on shutdown.
-        var lifeCycleManager = GetLspServices().GetRequiredService<ILifeCycleManager>();
-        await lifeCycleManager.ShutdownAsync(message).ConfigureAwait(false);
-
-        await ShutdownRequestExecutionQueueAsync().ConfigureAwait(false);
-    }
-
-    /// <summary>
-    /// Performs the actual shutdown work outside of the lock.
-    /// Guaranteed to only be called once by <see cref="ExitAsync"/>
-    /// </summary>
-    private async Task Exit_NoLockAsync()
-    {
-        try
+        // Runs the actual exit outside of the lock - guaranteed to be only called once by the above code.
+        async Task Exit_NoLockAsync()
         {
-            var lspServices = GetLspServices();
+            // Immediately yield so that this does not run under the lock.
+            await Task.Yield();
 
-            // Allow implementations to do any additional cleanup on exit.
-            var lifeCycleManager = lspServices.GetRequiredService<ILifeCycleManager>();
-            await lifeCycleManager.ExitAsync().ConfigureAwait(false);
+            try
+            {
+                var lspServices = GetLspServices();
 
-            await ShutdownRequestExecutionQueueAsync().ConfigureAwait(false);
+                // Allow implementations to do any additional cleanup on exit.
+                var lifeCycleManager = lspServices.GetRequiredService<ILifeCycleManager>();
+                await lifeCycleManager.ExitAsync().ConfigureAwait(false);
 
-            lspServices.Dispose();
+                await ShutdownRequestExecutionQueueAsync().ConfigureAwait(false);
 
-            _jsonRpc.Disconnected -= JsonRpc_Disconnected;
-            _jsonRpc.Dispose();
-        }
-        catch (Exception)
-        {
-            // Swallow exceptions thrown by disposing our JsonRpc object. Disconnected events can potentially throw their own exceptions so
-            // we purposefully ignore all of those exceptions in an effort to shutdown gracefully.
-        }
-        finally
-        {
-            _logger.LogInformation("Exiting server");
-            _serverExitedSource.TrySetResult(true);
+                lspServices.Dispose();
+
+                _jsonRpc.Disconnected -= JsonRpc_Disconnected;
+                _jsonRpc.Dispose();
+            }
+            catch (Exception)
+            {
+                // Swallow exceptions thrown by disposing our JsonRpc object. Disconnected events can potentially throw their own exceptions so
+                // we purposefully ignore all of those exceptions in an effort to shutdown gracefully.
+            }
+            finally
+            {
+                _logger.LogInformation("Exiting server");
+                _serverExitedSource.TrySetResult(null);
+            }
         }
     }
 

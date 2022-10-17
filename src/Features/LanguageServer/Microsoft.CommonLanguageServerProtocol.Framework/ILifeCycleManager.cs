@@ -17,13 +17,14 @@ public interface ILifeCycleManager
     /// Called when the server recieves the LSP exit notification.
     /// </summary>
     /// <remarks>
-    /// This is called before LSP services and the JsonRpc connection is disposed of.
+    /// This is always called after the LSP shutdown request and <see cref="ShutdownAsync(string)"/> runs
+    /// but before LSP services and the JsonRpc connection is disposed of in LSP exit.
     /// Implementations are not expected to be threadsafe.
     /// </remarks>
     Task ExitAsync();
 
     /// <summary>
-    /// Called when the server recieves the LSP shutdown request.
+    /// Called when the server receives the LSP shutdown request.
     /// </summary>
     /// <remarks>
     /// This is called before the request execution is closed.

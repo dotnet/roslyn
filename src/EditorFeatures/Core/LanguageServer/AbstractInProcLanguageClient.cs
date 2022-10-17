@@ -148,7 +148,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
 
             if (_languageServer is not null)
             {
-                await _languageServer.WaitForExitAsync().ConfigureAwait(false);
+                await _languageServer.WaitForExitAsync().WithCancellation(cancellationToken).ConfigureAwait(false);
             }
 
             var (clientStream, serverStream) = FullDuplexStream.CreatePair();
