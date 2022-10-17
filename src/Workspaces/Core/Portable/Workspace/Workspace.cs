@@ -248,7 +248,7 @@ namespace Microsoft.CodeAnalysis
 
             // Ensure our event handlers are realized prior to taking this lock.  We don't want to deadlock trying
             // to obtain them when calling one of our callbacks. See https://github.com/dotnet/roslyn/issues/64681
-            GetEventHandlers<WorkspaceChangeEventArgs>(WorkspaceChangeEventName);
+            EnsureEventListeners();
 
             while (true)
             {
