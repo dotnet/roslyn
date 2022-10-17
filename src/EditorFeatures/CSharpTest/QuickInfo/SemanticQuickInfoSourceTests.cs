@@ -8155,7 +8155,7 @@ class C
     AnonymousTypes(
 $@"
 {FeaturesResources.Types_colon}
-    'a {FeaturesResources.is_} delegate int (int = 42)"));
+    'a {FeaturesResources.is_} delegate int (int arg = 42)"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
@@ -8170,7 +8170,7 @@ class C
         $$var lam = (int param = 42) => param;
     }
 }
-", MainDescription($"delegate int <anonymous delegate>(int)"));
+", MainDescription($"delegate int <anonymous delegate>(int arg)"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
