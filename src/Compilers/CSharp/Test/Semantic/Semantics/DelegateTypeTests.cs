@@ -11810,7 +11810,7 @@ $@"
 	}} // end of method '<>f__AnonymousDelegate0'::.ctor
 	.method public hidebysig newslot virtual 
 		instance int32 Invoke (
-			[opt] int32 ''
+			[opt] int32 arg
 		) runtime managed 
 	{{
 		.param [1] = int32(30)
@@ -11925,9 +11925,9 @@ $@"
 	}} // end of method '<>f__AnonymousDelegate0'::.ctor
 	.method public hidebysig newslot virtual 
 		instance string Invoke (
-			string '',
-			[opt] string '',
-			[opt] string ''
+			string arg1,
+			[opt] string arg2,
+			[opt] string arg3
 		) runtime managed 
 	{{
 		.param [2] = ""b""
@@ -12409,9 +12409,9 @@ $@"
 	}} // end of method '<>f__AnonymousDelegate0'::.ctor
 	.method public hidebysig newslot virtual 
 		instance void Invoke (
-			int32& '',
-			[out] int32& '',
-			[opt] int32 ''
+			int32& arg1,
+			[out] int32& arg2,
+			[opt] int32 arg3
 		) runtime managed 
 	{{
 		.param [3] = int32(3)
