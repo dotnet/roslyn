@@ -1139,7 +1139,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             TestRoundTripValue(values);
         }
 
-        public static IEnumerable<Encoding[]> GetEncodingTestCases()
+        public static IEnumerable<object[]> GetEncodingTestCases()
             => EncodingTestHelpers.GetEncodingTestCases();
 
         [Theory]

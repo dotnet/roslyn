@@ -144,7 +144,7 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
             return types;
         }
 
-        public static IEnumerable<Encoding[]> GetEncodingTestCases()
+        public static IEnumerable<object[]> GetEncodingTestCases()
             => EncodingTestHelpers.GetEncodingTestCases();
 
         [Theory]

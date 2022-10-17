@@ -9,7 +9,7 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis;
 
 /// <summary>
-/// Well known ecodings. Used to distinguish serialized encodings with BOM and without BOM.
+/// Well known encodings. Used to distinguish serialized encodings with BOM and without BOM.
 /// </summary>
 internal enum TextEncodingKind : byte
 {
