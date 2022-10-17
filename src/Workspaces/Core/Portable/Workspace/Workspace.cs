@@ -171,27 +171,25 @@ namespace Microsoft.CodeAnalysis
         internal (Solution oldSolution, Solution newSolution) SetCurrentSolutionEx(Solution solution)
         {
             if (solution is null)
-            {
                 throw new ArgumentNullException(nameof(solution));
-            }
-
-            var currentSolution = Volatile.Read(ref _latestSolution);
-            if (solution == currentSolution)
-            {
-                // No change
-                return (solution, solution);
-            }
 
             using (_serializationLock.DisposableWait())
             {
                 var oldSolution = this.CurrentSolution;
+                if (solution == oldSolution)
+                {
+                    // No change
+                    return (solution, solution);
+                }
+
                 _latestSolution = solution.WithNewWorkspace(this, oldSolution.WorkspaceVersion + 1);
                 return (oldSolution, _latestSolution);
             }
         }
 
         /// <summary>
-        /// Applies specified transformation to <see cref="CurrentSolution"/>, updates <see cref="CurrentSolution"/> to the new value and raises a workspace change event of the specified kind.
+        /// Applies specified transformation to <see cref="CurrentSolution"/>, updates <see cref="CurrentSolution"/> to
+        /// the new value and raises a workspace change event of the specified kind.
         /// </summary>
         /// <param name="transformation">Solution transformation.</param>
         /// <param name="kind">The kind of workspace change event to raise.</param>
@@ -211,7 +209,7 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <inheritdoc cref="SetCurrentSolution(Func{Solution, Solution}, WorkspaceChangeKind, ProjectId?, DocumentId?)"/>
-        internal bool SetCurrentSolution(
+        private bool SetCurrentSolution(
             Func<Solution, Solution> transformation,
             Action<Solution, Solution> onAfterUpdate,
             WorkspaceChangeKind kind,
@@ -233,7 +231,8 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
-        /// Applies specified transformation to <see cref="CurrentSolution"/>, updates <see cref="CurrentSolution"/> to the new value and raises a workspace change event of the specified kind.
+        /// Applies specified transformation to <see cref="CurrentSolution"/>, updates <see cref="CurrentSolution"/> to
+        /// the new value and performs a requested callback immediately after that update.
         /// </summary>
         /// <param name="transformation">Solution transformation.</param>
         /// <param name="onAfterUpdate">Action to perform once <see cref="CurrentSolution"/> has been updated.  The
@@ -242,37 +241,41 @@ namespace Microsoft.CodeAnalysis
         /// name="transformation"/> as it will have its <see cref="Solution.WorkspaceVersion"/> updated accordingly.
         /// Updating the solution and invoking <paramref name="onAfterUpdate"/> will happen atomically while <see
         /// cref="_serializationLock"/> is being held.</param>
-        internal bool SetCurrentSolution<TData>(
+        private bool SetCurrentSolution<TData>(
             Func<Solution, TData, Solution> transformation,
             Action<Solution, Solution, TData> onAfterUpdate,
             TData data)
         {
             Contract.ThrowIfNull(transformation);
 
-            var currentSolution = Volatile.Read(ref _latestSolution);
+            var oldSolution = Volatile.Read(ref _latestSolution);
 
             while (true)
             {
-                var transformedSolution = transformation(currentSolution, data);
-                if (transformedSolution == currentSolution)
-                {
+                // Run the transformation outside of the lock as it should not be making any state changes to us.
+                var newSolution = transformation(oldSolution, data);
+
+                // if it did nothing, then no need to proceed.
+                if (oldSolution == newSolution)
                     return false;
-                }
 
-                var newSolution = transformedSolution.WithNewWorkspace(this, currentSolution.WorkspaceVersion + 1);
-
-                Solution oldSolution;
+                // Now, take the lock and try to update our internal state.
                 using (_serializationLock.DisposableWait())
                 {
-                    oldSolution = Interlocked.CompareExchange(ref _latestSolution, newSolution, currentSolution);
-                    if (oldSolution == currentSolution)
+                    if (_latestSolution != oldSolution)
                     {
-                        onAfterUpdate(oldSolution, newSolution, data);
-                        return true;
+                        // something else snuck in and wrote to _latestSolution. Restart and try again.
+                        oldSolution = _latestSolution;
+                        continue;
                     }
-                }
 
-                currentSolution = oldSolution;
+                    newSolution = newSolution.WithNewWorkspace(this, oldSolution.WorkspaceVersion + 1);
+                    _latestSolution = newSolution;
+
+                    // Once we've updated _latesSolution, perform any requested callbacks.
+                    onAfterUpdate(oldSolution, newSolution, data);
+                    return true;
+                }
             }
         }
 
