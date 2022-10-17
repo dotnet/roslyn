@@ -67,5 +67,6 @@ namespace Microsoft.CodeAnalysis.MSBuild
         public const string WarningLevel = nameof(WarningLevel);
         public const string WarningsAsErrors = nameof(WarningsAsErrors);
         public const string WarningsNotAsErrors = nameof(WarningsNotAsErrors);
+        public const string ChecksumAlgorithm = nameof(ChecksumAlgorithm);
     }
 }

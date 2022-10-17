@@ -3,8 +3,10 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.IO;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -18,6 +20,8 @@ namespace Microsoft.CodeAnalysis
     [DebuggerDisplay("{GetDebuggerDisplay(), nq}")]
     public class FileTextLoader : TextLoader
     {
+        private static readonly ConditionalWeakTable<Type, StrongBox<bool>> s_isObsoleteCreateTextOverriden = new();
+
         /// <summary>
         /// Absolute path of the file.
         /// </summary>
@@ -58,18 +62,41 @@ namespace Microsoft.CodeAnalysis
 
         internal sealed override string FilePath => Path;
 
-        protected virtual SourceText CreateText(Stream stream, Workspace workspace)
-        {
-            var factory = workspace.Services.GetRequiredService<ITextFactoryService>();
-            return factory.CreateText(stream, DefaultEncoding);
-        }
+        internal override bool CanReloadText => !IsObsoleteCreateTextOverridden;
+
+#pragma warning disable CS0618 // Type or member is obsolete
+        private bool IsObsoleteCreateTextOverridden
+            => s_isObsoleteCreateTextOverriden.GetValue(
+                GetType(), _ => new StrongBox<bool>(new Func<Stream, Workspace, SourceText>(CreateText).Method.DeclaringType != typeof(FileTextLoader))).Value;
+#pragma warning restore
+
+        /// <summary>
+        /// Creates <see cref="SourceText"/> from <see cref="Stream"/>.
+        /// </summary>
+        /// <param name="stream">Stream.</param>
+        /// <param name="workspace">Obsolete. Null.</param>
+        protected virtual SourceText CreateText(Stream stream, Workspace? workspace)
+            => EncodedStringText.Create(stream, DefaultEncoding, checksumAlgorithm: SourceHashAlgorithms.Default);
+
+        /// <summary>
+        /// Creates <see cref="SourceText"/> from <see cref="Stream"/>.
+        /// </summary>
+#pragma warning disable CS0618 // Type or member is obsolete
+        private protected virtual SourceText CreateText(Stream stream, LoadTextOptions options, CancellationToken cancellationToken)
+            => IsObsoleteCreateTextOverridden ?
+                CreateText(stream, workspace: null) :
+                EncodedStringText.Create(stream, DefaultEncoding, checksumAlgorithm: options.ChecksumAlgorithm);
+#pragma warning restore
+
+        public override Task<TextAndVersion> LoadTextAndVersionAsync(Workspace? workspace, DocumentId? documentId, CancellationToken cancellationToken)
+            => base.LoadTextAndVersionAsync(workspace, documentId, cancellationToken);
 
         /// <summary>
         /// Load a text and a version of the document in the workspace.
         /// </summary>
         /// <exception cref="IOException"></exception>
         /// <exception cref="InvalidDataException"></exception>
-        public override async Task<TextAndVersion> LoadTextAndVersionAsync(Workspace workspace, DocumentId documentId, CancellationToken cancellationToken)
+        internal override async Task<TextAndVersion> LoadTextAndVersionAsync(LoadTextOptions options, CancellationToken cancellationToken)
         {
             ValidateFileLength(Path);
 
@@ -150,7 +177,7 @@ namespace Microsoft.CodeAnalysis
                 // we do this so that we asynchronously read from file. and this should allocate less for IDE case. 
                 // but probably not for command line case where it doesn't use more sophisticated services.
                 using var readStream = await SerializableBytes.CreateReadableStreamAsync(stream, cancellationToken: cancellationToken).ConfigureAwait(false);
-                var text = CreateText(readStream, workspace);
+                var text = CreateText(readStream, options, cancellationToken);
                 textAndVersion = TextAndVersion.Create(text, version, Path);
             }
 
@@ -169,11 +196,11 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
-        /// Load a text and a version of the document in the workspace.
+        /// Load a text and a version of the document.
         /// </summary>
         /// <exception cref="IOException"></exception>
         /// <exception cref="InvalidDataException"></exception>
-        internal override TextAndVersion LoadTextAndVersionSynchronously(Workspace workspace, DocumentId documentId, CancellationToken cancellationToken)
+        internal override TextAndVersion LoadTextAndVersionSynchronously(LoadTextOptions options, CancellationToken cancellationToken)
         {
             ValidateFileLength(Path);
 
@@ -185,7 +212,7 @@ namespace Microsoft.CodeAnalysis
             using (var stream = FileUtilities.RethrowExceptionsAsIOException(() => new FileStream(Path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite | FileShare.Delete, bufferSize: 4096, useAsync: false)))
             {
                 var version = VersionStamp.Create(prevLastWriteTime);
-                var text = CreateText(stream, workspace);
+                var text = CreateText(stream, options, cancellationToken);
                 textAndVersion = TextAndVersion.Create(text, version, Path);
             }
 

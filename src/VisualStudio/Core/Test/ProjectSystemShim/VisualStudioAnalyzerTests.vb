@@ -25,16 +25,13 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
 
         <WpfFact>
         Public Sub GetReferenceCalledMultipleTimes()
-            Dim composition = s_compositionWithMockDiagnosticUpdateSourceRegistrationService
-            Dim exportProvider = composition.ExportProviderFactory.CreateExportProvider()
-
-            Using workspace = New TestWorkspace(composition:=composition)
+            Using workspace = New TestWorkspace(composition:=s_compositionWithMockDiagnosticUpdateSourceRegistrationService)
                 Dim lazyWorkspace = New Lazy(Of VisualStudioWorkspace)(
                                     Function()
                                         Return Nothing
                                     End Function)
 
-                Dim registrationService = Assert.IsType(Of MockDiagnosticUpdateSourceRegistrationService)(exportProvider.GetExportedValue(Of IDiagnosticUpdateSourceRegistrationService)())
+                Dim registrationService = Assert.IsType(Of MockDiagnosticUpdateSourceRegistrationService)(workspace.GetService(Of IDiagnosticUpdateSourceRegistrationService)())
                 Dim hostDiagnosticUpdateSource = New HostDiagnosticUpdateSource(lazyWorkspace, registrationService)
 
                 Using tempRoot = New TempRoot(), analyzer = New VisualStudioAnalyzer(tempRoot.CreateFile().Path, hostDiagnosticUpdateSource, ProjectId.CreateNewId(), LanguageNames.VisualBasic)
@@ -48,20 +45,17 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
 
         <WpfFact>
         Public Sub AnalyzerErrorsAreUpdated()
-            Dim composition = s_compositionWithMockDiagnosticUpdateSourceRegistrationService
-            Dim exportProvider = composition.ExportProviderFactory.CreateExportProvider()
+            Using workspace = New TestWorkspace(composition:=s_compositionWithMockDiagnosticUpdateSourceRegistrationService)
+                Dim lazyWorkspace = New Lazy(Of VisualStudioWorkspace)(
+                                        Function()
+                                            Return Nothing
+                                        End Function)
 
-            Dim lazyWorkspace = New Lazy(Of VisualStudioWorkspace)(
-                                    Function()
-                                        Return Nothing
-                                    End Function)
+                Dim file = Path.GetTempFileName()
 
-            Dim registrationService = Assert.IsType(Of MockDiagnosticUpdateSourceRegistrationService)(exportProvider.GetExportedValue(Of IDiagnosticUpdateSourceRegistrationService)())
-            Dim hostDiagnosticUpdateSource = New HostDiagnosticUpdateSource(lazyWorkspace, registrationService)
+                Dim registrationService = Assert.IsType(Of MockDiagnosticUpdateSourceRegistrationService)(workspace.GetService(Of IDiagnosticUpdateSourceRegistrationService)())
+                Dim hostDiagnosticUpdateSource = New HostDiagnosticUpdateSource(lazyWorkspace, registrationService)
 
-            Dim file = Path.GetTempFileName()
-
-            Using workspace = New TestWorkspace(composition:=composition)
                 Dim globalOptions = workspace.GetService(Of IGlobalOptionService)
                 Dim eventHandler = New EventHandlers(file, globalOptions)
                 AddHandler hostDiagnosticUpdateSource.DiagnosticsUpdated, AddressOf eventHandler.DiagnosticAddedTest

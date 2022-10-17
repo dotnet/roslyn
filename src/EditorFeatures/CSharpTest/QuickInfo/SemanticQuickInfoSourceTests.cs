@@ -8094,7 +8094,7 @@ TResult {FeaturesResources.is_} string"));
         $$var v = (ref int i) => i.ToString();
     }
 }",
-                MainDescription("delegate string <anonymous delegate>(ref int)"),
+                MainDescription("delegate string <anonymous delegate>(ref int arg)"),
                 AnonymousTypes(""));
         }
 
@@ -8113,7 +8113,7 @@ TResult {FeaturesResources.is_} string"));
                 AnonymousTypes(
 $@"
 {FeaturesResources.Types_colon}
-    'a {FeaturesResources.is_} delegate string (ref int)"));
+    'a {FeaturesResources.is_} delegate string (ref int arg)"));
         }
 
         [Fact, WorkItem(58871, "https://github.com/dotnet/roslyn/issues/58871")]
@@ -8134,7 +8134,7 @@ $@"
                 AnonymousTypes(
 $@"
 {FeaturesResources.Types_colon}
-    'a {FeaturesResources.is_} delegate string (ref int)"));
+    'a {FeaturesResources.is_} delegate string (ref int arg)"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]

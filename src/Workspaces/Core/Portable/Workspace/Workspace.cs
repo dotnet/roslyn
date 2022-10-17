@@ -52,16 +52,12 @@ namespace Microsoft.CodeAnalysis
         // test hooks.
         internal static bool TestHookStandaloneProjectsDoNotHoldReferences = false;
 
-        internal bool TestHookPartialSolutionsDisabled { get; set; }
-
         /// <summary>
         /// Determines whether changes made to unchangeable documents will be silently ignored or cause exceptions to be thrown
         /// when they are applied to workspace via <see cref="TryApplyChanges(Solution, IProgressTracker)"/>. 
         /// A document is unchangeable if <see cref="IDocumentOperationService.CanApplyChange"/> is false.
         /// </summary>
         internal virtual bool IgnoreUnchangeableDocumentsWhenApplyingChanges { get; } = false;
-
-        private Action<string>? _testMessageLogger;
 
         /// <summary>
         /// Constructs a new workspace instance.
@@ -91,14 +87,7 @@ namespace Microsoft.CodeAnalysis
         }
 
         internal void LogTestMessage<TArg>(Func<TArg, string> messageFactory, TArg state)
-            => _testMessageLogger?.Invoke(messageFactory(state));
-
-        /// <summary>
-        /// Sets an internal logger that will receive some messages.
-        /// </summary>
-        /// <param name="writeLineMessageLogger">An action called to write a single line to the log.</param>
-        internal void SetTestLogger(Action<string>? writeLineMessageLogger)
-            => _testMessageLogger = writeLineMessageLogger;
+            => Services.GetService<IWorkspaceTestLogger>()?.Log(messageFactory(state));
 
         /// <summary>
         /// Services provider by the host for implementing workspace features.
@@ -198,7 +187,38 @@ namespace Microsoft.CodeAnalysis
         /// <param name="projectId">The id of the project updated by <paramref name="transformation"/> to be passed to the workspace change event.</param>
         /// <param name="documentId">The id of the document updated by <paramref name="transformation"/> to be passed to the workspace change event.</param>
         /// <returns>True if <see cref="CurrentSolution"/> was set to the transformed solution, false if the transformation did not change the solution.</returns>
-        internal bool SetCurrentSolution(Func<Solution, Solution> transformation, WorkspaceChangeKind kind, ProjectId? projectId = null, DocumentId? documentId = null)
+        internal bool SetCurrentSolution(
+            Func<Solution, Solution> transformation,
+            WorkspaceChangeKind kind,
+            ProjectId? projectId = null,
+            DocumentId? documentId = null)
+        {
+            return SetCurrentSolution(
+                static (oldSolution, data) => data.transformation(oldSolution),
+                onAfterUpdate: static (oldSolution, newSolution, data) =>
+                {
+                    // Queue the event but don't execute its handlers on this thread.
+                    // Doing so under the serialization lock guarantees the same ordering of the events
+                    // as the order of the changes made to the solution.
+                    data.@this.RaiseWorkspaceChangedEventAsync(data.kind, oldSolution, newSolution, data.projectId, data.documentId);
+                },
+                (@this: this, transformation, kind, projectId, documentId));
+        }
+
+        /// <summary>
+        /// Applies specified transformation to <see cref="CurrentSolution"/>, updates <see cref="CurrentSolution"/> to the new value and raises a workspace change event of the specified kind.
+        /// </summary>
+        /// <param name="transformation">Solution transformation.</param>
+        /// <param name="onAfterUpdate">Action to perform once <see cref="CurrentSolution"/> has been updated.  The
+        /// action will be passed the old <see cref="CurrentSolution"/> that was just replaced and the exact solution it
+        /// was replaced with. The latter may be different than the solution returned by <paramref
+        /// name="transformation"/> as it will have its <see cref="Solution.WorkspaceVersion"/> updated accordingly.
+        /// Updating the solution and invoking <paramref name="onAfterUpdate"/> will happen atomically while <see
+        /// cref="_serializationLock"/> is being held.</param>
+        internal bool SetCurrentSolution<TData>(
+            Func<Solution, TData, Solution> transformation,
+            Action<Solution, Solution, TData> onAfterUpdate,
+            TData data)
         {
             Contract.ThrowIfNull(transformation);
 
@@ -206,7 +226,7 @@ namespace Microsoft.CodeAnalysis
 
             while (true)
             {
-                var transformedSolution = transformation(currentSolution);
+                var transformedSolution = transformation(currentSolution, data);
                 if (transformedSolution == currentSolution)
                 {
                     return false;
@@ -220,11 +240,7 @@ namespace Microsoft.CodeAnalysis
                     oldSolution = Interlocked.CompareExchange(ref _latestSolution, newSolution, currentSolution);
                     if (oldSolution == currentSolution)
                     {
-                        // Queue the event but don't execute its handlers on this thread.
-                        // Doing so under the serialization lock guarantees the same ordering of the events
-                        // as the order of the changes made to the solution.
-                        RaiseWorkspaceChangedEventAsync(kind, oldSolution, newSolution, projectId, documentId);
-
+                        onAfterUpdate(oldSolution, newSolution, data);
                         return true;
                     }
                 }
@@ -372,6 +388,7 @@ namespace Microsoft.CodeAnalysis
         }
 
         #region Host API
+
         /// <summary>
         /// Call this method to respond to a solution being opened in the host environment.
         /// </summary>
@@ -678,15 +695,9 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         protected internal void OnDocumentAdded(DocumentInfo documentInfo)
         {
-            using (_serializationLock.DisposableWait())
-            {
-                var documentId = documentInfo.Id;
-
-                var oldSolution = this.CurrentSolution;
-                var newSolution = this.SetCurrentSolution(oldSolution.AddDocument(documentInfo));
-
-                this.RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.DocumentAdded, oldSolution, newSolution, documentId: documentId);
-            }
+            this.SetCurrentSolution(
+                oldSolution => oldSolution.AddDocument(documentInfo),
+                WorkspaceChangeKind.DocumentAdded, documentId: documentInfo.Id);
         }
 
         /// <summary>
@@ -694,15 +705,16 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         protected internal void OnDocumentsAdded(ImmutableArray<DocumentInfo> documentInfos)
         {
-            using (_serializationLock.DisposableWait())
-            {
-                var oldSolution = this.CurrentSolution;
-                var newSolution = this.SetCurrentSolution(oldSolution.AddDocuments(documentInfos));
+            this.SetCurrentSolution(
+                static (oldSolution, data) => oldSolution.AddDocuments(data.documentInfos),
+                onAfterUpdate: static (oldSolution, newSolution, data) =>
+                {
+                    // Raise ProjectChanged as the event type here. DocumentAdded is presumed by many callers to have a
+                    // DocumentId associated with it, and we don't want to be raising multiple events.
 
-                // Raise ProjectChanged as the event type here. DocumentAdded is presumed by many callers to have a
-                // DocumentId associated with it, and we don't want to be raising multiple events.
-                this.RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.ProjectChanged, oldSolution, newSolution);
-            }
+                    foreach (var projectId in data.documentInfos.Select(i => i.Id.ProjectId).Distinct())
+                        data.@this.RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.ProjectChanged, oldSolution, newSolution, projectId);
+                }, (@this: this, documentInfos));
         }
 
         /// <summary>
@@ -710,15 +722,10 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         protected internal void OnDocumentReloaded(DocumentInfo newDocumentInfo)
         {
-            using (_serializationLock.DisposableWait())
-            {
-                var documentId = newDocumentInfo.Id;
-
-                var oldSolution = this.CurrentSolution;
-                var newSolution = this.SetCurrentSolution(oldSolution.RemoveDocument(documentId).AddDocument(newDocumentInfo));
-
-                this.RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.DocumentReloaded, oldSolution, newSolution, documentId: documentId);
-            }
+            var documentId = newDocumentInfo.Id;
+            this.SetCurrentSolution(
+                oldSolution => oldSolution.RemoveDocument(documentId).AddDocument(newDocumentInfo),
+                WorkspaceChangeKind.DocumentReloaded, documentId: documentId);
         }
 
         /// <summary>
@@ -1069,69 +1076,61 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         protected void UpdateReferencesAfterAdd()
         {
-            using (_serializationLock.DisposableWait())
+            SetCurrentSolution(
+                oldSolution => UpdateReferencesAfterAdd(oldSolution),
+                WorkspaceChangeKind.SolutionChanged);
+
+            [System.Diagnostics.Contracts.Pure]
+            static Solution UpdateReferencesAfterAdd(Solution solution)
             {
-                var oldSolution = this.CurrentSolution;
-                var newSolution = UpdateReferencesAfterAdd(oldSolution);
-
-                if (newSolution != oldSolution)
+                // Build map from output assembly path to ProjectId
+                // Use explicit loop instead of ToDictionary so we don't throw if multiple projects have same output assembly path.
+                var outputAssemblyToProjectIdMap = new Dictionary<string, ProjectId>();
+                foreach (var p in solution.Projects)
                 {
-                    newSolution = this.SetCurrentSolution(newSolution);
-                    _ = this.RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.SolutionChanged, oldSolution, newSolution);
-                }
-            }
-        }
-
-        [System.Diagnostics.Contracts.Pure]
-        private static Solution UpdateReferencesAfterAdd(Solution solution)
-        {
-            // Build map from output assembly path to ProjectId
-            // Use explicit loop instead of ToDictionary so we don't throw if multiple projects have same output assembly path.
-            var outputAssemblyToProjectIdMap = new Dictionary<string, ProjectId>();
-            foreach (var p in solution.Projects)
-            {
-                if (!string.IsNullOrEmpty(p.OutputFilePath))
-                {
-                    outputAssemblyToProjectIdMap[p.OutputFilePath!] = p.Id;
-                }
-
-                if (!string.IsNullOrEmpty(p.OutputRefFilePath))
-                {
-                    outputAssemblyToProjectIdMap[p.OutputRefFilePath!] = p.Id;
-                }
-            }
-
-            // now fix each project if necessary
-            foreach (var pid in solution.ProjectIds)
-            {
-                var project = solution.GetProject(pid)!;
-
-                // convert metadata references to project references if the metadata reference matches some project's output assembly.
-                foreach (var meta in project.MetadataReferences)
-                {
-                    if (meta is PortableExecutableReference pemeta)
+                    if (!string.IsNullOrEmpty(p.OutputFilePath))
                     {
-                        // check both Display and FilePath. FilePath points to the actually bits, but Display should match output path if
-                        // the metadata reference is shadow copied.
-                        if ((!RoslynString.IsNullOrEmpty(pemeta.Display) && outputAssemblyToProjectIdMap.TryGetValue(pemeta.Display, out var matchingProjectId)) ||
-                            (!RoslynString.IsNullOrEmpty(pemeta.FilePath) && outputAssemblyToProjectIdMap.TryGetValue(pemeta.FilePath, out matchingProjectId)))
-                        {
-                            var newProjRef = new ProjectReference(matchingProjectId, pemeta.Properties.Aliases, pemeta.Properties.EmbedInteropTypes);
+                        outputAssemblyToProjectIdMap[p.OutputFilePath!] = p.Id;
+                    }
 
-                            if (!project.ProjectReferences.Contains(newProjRef))
-                            {
-                                project = project.AddProjectReference(newProjRef);
-                            }
-
-                            project = project.RemoveMetadataReference(meta);
-                        }
+                    if (!string.IsNullOrEmpty(p.OutputRefFilePath))
+                    {
+                        outputAssemblyToProjectIdMap[p.OutputRefFilePath!] = p.Id;
                     }
                 }
 
-                solution = project.Solution;
-            }
+                // now fix each project if necessary
+                foreach (var pid in solution.ProjectIds)
+                {
+                    var project = solution.GetProject(pid)!;
 
-            return solution;
+                    // convert metadata references to project references if the metadata reference matches some project's output assembly.
+                    foreach (var meta in project.MetadataReferences)
+                    {
+                        if (meta is PortableExecutableReference pemeta)
+                        {
+                            // check both Display and FilePath. FilePath points to the actually bits, but Display should match output path if
+                            // the metadata reference is shadow copied.
+                            if ((!RoslynString.IsNullOrEmpty(pemeta.Display) && outputAssemblyToProjectIdMap.TryGetValue(pemeta.Display, out var matchingProjectId)) ||
+                                (!RoslynString.IsNullOrEmpty(pemeta.FilePath) && outputAssemblyToProjectIdMap.TryGetValue(pemeta.FilePath, out matchingProjectId)))
+                            {
+                                var newProjRef = new ProjectReference(matchingProjectId, pemeta.Properties.Aliases, pemeta.Properties.EmbedInteropTypes);
+
+                                if (!project.ProjectReferences.Contains(newProjRef))
+                                {
+                                    project = project.AddProjectReference(newProjRef);
+                                }
+
+                                project = project.RemoveMetadataReference(meta);
+                            }
+                        }
+                    }
+
+                    solution = project.Solution;
+                }
+
+                return solution;
+            }
         }
 
         #endregion
@@ -1644,44 +1643,32 @@ namespace Microsoft.CodeAnalysis
         private static ProjectInfo CreateProjectInfo(Project project)
         {
             return ProjectInfo.Create(
-                project.Id,
-                VersionStamp.Create(),
-                project.Name,
-                project.AssemblyName,
-                project.Language,
-                project.FilePath,
-                project.OutputFilePath,
+                project.State.Attributes.With(version: VersionStamp.Create()),
                 project.CompilationOptions,
                 project.ParseOptions,
                 project.Documents.Select(CreateDocumentInfoWithText),
                 project.ProjectReferences,
                 project.MetadataReferences,
                 project.AnalyzerReferences,
-                project.AdditionalDocuments.Select(CreateDocumentInfoWithText),
-                project.IsSubmission,
-                project.State.HostObjectType,
-                project.OutputRefFilePath)
-                .WithDefaultNamespace(project.DefaultNamespace)
-                .WithAnalyzerConfigDocuments(project.AnalyzerConfigDocuments.Select(CreateDocumentInfoWithText));
+                additionalDocuments: project.AdditionalDocuments.Select(CreateDocumentInfoWithText),
+                analyzerConfigDocuments: project.AnalyzerConfigDocuments.Select(CreateDocumentInfoWithText),
+                hostObjectType: project.State.HostObjectType);
         }
 
         private static DocumentInfo CreateDocumentInfoWithText(TextDocument doc)
             => CreateDocumentInfoWithoutText(doc).WithTextLoader(TextLoader.From(TextAndVersion.Create(doc.GetTextSynchronously(CancellationToken.None), VersionStamp.Create(), doc.FilePath)));
 
         internal static DocumentInfo CreateDocumentInfoWithoutText(TextDocument doc)
-        {
-            var sourceDoc = doc as Document;
-            return DocumentInfo.Create(
+            => DocumentInfo.Create(
                 doc.Id,
                 doc.Name,
                 doc.Folders,
-                sourceDoc != null ? sourceDoc.SourceCodeKind : SourceCodeKind.Regular,
+                doc is Document sourceDoc ? sourceDoc.SourceCodeKind : SourceCodeKind.Regular,
                 loader: null,
                 filePath: doc.FilePath,
-                isGenerated: false,
-                designTimeOnly: false,
-                doc.Services);
-        }
+                isGenerated: doc.State.Attributes.IsGenerated)
+                .WithDesignTimeOnly(doc.State.Attributes.DesignTimeOnly)
+                .WithDocumentServiceProvider(doc.Services);
 
         /// <summary>
         /// This method is called during <see cref="TryApplyChanges(Solution)"/> to add a project to the current solution.

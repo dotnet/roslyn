@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis
             if (semanticModel != null)
             {
                 Debug.Assert(semanticModel.ContainingModelOrSelf != null);
-                if (semanticModel.IsSpeculativeSemanticModel)
+                if (semanticModel.Language != LanguageNames.CSharp && semanticModel.IsSpeculativeSemanticModel)
                 {
                     Debug.Assert(semanticModel.ContainingModelOrSelf == semanticModel);
                 }

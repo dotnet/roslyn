@@ -255,7 +255,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim analyzedArguments = BindAttributeArguments(attributeTypeForBinding, argumentListOpt, diagnostics)
             Dim boundArguments As ImmutableArray(Of BoundExpression) = analyzedArguments.positionalArguments
             Dim boundNamedArguments As ImmutableArray(Of BoundExpression) = analyzedArguments.namedArguments
-
+            Dim defaultArguments As BitVector = Nothing
             If Not attributeTypeForBinding.IsErrorType() Then
 
                 ' Filter out inaccessible constructors 
@@ -351,10 +351,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             ' There should not be any used temporaries or copy back expressions because arguments must
                             ' be constants and they cannot be passed byref. 
                             Dim argumentInfo As (Arguments As ImmutableArray(Of BoundExpression), DefaultArguments As BitVector) = PassArguments(node.Name, methodResult, boundArguments, diagnostics)
-                            ' We don't do anything with the default parameter info currently, as we don't expose IOperations for
-                            ' Attributes. If that changes, we can add this info to the BoundAttribute node.
                             boundArguments = argumentInfo.Arguments
-
+                            defaultArguments = argumentInfo.DefaultArguments
                             Debug.Assert(Not boundArguments.Any(Function(a) a.Kind = BoundKind.ByRefArgumentWithCopyBack))
 
                             If methodSym.DeclaredAccessibility <> Accessibility.Public Then
@@ -369,7 +367,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             End If
 
-            Return New BoundAttribute(node, methodSym, boundArguments, boundNamedArguments, resultKind, type, hasErrors:=resultKind <> LookupResultKind.Good)
+            Return New BoundAttribute(node, methodSym, boundArguments, defaultArguments, boundNamedArguments, resultKind, type, hasErrors:=resultKind <> LookupResultKind.Good)
         End Function
 
 
