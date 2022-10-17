@@ -5642,5 +5642,57 @@ class C
                 """;
             CreateCompilation(source).VerifyDiagnostics();
         }
+
+        [Fact, WorkItem(1614551, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1614551")]
+        public void LocalMethod_Attribute()
+        {
+            var source = """
+                using System;
+                class A : Attribute
+                {
+                    public A(int param) { }
+                    public int Prop { get; set; }
+                }
+                class Program
+                {
+                    static void Main()
+                    {
+                        const int N1 = 10;
+                        const int N2 = 20;
+                        const int N3 = 30;
+                        const int N4 = 40;
+                        [A(N1, Prop = N2)][return: A(N3, Prop = N4)] int F() => 50;
+                        F();
+                    }
+                }
+                """;
+            CreateCompilation(source).VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem(1614551, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1614551")]
+        public void LambdaMethod_Attribute()
+        {
+            var source = """
+                using System;
+                class A : Attribute
+                {
+                    public A(int param) { }
+                    public int Prop { get; set; }
+                }
+                class Program
+                {
+                    static void Main()
+                    {
+                        const int N1 = 10;
+                        const int N2 = 20;
+                        const int N3 = 30;
+                        const int N4 = 40;
+                        var lam = [A(N1, Prop = N2)][return: A(N3, Prop = N4)] () => 50;
+                        lam();
+                    }
+                }
+                """;
+            CreateCompilation(source).VerifyDiagnostics();
+        }
     }
 }
