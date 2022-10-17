@@ -166,7 +166,7 @@ namespace Microsoft.CodeAnalysis
         /// This method does not guarantee that linked files will have the same contents. Callers
         /// should enforce that policy before passing in the new solution.
         /// </remarks>
-        protected (Solution oldSolution, Solution newSolution) SetCurrentSolutionEx(Solution solution)
+        internal (Solution oldSolution, Solution newSolution) SetCurrentSolutionEx(Solution solution)
         {
             if (solution is null)
             {
