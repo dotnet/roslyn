@@ -16,6 +16,7 @@ using Microsoft.CodeAnalysis.LanguageServer.Handler.Completion;
 using Microsoft.CodeAnalysis.Options;
 using Roslyn.Test.Utilities;
 using Xunit;
+using Xunit.Abstractions;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Completion
@@ -36,6 +37,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Completion
                 }
             }
         };
+
+        public CompletionTests(ITestOutputHelper testOutputHelper) : base(testOutputHelper)
+        {
+        }
 
         [Fact]
         public async Task TestGetCompletionsAsync_PromotesCommitCharactersToListAsync()

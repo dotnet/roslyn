@@ -159,6 +159,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
                 this,
                 serverStream,
                 serverStream,
+                ServerKind,
                 _lspLoggerFactory,
                 cancellationToken).ConfigureAwait(false);
 
@@ -192,6 +193,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
             AbstractInProcLanguageClient languageClient,
             Stream inputStream,
             Stream outputStream,
+            WellKnownLspServerKinds serverKind,
             ILspServiceLoggerFactory lspLoggerFactory,
             CancellationToken cancellationToken)
         {
@@ -210,6 +212,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
             var server = languageClient.Create(
                 jsonRpc,
                 languageClient,
+                serverKind,
                 logger);
 
             jsonRpc.StartListening();
@@ -219,6 +222,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
         public AbstractLanguageServer<RequestContext> Create(
             JsonRpc jsonRpc,
             ICapabilitiesProvider capabilitiesProvider,
+            WellKnownLspServerKinds serverKind,
             ILspServiceLogger logger)
         {
             var server = new RoslynLanguageServer(
@@ -227,7 +231,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
                 capabilitiesProvider,
                 logger,
                 SupportedLanguages,
-                ServerKind);
+                serverKind);
 
             return server;
         }

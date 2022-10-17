@@ -383,16 +383,9 @@ namespace Microsoft.CodeAnalysis
                 }
                 else
                 {
-                    // We don't have the old text or version.  And we don't want to retrieve them
-                    // just yet (as that would cause blocking in this synchronous method).  So just
-                    // make a simple loader to do that for us later when requested.
-                    //
+                    // We don't have the old text or version.  Rather than trying to reuse a version that we still have, let's just assume the file has changed.
                     // keep open document text alive by using PreserveIdentity
-                    //
-                    // Note: we pass along the newText here so that clients can easily get the text
-                    // of an opened document just by calling TryGetText without any blocking.
-                    currentSolution = oldSolution.UpdateDocumentTextLoader(documentId,
-                        new ReuseVersionLoader((DocumentState)oldDocument.State, newText), newText, PreservationMode.PreserveIdentity);
+                    currentSolution = oldSolution.WithDocumentText(documentId, newText, PreservationMode.PreserveValue);
                 }
 
                 var newSolution = this.SetCurrentSolution(currentSolution);
@@ -459,36 +452,6 @@ namespace Microsoft.CodeAnalysis
                 _ = RaiseDocumentClosedEventAsync(document).CompletesAsyncOperation(token);
                 token = _taskQueue.Listener.BeginAsyncOperation(TextDocumentClosedEventName);
                 _ = RaiseTextDocumentClosedEventAsync(document).CompletesAsyncOperation(token);
-            }
-        }
-
-        private class ReuseVersionLoader : TextLoader
-        {
-            // Capture DocumentState instead of Document so that we don't hold onto the old solution.
-            private readonly DocumentState _oldDocumentState;
-            private readonly SourceText _newText;
-
-            public ReuseVersionLoader(DocumentState oldDocumentState, SourceText newText)
-            {
-                _oldDocumentState = oldDocumentState;
-                _newText = newText;
-            }
-
-            public override async Task<TextAndVersion> LoadTextAndVersionAsync(
-                Workspace workspace, DocumentId documentId, CancellationToken cancellationToken)
-            {
-                var oldText = await _oldDocumentState.GetTextAsync(cancellationToken).ConfigureAwait(false);
-                var version = await _oldDocumentState.GetTextVersionAsync(cancellationToken).ConfigureAwait(false);
-
-                return GetProperTextAndVersion(oldText, _newText, version, _oldDocumentState.FilePath);
-            }
-
-            internal override TextAndVersion LoadTextAndVersionSynchronously(Workspace workspace, DocumentId documentId, CancellationToken cancellationToken)
-            {
-                var oldText = _oldDocumentState.GetTextSynchronously(cancellationToken);
-                var version = _oldDocumentState.GetTextVersionSynchronously(cancellationToken);
-
-                return GetProperTextAndVersion(oldText, _newText, version, _oldDocumentState.FilePath);
             }
         }
 

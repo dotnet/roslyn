@@ -11,12 +11,17 @@ using Microsoft.CodeAnalysis.LanguageServer.Handler.DocumentChanges;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests
 {
     [UseExportProvider]
     public class LanguageServerTargetTests : AbstractLanguageServerProtocolTests
     {
+        public LanguageServerTargetTests(ITestOutputHelper testOutputHelper) : base(testOutputHelper)
+        {
+        }
+
         protected override TestComposition Composition => base.Composition.AddParts(typeof(StatefulLspServiceFactory), typeof(StatelessLspService));
 
         [Fact]

@@ -69,6 +69,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             int position,
             SymbolDescriptionOptions options,
             LanguageServices languageServices,
+            ClientCapabilities clientCapabilities,
             CancellationToken cancellationToken)
         {
             Debug.Assert(semanticModel.Language is LanguageNames.CSharp or LanguageNames.VisualBasic);
@@ -83,7 +84,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             }
 
             var text = await semanticModel.SyntaxTree.GetTextAsync(cancellationToken).ConfigureAwait(false);
-            return await GetHoverAsync(info, text, semanticModel.Language, document: null, classificationOptions: null, clientCapabilities: null, cancellationToken).ConfigureAwait(false);
+            return await GetHoverAsync(info, text, semanticModel.Language, document: null, classificationOptions: null, clientCapabilities, cancellationToken).ConfigureAwait(false);
         }
 
         private static async Task<Hover> GetHoverAsync(

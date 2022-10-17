@@ -12,12 +12,18 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
+using Xunit.Abstractions;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Diagnostics;
 public class AdditionalFileDiagnosticsTests : AbstractPullDiagnosticTestsBase
 {
+    public AdditionalFileDiagnosticsTests(ITestOutputHelper testOutputHelper) : base(testOutputHelper)
+    {
+    }
+
     [Theory, CombinatorialData]
     public async Task TestWorkspaceDiagnosticsReportsAdditionalFileDiagnostic(bool useVSDiagnostics)
     {
@@ -32,12 +38,12 @@ public class AdditionalFileDiagnosticsTests : AbstractPullDiagnosticTestsBase
         await using var testLspServer = await CreateTestWorkspaceFromXmlAsync(workspaceXml, BackgroundAnalysisScope.FullSolution, useVSDiagnostics);
 
         var results = await RunGetWorkspacePullDiagnosticsAsync(testLspServer, useVSDiagnostics);
-        Assert.Equal(3, results.Length);
-
-        Assert.Empty(results[0].Diagnostics);
-        Assert.Equal(MockAdditionalFileDiagnosticAnalyzer.Id, results[1].Diagnostics.Single().Code);
-        Assert.Equal(@"C:\Test.txt", results[1].Uri.LocalPath);
-        Assert.Empty(results[2].Diagnostics);
+        AssertEx.Equal(new[]
+        {
+            @"C:\C.cs: []",
+            @$"C:\Test.txt: [{MockAdditionalFileDiagnosticAnalyzer.Id}]",
+            @"C:\CSProj1.csproj: []"
+        }, results.Select(r => $"{r.Uri.LocalPath}: [{string.Join(", ", r.Diagnostics.Select(d => d.Code?.Value?.ToString()))}]"));
 
         // Asking again should give us back an unchanged diagnostic.
         var results2 = await RunGetWorkspacePullDiagnosticsAsync(testLspServer, useVSDiagnostics, previousResults: CreateDiagnosticParamsFromPreviousReports(results));
@@ -121,8 +127,10 @@ public class AdditionalFileDiagnosticsTests : AbstractPullDiagnosticTestsBase
 
     protected override TestComposition Composition => base.Composition.AddParts(typeof(MockAdditionalFileDiagnosticAnalyzer));
 
-    private protected override TestAnalyzerReferenceByLanguage TestAnalyzerReferences => new(ImmutableDictionary.Create<string, ImmutableArray<DiagnosticAnalyzer>>()
-        .Add(LanguageNames.CSharp, ImmutableArray.Create(DiagnosticExtensions.GetCompilerDiagnosticAnalyzer(LanguageNames.CSharp), new MockAdditionalFileDiagnosticAnalyzer())));
+    private protected override TestAnalyzerReferenceByLanguage CreateTestAnalyzersReference()
+        => new(ImmutableDictionary<string, ImmutableArray<DiagnosticAnalyzer>>.Empty.Add(LanguageNames.CSharp, ImmutableArray.Create(
+                DiagnosticExtensions.GetCompilerDiagnosticAnalyzer(LanguageNames.CSharp),
+                new MockAdditionalFileDiagnosticAnalyzer())));
 
     [DiagnosticAnalyzer(LanguageNames.CSharp), PartNotDiscoverable]
     private class MockAdditionalFileDiagnosticAnalyzer : DiagnosticAnalyzer

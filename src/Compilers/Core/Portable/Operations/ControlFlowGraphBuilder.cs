@@ -98,7 +98,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                     body.Kind == OperationKind.ConstructorBody ||
                     body.Kind == OperationKind.FieldInitializer ||
                     body.Kind == OperationKind.PropertyInitializer ||
-                    body.Kind == OperationKind.ParameterInitializer,
+                    body.Kind == OperationKind.ParameterInitializer ||
+                    body.Kind == OperationKind.Attribute,
                     $"Unexpected root operation kind: {body.Kind}");
                 Debug.Assert(parent == null);
             }
@@ -7823,6 +7824,11 @@ oneMoreTime:
 
                 return set.Count == properties.Count();
             }
+        }
+
+        public override IOperation VisitAttribute(IAttributeOperation operation, int? captureIdForResult)
+        {
+            return new AttributeOperation(Visit(operation.Operation, captureIdForResult)!, semanticModel: null, operation.Syntax, IsImplicit(operation));
         }
     }
 }
