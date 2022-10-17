@@ -575,7 +575,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <summary>
         /// Binds attributes applied to this parameter.
         /// </summary>
-        public ImmutableArray<BoundAttribute> BindParameterAttributes()
+        public ImmutableArray<(CSharpAttributeData, BoundAttribute)> BindParameterAttributes()
         {
             return BindAttributes(GetAttributeDeclarations(), WithTypeParametersBinderOpt);
         }

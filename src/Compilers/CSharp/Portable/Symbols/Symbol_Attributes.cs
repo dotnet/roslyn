@@ -521,10 +521,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Binds attributes applied to this symbol.
         /// </summary>
-        protected ImmutableArray<BoundAttribute> BindAttributes(OneOrMany<SyntaxList<AttributeListSyntax>> attributeDeclarations, Binder rootBinder)
+        protected ImmutableArray<(CSharpAttributeData, BoundAttribute)> BindAttributes(OneOrMany<SyntaxList<AttributeListSyntax>> attributeDeclarations, Binder rootBinder)
         {
             var binder = new ContextualAttributeBinder(rootBinder, this);
-            var boundAttributeArrayBuilder = ArrayBuilder<BoundAttribute>.GetInstance();
+            var boundAttributeArrayBuilder = ArrayBuilder<(CSharpAttributeData, BoundAttribute)>.GetInstance();
             foreach (var attributeListSyntaxList in attributeDeclarations)
             {
                 foreach (var attributeListSyntax in attributeListSyntaxList)
@@ -533,8 +533,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         var boundType = binder.BindType(attributeSyntax.Name, BindingDiagnosticBag.Discarded);
                         var boundTypeSymbol = (NamedTypeSymbol)boundType.Type;
-                        var boundAttribute = new ExecutableCodeBinder(attributeSyntax, binder.ContainingMemberOrLambda, binder)
-                            .BindAttribute(attributeSyntax, boundTypeSymbol, this, BindingDiagnosticBag.Discarded);
+                        var boundAttribute = binder.GetAttribute(attributeSyntax, boundTypeSymbol,
+                            beforeAttributePartBound: null, afterAttributePartBound: null, BindingDiagnosticBag.Discarded);
                         boundAttributeArrayBuilder.Add(boundAttribute);
                     }
                 }

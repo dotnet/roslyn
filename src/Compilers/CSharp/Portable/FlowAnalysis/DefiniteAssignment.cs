@@ -1697,10 +1697,16 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Marks attribute arguments as used.
         /// </summary>
-        private void VisitAttributes(ImmutableArray<BoundAttribute> boundAttributes)
+        private void VisitAttributes(ImmutableArray<(CSharpAttributeData, BoundAttribute)> boundAttributes)
         {
-            foreach (var boundAttribute in boundAttributes)
+            foreach (var (attributeData, boundAttribute) in boundAttributes)
             {
+                // Skip invalid attributes (e.g., with a non-constant argument) to avoid superfluous diagnostics.
+                if (attributeData.HasErrors)
+                {
+                    continue;
+                }
+
                 foreach (var attributeArgument in boundAttribute.ConstructorArguments)
                 {
                     VisitRvalue(attributeArgument);

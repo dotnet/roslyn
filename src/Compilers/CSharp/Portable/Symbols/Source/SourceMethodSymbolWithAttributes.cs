@@ -366,7 +366,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <summary>
         /// Binds attributes applied to this method.
         /// </summary>
-        public ImmutableArray<BoundAttribute> BindMethodAttributes()
+        public ImmutableArray<(CSharpAttributeData, BoundAttribute)> BindMethodAttributes()
         {
             Debug.Assert(OuterBinder is not null);
             return BindAttributes(GetAttributeDeclarations(), OuterBinder);
