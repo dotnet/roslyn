@@ -491,18 +491,10 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         protected internal void OnSolutionRemoved()
         {
-            // This currently doesn't use the SetCurrentSolution(transform) pattern as it changes mutable state (open
-            // docs), and as such needs to atomically change both that and the solution-snapshot.
-
-            using (_serializationLock.DisposableWait())
-            {
-                var (oldSolution, _) = this.ClearSolutionData_NoLock();
-
-                // reset to new empty solution
-                var (_, newSolution) = this.SetCurrentSolutionEx(this.CreateSolution(SolutionId.CreateNewId()));
-
-                this.RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.SolutionRemoved, oldSolution, newSolution);
-            }
+            this.SetCurrentSolution(
+                _ => this.CreateSolution(SolutionId.CreateNewId()),
+                WorkspaceChangeKind.SolutionRemoved,
+                onBeforeUpdate: (_, _) => this.ClearOpenDocuments());
         }
 
         /// <summary>
