@@ -425,8 +425,7 @@ namespace Microsoft.CodeAnalysis
         private static Solution CheckAndAddProject(Solution newSolution, ProjectInfo project)
         {
             CheckProjectIsNotInSolution(newSolution, project.Id);
-            newSolution = newSolution.AddProject(project);
-            return newSolution;
+            return newSolution.AddProject(project);
         }
 
         /// <summary>
