@@ -306,25 +306,32 @@ namespace Microsoft.CodeAnalysis.Remote
                 // if either solution id or file path changed, then we consider it as new solution. Otherwise,
                 // update the current solution in place.
 
-                var oldSolution = CurrentSolution;
-                var addingSolution = oldSolution.Id != newSolution.Id || oldSolution.FilePath != newSolution.FilePath;
-                if (addingSolution)
-                {
-                    // We're not doing an update, we're moving to a new solution entirely.  Clear out the old one. This
-                    // is necessary so that we clear out any open document information this workspace is tracking. Note:
-                    // this seems suspect as the remote workspace should not be tracking any open document state.
-                    ClearSolutionData();
-                }
-
-                // Ignore the 'oldSolution'.  We want the solution prior to potentially clearing solution data above. We
-                // are also serialized in a lock, so we don't need to worry about something interleaving with this.
-                (_, newSolution) = SetCurrentSolutionEx(newSolution);
-
-                _ = RaiseWorkspaceChangedEventAsync(
-                    addingSolution ? WorkspaceChangeKind.SolutionAdded : WorkspaceChangeKind.SolutionChanged, oldSolution, newSolution);
+                this.SetCurrentSolution(
+                    oldSolution => newSolution,
+                    data: /*unused*/0,
+                    onBeforeUpdate: (oldSolution, newSolution, data) =>
+                    {
+                        if (IsAddingSolution(oldSolution, newSolution))
+                        {
+                            // We're not doing an update, we're moving to a new solution entirely.  Clear out the old one. This
+                            // is necessary so that we clear out any open document information this workspace is tracking. Note:
+                            // this seems suspect as the remote workspace should not be tracking any open document state.
+                            this.ClearOpenDocuments();
+                        }
+                    },
+                    onAfterUpdate: (oldSolution, newSolution, data) =>
+                    {
+                        var addingSolution =
+                        RaiseWorkspaceChangedEventAsync(
+                            IsAddingSolution(oldSolution, newSolution) ? WorkspaceChangeKind.SolutionAdded : WorkspaceChangeKind.SolutionChanged,
+                            oldSolution, newSolution);
+                    });
 
                 return (newSolution, updated: true);
             }
+
+            static bool IsAddingSolution(Solution oldSolution, Solution newSolution)
+                => oldSolution.Id != newSolution.Id || oldSolution.FilePath != newSolution.FilePath;
         }
 
         public TestAccessor GetTestAccessor()

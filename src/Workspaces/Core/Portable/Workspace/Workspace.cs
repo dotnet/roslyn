@@ -234,7 +234,7 @@ namespace Microsoft.CodeAnalysis
         /// was replaced with. The latter may be different than the solution returned by <paramref
         /// name="transformation"/> as it will have its <see cref="Solution.WorkspaceVersion"/> updated
         /// accordingly.</param>
-        private bool SetCurrentSolution<TData>(
+        internal bool SetCurrentSolution<TData>(
             Func<Solution, TData, Solution> transformation,
             TData data,
             Action<Solution, Solution, TData>? onBeforeUpdate = null,
