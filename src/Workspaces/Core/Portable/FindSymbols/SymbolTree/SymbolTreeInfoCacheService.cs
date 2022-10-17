@@ -56,7 +56,7 @@ internal sealed partial class SymbolTreeInfoCacheServiceFactory
         void IDisposable.Dispose()
             => _tokenSource.Cancel();
 
-        public Task CreateWorkAsync(Func<Task> createWorkAsync, CancellationToken cancellationToken)
+        private Task CreateWorkAsync(Func<Task> createWorkAsync, CancellationToken cancellationToken)
             => Task.Factory.StartNew(createWorkAsync, cancellationToken, TaskCreationOptions.None, _scheduler).Unwrap();
 
         /// <summary>
