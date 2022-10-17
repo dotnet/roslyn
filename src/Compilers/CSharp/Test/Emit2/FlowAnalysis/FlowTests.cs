@@ -5570,12 +5570,16 @@ class C
                     static void Main()
                     {
                         const int N = 10;
+                        const int Unused = 20;
                         void F([Optional, DefaultParameterValue(N)] int x) => Console.WriteLine(x);
                         F();
                     }
                 }
                 """;
-            CreateCompilation(source).VerifyDiagnostics();
+            CreateCompilation(source).VerifyDiagnostics(
+                // (8,19): warning CS0219: The variable 'Unused' is assigned but its value is never used
+                //         const int Unused = 20;
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "Unused").WithArguments("Unused").WithLocation(8, 19));
         }
 
         [Fact, WorkItem(63911, "https://github.com/dotnet/roslyn/issues/63911")]
@@ -5589,12 +5593,16 @@ class C
                     static void Main()
                     {
                         const int N = 10;
+                        const int Unused = 20;
                         var lam = ([Optional, DefaultParameterValue(N)] int x) => Console.WriteLine(x);
                         lam(100);
                     }
                 }
                 """;
-            CreateCompilation(source).VerifyDiagnostics();
+            CreateCompilation(source).VerifyDiagnostics(
+                // (8,19): warning CS0219: The variable 'Unused' is assigned but its value is never used
+                //         const int Unused = 20;
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "Unused").WithArguments("Unused").WithLocation(8, 19));
         }
 
         [Fact, WorkItem(63911, "https://github.com/dotnet/roslyn/issues/63911")]
@@ -5612,12 +5620,16 @@ class C
                     static void Main()
                     {
                         const int N = 10;
+                        const int Unused = 20;
                         void F([A(Prop = N)] int x) { }
                         F(100);
                     }
                 }
                 """;
-            CreateCompilation(source).VerifyDiagnostics();
+            CreateCompilation(source).VerifyDiagnostics(
+                // (12,19): warning CS0219: The variable 'Unused' is assigned but its value is never used
+                //         const int Unused = 20;
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "Unused").WithArguments("Unused").WithLocation(12, 19));
         }
 
         [Fact, WorkItem(63911, "https://github.com/dotnet/roslyn/issues/63911")]
@@ -5635,16 +5647,20 @@ class C
                     static void Main()
                     {
                         const int N = 10;
+                        const int Unused = 20;
                         var lam = ([A(Prop = N)] int x) => { };
                         lam(100);
                     }
                 }
                 """;
-            CreateCompilation(source).VerifyDiagnostics();
+            CreateCompilation(source).VerifyDiagnostics(
+                // (12,19): warning CS0219: The variable 'Unused' is assigned but its value is never used
+                //         const int Unused = 20;
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "Unused").WithArguments("Unused").WithLocation(12, 19));
         }
 
-        [Fact, WorkItem(1614551, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1614551")]
-        public void LocalMethod_Attribute()
+        [Fact, WorkItem(60645, "https://github.com/dotnet/roslyn/issues/60645")]
+        public void LocalMethod_AttributeArguments()
         {
             var source = """
                 using System;
@@ -5661,16 +5677,51 @@ class C
                         const int N2 = 20;
                         const int N3 = 30;
                         const int N4 = 40;
-                        [A(N1, Prop = N2)][return: A(N3, Prop = N4)] int F() => 50;
+                        const int N5 = 50;
+                        const int N6 = 60;
+                        [A(N1, Prop = N2)][return: A(N3, Prop = N4)] int F() => N5;
                         F();
                     }
                 }
                 """;
-            CreateCompilation(source).VerifyDiagnostics();
+            CreateCompilation(source).VerifyDiagnostics(
+                // (16,19): warning CS0219: The variable 'N6' is assigned but its value is never used
+                //         const int N6 = 60;
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "N6").WithArguments("N6").WithLocation(16, 19));
         }
 
-        [Fact, WorkItem(1614551, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1614551")]
-        public void LambdaMethod_Attribute()
+        [Fact, WorkItem(60645, "https://github.com/dotnet/roslyn/issues/60645")]
+        public void LocalMethod_AttributeArguments_StringInterpolation()
+        {
+            var source = """
+                public class C
+                {
+                    public int P
+                    {
+                        get
+                        {
+                            const string X = "Hello";
+                            const string Y = "World";
+                            const string Z = "unused";
+                            [My($"{X}, World", Prop = $"Hello, {Y}")] int F() => 0;
+                            return F();
+                        }
+                    }
+                }
+                public class MyAttribute : System.Attribute
+                {
+                    public MyAttribute(string param) { }
+                    public string Prop { get; set; }
+                }
+                """;
+            CreateCompilation(source).VerifyDiagnostics(
+                // (9,26): warning CS0219: The variable 'Z' is assigned but its value is never used
+                //             const string Z = "unused";
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "Z").WithArguments("Z").WithLocation(9, 26));
+        }
+
+        [Fact, WorkItem(60645, "https://github.com/dotnet/roslyn/issues/60645")]
+        public void LambdaMethod_AttributeArguments()
         {
             var source = """
                 using System;
@@ -5687,12 +5738,47 @@ class C
                         const int N2 = 20;
                         const int N3 = 30;
                         const int N4 = 40;
-                        var lam = [A(N1, Prop = N2)][return: A(N3, Prop = N4)] () => 50;
+                        const int N5 = 50;
+                        const int N6 = 60;
+                        var lam = [A(N1, Prop = N2)][return: A(N3, Prop = N4)] () => N5;
                         lam();
                     }
                 }
                 """;
-            CreateCompilation(source).VerifyDiagnostics();
+            CreateCompilation(source).VerifyDiagnostics(
+                // (16,19): warning CS0219: The variable 'N6' is assigned but its value is never used
+                //         const int N6 = 60;
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "N6").WithArguments("N6").WithLocation(16, 19));
+        }
+
+        [Fact, WorkItem(60645, "https://github.com/dotnet/roslyn/issues/60645")]
+        public void LambdaMethod_AttributeArguments_StringInterpolation()
+        {
+            var source = """
+                public class C
+                {
+                    public int P
+                    {
+                        get
+                        {
+                            const string X = "Hello";
+                            const string Y = "World";
+                            const string Z = "unused";
+                            var f = [My($"{X}, World", Prop = $"Hello, {Y}")] () => 0;
+                            return f();
+                        }
+                    }
+                }
+                public class MyAttribute : System.Attribute
+                {
+                    public MyAttribute(string param) { }
+                    public string Prop { get; set; }
+                }
+                """;
+            CreateCompilation(source).VerifyDiagnostics(
+                // (9,26): warning CS0219: The variable 'Z' is assigned but its value is never used
+                //             const string Z = "unused";
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "Z").WithArguments("Z").WithLocation(9, 26));
         }
     }
 }
