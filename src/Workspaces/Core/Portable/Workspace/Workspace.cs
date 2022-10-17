@@ -367,20 +367,13 @@ namespace Microsoft.CodeAnalysis
         {
             using (_serializationLock.DisposableWait())
             {
-                ClearSolutionData_NoLock();
+                // clear any open documents
+                this.ClearOpenDocuments();
+
+                this.SetCurrentSolutionEx(this.CreateSolution(this.CurrentSolution.Id));
 
                 // TODO: Are we missing a call to RaiseWorkspaceChangedEventAsync here?
             }
-        }
-
-        private (Solution oldSolution, Solution newSolution) ClearSolutionData_NoLock()
-        {
-            Contract.ThrowIfTrue(_serializationLock.CurrentCount > 0);
-
-            // clear any open documents
-            this.ClearOpenDocuments();
-
-            return this.SetCurrentSolutionEx(this.CreateSolution(this.CurrentSolution.Id));
         }
 
         /// <summary>
