@@ -1630,7 +1630,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             if (!solutionChanges.HasChange)
                 return;
 
-            // Clear out mutable state not associated with teh solution snapshot (for example, which documents are
+            // Clear out mutable state not associated with the solution snapshot (for example, which documents are
             // currently open).
             foreach (var documentId in solutionChanges.DocumentIdsRemoved)
                 this.ClearDocumentData(documentId);
