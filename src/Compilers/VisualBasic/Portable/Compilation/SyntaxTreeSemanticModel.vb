@@ -1423,12 +1423,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        Friend Overrides ReadOnly Property ContainingPublicModelOrSelf As SemanticModel
-            Get
-                Return Me
-            End Get
-        End Property
-
         Friend Overrides Function TryGetSpeculativeSemanticModelForMethodBodyCore(parentModel As SyntaxTreeSemanticModel, position As Integer, method As MethodBlockBaseSyntax, <Out> ByRef speculativeModel As PublicSemanticModel) As Boolean
             Dim memberModel = Me.GetMemberSemanticModel(position)
             If memberModel IsNot Nothing Then

@@ -12,5 +12,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     Friend MustInherit Class PublicSemanticModel
         Inherits VBSemanticModel
 
+        Friend NotOverridable Overrides ReadOnly Property ContainingPublicModelOrSelf As SemanticModel
+            Get
+                Return Me
+            End Get
+        End Property
+
     End Class
 End Namespace

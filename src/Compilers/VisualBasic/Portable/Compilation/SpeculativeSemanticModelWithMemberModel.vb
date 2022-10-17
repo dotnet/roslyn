@@ -110,12 +110,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        Friend Overrides ReadOnly Property ContainingPublicModelOrSelf As SemanticModel
-            Get
-                Return Me
-            End Get
-        End Property
-
         Public Overrides ReadOnly Property IgnoresAccessibility As Boolean
             Get
                 Return Me._parentSemanticModel.IgnoresAccessibility
