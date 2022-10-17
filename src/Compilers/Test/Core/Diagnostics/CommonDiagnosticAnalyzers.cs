@@ -62,14 +62,18 @@ namespace Microsoft.CodeAnalysis
 
             public override void Initialize(AnalysisContext context)
             {
-                context.RegisterCompilationAction(compilationContext =>
+                context.RegisterCompilationStartAction(context =>
                 {
                     // With location diagnostic.
-                    var location = compilationContext.Compilation.SyntaxTrees.First().GetRoot().GetLocation();
-                    compilationContext.ReportDiagnostic(Diagnostic.Create(Descriptor1, location, s_properties));
+                    context.RegisterSyntaxTreeAction(context =>
+                    {
+                        var location = context.Tree.GetRoot().GetLocation();
+                        context.ReportDiagnostic(Diagnostic.Create(Descriptor1, location, s_properties));
+                    });
 
                     // No location diagnostic.
-                    compilationContext.ReportDiagnostic(Diagnostic.Create(Descriptor2, Location.None, s_properties));
+                    context.RegisterCompilationEndAction(context =>
+                        context.ReportDiagnostic(Diagnostic.Create(Descriptor2, Location.None, s_properties)));
                 });
             }
 
@@ -367,7 +371,7 @@ namespace Microsoft.CodeAnalysis
                 return string.Empty;
             }
 
-            public static string GetExpectedV2ErrorLogRulesText(params string[] suppressionKinds)
+            public static string GetExpectedV2ErrorLogRulesText(string[] suppressionKinds1 = null, string[] suppressionKinds2 = null)
             {
                 return
 @"          ""rules"": [
@@ -381,7 +385,7 @@ namespace Microsoft.CodeAnalysis
               },
               ""helpUri"": """ + Descriptor1.HelpLinkUri + @""",
               ""properties"": {
-                ""category"": """ + Descriptor1.Category + @"""" + GetExpectedV2SuppressionTextForRulesSection(suppressionKinds) + @",
+                ""category"": """ + Descriptor1.Category + @"""" + GetExpectedV2SuppressionTextForRulesSection(suppressionKinds1) + @",
                 ""tags"": [
                   " + string.Join("," + Environment.NewLine + "                  ", Descriptor1.CustomTags.Select(s => $"\"{s}\"")) + @"
                 ]
@@ -400,7 +404,7 @@ namespace Microsoft.CodeAnalysis
               },
               ""helpUri"": """ + Descriptor2.HelpLinkUri + @""",
               ""properties"": {
-                ""category"": """ + Descriptor2.Category + @""",
+                ""category"": """ + Descriptor2.Category + @"""" + GetExpectedV2SuppressionTextForRulesSection(suppressionKinds2) + @",
                 ""tags"": [
                   " + String.Join("," + Environment.NewLine + "                  ", Descriptor2.CustomTags.Select(s => $"\"{s}\"")) + @"
                 ]
