@@ -29,8 +29,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
     /// </summary>
     internal partial class SymbolTreeInfo : IChecksummedObject
     {
-        private static readonly StringSliceComparer s_caseInsensitiveComparer =
-            StringSliceComparer.OrdinalIgnoreCase;
+        private static readonly StringComparer s_caseInsensitiveComparer =
+            CaseInsensitiveComparison.Comparer;
 
         public Checksum Checksum { get; }
 
@@ -193,7 +193,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         {
             using var results = TemporaryArray<ISymbol>.Empty;
 
-            var nameSlice = name.AsMemory();
             var (startIndexInclusive, endIndexExclusive) = FindCaseInsensitiveNodeIndices(_nodes, name);
 
             IAssemblySymbol? assemblySymbol = null;
@@ -204,7 +203,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 // The find-operation found the case-insensitive range of results.  So if the caller wants
                 // case-insensitive, then just check all of them.  If they caller wants case-sensitive, then
                 // actually check that the node matches case-sensitively
-                if (ignoreCase || StringSliceComparer.Ordinal.Equals(nameSlice, node.Name.AsMemory()))
+                if (ignoreCase || StringComparer.Ordinal.Equals(name, node.Name))
                 {
                     assemblySymbol ??= await lazyAssembly.GetValueAsync(cancellationToken).ConfigureAwait(false);
                     Bind(index, assemblySymbol.GlobalNamespace, ref results.AsRef(), cancellationToken);
@@ -223,23 +222,15 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             if (startingPosition == -1)
                 return default;
 
-            var nameSlice = name.AsMemory();
-
             var startIndex = startingPosition;
-            while (startIndex > 0 && s_caseInsensitiveComparer.Equals(GetNameSlice(nodes, startIndex - 1), nameSlice))
+            while (startIndex > 0 && s_caseInsensitiveComparer.Equals(nodes[startIndex - 1].Name, name))
                 startIndex--;
 
             var endIndex = startingPosition;
-            while (endIndex + 1 < nodes.Length && s_caseInsensitiveComparer.Equals(GetNameSlice(nodes, endIndex + 1), nameSlice))
+            while (endIndex + 1 < nodes.Length && s_caseInsensitiveComparer.Equals(nodes[endIndex + 1].Name, name))
                 endIndex++;
 
             return (startIndex, endIndex + 1);
-        }
-
-        private static ReadOnlyMemory<char> GetNameSlice(
-            ImmutableArray<Node> nodes, int nodeIndex)
-        {
-            return nodes[nodeIndex].Name.AsMemory();
         }
 
         private int BinarySearch(string name)
@@ -250,7 +241,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         /// </summary>
         private static int BinarySearch(ImmutableArray<Node> nodes, string name)
         {
-            var nameSlice = name.AsMemory();
             var max = nodes.Length - 1;
             var min = 0;
 
@@ -258,8 +248,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             {
                 var mid = min + ((max - min) >> 1);
 
-                var comparison = s_caseInsensitiveComparer.Compare(
-                    GetNameSlice(nodes, mid), nameSlice);
+                var comparison = s_caseInsensitiveComparer.Compare(nodes[mid].Name, name);
                 if (comparison < 0)
                 {
                     min = mid + 1;
@@ -463,14 +452,13 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
                 foreach (var derivedName in derivedNames)
                 {
-                    var derivedNameSlice = derivedName.AsMemory();
                     var (startIndexInclusive, endIndexExclusive) = FindCaseInsensitiveNodeIndices(nodes, derivedName);
 
                     for (var derivedNameIndex = startIndexInclusive; derivedNameIndex < endIndexExclusive; derivedNameIndex++)
                     {
                         var node = nodes[derivedNameIndex];
                         // All names in metadata will be case sensitive.
-                        if (StringSliceComparer.Ordinal.Equals(derivedNameSlice, node.Name.AsMemory()))
+                        if (StringComparer.Ordinal.Equals(derivedName, node.Name))
                             result.Add(baseNameIndex, derivedNameIndex);
                     }
                 }
