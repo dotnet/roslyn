@@ -4,6 +4,7 @@
 
 #nullable disable
 
+using System;
 using System.Globalization;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
@@ -153,7 +154,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CommandLine.UnitTests
             SimpleCompilerDiagnosticsImpl();
         }
 
-        internal override string GetExpectedOutputForSimpleCompilerDiagnosticsSuppressed(CommonCompiler cmd, string sourceFile)
+        internal override string GetExpectedOutputForSimpleCompilerDiagnosticsSuppressed(CommonCompiler cmd, string sourceFile, params string[] suppressionKinds)
         {
             string expectedOutput =
 @"{{
@@ -235,7 +236,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CommandLine.UnitTests
               }},
               ""helpUri"": ""https://msdn.microsoft.com/query/roslyn.query?appId=roslyn&k=k(CS0169)"",
               ""properties"": {{
-                ""category"": ""Compiler"",
+                ""category"": ""Compiler""" + AnalyzerForErrorLogTest.GetExpectedV2SuppressionTextForRulesSection(suppressionKinds) + @",
                 ""tags"": [
                   ""Compiler"",
                   ""Telemetry""
@@ -292,7 +293,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CommandLine.UnitTests
                 AnalyzerForErrorLogTest.GetExpectedV2ErrorLogRulesText());
         }
 
-        internal override string GetExpectedOutputForAnalyzerDiagnosticsWithSuppression(MockCSharpCompiler cmd, string justification, string suppressionType)
+        internal override string GetExpectedOutputForAnalyzerDiagnosticsWithSuppression(MockCSharpCompiler cmd, string justification, string suppressionType, params string[] suppressionKinds)
         {
             string expectedOutput =
 @"{{
@@ -319,7 +320,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CommandLine.UnitTests
                 expectedOutput,
                 cmd,
                 AnalyzerForErrorLogTest.GetExpectedV2ErrorLogWithSuppressionResultsText(cmd.Compilation, justification, suppressionType),
-                AnalyzerForErrorLogTest.GetExpectedV2ErrorLogRulesText());
+                AnalyzerForErrorLogTest.GetExpectedV2ErrorLogRulesText(suppressionKinds));
         }
 
         [ConditionalFact(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/30289")]

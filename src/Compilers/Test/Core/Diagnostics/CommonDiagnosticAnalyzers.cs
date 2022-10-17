@@ -353,7 +353,21 @@ namespace Microsoft.CodeAnalysis
       ]";
             }
 
-            public static string GetExpectedV2ErrorLogRulesText()
+            public static string GetExpectedV2SuppressionTextForRulesSection(string[] suppressionKinds)
+            {
+                if (suppressionKinds?.Length > 0)
+                {
+                    return @",
+                ""isEverSuppressed"": ""true"",
+                ""suppressionKinds"": [
+                  " + string.Join("," + Environment.NewLine + "                  ", suppressionKinds.Select(s => $"\"{s}\"")) + @"
+                ]";
+                }
+
+                return string.Empty;
+            }
+
+            public static string GetExpectedV2ErrorLogRulesText(params string[] suppressionKinds)
             {
                 return
 @"          ""rules"": [
@@ -367,9 +381,9 @@ namespace Microsoft.CodeAnalysis
               },
               ""helpUri"": """ + Descriptor1.HelpLinkUri + @""",
               ""properties"": {
-                ""category"": """ + Descriptor1.Category + @""",
+                ""category"": """ + Descriptor1.Category + @"""" + GetExpectedV2SuppressionTextForRulesSection(suppressionKinds) + @",
                 ""tags"": [
-                  " + String.Join("," + Environment.NewLine + "                  ", Descriptor1.CustomTags.Select(s => $"\"{s}\"")) + @"
+                  " + string.Join("," + Environment.NewLine + "                  ", Descriptor1.CustomTags.Select(s => $"\"{s}\"")) + @"
                 ]
               }
             },
