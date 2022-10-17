@@ -962,30 +962,22 @@ class C1
         }
 
         [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
-        public async Task TestOpenSolution_WithLockedFile_FailsWithFailureEvent()
+        public async Task TestOpenSolution_WithLockedFile_LoadsWithEmptyText()
         {
-            // when skipped we should see a diagnostic for the invalid project
-
             CreateFiles(GetSimpleCSharpSolutionFiles());
             var solutionFilePath = GetSolutionFileName(@"TestSolution.sln");
 
             using var workspace = CreateMSBuildWorkspace(throwOnWorkspaceFailed: false);
+
             // open source file so it cannot be read by workspace;
             var sourceFile = GetSolutionFileName(@"CSharpProject\CSharpClass.cs");
-            var file = File.Open(sourceFile, FileMode.Open, FileAccess.Write, FileShare.None);
-            try
-            {
-                var solution = await workspace.OpenSolutionAsync(solutionFilePath);
-                var doc = solution.Projects.First().Documents.First(d => d.FilePath == sourceFile);
-                var text = await doc.GetTextAsync();
-                Assert.Empty(text.ToString());
-            }
-            finally
-            {
-                file.Close();
-            }
+            using var file = File.Open(sourceFile, FileMode.Open, FileAccess.Write, FileShare.None);
 
-            Assert.Equal(WorkspaceDiagnosticKind.Failure, workspace.Diagnostics.Single().Kind);
+            var solution = await workspace.OpenSolutionAsync(solutionFilePath);
+            var doc = solution.Projects.First().Documents.First(d => d.FilePath == sourceFile);
+            var text = await doc.GetTextAsync();
+            Assert.Empty(text.ToString());
+            Assert.NotNull(await doc.State.GetLoadDiagnosticAsync(CancellationToken.None));
         }
 
         [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
