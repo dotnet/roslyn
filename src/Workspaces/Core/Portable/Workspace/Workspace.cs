@@ -158,13 +158,15 @@ namespace Microsoft.CodeAnalysis
             => SetCurrentSolutionEx(solution).newSolution;
 
         /// <summary>
-        /// Sets the <see cref="CurrentSolution"/> of this workspace. This method does not raise a <see cref="WorkspaceChanged"/> event.
+        /// Sets the <see cref="CurrentSolution"/> of this workspace. This method does not raise a <see
+        /// cref="WorkspaceChanged"/> event.  This method should be used <em>sparingly</em>.  As much as possible,
+        /// derived types should use the SetCurrentSolution overloads that take a transformation.
         /// </summary>
         /// <remarks>
         /// This method does not guarantee that linked files will have the same contents. Callers
         /// should enforce that policy before passing in the new solution.
         /// </remarks>
-        internal (Solution oldSolution, Solution newSolution) SetCurrentSolutionEx(Solution solution)
+        private protected (Solution oldSolution, Solution newSolution) SetCurrentSolutionEx(Solution solution)
         {
             if (solution is null)
                 throw new ArgumentNullException(nameof(solution));
@@ -234,7 +236,7 @@ namespace Microsoft.CodeAnalysis
         /// was replaced with. The latter may be different than the solution returned by <paramref
         /// name="transformation"/> as it will have its <see cref="Solution.WorkspaceVersion"/> updated
         /// accordingly.</param>
-        internal bool SetCurrentSolution<TData>(
+        private protected bool SetCurrentSolution<TData>(
             Func<Solution, TData, Solution> transformation,
             TData data,
             Action<Solution, Solution, TData>? onBeforeUpdate = null,
