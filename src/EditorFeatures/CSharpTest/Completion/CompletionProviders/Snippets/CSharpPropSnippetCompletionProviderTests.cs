@@ -62,7 +62,7 @@ $$";
             var expectedCodeAfterCommit =
 @"class MyClass
 {
-    public int MyProperty {$$ get; set; }
+    public int MyProperty { get; set; }$$
 }";
             await VerifyCustomCommitProviderAsync(markupBeforeCommit, ItemToCommit, expectedCodeAfterCommit);
         }
@@ -79,7 +79,7 @@ $$";
             var expectedCodeAfterCommit =
 @"record MyRecord
 {
-    public int MyProperty {$$ get; set; }
+    public int MyProperty { get; set; }$$
 }";
             await VerifyCustomCommitProviderAsync(markupBeforeCommit, ItemToCommit, expectedCodeAfterCommit);
         }
@@ -96,7 +96,7 @@ $$";
             var expectedCodeAfterCommit =
 @"struct MyStruct
 {
-    public int MyProperty {$$ get; set; }
+    public int MyProperty { get; set; }$$
 }";
             await VerifyCustomCommitProviderAsync(markupBeforeCommit, ItemToCommit, expectedCodeAfterCommit);
         }
@@ -113,7 +113,7 @@ $$";
             var expectedCodeAfterCommit =
 @"interface MyInterface
 {
-    public int MyProperty {$$ get; set; }
+    public int MyProperty { get; set; }$$
 }";
             await VerifyCustomCommitProviderAsync(markupBeforeCommit, ItemToCommit, expectedCodeAfterCommit);
         }
@@ -132,7 +132,7 @@ $$";
 @"class MyClass
 {
     public int MyProperty { get; set; }
-    public int MyProperty1 {$$ get; set; }
+    public int MyProperty1 { get; set; }$$
 }";
             await VerifyCustomCommitProviderAsync(markupBeforeCommit, ItemToCommit, expectedCodeAfterCommit);
         }
