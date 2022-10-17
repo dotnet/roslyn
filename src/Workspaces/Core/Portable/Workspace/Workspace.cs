@@ -246,6 +246,10 @@ namespace Microsoft.CodeAnalysis
 
             var oldSolution = Volatile.Read(ref _latestSolution);
 
+            // Ensure our event handlers are realized prior to taking this lock.  We don't want to deadlock trying
+            // to obtain them when calling one of our callbacks. See https://github.com/dotnet/roslyn/issues/64681
+            GetEventHandlers<WorkspaceChangeEventArgs>(WorkspaceChangeEventName);
+
             while (true)
             {
                 // Run the transformation outside of the lock as it should not be making any state changes to us.
@@ -306,18 +310,9 @@ namespace Microsoft.CodeAnalysis
 
         internal void UpdateCurrentSolutionOnOptionsChanged()
         {
-            // TODO: this should be locked as it is updating CurrentSolution.  However, that triggers a deadlock in options due to:
-            // https://github.com/dotnet/roslyn/issues/64681
-            //
-            // This should be fixable once SolutionCrawler is entirely removed.
-            // using (_serializationLock.DisposableWait())
-            {
-                var (oldSolution, newSolution) = SetCurrentSolutionEx(CurrentSolution.WithOptions(new SolutionOptionSet(_legacyOptions)));
-
-                // Once we can actually make the change under a lock safely, we should ensure the below event gets issued.
-                //
-                // RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.SolutionChanged, oldSolution, newSolution);
-            }
+            SetCurrentSolution(
+                oldSolution => oldSolution.WithOptions(new SolutionOptionSet(_legacyOptions)),
+                WorkspaceChangeKind.SolutionChanged);
         }
 
         /// <summary>
