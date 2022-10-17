@@ -302,19 +302,5 @@ class C
             CleanupAllGeneratedFiles(sourceFile);
             CleanupAllGeneratedFiles(errorLogFile);
         }
-
-        protected static string GetSuppressionTextForRulesSection(string[] suppressionKinds)
-        {
-            if (suppressionKinds?.Length > 0)
-            {
-                return @",
-                ""isEverSuppressed"": ""true"",
-                ""suppressionKinds"": [
-                  " + string.Join("," + Environment.NewLine + "                  ", suppressionKinds.Select(s => $"\"{s}\"")) + @"
-                ]";
-            }
-
-            return string.Empty;
-        }
     }
 }
