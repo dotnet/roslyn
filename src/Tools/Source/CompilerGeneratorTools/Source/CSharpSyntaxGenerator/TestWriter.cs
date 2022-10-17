@@ -328,13 +328,15 @@ namespace CSharpSyntaxGenerator
                     WriteLine();
                 }
                 first = false;
-                WriteTokenDeleteRewriterTest((Node)node);
+                WriteTokenDeleteRewriterTest((Node)node, withResult: false);
+                WriteLine();
+                WriteTokenDeleteRewriterTest((Node)node, withResult: true);
                 WriteLine();
                 WriteIdentityRewriterTest((Node)node);
             }
         }
 
-        private void WriteTokenDeleteRewriterTest(Node node)
+        private void WriteTokenDeleteRewriterTest(Node node, bool withResult)
         {
             var valueFields = node.Fields.Where(n => !IsNodeOrNodeList(n.Type));
             var nodeFields = node.Fields.Where(n => IsNodeOrNodeList(n.Type));
@@ -342,18 +344,38 @@ namespace CSharpSyntaxGenerator
             var strippedName = StripPost(node.Name, "Syntax");
 
             WriteLine("[Fact]");
-            WriteLine($"public void Test{strippedName}TokenDeleteRewriter()");
+            WriteLine($"public void Test{strippedName}TokenDeleteRewriter{(withResult ? "WithResult" : "")}()");
             OpenBlock();
 
             WriteLine($"var oldNode = Generate{strippedName}();");
-            WriteLine("var rewriter = new TokenDeleteRewriter();");
-            WriteLine("var newNode = rewriter.Visit(oldNode);");
+            WriteLine($"var rewriter = new {(withResult ? "TokenDeleteRewriterWithResult" : "TokenDeleteRewriter")}();");
+
+            if (withResult)
+            {
+                WriteLine($"var result = new VisitorResult();");
+            }
+
+            WriteLine($"var newNode = rewriter.Visit(oldNode{(withResult ? ", result" : "")});");
 
             WriteLine();
             WriteLine("if(!oldNode.IsMissing)");
             OpenBlock();
             WriteLine("Assert.NotEqual(oldNode, newNode);");
+
+            if (withResult)
+            {
+                WriteLine("Assert.True(result.VisitCount > 0);");
+            }
+
             CloseBlock();
+
+            if (withResult)
+            {
+                WriteLine("else");
+                OpenBlock();
+                WriteLine("Assert.True(result.VisitCount >= 0);");
+                CloseBlock();
+            }
 
             WriteLine();
             WriteLine("Assert.NotNull(newNode);");
@@ -375,7 +397,8 @@ namespace CSharpSyntaxGenerator
 
             WriteLine($"var oldNode = Generate{strippedName}();");
             WriteLine("var rewriter = new IdentityRewriter();");
-            WriteLine("var newNode = rewriter.Visit(oldNode);");
+
+            WriteLine($"var newNode = rewriter.Visit(oldNode);");
 
             WriteLine();
 

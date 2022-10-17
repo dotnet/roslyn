@@ -6,7 +6,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     /// <summary>
     /// Represents a <see cref="CSharpSyntaxVisitor"/> that descends an entire <see cref="CSharpSyntaxNode"/> graph
-    /// visiting each CSharpSyntaxNode and its child SyntaxNodes and <see cref="SyntaxToken"/>s in depth-first order.
+    /// visiting each <see cref="CSharpSyntaxNode"/> and its child SyntaxNodes and <see cref="SyntaxToken"/>s in depth-first order.
     /// </summary>
     public abstract class CSharpSyntaxWalker : CSharpSyntaxVisitor
     {
@@ -97,6 +97,115 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 this.Visit((CSharpSyntaxNode)trivia.GetStructure()!);
             }
+        }
+    }
+
+    /// <summary>
+    /// Represents a <see cref="CSharpSyntaxVisitor{TArgument, TResult}"/> that descends an entire <see cref="CSharpSyntaxNode"/> graph
+    /// visiting each <see cref="CSharpSyntaxNode"/> and its child SyntaxNodes and <see cref="SyntaxToken"/>s in depth-first order. 
+    /// Returns <see langword="null"/>.
+    /// </summary>
+    public abstract class CSharpSyntaxWalker<TArgument> : CSharpSyntaxVisitor<TArgument, object?>
+    {
+        protected SyntaxWalkerDepth Depth { get; }
+
+        protected CSharpSyntaxWalker(SyntaxWalkerDepth depth = SyntaxWalkerDepth.Node)
+        {
+            this.Depth = depth;
+        }
+
+        private int _recursionDepth;
+
+        public override object? Visit(SyntaxNode? node, TArgument argument)
+        {
+            if (node != null)
+            {
+                _recursionDepth++;
+                StackGuard.EnsureSufficientExecutionStack(_recursionDepth);
+
+                ((CSharpSyntaxNode)node).Accept(this, argument);
+
+                _recursionDepth--;
+            }
+
+            return null;
+        }
+
+        public override object? DefaultVisit(SyntaxNode node, TArgument argument)
+        {
+            var childCnt = node.ChildNodesAndTokens().Count;
+            int i = 0;
+
+            do
+            {
+                var child = ChildSyntaxList.ItemInternal((CSharpSyntaxNode)node, i);
+                i++;
+
+                var asNode = child.AsNode();
+                if (asNode != null)
+                {
+                    if (this.Depth >= SyntaxWalkerDepth.Node)
+                    {
+                        this.Visit(asNode, argument);
+                    }
+                }
+                else
+                {
+                    if (this.Depth >= SyntaxWalkerDepth.Token)
+                    {
+                        this.VisitToken(child.AsToken(), argument);
+                    }
+                }
+            } while (i < childCnt);
+
+            return null;
+        }
+
+        public virtual object? VisitToken(SyntaxToken token, TArgument argument)
+        {
+            if (this.Depth >= SyntaxWalkerDepth.Trivia)
+            {
+                this.VisitLeadingTrivia(token, argument);
+                this.VisitTrailingTrivia(token, argument);
+            }
+
+            return null;
+        }
+
+        public virtual object? VisitLeadingTrivia(SyntaxToken token, TArgument argument)
+        {
+            if (token.HasLeadingTrivia)
+            {
+                foreach (var tr in token.LeadingTrivia)
+                {
+                    this.VisitTrivia(tr, argument);
+                }
+            }
+
+            return null;
+        }
+
+        public virtual object? VisitTrailingTrivia(SyntaxToken token, TArgument argument)
+        {
+            if (token.HasTrailingTrivia)
+            {
+                foreach (var tr in token.TrailingTrivia)
+                {
+                    this.VisitTrivia(tr, argument);
+                }
+            }
+
+            return null;
+        }
+
+        public virtual object? VisitTrivia(SyntaxTrivia trivia, TArgument argument)
+        {
+            if (this.Depth >= SyntaxWalkerDepth.StructuredTrivia && trivia.HasStructure)
+            {
+                this.Visit((CSharpSyntaxNode)trivia.GetStructure()!, argument);
+            }
+
+            return null;
         }
     }
 }

@@ -93,6 +93,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             return new SyntaxTrivia(this.Kind, this.Text, GetDiagnostics(), annotations);
         }
 
+        public override TResult Accept<TArgument, TResult>(CSharpSyntaxVisitor<TArgument, TResult> visitor, TArgument argument)
+        {
+            return visitor.VisitTrivia(this, argument);
+        }
+
         public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor)
         {
             return visitor.VisitTrivia(this);

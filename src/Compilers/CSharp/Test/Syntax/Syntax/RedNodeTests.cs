@@ -6,7 +6,9 @@
 
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
+using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
@@ -25,6 +27,20 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             public override SyntaxNode DefaultVisit(SyntaxNode node)
             {
                 return node;
+            }
+        }
+
+        private class VisitorResult
+        {
+            public int VisitCount { get; set; }
+        }
+
+        private class TokenDeleteRewriterWithResult : CSharpSyntaxRewriter<VisitorResult>
+        {
+            public override SyntaxToken VisitToken(SyntaxToken token, VisitorResult result)
+            {
+                result.VisitCount++;
+                return SyntaxFactory.MissingToken(token.Kind());
             }
         }
     }

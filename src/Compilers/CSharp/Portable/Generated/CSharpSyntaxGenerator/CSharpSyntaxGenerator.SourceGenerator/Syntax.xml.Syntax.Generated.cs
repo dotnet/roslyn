@@ -59,6 +59,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitIdentifierName(this);
         public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitIdentifierName(this);
+        public override TResult? Accept<TArgument, TResult>(CSharpSyntaxVisitor<TArgument, TResult> visitor, TArgument argument) where TResult : default => visitor.VisitIdentifierName(this, argument);
 
         public IdentifierNameSyntax Update(SyntaxToken identifier)
         {
@@ -120,6 +121,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitQualifiedName(this);
         public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitQualifiedName(this);
+        public override TResult? Accept<TArgument, TResult>(CSharpSyntaxVisitor<TArgument, TResult> visitor, TArgument argument) where TResult : default => visitor.VisitQualifiedName(this, argument);
 
         public QualifiedNameSyntax Update(NameSyntax left, SyntaxToken dotToken, SimpleNameSyntax right)
         {
@@ -166,6 +168,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitGenericName(this);
         public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitGenericName(this);
+        public override TResult? Accept<TArgument, TResult>(CSharpSyntaxVisitor<TArgument, TResult> visitor, TArgument argument) where TResult : default => visitor.VisitGenericName(this, argument);
 
         public GenericNameSyntax Update(SyntaxToken identifier, TypeArgumentListSyntax typeArgumentList)
         {
@@ -224,6 +227,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitTypeArgumentList(this);
         public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitTypeArgumentList(this);
+        public override TResult? Accept<TArgument, TResult>(CSharpSyntaxVisitor<TArgument, TResult> visitor, TArgument argument) where TResult : default => visitor.VisitTypeArgumentList(this, argument);
 
         public TypeArgumentListSyntax Update(SyntaxToken lessThanToken, SeparatedSyntaxList<TypeSyntax> arguments, SyntaxToken greaterThanToken)
         {
@@ -288,6 +292,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitAliasQualifiedName(this);
         public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitAliasQualifiedName(this);
+        public override TResult? Accept<TArgument, TResult>(CSharpSyntaxVisitor<TArgument, TResult> visitor, TArgument argument) where TResult : default => visitor.VisitAliasQualifiedName(this, argument);
 
         public AliasQualifiedNameSyntax Update(IdentifierNameSyntax alias, SyntaxToken colonColonToken, SimpleNameSyntax name)
         {
@@ -339,6 +344,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitPredefinedType(this);
         public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitPredefinedType(this);
+        public override TResult? Accept<TArgument, TResult>(CSharpSyntaxVisitor<TArgument, TResult> visitor, TArgument argument) where TResult : default => visitor.VisitPredefinedType(this, argument);
 
         public PredefinedTypeSyntax Update(SyntaxToken keyword)
         {
@@ -396,6 +402,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitArrayType(this);
         public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitArrayType(this);
+        public override TResult? Accept<TArgument, TResult>(CSharpSyntaxVisitor<TArgument, TResult> visitor, TArgument argument) where TResult : default => visitor.VisitArrayType(this, argument);
 
         public ArrayTypeSyntax Update(TypeSyntax elementType, SyntaxList<ArrayRankSpecifierSyntax> rankSpecifiers)
         {
@@ -449,6 +456,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitArrayRankSpecifier(this);
         public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitArrayRankSpecifier(this);
+        public override TResult? Accept<TArgument, TResult>(CSharpSyntaxVisitor<TArgument, TResult> visitor, TArgument argument) where TResult : default => visitor.VisitArrayRankSpecifier(this, argument);
 
         public ArrayRankSpecifierSyntax Update(SyntaxToken openBracketToken, SeparatedSyntaxList<ExpressionSyntax> sizes, SyntaxToken closeBracketToken)
         {
@@ -497,6 +505,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitPointerType(this);
         public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitPointerType(this);
+        public override TResult? Accept<TArgument, TResult>(CSharpSyntaxVisitor<TArgument, TResult> visitor, TArgument argument) where TResult : default => visitor.VisitPointerType(this, argument);
 
         public PointerTypeSyntax Update(TypeSyntax elementType, SyntaxToken asteriskToken)
         {
@@ -560,6 +569,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitFunctionPointerType(this);
         public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitFunctionPointerType(this);
+        public override TResult? Accept<TArgument, TResult>(CSharpSyntaxVisitor<TArgument, TResult> visitor, TArgument argument) where TResult : default => visitor.VisitFunctionPointerType(this, argument);
 
         public FunctionPointerTypeSyntax Update(SyntaxToken delegateKeyword, SyntaxToken asteriskToken, FunctionPointerCallingConventionSyntax? callingConvention, FunctionPointerParameterListSyntax parameterList)
         {
@@ -619,6 +629,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitFunctionPointerParameterList(this);
         public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitFunctionPointerParameterList(this);
+        public override TResult? Accept<TArgument, TResult>(CSharpSyntaxVisitor<TArgument, TResult> visitor, TArgument argument) where TResult : default => visitor.VisitFunctionPointerParameterList(this, argument);
 
         public FunctionPointerParameterListSyntax Update(SyntaxToken lessThanToken, SeparatedSyntaxList<FunctionPointerParameterSyntax> parameters, SyntaxToken greaterThanToken)
         {
@@ -667,6 +678,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitFunctionPointerCallingConvention(this);
         public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitFunctionPointerCallingConvention(this);
+        public override TResult? Accept<TArgument, TResult>(CSharpSyntaxVisitor<TArgument, TResult> visitor, TArgument argument) where TResult : default => visitor.VisitFunctionPointerCallingConvention(this, argument);
 
         public FunctionPointerCallingConventionSyntax Update(SyntaxToken managedOrUnmanagedKeyword, FunctionPointerUnmanagedCallingConventionListSyntax? unmanagedCallingConventionList)
         {
@@ -728,6 +740,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitFunctionPointerUnmanagedCallingConventionList(this);
         public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitFunctionPointerUnmanagedCallingConventionList(this);
+        public override TResult? Accept<TArgument, TResult>(CSharpSyntaxVisitor<TArgument, TResult> visitor, TArgument argument) where TResult : default => visitor.VisitFunctionPointerUnmanagedCallingConventionList(this, argument);
 
         public FunctionPointerUnmanagedCallingConventionListSyntax Update(SyntaxToken openBracketToken, SeparatedSyntaxList<FunctionPointerUnmanagedCallingConventionSyntax> callingConventions, SyntaxToken closeBracketToken)
         {
@@ -772,6 +785,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitFunctionPointerUnmanagedCallingConvention(this);
         public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitFunctionPointerUnmanagedCallingConvention(this);
+        public override TResult? Accept<TArgument, TResult>(CSharpSyntaxVisitor<TArgument, TResult> visitor, TArgument argument) where TResult : default => visitor.VisitFunctionPointerUnmanagedCallingConvention(this, argument);
 
         public FunctionPointerUnmanagedCallingConventionSyntax Update(SyntaxToken name)
         {
@@ -816,6 +830,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitNullableType(this);
         public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitNullableType(this);
+        public override TResult? Accept<TArgument, TResult>(CSharpSyntaxVisitor<TArgument, TResult> visitor, TArgument argument) where TResult : default => visitor.VisitNullableType(this, argument);
 
         public NullableTypeSyntax Update(TypeSyntax elementType, SyntaxToken questionToken)
         {
@@ -870,6 +885,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitTupleType(this);
         public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitTupleType(this);
+        public override TResult? Accept<TArgument, TResult>(CSharpSyntaxVisitor<TArgument, TResult> visitor, TArgument argument) where TResult : default => visitor.VisitTupleType(this, argument);
 
         public TupleTypeSyntax Update(SyntaxToken openParenToken, SeparatedSyntaxList<TupleElementSyntax> elements, SyntaxToken closeParenToken)
         {
@@ -925,6 +941,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitTupleElement(this);
         public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitTupleElement(this);
+        public override TResult? Accept<TArgument, TResult>(CSharpSyntaxVisitor<TArgument, TResult> visitor, TArgument argument) where TResult : default => visitor.VisitTupleElement(this, argument);
 
         public TupleElementSyntax Update(TypeSyntax type, SyntaxToken identifier)
         {
@@ -966,6 +983,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitOmittedTypeArgument(this);
         public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitOmittedTypeArgument(this);
+        public override TResult? Accept<TArgument, TResult>(CSharpSyntaxVisitor<TArgument, TResult> visitor, TArgument argument) where TResult : default => visitor.VisitOmittedTypeArgument(this, argument);
 
         public OmittedTypeArgumentSyntax Update(SyntaxToken omittedTypeArgumentToken)
         {
@@ -1027,6 +1045,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitRefType(this);
         public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitRefType(this);
+        public override TResult? Accept<TArgument, TResult>(CSharpSyntaxVisitor<TArgument, TResult> visitor, TArgument argument) where TResult : default => visitor.VisitRefType(this, argument);
 
         public RefTypeSyntax Update(SyntaxToken refKeyword, SyntaxToken readOnlyKeyword, SyntaxToken scopedKeyword, TypeSyntax type)
         {
@@ -1094,6 +1113,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitParenthesizedExpression(this);
         public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitParenthesizedExpression(this);
+        public override TResult? Accept<TArgument, TResult>(CSharpSyntaxVisitor<TArgument, TResult> visitor, TArgument argument) where TResult : default => visitor.VisitParenthesizedExpression(this, argument);
 
         public ParenthesizedExpressionSyntax Update(SyntaxToken openParenToken, ExpressionSyntax expression, SyntaxToken closeParenToken)
         {
@@ -1150,6 +1170,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitTupleExpression(this);
         public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitTupleExpression(this);
+        public override TResult? Accept<TArgument, TResult>(CSharpSyntaxVisitor<TArgument, TResult> visitor, TArgument argument) where TResult : default => visitor.VisitTupleExpression(this, argument);
 
         public TupleExpressionSyntax Update(SyntaxToken openParenToken, SeparatedSyntaxList<ArgumentSyntax> arguments, SyntaxToken closeParenToken)
         {
@@ -1206,6 +1227,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitPrefixUnaryExpression(this);
         public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitPrefixUnaryExpression(this);
+        public override TResult? Accept<TArgument, TResult>(CSharpSyntaxVisitor<TArgument, TResult> visitor, TArgument argument) where TResult : default => visitor.VisitPrefixUnaryExpression(this, argument);
 
         public PrefixUnaryExpressionSyntax Update(SyntaxToken operatorToken, ExpressionSyntax operand)
         {
@@ -1251,6 +1273,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitAwaitExpression(this);
         public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitAwaitExpression(this);
+        public override TResult? Accept<TArgument, TResult>(CSharpSyntaxVisitor<TArgument, TResult> visitor, TArgument argument) where TResult : default => visitor.VisitAwaitExpression(this, argument);
 
         public AwaitExpressionSyntax Update(SyntaxToken awaitKeyword, ExpressionSyntax expression)
         {
@@ -1298,6 +1321,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitPostfixUnaryExpression(this);
         public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitPostfixUnaryExpression(this);
+        public override TResult? Accept<TArgument, TResult>(CSharpSyntaxVisitor<TArgument, TResult> visitor, TArgument argument) where TResult : default => visitor.VisitPostfixUnaryExpression(this, argument);
 
         public PostfixUnaryExpressionSyntax Update(ExpressionSyntax operand, SyntaxToken operatorToken)
         {
@@ -1360,6 +1384,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitMemberAccessExpression(this);
         public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitMemberAccessExpression(this);
+        public override TResult? Accept<TArgument, TResult>(CSharpSyntaxVisitor<TArgument, TResult> visitor, TArgument argument) where TResult : default => visitor.VisitMemberAccessExpression(this, argument);
 
         public MemberAccessExpressionSyntax Update(ExpressionSyntax expression, SyntaxToken operatorToken, SimpleNameSyntax name)
         {
@@ -1422,6 +1447,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitConditionalAccessExpression(this);
         public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitConditionalAccessExpression(this);
+        public override TResult? Accept<TArgument, TResult>(CSharpSyntaxVisitor<TArgument, TResult> visitor, TArgument argument) where TResult : default => visitor.VisitConditionalAccessExpression(this, argument);
 
         public ConditionalAccessExpressionSyntax Update(ExpressionSyntax expression, SyntaxToken operatorToken, ExpressionSyntax whenNotNull)
         {
@@ -1468,6 +1494,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitMemberBindingExpression(this);
         public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitMemberBindingExpression(this);
+        public override TResult? Accept<TArgument, TResult>(CSharpSyntaxVisitor<TArgument, TResult> visitor, TArgument argument) where TResult : default => visitor.VisitMemberBindingExpression(this, argument);
 
         public MemberBindingExpressionSyntax Update(SyntaxToken operatorToken, SimpleNameSyntax name)
         {
@@ -1510,6 +1537,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitElementBindingExpression(this);
         public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitElementBindingExpression(this);
+        public override TResult? Accept<TArgument, TResult>(CSharpSyntaxVisitor<TArgument, TResult> visitor, TArgument argument) where TResult : default => visitor.VisitElementBindingExpression(this, argument);
 
         public ElementBindingExpressionSyntax Update(BracketedArgumentListSyntax argumentList)
         {
@@ -1572,6 +1600,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitRangeExpression(this);
         public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitRangeExpression(this);
+        public override TResult? Accept<TArgument, TResult>(CSharpSyntaxVisitor<TArgument, TResult> visitor, TArgument argument) where TResult : default => visitor.VisitRangeExpression(this, argument);
 
         public RangeExpressionSyntax Update(ExpressionSyntax? leftOperand, SyntaxToken operatorToken, ExpressionSyntax? rightOperand)
         {
@@ -1615,6 +1644,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitImplicitElementAccess(this);
         public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitImplicitElementAccess(this);
+        public override TResult? Accept<TArgument, TResult>(CSharpSyntaxVisitor<TArgument, TResult> visitor, TArgument argument) where TResult : default => visitor.VisitImplicitElementAccess(this, argument);
 
         public ImplicitElementAccessSyntax Update(BracketedArgumentListSyntax argumentList)
         {
@@ -1698,6 +1728,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitBinaryExpression(this);
         public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitBinaryExpression(this);
+        public override TResult? Accept<TArgument, TResult>(CSharpSyntaxVisitor<TArgument, TResult> visitor, TArgument argument) where TResult : default => visitor.VisitBinaryExpression(this, argument);
 
         public BinaryExpressionSyntax Update(ExpressionSyntax left, SyntaxToken operatorToken, ExpressionSyntax right)
         {
@@ -1772,6 +1803,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitAssignmentExpression(this);
         public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitAssignmentExpression(this);
+        public override TResult? Accept<TArgument, TResult>(CSharpSyntaxVisitor<TArgument, TResult> visitor, TArgument argument) where TResult : default => visitor.VisitAssignmentExpression(this, argument);
 
         public AssignmentExpressionSyntax Update(ExpressionSyntax left, SyntaxToken operatorToken, ExpressionSyntax right)
         {
@@ -1843,6 +1875,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitConditionalExpression(this);
         public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitConditionalExpression(this);
+        public override TResult? Accept<TArgument, TResult>(CSharpSyntaxVisitor<TArgument, TResult> visitor, TArgument argument) where TResult : default => visitor.VisitConditionalExpression(this, argument);
 
         public ConditionalExpressionSyntax Update(ExpressionSyntax condition, SyntaxToken questionToken, ExpressionSyntax whenTrue, SyntaxToken colonToken, ExpressionSyntax whenFalse)
         {
@@ -1896,6 +1929,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitThisExpression(this);
         public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitThisExpression(this);
+        public override TResult? Accept<TArgument, TResult>(CSharpSyntaxVisitor<TArgument, TResult> visitor, TArgument argument) where TResult : default => visitor.VisitThisExpression(this, argument);
 
         public ThisExpressionSyntax Update(SyntaxToken token)
         {
@@ -1936,6 +1970,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitBaseExpression(this);
         public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitBaseExpression(this);
+        public override TResult? Accept<TArgument, TResult>(CSharpSyntaxVisitor<TArgument, TResult> visitor, TArgument argument) where TResult : default => visitor.VisitBaseExpression(this, argument);
 
         public BaseExpressionSyntax Update(SyntaxToken token)
         {
@@ -1984,6 +2019,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitLiteralExpression(this);
         public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitLiteralExpression(this);
+        public override TResult? Accept<TArgument, TResult>(CSharpSyntaxVisitor<TArgument, TResult> visitor, TArgument argument) where TResult : default => visitor.VisitLiteralExpression(this, argument);
 
         public LiteralExpressionSyntax Update(SyntaxToken token)
         {
@@ -2034,6 +2070,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitMakeRefExpression(this);
         public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitMakeRefExpression(this);
+        public override TResult? Accept<TArgument, TResult>(CSharpSyntaxVisitor<TArgument, TResult> visitor, TArgument argument) where TResult : default => visitor.VisitMakeRefExpression(this, argument);
 
         public MakeRefExpressionSyntax Update(SyntaxToken keyword, SyntaxToken openParenToken, ExpressionSyntax expression, SyntaxToken closeParenToken)
         {
@@ -2087,6 +2124,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitRefTypeExpression(this);
         public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitRefTypeExpression(this);
+        public override TResult? Accept<TArgument, TResult>(CSharpSyntaxVisitor<TArgument, TResult> visitor, TArgument argument) where TResult : default => visitor.VisitRefTypeExpression(this, argument);
 
         public RefTypeExpressionSyntax Update(SyntaxToken keyword, SyntaxToken openParenToken, ExpressionSyntax expression, SyntaxToken closeParenToken)
         {
@@ -2159,6 +2197,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitRefValueExpression(this);
         public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitRefValueExpression(this);
+        public override TResult? Accept<TArgument, TResult>(CSharpSyntaxVisitor<TArgument, TResult> visitor, TArgument argument) where TResult : default => visitor.VisitRefValueExpression(this, argument);
 
         public RefValueExpressionSyntax Update(SyntaxToken keyword, SyntaxToken openParenToken, ExpressionSyntax expression, SyntaxToken comma, TypeSyntax type, SyntaxToken closeParenToken)
         {
@@ -2215,6 +2254,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitCheckedExpression(this);
         public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitCheckedExpression(this);
+        public override TResult? Accept<TArgument, TResult>(CSharpSyntaxVisitor<TArgument, TResult> visitor, TArgument argument) where TResult : default => visitor.VisitCheckedExpression(this, argument);
 
         public CheckedExpressionSyntax Update(SyntaxToken keyword, SyntaxToken openParenToken, ExpressionSyntax expression, SyntaxToken closeParenToken)
         {
@@ -2268,6 +2308,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitDefaultExpression(this);
         public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitDefaultExpression(this);
+        public override TResult? Accept<TArgument, TResult>(CSharpSyntaxVisitor<TArgument, TResult> visitor, TArgument argument) where TResult : default => visitor.VisitDefaultExpression(this, argument);
 
         public DefaultExpressionSyntax Update(SyntaxToken keyword, SyntaxToken openParenToken, TypeSyntax type, SyntaxToken closeParenToken)
         {
@@ -2321,6 +2362,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitTypeOfExpression(this);
         public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitTypeOfExpression(this);
+        public override TResult? Accept<TArgument, TResult>(CSharpSyntaxVisitor<TArgument, TResult> visitor, TArgument argument) where TResult : default => visitor.VisitTypeOfExpression(this, argument);
 
         public TypeOfExpressionSyntax Update(SyntaxToken keyword, SyntaxToken openParenToken, TypeSyntax type, SyntaxToken closeParenToken)
         {
@@ -2374,6 +2416,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitSizeOfExpression(this);
         public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitSizeOfExpression(this);
+        public override TResult? Accept<TArgument, TResult>(CSharpSyntaxVisitor<TArgument, TResult> visitor, TArgument argument) where TResult : default => visitor.VisitSizeOfExpression(this, argument);
 
         public SizeOfExpressionSyntax Update(SyntaxToken keyword, SyntaxToken openParenToken, TypeSyntax type, SyntaxToken closeParenToken)
         {
@@ -2434,6 +2477,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitInvocationExpression(this);
         public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitInvocationExpression(this);
+        public override TResult? Accept<TArgument, TResult>(CSharpSyntaxVisitor<TArgument, TResult> visitor, TArgument argument) where TResult : default => visitor.VisitInvocationExpression(this, argument);
 
         public InvocationExpressionSyntax Update(ExpressionSyntax expression, ArgumentListSyntax argumentList)
         {
@@ -2494,6 +2538,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitElementAccessExpression(this);
         public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitElementAccessExpression(this);
+        public override TResult? Accept<TArgument, TResult>(CSharpSyntaxVisitor<TArgument, TResult> visitor, TArgument argument) where TResult : default => visitor.VisitElementAccessExpression(this, argument);
 
         public ElementAccessExpressionSyntax Update(ExpressionSyntax expression, BracketedArgumentListSyntax argumentList)
         {
@@ -2568,6 +2613,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitArgumentList(this);
         public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitArgumentList(this);
+        public override TResult? Accept<TArgument, TResult>(CSharpSyntaxVisitor<TArgument, TResult> visitor, TArgument argument) where TResult : default => visitor.VisitArgumentList(this, argument);
 
         public ArgumentListSyntax Update(SyntaxToken openParenToken, SeparatedSyntaxList<ArgumentSyntax> arguments, SyntaxToken closeParenToken)
         {
@@ -2628,6 +2674,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitBracketedArgumentList(this);
         public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitBracketedArgumentList(this);
+        public override TResult? Accept<TArgument, TResult>(CSharpSyntaxVisitor<TArgument, TResult> visitor, TArgument argument) where TResult : default => visitor.VisitBracketedArgumentList(this, argument);
 
         public BracketedArgumentListSyntax Update(SyntaxToken openBracketToken, SeparatedSyntaxList<ArgumentSyntax> arguments, SyntaxToken closeBracketToken)
         {
@@ -2701,6 +2748,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitArgument(this);
         public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitArgument(this);
+        public override TResult? Accept<TArgument, TResult>(CSharpSyntaxVisitor<TArgument, TResult> visitor, TArgument argument) where TResult : default => visitor.VisitArgument(this, argument);
 
         public ArgumentSyntax Update(NameColonSyntax? nameColon, SyntaxToken refKindKeyword, ExpressionSyntax expression)
         {
@@ -2760,6 +2808,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitExpressionColon(this);
         public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitExpressionColon(this);
+        public override TResult? Accept<TArgument, TResult>(CSharpSyntaxVisitor<TArgument, TResult> visitor, TArgument argument) where TResult : default => visitor.VisitExpressionColon(this, argument);
 
         public ExpressionColonSyntax Update(ExpressionSyntax expression, SyntaxToken colonToken)
         {
@@ -2807,6 +2856,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitNameColon(this);
         public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitNameColon(this);
+        public override TResult? Accept<TArgument, TResult>(CSharpSyntaxVisitor<TArgument, TResult> visitor, TArgument argument) where TResult : default => visitor.VisitNameColon(this, argument);
 
         public NameColonSyntax Update(IdentifierNameSyntax name, SyntaxToken colonToken)
         {
@@ -2865,6 +2915,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitDeclarationExpression(this);
         public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitDeclarationExpression(this);
+        public override TResult? Accept<TArgument, TResult>(CSharpSyntaxVisitor<TArgument, TResult> visitor, TArgument argument) where TResult : default => visitor.VisitDeclarationExpression(this, argument);
 
         public DeclarationExpressionSyntax Update(TypeSyntax type, VariableDesignationSyntax designation)
         {
@@ -2929,6 +2980,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitCastExpression(this);
         public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitCastExpression(this);
+        public override TResult? Accept<TArgument, TResult>(CSharpSyntaxVisitor<TArgument, TResult> visitor, TArgument argument) where TResult : default => visitor.VisitCastExpression(this, argument);
 
         public CastExpressionSyntax Update(SyntaxToken openParenToken, TypeSyntax type, SyntaxToken closeParenToken, ExpressionSyntax expression)
         {
@@ -3051,6 +3103,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitAnonymousMethodExpression(this);
         public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitAnonymousMethodExpression(this);
+        public override TResult? Accept<TArgument, TResult>(CSharpSyntaxVisitor<TArgument, TResult> visitor, TArgument argument) where TResult : default => visitor.VisitAnonymousMethodExpression(this, argument);
 
         public AnonymousMethodExpressionSyntax Update(SyntaxTokenList modifiers, SyntaxToken delegateKeyword, ParameterListSyntax? parameterList, BlockSyntax block, ExpressionSyntax? expressionBody)
         {
@@ -3187,6 +3240,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitSimpleLambdaExpression(this);
         public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitSimpleLambdaExpression(this);
+        public override TResult? Accept<TArgument, TResult>(CSharpSyntaxVisitor<TArgument, TResult> visitor, TArgument argument) where TResult : default => visitor.VisitSimpleLambdaExpression(this, argument);
 
         public SimpleLambdaExpressionSyntax Update(SyntaxList<AttributeListSyntax> attributeLists, SyntaxTokenList modifiers, ParameterSyntax parameter, SyntaxToken arrowToken, BlockSyntax? block, ExpressionSyntax? expressionBody)
         {
@@ -3257,6 +3311,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitRefExpression(this);
         public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitRefExpression(this);
+        public override TResult? Accept<TArgument, TResult>(CSharpSyntaxVisitor<TArgument, TResult> visitor, TArgument argument) where TResult : default => visitor.VisitRefExpression(this, argument);
 
         public RefExpressionSyntax Update(SyntaxToken refKeyword, ExpressionSyntax expression)
         {
@@ -3349,6 +3404,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitParenthesizedLambdaExpression(this);
         public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitParenthesizedLambdaExpression(this);
+        public override TResult? Accept<TArgument, TResult>(CSharpSyntaxVisitor<TArgument, TResult> visitor, TArgument argument) where TResult : default => visitor.VisitParenthesizedLambdaExpression(this, argument);
 
         public ParenthesizedLambdaExpressionSyntax Update(SyntaxList<AttributeListSyntax> attributeLists, SyntaxTokenList modifiers, TypeSyntax? returnType, ParameterListSyntax parameterList, SyntaxToken arrowToken, BlockSyntax? block, ExpressionSyntax? expressionBody)
         {
@@ -3436,6 +3492,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitInitializerExpression(this);
         public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitInitializerExpression(this);
+        public override TResult? Accept<TArgument, TResult>(CSharpSyntaxVisitor<TArgument, TResult> visitor, TArgument argument) where TResult : default => visitor.VisitInitializerExpression(this, argument);
 
         public InitializerExpressionSyntax Update(SyntaxToken openBraceToken, SeparatedSyntaxList<ExpressionSyntax> expressions, SyntaxToken closeBraceToken)
         {
@@ -3526,6 +3583,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitImplicitObjectCreationExpression(this);
         public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitImplicitObjectCreationExpression(this);
+        public override TResult? Accept<TArgument, TResult>(CSharpSyntaxVisitor<TArgument, TResult> visitor, TArgument argument) where TResult : default => visitor.VisitImplicitObjectCreationExpression(this, argument);
 
         public ImplicitObjectCreationExpressionSyntax Update(SyntaxToken newKeyword, ArgumentListSyntax argumentList, InitializerExpressionSyntax? initializer)
         {
@@ -3600,6 +3658,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitObjectCreationExpression(this);
         public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitObjectCreationExpression(this);
+        public override TResult? Accept<TArgument, TResult>(CSharpSyntaxVisitor<TArgument, TResult> visitor, TArgument argument) where TResult : default => visitor.VisitObjectCreationExpression(this, argument);
 
         public ObjectCreationExpressionSyntax Update(SyntaxToken newKeyword, TypeSyntax type, ArgumentListSyntax? argumentList, InitializerExpressionSyntax? initializer)
         {
@@ -3670,6 +3729,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitWithExpression(this);
         public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitWithExpression(this);
+        public override TResult? Accept<TArgument, TResult>(CSharpSyntaxVisitor<TArgument, TResult> visitor, TArgument argument) where TResult : default => visitor.VisitWithExpression(this, argument);
 
         public WithExpressionSyntax Update(ExpressionSyntax expression, SyntaxToken withKeyword, InitializerExpressionSyntax initializer)
         {
@@ -3730,6 +3790,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitAnonymousObjectMemberDeclarator(this);
         public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitAnonymousObjectMemberDeclarator(this);
+        public override TResult? Accept<TArgument, TResult>(CSharpSyntaxVisitor<TArgument, TResult> visitor, TArgument argument) where TResult : default => visitor.VisitAnonymousObjectMemberDeclarator(this, argument);
 
         public AnonymousObjectMemberDeclaratorSyntax Update(NameEqualsSyntax? nameEquals, ExpressionSyntax expression)
         {
@@ -3788,6 +3849,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitAnonymousObjectCreationExpression(this);
         public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitAnonymousObjectCreationExpression(this);
+        public override TResult? Accept<TArgument, TResult>(CSharpSyntaxVisitor<TArgument, TResult> visitor, TArgument argument) where TResult : default => visitor.VisitAnonymousObjectCreationExpression(this, argument);
 
         public AnonymousObjectCreationExpressionSyntax Update(SyntaxToken newKeyword, SyntaxToken openBraceToken, SeparatedSyntaxList<AnonymousObjectMemberDeclaratorSyntax> initializers, SyntaxToken closeBraceToken)
         {
@@ -3853,6 +3915,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitArrayCreationExpression(this);
         public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitArrayCreationExpression(this);
+        public override TResult? Accept<TArgument, TResult>(CSharpSyntaxVisitor<TArgument, TResult> visitor, TArgument argument) where TResult : default => visitor.VisitArrayCreationExpression(this, argument);
 
         public ArrayCreationExpressionSyntax Update(SyntaxToken newKeyword, ArrayTypeSyntax type, InitializerExpressionSyntax? initializer)
         {
@@ -3917,6 +3980,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitImplicitArrayCreationExpression(this);
         public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitImplicitArrayCreationExpression(this);
+        public override TResult? Accept<TArgument, TResult>(CSharpSyntaxVisitor<TArgument, TResult> visitor, TArgument argument) where TResult : default => visitor.VisitImplicitArrayCreationExpression(this, argument);
 
         public ImplicitArrayCreationExpressionSyntax Update(SyntaxToken newKeyword, SyntaxToken openBracketToken, SyntaxTokenList commas, SyntaxToken closeBracketToken, InitializerExpressionSyntax initializer)
         {
@@ -3984,6 +4048,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitStackAllocArrayCreationExpression(this);
         public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitStackAllocArrayCreationExpression(this);
+        public override TResult? Accept<TArgument, TResult>(CSharpSyntaxVisitor<TArgument, TResult> visitor, TArgument argument) where TResult : default => visitor.VisitStackAllocArrayCreationExpression(this, argument);
 
         public StackAllocArrayCreationExpressionSyntax Update(SyntaxToken stackAllocKeyword, TypeSyntax type, InitializerExpressionSyntax? initializer)
         {
@@ -4036,6 +4101,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitImplicitStackAllocArrayCreationExpression(this);
         public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitImplicitStackAllocArrayCreationExpression(this);
+        public override TResult? Accept<TArgument, TResult>(CSharpSyntaxVisitor<TArgument, TResult> visitor, TArgument argument) where TResult : default => visitor.VisitImplicitStackAllocArrayCreationExpression(this, argument);
 
         public ImplicitStackAllocArrayCreationExpressionSyntax Update(SyntaxToken stackAllocKeyword, SyntaxToken openBracketToken, SyntaxToken closeBracketToken, InitializerExpressionSyntax initializer)
         {
@@ -4111,6 +4177,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitQueryExpression(this);
         public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitQueryExpression(this);
+        public override TResult? Accept<TArgument, TResult>(CSharpSyntaxVisitor<TArgument, TResult> visitor, TArgument argument) where TResult : default => visitor.VisitQueryExpression(this, argument);
 
         public QueryExpressionSyntax Update(FromClauseSyntax fromClause, QueryBodySyntax body)
         {
@@ -4173,6 +4240,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitQueryBody(this);
         public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitQueryBody(this);
+        public override TResult? Accept<TArgument, TResult>(CSharpSyntaxVisitor<TArgument, TResult> visitor, TArgument argument) where TResult : default => visitor.VisitQueryBody(this, argument);
 
         public QueryBodySyntax Update(SyntaxList<QueryClauseSyntax> clauses, SelectOrGroupClauseSyntax selectOrGroup, QueryContinuationSyntax? continuation)
         {
@@ -4238,6 +4306,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitFromClause(this);
         public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitFromClause(this);
+        public override TResult? Accept<TArgument, TResult>(CSharpSyntaxVisitor<TArgument, TResult> visitor, TArgument argument) where TResult : default => visitor.VisitFromClause(this, argument);
 
         public FromClauseSyntax Update(SyntaxToken fromKeyword, TypeSyntax? type, SyntaxToken identifier, SyntaxToken inKeyword, ExpressionSyntax expression)
         {
@@ -4288,6 +4357,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitLetClause(this);
         public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitLetClause(this);
+        public override TResult? Accept<TArgument, TResult>(CSharpSyntaxVisitor<TArgument, TResult> visitor, TArgument argument) where TResult : default => visitor.VisitLetClause(this, argument);
 
         public LetClauseSyntax Update(SyntaxToken letKeyword, SyntaxToken identifier, SyntaxToken equalsToken, ExpressionSyntax expression)
         {
@@ -4371,6 +4441,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitJoinClause(this);
         public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitJoinClause(this);
+        public override TResult? Accept<TArgument, TResult>(CSharpSyntaxVisitor<TArgument, TResult> visitor, TArgument argument) where TResult : default => visitor.VisitJoinClause(this, argument);
 
         public JoinClauseSyntax Update(SyntaxToken joinKeyword, TypeSyntax? type, SyntaxToken identifier, SyntaxToken inKeyword, ExpressionSyntax inExpression, SyntaxToken onKeyword, ExpressionSyntax leftExpression, SyntaxToken equalsKeyword, ExpressionSyntax rightExpression, JoinIntoClauseSyntax? into)
         {
@@ -4421,6 +4492,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitJoinIntoClause(this);
         public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitJoinIntoClause(this);
+        public override TResult? Accept<TArgument, TResult>(CSharpSyntaxVisitor<TArgument, TResult> visitor, TArgument argument) where TResult : default => visitor.VisitJoinIntoClause(this, argument);
 
         public JoinIntoClauseSyntax Update(SyntaxToken intoKeyword, SyntaxToken identifier)
         {
@@ -4463,6 +4535,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitWhereClause(this);
         public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitWhereClause(this);
+        public override TResult? Accept<TArgument, TResult>(CSharpSyntaxVisitor<TArgument, TResult> visitor, TArgument argument) where TResult : default => visitor.VisitWhereClause(this, argument);
 
         public WhereClauseSyntax Update(SyntaxToken whereKeyword, ExpressionSyntax condition)
         {
@@ -4512,6 +4585,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitOrderByClause(this);
         public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitOrderByClause(this);
+        public override TResult? Accept<TArgument, TResult>(CSharpSyntaxVisitor<TArgument, TResult> visitor, TArgument argument) where TResult : default => visitor.VisitOrderByClause(this, argument);
 
         public OrderByClauseSyntax Update(SyntaxToken orderByKeyword, SeparatedSyntaxList<OrderingSyntax> orderings)
         {
@@ -4564,6 +4638,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitOrdering(this);
         public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitOrdering(this);
+        public override TResult? Accept<TArgument, TResult>(CSharpSyntaxVisitor<TArgument, TResult> visitor, TArgument argument) where TResult : default => visitor.VisitOrdering(this, argument);
 
         public OrderingSyntax Update(ExpressionSyntax expression, SyntaxToken ascendingOrDescendingKeyword)
         {
@@ -4606,6 +4681,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitSelectClause(this);
         public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitSelectClause(this);
+        public override TResult? Accept<TArgument, TResult>(CSharpSyntaxVisitor<TArgument, TResult> visitor, TArgument argument) where TResult : default => visitor.VisitSelectClause(this, argument);
 
         public SelectClauseSyntax Update(SyntaxToken selectKeyword, ExpressionSyntax expression)
         {
@@ -4665,6 +4741,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitGroupClause(this);
         public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitGroupClause(this);
+        public override TResult? Accept<TArgument, TResult>(CSharpSyntaxVisitor<TArgument, TResult> visitor, TArgument argument) where TResult : default => visitor.VisitGroupClause(this, argument);
 
         public GroupClauseSyntax Update(SyntaxToken groupKeyword, ExpressionSyntax groupExpression, SyntaxToken byKeyword, ExpressionSyntax byExpression)
         {
@@ -4712,6 +4789,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitQueryContinuation(this);
         public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitQueryContinuation(this);
+        public override TResult? Accept<TArgument, TResult>(CSharpSyntaxVisitor<TArgument, TResult> visitor, TArgument argument) where TResult : default => visitor.VisitQueryContinuation(this, argument);
 
         public QueryContinuationSyntax Update(SyntaxToken intoKeyword, SyntaxToken identifier, QueryBodySyntax body)
         {
@@ -4756,6 +4834,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitOmittedArraySizeExpression(this);
         public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitOmittedArraySizeExpression(this);
+        public override TResult? Accept<TArgument, TResult>(CSharpSyntaxVisitor<TArgument, TResult> visitor, TArgument argument) where TResult : default => visitor.VisitOmittedArraySizeExpression(this, argument);
 
         public OmittedArraySizeExpressionSyntax Update(SyntaxToken omittedArraySizeExpressionToken)
         {
@@ -4802,6 +4881,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitInterpolatedStringExpression(this);
         public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitInterpolatedStringExpression(this);
+        public override TResult? Accept<TArgument, TResult>(CSharpSyntaxVisitor<TArgument, TResult> visitor, TArgument argument) where TResult : default => visitor.VisitInterpolatedStringExpression(this, argument);
 
         public InterpolatedStringExpressionSyntax Update(SyntaxToken stringStartToken, SyntaxList<InterpolatedStringContentSyntax> contents, SyntaxToken stringEndToken)
         {
@@ -4865,6 +4945,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitIsPatternExpression(this);
         public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitIsPatternExpression(this);
+        public override TResult? Accept<TArgument, TResult>(CSharpSyntaxVisitor<TArgument, TResult> visitor, TArgument argument) where TResult : default => visitor.VisitIsPatternExpression(this, argument);
 
         public IsPatternExpressionSyntax Update(ExpressionSyntax expression, SyntaxToken isKeyword, PatternSyntax pattern)
         {
@@ -4908,6 +4989,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitThrowExpression(this);
         public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitThrowExpression(this);
+        public override TResult? Accept<TArgument, TResult>(CSharpSyntaxVisitor<TArgument, TResult> visitor, TArgument argument) where TResult : default => visitor.VisitThrowExpression(this, argument);
 
         public ThrowExpressionSyntax Update(SyntaxToken throwKeyword, ExpressionSyntax expression)
         {
@@ -4950,6 +5032,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitWhenClause(this);
         public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitWhenClause(this);
+        public override TResult? Accept<TArgument, TResult>(CSharpSyntaxVisitor<TArgument, TResult> visitor, TArgument argument) where TResult : default => visitor.VisitWhenClause(this, argument);
 
         public WhenClauseSyntax Update(SyntaxToken whenKeyword, ExpressionSyntax condition)
         {
@@ -4997,6 +5080,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitDiscardPattern(this);
         public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitDiscardPattern(this);
+        public override TResult? Accept<TArgument, TResult>(CSharpSyntaxVisitor<TArgument, TResult> visitor, TArgument argument) where TResult : default => visitor.VisitDiscardPattern(this, argument);
 
         public DiscardPatternSyntax Update(SyntaxToken underscoreToken)
         {
@@ -5051,6 +5135,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitDeclarationPattern(this);
         public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitDeclarationPattern(this);
+        public override TResult? Accept<TArgument, TResult>(CSharpSyntaxVisitor<TArgument, TResult> visitor, TArgument argument) where TResult : default => visitor.VisitDeclarationPattern(this, argument);
 
         public DeclarationPatternSyntax Update(TypeSyntax type, VariableDesignationSyntax designation)
         {
@@ -5093,6 +5178,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitVarPattern(this);
         public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitVarPattern(this);
+        public override TResult? Accept<TArgument, TResult>(CSharpSyntaxVisitor<TArgument, TResult> visitor, TArgument argument) where TResult : default => visitor.VisitVarPattern(this, argument);
 
         public VarPatternSyntax Update(SyntaxToken varKeyword, VariableDesignationSyntax designation)
         {
@@ -5158,6 +5244,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitRecursivePattern(this);
         public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitRecursivePattern(this);
+        public override TResult? Accept<TArgument, TResult>(CSharpSyntaxVisitor<TArgument, TResult> visitor, TArgument argument) where TResult : default => visitor.VisitRecursivePattern(this, argument);
 
         public RecursivePatternSyntax Update(TypeSyntax? type, PositionalPatternClauseSyntax? positionalPatternClause, PropertyPatternClauseSyntax? propertyPatternClause, VariableDesignationSyntax? designation)
         {
@@ -5222,6 +5309,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitPositionalPatternClause(this);
         public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitPositionalPatternClause(this);
+        public override TResult? Accept<TArgument, TResult>(CSharpSyntaxVisitor<TArgument, TResult> visitor, TArgument argument) where TResult : default => visitor.VisitPositionalPatternClause(this, argument);
 
         public PositionalPatternClauseSyntax Update(SyntaxToken openParenToken, SeparatedSyntaxList<SubpatternSyntax> subpatterns, SyntaxToken closeParenToken)
         {
@@ -5276,6 +5364,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitPropertyPatternClause(this);
         public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitPropertyPatternClause(this);
+        public override TResult? Accept<TArgument, TResult>(CSharpSyntaxVisitor<TArgument, TResult> visitor, TArgument argument) where TResult : default => visitor.VisitPropertyPatternClause(this, argument);
 
         public PropertyPatternClauseSyntax Update(SyntaxToken openBraceToken, SeparatedSyntaxList<SubpatternSyntax> subpatterns, SyntaxToken closeBraceToken)
         {
@@ -5334,6 +5423,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitSubpattern(this);
         public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitSubpattern(this);
+        public override TResult? Accept<TArgument, TResult>(CSharpSyntaxVisitor<TArgument, TResult> visitor, TArgument argument) where TResult : default => visitor.VisitSubpattern(this, argument);
 
         public SubpatternSyntax Update(BaseExpressionColonSyntax? expressionColon, PatternSyntax pattern)
         {
@@ -5375,6 +5465,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitConstantPattern(this);
         public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitConstantPattern(this);
+        public override TResult? Accept<TArgument, TResult>(CSharpSyntaxVisitor<TArgument, TResult> visitor, TArgument argument) where TResult : default => visitor.VisitConstantPattern(this, argument);
 
         public ConstantPatternSyntax Update(ExpressionSyntax expression)
         {
@@ -5418,6 +5509,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitParenthesizedPattern(this);
         public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitParenthesizedPattern(this);
+        public override TResult? Accept<TArgument, TResult>(CSharpSyntaxVisitor<TArgument, TResult> visitor, TArgument argument) where TResult : default => visitor.VisitParenthesizedPattern(this, argument);
 
         public ParenthesizedPatternSyntax Update(SyntaxToken openParenToken, PatternSyntax pattern, SyntaxToken closeParenToken)
         {
@@ -5462,6 +5554,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitRelationalPattern(this);
         public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitRelationalPattern(this);
+        public override TResult? Accept<TArgument, TResult>(CSharpSyntaxVisitor<TArgument, TResult> visitor, TArgument argument) where TResult : default => visitor.VisitRelationalPattern(this, argument);
 
         public RelationalPatternSyntax Update(SyntaxToken operatorToken, ExpressionSyntax expression)
         {
@@ -5503,6 +5596,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitTypePattern(this);
         public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitTypePattern(this);
+        public override TResult? Accept<TArgument, TResult>(CSharpSyntaxVisitor<TArgument, TResult> visitor, TArgument argument) where TResult : default => visitor.VisitTypePattern(this, argument);
 
         public TypePatternSyntax Update(TypeSyntax type)
         {
@@ -5560,6 +5654,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitBinaryPattern(this);
         public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitBinaryPattern(this);
+        public override TResult? Accept<TArgument, TResult>(CSharpSyntaxVisitor<TArgument, TResult> visitor, TArgument argument) where TResult : default => visitor.VisitBinaryPattern(this, argument);
 
         public BinaryPatternSyntax Update(PatternSyntax left, SyntaxToken operatorToken, PatternSyntax right)
         {
@@ -5603,6 +5698,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitUnaryPattern(this);
         public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitUnaryPattern(this);
+        public override TResult? Accept<TArgument, TResult>(CSharpSyntaxVisitor<TArgument, TResult> visitor, TArgument argument) where TResult : default => visitor.VisitUnaryPattern(this, argument);
 
         public UnaryPatternSyntax Update(SyntaxToken operatorToken, PatternSyntax pattern)
         {
@@ -5669,6 +5765,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitListPattern(this);
         public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitListPattern(this);
+        public override TResult? Accept<TArgument, TResult>(CSharpSyntaxVisitor<TArgument, TResult> visitor, TArgument argument) where TResult : default => visitor.VisitListPattern(this, argument);
 
         public ListPatternSyntax Update(SyntaxToken openBracketToken, SeparatedSyntaxList<PatternSyntax> patterns, SyntaxToken closeBracketToken, VariableDesignationSyntax? designation)
         {
@@ -5715,6 +5812,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitSlicePattern(this);
         public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitSlicePattern(this);
+        public override TResult? Accept<TArgument, TResult>(CSharpSyntaxVisitor<TArgument, TResult> visitor, TArgument argument) where TResult : default => visitor.VisitSlicePattern(this, argument);
 
         public SlicePatternSyntax Update(SyntaxToken dotDotToken, PatternSyntax? pattern)
         {
@@ -5763,6 +5861,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitInterpolatedStringText(this);
         public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitInterpolatedStringText(this);
+        public override TResult? Accept<TArgument, TResult>(CSharpSyntaxVisitor<TArgument, TResult> visitor, TArgument argument) where TResult : default => visitor.VisitInterpolatedStringText(this, argument);
 
         public InterpolatedStringTextSyntax Update(SyntaxToken textToken)
         {
@@ -5830,6 +5929,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitInterpolation(this);
         public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitInterpolation(this);
+        public override TResult? Accept<TArgument, TResult>(CSharpSyntaxVisitor<TArgument, TResult> visitor, TArgument argument) where TResult : default => visitor.VisitInterpolation(this, argument);
 
         public InterpolationSyntax Update(SyntaxToken openBraceToken, ExpressionSyntax expression, InterpolationAlignmentClauseSyntax? alignmentClause, InterpolationFormatClauseSyntax? formatClause, SyntaxToken closeBraceToken)
         {
@@ -5875,6 +5975,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitInterpolationAlignmentClause(this);
         public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitInterpolationAlignmentClause(this);
+        public override TResult? Accept<TArgument, TResult>(CSharpSyntaxVisitor<TArgument, TResult> visitor, TArgument argument) where TResult : default => visitor.VisitInterpolationAlignmentClause(this, argument);
 
         public InterpolationAlignmentClauseSyntax Update(SyntaxToken commaToken, ExpressionSyntax value)
         {
@@ -5917,6 +6018,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitInterpolationFormatClause(this);
         public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitInterpolationFormatClause(this);
+        public override TResult? Accept<TArgument, TResult>(CSharpSyntaxVisitor<TArgument, TResult> visitor, TArgument argument) where TResult : default => visitor.VisitInterpolationFormatClause(this, argument);
 
         public InterpolationFormatClauseSyntax Update(SyntaxToken colonToken, SyntaxToken formatStringToken)
         {
@@ -5981,6 +6083,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitGlobalStatement(this);
         public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitGlobalStatement(this);
+        public override TResult? Accept<TArgument, TResult>(CSharpSyntaxVisitor<TArgument, TResult> visitor, TArgument argument) where TResult : default => visitor.VisitGlobalStatement(this, argument);
 
         public GlobalStatementSyntax Update(SyntaxList<AttributeListSyntax> attributeLists, SyntaxTokenList modifiers, StatementSyntax statement)
         {
@@ -6064,6 +6167,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitBlock(this);
         public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitBlock(this);
+        public override TResult? Accept<TArgument, TResult>(CSharpSyntaxVisitor<TArgument, TResult> visitor, TArgument argument) where TResult : default => visitor.VisitBlock(this, argument);
 
         public BlockSyntax Update(SyntaxList<AttributeListSyntax> attributeLists, SyntaxToken openBraceToken, SyntaxList<StatementSyntax> statements, SyntaxToken closeBraceToken)
         {
@@ -6173,6 +6277,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitLocalFunctionStatement(this);
         public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitLocalFunctionStatement(this);
+        public override TResult? Accept<TArgument, TResult>(CSharpSyntaxVisitor<TArgument, TResult> visitor, TArgument argument) where TResult : default => visitor.VisitLocalFunctionStatement(this, argument);
 
         public LocalFunctionStatementSyntax Update(SyntaxList<AttributeListSyntax> attributeLists, SyntaxTokenList modifiers, TypeSyntax returnType, SyntaxToken identifier, TypeParameterListSyntax? typeParameterList, ParameterListSyntax parameterList, SyntaxList<TypeParameterConstraintClauseSyntax> constraintClauses, BlockSyntax? body, ArrowExpressionClauseSyntax? expressionBody, SyntaxToken semicolonToken)
         {
@@ -6288,6 +6393,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitLocalDeclarationStatement(this);
         public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitLocalDeclarationStatement(this);
+        public override TResult? Accept<TArgument, TResult>(CSharpSyntaxVisitor<TArgument, TResult> visitor, TArgument argument) where TResult : default => visitor.VisitLocalDeclarationStatement(this, argument);
 
         public LocalDeclarationStatementSyntax Update(SyntaxList<AttributeListSyntax> attributeLists, SyntaxToken awaitKeyword, SyntaxToken usingKeyword, SyntaxTokenList modifiers, VariableDeclarationSyntax declaration, SyntaxToken semicolonToken)
         {
@@ -6360,6 +6466,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitVariableDeclaration(this);
         public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitVariableDeclaration(this);
+        public override TResult? Accept<TArgument, TResult>(CSharpSyntaxVisitor<TArgument, TResult> visitor, TArgument argument) where TResult : default => visitor.VisitVariableDeclaration(this, argument);
 
         public VariableDeclarationSyntax Update(TypeSyntax type, SeparatedSyntaxList<VariableDeclaratorSyntax> variables)
         {
@@ -6420,6 +6527,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitVariableDeclarator(this);
         public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitVariableDeclarator(this);
+        public override TResult? Accept<TArgument, TResult>(CSharpSyntaxVisitor<TArgument, TResult> visitor, TArgument argument) where TResult : default => visitor.VisitVariableDeclarator(this, argument);
 
         public VariableDeclaratorSyntax Update(SyntaxToken identifier, BracketedArgumentListSyntax? argumentList, EqualsValueClauseSyntax? initializer)
         {
@@ -6469,6 +6577,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitEqualsValueClause(this);
         public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitEqualsValueClause(this);
+        public override TResult? Accept<TArgument, TResult>(CSharpSyntaxVisitor<TArgument, TResult> visitor, TArgument argument) where TResult : default => visitor.VisitEqualsValueClause(this, argument);
 
         public EqualsValueClauseSyntax Update(SyntaxToken equalsToken, ExpressionSyntax value)
         {
@@ -6516,6 +6625,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitSingleVariableDesignation(this);
         public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitSingleVariableDesignation(this);
+        public override TResult? Accept<TArgument, TResult>(CSharpSyntaxVisitor<TArgument, TResult> visitor, TArgument argument) where TResult : default => visitor.VisitSingleVariableDesignation(this, argument);
 
         public SingleVariableDesignationSyntax Update(SyntaxToken identifier)
         {
@@ -6554,6 +6664,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitDiscardDesignation(this);
         public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitDiscardDesignation(this);
+        public override TResult? Accept<TArgument, TResult>(CSharpSyntaxVisitor<TArgument, TResult> visitor, TArgument argument) where TResult : default => visitor.VisitDiscardDesignation(this, argument);
 
         public DiscardDesignationSyntax Update(SyntaxToken underscoreToken)
         {
@@ -6604,6 +6715,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitParenthesizedVariableDesignation(this);
         public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitParenthesizedVariableDesignation(this);
+        public override TResult? Accept<TArgument, TResult>(CSharpSyntaxVisitor<TArgument, TResult> visitor, TArgument argument) where TResult : default => visitor.VisitParenthesizedVariableDesignation(this, argument);
 
         public ParenthesizedVariableDesignationSyntax Update(SyntaxToken openParenToken, SeparatedSyntaxList<VariableDesignationSyntax> variables, SyntaxToken closeParenToken)
         {
@@ -6664,6 +6776,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitExpressionStatement(this);
         public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitExpressionStatement(this);
+        public override TResult? Accept<TArgument, TResult>(CSharpSyntaxVisitor<TArgument, TResult> visitor, TArgument argument) where TResult : default => visitor.VisitExpressionStatement(this, argument);
 
         public ExpressionStatementSyntax Update(SyntaxList<AttributeListSyntax> attributeLists, ExpressionSyntax expression, SyntaxToken semicolonToken)
         {
@@ -6711,6 +6824,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitEmptyStatement(this);
         public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitEmptyStatement(this);
+        public override TResult? Accept<TArgument, TResult>(CSharpSyntaxVisitor<TArgument, TResult> visitor, TArgument argument) where TResult : default => visitor.VisitEmptyStatement(this, argument);
 
         public EmptyStatementSyntax Update(SyntaxList<AttributeListSyntax> attributeLists, SyntaxToken semicolonToken)
         {
@@ -6777,6 +6891,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitLabeledStatement(this);
         public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitLabeledStatement(this);
+        public override TResult? Accept<TArgument, TResult>(CSharpSyntaxVisitor<TArgument, TResult> visitor, TArgument argument) where TResult : default => visitor.VisitLabeledStatement(this, argument);
 
         public LabeledStatementSyntax Update(SyntaxList<AttributeListSyntax> attributeLists, SyntaxToken identifier, SyntaxToken colonToken, StatementSyntax statement)
         {
@@ -6868,6 +6983,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitGotoStatement(this);
         public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitGotoStatement(this);
+        public override TResult? Accept<TArgument, TResult>(CSharpSyntaxVisitor<TArgument, TResult> visitor, TArgument argument) where TResult : default => visitor.VisitGotoStatement(this, argument);
 
         public GotoStatementSyntax Update(SyntaxList<AttributeListSyntax> attributeLists, SyntaxToken gotoKeyword, SyntaxToken caseOrDefaultKeyword, ExpressionSyntax? expression, SyntaxToken semicolonToken)
         {
@@ -6919,6 +7035,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitBreakStatement(this);
         public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitBreakStatement(this);
+        public override TResult? Accept<TArgument, TResult>(CSharpSyntaxVisitor<TArgument, TResult> visitor, TArgument argument) where TResult : default => visitor.VisitBreakStatement(this, argument);
 
         public BreakStatementSyntax Update(SyntaxList<AttributeListSyntax> attributeLists, SyntaxToken breakKeyword, SyntaxToken semicolonToken)
         {
@@ -6968,6 +7085,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitContinueStatement(this);
         public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitContinueStatement(this);
+        public override TResult? Accept<TArgument, TResult>(CSharpSyntaxVisitor<TArgument, TResult> visitor, TArgument argument) where TResult : default => visitor.VisitContinueStatement(this, argument);
 
         public ContinueStatementSyntax Update(SyntaxList<AttributeListSyntax> attributeLists, SyntaxToken continueKeyword, SyntaxToken semicolonToken)
         {
@@ -7032,6 +7150,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitReturnStatement(this);
         public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitReturnStatement(this);
+        public override TResult? Accept<TArgument, TResult>(CSharpSyntaxVisitor<TArgument, TResult> visitor, TArgument argument) where TResult : default => visitor.VisitReturnStatement(this, argument);
 
         public ReturnStatementSyntax Update(SyntaxList<AttributeListSyntax> attributeLists, SyntaxToken returnKeyword, ExpressionSyntax? expression, SyntaxToken semicolonToken)
         {
@@ -7097,6 +7216,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitThrowStatement(this);
         public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitThrowStatement(this);
+        public override TResult? Accept<TArgument, TResult>(CSharpSyntaxVisitor<TArgument, TResult> visitor, TArgument argument) where TResult : default => visitor.VisitThrowStatement(this, argument);
 
         public ThrowStatementSyntax Update(SyntaxList<AttributeListSyntax> attributeLists, SyntaxToken throwKeyword, ExpressionSyntax? expression, SyntaxToken semicolonToken)
         {
@@ -7165,6 +7285,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitYieldStatement(this);
         public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitYieldStatement(this);
+        public override TResult? Accept<TArgument, TResult>(CSharpSyntaxVisitor<TArgument, TResult> visitor, TArgument argument) where TResult : default => visitor.VisitYieldStatement(this, argument);
 
         public YieldStatementSyntax Update(SyntaxList<AttributeListSyntax> attributeLists, SyntaxToken yieldKeyword, SyntaxToken returnOrBreakKeyword, ExpressionSyntax? expression, SyntaxToken semicolonToken)
         {
@@ -7238,6 +7359,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitWhileStatement(this);
         public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitWhileStatement(this);
+        public override TResult? Accept<TArgument, TResult>(CSharpSyntaxVisitor<TArgument, TResult> visitor, TArgument argument) where TResult : default => visitor.VisitWhileStatement(this, argument);
 
         public WhileStatementSyntax Update(SyntaxList<AttributeListSyntax> attributeLists, SyntaxToken whileKeyword, SyntaxToken openParenToken, ExpressionSyntax condition, SyntaxToken closeParenToken, StatementSyntax statement)
         {
@@ -7316,6 +7438,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitDoStatement(this);
         public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitDoStatement(this);
+        public override TResult? Accept<TArgument, TResult>(CSharpSyntaxVisitor<TArgument, TResult> visitor, TArgument argument) where TResult : default => visitor.VisitDoStatement(this, argument);
 
         public DoStatementSyntax Update(SyntaxList<AttributeListSyntax> attributeLists, SyntaxToken doKeyword, StatementSyntax statement, SyntaxToken whileKeyword, SyntaxToken openParenToken, ExpressionSyntax condition, SyntaxToken closeParenToken, SyntaxToken semicolonToken)
         {
@@ -7425,6 +7548,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitForStatement(this);
         public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitForStatement(this);
+        public override TResult? Accept<TArgument, TResult>(CSharpSyntaxVisitor<TArgument, TResult> visitor, TArgument argument) where TResult : default => visitor.VisitForStatement(this, argument);
 
         public ForStatementSyntax Update(SyntaxList<AttributeListSyntax> attributeLists, SyntaxToken forKeyword, SyntaxToken openParenToken, VariableDeclarationSyntax? declaration, SeparatedSyntaxList<ExpressionSyntax> initializers, SyntaxToken firstSemicolonToken, ExpressionSyntax? condition, SyntaxToken secondSemicolonToken, SeparatedSyntaxList<ExpressionSyntax> incrementors, SyntaxToken closeParenToken, StatementSyntax statement)
         {
@@ -7565,6 +7689,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitForEachStatement(this);
         public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitForEachStatement(this);
+        public override TResult? Accept<TArgument, TResult>(CSharpSyntaxVisitor<TArgument, TResult> visitor, TArgument argument) where TResult : default => visitor.VisitForEachStatement(this, argument);
 
         public ForEachStatementSyntax Update(SyntaxList<AttributeListSyntax> attributeLists, SyntaxToken awaitKeyword, SyntaxToken forEachKeyword, SyntaxToken openParenToken, TypeSyntax type, SyntaxToken identifier, SyntaxToken inKeyword, ExpressionSyntax expression, SyntaxToken closeParenToken, StatementSyntax statement)
         {
@@ -7672,6 +7797,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitForEachVariableStatement(this);
         public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitForEachVariableStatement(this);
+        public override TResult? Accept<TArgument, TResult>(CSharpSyntaxVisitor<TArgument, TResult> visitor, TArgument argument) where TResult : default => visitor.VisitForEachVariableStatement(this, argument);
 
         public ForEachVariableStatementSyntax Update(SyntaxList<AttributeListSyntax> attributeLists, SyntaxToken awaitKeyword, SyntaxToken forEachKeyword, SyntaxToken openParenToken, ExpressionSyntax variable, SyntaxToken inKeyword, ExpressionSyntax expression, SyntaxToken closeParenToken, StatementSyntax statement)
         {
@@ -7770,6 +7896,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitUsingStatement(this);
         public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitUsingStatement(this);
+        public override TResult? Accept<TArgument, TResult>(CSharpSyntaxVisitor<TArgument, TResult> visitor, TArgument argument) where TResult : default => visitor.VisitUsingStatement(this, argument);
 
         public UsingStatementSyntax Update(SyntaxList<AttributeListSyntax> attributeLists, SyntaxToken awaitKeyword, SyntaxToken usingKeyword, SyntaxToken openParenToken, VariableDeclarationSyntax? declaration, ExpressionSyntax? expression, SyntaxToken closeParenToken, StatementSyntax statement)
         {
@@ -7846,6 +7973,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitFixedStatement(this);
         public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitFixedStatement(this);
+        public override TResult? Accept<TArgument, TResult>(CSharpSyntaxVisitor<TArgument, TResult> visitor, TArgument argument) where TResult : default => visitor.VisitFixedStatement(this, argument);
 
         public FixedStatementSyntax Update(SyntaxList<AttributeListSyntax> attributeLists, SyntaxToken fixedKeyword, SyntaxToken openParenToken, VariableDeclarationSyntax declaration, SyntaxToken closeParenToken, StatementSyntax statement)
         {
@@ -7913,6 +8041,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitCheckedStatement(this);
         public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitCheckedStatement(this);
+        public override TResult? Accept<TArgument, TResult>(CSharpSyntaxVisitor<TArgument, TResult> visitor, TArgument argument) where TResult : default => visitor.VisitCheckedStatement(this, argument);
 
         public CheckedStatementSyntax Update(SyntaxList<AttributeListSyntax> attributeLists, SyntaxToken keyword, BlockSyntax block)
         {
@@ -7977,6 +8106,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitUnsafeStatement(this);
         public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitUnsafeStatement(this);
+        public override TResult? Accept<TArgument, TResult>(CSharpSyntaxVisitor<TArgument, TResult> visitor, TArgument argument) where TResult : default => visitor.VisitUnsafeStatement(this, argument);
 
         public UnsafeStatementSyntax Update(SyntaxList<AttributeListSyntax> attributeLists, SyntaxToken unsafeKeyword, BlockSyntax block)
         {
@@ -8050,6 +8180,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitLockStatement(this);
         public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitLockStatement(this);
+        public override TResult? Accept<TArgument, TResult>(CSharpSyntaxVisitor<TArgument, TResult> visitor, TArgument argument) where TResult : default => visitor.VisitLockStatement(this, argument);
 
         public LockStatementSyntax Update(SyntaxList<AttributeListSyntax> attributeLists, SyntaxToken lockKeyword, SyntaxToken openParenToken, ExpressionSyntax expression, SyntaxToken closeParenToken, StatementSyntax statement)
         {
@@ -8150,6 +8281,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitIfStatement(this);
         public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitIfStatement(this);
+        public override TResult? Accept<TArgument, TResult>(CSharpSyntaxVisitor<TArgument, TResult> visitor, TArgument argument) where TResult : default => visitor.VisitIfStatement(this, argument);
 
         public IfStatementSyntax Update(SyntaxList<AttributeListSyntax> attributeLists, SyntaxToken ifKeyword, SyntaxToken openParenToken, ExpressionSyntax condition, SyntaxToken closeParenToken, StatementSyntax statement, ElseClauseSyntax? @else)
         {
@@ -8205,6 +8337,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitElseClause(this);
         public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitElseClause(this);
+        public override TResult? Accept<TArgument, TResult>(CSharpSyntaxVisitor<TArgument, TResult> visitor, TArgument argument) where TResult : default => visitor.VisitElseClause(this, argument);
 
         public ElseClauseSyntax Update(SyntaxToken elseKeyword, StatementSyntax statement)
         {
@@ -8311,6 +8444,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitSwitchStatement(this);
         public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitSwitchStatement(this);
+        public override TResult? Accept<TArgument, TResult>(CSharpSyntaxVisitor<TArgument, TResult> visitor, TArgument argument) where TResult : default => visitor.VisitSwitchStatement(this, argument);
 
         public SwitchStatementSyntax Update(SyntaxList<AttributeListSyntax> attributeLists, SyntaxToken switchKeyword, SyntaxToken openParenToken, ExpressionSyntax expression, SyntaxToken closeParenToken, SyntaxToken openBraceToken, SyntaxList<SwitchSectionSyntax> sections, SyntaxToken closeBraceToken)
         {
@@ -8384,6 +8518,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitSwitchSection(this);
         public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitSwitchSection(this);
+        public override TResult? Accept<TArgument, TResult>(CSharpSyntaxVisitor<TArgument, TResult> visitor, TArgument argument) where TResult : default => visitor.VisitSwitchSection(this, argument);
 
         public SwitchSectionSyntax Update(SyntaxList<SwitchLabelSyntax> labels, SyntaxList<StatementSyntax> statements)
         {
@@ -8474,6 +8609,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitCasePatternSwitchLabel(this);
         public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitCasePatternSwitchLabel(this);
+        public override TResult? Accept<TArgument, TResult>(CSharpSyntaxVisitor<TArgument, TResult> visitor, TArgument argument) where TResult : default => visitor.VisitCasePatternSwitchLabel(this, argument);
 
         public CasePatternSwitchLabelSyntax Update(SyntaxToken keyword, PatternSyntax pattern, WhenClauseSyntax? whenClause, SyntaxToken colonToken)
         {
@@ -8527,6 +8663,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitCaseSwitchLabel(this);
         public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitCaseSwitchLabel(this);
+        public override TResult? Accept<TArgument, TResult>(CSharpSyntaxVisitor<TArgument, TResult> visitor, TArgument argument) where TResult : default => visitor.VisitCaseSwitchLabel(this, argument);
 
         public CaseSwitchLabelSyntax Update(SyntaxToken keyword, ExpressionSyntax value, SyntaxToken colonToken)
         {
@@ -8573,6 +8710,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitDefaultSwitchLabel(this);
         public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitDefaultSwitchLabel(this);
+        public override TResult? Accept<TArgument, TResult>(CSharpSyntaxVisitor<TArgument, TResult> visitor, TArgument argument) where TResult : default => visitor.VisitDefaultSwitchLabel(this, argument);
 
         public DefaultSwitchLabelSyntax Update(SyntaxToken keyword, SyntaxToken colonToken)
         {
@@ -8643,6 +8781,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitSwitchExpression(this);
         public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitSwitchExpression(this);
+        public override TResult? Accept<TArgument, TResult>(CSharpSyntaxVisitor<TArgument, TResult> visitor, TArgument argument) where TResult : default => visitor.VisitSwitchExpression(this, argument);
 
         public SwitchExpressionSyntax Update(ExpressionSyntax governingExpression, SyntaxToken switchKeyword, SyntaxToken openBraceToken, SeparatedSyntaxList<SwitchExpressionArmSyntax> arms, SyntaxToken closeBraceToken)
         {
@@ -8710,6 +8849,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitSwitchExpressionArm(this);
         public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitSwitchExpressionArm(this);
+        public override TResult? Accept<TArgument, TResult>(CSharpSyntaxVisitor<TArgument, TResult> visitor, TArgument argument) where TResult : default => visitor.VisitSwitchExpressionArm(this, argument);
 
         public SwitchExpressionArmSyntax Update(PatternSyntax pattern, WhenClauseSyntax? whenClause, SyntaxToken equalsGreaterThanToken, ExpressionSyntax expression)
         {
@@ -8779,6 +8919,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitTryStatement(this);
         public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitTryStatement(this);
+        public override TResult? Accept<TArgument, TResult>(CSharpSyntaxVisitor<TArgument, TResult> visitor, TArgument argument) where TResult : default => visitor.VisitTryStatement(this, argument);
 
         public TryStatementSyntax Update(SyntaxList<AttributeListSyntax> attributeLists, SyntaxToken tryKeyword, BlockSyntax block, SyntaxList<CatchClauseSyntax> catches, FinallyClauseSyntax? @finally)
         {
@@ -8851,6 +8992,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitCatchClause(this);
         public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitCatchClause(this);
+        public override TResult? Accept<TArgument, TResult>(CSharpSyntaxVisitor<TArgument, TResult> visitor, TArgument argument) where TResult : default => visitor.VisitCatchClause(this, argument);
 
         public CatchClauseSyntax Update(SyntaxToken catchKeyword, CatchDeclarationSyntax? declaration, CatchFilterClauseSyntax? filter, BlockSyntax block)
         {
@@ -8909,6 +9051,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitCatchDeclaration(this);
         public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitCatchDeclaration(this);
+        public override TResult? Accept<TArgument, TResult>(CSharpSyntaxVisitor<TArgument, TResult> visitor, TArgument argument) where TResult : default => visitor.VisitCatchDeclaration(this, argument);
 
         public CatchDeclarationSyntax Update(SyntaxToken openParenToken, TypeSyntax type, SyntaxToken identifier, SyntaxToken closeParenToken)
         {
@@ -8957,6 +9100,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitCatchFilterClause(this);
         public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitCatchFilterClause(this);
+        public override TResult? Accept<TArgument, TResult>(CSharpSyntaxVisitor<TArgument, TResult> visitor, TArgument argument) where TResult : default => visitor.VisitCatchFilterClause(this, argument);
 
         public CatchFilterClauseSyntax Update(SyntaxToken whenKeyword, SyntaxToken openParenToken, ExpressionSyntax filterExpression, SyntaxToken closeParenToken)
         {
@@ -9001,6 +9145,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitFinallyClause(this);
         public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitFinallyClause(this);
+        public override TResult? Accept<TArgument, TResult>(CSharpSyntaxVisitor<TArgument, TResult> visitor, TArgument argument) where TResult : default => visitor.VisitFinallyClause(this, argument);
 
         public FinallyClauseSyntax Update(SyntaxToken finallyKeyword, BlockSyntax block)
         {
@@ -9072,6 +9217,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitCompilationUnit(this);
         public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitCompilationUnit(this);
+        public override TResult? Accept<TArgument, TResult>(CSharpSyntaxVisitor<TArgument, TResult> visitor, TArgument argument) where TResult : default => visitor.VisitCompilationUnit(this, argument);
 
         public CompilationUnitSyntax Update(SyntaxList<ExternAliasDirectiveSyntax> externs, SyntaxList<UsingDirectiveSyntax> usings, SyntaxList<AttributeListSyntax> attributeLists, SyntaxList<MemberDeclarationSyntax> members, SyntaxToken endOfFileToken)
         {
@@ -9132,6 +9278,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitExternAliasDirective(this);
         public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitExternAliasDirective(this);
+        public override TResult? Accept<TArgument, TResult>(CSharpSyntaxVisitor<TArgument, TResult> visitor, TArgument argument) where TResult : default => visitor.VisitExternAliasDirective(this, argument);
 
         public ExternAliasDirectiveSyntax Update(SyntaxToken externKeyword, SyntaxToken aliasKeyword, SyntaxToken identifier, SyntaxToken semicolonToken)
         {
@@ -9211,6 +9358,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitUsingDirective(this);
         public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitUsingDirective(this);
+        public override TResult? Accept<TArgument, TResult>(CSharpSyntaxVisitor<TArgument, TResult> visitor, TArgument argument) where TResult : default => visitor.VisitUsingDirective(this, argument);
 
         public UsingDirectiveSyntax Update(SyntaxToken globalKeyword, SyntaxToken usingKeyword, SyntaxToken staticKeyword, NameEqualsSyntax? alias, NameSyntax name, SyntaxToken semicolonToken)
         {
@@ -9379,6 +9527,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitNamespaceDeclaration(this);
         public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitNamespaceDeclaration(this);
+        public override TResult? Accept<TArgument, TResult>(CSharpSyntaxVisitor<TArgument, TResult> visitor, TArgument argument) where TResult : default => visitor.VisitNamespaceDeclaration(this, argument);
 
         public NamespaceDeclarationSyntax Update(SyntaxList<AttributeListSyntax> attributeLists, SyntaxTokenList modifiers, SyntaxToken namespaceKeyword, NameSyntax name, SyntaxToken openBraceToken, SyntaxList<ExternAliasDirectiveSyntax> externs, SyntaxList<UsingDirectiveSyntax> usings, SyntaxList<MemberDeclarationSyntax> members, SyntaxToken closeBraceToken, SyntaxToken semicolonToken)
         {
@@ -9488,6 +9637,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitFileScopedNamespaceDeclaration(this);
         public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitFileScopedNamespaceDeclaration(this);
+        public override TResult? Accept<TArgument, TResult>(CSharpSyntaxVisitor<TArgument, TResult> visitor, TArgument argument) where TResult : default => visitor.VisitFileScopedNamespaceDeclaration(this, argument);
 
         public FileScopedNamespaceDeclarationSyntax Update(SyntaxList<AttributeListSyntax> attributeLists, SyntaxTokenList modifiers, SyntaxToken namespaceKeyword, NameSyntax name, SyntaxToken semicolonToken, SyntaxList<ExternAliasDirectiveSyntax> externs, SyntaxList<UsingDirectiveSyntax> usings, SyntaxList<MemberDeclarationSyntax> members)
         {
@@ -9583,6 +9733,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitAttributeList(this);
         public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitAttributeList(this);
+        public override TResult? Accept<TArgument, TResult>(CSharpSyntaxVisitor<TArgument, TResult> visitor, TArgument argument) where TResult : default => visitor.VisitAttributeList(this, argument);
 
         public AttributeListSyntax Update(SyntaxToken openBracketToken, AttributeTargetSpecifierSyntax? target, SeparatedSyntaxList<AttributeSyntax> attributes, SyntaxToken closeBracketToken)
         {
@@ -9631,6 +9782,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitAttributeTargetSpecifier(this);
         public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitAttributeTargetSpecifier(this);
+        public override TResult? Accept<TArgument, TResult>(CSharpSyntaxVisitor<TArgument, TResult> visitor, TArgument argument) where TResult : default => visitor.VisitAttributeTargetSpecifier(this, argument);
 
         public AttributeTargetSpecifierSyntax Update(SyntaxToken identifier, SyntaxToken colonToken)
         {
@@ -9688,6 +9840,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitAttribute(this);
         public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitAttribute(this);
+        public override TResult? Accept<TArgument, TResult>(CSharpSyntaxVisitor<TArgument, TResult> visitor, TArgument argument) where TResult : default => visitor.VisitAttribute(this, argument);
 
         public AttributeSyntax Update(NameSyntax name, AttributeArgumentListSyntax? argumentList)
         {
@@ -9749,6 +9902,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitAttributeArgumentList(this);
         public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitAttributeArgumentList(this);
+        public override TResult? Accept<TArgument, TResult>(CSharpSyntaxVisitor<TArgument, TResult> visitor, TArgument argument) where TResult : default => visitor.VisitAttributeArgumentList(this, argument);
 
         public AttributeArgumentListSyntax Update(SyntaxToken openParenToken, SeparatedSyntaxList<AttributeArgumentSyntax> arguments, SyntaxToken closeParenToken)
         {
@@ -9814,6 +9968,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitAttributeArgument(this);
         public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitAttributeArgument(this);
+        public override TResult? Accept<TArgument, TResult>(CSharpSyntaxVisitor<TArgument, TResult> visitor, TArgument argument) where TResult : default => visitor.VisitAttributeArgument(this, argument);
 
         public AttributeArgumentSyntax Update(NameEqualsSyntax? nameEquals, NameColonSyntax? nameColon, ExpressionSyntax expression)
         {
@@ -9859,6 +10014,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitNameEquals(this);
         public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitNameEquals(this);
+        public override TResult? Accept<TArgument, TResult>(CSharpSyntaxVisitor<TArgument, TResult> visitor, TArgument argument) where TResult : default => visitor.VisitNameEquals(this, argument);
 
         public NameEqualsSyntax Update(IdentifierNameSyntax name, SyntaxToken equalsToken)
         {
@@ -9914,6 +10070,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitTypeParameterList(this);
         public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitTypeParameterList(this);
+        public override TResult? Accept<TArgument, TResult>(CSharpSyntaxVisitor<TArgument, TResult> visitor, TArgument argument) where TResult : default => visitor.VisitTypeParameterList(this, argument);
 
         public TypeParameterListSyntax Update(SyntaxToken lessThanToken, SeparatedSyntaxList<TypeParameterSyntax> parameters, SyntaxToken greaterThanToken)
         {
@@ -9971,6 +10128,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitTypeParameter(this);
         public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitTypeParameter(this);
+        public override TResult? Accept<TArgument, TResult>(CSharpSyntaxVisitor<TArgument, TResult> visitor, TArgument argument) where TResult : default => visitor.VisitTypeParameter(this, argument);
 
         public TypeParameterSyntax Update(SyntaxList<AttributeListSyntax> attributeLists, SyntaxToken varianceKeyword, SyntaxToken identifier)
         {
@@ -10161,6 +10319,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitClassDeclaration(this);
         public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitClassDeclaration(this);
+        public override TResult? Accept<TArgument, TResult>(CSharpSyntaxVisitor<TArgument, TResult> visitor, TArgument argument) where TResult : default => visitor.VisitClassDeclaration(this, argument);
 
         public ClassDeclarationSyntax Update(SyntaxList<AttributeListSyntax> attributeLists, SyntaxTokenList modifiers, SyntaxToken keyword, SyntaxToken identifier, TypeParameterListSyntax? typeParameterList, BaseListSyntax? baseList, SyntaxList<TypeParameterConstraintClauseSyntax> constraintClauses, SyntaxToken openBraceToken, SyntaxList<MemberDeclarationSyntax> members, SyntaxToken closeBraceToken, SyntaxToken semicolonToken)
         {
@@ -10300,6 +10459,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitStructDeclaration(this);
         public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitStructDeclaration(this);
+        public override TResult? Accept<TArgument, TResult>(CSharpSyntaxVisitor<TArgument, TResult> visitor, TArgument argument) where TResult : default => visitor.VisitStructDeclaration(this, argument);
 
         public StructDeclarationSyntax Update(SyntaxList<AttributeListSyntax> attributeLists, SyntaxTokenList modifiers, SyntaxToken keyword, SyntaxToken identifier, TypeParameterListSyntax? typeParameterList, BaseListSyntax? baseList, SyntaxList<TypeParameterConstraintClauseSyntax> constraintClauses, SyntaxToken openBraceToken, SyntaxList<MemberDeclarationSyntax> members, SyntaxToken closeBraceToken, SyntaxToken semicolonToken)
         {
@@ -10439,6 +10599,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitInterfaceDeclaration(this);
         public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitInterfaceDeclaration(this);
+        public override TResult? Accept<TArgument, TResult>(CSharpSyntaxVisitor<TArgument, TResult> visitor, TArgument argument) where TResult : default => visitor.VisitInterfaceDeclaration(this, argument);
 
         public InterfaceDeclarationSyntax Update(SyntaxList<AttributeListSyntax> attributeLists, SyntaxTokenList modifiers, SyntaxToken keyword, SyntaxToken identifier, TypeParameterListSyntax? typeParameterList, BaseListSyntax? baseList, SyntaxList<TypeParameterConstraintClauseSyntax> constraintClauses, SyntaxToken openBraceToken, SyntaxList<MemberDeclarationSyntax> members, SyntaxToken closeBraceToken, SyntaxToken semicolonToken)
         {
@@ -10605,6 +10766,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitRecordDeclaration(this);
         public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitRecordDeclaration(this);
+        public override TResult? Accept<TArgument, TResult>(CSharpSyntaxVisitor<TArgument, TResult> visitor, TArgument argument) where TResult : default => visitor.VisitRecordDeclaration(this, argument);
 
         public RecordDeclarationSyntax Update(SyntaxList<AttributeListSyntax> attributeLists, SyntaxTokenList modifiers, SyntaxToken keyword, SyntaxToken classOrStructKeyword, SyntaxToken identifier, TypeParameterListSyntax? typeParameterList, ParameterListSyntax? parameterList, BaseListSyntax? baseList, SyntaxList<TypeParameterConstraintClauseSyntax> constraintClauses, SyntaxToken openBraceToken, SyntaxList<MemberDeclarationSyntax> members, SyntaxToken closeBraceToken, SyntaxToken semicolonToken)
         {
@@ -10750,6 +10912,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitEnumDeclaration(this);
         public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitEnumDeclaration(this);
+        public override TResult? Accept<TArgument, TResult>(CSharpSyntaxVisitor<TArgument, TResult> visitor, TArgument argument) where TResult : default => visitor.VisitEnumDeclaration(this, argument);
 
         public EnumDeclarationSyntax Update(SyntaxList<AttributeListSyntax> attributeLists, SyntaxTokenList modifiers, SyntaxToken enumKeyword, SyntaxToken identifier, BaseListSyntax? baseList, SyntaxToken openBraceToken, SeparatedSyntaxList<EnumMemberDeclarationSyntax> members, SyntaxToken closeBraceToken, SyntaxToken semicolonToken)
         {
@@ -10868,6 +11031,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitDelegateDeclaration(this);
         public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitDelegateDeclaration(this);
+        public override TResult? Accept<TArgument, TResult>(CSharpSyntaxVisitor<TArgument, TResult> visitor, TArgument argument) where TResult : default => visitor.VisitDelegateDeclaration(this, argument);
 
         public DelegateDeclarationSyntax Update(SyntaxList<AttributeListSyntax> attributeLists, SyntaxTokenList modifiers, SyntaxToken delegateKeyword, TypeSyntax returnType, SyntaxToken identifier, TypeParameterListSyntax? typeParameterList, ParameterListSyntax parameterList, SyntaxList<TypeParameterConstraintClauseSyntax> constraintClauses, SyntaxToken semicolonToken)
         {
@@ -10956,6 +11120,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitEnumMemberDeclaration(this);
         public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitEnumMemberDeclaration(this);
+        public override TResult? Accept<TArgument, TResult>(CSharpSyntaxVisitor<TArgument, TResult> visitor, TArgument argument) where TResult : default => visitor.VisitEnumMemberDeclaration(this, argument);
 
         public EnumMemberDeclarationSyntax Update(SyntaxList<AttributeListSyntax> attributeLists, SyntaxTokenList modifiers, SyntaxToken identifier, EqualsValueClauseSyntax? equalsValue)
         {
@@ -11017,6 +11182,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitBaseList(this);
         public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitBaseList(this);
+        public override TResult? Accept<TArgument, TResult>(CSharpSyntaxVisitor<TArgument, TResult> visitor, TArgument argument) where TResult : default => visitor.VisitBaseList(this, argument);
 
         public BaseListSyntax Update(SyntaxToken colonToken, SeparatedSyntaxList<BaseTypeSyntax> types)
         {
@@ -11072,6 +11238,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitSimpleBaseType(this);
         public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitSimpleBaseType(this);
+        public override TResult? Accept<TArgument, TResult>(CSharpSyntaxVisitor<TArgument, TResult> visitor, TArgument argument) where TResult : default => visitor.VisitSimpleBaseType(this, argument);
 
         public SimpleBaseTypeSyntax Update(TypeSyntax type)
         {
@@ -11127,6 +11294,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitPrimaryConstructorBaseType(this);
         public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitPrimaryConstructorBaseType(this);
+        public override TResult? Accept<TArgument, TResult>(CSharpSyntaxVisitor<TArgument, TResult> visitor, TArgument argument) where TResult : default => visitor.VisitPrimaryConstructorBaseType(this, argument);
 
         public PrimaryConstructorBaseTypeSyntax Update(TypeSyntax type, ArgumentListSyntax argumentList)
         {
@@ -11200,6 +11368,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitTypeParameterConstraintClause(this);
         public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitTypeParameterConstraintClause(this);
+        public override TResult? Accept<TArgument, TResult>(CSharpSyntaxVisitor<TArgument, TResult> visitor, TArgument argument) where TResult : default => visitor.VisitTypeParameterConstraintClause(this, argument);
 
         public TypeParameterConstraintClauseSyntax Update(SyntaxToken whereKeyword, IdentifierNameSyntax name, SyntaxToken colonToken, SeparatedSyntaxList<TypeParameterConstraintSyntax> constraints)
         {
@@ -11260,6 +11429,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitConstructorConstraint(this);
         public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitConstructorConstraint(this);
+        public override TResult? Accept<TArgument, TResult>(CSharpSyntaxVisitor<TArgument, TResult> visitor, TArgument argument) where TResult : default => visitor.VisitConstructorConstraint(this, argument);
 
         public ConstructorConstraintSyntax Update(SyntaxToken newKeyword, SyntaxToken openParenToken, SyntaxToken closeParenToken)
         {
@@ -11313,6 +11483,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitClassOrStructConstraint(this);
         public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitClassOrStructConstraint(this);
+        public override TResult? Accept<TArgument, TResult>(CSharpSyntaxVisitor<TArgument, TResult> visitor, TArgument argument) where TResult : default => visitor.VisitClassOrStructConstraint(this, argument);
 
         public ClassOrStructConstraintSyntax Update(SyntaxToken classOrStructKeyword, SyntaxToken questionToken)
         {
@@ -11355,6 +11526,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitTypeConstraint(this);
         public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitTypeConstraint(this);
+        public override TResult? Accept<TArgument, TResult>(CSharpSyntaxVisitor<TArgument, TResult> visitor, TArgument argument) where TResult : default => visitor.VisitTypeConstraint(this, argument);
 
         public TypeConstraintSyntax Update(TypeSyntax type)
         {
@@ -11395,6 +11567,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitDefaultConstraint(this);
         public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitDefaultConstraint(this);
+        public override TResult? Accept<TArgument, TResult>(CSharpSyntaxVisitor<TArgument, TResult> visitor, TArgument argument) where TResult : default => visitor.VisitDefaultConstraint(this, argument);
 
         public DefaultConstraintSyntax Update(SyntaxToken defaultKeyword)
         {
@@ -11486,6 +11659,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitFieldDeclaration(this);
         public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitFieldDeclaration(this);
+        public override TResult? Accept<TArgument, TResult>(CSharpSyntaxVisitor<TArgument, TResult> visitor, TArgument argument) where TResult : default => visitor.VisitFieldDeclaration(this, argument);
 
         public FieldDeclarationSyntax Update(SyntaxList<AttributeListSyntax> attributeLists, SyntaxTokenList modifiers, VariableDeclarationSyntax declaration, SyntaxToken semicolonToken)
         {
@@ -11567,6 +11741,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitEventFieldDeclaration(this);
         public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitEventFieldDeclaration(this);
+        public override TResult? Accept<TArgument, TResult>(CSharpSyntaxVisitor<TArgument, TResult> visitor, TArgument argument) where TResult : default => visitor.VisitEventFieldDeclaration(this, argument);
 
         public EventFieldDeclarationSyntax Update(SyntaxList<AttributeListSyntax> attributeLists, SyntaxTokenList modifiers, SyntaxToken eventKeyword, VariableDeclarationSyntax declaration, SyntaxToken semicolonToken)
         {
@@ -11623,6 +11798,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitExplicitInterfaceSpecifier(this);
         public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitExplicitInterfaceSpecifier(this);
+        public override TResult? Accept<TArgument, TResult>(CSharpSyntaxVisitor<TArgument, TResult> visitor, TArgument argument) where TResult : default => visitor.VisitExplicitInterfaceSpecifier(this, argument);
 
         public ExplicitInterfaceSpecifierSyntax Update(NameSyntax name, SyntaxToken dotToken)
         {
@@ -11776,6 +11952,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitMethodDeclaration(this);
         public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitMethodDeclaration(this);
+        public override TResult? Accept<TArgument, TResult>(CSharpSyntaxVisitor<TArgument, TResult> visitor, TArgument argument) where TResult : default => visitor.VisitMethodDeclaration(this, argument);
 
         public MethodDeclarationSyntax Update(SyntaxList<AttributeListSyntax> attributeLists, SyntaxTokenList modifiers, TypeSyntax returnType, ExplicitInterfaceSpecifierSyntax? explicitInterfaceSpecifier, SyntaxToken identifier, TypeParameterListSyntax? typeParameterList, ParameterListSyntax parameterList, SyntaxList<TypeParameterConstraintClauseSyntax> constraintClauses, BlockSyntax? body, ArrowExpressionClauseSyntax? expressionBody, SyntaxToken semicolonToken)
         {
@@ -11928,6 +12105,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitOperatorDeclaration(this);
         public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitOperatorDeclaration(this);
+        public override TResult? Accept<TArgument, TResult>(CSharpSyntaxVisitor<TArgument, TResult> visitor, TArgument argument) where TResult : default => visitor.VisitOperatorDeclaration(this, argument);
 
         public OperatorDeclarationSyntax Update(SyntaxList<AttributeListSyntax> attributeLists, SyntaxTokenList modifiers, TypeSyntax returnType, ExplicitInterfaceSpecifierSyntax? explicitInterfaceSpecifier, SyntaxToken operatorKeyword, SyntaxToken checkedKeyword, SyntaxToken operatorToken, ParameterListSyntax parameterList, BlockSyntax? body, ArrowExpressionClauseSyntax? expressionBody, SyntaxToken semicolonToken)
         {
@@ -12074,6 +12252,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitConversionOperatorDeclaration(this);
         public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitConversionOperatorDeclaration(this);
+        public override TResult? Accept<TArgument, TResult>(CSharpSyntaxVisitor<TArgument, TResult> visitor, TArgument argument) where TResult : default => visitor.VisitConversionOperatorDeclaration(this, argument);
 
         public ConversionOperatorDeclarationSyntax Update(SyntaxList<AttributeListSyntax> attributeLists, SyntaxTokenList modifiers, SyntaxToken implicitOrExplicitKeyword, ExplicitInterfaceSpecifierSyntax? explicitInterfaceSpecifier, SyntaxToken operatorKeyword, SyntaxToken checkedKeyword, TypeSyntax type, ParameterListSyntax parameterList, BlockSyntax? body, ArrowExpressionClauseSyntax? expressionBody, SyntaxToken semicolonToken)
         {
@@ -12201,6 +12380,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitConstructorDeclaration(this);
         public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitConstructorDeclaration(this);
+        public override TResult? Accept<TArgument, TResult>(CSharpSyntaxVisitor<TArgument, TResult> visitor, TArgument argument) where TResult : default => visitor.VisitConstructorDeclaration(this, argument);
 
         public ConstructorDeclarationSyntax Update(SyntaxList<AttributeListSyntax> attributeLists, SyntaxTokenList modifiers, SyntaxToken identifier, ParameterListSyntax parameterList, ConstructorInitializerSyntax? initializer, BlockSyntax? body, ArrowExpressionClauseSyntax? expressionBody, SyntaxToken semicolonToken)
         {
@@ -12280,6 +12460,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitConstructorInitializer(this);
         public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitConstructorInitializer(this);
+        public override TResult? Accept<TArgument, TResult>(CSharpSyntaxVisitor<TArgument, TResult> visitor, TArgument argument) where TResult : default => visitor.VisitConstructorInitializer(this, argument);
 
         public ConstructorInitializerSyntax Update(SyntaxToken colonToken, SyntaxToken thisOrBaseKeyword, ArgumentListSyntax argumentList)
         {
@@ -12374,6 +12555,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitDestructorDeclaration(this);
         public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitDestructorDeclaration(this);
+        public override TResult? Accept<TArgument, TResult>(CSharpSyntaxVisitor<TArgument, TResult> visitor, TArgument argument) where TResult : default => visitor.VisitDestructorDeclaration(this, argument);
 
         public DestructorDeclarationSyntax Update(SyntaxList<AttributeListSyntax> attributeLists, SyntaxTokenList modifiers, SyntaxToken tildeToken, SyntaxToken identifier, ParameterListSyntax parameterList, BlockSyntax? body, ArrowExpressionClauseSyntax? expressionBody, SyntaxToken semicolonToken)
         {
@@ -12534,6 +12716,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitPropertyDeclaration(this);
         public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitPropertyDeclaration(this);
+        public override TResult? Accept<TArgument, TResult>(CSharpSyntaxVisitor<TArgument, TResult> visitor, TArgument argument) where TResult : default => visitor.VisitPropertyDeclaration(this, argument);
 
         public PropertyDeclarationSyntax Update(SyntaxList<AttributeListSyntax> attributeLists, SyntaxTokenList modifiers, TypeSyntax type, ExplicitInterfaceSpecifierSyntax? explicitInterfaceSpecifier, SyntaxToken identifier, AccessorListSyntax? accessorList, ArrowExpressionClauseSyntax? expressionBody, EqualsValueClauseSyntax? initializer, SyntaxToken semicolonToken)
         {
@@ -12600,6 +12783,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitArrowExpressionClause(this);
         public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitArrowExpressionClause(this);
+        public override TResult? Accept<TArgument, TResult>(CSharpSyntaxVisitor<TArgument, TResult> visitor, TArgument argument) where TResult : default => visitor.VisitArrowExpressionClause(this, argument);
 
         public ArrowExpressionClauseSyntax Update(SyntaxToken arrowToken, ExpressionSyntax expression)
         {
@@ -12688,6 +12872,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitEventDeclaration(this);
         public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitEventDeclaration(this);
+        public override TResult? Accept<TArgument, TResult>(CSharpSyntaxVisitor<TArgument, TResult> visitor, TArgument argument) where TResult : default => visitor.VisitEventDeclaration(this, argument);
 
         public EventDeclarationSyntax Update(SyntaxList<AttributeListSyntax> attributeLists, SyntaxTokenList modifiers, SyntaxToken eventKeyword, TypeSyntax type, ExplicitInterfaceSpecifierSyntax? explicitInterfaceSpecifier, SyntaxToken identifier, AccessorListSyntax? accessorList, SyntaxToken semicolonToken)
         {
@@ -12806,6 +12991,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitIndexerDeclaration(this);
         public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitIndexerDeclaration(this);
+        public override TResult? Accept<TArgument, TResult>(CSharpSyntaxVisitor<TArgument, TResult> visitor, TArgument argument) where TResult : default => visitor.VisitIndexerDeclaration(this, argument);
 
         public IndexerDeclarationSyntax Update(SyntaxList<AttributeListSyntax> attributeLists, SyntaxTokenList modifiers, TypeSyntax type, ExplicitInterfaceSpecifierSyntax? explicitInterfaceSpecifier, SyntaxToken thisKeyword, BracketedParameterListSyntax parameterList, AccessorListSyntax? accessorList, ArrowExpressionClauseSyntax? expressionBody, SyntaxToken semicolonToken)
         {
@@ -12874,6 +13060,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitAccessorList(this);
         public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitAccessorList(this);
+        public override TResult? Accept<TArgument, TResult>(CSharpSyntaxVisitor<TArgument, TResult> visitor, TArgument argument) where TResult : default => visitor.VisitAccessorList(this, argument);
 
         public AccessorListSyntax Update(SyntaxToken openBraceToken, SyntaxList<AccessorDeclarationSyntax> accessors, SyntaxToken closeBraceToken)
         {
@@ -12968,6 +13155,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitAccessorDeclaration(this);
         public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitAccessorDeclaration(this);
+        public override TResult? Accept<TArgument, TResult>(CSharpSyntaxVisitor<TArgument, TResult> visitor, TArgument argument) where TResult : default => visitor.VisitAccessorDeclaration(this, argument);
 
         public AccessorDeclarationSyntax Update(SyntaxList<AttributeListSyntax> attributeLists, SyntaxTokenList modifiers, SyntaxToken keyword, BlockSyntax? body, ArrowExpressionClauseSyntax? expressionBody, SyntaxToken semicolonToken)
         {
@@ -13056,6 +13244,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitParameterList(this);
         public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitParameterList(this);
+        public override TResult? Accept<TArgument, TResult>(CSharpSyntaxVisitor<TArgument, TResult> visitor, TArgument argument) where TResult : default => visitor.VisitParameterList(this, argument);
 
         public ParameterListSyntax Update(SyntaxToken openParenToken, SeparatedSyntaxList<ParameterSyntax> parameters, SyntaxToken closeParenToken)
         {
@@ -13115,6 +13304,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitBracketedParameterList(this);
         public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitBracketedParameterList(this);
+        public override TResult? Accept<TArgument, TResult>(CSharpSyntaxVisitor<TArgument, TResult> visitor, TArgument argument) where TResult : default => visitor.VisitBracketedParameterList(this, argument);
 
         public BracketedParameterListSyntax Update(SyntaxToken openBracketToken, SeparatedSyntaxList<ParameterSyntax> parameters, SyntaxToken closeBracketToken)
         {
@@ -13224,6 +13414,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitParameter(this);
         public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitParameter(this);
+        public override TResult? Accept<TArgument, TResult>(CSharpSyntaxVisitor<TArgument, TResult> visitor, TArgument argument) where TResult : default => visitor.VisitParameter(this, argument);
 
         public ParameterSyntax Update(SyntaxList<AttributeListSyntax> attributeLists, SyntaxTokenList modifiers, TypeSyntax? type, SyntaxToken identifier, EqualsValueClauseSyntax? @default)
         {
@@ -13302,6 +13493,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitFunctionPointerParameter(this);
         public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitFunctionPointerParameter(this);
+        public override TResult? Accept<TArgument, TResult>(CSharpSyntaxVisitor<TArgument, TResult> visitor, TArgument argument) where TResult : default => visitor.VisitFunctionPointerParameter(this, argument);
 
         public FunctionPointerParameterSyntax Update(SyntaxList<AttributeListSyntax> attributeLists, SyntaxTokenList modifiers, TypeSyntax type)
         {
@@ -13375,6 +13567,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitIncompleteMember(this);
         public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitIncompleteMember(this);
+        public override TResult? Accept<TArgument, TResult>(CSharpSyntaxVisitor<TArgument, TResult> visitor, TArgument argument) where TResult : default => visitor.VisitIncompleteMember(this, argument);
 
         public IncompleteMemberSyntax Update(SyntaxList<AttributeListSyntax> attributeLists, SyntaxTokenList modifiers, TypeSyntax? type)
         {
@@ -13429,6 +13622,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitSkippedTokensTrivia(this);
         public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitSkippedTokensTrivia(this);
+        public override TResult? Accept<TArgument, TResult>(CSharpSyntaxVisitor<TArgument, TResult> visitor, TArgument argument) where TResult : default => visitor.VisitSkippedTokensTrivia(this, argument);
 
         public SkippedTokensTriviaSyntax Update(SyntaxTokenList tokens)
         {
@@ -13473,6 +13667,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitDocumentationCommentTrivia(this);
         public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitDocumentationCommentTrivia(this);
+        public override TResult? Accept<TArgument, TResult>(CSharpSyntaxVisitor<TArgument, TResult> visitor, TArgument argument) where TResult : default => visitor.VisitDocumentationCommentTrivia(this, argument);
 
         public DocumentationCommentTriviaSyntax Update(SyntaxList<XmlNodeSyntax> content, SyntaxToken endOfComment)
         {
@@ -13534,6 +13729,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitTypeCref(this);
         public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitTypeCref(this);
+        public override TResult? Accept<TArgument, TResult>(CSharpSyntaxVisitor<TArgument, TResult> visitor, TArgument argument) where TResult : default => visitor.VisitTypeCref(this, argument);
 
         public TypeCrefSyntax Update(TypeSyntax type)
         {
@@ -13597,6 +13793,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitQualifiedCref(this);
         public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitQualifiedCref(this);
+        public override TResult? Accept<TArgument, TResult>(CSharpSyntaxVisitor<TArgument, TResult> visitor, TArgument argument) where TResult : default => visitor.VisitQualifiedCref(this, argument);
 
         public QualifiedCrefSyntax Update(TypeSyntax container, SyntaxToken dotToken, MemberCrefSyntax member)
         {
@@ -13674,6 +13871,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitNameMemberCref(this);
         public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitNameMemberCref(this);
+        public override TResult? Accept<TArgument, TResult>(CSharpSyntaxVisitor<TArgument, TResult> visitor, TArgument argument) where TResult : default => visitor.VisitNameMemberCref(this, argument);
 
         public NameMemberCrefSyntax Update(TypeSyntax name, CrefParameterListSyntax? parameters)
         {
@@ -13726,6 +13924,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitIndexerMemberCref(this);
         public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitIndexerMemberCref(this);
+        public override TResult? Accept<TArgument, TResult>(CSharpSyntaxVisitor<TArgument, TResult> visitor, TArgument argument) where TResult : default => visitor.VisitIndexerMemberCref(this, argument);
 
         public IndexerMemberCrefSyntax Update(SyntaxToken thisKeyword, CrefBracketedParameterListSyntax? parameters)
         {
@@ -13791,6 +13990,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitOperatorMemberCref(this);
         public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitOperatorMemberCref(this);
+        public override TResult? Accept<TArgument, TResult>(CSharpSyntaxVisitor<TArgument, TResult> visitor, TArgument argument) where TResult : default => visitor.VisitOperatorMemberCref(this, argument);
 
         public OperatorMemberCrefSyntax Update(SyntaxToken operatorKeyword, SyntaxToken checkedKeyword, SyntaxToken operatorToken, CrefParameterListSyntax? parameters)
         {
@@ -13871,6 +14071,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitConversionOperatorMemberCref(this);
         public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitConversionOperatorMemberCref(this);
+        public override TResult? Accept<TArgument, TResult>(CSharpSyntaxVisitor<TArgument, TResult> visitor, TArgument argument) where TResult : default => visitor.VisitConversionOperatorMemberCref(this, argument);
 
         public ConversionOperatorMemberCrefSyntax Update(SyntaxToken implicitOrExplicitKeyword, SyntaxToken operatorKeyword, SyntaxToken checkedKeyword, TypeSyntax type, CrefParameterListSyntax? parameters)
         {
@@ -13956,6 +14157,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitCrefParameterList(this);
         public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitCrefParameterList(this);
+        public override TResult? Accept<TArgument, TResult>(CSharpSyntaxVisitor<TArgument, TResult> visitor, TArgument argument) where TResult : default => visitor.VisitCrefParameterList(this, argument);
 
         public CrefParameterListSyntax Update(SyntaxToken openParenToken, SeparatedSyntaxList<CrefParameterSyntax> parameters, SyntaxToken closeParenToken)
         {
@@ -14017,6 +14219,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitCrefBracketedParameterList(this);
         public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitCrefBracketedParameterList(this);
+        public override TResult? Accept<TArgument, TResult>(CSharpSyntaxVisitor<TArgument, TResult> visitor, TArgument argument) where TResult : default => visitor.VisitCrefBracketedParameterList(this, argument);
 
         public CrefBracketedParameterListSyntax Update(SyntaxToken openBracketToken, SeparatedSyntaxList<CrefParameterSyntax> parameters, SyntaxToken closeBracketToken)
         {
@@ -14076,6 +14279,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitCrefParameter(this);
         public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitCrefParameter(this);
+        public override TResult? Accept<TArgument, TResult>(CSharpSyntaxVisitor<TArgument, TResult> visitor, TArgument argument) where TResult : default => visitor.VisitCrefParameter(this, argument);
 
         public CrefParameterSyntax Update(SyntaxToken refKindKeyword, TypeSyntax type)
         {
@@ -14144,6 +14348,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitXmlElement(this);
         public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitXmlElement(this);
+        public override TResult? Accept<TArgument, TResult>(CSharpSyntaxVisitor<TArgument, TResult> visitor, TArgument argument) where TResult : default => visitor.VisitXmlElement(this, argument);
 
         public XmlElementSyntax Update(XmlElementStartTagSyntax startTag, SyntaxList<XmlNodeSyntax> content, XmlElementEndTagSyntax endTag)
         {
@@ -14207,6 +14412,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitXmlElementStartTag(this);
         public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitXmlElementStartTag(this);
+        public override TResult? Accept<TArgument, TResult>(CSharpSyntaxVisitor<TArgument, TResult> visitor, TArgument argument) where TResult : default => visitor.VisitXmlElementStartTag(this, argument);
 
         public XmlElementStartTagSyntax Update(SyntaxToken lessThanToken, XmlNameSyntax name, SyntaxList<XmlAttributeSyntax> attributes, SyntaxToken greaterThanToken)
         {
@@ -14255,6 +14461,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitXmlElementEndTag(this);
         public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitXmlElementEndTag(this);
+        public override TResult? Accept<TArgument, TResult>(CSharpSyntaxVisitor<TArgument, TResult> visitor, TArgument argument) where TResult : default => visitor.VisitXmlElementEndTag(this, argument);
 
         public XmlElementEndTagSyntax Update(SyntaxToken lessThanSlashToken, XmlNameSyntax name, SyntaxToken greaterThanToken)
         {
@@ -14315,6 +14522,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitXmlEmptyElement(this);
         public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitXmlEmptyElement(this);
+        public override TResult? Accept<TArgument, TResult>(CSharpSyntaxVisitor<TArgument, TResult> visitor, TArgument argument) where TResult : default => visitor.VisitXmlEmptyElement(this, argument);
 
         public XmlEmptyElementSyntax Update(SyntaxToken lessThanToken, XmlNameSyntax name, SyntaxList<XmlAttributeSyntax> attributes, SyntaxToken slashGreaterThanToken)
         {
@@ -14361,6 +14569,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitXmlName(this);
         public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitXmlName(this);
+        public override TResult? Accept<TArgument, TResult>(CSharpSyntaxVisitor<TArgument, TResult> visitor, TArgument argument) where TResult : default => visitor.VisitXmlName(this, argument);
 
         public XmlNameSyntax Update(XmlPrefixSyntax? prefix, SyntaxToken localName)
         {
@@ -14402,6 +14611,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitXmlPrefix(this);
         public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitXmlPrefix(this);
+        public override TResult? Accept<TArgument, TResult>(CSharpSyntaxVisitor<TArgument, TResult> visitor, TArgument argument) where TResult : default => visitor.VisitXmlPrefix(this, argument);
 
         public XmlPrefixSyntax Update(SyntaxToken prefix, SyntaxToken colonToken)
         {
@@ -14481,6 +14691,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitXmlTextAttribute(this);
         public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitXmlTextAttribute(this);
+        public override TResult? Accept<TArgument, TResult>(CSharpSyntaxVisitor<TArgument, TResult> visitor, TArgument argument) where TResult : default => visitor.VisitXmlTextAttribute(this, argument);
 
         public XmlTextAttributeSyntax Update(XmlNameSyntax name, SyntaxToken equalsToken, SyntaxToken startQuoteToken, SyntaxTokenList textTokens, SyntaxToken endQuoteToken)
         {
@@ -14551,6 +14762,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitXmlCrefAttribute(this);
         public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitXmlCrefAttribute(this);
+        public override TResult? Accept<TArgument, TResult>(CSharpSyntaxVisitor<TArgument, TResult> visitor, TArgument argument) where TResult : default => visitor.VisitXmlCrefAttribute(this, argument);
 
         public XmlCrefAttributeSyntax Update(XmlNameSyntax name, SyntaxToken equalsToken, SyntaxToken startQuoteToken, CrefSyntax cref, SyntaxToken endQuoteToken)
         {
@@ -14619,6 +14831,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitXmlNameAttribute(this);
         public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitXmlNameAttribute(this);
+        public override TResult? Accept<TArgument, TResult>(CSharpSyntaxVisitor<TArgument, TResult> visitor, TArgument argument) where TResult : default => visitor.VisitXmlNameAttribute(this, argument);
 
         public XmlNameAttributeSyntax Update(XmlNameSyntax name, SyntaxToken equalsToken, SyntaxToken startQuoteToken, IdentifierNameSyntax identifier, SyntaxToken endQuoteToken)
         {
@@ -14672,6 +14885,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitXmlText(this);
         public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitXmlText(this);
+        public override TResult? Accept<TArgument, TResult>(CSharpSyntaxVisitor<TArgument, TResult> visitor, TArgument argument) where TResult : default => visitor.VisitXmlText(this, argument);
 
         public XmlTextSyntax Update(SyntaxTokenList textTokens)
         {
@@ -14723,6 +14937,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitXmlCDataSection(this);
         public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitXmlCDataSection(this);
+        public override TResult? Accept<TArgument, TResult>(CSharpSyntaxVisitor<TArgument, TResult> visitor, TArgument argument) where TResult : default => visitor.VisitXmlCDataSection(this, argument);
 
         public XmlCDataSectionSyntax Update(SyntaxToken startCDataToken, SyntaxTokenList textTokens, SyntaxToken endCDataToken)
         {
@@ -14779,6 +14994,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitXmlProcessingInstruction(this);
         public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitXmlProcessingInstruction(this);
+        public override TResult? Accept<TArgument, TResult>(CSharpSyntaxVisitor<TArgument, TResult> visitor, TArgument argument) where TResult : default => visitor.VisitXmlProcessingInstruction(this, argument);
 
         public XmlProcessingInstructionSyntax Update(SyntaxToken startProcessingInstructionToken, XmlNameSyntax name, SyntaxTokenList textTokens, SyntaxToken endProcessingInstructionToken)
         {
@@ -14833,6 +15049,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitXmlComment(this);
         public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitXmlComment(this);
+        public override TResult? Accept<TArgument, TResult>(CSharpSyntaxVisitor<TArgument, TResult> visitor, TArgument argument) where TResult : default => visitor.VisitXmlComment(this, argument);
 
         public XmlCommentSyntax Update(SyntaxToken lessThanExclamationMinusMinusToken, SyntaxTokenList textTokens, SyntaxToken minusMinusGreaterThanToken)
         {
@@ -14933,6 +15150,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitIfDirectiveTrivia(this);
         public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitIfDirectiveTrivia(this);
+        public override TResult? Accept<TArgument, TResult>(CSharpSyntaxVisitor<TArgument, TResult> visitor, TArgument argument) where TResult : default => visitor.VisitIfDirectiveTrivia(this, argument);
 
         public IfDirectiveTriviaSyntax Update(SyntaxToken hashToken, SyntaxToken ifKeyword, ExpressionSyntax condition, SyntaxToken endOfDirectiveToken, bool isActive, bool branchTaken, bool conditionValue)
         {
@@ -14993,6 +15211,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitElifDirectiveTrivia(this);
         public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitElifDirectiveTrivia(this);
+        public override TResult? Accept<TArgument, TResult>(CSharpSyntaxVisitor<TArgument, TResult> visitor, TArgument argument) where TResult : default => visitor.VisitElifDirectiveTrivia(this, argument);
 
         public ElifDirectiveTriviaSyntax Update(SyntaxToken hashToken, SyntaxToken elifKeyword, ExpressionSyntax condition, SyntaxToken endOfDirectiveToken, bool isActive, bool branchTaken, bool conditionValue)
         {
@@ -15048,6 +15267,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitElseDirectiveTrivia(this);
         public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitElseDirectiveTrivia(this);
+        public override TResult? Accept<TArgument, TResult>(CSharpSyntaxVisitor<TArgument, TResult> visitor, TArgument argument) where TResult : default => visitor.VisitElseDirectiveTrivia(this, argument);
 
         public ElseDirectiveTriviaSyntax Update(SyntaxToken hashToken, SyntaxToken elseKeyword, SyntaxToken endOfDirectiveToken, bool isActive, bool branchTaken)
         {
@@ -15098,6 +15318,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitEndIfDirectiveTrivia(this);
         public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitEndIfDirectiveTrivia(this);
+        public override TResult? Accept<TArgument, TResult>(CSharpSyntaxVisitor<TArgument, TResult> visitor, TArgument argument) where TResult : default => visitor.VisitEndIfDirectiveTrivia(this, argument);
 
         public EndIfDirectiveTriviaSyntax Update(SyntaxToken hashToken, SyntaxToken endIfKeyword, SyntaxToken endOfDirectiveToken, bool isActive)
         {
@@ -15147,6 +15368,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitRegionDirectiveTrivia(this);
         public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitRegionDirectiveTrivia(this);
+        public override TResult? Accept<TArgument, TResult>(CSharpSyntaxVisitor<TArgument, TResult> visitor, TArgument argument) where TResult : default => visitor.VisitRegionDirectiveTrivia(this, argument);
 
         public RegionDirectiveTriviaSyntax Update(SyntaxToken hashToken, SyntaxToken regionKeyword, SyntaxToken endOfDirectiveToken, bool isActive)
         {
@@ -15196,6 +15418,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitEndRegionDirectiveTrivia(this);
         public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitEndRegionDirectiveTrivia(this);
+        public override TResult? Accept<TArgument, TResult>(CSharpSyntaxVisitor<TArgument, TResult> visitor, TArgument argument) where TResult : default => visitor.VisitEndRegionDirectiveTrivia(this, argument);
 
         public EndRegionDirectiveTriviaSyntax Update(SyntaxToken hashToken, SyntaxToken endRegionKeyword, SyntaxToken endOfDirectiveToken, bool isActive)
         {
@@ -15245,6 +15468,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitErrorDirectiveTrivia(this);
         public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitErrorDirectiveTrivia(this);
+        public override TResult? Accept<TArgument, TResult>(CSharpSyntaxVisitor<TArgument, TResult> visitor, TArgument argument) where TResult : default => visitor.VisitErrorDirectiveTrivia(this, argument);
 
         public ErrorDirectiveTriviaSyntax Update(SyntaxToken hashToken, SyntaxToken errorKeyword, SyntaxToken endOfDirectiveToken, bool isActive)
         {
@@ -15294,6 +15518,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitWarningDirectiveTrivia(this);
         public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitWarningDirectiveTrivia(this);
+        public override TResult? Accept<TArgument, TResult>(CSharpSyntaxVisitor<TArgument, TResult> visitor, TArgument argument) where TResult : default => visitor.VisitWarningDirectiveTrivia(this, argument);
 
         public WarningDirectiveTriviaSyntax Update(SyntaxToken hashToken, SyntaxToken warningKeyword, SyntaxToken endOfDirectiveToken, bool isActive)
         {
@@ -15343,6 +15568,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitBadDirectiveTrivia(this);
         public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitBadDirectiveTrivia(this);
+        public override TResult? Accept<TArgument, TResult>(CSharpSyntaxVisitor<TArgument, TResult> visitor, TArgument argument) where TResult : default => visitor.VisitBadDirectiveTrivia(this, argument);
 
         public BadDirectiveTriviaSyntax Update(SyntaxToken hashToken, SyntaxToken identifier, SyntaxToken endOfDirectiveToken, bool isActive)
         {
@@ -15394,6 +15620,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitDefineDirectiveTrivia(this);
         public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitDefineDirectiveTrivia(this);
+        public override TResult? Accept<TArgument, TResult>(CSharpSyntaxVisitor<TArgument, TResult> visitor, TArgument argument) where TResult : default => visitor.VisitDefineDirectiveTrivia(this, argument);
 
         public DefineDirectiveTriviaSyntax Update(SyntaxToken hashToken, SyntaxToken defineKeyword, SyntaxToken name, SyntaxToken endOfDirectiveToken, bool isActive)
         {
@@ -15446,6 +15673,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitUndefDirectiveTrivia(this);
         public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitUndefDirectiveTrivia(this);
+        public override TResult? Accept<TArgument, TResult>(CSharpSyntaxVisitor<TArgument, TResult> visitor, TArgument argument) where TResult : default => visitor.VisitUndefDirectiveTrivia(this, argument);
 
         public UndefDirectiveTriviaSyntax Update(SyntaxToken hashToken, SyntaxToken undefKeyword, SyntaxToken name, SyntaxToken endOfDirectiveToken, bool isActive)
         {
@@ -15526,6 +15754,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitLineDirectiveTrivia(this);
         public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitLineDirectiveTrivia(this);
+        public override TResult? Accept<TArgument, TResult>(CSharpSyntaxVisitor<TArgument, TResult> visitor, TArgument argument) where TResult : default => visitor.VisitLineDirectiveTrivia(this, argument);
 
         public LineDirectiveTriviaSyntax Update(SyntaxToken hashToken, SyntaxToken lineKeyword, SyntaxToken line, SyntaxToken file, SyntaxToken endOfDirectiveToken, bool isActive)
         {
@@ -15581,6 +15810,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitLineDirectivePosition(this);
         public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitLineDirectivePosition(this);
+        public override TResult? Accept<TArgument, TResult>(CSharpSyntaxVisitor<TArgument, TResult> visitor, TArgument argument) where TResult : default => visitor.VisitLineDirectivePosition(this, argument);
 
         public LineDirectivePositionSyntax Update(SyntaxToken openParenToken, SyntaxToken line, SyntaxToken commaToken, SyntaxToken character, SyntaxToken closeParenToken)
         {
@@ -15660,6 +15890,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitLineSpanDirectiveTrivia(this);
         public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitLineSpanDirectiveTrivia(this);
+        public override TResult? Accept<TArgument, TResult>(CSharpSyntaxVisitor<TArgument, TResult> visitor, TArgument argument) where TResult : default => visitor.VisitLineSpanDirectiveTrivia(this, argument);
 
         public LineSpanDirectiveTriviaSyntax Update(SyntaxToken hashToken, SyntaxToken lineKeyword, LineDirectivePositionSyntax start, SyntaxToken minusToken, LineDirectivePositionSyntax end, SyntaxToken characterOffset, SyntaxToken file, SyntaxToken endOfDirectiveToken, bool isActive)
         {
@@ -15730,6 +15961,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitPragmaWarningDirectiveTrivia(this);
         public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitPragmaWarningDirectiveTrivia(this);
+        public override TResult? Accept<TArgument, TResult>(CSharpSyntaxVisitor<TArgument, TResult> visitor, TArgument argument) where TResult : default => visitor.VisitPragmaWarningDirectiveTrivia(this, argument);
 
         public PragmaWarningDirectiveTriviaSyntax Update(SyntaxToken hashToken, SyntaxToken pragmaKeyword, SyntaxToken warningKeyword, SyntaxToken disableOrRestoreKeyword, SeparatedSyntaxList<ExpressionSyntax> errorCodes, SyntaxToken endOfDirectiveToken, bool isActive)
         {
@@ -15792,6 +16024,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitPragmaChecksumDirectiveTrivia(this);
         public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitPragmaChecksumDirectiveTrivia(this);
+        public override TResult? Accept<TArgument, TResult>(CSharpSyntaxVisitor<TArgument, TResult> visitor, TArgument argument) where TResult : default => visitor.VisitPragmaChecksumDirectiveTrivia(this, argument);
 
         public PragmaChecksumDirectiveTriviaSyntax Update(SyntaxToken hashToken, SyntaxToken pragmaKeyword, SyntaxToken checksumKeyword, SyntaxToken file, SyntaxToken guid, SyntaxToken bytes, SyntaxToken endOfDirectiveToken, bool isActive)
         {
@@ -15847,6 +16080,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitReferenceDirectiveTrivia(this);
         public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitReferenceDirectiveTrivia(this);
+        public override TResult? Accept<TArgument, TResult>(CSharpSyntaxVisitor<TArgument, TResult> visitor, TArgument argument) where TResult : default => visitor.VisitReferenceDirectiveTrivia(this, argument);
 
         public ReferenceDirectiveTriviaSyntax Update(SyntaxToken hashToken, SyntaxToken referenceKeyword, SyntaxToken file, SyntaxToken endOfDirectiveToken, bool isActive)
         {
@@ -15899,6 +16133,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitLoadDirectiveTrivia(this);
         public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitLoadDirectiveTrivia(this);
+        public override TResult? Accept<TArgument, TResult>(CSharpSyntaxVisitor<TArgument, TResult> visitor, TArgument argument) where TResult : default => visitor.VisitLoadDirectiveTrivia(this, argument);
 
         public LoadDirectiveTriviaSyntax Update(SyntaxToken hashToken, SyntaxToken loadKeyword, SyntaxToken file, SyntaxToken endOfDirectiveToken, bool isActive)
         {
@@ -15949,6 +16184,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitShebangDirectiveTrivia(this);
         public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitShebangDirectiveTrivia(this);
+        public override TResult? Accept<TArgument, TResult>(CSharpSyntaxVisitor<TArgument, TResult> visitor, TArgument argument) where TResult : default => visitor.VisitShebangDirectiveTrivia(this, argument);
 
         public ShebangDirectiveTriviaSyntax Update(SyntaxToken hashToken, SyntaxToken exclamationToken, SyntaxToken endOfDirectiveToken, bool isActive)
         {
@@ -16009,6 +16245,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitNullableDirectiveTrivia(this);
         public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitNullableDirectiveTrivia(this);
+        public override TResult? Accept<TArgument, TResult>(CSharpSyntaxVisitor<TArgument, TResult> visitor, TArgument argument) where TResult : default => visitor.VisitNullableDirectiveTrivia(this, argument);
 
         public NullableDirectiveTriviaSyntax Update(SyntaxToken hashToken, SyntaxToken nullableKeyword, SyntaxToken settingToken, SyntaxToken targetToken, SyntaxToken endOfDirectiveToken, bool isActive)
         {

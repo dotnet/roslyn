@@ -68,3 +68,30 @@ Microsoft.CodeAnalysis.CSharp.SyntaxKind.GreaterThanGreaterThanGreaterThanEquals
 Microsoft.CodeAnalysis.CSharp.SyntaxKind.GreaterThanGreaterThanGreaterThanToken = 8286 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
 Microsoft.CodeAnalysis.CSharp.SyntaxKind.UnsignedRightShiftAssignmentExpression = 8726 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
 Microsoft.CodeAnalysis.CSharp.SyntaxKind.UnsignedRightShiftExpression = 8692 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
+Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor<TArgument, TResult>
+Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor<TArgument, TResult>.CSharpSyntaxVisitor() -> void
+abstract Microsoft.CodeAnalysis.CSharp.CSharpSyntaxNode.Accept<TArgument, TResult>(Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor<TArgument, TResult>! visitor, TArgument argument) -> TResult?
+Microsoft.CodeAnalysis.CSharp.CSharpSyntaxRewriter<TArgument>
+Microsoft.CodeAnalysis.CSharp.CSharpSyntaxRewriter<TArgument>.CSharpSyntaxRewriter(bool visitIntoStructuredTrivia = false) -> void
+virtual Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor<TArgument, TResult>.DefaultVisit(Microsoft.CodeAnalysis.SyntaxNode! node, TArgument argument) -> TResult?
+virtual Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor<TArgument, TResult>.Visit(Microsoft.CodeAnalysis.SyntaxNode? node, TArgument argument) -> TResult?
+override Microsoft.CodeAnalysis.CSharp.CSharpSyntaxRewriter<TArgument>.Visit(Microsoft.CodeAnalysis.SyntaxNode? node, TArgument argument) -> Microsoft.CodeAnalysis.SyntaxNode?
+virtual Microsoft.CodeAnalysis.CSharp.CSharpSyntaxRewriter<TArgument>.VisitIntoStructuredTrivia.get -> bool
+virtual Microsoft.CodeAnalysis.CSharp.CSharpSyntaxRewriter<TArgument>.VisitList(Microsoft.CodeAnalysis.SyntaxTokenList list, TArgument argument) -> Microsoft.CodeAnalysis.SyntaxTokenList
+virtual Microsoft.CodeAnalysis.CSharp.CSharpSyntaxRewriter<TArgument>.VisitList(Microsoft.CodeAnalysis.SyntaxTriviaList list, TArgument argument) -> Microsoft.CodeAnalysis.SyntaxTriviaList
+virtual Microsoft.CodeAnalysis.CSharp.CSharpSyntaxRewriter<TArgument>.VisitList<TNode>(Microsoft.CodeAnalysis.SeparatedSyntaxList<TNode!> list, TArgument argument) -> Microsoft.CodeAnalysis.SeparatedSyntaxList<TNode!>
+virtual Microsoft.CodeAnalysis.CSharp.CSharpSyntaxRewriter<TArgument>.VisitList<TNode>(Microsoft.CodeAnalysis.SyntaxList<TNode!> list, TArgument argument) -> Microsoft.CodeAnalysis.SyntaxList<TNode!>
+virtual Microsoft.CodeAnalysis.CSharp.CSharpSyntaxRewriter<TArgument>.VisitListElement(Microsoft.CodeAnalysis.SyntaxTrivia element, TArgument argument) -> Microsoft.CodeAnalysis.SyntaxTrivia
+virtual Microsoft.CodeAnalysis.CSharp.CSharpSyntaxRewriter<TArgument>.VisitListElement<TNode>(TNode? node, TArgument argument) -> TNode?
+virtual Microsoft.CodeAnalysis.CSharp.CSharpSyntaxRewriter<TArgument>.VisitListSeparator(Microsoft.CodeAnalysis.SyntaxToken separator, TArgument argument) -> Microsoft.CodeAnalysis.SyntaxToken
+virtual Microsoft.CodeAnalysis.CSharp.CSharpSyntaxRewriter<TArgument>.VisitToken(Microsoft.CodeAnalysis.SyntaxToken token, TArgument argument) -> Microsoft.CodeAnalysis.SyntaxToken
+virtual Microsoft.CodeAnalysis.CSharp.CSharpSyntaxRewriter<TArgument>.VisitTrivia(Microsoft.CodeAnalysis.SyntaxTrivia trivia, TArgument argument) -> Microsoft.CodeAnalysis.SyntaxTrivia
+virtual Microsoft.CodeAnalysis.CSharp.CSharpSyntaxWalker<TArgument>.VisitLeadingTrivia(Microsoft.CodeAnalysis.SyntaxToken token, TArgument argument) -> object?
+virtual Microsoft.CodeAnalysis.CSharp.CSharpSyntaxWalker<TArgument>.VisitToken(Microsoft.CodeAnalysis.SyntaxToken token, TArgument argument) -> object?
+virtual Microsoft.CodeAnalysis.CSharp.CSharpSyntaxWalker<TArgument>.VisitTrailingTrivia(Microsoft.CodeAnalysis.SyntaxToken token, TArgument argument) -> object?
+virtual Microsoft.CodeAnalysis.CSharp.CSharpSyntaxWalker<TArgument>.VisitTrivia(Microsoft.CodeAnalysis.SyntaxTrivia trivia, TArgument argument) -> object?
+Microsoft.CodeAnalysis.CSharp.CSharpSyntaxWalker<TArgument>
+Microsoft.CodeAnalysis.CSharp.CSharpSyntaxWalker<TArgument>.CSharpSyntaxWalker(Microsoft.CodeAnalysis.SyntaxWalkerDepth depth = Microsoft.CodeAnalysis.SyntaxWalkerDepth.Node) -> void
+Microsoft.CodeAnalysis.CSharp.CSharpSyntaxWalker<TArgument>.Depth.get -> Microsoft.CodeAnalysis.SyntaxWalkerDepth
+override Microsoft.CodeAnalysis.CSharp.CSharpSyntaxWalker<TArgument>.DefaultVisit(Microsoft.CodeAnalysis.SyntaxNode! node, TArgument argument) -> object?
+override Microsoft.CodeAnalysis.CSharp.CSharpSyntaxWalker<TArgument>.Visit(Microsoft.CodeAnalysis.SyntaxNode? node, TArgument argument) -> object?

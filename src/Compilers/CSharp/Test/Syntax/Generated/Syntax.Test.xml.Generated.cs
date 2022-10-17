@@ -3793,6 +3793,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void TestIdentifierNameTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateIdentifierName();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
         public void TestIdentifierNameIdentityRewriter()
         {
             var oldNode = GenerateIdentifierName();
@@ -3812,6 +3834,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
+        public void TestQualifiedNameTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateQualifiedName();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -3845,6 +3889,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void TestGenericNameTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateGenericName();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
         public void TestGenericNameIdentityRewriter()
         {
             var oldNode = GenerateGenericName();
@@ -3864,6 +3930,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
+        public void TestTypeArgumentListTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateTypeArgumentList();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -3897,6 +3985,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void TestAliasQualifiedNameTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateAliasQualifiedName();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
         public void TestAliasQualifiedNameIdentityRewriter()
         {
             var oldNode = GenerateAliasQualifiedName();
@@ -3916,6 +4026,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
+        public void TestPredefinedTypeTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GeneratePredefinedType();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -3949,6 +4081,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void TestArrayTypeTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateArrayType();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
         public void TestArrayTypeIdentityRewriter()
         {
             var oldNode = GenerateArrayType();
@@ -3968,6 +4122,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
+        public void TestArrayRankSpecifierTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateArrayRankSpecifier();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -4001,6 +4177,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void TestPointerTypeTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GeneratePointerType();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
         public void TestPointerTypeIdentityRewriter()
         {
             var oldNode = GeneratePointerType();
@@ -4020,6 +4218,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
+        public void TestFunctionPointerTypeTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateFunctionPointerType();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -4053,6 +4273,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void TestFunctionPointerParameterListTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateFunctionPointerParameterList();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
         public void TestFunctionPointerParameterListIdentityRewriter()
         {
             var oldNode = GenerateFunctionPointerParameterList();
@@ -4072,6 +4314,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
+        public void TestFunctionPointerCallingConventionTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateFunctionPointerCallingConvention();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -4105,6 +4369,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void TestFunctionPointerUnmanagedCallingConventionListTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateFunctionPointerUnmanagedCallingConventionList();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
         public void TestFunctionPointerUnmanagedCallingConventionListIdentityRewriter()
         {
             var oldNode = GenerateFunctionPointerUnmanagedCallingConventionList();
@@ -4124,6 +4410,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
+        public void TestFunctionPointerUnmanagedCallingConventionTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateFunctionPointerUnmanagedCallingConvention();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -4157,6 +4465,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void TestNullableTypeTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateNullableType();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
         public void TestNullableTypeIdentityRewriter()
         {
             var oldNode = GenerateNullableType();
@@ -4176,6 +4506,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
+        public void TestTupleTypeTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateTupleType();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -4209,6 +4561,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void TestTupleElementTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateTupleElement();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
         public void TestTupleElementIdentityRewriter()
         {
             var oldNode = GenerateTupleElement();
@@ -4228,6 +4602,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
+        public void TestOmittedTypeArgumentTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateOmittedTypeArgument();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -4261,6 +4657,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void TestRefTypeTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateRefType();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
         public void TestRefTypeIdentityRewriter()
         {
             var oldNode = GenerateRefType();
@@ -4280,6 +4698,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
+        public void TestParenthesizedExpressionTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateParenthesizedExpression();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -4313,6 +4753,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void TestTupleExpressionTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateTupleExpression();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
         public void TestTupleExpressionIdentityRewriter()
         {
             var oldNode = GenerateTupleExpression();
@@ -4332,6 +4794,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
+        public void TestPrefixUnaryExpressionTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GeneratePrefixUnaryExpression();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -4365,6 +4849,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void TestAwaitExpressionTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateAwaitExpression();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
         public void TestAwaitExpressionIdentityRewriter()
         {
             var oldNode = GenerateAwaitExpression();
@@ -4384,6 +4890,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
+        public void TestPostfixUnaryExpressionTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GeneratePostfixUnaryExpression();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -4417,6 +4945,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void TestMemberAccessExpressionTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateMemberAccessExpression();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
         public void TestMemberAccessExpressionIdentityRewriter()
         {
             var oldNode = GenerateMemberAccessExpression();
@@ -4436,6 +4986,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
+        public void TestConditionalAccessExpressionTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateConditionalAccessExpression();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -4469,6 +5041,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void TestMemberBindingExpressionTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateMemberBindingExpression();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
         public void TestMemberBindingExpressionIdentityRewriter()
         {
             var oldNode = GenerateMemberBindingExpression();
@@ -4488,6 +5082,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
+        public void TestElementBindingExpressionTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateElementBindingExpression();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -4521,6 +5137,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void TestRangeExpressionTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateRangeExpression();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
         public void TestRangeExpressionIdentityRewriter()
         {
             var oldNode = GenerateRangeExpression();
@@ -4540,6 +5178,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
+        public void TestImplicitElementAccessTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateImplicitElementAccess();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -4573,6 +5233,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void TestBinaryExpressionTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateBinaryExpression();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
         public void TestBinaryExpressionIdentityRewriter()
         {
             var oldNode = GenerateBinaryExpression();
@@ -4592,6 +5274,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
+        public void TestAssignmentExpressionTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateAssignmentExpression();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -4625,6 +5329,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void TestConditionalExpressionTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateConditionalExpression();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
         public void TestConditionalExpressionIdentityRewriter()
         {
             var oldNode = GenerateConditionalExpression();
@@ -4644,6 +5370,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
+        public void TestThisExpressionTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateThisExpression();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -4677,6 +5425,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void TestBaseExpressionTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateBaseExpression();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
         public void TestBaseExpressionIdentityRewriter()
         {
             var oldNode = GenerateBaseExpression();
@@ -4696,6 +5466,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
+        public void TestLiteralExpressionTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateLiteralExpression();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -4729,6 +5521,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void TestMakeRefExpressionTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateMakeRefExpression();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
         public void TestMakeRefExpressionIdentityRewriter()
         {
             var oldNode = GenerateMakeRefExpression();
@@ -4748,6 +5562,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
+        public void TestRefTypeExpressionTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateRefTypeExpression();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -4781,6 +5617,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void TestRefValueExpressionTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateRefValueExpression();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
         public void TestRefValueExpressionIdentityRewriter()
         {
             var oldNode = GenerateRefValueExpression();
@@ -4800,6 +5658,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
+        public void TestCheckedExpressionTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateCheckedExpression();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -4833,6 +5713,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void TestDefaultExpressionTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateDefaultExpression();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
         public void TestDefaultExpressionIdentityRewriter()
         {
             var oldNode = GenerateDefaultExpression();
@@ -4852,6 +5754,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
+        public void TestTypeOfExpressionTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateTypeOfExpression();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -4885,6 +5809,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void TestSizeOfExpressionTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateSizeOfExpression();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
         public void TestSizeOfExpressionIdentityRewriter()
         {
             var oldNode = GenerateSizeOfExpression();
@@ -4904,6 +5850,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
+        public void TestInvocationExpressionTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateInvocationExpression();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -4937,6 +5905,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void TestElementAccessExpressionTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateElementAccessExpression();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
         public void TestElementAccessExpressionIdentityRewriter()
         {
             var oldNode = GenerateElementAccessExpression();
@@ -4956,6 +5946,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
+        public void TestArgumentListTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateArgumentList();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -4989,6 +6001,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void TestBracketedArgumentListTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateBracketedArgumentList();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
         public void TestBracketedArgumentListIdentityRewriter()
         {
             var oldNode = GenerateBracketedArgumentList();
@@ -5008,6 +6042,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
+        public void TestArgumentTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateArgument();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -5041,6 +6097,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void TestExpressionColonTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateExpressionColon();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
         public void TestExpressionColonIdentityRewriter()
         {
             var oldNode = GenerateExpressionColon();
@@ -5060,6 +6138,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
+        public void TestNameColonTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateNameColon();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -5093,6 +6193,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void TestDeclarationExpressionTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateDeclarationExpression();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
         public void TestDeclarationExpressionIdentityRewriter()
         {
             var oldNode = GenerateDeclarationExpression();
@@ -5112,6 +6234,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
+        public void TestCastExpressionTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateCastExpression();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -5145,6 +6289,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void TestAnonymousMethodExpressionTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateAnonymousMethodExpression();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
         public void TestAnonymousMethodExpressionIdentityRewriter()
         {
             var oldNode = GenerateAnonymousMethodExpression();
@@ -5164,6 +6330,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
+        public void TestSimpleLambdaExpressionTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateSimpleLambdaExpression();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -5197,6 +6385,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void TestRefExpressionTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateRefExpression();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
         public void TestRefExpressionIdentityRewriter()
         {
             var oldNode = GenerateRefExpression();
@@ -5216,6 +6426,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
+        public void TestParenthesizedLambdaExpressionTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateParenthesizedLambdaExpression();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -5249,6 +6481,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void TestInitializerExpressionTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateInitializerExpression();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
         public void TestInitializerExpressionIdentityRewriter()
         {
             var oldNode = GenerateInitializerExpression();
@@ -5268,6 +6522,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
+        public void TestImplicitObjectCreationExpressionTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateImplicitObjectCreationExpression();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -5301,6 +6577,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void TestObjectCreationExpressionTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateObjectCreationExpression();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
         public void TestObjectCreationExpressionIdentityRewriter()
         {
             var oldNode = GenerateObjectCreationExpression();
@@ -5320,6 +6618,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
+        public void TestWithExpressionTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateWithExpression();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -5353,6 +6673,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void TestAnonymousObjectMemberDeclaratorTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateAnonymousObjectMemberDeclarator();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
         public void TestAnonymousObjectMemberDeclaratorIdentityRewriter()
         {
             var oldNode = GenerateAnonymousObjectMemberDeclarator();
@@ -5372,6 +6714,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
+        public void TestAnonymousObjectCreationExpressionTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateAnonymousObjectCreationExpression();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -5405,6 +6769,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void TestArrayCreationExpressionTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateArrayCreationExpression();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
         public void TestArrayCreationExpressionIdentityRewriter()
         {
             var oldNode = GenerateArrayCreationExpression();
@@ -5424,6 +6810,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
+        public void TestImplicitArrayCreationExpressionTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateImplicitArrayCreationExpression();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -5457,6 +6865,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void TestStackAllocArrayCreationExpressionTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateStackAllocArrayCreationExpression();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
         public void TestStackAllocArrayCreationExpressionIdentityRewriter()
         {
             var oldNode = GenerateStackAllocArrayCreationExpression();
@@ -5476,6 +6906,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
+        public void TestImplicitStackAllocArrayCreationExpressionTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateImplicitStackAllocArrayCreationExpression();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -5509,6 +6961,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void TestQueryExpressionTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateQueryExpression();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
         public void TestQueryExpressionIdentityRewriter()
         {
             var oldNode = GenerateQueryExpression();
@@ -5528,6 +7002,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
+        public void TestQueryBodyTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateQueryBody();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -5561,6 +7057,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void TestFromClauseTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateFromClause();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
         public void TestFromClauseIdentityRewriter()
         {
             var oldNode = GenerateFromClause();
@@ -5580,6 +7098,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
+        public void TestLetClauseTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateLetClause();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -5613,6 +7153,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void TestJoinClauseTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateJoinClause();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
         public void TestJoinClauseIdentityRewriter()
         {
             var oldNode = GenerateJoinClause();
@@ -5632,6 +7194,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
+        public void TestJoinIntoClauseTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateJoinIntoClause();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -5665,6 +7249,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void TestWhereClauseTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateWhereClause();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
         public void TestWhereClauseIdentityRewriter()
         {
             var oldNode = GenerateWhereClause();
@@ -5684,6 +7290,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
+        public void TestOrderByClauseTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateOrderByClause();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -5717,6 +7345,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void TestOrderingTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateOrdering();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
         public void TestOrderingIdentityRewriter()
         {
             var oldNode = GenerateOrdering();
@@ -5736,6 +7386,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
+        public void TestSelectClauseTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateSelectClause();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -5769,6 +7441,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void TestGroupClauseTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateGroupClause();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
         public void TestGroupClauseIdentityRewriter()
         {
             var oldNode = GenerateGroupClause();
@@ -5788,6 +7482,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
+        public void TestQueryContinuationTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateQueryContinuation();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -5821,6 +7537,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void TestOmittedArraySizeExpressionTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateOmittedArraySizeExpression();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
         public void TestOmittedArraySizeExpressionIdentityRewriter()
         {
             var oldNode = GenerateOmittedArraySizeExpression();
@@ -5840,6 +7578,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
+        public void TestInterpolatedStringExpressionTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateInterpolatedStringExpression();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -5873,6 +7633,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void TestIsPatternExpressionTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateIsPatternExpression();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
         public void TestIsPatternExpressionIdentityRewriter()
         {
             var oldNode = GenerateIsPatternExpression();
@@ -5892,6 +7674,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
+        public void TestThrowExpressionTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateThrowExpression();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -5925,6 +7729,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void TestWhenClauseTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateWhenClause();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
         public void TestWhenClauseIdentityRewriter()
         {
             var oldNode = GenerateWhenClause();
@@ -5944,6 +7770,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
+        public void TestDiscardPatternTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateDiscardPattern();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -5977,6 +7825,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void TestDeclarationPatternTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateDeclarationPattern();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
         public void TestDeclarationPatternIdentityRewriter()
         {
             var oldNode = GenerateDeclarationPattern();
@@ -5996,6 +7866,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
+        public void TestVarPatternTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateVarPattern();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -6029,6 +7921,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void TestRecursivePatternTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateRecursivePattern();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
         public void TestRecursivePatternIdentityRewriter()
         {
             var oldNode = GenerateRecursivePattern();
@@ -6048,6 +7962,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
+        public void TestPositionalPatternClauseTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GeneratePositionalPatternClause();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -6081,6 +8017,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void TestPropertyPatternClauseTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GeneratePropertyPatternClause();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
         public void TestPropertyPatternClauseIdentityRewriter()
         {
             var oldNode = GeneratePropertyPatternClause();
@@ -6100,6 +8058,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
+        public void TestSubpatternTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateSubpattern();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -6133,6 +8113,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void TestConstantPatternTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateConstantPattern();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
         public void TestConstantPatternIdentityRewriter()
         {
             var oldNode = GenerateConstantPattern();
@@ -6152,6 +8154,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
+        public void TestParenthesizedPatternTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateParenthesizedPattern();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -6185,6 +8209,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void TestRelationalPatternTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateRelationalPattern();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
         public void TestRelationalPatternIdentityRewriter()
         {
             var oldNode = GenerateRelationalPattern();
@@ -6204,6 +8250,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
+        public void TestTypePatternTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateTypePattern();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -6237,6 +8305,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void TestBinaryPatternTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateBinaryPattern();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
         public void TestBinaryPatternIdentityRewriter()
         {
             var oldNode = GenerateBinaryPattern();
@@ -6256,6 +8346,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
+        public void TestUnaryPatternTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateUnaryPattern();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -6289,6 +8401,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void TestListPatternTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateListPattern();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
         public void TestListPatternIdentityRewriter()
         {
             var oldNode = GenerateListPattern();
@@ -6308,6 +8442,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
+        public void TestSlicePatternTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateSlicePattern();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -6341,6 +8497,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void TestInterpolatedStringTextTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateInterpolatedStringText();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
         public void TestInterpolatedStringTextIdentityRewriter()
         {
             var oldNode = GenerateInterpolatedStringText();
@@ -6360,6 +8538,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
+        public void TestInterpolationTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateInterpolation();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -6393,6 +8593,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void TestInterpolationAlignmentClauseTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateInterpolationAlignmentClause();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
         public void TestInterpolationAlignmentClauseIdentityRewriter()
         {
             var oldNode = GenerateInterpolationAlignmentClause();
@@ -6412,6 +8634,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
+        public void TestInterpolationFormatClauseTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateInterpolationFormatClause();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -6445,6 +8689,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void TestGlobalStatementTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateGlobalStatement();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
         public void TestGlobalStatementIdentityRewriter()
         {
             var oldNode = GenerateGlobalStatement();
@@ -6464,6 +8730,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
+        public void TestBlockTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateBlock();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -6497,6 +8785,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void TestLocalFunctionStatementTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateLocalFunctionStatement();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
         public void TestLocalFunctionStatementIdentityRewriter()
         {
             var oldNode = GenerateLocalFunctionStatement();
@@ -6516,6 +8826,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
+        public void TestLocalDeclarationStatementTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateLocalDeclarationStatement();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -6549,6 +8881,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void TestVariableDeclarationTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateVariableDeclaration();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
         public void TestVariableDeclarationIdentityRewriter()
         {
             var oldNode = GenerateVariableDeclaration();
@@ -6568,6 +8922,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
+        public void TestVariableDeclaratorTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateVariableDeclarator();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -6601,6 +8977,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void TestEqualsValueClauseTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateEqualsValueClause();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
         public void TestEqualsValueClauseIdentityRewriter()
         {
             var oldNode = GenerateEqualsValueClause();
@@ -6620,6 +9018,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
+        public void TestSingleVariableDesignationTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateSingleVariableDesignation();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -6653,6 +9073,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void TestDiscardDesignationTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateDiscardDesignation();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
         public void TestDiscardDesignationIdentityRewriter()
         {
             var oldNode = GenerateDiscardDesignation();
@@ -6672,6 +9114,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
+        public void TestParenthesizedVariableDesignationTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateParenthesizedVariableDesignation();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -6705,6 +9169,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void TestExpressionStatementTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateExpressionStatement();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
         public void TestExpressionStatementIdentityRewriter()
         {
             var oldNode = GenerateExpressionStatement();
@@ -6724,6 +9210,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
+        public void TestEmptyStatementTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateEmptyStatement();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -6757,6 +9265,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void TestLabeledStatementTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateLabeledStatement();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
         public void TestLabeledStatementIdentityRewriter()
         {
             var oldNode = GenerateLabeledStatement();
@@ -6776,6 +9306,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
+        public void TestGotoStatementTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateGotoStatement();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -6809,6 +9361,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void TestBreakStatementTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateBreakStatement();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
         public void TestBreakStatementIdentityRewriter()
         {
             var oldNode = GenerateBreakStatement();
@@ -6828,6 +9402,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
+        public void TestContinueStatementTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateContinueStatement();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -6861,6 +9457,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void TestReturnStatementTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateReturnStatement();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
         public void TestReturnStatementIdentityRewriter()
         {
             var oldNode = GenerateReturnStatement();
@@ -6880,6 +9498,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
+        public void TestThrowStatementTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateThrowStatement();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -6913,6 +9553,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void TestYieldStatementTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateYieldStatement();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
         public void TestYieldStatementIdentityRewriter()
         {
             var oldNode = GenerateYieldStatement();
@@ -6932,6 +9594,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
+        public void TestWhileStatementTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateWhileStatement();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -6965,6 +9649,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void TestDoStatementTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateDoStatement();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
         public void TestDoStatementIdentityRewriter()
         {
             var oldNode = GenerateDoStatement();
@@ -6984,6 +9690,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
+        public void TestForStatementTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateForStatement();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -7017,6 +9745,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void TestForEachStatementTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateForEachStatement();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
         public void TestForEachStatementIdentityRewriter()
         {
             var oldNode = GenerateForEachStatement();
@@ -7036,6 +9786,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
+        public void TestForEachVariableStatementTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateForEachVariableStatement();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -7069,6 +9841,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void TestUsingStatementTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateUsingStatement();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
         public void TestUsingStatementIdentityRewriter()
         {
             var oldNode = GenerateUsingStatement();
@@ -7088,6 +9882,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
+        public void TestFixedStatementTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateFixedStatement();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -7121,6 +9937,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void TestCheckedStatementTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateCheckedStatement();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
         public void TestCheckedStatementIdentityRewriter()
         {
             var oldNode = GenerateCheckedStatement();
@@ -7140,6 +9978,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
+        public void TestUnsafeStatementTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateUnsafeStatement();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -7173,6 +10033,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void TestLockStatementTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateLockStatement();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
         public void TestLockStatementIdentityRewriter()
         {
             var oldNode = GenerateLockStatement();
@@ -7192,6 +10074,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
+        public void TestIfStatementTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateIfStatement();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -7225,6 +10129,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void TestElseClauseTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateElseClause();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
         public void TestElseClauseIdentityRewriter()
         {
             var oldNode = GenerateElseClause();
@@ -7244,6 +10170,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
+        public void TestSwitchStatementTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateSwitchStatement();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -7277,6 +10225,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void TestSwitchSectionTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateSwitchSection();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
         public void TestSwitchSectionIdentityRewriter()
         {
             var oldNode = GenerateSwitchSection();
@@ -7296,6 +10266,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
+        public void TestCasePatternSwitchLabelTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateCasePatternSwitchLabel();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -7329,6 +10321,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void TestCaseSwitchLabelTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateCaseSwitchLabel();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
         public void TestCaseSwitchLabelIdentityRewriter()
         {
             var oldNode = GenerateCaseSwitchLabel();
@@ -7348,6 +10362,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
+        public void TestDefaultSwitchLabelTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateDefaultSwitchLabel();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -7381,6 +10417,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void TestSwitchExpressionTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateSwitchExpression();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
         public void TestSwitchExpressionIdentityRewriter()
         {
             var oldNode = GenerateSwitchExpression();
@@ -7400,6 +10458,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
+        public void TestSwitchExpressionArmTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateSwitchExpressionArm();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -7433,6 +10513,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void TestTryStatementTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateTryStatement();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
         public void TestTryStatementIdentityRewriter()
         {
             var oldNode = GenerateTryStatement();
@@ -7452,6 +10554,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
+        public void TestCatchClauseTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateCatchClause();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -7485,6 +10609,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void TestCatchDeclarationTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateCatchDeclaration();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
         public void TestCatchDeclarationIdentityRewriter()
         {
             var oldNode = GenerateCatchDeclaration();
@@ -7504,6 +10650,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
+        public void TestCatchFilterClauseTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateCatchFilterClause();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -7537,6 +10705,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void TestFinallyClauseTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateFinallyClause();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
         public void TestFinallyClauseIdentityRewriter()
         {
             var oldNode = GenerateFinallyClause();
@@ -7556,6 +10746,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
+        public void TestCompilationUnitTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateCompilationUnit();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -7589,6 +10801,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void TestExternAliasDirectiveTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateExternAliasDirective();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
         public void TestExternAliasDirectiveIdentityRewriter()
         {
             var oldNode = GenerateExternAliasDirective();
@@ -7608,6 +10842,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
+        public void TestUsingDirectiveTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateUsingDirective();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -7641,6 +10897,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void TestNamespaceDeclarationTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateNamespaceDeclaration();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
         public void TestNamespaceDeclarationIdentityRewriter()
         {
             var oldNode = GenerateNamespaceDeclaration();
@@ -7660,6 +10938,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
+        public void TestFileScopedNamespaceDeclarationTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateFileScopedNamespaceDeclaration();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -7693,6 +10993,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void TestAttributeListTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateAttributeList();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
         public void TestAttributeListIdentityRewriter()
         {
             var oldNode = GenerateAttributeList();
@@ -7712,6 +11034,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
+        public void TestAttributeTargetSpecifierTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateAttributeTargetSpecifier();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -7745,6 +11089,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void TestAttributeTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateAttribute();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
         public void TestAttributeIdentityRewriter()
         {
             var oldNode = GenerateAttribute();
@@ -7764,6 +11130,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
+        public void TestAttributeArgumentListTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateAttributeArgumentList();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -7797,6 +11185,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void TestAttributeArgumentTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateAttributeArgument();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
         public void TestAttributeArgumentIdentityRewriter()
         {
             var oldNode = GenerateAttributeArgument();
@@ -7816,6 +11226,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
+        public void TestNameEqualsTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateNameEquals();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -7849,6 +11281,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void TestTypeParameterListTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateTypeParameterList();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
         public void TestTypeParameterListIdentityRewriter()
         {
             var oldNode = GenerateTypeParameterList();
@@ -7868,6 +11322,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
+        public void TestTypeParameterTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateTypeParameter();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -7901,6 +11377,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void TestClassDeclarationTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateClassDeclaration();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
         public void TestClassDeclarationIdentityRewriter()
         {
             var oldNode = GenerateClassDeclaration();
@@ -7920,6 +11418,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
+        public void TestStructDeclarationTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateStructDeclaration();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -7953,6 +11473,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void TestInterfaceDeclarationTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateInterfaceDeclaration();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
         public void TestInterfaceDeclarationIdentityRewriter()
         {
             var oldNode = GenerateInterfaceDeclaration();
@@ -7972,6 +11514,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
+        public void TestRecordDeclarationTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateRecordDeclaration();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -8005,6 +11569,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void TestEnumDeclarationTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateEnumDeclaration();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
         public void TestEnumDeclarationIdentityRewriter()
         {
             var oldNode = GenerateEnumDeclaration();
@@ -8024,6 +11610,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
+        public void TestDelegateDeclarationTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateDelegateDeclaration();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -8057,6 +11665,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void TestEnumMemberDeclarationTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateEnumMemberDeclaration();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
         public void TestEnumMemberDeclarationIdentityRewriter()
         {
             var oldNode = GenerateEnumMemberDeclaration();
@@ -8076,6 +11706,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
+        public void TestBaseListTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateBaseList();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -8109,6 +11761,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void TestSimpleBaseTypeTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateSimpleBaseType();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
         public void TestSimpleBaseTypeIdentityRewriter()
         {
             var oldNode = GenerateSimpleBaseType();
@@ -8128,6 +11802,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
+        public void TestPrimaryConstructorBaseTypeTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GeneratePrimaryConstructorBaseType();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -8161,6 +11857,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void TestTypeParameterConstraintClauseTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateTypeParameterConstraintClause();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
         public void TestTypeParameterConstraintClauseIdentityRewriter()
         {
             var oldNode = GenerateTypeParameterConstraintClause();
@@ -8180,6 +11898,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
+        public void TestConstructorConstraintTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateConstructorConstraint();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -8213,6 +11953,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void TestClassOrStructConstraintTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateClassOrStructConstraint();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
         public void TestClassOrStructConstraintIdentityRewriter()
         {
             var oldNode = GenerateClassOrStructConstraint();
@@ -8232,6 +11994,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
+        public void TestTypeConstraintTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateTypeConstraint();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -8265,6 +12049,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void TestDefaultConstraintTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateDefaultConstraint();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
         public void TestDefaultConstraintIdentityRewriter()
         {
             var oldNode = GenerateDefaultConstraint();
@@ -8284,6 +12090,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
+        public void TestFieldDeclarationTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateFieldDeclaration();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -8317,6 +12145,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void TestEventFieldDeclarationTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateEventFieldDeclaration();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
         public void TestEventFieldDeclarationIdentityRewriter()
         {
             var oldNode = GenerateEventFieldDeclaration();
@@ -8336,6 +12186,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
+        public void TestExplicitInterfaceSpecifierTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateExplicitInterfaceSpecifier();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -8369,6 +12241,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void TestMethodDeclarationTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateMethodDeclaration();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
         public void TestMethodDeclarationIdentityRewriter()
         {
             var oldNode = GenerateMethodDeclaration();
@@ -8388,6 +12282,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
+        public void TestOperatorDeclarationTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateOperatorDeclaration();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -8421,6 +12337,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void TestConversionOperatorDeclarationTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateConversionOperatorDeclaration();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
         public void TestConversionOperatorDeclarationIdentityRewriter()
         {
             var oldNode = GenerateConversionOperatorDeclaration();
@@ -8440,6 +12378,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
+        public void TestConstructorDeclarationTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateConstructorDeclaration();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -8473,6 +12433,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void TestConstructorInitializerTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateConstructorInitializer();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
         public void TestConstructorInitializerIdentityRewriter()
         {
             var oldNode = GenerateConstructorInitializer();
@@ -8492,6 +12474,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
+        public void TestDestructorDeclarationTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateDestructorDeclaration();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -8525,6 +12529,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void TestPropertyDeclarationTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GeneratePropertyDeclaration();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
         public void TestPropertyDeclarationIdentityRewriter()
         {
             var oldNode = GeneratePropertyDeclaration();
@@ -8544,6 +12570,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
+        public void TestArrowExpressionClauseTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateArrowExpressionClause();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -8577,6 +12625,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void TestEventDeclarationTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateEventDeclaration();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
         public void TestEventDeclarationIdentityRewriter()
         {
             var oldNode = GenerateEventDeclaration();
@@ -8596,6 +12666,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
+        public void TestIndexerDeclarationTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateIndexerDeclaration();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -8629,6 +12721,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void TestAccessorListTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateAccessorList();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
         public void TestAccessorListIdentityRewriter()
         {
             var oldNode = GenerateAccessorList();
@@ -8648,6 +12762,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
+        public void TestAccessorDeclarationTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateAccessorDeclaration();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -8681,6 +12817,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void TestParameterListTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateParameterList();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
         public void TestParameterListIdentityRewriter()
         {
             var oldNode = GenerateParameterList();
@@ -8700,6 +12858,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
+        public void TestBracketedParameterListTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateBracketedParameterList();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -8733,6 +12913,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void TestParameterTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateParameter();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
         public void TestParameterIdentityRewriter()
         {
             var oldNode = GenerateParameter();
@@ -8752,6 +12954,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
+        public void TestFunctionPointerParameterTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateFunctionPointerParameter();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -8785,6 +13009,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void TestIncompleteMemberTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateIncompleteMember();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
         public void TestIncompleteMemberIdentityRewriter()
         {
             var oldNode = GenerateIncompleteMember();
@@ -8804,6 +13050,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
+        public void TestSkippedTokensTriviaTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateSkippedTokensTrivia();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -8837,6 +13105,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void TestDocumentationCommentTriviaTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateDocumentationCommentTrivia();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
         public void TestDocumentationCommentTriviaIdentityRewriter()
         {
             var oldNode = GenerateDocumentationCommentTrivia();
@@ -8856,6 +13146,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
+        public void TestTypeCrefTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateTypeCref();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -8889,6 +13201,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void TestQualifiedCrefTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateQualifiedCref();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
         public void TestQualifiedCrefIdentityRewriter()
         {
             var oldNode = GenerateQualifiedCref();
@@ -8908,6 +13242,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
+        public void TestNameMemberCrefTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateNameMemberCref();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -8941,6 +13297,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void TestIndexerMemberCrefTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateIndexerMemberCref();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
         public void TestIndexerMemberCrefIdentityRewriter()
         {
             var oldNode = GenerateIndexerMemberCref();
@@ -8960,6 +13338,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
+        public void TestOperatorMemberCrefTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateOperatorMemberCref();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -8993,6 +13393,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void TestConversionOperatorMemberCrefTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateConversionOperatorMemberCref();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
         public void TestConversionOperatorMemberCrefIdentityRewriter()
         {
             var oldNode = GenerateConversionOperatorMemberCref();
@@ -9012,6 +13434,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
+        public void TestCrefParameterListTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateCrefParameterList();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -9045,6 +13489,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void TestCrefBracketedParameterListTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateCrefBracketedParameterList();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
         public void TestCrefBracketedParameterListIdentityRewriter()
         {
             var oldNode = GenerateCrefBracketedParameterList();
@@ -9064,6 +13530,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
+        public void TestCrefParameterTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateCrefParameter();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -9097,6 +13585,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void TestXmlElementTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateXmlElement();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
         public void TestXmlElementIdentityRewriter()
         {
             var oldNode = GenerateXmlElement();
@@ -9116,6 +13626,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
+        public void TestXmlElementStartTagTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateXmlElementStartTag();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -9149,6 +13681,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void TestXmlElementEndTagTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateXmlElementEndTag();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
         public void TestXmlElementEndTagIdentityRewriter()
         {
             var oldNode = GenerateXmlElementEndTag();
@@ -9168,6 +13722,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
+        public void TestXmlEmptyElementTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateXmlEmptyElement();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -9201,6 +13777,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void TestXmlNameTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateXmlName();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
         public void TestXmlNameIdentityRewriter()
         {
             var oldNode = GenerateXmlName();
@@ -9220,6 +13818,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
+        public void TestXmlPrefixTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateXmlPrefix();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -9253,6 +13873,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void TestXmlTextAttributeTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateXmlTextAttribute();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
         public void TestXmlTextAttributeIdentityRewriter()
         {
             var oldNode = GenerateXmlTextAttribute();
@@ -9272,6 +13914,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
+        public void TestXmlCrefAttributeTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateXmlCrefAttribute();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -9305,6 +13969,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void TestXmlNameAttributeTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateXmlNameAttribute();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
         public void TestXmlNameAttributeIdentityRewriter()
         {
             var oldNode = GenerateXmlNameAttribute();
@@ -9324,6 +14010,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
+        public void TestXmlTextTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateXmlText();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -9357,6 +14065,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void TestXmlCDataSectionTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateXmlCDataSection();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
         public void TestXmlCDataSectionIdentityRewriter()
         {
             var oldNode = GenerateXmlCDataSection();
@@ -9376,6 +14106,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
+        public void TestXmlProcessingInstructionTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateXmlProcessingInstruction();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -9409,6 +14161,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void TestXmlCommentTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateXmlComment();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
         public void TestXmlCommentIdentityRewriter()
         {
             var oldNode = GenerateXmlComment();
@@ -9428,6 +14202,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
+        public void TestIfDirectiveTriviaTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateIfDirectiveTrivia();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -9461,6 +14257,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void TestElifDirectiveTriviaTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateElifDirectiveTrivia();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
         public void TestElifDirectiveTriviaIdentityRewriter()
         {
             var oldNode = GenerateElifDirectiveTrivia();
@@ -9480,6 +14298,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
+        public void TestElseDirectiveTriviaTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateElseDirectiveTrivia();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -9513,6 +14353,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void TestEndIfDirectiveTriviaTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateEndIfDirectiveTrivia();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
         public void TestEndIfDirectiveTriviaIdentityRewriter()
         {
             var oldNode = GenerateEndIfDirectiveTrivia();
@@ -9532,6 +14394,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
+        public void TestRegionDirectiveTriviaTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateRegionDirectiveTrivia();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -9565,6 +14449,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void TestEndRegionDirectiveTriviaTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateEndRegionDirectiveTrivia();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
         public void TestEndRegionDirectiveTriviaIdentityRewriter()
         {
             var oldNode = GenerateEndRegionDirectiveTrivia();
@@ -9584,6 +14490,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
+        public void TestErrorDirectiveTriviaTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateErrorDirectiveTrivia();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -9617,6 +14545,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void TestWarningDirectiveTriviaTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateWarningDirectiveTrivia();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
         public void TestWarningDirectiveTriviaIdentityRewriter()
         {
             var oldNode = GenerateWarningDirectiveTrivia();
@@ -9636,6 +14586,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
+        public void TestBadDirectiveTriviaTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateBadDirectiveTrivia();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -9669,6 +14641,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void TestDefineDirectiveTriviaTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateDefineDirectiveTrivia();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
         public void TestDefineDirectiveTriviaIdentityRewriter()
         {
             var oldNode = GenerateDefineDirectiveTrivia();
@@ -9688,6 +14682,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
+        public void TestUndefDirectiveTriviaTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateUndefDirectiveTrivia();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -9721,6 +14737,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void TestLineDirectiveTriviaTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateLineDirectiveTrivia();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
         public void TestLineDirectiveTriviaIdentityRewriter()
         {
             var oldNode = GenerateLineDirectiveTrivia();
@@ -9740,6 +14778,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
+        public void TestLineDirectivePositionTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateLineDirectivePosition();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -9773,6 +14833,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void TestLineSpanDirectiveTriviaTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateLineSpanDirectiveTrivia();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
         public void TestLineSpanDirectiveTriviaIdentityRewriter()
         {
             var oldNode = GenerateLineSpanDirectiveTrivia();
@@ -9792,6 +14874,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
+        public void TestPragmaWarningDirectiveTriviaTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GeneratePragmaWarningDirectiveTrivia();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -9825,6 +14929,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void TestPragmaChecksumDirectiveTriviaTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GeneratePragmaChecksumDirectiveTrivia();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
         public void TestPragmaChecksumDirectiveTriviaIdentityRewriter()
         {
             var oldNode = GeneratePragmaChecksumDirectiveTrivia();
@@ -9844,6 +14970,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
+        public void TestReferenceDirectiveTriviaTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateReferenceDirectiveTrivia();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -9877,6 +15025,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void TestLoadDirectiveTriviaTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateLoadDirectiveTrivia();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
         public void TestLoadDirectiveTriviaIdentityRewriter()
         {
             var oldNode = GenerateLoadDirectiveTrivia();
@@ -9903,6 +15073,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void TestShebangDirectiveTriviaTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateShebangDirectiveTrivia();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
         public void TestShebangDirectiveTriviaIdentityRewriter()
         {
             var oldNode = GenerateShebangDirectiveTrivia();
@@ -9922,6 +15114,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
+        public void TestNullableDirectiveTriviaTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateNullableDirectiveTrivia();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -13726,6 +18940,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void TestIdentifierNameTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateIdentifierName();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
         public void TestIdentifierNameIdentityRewriter()
         {
             var oldNode = GenerateIdentifierName();
@@ -13745,6 +18981,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
+        public void TestQualifiedNameTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateQualifiedName();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -13778,6 +19036,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void TestGenericNameTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateGenericName();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
         public void TestGenericNameIdentityRewriter()
         {
             var oldNode = GenerateGenericName();
@@ -13797,6 +19077,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
+        public void TestTypeArgumentListTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateTypeArgumentList();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -13830,6 +19132,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void TestAliasQualifiedNameTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateAliasQualifiedName();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
         public void TestAliasQualifiedNameIdentityRewriter()
         {
             var oldNode = GenerateAliasQualifiedName();
@@ -13849,6 +19173,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
+        public void TestPredefinedTypeTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GeneratePredefinedType();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -13882,6 +19228,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void TestArrayTypeTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateArrayType();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
         public void TestArrayTypeIdentityRewriter()
         {
             var oldNode = GenerateArrayType();
@@ -13901,6 +19269,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
+        public void TestArrayRankSpecifierTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateArrayRankSpecifier();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -13934,6 +19324,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void TestPointerTypeTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GeneratePointerType();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
         public void TestPointerTypeIdentityRewriter()
         {
             var oldNode = GeneratePointerType();
@@ -13953,6 +19365,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
+        public void TestFunctionPointerTypeTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateFunctionPointerType();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -13986,6 +19420,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void TestFunctionPointerParameterListTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateFunctionPointerParameterList();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
         public void TestFunctionPointerParameterListIdentityRewriter()
         {
             var oldNode = GenerateFunctionPointerParameterList();
@@ -14005,6 +19461,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
+        public void TestFunctionPointerCallingConventionTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateFunctionPointerCallingConvention();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -14038,6 +19516,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void TestFunctionPointerUnmanagedCallingConventionListTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateFunctionPointerUnmanagedCallingConventionList();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
         public void TestFunctionPointerUnmanagedCallingConventionListIdentityRewriter()
         {
             var oldNode = GenerateFunctionPointerUnmanagedCallingConventionList();
@@ -14057,6 +19557,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
+        public void TestFunctionPointerUnmanagedCallingConventionTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateFunctionPointerUnmanagedCallingConvention();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -14090,6 +19612,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void TestNullableTypeTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateNullableType();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
         public void TestNullableTypeIdentityRewriter()
         {
             var oldNode = GenerateNullableType();
@@ -14109,6 +19653,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
+        public void TestTupleTypeTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateTupleType();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -14142,6 +19708,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void TestTupleElementTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateTupleElement();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
         public void TestTupleElementIdentityRewriter()
         {
             var oldNode = GenerateTupleElement();
@@ -14161,6 +19749,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
+        public void TestOmittedTypeArgumentTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateOmittedTypeArgument();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -14194,6 +19804,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void TestRefTypeTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateRefType();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
         public void TestRefTypeIdentityRewriter()
         {
             var oldNode = GenerateRefType();
@@ -14213,6 +19845,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
+        public void TestParenthesizedExpressionTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateParenthesizedExpression();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -14246,6 +19900,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void TestTupleExpressionTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateTupleExpression();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
         public void TestTupleExpressionIdentityRewriter()
         {
             var oldNode = GenerateTupleExpression();
@@ -14265,6 +19941,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
+        public void TestPrefixUnaryExpressionTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GeneratePrefixUnaryExpression();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -14298,6 +19996,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void TestAwaitExpressionTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateAwaitExpression();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
         public void TestAwaitExpressionIdentityRewriter()
         {
             var oldNode = GenerateAwaitExpression();
@@ -14317,6 +20037,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
+        public void TestPostfixUnaryExpressionTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GeneratePostfixUnaryExpression();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -14350,6 +20092,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void TestMemberAccessExpressionTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateMemberAccessExpression();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
         public void TestMemberAccessExpressionIdentityRewriter()
         {
             var oldNode = GenerateMemberAccessExpression();
@@ -14369,6 +20133,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
+        public void TestConditionalAccessExpressionTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateConditionalAccessExpression();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -14402,6 +20188,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void TestMemberBindingExpressionTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateMemberBindingExpression();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
         public void TestMemberBindingExpressionIdentityRewriter()
         {
             var oldNode = GenerateMemberBindingExpression();
@@ -14421,6 +20229,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
+        public void TestElementBindingExpressionTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateElementBindingExpression();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -14454,6 +20284,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void TestRangeExpressionTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateRangeExpression();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
         public void TestRangeExpressionIdentityRewriter()
         {
             var oldNode = GenerateRangeExpression();
@@ -14473,6 +20325,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
+        public void TestImplicitElementAccessTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateImplicitElementAccess();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -14506,6 +20380,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void TestBinaryExpressionTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateBinaryExpression();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
         public void TestBinaryExpressionIdentityRewriter()
         {
             var oldNode = GenerateBinaryExpression();
@@ -14525,6 +20421,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
+        public void TestAssignmentExpressionTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateAssignmentExpression();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -14558,6 +20476,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void TestConditionalExpressionTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateConditionalExpression();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
         public void TestConditionalExpressionIdentityRewriter()
         {
             var oldNode = GenerateConditionalExpression();
@@ -14577,6 +20517,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
+        public void TestThisExpressionTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateThisExpression();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -14610,6 +20572,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void TestBaseExpressionTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateBaseExpression();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
         public void TestBaseExpressionIdentityRewriter()
         {
             var oldNode = GenerateBaseExpression();
@@ -14629,6 +20613,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
+        public void TestLiteralExpressionTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateLiteralExpression();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -14662,6 +20668,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void TestMakeRefExpressionTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateMakeRefExpression();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
         public void TestMakeRefExpressionIdentityRewriter()
         {
             var oldNode = GenerateMakeRefExpression();
@@ -14681,6 +20709,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
+        public void TestRefTypeExpressionTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateRefTypeExpression();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -14714,6 +20764,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void TestRefValueExpressionTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateRefValueExpression();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
         public void TestRefValueExpressionIdentityRewriter()
         {
             var oldNode = GenerateRefValueExpression();
@@ -14733,6 +20805,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
+        public void TestCheckedExpressionTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateCheckedExpression();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -14766,6 +20860,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void TestDefaultExpressionTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateDefaultExpression();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
         public void TestDefaultExpressionIdentityRewriter()
         {
             var oldNode = GenerateDefaultExpression();
@@ -14785,6 +20901,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
+        public void TestTypeOfExpressionTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateTypeOfExpression();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -14818,6 +20956,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void TestSizeOfExpressionTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateSizeOfExpression();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
         public void TestSizeOfExpressionIdentityRewriter()
         {
             var oldNode = GenerateSizeOfExpression();
@@ -14837,6 +20997,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
+        public void TestInvocationExpressionTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateInvocationExpression();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -14870,6 +21052,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void TestElementAccessExpressionTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateElementAccessExpression();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
         public void TestElementAccessExpressionIdentityRewriter()
         {
             var oldNode = GenerateElementAccessExpression();
@@ -14889,6 +21093,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
+        public void TestArgumentListTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateArgumentList();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -14922,6 +21148,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void TestBracketedArgumentListTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateBracketedArgumentList();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
         public void TestBracketedArgumentListIdentityRewriter()
         {
             var oldNode = GenerateBracketedArgumentList();
@@ -14941,6 +21189,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
+        public void TestArgumentTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateArgument();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -14974,6 +21244,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void TestExpressionColonTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateExpressionColon();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
         public void TestExpressionColonIdentityRewriter()
         {
             var oldNode = GenerateExpressionColon();
@@ -14993,6 +21285,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
+        public void TestNameColonTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateNameColon();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -15026,6 +21340,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void TestDeclarationExpressionTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateDeclarationExpression();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
         public void TestDeclarationExpressionIdentityRewriter()
         {
             var oldNode = GenerateDeclarationExpression();
@@ -15045,6 +21381,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
+        public void TestCastExpressionTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateCastExpression();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -15078,6 +21436,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void TestAnonymousMethodExpressionTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateAnonymousMethodExpression();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
         public void TestAnonymousMethodExpressionIdentityRewriter()
         {
             var oldNode = GenerateAnonymousMethodExpression();
@@ -15097,6 +21477,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
+        public void TestSimpleLambdaExpressionTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateSimpleLambdaExpression();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -15130,6 +21532,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void TestRefExpressionTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateRefExpression();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
         public void TestRefExpressionIdentityRewriter()
         {
             var oldNode = GenerateRefExpression();
@@ -15149,6 +21573,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
+        public void TestParenthesizedLambdaExpressionTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateParenthesizedLambdaExpression();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -15182,6 +21628,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void TestInitializerExpressionTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateInitializerExpression();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
         public void TestInitializerExpressionIdentityRewriter()
         {
             var oldNode = GenerateInitializerExpression();
@@ -15201,6 +21669,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
+        public void TestImplicitObjectCreationExpressionTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateImplicitObjectCreationExpression();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -15234,6 +21724,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void TestObjectCreationExpressionTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateObjectCreationExpression();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
         public void TestObjectCreationExpressionIdentityRewriter()
         {
             var oldNode = GenerateObjectCreationExpression();
@@ -15253,6 +21765,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
+        public void TestWithExpressionTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateWithExpression();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -15286,6 +21820,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void TestAnonymousObjectMemberDeclaratorTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateAnonymousObjectMemberDeclarator();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
         public void TestAnonymousObjectMemberDeclaratorIdentityRewriter()
         {
             var oldNode = GenerateAnonymousObjectMemberDeclarator();
@@ -15305,6 +21861,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
+        public void TestAnonymousObjectCreationExpressionTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateAnonymousObjectCreationExpression();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -15338,6 +21916,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void TestArrayCreationExpressionTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateArrayCreationExpression();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
         public void TestArrayCreationExpressionIdentityRewriter()
         {
             var oldNode = GenerateArrayCreationExpression();
@@ -15357,6 +21957,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
+        public void TestImplicitArrayCreationExpressionTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateImplicitArrayCreationExpression();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -15390,6 +22012,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void TestStackAllocArrayCreationExpressionTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateStackAllocArrayCreationExpression();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
         public void TestStackAllocArrayCreationExpressionIdentityRewriter()
         {
             var oldNode = GenerateStackAllocArrayCreationExpression();
@@ -15409,6 +22053,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
+        public void TestImplicitStackAllocArrayCreationExpressionTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateImplicitStackAllocArrayCreationExpression();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -15442,6 +22108,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void TestQueryExpressionTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateQueryExpression();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
         public void TestQueryExpressionIdentityRewriter()
         {
             var oldNode = GenerateQueryExpression();
@@ -15461,6 +22149,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
+        public void TestQueryBodyTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateQueryBody();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -15494,6 +22204,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void TestFromClauseTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateFromClause();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
         public void TestFromClauseIdentityRewriter()
         {
             var oldNode = GenerateFromClause();
@@ -15513,6 +22245,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
+        public void TestLetClauseTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateLetClause();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -15546,6 +22300,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void TestJoinClauseTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateJoinClause();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
         public void TestJoinClauseIdentityRewriter()
         {
             var oldNode = GenerateJoinClause();
@@ -15565,6 +22341,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
+        public void TestJoinIntoClauseTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateJoinIntoClause();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -15598,6 +22396,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void TestWhereClauseTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateWhereClause();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
         public void TestWhereClauseIdentityRewriter()
         {
             var oldNode = GenerateWhereClause();
@@ -15617,6 +22437,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
+        public void TestOrderByClauseTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateOrderByClause();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -15650,6 +22492,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void TestOrderingTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateOrdering();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
         public void TestOrderingIdentityRewriter()
         {
             var oldNode = GenerateOrdering();
@@ -15669,6 +22533,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
+        public void TestSelectClauseTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateSelectClause();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -15702,6 +22588,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void TestGroupClauseTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateGroupClause();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
         public void TestGroupClauseIdentityRewriter()
         {
             var oldNode = GenerateGroupClause();
@@ -15721,6 +22629,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
+        public void TestQueryContinuationTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateQueryContinuation();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -15754,6 +22684,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void TestOmittedArraySizeExpressionTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateOmittedArraySizeExpression();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
         public void TestOmittedArraySizeExpressionIdentityRewriter()
         {
             var oldNode = GenerateOmittedArraySizeExpression();
@@ -15773,6 +22725,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
+        public void TestInterpolatedStringExpressionTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateInterpolatedStringExpression();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -15806,6 +22780,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void TestIsPatternExpressionTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateIsPatternExpression();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
         public void TestIsPatternExpressionIdentityRewriter()
         {
             var oldNode = GenerateIsPatternExpression();
@@ -15825,6 +22821,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
+        public void TestThrowExpressionTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateThrowExpression();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -15858,6 +22876,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void TestWhenClauseTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateWhenClause();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
         public void TestWhenClauseIdentityRewriter()
         {
             var oldNode = GenerateWhenClause();
@@ -15877,6 +22917,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
+        public void TestDiscardPatternTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateDiscardPattern();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -15910,6 +22972,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void TestDeclarationPatternTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateDeclarationPattern();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
         public void TestDeclarationPatternIdentityRewriter()
         {
             var oldNode = GenerateDeclarationPattern();
@@ -15929,6 +23013,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
+        public void TestVarPatternTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateVarPattern();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -15962,6 +23068,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void TestRecursivePatternTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateRecursivePattern();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
         public void TestRecursivePatternIdentityRewriter()
         {
             var oldNode = GenerateRecursivePattern();
@@ -15981,6 +23109,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
+        public void TestPositionalPatternClauseTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GeneratePositionalPatternClause();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -16014,6 +23164,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void TestPropertyPatternClauseTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GeneratePropertyPatternClause();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
         public void TestPropertyPatternClauseIdentityRewriter()
         {
             var oldNode = GeneratePropertyPatternClause();
@@ -16033,6 +23205,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
+        public void TestSubpatternTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateSubpattern();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -16066,6 +23260,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void TestConstantPatternTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateConstantPattern();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
         public void TestConstantPatternIdentityRewriter()
         {
             var oldNode = GenerateConstantPattern();
@@ -16085,6 +23301,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
+        public void TestParenthesizedPatternTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateParenthesizedPattern();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -16118,6 +23356,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void TestRelationalPatternTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateRelationalPattern();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
         public void TestRelationalPatternIdentityRewriter()
         {
             var oldNode = GenerateRelationalPattern();
@@ -16137,6 +23397,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
+        public void TestTypePatternTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateTypePattern();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -16170,6 +23452,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void TestBinaryPatternTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateBinaryPattern();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
         public void TestBinaryPatternIdentityRewriter()
         {
             var oldNode = GenerateBinaryPattern();
@@ -16189,6 +23493,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
+        public void TestUnaryPatternTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateUnaryPattern();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -16222,6 +23548,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void TestListPatternTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateListPattern();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
         public void TestListPatternIdentityRewriter()
         {
             var oldNode = GenerateListPattern();
@@ -16241,6 +23589,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
+        public void TestSlicePatternTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateSlicePattern();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -16274,6 +23644,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void TestInterpolatedStringTextTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateInterpolatedStringText();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
         public void TestInterpolatedStringTextIdentityRewriter()
         {
             var oldNode = GenerateInterpolatedStringText();
@@ -16293,6 +23685,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
+        public void TestInterpolationTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateInterpolation();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -16326,6 +23740,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void TestInterpolationAlignmentClauseTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateInterpolationAlignmentClause();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
         public void TestInterpolationAlignmentClauseIdentityRewriter()
         {
             var oldNode = GenerateInterpolationAlignmentClause();
@@ -16345,6 +23781,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
+        public void TestInterpolationFormatClauseTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateInterpolationFormatClause();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -16378,6 +23836,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void TestGlobalStatementTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateGlobalStatement();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
         public void TestGlobalStatementIdentityRewriter()
         {
             var oldNode = GenerateGlobalStatement();
@@ -16397,6 +23877,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
+        public void TestBlockTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateBlock();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -16430,6 +23932,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void TestLocalFunctionStatementTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateLocalFunctionStatement();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
         public void TestLocalFunctionStatementIdentityRewriter()
         {
             var oldNode = GenerateLocalFunctionStatement();
@@ -16449,6 +23973,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
+        public void TestLocalDeclarationStatementTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateLocalDeclarationStatement();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -16482,6 +24028,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void TestVariableDeclarationTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateVariableDeclaration();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
         public void TestVariableDeclarationIdentityRewriter()
         {
             var oldNode = GenerateVariableDeclaration();
@@ -16501,6 +24069,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
+        public void TestVariableDeclaratorTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateVariableDeclarator();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -16534,6 +24124,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void TestEqualsValueClauseTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateEqualsValueClause();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
         public void TestEqualsValueClauseIdentityRewriter()
         {
             var oldNode = GenerateEqualsValueClause();
@@ -16553,6 +24165,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
+        public void TestSingleVariableDesignationTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateSingleVariableDesignation();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -16586,6 +24220,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void TestDiscardDesignationTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateDiscardDesignation();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
         public void TestDiscardDesignationIdentityRewriter()
         {
             var oldNode = GenerateDiscardDesignation();
@@ -16605,6 +24261,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
+        public void TestParenthesizedVariableDesignationTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateParenthesizedVariableDesignation();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -16638,6 +24316,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void TestExpressionStatementTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateExpressionStatement();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
         public void TestExpressionStatementIdentityRewriter()
         {
             var oldNode = GenerateExpressionStatement();
@@ -16657,6 +24357,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
+        public void TestEmptyStatementTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateEmptyStatement();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -16690,6 +24412,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void TestLabeledStatementTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateLabeledStatement();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
         public void TestLabeledStatementIdentityRewriter()
         {
             var oldNode = GenerateLabeledStatement();
@@ -16709,6 +24453,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
+        public void TestGotoStatementTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateGotoStatement();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -16742,6 +24508,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void TestBreakStatementTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateBreakStatement();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
         public void TestBreakStatementIdentityRewriter()
         {
             var oldNode = GenerateBreakStatement();
@@ -16761,6 +24549,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
+        public void TestContinueStatementTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateContinueStatement();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -16794,6 +24604,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void TestReturnStatementTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateReturnStatement();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
         public void TestReturnStatementIdentityRewriter()
         {
             var oldNode = GenerateReturnStatement();
@@ -16813,6 +24645,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
+        public void TestThrowStatementTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateThrowStatement();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -16846,6 +24700,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void TestYieldStatementTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateYieldStatement();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
         public void TestYieldStatementIdentityRewriter()
         {
             var oldNode = GenerateYieldStatement();
@@ -16865,6 +24741,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
+        public void TestWhileStatementTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateWhileStatement();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -16898,6 +24796,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void TestDoStatementTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateDoStatement();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
         public void TestDoStatementIdentityRewriter()
         {
             var oldNode = GenerateDoStatement();
@@ -16917,6 +24837,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
+        public void TestForStatementTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateForStatement();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -16950,6 +24892,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void TestForEachStatementTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateForEachStatement();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
         public void TestForEachStatementIdentityRewriter()
         {
             var oldNode = GenerateForEachStatement();
@@ -16969,6 +24933,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
+        public void TestForEachVariableStatementTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateForEachVariableStatement();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -17002,6 +24988,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void TestUsingStatementTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateUsingStatement();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
         public void TestUsingStatementIdentityRewriter()
         {
             var oldNode = GenerateUsingStatement();
@@ -17021,6 +25029,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
+        public void TestFixedStatementTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateFixedStatement();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -17054,6 +25084,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void TestCheckedStatementTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateCheckedStatement();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
         public void TestCheckedStatementIdentityRewriter()
         {
             var oldNode = GenerateCheckedStatement();
@@ -17073,6 +25125,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
+        public void TestUnsafeStatementTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateUnsafeStatement();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -17106,6 +25180,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void TestLockStatementTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateLockStatement();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
         public void TestLockStatementIdentityRewriter()
         {
             var oldNode = GenerateLockStatement();
@@ -17125,6 +25221,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
+        public void TestIfStatementTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateIfStatement();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -17158,6 +25276,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void TestElseClauseTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateElseClause();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
         public void TestElseClauseIdentityRewriter()
         {
             var oldNode = GenerateElseClause();
@@ -17177,6 +25317,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
+        public void TestSwitchStatementTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateSwitchStatement();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -17210,6 +25372,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void TestSwitchSectionTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateSwitchSection();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
         public void TestSwitchSectionIdentityRewriter()
         {
             var oldNode = GenerateSwitchSection();
@@ -17229,6 +25413,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
+        public void TestCasePatternSwitchLabelTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateCasePatternSwitchLabel();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -17262,6 +25468,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void TestCaseSwitchLabelTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateCaseSwitchLabel();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
         public void TestCaseSwitchLabelIdentityRewriter()
         {
             var oldNode = GenerateCaseSwitchLabel();
@@ -17281,6 +25509,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
+        public void TestDefaultSwitchLabelTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateDefaultSwitchLabel();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -17314,6 +25564,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void TestSwitchExpressionTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateSwitchExpression();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
         public void TestSwitchExpressionIdentityRewriter()
         {
             var oldNode = GenerateSwitchExpression();
@@ -17333,6 +25605,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
+        public void TestSwitchExpressionArmTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateSwitchExpressionArm();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -17366,6 +25660,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void TestTryStatementTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateTryStatement();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
         public void TestTryStatementIdentityRewriter()
         {
             var oldNode = GenerateTryStatement();
@@ -17385,6 +25701,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
+        public void TestCatchClauseTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateCatchClause();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -17418,6 +25756,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void TestCatchDeclarationTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateCatchDeclaration();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
         public void TestCatchDeclarationIdentityRewriter()
         {
             var oldNode = GenerateCatchDeclaration();
@@ -17437,6 +25797,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
+        public void TestCatchFilterClauseTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateCatchFilterClause();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -17470,6 +25852,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void TestFinallyClauseTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateFinallyClause();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
         public void TestFinallyClauseIdentityRewriter()
         {
             var oldNode = GenerateFinallyClause();
@@ -17489,6 +25893,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
+        public void TestCompilationUnitTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateCompilationUnit();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -17522,6 +25948,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void TestExternAliasDirectiveTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateExternAliasDirective();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
         public void TestExternAliasDirectiveIdentityRewriter()
         {
             var oldNode = GenerateExternAliasDirective();
@@ -17541,6 +25989,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
+        public void TestUsingDirectiveTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateUsingDirective();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -17574,6 +26044,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void TestNamespaceDeclarationTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateNamespaceDeclaration();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
         public void TestNamespaceDeclarationIdentityRewriter()
         {
             var oldNode = GenerateNamespaceDeclaration();
@@ -17593,6 +26085,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
+        public void TestFileScopedNamespaceDeclarationTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateFileScopedNamespaceDeclaration();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -17626,6 +26140,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void TestAttributeListTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateAttributeList();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
         public void TestAttributeListIdentityRewriter()
         {
             var oldNode = GenerateAttributeList();
@@ -17645,6 +26181,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
+        public void TestAttributeTargetSpecifierTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateAttributeTargetSpecifier();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -17678,6 +26236,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void TestAttributeTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateAttribute();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
         public void TestAttributeIdentityRewriter()
         {
             var oldNode = GenerateAttribute();
@@ -17697,6 +26277,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
+        public void TestAttributeArgumentListTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateAttributeArgumentList();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -17730,6 +26332,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void TestAttributeArgumentTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateAttributeArgument();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
         public void TestAttributeArgumentIdentityRewriter()
         {
             var oldNode = GenerateAttributeArgument();
@@ -17749,6 +26373,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
+        public void TestNameEqualsTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateNameEquals();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -17782,6 +26428,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void TestTypeParameterListTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateTypeParameterList();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
         public void TestTypeParameterListIdentityRewriter()
         {
             var oldNode = GenerateTypeParameterList();
@@ -17801,6 +26469,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
+        public void TestTypeParameterTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateTypeParameter();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -17834,6 +26524,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void TestClassDeclarationTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateClassDeclaration();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
         public void TestClassDeclarationIdentityRewriter()
         {
             var oldNode = GenerateClassDeclaration();
@@ -17853,6 +26565,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
+        public void TestStructDeclarationTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateStructDeclaration();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -17886,6 +26620,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void TestInterfaceDeclarationTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateInterfaceDeclaration();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
         public void TestInterfaceDeclarationIdentityRewriter()
         {
             var oldNode = GenerateInterfaceDeclaration();
@@ -17905,6 +26661,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
+        public void TestRecordDeclarationTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateRecordDeclaration();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -17938,6 +26716,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void TestEnumDeclarationTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateEnumDeclaration();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
         public void TestEnumDeclarationIdentityRewriter()
         {
             var oldNode = GenerateEnumDeclaration();
@@ -17957,6 +26757,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
+        public void TestDelegateDeclarationTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateDelegateDeclaration();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -17990,6 +26812,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void TestEnumMemberDeclarationTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateEnumMemberDeclaration();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
         public void TestEnumMemberDeclarationIdentityRewriter()
         {
             var oldNode = GenerateEnumMemberDeclaration();
@@ -18009,6 +26853,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
+        public void TestBaseListTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateBaseList();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -18042,6 +26908,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void TestSimpleBaseTypeTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateSimpleBaseType();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
         public void TestSimpleBaseTypeIdentityRewriter()
         {
             var oldNode = GenerateSimpleBaseType();
@@ -18061,6 +26949,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
+        public void TestPrimaryConstructorBaseTypeTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GeneratePrimaryConstructorBaseType();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -18094,6 +27004,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void TestTypeParameterConstraintClauseTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateTypeParameterConstraintClause();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
         public void TestTypeParameterConstraintClauseIdentityRewriter()
         {
             var oldNode = GenerateTypeParameterConstraintClause();
@@ -18113,6 +27045,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
+        public void TestConstructorConstraintTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateConstructorConstraint();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -18146,6 +27100,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void TestClassOrStructConstraintTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateClassOrStructConstraint();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
         public void TestClassOrStructConstraintIdentityRewriter()
         {
             var oldNode = GenerateClassOrStructConstraint();
@@ -18165,6 +27141,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
+        public void TestTypeConstraintTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateTypeConstraint();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -18198,6 +27196,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void TestDefaultConstraintTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateDefaultConstraint();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
         public void TestDefaultConstraintIdentityRewriter()
         {
             var oldNode = GenerateDefaultConstraint();
@@ -18217,6 +27237,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
+        public void TestFieldDeclarationTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateFieldDeclaration();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -18250,6 +27292,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void TestEventFieldDeclarationTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateEventFieldDeclaration();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
         public void TestEventFieldDeclarationIdentityRewriter()
         {
             var oldNode = GenerateEventFieldDeclaration();
@@ -18269,6 +27333,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
+        public void TestExplicitInterfaceSpecifierTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateExplicitInterfaceSpecifier();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -18302,6 +27388,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void TestMethodDeclarationTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateMethodDeclaration();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
         public void TestMethodDeclarationIdentityRewriter()
         {
             var oldNode = GenerateMethodDeclaration();
@@ -18321,6 +27429,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
+        public void TestOperatorDeclarationTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateOperatorDeclaration();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -18354,6 +27484,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void TestConversionOperatorDeclarationTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateConversionOperatorDeclaration();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
         public void TestConversionOperatorDeclarationIdentityRewriter()
         {
             var oldNode = GenerateConversionOperatorDeclaration();
@@ -18373,6 +27525,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
+        public void TestConstructorDeclarationTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateConstructorDeclaration();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -18406,6 +27580,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void TestConstructorInitializerTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateConstructorInitializer();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
         public void TestConstructorInitializerIdentityRewriter()
         {
             var oldNode = GenerateConstructorInitializer();
@@ -18425,6 +27621,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
+        public void TestDestructorDeclarationTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateDestructorDeclaration();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -18458,6 +27676,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void TestPropertyDeclarationTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GeneratePropertyDeclaration();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
         public void TestPropertyDeclarationIdentityRewriter()
         {
             var oldNode = GeneratePropertyDeclaration();
@@ -18477,6 +27717,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
+        public void TestArrowExpressionClauseTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateArrowExpressionClause();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -18510,6 +27772,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void TestEventDeclarationTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateEventDeclaration();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
         public void TestEventDeclarationIdentityRewriter()
         {
             var oldNode = GenerateEventDeclaration();
@@ -18529,6 +27813,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
+        public void TestIndexerDeclarationTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateIndexerDeclaration();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -18562,6 +27868,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void TestAccessorListTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateAccessorList();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
         public void TestAccessorListIdentityRewriter()
         {
             var oldNode = GenerateAccessorList();
@@ -18581,6 +27909,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
+        public void TestAccessorDeclarationTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateAccessorDeclaration();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -18614,6 +27964,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void TestParameterListTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateParameterList();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
         public void TestParameterListIdentityRewriter()
         {
             var oldNode = GenerateParameterList();
@@ -18633,6 +28005,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
+        public void TestBracketedParameterListTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateBracketedParameterList();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -18666,6 +28060,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void TestParameterTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateParameter();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
         public void TestParameterIdentityRewriter()
         {
             var oldNode = GenerateParameter();
@@ -18685,6 +28101,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
+        public void TestFunctionPointerParameterTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateFunctionPointerParameter();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -18718,6 +28156,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void TestIncompleteMemberTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateIncompleteMember();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
         public void TestIncompleteMemberIdentityRewriter()
         {
             var oldNode = GenerateIncompleteMember();
@@ -18737,6 +28197,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
+        public void TestSkippedTokensTriviaTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateSkippedTokensTrivia();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -18770,6 +28252,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void TestDocumentationCommentTriviaTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateDocumentationCommentTrivia();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
         public void TestDocumentationCommentTriviaIdentityRewriter()
         {
             var oldNode = GenerateDocumentationCommentTrivia();
@@ -18789,6 +28293,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
+        public void TestTypeCrefTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateTypeCref();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -18822,6 +28348,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void TestQualifiedCrefTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateQualifiedCref();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
         public void TestQualifiedCrefIdentityRewriter()
         {
             var oldNode = GenerateQualifiedCref();
@@ -18841,6 +28389,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
+        public void TestNameMemberCrefTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateNameMemberCref();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -18874,6 +28444,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void TestIndexerMemberCrefTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateIndexerMemberCref();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
         public void TestIndexerMemberCrefIdentityRewriter()
         {
             var oldNode = GenerateIndexerMemberCref();
@@ -18893,6 +28485,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
+        public void TestOperatorMemberCrefTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateOperatorMemberCref();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -18926,6 +28540,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void TestConversionOperatorMemberCrefTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateConversionOperatorMemberCref();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
         public void TestConversionOperatorMemberCrefIdentityRewriter()
         {
             var oldNode = GenerateConversionOperatorMemberCref();
@@ -18945,6 +28581,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
+        public void TestCrefParameterListTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateCrefParameterList();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -18978,6 +28636,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void TestCrefBracketedParameterListTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateCrefBracketedParameterList();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
         public void TestCrefBracketedParameterListIdentityRewriter()
         {
             var oldNode = GenerateCrefBracketedParameterList();
@@ -18997,6 +28677,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
+        public void TestCrefParameterTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateCrefParameter();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -19030,6 +28732,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void TestXmlElementTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateXmlElement();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
         public void TestXmlElementIdentityRewriter()
         {
             var oldNode = GenerateXmlElement();
@@ -19049,6 +28773,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
+        public void TestXmlElementStartTagTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateXmlElementStartTag();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -19082,6 +28828,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void TestXmlElementEndTagTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateXmlElementEndTag();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
         public void TestXmlElementEndTagIdentityRewriter()
         {
             var oldNode = GenerateXmlElementEndTag();
@@ -19101,6 +28869,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
+        public void TestXmlEmptyElementTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateXmlEmptyElement();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -19134,6 +28924,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void TestXmlNameTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateXmlName();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
         public void TestXmlNameIdentityRewriter()
         {
             var oldNode = GenerateXmlName();
@@ -19153,6 +28965,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
+        public void TestXmlPrefixTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateXmlPrefix();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -19186,6 +29020,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void TestXmlTextAttributeTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateXmlTextAttribute();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
         public void TestXmlTextAttributeIdentityRewriter()
         {
             var oldNode = GenerateXmlTextAttribute();
@@ -19205,6 +29061,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
+        public void TestXmlCrefAttributeTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateXmlCrefAttribute();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -19238,6 +29116,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void TestXmlNameAttributeTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateXmlNameAttribute();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
         public void TestXmlNameAttributeIdentityRewriter()
         {
             var oldNode = GenerateXmlNameAttribute();
@@ -19257,6 +29157,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
+        public void TestXmlTextTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateXmlText();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -19290,6 +29212,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void TestXmlCDataSectionTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateXmlCDataSection();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
         public void TestXmlCDataSectionIdentityRewriter()
         {
             var oldNode = GenerateXmlCDataSection();
@@ -19309,6 +29253,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
+        public void TestXmlProcessingInstructionTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateXmlProcessingInstruction();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -19342,6 +29308,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void TestXmlCommentTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateXmlComment();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
         public void TestXmlCommentIdentityRewriter()
         {
             var oldNode = GenerateXmlComment();
@@ -19361,6 +29349,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
+        public void TestIfDirectiveTriviaTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateIfDirectiveTrivia();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -19394,6 +29404,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void TestElifDirectiveTriviaTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateElifDirectiveTrivia();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
         public void TestElifDirectiveTriviaIdentityRewriter()
         {
             var oldNode = GenerateElifDirectiveTrivia();
@@ -19413,6 +29445,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
+        public void TestElseDirectiveTriviaTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateElseDirectiveTrivia();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -19446,6 +29500,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void TestEndIfDirectiveTriviaTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateEndIfDirectiveTrivia();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
         public void TestEndIfDirectiveTriviaIdentityRewriter()
         {
             var oldNode = GenerateEndIfDirectiveTrivia();
@@ -19465,6 +29541,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
+        public void TestRegionDirectiveTriviaTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateRegionDirectiveTrivia();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -19498,6 +29596,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void TestEndRegionDirectiveTriviaTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateEndRegionDirectiveTrivia();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
         public void TestEndRegionDirectiveTriviaIdentityRewriter()
         {
             var oldNode = GenerateEndRegionDirectiveTrivia();
@@ -19517,6 +29637,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
+        public void TestErrorDirectiveTriviaTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateErrorDirectiveTrivia();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -19550,6 +29692,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void TestWarningDirectiveTriviaTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateWarningDirectiveTrivia();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
         public void TestWarningDirectiveTriviaIdentityRewriter()
         {
             var oldNode = GenerateWarningDirectiveTrivia();
@@ -19569,6 +29733,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
+        public void TestBadDirectiveTriviaTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateBadDirectiveTrivia();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -19602,6 +29788,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void TestDefineDirectiveTriviaTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateDefineDirectiveTrivia();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
         public void TestDefineDirectiveTriviaIdentityRewriter()
         {
             var oldNode = GenerateDefineDirectiveTrivia();
@@ -19621,6 +29829,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
+        public void TestUndefDirectiveTriviaTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateUndefDirectiveTrivia();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -19654,6 +29884,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void TestLineDirectiveTriviaTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateLineDirectiveTrivia();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
         public void TestLineDirectiveTriviaIdentityRewriter()
         {
             var oldNode = GenerateLineDirectiveTrivia();
@@ -19673,6 +29925,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
+        public void TestLineDirectivePositionTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateLineDirectivePosition();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -19706,6 +29980,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void TestLineSpanDirectiveTriviaTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateLineSpanDirectiveTrivia();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
         public void TestLineSpanDirectiveTriviaIdentityRewriter()
         {
             var oldNode = GenerateLineSpanDirectiveTrivia();
@@ -19725,6 +30021,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
+        public void TestPragmaWarningDirectiveTriviaTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GeneratePragmaWarningDirectiveTrivia();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -19758,6 +30076,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void TestPragmaChecksumDirectiveTriviaTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GeneratePragmaChecksumDirectiveTrivia();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
         public void TestPragmaChecksumDirectiveTriviaIdentityRewriter()
         {
             var oldNode = GeneratePragmaChecksumDirectiveTrivia();
@@ -19777,6 +30117,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
+        public void TestReferenceDirectiveTriviaTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateReferenceDirectiveTrivia();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);
@@ -19810,6 +30172,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void TestLoadDirectiveTriviaTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateLoadDirectiveTrivia();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
         public void TestLoadDirectiveTriviaIdentityRewriter()
         {
             var oldNode = GenerateLoadDirectiveTrivia();
@@ -19836,6 +30220,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void TestShebangDirectiveTriviaTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateShebangDirectiveTrivia();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
         public void TestShebangDirectiveTriviaIdentityRewriter()
         {
             var oldNode = GenerateShebangDirectiveTrivia();
@@ -19855,6 +30261,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if(!oldNode.IsMissing)
             {
                 Assert.NotEqual(oldNode, newNode);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
+        public void TestNullableDirectiveTriviaTokenDeleteRewriterWithResult()
+        {
+            var oldNode = GenerateNullableDirectiveTrivia();
+            var rewriter = new TokenDeleteRewriterWithResult();
+            var result = new VisitorResult();
+            var newNode = rewriter.Visit(oldNode, result);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+                Assert.True(result.VisitCount > 0);
+            }
+            else
+            {
+                Assert.True(result.VisitCount >= 0);
             }
 
             Assert.NotNull(newNode);

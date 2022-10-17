@@ -8,9 +8,40 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// Represents a <see cref="CSharpSyntaxNode"/> visitor that visits only the single CSharpSyntaxNode
     /// passed into its Visit method and produces 
     /// a value of the type specified by the <typeparamref name="TResult"/> parameter.
+    /// An argument of type <typeparamref name="TArgument"/> can be used to pass additional information.
+    /// </summary>
+    /// <typeparam name="TArgument">
+    /// The type of the argument value of this visitor's Visit method.
+    /// </typeparam>
+    /// <typeparam name="TResult">
+    /// The type of the return value of this visitor's Visit method.
+    /// </typeparam>
+    public abstract partial class CSharpSyntaxVisitor<TArgument, TResult>
+    {
+        public virtual TResult? Visit(SyntaxNode? node, TArgument argument)
+        {
+            if (node != null)
+            {
+                return ((CSharpSyntaxNode)node).Accept(this, argument);
+            }
+
+            // should not come here too often so we will put this at the end of the method.
+            return default;
+        }
+
+        public virtual TResult? DefaultVisit(SyntaxNode node, TArgument argument)
+        {
+            return default;
+        }
+    }
+
+    /// <summary>
+    /// Represents a <see cref="CSharpSyntaxNode"/> visitor that visits only the single CSharpSyntaxNode
+    /// passed into its Visit method and produces 
+    /// a value of the type specified by the <typeparamref name="TResult"/> parameter.
     /// </summary>
     /// <typeparam name="TResult">
-    /// The type of the return value this visitor's Visit method.
+    /// The type of the return value of this visitor's Visit method.
     /// </typeparam>
     public abstract partial class CSharpSyntaxVisitor<TResult>
     {
