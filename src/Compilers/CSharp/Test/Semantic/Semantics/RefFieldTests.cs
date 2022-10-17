@@ -8848,7 +8848,7 @@ _ = M2(out c.N);      //CS0206
 _ = M2(out r.N);      //OK
 _ = M2(out c[0]);     //CS0206
 _ = M2(out r[0]);     //OK
-//defenitions
+//definitions
 static string M(ref int number) { return """"; }
 static string M2(out int number) { number = 42; return """"; }
 class C
