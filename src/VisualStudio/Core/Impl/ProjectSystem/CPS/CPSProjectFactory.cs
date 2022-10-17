@@ -60,12 +60,19 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
                 ProjectGuid = id,
             };
 
-            var binOutputPath = (languageName is LanguageNames.CSharp or LanguageNames.VisualBasic) ?
-                data.GetRequiredPropertyAbsolutePathValue(BuildPropertyNames.TargetPath) :
-                data.GetPropertyValue(BuildPropertyNames.TargetPath);
-
-            var objOutputPath = data.GetRequiredPropertyAbsolutePathValue(BuildPropertyNames.OutputAssemblyForDesignTimeEvaluation);
-            var commandLineArgs = data.GetRequiredPropertyValue(BuildPropertyNames.CommandLineArgsForDesignTimeEvaluation);
+            string? binOutputPath, objOutputPath, commandLineArgs;
+            if (languageName is LanguageNames.CSharp or LanguageNames.VisualBasic)
+            {
+                binOutputPath = data.GetRequiredPropertyAbsolutePathValue(BuildPropertyNames.TargetPath);
+                objOutputPath = data.GetRequiredPropertyAbsolutePathValue(BuildPropertyNames.OutputAssemblyForDesignTimeEvaluation);
+                commandLineArgs = data.GetRequiredPropertyValue(BuildPropertyNames.CommandLineArgsForDesignTimeEvaluation);
+            }
+            else
+            {
+                binOutputPath = data.GetPropertyValue(BuildPropertyNames.TargetPath);
+                objOutputPath = null;
+                commandLineArgs = null;
+            }
 
             var visualStudioProject = await _projectFactory.CreateAndAddToWorkspaceAsync(
                 uniqueName, languageName, creationInfo, cancellationToken).ConfigureAwait(false);
@@ -94,9 +101,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
             // potentially block up thread pool threads. Doing this in a batch means the global lock will be acquired asynchronously.
             project.StartBatch();
 
-            project.SetOptions(commandLineArgs);
+            if (commandLineArgs != null)
+            {
+                project.SetOptions(commandLineArgs);
+            }
+
+            if (objOutputPath != null)
+            {
+                project.CompilationOutputAssemblyFilePath = objOutputPath;
+            }
+
             project.BinOutputPath = binOutputPath;
-            project.CompilationOutputAssemblyFilePath = objOutputPath;
 
             await project.EndBatchAsync().ConfigureAwait(false);
 

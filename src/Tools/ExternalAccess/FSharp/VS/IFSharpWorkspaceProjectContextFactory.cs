@@ -90,6 +90,8 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp
                 {
                     BuildPropertyNames.MSBuildProjectFullPath => _projectFilePath,
                     BuildPropertyNames.TargetPath => _binOutputPath ?? "",
+                    BuildPropertyNames.OutputAssemblyForDesignTimeEvaluation => _binOutputPath ?? "",
+                    BuildPropertyNames.CommandLineArgsForDesignTimeEvaluation => "-checksumalgorithm:SHA256",
                     _ => "",
                 };
         }
