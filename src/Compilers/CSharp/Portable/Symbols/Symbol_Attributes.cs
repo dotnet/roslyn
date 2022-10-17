@@ -517,6 +517,30 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return d.HasLazyInfo ? d.LazyInfo is LazyObsoleteDiagnosticInfo : d.Info.IsObsoleteDiagnostic();
             }
         }
+
+        /// <summary>
+        /// Binds attributes applied to this symbol.
+        /// </summary>
+        protected ImmutableArray<BoundAttribute> BindAttributes(OneOrMany<SyntaxList<AttributeListSyntax>> attributeDeclarations, Binder rootBinder)
+        {
+            var binder = new ContextualAttributeBinder(rootBinder, this);
+            var boundAttributeArrayBuilder = ArrayBuilder<BoundAttribute>.GetInstance();
+            foreach (var attributeListSyntaxList in attributeDeclarations)
+            {
+                foreach (var attributeListSyntax in attributeListSyntaxList)
+                {
+                    foreach (var attributeSyntax in attributeListSyntax.Attributes)
+                    {
+                        var boundType = binder.BindType(attributeSyntax.Name, BindingDiagnosticBag.Discarded);
+                        var boundTypeSymbol = (NamedTypeSymbol)boundType.Type;
+                        var boundAttribute = new ExecutableCodeBinder(attributeSyntax, binder.ContainingMemberOrLambda, binder)
+                            .BindAttribute(attributeSyntax, boundTypeSymbol, this, BindingDiagnosticBag.Discarded);
+                        boundAttributeArrayBuilder.Add(boundAttribute);
+                    }
+                }
+            }
+            return boundAttributeArrayBuilder.ToImmutableAndFree();
+        }
 #nullable disable
 
         private void RecordPresenceOfBadAttributes(ImmutableArray<CSharpAttributeData> boundAttributes)
