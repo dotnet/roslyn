@@ -1043,12 +1043,15 @@ namespace Microsoft.CodeAnalysis
         protected internal void OnAnalyzerConfigDocumentRemoved(DocumentId documentId)
         {
             this.SetCurrentSolution(
-                oldSolution => oldSolution.RemoveAnalyzerConfigDocument(documentId),
-                WorkspaceChangeKind.AnalyzerConfigDocumentRemoved, documentId: documentId,
-                onBeforeUpdate: (oldSolution, _) =>
+                oldSolution =>
                 {
                     CheckAnalyzerConfigDocumentIsInSolution(oldSolution, documentId);
 
+                    return oldSolution.RemoveAnalyzerConfigDocument(documentId);
+                },
+                WorkspaceChangeKind.AnalyzerConfigDocumentRemoved, documentId: documentId,
+                onBeforeUpdate: (oldSolution, _) =>
+                {
                     // Clear out mutable state not associated with teh solution snapshot (for example, which documents are
                     // currently open).
                     this.ClearDocumentData(documentId);
