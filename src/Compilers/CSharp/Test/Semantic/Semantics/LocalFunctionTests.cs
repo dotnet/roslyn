@@ -4841,10 +4841,7 @@ class Test : System.Attribute
             compilation.VerifyDiagnostics(
                 // (10,23): error CS0103: The name 'b2' does not exist in the current context
                 //             [Test(p = b2)]
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "b2").WithArguments("b2").WithLocation(10, 23),
-                // (6,20): warning CS0219: The variable 'b1' is assigned but its value is never used
-                //         const bool b1 = true;
-                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "b1").WithArguments("b1").WithLocation(6, 20)
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "b2").WithArguments("b2").WithLocation(10, 23)
                 );
 
             var tree = compilation.SyntaxTrees.Single();
