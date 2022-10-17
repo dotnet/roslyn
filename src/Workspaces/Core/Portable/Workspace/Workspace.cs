@@ -862,7 +862,7 @@ namespace Microsoft.CodeAnalysis
                 documentId,
                 newText,
                 mode,
-                CheckDocumentIsInCurrentSolution,
+                CheckDocumentIsInSolution,
                 (solution, docId) => solution.GetRelatedDocumentIds(docId),
                 (solution, docId, text, preservationMode) => solution.WithDocumentText(docId, text, preservationMode),
                 WorkspaceChangeKind.DocumentChanged,
@@ -878,7 +878,7 @@ namespace Microsoft.CodeAnalysis
                 documentId,
                 newText,
                 mode,
-                CheckAdditionalDocumentIsInCurrentSolution,
+                CheckAdditionalDocumentIsInSolution,
                 (solution, docId) => ImmutableArray.Create(docId), // We do not support the concept of linked additional documents
                 (solution, docId, text, preservationMode) => solution.WithAdditionalDocumentText(docId, text, preservationMode),
                 WorkspaceChangeKind.AdditionalDocumentChanged,
@@ -894,7 +894,7 @@ namespace Microsoft.CodeAnalysis
                 documentId,
                 newText,
                 mode,
-                CheckAnalyzerConfigDocumentIsInCurrentSolution,
+                CheckAnalyzerConfigDocumentIsInSolution,
                 (solution, docId) => ImmutableArray.Create(docId), // We do not support the concept of linked additional documents
                 (solution, docId, text, preservationMode) => solution.WithAnalyzerConfigDocumentText(docId, text, preservationMode),
                 WorkspaceChangeKind.AnalyzerConfigDocumentChanged,
@@ -911,61 +911,59 @@ namespace Microsoft.CodeAnalysis
             DocumentId documentId,
             SourceText newText,
             PreservationMode mode,
-            Action<DocumentId> checkIsInCurrentSolution,
+            Action<Solution, DocumentId> checkIsInSolution,
             Func<Solution, DocumentId, ImmutableArray<DocumentId>> getRelatedDocuments,
             Func<Solution, DocumentId, SourceText, PreservationMode, Solution> updateSolutionWithText,
             WorkspaceChangeKind changeKind,
             bool isCodeDocument)
         {
-            using (_serializationLock.DisposableWait())
-            {
-                checkIsInCurrentSolution(documentId);
-
-                var oldSolution = CurrentSolution;
-                var newSolution = CurrentSolution;
-
-                var linkedDocuments = getRelatedDocuments(newSolution, documentId);
-                var updatedDocumentIds = new List<DocumentId>();
-
-                foreach (var linkedDocument in linkedDocuments)
+            // Data that is updated in the transformation, and read in in onAfterUpdate.  Because SetCurrentSolution may
+            // loop, we have to make sure to always clear this each time we enter the loop.
+            var updatedDocumentIds = new List<DocumentId>();
+            SetCurrentSolution(
+                static (oldSolution, data) =>
                 {
-                    var previousSolution = newSolution;
-                    newSolution = updateSolutionWithText(newSolution, linkedDocument, newText, mode);
-                    if (previousSolution != newSolution)
+                    // Ensure this closure data is always clean if we had to restart the the operation.
+                    var updatedDocumentIds = data.updatedDocumentIds;
+                    updatedDocumentIds.Clear();
+
+                    data.checkIsInSolution(oldSolution, data.documentId);
+
+                    var newSolution = oldSolution;
+
+                    var linkedDocuments = data.getRelatedDocuments(oldSolution, data.documentId);
+                    foreach (var linkedDocument in linkedDocuments)
                     {
-                        updatedDocumentIds.Add(linkedDocument);
+                        var previousSolution = newSolution;
+                        newSolution = data.updateSolutionWithText(newSolution, linkedDocument, data.newText, data.mode);
+                        if (previousSolution != newSolution)
+                            updatedDocumentIds.Add(linkedDocument);
                     }
-                }
 
-                // In the case of linked files, we may have already updated all of the linked
-                // documents during an earlier call to this method. We may have no work to do here.
-                if (updatedDocumentIds.Count > 0)
+                    return newSolution;
+                },
+                data: (@this: this, documentId, newText, mode, checkIsInSolution, getRelatedDocuments, updateSolutionWithText, changeKind, isCodeDocument, updatedDocumentIds),
+                onAfterUpdate: static (oldSolution, newSolution, data) =>
                 {
-                    (oldSolution, newSolution) = SetCurrentSolutionEx(newSolution);
-
-                    // Prior to the unification of the callers of this method, the
-                    // OnAdditionalDocumentTextChanged method did not fire any sort of synchronous
-                    // update notification event, so we preserve that behavior here.
-                    if (isCodeDocument)
+                    if (data.isCodeDocument)
                     {
-                        foreach (var updatedDocumentId in updatedDocumentIds)
+                        foreach (var updatedDocumentId in data.updatedDocumentIds)
                         {
                             var newDocument = newSolution.GetDocument(updatedDocumentId);
                             Contract.ThrowIfNull(newDocument);
-                            OnDocumentTextChanged(newDocument);
+                            data.@this.OnDocumentTextChanged(newDocument);
                         }
                     }
 
-                    foreach (var updatedDocumentInfo in updatedDocumentIds)
+                    foreach (var updatedDocumentInfo in data.updatedDocumentIds)
                     {
-                        RaiseWorkspaceChangedEventAsync(
-                            changeKind,
+                        data.@this.RaiseWorkspaceChangedEventAsync(
+                            data.changeKind,
                             oldSolution,
                             newSolution,
                             documentId: updatedDocumentInfo);
                     }
-                }
-            }
+                });
         }
 
         /// <summary>
