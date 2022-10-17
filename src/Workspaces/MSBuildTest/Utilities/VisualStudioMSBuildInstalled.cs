@@ -3,8 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Diagnostics;
-using System.Linq;
 using Microsoft.Build.Locator;
 using Roslyn.Test.Utilities;
 
@@ -13,6 +11,7 @@ namespace Microsoft.CodeAnalysis.MSBuild.UnitTests
     internal class VisualStudioMSBuildInstalled : ExecutionCondition
     {
 #if NET472_OR_GREATER
+
         private static readonly VisualStudioInstance? s_instance;
         private readonly Version _minimumVersion;
 
@@ -33,21 +32,20 @@ namespace Microsoft.CodeAnalysis.MSBuild.UnitTests
                 s_instance = latestInstalledInstance;
             }
         }
+
 #endif
 
         public VisualStudioMSBuildInstalled()
-#if NET472_OR_GREATER
-            : this(new Version(16, 9))
-#endif
+            : this(new Version(17, 0))
         {
         }
 
-#if NET472_OR_GREATER
         internal VisualStudioMSBuildInstalled(Version minimumVersion)
         {
+#if NET472_OR_GREATER
             _minimumVersion = minimumVersion;
-        }
 #endif
+        }
 
         public override bool ShouldSkip
 #if NET472_OR_GREATER
