@@ -200,16 +200,16 @@ namespace Microsoft.CodeAnalysis
         {
             return SetCurrentSolution(
                 transformation,
-                onBeforeUpdate: static (_, _) => { },
-                onAfterUpdate: static (_, _) => { },
+                onBeforeUpdate: null,
+                onAfterUpdate: null,
                 kind, projectId, documentId);
         }
 
         /// <inheritdoc cref="SetCurrentSolution(Func{Solution, Solution}, WorkspaceChangeKind, ProjectId?, DocumentId?)"/>
         private bool SetCurrentSolution(
             Func<Solution, Solution> transformation,
-            Action<Solution, Solution> onBeforeUpdate,
-            Action<Solution, Solution> onAfterUpdate,
+            Action<Solution, Solution>? onBeforeUpdate,
+            Action<Solution, Solution>? onAfterUpdate,
             WorkspaceChangeKind kind,
             ProjectId? projectId = null,
             DocumentId? documentId = null)
@@ -218,11 +218,11 @@ namespace Microsoft.CodeAnalysis
                 static (oldSolution, data) => data.transformation(oldSolution),
                 static (oldSolution, newSolution, data) =>
                 {
-                    data.onBeforeUpdate(oldSolution, newSolution);
+                    data.onBeforeUpdate?.Invoke(oldSolution, newSolution);
                 },
                 static (oldSolution, newSolution, data) =>
                 {
-                    data.onAfterUpdate(oldSolution, newSolution);
+                    data.onAfterUpdate?.Invoke(oldSolution, newSolution);
 
                     // Queue the event but don't execute its handlers on this thread.
                     // Doing so under the serialization lock guarantees the same ordering of the events
@@ -250,8 +250,8 @@ namespace Microsoft.CodeAnalysis
         /// accordingly.</param>
         private bool SetCurrentSolution<TData>(
             Func<Solution, TData, Solution> transformation,
-            Action<Solution, Solution, TData> onBeforeUpdate,
-            Action<Solution, Solution, TData> onAfterUpdate,
+            Action<Solution, Solution, TData>? onBeforeUpdate,
+            Action<Solution, Solution, TData>? onAfterUpdate,
             TData data)
         {
             Contract.ThrowIfNull(transformation);
@@ -280,12 +280,12 @@ namespace Microsoft.CodeAnalysis
                     newSolution = newSolution.WithNewWorkspace(this, oldSolution.WorkspaceVersion + 1);
 
                     // Prior to updating the latest solution, let the caller do any other state updates they want.
-                    onBeforeUpdate(oldSolution, newSolution, data);
+                    onBeforeUpdate?.Invoke(oldSolution, newSolution, data);
 
                     _latestSolution = newSolution;
 
                     // Once we've updated _latesSolution, perform any requested callbacks.
-                    onAfterUpdate(oldSolution, newSolution, data);
+                    onAfterUpdate?.Invoke(oldSolution, newSolution, data);
                     return true;
                 }
             }
@@ -756,6 +756,7 @@ namespace Microsoft.CodeAnalysis
         {
             this.SetCurrentSolution(
                 static (oldSolution, data) => oldSolution.AddDocuments(data.documentInfos),
+                onBeforeUpdate: null,
                 onAfterUpdate: static (oldSolution, newSolution, data) =>
                 {
                     // Raise ProjectChanged as the event type here. DocumentAdded is presumed by many callers to have a
@@ -816,6 +817,7 @@ namespace Microsoft.CodeAnalysis
                     CheckDocumentIsInSolution(oldSolution, documentId);
                     return oldSolution.WithDocumentTextLoader(documentId, loader, PreservationMode.PreserveValue);
                 },
+                onBeforeUpdate: null,
                 onAfterUpdate: (_, newSolution) => this.OnDocumentTextChanged(newSolution.GetRequiredDocument(documentId)),
                 WorkspaceChangeKind.DocumentChanged, documentId: documentId);
         }
@@ -1015,6 +1017,7 @@ namespace Microsoft.CodeAnalysis
                     CheckDocumentIsInSolution(oldSolution, documentId);
                     return oldSolution.WithDocumentSourceCodeKind(documentId, sourceCodeKind);
                 },
+                onBeforeUpdate: null,
                 onAfterUpdate: (_, newSolution) => this.OnDocumentTextChanged(newSolution.GetRequiredDocument(documentId)),
                 WorkspaceChangeKind.DocumentChanged, documentId: documentId);
         }
