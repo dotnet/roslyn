@@ -781,7 +781,7 @@ namespace Microsoft.CodeAnalysis
                     CheckDocumentIsInSolution(oldSolution, documentId);
                     return oldSolution.WithDocumentTextLoader(documentId, loader, PreservationMode.PreserveValue);
                 },
-                WorkspaceChangeKind.DocumentChanged, documentId: documentId),
+                WorkspaceChangeKind.DocumentChanged, documentId: documentId,
                 onAfterUpdate: (_, newSolution) => this.OnDocumentTextChanged(newSolution.GetRequiredDocument(documentId));
         }
 
