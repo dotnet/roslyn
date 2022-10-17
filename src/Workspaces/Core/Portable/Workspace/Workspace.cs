@@ -404,7 +404,11 @@ namespace Microsoft.CodeAnalysis
         {
             if (!finalize)
             {
+                // do not call ClearSolution as we do not want to issue an event here.  However, do clear out our data
+                // and reset the CurrentSolution to an empty one.
+
                 this.ClearSolutionData();
+                this.SetCurrentSolutionEx(this.CreateSolution(this.CurrentSolution.Id));
 
                 this.Services.GetService<IWorkspaceEventListenerService>()?.Stop();
             }
