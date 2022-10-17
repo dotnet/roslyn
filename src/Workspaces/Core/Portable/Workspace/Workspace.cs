@@ -755,7 +755,7 @@ namespace Microsoft.CodeAnalysis
                     CheckDocumentIsInSolution(oldSolution, documentId);
                     this.CheckDocumentCanBeRemoved(documentId);
 
-                    oldSolution.RemoveDocument(documentId);
+                    return oldSolution.RemoveDocument(documentId);
                 },
                 WorkspaceChangeKind.DocumentRemoved, documentId: documentId,
                 onBeforeUpdate: (oldSolution, _) =>
