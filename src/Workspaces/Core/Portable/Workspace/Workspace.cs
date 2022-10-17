@@ -478,7 +478,7 @@ namespace Microsoft.CodeAnalysis
             this.SetCurrentSolution(
                 _ => this.CreateSolution(SolutionId.CreateNewId()),
                 WorkspaceChangeKind.SolutionRemoved,
-                onBeforeUpdate: (_, _) => this.ClearOpenDocuments());
+                onBeforeUpdate: (_, _) => this.ClearSolutionData());
         }
 
         /// <summary>

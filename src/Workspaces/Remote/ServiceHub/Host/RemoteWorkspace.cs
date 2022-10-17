@@ -316,7 +316,7 @@ namespace Microsoft.CodeAnalysis.Remote
                             // We're not doing an update, we're moving to a new solution entirely.  Clear out the old one. This
                             // is necessary so that we clear out any open document information this workspace is tracking. Note:
                             // this seems suspect as the remote workspace should not be tracking any open document state.
-                            this.ClearOpenDocuments();
+                            this.ClearSolutionData();
                         }
                     },
                     onAfterUpdate: (oldSolution, newSolution, data) =>
