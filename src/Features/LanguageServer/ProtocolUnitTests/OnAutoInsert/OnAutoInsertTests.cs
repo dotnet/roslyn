@@ -10,6 +10,7 @@ using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
+using Xunit.Abstractions;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.OnAutoInsert
@@ -17,6 +18,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.OnAutoInsert
     [Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
     public class OnAutoInsertTests : AbstractLanguageServerProtocolTests
     {
+        public OnAutoInsertTests(ITestOutputHelper testOutputHelper) : base(testOutputHelper)
+        {
+        }
+
         [Fact]
         public async Task OnAutoInsert_CommentCharacter()
         {

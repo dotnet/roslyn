@@ -262,7 +262,7 @@ namespace Microsoft.CodeAnalysis.AddImport
             using var nestedTokenSource = new CancellationTokenSource();
             using var linkedTokenSource = CancellationTokenSource.CreateLinkedTokenSource(nestedTokenSource.Token, cancellationToken);
 
-            foreach (var (referenceProjectId, reference) in newReferences)
+            foreach (var (referenceProject, reference) in newReferences)
             {
                 var compilation = referenceToCompilation.GetOrAdd(
                     reference, r => CreateCompilation(project, r));
@@ -272,7 +272,7 @@ namespace Microsoft.CodeAnalysis.AddImport
                 if (compilation.GetAssemblyOrModuleSymbol(reference) is IAssemblySymbol assembly)
                 {
                     findTasks.Add(finder.FindInMetadataSymbolsAsync(
-                        assembly, referenceProjectId, reference, exact, linkedTokenSource.Token));
+                        assembly, referenceProject, reference, exact, linkedTokenSource.Token));
                 }
             }
 
@@ -284,10 +284,10 @@ namespace Microsoft.CodeAnalysis.AddImport
         /// by this project.  The set returned will be tuples containing the PEReference, and the project-id
         /// for the project we found the pe-reference in.
         /// </summary>
-        private static ImmutableArray<(ProjectId, PortableExecutableReference)> GetUnreferencedMetadataReferences(
+        private static ImmutableArray<(Project, PortableExecutableReference)> GetUnreferencedMetadataReferences(
             Project project, HashSet<PortableExecutableReference> seenReferences)
         {
-            var result = ArrayBuilder<(ProjectId, PortableExecutableReference)>.GetInstance();
+            var result = ArrayBuilder<(Project, PortableExecutableReference)>.GetInstance();
 
             var solution = project.Solution;
             foreach (var p in solution.Projects)
@@ -303,7 +303,7 @@ namespace Microsoft.CodeAnalysis.AddImport
                         !IsInPackagesDirectory(peReference) &&
                         seenReferences.Add(peReference))
                     {
-                        result.Add((p.Id, peReference));
+                        result.Add((p, peReference));
                     }
                 }
             }

@@ -507,8 +507,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 else
                 {
                     bool isVar;
-                    type = binder.BindTypeOrVarKeyword(typeSyntax, diagnostics, out isVar);
-
+                    type = binder.BindTypeOrVarKeyword(typeSyntax.SkipScoped(out _).SkipRef(out RefKind refKindToAssert), diagnostics, out isVar);
+                    Debug.Assert(refKindToAssert == RefKind.None); // Otherwise we might need to report an error
                     Debug.Assert(type.HasType || isVar);
 
                     if (isVar)

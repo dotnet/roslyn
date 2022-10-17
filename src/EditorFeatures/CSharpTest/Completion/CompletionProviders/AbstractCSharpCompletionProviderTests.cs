@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
 </Workspace>";
 
         protected override TestWorkspace CreateWorkspace(string fileContents)
-            => TestWorkspace.CreateCSharp(fileContents, exportProvider: ExportProvider);
+            => TestWorkspace.CreateCSharp(fileContents, composition: GetComposition());
 
         internal override CompletionService GetCompletionService(Project project)
             => Assert.IsType<CSharpCompletionService>(base.GetCompletionService(project));

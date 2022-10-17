@@ -4,7 +4,6 @@
 
 #nullable disable
 
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
@@ -14,18 +13,24 @@ using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.Text.Adornments;
 using Newtonsoft.Json;
 using Roslyn.Test.Utilities;
 using Xunit;
+using Xunit.Abstractions;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Completion
 {
     public class CompletionResolveTests : AbstractLanguageServerProtocolTests
     {
+        public CompletionResolveTests(ITestOutputHelper testOutputHelper) : base(testOutputHelper)
+        {
+        }
+
         [Fact]
         public async Task TestResolveCompletionItemFromListAsync()
         {
@@ -428,7 +433,7 @@ link text";
 
         private class TestCaretOutOfScopeCompletionService : CompletionService
         {
-            public TestCaretOutOfScopeCompletionService(SolutionServices services) : base(services)
+            public TestCaretOutOfScopeCompletionService(SolutionServices services) : base(services, AsynchronousOperationListenerProvider.NullProvider)
             {
             }
 

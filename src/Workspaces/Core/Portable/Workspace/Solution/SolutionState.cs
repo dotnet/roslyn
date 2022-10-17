@@ -1389,13 +1389,13 @@ namespace Microsoft.CodeAnalysis
             return UpdateDocumentState(oldDocument.UpdateSourceCodeKind(sourceCodeKind), textChanged: true);
         }
 
-        public SolutionState UpdateDocumentTextLoader(DocumentId documentId, TextLoader loader, SourceText? text, PreservationMode mode)
+        public SolutionState UpdateDocumentTextLoader(DocumentId documentId, TextLoader loader, PreservationMode mode)
         {
             var oldDocument = GetRequiredDocumentState(documentId);
 
             // Assumes that text has changed. User could have closed a doc without saving and we are loading text from closed file with
             // old content. Also this should make sure we don't re-use latest doc version with data associated with opened document.
-            return UpdateDocumentState(oldDocument.UpdateText(loader, text, mode), textChanged: true, recalculateDependentVersions: true);
+            return UpdateDocumentState(oldDocument.UpdateText(loader, mode), textChanged: true, recalculateDependentVersions: true);
         }
 
         /// <summary>
@@ -1626,7 +1626,7 @@ namespace Microsoft.CodeAnalysis
                 using (this.StateLock.DisposableWait(cancellationToken))
                 {
                     // in progress solutions are disabled for some testing
-                    if (this.Workspace is Workspace ws && ws.TestHookPartialSolutionsDisabled)
+                    if (Services.GetService<IWorkpacePartialSolutionsTestHook>()?.IsPartialSolutionDisabled == true)
                     {
                         return this;
                     }

@@ -19,21 +19,6 @@ namespace Microsoft.CodeAnalysis
     {
         protected readonly HostWorkspaceServices solutionServices;
 
-        /// <summary>
-        /// A direct reference to our source text.  This is only kept around in specialized scenarios.
-        /// Specifically, we keep this around when a document is opened.  By providing this we can allow
-        /// clients to easily get to the text of the document in a non-blocking fashion if that's all
-        /// that they need.
-        ///
-        /// Note: this facility does not extend to getting the version as well.  That's because the
-        /// version of a document depends on both the current source contents and the contents from 
-        /// the previous version of the document.  (i.e. if the contents are the same, then we will
-        /// preserve the same version, otherwise we'll move the version forward).  Because determining
-        /// the version depends on comparing text, and because getting the old text may block, we 
-        /// do not have the ability to know the version of the document up front, and instead can
-        /// only retrieve is asynchronously through <see cref="TextAndVersionSource"/>.
-        /// </summary> 
-        protected readonly SourceText? sourceText;
         internal ITextAndVersionSource TextAndVersionSource { get; }
         public readonly LoadTextOptions LoadTextOptions;
 
@@ -51,13 +36,11 @@ namespace Microsoft.CodeAnalysis
             HostWorkspaceServices solutionServices,
             IDocumentServiceProvider? documentServiceProvider,
             DocumentInfo.DocumentAttributes attributes,
-            SourceText? sourceText,
             ITextAndVersionSource textAndVersionSource,
             LoadTextOptions loadTextOptions)
         {
             this.solutionServices = solutionServices;
 
-            this.sourceText = sourceText;
             this.LoadTextOptions = loadTextOptions;
             TextAndVersionSource = textAndVersionSource;
 
@@ -76,7 +59,6 @@ namespace Microsoft.CodeAnalysis
             : this(services,
                    info.DocumentServiceProvider,
                    info.Attributes,
-                   sourceText: null,
                    textAndVersionSource: info.TextLoader != null
                     ? CreateRecoverableText(info.TextLoader, services.SolutionServices)
                     : CreateStrongText(TextAndVersion.Create(SourceText.From(string.Empty, encoding: null, loadTextOptions.ChecksumAlgorithm), VersionStamp.Default, info.FilePath)),
@@ -118,12 +100,6 @@ namespace Microsoft.CodeAnalysis
 
         public bool TryGetText([NotNullWhen(returnValue: true)] out SourceText? text)
         {
-            if (this.sourceText != null)
-            {
-                text = sourceText;
-                return true;
-            }
-
             if (this.TextAndVersionSource.TryGetValue(LoadTextOptions, out var textAndVersion))
             {
                 text = textAndVersion.Text;
@@ -161,11 +137,6 @@ namespace Microsoft.CodeAnalysis
 
         public ValueTask<SourceText> GetTextAsync(CancellationToken cancellationToken)
         {
-            if (sourceText != null)
-            {
-                return new ValueTask<SourceText>(sourceText);
-            }
-
             if (TryGetText(out var text))
             {
                 return new ValueTask<SourceText>(text);
@@ -235,7 +206,6 @@ namespace Microsoft.CodeAnalysis
                 solutionServices,
                 this.Services,
                 this.Attributes,
-                sourceText: null,
                 textAndVersionSource: newTextSource,
                 LoadTextOptions);
         }
