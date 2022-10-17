@@ -518,13 +518,16 @@ namespace Microsoft.CodeAnalysis
         protected internal virtual void OnProjectRemoved(ProjectId projectId)
         {
             this.SetCurrentSolution(
-                oldSolution => oldSolution.RemoveProject(projectId),
-                WorkspaceChangeKind.ProjectRemoved, projectId,
-                onBeforeUpdate: (oldSolution, _) =>
+                oldSolution =>
                 {
                     CheckProjectIsInSolution(oldSolution, projectId);
                     this.CheckProjectCanBeRemoved(projectId);
 
+                    return oldSolution.RemoveProject(projectId);
+                },
+                WorkspaceChangeKind.ProjectRemoved, projectId,
+                onBeforeUpdate: (oldSolution, _) =>
+                {
                     // Clear out mutable state not associated with teh solution snapshot (for example, which documents are
                     // currently open).
                     this.ClearProjectData(projectId);
