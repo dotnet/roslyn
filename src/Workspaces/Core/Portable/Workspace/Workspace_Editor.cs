@@ -616,7 +616,7 @@ namespace Microsoft.CodeAnalysis
                 documentId,
                 reloader,
                 WorkspaceChangeKind.AdditionalDocumentChanged,
-                CheckAdditionalDocumentIsInCurrentSolution,
+                CheckAdditionalDocumentIsInSolution,
                 withTextDocumentTextLoader: (oldSolution, documentId, textLoader, mode) => oldSolution.WithAdditionalDocumentTextLoader(documentId, textLoader, mode));
         }
 
@@ -626,7 +626,7 @@ namespace Microsoft.CodeAnalysis
                 documentId,
                 reloader,
                 WorkspaceChangeKind.AnalyzerConfigDocumentChanged,
-                CheckAnalyzerConfigDocumentIsInCurrentSolution,
+                CheckAnalyzerConfigDocumentIsInSolution,
                 withTextDocumentTextLoader: (oldSolution, documentId, textLoader, mode) => oldSolution.WithAnalyzerConfigDocumentTextLoader(documentId, textLoader, mode));
         }
 
@@ -637,27 +637,34 @@ namespace Microsoft.CodeAnalysis
             DocumentId documentId,
             TextLoader reloader,
             WorkspaceChangeKind workspaceChangeKind,
-            Action<DocumentId> checkTextDocumentIsInCurrentSolution,
+            Action<Solution, DocumentId> checkTextDocumentIsInSolution,
             Func<Solution, DocumentId, TextLoader, PreservationMode, Solution> withTextDocumentTextLoader)
         {
-            using (_serializationLock.DisposableWait())
-            {
-                checkTextDocumentIsInCurrentSolution(documentId);
-                this.CheckDocumentIsOpen(documentId);
+            this.SetCurrentSolution(
+                static (oldSolution, data) =>
+                {
+                    var documentId = data.documentId;
+                    data.checkTextDocumentIsInSolution(oldSolution, documentId);
+                    data.@this.CheckDocumentIsOpen(documentId);
 
-                // forget any open document info
-                ClearOpenDocument(documentId);
+                    Debug.Assert(oldSolution.GetRequiredTextDocument(documentId).Kind is TextDocumentKind.AdditionalDocument or TextDocumentKind.AnalyzerConfigDocument);
 
-                Debug.Assert(this.CurrentSolution.GetRequiredTextDocument(documentId).Kind is TextDocumentKind.AdditionalDocument or TextDocumentKind.AnalyzerConfigDocument);
+                    return data.withTextDocumentTextLoader(oldSolution, documentId, data.reloader, PreservationMode.PreserveValue);
+                },
+                data: (@this: this, documentId, reloader, workspaceChangeKind, checkTextDocumentIsInSolution, withTextDocumentTextLoader),
+                onBeforeUpdate: static (oldSolution, newSolution, data) =>
+                {
+                    // forget any open document info
+                    data.@this.ClearOpenDocument(data.documentId);
+                },
+                onAfterUpdate: static (oldSolution, newSolution, data) =>
+                {
+                    data.@this.RaiseWorkspaceChangedEventAsync(
+                        data.workspaceChangeKind, oldSolution, newSolution, documentId: data.documentId); // don't wait for this
 
-                var (oldSolution, newSolution) = this.SetCurrentSolutionEx(
-                    withTextDocumentTextLoader(this.CurrentSolution, documentId, reloader, PreservationMode.PreserveValue));
-
-                this.RaiseWorkspaceChangedEventAsync(workspaceChangeKind, oldSolution, newSolution, documentId: documentId); // don't wait for this
-
-                var newDoc = newSolution.GetRequiredTextDocument(documentId);
-                this.RaiseTextDocumentClosedEventAsync(newDoc); // don't wait for this
-            }
+                    var newDoc = newSolution.GetRequiredTextDocument(data.documentId);
+                    data.@this.RaiseTextDocumentClosedEventAsync(newDoc); // don't wait for this
+                });
         }
 
         private void UpdateCurrentContextMapping_NoLock(SourceTextContainer textContainer, DocumentId id, bool isCurrentContext)
