@@ -192,7 +192,7 @@ namespace Microsoft.CodeAnalysis
         /// <param name="projectId">The id of the project updated by <paramref name="transformation"/> to be passed to the workspace change event.</param>
         /// <param name="documentId">The id of the document updated by <paramref name="transformation"/> to be passed to the workspace change event.</param>
         /// <returns>True if <see cref="CurrentSolution"/> was set to the transformed solution, false if the transformation did not change the solution.</returns>
-        private bool SetCurrentSolution(
+        internal bool SetCurrentSolution(
             Func<Solution, Solution> transformation,
             WorkspaceChangeKind kind,
             ProjectId? projectId = null,
@@ -1028,23 +1028,19 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         protected internal void OnAdditionalDocumentRemoved(DocumentId documentId)
         {
-            // This currently doesn't use the SetCurrentSolution(transform) pattern as it changes mutable state (open
-            // docs), and as such needs to atomically change both that and the solution-snapshot.
+            this.SetCurrentSolution(
+                oldSolution => oldSolution.RemoveAdditionalDocument(documentId),
+                WorkspaceChangeKind.AdditionalDocumentRemoved, documentId: documentId,
+                onBeforeUpdate: (oldSolution, _) =>
+                {
+                    CheckAdditionalDocumentIsInSolution(oldSolution, documentId);
 
-            using (_serializationLock.DisposableWait())
-            {
-                CheckAdditionalDocumentIsInCurrentSolution(documentId);
+                    this.CheckDocumentCanBeRemoved(documentId);
 
-                this.CheckDocumentCanBeRemoved(documentId);
-
-                // Clear out mutable state not associated with teh solution snapshot (for example, which documents are
-                // currently open).
-                this.ClearDocumentData(documentId);
-
-                var (oldSolution, newSolution) = this.SetCurrentSolutionEx(this.CurrentSolution.RemoveAdditionalDocument(documentId));
-
-                this.RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.AdditionalDocumentRemoved, oldSolution, newSolution, documentId: documentId);
-            }
+                    // Clear out mutable state not associated with teh solution snapshot (for example, which documents are
+                    // currently open).
+                    this.ClearDocumentData(documentId);
+                });
         }
 
         /// <summary>
