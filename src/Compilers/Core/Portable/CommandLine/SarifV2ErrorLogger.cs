@@ -380,7 +380,7 @@ namespace Microsoft.CodeAnalysis
             {
                 Debug.Assert(Count > 0);
 
-                var list = new List<KeyValuePair<int, (DiagnosticDescriptor Descriptor, bool IsEverSuppressed)>>(Count);
+                var list = new List<KeyValuePair<int, (DiagnosticDescriptor Descriptor, bool HasAnyExternalSuppression)>>(Count);
 
                 foreach (var pair in _distinctDescriptors)
                 {
