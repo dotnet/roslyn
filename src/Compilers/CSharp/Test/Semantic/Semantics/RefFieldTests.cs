@@ -4,7 +4,6 @@
 
 #nullable disable
 
-using System.Collections.Generic;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
@@ -356,7 +355,7 @@ ref struct B
 }
 .class public sealed S extends [mscorlib]System.ValueType
 {
-  .field public int32 F2
+  .field public int32& F2
 }";
             var refA = CompileIL(sourceA);
 
@@ -667,12 +666,24 @@ ref struct R
                 // (6,19): error CS0106: The modifier 'const' is not valid for this item
                 //     const ref int _c1 = default;
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "_c1").WithArguments("const").WithLocation(6, 19),
+                // (6,23): error CS8172: Cannot initialize a by-reference variable with a value
+                //     const ref int _c1 = default;
+                Diagnostic(ErrorCode.ERR_InitializeByReferenceVariableWithValue, "= default").WithLocation(6, 23),
+                // (6,25): error CS1510: A ref or out value must be an assignable variable
+                //     const ref int _c1 = default;
+                Diagnostic(ErrorCode.ERR_RefLvalueExpected, "default").WithLocation(6, 25),
                 // (7,28): error CS0106: The modifier 'static' is not valid for this item
                 //     const ref readonly int _c2 = default;
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "_c2").WithArguments("static").WithLocation(7, 28),
                 // (7,28): error CS0106: The modifier 'const' is not valid for this item
                 //     const ref readonly int _c2 = default;
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "_c2").WithArguments("const").WithLocation(7, 28),
+                // (7,32): error CS8172: Cannot initialize a by-reference variable with a value
+                //     const ref readonly int _c2 = default;
+                Diagnostic(ErrorCode.ERR_InitializeByReferenceVariableWithValue, "= default").WithLocation(7, 32),
+                // (7,34): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
+                //     const ref readonly int _c2 = default;
+                Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "default").WithLocation(7, 34),
                 // (8,22): error CS0106: The modifier 'volatile' is not valid for this item
                 //     volatile ref int _v1;
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "_v1").WithArguments("volatile").WithLocation(8, 22),
@@ -9002,7 +9013,7 @@ static string M(ref int number) { return """"; }
 static string M2(out int number) { number = 42; return """"; }
 class C
 {
-    public int N { get; set; }    
+    public int N { get; set; }
     private int[] arr = new int[100];
     public int this[int i] => arr[i];
 }
@@ -9011,7 +9022,8 @@ ref struct R
     public R(){}
     private ref int n;
     public ref int N => ref n;
-    private ref int[] arr = new int[1];
+    private static int[] s_arr = new int[1];
+    private ref int[] arr = ref s_arr;
     public ref int this[int i] => ref arr[i];
 }
 ";
@@ -25330,6 +25342,166 @@ struct S<T> : System.IDisposable
                 //         F3(in local, out local); // 2
                 Diagnostic(ErrorCode.ERR_RefReturnLocal, "local").WithArguments("local").WithLocation(19, 15)
                 );
+        }
+
+        [WorkItem(64720, "https://github.com/dotnet/roslyn/issues/64720")]
+        [ConditionalTheory(typeof(CoreClrOnly))]
+        [InlineData("ref")]
+        [InlineData("ref readonly")]
+        public void FieldInitializer_01(string refModifier)
+        {
+            var sourceA =
+$@"ref struct R
+{{
+    public static byte S = 1;
+    public {refModifier} byte F = ref S;
+    public R() {{ }}
+}}";
+            var sourceB =
+@"using System;
+class Program
+{
+    static void Main()
+    {
+        var r = new R();
+        Console.WriteLine(r.F);
+        R.S++;
+        Console.WriteLine(r.F);
+    }
+}";
+            var comp = CreateCompilation(new[] { sourceA, sourceB }, targetFramework: TargetFramework.Net70, options: TestOptions.ReleaseExe);
+            comp.VerifyEmitDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput:
+@"1
+2
+");
+            verifier.VerifyIL("R..ctor",
+$@"{{
+    // Code size       12 (0xc)
+    .maxstack  2
+    IL_0000:  ldarg.0
+    IL_0001:  ldsflda    ""byte R.S""
+    IL_0006:  stfld      ""{refModifier} byte R.F""
+    IL_000b:  ret
+}}
+");
+        }
+
+        [WorkItem(64720, "https://github.com/dotnet/roslyn/issues/64720")]
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void FieldInitializer_02()
+        {
+            var source =
+@"using System;
+ref struct R
+{
+    ref byte _f1 = ref F(stackalloc byte[1]);
+    ref readonly byte _f2 = ref F(stackalloc byte[1]);
+    public R(object o) { }
+    static ref T F<T>(Span<T> s) => throw null;
+}";
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+            comp.VerifyEmitDiagnostics(
+                // (4,24): error CS8347: Cannot use a result of 'R.F<byte>(Span<byte>)' in this context because it may expose variables referenced by parameter 's' outside of their declaration scope
+                //     ref byte _f1 = ref F(stackalloc byte[1]);
+                Diagnostic(ErrorCode.ERR_EscapeCall, "F(stackalloc byte[1])").WithArguments("R.F<byte>(System.Span<byte>)", "s").WithLocation(4, 24),
+                // (4,26): error CS8353: A result of a stackalloc expression of type 'Span<byte>' cannot be used in this context because it may be exposed outside of the containing method
+                //     ref byte _f1 = ref F(stackalloc byte[1]);
+                Diagnostic(ErrorCode.ERR_EscapeStackAlloc, "stackalloc byte[1]").WithArguments("System.Span<byte>").WithLocation(4, 26),
+                // (5,33): error CS8347: Cannot use a result of 'R.F<byte>(Span<byte>)' in this context because it may expose variables referenced by parameter 's' outside of their declaration scope
+                //     ref readonly byte _f2 = ref F(stackalloc byte[1]);
+                Diagnostic(ErrorCode.ERR_EscapeCall, "F(stackalloc byte[1])").WithArguments("R.F<byte>(System.Span<byte>)", "s").WithLocation(5, 33),
+                // (5,35): error CS8353: A result of a stackalloc expression of type 'Span<byte>' cannot be used in this context because it may be exposed outside of the containing method
+                //     ref readonly byte _f2 = ref F(stackalloc byte[1]);
+                Diagnostic(ErrorCode.ERR_EscapeStackAlloc, "stackalloc byte[1]").WithArguments("System.Span<byte>").WithLocation(5, 35));
+        }
+
+        [WorkItem(64725, "https://github.com/dotnet/roslyn/issues/64725")]
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void FieldInitializer_03()
+        {
+            var source =
+@"#pragma warning disable 414
+ref struct R
+{
+    ref int _f1 = 1;
+    ref readonly int _f2 = 2;
+    public R() { }
+}";
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+            comp.VerifyEmitDiagnostics(
+                // (4,17): error CS8172: Cannot initialize a by-reference variable with a value
+                //     ref int _f1 = 1;
+                Diagnostic(ErrorCode.ERR_InitializeByReferenceVariableWithValue, "= 1").WithLocation(4, 17),
+                // (4,19): error CS1510: A ref or out value must be an assignable variable
+                //     ref int _f1 = 1;
+                Diagnostic(ErrorCode.ERR_RefLvalueExpected, "1").WithLocation(4, 19),
+                // (5,26): error CS8172: Cannot initialize a by-reference variable with a value
+                //     ref readonly int _f2 = 2;
+                Diagnostic(ErrorCode.ERR_InitializeByReferenceVariableWithValue, "= 2").WithLocation(5, 26),
+                // (5,28): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
+                //     ref readonly int _f2 = 2;
+                Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "2").WithLocation(5, 28));
+        }
+
+        [WorkItem(64725, "https://github.com/dotnet/roslyn/issues/64725")]
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void FieldInitializer_04()
+        {
+            var source =
+@"using System;
+ref struct R
+{
+    ref byte _f1 = F(stackalloc byte[1]);
+    ref readonly byte _f2 = F(stackalloc byte[1]);
+    public R() { }
+    static ref T F<T>(Span<T> s) => throw null;
+}";
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+            comp.VerifyEmitDiagnostics(
+                // (4,18): error CS8172: Cannot initialize a by-reference variable with a value
+                //     ref byte _f1 = F(stackalloc byte[1]);
+                Diagnostic(ErrorCode.ERR_InitializeByReferenceVariableWithValue, "= F(stackalloc byte[1])").WithLocation(4, 18),
+                // (4,20): error CS8347: Cannot use a result of 'R.F<byte>(Span<byte>)' in this context because it may expose variables referenced by parameter 's' outside of their declaration scope
+                //     ref byte _f1 = F(stackalloc byte[1]);
+                Diagnostic(ErrorCode.ERR_EscapeCall, "F(stackalloc byte[1])").WithArguments("R.F<byte>(System.Span<byte>)", "s").WithLocation(4, 20),
+                // (4,22): error CS8353: A result of a stackalloc expression of type 'Span<byte>' cannot be used in this context because it may be exposed outside of the containing method
+                //     ref byte _f1 = F(stackalloc byte[1]);
+                Diagnostic(ErrorCode.ERR_EscapeStackAlloc, "stackalloc byte[1]").WithArguments("System.Span<byte>").WithLocation(4, 22),
+                // (5,27): error CS8172: Cannot initialize a by-reference variable with a value
+                //     ref readonly byte _f2 = F(stackalloc byte[1]);
+                Diagnostic(ErrorCode.ERR_InitializeByReferenceVariableWithValue, "= F(stackalloc byte[1])").WithLocation(5, 27),
+                // (5,29): error CS8347: Cannot use a result of 'R.F<byte>(Span<byte>)' in this context because it may expose variables referenced by parameter 's' outside of their declaration scope
+                //     ref readonly byte _f2 = F(stackalloc byte[1]);
+                Diagnostic(ErrorCode.ERR_EscapeCall, "F(stackalloc byte[1])").WithArguments("R.F<byte>(System.Span<byte>)", "s").WithLocation(5, 29),
+                // (5,31): error CS8353: A result of a stackalloc expression of type 'Span<byte>' cannot be used in this context because it may be exposed outside of the containing method
+                //     ref readonly byte _f2 = F(stackalloc byte[1]);
+                Diagnostic(ErrorCode.ERR_EscapeStackAlloc, "stackalloc byte[1]").WithArguments("System.Span<byte>").WithLocation(5, 31));
+        }
+
+        [WorkItem(64725, "https://github.com/dotnet/roslyn/issues/64725")]
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void FieldInitializer_05()
+        {
+            var source =
+@"using System;
+ref struct R
+{
+    ref readonly Span<int> _s = ref F(stackalloc int[1]);
+    public R() { }
+    static ref readonly Span<T> F<T>(in Span<T> s) => ref s;
+}";
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+            comp.VerifyEmitDiagnostics(
+                // (4,5): error CS9050: A ref field cannot refer to a ref struct.
+                //     ref readonly Span<int> _s = ref F(stackalloc int[1]);
+                Diagnostic(ErrorCode.ERR_RefFieldCannotReferToRefStruct, "ref readonly Span<int>").WithLocation(4, 5),
+                // (4,37): error CS8347: Cannot use a result of 'R.F<int>(in Span<int>)' in this context because it may expose variables referenced by parameter 's' outside of their declaration scope
+                //     ref readonly Span<int> _s = ref F(stackalloc int[1]);
+                Diagnostic(ErrorCode.ERR_EscapeCall, "F(stackalloc int[1])").WithArguments("R.F<int>(in System.Span<int>)", "s").WithLocation(4, 37),
+                // (4,39): error CS8353: A result of a stackalloc expression of type 'Span<int>' cannot be used in this context because it may be exposed outside of the containing method
+                //     ref readonly Span<int> _s = ref F(stackalloc int[1]);
+                Diagnostic(ErrorCode.ERR_EscapeStackAlloc, "stackalloc int[1]").WithArguments("System.Span<int>").WithLocation(4, 39));
         }
     }
 }
