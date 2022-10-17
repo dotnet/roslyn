@@ -668,7 +668,7 @@ Inner i;
 
             // create symbol tree info from assembly
             var info = await SymbolTreeInfo.CreateSourceSymbolTreeInfoAsync(
-                project, VersionStamp.Default, Checksum.Null, cancellationToken: CancellationToken.None);
+                project, Checksum.Null, cancellationToken: CancellationToken.None);
 
             using var writerStream = new MemoryStream();
             using (var writer = new ObjectWriter(writerStream, leaveOpen: true))

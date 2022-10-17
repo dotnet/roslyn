@@ -32,12 +32,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
     /// </summary>
     internal partial class SymbolTreeInfo : IChecksummedObject
     {
-        /// <summary>
-        /// The <see cref="Project.GetSemanticVersionAsync"/> version of the project if this is a SymbolTreeInfo for
-        /// source (not metadata).
-        /// </summary>
-        public VersionStamp SourceSemanticVersion { get; }
-
         public Checksum Checksum { get; }
 
         /// <summary>
@@ -100,27 +94,24 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         };
 
         private SymbolTreeInfo(
-            VersionStamp sourceSemanticVersion,
             Checksum checksum,
             ImmutableArray<Node> sortedNodes,
             SpellChecker spellChecker,
             OrderPreservingMultiDictionary<string, string> inheritanceMap,
             MultiDictionary<string, ExtensionMethodInfo>? receiverTypeNameToExtensionMethodMap)
-            : this(sourceSemanticVersion, checksum, sortedNodes, spellChecker,
+            : this(checksum, sortedNodes, spellChecker,
                    CreateIndexBasedInheritanceMap(sortedNodes, inheritanceMap),
                    receiverTypeNameToExtensionMethodMap)
         {
         }
 
         private SymbolTreeInfo(
-            VersionStamp sourceSemanticVersion,
             Checksum checksum,
             ImmutableArray<Node> sortedNodes,
             SpellChecker spellChecker,
             OrderPreservingMultiDictionary<int, int> inheritanceMap,
             MultiDictionary<string, ExtensionMethodInfo>? receiverTypeNameToExtensionMethodMap)
         {
-            SourceSemanticVersion = sourceSemanticVersion;
             Checksum = checksum;
             _nodes = sortedNodes;
             _spellChecker = spellChecker;
@@ -133,7 +124,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             var unsortedNodes = ImmutableArray.Create(BuilderNode.RootNode);
             SortNodes(unsortedNodes, out var sortedNodes);
 
-            return new SymbolTreeInfo(VersionStamp.Default, checksum, sortedNodes,
+            return new SymbolTreeInfo(checksum, sortedNodes,
                 CreateSpellChecker(checksum, sortedNodes),
                 new OrderPreservingMultiDictionary<string, string>(),
                 new MultiDictionary<string, ExtensionMethodInfo>());
@@ -145,7 +136,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 return this;
 
             return new SymbolTreeInfo(
-                SourceSemanticVersion, checksum, _nodes, _spellChecker, _inheritanceMap, _receiverTypeNameToExtensionMethodMap);
+                checksum, _nodes, _spellChecker, _inheritanceMap, _receiverTypeNameToExtensionMethodMap);
         }
 
         public Task<ImmutableArray<ISymbol>> FindAsync(
@@ -455,7 +446,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
         internal void AssertEquivalentTo(SymbolTreeInfo other)
         {
-            Debug.Assert(SourceSemanticVersion.Equals(other.SourceSemanticVersion));
             Debug.Assert(Checksum.Equals(other.Checksum));
             Debug.Assert(_nodes.Length == other._nodes.Length);
 
@@ -481,7 +471,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         }
 
         private static SymbolTreeInfo CreateSymbolTreeInfo(
-            VersionStamp sourceSemanticVersion,
             Checksum checksum,
             ImmutableArray<BuilderNode> unsortedNodes,
             OrderPreservingMultiDictionary<string, string> inheritanceMap,
@@ -491,7 +480,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             var spellChecker = CreateSpellChecker(checksum, sortedNodes);
 
             return new SymbolTreeInfo(
-                sourceSemanticVersion, checksum, sortedNodes, spellChecker, inheritanceMap, receiverTypeNameToExtensionMethodMap);
+                checksum, sortedNodes, spellChecker, inheritanceMap, receiverTypeNameToExtensionMethodMap);
         }
 
         private static OrderPreservingMultiDictionary<int, int> CreateIndexBasedInheritanceMap(

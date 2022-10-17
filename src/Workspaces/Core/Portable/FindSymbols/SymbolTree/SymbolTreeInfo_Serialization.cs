@@ -109,8 +109,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
         public void WriteTo(ObjectWriter writer)
         {
-            this.SourceSemanticVersion.WriteTo(writer);
-
             writer.WriteInt32(_nodes.Length);
             foreach (var group in GroupByName(_nodes.AsMemory()))
             {
@@ -191,8 +189,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
             try
             {
-                var version = VersionStamp.ReadFrom(reader);
-
                 var nodeCount = reader.ReadInt32();
                 using var _ = ArrayBuilder<Node>.GetInstance(nodeCount, out var nodes);
 
@@ -254,7 +250,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 var nodeArray = nodes.ToImmutableAndClear();
 
                 return new SymbolTreeInfo(
-                    version, checksum, nodeArray, spellChecker, inheritanceMap, receiverTypeNameToExtensionMethodMap);
+                    checksum, nodeArray, spellChecker, inheritanceMap, receiverTypeNameToExtensionMethodMap);
             }
             catch
             {

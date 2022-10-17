@@ -327,7 +327,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 var unsortedNodes = GenerateUnsortedNodes(receiverTypeNameToExtensionMethodMap);
 
                 return CreateSymbolTreeInfo(
-                    sourceSemanticVersion: VersionStamp.Default, _checksum, unsortedNodes, _inheritanceMap, receiverTypeNameToExtensionMethodMap);
+                    _checksum, unsortedNodes, _inheritanceMap, receiverTypeNameToExtensionMethodMap);
             }
 
             public void Dispose()
