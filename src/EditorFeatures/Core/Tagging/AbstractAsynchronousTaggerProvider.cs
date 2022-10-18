@@ -88,6 +88,10 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
         /// </summary>
         protected abstract bool Equals(TTag tag1, TTag tag2);
 
+        [Obsolete("Make sure you're calling Equals(TTag tag1, TTag tag2) instead", error: true)]
+        public static new bool Equals(object objA, object objB)
+            => throw ExceptionUtilities.Unreachable();
+
 #if DEBUG
         public readonly string StackTrace;
 #endif
