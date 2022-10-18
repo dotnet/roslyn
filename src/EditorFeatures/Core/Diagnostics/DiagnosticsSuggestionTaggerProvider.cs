@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
             Contract.ThrowIfFalse(tag1 is RoslynErrorTag);
             Contract.ThrowIfFalse(tag2 is RoslynErrorTag);
-            return tag1.Equals(errorTag2);
+            return tag1.Equals(tag2);
         }
     }
 }
