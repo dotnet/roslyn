@@ -45,32 +45,30 @@ internal class TestExampleLanguageServer : ExampleLanguageServer
 
     protected override ILifeCycleManager GetLifeCycleManager()
     {
-        return new TestLifeCycleManager(this, _shuttingDown, _exiting);
+        return new TestLifeCycleManager(_shuttingDown, _exiting);
     }
 
     private class TestLifeCycleManager : ILifeCycleManager
     {
-        private readonly ILifeCycleManager _lifeCycleManager;
         private readonly TaskCompletionSource<int> _shuttingDownSource;
         private readonly TaskCompletionSource<int> _exitingSource;
 
-        public TestLifeCycleManager(ILifeCycleManager lifeCycleManager, TaskCompletionSource<int> shuttingDownSource, TaskCompletionSource<int> exitingSource)
+        public TestLifeCycleManager(TaskCompletionSource<int> shuttingDownSource, TaskCompletionSource<int> exitingSource)
         {
-            _lifeCycleManager = lifeCycleManager;
             _shuttingDownSource = shuttingDownSource;
             _exitingSource = exitingSource;
         }
 
-        public async Task ExitAsync()
+        public Task ExitAsync()
         {
-            await _lifeCycleManager.ExitAsync();
             _exitingSource.SetResult(0);
+            return Task.CompletedTask;
         }
 
-        public async Task ShutdownAsync(string message = "Shutting down")
+        public Task ShutdownAsync(string message = "Shutting down")
         {
-            await _lifeCycleManager.ShutdownAsync(message);
             _shuttingDownSource.SetResult(0);
+            return Task.CompletedTask;
         }
     }
 
@@ -100,12 +98,6 @@ internal class TestExampleLanguageServer : ExampleLanguageServer
     internal async Task<int> WaitForExit()
     {
         return await _exiting.Task;
-    }
-
-    public new ValueTask DisposeAsync()
-    {
-        _clientRpc.Dispose();
-        return base.DisposeAsync();
     }
 
     private static JsonMessageFormatter CreateJsonMessageFormatter()

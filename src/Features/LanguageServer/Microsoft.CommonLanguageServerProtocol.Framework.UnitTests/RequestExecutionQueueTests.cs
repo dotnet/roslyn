@@ -6,8 +6,11 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Elfie.Diagnostics;
 using Microsoft.CommonLanguageServerProtocol.Framework;
 using Moq;
+using Nerdbank.Streams;
+using StreamJsonRpc;
 using Xunit;
 using static Microsoft.CommonLanguageServerProtocol.Framework.UnitTests.HandlerProviderTests;
 
@@ -15,15 +18,27 @@ namespace Microsoft.CommonLanguageServerProtocol.Framework.UnitTests;
 
 public class RequestExecutionQueueTests
 {
+    private class MockServer : AbstractLanguageServer<TestRequestContext>
+    {
+        public MockServer() : base(new JsonRpc(new HeaderDelimitedMessageHandler(FullDuplexStream.CreatePair().Item1)), NoOpLspLogger.Instance)
+        {
+        }
+
+        protected override ILspServices ConstructLspServices()
+        {
+            throw new NotImplementedException();
+        }
+    }
+
     private const string MethodName = "SomeMethod";
 
     private static RequestExecutionQueue<TestRequestContext> GetRequestExecutionQueue(IMethodHandler? methodHandler = null)
     {
         var handlerProvider = new Mock<IHandlerProvider>(MockBehavior.Strict);
         var handler = methodHandler ?? GetTestMethodHandler();
-
         handlerProvider.Setup(h => h.GetMethodHandler(MethodName, TestMethodHandler.RequestType, TestMethodHandler.ResponseType)).Returns(handler);
-        var executionQueue = new RequestExecutionQueue<TestRequestContext>(NoOpLspLogger.Instance, handlerProvider.Object);
+
+        var executionQueue = new RequestExecutionQueue<TestRequestContext>(new MockServer(), NoOpLspLogger.Instance, handlerProvider.Object);
         executionQueue.Start();
 
         return executionQueue;
