@@ -6,7 +6,17 @@
     <IsPackable>true</IsPackable>
     <AssemblyName>Metalama.Compiler.Interface</AssemblyName>
     <PackageId>Metalama.Compiler.Sdk</PackageId>
+    <PackageDescription>
+      THIS IS NOT THE PACKAGE YOU ARE LOOKING FOR. If you want to add Metalama to your project, add a reference to the package named `Metalama.Framework`.
+
+      Metalama Compiler SDK package.
+    </PackageDescription>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
   </PropertyGroup>
+  
+  <ItemGroup>
+    <None Include="README.md" Visible="false" Pack="true" PackagePath="" />
+  </ItemGroup>
 
   <Import Project="..\Metalama.Compiler.Shared\Metalama.Compiler.Shared.projitems" Label="Shared" />
 
