@@ -5,24 +5,24 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Composition;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using EnvDTE;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.DesignerAttribute;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
-using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Remote;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
-using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.VisualStudio.Designer.Interfaces;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
+using Microsoft.VisualStudio.PlatformUI;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Shell.Services;
 using Roslyn.Utilities;
@@ -57,6 +57,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
         // We'll get notifications from the OOP server about new attribute arguments. Collect those notifications and
         // deliver them to VS in batches to prevent flooding the UI thread.
         private readonly AsyncBatchingWorkQueue<DesignerAttributeData> _projectSystemNotificationQueue;
+
+        /// <summary>
+        /// Keep track of the last information we reported.  We will avoid notifying the host if we recompute and these
+        /// don't change.
+        /// </summary>
+        private readonly ConcurrentDictionary<DocumentId, (string? category, VersionStamp projectVersion)> _documentToLastReportedInformation = new();
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -112,23 +118,63 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
             cancellationToken.ThrowIfCancellationRequested();
 
             var solution = _workspace.CurrentSolution;
+
+            // remove any data for projects that are no longer around.
             foreach (var (projectId, _) in _cpsProjects)
             {
                 if (!solution.ContainsProject(projectId))
                     _cpsProjects.TryRemove(projectId, out _);
             }
 
+            foreach (var documentId in _documentToLastReportedInformation.Keys)
+            {
+                if (!solution.ContainsProject(documentId.ProjectId))
+                    _documentToLastReportedInformation.TryRemove(documentId, out _);
+            }
+
             var client = await RemoteHostClient.TryGetClientAsync(_workspace, cancellationToken).ConfigureAwait(false);
             if (client == null)
                 return;
 
+            // Handle the priority doc first.
             var trackingService = _workspace.Services.GetRequiredService<IDocumentTrackingService>();
-            var priorityDocument = trackingService.TryGetActiveDocument();
+            var priorityDocumentId = trackingService.TryGetActiveDocument();
+            var priorityDocument = solution.GetDocument(priorityDocumentId);
+
+            if (priorityDocument != null)
+                await ProcessProjectAsync(client, priorityDocument.Project, priorityDocumentId, cancellationToken).ConfigureAwait(false);
+
+            // Process the rest of the projects in dependency order so that their data is ready when we hit the 
+            // projects that depend on them.
+            var dependencyGraph = solution.GetProjectDependencyGraph();
+            foreach (var projectId in dependencyGraph.GetTopologicallySortedProjects(cancellationToken))
+            {
+                if (projectId == priorityDocumentId?.ProjectId)
+                    continue;
+
+                await ProcessProjectAsync(client, solution.GetRequiredProject(projectId), priorityDocumentId: null, cancellationToken).ConfigureAwait(false);
+            }
+        }
+
+        private Task ProcessProjectAsync(
+            RemoteHostClient client,
+            CodeAnalysis.Project project,
+            DocumentId? priorityDocumentId,
+            CancellationToken cancellationToken)
+        {
+
 
             var stream = client.TryInvokeStreamAsync<IRemoteDesignerAttributeDiscoveryService, DesignerAttributeData>(
-                solution,
-                (service, checksum, cancellationToken) => service.DiscoverDesignerAttributesAsync(checksum, priorityDocument, cancellationToken),
+                project,
+                (service, checksum, cancellationToken) => service.DiscoverDesignerAttributesAsync(checksum, project.Id, priorityDocumentId, cancellationToken),
                 cancellationToken);
+
+            await foreach (var data in stream.ConfigureAwait(false))
+                _projectSystemNotificationQueue.AddWork(data);
+            var stream = client.TryInvokeStreamAsync<IRemoteDesignerAttributeDiscoveryService, DesignerAttributeData>(
+        solution,
+        (service, checksum, cancellationToken) => service.DiscoverDesignerAttributesAsync(checksum, priorityDocument, cancellationToken),
+        cancellationToken);
 
             await foreach (var data in stream.ConfigureAwait(false))
                 _projectSystemNotificationQueue.AddWork(data);
