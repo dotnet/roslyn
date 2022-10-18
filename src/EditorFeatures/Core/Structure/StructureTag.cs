@@ -75,23 +75,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Structure
                 this.IsCollapsible == other.IsCollapsible &&
                 this.IsDefaultCollapsed == other.IsDefaultCollapsed &&
                 this.IsImplementation == other.IsImplementation &&
-                SpanEquals(this.Snapshot, other.Snapshot, this.OutliningSpan, other.OutliningSpan) &&
-                SpanEquals(this.Snapshot, other.Snapshot, this.HeaderSpan, other.HeaderSpan) &&
-                SpanEquals(this.Snapshot, other.Snapshot, this.GuideLineSpan, other.GuideLineSpan);
-        }
-
-        private bool SpanEquals(ITextSnapshot snapshot1, ITextSnapshot snapshot2, Span? span1, Span? span2)
-        {
-            if (span1 == null && span2 == null)
-                return true;
-
-            if (span1 == null || span2 == null)
-                return false;
-
-            // map span1 to snapshot2.
-
-            span1 = new SnapshotSpan(snapshot1, span1.Value).TranslateTo(snapshot2, _tagProvider.SpanTrackingMode).Span;
-            return span1 == span2;
+                _tagProvider.SpanEquals(this.Snapshot, this.OutliningSpan, other.Snapshot, other.OutliningSpan) &&
+                _tagProvider.SpanEquals(this.Snapshot, this.HeaderSpan, other.Snapshot, other.HeaderSpan) &&
+                _tagProvider.SpanEquals(this.Snapshot, this.GuideLineSpan, other.Snapshot, other.GuideLineSpan);
         }
 
         public object? GetCollapsedForm()
