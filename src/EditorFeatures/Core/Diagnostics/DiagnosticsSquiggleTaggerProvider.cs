@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     [ContentType(ContentTypeNames.RoslynContentType)]
     [ContentType(ContentTypeNames.XamlContentType)]
     [TagType(typeof(IErrorTag))]
-    internal partial class DiagnosticsSquiggleTaggerProvider : AbstractDiagnosticsAdornmentTaggerProvider<IErrorTag>
+    internal partial class DiagnosticsSquiggleTaggerProvider : AbstractDiagnosticsAdornmentTaggerProvider<IErrorTag>, IEqualityComparer<IErrorTag>
     {
         private static readonly IEnumerable<Option2<bool>> s_tagSourceOptions =
             ImmutableArray.Create(EditorComponentOnOffOptions.Tagger, InternalFeatureOnOffOptions.Squiggles);
@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 return null;
             }
 
-            return new ErrorTag(errorType, CreateToolTipContent(workspace, diagnostic));
+            return new RoslynErrorTag(errorType, workspace, diagnostic);
         }
 
         private static string? GetErrorTypeFromDiagnostic(DiagnosticData diagnostic)
@@ -126,5 +126,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     return PredefinedErrorTypeNames.OtherError;
             }
         }
+
+        bool IEqualityComparer<IErrorTag>.Equals(IErrorTag? x, IErrorTag? y)
+            => EqualityComparer<RoslynErrorTag>.Default.Equals(x as RoslynErrorTag, y as RoslynErrorTag);
+
+        int IEqualityComparer<IErrorTag>.GetHashCode(IErrorTag obj)
+            => EqualityComparer<RoslynErrorTag>.Default.GetHashCode(obj as RoslynErrorTag);
     }
 }

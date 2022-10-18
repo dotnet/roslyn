@@ -20,10 +20,10 @@ namespace Microsoft.CodeAnalysis.BraceMatching
             this.NavigateToStart = navigateToStart;
         }
 
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
             => Equals(obj as BraceHighlightTag);
 
-        public bool Equals(BraceHighlightTag other)
+        public bool Equals(BraceHighlightTag? other)
             => other != null && NavigateToStart == other.NavigateToStart;
 
         public override int GetHashCode()

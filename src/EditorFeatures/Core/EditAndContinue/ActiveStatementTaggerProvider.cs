@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.ComponentModel.Composition;
 using System.Diagnostics;
@@ -38,6 +39,10 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         // We want to track text changes so that we can try to only reclassify a method body if
         // all edits were contained within one.
         protected override TaggerTextChangeBehavior TextChangeBehavior => TaggerTextChangeBehavior.TrackTextChanges;
+
+        // Fine to use EqualityComparer<>.Default here as all ActiveStatementTag is a singleton and thus works properly here.
+        protected override IEqualityComparer<ITextMarkerTag> TagEqualityComparer
+            => EqualityComparer<ITextMarkerTag>.Default;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]

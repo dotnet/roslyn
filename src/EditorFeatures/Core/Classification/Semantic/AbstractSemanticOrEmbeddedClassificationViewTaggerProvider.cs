@@ -128,8 +128,8 @@ namespace Microsoft.CodeAnalysis.Classification
                 context, spanToTag, classificationService, _typeMap, classificationOptions, _type, cancellationToken);
         }
 
-        bool IEqualityComparer<IClassificationTag>.Equals(IClassificationTag x, IClassificationTag y)
-            => x.ClassificationType.Classification == y.ClassificationType.Classification;
+        bool IEqualityComparer<IClassificationTag>.Equals(IClassificationTag? x, IClassificationTag? y)
+            => x?.ClassificationType.Classification == y?.ClassificationType.Classification;
 
         int IEqualityComparer<IClassificationTag>.GetHashCode(IClassificationTag obj)
             => obj.ClassificationType.Classification.GetHashCode();
