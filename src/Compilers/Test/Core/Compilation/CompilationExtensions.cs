@@ -434,7 +434,7 @@ namespace System.Runtime.InteropServices.WindowsRuntime
             var compilation = CSharpCompilation.Create(
                 "System.Runtime.InteropServices.WindowsRuntime",
                 new[] { CSharpSyntaxTree.ParseText(SourceText.From(source, encoding: null, SourceHashAlgorithms.Default)) },
-                references: TargetFrameworkUtil.GetReferences(TargetFramework.NetCoreApp),
+                references: TargetFrameworkUtil.GetReferences(TargetFramework.Net50),
                 options: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
             compilation.VerifyEmitDiagnostics();
             return compilation.EmitToPortableExecutableReference();
