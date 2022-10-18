@@ -2846,6 +2846,17 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode? VisitLocal(BoundLocal node)
         {
             var local = node.LocalSymbol;
+
+            // Ignore var self-references (e.g., the RHS of `var x = x;`) to avoid cycles.
+            // While inferring the type of a more complex construct (like lambda),
+            // nullability analysis could be triggered against a reference of the local being inferred,
+            // querying its type and hence starting the same type inference recursively.
+            if (local is SourceLocalSymbol { IsVar: true } && local.ForbiddenZone?.Contains(node.Syntax) == true)
+            {
+                SetResultType(node, TypeWithState.ForType(node.Type));
+                return null;
+            }
+
             int slot = GetOrCreateSlot(local);
             var type = GetDeclaredLocalResult(local);
 

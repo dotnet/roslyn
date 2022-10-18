@@ -85,6 +85,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
                 }
                 else if (Workspace.CurrentSolution.GetProject(projectId) is Project project)
                 {
+                    // Preload project completion providers at document open also helps avoid redundant file reads
+                    // from a race caused by multiple features (codefix, refactoring, etc.) attempting to get extensions
+                    // from analyzer references at the same time when they are not cached.
+                    if (project.GetLanguageService<CompletionService>() is CompletionService completionService)
+                        completionService.TriggerLoadProjectProviders(project);
+
                     await InitializeServiceForProjectWithOpenedDocumentAsync(project).ConfigureAwait(false);
                 }
             }

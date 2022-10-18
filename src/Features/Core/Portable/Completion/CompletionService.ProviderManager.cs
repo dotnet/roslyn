@@ -76,7 +76,7 @@ namespace Microsoft.CodeAnalysis.Completion
                 return ValueTaskFactory.CompletedTask;
             }
 
-            private ImmutableArray<CompletionProvider> GetCachedProjectCompletionProvidersOrQueueLoadInBackground(Project? project)
+            public ImmutableArray<CompletionProvider> GetCachedProjectCompletionProvidersOrQueueLoadInBackground(Project? project)
             {
                 if (project is null || project.Solution.WorkspaceKind == WorkspaceKind.Interactive)
                 {

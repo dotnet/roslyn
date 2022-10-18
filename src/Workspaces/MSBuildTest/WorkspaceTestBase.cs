@@ -107,6 +107,10 @@ namespace Microsoft.CodeAnalysis.UnitTests
         protected static FileSet GetSimpleVisualBasicSolutionFiles()
         {
             return new FileSet(
+                (@"NuGet.Config", Resources.NuGet_Config),
+                (@"Directory.Build.props", Resources.Directory_Build_props),
+                (@"Directory.Build.targets", Resources.Directory_Build_targets),
+                (@"TestSolution.sln", Resources.SolutionFiles.VisualBasic),
                 (@"VisualBasicProject\VisualBasicProject.vbproj", Resources.ProjectFiles.VisualBasic.VisualBasicProject),
                 (@"VisualBasicProject\VisualBasicClass.vb", Resources.SourceFiles.VisualBasic.VisualBasicClass),
                 (@"VisualBasicProject\My Project\Application.Designer.vb", Resources.SourceFiles.VisualBasic.Application_Designer),
