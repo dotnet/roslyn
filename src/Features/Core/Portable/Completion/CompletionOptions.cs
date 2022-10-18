@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.Completion
         public bool UpdateImportCompletionCacheInBackground { get; init; } = false;
         public bool FilterOutOfScopeLocals { get; init; } = true;
         public bool ShowXmlDocCommentCompletion { get; init; } = true;
-        public bool SnippetCompletion { get; init; } = false;
+        public bool ShowNewSnippetExperience { get; init; } = false;
         public ExpandedCompletionMode ExpandedCompletionBehavior { get; init; } = ExpandedCompletionMode.AllItems;
         public NamingStylePreferences? NamingStyleFallbackOptions { get; init; } = null;
 
@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.Completion
         /// </summary>
         public bool ShouldShowNewSnippetExperience()
         {
-            return SnippetCompletion;
+            return ShowNewSnippetExperience;
         }
     }
 }

@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
 
         protected AbstractCSharpSnippetCompletionProviderTests()
         {
-            SnippetCompletion = true;
+            ShowNewSnippetExperience = true;
         }
 
         internal override Type GetCompletionProviderType()
