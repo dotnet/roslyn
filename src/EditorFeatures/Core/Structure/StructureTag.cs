@@ -2,15 +2,17 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using Microsoft.CodeAnalysis.Structure;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Adornments;
 using Microsoft.VisualStudio.Text.Tagging;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.Structure
 {
-    internal sealed class StructureTag : IStructureTag
+    internal sealed class StructureTag : IStructureTag, IEquatable<StructureTag>
     {
         private readonly AbstractStructureTaggerProvider _tagProvider;
 
@@ -58,6 +60,23 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Structure
         public bool IsCollapsible { get; }
         public bool IsDefaultCollapsed { get; }
         public bool IsImplementation { get; }
+
+        public override int GetHashCode()
+            => throw ExceptionUtilities.Unreachable();
+
+        public override bool Equals(object? obj)
+            => Equals(obj as StructureTag);
+
+        public bool Equals(StructureTag? other)
+        {
+            return other != null &&
+                this.GuideLineHorizontalAnchorPoint == other.GuideLineHorizontalAnchorPoint &&
+                this.Type == other.Type &&
+                this.IsCollapsible == other.IsCollapsible &&
+                this.IsDefaultCollapsed == other.IsDefaultCollapsed &&
+                this.IsImplementation == other.IsImplementation &&
+                SpanEquals()
+        }
 
         public object? GetCollapsedForm()
         {
