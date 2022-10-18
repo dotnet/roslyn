@@ -118,19 +118,23 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.SplitStringLiteral
 
                 // apply the change:
                 var newDocument = parsedDocument.WithChangedRoot(newRoot!, CancellationToken.None);
-                subjectBuffer.ApplyChanges(newDocument.GetChanges(parsedDocument));
+                var newSnapshot = subjectBuffer.ApplyChanges(newDocument.GetChanges(parsedDocument));
                 parsedDocument = newDocument;
 
-                // move caret:
-                var snapshotPoint = new SnapshotPoint(
-                    subjectBuffer.CurrentSnapshot, newPosition);
-                var newCaretPoint = textView.BufferGraph.MapUpToBuffer(
-                    snapshotPoint, PointTrackingMode.Negative, PositionAffinity.Predecessor,
-                    textView.TextBuffer);
-
-                if (newCaretPoint != null)
+                // The buffer edit may have adjusted to position of the current caret but we might need a different location.
+                // Only adjust caret if it is the only one (no multi-caret support: https://github.com/dotnet/roslyn/issues/64812).
+                if (spans.Count == 1)
                 {
-                    textView.Caret.MoveTo(newCaretPoint.Value);
+                    var newCaretPoint = textView.BufferGraph.MapUpToBuffer(
+                        new SnapshotPoint(newSnapshot, newPosition),
+                        PointTrackingMode.Negative,
+                        PositionAffinity.Predecessor,
+                        textView.TextBuffer);
+
+                    if (newCaretPoint != null)
+                    {
+                        textView.Caret.MoveTo(newCaretPoint.Value);
+                    }
                 }
 
                 transaction?.Complete();
