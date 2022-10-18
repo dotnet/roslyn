@@ -8,6 +8,7 @@ using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.DesignerAttribute;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 using StreamJsonRpc;
 
@@ -37,6 +38,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
         public IAsyncEnumerable<DesignerAttributeData> DiscoverDesignerAttributesAsync(
             Checksum solutionChecksum,
+            ProjectId projectId,
             DocumentId? priorityDocument,
             CancellationToken cancellationToken)
         {
@@ -44,8 +46,9 @@ namespace Microsoft.CodeAnalysis.Remote
                 solutionChecksum,
                 (solution, cancellationToken) =>
                 {
+                    var project = solution.GetRequiredProject(projectId);
                     var service = solution.Services.GetRequiredService<IDesignerAttributeDiscoveryService>();
-                    return service.ProcessSolutionAsync(solution, priorityDocument, cancellationToken);
+                    return service.ProcessProjectAsync(project, priorityDocument, cancellationToken);
                 }, cancellationToken);
             return stream.WithJsonRpcSettings(new JsonRpcEnumerableSettings { MaxReadAhead = MaxReadAhead });
         }

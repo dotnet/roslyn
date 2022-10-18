@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Composition;
 using System.Runtime.CompilerServices;
@@ -26,35 +25,9 @@ namespace Microsoft.CodeAnalysis.DesignerAttribute
         {
         }
 
-        public async IAsyncEnumerable<DesignerAttributeData> ProcessSolutionAsync(
-            Solution solution,
-            DocumentId? priorityDocumentId,
-            [EnumeratorCancellation] CancellationToken cancellationToken)
-        {
-            // Handle the priority doc first.
-            var priorityDocument = solution.GetDocument(priorityDocumentId);
-            if (priorityDocument != null)
-            {
-                await foreach (var item in ProcessProjectAsync(priorityDocument.Project, priorityDocument, cancellationToken).ConfigureAwait(false))
-                    yield return item;
-            }
-
-            // Process the rest of the projects in dependency order so that their data is ready when we hit the 
-            // projects that depend on them.
-            var dependencyGraph = solution.GetProjectDependencyGraph();
-            foreach (var projectId in dependencyGraph.GetTopologicallySortedProjects(cancellationToken))
-            {
-                if (projectId != priorityDocumentId?.ProjectId)
-                {
-                    await foreach (var item in ProcessProjectAsync(solution.GetRequiredProject(projectId), specificDocument: null, cancellationToken).ConfigureAwait(false))
-                        yield return item;
-                }
-            }
-        }
-
-        private async IAsyncEnumerable<DesignerAttributeData> ProcessProjectAsync(
+        public async IAsyncEnumerable<DesignerAttributeData> ProcessProjectAsync(
             Project project,
-            Document? specificDocument,
+            DocumentId? specificDocumentId,
             [EnumeratorCancellation] CancellationToken cancellationToken)
         {
             if (!project.SupportsCompilation)
@@ -65,13 +38,9 @@ namespace Microsoft.CodeAnalysis.DesignerAttribute
             if (designerCategoryType == null)
                 yield break;
 
-            // We need to reanalyze the project whenever it (or any of its dependencies) have changed.  We need to know
-            // about dependencies since if a downstream project adds the DesignerCategory attribute to a class, that can
-            // affect us when we examine the classes in this project.
-            var projectVersion = await project.GetDependentSemanticVersionAsync(cancellationToken).ConfigureAwait(false);
-
+            var specificDocument = project.GetDocument(specificDocumentId);
             await foreach (var item in ScanForDesignerCategoryUsageAsync(
-                project, specificDocument, projectVersion, designerCategoryType, cancellationToken).ConfigureAwait(false))
+                project, specificDocument, designerCategoryType, cancellationToken).ConfigureAwait(false))
             {
                 yield return item;
             }
@@ -80,17 +49,16 @@ namespace Microsoft.CodeAnalysis.DesignerAttribute
             if (specificDocument != null)
             {
                 await foreach (var item in ScanForDesignerCategoryUsageAsync(
-                    project, specificDocument: null, projectVersion, designerCategoryType, cancellationToken).ConfigureAwait(false))
+                    project, specificDocument: null, designerCategoryType, cancellationToken).ConfigureAwait(false))
                 {
                     yield return item;
                 }
             }
         }
 
-        private async IAsyncEnumerable<DesignerAttributeData> ScanForDesignerCategoryUsageAsync(
+        private static async IAsyncEnumerable<DesignerAttributeData> ScanForDesignerCategoryUsageAsync(
             Project project,
             Document? specificDocument,
-            VersionStamp projectVersion,
             INamedTypeSymbol designerCategoryType,
             [EnumeratorCancellation] CancellationToken cancellationToken)
         {
@@ -107,14 +75,6 @@ namespace Microsoft.CodeAnalysis.DesignerAttribute
                 if (document.FilePath == null)
                     continue;
 
-                // If nothing has changed at the top level between the last time we analyzed this document and now, then
-                // no need to analyze again.
-                if (_documentToLastReportedInformation.TryGetValue(document.Id, out var existingInfo) &&
-                    existingInfo.projectVersion == projectVersion)
-                {
-                    continue;
-                }
-
                 tasks.Add(ComputeDesignerAttributeDataAsync(designerCategoryType, document, cancellationToken));
             }
 
@@ -124,10 +84,7 @@ namespace Microsoft.CodeAnalysis.DesignerAttribute
                 if (dataOpt is null)
                     continue;
 
-                var data = dataOpt.Value;
-                _documentToLastReportedInformation.TryGetValue(data.DocumentId, out var existingInfo);
-                if (existingInfo.category != data.Category)
-                    yield return data;
+                yield return dataOpt.Value;
             }
         }
 

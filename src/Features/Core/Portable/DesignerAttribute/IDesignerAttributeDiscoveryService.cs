@@ -10,6 +10,7 @@ namespace Microsoft.CodeAnalysis.DesignerAttribute
 {
     internal interface IDesignerAttributeDiscoveryService : IWorkspaceService
     {
-        IAsyncEnumerable<DesignerAttributeData> ProcessSolutionAsync(Solution solution, DocumentId? priorityDocumentId, CancellationToken cancellationToken);
+        // IAsyncEnumerable<DesignerAttributeData> ProcessSolutionAsync(Solution solution, DocumentId? priorityDocumentId, CancellationToken cancellationToken);
+        IAsyncEnumerable<DesignerAttributeData> ProcessProjectAsync(Project project, DocumentId? priorityDocumentId, CancellationToken cancellationToken);
     }
 }

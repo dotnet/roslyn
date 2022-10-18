@@ -13,6 +13,6 @@ namespace Microsoft.CodeAnalysis.DesignerAttribute
     /// </summary>
     internal interface IRemoteDesignerAttributeDiscoveryService
     {
-        IAsyncEnumerable<DesignerAttributeData> DiscoverDesignerAttributesAsync(Checksum solutionChecksum, DocumentId? priorityDocument, CancellationToken cancellationToken);
+        IAsyncEnumerable<DesignerAttributeData> DiscoverDesignerAttributesAsync(Checksum solutionChecksum, ProjectId project, DocumentId? priorityDocument, CancellationToken cancellationToken);
     }
 }
