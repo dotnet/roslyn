@@ -101,6 +101,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         }
 
         protected override bool Equals(ITextSnapshot snapshot, ClassificationTag tag1, ClassificationTag tag2)
-            => x.ClassificationType.Classification == y.ClassificationType.Classification;
+            => tag1.ClassificationType.Classification == tag2.ClassificationType.Classification;
     }
 }
