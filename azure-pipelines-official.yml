@@ -294,8 +294,9 @@ stages:
       publishUsingPipelines: true
       dependsOn:
         - OfficialBuild
-      pool:
-        vmImage: windows-2019
+    pool:
+      name: NetCore1ESPool-Svc-Internal
+      demands: ImageOverride -equals windows.vs2019.amd64
 
 - stage: insert
   dependsOn:
@@ -306,7 +307,8 @@ stages:
   - job: insert
     displayName: Insert to VS
     pool:
-      vmImage: windows-2019
+      name: NetCore1ESPool-Svc-Internal
+      demands: ImageOverride -equals windows.vs2019.amd64
     steps:
     - download: current
       artifact: VSSetup
