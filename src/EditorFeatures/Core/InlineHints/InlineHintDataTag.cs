@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
                 return false;
 
             if (this.Hint.ReplacementTextChange != null &&
-                this.Hint.ReplacementTextChange != null &&
+                other.Hint.ReplacementTextChange != null &&
                 !_provider.SpanEquals(_snapshot, this.Hint.ReplacementTextChange.Value.Span, other._snapshot, other.Hint.ReplacementTextChange.Value.Span))
             {
                 return false;
