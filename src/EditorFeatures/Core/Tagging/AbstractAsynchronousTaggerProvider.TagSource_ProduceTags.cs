@@ -138,12 +138,11 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                 if (!tagsToRemove.Any())
                     return;
 
-                var tagComparer = new TagComparer(snapshot);
                 var allTags = treeForBuffer.GetSpans(e.After).ToList();
                 var newTagTree = new TagSpanIntervalTree<TTag>(
                     buffer,
                     treeForBuffer.SpanTrackingMode,
-                    allTags.Except(tagsToRemove, new TagSpanComparer(tagComparer)));
+                    allTags.Except(tagsToRemove, new TagSpanComparer(this, snapshot)));
 
                 this.CachedTagTrees = this.CachedTagTrees.SetItem(snapshot.TextBuffer, newTagTree);
 
@@ -442,9 +441,8 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
             /// <summary>
             /// Return all the spans that appear in only one of <paramref name="latestTree"/> or <paramref name="previousTree"/>.
             /// </summary>
-            private static DiffResult ComputeDifference(
+            private DiffResult ComputeDifference(
                 ITextSnapshot snapshot,
-                IEqualityComparer<TTag> tagComparer,
                 TagSpanIntervalTree<TTag> latestTree,
                 TagSpanIntervalTree<TTag> previousTree)
             {
@@ -490,7 +488,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                         }
                         else
                         {
-                            if (!tagComparer.Equals(latest.Tag, previous.Tag))
+                            if (!this._dataSource.Equals(snapshot, latest.Tag, previous.Tag))
                                 added.Add(latestSpan);
 
                             latest = NextOrNull(latestEnumerator);
