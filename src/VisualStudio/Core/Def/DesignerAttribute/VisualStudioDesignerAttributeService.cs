@@ -225,12 +225,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            // We will always get a sequence of `project1, p1-data1, p1-data2, p1-data3, project2, p2-data1, p2-data2, p2-data3, ...`
-            //
-            // Note that this list may be in an arbitrary range of the above.  e.g.:
-            //
-            // `p1-data3, project2, p2-data1`
-
             using var _1 = ArrayBuilder<DesignerAttributeData>.GetInstance(out var changedData);
 
             var latestSolution = AddChangedData(dataList, changedData);
