@@ -345,6 +345,148 @@ ref struct B
             VerifyFieldSymbol(field, "ref readonly System.Int32 A.F", RefKind.RefReadOnly, new string[0]);
         }
 
+        [WorkItem(64682, "https://github.com/dotnet/roslyn/issues/64682")]
+        [Fact]
+        public void RefFieldInNonRefStruct()
+        {
+            var sourceA =
+@".class public A<T>
+{
+  .field public !0& F1
+}
+.class public sealed S extends [mscorlib]System.ValueType
+{
+  .field public int32 F2
+}";
+            var refA = CompileIL(sourceA);
+
+            var sourceB =
+@"class Program
+{
+    static ref int F1(ref A<int> a) => ref a.F1; // 1
+    static ref int F2(ref S s) => ref s.F2; // 2
+}";
+            // https://github.com/dotnet/roslyn/issues/64682: Should report use-site errors.
+            var comp = CreateCompilation(sourceB, new[] { refA }, targetFramework: TargetFramework.Net70);
+            comp.VerifyEmitDiagnostics();
+            CompileAndVerify(comp, verify: Verification.Skipped);
+        }
+
+        [Fact]
+        public void RefAndReadonlyRefStruct_01()
+        {
+            var source =
+@"#pragma warning disable 169
+ref struct A
+{
+    ref int A1;
+    ref readonly int A2;
+    readonly ref int A3;
+    readonly ref readonly int A4;
+}
+readonly ref struct B
+{
+    ref int B1;
+    ref readonly int B2;
+    readonly ref int B3;
+    readonly ref readonly int B4;
+}";
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+            comp.VerifyEmitDiagnostics(
+                // (11,13): error CS8340: Instance fields of readonly structs must be readonly.
+                //     ref int B1;
+                Diagnostic(ErrorCode.ERR_FieldsInRoStruct, "B1").WithLocation(11, 13),
+                // (12,22): error CS8340: Instance fields of readonly structs must be readonly.
+                //     ref readonly int B2;
+                Diagnostic(ErrorCode.ERR_FieldsInRoStruct, "B2").WithLocation(12, 22));
+        }
+
+        /// <summary>
+        /// ref readonly fields emitted as initonly.
+        /// ref readonly fields emitted with System.Runtime.CompilerServices.IsReadOnlyAttribute.
+        /// </summary>
+        [Fact]
+        public void RefAndReadonlyRefStruct_02()
+        {
+            var source =
+@"#pragma warning disable 169
+ref struct A
+{
+    ref int A1;
+    ref readonly int A2;
+    readonly ref int A3;
+    readonly ref readonly int A4;
+}
+readonly ref struct B
+{
+    readonly ref int B3;
+    readonly ref readonly int B4;
+}";
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+            comp.VerifyEmitDiagnostics();
+            var verifier = CompileAndVerify(comp, verify: Verification.Skipped);
+            verifier.VerifyTypeIL("A",
+@".class private sequential ansi sealed beforefieldinit A
+	extends [System.Runtime]System.ValueType
+{
+	.custom instance void [System.Runtime]System.Runtime.CompilerServices.IsByRefLikeAttribute::.ctor() = (
+		01 00 00 00
+	)
+	.custom instance void [System.Runtime]System.ObsoleteAttribute::.ctor(string, bool) = (
+		01 00 52 54 79 70 65 73 20 77 69 74 68 20 65 6d
+		62 65 64 64 65 64 20 72 65 66 65 72 65 6e 63 65
+		73 20 61 72 65 20 6e 6f 74 20 73 75 70 70 6f 72
+		74 65 64 20 69 6e 20 74 68 69 73 20 76 65 72 73
+		69 6f 6e 20 6f 66 20 79 6f 75 72 20 63 6f 6d 70
+		69 6c 65 72 2e 01 00 00
+	)
+	.custom instance void [System.Runtime]System.Runtime.CompilerServices.CompilerFeatureRequiredAttribute::.ctor(string) = (
+		01 00 0a 52 65 66 53 74 72 75 63 74 73 00 00
+	)
+	// Fields
+	.field private int32& A1
+	.field private int32& A2
+	.custom instance void [System.Runtime]System.Runtime.CompilerServices.IsReadOnlyAttribute::.ctor() = (
+		01 00 00 00
+	)
+	.field private initonly int32& A3
+	.field private initonly int32& A4
+	.custom instance void [System.Runtime]System.Runtime.CompilerServices.IsReadOnlyAttribute::.ctor() = (
+		01 00 00 00
+	)
+} // end of class A
+");
+            verifier.VerifyTypeIL("B",
+@".class private sequential ansi sealed beforefieldinit B
+	extends [System.Runtime]System.ValueType
+{
+	.custom instance void [System.Runtime]System.Runtime.CompilerServices.IsByRefLikeAttribute::.ctor() = (
+		01 00 00 00
+	)
+	.custom instance void [System.Runtime]System.ObsoleteAttribute::.ctor(string, bool) = (
+		01 00 52 54 79 70 65 73 20 77 69 74 68 20 65 6d
+		62 65 64 64 65 64 20 72 65 66 65 72 65 6e 63 65
+		73 20 61 72 65 20 6e 6f 74 20 73 75 70 70 6f 72
+		74 65 64 20 69 6e 20 74 68 69 73 20 76 65 72 73
+		69 6f 6e 20 6f 66 20 79 6f 75 72 20 63 6f 6d 70
+		69 6c 65 72 2e 01 00 00
+	)
+	.custom instance void [System.Runtime]System.Runtime.CompilerServices.CompilerFeatureRequiredAttribute::.ctor(string) = (
+		01 00 0a 52 65 66 53 74 72 75 63 74 73 00 00
+	)
+	.custom instance void [System.Runtime]System.Runtime.CompilerServices.IsReadOnlyAttribute::.ctor() = (
+		01 00 00 00
+	)
+	// Fields
+	.field private initonly int32& B3
+	.field private initonly int32& B4
+	.custom instance void [System.Runtime]System.Runtime.CompilerServices.IsReadOnlyAttribute::.ctor() = (
+		01 00 00 00
+	)
+} // end of class B
+");
+        }
+
         [Fact]
         public void TupleField()
         {
@@ -7422,19 +7564,21 @@ class Program
     static void Main()
     {
         int i = 1;
-        Try(() => ReadAndDiscard1(ref i));
-        Try(() => ReadAndDiscardNoArg<int>());
-        Try(() => ReadAndDiscard2(new S<int>(ref i)));
+        Try(1, () => ReadAndDiscard1(ref i));
+        Try(2, () => ReadAndDiscardNoArg<int>());
+        Try(3, () => ReadAndDiscard2(new S<int>(ref i)));
+        Try(4, () => ReadAndDiscard2(new S<int>()));
 
-        void Try(Action a)
+        void Try(int i, Action a)
         {
             try
             {
                 a();
+                Console.WriteLine(i);
             }
             catch (NullReferenceException)
             {
-                System.Console.WriteLine(""NullReferenceException"");
+                Console.WriteLine(""NullReferenceException"");
             }
         }
     }
@@ -7452,7 +7596,12 @@ class Program
     }
 }";
             var comp = CreateCompilation(source, options: TestOptions.ReleaseExe, targetFramework: TargetFramework.Net70);
-            var verifier = CompileAndVerify(comp, verify: Verification.Skipped, expectedOutput: IncludeExpectedOutput("NullReferenceException"));
+            var verifier = CompileAndVerify(comp, verify: Verification.Skipped, expectedOutput: IncludeExpectedOutput(
+@"1
+NullReferenceException
+3
+NullReferenceException
+"));
             verifier.VerifyIL("Program.ReadAndDiscard1<T>", """
 {
   // Code size       18 (0x12)
@@ -8826,6 +8975,67 @@ class Program
                 // (22,9): error CS8373: The left-hand side of a ref assignment must be a ref variable.
                 //         s.P2 = ref x;
                 Diagnostic(ErrorCode.ERR_RefLocalOrParamExpected, "s.P2").WithLocation(22, 9));
+        }
+
+        [Fact]
+        [WorkItem(60807, "https://github.com/dotnet/roslyn/issues/60807")]
+        public void RefAndOut_PropertiesAndIndexers_As_ValuesAndParameters()
+        {
+            var source =
+@"
+var c = new C();
+var r = new R();
+//expressions
+ref int n = ref c.N;  //CS0206
+ref var l = ref c[0]; //CS0206
+ref var l2 = ref r[0];//OK
+_ = M(ref c.N);       //CS0206
+_ = M(ref r.N);       //OK
+_ = M(ref c[0]);      //CS0206
+_ = M(ref r[0]);      //OK
+_ = M2(out c.N);      //CS0206
+_ = M2(out r.N);      //OK
+_ = M2(out c[0]);     //CS0206
+_ = M2(out r[0]);     //OK
+//definitions
+static string M(ref int number) { return """"; }
+static string M2(out int number) { number = 42; return """"; }
+class C
+{
+    public int N { get; set; }    
+    private int[] arr = new int[100];
+    public int this[int i] => arr[i];
+}
+ref struct R
+{
+    public R(){}
+    private ref int n;
+    public ref int N => ref n;
+    private ref int[] arr = new int[1];
+    public ref int this[int i] => ref arr[i];
+}
+";
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+            comp.VerifyEmitDiagnostics(
+                // (5,17): error CS0206: A non ref-returning property or indexer may not be used as an out or ref value
+                // ref int n = ref c.N;  //CS0206
+                Diagnostic(ErrorCode.ERR_RefProperty, "c.N").WithLocation(5, 17),
+                // (6,17): error CS0206: A non ref-returning property or indexer may not be used as an out or ref value
+                // ref var l = ref c[0]; //CS0206
+                Diagnostic(ErrorCode.ERR_RefProperty, "c[0]").WithLocation(6, 17),
+                // (8,11): error CS0206: A non ref-returning property or indexer may not be used as an out or ref value
+                // _ = M(ref c.N);       //CS0206
+                Diagnostic(ErrorCode.ERR_RefProperty, "c.N").WithLocation(8, 11),
+                // (10,11): error CS0206: A non ref-returning property or indexer may not be used as an out or ref value
+                // _ = M(ref c[0]);      //CS0206
+                Diagnostic(ErrorCode.ERR_RefProperty, "c[0]").WithLocation(10, 11),
+                // (12,12): error CS0206: A non ref-returning property or indexer may not be used as an out or ref value
+                // _ = M2(out c.N);      //CS0206
+                Diagnostic(ErrorCode.ERR_RefProperty, "c.N").WithLocation(12, 12),
+                // (14,12): error CS0206: A non ref-returning property or indexer may not be used as an out or ref value
+                // _ = M2(out c[0]);     //CS0206
+                Diagnostic(ErrorCode.ERR_RefProperty, "c[0]").WithLocation(14, 12)
+            );
         }
 
         [Fact]
@@ -22320,7 +22530,7 @@ class Program
         }
 
         [Fact]
-        public void UnscopedRefAttribute_ScopeRefAttribute()
+        public void UnscopedRefAttribute_ScopeRefAttribute_Out()
         {
             var sourceA =
 @".assembly extern mscorlib { .ver 4:0:0:0 .publickeytoken = (B7 7A 5C 56 19 34 E0 89) }
@@ -22415,6 +22625,104 @@ class Program
             VerifyParameterSymbol(typeA.GetMethod("ScopedRefOnly").Parameters[0], "out System.Int32 i", RefKind.Out, DeclarationScope.RefScoped);
             VerifyParameterSymbol(typeA.GetMethod("UnscopedRefOnly").Parameters[0], "out System.Int32 i", RefKind.Out, DeclarationScope.Unscoped);
             VerifyParameterSymbol(typeA.GetMethod("ScopedRefAndUnscopedRef").Parameters[0], "out System.Int32 i", RefKind.Out, DeclarationScope.Unscoped);
+        }
+
+        [WorkItem(64778, "https://github.com/dotnet/roslyn/issues/64778")]
+        [Fact]
+        public void UnscopedRefAttribute_ScopeRefAttribute_RefToRefStruct()
+        {
+            var sourceA =
+@".assembly extern mscorlib { .ver 4:0:0:0 .publickeytoken = (B7 7A 5C 56 19 34 E0 89) }
+.assembly '<<GeneratedFileName>>' { }
+.module '<<GeneratedFileName>>.dll'
+.custom instance void System.Runtime.CompilerServices.RefSafetyRulesAttribute::.ctor(int32) = { int32(11) }
+.class private System.Runtime.CompilerServices.RefSafetyRulesAttribute extends [mscorlib]System.Attribute
+{
+  .method public hidebysig specialname rtspecialname instance void .ctor(int32 version) cil managed { ret }
+  .field public int32 Version
+}
+.class private System.Diagnostics.CodeAnalysis.UnscopedRefAttribute extends [mscorlib]System.Attribute
+{
+  .method public hidebysig specialname rtspecialname instance void .ctor() cil managed { ret }
+}
+.class private System.Runtime.CompilerServices.ScopedRefAttribute extends [mscorlib]System.Attribute
+{
+  .method public hidebysig specialname rtspecialname instance void .ctor() cil managed { ret }
+}
+.class public sealed R extends [mscorlib]System.ValueType
+{
+  .custom instance void [mscorlib]System.Runtime.CompilerServices.IsByRefLikeAttribute::.ctor() = (01 00 00 00)
+  .field public int32& F
+}
+.class public A
+{
+  .method public static void NoAttributes(valuetype R& x, valuetype R& y)
+  {
+    ldnull
+    throw
+  }
+  .method public static void ScopedRefOnly(valuetype R& x, valuetype R& y)
+  {
+    .param [1]
+    .custom instance void System.Runtime.CompilerServices.ScopedRefAttribute::.ctor() = ( 01 00 00 00 )
+    ldnull
+    throw
+  }
+  .method public static void UnscopedRefOnly(valuetype R& x, valuetype R& y)
+  {
+    .param [1]
+    .custom instance void System.Diagnostics.CodeAnalysis.UnscopedRefAttribute::.ctor() = ( 01 00 00 00 )
+    ldnull
+    throw
+  }
+  .method public static void ScopedRefAndUnscopedRef(valuetype R& x, valuetype R& y)
+  {
+    .param [1]
+    .custom instance void System.Diagnostics.CodeAnalysis.UnscopedRefAttribute::.ctor() = ( 01 00 00 00 )
+    .param [1]
+    .custom instance void System.Runtime.CompilerServices.ScopedRefAttribute::.ctor() = ( 01 00 00 00 )
+    ldnull
+    throw
+  }
+}
+";
+            var refA = CompileIL(sourceA, prependDefaultHeader: false);
+
+            var sourceB =
+@"class Program
+{
+    static void F1(ref R x, ref R y)
+    {
+        A.NoAttributes(ref x, ref y);
+    }
+    static void F2(ref R x, ref R y)
+    {
+        A.ScopedRefOnly(ref x, ref y);
+    }
+    static void F3(ref R x, ref R y)
+    {
+        A.UnscopedRefOnly(ref x, ref y); // 1
+    }
+    static void F4(ref R x, ref R y)
+    {
+        A.ScopedRefAndUnscopedRef(ref x, ref y); // 2
+    }
+}";
+            // https://github.com/dotnet/roslyn/issues/64778: No error reported for F3 because
+            // [UnscopedRef] ref R y is currently treated as ref R y from metadata.
+            var comp = CreateCompilation(sourceB, new[] { refA });
+            comp.VerifyEmitDiagnostics(
+                // (17,11): error CS0570: 'A.ScopedRefAndUnscopedRef(ref R, ref R)' is not supported by the language
+                //         A.ScopedRefAndUnscopedRef(ref x, ref y); // 2
+                Diagnostic(ErrorCode.ERR_BindToBogus, "ScopedRefAndUnscopedRef").WithArguments("A.ScopedRefAndUnscopedRef(ref R, ref R)").WithLocation(17, 11));
+
+            // https://github.com/dotnet/roslyn/issues/64778:
+            // [UnscopedRef] ref R y is currently treated as ref R y from metadata.
+            var typeA = comp.GetMember<NamedTypeSymbol>("A");
+            VerifyParameterSymbol(typeA.GetMethod("NoAttributes").Parameters[0], "ref R x", RefKind.Ref, DeclarationScope.Unscoped);
+            VerifyParameterSymbol(typeA.GetMethod("ScopedRefOnly").Parameters[0], "scoped ref R x", RefKind.Ref, DeclarationScope.RefScoped);
+            VerifyParameterSymbol(typeA.GetMethod("UnscopedRefOnly").Parameters[0], "ref R x", RefKind.Ref, DeclarationScope.Unscoped);
+            VerifyParameterSymbol(typeA.GetMethod("ScopedRefAndUnscopedRef").Parameters[0], "ref R x", RefKind.Ref, DeclarationScope.Unscoped);
         }
 
         [Fact]
