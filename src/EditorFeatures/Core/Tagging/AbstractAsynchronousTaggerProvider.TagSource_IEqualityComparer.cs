@@ -25,16 +25,17 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                     _snapshot = snapshot;
                 }
 
-                public bool Equals(ITagSpan<TTag> x, ITagSpan<TTag> y)
-                    => x.Span == y.Span && _provider.Equals(_snapshot, x.Tag, y.Tag);
+                public bool Equals(ITagSpan<TTag>? x, ITagSpan<TTag>? y)
+                    => x != null && y != null && x.Span == y.Span && _provider.Equals(_snapshot, x.Tag, y.Tag);
 
                 /// <summary>
                 /// For the purposes of hashing, just hash spans.  This will prevent most collisions.  And the rare
                 /// collision of two tag spans with the same span will be handled by checking if their tags are the same
                 /// through <see cref="Equals(ITagSpan{TTag}, ITagSpan{TTag})"/>.  This prevents us from having to
                 /// define a suitable hashing strategy for all our tags.
+                /// </summary>
                 public int GetHashCode(ITagSpan<TTag> obj)
-                    => obj.Span.TranslateTo(_snapshot, _provider.SpanTrackingMode).Span.GetHashCode();
+                    => obj.Span.GetHashCode();
             }
         }
     }

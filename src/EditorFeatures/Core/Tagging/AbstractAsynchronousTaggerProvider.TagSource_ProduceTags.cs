@@ -142,7 +142,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                 var newTagTree = new TagSpanIntervalTree<TTag>(
                     buffer,
                     treeForBuffer.SpanTrackingMode,
-                    allTags.Except(tagsToRemove, new TagSpanComparer(this, snapshot)));
+                    allTags.Except(tagsToRemove, new TagSpanComparer(_dataSource, snapshot)));
 
                 this.CachedTagTrees = this.CachedTagTrees.SetItem(snapshot.TextBuffer, newTagTree);
 
@@ -151,7 +151,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                 //
                 // treeForBuffer basically points to oldTagTrees. case where oldTagTrees not exist is already taken cared by
                 // CachedTagTrees.TryGetValue.
-                var difference = ComputeDifference(snapshot, tagComparer, newTagTree, treeForBuffer);
+                var difference = ComputeDifference(snapshot, newTagTree, treeForBuffer);
 
                 RaiseTagsChanged(snapshot.TextBuffer, difference);
             }
@@ -376,10 +376,9 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
             {
                 var snapshot = spansToInvalidate.First().Snapshot;
 
-                var tagSpansToInvalidate = new List<ITagSpan<TTag>>(
-                    spansToInvalidate.SelectMany(ss => oldTagTree.GetIntersectingSpans(ss)));
-
-                return oldTagTree.GetSpans(snapshot).Except(tagSpansToInvalidate, comparer: this);
+                return oldTagTree.GetSpans(snapshot).Except(
+                    spansToInvalidate.SelectMany(oldTagTree.GetIntersectingSpans),
+                    comparer: new TagSpanComparer(_dataSource, snapshot));
             }
 
             private bool ShouldSkipTagProduction()
@@ -399,7 +398,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                     : _dataSource.ProduceTagsAsync(context, cancellationToken);
             }
 
-            private static Dictionary<ITextBuffer, DiffResult> ProcessNewTagTrees(
+            private Dictionary<ITextBuffer, DiffResult> ProcessNewTagTrees(
                 ImmutableArray<DocumentSnapshotSpan> spansToTag,
                 ImmutableDictionary<ITextBuffer, TagSpanIntervalTree<TTag>> oldTagTrees,
                 ImmutableDictionary<ITextBuffer, TagSpanIntervalTree<TTag>> newTagTrees,
