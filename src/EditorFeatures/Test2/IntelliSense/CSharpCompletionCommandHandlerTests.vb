@@ -10501,7 +10501,7 @@ class MyClass
             End Function
         End Class
 
-        <WpfFact>
+        <WpfTheory(Skip:="https://github.com/dotnet/roslyn/issues/64804"), CombinatorialData>
         <Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestSortingOfSameNamedCompletionItems() As Task
             Using state = TestStateFactory.CreateCSharpTestState(

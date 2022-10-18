@@ -82,6 +82,10 @@ internal static class CompletionOptionsStorage
     public static readonly Option2<bool> ForceExpandedCompletionIndexCreation
         = new(nameof(CompletionOptions), nameof(ForceExpandedCompletionIndexCreation), defaultValue: false);
 
+    public static readonly PerLanguageOption2<bool?> ShowNewSnippetExperience
+        = new(nameof(CompletionOptions), nameof(ShowNewSnippetExperience), CompletionOptions.Default.ShowNewSnippetExperience,
+            storageLocation: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.ShowNewSnippetExperience"));
+
     // Set to true to update import completion cache in background if the provider isn't supposed to be triggered in the context.
     // (cache will alsways be refreshed when provider is triggered)
     public static readonly Option2<bool> UpdateImportCompletionCacheInBackground

@@ -31,14 +31,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
     [Shared]
     internal sealed class SnippetCompletionProvider : LSPCompletionProvider
     {
-        private static readonly HashSet<string> s_builtInSnippets = new()
-        {
-            "#if", "#region", "Attribute", "checked", "class", "ctor", "cw", "do", "else", "enum", "equals", "Exception",
-            "for", "foreach", "forr", "if", "indexer", "interface", "invoke", "iterindex", "iterator", "lock", "mbox",
-            "namespace", "prop", "propa", "propdp", "propfull", "propg", "sim", "struct", "svm", "switch", "testc", "testm",
-            "try", "tryf", "unchecked", "unsafe", "using", "while", "~"
-        };
-
         internal override bool IsSnippetProvider => true;
 
         [ImportingConstructor]
@@ -126,7 +118,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                         SyntaxKind.WarningKeyword))
                 {
                     return GetSnippetCompletionItems(
-                        completionContext, document.Project.Solution.Services, semanticModel, isPreProcessorContext: true);
+                        document.Project.Solution.Services, semanticModel, isPreProcessorContext: true);
                 }
             }
             else
@@ -142,7 +134,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                     semanticFacts.IsLabelContext(semanticModel, position, cancellationToken))
                 {
                     return GetSnippetCompletionItems(
-                        completionContext, document.Project.Solution.Services, semanticModel, isPreProcessorContext: false);
+                        document.Project.Solution.Services, semanticModel, isPreProcessorContext: false);
                 }
             }
 
@@ -150,7 +142,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         }
 
         private static ImmutableArray<CompletionItem> GetSnippetCompletionItems(
-            CompletionContext context, SolutionServices services, SemanticModel semanticModel, bool isPreProcessorContext)
+            SolutionServices services, SemanticModel semanticModel, bool isPreProcessorContext)
         {
             var service = services.GetLanguageServices(semanticModel.Language).GetService<ISnippetInfoService>();
             if (service == null)
