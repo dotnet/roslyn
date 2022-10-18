@@ -113,6 +113,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.StringIndentation
                 context.AddTag(new TagSpan<StringIndentationTag>(
                     region.IndentSpan.ToSnapshotSpan(snapshot),
                     new StringIndentationTag(
+                        this,
                         _editorFormatMap,
                         region.OrderedHoleSpans.SelectAsArray(s => s.ToSnapshotSpan(snapshot)))));
             }

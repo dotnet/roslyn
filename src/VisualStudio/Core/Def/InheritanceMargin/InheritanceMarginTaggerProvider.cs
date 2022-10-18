@@ -150,5 +150,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
                     new InheritanceMarginTag(lineNumber, membersOnTheLineArray)));
             }
         }
+
+        protected override bool Equals(InheritanceMarginTag tag1, InheritanceMarginTag tag2)
+            => tag1.Equals(tag2);
     }
 }
